@@ -1,0 +1,2809 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Hệ thống tệp là gì và giải quyết vấn đề tổ chức dữ liệu như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt tệp, hệ thống tệp, định dạng tệp và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mô hình từ ứng dụng đến hệ điều hành, hệ thống tệp và thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt tên tệp, đối tượng tệp, nội dung và siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Cây thư mục và không gian tên của hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Các nhóm thao tác: tạo, mở, đọc, ghi, đóng, đổi tên và xóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Tính bền vững, tính nguyên tử và tính nhất quán khác nhau ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phân biệt giao diện hệ thống tệp với cách dữ liệu được lưu bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Hệ thống tệp cục bộ, trên mạng, trong bộ nhớ và hệ thống tệp ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình học và môi trường thực hành an toàn trên dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-directories
+  title: Tệp và thư mục
+  childs:
+  - slug: files-directories-001
+    title: Tệp thông thường và cách hệ điều hành nhìn nội dung như chuỗi byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-002
+    title: Thư mục và các mục liên kết tên với đối tượng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-003
+    title: Tệp văn bản, tệp nhị phân và vai trò của ứng dụng diễn giải dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-004
+    title: Phần mở rộng, kiểu nội dung và nhận diện định dạng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-005
+    title: Tệp ẩn và quy ước hiển thị theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-006
+    title: Tệp thiết bị, ống có tên và Unix domain socket trong không gian tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-007
+    title: 'Hệ thống tệp ảo: /proc, /sys và dữ liệu được cung cấp khi truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-008
+    title: Tệp tạm, thư mục tạm và vòng đời dữ liệu trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-009
+    title: Cây thư mục chuẩn, thư mục người dùng và vị trí dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-directories-010
+    title: Phân biệt tổ chức thư mục theo mục đích với cấu trúc vật lý của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: paths
+  title: Đường dẫn
+  childs:
+  - slug: paths-001
+    title: Đường dẫn tuyệt đối, tương đối và thư mục làm việc hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-002
+    title: Thư mục gốc, thành phần đường dẫn và ký hiệu . cùng ..
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-003
+    title: Dấu phân cách, ký tự đặc biệt và quy tắc đặt tên theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-004
+    title: Phân biệt chữ hoa và chữ thường trong tra cứu tên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-005
+    title: Unicode, chuẩn hóa tên và các tên nhìn giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-006
+    title: Quá trình phân giải đường dẫn qua từng thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-007
+    title: Quyền tìm kiếm trên thư mục và ảnh hưởng đến truy cập đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-008
+    title: Đường dẫn chuẩn hóa về mặt cú pháp và đường dẫn sau phân giải liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-009
+    title: 'Đường dẫn Windows: ký tự ổ đĩa, đường dẫn UNC và dạng phụ thuộc ổ hiện tại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-010
+    title: Giới hạn độ dài đường dẫn, độ dài tên và độ sâu cây thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-011
+    title: Tên dành riêng, dấu chấm cuối và khác biệt khi chuyển dữ liệu giữa nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: paths-012
+    title: Đường dẫn không còn tồn tại và thay đổi không gian tên trong lúc truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: Siêu dữ liệu
+  childs:
+  - slug: metadata-001
+    title: Siêu dữ liệu tệp gồm những gì và được quản lý ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: Inode, mã định danh tệp và sự tách biệt giữa tên với đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: Loại tệp, kích thước logic và lượng lưu trữ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: Chủ sở hữu, nhóm sở hữu và thông tin kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: Thời gian truy cập, sửa nội dung, đổi siêu dữ liệu và tạo tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: Số liên kết và vòng đời của đối tượng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-007
+    title: Thuộc tính mở rộng (extended attributes) và các trường hợp sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-008
+    title: 'Thuộc tính nền tảng: ẩn, chỉ đọc và các cờ đặc thù hệ thống tệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-009
+    title: Đọc siêu dữ liệu của liên kết so với đối tượng mà liên kết trỏ tới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-010
+    title: Độ phân giải thời gian và khác biệt siêu dữ liệu giữa các hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-011
+    title: Bảo toàn siêu dữ liệu khi sao chép, di chuyển, đóng gói và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: links
+  title: Liên kết
+  childs:
+  - slug: links-001
+    title: Liên kết cứng (hard link) và nhiều tên cho cùng một đối tượng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-002
+    title: Liên kết tượng trưng (symbolic link) và cách lưu đường dẫn đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-003
+    title: So sánh liên kết cứng, liên kết tượng trưng và bản sao độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-004
+    title: Liên kết tượng trưng tương đối và tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-005
+    title: Liên kết hỏng, chuỗi liên kết và vòng lặp khi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-006
+    title: Giới hạn liên kết cứng theo hệ thống tệp và loại đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-007
+    title: Đọc, ghi, đổi tên và xóa khi có nhiều liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-008
+    title: Tùy chọn theo hoặc không theo liên kết trong duyệt cây thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-009
+    title: Junction, reparse point và shortcut trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: links-010
+    title: Rủi ro bảo mật và tính khả chuyển khi đóng gói dữ liệu chứa liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-descriptors-handles
+  title: Mở và quản lý tệp
+  childs:
+  - slug: file-descriptors-handles-001
+    title: Thao tác mở tệp và lựa chọn quyền đọc, ghi hoặc đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-002
+    title: Tạo mới, tạo độc quyền, mở để nối cuối và cắt ngắn nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-003
+    title: File descriptor trên Unix và file handle trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-004
+    title: Bảng descriptor của tiến trình và đối tượng mô tả lần mở tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-005
+    title: Hai lần mở độc lập so với các descriptor cùng tham chiếu một lần mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-006
+    title: Vị trí đọc ghi và trạng thái gắn với lần mở tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-007
+    title: Kế thừa, sao chép descriptor và kiểm soát đóng khi thực thi chương trình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-008
+    title: Đóng tệp, giải phóng tài nguyên và giới hạn số tệp đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-009
+    title: Rò rỉ descriptor và cách xác định tài nguyên chưa được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-010
+    title: Luồng vào ra chuẩn và chuyển hướng đến tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-011
+    title: Mở tệp tương đối với descriptor thư mục và vai trò của họ thao tác *at
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-descriptors-handles-012
+    title: Khác biệt giữa đóng tài nguyên thành công và bảo đảm dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reads-writes
+  title: Đọc và ghi
+  childs:
+  - slug: reads-writes-001
+    title: Đọc tuần tự, đọc ngẫu nhiên và lựa chọn mẫu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-002
+    title: Kết thúc tệp, kết quả đọc ngắn và xử lý đọc từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-003
+    title: Ghi ngắn, thao tác bị ngắt và vòng lặp hoàn tất việc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-004
+    title: Dịch chuyển vị trí, đọc ghi tại vị trí chỉ định và chia sẻ con trỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-005
+    title: Ghi đè, chèn dữ liệu ở cấp ứng dụng và giới hạn của mô hình chuỗi byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-006
+    title: Nối cuối tệp và giới hạn bảo đảm khi nhiều bên cùng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-007
+    title: Cắt ngắn, mở rộng tệp và dữ liệu trong vùng chưa được ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-008
+    title: Tệp thưa (sparse file), vùng trống và thao tác tạo vùng trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-009
+    title: Bộ đệm của thư viện ứng dụng và bộ đệm của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-010
+    title: Đọc ghi nhị phân, mã hóa văn bản và chuyển đổi ký tự xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reads-writes-011
+    title: Lỗi trả về trong lúc ghi, đồng bộ hoặc đóng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: namespace-operations
+  title: Thao tác không gian tên
+  childs:
+  - slug: namespace-operations-001
+    title: Tạo tệp, tạo thư mục và kiểm tra tồn tại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-002
+    title: Tạo cây thư mục và xử lý các thành phần đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-003
+    title: Liệt kê thư mục, thứ tự kết quả và dữ liệu thay đổi trong khi duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-004
+    title: Duyệt cây có đệ quy, giới hạn độ sâu và xử lý liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-005
+    title: Đổi tên trong cùng hệ thống tệp và ý nghĩa nguyên tử đối với tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-006
+    title: Di chuyển giữa các hệ thống tệp bằng sao chép rồi xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-007
+    title: Sao chép nội dung, siêu dữ liệu và chính sách với liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-008
+    title: Thay thế tệp đích và các khác biệt khi tệp đang được mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-009
+    title: Xóa một tên tệp và thời điểm dữ liệu thực sự được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-010
+    title: Xóa thư mục rỗng, xóa đệ quy và kiểm soát phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-011
+    title: Ngữ nghĩa tệp đã mở khi tên bị xóa hoặc đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: namespace-operations-012
+    title: Thiết kế thao tác có thể thử lại khi chỉ hoàn tất một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-permissions
+  title: Quyền truy cập
+  childs:
+  - slug: access-permissions-001
+    title: Mô hình chủ sở hữu, nhóm và các bên còn lại trên Unix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-002
+    title: Quyền đọc, ghi, thực thi trên tệp thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-003
+    title: Quyền đọc, ghi, tìm kiếm trên thư mục và các tổ hợp thường nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-004
+    title: Quyền của thư mục cha đối với tạo, đổi tên và xóa mục con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-005
+    title: Umask và quyền khởi tạo của tệp, thư mục mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-006
+    title: Setuid, setgid, sticky bit và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-007
+    title: Danh sách kiểm soát truy cập (ACL) và quyền hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-008
+    title: Kế thừa quyền, ACL mặc định và ảnh hưởng khi sao chép hoặc di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-009
+    title: Mô hình ACL Windows và khác biệt với quyền Unix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-010
+    title: Thuộc tính chỉ đọc, hệ thống tệp chỉ đọc và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-permissions-011
+    title: Nhãn bảo mật SELinux/AppArmor và các lớp từ chối ngoài quyền cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-security
+  title: Bảo mật tệp
+  childs:
+  - slug: file-security-001
+    title: Nguyên tắc đặc quyền tối thiểu đối với dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-002
+    title: Thoát khỏi thư mục cho phép bằng đường dẫn (path traversal)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-003
+    title: Tấn công qua liên kết tượng trưng và thay đổi đối tượng giữa kiểm tra với sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-004
+    title: Tạo tệp tạm an toàn và tránh tên có thể dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-005
+    title: Xác minh đích truy cập trong môi trường có dữ liệu không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-006
+    title: 'Giải nén an toàn: đường dẫn thoát thư mục, liên kết và ghi đè'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-007
+    title: Bảo vệ bí mật trong tệp cấu hình, log và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-008
+    title: Mã hóa toàn thiết bị, mã hóa hệ thống tệp và mã hóa từng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-009
+    title: Giới hạn của xóa tệp, ghi đè và xóa an toàn trên SSD hoặc hệ thống CoW
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-010
+    title: Kiểm tra tính toàn vẹn bằng checksum và giới hạn so với xác thực nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-security-011
+    title: Nhật ký kiểm toán truy cập và theo dõi thay đổi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locking-concurrency
+  title: Khóa và đồng thời
+  childs:
+  - slug: locking-concurrency-001
+    title: Các kiểu tranh chấp khi nhiều tiến trình truy cập cùng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-002
+    title: Khóa mang tính tư vấn (advisory lock) và cơ chế bắt buộc ở nơi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-003
+    title: Khóa toàn tệp, khóa vùng byte và khóa chia sẻ hoặc độc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-004
+    title: Khác biệt về phạm vi khóa theo tiến trình, lần mở tệp và descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-005
+    title: Hành vi chờ, thử khóa không chờ và xử lý hết thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-006
+    title: Giải phóng khóa khi đóng tệp hoặc khi tiến trình kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-007
+    title: Khóa tệp trên Unix và cơ chế chia sẻ khi mở tệp trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-008
+    title: Vì sao kiểm tra tồn tại rồi tạo tệp vẫn có thể xảy ra tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-009
+    title: Thiết kế giao thức phối hợp bằng tệp khóa và tạo độc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-010
+    title: Giới hạn của khóa trên hệ thống tệp mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locking-concurrency-011
+    title: Phân biệt khóa, tính nguyên tử của một thao tác và giao dịch nhiều thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-organization
+  title: Tổ chức lưu trữ
+  childs:
+  - slug: storage-organization-001
+    title: Thiết bị khối, phân vùng, volume và lớp hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-002
+    title: Định dạng hệ thống tệp và khác biệt với chia phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-003
+    title: Sector, khối logic, khối cấp phát và đơn vị truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-004
+    title: Superblock, thông tin volume và vùng siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-005
+    title: Bảng inode hoặc cấu trúc bản ghi tệp tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-006
+    title: Cấu trúc thư mục và liên kết đến bản ghi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-007
+    title: Vùng dữ liệu, vùng trống và thông tin quản lý cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-008
+    title: Mã định danh volume, nhãn và nhận diện thiết bị ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-009
+    title: Vai trò của lớp volume logic, RAID và thiết bị lưu trữ bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-010
+    title: SSD, HDD và các đặc tính ảnh hưởng đến cách truy cập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-organization-011
+    title: Hệ thống tệp trong bộ nhớ và sự khác biệt với lưu trữ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-allocation
+  title: Cấp phát dữ liệu
+  childs:
+  - slug: data-allocation-001
+    title: Cấp phát liên tục, theo chuỗi và qua cấu trúc chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-002
+    title: Khối trực tiếp, khối gián tiếp và giới hạn kích thước tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-003
+    title: Extent và ánh xạ các dải khối liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-004
+    title: Bitmap, danh sách vùng trống và lựa chọn nơi cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-005
+    title: Cấp phát trễ và cấp phát trước cho tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-006
+    title: Phân mảnh nội bộ, phân mảnh bên ngoài và ảnh hưởng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-007
+    title: Tệp thưa, vùng chưa khởi tạo và khối đã cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-008
+    title: Nén dữ liệu và quan hệ giữa kích thước logic với dung lượng chiếm chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-009
+    title: Khử trùng lặp dữ liệu và chi phí quản lý tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-010
+    title: TRIM/discard và cách thông báo vùng dữ liệu không còn dùng cho thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-allocation-011
+    title: Giới hạn kích thước tệp, số lượng tệp và quy mô volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lookup-indexing
+  title: Tra cứu và lập chỉ mục
+  childs:
+  - slug: lookup-indexing-001
+    title: Lớp hệ thống tệp ảo (VFS) và giao diện chung của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-002
+    title: Đối tượng dentry, inode và quan hệ trong quá trình phân giải đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-003
+    title: Tìm tên trong thư mục bằng danh sách, bảng băm hoặc cây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-004
+    title: Cây B/B+ và vai trò trong tra cứu siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-005
+    title: Bộ đệm tra cứu tên và bộ đệm kết quả không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-006
+    title: Phân giải qua điểm gắn kết và ranh giới giữa các hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-007
+    title: Chi phí tra cứu đường dẫn sâu và thư mục chứa nhiều mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-008
+    title: Mã định danh tệp ổn định, tái sử dụng định danh và giới hạn nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-indexing-009
+    title: Tìm theo tên, tìm theo thuộc tính và lập chỉ mục tìm kiếm ở cấp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching-io
+  title: Bộ nhớ đệm và I/O
+  childs:
+  - slug: caching-io-001
+    title: Page cache và quan hệ với dữ liệu tệp trên thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-002
+    title: Đường đọc khi dữ liệu đã có hoặc chưa có trong bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-003
+    title: Trang bẩn, ghi lùi (writeback) và thời điểm đẩy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-004
+    title: Đọc trước (read-ahead) và ảnh hưởng của truy cập tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-005
+    title: Áp lực bộ nhớ và thu hồi bộ nhớ đệm tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-006
+    title: Phân biệt flush ở thư viện với fsync, fdatasync và cơ chế tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-007
+    title: Đồng bộ dữ liệu tệp và đồng bộ thay đổi của thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-008
+    title: Direct I/O, yêu cầu căn chỉnh và giới hạn tùy hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-009
+    title: Memory-mapped file và quan hệ với cơ chế đọc ghi thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-010
+    title: Ánh xạ dùng chung, ánh xạ riêng và giới hạn khi đồng bộ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-011
+    title: Hủy ánh xạ, đóng descriptor và vòng đời tài nguyên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-io-012
+    title: Lỗi I/O bất đồng bộ và bảo đảm thực tế của thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-recovery
+  title: Nhất quán và phục hồi
+  childs:
+  - slug: consistency-recovery-001
+    title: Trạng thái không nhất quán khi mất điện hoặc dừng đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-002
+    title: Phân biệt nhất quán cấu trúc, toàn vẹn dữ liệu và độ bền thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-003
+    title: Thứ tự ghi dữ liệu, siêu dữ liệu và vai trò của hàng rào ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-004
+    title: Journaling và cách ghi nhận thay đổi trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-005
+    title: Nhật ký siêu dữ liệu và nhật ký dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-006
+    title: Copy-on-write (CoW) và cập nhật cấu trúc bằng bản sao mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-007
+    title: Checksum dữ liệu, checksum siêu dữ liệu và phát hiện hỏng âm thầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-008
+    title: Phát lại nhật ký, kiểm tra hệ thống tệp và các giới hạn sửa chữa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-009
+    title: Mẫu ghi tệp tạm, đồng bộ rồi đổi tên để cập nhật an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-010
+    title: Vì sao đổi tên nguyên tử chưa tự bảo đảm bền vững sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-011
+    title: Giới hạn giao dịch khi cập nhật nhiều tệp có quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-recovery-012
+    title: Kiểm thử gián đoạn thao tác và đối chiếu trạng thái sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mounting-filesystems
+  title: Gắn kết hệ thống tệp
+  childs:
+  - slug: mounting-filesystems-001
+    title: Mount, unmount và đưa một hệ thống tệp vào cây thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-002
+    title: Điểm gắn kết và dữ liệu thư mục bị che khuất bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-003
+    title: Mount theo thiết bị, UUID hoặc nhãn volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-004
+    title: Tùy chọn chỉ đọc, noexec, nosuid, nodev và giới hạn bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-005
+    title: 'Chính sách cập nhật thời gian truy cập: atime, relatime và các biến thể'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-006
+    title: Bind mount và cung cấp lại cùng dữ liệu tại đường dẫn khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-007
+    title: Mount namespace và các cách nhìn khác nhau về cây gắn kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-008
+    title: Thiết bị đang bận, descriptor còn mở và tháo gắn kết an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-009
+    title: Tự động gắn kết khi khởi động và theo nhu cầu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-010
+    title: Ổ rời, tháo thiết bị an toàn và xử lý mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mounting-filesystems-011
+    title: Kiểm tra dung lượng, loại hệ thống tệp và tùy chọn gắn kết thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filesystem-types
+  title: Các hệ thống tệp
+  childs:
+  - slug: filesystem-types-001
+    title: 'Tiêu chí so sánh: ngữ nghĩa, giới hạn, độ tin cậy và công cụ vận hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-002
+    title: FAT32 và exFAT trong trao đổi dữ liệu, thiết bị rời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-003
+    title: Họ ext và các đặc điểm tiêu biểu của ext4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-004
+    title: XFS và tổ chức dữ liệu, siêu dữ liệu cho quy mô lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-005
+    title: 'Btrfs: subvolume, CoW, checksum và snapshot'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-006
+    title: 'ZFS: storage pool, dataset và cơ chế bảo vệ dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-007
+    title: 'NTFS: bản ghi MFT, luồng dữ liệu thay thế và tính năng chính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-008
+    title: ReFS và phạm vi tính năng phụ thuộc môi trường Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-009
+    title: 'APFS: container, volume, chia sẻ dung lượng và clone'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-010
+    title: tmpfs và các hệ thống tệp dùng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-011
+    title: ISO 9660, UDF và hệ thống tệp cho ảnh hoặc phương tiện chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-012
+    title: Khác biệt tính năng theo phiên bản, trình điều khiển và tùy chọn định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filesystem-types-013
+    title: Lựa chọn hệ thống tệp theo nhu cầu thay vì chỉ theo kết quả benchmark
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: snapshots-clones
+  title: Ảnh chụp và bản sao
+  childs:
+  - slug: snapshots-clones-001
+    title: Snapshot và góc nhìn dữ liệu tại một thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-002
+    title: Snapshot cấp khối, cấp hệ thống tệp và cấp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-003
+    title: Clone, reflink và bản sao chia sẻ khối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-004
+    title: Khi nào dữ liệu được tách riêng trong cơ chế CoW
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-005
+    title: Snapshot chỉ đọc, snapshot có thể ghi và phạm vi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-006
+    title: Tính nhất quán sau sự cố và tính nhất quán của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-007
+    title: Quan hệ giữa snapshot, dữ liệu đang mở và cơ chế tạm ngừng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-008
+    title: Dung lượng giữ lại bởi snapshot và ảnh hưởng khi xóa tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-009
+    title: Khôi phục một tệp, quay lui volume và rủi ro đối với dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-010
+    title: Gửi nhận snapshot và sao chép tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-clones-011
+    title: Phân biệt snapshot cục bộ với bản sao lưu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-quotas
+  title: Dung lượng và hạn ngạch
+  childs:
+  - slug: capacity-quotas-001
+    title: Dung lượng tổng, đã dùng, còn trống và phần dự trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-002
+    title: Khác biệt giữa df, du và các cách tính dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-003
+    title: Kích thước biểu kiến, khối cấp phát và ảnh hưởng của tệp thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-004
+    title: Hết inode khi dung lượng dữ liệu vẫn còn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-005
+    title: Tệp đã xóa nhưng còn mở và dung lượng chưa được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-006
+    title: Liên kết cứng, reflink, snapshot và tránh đếm dung lượng trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-007
+    title: Hạn ngạch theo người dùng, nhóm, dự án hoặc dataset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-008
+    title: Giới hạn mềm, giới hạn cứng và thời gian ân hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-009
+    title: Tác động của nén, khử trùng lặp và siêu dữ liệu đến báo cáo dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-010
+    title: Lập kế hoạch dung lượng, tăng trưởng tệp và cảnh báo sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-quotas-011
+    title: Dọn dẹp dữ liệu an toàn khi volume gần đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-filesystems
+  title: Hệ thống tệp mạng
+  childs:
+  - slug: network-filesystems-001
+    title: Mô hình máy khách, máy chủ và truy cập tệp qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-002
+    title: NFS và các vấn đề ngữ nghĩa cần nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-003
+    title: SMB và chia sẻ tệp trong môi trường đa nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-004
+    title: Độ trễ mạng, bộ nhớ đệm và khả năng thấy thay đổi từ máy khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-005
+    title: Mô hình nhất quán, kiểm tra lại thuộc tính và dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-006
+    title: Khóa, lease hoặc cơ chế tương tự để phối hợp truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-007
+    title: Ánh xạ định danh người dùng, quyền và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-008
+    title: Mất kết nối, lỗi thao tác, thử lại và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-009
+    title: Đổi tên, đồng bộ và giới hạn bảo đảm của hệ thống tệp từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-010
+    title: 'Hệ thống tệp phân tán: phân chia dữ liệu, sao chép và miền lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-011
+    title: Phân biệt hệ thống tệp, lưu trữ khối và lưu trữ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-filesystems-012
+    title: Chọn nơi lưu dữ liệu ứng dụng theo yêu cầu nhất quán và độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolated-environments
+  title: Môi trường cách ly
+  childs:
+  - slug: isolated-environments-001
+    title: Chroot, namespace và giới hạn của việc thay đổi góc nhìn đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-002
+    title: Hệ thống tệp trong container và quan hệ với máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-003
+    title: 'Overlay filesystem: lớp dưới, lớp trên và góc nhìn hợp nhất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-004
+    title: Copy-up, whiteout và ngữ nghĩa sửa hoặc xóa tệp trong lớp phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-005
+    title: Bind mount, volume và dữ liệu tồn tại qua vòng đời container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-006
+    title: Quyền sở hữu, ánh xạ UID/GID và truy cập từ môi trường cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-007
+    title: Root filesystem chỉ đọc và tách riêng dữ liệu cần ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-008
+    title: FUSE và triển khai hệ thống tệp ở không gian người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-009
+    title: Giới hạn hiệu năng, quyền và tính năng khi dùng FUSE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-010
+    title: Ổ đĩa máy ảo và các lớp hệ thống tệp lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolated-environments-011
+    title: Chia sẻ tệp giữa Windows, Linux, WSL và các giới hạn cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backups-recovery
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backups-recovery-001
+    title: Xác định dữ liệu cần sao lưu và mục tiêu mất dữ liệu, thời gian khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-002
+    title: Sao lưu toàn bộ, tăng dần và vi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-003
+    title: Sao lưu ở mức tệp, mức khối và ảnh hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-004
+    title: Lấy bản sao nhất quán khi ứng dụng vẫn đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-005
+    title: Bảo toàn quyền, chủ sở hữu, thời gian, ACL và thuộc tính mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-006
+    title: Bảo toàn liên kết, tệp thưa và đối tượng đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-007
+    title: Lưu trữ nhiều phiên bản và chính sách giữ bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-008
+    title: Bản sao ngoại tuyến, khác vị trí và bảo vệ trước mã độc tống tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-009
+    title: Checksum, kiểm tra bản sao và diễn tập phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-010
+    title: Khôi phục tệp bị xóa và giới hạn khi dữ liệu đã bị ghi đè hoặc discard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-011
+    title: Phân biệt công cụ sửa hệ thống tệp với công cụ phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-recovery-012
+    title: Đóng gói dữ liệu bằng archive và các mất mát ngữ nghĩa có thể xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Độ trễ, thông lượng, IOPS và chi phí thao tác siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Ảnh hưởng của kích thước tệp, kích thước yêu cầu và mẫu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tệp nhỏ số lượng lớn so với tệp lớn ít đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chi phí mở đóng, tra cứu tên và duyệt thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Đo với bộ nhớ đệm nóng, lạnh và dữ liệu vượt dung lượng RAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Ảnh hưởng của đồng bộ thường xuyên và yêu cầu độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Tác động của journaling, CoW, snapshot, nén và mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Phân mảnh và trường hợp cần hoặc không nên chống phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Cấp phát trước, ghi theo lô và tổ chức thư mục phù hợp tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Thiết kế benchmark có kiểm soát, dữ liệu đại diện và kết quả lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Phân biệt nút thắt ứng dụng, hệ thống tệp, thiết bị và mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-monitoring
+  title: Giám sát thay đổi
+  childs:
+  - slug: change-monitoring-001
+    title: Theo dõi tạo, sửa, đổi tên, xóa và thay đổi siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-002
+    title: inotify, fanotify và phạm vi theo dõi trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-003
+    title: ReadDirectoryChangesW và các cơ chế theo dõi trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-004
+    title: FSEvents, kqueue và các cơ chế theo dõi trên hệ Unix liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-005
+    title: Sự kiện bị gộp, trùng, mất hoặc tràn hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-006
+    title: Theo dõi đệ quy và các thư mục mới xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-007
+    title: Nhận diện đổi tên so với xóa rồi tạo lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-008
+    title: Kết hợp sự kiện với quét lại để tái lập trạng thái đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-009
+    title: Nhật ký thay đổi, kiểm toán bảo mật và quan sát ứng dụng khác nhau ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-monitoring-010
+    title: Thiết kế trình theo dõi tệp có thể khôi phục sau gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Đọc thông báo lỗi, mã lỗi và xác định lớp gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không tìm thấy tệp dù tên hiển thị có vẻ đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: 'Permission denied: kiểm tra toàn đường dẫn, ACL và nhãn bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'No space left: phân biệt hết khối, hết inode, hạn ngạch và phần dự trữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Read-only filesystem và các nguyên nhân chuyển sang chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Too many open files và kiểm tra giới hạn cùng descriptor đang giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Device or resource busy khi tháo gắn kết hoặc thay đổi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Liên kết hỏng, vòng lặp liên kết và đường dẫn quá dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Tệp mất hoặc thay đổi sau đổi tên, xoay log và cập nhật nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Đọc dữ liệu cũ trên hệ thống tệp mạng hoặc bộ nhớ đệm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Lỗi I/O, dấu hiệu hỏng dữ liệu và thứ tự bảo toàn chứng cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: 'Công cụ quan sát: stat, find, lsof, lsblk, findmnt và công cụ tương ứng Windows'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Quy trình cô lập nguyên nhân bằng thao tác tái hiện tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Vẽ mô hình từ đường dẫn đến đối tượng tệp và khối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Quan sát inode, hard link, symbolic link và vòng đời tệp đã mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Thử nghiệm quyền tệp, quyền thư mục, umask và ACL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: So sánh đọc ghi tuần tự, ngẫu nhiên, nối cuối và tệp thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: Xây dựng thao tác cập nhật cấu hình bằng tệp tạm và đổi tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Tái hiện tranh chấp tạo tệp, ghi đồng thời và phối hợp bằng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: Đo khác biệt giữa ghi vào bộ đệm và ghi kèm đồng bộ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Thực hành mount ảnh đĩa thử nghiệm và kiểm tra giới hạn hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Giải thích chênh lệch dung lượng do tệp mở, snapshot và khối chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Sao lưu, xóa dữ liệu thử nghiệm rồi kiểm chứng quá trình khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-011
+    title: Tái hiện thao tác thất bại và lập báo cáo chẩn đoán có chứng cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-012
+    title: Thiết kế thư mục dữ liệu ứng dụng đa nền tảng, có bảo mật và kế hoạch phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

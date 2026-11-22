@@ -1,0 +1,64 @@
+roadmap:
+- id: bang-cot-khoa
+  title: Bảng, cột & khóa
+  purpose: Nắm nền tảng dữ liệu quan hệ để đọc và viết truy vấn đúng cấu trúc.
+  objectives:
+  - Phân biệt bảng, hàng, cột và kiểu dữ liệu.
+  - Nhận diện khóa chính và khóa ngoại.
+  - Đọc sơ đồ bảng khách hàng và đơn hàng.
+- id: select-bieu-thuc
+  title: SELECT & biểu thức
+  purpose: Truy xuất đúng cột và biểu diễn dữ liệu cần dùng.
+  objectives:
+  - Viết SELECT, FROM và đặt bí danh AS.
+  - Sử dụng DISTINCT và biểu thức tính toán.
+  - Xử lý giá trị NULL bằng COALESCE.
+- id: where-sap-xep
+  title: WHERE & sắp xếp
+  purpose: Lọc và sắp xếp kết quả theo điều kiện nghiệp vụ.
+  objectives:
+  - Viết WHERE với AND, OR, IN, BETWEEN và LIKE.
+  - Dùng IS NULL thay cho so sánh NULL bằng dấu bằng.
+  - Áp dụng ORDER BY và LIMIT/OFFSET khi phù hợp.
+- id: group-by-having
+  title: GROUP BY & HAVING
+  purpose: Tổng hợp dữ liệu để trả lời câu hỏi thống kê.
+  objectives:
+  - Tính COUNT, SUM, AVG, MIN và MAX.
+  - Nhóm dữ liệu bằng GROUP BY.
+  - Phân biệt lọc trước nhóm WHERE và sau nhóm HAVING.
+- id: join-quan-he
+  title: JOIN & quan hệ
+  purpose: Kết hợp dữ liệu từ nhiều bảng theo khóa liên kết.
+  objectives:
+  - Thực hành INNER JOIN và LEFT JOIN.
+  - Viết điều kiện nối bằng ON.
+  - Phát hiện hàng bị nhân đôi hoặc bị mất do JOIN.
+- id: subquery-cte
+  title: Subquery & CTE
+  purpose: Tổ chức truy vấn phức tạp thành các phần dễ kiểm tra.
+  objectives:
+  - Dùng subquery với IN hoặc EXISTS.
+  - Đặt truy vấn tạm bằng WITH (CTE).
+  - Chọn JOIN, subquery hoặc CTE tùy bài toán.
+- id: dml-them-sua-xoa
+  title: 'DML: thêm, sửa, xóa'
+  purpose: Thao tác dữ liệu có kiểm soát và tránh cập nhật nhầm.
+  objectives:
+  - Thực hành INSERT, UPDATE và DELETE.
+  - Đặt WHERE đúng khi sửa hoặc xóa.
+  - Kiểm tra số hàng bị ảnh hưởng và kết quả.
+- id: ddl-rang-buoc
+  title: DDL & ràng buộc
+  purpose: Khai báo cấu trúc bảng và quy tắc bảo toàn dữ liệu.
+  objectives:
+  - Tạo và sửa bảng bằng CREATE, ALTER.
+  - Khai báo NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY.
+  - Tạo index cơ bản cho cột truy vấn.
+- id: giao-dich-hieu-nang
+  title: Giao dịch & hiệu năng
+  purpose: Bảo đảm thay đổi nhất quán và biết cách kiểm tra truy vấn chậm.
+  objectives:
+  - Sử dụng BEGIN, COMMIT và ROLLBACK.
+  - Đọc kế hoạch EXPLAIN cho truy vấn mẫu.
+  - Dùng truy vấn tham số trong ứng dụng để tránh SQL injection.

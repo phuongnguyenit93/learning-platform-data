@@ -1,0 +1,467 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Shell là gì và vai trò trong hệ điều hành
+  - Phân biệt shell, kernel, terminal và trình giả lập terminal
+  - Phân biệt dòng lệnh, chương trình CLI và ngôn ngữ script
+  - Quan hệ giữa shell, tiến trình và môi trường thực thi
+  - Luồng từ lệnh nhập vào đến chương trình được chạy
+  - Shell tương tác và shell dùng cho tự động hóa
+  - 'Các họ shell: POSIX sh, Bash, Zsh, Fish, PowerShell và CMD'
+  - Phân biệt giao diện đồ họa và giao diện dòng lệnh
+  - Giới hạn của shell và khi nên dùng ngôn ngữ khác
+  - Thuật ngữ nền tảng và thứ tự học
+- level1: Phiên làm việc
+  level2:
+  - Tiến trình shell và tiến trình đã khởi chạy nó
+  - Nhận diện shell thực tế và phiên bản đang dùng
+  - Phân biệt biến SHELL và chương trình đang thực thi
+  - Phiên tương tác và phiên không tương tác
+  - Phiên đăng nhập và phiên không đăng nhập
+  - Thư mục làm việc, người dùng và quyền hiệu lực
+  - 'Trạng thái của phiên: biến, tùy chọn, alias và hàm'
+  - Mở shell con và kết thúc phiên
+  - Terminal trong IDE và môi trường được kế thừa
+  - Phân biệt phiên mới và tab mới trong cùng ứng dụng terminal
+- level1: Thực thi lệnh
+  level2:
+  - Đọc lệnh, tách token và phân tích cú pháp
+  - Phân biệt từ khóa, alias, hàm, lệnh tích hợp và chương trình ngoài
+  - Thứ tự phân giải tên lệnh theo từng shell
+  - Vai trò command, type, Get-Command và công cụ tra cứu tương ứng
+  - Tạo tiến trình và chuyển giao đối số
+  - Thời điểm mở rộng biến và biểu thức
+  - Lệnh đơn, nhóm lệnh và danh sách lệnh
+  - Khác biệt giữa chạy chương trình trực tiếp và qua một shell
+  - Giới hạn độ dài lệnh và tập đối số
+  - Quan sát tên chương trình và đối số thực tế nhận được
+- level1: Đường dẫn
+  level2:
+  - Đường dẫn tuyệt đối và đường dẫn tương đối
+  - Thư mục hiện tại và tác động của đổi thư mục
+  - Thư mục người dùng và ý nghĩa của ký hiệu dấu ngã
+  - Đường dẫn logic và đường dẫn vật lý
+  - Liên kết tượng trưng và chuẩn hóa đường dẫn
+  - Ổ đĩa, đường dẫn gốc và UNC trên Windows
+  - Đường dẫn có khoảng trắng hoặc ký tự đặc biệt
+  - Phân biệt hoa thường theo hệ thống tệp và nền tảng
+  - Tên bắt đầu bằng dấu gạch ngang
+  - Xác minh đường dẫn trước thao tác thay đổi dữ liệu
+- level1: Biến và phạm vi
+  level2:
+  - Biến của shell và biến môi trường
+  - Quy tắc đặt tên và tham chiếu biến theo ngôn ngữ
+  - Gán giá trị và thời điểm mở rộng
+  - Phân biệt chưa khai báo, giá trị rỗng và giá trị mặc định
+  - Phạm vi trong phiên, hàm, script và shell con
+  - Biến cục bộ và biến chỉ đọc
+  - Biến đặc biệt và biến tự động của shell
+  - Chuỗi, số, mảng và bảng ánh xạ theo khả năng shell
+  - Vì sao dữ liệu có cấu trúc không tự trở thành biến môi trường
+  - Ngăn xung đột với tên biến dành cho hệ thống
+- level1: Biến môi trường
+  level2:
+  - Môi trường thực thi của một tiến trình
+  - Quan hệ kế thừa giữa tiến trình cha và tiến trình con
+  - Vì sao thay đổi ở tiến trình con không tự sửa môi trường cha
+  - Đánh dấu biến để truyền bằng export trong shell kiểu POSIX
+  - Gán môi trường riêng cho một lần chạy lệnh
+  - Kiểm tra biến bằng env, printenv hoặc provider tương ứng
+  - Xóa biến và phân biệt với gán chuỗi rỗng
+  - Phân biệt môi trường hiện tại và cấu hình lưu lâu dài
+  - Khác biệt phân biệt hoa thường giữa các nền tảng
+  - Tạo môi trường tối thiểu cho một tiến trình
+  - Giới hạn kích thước và quy tắc biểu diễn giá trị
+  - Truyền cấu hình mà không in lộ thông tin bí mật
+- level1: PATH và tìm lệnh
+  level2:
+  - PATH là danh sách nơi tìm chương trình
+  - Thứ tự thư mục và cách chọn chương trình trùng tên
+  - Dấu phân cách PATH trên Unix và Windows
+  - Thư mục hiện tại và khác biệt trong cơ chế tìm lệnh
+  - PATHEXT và phần mở rộng chương trình trên Windows
+  - Phân biệt PATH với đường dẫn mô-đun hoặc thư viện
+  - Bộ nhớ đệm vị trí lệnh của shell
+  - Bổ sung thư mục mà không làm mất giá trị hiện có
+  - Mục rỗng, mục trùng và thư mục không còn tồn tại
+  - Đường dẫn tuyệt đối để xác định rõ chương trình
+  - Kiểm tra phiên bản công cụ khi có nhiều bản cài đặt
+  - Rủi ro từ thư mục có thể bị ghi bởi người khác
+- level1: Trích dẫn và ký tự
+  level2:
+  - Quoting và escaping giải quyết những vấn đề nào
+  - Nháy đơn và nháy kép trong shell kiểu POSIX
+  - Dấu gạch chéo ngược và nối dòng trong Bash
+  - Chuỗi nguyên văn và chuỗi mở rộng trong PowerShell
+  - Dấu backtick của PowerShell và dấu mũ của CMD
+  - Ký tự khoảng trắng, xuống dòng và ký tự điều khiển
+  - Giữ nguyên dấu đô la, dấu nháy và ký tự đại diện
+  - Chuỗi rỗng và đối số không tồn tại
+  - Trích dẫn lồng nhau khi đi qua nhiều trình phân tích
+  - Phân biệt ký tự trích dẫn trong mã nguồn và trong dữ liệu
+  - Vì sao cách escape của một shell không áp dụng cho mọi shell
+- level1: Mở rộng biểu thức
+  level2:
+  - Các giai đoạn mở rộng trong Bash
+  - Mở rộng dấu ngã và tham số
+  - Giá trị mặc định, giá trị bắt buộc và thao tác chuỗi
+  - Thay thế lệnh và ảnh hưởng tới ký tự xuống dòng cuối
+  - Mở rộng số học
+  - Mở rộng ngoặc nhọn và phạm vi hỗ trợ
+  - Tách từ (word splitting) và vai trò IFS
+  - Mở rộng tên tệp bằng ký tự đại diện
+  - Phân biệt glob và biểu thức chính quy
+  - Khi mẫu không khớp tệp và tùy chọn của từng shell
+  - Process substitution và giới hạn tính tương thích
+  - Giới hạn tác dụng của nháy kép đối với từng loại mở rộng
+- level1: Tham số và đối số
+  level2:
+  - Tên chương trình, danh sách đối số và biến môi trường
+  - Tham số vị trí và số lượng đối số trong script
+  - Giữ ranh giới đối số với mảng
+  - Phân biệt các cách mở rộng danh sách tham số trong Bash
+  - Dịch tham số bằng shift và phân tích tùy chọn
+  - Tùy chọn ngắn, tùy chọn dài và dấu kết thúc tùy chọn
+  - Đối số chứa khoảng trắng, xuống dòng hoặc chuỗi rỗng
+  - Splatting và ràng buộc tham số trong PowerShell
+  - Truyền đối số tới chương trình native trên Windows
+  - Khác biệt theo phiên bản PowerShell khi gọi chương trình native
+  - Tránh tạo một chuỗi lệnh thay cho danh sách đối số
+  - Kiểm tra đầu vào trước khi gọi chương trình khác
+- level1: Luồng và chuyển hướng
+  level2:
+  - stdin, stdout, stderr và mã thoát
+  - File descriptor trong shell kiểu POSIX
+  - Đọc từ tệp, ghi đè tệp và ghi nối
+  - Chuyển riêng stdout hoặc stderr
+  - Thứ tự chuyển hướng và sao chép descriptor
+  - Thiết bị rỗng và khác biệt giữa các nền tảng
+  - Here-document và quy tắc mở rộng nội dung
+  - Here-string và phạm vi hỗ trợ của từng shell
+  - Đóng descriptor và vòng đời tài nguyên
+  - Tệp bị mở hoặc cắt nội dung trước khi lệnh thực thi
+  - Các luồng bổ sung trong PowerShell
+  - Khác biệt chuyển hướng văn bản và byte theo phiên bản PowerShell
+- level1: Pipeline và ghép lệnh
+  level2:
+  - Nối đầu ra một lệnh với đầu vào lệnh kế tiếp
+  - Pipeline byte hoặc văn bản và pipeline đối tượng
+  - Khả năng chạy đồng thời giữa các chặng
+  - Bộ đệm, bên nhận chậm và đường ống bị đóng
+  - Tách stderr khỏi dữ liệu truyền trong pipeline
+  - tee và ghi nhận dữ liệu qua nhiều đích
+  - Trạng thái kết thúc của pipeline và tùy chọn pipefail
+  - Ảnh hưởng của pipeline tới phạm vi biến
+  - Ghép lệnh có điều kiện và ghép lệnh tuần tự
+  - Nhóm lệnh trong phiên hiện tại và môi trường con
+  - Khác biệt cú pháp ghép lệnh theo shell hoặc phiên bản
+- level1: Xử lý dữ liệu
+  level2:
+  - Phân biệt xử lý theo byte, dòng và đối tượng
+  - Tìm, lọc, chọn cột và biến đổi văn bản
+  - Sắp xếp, gộp và thống kê dữ liệu
+  - Vai trò grep, sed, awk và các công cụ tương ứng
+  - Tìm tệp theo điều kiện mà vẫn giữ nguyên tên tệp
+  - Dữ liệu phân cách bằng ký tự NUL
+  - xargs, danh sách đối số và giới hạn một lần gọi
+  - Đọc tệp theo luồng thay vì tải toàn bộ vào bộ nhớ
+  - Xử lý JSON hoặc dữ liệu có cấu trúc bằng công cụ phù hợp
+  - Phân biệt dữ liệu đầu ra và định dạng chỉ dành cho hiển thị
+  - Giữ kết quả ổn định khi locale hoặc nền tảng thay đổi
+- level1: Mã thoát và lỗi
+  level2:
+  - Quy ước thành công, thất bại và mã thoát
+  - Phân biệt dữ liệu trên stderr và trạng thái thất bại
+  - Đọc mã thoát trước khi lệnh khác ghi đè trạng thái
+  - Trạng thái lệnh cuối, pipeline và nhóm lệnh
+  - Điều kiện chạy tiếp, dừng hoặc thực hiện nhánh phục hồi
+  - set -e và các trường hợp cần kiểm tra tường minh
+  - Kiểm tra biến chưa gán và giới hạn tùy chọn nghiêm ngặt
+  - Lỗi kết thúc và lỗi không kết thúc trong PowerShell
+  - Phân biệt trạng thái PowerShell và mã thoát chương trình native
+  - ERRORLEVEL trong CMD và batch
+  - Truyền mã thoát từ script ra chương trình gọi
+- level1: Cấu trúc script
+  level2:
+  - Chọn ngôn ngữ và trình thông dịch
+  - Shebang và cách hệ thống chọn chương trình chạy
+  - Chạy trực tiếp và chạy qua trình thông dịch
+  - Quyền thực thi và quyền đọc script
+  - Đuôi tệp và cơ chế chạy trên Windows
+  - Chạy script và nạp script vào phiên hiện tại
+  - Tổ chức phần cấu hình, tham số và luồng chính
+  - Kiểm tra điều kiện đầu vào và công cụ bắt buộc
+  - Quản lý thư mục làm việc của script
+  - CRLF, LF, BOM và lỗi trình thông dịch
+  - Viết thông tin trợ giúp và hợp đồng đầu ra
+- level1: Điều kiện và vòng lặp
+  level2:
+  - Kiểm tra điều kiện trong shell kiểu POSIX
+  - Phân biệt lệnh test, cú pháp ngoặc vuông và phần mở rộng Bash
+  - So sánh chuỗi, số và thuộc tính tệp
+  - Nhánh if và lựa chọn theo mẫu bằng case
+  - Vòng lặp theo danh sách phần tử
+  - Vòng lặp while hoặc until
+  - Đọc từng dòng mà không làm biến đổi dữ liệu ngoài ý muốn
+  - break, continue và điều kiện kết thúc
+  - Phạm vi biến khi vòng lặp nằm trong pipeline
+  - Giới hạn của việc dùng vòng lặp shell để xử lý dữ liệu lớn
+- level1: Hàm và thư viện
+  level2:
+  - Tách trách nhiệm bằng hàm
+  - Tham số hàm và phạm vi biến
+  - Phân biệt giá trị xuất ra stdout và mã trả về
+  - Giữ stdout sạch khi hàm dùng trong pipeline
+  - Nạp thư viện bằng source hoặc lệnh chấm trong shell phù hợp
+  - Dot-sourcing và mô-đun trong PowerShell
+  - Tác động phụ khi thư viện thay đổi biến, tùy chọn hoặc thư mục
+  - Tổ chức hàm dùng chung và kiểm tra phụ thuộc
+  - Thiết kế tham số mặc định và cấu hình ghi đè
+  - Chọn hàm thay cho alias khi cần xử lý tham số
+- level1: Tiến trình và tác vụ
+  level2:
+  - Tiến trình cha, tiến trình con và cây tiến trình
+  - Chạy phía trước và chạy nền
+  - Phân biệt job của shell và tiến trình hệ điều hành
+  - Nhóm tiến trình và phiên trên Unix
+  - PID, định danh job và theo dõi tác vụ
+  - Chờ tác vụ và thu nhận trạng thái kết thúc
+  - Giới hạn số tiến trình chạy đồng thời
+  - exec và thay thế tiến trình trong môi trường Unix
+  - Tác vụ nền và hành vi khi shell kết thúc
+  - Job, runspace và tiến trình trong PowerShell
+  - Tránh công việc chạy sót sau khi script đã kết thúc
+- level1: Tín hiệu và dọn dẹp
+  level2:
+  - Vai trò tín hiệu trong điều khiển tiến trình Unix
+  - Ngắt từ bàn phím, yêu cầu dừng và kết thúc cưỡng bức
+  - Phân biệt gửi tín hiệu và chắc chắn tiến trình đã dừng
+  - trap và các điểm dọn dẹp trong shell phù hợp
+  - Dọn tệp tạm, khóa và tài nguyên đang sử dụng
+  - Giữ nguyên mã thoát sau thao tác dọn dẹp
+  - Hủy cả nhóm công việc thay vì chỉ một tiến trình
+  - Tín hiệu khi pipeline hoặc terminal kết thúc
+  - Giới hạn xử lý tín hiệu và trường hợp không thể bắt
+  - Đối chiếu với cơ chế dừng tiến trình trên Windows
+  - Thiết kế dừng an toàn và thời hạn chờ
+- level1: Tương tác terminal
+  level2:
+  - TTY, PTY và terminal điều khiển
+  - Chế độ nhập theo dòng và chế độ nhập ký tự
+  - Ctrl-C, Ctrl-D, Ctrl-Z và ý nghĩa theo môi trường
+  - Job control với jobs, fg và bg
+  - Chỉnh sửa dòng lệnh và lịch sử lệnh
+  - Hoàn thành lệnh và tra cứu trợ giúp
+  - Prompt và thông tin trạng thái phiên
+  - Màu sắc, ký tự điều khiển và chiều rộng terminal
+  - Phân biệt chạy có terminal và đầu vào bị chuyển hướng
+  - Multiplexer và duy trì phiên làm việc
+  - Giới hạn tương tác khi chạy script tự động
+- level1: Cấu hình khởi động
+  level2:
+  - Vì sao cùng một tài khoản có thể nhận môi trường khác nhau
+  - Thứ tự cấu hình khi khởi động Bash
+  - Vai trò profile, bash_profile, bash_login và bashrc
+  - BASH_ENV trong phiên Bash không tương tác
+  - Khác biệt khi gọi Bash bằng tên sh hoặc ở chế độ POSIX
+  - Đối chiếu tệp cấu hình của Zsh hoặc Fish
+  - Profile theo người dùng và host trong PowerShell
+  - Tách cấu hình tương tác khỏi cấu hình dùng cho script
+  - Giữ cấu hình có thể nạp nhiều lần mà không nhân bản giá trị
+  - Khởi động với cấu hình tối thiểu để chẩn đoán
+  - Quản lý dotfiles và phân biệt cấu hình shell với cấu hình hệ điều hành
+- level1: Môi trường Windows
+  level2:
+  - Phạm vi Process, User và Machine
+  - Khối môi trường và cách tiến trình con nhận cấu hình
+  - Phân biệt thay đổi phiên hiện tại và lưu cấu hình lâu dài
+  - Vai trò set, setx và API System.Environment
+  - Ảnh hưởng của thay đổi tới ứng dụng đã chạy
+  - Cập nhật PATH và giữ nguyên các mục hiện có
+  - Phân biệt xóa biến và gán rỗng theo công cụ hoặc phiên bản
+  - Quyền thay đổi cấu hình người dùng và cấu hình máy
+  - Ứng dụng GUI, trình khởi chạy và môi trường được kế thừa
+  - Sao lưu giá trị trước khi thay đổi cấu hình lâu dài
+  - Chẩn đoán các cửa sổ terminal nhận giá trị khác nhau
+- level1: PowerShell
+  level2:
+  - Cmdlet, hàm, alias, script và chương trình native
+  - Chế độ phân tích biểu thức và chế độ phân tích đối số
+  - Pipeline đối tượng và liên kết tham số
+  - 'Provider Env: và biến có tiền tố env'
+  - Phạm vi biến của PowerShell và phạm vi môi trường
+  - Mảng đối số, splatting và toán tử gọi
+  - Truyền đối số native và chế độ tương thích theo phiên bản
+  - Phân biệt định dạng hiển thị và dữ liệu truyền cho lệnh sau
+  - Các luồng output, error, warning, verbose và information
+  - try, catch, finally và điều kiện lỗi kết thúc
+  - Phân biệt Windows PowerShell và PowerShell đa nền tảng
+  - Execution policy và giới hạn của nó trong mô hình bảo mật
+- level1: CMD và batch
+  level2:
+  - Phiên cmd.exe và cách dùng chế độ chạy lệnh
+  - Phân biệt lệnh nội bộ và chương trình ngoài
+  - Tham chiếu biến theo cú pháp phần trăm
+  - Mở rộng biến trong khối lệnh và delayed expansion
+  - setlocal, endlocal và phạm vi thay đổi môi trường
+  - Tham số batch và mở rộng thông tin đường dẫn
+  - for, if, call và điều khiển luồng cơ bản
+  - Quy tắc dấu nháy và escape bằng dấu mũ
+  - Ghép lệnh, chuyển hướng và pipeline trong CMD
+  - Chuyển mã thoát khi kết thúc batch
+  - Rủi ro phân tích nhiều lần khi lồng CMD với shell khác
+- level1: Ngôn ngữ và mã hóa
+  level2:
+  - Phân biệt byte, ký tự và chuỗi hiển thị
+  - UTF-8, UTF-16 và code page theo môi trường
+  - Mã hóa của terminal, tệp và chương trình không nhất thiết giống nhau
+  - LANG, LC_* và mức ưu tiên của locale
+  - Ảnh hưởng của locale tới sắp xếp và so khớp
+  - Định dạng số, ngày giờ và dữ liệu cần phân tích tự động
+  - TZ và lựa chọn múi giờ của chương trình
+  - CRLF, LF và dữ liệu qua pipeline
+  - Tên tệp Unicode và khác biệt chuẩn hóa
+  - Thiết lập định dạng dữ liệu ổn định cho tự động hóa
+- level1: Quyền và danh tính
+  level2:
+  - Danh tính người dùng và quyền của tiến trình
+  - UID, GID và quyền hiệu lực trong môi trường Unix
+  - Quyền truy cập thư mục và quyền đọc hoặc chạy tệp
+  - umask và quyền mặc định khi tạo dữ liệu
+  - Thay người dùng và ảnh hưởng tới môi trường
+  - sudo, su và chính sách giữ hoặc loại biến
+  - UAC và phiên chạy với quyền cao trên Windows
+  - Quyền truy cập tệp tạm hoặc tệp cấu hình
+  - Phân biệt thiếu quyền, sai đường dẫn và không có chương trình
+  - Thiết kế script hoạt động với đặc quyền tối thiểu
+- level1: Môi trường công cụ
+  level2:
+  - Cấu hình công cụ qua đối số, biến môi trường và tệp
+  - Thứ tự ưu tiên cấu hình do từng ứng dụng quyết định
+  - Phân biệt biến môi trường và thuộc tính hệ thống của runtime
+  - JAVA_HOME, PATH và lựa chọn JDK làm ví dụ
+  - Biến tìm mô-đun, thư viện và chương trình hỗ trợ
+  - Thư mục tạm, thư mục người dùng và thư mục cấu hình
+  - Biến proxy và cấu hình riêng của từng công cụ
+  - Tệp .env và yêu cầu có thành phần đọc cấu hình
+  - Phân biệt cú pháp dotenv và cú pháp script shell
+  - Môi trường dự án, môi trường ảo và cơ chế kích hoạt
+  - Khôi phục cấu hình phiên sau khi hoàn tất công việc
+- level1: Gọi từ ứng dụng
+  level2:
+  - Chạy chương trình với danh sách đối số
+  - Khi nào cần shell và khi nào gọi trực tiếp
+  - Chỉ định thư mục làm việc và môi trường của tiến trình con
+  - Giữ nguyên dữ liệu khi đi qua API tạo tiến trình
+  - Thu stdout, stderr và mã thoát
+  - Tránh bế tắc do bộ đệm đầu ra chưa được đọc
+  - Gửi đầu vào và đóng stdin đúng thời điểm
+  - Thời hạn chờ và hủy tiến trình con
+  - Phân biệt điều khiển tiến trình con và điều khiển toàn cây tiến trình
+  - Vì sao script con không trực tiếp kích hoạt môi trường cho ứng dụng cha
+  - Tránh ghép dữ liệu không tin cậy vào chuỗi lệnh
+- level1: Tự động hóa
+  level2:
+  - Khác biệt giữa chạy tay và chạy không tương tác
+  - Môi trường của cron, dịch vụ và trình lập lịch
+  - Môi trường của bước CI và tiến trình do bước đó tạo
+  - Không phụ thuộc prompt, alias hoặc lịch sử phiên
+  - Khai báo rõ thư mục làm việc, công cụ và cấu hình bắt buộc
+  - Thiết kế đầu ra máy đọc được và mã thoát có nghĩa
+  - Giữ hành vi ổn định khi chạy lại
+  - Khóa công việc và ngăn chạy chồng
+  - Tệp tạm, dọn dẹp và phục hồi khi bị ngắt
+  - Ghi log có kiểm soát và che thông tin bí mật
+  - Chạy với tập biến tối thiểu để phát hiện phụ thuộc ngầm
+- level1: Môi trường từ xa
+  level2:
+  - Shell cục bộ và shell phía máy từ xa
+  - SSH tương tác và chạy một lệnh không tương tác
+  - Trích dẫn qua nhiều lớp khi gửi lệnh từ xa
+  - Truyền biến môi trường theo chính sách máy khách và máy chủ
+  - Terminal ảo và ảnh hưởng tới đầu vào hoặc tín hiệu
+  - Môi trường WSL và môi trường Windows
+  - Chuyển đổi đường dẫn khi qua ranh giới nền tảng
+  - Cấu hình lúc tạo image và cấu hình khi chạy container
+  - Dạng lệnh qua shell và dạng thực thi trực tiếp trong container
+  - Tiến trình đầu container và việc chuyển tiếp tín hiệu
+  - Phân biệt môi trường máy chủ, container và ứng dụng bên trong
+- level1: Tính di động
+  level2:
+  - Chọn hợp đồng POSIX hay chỉ rõ một shell cụ thể
+  - Nhận diện phần mở rộng Bash không thuộc tập mục tiêu
+  - Khác biệt giữa Bash, Zsh và Fish
+  - Khác biệt giữa công cụ GNU và BSD
+  - Tùy chọn lệnh, định dạng đầu ra và mặc định phụ thuộc nền tảng
+  - PowerShell trên Windows, Linux và macOS
+  - Khác biệt Windows PowerShell và PowerShell mới
+  - Đường dẫn, ký tự phân cách và quy tắc hoa thường
+  - Điều kiện phiên bản cho cú pháp và cách truyền đối số
+  - Kiểm tra khả năng thực tế thay cho suy đoán theo tên hệ điều hành
+  - Lập ma trận môi trường được hỗ trợ
+- level1: Bảo mật
+  level2:
+  - Phân biệt dữ liệu đầu vào và mã lệnh
+  - Chèn lệnh qua chuỗi ghép và nhiều lớp phân tích
+  - Giới hạn sử dụng eval hoặc cơ chế thực thi chuỗi
+  - Giữ đối số nguyên vẹn và xác định rõ chương trình đích
+  - Rủi ro từ PATH, thư mục hiện tại và tệp khởi động
+  - Biến môi trường ảnh hưởng tới trình nạp hoặc runtime
+  - Bí mật trong đối số, môi trường, lịch sử và log
+  - Nạp cấu hình hoặc script từ nguồn có quyền ghi không phù hợp
+  - Tạo tệp tạm an toàn và tránh đụng độ tên
+  - Xác minh phạm vi đường dẫn trước thao tác xóa hoặc di chuyển
+  - Quyền chạy script và giới hạn của shell hạn chế
+  - Thiết kế ví dụ thực hành trong phạm vi dữ liệu riêng
+- level1: Chẩn đoán
+  level2:
+  - Xác minh shell, phiên bản và chế độ khởi động
+  - Xác minh chương trình thực tế được tìm từ PATH
+  - So sánh thư mục làm việc và danh tính tiến trình
+  - Kiểm tra một tập biến cần thiết mà không xuất toàn bộ bí mật
+  - Tìm nguồn cấu hình đã gán hoặc ghi đè một giá trị
+  - Chẩn đoán biến chưa export hoặc thay đổi sai phạm vi
+  - Chẩn đoán trường hợp terminal nhận cấu hình khác IDE hoặc dịch vụ
+  - Quan sát đối số sau quá trình phân tích
+  - Truy vết script và kiểm soát dữ liệu bị lộ qua trace
+  - Chẩn đoán lỗi mã hóa, xuống dòng hoặc dấu nháy
+  - Thu nhỏ môi trường và tạo tình huống tái hiện tối thiểu
+  - Đọc stdout, stderr và mã thoát cùng nhau
+- level1: Kiểm thử
+  level2:
+  - Tách dữ liệu thử nghiệm khỏi dữ liệu đang sử dụng
+  - Chạy script với môi trường và thư mục làm việc xác định
+  - Kiểm thử đường dẫn có khoảng trắng, ký tự đặc biệt hoặc Unicode
+  - Kiểm thử biến thiếu, biến rỗng và cấu hình không hợp lệ
+  - Kiểm thử dữ liệu có xuống dòng và ranh giới đối số
+  - Kiểm thử công cụ không tồn tại hoặc trả lỗi
+  - Kiểm thử lỗi ở chặng giữa của pipeline
+  - Kiểm thử ngắt, hết thời hạn và dọn dẹp
+  - Kiểm tra cú pháp và phân tích tĩnh theo ngôn ngữ
+  - Kiểm thử nhiều phiên bản shell và hệ điều hành
+  - Đối chiếu đầu ra, mã thoát và tác động phụ
+- level1: Thực hành
+  level2:
+  - Vẽ quan hệ terminal, shell và các tiến trình con
+  - Quan sát kế thừa môi trường qua hai thế hệ tiến trình
+  - So sánh biến cục bộ, biến export và cấu hình lưu lâu dài
+  - Thiết kế tập đối số có khoảng trắng hoặc chuỗi rỗng
+  - Xây dựng pipeline lọc dữ liệu với kiểm tra mã thoát
+  - Viết script nhận tham số và có đầu ra rõ ràng
+  - Thiết kế dọn dẹp khi script bị ngắt
+  - Chẩn đoán công cụ chạy khác phiên bản giữa hai terminal
+  - Chạy cùng công việc với môi trường tối thiểu và trong CI
+  - Chuyển một công việc giữa Bash và PowerShell theo hành vi
+  - Lập báo cáo cấu hình đã che thông tin bí mật
+- level1: Đánh giá script
+  level2:
+  - Kiểm tra shell, phiên bản và nền tảng mục tiêu
+  - Kiểm tra kế thừa, phạm vi và thứ tự ưu tiên cấu hình
+  - Kiểm tra trích dẫn và ranh giới đối số
+  - Kiểm tra đường dẫn và chương trình thực tế sẽ chạy
+  - Kiểm tra stdin, stdout, stderr và mã thoát
+  - Kiểm tra vòng đời tiến trình và xử lý ngắt
+  - Kiểm tra tệp tạm và phạm vi thao tác thay đổi dữ liệu
+  - Kiểm tra bí mật, đặc quyền và nguồn cấu hình
+  - Kiểm tra khả năng chạy lại và chạy không tương tác
+  - Ghi nhận điều kiện hỗ trợ và bằng chứng kiểm thử

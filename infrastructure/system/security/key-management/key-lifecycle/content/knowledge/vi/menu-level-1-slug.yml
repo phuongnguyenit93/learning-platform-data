@@ -1,0 +1,103 @@
+menu:
+- title: Mô hình vòng đời
+  slug: lifecycle-model
+  index: 0
+- title: Mục tiêu bảo vệ
+  slug: protection-objectives
+  index: 1
+- title: Phạm vi khóa
+  slug: key-scope
+  index: 2
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 3
+- title: Vai trò và trách nhiệm
+  slug: roles-responsibilities
+  index: 4
+- title: Trạng thái khóa
+  slug: key-states
+  index: 5
+- title: Chính sách vòng đời
+  slug: lifecycle-policies
+  index: 6
+- title: Sinh khóa
+  slug: key-generation
+  index: 7
+- title: Đăng ký siêu dữ liệu
+  slug: key-metadata-registration
+  index: 8
+- title: Lưu trữ và bảo vệ
+  slug: secure-key-storage
+  index: 9
+- title: Phân phối khóa
+  slug: key-distribution
+  index: 10
+- title: Kích hoạt và sử dụng
+  slug: activation-usage
+  index: 11
+- title: Cryptoperiod
+  slug: cryptoperiod
+  index: 12
+- title: Xoay vòng khóa
+  slug: key-rotation
+  index: 13
+- title: Phiên bản và tương thích
+  slug: versioning-compatibility
+  index: 14
+- title: Sao lưu và khôi phục
+  slug: backups-recovery
+  index: 15
+- title: Kiểm soát truy cập
+  slug: access-control
+  index: 16
+- title: Nhật ký và kiểm toán
+  slug: logging-auditing
+  index: 17
+- title: Giám sát vận hành
+  slug: operational-monitoring
+  index: 18
+- title: Xử lý khóa bị lộ
+  slug: compromised-key-response
+  index: 19
+- title: Đình chỉ và thu hồi
+  slug: suspension-revocation
+  index: 20
+- title: Ngừng sử dụng
+  slug: key-decommissioning
+  index: 21
+- title: Hủy và zeroization
+  slug: destruction-zeroization
+  index: 22
+- title: Di chuyển và chuyển đổi
+  slug: migration-transition
+  index: 23
+- title: KMS và HSM
+  slug: kms-hsm
+  index: 24
+- title: Envelope encryption
+  slug: envelope-encryption
+  index: 25
+- title: Thiết kế ứng dụng
+  slug: application-design
+  index: 26
+- title: CI/CD và triển khai
+  slug: ci-cd-deployment
+  index: 27
+- title: Thực hành Java
+  slug: java-exercises
+  index: 28
+- title: Kiểm thử và diễn tập
+  slug: testing-drills
+  index: 29
+- title: Quản trị và tuân thủ
+  slug: governance-compliance
+  index: 30
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 31
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 32
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 33

@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-migration
+  title: Tư duy Migration
+  purpose: Hiểu vì sao thay đổi schema phải có lịch sử và thực hiện nhất quán giữa các môi trường.
+  objectives:
+  - Phân biệt thay đổi schema với thay đổi dữ liệu.
+  - Nêu rủi ro sửa database thủ công.
+  - Mô tả luồng dev → test → production.
+- id: version-changelog
+  title: Version & Changelog
+  purpose: Quản lý từng thay đổi bằng phiên bản và lịch sử đã áp dụng.
+  objectives:
+  - Tạo migration có tên và thứ tự rõ ràng.
+  - Lưu migration trong Git cùng ứng dụng.
+  - Đọc bảng lịch sử và checksum đã chạy.
+- id: ddl-data-migration
+  title: DDL & Data Migration
+  purpose: Viết thay đổi cấu trúc và chuyển đổi dữ liệu có thể kiểm chứng.
+  objectives:
+  - Thử CREATE, ALTER và ADD COLUMN trên database mẫu.
+  - Viết backfill dữ liệu cho cột mới.
+  - Kiểm tra tính đúng đắn và điều kiện chạy lại.
+- id: flyway-liquibase
+  title: Flyway & Liquibase
+  purpose: Làm quen hai công cụ quản lý migration phổ biến trong dự án Java.
+  objectives:
+  - Phân biệt Flyway versioned/repeatable migrations.
+  - Nhận diện Liquibase changelog và changeset.
+  - Thực thi, xem trạng thái và kiểm tra lịch sử.
+- id: thu-tu-phu-thuoc
+  title: Thứ tự & phụ thuộc
+  purpose: Phòng tránh migration thất bại do đối tượng phụ thuộc, khóa và đặc điểm DBMS.
+  objectives:
+  - Sắp xếp thay đổi bảng, cột, index và constraint.
+  - Kiểm tra transaction/lock trước khi ALTER TABLE.
+  - Xác định bước gây downtime hoặc chặn ghi.
+- id: expand-contract
+  title: Expand–Contract
+  purpose: Giảm gián đoạn khi schema và nhiều phiên bản ứng dụng cùng tồn tại.
+  objectives:
+  - Thêm cấu trúc mới mà chưa xóa cấu trúc cũ.
+  - Backfill và chuyển ứng dụng sang cấu trúc mới.
+  - Chỉ xóa cấu trúc cũ khi không còn phụ thuộc.
+- id: rollback-recovery
+  title: Rollback & Recovery
+  purpose: Chuẩn bị phương án phục hồi khi migration có lỗi hoặc mất tính tương thích.
+  objectives:
+  - Phân biệt rollback với roll-forward.
+  - Đánh giá thao tác có nguy cơ mất dữ liệu.
+  - Lập kế hoạch backup, restore và rehearsal.
+- id: ci-cd-kiem-thu
+  title: CI/CD & Kiểm thử
+  purpose: Tích hợp migration vào quy trình giao phần mềm và xác minh kết quả.
+  objectives:
+  - Chạy migration trên database test sạch.
+  - Phát hiện schema drift hoặc checksum thay đổi.
+  - Kiểm tra schema, dữ liệu và giám sát sau deploy.

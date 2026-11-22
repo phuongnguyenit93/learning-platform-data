@@ -1,0 +1,471 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kong Gateway là gì và giải quyết bài toán quản lý API nào
+  - API Gateway, reverse proxy, load balancer và service mesh
+  - Vị trí của Kong giữa bên gọi API và dịch vụ phía sau
+  - Luồng yêu cầu từ máy khách qua Kong tới upstream
+  - Quản lý lưu lượng khác với triển khai logic nghiệp vụ
+  - Thuật ngữ Service, Route, Upstream, Target, Consumer và Plugin
+  - Phạm vi Kong mã nguồn mở, Enterprise và Konnect
+  - Cách kiểm tra phiên bản, giấy phép và khả năng hỗ trợ tính năng
+  - Lộ trình học từ proxy đơn giản tới vận hành nhiều node
+- level1: Kiến trúc Kong
+  level2:
+  - Vai trò của Nginx, OpenResty và Lua trong Kong
+  - Master process, worker process và xử lý yêu cầu theo sự kiện
+  - Control Plane quản lý cấu hình và Data Plane xử lý lưu lượng
+  - Proxy listener, Admin API và Status API
+  - Kong Manager và ranh giới với giao diện quản trị Konnect
+  - Vòng đời yêu cầu và các giai đoạn thực thi plugin
+  - Cấu hình node, cấu hình thực thể và dữ liệu phát sinh khi chạy
+  - Bộ nhớ đệm cấu hình và truyền thay đổi giữa các node
+  - Phân biệt trạng thái cấu hình với trạng thái bộ đếm và phiên
+- level1: Chế độ triển khai
+  level2:
+  - Traditional mode và PostgreSQL dùng chung
+  - DB-less mode và cấu hình khai báo trên từng node
+  - Hybrid mode tách Control Plane và Data Plane
+  - Konnect và các lựa chọn lưu trữ Data Plane
+  - So sánh phụ thuộc hạ tầng, độ sẵn sàng và cách cập nhật
+  - Giới hạn Admin API khi chạy DB-less
+  - Plugin phụ thuộc cơ sở dữ liệu và giới hạn theo topology
+  - Điều kiện tương thích phiên bản giữa Control Plane và Data Plane
+  - Tiêu chí chọn topology theo quy mô và yêu cầu vận hành
+- level1: Cài đặt
+  level2:
+  - Chuẩn bị DNS, cổng mạng, đồng hồ và tài nguyên máy
+  - Chọn bản phân phối và cố định phiên bản image
+  - Chạy môi trường học bằng Docker và Docker Compose
+  - Khởi tạo Kong DB-less với dịch vụ mẫu
+  - Khởi tạo Kong Traditional với PostgreSQL
+  - Bootstrap và migration cơ sở dữ liệu lần đầu
+  - Ánh xạ cổng proxy, quản trị và kiểm tra trạng thái
+  - Kiểm tra node đã sẵn sàng trước khi gửi yêu cầu
+  - Kiểm chứng yêu cầu đi trực tiếp và đi qua Kong
+  - Quản lý volume, log và dọn môi trường lab
+- level1: Cấu hình node
+  level2:
+  - kong.conf và các nhóm tham số nền tảng
+  - Biến môi trường KONG_* và thứ tự ưu tiên cấu hình
+  - Chọn role, database và đường dẫn cấu hình khai báo
+  - proxy_listen, admin_listen và status_listen
+  - DNS resolver, tìm tên dịch vụ và thời hạn lưu kết quả
+  - Cấu hình log, mức chi tiết và định dạng đầu ra
+  - Cấu hình worker, kết nối và giới hạn tài nguyên
+  - Trusted IP, real IP và chuỗi proxy phía trước
+  - Kiểm tra cấu hình trước khi start, reload hoặc restart
+  - Phân biệt tham số cần khởi động lại với thực thể có thể cập nhật
+- level1: Thực thể Kong
+  level2:
+  - Quan hệ giữa Gateway Service và Route
+  - Quan hệ giữa Upstream và Target
+  - Consumer là danh tính logic của bên sử dụng API
+  - Credential gắn với Consumer và plugin xác thực
+  - Certificate, SNI và CA Certificate
+  - Plugin toàn cục và plugin gắn với thực thể
+  - ID, name, tag và quy ước đặt tên
+  - Consumer Group, Workspace và điều kiện hỗ trợ
+  - Thứ tự tạo, tham chiếu và xóa thực thể có phụ thuộc
+- level1: Gateway Service
+  level2:
+  - Tạo Service từ URL hoặc protocol, host, port và path
+  - Phân biệt host của Service với host của yêu cầu vào
+  - Service trỏ thẳng tới DNS hay trỏ tới Upstream
+  - Đường dẫn cơ sở và cách ghép với đường dẫn của Route
+  - connect_timeout, read_timeout và write_timeout
+  - Cấu hình retries và giới hạn an toàn của việc thử lại
+  - Giao thức và chứng chỉ khi kết nối tới backend
+  - Gắn plugin ở cấp Service
+  - Cập nhật Service và kiểm tra tác động lên các Route
+  - Kiểm chứng cấu hình bằng Admin API và backend echo
+- level1: Route cơ bản
+  level2:
+  - Tạo Route và liên kết tới Gateway Service
+  - Khớp theo host, path và HTTP method
+  - Khớp theo header và các điều kiện phối hợp
+  - Phân biệt router truyền thống, traditional_compat và expressions
+  - Ưu tiên khi nhiều Route cùng khớp
+  - strip_path và đường dẫn thực sự gửi tới backend
+  - preserve_host và giá trị Host phía upstream
+  - path_handling và điều kiện tương thích router
+  - Điều hướng HTTP sang HTTPS theo cấu hình Route
+  - Phân biệt lỗi không khớp Route với lỗi backend
+- level1: Định tuyến nâng cao
+  level2:
+  - Định tuyến bằng biểu thức và thiết lập priority
+  - Khớp chính xác, tiền tố, regex và nhóm bắt
+  - Phân biệt chữ hoa thường và chuẩn hóa đường dẫn
+  - SNI, protocol và điều kiện định tuyến luồng
+  - Xử lý dấu gạch chéo, URL encoding và query string
+  - Định tuyến nhiều phiên bản API
+  - Định tuyến theo miền cho nhiều nhóm khách hàng
+  - Phát hiện Route chồng lấn và kiểm tra ưu tiên
+  - Thiết kế chuyển lưu lượng canary theo khả năng được hỗ trợ
+  - Tối ưu số Route và chi phí biểu thức
+- level1: Upstream và Target
+  level2:
+  - Upstream là nhóm đích logic cho một Gateway Service
+  - Target bằng hostname hoặc địa chỉ IP và cổng
+  - Thêm, sửa, loại bỏ Target và kiểm tra trạng thái hiệu lực
+  - Trọng số Target và phân phối lưu lượng
+  - Các thuật toán cân bằng tải được phiên bản hỗ trợ
+  - Consistent hashing và lựa chọn khóa băm
+  - Sticky session và giới hạn khi Target thay đổi
+  - DNS nhiều địa chỉ, TTL và thay đổi đầu cuối
+  - Host header, SNI và chứng chỉ của từng đích
+  - Giới hạn kết nối và tái sử dụng kết nối upstream
+- level1: Kiểm tra sức khỏe
+  level2:
+  - Phân biệt active health check và passive health check
+  - Chọn endpoint kiểm tra và tiêu chí thành công
+  - Interval, timeout và ngưỡng chuyển healthy hoặc unhealthy
+  - Phân loại lỗi kết nối, timeout và mã trạng thái HTTP
+  - Phạm vi trạng thái sức khỏe trên từng node
+  - Target bị loại khỏi vòng cân bằng tải
+  - Khôi phục Target và giới hạn của kiểm tra thụ động
+  - Khi toàn bộ Target không khả dụng
+  - Tránh dao động trạng thái và kiểm tra sai endpoint
+- level1: Admin API
+  level2:
+  - Cấu trúc endpoint và thao tác CRUD với thực thể
+  - Tạo Service và Route bằng yêu cầu HTTP
+  - Tra cứu theo tên, ID và tag
+  - Pagination và đọc đầy đủ tập thực thể
+  - Phân biệt POST, PUT, PATCH và DELETE theo endpoint
+  - Schema validation và phản hồi lỗi cấu hình
+  - Ràng buộc tham chiếu và xóa thực thể có phụ thuộc
+  - Đọc trạng thái Upstream và thay đổi trạng thái Target thủ công
+  - Khác biệt quyền ghi theo topology và vai trò node
+  - Tránh cập nhật thủ công làm lệch nguồn cấu hình chuẩn
+- level1: Cấu hình khai báo
+  level2:
+  - Cấu trúc YAML hoặc JSON và _format_version
+  - Khai báo Service, Route, Upstream, Consumer và Plugin
+  - Tham chiếu thực thể theo tên hoặc ID
+  - Nạp cấu hình DB-less khi khởi động
+  - Cập nhật DB-less qua endpoint /config và phạm vi thay thế
+  - Tính nguyên khối của lần nạp và xử lý cấu hình không hợp lệ
+  - Phân phối cùng cấu hình tới nhiều node DB-less
+  - Quản lý tên ổn định, tag và tách tệp theo miền quản lý
+  - Biến môi trường và giới hạn nội suy trong từng công cụ
+  - Tách secret khỏi tệp cấu hình được lưu trong Git
+- level1: decK
+  level2:
+  - Vai trò của decK và khác biệt với trình nạp DB-less
+  - deck gateway ping và xác minh đích quản trị
+  - deck gateway dump và xuất trạng thái hiện hành
+  - deck file validate để kiểm tra tệp ngoại tuyến
+  - deck gateway validate để kiểm tra với Admin API
+  - deck gateway diff và xem trước thay đổi
+  - deck gateway sync và nguy cơ xóa thực thể vắng trong tệp
+  - deck gateway apply và giới hạn của cập nhật không xóa
+  - Tag selector và ranh giới quản lý từng phần cấu hình
+  - Merge, chuyển đổi tệp và giữ tham chiếu nhất quán
+  - Thông tin xác thực, masking và kết nối tới Konnect
+- level1: APIOps và GitOps
+  level2:
+  - Chọn nguồn cấu hình chuẩn và chủ sở hữu từng thực thể
+  - Tổ chức cấu hình theo môi trường và nhóm API
+  - Chuyển OpenAPI thành cấu hình Kong bằng công cụ phù hợp
+  - Kiểm tra cấu trúc, chính sách và tương thích plugin trong CI
+  - Validate, diff và phê duyệt thay đổi trước khi triển khai
+  - Phát hiện drift giữa Git và cấu hình đang chạy
+  - Ngăn nhiều công cụ cùng ghi vào một tập thực thể
+  - Triển khai từng phần, ghi nhận phiên bản và rollback
+  - Quản lý secret và quyền của tài khoản triển khai
+  - Kiểm chứng sau triển khai bằng lưu lượng và cấu hình thực tế
+- level1: Plugin
+  level2:
+  - Plugin mở rộng hành vi yêu cầu và phản hồi
+  - Tra cứu khả năng hỗ trợ theo phiên bản, giấy phép và topology
+  - Global scope và phạm vi Service, Route, Consumer
+  - Consumer Group scope và điều kiện hỗ trợ của từng plugin
+  - Thứ tự ưu tiên cấu hình cùng plugin ở nhiều phạm vi
+  - Phân biệt plugin precedence với thứ tự thực thi plugin
+  - Static priority và các giai đoạn xử lý yêu cầu
+  - Dynamic ordering và điều kiện hỗ trợ
+  - Điều kiện thực thi plugin theo phiên bản được dùng
+  - Tương tác giữa plugin xác thực, giới hạn lưu lượng và biến đổi
+  - Cập nhật, vô hiệu hóa và gỡ plugin có kiểm chứng
+- level1: Xác thực
+  level2:
+  - Consumer, credential và danh tính được truyền tới backend
+  - Key Auth và quản lý vòng đời API key
+  - Basic Auth và yêu cầu bảo vệ đường truyền
+  - 'JWT: xác minh chữ ký, thời hạn và claim cần kiểm tra'
+  - Phân biệt JWT plugin với truy xuất JWKS qua giải pháp phù hợp
+  - OpenID Connect với nhà cung cấp danh tính và điều kiện giấy phép
+  - 'OAuth 2.0: vai trò authorization server và resource server'
+  - OAuth2 plugin và giới hạn theo chế độ triển khai
+  - mTLS authentication và khác biệt với mã hóa TLS
+  - Kết hợp nhiều cơ chế xác thực và Consumer vô danh
+  - Xoay credential, thu hồi và giới hạn của token tự chứa
+  - Kiểm chứng trường hợp thiếu, sai, hết hạn và bị thu hồi
+- level1: Phân quyền
+  level2:
+  - Phân biệt xác thực danh tính với cấp quyền truy cập
+  - ACL plugin và phân nhóm Consumer
+  - Allowlist, denylist và phạm vi áp dụng
+  - Scope, role và claim trong chính sách truy cập
+  - Phân quyền theo Route, Service và nhóm khách hàng
+  - Quyền nghiệp vụ cần được backend kiểm tra
+  - Truyền danh tính đáng tin cậy và chống giả mạo header
+  - Đa tenant và ranh giới cô lập dữ liệu
+  - Kiểm thử quyền thiếu, quyền thừa và truy cập chéo tenant
+- level1: TLS và chứng chỉ
+  level2:
+  - Tách TLS phía máy khách với TLS phía upstream
+  - Certificate, SNI và lựa chọn chứng chỉ theo miền
+  - TLS termination, TLS passthrough và điều kiện định tuyến
+  - Cấu hình HTTPS tới backend và xác minh chứng chỉ
+  - CA tin cậy, chuỗi chứng chỉ và tên máy chủ
+  - mTLS giữa máy khách và Kong
+  - mTLS giữa Kong và dịch vụ phía sau
+  - TLS giữa Control Plane và Data Plane
+  - ACME, gia hạn và xoay chứng chỉ theo khả năng hỗ trợ
+  - Chẩn đoán chứng chỉ hết hạn, sai SNI và thiếu intermediate CA
+- level1: Giới hạn lưu lượng
+  level2:
+  - Rate limiting bảo vệ API và phân bổ hạn mức sử dụng
+  - Chọn khóa giới hạn theo Consumer, credential, IP hoặc Service
+  - Cửa sổ đếm và độ chính xác của từng plugin
+  - Local counter và tác động khi có nhiều Data Plane
+  - Cluster policy và điều kiện phụ thuộc cơ sở dữ liệu
+  - Redis policy và quản lý bộ đếm dùng chung
+  - Rate Limiting Advanced và tính năng phụ thuộc giấy phép
+  - Giới hạn burst, hạn mức dài hạn và độ trễ đồng bộ bộ đếm
+  - Ứng xử khi kho bộ đếm lỗi và lựa chọn mở hoặc chặn
+  - Mã 429, header hạn mức và hướng dẫn máy khách thử lại
+  - Kiểm thử hạn mức qua nhiều node và nhiều danh tính
+- level1: Bảo vệ yêu cầu
+  level2:
+  - Giới hạn kích thước body, header và thời gian xử lý
+  - Request Size Limiting và kiểm tra payload quá lớn
+  - IP Restriction và giới hạn khi đứng sau proxy
+  - Bot Detection và phạm vi bảo vệ thực tế
+  - Request Validator và điều kiện hỗ trợ schema
+  - CORS, preflight OPTIONS và yêu cầu có credential
+  - Kiểm soát HTTP method, content type và đường dẫn công khai
+  - Chống giả mạo Forwarded, X-Forwarded-* và header danh tính
+  - Phân công bảo vệ giữa Kong, WAF và ứng dụng
+  - Thiết kế phản hồi lỗi rõ ràng và tránh lộ thông tin nội bộ
+- level1: Biến đổi dữ liệu
+  level2:
+  - 'Request Transformer: thêm, thay, xóa header và query'
+  - Response Transformer và chuẩn hóa phản hồi
+  - Biến đổi body theo content type và giới hạn bộ đệm
+  - Thứ tự biến đổi so với định tuyến và xác thực
+  - Truyền correlation ID và thông tin ngữ cảnh cần thiết
+  - Loại bỏ header nội bộ hoặc dữ liệu nhạy cảm
+  - Phân biệt biến đổi kỹ thuật với tổng hợp nghiệp vụ
+  - Plugin Advanced và điều kiện hỗ trợ tính năng
+  - Kiểm chứng dữ liệu thực nhận bằng backend echo
+- level1: Bộ nhớ đệm
+  level2:
+  - Proxy Cache và các trường hợp phù hợp
+  - Cache key theo URL, method, header và danh tính
+  - TTL, mã trạng thái và content type được lưu
+  - Cache-Control, Vary và giới hạn của plugin được dùng
+  - Nguy cơ lộ dữ liệu khi cache phản hồi theo người dùng
+  - Kho cache cục bộ và tính nhất quán giữa nhiều node
+  - Proxy Cache Advanced, Redis và điều kiện giấy phép
+  - Vô hiệu hóa cache, cache miss và tránh tải dồn khi hết hạn
+  - Đo hit ratio và kiểm tra dữ liệu lỗi thời
+- level1: Timeout và retry
+  level2:
+  - Phân biệt timeout kết nối, gửi và nhận upstream
+  - Ngân sách thời gian từ máy khách qua Kong tới backend
+  - Retry ở gateway khác retry ở ứng dụng
+  - Điều kiện retry thực tế theo lỗi và giao thức
+  - Yêu cầu lũy đẳng và nguy cơ tạo giao dịch trùng
+  - Retry storm và phối hợp giới hạn tải
+  - Health check khác với circuit breaker của ứng dụng
+  - Client hủy yêu cầu và xử lý còn tiếp tục phía backend
+  - Giảm tải, trả lỗi có kiểm soát và lựa chọn fallback
+- level1: Giao thức mở rộng
+  level2:
+  - Proxy HTTP/1.1 và HTTP/2 theo từng chặng kết nối
+  - gRPC, gRPCS và ánh xạ lỗi giao thức
+  - gRPC streaming và tương thích plugin
+  - WebSocket Upgrade và vòng đời kết nối dài
+  - Server-Sent Events và tránh bộ đệm không phù hợp
+  - TCP, TLS và UDP stream proxy
+  - Phân biệt khả năng plugin HTTP với plugin stream
+  - GraphQL qua Kong và giới hạn bảo vệ ở tầng HTTP
+  - Phạm vi mở rộng AI Gateway và yêu cầu phiên bản, giấy phép
+  - Kiểm tra ma trận giao thức trước khi chọn plugin
+- level1: Quan sát hệ thống
+  level2:
+  - Access log, error log và log của từng plugin
+  - Request ID và liên kết log giữa Kong với backend
+  - Phân tách thời gian xử lý tại Kong và thời gian upstream
+  - Prometheus plugin và các nhóm chỉ số cốt lõi
+  - Tỷ lệ yêu cầu, tỷ lệ lỗi, độ trễ và mức sử dụng tài nguyên
+  - Theo dõi trạng thái Target, bộ đếm hạn mức và kết nối
+  - OpenTelemetry và truyền trace context
+  - Sampling, chi phí tracing và dữ liệu nhạy cảm
+  - HTTP Log và các đích thu thập log được hỗ trợ
+  - Status API, readiness và liveness theo vai trò node
+  - Giới hạn cardinality theo Consumer, Route và nhãn
+  - Thiết kế dashboard, SLI, SLO và cảnh báo
+- level1: Kubernetes
+  level2:
+  - Vai trò của Kong Gateway, KIC và Kong Operator
+  - KIC chuyển tài nguyên Kubernetes thành cấu hình Kong
+  - Triển khai bằng Helm và cố định phiên bản chart, image
+  - Ingress, IngressClass và phạm vi quản lý controller
+  - GatewayClass, Gateway và HTTPRoute
+  - Service, EndpointSlice và khám phá Pod phía backend
+  - KongPlugin, KongClusterPlugin và phạm vi tác động
+  - KongConsumer và Secret chứa credential
+  - KongUpstreamPolicy và cấu hình cân bằng tải
+  - TLS Secret, listener và chứng chỉ
+  - Gateway API cho gRPC, TCP, UDP theo mức hỗ trợ
+  - Reconcile, trạng thái tài nguyên và cấu hình không hợp lệ
+  - Ranh giới quản lý giữa KIC, decK và Admin API
+- level1: Hybrid và Konnect
+  level2:
+  - Kết nối Control Plane với các Data Plane tự quản
+  - Chứng chỉ cụm, xác thực và cổng kết nối CP/DP
+  - Phân phối cấu hình và kiểm tra Data Plane đã đồng bộ
+  - Cấu hình cuối cùng khi mất kết nối Control Plane
+  - Data Plane khởi động lại khi Control Plane không khả dụng
+  - Kiểm tra tương thích cấu hình, plugin và phiên bản
+  - Tạo Control Plane và đăng ký Data Plane trong Konnect
+  - Self-hosted, Dedicated Cloud và Serverless theo nhu cầu
+  - Quản lý nhiều vùng và ranh giới lỗi
+  - Workspace tự quản khác với Control Plane trong Konnect
+  - Giới hạn plugin theo hình thức lưu trữ Data Plane
+- level1: Bảo mật vận hành
+  level2:
+  - Đặt Admin API trong mạng quản trị riêng
+  - TLS và cơ chế kiểm soát truy cập API quản trị
+  - RBAC quản trị và điều kiện Enterprise hoặc Konnect
+  - Nguyên tắc quyền tối thiểu cho người và tài khoản tự động
+  - Vault, tham chiếu secret và nhà cung cấp được hỗ trợ
+  - Bảo vệ PostgreSQL, Redis và chứng chỉ cụm
+  - Xoay secret mà không làm gián đoạn lưu lượng
+  - Che dữ liệu nhạy cảm trong log, dump và báo lỗi
+  - Kiểm soát thay đổi, audit log và điều kiện hỗ trợ
+  - Quản lý image, lỗ hổng và tính toàn vẹn plugin
+  - Cô lập mạng giữa proxy, quản trị và dịch vụ phụ thuộc
+- level1: Tính sẵn sàng
+  level2:
+  - Triển khai nhiều node và load balancer phía trước
+  - Tách điểm lỗi của proxy, quản trị và kho cấu hình
+  - Dự phòng PostgreSQL theo yêu cầu topology
+  - Dự phòng Redis khi dùng hạn mức hoặc cache dùng chung
+  - Readiness, liveness và loại node khỏi vòng phục vụ
+  - Rolling update, drain kết nối và dừng có trật tự
+  - Kết nối dài khi node bị thay thế
+  - Đồng bộ cấu hình và kiểm soát node chạy cấu hình cũ
+  - Multi-zone, multi-region và yêu cầu định tuyến toàn cục
+  - Đặt RTO, RPO và diễn tập lỗi hạ tầng
+- level1: Hiệu năng
+  level2:
+  - Thiết lập đường cơ sở khi đi trực tiếp và qua gateway
+  - Đo throughput, p95, p99 và tỷ lệ lỗi
+  - Chi phí từng plugin và thứ tự xử lý
+  - Worker, CPU, bộ nhớ và giới hạn file descriptor
+  - Kết nối keepalive phía máy khách và phía upstream
+  - TLS handshake, tái sử dụng phiên và chi phí mã hóa
+  - Request buffering, response buffering và luồng dữ liệu lớn
+  - Chi phí regex, số Route và bộ đệm cấu hình
+  - DNS, bộ đếm Redis và độ trễ dịch vụ phụ thuộc
+  - Phân biệt nghẽn tại Kong, mạng hay backend
+  - Tối ưu có đo đạc và tránh thay tham số thiếu bằng chứng
+- level1: Plugin tùy chỉnh
+  level2:
+  - Khi nào dùng plugin có sẵn và khi nào cần tự phát triển
+  - Cấu trúc thư mục, handler.lua và schema.lua
+  - VERSION, PRIORITY và khai báo cấu hình hợp lệ
+  - Các giai đoạn rewrite, access, response và log
+  - Giới hạn tương thích giữa xử lý response và streaming
+  - Kong PDK và truy cập yêu cầu, phản hồi, ngữ cảnh
+  - Chia sẻ dữ liệu trong một yêu cầu và tránh trạng thái toàn cục sai
+  - I/O không chặn, timeout và giới hạn gọi dịch vụ ngoài
+  - Schema, DAO và migration khi cần thực thể riêng
+  - Đóng gói, cài đặt và bật plugin trên đúng node
+  - Kiểm thử bằng bộ công cụ tương thích phiên bản Kong
+  - Tương thích CP/DP, nâng cấp plugin và kiểm soát rủi ro
+- level1: Kiểm thử
+  level2:
+  - Lập ma trận Route, Consumer, plugin và giao thức
+  - Kiểm thử chức năng proxy và nội dung backend nhận được
+  - Kiểm thử ưu tiên Route và xung đột plugin
+  - Kiểm thử xác thực, phân quyền và CORS preflight
+  - Kiểm thử hạn mức qua nhiều node và kho bộ đếm lỗi
+  - Kiểm thử health check, failover và phục hồi Target
+  - Kiểm thử timeout, retry và giao dịch không lũy đẳng
+  - Kiểm thử TLS, mTLS và xoay chứng chỉ
+  - Load test, stress test và soak test
+  - Mô phỏng mất CP, DB, Redis, DNS và một Data Plane
+  - Kiểm thử hồi quy khi đổi cấu hình hoặc phiên bản
+- level1: Xử lý sự cố
+  level2:
+  - 404 do không khớp Route và 404 do backend trả
+  - '401 và 403: phân biệt lỗi xác thực với lỗi phân quyền'
+  - 429 không đúng kỳ vọng và bộ đếm trên nhiều node
+  - '502: lỗi kết nối, DNS, TLS hoặc phản hồi upstream'
+  - '503: không có Target khả dụng và giới hạn tài nguyên'
+  - 504 và xác định chặng hết thời gian chờ
+  - Đường dẫn hoặc Host tới backend bị thay đổi ngoài ý muốn
+  - Plugin không chạy, sai phạm vi hoặc bị cấu hình khác ưu tiên
+  - CORS thất bại do preflight bị xác thực hoặc định tuyến sai
+  - Health check báo sai và Target liên tục đổi trạng thái
+  - Data Plane mất đồng bộ hoặc từ chối cấu hình
+  - KIC không reconcile và tài nguyên không được controller chọn
+  - Độ trễ tăng, kết nối cạn và log gây tải
+  - Thu thập bằng chứng và khoanh vùng từ máy khách tới backend
+- level1: Nâng cấp và phục hồi
+  level2:
+  - Chốt phiên bản hiện tại và đọc breaking changes
+  - Kiểm tra ma trận Kong, PostgreSQL, plugin và công cụ quản lý
+  - Sao lưu cơ sở dữ liệu và xuất cấu hình theo topology
+  - Phân biệt khôi phục tệp thực thể với khôi phục đầy đủ hệ thống
+  - Quy trình migration up và finish theo tài liệu phiên bản
+  - Nâng cấp Control Plane và Data Plane đúng thứ tự hỗ trợ
+  - Rolling upgrade và giới hạn cùng tồn tại nhiều phiên bản
+  - Kiểm tra lại router, plugin, chứng chỉ và giao thức
+  - Rollback ứng dụng khác với rollback schema cơ sở dữ liệu
+  - Diễn tập phục hồi và xác minh cấu hình, credential, lưu lượng
+  - Chuyển đổi topology và tránh mất dữ liệu hoặc trạng thái
+- level1: Tích hợp ứng dụng
+  level2:
+  - Quy ước URL công khai và URL nội bộ của dịch vụ
+  - Forwarded header và nhận diện scheme, host, IP gốc
+  - Tích hợp Spring Boot sau reverse proxy
+  - Truyền danh tính đã xác thực và kiểm tra quyền tại backend
+  - Request ID, trace context và log xuyên dịch vụ
+  - Chuẩn hóa phản hồi lỗi giữa gateway với ứng dụng
+  - Timeout, retry và idempotency key trên toàn chuỗi
+  - WebSocket, SSE và gRPC trong ứng dụng thực tế
+  - Tài liệu OpenAPI, đường dẫn cơ sở và phiên bản API
+  - Giới hạn trách nhiệm giữa gateway, BFF và dịch vụ nghiệp vụ
+- level1: Bài thực hành
+  level2:
+  - Dựng Kong DB-less và proxy một API echo
+  - Tạo nhiều Service và Route bằng Admin API trên môi trường phù hợp
+  - Thử host, path, method và xác minh thứ tự Route
+  - Bảo vệ API bằng Key Auth và ACL
+  - Thiết lập HTTPS và xác minh TLS tới upstream
+  - Cân bằng tải nhiều Target và mô phỏng một Target lỗi
+  - Đo rate limit cục bộ so với bộ đếm Redis
+  - Quan sát log, metric và trace của cùng một yêu cầu
+  - Quản lý cấu hình bằng validate, diff và sync trong CI
+  - Triển khai HTTPRoute và KongPlugin trên Kubernetes
+  - Viết plugin thêm header có kiểm thử và giới hạn phạm vi
+  - Diễn tập mất phụ thuộc, nâng cấp và khôi phục cấu hình
+- level1: Thiết kế vận hành
+  level2:
+  - Chuyển yêu cầu API thành tiêu chí chọn topology
+  - Thiết kế ranh giới quản lý cho nhiều nhóm và tenant
+  - Xây danh mục plugin chuẩn và chính sách ngoại lệ
+  - Chọn công cụ quản lý cấu hình cho từng môi trường
+  - Lập ngân sách độ trễ, tải, bộ đếm và số kết nối
+  - Thiết kế cổng công khai, mạng quản trị và quyền tối thiểu
+  - Runbook xử lý sự cố và phân công trách nhiệm
+  - Quy trình đưa API mới vào phục vụ và ngừng API cũ
+  - Ranh giới Gateway với Developer Portal và sản phẩm quản lý API
+  - Checklist kiểm chứng trước khi đưa Kong vào vận hành

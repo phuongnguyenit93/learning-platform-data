@@ -1,0 +1,2929 @@
+menu:
+- slug: flyway-overview
+  title: Tổng quan Flyway
+  childs:
+  - slug: flyway-overview-001
+    title: Flyway là gì và bài toán quản lý thay đổi lược đồ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-002
+    title: Quan hệ giữa migration, mã nguồn ứng dụng và trạng thái cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-003
+    title: Từ tập lệnh SQL chạy thủ công đến quy trình migration có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-004
+    title: 'Các thành phần: migration, bộ thực thi và bảng lịch sử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-005
+    title: 'Luồng học: tạo migration, kiểm tra, triển khai và xử lý sự cố'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-006
+    title: Phạm vi Flyway và ranh giới với ORM, công cụ so sánh lược đồ, sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-007
+    title: 'Các mô hình triển khai: khi khởi động ứng dụng, tác vụ riêng và CI/CD'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-overview-008
+    title: Lựa chọn phiên bản, ấn bản và đối chiếu tính năng theo giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prerequisites
+  title: Kiến thức nền
+  childs:
+  - slug: prerequisites-001
+    title: Cơ sở dữ liệu, schema, catalog và đối tượng được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-002
+    title: DDL, DML và tác động của thay đổi cấu trúc lên dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-003
+    title: Khóa, giao dịch và giới hạn hoàn tác DDL theo hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-004
+    title: Khóa chính, khóa ngoại, chỉ mục và ràng buộc toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-005
+    title: Quyền sở hữu đối tượng, tài khoản triển khai và tài khoản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-006
+    title: Thứ tự phụ thuộc giữa bảng, view, hàm và thủ tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-007
+    title: Đường cơ sở, sai lệch lược đồ và khả năng tái tạo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-008
+    title: Tiền điều kiện trước khi áp dụng migration lên dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-lab
+  title: Môi trường thực hành
+  childs:
+  - slug: migration-lab-001
+    title: Chọn hệ quản trị và cố định phiên bản để thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-002
+    title: Khởi tạo cơ sở dữ liệu riêng bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-003
+    title: Chuẩn bị JDBC driver và mô-đun hỗ trợ cơ sở dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-004
+    title: Cài đặt và xác minh Flyway Command-line
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-005
+    title: Kết nối cơ sở dữ liệu bằng URL, người dùng và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-006
+    title: Tổ chức thư mục migration và tệp cấu hình ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-007
+    title: Tách môi trường thực hành khỏi môi trường có dữ liệu cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-lab-008
+    title: Xác minh kết nối, schema đích và quyền trước lần chạy đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-migration
+  title: Migration đầu tiên
+  childs:
+  - slug: first-migration-001
+    title: Khởi tạo migration tạo bảng đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-002
+    title: Kiểm tra migration được phát hiện trước khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-003
+    title: Chạy migrate và quan sát thay đổi trên cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-004
+    title: Đọc bảng lịch sử sau lần migrate đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-005
+    title: Chạy migrate lần nữa khi không có migration mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-006
+    title: Thêm migration thay đổi bảng và quan sát thứ tự chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-007
+    title: Tái tạo cơ sở dữ liệu trống từ cùng bộ migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-migration-008
+    title: Đối chiếu mã nguồn, nhật ký thực thi và lược đồ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-types
+  title: Loại migration
+  childs:
+  - slug: migration-types-001
+    title: 'Migration có phiên bản (versioned): mục đích và vòng đời'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-002
+    title: 'Migration lặp lại (repeatable): mục đích và điều kiện chạy lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-003
+    title: 'Migration hoàn tác (undo): mục đích và điều kiện hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-004
+    title: 'Migration đường cơ sở (baseline migration): mục đích và điều kiện hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-005
+    title: Phân biệt lệnh baseline với baseline migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-006
+    title: 'Migration SQL và migration Java: tiêu chí lựa chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-007
+    title: Phụ thuộc và thứ tự giữa các loại migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-types-008
+    title: Lựa chọn loại migration cho bảng, dữ liệu tham chiếu, view và thủ tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-naming
+  title: Quy tắc đặt tên
+  childs:
+  - slug: migration-naming-001
+    title: 'Cấu trúc tên: tiền tố, phiên bản, dấu phân cách và mô tả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-002
+    title: Phiên bản số, nhiều thành phần và quy tắc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-003
+    title: Chiến lược đánh số tuần tự và dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-004
+    title: Tiền tố và hậu tố cho migration SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-005
+    title: Đặt tên repeatable migration không có số phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-006
+    title: Đặt tên undo migration tương ứng với migration tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-007
+    title: Tên migration Java và quy tắc nhận diện lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-008
+    title: Xử lý trùng phiên bản, tên sai và tệp bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-naming-009
+    title: Quy ước mô tả dễ đọc, ổn định và phù hợp lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locations-resources
+  title: Vị trí và tài nguyên
+  childs:
+  - slug: locations-resources-001
+    title: Cấu hình locations trên filesystem và classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-002
+    title: Tổ chức nhiều thư mục và kiểm soát phạm vi quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-003
+    title: Migration trong tài nguyên ứng dụng và gói JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-004
+    title: Mã hóa tệp, ký tự Unicode và dấu xuống dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-005
+    title: Thứ tự migration độc lập với thứ tự liệt kê tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-006
+    title: Tách tài nguyên theo hệ quản trị và tránh nạp nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-007
+    title: Đóng gói migration cùng phiên bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locations-resources-008
+    title: Chẩn đoán migration không được tìm thấy trong môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-history
+  title: Lịch sử migration
+  childs:
+  - slug: migration-history-001
+    title: Vai trò và cấu trúc bảng flyway_schema_history
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-002
+    title: Ý nghĩa các trường phiên bản, mô tả, loại và tên tập lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-003
+    title: Checksum, người thực thi, thời gian và kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-004
+    title: Thứ tự cài đặt và quan hệ với phiên bản migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-005
+    title: Đọc các trạng thái migration qua lệnh info
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-006
+    title: Phân biệt Pending, Success, Failed và trạng thái bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-007
+    title: Trạng thái Missing, Future, Out of Order và repeatable lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-008
+    title: Tùy chỉnh tên và schema chứa bảng lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-history-009
+    title: Giới hạn của bảng lịch sử khi xác minh lược đồ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-commands
+  title: Lệnh cốt lõi
+  childs:
+  - slug: core-commands-001
+    title: 'info: xem migration và trạng thái cơ sở dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-002
+    title: 'migrate: áp dụng migration còn chờ theo cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-003
+    title: 'validate: đối chiếu migration với lịch sử đã ghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-004
+    title: 'baseline: ghi nhận mốc ban đầu cho cơ sở dữ liệu hiện hữu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-005
+    title: 'repair: điều chỉnh siêu dữ liệu lịch sử trong phạm vi cho phép'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-006
+    title: 'clean: xóa đối tượng trong phạm vi schema được cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-007
+    title: 'undo: hoàn tác migration khi phiên bản và giấy phép hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-008
+    title: Kiểm tra tham số, kết quả đầu ra và mã thoát của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-commands-009
+    title: Thiết kế thứ tự kiểm tra và thực thi cho quy trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flyway-configuration
+  title: Cấu hình Flyway
+  childs:
+  - slug: flyway-configuration-001
+    title: Các nguồn cấu hình và thứ tự ưu tiên theo công cụ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-002
+    title: Tệp cấu hình TOML và cấu hình properties theo phiên bản Flyway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-003
+    title: Biến môi trường, tham số dòng lệnh và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-004
+    title: url, user, password và cấu hình kết nối JDBC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-005
+    title: schemas, defaultSchema, createSchemas và table
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-006
+    title: locations, encoding và các quy tắc đặt tên migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-007
+    title: target, outOfOrder, baselineVersion và baselineDescription
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-008
+    title: validateOnMigrate, cleanDisabled và các lựa chọn an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-009
+    title: Quản lý cấu hình dùng chung và phần khác biệt theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flyway-configuration-010
+    title: Kiểm tra cấu hình hiệu lực và tránh lộ thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-migration-design
+  title: Thiết kế migration SQL
+  childs:
+  - slug: sql-migration-design-001
+    title: Mỗi migration là một thay đổi có mục đích và ranh giới rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-002
+    title: Tạo và thay đổi bảng theo thứ tự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-003
+    title: Thêm cột, giá trị mặc định và ràng buộc NOT NULL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-004
+    title: Đổi tên cột, đổi kiểu dữ liệu và kiểm tra dữ liệu tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-005
+    title: Tạo khóa ngoại, unique constraint và check constraint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-006
+    title: Tạo, thay đổi và xóa chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-007
+    title: Quản lý view, hàm, thủ tục và trigger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-008
+    title: Tách DDL, chuyển đổi dữ liệu và thao tác vận hành khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-009
+    title: Giới hạn của IF EXISTS và IF NOT EXISTS trong việc phát hiện sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-migration-design-010
+    title: Rà soát tập lệnh theo tính xác định, tác động và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-locking
+  title: Giao dịch và khóa
+  childs:
+  - slug: transactions-locking-001
+    title: Ranh giới giao dịch khi Flyway thực thi migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-002
+    title: Khả năng giao dịch DDL và hành vi tự commit theo hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-003
+    title: Migration gồm câu lệnh được phép và không được phép trong giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-004
+    title: Cấu hình executeInTransaction theo phạm vi và phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-005
+    title: 'group và mixed: mục đích, điều kiện sử dụng và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-006
+    title: Khóa phối hợp giữa các tiến trình Flyway chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-007
+    title: Khóa DDL và tác động đến truy vấn của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-008
+    title: Thời gian chờ khóa, thời gian chờ câu lệnh và thời gian chờ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-locking-009
+    title: Phân biệt rollback giao dịch với khôi phục dữ liệu sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-checksums
+  title: Kiểm tra và checksum
+  childs:
+  - slug: validation-checksums-001
+    title: Checksum được dùng để phát hiện thay đổi migration đã áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-002
+    title: Quy tắc giữ bất biến migration đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-003
+    title: Phân biệt chỉnh sửa migration chưa chạy và migration đã chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-004
+    title: Lỗi checksum mismatch và cách xác định nguồn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-005
+    title: Migration bị thiếu, đổi tên hoặc trùng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-006
+    title: Validation với repeatable migration và giá trị placeholder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-007
+    title: Cấu hình ignoreMigrationPatterns theo trường hợp được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-008
+    title: Cấu hình validateMigrationNaming và phát hiện tên không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-009
+    title: Đối chiếu lịch sử nhiều môi trường trước khi xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-checksums-010
+    title: Phân biệt kiểm tra lịch sử với phát hiện sai lệch lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: baselining-legacy-systems
+  title: Baseline và hệ thống cũ
+  childs:
+  - slug: baselining-legacy-systems-001
+    title: Đánh giá cơ sở dữ liệu hiện hữu trước khi đưa vào Flyway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-002
+    title: Kiểm kê lược đồ, dữ liệu và thay đổi ngoài quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-003
+    title: Chọn baselineVersion và quy ước phiên bản tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-004
+    title: Thực hiện baseline tường minh và kiểm tra lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-005
+    title: 'baselineOnMigrate: hành vi, điều kiện và nguy cơ chọn nhầm đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-006
+    title: Tạo bộ migration khởi tạo cho môi trường trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-007
+    title: Baseline migration và rút ngắn chuỗi khởi tạo theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-008
+    title: Đối chiếu môi trường có baseline với môi trường dựng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselining-legacy-systems-009
+    title: Kế hoạch tiếp nhận hệ thống cũ mà vẫn giữ dữ liệu và dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repeatable-migrations
+  title: Repeatable migration
+  childs:
+  - slug: repeatable-migrations-001
+    title: Khi nào dùng repeatable thay cho versioned migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-002
+    title: Thứ tự repeatable sau các versioned migration còn chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-003
+    title: Thứ tự giữa các repeatable migration và phụ thuộc đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-004
+    title: Checksum thay đổi và điều kiện repeatable chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-005
+    title: Viết tập lệnh có thể thực thi lặp lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-006
+    title: Quản lý view, hàm và thủ tục bằng repeatable migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-007
+    title: Dữ liệu tham chiếu và nguy cơ ghi đè thay đổi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-008
+    title: Placeholder và chủ đích buộc repeatable thực thi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repeatable-migrations-009
+    title: Chẩn đoán repeatable chạy lại ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: placeholders-scripts
+  title: Placeholder và tập lệnh
+  childs:
+  - slug: placeholders-scripts-001
+    title: Cơ chế thay thế placeholder trong migration SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-002
+    title: Placeholder dùng chung và giá trị riêng theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-003
+    title: Tiền tố, hậu tố và lựa chọn bật tắt thay thế placeholder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-004
+    title: Placeholder do Flyway cung cấp và phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-005
+    title: Phân biệt placeholder với bind parameter của JDBC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-006
+    title: Quy tắc trích dẫn identifier, literal và giá trị đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-007
+    title: Tránh đưa bí mật hoặc dữ liệu không tin cậy vào tập lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-008
+    title: Tệp cấu hình riêng cho từng tập lệnh theo phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: placeholders-scripts-009
+    title: Giữ khả năng kiểm tra và truy vết khi migration có tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-migrations
+  title: Migration Java
+  childs:
+  - slug: java-migrations-001
+    title: Lý do chọn Java khi chuyển đổi dữ liệu khó diễn đạt bằng SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-002
+    title: Tạo migration với BaseJavaMigration và migrate(Context)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-003
+    title: Sử dụng JDBC Connection do Flyway cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-004
+    title: Vòng đời kết nối, tài nguyên JDBC và quyền điều khiển giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-005
+    title: Đọc và cập nhật dữ liệu theo lô với giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-006
+    title: Tính xác định và phụ thuộc bên ngoài của migration Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-007
+    title: Checksum migration Java và chiến lược phát hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-008
+    title: Đóng gói, phát hiện lớp và quản lý thư viện phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-009
+    title: Kiểm thử migration Java trên cơ sở dữ liệu mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-migrations-010
+    title: Giới hạn khi gọi dịch vụ ngoài hoặc tái sử dụng logic ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: callbacks-extensions
+  title: Callbacks và mở rộng
+  childs:
+  - slug: callbacks-extensions-001
+    title: Callback là gì và các sự kiện trong vòng đời Flyway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-002
+    title: Callback SQL và quy ước đặt tên theo sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-003
+    title: Callback Java và đăng ký bằng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-004
+    title: Thứ tự, phạm vi giao dịch và tác động khi callback thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-005
+    title: Phân biệt callback với migration có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-006
+    title: Ứng dụng callback cho kiểm tra trước chạy và ghi nhận sau chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-007
+    title: Tránh thay đổi nghiệp vụ ẩn trong callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-008
+    title: 'Custom resolver và executor: nhu cầu, chi phí và phạm vi hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: callbacks-extensions-009
+    title: Kiểm thử phần mở rộng khi nâng cấp Flyway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-integrations
+  title: Công cụ tích hợp
+  childs:
+  - slug: tool-integrations-001
+    title: Chạy migration bằng Flyway Command-line
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-002
+    title: Tích hợp Flyway Maven Plugin và vòng đời Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-003
+    title: Tích hợp Flyway Gradle Plugin và cấu hình tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-004
+    title: 'Sử dụng Flyway Java API: configure, load và migrate'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-005
+    title: Đọc kết quả info, validate và migrate bằng Java API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-006
+    title: Chạy Flyway bằng container và gắn tài nguyên migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-007
+    title: Tách classpath của plugin khỏi classpath ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-008
+    title: Giữ nhất quán phiên bản và cấu hình giữa các công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-integrations-009
+    title: Lựa chọn một điểm thực thi chính để tránh chạy chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Cơ chế Spring Boot tự cấu hình Flyway theo phiên bản sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Khai báo thư viện Flyway, JDBC driver và mô-đun cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Cấu hình spring.flyway và nguồn dữ liệu được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Migration trên classpath với db/migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Tách tài khoản migration khỏi tài khoản chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Quan hệ giữa Flyway, JPA và Hibernate ddl-auto
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Quan hệ với schema.sql, data.sql và thứ tự khởi tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Cấu hình theo profile cho phát triển, kiểm thử và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Điều khiển thời điểm chạy bằng FlywayMigrationStrategy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-010
+    title: Khởi động nhiều bản ứng dụng và phối hợp migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-011
+    title: Khi nào chuyển migration ra khỏi quy trình khởi động ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-vendor-differences
+  title: Khác biệt hệ quản trị
+  childs:
+  - slug: database-vendor-differences-001
+    title: Ma trận hỗ trợ hệ quản trị, driver và phiên bản Flyway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-002
+    title: 'PostgreSQL: schema, search_path và câu lệnh ngoài giao dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-003
+    title: 'MySQL và MariaDB: DDL tự commit, định danh và cú pháp tập lệnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-004
+    title: 'SQL Server: schema, batch separator và phụ thuộc đối tượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-005
+    title: 'Oracle: schema, quyền, sequence và khối PL/SQL'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-006
+    title: H2 trong kiểm thử và khác biệt so với cơ sở dữ liệu triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-007
+    title: Khác biệt về viết hoa, trích dẫn và độ dài tên đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-008
+    title: Khác biệt về collation, múi giờ và kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-009
+    title: Tổ chức migration theo từng hệ quản trị mà vẫn giữ lộ trình rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-vendor-differences-010
+    title: Xác minh hành vi trên đúng phiên bản cơ sở dữ liệu mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-schemas-tenants
+  title: Nhiều schema và tenant
+  childs:
+  - slug: multiple-schemas-tenants-001
+    title: Một cơ sở dữ liệu nhiều schema và phạm vi quản lý của Flyway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-002
+    title: Chọn schema mặc định và nơi đặt bảng lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-003
+    title: Một bảng lịch sử chung hay nhiều lịch sử độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-004
+    title: Khởi tạo schema và quyền của tài khoản migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-005
+    title: Tenant dùng schema riêng và tenant dùng database riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-006
+    title: Điều phối thứ tự migration cho nhiều tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-007
+    title: Phát hiện tenant chậm phiên bản và trạng thái triển khai một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-008
+    title: Giới hạn đồng thời, khóa và tải khi cập nhật nhiều tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-009
+    title: Phân biệt nhiều tenant với nhiều datasource trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-schemas-tenants-010
+    title: Kiểm tra để không chạy migration nhầm schema hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migration
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-migration-001
+    title: Phân biệt dữ liệu tham chiếu, dữ liệu mẫu và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-002
+    title: Dữ liệu khởi tạo theo môi trường và nguy cơ lẫn dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-003
+    title: Backfill cho cột mới mà vẫn duy trì hoạt động ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-004
+    title: Chia lô cập nhật và giới hạn giao dịch kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-005
+    title: Tiêu chí đặt backfill trong Flyway hoặc tác vụ vận hành riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-006
+    title: Thiết kế tác vụ dữ liệu có thể tiếp tục sau gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-007
+    title: Đối chiếu số lượng, tính đầy đủ và ràng buộc sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-008
+    title: Giảm ghi đè và bảo vệ dữ liệu do người dùng tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-009
+    title: Dữ liệu nhạy cảm trong migration và dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branching-releases
+  title: Nhánh và phát hành
+  childs:
+  - slug: branching-releases-001
+    title: Phối hợp nhiều người cùng tạo migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-002
+    title: Xung đột phiên bản khi hợp nhất nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-003
+    title: Quy tắc đổi số cho migration chưa phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-004
+    title: Nhánh tồn tại lâu và migration đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-005
+    title: 'outOfOrder: mục đích, điều kiện bật và hệ quả lịch sử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-006
+    title: 'target: kiểm soát mốc migration của đợt phát hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-007
+    title: Hotfix cơ sở dữ liệu và đồng bộ ngược vào nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-008
+    title: Giữ bộ migration nhất quán giữa các nhánh phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-009
+    title: Tiêu chí review migration trong pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branching-releases-010
+    title: Quản lý migration đã ngừng dùng mà không làm mất lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-testing
+  title: Kiểm thử migration
+  childs:
+  - slug: migration-testing-001
+    title: Kiểm thử dựng mới cơ sở dữ liệu từ toàn bộ migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-002
+    title: Kiểm thử nâng cấp từ phiên bản phát hành trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-003
+    title: Kiểm thử với dữ liệu đại diện và ràng buộc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-004
+    title: JUnit và Testcontainers cho migration trên hệ quản trị mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-005
+    title: Kiểm tra bảng, cột, chỉ mục và ràng buộc sau migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-006
+    title: Kiểm thử repeatable, migration Java và callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-007
+    title: Kiểm thử lỗi giữa chừng và giới hạn hoàn tác giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-008
+    title: Kiểm thử chạy đồng thời và phối hợp nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-009
+    title: Kiểm thử tương thích ứng dụng trước và sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-testing-010
+    title: Giữ môi trường kiểm thử độc lập và tái tạo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd
+  title: CI/CD
+  childs:
+  - slug: ci-cd-001
+    title: Kiểm tra tên, phiên bản và nội dung migration trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-002
+    title: Dựng cơ sở dữ liệu tạm và chạy migration trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-003
+    title: Đóng gói một bộ migration bất biến cho mỗi bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-004
+    title: Triển khai cùng một gói qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-005
+    title: Tách bước validate, phê duyệt, migrate và kiểm tra sau chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-006
+    title: Chọn migration job, init container hoặc bước triển khai riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-007
+    title: Điều phối một tác vụ migration khi có nhiều bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-008
+    title: Quản lý bí mật và quyền truy cập cơ sở dữ liệu trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-009
+    title: Mã thoát, nhật ký và điều kiện dừng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-010
+    title: Ngăn triển khai khi lịch sử, checksum hoặc đích kết nối bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-deployment
+  title: Triển khai an toàn
+  childs:
+  - slug: safe-deployment-001
+    title: Đánh giá tác động DDL trước khi chạy trên môi trường thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-002
+    title: Expand–contract cho thay đổi lược đồ nhiều giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-003
+    title: Tương thích giữa ứng dụng cũ, ứng dụng mới và lược đồ chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-004
+    title: Thêm cột và backfill trước khi siết ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-005
+    title: Đổi tên hoặc thay kiểu cột qua các bước chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-006
+    title: Tạo chỉ mục với lựa chọn giảm khóa theo hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-007
+    title: Blue–green, rolling deployment và thứ tự đổi lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-008
+    title: Tách thay đổi phá vỡ tương thích khỏi đợt phát hành thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-009
+    title: Cửa sổ bảo trì, ngưỡng thời gian chờ và điều kiện dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-010
+    title: Kiểm tra sau triển khai trước khi loại bỏ cấu trúc cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-recovery
+  title: Lỗi và phục hồi
+  childs:
+  - slug: error-recovery-001
+    title: Phân loại lỗi cấu hình, kết nối, xác thực và quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-002
+    title: Lỗi cú pháp, phụ thuộc đối tượng và dữ liệu vi phạm ràng buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-003
+    title: Migration thất bại trên hệ quản trị có giao dịch DDL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-004
+    title: Migration thất bại khi DDL đã áp dụng một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-005
+    title: Đối chiếu lược đồ thực tế với lịch sử trước khi can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-006
+    title: Quyết định sửa tiến, chạy lại hoặc khôi phục từ sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-007
+    title: repair thay đổi lịch sử và giới hạn đối với đối tượng cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-008
+    title: Điều kiện kiểm tra và phê duyệt trước khi dùng repair
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-009
+    title: Xử lý tiến trình bị ngắt, mất kết nối và chờ khóa kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-recovery-010
+    title: Ghi nhận nguyên nhân, bằng chứng và các bước phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rollback-clean
+  title: Rollback và clean
+  childs:
+  - slug: rollback-clean-001
+    title: Phân biệt rollback ứng dụng, rollback giao dịch và rollback lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-002
+    title: Forward-fix bằng migration mới thay cho sửa migration đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-003
+    title: 'Undo migration: điều kiện hỗ trợ và giới hạn phục hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-004
+    title: Thay đổi không thể hoàn tác và dữ liệu đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-005
+    title: Sao lưu, khôi phục theo thời điểm và kiểm chứng phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-006
+    title: Kế hoạch quay lui khi lược đồ vẫn phải phục vụ ứng dụng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-007
+    title: clean xóa gì trong phạm vi schema được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-008
+    title: cleanDisabled và chặn thao tác phá hủy ở môi trường thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-009
+    title: Sử dụng clean trong môi trường dùng một lần có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-clean-010
+    title: Diễn tập phục hồi trước thay đổi có rủi ro cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-auditing
+  title: Bảo mật và kiểm toán
+  childs:
+  - slug: security-auditing-001
+    title: Nguyên tắc đặc quyền tối thiểu cho tài khoản migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-002
+    title: Tách quyền DDL của triển khai khỏi quyền DML của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-003
+    title: Quản lý mật khẩu, biến môi trường và kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-004
+    title: Kết nối TLS, chứng thư và xác minh máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-005
+    title: Không ghi bí mật hoặc dữ liệu nhạy cảm vào log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-006
+    title: Review và bảo vệ chuỗi cung ứng của tập lệnh migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-007
+    title: Truy vết migration tới commit, người phê duyệt và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-008
+    title: Bảo vệ bảng lịch sử và kiểm soát thay đổi thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-auditing-009
+    title: Bằng chứng kiểm toán từ lịch sử Flyway và hệ thống triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-performance
+  title: Giám sát và hiệu năng
+  childs:
+  - slug: monitoring-performance-001
+    title: Đọc log để xác định migration, thời gian và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-002
+    title: Theo dõi thời lượng migration và phát hiện chậm bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-003
+    title: Theo dõi khóa, truy vấn chờ và tải cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-004
+    title: Đặt giới hạn thời gian theo loại thao tác và quy mô dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-005
+    title: Ước lượng backfill, tạo chỉ mục và thay đổi bảng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-006
+    title: Giảm thời gian giữ khóa bằng cách tách migration hợp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-007
+    title: Kiểm tra trạng thái sau triển khai qua info và kiểm tra lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-008
+    title: Cảnh báo migration thất bại và phát hành bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-performance-009
+    title: Lưu bằng chứng vận hành để so sánh giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrading-flyway
+  title: Nâng cấp Flyway
+  childs:
+  - slug: upgrading-flyway-001
+    title: Chọn và cố định phiên bản Flyway cho ứng dụng và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-002
+    title: Đọc hướng dẫn nâng cấp và thay đổi phá vỡ tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-003
+    title: Kiểm tra tương thích Java, Spring Boot, JDBC driver và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-004
+    title: Thay đổi cấu hình, mô-đun cơ sở dữ liệu và cách đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-005
+    title: Kiểm tra các tính năng phụ thuộc ấn bản hoặc giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-006
+    title: Thử nâng cấp trên bản sao cơ sở dữ liệu có lịch sử thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-007
+    title: Đối chiếu validate, info, checksum và callback sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrading-flyway-008
+    title: Kế hoạch triển khai và phương án phục hồi khi nâng cấp công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-troubleshooting
+  title: Chẩn đoán thường gặp
+  childs:
+  - slug: common-troubleshooting-001
+    title: Không phát hiện migration do vị trí, tên tệp hoặc classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-002
+    title: Migration bị bỏ qua vì target, baseline hoặc phiên bản hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-003
+    title: Lệch checksum sau thay đổi tệp, placeholder hoặc quy trình đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-004
+    title: Bảng lịch sử tồn tại ở schema khác với dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-005
+    title: Migration báo thành công nhưng đối tượng không ở đích mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-006
+    title: Khác biệt kết quả giữa CLI, Maven, Gradle và Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-007
+    title: Migration chạy được cục bộ nhưng thất bại trong container hoặc CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-008
+    title: Khóa kéo dài hoặc nhiều tiến trình cùng khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-troubleshooting-009
+    title: Quy trình thu thập cấu hình đã che bí mật, lịch sử và log để điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Xây dựng bộ migration tạo lược đồ và dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Viết repeatable migration quản lý view có phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Tiếp nhận cơ sở dữ liệu cũ bằng baseline có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Giải quyết xung đột phiên bản khi hợp nhất hai nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Mô phỏng lỗi giữa chừng và phục hồi theo hành vi DDL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Chuyển đổi cột bằng expand–contract và backfill
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Tích hợp Spring Boot, Testcontainers và pipeline migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Triển khai nhiều schema hoặc tenant với lịch sử rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Diễn tập phát hành, quan sát lỗi và phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Danh sách kiểm tra hoàn tất từ phát triển đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

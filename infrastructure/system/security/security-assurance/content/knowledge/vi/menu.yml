@@ -1,0 +1,586 @@
+menu:
+- level1: Tổng quan security assurance
+  level2:
+  - Security assurance là gì
+  - Bài toán assurance giải quyết
+  - Niềm tin có căn cứ
+  - Bằng chứng bảo mật
+  - Assurance và security
+  - Assurance và compliance
+  - Assurance và risk
+  - Vòng đời assurance
+  - Lợi ích của assurance
+  - Thuật ngữ cốt lõi
+- level1: Mục tiêu bảo mật
+  level2:
+  - Tính bí mật
+  - Tính toàn vẹn
+  - Tính sẵn sàng
+  - Tính xác thực
+  - Tính chống chối bỏ
+  - Tính riêng tư
+  - Tính an toàn vận hành
+  - Mức bảo đảm cần đạt
+  - Ưu tiên mục tiêu
+  - Đánh đổi mục tiêu
+- level1: Quản trị bảo mật
+  level2:
+  - Security governance là gì
+  - Vai trò lãnh đạo
+  - Hội đồng bảo mật
+  - Chủ sở hữu rủi ro
+  - Chủ sở hữu kiểm soát
+  - Trách nhiệm nhóm phát triển
+  - Trách nhiệm nhóm vận hành
+  - Đường dây báo cáo
+  - Quyết định dựa trên rủi ro
+  - Rà soát quản trị
+- level1: Vai trò và trách nhiệm
+  level2:
+  - CISO
+  - Security architect
+  - System owner
+  - Data owner
+  - Control owner
+  - Auditor
+  - Developer
+  - Operator
+  - Third-party owner
+  - Ma trận RACI
+- level1: Quản lý rủi ro
+  level2:
+  - Risk là gì
+  - Tài sản cần bảo vệ
+  - Threat
+  - Vulnerability
+  - Likelihood
+  - Impact
+  - Risk score
+  - Risk appetite
+  - Risk register
+  - Chấp nhận rủi ro
+- level1: Đánh giá rủi ro
+  level2:
+  - Risk assessment
+  - Phạm vi đánh giá
+  - Phương pháp định tính
+  - Phương pháp định lượng
+  - Kịch bản rủi ro
+  - Rủi ro còn lại
+  - Rủi ro tích lũy
+  - Đánh giá theo thay đổi
+  - Đánh giá định kỳ
+  - Báo cáo rủi ro
+- level1: Threat modeling
+  level2:
+  - Threat modeling là gì
+  - Xác định trust boundary
+  - Data flow diagram
+  - Tài sản trong mô hình
+  - STRIDE
+  - Attack surface
+  - Abuse case
+  - Xếp hạng threat
+  - Biện pháp giảm threat
+  - Cập nhật mô hình
+- level1: Security policy
+  level2:
+  - Security policy là gì
+  - Chính sách kiểm soát truy cập
+  - Chính sách mật khẩu
+  - Chính sách mã hóa
+  - Chính sách logging
+  - Chính sách retention
+  - Chính sách nhà cung cấp
+  - Chính sách phát triển
+  - Ngoại lệ chính sách
+  - Rà soát chính sách
+- level1: Security standard
+  level2:
+  - Standard và guideline
+  - Control objective
+  - Baseline bảo mật
+  - Chuẩn theo hệ thống
+  - Chuẩn theo dữ liệu
+  - Chuẩn theo môi trường
+  - Chuẩn cấu hình
+  - Chuẩn vận hành
+  - Chuẩn bằng chứng
+  - Quản lý phiên bản standard
+- level1: Security control
+  level2:
+  - Control là gì
+  - Preventive control
+  - Detective control
+  - Corrective control
+  - Compensating control
+  - Manual control
+  - Automated control
+  - Control design
+  - Control effectiveness
+  - Control mapping
+- level1: Control framework
+  level2:
+  - Control framework là gì
+  - Control family
+  - Control statement
+  - Control procedure
+  - Control evidence
+  - Control frequency
+  - Chủ sở hữu control
+  - Control dependency
+  - Control gap
+  - Rà soát framework
+- level1: Kiểm soát truy cập
+  level2:
+  - Access control assurance
+  - Least privilege
+  - Need to know
+  - Separation of duties
+  - Role review
+  - Permission review
+  - Privileged access
+  - Access recertification
+  - Tài khoản không dùng
+  - Bằng chứng access review
+- level1: Identity assurance
+  level2:
+  - Identity proofing
+  - Identity lifecycle
+  - Authentication assurance
+  - MFA
+  - Federation
+  - Service identity
+  - Workload identity
+  - Identity provider
+  - Identity recovery
+  - Đánh giá độ tin cậy identity
+- level1: Data protection
+  level2:
+  - Phân loại dữ liệu
+  - Chủ sở hữu dữ liệu
+  - Data inventory
+  - Data flow
+  - Data minimization
+  - Data retention
+  - Data disposal
+  - Data masking
+  - Data loss prevention
+  - Bằng chứng bảo vệ dữ liệu
+- level1: Privacy assurance
+  level2:
+  - Privacy risk
+  - Personal data
+  - Sensitive data
+  - Privacy impact assessment
+  - Consent
+  - Purpose limitation
+  - Data subject rights
+  - Cross-border data
+  - Privacy incident
+  - Kiểm tra privacy control
+- level1: Mã hóa và khóa
+  level2:
+  - Encryption assurance
+  - Mã hóa khi truyền
+  - Mã hóa khi lưu
+  - Key management
+  - Key rotation
+  - Certificate management
+  - Secret management
+  - HSM
+  - Algorithm baseline
+  - Bằng chứng cryptography
+- level1: Kiến trúc an toàn
+  level2:
+  - Security architecture review
+  - Defense in depth
+  - Trust boundary
+  - Network segmentation
+  - Secure default
+  - Fail secure
+  - Isolation boundary
+  - Resilience boundary
+  - Architecture decision
+  - Rà soát kiến trúc định kỳ
+- level1: Zero Trust assurance
+  level2:
+  - Zero Trust là gì
+  - Verify explicitly
+  - Use least privilege
+  - Assume breach
+  - Continuous verification
+  - Device trust
+  - Workload trust
+  - Micro-segmentation
+  - Policy decision point
+  - Đo lường Zero Trust
+- level1: Secure development
+  level2:
+  - Secure SDLC
+  - Security requirement
+  - Review thiết kế bảo mật
+  - Secure coding
+  - Dependency review
+  - Code review
+  - Security testing
+  - Release gate
+  - Developer training
+  - Bằng chứng SDLC
+- level1: Security requirements
+  level2:
+  - Viết security requirement
+  - Requirement có thể kiểm thử
+  - Requirement về xác thực
+  - Requirement về phân quyền
+  - Requirement về mã hóa
+  - Requirement về audit
+  - Requirement về logging
+  - Requirement về availability
+  - Traceability requirement
+  - Chấp nhận requirement
+- level1: Security design review
+  level2:
+  - Mục tiêu design review
+  - Review kiến trúc
+  - Review luồng dữ liệu
+  - Review trust boundary
+  - Review API
+  - Review error handling
+  - Review secret usage
+  - Review logging
+  - Review threat model
+  - Kết luận design review
+- level1: Supply chain security
+  level2:
+  - Software supply chain
+  - Dependency inventory
+  - SBOM
+  - Dependency pinning
+  - Artifact provenance
+  - Package integrity
+  - Build isolation
+  - Repository trust
+  - Vulnerability trong dependency
+  - Đánh giá nhà cung cấp phần mềm
+- level1: Vulnerability management
+  level2:
+  - Vulnerability là gì
+  - Asset discovery
+  - Vulnerability scan
+  - Severity
+  - Exploitability
+  - Prioritization
+  - Remediation SLA
+  - Exception vulnerability
+  - Re-scan sau sửa
+  - Báo cáo vulnerability
+- level1: Patch management
+  level2:
+  - Patch là gì
+  - Patch hệ điều hành
+  - Patch runtime
+  - Patch dependency
+  - Patch khẩn cấp
+  - Kiểm thử patch
+  - Triển khai patch
+  - Rollback patch
+  - Theo dõi patch coverage
+  - Bằng chứng patch
+- level1: Static analysis
+  level2:
+  - SAST là gì
+  - Rule static analysis
+  - False positive
+  - Security hotspot
+  - Data flow analysis
+  - Tích hợp IDE
+  - Tích hợp CI
+  - Quality gate
+  - Rà soát kết quả scan
+  - Theo dõi xu hướng
+- level1: Dynamic testing
+  level2:
+  - DAST là gì
+  - API security testing
+  - Web security scan
+  - Authenticated scan
+  - Test environment
+  - Kết quả false positive
+  - Xử lý finding
+  - Regression security test
+  - Tích hợp pipeline
+  - Bằng chứng DAST
+- level1: Penetration testing
+  level2:
+  - Penetration test là gì
+  - Phạm vi pentest
+  - Black box
+  - Gray box
+  - White box
+  - Rules of engagement
+  - Khai thác có kiểm soát
+  - Báo cáo pentest
+  - Remediation sau pentest
+  - Retest
+- level1: Configuration assurance
+  level2:
+  - Secure configuration
+  - Configuration baseline
+  - Cấu hình hệ điều hành
+  - Cấu hình runtime
+  - Cấu hình database
+  - Cấu hình network
+  - Cấu hình cloud
+  - Drift detection
+  - Remediation cấu hình
+  - Bằng chứng configuration
+- level1: Cloud assurance
+  level2:
+  - Cloud security assurance
+  - Shared responsibility
+  - Cloud account
+  - Cloud identity
+  - Cloud network
+  - Cloud storage
+  - Cloud logging
+  - Cloud key management
+  - Cloud configuration review
+  - Bằng chứng cloud control
+- level1: Platform assurance
+  level2:
+  - Platform security
+  - Host security
+  - Container security
+  - Cluster security
+  - Runtime isolation
+  - Image security
+  - Orchestration policy
+  - Platform patching
+  - Platform monitoring
+  - Rà soát platform
+- level1: Logging và monitoring
+  level2:
+  - Security logging
+  - Audit event
+  - Log integrity
+  - Log retention
+  - Centralized logging
+  - Security monitoring
+  - Alert rule
+  - Detection coverage
+  - Monitoring gap
+  - Bằng chứng monitoring
+- level1: Detection engineering
+  level2:
+  - Detection là gì
+  - Detection use case
+  - Signal và noise
+  - Detection rule
+  - Correlation rule
+  - Tuning alert
+  - Detection test
+  - Độ phủ detection
+  - Detection blind spot
+  - Đo hiệu quả detection
+- level1: Incident response
+  level2:
+  - Incident response là gì
+  - Incident classification
+  - Triage
+  - Containment
+  - Eradication
+  - Recovery
+  - Evidence preservation
+  - Communication
+  - Lessons learned
+  - Incident report
+- level1: Business continuity
+  level2:
+  - Business continuity là gì
+  - Critical service
+  - Business impact analysis
+  - Recovery strategy
+  - Continuity plan
+  - Dependency mapping
+  - Manual fallback
+  - Continuity exercise
+  - RTO
+  - RPO
+- level1: Disaster recovery
+  level2:
+  - Disaster recovery là gì
+  - DR architecture
+  - Backup strategy
+  - Restore test
+  - Failover
+  - Failback
+  - Recovery runbook
+  - DR exercise
+  - Recovery evidence
+  - Cải tiến DR
+- level1: Third-party assurance
+  level2:
+  - Third-party risk
+  - Vendor inventory
+  - Due diligence
+  - Security questionnaire
+  - Contract control
+  - SLA bảo mật
+  - Vendor monitoring
+  - Subprocessor
+  - Vendor incident
+  - Đánh giá lại nhà cung cấp
+- level1: Audit và evidence
+  level2:
+  - Audit là gì
+  - Audit scope
+  - Audit criteria
+  - Evidence request
+  - Evidence quality
+  - Evidence freshness
+  - Evidence chain
+  - Audit finding
+  - Management response
+  - Theo dõi audit
+- level1: Compliance assurance
+  level2:
+  - Compliance obligation
+  - Control requirement
+  - Mapping compliance
+  - Applicable regulation
+  - Internal compliance
+  - External assessment
+  - Compliance gap
+  - Exception compliance
+  - Compliance report
+  - Duy trì compliance
+- level1: Assurance case
+  level2:
+  - Assurance case là gì
+  - Claim
+  - Argument
+  - Evidence
+  - Context
+  - Assumption
+  - Warrant
+  - Claim hierarchy
+  - Đánh giá độ tin cậy
+  - Cập nhật assurance case
+- level1: Metrics và reporting
+  level2:
+  - Security metric
+  - KPI bảo mật
+  - KRI
+  - Control coverage
+  - Hiệu quả kiểm soát
+  - Remediation aging
+  - Mean time to detect
+  - Mean time to respond
+  - Risk trend
+  - Báo cáo lãnh đạo
+- level1: Remediation
+  level2:
+  - Remediation là gì
+  - Finding owner
+  - Action plan
+  - Ưu tiên sửa lỗi
+  - Remediation deadline
+  - Risk acceptance
+  - Biện pháp bù trừ
+  - Xác minh đã sửa
+  - Đóng finding
+  - Theo dõi quá hạn
+- level1: Exception management
+  level2:
+  - Security exception
+  - Lý do ngoại lệ
+  - Phạm vi ngoại lệ
+  - Thời hạn ngoại lệ
+  - Risk owner phê duyệt
+  - Compensating measure
+  - Theo dõi exception
+  - Đánh giá lại exception
+  - Đóng exception
+  - Không lạm dụng exception
+- level1: Change assurance
+  level2:
+  - Security change review
+  - Change risk
+  - Change approval
+  - Pre-change evidence
+  - Security regression
+  - Emergency change
+  - Post-change review
+  - Configuration update
+  - Traceability change
+  - Rollback change
+- level1: Release assurance
+  level2:
+  - Security release gate
+  - Release risk
+  - Release evidence
+  - Dependency snapshot
+  - Test result
+  - Approval record
+  - Deployment verification
+  - Rollback readiness
+  - Post-release monitoring
+  - Kết luận release
+- level1: Continuous assurance
+  level2:
+  - Continuous assurance là gì
+  - Kiểm soát liên tục
+  - Thu thập evidence tự động
+  - Continuous compliance
+  - Drift monitoring
+  - Risk signal
+  - Feedback loop
+  - Rà soát theo sự kiện
+  - Cải tiến kiểm soát
+  - Đo độ trưởng thành
+- level1: Anti-pattern assurance
+  level2:
+  - Chỉ làm assurance trước audit
+  - Thu thập evidence hình thức
+  - Control không có owner
+  - Không đo effectiveness
+  - Bỏ qua rủi ro còn lại
+  - Lạm dụng checklist
+  - Ngoại lệ không có hạn
+  - Không kiểm tra remediation
+  - Không cập nhật threat model
+  - Báo cáo không phản ánh thực tế
+- level1: Thiết kế chương trình assurance
+  level2:
+  - Xác định phạm vi
+  - Xác định tài sản
+  - Xác định control
+  - Xác định evidence
+  - Xác định tần suất
+  - Xác định owner
+  - Xác định metric
+  - Xác định escalation
+  - Xác định cải tiến
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Lập risk register
+  - Xây control framework
+  - Viết security baseline
+  - Lập threat model
+  - Thiết kế evidence catalog
+  - Tạo security review
+  - Thực hiện vulnerability cycle
+  - Xây incident runbook
+  - Thiết lập security metrics
+  - Chạy assurance assessment
+  - Lập kế hoạch cải tiến
+- level1: Tổng kết security assurance
+  level2:
+  - Bản đồ khái niệm
+  - Luồng từ risk đến evidence
+  - Checklist control
+  - Checklist audit
+  - Checklist vận hành
+  - Bước học tiếp theo

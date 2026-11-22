@@ -1,0 +1,118 @@
+menu:
+- title: Tổng quan Terraform
+  slug: terraform-overview
+  index: 0
+- title: Cài đặt và khởi động
+  slug: setup-and-init
+  index: 1
+- title: Cấu trúc cấu hình
+  slug: configuration-structure
+  index: 2
+- title: HCL và kiểu dữ liệu
+  slug: hcl-types
+  index: 3
+- title: Biểu thức và hàm
+  slug: expressions-and-functions
+  index: 4
+- title: Biến đầu vào
+  slug: input-variables
+  index: 5
+- title: Giá trị cục bộ và đầu ra
+  slug: locals-and-outputs
+  index: 6
+- title: Provider và Registry
+  slug: providers-and-registry
+  index: 7
+- title: Tài nguyên và nguồn dữ liệu
+  slug: resources-and-data-sources
+  index: 8
+- title: Đồ thị phụ thuộc
+  slug: dependency-graph
+  index: 9
+- title: Nhân bản và cấu hình động
+  slug: dynamic-configuration
+  index: 10
+- title: Vòng đời tài nguyên
+  slug: resource-lifecycle
+  index: 11
+- title: Quy trình Terraform CLI
+  slug: terraform-cli
+  index: 12
+- title: Đọc và duyệt kế hoạch
+  slug: plan-review
+  index: 13
+- title: Terraform State
+  slug: terraform-state
+  index: 14
+- title: Backend và khóa state
+  slug: state-backends-and-locking
+  index: 15
+- title: Cộng tác theo nhóm
+  slug: team-collaboration
+  index: 16
+- title: Xây dựng module
+  slug: module-development
+  index: 17
+- title: Thiết kế module nâng cao
+  slug: advanced-module-design
+  index: 18
+- title: Môi trường và workspace
+  slug: environments-and-workspaces
+  index: 19
+- title: Quản lý phiên bản
+  slug: version-management
+  index: 20
+- title: Nhập hạ tầng có sẵn
+  slug: infrastructure-import
+  index: 21
+- title: Tái cấu trúc an toàn
+  slug: safe-refactoring
+  index: 22
+- title: Drift và đồng bộ
+  slug: drift-detection-and-sync
+  index: 23
+- title: Điều kiện và kiểm tra
+  slug: conditions-and-checks
+  index: 24
+- title: Kiểm thử Terraform
+  slug: terraform-testing
+  index: 25
+- title: Bảo mật và bí mật
+  slug: secrets-and-security
+  index: 26
+- title: Tích hợp CI/CD
+  slug: cicd-integration
+  index: 27
+- title: HCP Terraform và Enterprise
+  slug: hcp-terraform-and-enterprise
+  index: 28
+- title: Chính sách và chi phí
+  slug: policies-and-costs
+  index: 29
+- title: Mạng và kết nối
+  slug: network-infrastructure
+  index: 30
+- title: Máy chủ và lưu trữ
+  slug: compute-and-storage
+  index: 31
+- title: Khởi tạo và cấu hình máy
+  slug: machine-provisioning
+  index: 32
+- title: Kubernetes và dịch vụ
+  slug: kubernetes-resources
+  index: 33
+- title: Quan sát và chẩn đoán
+  slug: observability-and-diagnostics
+  index: 34
+- title: Sao lưu và khôi phục
+  slug: backup-and-recovery
+  index: 35
+- title: Hiệu năng và quy mô
+  slug: performance-and-scale
+  index: 36
+- title: Mẫu thiết kế và lỗi thường gặp
+  slug: patterns-and-pitfalls
+  index: 37
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 38

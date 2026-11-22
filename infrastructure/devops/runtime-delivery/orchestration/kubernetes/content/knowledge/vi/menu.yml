@@ -1,0 +1,487 @@
+menu:
+- level1: Tổng quan Kubernetes
+  level2:
+  - Kubernetes là gì và giải quyết bài toán điều phối container nào
+  - Từ một container đơn lẻ đến ứng dụng nhiều bản sao trên nhiều máy
+  - Mối quan hệ giữa container image, container, Pod, node và cluster
+  - Vai trò của control plane và các thành phần chạy workload
+  - Trạng thái mong muốn, vòng điều khiển và cơ chế đối soát
+  - Phân biệt tự khởi động lại container, tạo Pod thay thế và tự động mở rộng
+  - Nhận diện ứng dụng không trạng thái, có trạng thái và tác vụ chạy đến hoàn tất
+  - Ranh giới trách nhiệm giữa Kubernetes, ứng dụng và các thành phần bổ trợ
+  - Điều kiện nên sử dụng Kubernetes và chi phí vận hành cần cân nhắc
+- level1: Kiến trúc cụm
+  level2:
+  - Vai trò kube-apiserver trong truy cập và thay đổi trạng thái cụm
+  - etcd và dữ liệu trạng thái của control plane
+  - kube-scheduler và quyết định đặt Pod lên node
+  - kube-controller-manager cùng các vòng điều khiển tài nguyên
+  - kubelet và việc duy trì container trên từng node
+  - Container runtime, CRI và mối quan hệ với containerd hoặc CRI-O
+  - kube-proxy hoặc thành phần thay thế trong luồng truy cập Service
+  - Vai trò CNI, CSI, DNS và tích hợp nhà cung cấp hạ tầng
+  - Luồng xử lý từ gửi manifest đến Pod được chạy và phục vụ lưu lượng
+  - Phân biệt cụm tự quản, Kubernetes được quản lý và mô hình control plane sẵn sàng cao
+  - Khác biệt node Linux, Windows và kiến trúc CPU khi lựa chọn workload
+- level1: Thiết lập cụm
+  level2:
+  - Chuẩn bị kiến thức Linux, container, mạng và YAML cần cho thực hành
+  - Lựa chọn kind, minikube hoặc cụm được quản lý theo mục tiêu học
+  - Tạo cụm cục bộ và kiểm tra node cùng các thành phần hệ thống
+  - Tổng quan tạo cụm bằng kubeadm và trách nhiệm vận hành đi kèm
+  - Chọn phiên bản Kubernetes và kiểm tra tương thích runtime, CNI, CSI
+  - Cấu hình truy cập registry và tải image trong môi trường thực hành
+  - Thiết lập tiện ích cần thiết và phân biệt thành phần lõi với add-on
+  - Kiểm chứng mạng Pod, DNS và lưu trữ sau khi khởi tạo
+  - Xóa cụm thực hành và kiểm tra tài nguyên hạ tầng còn sót
+- level1: API và đối tượng
+  level2:
+  - Cấu trúc manifest với apiVersion, kind, metadata, spec và status
+  - API group, resource, subresource và phạm vi tài nguyên
+  - Phân biệt trạng thái khai báo với trạng thái quan sát được
+  - Định danh name, namespace, UID cùng vòng đời một đối tượng
+  - Label, annotation và selector trong liên kết tài nguyên
+  - Owner reference, garbage collection và mối quan hệ đối tượng cha con
+  - Finalizer và lý do tài nguyên có thể chờ xóa
+  - Resource version, generation và xử lý cập nhật đồng thời
+  - Tìm tài nguyên, schema và phiên bản API được cụm hỗ trợ
+  - Điều kiện ổn định tính năng, feature gate và ảnh hưởng khi dùng API thử nghiệm
+- level1: kubectl và kubeconfig
+  level2:
+  - 'Cấu trúc kubeconfig: cluster, user, context và namespace mặc định'
+  - Chọn context an toàn và kiểm tra cụm đích trước khi thay đổi
+  - Sử dụng get, describe, explain và api-resources để khám phá cụm
+  - Tạo tài nguyên bằng manifest và phân biệt thao tác khai báo với lệnh trực tiếp
+  - Sử dụng apply, diff, patch, edit và delete theo mục đích
+  - Server-Side Apply, quyền sở hữu field và xung đột giữa các bên quản lý
+  - Theo dõi thay đổi bằng watch, wait cùng trạng thái điều kiện
+  - Lọc dữ liệu bằng label selector, field selector, JSONPath hoặc định dạng tùy chỉnh
+  - Sử dụng logs, exec, attach, port-forward và cp với quyền phù hợp
+  - Giới hạn quyền và bảo vệ kubeconfig khi làm việc nhiều môi trường
+- level1: Namespace và metadata
+  level2:
+  - Tài nguyên có namespace và tài nguyên ở phạm vi toàn cụm
+  - Tạo namespace và tổ chức môi trường, nhóm hoặc ứng dụng
+  - Namespace mặc định và các namespace hệ thống
+  - Thiết kế label cho ứng dụng, phiên bản, môi trường và chủ sở hữu
+  - Selector dựa trên nhãn và điều kiện tránh chọn nhầm Pod
+  - Sử dụng annotation cho thông tin bổ sung và tích hợp công cụ
+  - Khác biệt giữa namespace logic với ranh giới cách ly bảo mật hoàn chỉnh
+  - Xóa namespace và xử lý tài nguyên hoặc finalizer còn tồn đọng
+  - Chuẩn hóa metadata để hỗ trợ truy vết, vận hành và phân bổ chi phí
+- level1: Pod và container
+  level2:
+  - Pod là đơn vị triển khai nhỏ nhất và cách các container chia sẻ tài nguyên
+  - Lựa chọn một hay nhiều container trong cùng Pod
+  - Cấu hình image, tag, digest và chính sách tải image
+  - Thiết lập command, args, biến môi trường và working directory
+  - Phân biệt cổng khai báo containerPort với cổng thực tế ứng dụng lắng nghe
+  - Chia sẻ network namespace, địa chỉ Pod và giao tiếp localhost
+  - Gắn volume và chia sẻ dữ liệu giữa các container cùng Pod
+  - Init container chạy đến hoàn tất trước khi ứng dụng sẵn sàng
+  - Sidecar theo mẫu nhiều container và sidecar có cơ chế vòng đời riêng của Kubernetes
+  - Thứ tự khởi động, kiểm tra sẵn sàng và kết thúc init container hoặc sidecar
+  - Downward API để cung cấp metadata cùng thông tin tài nguyên cho container
+  - Tài nguyên Pod có thể cập nhật và trường hợp phải tạo Pod thay thế
+- level1: Sức khỏe và vòng đời
+  level2:
+  - Phân biệt Pod phase, condition và trạng thái từng container
+  - Restart policy, số lần khởi động lại và ý nghĩa CrashLoopBackOff
+  - Startup probe cho ứng dụng cần thời gian khởi tạo
+  - Readiness probe và điều kiện Pod được đưa vào các endpoint sẵn sàng
+  - Liveness probe và tác động của việc khởi động lại container
+  - Lựa chọn HTTP, TCP, exec hoặc gRPC probe theo ứng dụng
+  - Điều chỉnh độ trễ, chu kỳ, timeout và ngưỡng thất bại của probe
+  - Lifecycle hook và giới hạn bảo đảm của postStart hoặc preStop
+  - Xử lý SIGTERM, thời gian kết thúc và terminationGracePeriodSeconds
+  - Phân biệt container restart với việc Pod bị xóa hoặc được controller thay thế
+  - Ngăn probe gây vòng lặp khởi động lại khi dịch vụ phụ thuộc gặp lỗi
+  - Theo dõi mã thoát, nguyên nhân kết thúc và tiến trình giữ vai trò PID 1
+- level1: ReplicaSet và Deployment
+  level2:
+  - ReplicaSet duy trì số bản sao và quan hệ với selector cùng Pod template
+  - Deployment quản lý ReplicaSet và vòng đời ứng dụng không trạng thái
+  - Tạo Deployment, Service đi kèm và kiểm chứng các bản sao hoạt động
+  - Thay đổi Pod template và điều kiện tạo phiên bản triển khai mới
+  - RollingUpdate, maxSurge và maxUnavailable
+  - Chiến lược Recreate và tác động tới khả năng phục vụ
+  - Theo dõi rollout status, history và revision của Deployment
+  - Tạm dừng, tiếp tục và quay lui rollout
+  - MinReadySeconds, progressDeadlineSeconds và nhận diện rollout bị kẹt
+  - Mở rộng thủ công và tránh xung đột với bộ điều khiển autoscaling
+  - Cập nhật selector không hợp lệ và nguy cơ selector chồng lấn
+  - Phân biệt rollback cấu hình Pod với khôi phục dữ liệu hoặc phụ thuộc ngoài
+  - Tổng quan canary, blue-green và phần điều phối cần bổ sung ngoài Deployment
+- level1: StatefulSet
+  level2:
+  - Danh tính ổn định và trường hợp ứng dụng cần StatefulSet
+  - Pod ordinal, hostname và vai trò Service headless
+  - VolumeClaimTemplate cùng dữ liệu bền vững theo từng Pod
+  - Chính sách quản lý Pod và thứ tự tạo hoặc kết thúc
+  - RollingUpdate, partition và chiến lược cập nhật có kiểm soát
+  - Mở rộng, thu nhỏ và quản lý vòng đời PVC theo chính sách
+  - Xử lý Pod bị kẹt khi cập nhật hoặc khi node gặp sự cố
+  - Giới hạn của StatefulSet đối với sao chép dữ liệu, đồng thuận và phục hồi ứng dụng
+  - Lựa chọn Operator hoặc dịch vụ dữ liệu được quản lý khi yêu cầu vượt StatefulSet
+- level1: DaemonSet
+  level2:
+  - Vai trò DaemonSet đối với tác vụ cần chạy trên các node phù hợp
+  - Cách chọn node bằng label, affinity và toleration
+  - Ứng dụng thu thập log, giám sát hoặc hỗ trợ mạng và lưu trữ
+  - Chiến lược RollingUpdate và OnDelete
+  - Quản lý tài nguyên, quyền đặc biệt và tác động lên toàn cụm
+  - Theo dõi số Pod mong muốn, sẵn sàng và node chưa được bao phủ
+  - Phân biệt DaemonSet với Deployment và static Pod
+- level1: Job và CronJob
+  level2:
+  - Job cho tác vụ chạy đến hoàn tất và điều kiện xác định thành công
+  - Completions, parallelism và các tác vụ theo chỉ số
+  - Restart policy, backoffLimit và xử lý lần chạy thất bại
+  - Giới hạn thời gian chạy và chính sách xử lý lỗi của Pod
+  - Thiết kế tác vụ có thể chạy lặp khi có retry hoặc thực thi trùng
+  - Xóa Job hoàn tất bằng TTL và quản lý dữ liệu đầu ra
+  - CronJob, cú pháp lịch và múi giờ thực thi
+  - ConcurrencyPolicy và ảnh hưởng khi các lần chạy chồng nhau
+  - StartingDeadlineSeconds, lịch bị lỡ và việc tạm dừng CronJob
+  - Theo dõi lịch sử Job và ngăn tác vụ định kỳ gây tác động ngoài ý muốn
+- level1: ConfigMap
+  level2:
+  - Vai trò ConfigMap và ranh giới với dữ liệu bí mật
+  - Tạo cấu hình từ literal, tệp và manifest khai báo
+  - Cung cấp cấu hình bằng biến môi trường, envFrom hoặc volume
+  - Chọn key, đường dẫn và quyền tệp khi gắn cấu hình
+  - Cập nhật ConfigMap và khác biệt giữa biến môi trường với volume được chiếu
+  - Giới hạn cập nhật khi gắn bằng subPath và nhu cầu tải lại cấu hình của ứng dụng
+  - ConfigMap bất biến và cách quản lý phiên bản cấu hình
+  - Liên kết thay đổi cấu hình với rollout và kiểm tra schema cấu hình ứng dụng
+- level1: Secret
+  level2:
+  - Các kiểu Secret và lựa chọn dữ liệu phù hợp
+  - Phân biệt mã hóa base64 với mã hóa bảo vệ dữ liệu
+  - Tạo Secret bằng data, stringData hoặc công cụ quản lý bí mật
+  - Cấp Secret qua biến môi trường hoặc volume với phạm vi quyền tối thiểu
+  - ImagePullSecret để xác thực với registry riêng
+  - Cập nhật, luân chuyển và thu hồi bí mật khi ứng dụng đang chạy
+  - Bảo vệ Secret bằng RBAC, mã hóa khi lưu trữ và kiểm soát bản sao lưu
+  - Ngăn bí mật xuất hiện trong Git, log, manifest kết xuất và thông tin chẩn đoán
+  - Tích hợp kho bí mật bên ngoài qua CSI hoặc controller phù hợp
+  - Rủi ro khi người dùng có quyền tạo Pod có thể truy cập Secret trong namespace
+- level1: Tài nguyên tính toán
+  level2:
+  - Requests và limits cho CPU, memory cùng ý nghĩa đối với lịch chạy
+  - Đơn vị CPU, bộ nhớ và lỗi khai báo thường gặp
+  - CPU throttling, giới hạn bộ nhớ và nguyên nhân OOMKilled
+  - Phân biệt lượng tài nguyên yêu cầu, được sử dụng và khả năng node còn cấp phát
+  - Các lớp chất lượng dịch vụ Guaranteed, Burstable và BestEffort
+  - Tài nguyên ephemeral-storage và ảnh hưởng của log hoặc tệp ghi cục bộ
+  - Overcommit, tài nguyên dành cho hệ thống và mức độ rủi ro
+  - Đo nhu cầu thực tế để chọn tài nguyên cho ứng dụng
+  - Extended resource, GPU và tổng quan cấp phát tài nguyên chuyên biệt
+  - Phạm vi hỗ trợ của tài nguyên cấp Pod hoặc thay đổi tài nguyên tại chỗ theo phiên bản
+- level1: Lập lịch Pod
+  level2:
+  - Các bước lọc node, chấm điểm và gán Pod của scheduler
+  - NodeSelector và cách dùng label node có kiểm soát
+  - Node affinity với điều kiện bắt buộc hoặc ưu tiên
+  - Pod affinity và anti-affinity theo quan hệ giữa workload
+  - Taints và tolerations trong giữ riêng hoặc tránh một nhóm node
+  - TopologySpreadConstraints để phân tán Pod theo node hoặc vùng
+  - PriorityClass, preemption và giới hạn bảo đảm cho workload ưu tiên
+  - Ảnh hưởng của requests, volume và ràng buộc topology tới lập lịch
+  - Pod scheduling gate và cách nhận diện điều kiện chưa đủ để xếp lịch
+  - Phân biệt chỉ định node trực tiếp với cơ chế lựa chọn node của scheduler
+  - Đọc sự kiện FailedScheduling và xử lý ràng buộc mâu thuẫn
+- level1: Mạng trong cụm
+  level2:
+  - Mô hình địa chỉ node, Pod và Service cùng các luồng giao tiếp
+  - Yêu cầu kết nối Pod và vai trò plugin CNI
+  - Phân biệt network namespace của Pod với mạng của node
+  - Giao tiếp Pod cùng node, khác node và tới dịch vụ bên ngoài
+  - Dải địa chỉ Pod, Service và tránh chồng lấn mạng hạ tầng
+  - Overlay, định tuyến trực tiếp và tổng quan các cách hiện thực mạng
+  - Vai trò kube-proxy hoặc dataplane thay thế khi chuyển tiếp Service
+  - HostNetwork, hostPort và các rủi ro khi gắn trực tiếp với node
+  - Tổng quan IPv4, IPv6, dual-stack và điều kiện hỗ trợ của hạ tầng
+  - Trách nhiệm của CNI, DNS, chính sách mạng và công cụ quan sát đường truyền
+- level1: Service và DNS
+  level2:
+  - Service cung cấp điểm truy cập ổn định cho các Pod thay đổi
+  - Selector, EndpointSlice và cách tìm các Pod làm backend
+  - Port, targetPort và nodePort trong định tuyến tới ứng dụng
+  - Service ClusterIP cho giao tiếp nội bộ
+  - Service NodePort và phạm vi truy cập qua node
+  - Service LoadBalancer và yêu cầu tích hợp bộ cân bằng tải
+  - Headless Service và khám phá từng endpoint
+  - Service không selector cùng quản lý endpoint ngoài Pod
+  - ExternalName và khác biệt với cơ chế proxy lưu lượng
+  - DNS trong cụm, tên đầy đủ và phạm vi tìm kiếm namespace
+  - Readiness của backend, session affinity và chính sách lưu lượng
+  - ExternalTrafficPolicy, internalTrafficPolicy và ảnh hưởng tới đường đi lưu lượng
+  - Kiểm tra Service không có endpoint, sai cổng hoặc DNS không phân giải
+- level1: Ingress và Gateway
+  level2:
+  - Phân biệt Service, Ingress và Gateway trong công bố ứng dụng
+  - Ingress resource, IngressClass và yêu cầu có ingress controller
+  - Định tuyến Ingress theo hostname, đường dẫn và kiểu khớp path
+  - TLS termination, Secret chứng chỉ và trách nhiệm gia hạn
+  - Giới hạn đặc tả Ingress cùng phần mở rộng riêng của controller
+  - Gateway API và yêu cầu CRD cùng bộ điều khiển hỗ trợ
+  - Vai trò GatewayClass, Gateway và HTTPRoute
+  - Phân tách trách nhiệm giữa quản trị nền tảng với nhóm ứng dụng
+  - Liên kết route, listener, backend và quyền tham chiếu giữa namespace
+  - Đọc condition để xác minh Gateway hoặc route được chấp nhận và hoạt động
+  - Tổng quan phân phối theo trọng số cùng chính sách phụ thuộc hiện thực
+  - Lựa chọn controller được duy trì và lập kế hoạch chuyển đổi theo khả năng tương thích
+- level1: NetworkPolicy
+  level2:
+  - Mô hình cho phép kết nối theo Pod, namespace và dải địa chỉ
+  - Điều kiện CNI phải thực thi NetworkPolicy
+  - Phân biệt chính sách ingress với egress và cách Pod trở thành đối tượng bị cách ly
+  - Tính cộng dồn của các chính sách cho phép
+  - Thiết lập mặc định chặn rồi mở đúng luồng cần thiết
+  - Cho phép DNS và kết nối tới các dịch vụ phụ thuộc
+  - Phân biệt podSelector, namespaceSelector và cách kết hợp điều kiện
+  - Quản lý cổng, giao thức và giới hạn của chính sách mạng lớp truyền tải
+  - Kiểm chứng chính sách bằng cả luồng được phép và luồng cần bị chặn
+  - Giới hạn đối với mã hóa, xác thực ứng dụng và hành vi phụ thuộc plugin
+- level1: Volume tạm thời
+  level2:
+  - Vòng đời dữ liệu trong lớp ghi container và trong volume của Pod
+  - EmptyDir cho dữ liệu chia sẻ tạm và ảnh hưởng khi Pod bị xóa
+  - EmptyDir dùng bộ nhớ và cách tính vào giới hạn tài nguyên
+  - Projected volume kết hợp cấu hình, bí mật, metadata và token
+  - CSI ephemeral volume và generic ephemeral volume
+  - Mount path, subPath và quyền truy cập dữ liệu giữa container
+  - Rủi ro hostPath, dữ liệu cục bộ và tiêu chí lựa chọn kiểu volume
+- level1: Lưu trữ bền vững
+  level2:
+  - Quan hệ PersistentVolume, PersistentVolumeClaim và StorageClass
+  - Khác biệt cấp phát tĩnh với cấp phát động qua CSI
+  - Access mode ReadWriteOnce, ReadOnlyMany, ReadWriteMany và ReadWriteOncePod
+  - Phân biệt volume dạng filesystem với raw block
+  - Quá trình binding và lựa chọn StorageClass mặc định
+  - VolumeBindingMode, topology và thời điểm chờ Pod được lập lịch
+  - ReclaimPolicy và hậu quả khi xóa PVC hoặc PV
+  - Mở rộng PVC cùng điều kiện driver và filesystem hỗ trợ
+  - Volume attachment, mounting và ảnh hưởng khi chuyển Pod sang node khác
+  - Volume snapshot, clone và các thành phần bổ sung cần thiết
+  - Thiết lập quyền tệp, fsGroup và tương thích với ứng dụng
+  - Phân biệt lưu trữ bền vững, nhân bản dữ liệu và bản sao lưu có thể phục hồi
+- level1: Tự động mở rộng
+  level2:
+  - Phân biệt tăng số Pod, tăng tài nguyên Pod và tăng số node
+  - HorizontalPodAutoscaler cùng điều kiện workload có thể mở rộng
+  - Resource metrics API và vai trò Metrics Server như thành phần bổ trợ
+  - Mục tiêu CPU hoặc memory và quan hệ với requests
+  - Custom metric, external metric và yêu cầu bộ chuyển đổi phù hợp
+  - MinReplicas, maxReplicas, chu kỳ điều khiển và độ trễ phản hồi
+  - Stabilization window cùng chính sách tăng hoặc giảm số bản sao
+  - VerticalPodAutoscaler và yêu cầu cài đặt cùng cách áp dụng khuyến nghị
+  - Xung đột tín hiệu khi phối hợp HPA với VPA
+  - Node autoscaling, Cluster Autoscaler hoặc Karpenter theo nền tảng
+  - Ảnh hưởng của ràng buộc lập lịch, volume và PDB khi thu nhỏ node
+  - Kiểm chứng mở rộng theo tải và cân bằng độ tin cậy với chi phí
+- level1: Danh tính và xác thực
+  level2:
+  - Phân biệt danh tính người dùng với ServiceAccount của workload
+  - Luồng xác thực, phân quyền và admission khi gửi yêu cầu API
+  - Chứng chỉ, token và tích hợp nhà cung cấp danh tính theo cấu hình cụm
+  - ServiceAccount mặc định và cấp danh tính riêng theo ứng dụng
+  - Token có thời hạn, projected token và phạm vi audience
+  - Kiểm soát tự động gắn token khi Pod không cần gọi API
+  - Workload identity và liên kết danh tính với dịch vụ cloud
+  - Quản lý kubeconfig, thông tin xác thực quản trị và việc thu hồi truy cập
+  - Phân biệt xác thực Kubernetes API với xác thực người dùng của ứng dụng
+- level1: Phân quyền RBAC
+  level2:
+  - Role, ClusterRole, RoleBinding và ClusterRoleBinding
+  - Phân biệt quyền ở namespace với quyền toàn cụm
+  - API group, resource, subresource và verb trong một quy tắc quyền
+  - Gán quyền cho user, group hoặc ServiceAccount
+  - Tái sử dụng ClusterRole thông qua RoleBinding trong namespace
+  - Kiểm tra quyền hiệu lực bằng kubectl auth can-i và cơ chế đánh giá truy cập
+  - Thiết kế quyền tối thiểu và tránh wildcard rộng
+  - Rủi ro của quyền tạo workload, exec, đọc Secret hoặc sửa binding
+  - Quyền impersonate, bind, escalate và đường dẫn leo thang đặc quyền
+  - Rà soát quyền, quản lý truy cập khẩn cấp và lưu bằng chứng thay đổi
+- level1: Bảo mật workload
+  level2:
+  - Thiết lập securityContext ở cấp Pod và container
+  - Chạy bằng người dùng không đặc quyền và quản lý UID, GID
+  - ReadOnlyRootFilesystem, allowPrivilegeEscalation và Linux capabilities
+  - Seccomp, AppArmor hoặc SELinux theo nền tảng hỗ trợ
+  - Giới hạn privileged container, host namespace và hostPath
+  - Pod Security Standards với mức Privileged, Baseline và Restricted
+  - Pod Security Admission với chế độ enforce, audit và warn
+  - Quản lý phiên bản chính sách cùng ngoại lệ được kiểm soát
+  - Bảo vệ image bằng nguồn tin cậy, digest và quy trình kiểm chứng
+  - Đánh giá ranh giới cách ly container, node và cụm khi chạy mã không tin cậy
+  - Phối hợp chính sách Pod, RBAC, NetworkPolicy và bảo vệ dữ liệu
+- level1: Admission và chính sách
+  level2:
+  - Phân biệt mutating admission với validating admission
+  - Vị trí admission trong luồng ghi tài nguyên vào API
+  - Admission webhook, cấu hình TLS và phạm vi đối tượng áp dụng
+  - FailurePolicy, timeout và rủi ro làm gián đoạn thao tác cụm
+  - ValidatingAdmissionPolicy, CEL và điều kiện phiên bản hỗ trợ
+  - Thực thi quy tắc label, registry, quyền chạy và cấu hình bắt buộc
+  - Triển khai chính sách từ chế độ quan sát tới chặn thay đổi
+  - Quản lý ngoại lệ, kiểm thử policy và tránh webhook tự gây bế tắc
+  - Phân biệt kiểm tra admission với đối soát tài nguyên đã tồn tại
+- level1: Cách ly và hạn mức
+  level2:
+  - Lựa chọn cách ly bằng namespace, nhóm node hoặc cụm riêng
+  - ResourceQuota giới hạn tổng tài nguyên và số lượng đối tượng trong namespace
+  - LimitRange đặt giá trị mặc định cùng giới hạn cho từng đối tượng
+  - Quan hệ quota với requests, limits và việc chấp nhận tạo workload
+  - Ngăn ảnh hưởng từ nhóm dùng tài nguyên chung ngoài phạm vi quota tính toán
+  - Kết hợp RBAC, NetworkPolicy và kiểm soát lưu trữ cho nhiều nhóm
+  - Quản lý tài nguyên toàn cụm mà namespace không bao phủ
+  - Đặt giới hạn cho môi trường preview, sandbox và workload ngoài kiểm soát
+  - Đối soát sử dụng, chủ sở hữu, vòng đời tài nguyên và phân bổ chi phí
+- level1: Quan sát hệ thống
+  level2:
+  - Theo dõi trạng thái cluster, node, workload và ứng dụng theo các lớp
+  - Thu thập log container từ stdout hoặc stderr và quản lý log node
+  - Sử dụng kubectl logs với nhiều container và phiên container trước
+  - Phân biệt metric tài nguyên, metric trạng thái đối tượng và metric ứng dụng
+  - Metrics Server, kube-state-metrics và hệ thống lưu metric phục vụ các mục đích khác nhau
+  - Thu thập trace và liên kết yêu cầu với Pod, namespace cùng phiên bản
+  - Đọc event, condition và audit log theo khả năng cụm
+  - Thiết kế dashboard cùng cảnh báo dựa trên tác động tới dịch vụ
+  - Giới hạn cardinality, thời hạn lưu và chi phí dữ liệu quan sát
+  - Bảo vệ thông tin bí mật trong log, metric, trace và giao diện giám sát
+- level1: Chẩn đoán workload
+  level2:
+  - Quy trình khoanh vùng từ controller tới Pod, container và ứng dụng
+  - Pod Pending do thiếu tài nguyên, affinity hoặc PVC chưa sẵn sàng
+  - ErrImagePull, ImagePullBackOff và lỗi xác thực registry
+  - CreateContainerConfigError do thiếu ConfigMap, Secret hoặc cấu hình sai
+  - CrashLoopBackOff, lỗi command và ứng dụng thoát ngay sau khi chạy
+  - OOMKilled, CPU throttling và chẩn đoán giới hạn tài nguyên
+  - Probe thất bại, ứng dụng chậm khởi động và vòng lặp khởi động lại
+  - Deployment không tiến triển hoặc có Pod cũ không kết thúc
+  - Job hoặc CronJob không chạy, chạy trùng hoặc không hoàn tất
+  - Sử dụng exec và ephemeral debug container với quyền cùng điều kiện hỗ trợ
+  - Pod ở trạng thái Terminating và đánh giá trước khi ép xóa
+  - Thu thập log, event, manifest và thời điểm thay đổi để tái hiện lỗi
+- level1: Chẩn đoán hạ tầng
+  level2:
+  - Service không có endpoint do selector, readiness hoặc cổng cấu hình sai
+  - DNS không phân giải hoặc trả kết quả không như mong đợi
+  - Lỗi đường truyền giữa Pod, giữa node và tới dịch vụ ngoài
+  - Kiểm tra NetworkPolicy, CNI và chính sách mạng hạ tầng
+  - Ingress hoặc Gateway không có địa chỉ hay không định tuyến tới backend
+  - Chẩn đoán TLS, hostname, route condition và cấu hình controller
+  - PVC Pending, volume không attach hoặc không mount được
+  - Lỗi quyền tệp, filesystem đầy và độ trễ lưu trữ
+  - Node NotReady, mất heartbeat hoặc thiếu tài nguyên hệ thống
+  - API chậm, webhook lỗi và control plane quá tải
+  - Phân biệt lỗi workload với lỗi add-on hoặc dịch vụ hạ tầng bên dưới
+- level1: Khả dụng và gián đoạn
+  level2:
+  - Phân biệt gián đoạn có chủ đích với sự cố ngoài dự kiến
+  - Bố trí nhiều bản sao và phân tán giữa node hoặc vùng sẵn sàng
+  - PodDisruptionBudget với minAvailable hoặc maxUnavailable
+  - PDB kiểm soát eviction có chủ đích và các tình huống không được bảo vệ
+  - Phối hợp rollout, readiness, kết thúc êm và điều kiện đủ dung lượng
+  - Ảnh hưởng của node failure, mất vùng và thời gian phát hiện lỗi
+  - Thiết kế ứng dụng chịu được retry, kết nối bị ngắt và Pod thay thế
+  - Chống quá tải bằng quản lý tài nguyên, hạn mức và mở rộng phù hợp
+  - Phân biệt cụm nhiều vùng sẵn sàng với hệ thống triển khai qua nhiều cụm
+  - Diễn tập xóa Pod, drain node và gián đoạn phụ thuộc trong môi trường kiểm thử
+- level1: Vận hành node
+  level2:
+  - Đăng ký node, trạng thái condition và tài nguyên có thể cấp phát
+  - Cordon, uncordon và phân biệt với drain
+  - Drain, Eviction API và tương tác với PDB
+  - Xử lý DaemonSet, static Pod và dữ liệu tạm khi bảo trì node
+  - Node-pressure eviction, ngưỡng tài nguyên và thứ tự loại bỏ Pod
+  - Quản lý image, log, filesystem và tài nguyên dành cho hệ thống
+  - Kiểm tra kubelet, runtime và chứng chỉ của node
+  - Thêm, thay thế hoặc loại bỏ node cùng quản lý vòng đời máy bên dưới
+  - Lập kế hoạch bảo trì với dung lượng dự phòng và ảnh hưởng tới workload
+- level1: Vận hành control plane
+  level2:
+  - Thiết kế control plane sẵn sàng cao và đường truy cập API
+  - Quan hệ quorum của etcd với khả năng đọc, ghi và chịu lỗi
+  - Static Pod, mirror Pod và quản lý thành phần hệ thống theo cách cài cụm
+  - Quản lý chứng chỉ, thời hạn hiệu lực và luân chuyển thông tin xác thực
+  - Bảo vệ endpoint API, kết nối etcd và tài khoản quản trị
+  - Theo dõi độ trễ API, sức khỏe etcd và hoạt động controller
+  - Giới hạn yêu cầu API và tổng quan API Priority and Fairness
+  - Quản lý cấu hình, phiên bản và khả năng khôi phục của các add-on
+  - Đánh giá trách nhiệm vận hành còn lại khi dùng managed Kubernetes
+  - Quản lý quy mô tài nguyên, khả năng tăng trưởng và giới hạn dịch vụ của cụm
+- level1: Nâng cấp cụm
+  level2:
+  - Kiểm kê phiên bản Kubernetes, node, runtime và add-on trước nâng cấp
+  - Kiểm tra chính sách version skew và lộ trình nâng cấp được hỗ trợ
+  - Phát hiện API lỗi thời và chuyển manifest trước khi phiên bản API bị loại bỏ
+  - Kiểm tra feature gate, thay đổi mặc định và tương thích webhook
+  - Thử nâng cấp trong môi trường kiểm chứng với workload đại diện
+  - Sao lưu trạng thái và chuẩn bị phương án phục hồi trước thay đổi
+  - Nâng cấp control plane rồi từng nhóm node theo công cụ hoặc nhà cung cấp
+  - Đánh giá PDB, dung lượng dự phòng và nguy cơ gián đoạn khi luân chuyển node
+  - Kiểm chứng mạng, lưu trữ, autoscaling và ứng dụng sau nâng cấp
+- level1: Sao lưu và phục hồi
+  level2:
+  - Phân biệt sao lưu đối tượng API, trạng thái etcd và dữ liệu ứng dụng
+  - Thiết lập RTO, RPO cùng phạm vi dữ liệu cần bảo vệ
+  - Tạo và bảo vệ snapshot etcd theo mô hình cụm tự quản
+  - Quản lý manifest, bí mật và thông tin cấu hình cần để tạo lại cụm
+  - Sao lưu volume cùng dữ liệu ứng dụng nhất quán
+  - Giới hạn của snapshot lưu trữ đối với tính nhất quán và phục hồi dịch vụ
+  - Khôi phục vào cụm thử và kiểm tra danh tính, endpoint cùng phụ thuộc
+  - Tái tạo hạ tầng, phục hồi workload và xác minh ứng dụng theo thứ tự
+  - Diễn tập phục hồi định kỳ và bảo vệ bản sao lưu khỏi truy cập trái phép
+- level1: Mở rộng Kubernetes
+  level2:
+  - CustomResourceDefinition và cách bổ sung loại tài nguyên mới
+  - Schema, validation, phiên bản cùng chuyển đổi custom resource
+  - Controller và vòng đối soát cho trạng thái mong muốn
+  - Phân biệt CRD, custom controller và Operator
+  - List, watch, informer và hàng đợi công việc trong một controller
+  - Thiết kế đối soát có thể chạy lặp và xử lý lỗi tạm thời
+  - Status, condition, finalizer và vòng đời tài nguyên ngoài cụm
+  - Phân quyền, leader election và quản lý nhiều bản sao controller
+  - Đánh giá Operator bên thứ ba theo quyền, khả năng nâng cấp và phụ thuộc
+  - Quản lý vòng đời CRD cùng rủi ro dữ liệu khi gỡ phần mở rộng
+- level1: Quản lý manifest
+  level2:
+  - Tổ chức manifest theo ứng dụng, môi trường và chủ sở hữu
+  - Kiểm tra YAML, schema và chính sách trước khi áp dụng
+  - Sử dụng Kustomize với base, overlay và các phép biến đổi
+  - Quản lý cấu hình sinh tự động và thay đổi định danh tài nguyên
+  - Tổng quan Helm và ranh giới giữa đóng gói chart với cơ chế Kubernetes
+  - Tích hợp apply hoặc công cụ triển khai vào pipeline với quyền tối thiểu
+  - GitOps, trạng thái mong muốn và đối soát thay đổi ngoài luồng
+  - Quản lý phụ thuộc tài nguyên và chờ điều kiện thực tế thay vì chỉ dựa vào thứ tự tệp
+  - Theo dõi phiên bản image, cấu hình và bằng chứng triển khai
+  - Dọn tài nguyên không còn được khai báo với phạm vi được kiểm chứng
+- level1: Ứng dụng Java
+  level2:
+  - Chuẩn bị image Java chạy bằng người dùng không đặc quyền
+  - Cấu hình JVM nhận biết giới hạn container và cân bằng heap với bộ nhớ ngoài heap
+  - Ảnh hưởng CPU, luồng xử lý và thời gian khởi động tới lựa chọn requests hoặc limits
+  - Tách cấu hình ứng dụng cùng bí mật bằng ConfigMap và Secret
+  - Thiết kế startup, readiness và liveness cho Java hoặc Spring Boot
+  - Kết thúc êm khi nhận SIGTERM và quản lý kết nối đang xử lý
+  - Quản lý connection pool, session và trạng thái khi mở rộng nhiều Pod
+  - Thu thập log, metric, trace và bằng chứng chẩn đoán JVM với quyền phù hợp
+  - Chạy migration hoặc tác vụ nền mà không vô tình thực thi trùng ở mọi bản sao
+  - Triển khai, kiểm thử tải và xác minh khả năng phục hồi ứng dụng mẫu
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo cụm thực hành và xác minh context, node, mạng cùng DNS
+  - Triển khai ứng dụng Java bằng Deployment và Service nội bộ
+  - Cấp cấu hình cùng bí mật, thiết lập tài nguyên và probe phù hợp
+  - Công bố ứng dụng qua Ingress hoặc Gateway được hỗ trợ
+  - Thiết lập RBAC, chính sách Pod và NetworkPolicy theo quyền tối thiểu
+  - Triển khai workload có PVC và kiểm chứng dữ liệu qua lần thay Pod
+  - Chạy Job cùng CronJob và kiểm tra retry hoặc tác vụ chồng nhau
+  - Thực hiện rolling update, theo dõi rollout và xử lý phiên bản lỗi
+  - Tạo tải để kiểm chứng HPA cùng giới hạn dung lượng node
+  - Diễn tập Pod lỗi, mất endpoint và drain node với PDB
+  - Sao lưu, phục hồi thử và đối chiếu dữ liệu cùng cấu hình
+  - Thu hồi tài nguyên thực hành và tổng hợp bằng chứng vận hành

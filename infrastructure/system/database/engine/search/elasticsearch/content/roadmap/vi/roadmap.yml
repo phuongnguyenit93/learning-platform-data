@@ -1,0 +1,50 @@
+roadmap:
+- id: tong-quan-elasticsearch
+  title: Tổng quan Elasticsearch
+  purpose: Hiểu Elasticsearch là công cụ tìm kiếm và phân tích dữ liệu theo tài liệu, phù hợp với những truy vấn cần full-text
+    search.
+  objectives:
+  - '- Phân biệt document, index và relational database.'
+  - '- Nêu các ứng dụng tìm kiếm, log và analytics.'
+- id: cluster-shards
+  title: Cluster & Shards
+  purpose: Nắm cách dữ liệu và truy vấn được phân tán để tăng khả năng mở rộng và sẵn sàng.
+  objectives:
+  - '- Phân biệt node, cluster, primary shard và replica.'
+  - '- Giải thích tác động của shard và replica đến hiệu năng.'
+- id: index-mapping
+  title: Index & Mapping
+  purpose: Thiết kế index và kiểu dữ liệu để truy vấn đúng và tránh sai lệch schema.
+  objectives:
+  - '- Tạo index, index/get/update/delete document.'
+  - '- Chọn text, keyword, number, date và multi-field.'
+- id: analyzer-full-text
+  title: Analyzer & Full-text
+  purpose: Hiểu cơ chế phân tách và chuẩn hóa văn bản trước khi lập chỉ mục hoặc tìm kiếm.
+  objectives:
+  - '- Mô tả tokenization, analyzer và inverted index.'
+  - '- Thử _analyze và so sánh text với keyword.'
+- id: query-dsl
+  title: Query DSL
+  purpose: Xây dựng truy vấn tìm kiếm và bộ lọc cho bài toán thực tế.
+  objectives:
+  - '- Dùng match, term, range và bool query.'
+  - '- Phân biệt query context, filter và relevance score.'
+- id: aggregation-results
+  title: Aggregation & Results
+  purpose: Tổng hợp dữ liệu từ kết quả tìm kiếm và trả kết quả dễ sử dụng.
+  objectives:
+  - '- Viết terms, avg hoặc date_histogram aggregation.'
+  - '- Thực hiện sort, pagination và kiểm tra total hits.'
+- id: java-api-client
+  title: Java API Client
+  purpose: Tích hợp ứng dụng Java với Elasticsearch qua client chính thức.
+  objectives:
+  - '- Kết nối Java client bằng endpoint và API key.'
+  - '- Thực hiện index, search, bulk và xử lý lỗi response.'
+- id: hieu-nang-van-hanh
+  title: Hiệu năng & Vận hành
+  purpose: Duy trì chỉ mục, truy vấn và cluster ổn định trong môi trường chạy thực tế.
+  objectives:
+  - '- Kiểm tra health, refresh, shard/replica và slow query.'
+  - '- Dùng alias/reindex, phân quyền và theo dõi tài nguyên.'

@@ -1,0 +1,2584 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Bitbucket là gì và vai trò trong quản lý mã nguồn DevOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt Git, dịch vụ lưu trữ kho mã và nền tảng cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối quan hệ giữa tài khoản, workspace, project và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng công việc từ yêu cầu thay đổi đến pull request và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của lập trình viên, người rà soát và quản trị viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: So sánh Bitbucket Cloud và Bitbucket Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Đọc ma trận tính năng theo gói Cloud và phiên bản Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức Git cần có và trình tự học Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: getting-started
+  title: Bắt đầu
+  childs:
+  - slug: getting-started-001
+    title: Chuẩn bị tài khoản Atlassian và môi trường Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-002
+    title: Đăng nhập Bitbucket Cloud và thiết lập hồ sơ cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-003
+    title: Tham gia workspace và kiểm tra quyền truy cập ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-004
+    title: Nhận diện các khu vực mã nguồn, pull request và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-005
+    title: Tạo kho mã thử nghiệm và kết nối máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-006
+    title: Thực hiện vòng thay đổi đầu tiên từ clone đến hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-007
+    title: Thiết lập thông báo, theo dõi đối tượng và tùy chọn giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workspaces-projects
+  title: Workspace và project
+  childs:
+  - slug: workspaces-projects-001
+    title: Phạm vi quản lý của workspace và project trong Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-002
+    title: Tạo workspace và lựa chọn cấu trúc quản lý nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-003
+    title: Tạo project, đặt khóa định danh và mô tả phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-004
+    title: Đưa repository vào project và tổ chức danh mục kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-005
+    title: Mời thành viên, quản lý nhóm và thu hồi lời mời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-006
+    title: Liên kết workspace với tổ chức Atlassian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-007
+    title: Cấu hình mặc định ở project và kiểm tra ảnh hưởng tới repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-008
+    title: Thay đổi workspace ID và đánh giá ảnh hưởng đến liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-projects-009
+    title: Quy ước đặt tên, quyền sở hữu và bàn giao quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repositories
+  title: Kho mã
+  childs:
+  - slug: repositories-001
+    title: Tạo repository công khai hoặc riêng tư trong Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-002
+    title: Khởi tạo README, .gitignore và cấu trúc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-003
+    title: Đưa mã nguồn có sẵn từ máy cá nhân lên Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-004
+    title: Nhập repository từ dịch vụ Git khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-005
+    title: Cấu hình nhánh mặc định và thông tin repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-006
+    title: Cấu hình quyền riêng tư và chính sách cho phép fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-007
+    title: Đổi tên repository và cập nhật remote URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-008
+    title: Chuyển repository giữa project hoặc workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-009
+    title: Kiểm kê dữ liệu và phụ thuộc trước khi xóa repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication
+  title: Xác thực
+  childs:
+  - slug: authentication-001
+    title: Phân biệt đăng nhập trình duyệt, Git qua SSH và Git qua HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-002
+    title: Tạo và đăng ký SSH key cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-003
+    title: Xác minh SSH host key và kiểm tra kết nối an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-004
+    title: Quản lý nhiều tài khoản bằng SSH config và ssh-agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-005
+    title: Tạo API token có phạm vi quyền cho Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-006
+    title: Sử dụng API token với Git qua HTTPS và REST API đúng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-007
+    title: Phân biệt API token cá nhân và access token theo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-008
+    title: Lựa chọn repository, project hoặc workspace access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-009
+    title: Sử dụng SSH access key cho tác vụ đọc mã tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-010
+    title: Thiết lập ngày hết hạn, luân chuyển và thu hồi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-011
+    title: Di chuyển tích hợp cũ từ app passwords sang API tokens
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Phân quyền
+  childs:
+  - slug: authorization-001
+    title: Phân biệt quyền quản trị workspace, project và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Cấp quyền Read, Write và Admin theo nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Quản lý quyền qua nhóm thay cho cấp riêng từng người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Kiểm tra quyền kế thừa và quyền được cấp trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Phân biệt quyền truy cập repository và quyền thao tác nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Thiết kế quyền cho cộng tác viên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Cấp quyền tối thiểu cho bot, CI và tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Kiểm thử quyền hiệu lực bằng các vai trò mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-009
+    title: Rà soát và thu hồi quyền khi chuyển nhóm hoặc nghỉ việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-browsing-editing
+  title: Duyệt và sửa mã
+  childs:
+  - slug: code-browsing-editing-001
+    title: Duyệt cây thư mục và chuyển nhánh hoặc tag trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-002
+    title: Đọc lịch sử commit và nhận diện tác giả thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-003
+    title: So sánh commit, nhánh và nội dung tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-004
+    title: Tìm kiếm mã nguồn bằng phạm vi và bộ lọc hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-005
+    title: Sử dụng blame để truy vết thay đổi theo dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-006
+    title: Tạo, sửa và commit tệp qua giao diện web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-007
+    title: Liên kết ổn định tới commit, tệp và dòng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-browsing-editing-008
+    title: Ánh xạ danh tính commit và kiểm tra chữ ký commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branches-forks
+  title: Nhánh và fork
+  childs:
+  - slug: branches-forks-001
+    title: Áp dụng quy trình nhánh tính năng trong repository Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-002
+    title: Cấu hình branching model và quy ước tên nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-003
+    title: Tạo nhánh từ giao diện hoặc từ Git cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-004
+    title: Đẩy nhánh, theo dõi remote và đồng bộ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-005
+    title: Phân biệt nhánh trong cùng repository và fork độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-006
+    title: Tạo fork và xác định quan hệ origin với upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-007
+    title: Đồng bộ fork trước khi gửi thay đổi về repository gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-008
+    title: Quản lý nhánh chưa hợp nhất và dọn nhánh sau khi hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-forks-009
+    title: Phối hợp nhánh tính năng, nhánh sửa lỗi gấp và tag phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pull-request
+  title: Pull request
+  childs:
+  - slug: pull-request-001
+    title: Vai trò của pull request trong đề xuất và truy vết thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-002
+    title: Chọn đúng nhánh nguồn, nhánh đích và phạm vi so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-003
+    title: Tạo pull request trong cùng repository hoặc từ fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-004
+    title: Viết tiêu đề và mô tả với mục đích, phạm vi và bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-005
+    title: Cấu hình mô tả mặc định cho pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-006
+    title: Sử dụng pull request nháp và chuyển sang sẵn sàng rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-007
+    title: Thêm người rà soát và quản lý người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-008
+    title: Cập nhật pull request bằng commit mới và thay đổi nhánh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-009
+    title: Theo dõi trạng thái mở, hợp nhất và từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-010
+    title: Tìm kiếm, lọc và quản lý danh sách pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-review
+  title: Rà soát mã
+  childs:
+  - slug: code-review-001
+    title: Đọc diff theo tệp và nhận diện phần thay đổi cần chú ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-002
+    title: Phân biệt bình luận chung và bình luận theo dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-003
+    title: Đặt câu hỏi, phản hồi và xử lý chuỗi thảo luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-004
+    title: Tạo nhiệm vụ rà soát và xác nhận đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-005
+    title: Phê duyệt, rút phê duyệt và yêu cầu sửa đổi khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-006
+    title: Thiết lập người rà soát mặc định ở project và repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-007
+    title: Cấu hình code owners theo cú pháp Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-008
+    title: Phân biệt gợi ý người rà soát và điều kiện bắt buộc để hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-009
+    title: Kiểm tra lại thay đổi mới sau vòng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-010
+    title: Tổ chức pull request nhỏ và thống nhất tiêu chí rà soát trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: merge-policies
+  title: Quy tắc hợp nhất
+  childs:
+  - slug: merge-policies-001
+    title: Phân biệt branch permissions, branch restrictions và merge checks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-002
+    title: Bảo vệ nhánh chính khỏi đẩy trực tiếp, xóa và ghi lại lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-003
+    title: Áp dụng hạn chế theo tên nhánh hoặc mẫu tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-004
+    title: Tách quyền đẩy mã và quyền hợp nhất qua pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-005
+    title: Cấu hình số phê duyệt, nhiệm vụ còn mở và kết quả build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-006
+    title: Phân biệt kiểm tra khuyến nghị và kiểm tra bắt buộc theo gói Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-007
+    title: Lựa chọn merge commit, squash hoặc fast-forward theo tùy chọn hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-008
+    title: Giải quyết xung đột và kiểm tra lại nhánh đích trước khi hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-009
+    title: Thiết lập custom merge checks bằng Forge trong Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-policies-010
+    title: Sử dụng merge queue và xử lý pull request rời hàng đợi khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jira-collaboration
+  title: Jira và cộng tác
+  childs:
+  - slug: jira-collaboration-001
+    title: Kết nối Bitbucket Cloud với Jira Cloud hoặc Jira Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-002
+    title: Liên kết nhánh, commit và pull request bằng khóa công việc Jira
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-003
+    title: Tạo nhánh và theo dõi hoạt động phát triển từ công việc Jira
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-004
+    title: Bật Smart Commits và kiểm tra ánh xạ danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-005
+    title: Sử dụng Smart Commits với bình luận, thời gian và chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-006
+    title: Thiết lập chuyển trạng thái Jira khi hợp nhất pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-007
+    title: Truy vết công việc qua commit, build và lần triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-008
+    title: Kết nối thông báo Slack và giảm thông báo không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jira-collaboration-009
+    title: Phân biệt quyền đọc mã với quyền xem công việc trong Jira
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-documentation
+  title: Tài liệu dự án
+  childs:
+  - slug: project-documentation-001
+    title: Thiết kế README hỗ trợ người mới sử dụng repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-documentation-002
+    title: Viết Markdown cho mô tả, bình luận và tài liệu trong Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-documentation-003
+    title: Sử dụng wiki khi workspace và repository hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-documentation-004
+    title: Sử dụng trình theo dõi công việc tích hợp khi khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-documentation-005
+    title: Chia sẻ đoạn mã bằng snippets và kiểm soát quyền riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-documentation-006
+    title: Quản lý tệp phân phối tại khu vực Downloads
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-documentation-007
+    title: Liên kết tài liệu với commit và quy trình cập nhật mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-insights
+  title: Code Insights
+  childs:
+  - slug: code-insights-001
+    title: Vai trò của Code Insights trong quyết định rà soát mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-002
+    title: Phân biệt build status, báo cáo và chú thích theo dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-003
+    title: Đọc kết quả kiểm thử, độ bao phủ và phân tích chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-004
+    title: Đưa kết quả quét bảo mật từ công cụ ngoài vào pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-005
+    title: Gửi và cập nhật báo cáo gắn với đúng commit qua API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-006
+    title: Định danh báo cáo để cập nhật ổn định qua các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-007
+    title: Liên kết kết quả kiểm tra với merge checks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-insights-008
+    title: Phát hiện báo cáo cũ hoặc kết quả không thuộc commit hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webhook
+  title: Webhook
+  childs:
+  - slug: webhook-001
+    title: Nguyên lý webhook và lựa chọn sự kiện push hoặc pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-002
+    title: Tạo webhook và giới hạn phạm vi sự kiện cần nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-003
+    title: Đọc cấu trúc payload, loại sự kiện và định danh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-004
+    title: Bảo vệ endpoint bằng HTTPS và xác minh chữ ký với webhook secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-005
+    title: Tiếp nhận nhanh và xử lý tác vụ dài ở phía hệ thống nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-006
+    title: Xử lý sự kiện lặp, sai thứ tự và chống tác dụng phụ trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-007
+    title: Theo dõi lịch sử gửi và chẩn đoán phản hồi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-008
+    title: Kiểm thử webhook khi phát triển và khi triển khai tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webhook-009
+    title: Ngăn vòng lặp khi hệ thống nhận lại ghi dữ liệu về Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-api
+  title: REST API
+  childs:
+  - slug: rest-api-001
+    title: Nhận diện REST API 2.0 của Cloud và API riêng của Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-002
+    title: Chọn phương thức xác thực và phạm vi quyền theo endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-003
+    title: Đọc định danh workspace, repository slug và UUID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-004
+    title: Liệt kê repository, nhánh, tag và commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-005
+    title: Tạo, truy vấn và cập nhật pull request bằng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-006
+    title: Tự động hóa bình luận, nhiệm vụ, phê duyệt và trạng thái build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-007
+    title: Phân trang bằng liên kết next do API trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-008
+    title: Lọc, sắp xếp và giới hạn trường phản hồi khi endpoint hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-009
+    title: Xử lý lỗi quyền, giới hạn tần suất và retry có độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-010
+    title: Thiết kế tự động hóa có kiểm tra trạng thái trước khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipelines-basics
+  title: Pipelines cơ bản
+  childs:
+  - slug: pipelines-basics-001
+    title: Vai trò và phạm vi của Bitbucket Pipelines trên Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-002
+    title: Bật Pipelines và tạo bitbucket-pipelines.yml đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-003
+    title: Hiểu image, step, script và vòng đời môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-004
+    title: Cấu hình pipeline mặc định và pipeline theo nhánh hoặc tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-005
+    title: Kích hoạt pipeline cho pull request và tránh chạy trùng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-006
+    title: Tạo pipeline chạy thủ công hoặc theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-007
+    title: Xây dựng pipeline Java với JDK, Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-008
+    title: Sử dụng cache phụ thuộc và phân biệt cache với artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-009
+    title: Thu thập artifact, kết quả kiểm thử và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelines-basics-010
+    title: Đọc trạng thái pipeline và liên hệ với commit hoặc pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-pipelines
+  title: Pipeline nâng cao
+  childs:
+  - slug: advanced-pipelines-001
+    title: Tổ chức step, stage và bước chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-002
+    title: Sử dụng service container cho cơ sở dữ liệu và phụ thuộc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-003
+    title: Quản lý biến theo workspace, repository và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-004
+    title: Bảo vệ biến bí mật và đánh giá nguy cơ lộ dữ liệu trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-005
+    title: Tái sử dụng cấu hình bằng YAML anchors, definitions và pipes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-006
+    title: Chia sẻ cấu hình và sử dụng pipeline cha-con khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-007
+    title: Điều khiển điều kiện chạy, bước thủ công và hành vi khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-008
+    title: Cấu hình clone depth, thời gian chạy và tài nguyên của step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-009
+    title: Tối ưu thời lượng, khả năng tái lập và phạm vi build theo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-pipelines-010
+    title: Đánh giá dynamic pipelines và agentic pipelines theo nhu cầu, quyền và gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runner
+  title: Runner
+  childs:
+  - slug: runner-001
+    title: Phân biệt môi trường chạy do Atlassian cung cấp và self-hosted runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-002
+    title: Chọn runner theo hệ điều hành, Docker hoặc shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-003
+    title: Đăng ký runner ở phạm vi repository hoặc workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-004
+    title: Gán nhãn và định tuyến step bằng runs-on
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-005
+    title: Cấu hình mạng, proxy và truy cập tài nguyên nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-006
+    title: Cô lập tác vụ và bảo vệ máy chủ runner khỏi mã không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-007
+    title: Quản lý thông tin xác thực, phiên bản và vòng đời runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-008
+    title: Theo dõi hàng đợi, mức đồng thời và tài nguyên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runner-009
+    title: Chẩn đoán runner ngoại tuyến, hết tài nguyên hoặc không khớp nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Mô hình môi trường test, staging và production trong Deployments
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Khai báo deployment step và quản lý biến theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Kiểm soát quyền triển khai và cổng xác nhận thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Sử dụng OIDC để truy cập dịch vụ đám mây bằng thông tin xác thực tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Giới hạn quan hệ tin cậy OIDC theo repository và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Triển khai artifact đã kiểm tra và truy vết về commit nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Kiểm soát triển khai đồng thời vào cùng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Theo dõi lịch sử, trạng thái và liên kết triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Thiết kế chạy lại hoặc quay lui bằng quy trình triển khai đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packages-releases
+  title: Gói và bản phát hành
+  childs:
+  - slug: packages-releases-001
+    title: Phân biệt tag Git, Downloads, pipeline artifact và package registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-002
+    title: Kiểm tra điều kiện sử dụng Packages của Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-003
+    title: Tổ chức package theo workspace và repository liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-004
+    title: Xác thực client và giới hạn quyền đọc hoặc xuất bản package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-005
+    title: Xuất bản và sử dụng container image với Bitbucket registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-006
+    title: Xuất bản và sử dụng Maven package từ quy trình Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-007
+    title: Nhận diện quy trình package cho npm, NuGet và PyPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-008
+    title: Quản lý phiên bản, quyền hiển thị và tag bất biến khi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-releases-009
+    title: Truy vết package tới pipeline và kiểm tra ảnh hưởng trước khi xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extensions-integrations
+  title: Tích hợp mở rộng
+  childs:
+  - slug: extensions-integrations-001
+    title: Kết nối Jenkins hoặc Bamboo và trả trạng thái build về Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-002
+    title: Tích hợp công cụ phân tích mã, kiểm thử và quét lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-003
+    title: Sử dụng Sourcetree cùng repository Bitbucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-004
+    title: Làm việc với pull request bằng Atlassian for VS Code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-005
+    title: Kết nối ứng dụng bằng OAuth và quản lý quyền đã cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-006
+    title: Lựa chọn Marketplace app và đánh giá phạm vi dữ liệu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-007
+    title: Phân biệt mô hình mở rộng Forge trên Cloud và plugin Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensions-integrations-008
+    title: Kết nối công cụ AI với giới hạn quyền, dữ liệu và phê duyệt thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Thiết lập xác minh hai bước và bảo vệ tài khoản Atlassian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Phối hợp SSO, chính sách danh tính và quản lý tổ chức khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Áp dụng quyền tối thiểu và tách nhiệm vụ quản trị, rà soát, triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Quản lý bí mật bên ngoài mã nguồn và xử lý khi bí mật bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Ký commit bằng GPG hoặc SSH và kiểm tra dấu xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Áp dụng yêu cầu commit có chữ ký theo tính năng được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Bảo vệ pipeline và runner trước pull request từ nguồn không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Kiểm soát ứng dụng bên thứ ba và ranh giới truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Sử dụng kiểm soát truy cập mạng theo tính năng của gói hoặc bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Xây dựng quy trình ứng phó khi tài khoản hoặc token bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-cloud
+  title: Quản trị Cloud
+  childs:
+  - slug: governance-cloud-001
+    title: Phân biệt quản trị tổ chức Atlassian và quản trị workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-002
+    title: Lựa chọn gói theo nhu cầu quyền, kiểm tra hợp nhất và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-003
+    title: Quản lý thành viên, chỗ sử dụng và trách nhiệm thanh toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-004
+    title: Theo dõi hạn mức Pipelines, lưu trữ LFS và Packages
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-005
+    title: Chuẩn hóa cấu hình project và repository trong nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-006
+    title: Rà soát token, access key, webhook và ứng dụng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-007
+    title: Thu thập sự kiện kiểm toán theo tính năng của tổ chức và gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-008
+    title: Theo dõi thay đổi sản phẩm, API và thông báo ngừng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-cloud-009
+    title: Bàn giao workspace và lập danh mục cấu hình cần phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-performance
+  title: Dữ liệu và hiệu năng
+  childs:
+  - slug: data-performance-001
+    title: Chọn Git LFS cho tệp lớn và cấu hình quy tắc theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-002
+    title: Đưa tệp đã có sang LFS và phối hợp khi viết lại lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-003
+    title: Quản lý submodule và quyền truy cập repository phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-004
+    title: Theo dõi dung lượng repository và giới hạn hiển thị diff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-005
+    title: Giảm tệp sinh tự động và dữ liệu nhị phân trong lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-006
+    title: Tối ưu clone cho máy cá nhân, CI và nhóm phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-007
+    title: Phân biệt Git mirror, bản sao lưu và hệ thống phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-008
+    title: Sao lưu mã, LFS, wiki và kiểm kê metadata cộng tác riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-performance-009
+    title: Kiểm thử phục hồi và xác nhận tính đầy đủ của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-center
+  title: Data Center
+  childs:
+  - slug: data-center-001
+    title: Kiến trúc Bitbucket Data Center và trách nhiệm tự vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-002
+    title: Phân biệt project, repository và quyền toàn cục của Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-003
+    title: Đánh giá yêu cầu hệ thống và ma trận phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-004
+    title: Lựa chọn mô hình triển khai một nút hoặc cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-005
+    title: Cài đặt, cấu hình cơ sở dữ liệu và thư mục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-006
+    title: Thiết lập base URL, reverse proxy, TLS và SSH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-007
+    title: Kết nối danh bạ người dùng, SSO và phân quyền nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-008
+    title: Cấu hình branch permissions và merge checks theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-009
+    title: Quản lý HTTP access token và SSH key của Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-010
+    title: Kết nối Jira, Bamboo hoặc Jenkins trong hệ thống tự quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-center-operations
+  title: Vận hành Data Center
+  childs:
+  - slug: data-center-operations-001
+    title: Phân tách dữ liệu Git, cơ sở dữ liệu và cấu hình cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-002
+    title: Thiết kế cụm sẵn sàng cao và kiểm tra phụ thuộc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-003
+    title: Đánh giá Bitbucket Mesh cho lưu trữ Git phân tán theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-004
+    title: Sử dụng Smart Mirroring cho nhóm làm việc phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-005
+    title: Theo dõi nhật ký, chỉ số vận hành và tài nguyên Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-006
+    title: Cấu hình kiểm toán và lưu trữ sự kiện quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-007
+    title: Lập lịch sao lưu nhất quán và diễn tập phục hồi sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-008
+    title: Nâng cấp trên môi trường thử nghiệm và kiểm tra tương thích plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-009
+    title: Theo dõi bản vá, cảnh báo bảo mật và vòng đời hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-center-operations-010
+    title: Lập kế hoạch dung lượng và xử lý điểm nghẽn của cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration
+  title: Di chuyển
+  childs:
+  - slug: migration-001
+    title: Kiểm kê repository, người dùng, quyền và tích hợp trước di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-002
+    title: Lựa chọn công cụ nhập mã hoặc công cụ di chuyển của Atlassian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-003
+    title: Di chuyển từ nền tảng Git khác vào Bitbucket Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-004
+    title: Lập kế hoạch di chuyển Bitbucket Server hoặc Data Center sang Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-005
+    title: Đối chiếu phạm vi hỗ trợ cho pull request, bình luận và lịch sử cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-006
+    title: Di chuyển LFS, wiki, tệp phân phối và dữ liệu package theo công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-007
+    title: Ánh xạ danh tính, nhóm và quyền sau khi di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-008
+    title: Cập nhật remote, token, webhook, CI và liên kết Jira
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-009
+    title: Diễn tập, chốt thời điểm chuyển đổi, kiểm tra và chuẩn bị quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Chẩn đoán SSH Permission denied và khóa không đúng tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Xử lý lỗi HTTPS do token hết hạn, sai phạm vi hoặc credential cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Phân biệt repository không tồn tại, sai URL và thiếu quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Xử lý push bị từ chối bởi branch restrictions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Chẩn đoán pull request không thể hợp nhất dù đã được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Giải quyết xung đột và kết quả kiểm tra bị lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Chẩn đoán webhook không đến, bị gửi lặp hoặc lỗi chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Xử lý REST API trả 401, 403, 404 hoặc 429
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chẩn đoán pipeline không kích hoạt hoặc sai cấu hình YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Xử lý cache, artifact, biến bí mật và runner gây lỗi pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Chẩn đoán clone chậm, vượt dung lượng hoặc thiếu đối tượng LFS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Phân biệt sự cố dịch vụ Cloud với lỗi mạng hoặc cấu hình Data Center
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Dựng workspace và project cho nhóm phát triển Java mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Tạo repository và thực hiện quy trình nhánh đến pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Rà soát hai vòng với bình luận, nhiệm vụ và cập nhật commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Thiết lập bảo vệ nhánh và chứng minh các trường hợp bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Kết nối công việc Jira với commit và pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Xây dựng pipeline Java chạy build, kiểm thử và xuất artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Nhận webhook và cập nhật báo cáo Code Insights cho đúng commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Triển khai staging qua OIDC và kiểm tra quyền production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Diễn tập luân chuyển token và thu hồi quyền thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Diễn tập di chuyển, phục hồi và đánh giá cấu hình Bitbucket của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

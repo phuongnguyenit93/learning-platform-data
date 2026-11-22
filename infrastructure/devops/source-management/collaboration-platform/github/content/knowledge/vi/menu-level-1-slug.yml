@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan GitHub
+  slug: github-overview
+  index: 0
+- title: Tài khoản và hồ sơ
+  slug: accounts-and-profiles
+  index: 1
+- title: Xác thực và danh tính
+  slug: authentication-and-identity
+  index: 2
+- title: Tạo và tổ chức kho mã
+  slug: repository-creation-and-organization
+  index: 3
+- title: Khám phá kho mã
+  slug: repository-exploration
+  index: 4
+- title: Làm việc với Git
+  slug: working-with-git
+  index: 5
+- title: Nhánh và so sánh
+  slug: branches-comparisons
+  index: 6
+- title: Fork và đóng góp
+  slug: forking-contributions
+  index: 7
+- title: GitHub Issues
+  slug: github-issues
+  index: 8
+- title: Nhãn và mốc công việc
+  slug: labels-milestones
+  index: 9
+- title: GitHub Projects
+  slug: github-projects
+  index: 10
+- title: Discussions và cộng đồng
+  slug: discussions-community
+  index: 11
+- title: Tạo pull request
+  slug: pull-request-creation
+  index: 12
+- title: Đánh giá mã nguồn
+  slug: code-review
+  index: 13
+- title: Hợp nhất và xung đột
+  slug: merges-conflicts
+  index: 14
+- title: Quy tắc bảo vệ mã
+  slug: branch-protection
+  index: 15
+- title: Tổ chức và phân quyền
+  slug: organizations-permissions
+  index: 16
+- title: Quyền sở hữu và quy ước
+  slug: ownership-and-conventions
+  index: 17
+- title: Tài liệu và Markdown
+  slug: documentation-markdown
+  index: 18
+- title: GitHub Pages
+  slug: github-pages
+  index: 19
+- title: Môi trường phát triển
+  slug: development-environments
+  index: 20
+- title: Tìm kiếm và thông báo
+  slug: search-notifications
+  index: 21
+- title: Tự động hóa kiểm tra
+  slug: automated-checks
+  index: 22
+- title: Phát hành và gói phần mềm
+  slug: releases-packages
+  index: 23
+- title: Bảo mật kho mã
+  slug: repository-security
+  index: 24
+- title: An toàn chuỗi cung ứng
+  slug: supply-chain-security
+  index: 25
+- title: GitHub CLI
+  slug: github-cli
+  index: 26
+- title: API và tích hợp
+  slug: apis-integrations
+  index: 27
+- title: Tệp lớn và dữ liệu
+  slug: large-files-data
+  index: 28
+- title: Quản trị vòng đời kho mã
+  slug: repository-lifecycle
+  index: 29
+- title: Quản trị tổ chức
+  slug: organization-administration
+  index: 30
+- title: Cộng tác nguồn mở
+  slug: open-source-collaboration
+  index: 31
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 32
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 33

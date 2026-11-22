@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-devsecops
+  title: Tư duy DevSecOps
+  purpose: Hiểu cách tích hợp bảo mật vào văn hóa, quy trình và tự động hóa DevOps thay vì kiểm tra ở cuối dự án.
+  objectives:
+  - Giải thích shift-left và trách nhiệm bảo mật chung
+  - Phân biệt DevSecOps với security gate thủ công
+  - Xác định vai trò của Dev, Sec và Ops trong SDLC
+- id: security-requirements-threat-modeling
+  title: Security Requirements & Threat Modeling
+  purpose: Đưa rủi ro và yêu cầu bảo mật vào thiết kế trước khi viết mã để giảm sửa lỗi tốn kém.
+  objectives:
+  - Xác định tài sản, ranh giới tin cậy và mối đe dọa
+  - Đề xuất security requirements cho một dịch vụ
+  - Ưu tiên biện pháp kiểm soát theo mức rủi ro
+- id: secure-coding-code-review
+  title: Secure Coding & Code Review
+  purpose: Tạo thói quen phòng ngừa lỗ hổng ngay trong quá trình phát triển và đánh giá thay đổi.
+  objectives:
+  - Áp dụng kiểm tra đầu vào và phân quyền phía server
+  - Đưa security checklist vào pull request
+  - Thực hành review lỗi bảo mật trong đoạn mã mẫu
+- id: sast-dast-sca
+  title: SAST, DAST & SCA
+  purpose: Biết chọn phương pháp kiểm thử bảo mật ứng dụng và thư viện theo giai đoạn phù hợp của pipeline.
+  objectives:
+  - Phân biệt SAST, DAST và SCA
+  - Quét thử mã nguồn và dependency có lỗ hổng
+  - Đọc kết quả, phân biệt false positive và ưu tiên xử lý
+- id: secrets-least-privilege
+  title: Secrets & Least Privilege
+  purpose: Bảo vệ thông tin xác thực và giới hạn quyền của người dùng, dịch vụ, pipeline khi phát triển và vận hành.
+  objectives:
+  - Phát hiện secret vô tình lưu trong repository
+  - Sử dụng secret manager và quy trình rotate/revoke
+  - Áp dụng quyền tối thiểu cho CI/CD và workload
+- id: ci-cd-supply-chain-security
+  title: CI/CD & Supply Chain Security
+  purpose: Bảo vệ chuỗi build và phát hành để artifact có nguồn gốc đáng tin cậy, hạn chế bị can thiệp.
+  objectives:
+  - Xác định trust boundary và quyền của runner
+  - Kiểm tra SBOM, provenance và chữ ký artifact
+  - Thiết kế security gate dựa trên mức độ rủi ro
+- id: container-iac-policy
+  title: Container, IaC & Policy
+  purpose: Phát hiện cấu hình yếu và đưa quy tắc bảo mật vào hạ tầng bằng mã trước khi triển khai.
+  objectives:
+  - Quét image container và Dockerfile cơ bản
+  - Kiểm tra cấu hình IaC, quyền truy cập và network
+  - Áp dụng policy-as-code trong pipeline kiểm thử
+- id: vulnerability-management-feedback
+  title: Vulnerability Management & Feedback
+  purpose: Xây dựng vòng phản hồi liên tục từ phát hiện đến khắc phục và đo hiệu quả kiểm soát bảo mật.
+  objectives:
+  - Phân loại lỗ hổng theo mức ảnh hưởng và khả năng khai thác
+  - Theo dõi remediation owner, SLA và ngoại lệ
+  - Đo thời gian xử lý cùng tỷ lệ rủi ro tồn đọng

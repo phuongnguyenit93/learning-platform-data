@@ -1,0 +1,1951 @@
+menu:
+- slug: migration-overview
+  title: Tổng quan migration
+  childs:
+  - slug: migration-overview-001
+    title: Schema migration là gì và vì sao cần quản lý thay đổi cơ sở dữ liệu bằng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-002
+    title: Rủi ro của chỉnh sửa thủ công và sự khác biệt lược đồ giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-003
+    title: Phân biệt thay đổi lược đồ, chuyển đổi dữ liệu và dữ liệu khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-004
+    title: Quan hệ giữa mã nguồn ứng dụng, phiên bản lược đồ và quy trình phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-005
+    title: Cách tiếp cận theo trạng thái mong muốn và theo chuỗi thay đổi có thứ tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-006
+    title: Các thành phần cơ bản của migration và bảng lịch sử thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-007
+    title: Trách nhiệm của lập trình viên, người vận hành và người duyệt thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-overview-008
+    title: Giới hạn phạm vi của schema migration so với sao lưu, đồng bộ và di chuyển hệ quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-model
+  title: Mô hình phiên bản
+  childs:
+  - slug: versioning-model-001
+    title: Định danh migration bằng số thứ tự hoặc thời gian và cách tránh trùng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-002
+    title: Quy ước đặt tên mô tả mục đích, phạm vi và thứ tự phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-003
+    title: Phân biệt migration có phiên bản, migration lặp lại và changeset
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-004
+    title: Tính bất biến của migration đã được thực thi trên môi trường dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-005
+    title: Checksum và phát hiện nội dung migration bị sửa sau khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-006
+    title: Tách một thay đổi lớn thành các migration nhỏ có thứ tự rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-007
+    title: Phân biệt khả năng chạy lại an toàn, tính lũy đẳng và việc công cụ ghi nhận đã thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-model-008
+    title: Quản lý quan hệ giữa phiên bản ứng dụng và tập migration đi kèm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-lifecycle
+  title: Vòng đời thực thi
+  childs:
+  - slug: execution-lifecycle-001
+    title: Các bước phát hiện, sắp thứ tự, kiểm tra và áp dụng migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-002
+    title: Đối chiếu migration đang chờ với lịch sử đã thực thi trong cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-003
+    title: Ghi nhận trạng thái thành công, thất bại và thay đổi chỉ thực hiện được một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-004
+    title: Cơ chế khóa điều phối của công cụ để tránh nhiều tiến trình cùng chạy migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-005
+    title: Phân biệt khóa điều phối migration với khóa bảng và khóa giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-006
+    title: Kiểm tra trạng thái lược đồ trước và sau khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-007
+    title: Xử lý migration thiếu, sai thứ tự hoặc khác nội dung giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-lifecycle-008
+    title: Phát hiện schema drift khi thay đổi thực tế nằm ngoài lịch sử migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: team-workflow
+  title: Quy trình làm việc nhóm
+  childs:
+  - slug: team-workflow-001
+    title: Lưu migration cùng mã nguồn và tổ chức thư mục theo quy ước của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-002
+    title: Phối hợp khi nhiều nhánh cùng thêm migration vào một lược đồ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-003
+    title: Giải quyết trùng phiên bản trước khi hợp nhất và kiểm thử thứ tự thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-004
+    title: Phân biệt migration chưa chia sẻ với migration đã chạy trên môi trường dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-005
+    title: Duyệt thay đổi về cấu trúc, dữ liệu, thời gian chạy và khả năng khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-006
+    title: Quản lý hotfix cơ sở dữ liệu và đồng bộ thay đổi về nhánh phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-007
+    title: Ghi nhận chủ sở hữu, mục đích nghiệp vụ và điều kiện triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-workflow-008
+    title: Nguyên tắc lưu trữ hoặc hợp nhất lịch sử cũ mà vẫn hỗ trợ các lộ trình nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema-change-design
+  title: Thiết kế thay đổi
+  childs:
+  - slug: schema-change-design-001
+    title: Phân tích trạng thái hiện tại và trạng thái đích của lược đồ cùng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-002
+    title: Phân loại thay đổi bổ sung, thay đổi phá vỡ tương thích và thay đổi tốn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-003
+    title: Xác định ứng dụng, tác vụ nền, báo cáo và tích hợp đang phụ thuộc vào cấu trúc cần sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-004
+    title: Đặt điều kiện trước khi chạy và tiêu chí xác nhận sau khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-005
+    title: Ước lượng kích thước dữ liệu, thời gian thực thi, dung lượng tạm và thời gian giữ khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-006
+    title: Tách thao tác tạo cấu trúc, chuyển dữ liệu và siết ràng buộc thành các bước phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-007
+    title: Lựa chọn thời điểm triển khai và giới hạn gián đoạn chấp nhận được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-change-design-008
+    title: Lập phương án dừng, tiếp tục, sửa tiến và khôi phục trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema-changes
+  title: Thay đổi cấu trúc
+  childs:
+  - slug: schema-changes-001
+    title: Tạo bảng, thêm cột và lựa chọn kiểu dữ liệu phù hợp với dữ liệu hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-002
+    title: Thêm giá trị mặc định và đánh giá việc cập nhật dữ liệu hoặc ghi lại bảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-003
+    title: Đổi kiểu dữ liệu, độ dài và độ chính xác mà không làm mất thông tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-004
+    title: Đổi tên hoặc xóa bảng, cột và các đối tượng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-005
+    title: Thêm NOT NULL sau khi xử lý dữ liệu thiếu và kiểm soát các lượt ghi mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-006
+    title: Tạo ràng buộc UNIQUE, CHECK và khóa ngoại sau khi kiểm tra dữ liệu vi phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-007
+    title: Tạo, thay đổi hoặc loại bỏ chỉ mục và đánh giá ảnh hưởng đến truy vấn cùng thao tác ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-changes-008
+    title: Quản lý phụ thuộc của view, trigger và thủ tục khi cấu trúc nền thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-compatibility
+  title: Tương thích ứng dụng
+  childs:
+  - slug: application-compatibility-001
+    title: Tương thích ngược và tương thích tiến giữa mã ứng dụng với lược đồ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-002
+    title: Lập ma trận phiên bản ứng dụng cũ, ứng dụng mới và trạng thái lược đồ chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-003
+    title: Thiết kế thay đổi bổ sung để ứng dụng cũ tiếp tục đọc và ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-004
+    title: Ảnh hưởng của ORM, ánh xạ thực thể và truy vấn liệt kê hoặc ngầm định các cột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-005
+    title: Tách thời điểm triển khai cấu trúc khỏi thời điểm kích hoạt tính năng bằng feature flag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-006
+    title: Duy trì tương thích với tác vụ nền, công cụ báo cáo và bên tiêu thụ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-007
+    title: Xác định thứ tự phát hành cơ sở dữ liệu và ứng dụng trong triển khai cuốn chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-compatibility-008
+    title: Điều kiện rollback mã ứng dụng khi cơ sở dữ liệu đã được nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: expand-contract-pattern
+  title: Mẫu expand–contract
+  childs:
+  - slug: expand-contract-pattern-001
+    title: Các giai đoạn mở rộng, chuyển tiếp và thu gọn của một thay đổi phá vỡ tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-002
+    title: Thêm cấu trúc mới mà vẫn giữ cấu trúc cũ đang được sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-003
+    title: Chọn cơ chế ghi dữ liệu trong giai đoạn chuyển tiếp và xử lý lỗi khi ghi hai nơi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-004
+    title: Backfill dữ liệu cũ trong khi ứng dụng vẫn tiếp tục hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-005
+    title: Đối chiếu tính nhất quán trước khi chuyển luồng đọc sang cấu trúc mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-006
+    title: Chuyển luồng ghi, theo dõi sử dụng cấu trúc cũ và loại bỏ đường xử lý chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-007
+    title: Chỉ thu gọn sau khi ứng dụng cũ và các bên phụ thuộc đã ngừng sử dụng cấu trúc cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expand-contract-pattern-008
+    title: Áp dụng expand–contract để đổi tên cột hoặc thay đổi cách biểu diễn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-transformation
+  title: Chuyển đổi dữ liệu
+  childs:
+  - slug: data-transformation-001
+    title: Phân biệt dữ liệu tham chiếu bắt buộc, dữ liệu mẫu và dữ liệu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-002
+    title: Viết thao tác chuyển đổi với điều kiện chọn bản ghi rõ ràng và kết quả có thể kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-003
+    title: Xử lý NULL, dữ liệu trùng, giá trị không hợp lệ và quy tắc ánh xạ thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-004
+    title: Chuyển đổi định dạng, mã nghiệp vụ, múi giờ và giá trị số mà không gây mất nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-005
+    title: Duy trì quan hệ khóa chính, khóa ngoại và thứ tự chuyển đổi giữa các bảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-006
+    title: Chọn thực hiện trong migration hay tách thành tác vụ dữ liệu có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-007
+    title: Xây dựng phép đối soát số lượng, tổng giá trị và bất biến nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transformation-008
+    title: Xác định dữ liệu cần lưu lại để khôi phục khi phép chuyển đổi không thể đảo ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: batched-backfill
+  title: Backfill theo lô
+  childs:
+  - slug: batched-backfill-001
+    title: Rủi ro của một lần cập nhật toàn bảng và mục tiêu chia nhỏ backfill
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-002
+    title: Chọn khóa phân trang ổn định, phạm vi bản ghi và thứ tự xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-003
+    title: Thiết kế mỗi lô có giao dịch ngắn và kích thước phù hợp với tải hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-004
+    title: Lưu tiến độ để tạm dừng và tiếp tục sau khi tiến trình bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-005
+    title: Chạy lại lô an toàn và tránh ghi đè dữ liệu mới của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-006
+    title: Xử lý bản ghi phát sinh hoặc thay đổi đồng thời trong thời gian backfill
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-007
+    title: Điều tiết tốc độ theo tải, thời gian khóa, dung lượng nhật ký và độ trễ bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batched-backfill-008
+    title: Đối soát dữ liệu còn thiếu trước khi kết thúc backfill và siết ràng buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-failures
+  title: Giao dịch và lỗi
+  childs:
+  - slug: transactions-and-failures-001
+    title: Tính nguyên tử của migration và phạm vi giao dịch do công cụ hoặc cơ sở dữ liệu quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-002
+    title: Khác biệt về DDL trong giao dịch và implicit commit giữa PostgreSQL, MySQL cùng các phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-003
+    title: Nhận diện thao tác phải chạy ngoài giao dịch theo hệ quản trị đang sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-004
+    title: Ảnh hưởng của giao dịch dài đến khóa, nhật ký và khả năng phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-005
+    title: Xác định trạng thái thực tế khi DDL thành công một phần nhưng migration báo lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-006
+    title: Phân biệt lỗi kết nối, lỗi câu lệnh, deadlock và lỗi điều kiện dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-007
+    title: Chỉ retry sau khi xác minh thao tác đã hoàn thành hay còn có thể chạy lại an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-failures-008
+    title: Đồng bộ lịch sử công cụ với trạng thái đã kiểm chứng sau khi xử lý sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: locking-and-performance
+  title: Khóa và hiệu năng
+  childs:
+  - slug: locking-and-performance-001
+    title: Khóa hàng, khóa bảng và khóa metadata có thể xuất hiện khi thay đổi lược đồ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-002
+    title: Nhận diện giao dịch lâu, phiên chặn và hàng đợi khóa trước khi chạy migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-003
+    title: Ảnh hưởng của tạo chỉ mục, đổi kiểu cột và ghi lại bảng trên dữ liệu lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-004
+    title: Đánh giá khả năng DDL online hoặc tạo chỉ mục đồng thời theo hệ quản trị và phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-005
+    title: Thiết lập thời gian chờ khóa và thời gian thực thi để giới hạn ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-006
+    title: Đo mức dùng CPU, I/O, dung lượng trống, nhật ký và độ trễ bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-007
+    title: Chọn cửa sổ bảo trì khi yêu cầu khóa không đáp ứng mục tiêu sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-performance-008
+    title: Dừng thao tác có kiểm soát và xác minh trạng thái sau khi hủy câu lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rollback-and-recovery
+  title: Rollback và phục hồi
+  childs:
+  - slug: rollback-and-recovery-001
+    title: Phân biệt rollback giao dịch, migration ngược, sửa tiến và phục hồi từ bản sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-002
+    title: Chọn sửa tiến hay quay lui dựa trên trạng thái ứng dụng, dữ liệu và thời gian gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-003
+    title: Giới hạn của rollback khi đã xóa dữ liệu, thu hẹp kiểu hoặc chuyển đổi mất thông tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-004
+    title: Thiết kế thao tác đảo ngược và điều kiện an toàn trước khi thực hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-005
+    title: Chuẩn bị sao lưu và kiểm chứng khả năng phục hồi trước thay đổi rủi ro cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-006
+    title: Khái niệm phục hồi tới thời điểm cùng mục tiêu mất dữ liệu và thời gian khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-007
+    title: Phối hợp rollback ứng dụng với khả năng tương thích của lược đồ đang tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-recovery-008
+    title: Diễn tập phục hồi và xử lý các lượt ghi phát sinh sau thời điểm sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: migration-tool-selection-001
+    title: Các khả năng cần có ở công cụ quản lý migration cho một dự án Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-002
+    title: So sánh cách tổ chức SQL migration của Flyway và changelog của Liquibase
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-003
+    title: Đánh giá SQL thuần, định dạng khai báo và nhu cầu kiểm soát câu lệnh theo hệ quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-004
+    title: Kiểm tra hỗ trợ cơ sở dữ liệu, phiên bản công cụ và tính năng theo bản phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-005
+    title: So sánh quản lý lịch sử, kiểm tra checksum và cơ chế điều phối thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-006
+    title: Đánh giá nhu cầu rollback, sinh SQL để duyệt và tích hợp quy trình phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-007
+    title: Chọn một công cụ cho cùng chuỗi thay đổi và tránh hai công cụ cùng quản lý một lược đồ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-tool-selection-008
+    title: Xác định phần công cụ tự động hóa và phần nhóm vẫn phải thiết kế, kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: flyway-basics
+  title: Flyway căn bản
+  childs:
+  - slug: flyway-basics-001
+    title: Cấu hình nguồn kết nối, schema đích và vị trí tìm migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-002
+    title: Quy ước tên và thứ tự thực thi của versioned SQL migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-003
+    title: Repeatable migration, checksum và thứ tự xử lý các đối tượng có thể tạo lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-004
+    title: Vai trò của bảng lịch sử và các thao tác info, validate, migrate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-005
+    title: Baseline cho cơ sở dữ liệu hiện hữu và giới hạn khi xác nhận lược đồ ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-006
+    title: Ngăn sửa migration đã chạy và hiểu điều kiện xử lý migration đến muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-007
+    title: Dùng repair sau khi điều tra và đối chiếu trạng thái thực tế của cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flyway-basics-008
+    title: Bảo vệ môi trường dùng chung khỏi clean và kiểm tra điều kiện hỗ trợ khi cần undo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: liquibase-basics
+  title: Liquibase căn bản
+  childs:
+  - slug: liquibase-basics-001
+    title: Tổ chức changelog gốc, tệp được include và changeset theo thứ tự triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-002
+    title: Định danh changeset bằng id, author và đường dẫn để giữ ổn định lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-003
+    title: Lựa chọn SQL định dạng Liquibase hoặc changelog khai báo phù hợp dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-004
+    title: Vai trò của DATABASECHANGELOG, DATABASECHANGELOGLOCK và checksum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-005
+    title: Dùng precondition để xác minh giả định và chọn cách xử lý khi điều kiện không đạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-006
+    title: Dùng context, label và tham số mà vẫn kiểm soát sự nhất quán giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-007
+    title: Kiểm tra changelog, xem SQL dự kiến và áp dụng thay đổi bằng quy trình được duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: liquibase-basics-008
+    title: Khai báo rollback, sử dụng tag khi phù hợp và kiểm chứng khả năng đảo ngược của changeset
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-integration
+  title: Tích hợp Java
+  childs:
+  - slug: java-integration-001
+    title: Khai báo thư viện, JDBC driver và cấu hình công cụ trong dự án Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-002
+    title: Tổ chức tài nguyên migration để được đóng gói cùng phiên bản ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-003
+    title: Lựa chọn chạy qua Maven, Gradle, dòng lệnh hoặc API theo quy trình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-004
+    title: Tích hợp Spring Boot và kiểm soát thứ tự chạy migration trước khi phục vụ yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-005
+    title: Phối hợp ORM với migration và dùng kiểm tra schema thay cho tự sửa lược đồ ở môi trường dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-006
+    title: Tách cấu hình datasource và tài khoản migration khỏi tài khoản chạy ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-007
+    title: Kiểm soát migration khi nhiều instance cùng khởi động hoặc tự động mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-008
+    title: Dùng Testcontainers hoặc cơ sở dữ liệu cô lập để kiểm thử migration trong dự án Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: environment-management
+  title: Quản lý môi trường
+  childs:
+  - slug: environment-management-001
+    title: Duy trì cùng nội dung migration từ phát triển đến kiểm thử và sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-002
+    title: Tách tham số kết nối, tên schema và bí mật khỏi logic thay đổi nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-003
+    title: Kiểm soát placeholder để tránh tạo cấu trúc khác nhau ngoài chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-004
+    title: Giữ phiên bản hệ quản trị, extension, collation và thiết lập liên quan đủ tương đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-005
+    title: Tách dữ liệu mẫu cho phát triển khỏi dữ liệu tham chiếu cần ở mọi môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-006
+    title: Tạo mới môi trường từ lịch sử migration và xác minh khả năng tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-007
+    title: Dùng dữ liệu đại diện đã được bảo vệ khi diễn tập nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: environment-management-008
+    title: Đối chiếu lịch sử và phát hiện thay đổi thủ công giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: legacy-database-adoption
+  title: Tiếp nhận hệ thống cũ
+  childs:
+  - slug: legacy-database-adoption-001
+    title: Kiểm kê bảng, chỉ mục, ràng buộc và đối tượng phụ thuộc của cơ sở dữ liệu hiện hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-002
+    title: So sánh lược đồ thực tế giữa các môi trường trước khi thiết lập baseline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-003
+    title: Chọn mốc bắt đầu quản lý phiên bản và ghi nhận trạng thái được chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-004
+    title: Phân biệt baseline lịch sử với migration khởi tạo cho cơ sở dữ liệu trống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-005
+    title: Đảm bảo baseline không làm chạy lại DDL trên các đối tượng đã tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-006
+    title: Hợp thức hóa chênh lệch bằng thay đổi được duyệt thay vì chỉ sửa bảng lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-007
+    title: Kiểm thử cả đường tạo mới và đường nâng cấp từ lược đồ cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: legacy-database-adoption-008
+    title: Chuyển quyền quản lý thay đổi từ thao tác thủ công sang quy trình migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-testing
+  title: Kiểm thử migration
+  childs:
+  - slug: migration-testing-001
+    title: Kiểm thử dựng cơ sở dữ liệu mới từ toàn bộ chuỗi migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-002
+    title: Kiểm thử nâng cấp từ các phiên bản còn được hỗ trợ và dữ liệu đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-003
+    title: Xác nhận kiểu dữ liệu, chỉ mục, ràng buộc và bất biến nghiệp vụ sau nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-004
+    title: Kiểm thử ứng dụng cũ và mới trên các trạng thái lược đồ chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-005
+    title: Kiểm thử dữ liệu rỗng, NULL, trùng lặp, giá trị biên và dữ liệu không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-006
+    title: Mô phỏng gián đoạn, thực thi một phần và chạy lại hoặc tiếp tục có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-007
+    title: Kiểm thử migration ngược hoặc diễn tập sửa tiến và khôi phục tùy phương án đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-testing-008
+    title: Đo thời gian chạy và ảnh hưởng khóa với quy mô dữ liệu gần thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-validation
+  title: Kiểm tra trong CI
+  childs:
+  - slug: ci-validation-001
+    title: Kiểm tra quy ước tên, trùng định danh, cú pháp và tính toàn vẹn lịch sử migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-002
+    title: Phát hiện migration đã phát hành bị sửa hoặc bị xóa khỏi mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-003
+    title: Khởi tạo cơ sở dữ liệu cô lập đúng hệ quản trị cho từng lần kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-004
+    title: Tự động chạy kiểm thử tạo mới, nâng cấp và tích hợp ứng dụng trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-005
+    title: Kiểm tra SQL dự kiến cùng các thao tác xóa dữ liệu, khóa lớn hoặc không thể đảo ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-006
+    title: Xác minh kết quả lược đồ và dữ liệu bằng các tiêu chí hậu kiểm có thể tự động hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-007
+    title: Đóng gói migration vào cùng artifact đã kiểm thử để đưa qua các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-validation-008
+    title: Lưu kết quả kiểm tra và đặt điều kiện chặn phát hành khi phát hiện sai lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cd-deployment
+  title: Triển khai trong CD
+  childs:
+  - slug: cd-deployment-001
+    title: Chọn chạy migration bằng bước triển khai riêng hoặc khi ứng dụng khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-002
+    title: Chỉ định một đầu mối thực thi và điều phối các lượt triển khai đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-003
+    title: Kiểm tra kết nối, quyền, phiên bản nguồn, sao lưu và tài nguyên trước triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-004
+    title: Sắp thứ tự mở rộng lược đồ, phát hành ứng dụng, backfill và thu gọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-005
+    title: Phân biệt thời gian chạy của pipeline với thời gian chờ khóa và thực thi trong cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-006
+    title: Ngăn pipeline tiếp tục phát hành khi migration thất bại hoặc trạng thái chưa rõ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-007
+    title: Chạy lại bước triển khai dựa trên lịch sử và trạng thái thực tế đã được xác nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cd-deployment-008
+    title: Theo dõi sau phát hành và quyết định tiếp tục, dừng, sửa tiến hoặc khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-and-operations-001
+    title: Ghi log định danh migration, phiên bản artifact, môi trường và kết quả thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-002
+    title: Đo thời gian từng bước, số bản ghi xử lý và tiến độ backfill
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-003
+    title: Theo dõi khóa chờ, lỗi ứng dụng, tài nguyên và độ trễ bản sao trong triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-004
+    title: Cảnh báo migration thất bại, chạy quá lâu hoặc lệch lịch sử giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-005
+    title: Hậu kiểm truy vấn quan trọng và các chỉ số nghiệp vụ sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-006
+    title: Lưu bằng chứng triển khai và liên kết thay đổi với người thực hiện, bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-007
+    title: Soạn quy trình thao tác khi cần dừng, tiếp tục, sửa tiến hoặc phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-008
+    title: Rút kinh nghiệm sự cố để cập nhật tiêu chí kiểm thử và giới hạn vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-and-governance
+  title: Bảo mật và quản trị
+  childs:
+  - slug: security-and-governance-001
+    title: Áp dụng quyền tối thiểu cho tài khoản migration theo phạm vi thay đổi cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-002
+    title: Tách quyền thay đổi lược đồ khỏi quyền đọc ghi thường ngày của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-003
+    title: Quản lý bí mật kết nối trong môi trường triển khai và tránh lưu vào mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-004
+    title: Kiểm tra quyền sở hữu đối tượng và quyền truy cập sau khi tạo hoặc thay thế cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-005
+    title: Tránh đưa dữ liệu nhạy cảm vào migration, log và dữ liệu mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-006
+    title: Kiểm soát thay đổi xóa dữ liệu theo yêu cầu lưu giữ và quy trình phê duyệt của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-007
+    title: Ghi nhận quyền truy cập khẩn cấp và đưa mọi thay đổi ngoài quy trình về lịch sử được kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-governance-008
+    title: Xác định trách nhiệm của từng dịch vụ khi dùng chung cơ sở dữ liệu hoặc schema
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: migration-troubleshooting-001
+    title: Điều tra checksum không khớp mà vẫn bảo toàn bằng chứng migration đã chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-002
+    title: Giải quyết trùng phiên bản, thiếu migration và thứ tự khác với dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-003
+    title: Xử lý khóa điều phối còn tồn tại sau khi xác minh không còn tiến trình thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-004
+    title: Điều tra lỗi quyền, schema đích, cấu hình kết nối và đối tượng không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-005
+    title: Tìm nguyên nhân timeout, deadlock và câu lệnh bị giao dịch khác chặn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-006
+    title: Phục hồi từ migration thực thi một phần khi DDL không được rollback hoàn toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-007
+    title: Xử lý schema drift do hotfix thủ công mà không che giấu chênh lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-troubleshooting-008
+    title: Tránh xóa lịch sử, bỏ kiểm tra hoặc chạy lại mù quáng để vượt qua lỗi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-exercises
+  title: Bài thực hành
+  childs:
+  - slug: migration-exercises-001
+    title: Khởi tạo dự án Java với một cơ sở dữ liệu và chọn Flyway hoặc Liquibase
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-002
+    title: Tạo bảng nghiệp vụ ban đầu, thêm chỉ mục và dữ liệu tham chiếu bằng migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-003
+    title: Thêm cột mới tương thích ứng dụng rồi backfill trước khi áp dụng NOT NULL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-004
+    title: Đổi cách lưu một thuộc tính bằng expand–contract và kiểm thử ứng dụng cũ cùng mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-005
+    title: Tạo dữ liệu vi phạm để thực hành tiền kiểm, xử lý lỗi và tiếp tục migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-006
+    title: Mô phỏng giao dịch giữ khóa để đo thời gian chờ và kiểm chứng cơ chế dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-007
+    title: Thiết lập CI kiểm thử tạo mới, nâng cấp và triển khai cùng artifact đã kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-exercises-008
+    title: Diễn tập sửa tiến hoặc khôi phục, đối soát dữ liệu và đánh giá kết quả theo tiêu chí hoàn thành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

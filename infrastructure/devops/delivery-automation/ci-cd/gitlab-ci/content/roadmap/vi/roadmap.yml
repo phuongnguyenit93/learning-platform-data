@@ -1,0 +1,64 @@
+roadmap:
+- id: gitlab-ci-cd-pipeline
+  title: GitLab CI/CD & Pipeline
+  purpose: Nắm luồng tự động hóa từ thay đổi mã đến kiểm thử và triển khai.
+  objectives:
+  - Giải thích pipeline, stage, job và runner.
+  - Nhận diện các sự kiện push, merge request và lịch chạy.
+  - Đọc trạng thái pipeline và kết quả từng job.
+- id: gitlab-ci-yml-stages
+  title: .gitlab-ci.yml & Stages
+  purpose: Tạo cấu hình CI cơ bản để tổ chức build, test và deploy.
+  objectives:
+  - Viết tệp .gitlab-ci.yml tại repository.
+  - Khai báo stages và jobs với script.
+  - Kiểm tra cú pháp bằng GitLab CI Lint.
+- id: jobs-gitlab-runner
+  title: Jobs & GitLab Runner
+  purpose: Hiểu môi trường thực thi lệnh và cách phân phối công việc.
+  objectives:
+  - Viết job với image, script và tags phù hợp.
+  - Phân biệt runner theo phạm vi project, group và instance.
+  - Đọc job log để phát hiện lỗi thực thi.
+- id: rules-workflow
+  title: Rules & Workflow
+  purpose: Kiểm soát khi nào pipeline và từng job được tạo hoặc chạy.
+  objectives:
+  - Dùng rules cho branch, tag và merge request.
+  - Dùng workflow:rules để hạn chế pipeline trùng.
+  - Thiết lập job chạy theo lịch hoặc khi kích hoạt thủ công.
+- id: variables-secrets
+  title: Variables & Secrets
+  purpose: Quản lý cấu hình linh hoạt và tránh để lộ thông tin nhạy cảm.
+  objectives:
+  - Sử dụng biến CI/CD có sẵn và biến tùy chỉnh.
+  - Thiết lập masked, hidden và protected khi phù hợp.
+  - Tránh in token và secrets ra job log.
+- id: artifacts-cache
+  title: Artifacts & Cache
+  purpose: Chuyển kết quả giữa các job và giảm thời gian tải dependency.
+  objectives:
+  - Tạo artifacts cho build output và test report.
+  - Dùng cache cho dependency tải lại giữa các job.
+  - Phân biệt vòng đời artifacts và cache.
+- id: needs-tai-su-dung
+  title: needs & Tái sử dụng
+  purpose: Tối ưu thứ tự thực thi và giảm lặp cấu hình pipeline.
+  objectives:
+  - Khai báo needs cho job phụ thuộc trực tiếp.
+  - So sánh stage tuần tự với DAG chạy sớm.
+  - Tách cấu hình dùng chung bằng include.
+- id: deploy-environments
+  title: Deploy & Environments
+  purpose: Đưa ứng dụng đến môi trường kiểm thử và phát hành có kiểm soát.
+  objectives:
+  - Khai báo environment staging và deployment job.
+  - Bật manual approval cho bước deploy production khi cần.
+  - Theo dõi lịch sử phiên bản đã triển khai.
+- id: ci-lint-van-hanh
+  title: CI Lint & Vận hành
+  purpose: Chẩn đoán pipeline lỗi và duy trì chất lượng quy trình giao hàng.
+  objectives:
+  - Dùng CI Lint và pipeline editor để kiểm tra cấu hình.
+  - Phân tích lỗi rules, runner và artifacts từ logs.
+  - Thiết lập quy trình kiểm tra, xử lý lỗi và bảo vệ nhánh phát hành.

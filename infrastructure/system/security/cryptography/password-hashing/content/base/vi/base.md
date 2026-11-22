@@ -1,0 +1,7 @@
+# Security Cryptography Password Hashing
+
+**Password hashing** là kỹ thuật tạo giá trị xác minh một chiều từ mật khẩu để hệ thống không phải lưu mật khẩu gốc. Nếu cơ sở dữ liệu tài khoản bị lộ, kẻ tấn công có thể thử đoán mật khẩu ngoại tuyến; vì vậy các hàm hash nhanh thông thường như SHA-256 dùng trực tiếp không đủ phù hợp. Việc lưu mật khẩu an toàn cần dùng thuật toán chuyên dụng như **Argon2id** với salt ngẫu nhiên riêng cho mỗi mật khẩu và các tham số chi phí được lựa chọn theo môi trường vận hành.
+
+Module dành cho người đã biết xác thực tài khoản và khái niệm hash, mã hóa, dữ liệu nhạy cảm ở mức cơ bản. Bạn sẽ bắt đầu từ mô hình đe dọa và sự khác biệt giữa hashing với encryption, sau đó hiểu vai trò của salt và so sánh Argon2id, scrypt, bcrypt, PBKDF2. Các mốc tiếp theo hướng dẫn cân chỉnh memory/work factor, đánh giá pepper như một lớp bảo vệ tùy chọn, triển khai luồng hash–verify bằng API thư viện như Spring Security `PasswordEncoder` và lưu thông tin thuật toán/phiên bản để hỗ trợ nâng cấp hash cũ.
+
+Sau tám mốc, bạn có thể giải thích vì sao một password verifier được lưu an toàn, viết kiểm thử cho luồng đăng ký/đăng nhập và xây kế hoạch rehash khi chính sách hoặc phần cứng thay đổi. **Salt không cần giữ bí mật**, trong khi pepper phải được bảo vệ tách khỏi dữ liệu hash. Password hashing chỉ giảm thiệt hại khi kho dữ liệu bị lộ; hệ thống vẫn cần HTTPS, rate limiting, giám sát xác thực và xử lý sự cố phù hợp.

@@ -1,0 +1,2902 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Workload Identity Federation là gì và bài toán nó giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Workload là gì: ứng dụng, dịch vụ, job, container và máy ảo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Rủi ro của API key, client secret và khóa tài khoản dịch vụ dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Trao đổi bằng chứng danh tính để nhận quyền truy cập ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt xác thực danh tính với cấp quyền truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Workload identity, workload federation và managed identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Workload federation khác workforce federation và đăng nhập người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lợi ích, giới hạn và các điều kiện tiên quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Bản đồ thuật ngữ và lộ trình học từ nguyên lý đến triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-model
+  title: Mô hình danh tính
+  childs:
+  - slug: identity-model-001
+    title: Danh tính con người, danh tính dịch vụ và danh tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-002
+    title: Danh tính logic của ứng dụng so với từng phiên thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-003
+    title: Chủ thể (subject), người phát hành (issuer) và bên nhận (audience)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-004
+    title: Identity provider, relying party và security token service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-005
+    title: Principal nguồn và principal tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-006
+    title: Thuộc tính danh tính và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-007
+    title: Xác minh môi trường chạy và bằng chứng gắn với workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-008
+    title: Tính ổn định, tính duy nhất và khả năng thay đổi của định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-model-009
+    title: Vòng đời danh tính từ cấp phát đến ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: federation-architecture
+  title: Kiến trúc liên kết
+  childs:
+  - slug: federation-architecture-001
+    title: 'Các thành phần: workload, nguồn danh tính, bộ trao đổi và tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-002
+    title: Luồng tổng thể từ nhận bằng chứng đến gọi API đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-003
+    title: Trust domain và quan hệ tin cậy một chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-004
+    title: Xác thực tại tầng trao đổi và phân quyền tại tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-005
+    title: Truy cập trực tiếp bằng principal liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-006
+    title: Truy cập thông qua vai trò hoặc danh tính trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-007
+    title: Một nguồn danh tính truy cập nhiều hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-008
+    title: Nhiều nguồn danh tính cùng liên kết tới một hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: federation-architecture-009
+    title: Chuỗi tin cậy và giới hạn lan truyền quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-foundations
+  title: Nền tảng giao thức
+  childs:
+  - slug: protocol-foundations-001
+    title: OAuth 2.0 trong cấp quyền cho workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-002
+    title: OpenID Connect và vai trò của issuer, discovery, JWKS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-003
+    title: JWT, JWS và phân biệt token có chữ ký với token mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-004
+    title: RFC 8693 và mô hình OAuth 2.0 Token Exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-005
+    title: Subject token, actor token và requested token type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-006
+    title: Delegation và impersonation theo hợp đồng của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-007
+    title: SAML, chứng thư X.509 và các dạng bằng chứng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-008
+    title: Bằng chứng dựa trên danh tính cloud và yêu cầu ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-foundations-009
+    title: Phân biệt chuẩn giao thức với cách triển khai riêng từng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evidence-sources
+  title: Nguồn bằng chứng
+  childs:
+  - slug: evidence-sources-001
+    title: Token danh tính từ nền tảng CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-002
+    title: Token service account của Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-003
+    title: Danh tính máy ảo và metadata service của cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-004
+    title: Danh tính được quản lý bởi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-005
+    title: Bằng chứng từ chứng thư và danh tính SPIFFE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-006
+    title: Token từ identity provider do tổ chức vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-007
+    title: Chọn nguồn theo khả năng xác minh và ràng buộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-008
+    title: Giới hạn khi workload tự khai báo thuộc tính danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-sources-009
+    title: Bài toán bootstrap và phụ thuộc vào nguồn tin cậy ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-token
+  title: Vòng đời token
+  childs:
+  - slug: lifecycle-token-001
+    title: Nhận subject token từ môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-002
+    title: Yêu cầu audience phù hợp cho nơi trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-003
+    title: Gửi yêu cầu trao đổi tới endpoint tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-004
+    title: Nhận access token hoặc credential phiên ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-005
+    title: Sử dụng credential theo API và cơ chế ký của đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-006
+    title: TTL của token nguồn và credential đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-007
+    title: Làm mới bằng chứng, trao đổi lại và tránh nhầm với refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-008
+    title: Bộ nhớ đệm credential và thời điểm làm mới sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-009
+    title: Hủy workload và xử lý credential chưa hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-token-010
+    title: Phân biệt hết hạn, thu hồi quyền và vô hiệu hóa phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-verification
+  title: Xác minh token
+  childs:
+  - slug: token-verification-001
+    title: Đọc token để chẩn đoán khác với xác minh token để tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-002
+    title: Kiểm tra chữ ký và danh sách thuật toán được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-003
+    title: Khớp issuer chính xác và tránh nguồn phát hành giả mạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-004
+    title: Kiểm tra audience đúng dịch vụ và đúng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-005
+    title: Kiểm tra exp, nbf, iat và độ lệch đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-006
+    title: Xác minh subject và các claim bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-007
+    title: JWKS, key ID, xoay vòng khóa và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-008
+    title: Xử lý khóa không biết, discovery lỗi và nguồn danh tính gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-009
+    title: Tránh lấy địa chỉ khóa hoặc issuer tùy ý từ token không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-verification-010
+    title: Giới hạn chống phát lại của bearer token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-mapping
+  title: Ánh xạ danh tính
+  childs:
+  - slug: identity-mapping-001
+    title: Ánh xạ subject và thuộc tính từ token nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-002
+    title: Định danh bất biến so với tên hiển thị có thể đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-003
+    title: Nguy cơ trùng định danh giữa issuer, tenant và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-004
+    title: Ràng buộc repository, project, namespace hoặc service account
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-005
+    title: Phân biệt thuộc tính do nền tảng xác nhận với dữ liệu workload kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-006
+    title: Biểu thức mapping và xử lý claim thiếu hoặc sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-007
+    title: Điều kiện chấp nhận trước khi tạo principal đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-008
+    title: Xử lý đổi tên, di chuyển và tái sử dụng tên tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-mapping-009
+    title: Kiểm thử mapping bằng danh tính hợp lệ và danh tính gần giống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-configuration
+  title: Thiết lập tin cậy
+  childs:
+  - slug: trust-configuration-001
+    title: Đăng ký issuer hoặc identity provider tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-002
+    title: Cấu hình audience và loại bằng chứng được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-003
+    title: Ràng buộc subject theo phạm vi tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-004
+    title: Phối hợp điều kiện tin cậy với policy tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-005
+    title: Nguy cơ wildcard quá rộng và điều kiện chỉ kiểm tra issuer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-006
+    title: Tách tin cậy giữa phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-007
+    title: Tách tenant, tài khoản cloud và miền quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-008
+    title: Quản trị người có quyền sửa cấu hình federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-configuration-009
+    title: Kiểm tra đường đi thực tế từ nguồn danh tính đến quyền đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Phân quyền
+  childs:
+  - slug: authorization-001
+    title: Ánh xạ principal liên kết vào IAM role hoặc quyền tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Quyền tối thiểu cho từng workload và từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Quyền nhận danh tính trung gian khác với quyền của danh tính đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Giới hạn phạm vi theo tài nguyên, hành động và điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Tránh gom nhiều workload vào cùng một danh tính đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Ảnh hưởng của quyền thừa kế và chính sách cấp ở tầng cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Session policy, attribute-based access và hỗ trợ từng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Kiểm tra effective permissions thay vì chỉ đọc một policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-009
+    title: Đánh giá đường leo thang đặc quyền qua impersonation hoặc role chaining
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: google-cloud
+  title: Google Cloud
+  childs:
+  - slug: google-cloud-001
+    title: Workload identity pool, provider và principal liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-002
+    title: Phân biệt workload identity pool với workforce identity pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-003
+    title: OIDC provider và điều kiện issuer, audience, claim
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-004
+    title: Nguồn AWS và các loại provider khác theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-005
+    title: Attribute mapping, google.subject và attribute condition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-006
+    title: Principal, principalSet và cách cấp quyền IAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-007
+    title: Truy cập trực tiếp tài nguyên bằng danh tính liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-008
+    title: Service account impersonation khi tài nguyên hoặc thiết kế yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-009
+    title: Quyền tạo token cho service account và giới hạn chuỗi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-010
+    title: Tệp cấu hình external_account và tính toàn vẹn của nguồn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-011
+    title: Security Token Service, IAM Credentials API và luồng credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: google-cloud-012
+    title: Audit, quota và chẩn đoán lỗi exchange hoặc impersonation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aws-federation
+  title: AWS
+  childs:
+  - slug: aws-federation-001
+    title: OIDC identity provider trong IAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-002
+    title: IAM role trust policy và chủ thể được phép assume role
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-003
+    title: AssumeRoleWithWebIdentity và credential phiên STS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-004
+    title: Ràng buộc issuer, audience, subject và claim được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-005
+    title: Role permission policy và quyền tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-006
+    title: Thời lượng phiên, session name và khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-007
+    title: Phân biệt web identity federation với AssumeRole
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-008
+    title: Cross-account access và chuỗi quyền cần kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-009
+    title: Credential provider chain và tránh dùng nhầm credential cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-010
+    title: CloudTrail và liên kết sự kiện STS với truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aws-federation-011
+    title: Quota, endpoint và chẩn đoán lỗi trust policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: microsoft-entra
+  title: Microsoft Entra
+  childs:
+  - slug: microsoft-entra-001
+    title: Workload identity federation trong Microsoft Entra ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-002
+    title: Ứng dụng, service principal và managed identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-003
+    title: Federated identity credential và quan hệ với danh tính đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-004
+    title: Khớp issuer, subject và audience
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-005
+    title: Đổi assertion từ workload thành access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-006
+    title: Tenant, client ID, scope và tài nguyên yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-007
+    title: Phân quyền tại Azure và quyền ứng dụng tại dịch vụ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-008
+    title: Phân biệt workload federation với client secret hoặc chứng thư client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-009
+    title: Điều kiện hỗ trợ theo loại danh tính và nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-010
+    title: Nhật ký đăng nhập workload và chẩn đoán token exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: microsoft-entra-011
+    title: Thay đổi federation mà không để lại credential dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes
+  title: Kubernetes
+  childs:
+  - slug: kubernetes-001
+    title: ServiceAccount và danh tính của Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-002
+    title: Projected service account token và giới hạn token dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-003
+    title: Audience, thời hạn token và cơ chế luân chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-004
+    title: OIDC issuer, discovery và JWKS của cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-005
+    title: Ràng buộc namespace, service account và cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-006
+    title: RBAC và ai có thể tạo Pod dưới danh tính đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-007
+    title: Token projection, quyền tệp và chia sẻ volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-008
+    title: Pod, node, sidecar và ranh giới truy cập token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-009
+    title: Nguy cơ chiếm service account qua quyền sửa workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-010
+    title: Tách quyền Kubernetes khỏi quyền tài nguyên cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-011
+    title: Đổi cluster, issuer hoặc service account và tác động tới federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-identities
+  title: Danh tính trên K8s
+  childs:
+  - slug: kubernetes-identities-001
+    title: GKE Workload Identity Federation và mô hình principal của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-002
+    title: Truy cập trực tiếp và liên kết service account theo hỗ trợ của GKE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-003
+    title: EKS IRSA và OIDC trust tới IAM role
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-004
+    title: EKS Pod Identity và sự khác biệt với luồng IRSA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-005
+    title: AKS Workload Identity và federated identity credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-006
+    title: Webhook, annotation, biến môi trường và token projection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-007
+    title: Kubernetes tự quản lý và yêu cầu công bố issuer tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-008
+    title: Quyền node và nguy cơ fallback sang danh tính của node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-009
+    title: Kiểm tra credential thực sự được ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-identities-010
+    title: Ma trận lựa chọn theo cloud, mô hình cluster và ranh giới quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: github-actions
+  title: GitHub Actions
+  childs:
+  - slug: github-actions-001
+    title: 'OIDC token của job và quyền id-token: write'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-002
+    title: Issuer, audience và các claim nhận dạng workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-003
+    title: Subject theo repository, ref, pull request hoặc environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-004
+    title: Ràng buộc repository bằng định danh ổn định khi nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-005
+    title: Nhánh, tag, environment protection và quyền triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-006
+    title: Workflow dùng lại và kiểm soát nguồn workflow được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-007
+    title: Fork, pull request và mã không tin cậy trong job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-008
+    title: Pin action, bảo vệ workflow và giảm rủi ro chuỗi cung ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-009
+    title: Trao đổi credential với AWS, Azure hoặc Google Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-010
+    title: Không ghi token vào log, artifact, output hoặc cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: github-actions-011
+    title: Kiểm tra policy bằng các job có và không đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd-platforms
+  title: Các nền tảng CI/CD
+  childs:
+  - slug: cicd-platforms-001
+    title: ID token của GitLab CI và ràng buộc project, ref, environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-002
+    title: Nền tảng build được quản lý và nguồn danh tính tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-003
+    title: Jenkins hoặc runner tự quản lý và bài toán nguồn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-004
+    title: Shared runner so với runner riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-005
+    title: Tách job build, kiểm thử và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-006
+    title: Credential theo từng job thay vì dùng chung toàn pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-007
+    title: Runner bị chiếm quyền và phạm vi credential có thể lấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-008
+    title: Định danh artifact khác với danh tính job phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-009
+    title: Thu hồi quyền sau khi job bị hủy hoặc repository chuyển chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-platforms-010
+    title: Thiết kế pipeline không có fallback tới secret dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-cloud-on-premises
+  title: Đa cloud và tại chỗ
+  childs:
+  - slug: multi-cloud-on-premises-001
+    title: Workload tại chỗ truy cập tài nguyên cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-002
+    title: Workload trên cloud này truy cập cloud khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-003
+    title: Lựa chọn nguồn danh tính chung hoặc tin cậy trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-004
+    title: Phụ thuộc mạng tới issuer, STS và API đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-005
+    title: Ánh xạ danh tính qua nhiều hệ thống IAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-006
+    title: Chuỗi trao đổi token và giới hạn lan truyền quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-007
+    title: Tránh biến một danh tính trung gian thành điểm đặc quyền tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-008
+    title: Phân tách tenant và môi trường trong hệ thống đa cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-009
+    title: So sánh federation với cấp secret từ kho tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-cloud-on-premises-010
+    title: Thiết kế khả dụng khi một hệ thống danh tính gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spiffe-broker
+  title: SPIFFE và broker
+  childs:
+  - slug: spiffe-broker-001
+    title: SPIFFE ID, trust domain và workload attestation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-002
+    title: X.509-SVID, JWT-SVID và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-003
+    title: Phân biệt liên kết trust domain với trao đổi credential cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-004
+    title: Bridging từ danh tính SPIFFE sang principal hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-005
+    title: Identity broker và vai trò trung gian kiểm tra bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-006
+    title: Vault JWT/OIDC auth và cấp token Vault cho workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-007
+    title: Phân biệt đăng nhập vào broker với OAuth Token Exchange chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-008
+    title: Giữ nguyên dấu vết danh tính nguồn qua các tầng trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spiffe-broker-009
+    title: Rủi ro khi broker có quyền phát hành hoặc ánh xạ quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-integration
+  title: Tích hợp client
+  childs:
+  - slug: client-integration-001
+    title: Credential provider và chuỗi tìm kiếm credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-002
+    title: Cấu hình SDK, CLI và thư viện trung lập với ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-003
+    title: Nhận token từ tệp, metadata endpoint hoặc nguồn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-004
+    title: Phân biệt cấu hình federation với dữ liệu xác thực bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-005
+    title: Bảo vệ cấu hình khỏi sửa đổi và chuyển hướng nguồn credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-006
+    title: Cache credential trong bộ nhớ và làm mới trước hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-007
+    title: Đồng thời nhiều luồng và tránh trao đổi token lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-008
+    title: Chọn danh tính rõ ràng khi môi trường có nhiều nguồn credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-009
+    title: Kiểm tra quyền thực tế bằng lời gọi tài nguyên tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-integration-010
+    title: Không để fallback che giấu cấu hình federation sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: credential-protection
+  title: Bảo vệ credential
+  childs:
+  - slug: credential-protection-001
+    title: Token ngắn hạn vẫn là dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-002
+    title: Giới hạn quyền đọc projected token và tệp credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-003
+    title: Không đặt token trong URL, tham số tiến trình và lịch sử shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-004
+    title: Che token trong log, exception, tracing và công cụ debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-005
+    title: Tránh lưu credential vào artifact, image và volume dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-006
+    title: Bảo vệ metadata service trước SSRF và truy cập trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-007
+    title: Ràng buộc audience theo nơi nhận thay vì tái sử dụng một token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-008
+    title: Giảm thời gian tồn tại và số bản sao credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-009
+    title: PoP, mTLS, DPoP và điều kiện hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-010
+    title: Giới hạn bảo vệ khi tiến trình hoặc runner đã bị chiếm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-model
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-model-001
+    title: Tài sản, kẻ tấn công và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-002
+    title: Token replay và đánh cắp credential trong thời hạn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-003
+    title: Audience confusion và token được dùng sai mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-004
+    title: Confused deputy trong trao đổi và impersonation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-005
+    title: Subject collision, tái sử dụng tên và chiếm định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-006
+    title: Policy quá rộng cho tổ chức, repository hoặc namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-007
+    title: Giả issuer, sửa JWKS và thao túng discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-008
+    title: Chiếm runner, Pod, node hoặc nguồn phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-009
+    title: Leo thang quyền qua vai trò trung gian và chuỗi impersonation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-010
+    title: Chuỗi cung ứng workflow, action và credential helper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-011
+    title: Thu hẹp phạm vi ảnh hưởng khi một trust relationship bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-trust
+  title: Vòng đời tin cậy
+  childs:
+  - slug: lifecycle-trust-001
+    title: Đăng ký workload và xác định chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-002
+    title: Phê duyệt issuer, subject mapping và quyền đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-003
+    title: Quản lý cấu hình federation bằng hạ tầng dưới dạng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-004
+    title: Kiểm kê trust relationship và các danh tính đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-005
+    title: Đổi tên repository, service account hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-006
+    title: Xoay vòng khóa ký tại nguồn danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-007
+    title: Thay issuer và chuyển đổi hệ thống CI hoặc cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-008
+    title: Ngừng workload và xóa quyền, mapping, provider không còn dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-009
+    title: Rà soát định kỳ để phát hiện trust quá rộng hoặc không có chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-trust-010
+    title: Phân biệt xóa cấu hình tin cậy với vô hiệu hóa token đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: revocation-incidents
+  title: Thu hồi và sự cố
+  childs:
+  - slug: revocation-incidents-001
+    title: Tắt trao đổi mới khi nguồn danh tính bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-002
+    title: Thu hồi quyền tài nguyên của principal đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-003
+    title: Vô hiệu hóa vai trò hoặc danh tính trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-004
+    title: Đánh giá credential đã cấp còn hiệu lực bao lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-005
+    title: Xoay vòng khóa issuer và ảnh hưởng của JWKS cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-006
+    title: Cách ly runner, workload hoặc cluster bị chiếm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-007
+    title: Truy vết từ job/Pod đến phiên credential và hành động tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-008
+    title: Khôi phục trust relationship theo quy trình kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-009
+    title: Loại bỏ credential dài hạn còn sót sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-incidents-010
+    title: Diễn tập việc vô hiệu hóa quyền và kiểm chứng tại tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-performance
+  title: Khả dụng và hiệu năng
+  childs:
+  - slug: availability-performance-001
+    title: Phụ thuộc issuer, discovery, JWKS, STS và IAM API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-002
+    title: Timeout và retry có backoff, jitter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-003
+    title: Cache JWKS và cân bằng khả dụng với độ mới của khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-004
+    title: Cache access token và giới hạn dùng token gần hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-005
+    title: Tránh thundering herd khi nhiều workload khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-006
+    title: Quota trao đổi token và giới hạn credential API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-007
+    title: Đồng bộ đồng hồ và xử lý clock skew
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-008
+    title: Chọn endpoint, DNS, proxy và đường đi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-009
+    title: Fail closed và kế hoạch giảm chức năng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-010
+    title: Không tự chuyển sang khóa tĩnh khi federation gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-auditing
+  title: Quan sát và kiểm toán
+  childs:
+  - slug: monitoring-auditing-001
+    title: Nhật ký tại issuer, dịch vụ trao đổi và tài nguyên đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-002
+    title: Liên kết issuer, subject, principal và phiên truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-003
+    title: Truy vết job ID, workflow, Pod và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-004
+    title: Mã định danh tương quan thay cho việc ghi token gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-005
+    title: Metrics về tỷ lệ trao đổi, lỗi, độ trễ và thời gian sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-006
+    title: Cảnh báo thay đổi trust policy và cấp quyền đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-007
+    title: Phát hiện subject bất thường hoặc truy cập sai môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-008
+    title: Đánh giá độ phủ audit qua nhiều cloud và broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-009
+    title: Lưu giữ log, phân quyền truy cập và bảo vệ dữ liệu nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-auditing-010
+    title: Bằng chứng phục vụ rà soát quyền và điều tra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics
+  title: Chẩn đoán
+  childs:
+  - slug: diagnostics-001
+    title: Phân biệt lỗi lấy subject token, exchange và truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-002
+    title: Token sai issuer, audience, subject hoặc thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-003
+    title: Chữ ký không hợp lệ, key ID không biết và JWKS cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-004
+    title: Claim thiếu, mapping sai hoặc điều kiện không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-005
+    title: Trust hợp lệ nhưng principal chưa có quyền tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-006
+    title: Thiếu quyền impersonation hoặc assume role
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-007
+    title: Sai tenant, project, tài khoản cloud hoặc namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-008
+    title: Ứng dụng đang dùng credential fallback thay cho federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-009
+    title: Proxy, DNS, TLS, đồng hồ và endpoint không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-010
+    title: Quy trình chẩn đoán bằng dữ liệu đã che thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử đường đi hợp lệ từ workload tới tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Token đúng chữ ký nhưng sai audience hoặc sai issuer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Subject tương tự nhưng khác repository, namespace hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Token hết hạn, chưa có hiệu lực và clock skew
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Claim thiếu, sai kiểu, đổi tên và tái sử dụng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Fork hoặc pull request không được quyền truy cập sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Quyền workload ở nguồn và quyền principal ở đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Xoay vòng khóa, lỗi JWKS và gián đoạn STS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Làm mới credential trong tiến trình dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Thu hồi trust và quyền tài nguyên trong khi token còn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử tải, quota và hành vi retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm tra log, artifact và image không chứa token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-design
+  title: Thiết kế triển khai
+  childs:
+  - slug: deployment-design-001
+    title: Chọn nguồn danh tính và hệ thống đích theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-002
+    title: Lập bảng issuer, audience, subject, mapping và quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-003
+    title: Trực tiếp hay thông qua danh tính trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-004
+    title: Một danh tính cho mỗi workload và môi trường khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-005
+    title: Tách quyền quản trị trust với quyền triển khai workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-006
+    title: Quy ước định danh bền vững và quản lý thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-007
+    title: Triển khai thử trong môi trường ít quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-008
+    title: Chọn TTL theo mô hình đe dọa và yêu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-009
+    title: Định nghĩa chủ sở hữu, runbook và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-design-010
+    title: Đánh giá chi phí vận hành và mức phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: static-key-migration
+  title: Chuyển đổi khóa tĩnh
+  childs:
+  - slug: static-key-migration-001
+    title: Kiểm kê nơi lưu và nơi sử dụng credential dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-002
+    title: Chọn workload thí điểm và xác định quyền đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-003
+    title: Thiết lập federation song song có thời hạn kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-004
+    title: Xác minh principal mới và quyền thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-005
+    title: Chuyển SDK, CLI hoặc pipeline sang credential provider mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-006
+    title: Phát hiện fallback và chứng minh không còn dùng khóa cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-007
+    title: Thu hồi, xóa và kiểm tra credential cũ ở hệ thống nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-008
+    title: Xử lý bản sao trong secret store, artifact và lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-009
+    title: Kế hoạch rollback không tái tạo bí mật không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: static-key-migration-010
+    title: Đo lường mức giảm khóa tĩnh và phạm vi quyền sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Chuẩn bị môi trường cloud, repository và workload thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Vẽ luồng issuer, subject, STS, principal và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Giải mã JWT để quan sát claim bằng dữ liệu giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Cấu hình GitHub Actions liên kết tới một cloud được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Kiểm thử job đúng và sai branch hoặc environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Cấu hình Kubernetes workload truy cập tài nguyên cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: So sánh truy cập trực tiếp với service account impersonation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thử làm mới credential trong một workload chạy dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Mô phỏng subject sai, token hết hạn và trust policy quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Xoay vòng khóa issuer hoặc thay cấu hình tin cậy trong môi trường thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Diễn tập thu hồi quyền và điều tra bằng audit log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Hoàn thiện bảng quyền, mô hình đe dọa và runbook vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

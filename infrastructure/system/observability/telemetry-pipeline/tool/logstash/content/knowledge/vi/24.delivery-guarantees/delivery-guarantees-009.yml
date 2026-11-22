@@ -1,0 +1,3 @@
+menuLevel1: Bảo đảm giao nhận
+menuLevel2: Không suy ra exactly-once chỉ vì đã bật persistent queue
+status: ''

@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: http-overview
+  index: 0
+- title: Tài nguyên và URI
+  slug: resources-uris
+  index: 1
+- title: Chu trình trao đổi
+  slug: request-response-cycle
+  index: 2
+- title: Thông điệp HTTP
+  slug: http-messages
+  index: 3
+- title: Phương thức
+  slug: http-methods
+  index: 4
+- title: Mã trạng thái
+  slug: status-codes
+  index: 5
+- title: Trường HTTP
+  slug: http-fields
+  index: 6
+- title: Biểu diễn dữ liệu
+  slug: representations
+  index: 7
+- title: Thương lượng nội dung
+  slug: content-negotiation
+  index: 8
+- title: Nội dung yêu cầu
+  slug: request-content
+  index: 9
+- title: Chuyển hướng
+  slug: redirection
+  index: 10
+- title: Bộ nhớ đệm
+  slug: http-caching
+  index: 11
+- title: Yêu cầu có điều kiện
+  slug: conditional-requests
+  index: 12
+- title: Yêu cầu theo vùng
+  slug: range-requests
+  index: 13
+- title: Cookie và phiên
+  slug: cookies-sessions
+  index: 14
+- title: Xác thực
+  slug: authentication
+  index: 15
+- title: Origin và CORS
+  slug: origins-cors
+  index: 16
+- title: HTTPS
+  slug: https
+  index: 17
+- title: Trung gian HTTP
+  slug: http-intermediaries
+  index: 18
+- title: Kết nối
+  slug: connections
+  index: 19
+- title: HTTP/1.1
+  slug: http-1-1
+  index: 20
+- title: HTTP/2
+  slug: http-2
+  index: 21
+- title: HTTP/3
+  slug: http-3
+  index: 22
+- title: Truyền luồng
+  slug: streaming
+  index: 23
+- title: An toàn HTTP
+  slug: http-security
+  index: 24
+- title: Thiết kế giao tiếp
+  slug: communication-design
+  index: 25
+- title: Độ tin cậy
+  slug: reliability
+  index: 26
+- title: Hiệu năng
+  slug: performance
+  index: 27
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 28
+- title: Kiểm thử
+  slug: testing
+  index: 29
+- title: Thực hành
+  slug: hands-on-practice
+  index: 30

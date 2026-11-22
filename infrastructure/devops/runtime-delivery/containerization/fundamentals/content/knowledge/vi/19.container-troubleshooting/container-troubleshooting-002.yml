@@ -1,0 +1,3 @@
+menuLevel1: Chẩn đoán các lỗi container thường gặp
+menuLevel2: Build lỗi do context, đường dẫn COPY hoặc tệp bị dockerignore loại bỏ
+status: ""

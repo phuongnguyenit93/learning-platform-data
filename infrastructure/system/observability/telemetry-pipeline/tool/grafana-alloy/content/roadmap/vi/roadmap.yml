@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-grafana-alloy
+  title: Tổng quan Grafana Alloy
+  purpose: Hiểu vai trò Alloy trong pipeline quan sát và các loại tín hiệu mà công cụ xử lý.
+  objectives:
+  - Mô tả luồng dữ liệu từ nguồn qua Alloy đến backend
+  - Nhận diện metrics, logs, traces và profiles
+- id: cai-dat-khoi-chay
+  title: Cài đặt & khởi chạy
+  purpose: Thiết lập Alloy trên môi trường thử nghiệm và kiểm tra tiến trình hoạt động.
+  objectives:
+  - Khởi chạy Alloy với tệp cấu hình .alloy
+  - Xác nhận trạng thái dịch vụ và log khởi động
+- id: cau-hinh-components
+  title: Cấu hình Components
+  purpose: Biết cách ghép các thành phần bằng ngôn ngữ cấu hình của Alloy.
+  objectives:
+  - Sử dụng blocks, attributes và expressions
+  - Liên kết components qua inputs và exports
+- id: pipeline-metrics
+  title: Pipeline Metrics
+  purpose: Thiết lập việc thu thập và chuyển tiếp metrics Prometheus.
+  objectives:
+  - Cấu hình scrape target và nhãn dữ liệu
+  - Gửi metrics đến endpoint remote_write
+- id: pipeline-logs
+  title: Pipeline Logs
+  purpose: Xây dựng đường đi từ nguồn log đến hệ thống lưu trữ.
+  objectives:
+  - Chọn nguồn logs từ file hoặc Kubernetes
+  - Xử lý nhãn và gửi dữ liệu đến Loki
+- id: pipeline-traces-otlp
+  title: Pipeline Traces & OTLP
+  purpose: Tiếp nhận telemetry từ ứng dụng qua OTLP và chuyển cho backend.
+  objectives:
+  - Cấu hình OTLP receiver cho traces và tín hiệu khác
+  - Kết nối receiver với processor và exporter
+- id: xu-ly-dinh-tuyen
+  title: Xử lý & định tuyến
+  purpose: Cải thiện chất lượng telemetry và điều phối dữ liệu đến đúng đích.
+  objectives:
+  - Áp dụng lọc, relabel hoặc batch phù hợp
+  - Kiểm tra attributes và đường xuất telemetry
+- id: giam-sat-xu-ly-loi
+  title: Giám sát & xử lý lỗi
+  purpose: Duy trì pipeline ổn định và phát hiện lỗi cấu hình hoặc truyền dữ liệu.
+  objectives:
+  - Kiểm tra sức khỏe components bằng Alloy UI và logs
+  - Đối chiếu dữ liệu tại backend, xác định điểm gián đoạn

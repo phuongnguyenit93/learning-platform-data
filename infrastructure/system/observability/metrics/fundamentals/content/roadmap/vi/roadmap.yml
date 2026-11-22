@@ -1,0 +1,49 @@
+roadmap:
+- id: metric-fundamentals
+  title: Metric Fundamentals
+  purpose: Hiểu metric là phép đo định lượng theo thời gian và dùng để theo dõi hành vi hệ thống.
+  objectives:
+  - Phân biệt metric, log và trace.
+  - Mô tả time series, sample, timestamp và scrape.
+- id: metric-types
+  title: Metric Types
+  purpose: Chọn kiểu metric phù hợp với loại giá trị và cách tổng hợp.
+  objectives:
+  - Phân biệt Counter, Gauge, Histogram và Summary.
+  - Chọn kiểu cho request count, queue depth và latency.
+- id: naming-labels
+  title: Naming & Labels
+  purpose: Chuẩn hóa tên và chiều dữ liệu để truy vấn nhất quán, kiểm soát chi phí.
+  objectives:
+  - Đặt tên có domain prefix và đơn vị base.
+  - Dùng labels có cardinality thấp; tránh ID/email không giới hạn.
+- id: instrumentation
+  title: Instrumentation
+  purpose: Đo các hành vi quan trọng tại nơi phát sinh dữ liệu.
+  objectives:
+  - Instrument request rate, errors, latency và saturation.
+  - Dùng client library/exporter và xác định metric hữu ích.
+- id: exposition-scraping
+  title: Exposition & Scraping
+  purpose: Đưa metric từ ứng dụng tới hệ thống thu thập theo giao thức rõ ràng.
+  objectives:
+  - Expose endpoint metrics và hiểu scrape target/interval.
+  - Nhận biết Prometheus exposition và OpenMetrics format.
+- id: promql-aggregation
+  title: PromQL & Aggregation
+  purpose: Truy vấn chuỗi thời gian để rút ra xu hướng và tình trạng dịch vụ.
+  objectives:
+  - Dùng selector, range vector, rate và histogram_quantile.
+  - Tổng hợp theo label bằng sum, avg và grouping.
+- id: dashboard-sli-slo
+  title: Dashboard & SLI/SLO
+  purpose: Chuyển metric thành góc nhìn vận hành gắn với trải nghiệm người dùng.
+  objectives:
+  - Thiết kế dashboard theo traffic, latency, errors, saturation.
+  - Tính SLI availability/latency và liên hệ với SLO.
+- id: validation-operations
+  title: Validation & Operations
+  purpose: Bảo đảm metric chính xác, tiết kiệm tài nguyên và có thể duy trì.
+  objectives:
+  - Kiểm tra metric naming, labels và cardinality.
+  - Phát hiện missing series, scrape failure và dữ liệu bất thường.

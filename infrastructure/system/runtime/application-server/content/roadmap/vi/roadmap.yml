@@ -1,0 +1,57 @@
+roadmap:
+- id: application-server-jakarta-ee
+  title: Application Server & Jakarta EE
+  purpose: Hiểu vai trò application server trong việc cung cấp runtime và các dịch vụ nền tảng cho ứng dụng doanh nghiệp.
+  objectives:
+  - Phân biệt application server với web server và servlet container.
+  - Nhận diện Jakarta EE, MicroProfile và các dịch vụ tích hợp.
+  - Mô tả luồng ứng dụng chạy trên một server instance.
+- id: cai-dat-runtime-modes
+  title: Cài đặt & Runtime Modes
+  purpose: Thiết lập server instance và chọn mô hình quản lý phù hợp quy mô triển khai.
+  objectives:
+  - Khởi động, dừng và kiểm tra một server instance.
+  - Phân biệt standalone với managed domain.
+  - Nhận diện cấu trúc thư mục, profile và subsystem.
+- id: packaging-deployment
+  title: Packaging & Deployment
+  purpose: Đóng gói và quản lý vòng đời ứng dụng khi triển khai lên application server.
+  objectives:
+  - Phân biệt WAR, EAR và các module triển khai.
+  - Deploy, redeploy, disable và undeploy ứng dụng mẫu.
+  - Kiểm tra context, deployment status và lỗi khởi động.
+- id: resources-jndi-datasource
+  title: Resources, JNDI & Datasource
+  purpose: Kết nối ứng dụng với tài nguyên do server quản lý thay vì tự cấu hình từng kết nối.
+  objectives:
+  - Khai báo JDBC driver và datasource pool.
+  - Tra cứu resource qua JNDI.
+  - Kiểm tra kết nối, pool size và timeout.
+- id: transactions-managed-services
+  title: Transactions & Managed Services
+  purpose: Hiểu cách runtime điều phối tài nguyên và giao dịch xuyên các thành phần ứng dụng.
+  objectives:
+  - Giải thích container-managed transaction và JTA.
+  - Nhận diện vai trò JMS hoặc resource adapter.
+  - Phân biệt cấu hình server với logic nghiệp vụ ứng dụng.
+- id: security-access-control
+  title: Security & Access Control
+  purpose: Bảo vệ management plane, ứng dụng và tài nguyên được cấp qua server.
+  objectives:
+  - Phân biệt application security với management security.
+  - Cấu hình role, identity store và quyền quản trị.
+  - Rà soát TLS, secrets và quyền truy cập tài nguyên.
+- id: domain-clustering-ha
+  title: Domain, Clustering & HA
+  purpose: Quản lý nhiều instance và duy trì khả năng phục vụ khi một node gặp sự cố.
+  objectives:
+  - Mô tả domain controller và server group.
+  - Giải thích cluster, session replication và failover.
+  - Phác thảo rolling deployment cho nhiều instance.
+- id: operations-observability
+  title: Operations & Observability
+  purpose: Vận hành ổn định bằng cấu hình có kiểm soát, log và chỉ số runtime.
+  objectives:
+  - Đọc server log, health và JVM metrics.
+  - Theo dõi thread pool, datasource pool và memory.
+  - Lập checklist backup cấu hình, nâng cấp và xử lý sự cố.

@@ -1,0 +1,62 @@
+roadmap:
+  - id: runtime-va-moi-truong
+    title: "Runtime và môi trường"
+    purpose: "Hiểu vai trò của runtime trong môi trường thực thi chương trình."
+    objectives:
+      - "Phân biệt mã nguồn, chương trình đã đóng gói và một lần thực thi."
+      - "Xác định vai trò của hệ điều hành, runtime và thư viện."
+      - "Nhận diện cấu hình, quyền và giới hạn của môi trường chạy."
+  - id: nap-va-khoi-chay
+    title: "Nạp và khởi chạy"
+    purpose: "Theo dõi quá trình đưa chương trình vào thực thi."
+    objectives:
+      - "Mô tả đường đi từ lệnh chạy qua bộ nạp đến điểm vào."
+      - "Giải thích liên kết thư viện, tham số và biến môi trường."
+      - "Khoanh vùng lỗi thiếu phụ thuộc, sai kiến trúc hoặc quyền chạy."
+  - id: mo-hinh-thuc-thi
+    title: "Mô hình thực thi"
+    purpose: "So sánh các cách chuyển mã chương trình thành công việc được thực hiện."
+    objectives:
+      - "So sánh biên dịch trước khi chạy (AOT), thông dịch và biên dịch khi chạy (JIT)."
+      - "Giải thích vai trò của bytecode và máy ảo khi được sử dụng."
+      - "Đối chiếu chi phí khởi động và thực thi ổn định giữa các mô hình."
+  - id: tien-trinh-va-luong
+    title: "Tiến trình và luồng"
+    purpose: "Hiểu cách công việc được lập lịch và phối hợp khi thực thi."
+    objectives:
+      - "Phân biệt tiến trình, luồng và tác vụ do runtime lập lịch."
+      - "Phân biệt đồng thời, song song và bất đồng bộ."
+      - "Giải thích bộ lập lịch, chuyển ngữ cảnh và chia sẻ dữ liệu."
+      - "Nhận diện tranh chấp dữ liệu, bế tắc và nhu cầu đồng bộ."
+  - id: quan-ly-bo-nho
+    title: "Quản lý bộ nhớ"
+    purpose: "Hiểu việc cấp phát, sử dụng và thu hồi bộ nhớ khi chương trình chạy."
+    objectives:
+      - "Phân biệt không gian địa chỉ ảo, bộ nhớ vật lý, stack và heap."
+      - "So sánh quản lý thủ công, quyền sở hữu, đếm tham chiếu và thu gom rác (GC)."
+      - "Phân biệt thu hồi bộ nhớ với đóng tài nguyên hệ điều hành."
+      - "Nhận diện rò rỉ bộ nhớ, truy cập không hợp lệ và thiếu bộ nhớ."
+  - id: io-va-tai-nguyen
+    title: "I/O và tài nguyên"
+    purpose: "Lựa chọn cách xử lý I/O và kiểm soát tài nguyên hữu hạn."
+    objectives:
+      - "So sánh I/O chặn, không chặn và bất đồng bộ."
+      - "Giải thích vai trò của vòng lặp sự kiện (event loop) và nhóm luồng."
+      - "Quản lý vòng đời tệp, kết nối và handle theo quyền sở hữu."
+      - "Áp dụng timeout, giới hạn hàng đợi và ngân sách tài nguyên."
+  - id: vong-doi-ung-dung
+    title: "Vòng đời ứng dụng"
+    purpose: "Kiểm soát trạng thái ứng dụng từ khởi tạo đến kết thúc."
+    objectives:
+      - "Mô tả các giai đoạn khởi tạo, sẵn sàng, phục vụ và kết thúc."
+      - "Phân biệt lỗi được xử lý, sự cố làm dừng tiến trình và mã thoát."
+      - "Giải thích tín hiệu hoặc sự kiện dừng theo từng nền tảng."
+      - "Thiết kế dừng có kiểm soát, hủy tác vụ và giải phóng tài nguyên."
+  - id: quan-sat-va-chan-doan
+    title: "Quan sát và chẩn đoán"
+    purpose: "Dùng bằng chứng thực thi để khoanh vùng và kiểm chứng nguyên nhân lỗi."
+    objectives:
+      - "Chọn log, metric, trace, stack trace hoặc bản dump theo triệu chứng."
+      - "Đối chiếu CPU, bộ nhớ và I/O để khoanh vùng chậm, treo hoặc sự cố dừng."
+      - "Tái hiện lỗi với cùng đầu vào, cấu hình và giới hạn môi trường."
+      - "Kiểm chứng giả thuyết bằng debugger, profiler hoặc công cụ theo dõi lời gọi hệ thống."

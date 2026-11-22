@@ -1,0 +1,7 @@
+# DevOps Source Management Repository Strategy Monorepo Polyrepo
+
+**Monorepo** lưu nhiều dự án trong một repository, còn **polyrepo** chia chúng thành các repository riêng. Đây là lựa chọn về quản lý mã nguồn và cách phối hợp nhóm, không đồng nghĩa với kiến trúc monolith hay microservices. Monorepo thuận lợi cho thay đổi đồng bộ và chia sẻ công cụ; polyrepo có thể giúp tách quyền, quy trình và nhịp phát hành. Lựa chọn đúng phụ thuộc vào ranh giới tổ chức, mức độ chia sẻ mã và khả năng vận hành CI/CD.
+
+Lộ trình gồm **8 mốc**: phân biệt hai mô hình; xác định tiêu chí lựa chọn; tổ chức cấu trúc và ranh giới module; quản lý shared code cùng phiên bản; phân quyền và code ownership; tối ưu CI theo phạm vi thay đổi; phối hợp release; cuối cùng là chuyển đổi và quản trị repository. Người học thực hành trên hệ thống mẫu gồm nhiều ứng dụng và thư viện, thử thay đổi liên dự án, đánh giá dependency graph và thiết kế pipeline kiểm thử phù hợp.
+
+Học phần phù hợp với developer, tech lead và DevOps engineer đã biết Git, pull request, dependency và CI/CD cơ bản. Sau khi hoàn thành, bạn có thể giải thích đánh đổi của monorepo/polyrepo, đề xuất cấu trúc repository có ranh giới rõ ràng, kiểm soát quyền review, giảm công việc CI dư thừa và lập kế hoạch chuyển đổi có tiêu chí đo lường.

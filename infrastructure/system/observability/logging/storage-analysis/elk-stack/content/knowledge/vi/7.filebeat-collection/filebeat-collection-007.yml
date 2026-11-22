@@ -1,0 +1,3 @@
+menuLevel1: Thu thập bằng Filebeat
+menuLevel2: Chọn output Elasticsearch hoặc Logstash và thiết lập TLS, xác thực
+status: ''

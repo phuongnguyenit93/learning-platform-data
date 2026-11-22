@@ -1,0 +1,3253 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: SAST và DAST là gì, giải quyết vấn đề nào trong phát triển phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của SAST và DAST trong DevSecOps và vòng đời phát triển an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt lỗi lập trình, điểm yếu bảo mật, lỗ hổng và khả năng khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: So sánh kiểm thử hộp trắng, hộp đen và hộp xám
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: So sánh SAST và DAST về đầu vào, thời điểm chạy và loại bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Kết hợp SAST và DAST để bù đắp khoảng trống phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt SAST, DAST, SCA, quét bí mật và kiểm thử xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Nhận diện vai trò bổ trợ của IAST, RASP và kiểm thử bảo mật thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Trách nhiệm của nhóm phát triển, bảo mật và vận hành đối với kết quả quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Thuật ngữ và thứ tự học để triển khai SAST/DAST từ cơ bản đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-scope
+  title: Phạm vi kiểm thử
+  childs:
+  - slug: testing-scope-001
+    title: Xác định ứng dụng, dịch vụ, kho mã và môi trường thuộc phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-002
+    title: Lập danh mục tài sản, điểm vào, dữ liệu nhạy cảm và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-003
+    title: Sử dụng mô hình đe dọa để lựa chọn trường hợp kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-004
+    title: Chuyển yêu cầu bảo mật thành tiêu chí kiểm chứng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-005
+    title: Liên hệ CWE, OWASP Top 10 và OWASP ASVS với phạm vi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-006
+    title: Xác định vai trò người dùng, hành trình nghiệp vụ và ma trận quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-007
+    title: Phân biệt phạm vi mã nguồn của SAST với bề mặt chạy thực tế của DAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-008
+    title: Xác định giới hạn của quét tự động đối với logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-009
+    title: Khoanh vùng dịch vụ bên thứ ba, miền ngoài và tài nguyên không được quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-scope-010
+    title: Ghi nhận giả định, phần loại trừ và rủi ro chưa được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-fundamentals
+  title: Nền tảng web
+  childs:
+  - slug: web-fundamentals-001
+    title: HTTP request/response, phương thức, mã trạng thái và tiêu đề liên quan đến bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-002
+    title: URL, tham số đường dẫn, query string, request body và kiểu nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-003
+    title: Cookie, phiên đăng nhập và vòng đời thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-004
+    title: Phân biệt xác thực, phân quyền và kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-005
+    title: Chính sách cùng nguồn, CORS và quan hệ giữa trình duyệt với máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-006
+    title: TLS, chứng thư và vị trí kết thúc mã hóa trong kiến trúc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-007
+    title: Luồng dữ liệu giữa giao diện, API, dịch vụ và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-008
+    title: Khác biệt bề mặt kiểm thử của ứng dụng nhiều trang và ứng dụng SPA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-009
+    title: Đặc điểm của REST, GraphQL, WebSocket và gRPC khi lập kế hoạch kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-fundamentals-010
+    title: Reverse proxy, API gateway, WAF và ảnh hưởng đến quan sát kết quả quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-testing-environments
+  title: Môi trường an toàn
+  childs:
+  - slug: safe-testing-environments-001
+    title: Xác nhận ủy quyền, mục tiêu, thời gian và giới hạn kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-002
+    title: Xây dựng môi trường kiểm thử cô lập có cấu hình đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-003
+    title: Chuẩn bị dữ liệu tổng hợp và loại bỏ dữ liệu cá nhân thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-004
+    title: Tạo tài khoản kiểm thử theo vai trò và theo từng khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-005
+    title: Giới hạn quyền, thời hạn và cách cấp phát thông tin xác thực cho scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-006
+    title: Thiết lập miền cho phép, miền loại trừ và giới hạn chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-007
+    title: Loại trừ thao tác xóa, thanh toán, gửi thư và tác vụ gây tác động bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-008
+    title: Đặt giới hạn tốc độ, mức đồng thời và ngân sách tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-009
+    title: Chuẩn bị nhật ký, giám sát và cơ chế dừng quét khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-testing-environments-010
+    title: Khôi phục dữ liệu, dọn tài khoản và trả môi trường về trạng thái ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-mechanisms
+  title: Cơ chế SAST
+  childs:
+  - slug: sast-mechanisms-001
+    title: Phân tích tĩnh từ mã nguồn, bytecode và các dạng biểu diễn trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-002
+    title: Từ phân tích cú pháp đến cây cú pháp trừu tượng AST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-003
+    title: Phân tích luồng điều khiển và đồ thị lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-004
+    title: Phân tích luồng dữ liệu và lan truyền dữ liệu không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-005
+    title: Nguồn dữ liệu, điểm sử dụng nguy hiểm và hàm làm sạch trong phân tích taint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-006
+    title: Phân biệt so khớp mẫu với phân tích ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-007
+    title: Phân tích trong một hàm và xuyên qua nhiều hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-008
+    title: Độ nhạy theo đường đi, ngữ cảnh và trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-009
+    title: Ảnh hưởng của framework, reflection và mã sinh đến kết quả phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-010
+    title: Phân tích toàn bộ, phân tích tăng dần và quét phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-mechanisms-011
+    title: Độ chính xác, độ bao phủ và chi phí tính toán của SAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-setup
+  title: Thiết lập SAST
+  childs:
+  - slug: sast-setup-001
+    title: Kiểm kê ngôn ngữ, framework, hệ thống build và kiểu dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-002
+    title: Chọn chế độ phân tích cần build hoặc không cần build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-003
+    title: Chuẩn bị mã nguồn, phụ thuộc build và công cụ biên dịch cho scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-004
+    title: Xác định thư mục nguồn, kiểm thử, mã sinh và mã của bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-005
+    title: Phân tích dự án nhiều mô-đun và kho mã monorepo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-006
+    title: Lựa chọn bộ quy tắc theo ngôn ngữ và rủi ro ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-007
+    title: Phân biệt cấu hình chất lượng mã với cấu hình bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-008
+    title: Cấu hình quét trên máy lập trình viên và trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-009
+    title: Kiểm chứng scanner đã phân tích đúng tập tệp thay vì chỉ chạy thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-setup-010
+    title: Chẩn đoán lỗi biên dịch, thiếu classpath và ngôn ngữ chưa được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-rules
+  title: Quy tắc SAST
+  childs:
+  - slug: sast-rules-001
+    title: 'Cấu trúc quy tắc: định danh, điều kiện phát hiện và thông điệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-002
+    title: Thiết kế quy tắc so khớp cú pháp và giới hạn của mẫu tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-003
+    title: Thiết kế quy tắc taint từ nguồn dữ liệu đến điểm sử dụng nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-004
+    title: Mô hình hóa thư viện, lớp bao và API đặc thù của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-005
+    title: Phân biệt kiểm tra hợp lệ, chuẩn hóa, làm sạch và mã hóa đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-006
+    title: Xử lý nhánh điều kiện, giá trị hằng và đường đi không khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-007
+    title: Ánh xạ quy tắc với CWE và hướng dẫn khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-008
+    title: Tạo mẫu có lỗi và mẫu an toàn để kiểm thử quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-009
+    title: Đánh giá sai dương, bỏ sót và phạm vi ảnh hưởng trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-rules-010
+    title: Quản lý phiên bản, chủ sở hữu và quy trình thay đổi bộ quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-java-spring
+  title: SAST Java và Spring
+  childs:
+  - slug: sast-java-spring-001
+    title: Theo dấu dữ liệu từ Controller qua Service đến Repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-002
+    title: Phát hiện truy vấn SQL, JPQL và truy vấn động xây dựng không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-003
+    title: Phát hiện thực thi lệnh hệ điều hành từ dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-004
+    title: Phát hiện truy cập tệp, đường dẫn và xử lý tệp nén không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-005
+    title: Phát hiện SSRF trong HTTP client và mã gọi dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-006
+    title: Phát hiện giải tuần tự hóa không an toàn và bộ phân tích XML có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-007
+    title: Phân tích XSS qua template, nội dung HTML và dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-008
+    title: Rà soát cấu hình Spring Security và phạm vi áp dụng bộ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-009
+    title: Phân tích kiểm soát quyền tại endpoint, phương thức và đối tượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-010
+    title: Phát hiện sử dụng mật mã, số ngẫu nhiên và dữ liệu nhạy cảm không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-011
+    title: Phát hiện rò rỉ thông tin qua log, thông báo lỗi và phản hồi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-012
+    title: Phân tích mã bất đồng bộ, mã reactive và lớp trừu tượng tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-java-spring-013
+    title: Phân biệt lỗi mã ứng dụng với phụ thuộc có lỗ hổng hoặc bí mật bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-validation
+  title: Kiểm chứng SAST
+  childs:
+  - slug: sast-validation-001
+    title: Đọc vị trí cảnh báo, dấu vết dữ liệu và ngữ cảnh gọi hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-002
+    title: Kiểm tra nguồn dữ liệu có thực sự do người dùng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-003
+    title: Kiểm tra đường đi đến đoạn mã có lỗi có thể xảy ra hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-004
+    title: Đánh giá tác dụng của kiểm tra đầu vào và biện pháp bảo vệ hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-005
+    title: Kiểm tra điều kiện cấu hình làm thay đổi khả năng khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-006
+    title: Phân biệt cảnh báo trùng lặp với các đường đi có rủi ro riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-007
+    title: Tạo ví dụ tái hiện tối thiểu và kiểm thử có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-008
+    title: Phân tích nguyên nhân sai dương và bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-009
+    title: Ghi nhận kết luận có bằng chứng và mức tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-validation-010
+    title: Phản hồi kết quả kiểm chứng vào quy tắc và mô hình phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dast-mechanisms
+  title: Cơ chế DAST
+  childs:
+  - slug: dast-mechanisms-001
+    title: Kiểm thử động thông qua giao diện của ứng dụng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-002
+    title: Các bước khám phá, thu thập, phân tích thụ động và quét chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-003
+    title: Khác biệt giữa cảnh báo từ phản hồi và bằng chứng khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-004
+    title: Khám phá liên kết bằng crawler truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-005
+    title: Khám phá giao diện có JavaScript bằng trình duyệt tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-006
+    title: Kiểm thử có xác thực và không có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-007
+    title: Vai trò của proxy chặn bắt trong quan sát và chỉnh sửa lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-008
+    title: Kiểm thử dựa trên phản hồi, thời gian và tương tác ngoài băng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-009
+    title: Giới hạn của DAST khi không có mã nguồn hoặc không thấy trạng thái nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-mechanisms-010
+    title: Phân biệt phạm vi scanner hỗ trợ với khả năng của kiểm thử thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attack-surface-discovery
+  title: Khám phá bề mặt
+  childs:
+  - slug: attack-surface-discovery-001
+    title: Thu thập URL, endpoint và phương thức HTTP từ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-002
+    title: Nhập đặc tả OpenAPI và xác minh khớp với bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-003
+    title: Thu thập lưu lượng từ bộ kiểm thử và hành trình trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-004
+    title: Xác định route SPA, biểu mẫu, nút thao tác và nội dung tải động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-005
+    title: Khám phá tham số đường dẫn, query, header, cookie và body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-006
+    title: Nhận diện endpoint không xuất hiện trong điều hướng thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-007
+    title: Kiểm soát trùng URL, tham số biến động và bẫy crawler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-008
+    title: Xử lý phân trang, đa ngôn ngữ và dữ liệu sinh vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-009
+    title: Đối chiếu danh mục endpoint với kết quả crawler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attack-surface-discovery-010
+    title: Đánh giá độ bao phủ theo route, phương thức, vai trò và hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-and-sessions
+  title: Đăng nhập và phiên
+  childs:
+  - slug: authentication-and-sessions-001
+    title: Cấu hình đăng nhập bằng biểu mẫu và bước xác minh đăng nhập thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-002
+    title: Cấu hình cookie phiên và token truy cập cho scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-003
+    title: Kiểm thử API dùng API key hoặc thông tin xác thực tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-004
+    title: Mô hình hóa luồng OAuth 2.0 và OpenID Connect trong phạm vi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-005
+    title: Làm mới token và xử lý phiên hết hạn trong lần quét dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-006
+    title: Xử lý CSRF token, nonce và tham số thay đổi theo từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-007
+    title: Chuẩn bị cách đăng nhập kiểm thử cho MFA hoặc SSO theo thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-008
+    title: Xây dựng ngữ cảnh quét riêng cho từng vai trò và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-009
+    title: Phát hiện scanner bị chuyển về trang đăng nhập mà vẫn báo thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-010
+    title: Ngăn lộ token và mật khẩu trong cấu hình, log và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-and-sessions-011
+    title: Kiểm soát đăng xuất, khóa tài khoản và giới hạn số lần đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dast-configuration
+  title: Cấu hình DAST
+  childs:
+  - slug: dast-configuration-001
+    title: Chọn cấu hình quét thụ động, quét nhanh và quét chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-002
+    title: Thiết lập mục tiêu gốc, context và quy tắc đưa vào hoặc loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-003
+    title: Chọn nhóm phép thử theo công nghệ và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-004
+    title: Đặt giới hạn thời gian, độ sâu và số lượng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-005
+    title: Điều chỉnh timeout, retry, mức đồng thời và tốc độ gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-006
+    title: Cấu hình proxy, chứng thư thử nghiệm và kết nối mạng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-007
+    title: Thiết lập dữ liệu đầu vào hợp lệ cho biểu mẫu và API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-008
+    title: Phát hiện phản hồi WAF, rate limit và lỗi hạ tầng làm sai lệch kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-009
+    title: Duy trì trạng thái cần thiết cho luồng nhiều bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-010
+    title: Kiểm tra sức khỏe ứng dụng trước, trong và sau khi quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-configuration-011
+    title: Phân biệt quét hoàn tất, quét một phần, bị hủy và lỗi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-validation-testing
+  title: Kiểm thử đầu vào
+  childs:
+  - slug: input-validation-testing-001
+    title: SQL injection và điều kiện kiểm chứng trong môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-002
+    title: NoSQL injection và thao tác truy vấn từ dữ liệu không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-003
+    title: Command injection và giới hạn phép thử không gây tác động phá hoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-004
+    title: Path traversal và truy cập tệp ngoài phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-005
+    title: Template injection phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-006
+    title: XML external entity và xử lý XML không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-007
+    title: SSRF và kiểm soát đích gọi ra ngoài khi xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-008
+    title: Tải tệp lên và tải tệp xuống với kiểu nội dung hoặc đường dẫn bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-009
+    title: Chuyển hướng mở và thao túng đích điều hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-010
+    title: HTTP parameter pollution và cách máy chủ diễn giải tham số trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-validation-testing-011
+    title: Giới hạn của quét injection khi thiếu dữ liệu hoặc ngữ cảnh hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization-testing
+  title: Kiểm thử phân quyền
+  childs:
+  - slug: authorization-testing-001
+    title: Lập ma trận kiểm thử theo người dùng, vai trò, đối tượng và thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-002
+    title: Kiểm thử truy cập chức năng khi chưa đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-003
+    title: Kiểm thử leo thang quyền dọc giữa vai trò thường và quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-004
+    title: Kiểm thử truy cập ngang giữa các tài khoản cùng vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-005
+    title: Kiểm thử IDOR và phân quyền cấp đối tượng BOLA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-006
+    title: Kiểm thử phân quyền cấp chức năng và theo phương thức HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-007
+    title: Kiểm thử ranh giới dữ liệu giữa các khách hàng trong ứng dụng đa thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-008
+    title: Kiểm thử mass assignment và quyền sửa từng thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-009
+    title: Kiểm thử thay đổi định danh trong URL, body và tài nguyên lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-010
+    title: Xác minh quyền tại API thay vì chỉ kiểm tra ẩn nút trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-testing-011
+    title: Kết hợp tự động hóa với kiểm thử thủ công đối với logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: browser-security
+  title: Bảo mật trình duyệt
+  childs:
+  - slug: browser-security-001
+    title: XSS phản chiếu và cách đối chiếu ngữ cảnh phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-002
+    title: XSS lưu trữ và yêu cầu dọn dữ liệu sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-003
+    title: DOM-based XSS và giới hạn quan sát của scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-004
+    title: Mã hóa đầu ra theo ngữ cảnh HTML, thuộc tính, URL và JavaScript
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-005
+    title: CSRF trên thao tác thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-006
+    title: Thuộc tính Secure, HttpOnly và SameSite của cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-007
+    title: Session fixation, tái sử dụng phiên và hủy phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-008
+    title: CORS và trường hợp cho phép nguồn hoặc thông tin xác thực không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-009
+    title: Clickjacking, Content Security Policy và tiêu đề phòng vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-010
+    title: Dữ liệu nhạy cảm trong bộ nhớ trình duyệt, URL và tài nguyên phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: browser-security-011
+    title: Đánh giá khả năng khai thác thực tế của cảnh báo phía trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-security
+  title: Bảo mật API
+  childs:
+  - slug: api-security-001
+    title: Thiết kế dữ liệu và chuỗi yêu cầu hợp lệ cho API REST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-002
+    title: Kiểm thử xác thực token, thời hạn và phạm vi quyền API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-003
+    title: Kiểm thử dữ liệu trả về vượt nhu cầu và thuộc tính nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-004
+    title: Kiểm thử API theo phiên bản và endpoint đã ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-005
+    title: Kiểm thử GraphQL theo schema, resolver và quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-006
+    title: Đánh giá giới hạn truy vấn GraphQL và lạm dụng tài nguyên có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-007
+    title: Lập kế hoạch kiểm thử WebSocket theo handshake, thông điệp và phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-008
+    title: Đánh giá hỗ trợ gRPC và nhu cầu công cụ chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-009
+    title: Kiểm thử webhook, callback và tương tác ngoài băng trong phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-010
+    title: Kiểm thử upload, xử lý bất đồng bộ và trạng thái tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-security-011
+    title: Đối chiếu đặc tả API, lưu lượng thực tế và phần chưa được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-configuration
+  title: Cấu hình ứng dụng
+  childs:
+  - slug: application-configuration-001
+    title: Kiểm tra TLS và chứng thư trong phạm vi ứng dụng được giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-002
+    title: Kiểm tra phương thức HTTP, nội dung mặc định và endpoint chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-003
+    title: Phát hiện trang debug, stack trace và thông tin phiên bản bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-004
+    title: Kiểm tra cache của phản hồi chứa dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-005
+    title: Kiểm tra chính sách chuyển hướng và tiêu đề Host được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-006
+    title: Kiểm tra xử lý lỗi, mã trạng thái và phản hồi không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-007
+    title: Kiểm tra nén, kiểu nội dung và diễn giải nội dung của trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-008
+    title: Nhận diện rủi ro do khác biệt xử lý HTTP giữa proxy và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-009
+    title: Giới hạn và điều kiện riêng cho phép thử có nguy cơ ảnh hưởng tính sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-configuration-010
+    title: Phân biệt cấu hình ứng dụng với phạm vi quét container và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interpreting-findings
+  title: Đọc kết quả
+  childs:
+  - slug: interpreting-findings-001
+    title: 'Cấu trúc một phát hiện: quy tắc, vị trí, bằng chứng và khuyến nghị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-002
+    title: Đọc báo cáo SAST theo tệp, dòng mã và dấu vết dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-003
+    title: Đọc báo cáo DAST theo request, response và trạng thái xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-004
+    title: Phân biệt mức nghiêm trọng, mức tin cậy và trạng thái xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-005
+    title: Chuẩn hóa kết quả và trao đổi phát hiện bằng định dạng SARIF khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-006
+    title: Giữ liên kết giữa phát hiện, commit, phiên bản ứng dụng và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-007
+    title: Tạo định danh ổn định để theo dõi phát hiện qua nhiều lần quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-008
+    title: Loại bỏ dữ liệu nhạy cảm khỏi bằng chứng và tệp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-009
+    title: Nhận diện báo cáo rỗng do không có lỗi hay do không quét được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpreting-findings-010
+    title: Lưu trữ báo cáo gốc, nhật ký và tóm tắt phục vụ kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: finding-triage-and-prioritization
+  title: Phân loại và ưu tiên
+  childs:
+  - slug: finding-triage-and-prioritization-001
+    title: Tiếp nhận, phân công và xác nhận phát hiện bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-002
+    title: Phân biệt sai dương, chấp nhận rủi ro và lỗi đã xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-003
+    title: Đánh giá mức phơi nhiễm, khả năng tiếp cận và điều kiện khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-004
+    title: Đánh giá tác động đến dữ liệu, tài khoản và hoạt động nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-005
+    title: Sử dụng CVSS cùng ngữ cảnh ứng dụng để ưu tiên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-006
+    title: Liên kết kết quả SAST và DAST mà không suy diễn tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-007
+    title: Gộp phát hiện trùng nhưng bảo toàn đường đi và tài sản bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-008
+    title: Quản lý lỗi mới, lỗi tồn đọng và lỗi tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-009
+    title: Đặt thời hạn khắc phục theo mức rủi ro và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: finding-triage-and-prioritization-010
+    title: Ghi nhận ngoại lệ có lý do, người phê duyệt và ngày hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remediation-and-verification
+  title: Khắc phục và xác minh
+  childs:
+  - slug: remediation-and-verification-001
+    title: Chọn cách sửa nguyên nhân gốc thay vì chỉ che cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-002
+    title: Dùng truy vấn tham số hóa và tách dữ liệu khỏi câu lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-003
+    title: Kiểm tra đầu vào và mã hóa đầu ra đúng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-004
+    title: Thiết kế kiểm soát quyền tại phía máy chủ và theo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-005
+    title: Kiểm soát đích mạng, đường dẫn và tệp từ dữ liệu bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-006
+    title: Sửa quản lý phiên, cookie và cấu hình bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-007
+    title: Thêm kiểm thử hồi quy tái hiện lỗi và chứng minh cách sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-008
+    title: Chạy lại SAST và DAST trên phiên bản đã khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-009
+    title: Phân biệt tắt cảnh báo với xác minh lỗi đã được sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-and-verification-010
+    title: Xác nhận điều kiện đóng, phát hiện tái xuất hiện và tác động ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Phân bổ quét trước commit, trên pull request, khi build và sau triển khai thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Quét SAST trong pull request và phản hồi gần dòng mã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Thiết lập baseline SAST cho kho mã có nhiều lỗi tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Quét đầy đủ định kỳ để bổ sung cho quét phần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: Tạo môi trường tạm theo pull request để chạy DAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: Chờ ứng dụng sẵn sàng, nạp dữ liệu và xác minh đăng nhập trước DAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Tổ chức quét nhanh theo thay đổi và quét sâu theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Cấu hình quyền tối thiểu cho scanner, runner và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Xử lý mã từ nguồn không tin cậy mà không cấp bí mật của môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Thu thập báo cáo, trạng thái và bằng chứng trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-011
+    title: Dọn môi trường kể cả khi quét lỗi, bị hủy hoặc vượt thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-012
+    title: Tách kết quả an toàn bảo mật khỏi lỗi thực thi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates
+  title: Cổng chất lượng
+  childs:
+  - slug: quality-gates-001
+    title: Xác định điều kiện chặn dựa trên rủi ro và mức tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-002
+    title: Áp dụng chính sách cho lỗi mới và kế hoạch giảm lỗi tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-003
+    title: Yêu cầu độ bao phủ và đăng nhập hợp lệ trước khi chấp nhận báo cáo sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-004
+    title: Quy định xử lý khi scanner lỗi, timeout hoặc không thể kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-005
+    title: Lựa chọn fail-open hoặc fail-closed theo môi trường và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-006
+    title: Ngăn giảm mức nghiêm trọng hoặc tắt quy tắc để vượt cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-007
+    title: Thiết kế ngoại lệ tạm thời với thời hạn và phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-008
+    title: Kiểm chứng chính sách bằng bộ tình huống đạt, không đạt và không đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-009
+    title: Triển khai cổng theo giai đoạn để giảm nhiễu và bảo đảm khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-010
+    title: Theo dõi thay đổi chính sách và lưu dấu quyết định phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: Xây dựng tiêu chí hỗ trợ ngôn ngữ, framework và kiểu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: Đánh giá khả năng phân tích dữ liệu, xác thực và độ bao phủ endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: So sánh triển khai tại chỗ, SaaS và yêu cầu bảo vệ mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Đánh giá khả năng tích hợp CI, API, SARIF và hệ thống quản lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Đánh giá quy tắc tùy chỉnh, khả năng giải thích và chất lượng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Kiểm tra giấy phép, tính năng theo phiên bản và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Thử nghiệm công cụ bằng mã có lỗi và ứng dụng thử nghiệm được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: So sánh độ chính xác và thời gian quét trên dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-009
+    title: Đánh giá yêu cầu cập nhật, hỗ trợ và tính bền vững của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-010
+    title: Lập quyết định lựa chọn dựa trên thử nghiệm thay vì số lượng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-semgrep
+  title: SAST với Semgrep
+  childs:
+  - slug: sast-semgrep-001
+    title: Chuẩn bị dự án thử và lựa chọn bộ quy tắc Semgrep phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-002
+    title: Chạy quét đầu tiên và đọc vị trí cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-003
+    title: Cấu hình đường dẫn đưa vào, loại trừ và mã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-004
+    title: Viết quy tắc so khớp mẫu cho API có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-005
+    title: Mô hình hóa nguồn dữ liệu và điểm sử dụng nguy hiểm bằng quy tắc taint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-006
+    title: Viết mẫu có lỗi, mẫu an toàn và kiểm thử quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-007
+    title: Đánh giá giới hạn phân tích theo ngôn ngữ và chế độ được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-008
+    title: Tích hợp phản hồi pull request và xuất báo cáo khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-semgrep-009
+    title: Quản lý bỏ qua cảnh báo có lý do và kiểm tra lại ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-codeql
+  title: SAST với CodeQL
+  childs:
+  - slug: sast-codeql-001
+    title: Khái niệm cơ sở dữ liệu CodeQL và quan hệ với phiên bản mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-002
+    title: Chuẩn bị quá trình trích xuất phù hợp với ngôn ngữ và hệ thống build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-003
+    title: Tạo cơ sở dữ liệu, chạy truy vấn và đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-004
+    title: Đọc dấu vết đường đi dữ liệu của phát hiện bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-005
+    title: Lựa chọn bộ truy vấn và quản lý query pack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-006
+    title: Làm quen truy vấn cấu trúc và truy vấn luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-007
+    title: Mô hình hóa API ứng dụng và kiểm thử truy vấn tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-008
+    title: Chẩn đoán thiếu mã, lỗi build và dữ liệu trích xuất không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-codeql-009
+    title: Tích hợp CI và xuất SARIF theo khả năng của môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sast-sonar-qube
+  title: SAST với SonarQube
+  childs:
+  - slug: sast-sonar-qube-001
+    title: Thiết lập dự án và scanner cho mã Java cùng hệ thống build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-002
+    title: Cấu hình phạm vi mã nguồn, nhánh và phần mã mới theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-003
+    title: Lựa chọn quality profile và các quy tắc bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-004
+    title: Phân biệt vulnerability, security hotspot và vấn đề chất lượng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-005
+    title: Rà soát security hotspot bằng ngữ cảnh và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-006
+    title: Đọc vị trí phát hiện và hướng dẫn khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-007
+    title: Thiết kế quality gate cho mã mới và lỗi bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-008
+    title: Tích hợp trạng thái phân tích vào quy trình CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sast-sonar-qube-009
+    title: Quản lý ngoại lệ và xác minh khả năng theo phiên bản hoặc giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dast-owasp-zap
+  title: DAST với ZAP
+  childs:
+  - slug: dast-owasp-zap-001
+    title: Khởi tạo phiên ZAP và cấu hình proxy cho ứng dụng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-002
+    title: Thiết lập context, phạm vi và URL loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-003
+    title: Quan sát lưu lượng và phân tích cảnh báo thụ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-004
+    title: Khám phá ứng dụng bằng spider và trình duyệt tự động khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-005
+    title: Nhập OpenAPI và chuẩn bị dữ liệu gọi API hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-006
+    title: Cấu hình người dùng, đăng nhập và nhận diện phiên hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-007
+    title: Lựa chọn chính sách active scan và giới hạn tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-008
+    title: Tự động hóa các bước chuẩn bị, khám phá, quét và xuất báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-009
+    title: Tích hợp chạy headless hoặc container trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-owasp-zap-010
+    title: Chẩn đoán thiếu độ bao phủ, mất phiên và cảnh báo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dast-burp-suite
+  title: DAST với Burp Suite
+  childs:
+  - slug: dast-burp-suite-001
+    title: Cấu hình proxy và chứng thư trong trình duyệt kiểm thử riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-002
+    title: Khám phá ứng dụng bằng lưu lượng duyệt và sơ đồ mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-003
+    title: Thiết lập scope và loại trừ tài nguyên không được kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-004
+    title: Sử dụng Repeater để xác minh request và response có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-005
+    title: Cấu hình phiên, macro và hành trình nhiều bước khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-006
+    title: Chọn chức năng quét theo phiên bản và giấy phép được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-007
+    title: Đọc và kiểm chứng phát hiện tự động bằng ngữ cảnh thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-008
+    title: Xác minh tương tác ngoài băng trong phạm vi cho phép khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dast-burp-suite-009
+    title: Chuẩn bị báo cáo và quy trình tích hợp tự động theo khả năng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-optimization
+  title: Tối ưu vận hành
+  childs:
+  - slug: operational-optimization-001
+    title: Phân chia lịch quét theo mức quan trọng và tốc độ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-002
+    title: Tối ưu thời gian SAST bằng phạm vi, cache và phân tích tăng dần phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-003
+    title: Tối ưu DAST bằng seed URL, dữ liệu hợp lệ và luồng kiểm thử có hướng dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-004
+    title: Điều chỉnh mức đồng thời theo năng lực ứng dụng và scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-005
+    title: Quản lý phụ thuộc giữa build, triển khai, dữ liệu và quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-006
+    title: Chẩn đoán kết quả thiếu ổn định do phiên, thời gian và dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-007
+    title: Xử lý scanner treo, giới hạn tài nguyên và báo cáo bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-008
+    title: Cập nhật công cụ, bộ quy tắc và trình duyệt theo quy trình kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-009
+    title: Đánh giá lại baseline sau thay đổi lớn hoặc nâng cấp scanner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-optimization-010
+    title: Kiểm soát quyền truy cập, thời gian lưu và vị trí lưu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: effectiveness-metrics
+  title: Đo lường hiệu quả
+  childs:
+  - slug: effectiveness-metrics-001
+    title: Đo độ bao phủ kho mã, ngôn ngữ, endpoint và vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-002
+    title: Theo dõi tỷ lệ quét thành công và tỷ lệ đăng nhập hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-003
+    title: Đo thời gian phát hiện, xác nhận và khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-004
+    title: Theo dõi sai dương, bỏ sót đã biết và chi phí kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-005
+    title: Đo lỗi mới, lỗi tái xuất hiện và tuổi của lỗi tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-006
+    title: Đo tỷ lệ ngoại lệ quá hạn và mức tuân thủ thời hạn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-007
+    title: Đánh giá chất lượng theo bộ mẫu đã xác minh thay vì số cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-008
+    title: Đối chiếu xu hướng trước và sau thay đổi quy tắc hoặc chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-009
+    title: Xây dựng báo cáo riêng cho nhóm phát triển, bảo mật và quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: effectiveness-metrics-010
+    title: Nêu rõ giới hạn đo lường và phần rủi ro chưa có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Dựng ứng dụng Java/Spring thử nghiệm có lỗi và dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Chạy SAST đầu tiên, xác nhận phạm vi và phân loại cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Viết và kiểm thử một quy tắc SAST cho API nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Triển khai ứng dụng thử rồi lập danh mục endpoint và vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Chạy DAST không xác thực và so sánh với DAST có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Xác minh lỗi injection từ dấu vết SAST đến bằng chứng DAST
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Kiểm thử phân quyền ngang bằng hai tài khoản thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Khắc phục một lỗi, bổ sung kiểm thử hồi quy và quét lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Tích hợp SAST/DAST vào pipeline có cổng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Mô phỏng mất phiên, timeout và scanner lỗi để kiểm chứng cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Lập hồ sơ phát hiện, ngoại lệ và quyết định đóng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Đánh giá độ bao phủ và dọn toàn bộ dữ liệu, tài khoản, môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: real-world-scenarios
+  title: Tình huống thực tế
+  childs:
+  - slug: real-world-scenarios-001
+    title: SAST báo nhiều lỗi nhưng nhóm không đủ khả năng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-002
+    title: SAST chạy thành công nhưng bỏ qua một phần mã quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-003
+    title: DAST không thấy lỗi vì crawler chỉ đến trang đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-004
+    title: DAST làm thay đổi dữ liệu hoặc gọi nhầm dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-005
+    title: WAF chặn scanner khiến báo cáo không phản ánh bề mặt ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-006
+    title: Cùng một lỗi xuất hiện trong nhiều công cụ và nhiều bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-007
+    title: Phát hiện mức nghiêm trọng cao trên đường đi không thể tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-008
+    title: Lỗi phân quyền chỉ xuất hiện giữa hai người dùng hoặc hai khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-009
+    title: Bản sửa làm hết cảnh báo nhưng vẫn còn nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-010
+    title: Nâng cấp scanner làm thay đổi baseline và số lượng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-011
+    title: Pipeline cần phát hành khẩn cấp khi cổng bảo mật không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: real-world-scenarios-012
+    title: Báo cáo sạch nhưng thiếu endpoint, vai trò hoặc luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-roadmap
+  title: Lộ trình áp dụng
+  childs:
+  - slug: adoption-roadmap-001
+    title: Khảo sát hiện trạng mã nguồn, ứng dụng, pipeline và nhân lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-002
+    title: Chọn ứng dụng thí điểm cùng tiêu chí thành công đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-003
+    title: Thiết lập baseline, xử lý nhiễu và xác định chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-004
+    title: Bắt đầu từ quét có quan sát rồi tăng dần mức tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-005
+    title: Mở rộng độ bao phủ và cổng kiểm soát theo mức trưởng thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-006
+    title: Đào tạo nhóm phát triển đọc bằng chứng và sửa nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-007
+    title: Chuẩn hóa quy tắc, mẫu cấu hình và tài liệu vận hành dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-008
+    title: Duy trì rà soát ngoại lệ, cập nhật công cụ và cải tiến định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

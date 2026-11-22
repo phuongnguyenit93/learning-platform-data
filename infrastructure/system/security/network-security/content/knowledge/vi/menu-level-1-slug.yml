@@ -1,0 +1,115 @@
+menu:
+- title: Nhập môn
+  slug: introduction
+  index: 0
+- title: Mô hình mạng
+  slug: network-models
+  index: 1
+- title: TCP IP
+  slug: tcp-ip
+  index: 2
+- title: OSI và giao thức
+  slug: osi-protocols
+  index: 3
+- title: Threat modeling mạng
+  slug: network-threat-modeling
+  index: 4
+- title: Reconnaissance
+  slug: reconnaissance
+  index: 5
+- title: Network access control
+  slug: network-access-control
+  index: 6
+- title: Segmentation
+  slug: segmentation
+  index: 7
+- title: Firewall
+  slug: firewalls
+  index: 8
+- title: Web application firewall
+  slug: web-application-firewalls
+  index: 9
+- title: IDS và IPS
+  slug: ids-ips
+  index: 10
+- title: DDoS
+  slug: ddos-protection
+  index: 11
+- title: DNS security
+  slug: dns-security
+  index: 12
+- title: DHCP và IP management
+  slug: dhcp-ip-address-management
+  index: 13
+- title: Routing security
+  slug: routing-security
+  index: 14
+- title: Wireless security
+  slug: wireless-security
+  index: 15
+- title: VPN và truy cập từ xa
+  slug: vpn-remote-access
+  index: 16
+- title: TLS và bảo mật kênh truyền
+  slug: tls-transport-security
+  index: 17
+- title: PKI và chứng thư cho mạng
+  slug: network-pki-certificates
+  index: 18
+- title: Proxy reverse proxy và cân bằng tải
+  slug: proxies-load-balancing
+  index: 19
+- title: API và network service security
+  slug: api-service-security
+  index: 20
+- title: Bảo mật mạng cloud
+  slug: cloud-network-security
+  index: 21
+- title: Bảo mật mạng container
+  slug: container-network-security
+  index: 22
+- title: Bảo mật mạng Kubernetes
+  slug: kubernetes-network-security
+  index: 23
+- title: Service mesh và mTLS
+  slug: service-mesh-mtls
+  index: 24
+- title: Zero Trust Network Access
+  slug: zero-trust-network-access
+  index: 25
+- title: Kiểm soát egress và chống thất thoát dữ liệu
+  slug: egress-controls-data-loss-prevention
+  index: 26
+- title: Giám sát mạng và telemetry
+  slug: network-monitoring-telemetry
+  index: 27
+- title: Packet capture và phân tích lưu lượng
+  slug: packet-capture-traffic-analysis
+  index: 28
+- title: Ứng phó sự cố mạng
+  slug: network-incident-response
+  index: 29
+- title: Điều tra số trên mạng
+  slug: network-forensics
+  index: 30
+- title: Hardening thiết bị và dịch vụ mạng
+  slug: device-service-hardening
+  index: 31
+- title: Kiểm thử và xác minh bảo mật mạng
+  slug: network-security-testing
+  index: 32
+- title: Red team và mô phỏng tấn công mạng
+  slug: red-teaming-attack-simulation
+  index: 33
+- title: Quyết định kiến trúc bảo mật mạng
+  slug: security-architecture-decisions
+  index: 34
+- title: Quản trị vận hành mạng an toàn
+  slug: secure-network-operations
+  index: 35
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 36
+- title: Dự án thực hành bảo mật mạng
+  slug: network-security-lab
+  index: 37

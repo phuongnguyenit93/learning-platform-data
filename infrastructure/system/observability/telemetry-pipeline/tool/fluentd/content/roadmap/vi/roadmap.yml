@@ -1,0 +1,49 @@
+roadmap:
+- id: fluentd-luong-su-kien
+  title: Fluentd & luồng sự kiện
+  purpose: Hiểu vai trò của Fluentd trong pipeline thu thập và chuyển tiếp log.
+  objectives:
+  - Mô tả event gồm tag, time và record.
+  - Vẽ luồng input → filter → output.
+- id: cai-dat-cau-hinh
+  title: Cài đặt & cấu hình
+  purpose: Biết cách khởi chạy Fluentd và tổ chức cấu hình cơ bản.
+  objectives:
+  - Nêu cách cài đặt và chạy Fluentd.
+  - Nhận diện các khối source, filter và match.
+- id: nguon-log-parsing
+  title: Nguồn log & parsing
+  purpose: Thu thập log và chuyển dữ liệu thô thành sự kiện có cấu trúc.
+  objectives:
+  - Cấu hình tail đọc một tệp log.
+  - Chọn parser phù hợp cho JSON hoặc text.
+- id: loc-lam-giau-du-lieu
+  title: Lọc & làm giàu dữ liệu
+  purpose: Chuẩn hóa bản ghi trước khi gửi đến hệ thống đích.
+  objectives:
+  - Dùng filter để thêm hoặc sửa trường.
+  - Kiểm tra kết quả biến đổi một bản ghi.
+- id: tags-routing
+  title: Tags & routing
+  purpose: Đưa sự kiện đến đúng đích theo nhóm log và quy tắc định tuyến.
+  objectives:
+  - Thiết lập tag và mẫu match phù hợp.
+  - Gửi thử sự kiện qua file hoặc forward.
+- id: buffer-retry
+  title: Buffer & retry
+  purpose: Giữ pipeline ổn định khi đích nhận chậm hoặc tạm thời lỗi.
+  objectives:
+  - Phân biệt memory buffer và file buffer.
+  - Giải thích retry, giới hạn buffer và rủi ro mất log.
+- id: giam-sat-khac-phuc-loi
+  title: Giám sát & khắc phục lỗi
+  purpose: Quan sát sức khỏe Fluentd để phát hiện tắc nghẽn và lỗi xử lý.
+  objectives:
+  - Theo dõi số bản ghi, lỗi và buffer queue.
+  - Khoanh vùng lỗi cấu hình hoặc kết nối.
+- id: thuc-hanh-pipeline
+  title: Thực hành pipeline
+  purpose: Kết hợp các khái niệm thành một luồng log có thể kiểm chứng.
+  objectives:
+  - Chạy thử input → parse → filter → output.
+  - Xác minh nhận log và xử lý tình huống đích lỗi.

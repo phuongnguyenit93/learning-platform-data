@@ -1,0 +1,3 @@
+menuLevel1: Bảo vệ systemd
+menuLevel2: NoNewPrivileges, CapabilityBoundingSet và AmbientCapabilities
+status: ""

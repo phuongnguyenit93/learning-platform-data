@@ -1,0 +1,121 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường
+  slug: environment
+  index: 1
+- title: REST API
+  slug: rest-api
+  index: 2
+- title: Kiến trúc phân tán
+  slug: distributed-architecture
+  index: 3
+- title: Lucene và lưu trữ
+  slug: lucene-storage
+  index: 4
+- title: Index và alias
+  slug: indexes-aliases
+  index: 5
+- title: Mapping cơ bản
+  slug: basic-mappings
+  index: 6
+- title: Mô hình tài liệu
+  slug: document-modeling
+  index: 7
+- title: Phân tích văn bản
+  slug: text-analysis
+  index: 8
+- title: Ngôn ngữ tìm kiếm
+  slug: search-language
+  index: 9
+- title: Thao tác document
+  slug: document-operations
+  index: 10
+- title: Thao tác hàng loạt
+  slug: bulk-operations
+  index: 11
+- title: Truy vấn chính xác
+  slug: exact-match-queries
+  index: 12
+- title: Tìm kiếm toàn văn
+  slug: full-text-search
+  index: 13
+- title: Truy vấn kết hợp
+  slug: compound-queries
+  index: 14
+- title: Điểm và xếp hạng
+  slug: scoring-ranking
+  index: 15
+- title: Kết quả và phân trang
+  slug: search-results-pagination
+  index: 16
+- title: Aggregation cơ bản
+  slug: basic-aggregations
+  index: 17
+- title: Aggregation nâng cao
+  slug: advanced-aggregations
+  index: 18
+- title: Dữ liệu địa lý
+  slug: geospatial-data
+  index: 19
+- title: Gợi ý tìm kiếm
+  slug: search-suggestions
+  index: 20
+- title: Vector và ngữ nghĩa
+  slug: vector-semantic-search
+  index: 21
+- title: Script và trường tính toán
+  slug: scripting-runtime-fields
+  index: 22
+- title: Ingest pipeline
+  slug: ingest-pipeline
+  index: 23
+- title: Vòng đời dữ liệu
+  slug: index-lifecycle
+  index: 24
+- title: Tính đúng đắn
+  slug: correctness
+  index: 25
+- title: Quản trị cluster
+  slug: cluster-administration
+  index: 26
+- title: Tối ưu tìm kiếm
+  slug: search-optimization
+  index: 27
+- title: Tối ưu ghi và dung lượng
+  slug: indexing-storage-optimization
+  index: 28
+- title: Bảo mật
+  slug: security
+  index: 29
+- title: Sao lưu và khôi phục
+  slug: backup-recovery
+  index: 30
+- title: Sẵn sàng và liên cluster
+  slug: cross-cluster-availability
+  index: 31
+- title: Quan sát và xử lý lỗi
+  slug: observability-troubleshooting
+  index: 32
+- title: Truy vấn và phân tích mở rộng
+  slug: advanced-query-analytics
+  index: 33
+- title: Java API Client
+  slug: java-api-client
+  index: 34
+- title: Spring Data Elasticsearch
+  slug: spring-data-elasticsearch
+  index: 35
+- title: Đồng bộ dữ liệu
+  slug: data-synchronization
+  index: 36
+- title: Kiểm thử
+  slug: testing
+  index: 37
+- title: Nâng cấp và di chuyển
+  slug: upgrades-migration
+  index: 38
+- title: Bài thực hành tổng hợp
+  slug: integrated-lab
+  index: 39

@@ -1,0 +1,2398 @@
+menu:
+- slug: encryption-at-rest-overview
+  title: Khái niệm mã hóa lưu trữ
+  childs:
+  - slug: encryption-at-rest-overview-001
+    title: Dữ liệu ở trạng thái lưu trữ (data at rest) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-at-rest-overview-002
+    title: Mã hóa bảo vệ bí mật dữ liệu như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-at-rest-overview-003
+    title: Phân biệt dữ liệu lưu trữ, dữ liệu truyền và dữ liệu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-at-rest-overview-004
+    title: Mã hóa không thay thế kiểm soát truy cập và quản lý khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-at-rest-overview-005
+    title: 'Mục tiêu bảo vệ: bí mật, toàn vẹn và khả dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-modeling
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-modeling-001
+    title: Mất thiết bị, mất đĩa và truy cập vật lý trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-002
+    title: Đọc trộm snapshot, backup, replica hoặc object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-003
+    title: SQL injection, path traversal và truy cập trực tiếp kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-004
+    title: Tài khoản cloud, service identity hoặc quản trị viên bị lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-005
+    title: Khóa bị lộ dù ciphertext vẫn còn được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-006
+    title: Giới hạn mối đe dọa mà encryption at rest có thể giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-scope
+  title: Phạm vi dữ liệu
+  childs:
+  - slug: data-scope-001
+    title: Dữ liệu nghiệp vụ nhạy cảm và dữ liệu định danh cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-002
+    title: Bí mật, token, credential và dữ liệu xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-003
+    title: Dữ liệu tài chính, y tế và dữ liệu cần tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-004
+    title: Metadata, chỉ mục, tên file và thông tin phụ cũng có thể lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-005
+    title: Dữ liệu dẫn xuất, bản sao và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-scope-006
+    title: Xác định dữ liệu không cần lưu để giảm bề mặt bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-classification-and-minimization
+  title: Phân loại và giảm thiểu
+  childs:
+  - slug: data-classification-and-minimization-001
+    title: Phân loại mức độ nhạy cảm trước khi chọn lớp mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-classification-and-minimization-002
+    title: Xác định trường nào cần mã hóa thay vì mã hóa mọi thứ máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-classification-and-minimization-003
+    title: Tokenization, masking và hashing khác mã hóa thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-classification-and-minimization-004
+    title: Giảm dữ liệu lưu trữ để giảm chi phí và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-classification-and-minimization-005
+    title: Gắn nhãn phân loại vào policy và key context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-classification-and-minimization-006
+    title: Liên kết yêu cầu lưu giữ với yêu cầu mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encryption-layers
+  title: Lớp mã hóa
+  childs:
+  - slug: encryption-layers-001
+    title: Mã hóa toàn bộ thiết bị (full-disk encryption)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-layers-002
+    title: Mã hóa volume, virtual disk và block storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-layers-003
+    title: Mã hóa filesystem, file và folder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-layers-004
+    title: Mã hóa database, table, column và field
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-layers-005
+    title: Mã hóa object storage và message payload lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-layers-006
+    title: Mã hóa ở tầng ứng dụng so với tầng hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-layers-007
+    title: Chọn một lớp hay nhiều lớp theo threat model
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: algorithm-selection
+  title: Chọn thuật toán
+  childs:
+  - slug: algorithm-selection-001
+    title: Thuật toán đối xứng cho dữ liệu khối lượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-selection-002
+    title: AEAD để kết hợp bí mật và xác thực toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-selection-003
+    title: AES-GCM và yêu cầu quản lý nonce đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-selection-004
+    title: ChaCha20-Poly1305 trong môi trường phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-selection-005
+    title: Không tự thiết kế thuật toán hoặc chế độ mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-selection-006
+    title: Đánh giá độ dài khóa, provider và vòng đời thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: algorithm-selection-007
+    title: Không dùng mã hóa thuận nghịch để lưu mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encryption-and-integrity
+  title: Mã hóa và toàn vẹn
+  childs:
+  - slug: encryption-and-integrity-001
+    title: Ciphertext chỉ bí mật nhưng chưa chắc được xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-and-integrity-002
+    title: Authentication tag phát hiện sửa đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-and-integrity-003
+    title: Associated data (AAD) ràng buộc ciphertext với ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-and-integrity-004
+    title: Phân biệt MAC, hash và chữ ký số trong dữ liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-and-integrity-005
+    title: Xử lý tag sai mà không làm lộ thông tin nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-and-integrity-006
+    title: Kiểm tra toàn vẹn trước khi phân tích nội dung giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nonce-and-iv-management
+  title: Quản lý nonce và IV
+  childs:
+  - slug: nonce-and-iv-management-001
+    title: Nonce hoặc IV phải phù hợp với chế độ mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonce-and-iv-management-002
+    title: Không tái sử dụng nonce với cùng khóa trong AES-GCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonce-and-iv-management-003
+    title: Cách tạo, lưu và đọc nonce cùng ciphertext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonce-and-iv-management-004
+    title: Phân biệt nonce công khai với key material bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonce-and-iv-management-005
+    title: Xử lý lỗi trùng nonce trong hệ thống phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonce-and-iv-management-006
+    title: Kiểm thử nonce khi retry, replay và chạy nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-models
+  title: Mô hình khóa
+  childs:
+  - slug: key-models-001
+    title: Data Encryption Key (DEK) và Key Encryption Key (KEK)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-models-002
+    title: Khóa gốc, khóa dẫn xuất và khóa phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-models-003
+    title: Tách khóa theo mục đích, tenant, môi trường và miền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-models-004
+    title: Khóa mã hóa dữ liệu khác khóa ký hoặc xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-models-005
+    title: Domain separation để tránh dùng sai ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-models-006
+    title: Xác định khóa nào được phép xuất và khóa nào phải giữ kín
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: envelope-encryption
+  title: Envelope encryption
+  childs:
+  - slug: envelope-encryption-001
+    title: Luồng sinh DEK và mã hóa payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-002
+    title: Wrap DEK bằng KEK trong KMS hoặc HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-003
+    title: Lưu wrapped DEK cùng metadata nhưng tách KEK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-004
+    title: Unwrap DEK có kiểm soát trước khi giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-005
+    title: Rewrap DEK khi thay KEK mà không đọc lại plaintext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-006
+    title: Ràng buộc tenant, bản ghi và phiên bản bằng AAD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-007
+    title: Giới hạn kích thước và hiệu năng của mỗi lần gọi KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kms-va-hsm
+  title: KMS và HSM
+  childs:
+  - slug: kms-va-hsm-001
+    title: Vai trò của KMS trong sinh, lưu và sử dụng KEK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-va-hsm-002
+    title: Khi nào cần HSM thay vì dịch vụ quản lý khóa thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-va-hsm-003
+    title: Control plane và data plane của dịch vụ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-va-hsm-004
+    title: Chính sách import, export và giữ khóa trong biên bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-va-hsm-005
+    title: Dual control, quorum và thao tác quản trị nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-va-hsm-006
+    title: HA, multi-region và phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-va-hsm-007
+    title: Đánh giá khả năng di chuyển khi đổi KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-distribution
+  title: Phân phối khóa
+  childs:
+  - slug: key-distribution-001
+    title: Cấp quyền cho ứng dụng dùng khóa mà không phát khóa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-distribution-002
+    title: Xác thực service identity trước thao tác decrypt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-distribution-003
+    title: Kênh truyền wrapped DEK và key context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-distribution-004
+    title: Bootstrap trust cho môi trường mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-distribution-005
+    title: Giới hạn thời gian và phạm vi khóa trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-distribution-006
+    title: Không lưu khóa trong repository, image hoặc cấu hình công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ciphertext-formats
+  title: Định dạng ciphertext
+  childs:
+  - slug: ciphertext-formats-001
+    title: Thiết kế envelope chứa phiên bản định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ciphertext-formats-002
+    title: Lưu algorithm, key ID, key version và nonce
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ciphertext-formats-003
+    title: Lưu authentication tag và dữ liệu phụ trợ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ciphertext-formats-004
+    title: Phân biệt metadata công khai với metadata nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ciphertext-formats-005
+    title: Tương thích ngược giữa các phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ciphertext-formats-006
+    title: Từ chối ciphertext sai định dạng trước khi gọi KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ciphertext-formats-007
+    title: Chống nhầm khóa giữa các tenant và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-encryption
+  title: Mã hóa database
+  childs:
+  - slug: database-encryption-001
+    title: Mã hóa toàn bộ database và giới hạn bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-encryption-002
+    title: Transparent Data Encryption (TDE) hoạt động ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-encryption-003
+    title: Mã hóa column hoặc field ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-encryption-004
+    title: Bảo vệ index, query parameter và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-encryption-005
+    title: Tác động đến tìm kiếm, sắp xếp và unique constraint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-encryption-006
+    title: Mã hóa backup, transaction log và replication stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-encryption-007
+    title: Kiểm tra quyền đọc trực tiếp storage ngoài database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: file-encryption
+  title: Mã hóa file
+  childs:
+  - slug: file-encryption-001
+    title: Mã hóa file trước khi ghi vào filesystem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-encryption-002
+    title: Thiết kế header, chunk và authentication tag cho file lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-encryption-003
+    title: Mã hóa folder và giới hạn của file-level encryption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-encryption-004
+    title: Khóa file theo tenant, bản ghi hoặc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-encryption-005
+    title: Xử lý rename, copy, append và partial update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-encryption-006
+    title: Xóa file cùng bản tạm và file giải mã trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: file-encryption-007
+    title: Khôi phục file khi key version cũ đã nghỉ hưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-storage
+  title: Object storage
+  childs:
+  - slug: object-storage-001
+    title: Server-side encryption và client-side encryption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-002
+    title: Khóa mặc định, khóa theo object và khóa theo bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-003
+    title: Bảo vệ object version, metadata và object tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-004
+    title: Snapshot, replication và cross-region copy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-005
+    title: Pre-signed URL không đồng nghĩa với dữ liệu đã mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-006
+    title: Kiểm tra policy khi object được copy sang vùng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-007
+    title: Đọc lại object sau xoay vòng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: block-and-volume-encryption
+  title: Block và volume storage
+  childs:
+  - slug: block-and-volume-encryption-001
+    title: Mã hóa volume, disk image và attached storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-and-volume-encryption-002
+    title: Khóa khi tạo volume so với khóa khi snapshot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-and-volume-encryption-003
+    title: Mã hóa swap, page file và vùng tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-and-volume-encryption-004
+    title: Thiết kế cho instance mới và instance đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-and-volume-encryption-005
+    title: Khả năng bảo vệ khi tháo volume sang máy khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-and-volume-encryption-006
+    title: Quản lý key access trong autoscaling và failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-and-volume-encryption-007
+    title: Xác minh volume thực sự dùng khóa mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: devices-and-endpoints
+  title: Thiết bị và endpoint
+  childs:
+  - slug: devices-and-endpoints-001
+    title: Full-disk encryption trên laptop và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-endpoints-002
+    title: Mã hóa thiết bị di động và removable media
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-endpoints-003
+    title: Khởi động an toàn, secure boot và khóa mở thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-endpoints-004
+    title: Khôi phục khi mất thiết bị hoặc quên khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-endpoints-005
+    title: Bảo vệ dữ liệu khi thiết bị ngủ, mất hoặc bị bán lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-endpoints-006
+    title: Quản lý escrow key phục hồi theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-and-endpoints-007
+    title: Xóa dữ liệu từ xa không thay thế thiết kế mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backups-and-snapshots
+  title: Backup và snapshot
+  childs:
+  - slug: backups-and-snapshots-001
+    title: Backup phải được mã hóa độc lập với dữ liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-and-snapshots-002
+    title: Snapshot có thể chứa plaintext còn sót lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-and-snapshots-003
+    title: Tách quyền đọc backup khỏi quyền vận hành ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-and-snapshots-004
+    title: Retention, archive và restore trong vòng đời khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-and-snapshots-005
+    title: Kiểm tra restore trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-and-snapshots-006
+    title: Xác định key version cần giữ cho backup cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-and-snapshots-007
+    title: Không coi backup thành công là bằng chứng khôi phục được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replication-and-recovery
+  title: Replication và khôi phục
+  childs:
+  - slug: replication-and-recovery-001
+    title: Mã hóa dữ liệu khi replica sang vùng hoặc tài khoản khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-002
+    title: Đồng bộ metadata khóa cùng dữ liệu một cách an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-003
+    title: Failover khi KMS hoặc vùng chính không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-004
+    title: RPO, RTO và tác động của việc mất khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-005
+    title: Kiểm tra quyền decrypt ở vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-006
+    title: Tránh copy key material tùy tiện giữa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-007
+    title: Diễn tập khôi phục với dữ liệu thật đã được khử nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caches-and-temporary-data
+  title: Cache và dữ liệu tạm
+  childs:
+  - slug: caches-and-temporary-data-001
+    title: Cache ứng dụng có thể giữ plaintext ngoài database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caches-and-temporary-data-002
+    title: Mã hóa session, queue, local cache và temporary file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caches-and-temporary-data-003
+    title: Giới hạn thời gian tồn tại plaintext trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caches-and-temporary-data-004
+    title: Không ghi plaintext vào crash dump hoặc heap dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caches-and-temporary-data-005
+    title: Dọn file tạm sau lỗi, retry và timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caches-and-temporary-data-006
+    title: Bảo vệ page cache, swap và thư mục staging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caches-and-temporary-data-007
+    title: Kiểm tra thư viện có tạo bản sao dữ liệu ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-and-observability
+  title: Log và quan sát
+  childs:
+  - slug: logging-and-observability-001
+    title: Không ghi plaintext nhạy cảm vào application log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-observability-002
+    title: Không ghi key, DEK, nonce bí mật hoặc token giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-observability-003
+    title: Bảo vệ log, audit event và trace khi chứa metadata nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-observability-004
+    title: Mask dữ liệu trước khi ghi metric hoặc dead-letter queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-observability-005
+    title: Kiểm tra exception message và debug dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-observability-006
+    title: Lưu mã tham chiếu thay vì payload cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-observability-007
+    title: Kiểm soát quyền truy cập hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tenant-isolation
+  title: Phân tách tenant
+  childs:
+  - slug: tenant-isolation-001
+    title: Khóa riêng theo tenant và lợi ích của cô lập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-002
+    title: Context tenant trong AAD và policy của KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-003
+    title: Ngăn ciphertext của tenant này giải mã bằng khóa tenant khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-004
+    title: Xử lý tenant rời hệ thống và yêu cầu hủy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-005
+    title: Cân bằng số lượng khóa với khả năng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-006
+    title: Kiểm tra cross-tenant access trong mọi đường đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-007
+    title: Thiết kế phục hồi cho một tenant mà không mở rộng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: Kiểm soát truy cập
+  childs:
+  - slug: access-control-001
+    title: Least privilege cho thao tác encrypt, decrypt và rewrap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: Tách quyền quản trị khóa khỏi quyền đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: Tách quyền vận hành ứng dụng khỏi quyền restore backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: Điều kiện truy cập theo resource, tenant, vùng và workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: Quyền break-glass có phê duyệt và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: Recertification định kỳ cho người và service identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: Đóng quyền khi nhân sự hoặc dịch vụ rời hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-availability
+  title: Hiệu năng và khả dụng
+  childs:
+  - slug: performance-and-availability-001
+    title: Chi phí CPU, latency và throughput của mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-availability-002
+    title: Chọn kích thước chunk và batch cho dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-availability-003
+    title: Cache metadata và wrapped DEK an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-availability-004
+    title: Giới hạn quota, retry và circuit breaker khi gọi KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-availability-005
+    title: Fail closed khi không thể xác minh hoặc giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-availability-006
+    title: Không hy sinh kiểm tra toàn vẹn để lấy throughput
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-availability-007
+    title: Đo hiệu năng theo kích thước payload và tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-rotation
+  title: Xoay vòng khóa
+  childs:
+  - slug: key-rotation-001
+    title: Xoay KEK bằng rewrap và xoay DEK bằng re-encryption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-002
+    title: Lịch xoay vòng theo thời gian, lượng dùng hoặc sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-003
+    title: Ghi key version vào từng ciphertext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-004
+    title: Dual-read, new-write trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-005
+    title: Giữ khóa cũ cho backup và dữ liệu còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-006
+    title: Kiểm tra độ phủ trước khi retire phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-007
+    title: Job xoay vòng idempotent và chịu được chạy lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migration
+  title: Di chuyển dữ liệu
+  childs:
+  - slug: data-migration-001
+    title: Chuyển từ mã hóa tầng hạ tầng sang tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-002
+    title: Chuyển giữa algorithm, mode, provider hoặc KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-003
+    title: Re-encryption trực tiếp và re-encryption theo worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-004
+    title: Xác minh checksum, tag và số lượng bản ghi sau di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-005
+    title: Xử lý dữ liệu chuyển dở, retry và rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-006
+    title: Đồng bộ ứng dụng trong thời gian dual-format
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-007
+    title: Dọn ciphertext và khóa cũ sau nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-data-deletion
+  title: Xóa và hủy dữ liệu
+  childs:
+  - slug: secure-data-deletion-001
+    title: Xóa bản ghi không đồng nghĩa đã xóa mọi bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-data-deletion-002
+    title: Crypto-shredding bằng hủy khóa bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-data-deletion-003
+    title: Điều kiện để cryptographic erasure có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-data-deletion-004
+    title: Xử lý backup, replica, cache và snapshot còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-data-deletion-005
+    title: Legal hold và yêu cầu lưu giữ trước khi hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-data-deletion-006
+    title: Bằng chứng xóa, thời điểm và phạm vi đã xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-data-deletion-007
+    title: Phân biệt hủy dữ liệu với hủy khóa dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incidents-and-key-exposure
+  title: Sự cố và lộ khóa
+  childs:
+  - slug: incidents-and-key-exposure-001
+    title: Dấu hiệu ciphertext hoặc key access bị khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incidents-and-key-exposure-002
+    title: 'Containment: đình chỉ khóa và chặn thao tác mới'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incidents-and-key-exposure-003
+    title: Đánh giá dữ liệu đã giải mã hoặc bị sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incidents-and-key-exposure-004
+    title: Tạo khóa thay thế và chuyển dữ liệu bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incidents-and-key-exposure-005
+    title: Bảo toàn log, audit và bằng chứng điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incidents-and-key-exposure-006
+    title: Thông báo theo yêu cầu pháp lý và chính sách nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incidents-and-key-exposure-007
+    title: Post-incident review và cập nhật thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-and-multienvironment
+  title: Cloud và đa môi trường
+  childs:
+  - slug: cloud-and-multienvironment-001
+    title: Khác biệt giữa local, test, staging và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-and-multienvironment-002
+    title: Tách tài khoản, project, subscription và key ring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-and-multienvironment-003
+    title: Workload identity thay cho credential tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-and-multienvironment-004
+    title: Cross-account hoặc cross-project access có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-and-multienvironment-005
+    title: Quản lý region, sovereignty và residency của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-and-multienvironment-006
+    title: Không dùng khóa production cho dữ liệu phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-and-multienvironment-007
+    title: Kiểm tra policy sau mỗi thay đổi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-implementation
+  title: Java thực hành
+  childs:
+  - slug: java-implementation-001
+    title: JCA/JCE và lựa chọn provider được duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-002
+    title: SecureRandom để tạo khóa và nonce
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-003
+    title: SecretKey, Cipher và AEAD trong AES-GCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-004
+    title: Định dạng lưu nonce, tag và ciphertext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-005
+    title: KeyStore, PKCS#12 và bảo vệ khóa cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-006
+    title: Giảm bản sao plaintext trong String, byte array và heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-007
+    title: Tích hợp client KMS bằng abstraction có thể kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implementation-008
+    title: Không tự xây dựng primitive hoặc protocol mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing
+  title: Kiểm thử bảo mật
+  childs:
+  - slug: security-testing-001
+    title: Unit test cho format, nonce và kiểm tra authentication tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-002
+    title: Negative test khi ciphertext bị sửa hoặc sai key version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-003
+    title: Integration test với KMS, database và object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-004
+    title: Test restore backup và đọc dữ liệu sau failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-005
+    title: Test xoay vòng trong khi nhiều instance đang đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-006
+    title: Test quyền sai, tenant sai và môi trường sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-007
+    title: Kiểm tra không lộ plaintext trong log, metric và exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-008
+    title: Property test cho serialize, deserialize và round-trip
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-and-auditing
+  title: Giám sát và kiểm toán
+  childs:
+  - slug: monitoring-and-auditing-001
+    title: Ghi encrypt, decrypt, rewrap, rotate và destroy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-002
+    title: Ghi actor, key ID, resource, tenant, thời điểm và lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-003
+    title: Phát hiện decrypt tăng đột biến hoặc khác địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-004
+    title: Cảnh báo khóa không có owner hoặc sắp hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-005
+    title: Đối chiếu inventory dữ liệu với inventory khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-006
+    title: Nhật ký bất biến và thời hạn lưu giữ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-007
+    title: Bằng chứng kiểm toán không chứa dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-and-compliance
+  title: Quản trị và tuân thủ
+  childs:
+  - slug: governance-and-compliance-001
+    title: Chính sách mã hóa theo phân loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-compliance-002
+    title: Tiêu chí chọn thuật toán và crypto module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-compliance-003
+    title: Quy trình phê duyệt ngoại lệ và thời hạn ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-compliance-004
+    title: Đánh giá nhà cung cấp KMS, HSM và cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-compliance-005
+    title: Mapping kiểm soát với bằng chứng kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-compliance-006
+    title: Rà soát quyền và key inventory định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-and-compliance-007
+    title: Kế hoạch chuyển đổi khi thuật toán không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: antipatterns
+  title: Anti-pattern
+  childs:
+  - slug: antipatterns-001
+    title: Hardcode key trong source, image hoặc file cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-002
+    title: Lưu key cạnh ciphertext trong cùng một trust boundary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-003
+    title: Dùng ECB, nonce lặp hoặc mode không có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-004
+    title: Mã hóa mật khẩu thay vì dùng password hashing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-005
+    title: Mã hóa nhưng log plaintext trước khi encrypt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-006
+    title: Chỉ bật TDE rồi bỏ qua backup, replica và export
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-007
+    title: Xoay alias nhưng không thay key material
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-008
+    title: Xóa khóa trước khi xác minh khả năng đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: antipatterns-009
+    title: Tự viết thuật toán, padding hoặc protocol mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reference-architecture
+  title: Kiến trúc tham chiếu
+  childs:
+  - slug: reference-architecture-001
+    title: Luồng từ request đến storage và KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-002
+    title: Ranh giới tin cậy giữa ứng dụng, dữ liệu và khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-003
+    title: Envelope encryption cho database và object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-004
+    title: Cô lập tenant và môi trường trên sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-005
+    title: Luồng backup, restore, rotation và destruction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-006
+    title: Điểm kiểm tra audit, alert và policy enforcement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-architecture-007
+    title: Runbook vận hành thường ngày và khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-checklist
+  title: Checklist triển khai
+  childs:
+  - slug: deployment-checklist-001
+    title: Checklist phân loại dữ liệu và threat model
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-checklist-002
+    title: Checklist thuật toán, mode, nonce và định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-checklist-003
+    title: Checklist DEK, KEK, KMS, quyền và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-checklist-004
+    title: Checklist database, file, object, backup và replica
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-checklist-005
+    title: Checklist rotation, migration, restore và rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-checklist-006
+    title: Checklist log, monitoring, incident và evidence
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-checklist-007
+    title: Checklist xóa dữ liệu và hủy khóa đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

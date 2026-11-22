@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-bao-mat-browser
+  title: Mô hình bảo mật Browser
+  purpose: Hiểu trình duyệt là ranh giới tin cậy giữa website, script và người dùng trước khi cấu hình biện pháp phòng vệ.
+  objectives:
+  - Phân biệt origin, site và secure context
+  - Giải thích rủi ro khi trang chạy script không tin cậy
+  - Xác định dữ liệu nhạy cảm và trust boundary
+- id: same-origin-policy-cors
+  title: Same-Origin Policy & CORS
+  purpose: Phân biệt cơ chế cách ly mặc định của trình duyệt với quyền truy cập tài nguyên khác origin do máy chủ cho phép.
+  objectives:
+  - Giải thích SOP theo scheme, host và port
+  - Đọc Access-Control-Allow-Origin và preflight
+  - Nhận diện CORS không thay thế authentication
+- id: cookie-browser-storage
+  title: Cookie & Browser Storage
+  purpose: Lựa chọn cơ chế lưu phiên và dữ liệu phía trình duyệt phù hợp với rủi ro truy cập qua script hoặc request.
+  objectives:
+  - Cấu hình cookie Secure, HttpOnly và SameSite
+  - Phân biệt cookie với localStorage và sessionStorage
+  - Kiểm tra phạm vi Domain, Path và thời hạn cookie
+- id: xss-dom-safety
+  title: XSS & DOM Safety
+  purpose: Ngăn dữ liệu không tin cậy trở thành mã thực thi trong HTML, JavaScript và các thao tác DOM.
+  objectives:
+  - Nhận diện reflected, stored và DOM-based XSS
+  - Dùng output encoding theo ngữ cảnh và DOM API an toàn
+  - Sanitize HTML cần hiển thị thay vì tin vào input
+- id: csrf-request-integrity
+  title: CSRF & Request Integrity
+  purpose: Bảo vệ thao tác thay đổi trạng thái khỏi yêu cầu bị trang khác kích hoạt trong phiên người dùng.
+  objectives:
+  - Giải thích cookie tự gửi và cơ chế CSRF
+  - Áp dụng CSRF token và kiểm tra Origin phù hợp
+  - Kiểm chứng SameSite là lớp bảo vệ bổ sung
+- id: csp-trusted-types
+  title: CSP & Trusted Types
+  purpose: Thiết lập rào chắn bổ sung để hạn chế script trái phép và giảm nguy cơ khai thác DOM XSS.
+  objectives:
+  - Xây chính sách CSP cho script và tài nguyên
+  - Phân biệt nonce hoặc hash với unsafe-inline
+  - Thử Report-Only và Trusted Types nơi hỗ trợ
+- id: clickjacking-isolation
+  title: Clickjacking & Isolation
+  purpose: Hạn chế nhúng trang trái phép và kiểm soát quan hệ giữa các cửa sổ hoặc tài nguyên khác origin.
+  objectives:
+  - Áp dụng frame-ancestors hoặc X-Frame-Options
+  - Giải thích COOP và rel=noopener khi mở cửa sổ
+  - Kiểm tra origin khi nhận thông điệp postMessage
+- id: https-headers-kiem-thu
+  title: HTTPS, Headers & Kiểm thử
+  purpose: Kết hợp vận chuyển an toàn, cấu hình header và thử nghiệm trình duyệt để phát hiện sai lệch bảo mật.
+  objectives:
+  - Bật HTTPS, HSTS và rà soát mixed content
+  - Kiểm thử CORS, CSP, cookie và frame policy
+  - Dùng DevTools kiểm tra response headers và lỗi console

@@ -1,0 +1,7 @@
+# Database Connection Management Fundamentals
+
+Quản lý kết nối cơ sở dữ liệu là nền tảng của mọi ứng dụng backend giao tiếp với hệ quản trị dữ liệu. Một JDBC `Connection` đại diện cho phiên làm việc có chi phí tạo lập và sử dụng tài nguyên. Nếu ứng dụng mở kết nối liên tục, không trả kết nối hoặc duy trì giao dịch quá lâu, hệ thống dễ gặp tình trạng chờ đợi, hết giới hạn kết nối, tăng độ trễ hoặc lỗi khi database gặp sự cố. Connection pooling giúp tái sử dụng các kết nối vật lý, nhưng không thay thế việc quản lý vòng đời và transaction đúng cách.
+
+Module dành cho người học Java/backend đã có kiến thức SQL và JDBC cơ bản. Lộ trình đi từ JDBC driver, `DriverManager` và `DataSource` đến cách lấy, dùng, đóng và tái sử dụng connection; tiếp theo là sizing theo khả năng xử lý của database, các loại timeout và ứng phó sự cố. Phần cuối giải thích auto-commit, commit/rollback, isolation, chỉ số hoạt động của pool và các dấu hiệu rò rỉ. Bạn sẽ học tư duy cấu hình theo số đo thay vì mặc định tăng số lượng kết nối để xử lý mọi vấn đề hiệu năng.
+
+Bài thực hành đề xuất là ứng dụng Java nhỏ sử dụng `DataSource` và một connection pool thử nghiệm. Hãy tạo tải đồng thời, quan sát số connection đang dùng và chờ, thử cố ý giữ connection quá lâu, sau đó sửa bằng `try-with-resources`. Kết thúc module, bạn có thể mô tả vòng đời kết nối, phân biệt timeout lấy connection với timeout truy vấn, thiết kế ranh giới transaction hợp lý và phát hiện sớm tình trạng pool quá tải.

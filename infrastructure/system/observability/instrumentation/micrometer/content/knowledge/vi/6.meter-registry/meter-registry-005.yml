@@ -1,0 +1,3 @@
+menuLevel1: MeterRegistry
+menuLevel2: CompositeMeterRegistry để kết nối nhiều registry thành phần
+status: ''

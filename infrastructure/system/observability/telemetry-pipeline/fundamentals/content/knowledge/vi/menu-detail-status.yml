@@ -1,0 +1,1939 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Telemetry là gì và vì sao cần một pipeline riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của pipeline giữa ứng dụng và hệ thống phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt tạo dữ liệu, vận chuyển dữ liệu và lưu trữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Các thành phần nguồn, bộ thu, bộ xử lý và đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vòng đời một bản ghi telemetry từ lúc phát sinh đến lúc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt pipeline telemetry với ETL, luồng sự kiện nghiệp vụ và hệ thống cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Các yêu cầu chức năng và ràng buộc vận hành của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và cách đọc sơ đồ pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: telemetry-signals
+  title: Tín hiệu telemetry
+  childs:
+  - slug: telemetry-signals-001
+    title: 'Logs: bản ghi sự kiện và thông điệp chẩn đoán'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-002
+    title: 'Metrics: chuỗi thời gian, phép đo và các loại đại lượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-003
+    title: 'Traces: trace, span và quan hệ nhân quả giữa các thao tác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-004
+    title: 'Events và profiles: vai trò và yêu cầu thu thập riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-005
+    title: Phân biệt một bản ghi, một lô dữ liệu và một chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-006
+    title: Thuộc tính của tín hiệu, tài nguyên và phạm vi đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-007
+    title: Nhãn, chiều dữ liệu và số tổ hợp giá trị (cardinality)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-008
+    title: Thời điểm sự kiện, thời điểm quan sát và độ chính xác đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-009
+    title: Phân biệt dữ liệu nguồn, dữ liệu đã xử lý và dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-signals-010
+    title: Mối quan hệ giữa loại tín hiệu và cách thiết kế pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-contracts
+  title: Hợp đồng dữ liệu
+  childs:
+  - slug: data-contracts-001
+    title: Mô hình dữ liệu chuẩn và ranh giới với định dạng truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-002
+    title: Cấu trúc trường, kiểu dữ liệu, giá trị thiếu và giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-003
+    title: Định danh dịch vụ, phiên bản, môi trường và thực thể phát sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-004
+    title: Quy ước tên, đơn vị đo và ý nghĩa của thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-005
+    title: Ngữ nghĩa tích lũy và chênh lệch của metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-006
+    title: Cấu trúc histogram và yêu cầu tương thích khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-007
+    title: Định danh trace, span, sự kiện và quy tắc biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-008
+    title: Phiên bản schema và khả năng tương thích khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-contracts-009
+    title: Rủi ro mất ngữ nghĩa khi chuyển đổi giữa các mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-collection
+  title: Thu thập dữ liệu
+  childs:
+  - slug: data-collection-001
+    title: Đo đạc trong ứng dụng và thu thập ngoài ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-002
+    title: Vai trò của SDK, agent và collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-003
+    title: Mô hình đẩy (push), mô hình kéo (pull) và cách lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-004
+    title: Thu thập logs từ tệp, luồng chuẩn và hệ thống ghi nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-005
+    title: Điểm đọc, xoay vòng tệp và nguy cơ đọc thiếu hoặc đọc trùng logs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-006
+    title: Thu thập metrics qua scrape và qua bộ xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-007
+    title: Chu kỳ thu thập, thời gian chờ và nguy cơ bỏ lỡ phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-008
+    title: Thu thập traces và giới hạn của pipeline đối với dữ liệu chưa được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-009
+    title: Thu thập dữ liệu từ máy chủ, container và nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-010
+    title: Phát hiện nguồn dữ liệu và xử lý nguồn có vòng đời ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-collection-011
+    title: Tác động của hoạt động thu thập lên ứng dụng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-models
+  title: Mô hình triển khai
+  childs:
+  - slug: deployment-models-001
+    title: Agent tại nguồn, sidecar và bộ thu dùng chung trên mỗi nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-002
+    title: Gateway tập trung và điểm tập hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-003
+    title: Kết hợp agent với gateway theo nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-004
+    title: Pipeline trực tiếp và pipeline có tầng trung gian lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-005
+    title: Phân vùng pipeline theo tín hiệu, môi trường và khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-006
+    title: Triển khai tại chỗ, trên đám mây và trong môi trường kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-007
+    title: Ranh giới mạng, vùng tin cậy và vị trí đặt bộ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-008
+    title: Tránh đường thu thập trùng và vòng lặp xuất nhập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-009
+    title: Đánh đổi giữa đơn giản, độ trễ, chi phí và khả năng chịu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transport
+  title: Truyền tải dữ liệu
+  childs:
+  - slug: data-transport-001
+    title: Phân biệt giao thức tiếp nhận, giao thức nội bộ và giao thức xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-002
+    title: OTLP và vai trò của giao thức telemetry dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-003
+    title: HTTP và gRPC trong kết nối truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-004
+    title: Định dạng văn bản, JSON và mã hóa nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-005
+    title: Đóng gói lô, nén dữ liệu và giới hạn kích thước thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-006
+    title: Kết nối dài hạn, tái sử dụng kết nối và chi phí thiết lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-007
+    title: Timeout, keepalive và phát hiện kết nối không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-008
+    title: Giới hạn băng thông, proxy và các điểm trung gian mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transport-009
+    title: Đàm phán tương thích và kiểm tra phản hồi của đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-processing
+  title: Xử lý dữ liệu
+  childs:
+  - slug: data-processing-001
+    title: Chuỗi xử lý và ý nghĩa của thứ tự các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-002
+    title: Phân tích cú pháp logs có cấu trúc và không có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-003
+    title: Ghép nhiều dòng thành một bản ghi và giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-004
+    title: Chuẩn hóa tên trường, kiểu dữ liệu, đơn vị và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-005
+    title: Bổ sung metadata từ tài nguyên và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-006
+    title: Tra cứu dữ liệu bổ sung và tác động của phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-007
+    title: Biến đổi thuộc tính và tránh ghi đè thông tin nguồn ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-008
+    title: Lọc dữ liệu tại nguồn và trong các tầng pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-009
+    title: Tổng hợp dữ liệu theo cửa sổ thời gian và chiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-010
+    title: 'Chuyển đổi tín hiệu: tạo metrics từ logs hoặc spans'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-processing-011
+    title: Xử lý bản ghi không hợp lệ và tách luồng dữ liệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-correlation
+  title: Tương quan dữ liệu
+  childs:
+  - slug: data-correlation-001
+    title: Vai trò của tương quan logs, metrics và traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-002
+    title: Truyền ngữ cảnh và ranh giới giữa ứng dụng với collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-003
+    title: Trace ID, span ID và liên kết logs với thao tác phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-004
+    title: Nhận diện cùng một dịch vụ và tài nguyên giữa các tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-005
+    title: Exemplar và khả năng liên kết từ metrics đến trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-006
+    title: Ngữ cảnh qua hàng đợi, tác vụ nền và lời gọi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-007
+    title: Baggage, thuộc tính nghiệp vụ và giới hạn lan truyền thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-008
+    title: Ảnh hưởng của mất ngữ cảnh, lệch đồng hồ và lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correlation-009
+    title: Kiểm tra tương quan mà không tạo liên kết sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-routing
+  title: Định tuyến dữ liệu
+  childs:
+  - slug: data-routing-001
+    title: Định tuyến theo tín hiệu, thuộc tính và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-002
+    title: Chia một luồng đến nhiều đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-003
+    title: Gom nhiều nguồn và chuẩn hóa trước khi xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-004
+    title: Nhân bản dữ liệu và phân biệt với chia tải giữa các đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-005
+    title: Tách luồng ưu tiên cao và luồng có thể giảm chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-006
+    title: Định tuyến theo khách hàng và ranh giới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-007
+    title: Cân bằng tải theo bản ghi, kết nối và khóa định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-008
+    title: Giữ các spans cùng trace ở đúng điểm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-routing-009
+    title: Đích dự phòng, chuyển vùng và nguy cơ gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sampling
+  title: Lấy mẫu dữ liệu
+  childs:
+  - slug: sampling-001
+    title: Mục tiêu của lấy mẫu và đánh đổi với khả năng điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-002
+    title: Phân biệt lấy mẫu, lọc bỏ và tổng hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-003
+    title: Lấy mẫu traces tại đầu luồng (head sampling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-004
+    title: Lấy mẫu traces sau khi quan sát dữ liệu (tail sampling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-005
+    title: Lấy mẫu theo xác suất, tỷ lệ cố định và thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-006
+    title: Lấy mẫu nhất quán theo định danh trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-007
+    title: Ưu tiên traces lỗi, chậm và các tình huống cần giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-008
+    title: Cửa sổ chờ, spans đến muộn và trace chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-009
+    title: Giới hạn bộ nhớ và phân phối tải khi lấy mẫu cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-010
+    title: Độ lệch thống kê và cách diễn giải số liệu sau lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flow-control
+  title: Điều tiết luồng
+  childs:
+  - slug: flow-control-001
+    title: Tốc độ đầu vào, tốc độ xử lý và tốc độ đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-002
+    title: Áp lực ngược (backpressure) và cách lan truyền giữa các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-003
+    title: Giới hạn tốc độ và hạn ngạch theo nguồn hoặc khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-004
+    title: Từ chối nhận dữ liệu và chủ động loại bớt dữ liệu khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-005
+    title: Ưu tiên dữ liệu và tránh một nguồn chiếm hết năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-006
+    title: Gom lô theo kích thước và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-007
+    title: Cân bằng thông lượng với độ trễ của từng lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-008
+    title: Giới hạn dữ liệu đang xử lý và số yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flow-control-009
+    title: Điều khiển bộ nhớ để tránh dừng tiến trình do quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: buffering-durability
+  title: Bộ đệm và lưu bền
+  childs:
+  - slug: buffering-durability-001
+    title: Bộ đệm trong bộ nhớ và hàng đợi lưu trên đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-002
+    title: Hàng đợi có giới hạn và chính sách khi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-003
+    title: Thời gian đích nhận gián đoạn và cách tính dung lượng đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-004
+    title: Tốc độ tích lũy dữ liệu và thời gian xử lý hết tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-005
+    title: Nhật ký ghi trước (WAL) và khôi phục dữ liệu sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-006
+    title: Điểm xác nhận, điểm đọc và quyền sở hữu dữ liệu trong hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-007
+    title: Broker làm tầng tách rời bên phát và bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-008
+    title: Phân vùng, khóa phân vùng và thứ tự trong hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-009
+    title: Tuổi dữ liệu trong bộ đệm và chính sách hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-durability-010
+    title: Giới hạn của lưu bền trước lỗi đĩa, mất nút và mất vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-semantics
+  title: Ngữ nghĩa giao nhận
+  childs:
+  - slug: delivery-semantics-001
+    title: Giao nhận tối đa một lần, ít nhất một lần và đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-002
+    title: Phân biệt nhận yêu cầu, chấp nhận dữ liệu và lưu bền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-003
+    title: Mất phản hồi sau khi gửi thành công và trạng thái kết quả chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-004
+    title: Phân biệt lỗi tạm thời, lỗi vĩnh viễn và lỗi do dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-005
+    title: Thử lại với thời gian chờ tăng dần và độ lệch ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-006
+    title: Giới hạn số lần thử lại, tổng thời gian thử lại và tuổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-007
+    title: Phản hồi thành công một phần và xử lý phần bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-008
+    title: Tính lũy đẳng, định danh bản ghi và loại dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-009
+    title: Thứ tự giao nhận, xử lý song song và bản ghi đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-semantics-010
+    title: Phạm vi bảo đảm của từng chặng và bảo đảm toàn tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fault-tolerance
+  title: Khả năng chịu lỗi
+  childs:
+  - slug: fault-tolerance-001
+    title: Xác định miền lỗi và loại bỏ điểm lỗi đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-002
+    title: Nhiều bản sao, kiểm tra sức khỏe và chuyển hướng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-003
+    title: Tách tài nguyên để giới hạn phạm vi ảnh hưởng của sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-004
+    title: Ngắt mạch khi đích nhận lỗi và khôi phục kết nối có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-005
+    title: Đích chậm, đích ngừng hoạt động và lỗi mạng từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-006
+    title: Xử lý điểm nghẽn tại một phân vùng hoặc một nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-007
+    title: Suy giảm có kiểm soát và thứ tự ưu tiên khi thiếu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-008
+    title: Dừng tiến trình đúng cách và đẩy hết dữ liệu đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-009
+    title: Giới hạn khôi phục dữ liệu khi lỗi vượt quá năng lực dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-security
+  title: Bảo mật pipeline
+  childs:
+  - slug: pipeline-security-001
+    title: Mô hình đe dọa và các ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-002
+    title: Mã hóa khi truyền và xác minh danh tính đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-003
+    title: Xác thực nguồn gửi bằng chứng thư, token hoặc khóa truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-004
+    title: Phân quyền tiếp nhận, xử lý và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-005
+    title: Quản lý bí mật, luân chuyển khóa và gia hạn chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-006
+    title: Phân đoạn mạng và giới hạn cổng tiếp nhận telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-007
+    title: Dữ liệu đầu vào không đáng tin và giới hạn tài nguyên phân tích cú pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-008
+    title: Nguy cơ lộ dữ liệu qua lỗi, debug logs và luồng dữ liệu cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-security-009
+    title: Kiểm soát truy cập dữ liệu đang đệm và dữ liệu phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-governance
+  title: Quản trị dữ liệu
+  childs:
+  - slug: data-governance-001
+    title: Trách nhiệm của bên phát, chủ pipeline và chủ hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-002
+    title: Phân loại dữ liệu nhạy cảm trước khi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-003
+    title: Thu thập tối thiểu và lựa chọn vị trí loại bỏ dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-004
+    title: Vai trò của lọc, che giá trị và loại bỏ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-005
+    title: Ngân sách thuộc tính, cardinality và hạn ngạch theo khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-006
+    title: Thời hạn giữ dữ liệu tại bộ đệm và tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-007
+    title: Vị trí lưu chuyển dữ liệu và ràng buộc theo khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-008
+    title: Truy vết cấu hình, quyết định xử lý và trách nhiệm kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-quality
+  title: Chất lượng dữ liệu
+  childs:
+  - slug: data-quality-001
+    title: Độ đầy đủ, độ chính xác, tính nhất quán và độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-002
+    title: Phân biệt thiếu dữ liệu tại nguồn với mất dữ liệu trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-003
+    title: Kiểm tra schema, kiểu dữ liệu, trường bắt buộc và đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-004
+    title: Phát hiện dấu thời gian bất thường và đồng hồ sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-005
+    title: Chuỗi thời gian trùng, reset bộ đếm và ngữ nghĩa phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-006
+    title: Trace đứt đoạn, spans mồ côi và quan hệ cha con không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-007
+    title: Metadata không nhất quán và bùng nổ số lượng giá trị thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-008
+    title: Đo mức sai lệch do lấy mẫu, lọc và tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-009
+    title: Quản lý dữ liệu bị cách ly và điều kiện đưa trở lại pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-cost
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-cost-001
+    title: Ước lượng lưu lượng từ số nguồn và tốc độ phát sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-002
+    title: Phân biệt số bản ghi, số byte và số chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-003
+    title: Tính chi phí CPU, bộ nhớ, đĩa và băng thông theo từng tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-004
+    title: Ngân sách độ trễ và các thành phần gây chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-005
+    title: Độ lớn lô, mức nén và chi phí xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-006
+    title: Khả năng xử lý song song và giới hạn do thứ tự dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-007
+    title: Mở rộng dọc, mở rộng ngang và phân phối lại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-008
+    title: Dung lượng dự phòng cho tăng đột biến và xử lý tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-009
+    title: Tối ưu chi phí truyền mạng, lưu trữ và dữ liệu giá trị thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-010
+    title: Đo hiệu năng theo tải thực tế và tránh kết luận từ số trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-monitoring
+  title: Giám sát pipeline
+  childs:
+  - slug: pipeline-monitoring-001
+    title: Các chỉ số đầu vào, đầu ra, từ chối và loại bỏ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-002
+    title: Đo chiều dài hàng đợi, tuổi dữ liệu và mức sử dụng bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-003
+    title: Thông lượng, độ trễ xử lý và độ trễ toàn tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-004
+    title: Theo dõi lỗi xuất dữ liệu, thử lại và thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-005
+    title: Quan sát CPU, bộ nhớ, dung lượng đĩa và kết nối mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-006
+    title: Thiết lập SLI và SLO cho việc giao nhận telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-007
+    title: Dữ liệu kiểm chứng định kỳ và phát hiện pipeline im lặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-008
+    title: Dashboard và cảnh báo theo triệu chứng cùng nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-009
+    title: Tách kênh giám sát pipeline để giảm điểm mù khi pipeline lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-010
+    title: Đối soát đầu vào và đầu ra có xét lấy mẫu, lọc và biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-changes
+  title: Cấu hình và thay đổi
+  childs:
+  - slug: configuration-changes-001
+    title: Tách cấu hình nguồn thu, xử lý, định tuyến và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-002
+    title: Quản lý cấu hình theo môi trường và tái sử dụng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-003
+    title: Kiểm tra cấu hình trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-004
+    title: Thay đổi schema và phối hợp phiên bản giữa các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-005
+    title: Nạp lại cấu hình và thay đổi cần khởi động tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-006
+    title: Triển khai từng phần, chạy đối chiếu và tránh đếm dữ liệu hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-007
+    title: Nâng cấp khi có hàng đợi lưu bền và dữ liệu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-008
+    title: Quay lui cấu hình và giới hạn khôi phục dữ liệu đã biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-changes-009
+    title: Kiểm soát thay đổi quy tắc lấy mẫu, định tuyến và bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-troubleshooting
+  title: Kiểm thử và sự cố
+  childs:
+  - slug: testing-troubleshooting-001
+    title: Bộ dữ liệu kiểm thử đại diện cho từng tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-002
+    title: Kiểm thử phân tích cú pháp, biến đổi và thứ tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-003
+    title: Kiểm thử hợp đồng giữa nguồn, pipeline và đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-004
+    title: Kiểm thử toàn tuyến với dữ liệu có định danh đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-005
+    title: Kiểm thử tải ổn định, tăng đột biến và chạy dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-006
+    title: Mô phỏng mất mạng, đích chậm, lỗi chứng thư và đầy đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-007
+    title: Kiểm thử khởi động lại, phục hồi hàng đợi và dừng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-008
+    title: Chẩn đoán mất dữ liệu, dữ liệu trùng và dữ liệu đến chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-009
+    title: Phát lại dữ liệu cách ly với kiểm soát lũy đẳng và giới hạn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-010
+    title: Runbook sự cố và cách kiểm chứng pipeline đã phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-design
+  title: Thiết kế thực hành
+  childs:
+  - slug: practical-design-001
+    title: Chuyển yêu cầu quan sát thành yêu cầu thu thập và giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-002
+    title: Lập bản đồ nguồn, tín hiệu, đích nhận và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-003
+    title: Xác định hợp đồng dữ liệu và các ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-004
+    title: Chọn mô hình triển khai theo tải, độ trễ và ngân sách mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-005
+    title: Thiết kế pipeline cho một ứng dụng và một đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-006
+    title: Mở rộng đến nhiều dịch vụ, nhiều tín hiệu và nhiều đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-007
+    title: Thiết kế pipeline nhiều khách hàng với cô lập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-008
+    title: Lựa chọn vai trò công cụ theo năng lực thay vì theo tên sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-009
+    title: Đối chiếu thiết kế khi mất đích nhận hoặc mất một tầng thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-design-010
+    title: Đánh giá thiết kế bằng hợp đồng dữ liệu, SLO và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

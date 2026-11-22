@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan vòng đời
+  slug: token-lifecycle-overview
+  index: 0
+- title: Các loại token
+  slug: token-types
+  index: 1
+- title: Mô hình đe dọa
+  slug: model-threat
+  index: 2
+- title: Trạng thái và dữ liệu
+  slug: state-and-data
+  index: 3
+- title: Chính sách token
+  slug: token-policies
+  index: 4
+- title: Sinh token
+  slug: token-generation
+  index: 5
+- title: Cấp phát token
+  slug: token-issuance
+  index: 6
+- title: Phân phối token
+  slug: token-distribution
+  index: 7
+- title: Lưu trữ token
+  slug: token-storage
+  index: 8
+- title: Xác minh và sử dụng
+  slug: token-validation-and-use
+  index: 9
+- title: Thời hạn hiệu lực
+  slug: token-expiration
+  index: 10
+- title: Làm mới token
+  slug: token-renewal
+  index: 11
+- title: Xoay refresh token
+  slug: refresh-token-rotation
+  index: 12
+- title: Đồng thời và nhất quán
+  slug: concurrency-and-consistency
+  index: 13
+- title: Thu hồi token
+  slug: token-revocation
+  index: 14
+- title: Đăng xuất và phiên
+  slug: logout-and-sessions
+  index: 15
+- title: Token dùng một lần
+  slug: single-use-tokens
+  index: 16
+- title: Chống phát lại
+  slug: replay-prevention
+  index: 17
+- title: Thay đổi danh tính
+  slug: identity-changes
+  index: 18
+- title: OAuth và OIDC
+  slug: oauth-oidc
+  index: 19
+- title: Vòng đời phía khách
+  slug: client-side-token-lifecycle
+  index: 20
+- title: Token cho workload
+  slug: workload-tokens
+  index: 21
+- title: JWT và opaque token
+  slug: jwt-opaque-token
+  index: 22
+- title: Khóa và bên phát hành
+  slug: keys-and-issuers
+  index: 23
+- title: Kiến trúc phân tán
+  slug: distributed-architecture
+  index: 24
+- title: Dọn dẹp và lưu giữ
+  slug: cleanup-and-retention
+  index: 25
+- title: Giám sát và kiểm toán
+  slug: monitoring-and-auditing
+  index: 26
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 27
+- title: Kiểm thử vòng đời
+  slug: lifecycle-testing
+  index: 28
+- title: Thực hành tổng hợp
+  slug: hands-on-exercise
+  index: 29

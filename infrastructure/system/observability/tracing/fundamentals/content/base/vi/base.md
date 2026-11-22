@@ -1,0 +1,7 @@
+# Observability Tracing Fundamentals
+
+**Distributed Tracing** là kỹ thuật theo dõi một thao tác logic xuyên qua nhiều thành phần, tiến trình và dịch vụ trong hệ thống phân tán. Một trace được hình thành từ các span biểu diễn từng operation; quan hệ cha–con giữa chúng cho biết request đã đi qua đâu, tốn thời gian ở bước nào và lỗi bắt đầu từ thành phần nào. Tracing bổ sung góc nhìn theo từng request cho metrics và logs, giúp phân tích độ trễ và nguyên nhân sự cố mà một chỉ số tổng hợp khó chỉ ra.
+
+Lộ trình gồm tám mốc: mô hình trace/span; Span Context và attributes; context propagation qua ranh giới dịch vụ; chuẩn W3C Trace Context; instrumentation và semantic conventions; sampling; export qua OpenTelemetry SDK/Collector; cuối cùng là phân tích trace để tìm bottleneck. Người học sẽ hiểu các định danh Trace ID/Span ID, header `traceparent` và `tracestate`, cách tạo spans hữu ích và những giới hạn của sampling khi cần giữ đầy đủ dữ liệu cho một request.
+
+Module phù hợp với backend developer, SRE và kỹ sư observability đã biết HTTP/API, microservices và logging/metrics cơ bản. Sau khi hoàn thành, bạn có thể đọc cấu trúc trace, truyền context xuyên service, instrument một luồng request, cấu hình export telemetry và sử dụng trace liên kết với logs/metrics để chẩn đoán latency hoặc lỗi trong hệ thống phân tán.

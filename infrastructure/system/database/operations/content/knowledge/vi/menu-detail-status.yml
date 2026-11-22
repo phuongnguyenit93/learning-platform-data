@@ -1,0 +1,2458 @@
+menu:
+- slug: operations-overview
+  title: Tổng quan vận hành
+  childs:
+  - slug: operations-overview-001
+    title: Database Operations là gì và mục tiêu giữ hệ thống dữ liệu ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-002
+    title: Vòng đời cơ sở dữ liệu từ triển khai đến ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-003
+    title: 'Thành phần cần vận hành: tiến trình, bộ nhớ, lưu trữ, mạng và bản sao'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-004
+    title: Phân chia trách nhiệm giữa quản trị cơ sở dữ liệu, phát triển và vận hành hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-005
+    title: Phân biệt tính sẵn sàng, độ bền dữ liệu, tính toàn vẹn và hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-006
+    title: Tài sản dữ liệu, mức độ quan trọng và phạm vi ảnh hưởng khi xảy ra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-007
+    title: Cam kết dịch vụ (SLA), mục tiêu dịch vụ (SLO) và chỉ số dịch vụ (SLI)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-overview-008
+    title: Tài liệu kiến trúc, danh mục hệ thống và sổ tay quy trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-environments
+  title: Môi trường vận hành
+  childs:
+  - slug: operating-environments-001
+    title: Tách biệt môi trường phát triển, kiểm thử, tiền sản xuất và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-002
+    title: Lựa chọn tự quản lý hay dịch vụ cơ sở dữ liệu được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-003
+    title: Triển khai trên máy vật lý, máy ảo, container và nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-004
+    title: Lựa chọn hệ quản trị, phiên bản được hỗ trợ và thời hạn hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-005
+    title: Ước lượng tải ban đầu, cấu hình tài nguyên và dư địa dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-006
+    title: Quy hoạch tên hệ thống, địa chỉ kết nối, vùng mạng và khu vực triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-007
+    title: Đồng bộ thời gian, múi giờ, bảng mã và quy tắc so sánh chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-environments-008
+    title: Chuẩn hóa cấu hình môi trường và phát hiện khác biệt ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-deployment
+  title: Triển khai hệ thống
+  childs:
+  - slug: system-deployment-001
+    title: Kiểm tra điều kiện hệ điều hành, tài nguyên và quyền trước khi cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-002
+    title: Cài đặt gói phần mềm hoặc ảnh container từ nguồn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-003
+    title: Khởi tạo cụm, thư mục dữ liệu và cơ sở dữ liệu ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-004
+    title: Thiết lập tài khoản dịch vụ và quyền tối thiểu trên hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-005
+    title: Quản lý dịch vụ và chính sách khởi động lại sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-006
+    title: Khởi động, dừng và khởi động lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-007
+    title: Phân biệt kiểm tra tiến trình sống, khả năng sẵn sàng và truy vấn kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-008
+    title: Bảo toàn dữ liệu qua vòng đời container và thay thế máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-deployment-009
+    title: Nghiệm thu triển khai, bàn giao cấu hình và thiết lập đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-management
+  title: Quản lý cấu hình
+  childs:
+  - slug: configuration-management-001
+    title: Phân loại cấu hình theo phạm vi toàn hệ thống, cơ sở dữ liệu và phiên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-002
+    title: Thứ tự ưu tiên giữa tệp cấu hình, tham số khởi động và cấu hình động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-003
+    title: Phân biệt thay đổi có hiệu lực ngay, cần nạp lại và cần khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-004
+    title: Phân bổ bộ nhớ cho bộ đệm, truy vấn và các tiến trình nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-005
+    title: Thiết lập giới hạn kết nối, tiến trình và tài nguyên truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-006
+    title: Cấu hình ghi nhật ký giao dịch, đồng bộ dữ liệu và đánh đổi độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-007
+    title: Quản lý cấu hình bằng phiên bản, lịch sử thay đổi và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-008
+    title: Kiểm chứng cấu hình hiệu lực và hoàn tác thay đổi gây suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-storage
+  title: Lưu trữ dữ liệu
+  childs:
+  - slug: data-storage-001
+    title: Tổ chức tệp dữ liệu, nhật ký giao dịch, tệp tạm và kho sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-002
+    title: Lựa chọn loại đĩa theo độ trễ, IOPS, thông lượng và độ bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-003
+    title: Bố trí vùng lưu trữ, điểm gắn kết và dung lượng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-004
+    title: Hệ thống tệp, quyền truy cập, hạn ngạch và giới hạn số tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-005
+    title: Giám sát dung lượng trống, inode và tốc độ tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-006
+    title: Ảnh chụp lưu trữ (snapshot) và điều kiện nhất quán của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-007
+    title: Giới hạn của RAID và bản sao đối với việc thay thế sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-008
+    title: Di chuyển hoặc mở rộng vùng lưu trữ mà vẫn bảo toàn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-storage-009
+    title: Phát hiện lỗi đọc ghi, hỏng tệp và nguy cơ mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-connections
+  title: Mạng và kết nối
+  childs:
+  - slug: networking-connections-001
+    title: Luồng kết nối từ ứng dụng qua mạng đến dịch vụ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-002
+    title: Cấu hình địa chỉ lắng nghe, cổng, DNS và điểm truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-003
+    title: Phân đoạn mạng, tường lửa và danh sách nguồn được phép kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-004
+    title: Mã hóa đường truyền TLS và kiểm tra danh tính máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-005
+    title: Quản lý chứng chỉ, thời hạn và thay mới chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-006
+    title: Thiết lập thời gian chờ kết nối, truy vấn, giao dịch và phiên nhàn rỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-007
+    title: Giới hạn kết nối đồng thời và phòng ngừa kết nối tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-connections-008
+    title: Chẩn đoán lỗi DNS, bắt tay TLS, ngắt kết nối và mạng chập chờn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Quản lý nhóm kết nối (connection pool) theo ngân sách kết nối toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Kiểm tra kết nối còn sống, tái sử dụng kết nối và xử lý kết nối lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Thiết lập thời gian chờ theo toàn bộ đường đi của một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Thử lại có giới hạn, giãn nhịp và tránh khuếch đại tải khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Tính lặp an toàn của thao tác ghi khi ứng dụng phải thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Giới hạn thời gian giao dịch và tránh giữ giao dịch khi chờ dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Điều phối khởi động ứng dụng để tránh đồng loạt mở kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Xử lý đổi điểm truy cập và kết nối lại sau chuyển đổi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Đối chiếu phiên bản trình điều khiển, giao thức và khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accounts-permissions
+  title: Tài khoản và quyền
+  childs:
+  - slug: accounts-permissions-001
+    title: Phân biệt danh tính người dùng, tài khoản dịch vụ và vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-002
+    title: Cấp quyền tối thiểu theo cơ sở dữ liệu, lược đồ và đối tượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-003
+    title: Tách tài khoản ứng dụng, quản trị, sao lưu và giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-004
+    title: Quy trình cấp, thay đổi, thu hồi và rà soát quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-005
+    title: Quản lý mật khẩu và thông tin xác thực trong kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-006
+    title: Luân chuyển thông tin xác thực mà hạn chế gián đoạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-007
+    title: Kiểm soát phiên quản trị đặc quyền và truy cập khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-permissions-008
+    title: Phát hiện tài khoản không sử dụng, quyền thừa và tài khoản dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Nhận diện dữ liệu nhạy cảm và xác định yêu cầu bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Mã hóa dữ liệu lưu trữ, bản sao lưu và dữ liệu truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Quản lý vòng đời khóa mã hóa và khả năng khôi phục khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Giảm bề mặt tấn công từ dịch vụ, tiện ích và phần mở rộng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Bảo vệ nhật ký, tệp xuất và bản sao dữ liệu ngoài môi trường sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Che dữ liệu hoặc tạo dữ liệu giả phục vụ phát triển và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Theo dõi lỗ hổng, ưu tiên bản vá và kiểm chứng sau cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Nhật ký kiểm toán và truy vết hành động truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Phát hiện truy cập bất thường và phối hợp xử lý sự cố bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Xây dựng đường cơ sở và xác định nguồn thu thập chỉ số vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Theo dõi độ trễ, lưu lượng, tỷ lệ lỗi và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Giám sát CPU, bộ nhớ, đĩa, mạng và giới hạn của môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Giám sát kết nối, phiên hoạt động, hàng chờ và giao dịch kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Theo dõi khóa chờ, truy vấn chậm và tình trạng nhật ký giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Thu thập nhật ký máy chủ, nhật ký lỗi và thông báo khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Liên kết chỉ số, nhật ký và dấu vết yêu cầu giữa ứng dụng với cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Thiết kế bảng theo dõi theo dịch vụ, cụm, máy chủ và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Kiểm soát chi phí lưu trữ, thời gian giữ và dữ liệu nhạy cảm trong hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerting-on-call
+  title: Cảnh báo và trực ca
+  childs:
+  - slug: alerting-on-call-001
+    title: Chuyển mục tiêu dịch vụ thành điều kiện cảnh báo có thể hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-002
+    title: Ưu tiên cảnh báo theo ảnh hưởng người dùng và mức độ khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-003
+    title: Thiết lập ngưỡng, khoảng quan sát, xu hướng và độ trễ cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-004
+    title: Cảnh báo thiếu dung lượng, mất kết nối, lỗi sao lưu và bản sao chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-005
+    title: Phân biệt cảnh báo nguyên nhân, triệu chứng và kiểm tra trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-006
+    title: Giảm cảnh báo trùng lặp, dao động và không dẫn đến hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-007
+    title: Tổ chức lịch trực, bàn giao ca và đường chuyển cấp xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-on-call-008
+    title: Gắn cảnh báo với quy trình xử lý và kiểm thử toàn bộ đường gửi cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-backup
+  title: Sao lưu dữ liệu
+  childs:
+  - slug: data-backup-001
+    title: Xác định mục tiêu điểm khôi phục (RPO) và thời gian khôi phục (RTO)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-002
+    title: Phân biệt sao lưu logic, sao lưu vật lý và ảnh chụp lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-003
+    title: Lựa chọn sao lưu toàn bộ, tăng dần và vi sai theo khả năng hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-004
+    title: Sao lưu khi hệ thống hoạt động và điều kiện tạo bản sao nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-005
+    title: Lưu trữ nhật ký giao dịch để hỗ trợ khôi phục đến thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-006
+    title: Thiết kế lịch sao lưu, thời hạn giữ và chuỗi bản sao cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-007
+    title: Tách vị trí sao lưu khỏi hệ thống nguồn và hạn chế quyền xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-008
+    title: Mã hóa, kiểm tra tính toàn vẹn và lập danh mục bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-009
+    title: Đánh giá ảnh hưởng của sao lưu đến tải sản xuất và băng thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-backup-010
+    title: Giám sát công việc sao lưu, phát hiện thiếu bản sao và quản lý bản hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-recovery
+  title: Khôi phục dữ liệu
+  childs:
+  - slug: data-recovery-001
+    title: Xây dựng kế hoạch khôi phục và lựa chọn điểm khôi phục phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-002
+    title: Chuẩn bị môi trường đích, phiên bản hệ quản trị và khóa giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-003
+    title: Khôi phục từ bản sao logic, vật lý và ảnh chụp nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-004
+    title: Phục hồi chuỗi bản sao và nhật ký giao dịch theo đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-005
+    title: Khôi phục đến thời điểm trước thao tác xóa nhầm hoặc ghi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-006
+    title: Khôi phục một phần dữ liệu và nhận diện giới hạn của từng phương pháp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-007
+    title: Đối chiếu cấu trúc, số liệu và tính toàn vẹn sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-008
+    title: Kiểm chứng bằng nghiệp vụ và ứng dụng trước khi mở lại lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-009
+    title: Diễn tập khôi phục và đo RPO, RTO thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-recovery-010
+    title: Xử lý bản sao hỏng, thiếu nhật ký hoặc không thể giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: high-availability
+  title: Sẵn sàng cao
+  childs:
+  - slug: high-availability-001
+    title: Nhận diện điểm lỗi đơn và miền sự cố của kiến trúc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-002
+    title: Lựa chọn kiến trúc dự phòng theo yêu cầu sẵn sàng và nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-003
+    title: Vai trò của bầu chọn, số phiếu và cơ chế đồng thuận khi hệ quản trị hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-004
+    title: Chuyển đổi dự phòng thủ công và tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-005
+    title: Ngăn hai nút cùng nhận ghi bằng cơ chế cách ly nút lỗi (fencing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-006
+    title: Cập nhật điểm truy cập, nhóm kết nối và định tuyến sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-007
+    title: Đánh giá mất dữ liệu có thể xảy ra và điều kiện được phép chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-008
+    title: Đưa nút cũ trở lại cụm và chuyển trả vai trò có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-009
+    title: Diễn tập hỏng nút, mất mạng và lỗi miền triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replica-operations
+  title: Vận hành bản sao
+  childs:
+  - slug: replica-operations-001
+    title: Thiết lập bản sao và tạo dữ liệu ban đầu một cách nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-002
+    title: Giám sát trạng thái, độ trễ và mức chênh lệch dữ liệu giữa các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-003
+    title: Định tuyến đọc và xử lý tình huống ứng dụng cần đọc dữ liệu vừa ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-004
+    title: Quản lý thời gian giữ nhật ký để bản sao có thể theo kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-005
+    title: Ảnh hưởng của truy vấn dài và tác vụ bảo trì trên nút bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-006
+    title: Thêm, loại bỏ và thay thế nút trong cấu hình sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-007
+    title: Chẩn đoán đứt chuỗi sao chép, sai lệch dữ liệu và bản sao dừng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-008
+    title: Tái đồng bộ hoặc dựng lại bản sao mà hạn chế ảnh hưởng hệ thống chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replica-operations-009
+    title: 'Vận hành cụm phân mảnh: theo dõi phân bố tải và di chuyển phân mảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-maintenance
+  title: Bảo trì dữ liệu
+  childs:
+  - slug: data-maintenance-001
+    title: Lập lịch bảo trì theo tải sử dụng và yêu cầu sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-002
+    title: Cập nhật thống kê để hỗ trợ bộ tối ưu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-003
+    title: Bảo trì chỉ mục và đánh giá ảnh hưởng của thao tác xây dựng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-004
+    title: Thu hồi không gian, xử lý dữ liệu chết và phân mảnh theo cơ chế hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-005
+    title: Kiểm tra tính toàn vẹn dữ liệu và phát hiện hỏng cấu trúc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-006
+    title: Quản lý bảng phân vùng, vòng đời phân vùng và thao tác loại bỏ dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-007
+    title: Lưu trữ dài hạn, xóa theo lô và thực hiện chính sách thời hạn giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-008
+    title: Theo dõi tác vụ nền, điểm kiểm tra và quá trình hợp nhất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-009
+    title: Kiểm soát khóa, nhật ký và dung lượng phát sinh từ công việc bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-diagnostics
+  title: Chẩn đoán hiệu năng
+  childs:
+  - slug: performance-diagnostics-001
+    title: Khoanh vùng suy giảm từ ứng dụng, mạng, hệ điều hành hay hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-002
+    title: Phân biệt hệ thống thiếu tài nguyên với hệ thống bị chặn bởi chờ đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-003
+    title: Phân tích truy vấn chậm bằng số liệu thực tế và kế hoạch thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-004
+    title: Nhận diện thay đổi kế hoạch thực thi và thống kê không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-005
+    title: Phát hiện giao dịch kéo dài, chuỗi khóa chờ và bế tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-006
+    title: Phân tích áp lực bộ nhớ, tệp tạm và thao tác tràn ra đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-007
+    title: Đánh giá độ trễ ghi nhật ký, đồng bộ đĩa và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-008
+    title: Ưu tiên giới hạn tải, hủy truy vấn hoặc kết thúc phiên theo mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-diagnostics-009
+    title: Kiểm chứng giả thuyết bằng một thay đổi có kiểm soát và đo lại kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-cost
+  title: Dung lượng và chi phí
+  childs:
+  - slug: capacity-cost-001
+    title: Dự báo tăng trưởng theo dữ liệu, chỉ mục, nhật ký, tệp tạm và bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-002
+    title: Ước lượng giới hạn an toàn về kết nối, CPU, bộ nhớ và đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-003
+    title: Phân tích tải bình thường, giờ cao điểm và đợt tăng tải bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-004
+    title: Kiểm thử tải với dữ liệu và hành vi sử dụng đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-005
+    title: Mở rộng tài nguyên máy chủ và đánh giá giới hạn mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-006
+    title: Mở rộng số nút và chi phí sao chép, phân phối hoặc tái cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-007
+    title: Tính chi phí tổng của tài nguyên, giấy phép, sao lưu và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-008
+    title: Tối ưu tài nguyên theo số liệu mà vẫn giữ dư địa phục hồi sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-009
+    title: Thiết lập ngân sách, hạn ngạch và cảnh báo chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-changes
+  title: Thay đổi an toàn
+  childs:
+  - slug: safe-changes-001
+    title: Phân loại thay đổi theo rủi ro, phạm vi ảnh hưởng và khả năng hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-002
+    title: Chuẩn bị điều kiện thực hiện, người phụ trách và tiêu chí dừng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-003
+    title: Kiểm thử thay đổi trong môi trường gần với sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-004
+    title: Đánh giá khóa, thời gian chạy và dung lượng của thay đổi lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-005
+    title: Phối hợp triển khai ứng dụng với thay đổi dữ liệu tương thích ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-006
+    title: Áp dụng thay đổi từng giai đoạn và giới hạn phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-007
+    title: Chuẩn bị phương án hoàn tác cấu hình, ứng dụng và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-008
+    title: Phân biệt hoàn tác thay đổi với khôi phục dữ liệu đã mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-changes-009
+    title: Kiểm tra sau thay đổi và ghi nhận cấu hình, phiên bản thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migration
+  title: Di chuyển dữ liệu
+  childs:
+  - slug: data-migration-001
+    title: Lựa chọn phương án di chuyển theo dung lượng và thời gian gián đoạn cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-002
+    title: Kiểm kê dữ liệu, đối tượng, tài khoản, phần mở rộng và phụ thuộc cần di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-003
+    title: Kiểm tra tương thích bảng mã, kiểu dữ liệu, múi giờ và quy tắc so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-004
+    title: Xuất nhập dữ liệu, sao chép vật lý và đồng bộ thay đổi liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-005
+    title: Thực hiện nạp dữ liệu ban đầu và theo kịp thay đổi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-006
+    title: Đối chiếu tính đầy đủ, tính chính xác và tính toàn vẹn dữ liệu đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-007
+    title: Chốt thời điểm dừng ghi và chuyển lưu lượng sang hệ thống mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-008
+    title: Thiết kế thời hạn quay lui và xử lý dữ liệu phát sinh sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migration-009
+    title: Theo dõi hệ thống mới và thu hồi tài nguyên nguồn sau nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-patching
+  title: Nâng cấp và vá lỗi
+  childs:
+  - slug: upgrades-patching-001
+    title: Phân biệt nâng cấp bản vá, phiên bản nhỏ và phiên bản lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-002
+    title: Đọc thay đổi không tương thích và xác định yêu cầu nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-003
+    title: Kiểm tra trình điều khiển, phần mở rộng và công cụ quản trị liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-004
+    title: Diễn tập nâng cấp trên bản sao dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-005
+    title: Lựa chọn nâng cấp tại chỗ, dựng cụm mới hoặc nâng cấp lần lượt khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-006
+    title: Tính đến thời gian sao lưu, chuyển đổi định dạng và xây dựng lại đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-007
+    title: Thiết lập điểm kiểm tra, tiêu chí dừng và phương án quay lại phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-patching-008
+    title: Kiểm chứng hiệu năng, dữ liệu và chức năng sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-automation
+  title: Tự động hóa vận hành
+  childs:
+  - slug: operations-automation-001
+    title: Quản lý hạ tầng và cấu hình dưới dạng mã có kiểm soát phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-002
+    title: Thiết kế tác vụ lặp an toàn và kiểm tra điều kiện trước khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-003
+    title: Tự động hóa triển khai, sao lưu, kiểm tra khôi phục và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-004
+    title: Lập lịch, giới hạn đồng thời và ngăn hai tác vụ chạy chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-005
+    title: Thiết lập thời gian chờ, hủy tác vụ và thử lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-006
+    title: Quản lý quyền và thông tin xác thực của tài khoản tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-007
+    title: Ghi nhật ký thực thi, mã kết quả và bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-008
+    title: Chạy thử, phê duyệt theo rủi ro và triển khai thay đổi tự động từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-009
+    title: Phát hiện cấu hình lệch chuẩn và xử lý lỗi giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: Xác định mức độ nghiêm trọng từ ảnh hưởng đến người dùng và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: Tiếp nhận cảnh báo, chỉ định người điều phối và thiết lập kênh xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: Thu thập bằng chứng, dòng thời gian và thay đổi gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: Ưu tiên giảm ảnh hưởng, bảo toàn dữ liệu và ngăn sự cố lan rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: Quyết định giới hạn tải, chuyển đổi dự phòng, dừng ghi hoặc khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: Cập nhật tình trạng cho các bên liên quan theo trách nhiệm được phân công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: Xác minh dịch vụ phục hồi và giám sát sau khi kết thúc sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: Phân tích nguyên nhân gốc và các yếu tố góp phần gây sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-009
+    title: Theo dõi hành động phòng ngừa và cập nhật quy trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-scenarios
+  title: Kịch bản sự cố
+  childs:
+  - slug: incident-scenarios-001
+    title: Hệ quản trị không khởi động hoặc liên tục khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-002
+    title: Ứng dụng không kết nối được hoặc cạn số kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-003
+    title: Đĩa đầy, hết inode hoặc nhật ký giao dịch tăng không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-004
+    title: CPU tăng cao, bộ nhớ cạn hoặc tiến trình bị hệ điều hành kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-005
+    title: Giao dịch treo, khóa chờ kéo dài và bế tắc lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-006
+    title: Truy vấn chậm đột ngột sau thay đổi dữ liệu, cấu hình hoặc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-007
+    title: Bản sao mất kết nối, tụt lại quá xa hoặc không còn đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-008
+    title: Xóa nhầm dữ liệu, cập nhật sai hàng loạt hoặc thay đổi lược đồ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-009
+    title: Bản sao lưu thất bại, không khôi phục được hoặc dữ liệu bị hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-scenarios-010
+    title: Chứng chỉ hết hạn, thông tin xác thực lỗi hoặc tài khoản bị khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disaster-recovery
+  title: Khôi phục thảm họa
+  childs:
+  - slug: disaster-recovery-001
+    title: Xác định kịch bản mất máy chủ, mất cụm, mất khu vực và mất nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-002
+    title: Thiết kế vị trí dự phòng theo RPO, RTO và các phụ thuộc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-003
+    title: Lựa chọn dự phòng nguội, dự phòng ấm hoặc dự phòng nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-004
+    title: Bảo vệ bản sao lưu trước lỗi diện rộng, thao tác xóa và mã độc tống tiền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-005
+    title: Khôi phục hạ tầng, mạng, danh tính, khóa và cơ sở dữ liệu theo đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-006
+    title: Chuyển hướng ứng dụng và kiểm chứng hoạt động nghiệp vụ tại nơi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-007
+    title: Phòng ngừa ghi đồng thời và dữ liệu phân kỳ khi hệ thống chính trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-008
+    title: Quay về môi trường chính và đối soát dữ liệu sau thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-009
+    title: Diễn tập định kỳ, đo thời gian thực tế và cập nhật kế hoạch liên tục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-services
+  title: Dịch vụ đám mây
+  childs:
+  - slug: cloud-services-001
+    title: Phân chia trách nhiệm giữa nhà cung cấp và đơn vị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-002
+    title: Cấu hình kết nối riêng, danh tính và quyền truy cập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-003
+    title: Quản lý nhóm cấu hình, cửa sổ bảo trì và cập nhật tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-004
+    title: Kiểm chứng sao lưu tự động, khôi phục đến thời điểm và giới hạn giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-005
+    title: Đánh giá chế độ nhiều vùng sẵn sàng và bản sao khác khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-006
+    title: Theo dõi hạn ngạch, giới hạn lưu trữ và điều kiện mở rộng tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-007
+    title: Giám sát sự kiện nhà cung cấp và chuẩn bị dữ liệu khi yêu cầu hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-008
+    title: Kiểm soát chi phí tài nguyên, I/O, sao lưu và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-services-009
+    title: Chuẩn bị xuất dữ liệu và phương án rời dịch vụ khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-specifics
+  title: Đặc thù hệ quản trị
+  childs:
+  - slug: database-specifics-001
+    title: Ánh xạ quy trình chung sang công cụ, chỉ số và giới hạn của từng hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-002
+    title: 'PostgreSQL: vận hành WAL, VACUUM, thống kê và vị trí sao chép'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-003
+    title: 'MySQL: vận hành InnoDB, redo log, binary log và sao chép'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-004
+    title: 'SQL Server: mô hình phục hồi, nhật ký giao dịch và tác vụ bảo trì'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-005
+    title: 'Cơ sở dữ liệu tài liệu: vận hành tập bản sao, chỉ mục và phân mảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-006
+    title: 'Hệ khóa–giá trị: giới hạn bộ nhớ, loại bỏ dữ liệu và cơ chế lưu bền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-007
+    title: 'Hệ phân tán dùng LSM-tree: hợp nhất dữ liệu, sửa chữa bản sao và dung lượng tạm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-specifics-008
+    title: Xác minh lệnh vận hành theo phiên bản và tránh áp dụng máy móc giữa các hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-governance
+  title: Quản trị dữ liệu
+  childs:
+  - slug: data-governance-001
+    title: Gắn quyền sở hữu, mức độ quan trọng và thời hạn giữ cho tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-002
+    title: Kiểm kê vị trí dữ liệu chính, bản sao, tệp xuất và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-003
+    title: Quản lý yêu cầu lưu giữ, hạn chế truy cập và xóa dữ liệu theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-004
+    title: Xử lý yêu cầu xóa khi dữ liệu còn tồn tại trong bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-005
+    title: Lưu giữ bằng chứng kiểm toán về truy cập, thay đổi và thao tác vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-006
+    title: Rà soát quyền, cấu hình bảo mật, sao lưu và khả năng khôi phục định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-007
+    title: Kiểm soát tính toàn vẹn dữ liệu và quy trình xử lý sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-governance-008
+    title: Quản lý ngoại lệ, rủi ro còn lại và kế hoạch khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decommissioning
+  title: Ngừng vận hành
+  childs:
+  - slug: decommissioning-001
+    title: Kiểm kê ứng dụng, công việc nền và người dùng còn phụ thuộc hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-002
+    title: Xác nhận điều kiện chấm dứt dịch vụ và yêu cầu giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-003
+    title: Chuyển dữ liệu cần giữ và kiểm thử khả năng đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-004
+    title: Dừng ghi, chặn kết nối mới và xác minh không còn lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-005
+    title: Thu hồi tài khoản, thông tin xác thực, chứng chỉ và quyền mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-006
+    title: Xóa dữ liệu, khóa mã hóa và bản sao theo chính sách được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-007
+    title: Thu hồi máy chủ, lưu trữ, dịch vụ đám mây và tài nguyên quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decommissioning-008
+    title: Cập nhật danh mục hệ thống, tài liệu và bằng chứng hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-practice
+  title: Thực hành vận hành
+  childs:
+  - slug: operations-practice-001
+    title: Dựng môi trường thử nghiệm và ghi lại đường cơ sở của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-002
+    title: Thiết lập quyền tối thiểu, kết nối mã hóa và luân chuyển thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-003
+    title: Xây dựng bảng theo dõi và kiểm thử cảnh báo từ đầu đến cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-004
+    title: Sao lưu, khôi phục đến thời điểm và đối chiếu dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-005
+    title: Tạo lỗi kết nối, cạn dung lượng và khóa chờ trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-006
+    title: Diễn tập chuyển đổi dự phòng và kiểm tra ứng dụng kết nối trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-007
+    title: Thực hiện một thay đổi cấu hình hoặc nâng cấp có phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-008
+    title: Viết báo cáo sự cố dựa trên bằng chứng và bổ sung quy trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-practice-009
+    title: Nghiệm thu khả năng vận hành bằng số liệu RPO, RTO và mục tiêu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

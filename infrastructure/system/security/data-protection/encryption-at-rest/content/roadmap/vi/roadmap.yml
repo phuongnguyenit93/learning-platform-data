@@ -1,0 +1,57 @@
+roadmap:
+- id: du-lieu-threat-model
+  title: Dữ liệu & Threat Model
+  purpose: Xác định dữ liệu cần bảo vệ, đối thủ và giới hạn thực tế của mã hóa khi lưu trữ.
+  objectives:
+  - Liệt kê dữ liệu nhạy cảm tại DB, file và backup
+  - Phân biệt at rest, in transit và in use
+  - Nêu rủi ro mà mã hóa đĩa không ngăn được
+- id: lop-ma-hoa
+  title: Lớp Mã hóa
+  purpose: Lựa chọn mức mã hóa phù hợp với kiến trúc và yêu cầu truy cập dữ liệu.
+  objectives:
+  - So sánh full-disk, database và field-level encryption
+  - Chọn lớp mã hóa cho ba tình huống lưu trữ
+  - Phân biệt encryption với hashing mật khẩu
+- id: aes-gcm-toan-ven
+  title: AES-GCM & Toàn vẹn
+  purpose: Dùng thuật toán mã hóa có xác thực để bảo vệ cả bí mật và tính toàn vẹn dữ liệu.
+  objectives:
+  - Giải thích ciphertext, nonce, tag và AAD
+  - Thử AES-GCM với nonce duy nhất theo khóa
+  - Kiểm tra phát hiện ciphertext bị sửa
+- id: kms-envelope-encryption
+  title: KMS & Envelope Encryption
+  purpose: Tách khóa mã hóa dữ liệu khỏi khóa bảo vệ khóa và hạn chế lộ bí mật ứng dụng.
+  objectives:
+  - Phân biệt DEK với KEK
+  - Mô tả quy trình wrap và unwrap DEK qua KMS
+  - Thiết lập quyền sử dụng khóa theo least privilege
+- id: db-object-backup
+  title: DB, Object & Backup
+  purpose: Bảo đảm dữ liệu nhạy cảm được bảo vệ xuyên suốt các nơi lưu trữ và bản sao.
+  objectives:
+  - Kiểm tra cấu hình mã hóa DB hoặc object storage
+  - Xác minh snapshots, backup và export có mã hóa
+  - Rà soát dữ liệu rõ trong log và file tạm
+- id: vong-doi-khoa
+  title: Vòng đời Khóa
+  purpose: Duy trì khả năng giải mã hợp lệ trong khi xoay, thu hồi và loại bỏ khóa có kiểm soát.
+  objectives:
+  - Lập kế hoạch tạo, lưu, rotate và hủy khóa
+  - Xác định dữ liệu dùng key version cũ
+  - Thử khôi phục dữ liệu khi khóa được phép truy cập
+- id: tich-hop-java-cloud
+  title: Tích hợp Java & Cloud
+  purpose: Triển khai mã hóa qua API đáng tin cậy và cấu hình lưu trữ cloud đúng phạm vi.
+  objectives:
+  - Dùng Java Cipher AES/GCM/NoPadding trong lab
+  - So sánh provider-managed và customer-managed keys
+  - Tránh hard-code hoặc log khóa và plaintext
+- id: kiem-chung-khoi-phuc
+  title: Kiểm chứng & Khôi phục
+  purpose: Kiểm tra khả năng chống lỗi, kiểm toán và phục hồi trước khi vận hành thực tế.
+  objectives:
+  - Test round-trip, sai khóa và tag không hợp lệ
+  - Diễn tập restore dữ liệu cùng quyền dùng khóa
+  - Kiểm tra audit log và các giới hạn bảo vệ

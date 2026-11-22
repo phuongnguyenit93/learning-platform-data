@@ -1,0 +1,2161 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Lưu giữ dữ liệu (retention) là gì trong hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao dữ liệu quan sát cần thời hạn lưu giữ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các thành phần: dữ liệu, chính sách, đồng hồ, nơi lưu và tác vụ hết hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt thời hạn lưu giữ với thời gian còn truy vấn được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt retention với sao lưu, lưu trữ dài hạn và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Quan hệ giữa lưu giữ, giảm thiểu thu thập và bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Cân bằng giá trị chẩn đoán, dung lượng và rủi ro giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình từ nhu cầu sử dụng đến kiểm chứng dữ liệu đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: usage-requirements
+  title: Nhu cầu sử dụng
+  childs:
+  - slug: usage-requirements-001
+    title: Xác định khoảng thời gian cần tra cứu khi xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-002
+    title: Tính đến độ trễ phát hiện sự cố và thời gian điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-003
+    title: Phục vụ so sánh theo chu kỳ, mùa vụ và thay đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-004
+    title: Phân biệt nhu cầu vận hành, phân tích xu hướng và kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-005
+    title: Xác định yêu cầu lưu tối thiểu và giới hạn lưu tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-006
+    title: Chuyển yêu cầu hợp đồng hoặc tổ chức thành đầu vào đã được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-007
+    title: Xác định độ phân giải, tốc độ truy xuất và mức đầy đủ cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-requirements-008
+    title: Ghi rõ chủ sở hữu, mục đích sử dụng và tiêu chí đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: telemetry-inventory
+  title: Danh mục dữ liệu
+  childs:
+  - slug: telemetry-inventory-001
+    title: Lập bản đồ nhật ký (logs), chỉ số (metrics), truy vết (traces) và hồ sơ hiệu năng (profiles)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-002
+    title: Phân biệt dữ liệu gốc, dữ liệu tổng hợp và dữ liệu suy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-003
+    title: Kiểm kê dữ liệu trong ứng dụng, agent, collector và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-004
+    title: Kiểm kê bản sao tại vùng, cụm, tài khoản và nhà cung cấp khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-005
+    title: Nhận diện dữ liệu trong chỉ mục, bộ nhớ đệm và tệp tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-006
+    title: Kiểm kê snapshot, bản sao lưu, bản xuất và dữ liệu phục vụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-007
+    title: Phân nhóm theo dịch vụ, môi trường, tenant và mức nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-008
+    title: Lập quan hệ phụ thuộc giữa dữ liệu và các bảng điều khiển hoặc cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-policy-design
+  title: Thiết kế chính sách
+  childs:
+  - slug: retention-policy-design-001
+    title: Xây dựng ma trận thời hạn theo loại dữ liệu và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-002
+    title: Chọn thời hạn riêng cho môi trường phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-003
+    title: Thiết kế giá trị mặc định cho dịch vụ và tenant mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-004
+    title: Xác định phạm vi áp dụng theo nhãn, luồng, chỉ mục hoặc kho lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-005
+    title: Quy định thứ tự ưu tiên khi nhiều chính sách cùng khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-006
+    title: Phân biệt hết hạn theo tuổi dữ liệu với loại bỏ khi vượt dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-007
+    title: Đánh giá ý nghĩa của giá trị 0, bỏ trống và vô thời hạn theo từng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-008
+    title: Quy định độ trễ xóa cho phép sau mốc hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-009
+    title: Xử lý dữ liệu thiếu nhãn, chưa phân loại hoặc không có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-policy-design-010
+    title: Gắn phiên bản, ngày hiệu lực và trách nhiệm phê duyệt chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-time-origin
+  title: Mốc tính thời hạn
+  childs:
+  - slug: retention-time-origin-001
+    title: Phân biệt thời điểm sự kiện, thu nhận, ghi lưu và tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-002
+    title: Xác định mốc bắt đầu thời hạn của bản ghi, phân vùng và khối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-003
+    title: Xử lý UTC, múi giờ, đơn vị thời gian và phép làm tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-004
+    title: Ảnh hưởng của lệch đồng hồ và dấu thời gian ở tương lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-005
+    title: Xử lý dữ liệu đến muộn, sai thứ tự và gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-006
+    title: Xử lý nhập bù dữ liệu lịch sử mà không tự đặt lại tuổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-007
+    title: Đánh giá mốc thời gian khi rollover, compaction và sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-008
+    title: Phân biệt thời điểm đủ điều kiện xóa với thời điểm xóa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-time-origin-009
+    title: Giữ nguồn gốc thời gian khi phục hồi hoặc chuyển hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-lifecycle-and-tiers
+  title: Vòng đời và phân tầng
+  childs:
+  - slug: data-lifecycle-and-tiers-001
+    title: Mô hình dữ liệu đang ghi, truy vấn thường xuyên, lưu lạnh và hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-002
+    title: Thiết kế tầng nóng, ấm, lạnh theo nhu cầu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-003
+    title: Phân biệt chuyển tầng lưu trữ với giảm thời hạn lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-004
+    title: Phân biệt dữ liệu còn tồn tại với dữ liệu có thể tìm kiếm trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-005
+    title: Chọn định dạng và mức nén cho từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-006
+    title: Đánh giá thời gian phục hồi và chi phí truy xuất từ kho lưu dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-007
+    title: Thiết kế dữ liệu tổng hợp có thời hạn khác với dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-008
+    title: Giữ metadata cần thiết để đọc và diễn giải dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-and-tiers-009
+    title: Xác định điều kiện kết thúc vòng đời của từng bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logs
+  title: Nhật ký
+  childs:
+  - slug: logs-001
+    title: Chọn thời hạn theo mục đích của log ứng dụng, access log và audit log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-002
+    title: Phân biệt giá trị chẩn đoán của nhật ký gỡ lỗi với sự kiện bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-003
+    title: Thiết kế thời hạn theo luồng nhật ký mà không dựa mù quáng vào mức log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-004
+    title: Ảnh hưởng của độ hạt tệp, chunk và chỉ mục đến thời điểm xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-005
+    title: Phân biệt xoay vòng tệp (log rotation) với chính sách xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-006
+    title: Quản lý tệp nén, nhật ký container và bản sao trên máy nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-007
+    title: Giữ ngữ cảnh sự kiện khi một phần nhật ký đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-008
+    title: Kiểm chứng khả năng điều tra trên các khoảng thời gian còn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics
+  title: Chỉ số
+  childs:
+  - slug: metrics-001
+    title: Phân biệt chu kỳ thu thập, độ phân giải và thời hạn lưu metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-002
+    title: Thiết kế thời hạn cho mẫu gốc và chuỗi do recording rule tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-003
+    title: Tổng hợp hoặc giảm độ phân giải (downsampling) tại hệ thống có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-004
+    title: Lựa chọn hàm tổng hợp phù hợp cho counter, gauge và histogram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-005
+    title: Giới hạn khi suy ra phân vị hoặc cực trị từ dữ liệu đã tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-006
+    title: Quan hệ giữa số lượng chuỗi thời gian, cardinality và dung lượng lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-007
+    title: Xử lý khoảng trống dữ liệu trong truy vấn và so sánh lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-008
+    title: Phân biệt retention cục bộ với retention của backend nhận remote write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-009
+    title: Quản lý exemplars và liên kết đến traces có thời hạn khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traces-and-profiles
+  title: Truy vết và hồ sơ
+  childs:
+  - slug: traces-and-profiles-001
+    title: Chọn thời hạn theo nhu cầu điều tra giao dịch và phân tích hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-002
+    title: Phân biệt tỷ lệ lấy mẫu traces với thời hạn lưu traces đã được nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-003
+    title: Ảnh hưởng của span đến muộn và trace chưa đầy đủ khi hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-004
+    title: Xác định độ hạt khối dữ liệu và thời điểm xóa một trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-005
+    title: Phối hợp thời hạn của trace, log và mã định danh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-006
+    title: Tách vòng đời traces khỏi metrics được sinh từ spans
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-007
+    title: Thiết kế thời hạn cho hồ sơ hiệu năng gốc và bản tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-008
+    title: Quản lý ký hiệu gỡ lỗi và metadata cần để đọc hồ sơ lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-and-profiles-009
+    title: Đánh giá rủi ro khi hồ sơ hoặc dữ liệu chẩn đoán chứa thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-and-partitioning
+  title: Lưu trữ và phân vùng
+  childs:
+  - slug: storage-and-partitioning-001
+    title: Thiết kế phân vùng theo thời gian và phạm vi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-002
+    title: Lựa chọn độ hạt bản ghi, tệp, chunk, block và chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-003
+    title: Xử lý đối tượng chứa dữ liệu có nhiều mốc hết hạn khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-004
+    title: Đánh đổi giữa phân vùng nhỏ, số lượng đối tượng và chi phí quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-005
+    title: Quan hệ giữa compaction, tuổi dữ liệu và không gian tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-006
+    title: Giữ nhất quán giữa chỉ mục tra cứu và dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-007
+    title: Xác định vai trò của nhãn, tiền tố đường dẫn và metadata đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-008
+    title: Phân biệt nén dữ liệu với rút ngắn thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-partitioning-009
+    title: Ngăn chính sách kho lưu bên dưới xóa dữ liệu trước backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-and-buffers
+  title: Hàng đợi và bộ đệm
+  childs:
+  - slug: queues-and-buffers-001
+    title: Phân biệt bộ đệm chuyển tiếp với kho lưu telemetry dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-002
+    title: Quản lý dữ liệu trong hàng đợi exporter và tệp đệm trên đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-003
+    title: Xác định thời hạn, dung lượng và hành vi khi hàng đợi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-004
+    title: Xử lý dữ liệu tồn đọng khi backend mất kết nối kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-005
+    title: Kiểm soát dữ liệu gửi lại đã quá tuổi được phép lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-006
+    title: Quản lý hàng đợi thông điệp lỗi và các bản sao phục vụ thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-007
+    title: Xác định ranh giới trách nhiệm của ứng dụng, collector và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-and-buffers-008
+    title: Kiểm chứng dữ liệu trên volume còn sót sau khi dừng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expiration-mechanisms
+  title: Cơ chế hết hạn
+  childs:
+  - slug: expiration-mechanisms-001
+    title: Thiết kế TTL theo khả năng của hệ thống lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-002
+    title: Phân biệt ẩn logic, đánh dấu xóa và xóa dữ liệu vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-003
+    title: Quét định kỳ, hàng đợi xóa và tiến trình dọn dẹp bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-004
+    title: Xóa theo phân vùng hoặc khối so với xóa từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-005
+    title: Điều phối việc gỡ chỉ mục và xóa nội dung để không gây lỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-006
+    title: Thiết kế thao tác xóa lặp lại an toàn và thử lại khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-007
+    title: Kiểm soát tốc độ dọn dẹp, tải nền và độ trễ xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-008
+    title: Xử lý tác vụ bị gián đoạn, khóa điều phối và tiến trình chạy trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-mechanisms-009
+    title: Phân biệt thời điểm đủ điều kiện xóa với hạn chót phải hoàn tất xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deletion-verification
+  title: Xóa và kiểm chứng
+  childs:
+  - slug: deletion-verification-001
+    title: Lập kế hoạch xóa với phạm vi, thời gian và tập dữ liệu xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-002
+    title: Phân biệt xóa do hết hạn với yêu cầu xóa có chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-003
+    title: Kiểm tra dữ liệu ở lớp truy vấn, chỉ mục và kho lưu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-004
+    title: Xác minh các bản sao, phiên bản và bản xuất liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-005
+    title: Giới hạn của kết quả truy vấn rỗng khi chứng minh việc xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-006
+    title: Lưu bằng chứng thực thi mà không giữ lại nội dung cần xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-007
+    title: Phân biệt xóa tại dịch vụ với bảo đảm xóa trên phương tiện lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-verification-008
+    title: Xác định tiêu chí hoàn thành, trường hợp chưa xong và phạm vi chưa thể xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replicas-and-recovery
+  title: Bản sao và khôi phục
+  childs:
+  - slug: replicas-and-recovery-001
+    title: Phân biệt nhân bản để sẵn sàng cao với sao lưu để khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-002
+    title: Thiết kế thời hạn riêng cho snapshot và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-003
+    title: Quản lý bản sao khác vùng, khác tài khoản và khác nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-004
+    title: Xử lý bản sao tăng dần và phụ thuộc giữa các thế hệ sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-005
+    title: Giữ tính nhất quán giữa dữ liệu sao lưu và metadata chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-006
+    title: Ngăn khôi phục làm xuất hiện lại dữ liệu đã hết hạn hoặc đã được yêu cầu xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-007
+    title: Áp dụng lại quy tắc hết hạn theo nguồn gốc dữ liệu sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-008
+    title: Kiểm chứng quy trình phục hồi và phạm vi dữ liệu thực sự còn giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replicas-and-recovery-009
+    title: Quản lý bản xuất thủ công, dữ liệu hỗ trợ và bản sao trên máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-exceptions
+  title: Ngoại lệ lưu giữ
+  childs:
+  - slug: retention-exceptions-001
+    title: Phân biệt gia hạn vận hành với tạm giữ phục vụ điều tra (legal hold)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-002
+    title: Xác định phạm vi dữ liệu, lý do và người có thẩm quyền đặt ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-003
+    title: Thiết kế thời hạn rà soát cho ngoại lệ thay vì mặc định giữ vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-004
+    title: Phối hợp yêu cầu lưu tối thiểu, giới hạn lưu tối đa và lệnh tạm giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-005
+    title: Hiểu vai trò và giới hạn của lưu trữ bất biến (WORM)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-006
+    title: Ngăn tác vụ hết hạn xóa dữ liệu đang được giữ theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-007
+    title: Gỡ ngoại lệ và tính lại điều kiện hết hạn từ mốc đã quy định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-exceptions-008
+    title: Ghi dấu vết phê duyệt, thay đổi và kết thúc ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-and-sensitive-data
+  title: Quyền và dữ liệu nhạy cảm
+  childs:
+  - slug: access-and-sensitive-data-001
+    title: Áp dụng phân loại dữ liệu để lựa chọn thời hạn tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-and-sensitive-data-002
+    title: Phối hợp retention với che dữ liệu và giảm thiểu thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-and-sensitive-data-003
+    title: Phân tách quyền xem dữ liệu, sửa chính sách và thực thi xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-and-sensitive-data-004
+    title: Hạn chế quyền rút ngắn thời hạn hoặc vô hiệu hóa dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-and-sensitive-data-005
+    title: Quản lý khóa mã hóa có vòng đời tương thích với dữ liệu cần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-and-sensitive-data-006
+    title: Đánh giá giới hạn của hủy khóa khi vẫn còn bản sao hoặc khóa khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-and-sensitive-data-007
+    title: Giữ nhật ký quản trị chính sách mà không lưu dữ liệu nhạy cảm không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prometheus
+  title: Prometheus
+  childs:
+  - slug: prometheus-001
+    title: Phạm vi retention của TSDB cục bộ và backend lưu trữ dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-002
+    title: Cấu hình thời hạn theo thời gian và giới hạn dung lượng đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-003
+    title: Xác định điều kiện có hiệu lực khi cùng đặt giới hạn tuổi và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-004
+    title: Hiểu vai trò của Head, WAL và các khối TSDB trong dung lượng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-005
+    title: Ảnh hưởng của ranh giới khối và compaction đến việc xóa dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-006
+    title: Dự trù không gian cho WAL, Head và compaction ngoài giới hạn khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-007
+    title: Phân biệt hết hạn tự động với API xóa chuỗi và dọn tombstone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-008
+    title: Kiểm chứng dữ liệu còn truy vấn được và retention độc lập ở đích remote write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loki
+  title: Loki
+  childs:
+  - slug: loki-001
+    title: Xác minh phiên bản, kiểu chỉ mục và điều kiện hỗ trợ retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-002
+    title: Vai trò của Compactor trong thực thi chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-003
+    title: Thiết kế retention toàn cục, theo tenant và theo stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-004
+    title: Xác định độ ưu tiên của selector và giá trị ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-005
+    title: Phân biệt gỡ tham chiếu chỉ mục với xóa chunk bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-006
+    title: Quản lý bản ghi đánh dấu xóa và trạng thái cần giữ qua khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-007
+    title: Phối hợp retention của Loki với vòng đời kho đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-008
+    title: Phân biệt giới hạn truy vấn lịch sử với dữ liệu thực sự bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-009
+    title: Đánh giá phạm vi tác động của thay đổi chính sách lên dữ liệu đã nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tempo
+  title: Tempo
+  childs:
+  - slug: tempo-001
+    title: Nhận diện kiến trúc và thành phần thực thi retention theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-002
+    title: Thiết kế thời hạn giữ block và giá trị ghi đè theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-003
+    title: Phân biệt giữ block còn hoạt động với giữ block đã được compact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-004
+    title: Ảnh hưởng của cập nhật danh sách block đến khả năng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-005
+    title: Phối hợp metadata, block dữ liệu và chính sách kho đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-006
+    title: Tách thời hạn traces khỏi dữ liệu của metrics-generator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-007
+    title: Kiểm chứng trace hết hạn, span đến muộn và liên kết từ nguồn khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: elasticsearch
+  title: Elasticsearch
+  childs:
+  - slug: elasticsearch-001
+    title: Phân biệt ILM và data stream lifecycle theo mô hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-002
+    title: Gắn chính sách với data stream, index template và chỉ mục phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-003
+    title: Thiết kế rollover theo tuổi, dung lượng và số lượng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-004
+    title: Tính tuổi chuyển pha theo mốc rollover và cấu hình nguồn gốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-005
+    title: Lựa chọn pha hot, warm, cold, frozen và delete theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-006
+    title: Phân biệt chuyển tầng, searchable snapshot và xóa chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-007
+    title: Quản lý vòng đời snapshot riêng với vòng đời chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-008
+    title: Xử lý chính sách bị kẹt do thiếu quyền, lỗi pha hoặc điều kiện chưa đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-009
+    title: Kiểm chứng chính sách áp dụng cho chỉ mục mới và dữ liệu đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-storage
+  title: Kho đối tượng
+  childs:
+  - slug: object-storage-001
+    title: Dùng S3 Lifecycle để phân biệt chuyển lớp lưu trữ và hết hạn đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-002
+    title: Chọn phạm vi bucket, tiền tố, nhãn và nhóm phiên bản cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-003
+    title: Phân biệt xóa phiên bản hiện tại với tạo dấu xóa (delete marker)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-004
+    title: Quản lý vòng đời các phiên bản cũ và dấu xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-005
+    title: Xử lý tương tác giữa Object Lock, legal hold và quy tắc hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-006
+    title: Đánh giá độ trễ thực thi bất đồng bộ sau thời điểm đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-007
+    title: Phối hợp nhân bản, lỗi nhân bản và dọn dẹp ở đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-008
+    title: Kiểm tra inventory, metadata và sự kiện vòng đời để xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-009
+    title: Tránh quy tắc bucket xóa sớm dữ liệu hoặc chỉ mục do backend quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-and-cost
+  title: Dung lượng và chi phí
+  childs:
+  - slug: capacity-and-cost-001
+    title: Ước lượng lượng dữ liệu phát sinh mỗi ngày theo từng tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-002
+    title: Tính dung lượng theo tốc độ ghi, thời hạn và hệ số nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-003
+    title: Bổ sung chi phí chỉ mục, metadata, bản sao và phiên bản đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-004
+    title: Xét dữ liệu tăng đột biến và không gian tạm cho compaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-005
+    title: Mô hình hóa dung lượng cho nhiều tầng và nhiều độ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-006
+    title: Đánh giá chi phí truy vấn, phục hồi, thao tác lưu trữ và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-007
+    title: Tính đến thời gian lưu tối thiểu tính phí của từng lớp lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-008
+    title: So sánh lợi ích khi đổi thời hạn với giảm lượng dữ liệu thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-009
+    title: Xác định ngân sách, hạn mức và mức dự phòng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản lý thay đổi
+  childs:
+  - slug: change-management-001
+    title: Lưu chính sách dưới dạng cấu hình có phiên bản và người sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Kiểm tra cú pháp, đơn vị thời gian và phạm vi đối tượng trong CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Xem trước dữ liệu chịu tác động trước khi rút ngắn thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Phân biệt tác động lên dữ liệu cũ và dữ liệu mới theo từng backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Triển khai thử trên tenant hoặc tập dữ liệu tổng hợp có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Đồng bộ cấu hình giữa backend, kho đối tượng và hệ thống sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Đánh giá giới hạn quay lui khi dữ liệu đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Di chuyển hệ thống mà vẫn giữ tuổi dữ liệu và chính sách tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-009
+    title: Rà soát độ lệch cấu hình, ngoại lệ và chính sách không còn được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-monitoring
+  title: Giám sát vận hành
+  childs:
+  - slug: operations-monitoring-001
+    title: Theo dõi tuổi dữ liệu cũ nhất và phạm vi thời gian còn truy vấn được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-002
+    title: Đo độ trễ từ lúc đủ điều kiện xóa đến lúc xóa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-003
+    title: Theo dõi khối lượng tồn đọng và tốc độ xử lý của tác vụ dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-004
+    title: Phát hiện lỗi quyền truy cập, lỗi API và tiến trình ngừng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-005
+    title: Giám sát dung lượng của dữ liệu gốc, chỉ mục, bản sao và phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-006
+    title: Cảnh báo dấu hiệu mất dữ liệu trước thời hạn cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-007
+    title: Giám sát chính sách có hiệu lực và độ lệch giữa các tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-monitoring-008
+    title: Thiết kế bảng điều khiển và bằng chứng kiểm chứng định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Tạo tập telemetry tổng hợp với mốc thời gian và vòng đời đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử biên trước hạn, đúng hạn và sau hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử đơn vị thời gian, làm tròn và lệch đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử dữ liệu đến muộn, gửi lại và nhập bù lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử độ ưu tiên chính sách và ranh giới giữa các tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử lỗi dọn dẹp, khởi động lại và thao tác lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử đối tượng có phiên bản, bản sao và ngoại lệ tạm giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử phục hồi không làm tái xuất hiện dữ liệu đã phải loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Đối chiếu kết quả truy vấn với kho lưu và chỉ mục thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tải dọn dẹp trong khi hệ thống vẫn ghi và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Xác định tiêu chí đạt về thời hạn, độ trễ xóa và khả năng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-handling
+  title: Xử lý sự cố
+  childs:
+  - slug: incident-handling-001
+    title: Điều tra dữ liệu biến mất sớm do giới hạn dung lượng hoặc sai chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-002
+    title: Điều tra dữ liệu hết hạn vẫn tồn tại do dọn dẹp ngừng hoặc chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-003
+    title: Phân biệt lỗi truy vấn, dữ liệu chưa tới và dữ liệu đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-004
+    title: Xử lý kho đối tượng tăng dung lượng dù đã có quy tắc hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-005
+    title: Xử lý chỉ mục còn tham chiếu đến nội dung đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-006
+    title: Khoanh vùng phạm vi tác động khi nhầm đơn vị thời gian hoặc selector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-007
+    title: Ngăn sự cố lan rộng và ghi nhận phần dữ liệu không thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-handling-008
+    title: Bổ sung kiểm thử hồi quy và cập nhật hướng dẫn vận hành sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng ma trận lưu giữ cho một hệ thống Spring Boot nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Thiết kế vòng đời logs, metrics và traces theo nhu cầu điều tra thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: So sánh các phương án thời hạn bằng mô hình dung lượng và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Cấu hình thử retention trên backend đã chọn bằng dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Kiểm chứng dữ liệu trước hạn còn dùng được và dữ liệu sau hạn được dọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Mô phỏng dọn dẹp bị gián đoạn rồi xác minh quá trình tiếp tục an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Diễn tập phục hồi bản sao lưu và áp dụng lại quy tắc hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Hoàn thiện bảng kiểm chính sách, bằng chứng xóa và hướng dẫn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

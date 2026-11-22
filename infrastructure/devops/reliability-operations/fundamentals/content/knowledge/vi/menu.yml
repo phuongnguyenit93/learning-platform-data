@@ -1,0 +1,279 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Reliability Operations là gì và vì sao phần mềm cần được vận hành tin cậy
+  - Mối liên hệ giữa yêu cầu kinh doanh, hệ thống kỹ thuật và hoạt động vận hành
+  - Phân biệt phát triển, triển khai và vận hành trong vòng đời dịch vụ
+  - Quan hệ giữa DevOps, SRE, nhóm phát triển và nhóm vận hành
+  - 'Các khái niệm nền tảng: dịch vụ, trạng thái, phụ thuộc, sự cố và khôi phục'
+  - 'Vòng lặp vận hành: quan sát, đánh giá, hành động, kiểm chứng và cải tiến'
+  - Đánh đổi giữa độ tin cậy, tốc độ thay đổi, chi phí và độ phức tạp
+  - Lộ trình học và kiến thức nền về ứng dụng, mạng, hệ điều hành và dữ liệu
+- level1: Trải nghiệm người dùng
+  level2:
+  - Xác định người dùng, nhu cầu và hành trình sử dụng quan trọng
+  - Thành công kỹ thuật so với kết quả nghiệp vụ người dùng nhận được
+  - 'Phạm vi dịch vụ: API, giao diện, xử lý nền và luồng dữ liệu'
+  - Tính đúng đắn, tốc độ phản hồi, độ mới dữ liệu và khả năng truy cập
+  - Thành công một phần và chế độ suy giảm chức năng
+  - Khác biệt trải nghiệm theo khu vực, nhóm khách hàng và loại yêu cầu
+  - Ưu tiên khắc phục dựa trên phạm vi và mức tác động thực tế
+  - Chuyển mong đợi của người dùng thành điều kiện kiểm chứng dịch vụ
+- level1: Mô hình dịch vụ
+  level2:
+  - Kiểm kê dịch vụ, thành phần và tài sản cần vận hành
+  - Chủ sở hữu dịch vụ, đầu mối hỗ trợ và trách nhiệm xuyên suốt vòng đời
+  - Kiến trúc triển khai và đường đi của một yêu cầu
+  - Phụ thuộc trực tiếp, bắc cầu và dịch vụ bên thứ ba
+  - Luồng đồng bộ, luồng bất đồng bộ và nơi lưu trạng thái
+  - Phân biệt tài nguyên có thể tái tạo với dữ liệu cần bảo vệ
+  - Môi trường phát triển, kiểm thử, staging và production
+  - Điểm vào, điểm ra và ranh giới tin cậy của dịch vụ
+  - Tài liệu kiến trúc và bản đồ phụ thuộc phục vụ điều tra sự cố
+- level1: Đặc tính tin cậy
+  level2:
+  - Độ tin cậy (reliability) và phạm vi thời gian đánh giá
+  - Tính sẵn sàng (availability) và khả năng thực hiện yêu cầu
+  - Tính đúng đắn, tính toàn vẹn và độ bền dữ liệu
+  - Khả năng bảo trì, sửa chữa và phục hồi của hệ thống
+  - Khả năng chịu lỗi, khả năng chống chịu và khả năng thích nghi
+  - Phân biệt hiệu năng, năng lực phục vụ và khả năng mở rộng
+  - Thời gian ngừng hoạt động, lỗi gián đoạn và dịch vụ suy giảm
+  - MTBF, MTTR và giới hạn khi dùng giá trị trung bình
+  - Vì sao một chỉ số đơn lẻ không đại diện đầy đủ cho độ tin cậy
+- level1: Lỗi và rủi ro
+  level2:
+  - Phân biệt lỗi bên trong, trạng thái sai và hỏng chức năng quan sát được
+  - Lỗi phần cứng, phần mềm, dữ liệu, cấu hình và thao tác
+  - Lỗi tạm thời, kéo dài, gián đoạn và phụ thuộc tải
+  - Miền lỗi, điểm lỗi đơn và lỗi có nguyên nhân chung
+  - Lỗi từng phần và sự không chắc chắn trong hệ phân tán
+  - Timeout, mất kết nối và trạng thái chưa xác định của yêu cầu
+  - Sự cố dây chuyền, cạn tài nguyên và khuếch đại do thử lại
+  - Rủi ro từ phụ thuộc ngoài phạm vi kiểm soát
+  - Đánh giá xác suất, tác động và phạm vi ảnh hưởng
+  - Ưu tiên rủi ro theo bằng chứng và mức quan trọng của dịch vụ
+- level1: Nền tảng hệ thống
+  level2:
+  - Tiến trình, luồng, hàng đợi và tài nguyên dùng chung
+  - CPU, bộ nhớ, đĩa và mạng trong đường đi xử lý yêu cầu
+  - Giới hạn tài nguyên, quota và dấu hiệu bão hòa
+  - DNS, TCP, TLS và HTTP trong chẩn đoán kết nối cơ bản
+  - Cân bằng tải, reverse proxy và khám phá dịch vụ
+  - Cơ sở dữ liệu, bộ nhớ đệm và hàng đợi trong hệ thống ứng dụng
+  - Máy ảo, container và nền tảng điều phối ở góc nhìn vận hành
+  - Đồng hồ, múi giờ và dấu thời gian khi đối chiếu sự kiện
+  - Hệ thống điều khiển và luồng phục vụ lưu lượng khi xảy ra sự cố
+- level1: Mục tiêu và đo lường
+  level2:
+  - Chỉ báo mức dịch vụ (SLI), mục tiêu mức dịch vụ (SLO) và cam kết SLA
+  - Chọn SLI từ hành trình người dùng và ranh giới đo
+  - 'Tỷ lệ yêu cầu tốt: tử số, mẫu số và điều kiện tính hợp lệ'
+  - Đo độ trễ bằng phân vị và tránh chỉ dựa vào trung bình
+  - Đo tính đúng đắn, độ mới dữ liệu và tiến độ xử lý nền
+  - Cửa sổ đánh giá, lưu lượng thấp và dữ liệu quan sát bị thiếu
+  - Ngân sách lỗi (error budget) và mối liên hệ với quyết định thay đổi
+  - Tốc độ tiêu hao ngân sách lỗi và phát hiện rủi ro sớm
+  - Phân biệt mục tiêu dịch vụ với ngưỡng tài nguyên nội bộ
+  - Đối chiếu số đo với trải nghiệm thật và điều chỉnh mục tiêu
+- level1: Quan sát hệ thống
+  level2:
+  - Phân biệt giám sát (monitoring) và khả năng quan sát (observability)
+  - 'Metrics, logs, traces và sự kiện: vai trò và cách kết hợp'
+  - Đo từ bên ngoài so với đo bên trong hệ thống
+  - Độ trễ, lưu lượng, lỗi và bão hòa trong bốn tín hiệu vận hành cơ bản
+  - Phương pháp RED cho dịch vụ và USE cho tài nguyên
+  - Nhật ký có cấu trúc, mức log và thông tin ngữ cảnh
+  - Trace, span và lan truyền mã liên kết qua các dịch vụ
+  - Nhãn đo lường, cardinality, sampling và chi phí thu thập
+  - Thiết kế dashboard theo câu hỏi vận hành và hành trình người dùng
+  - Độ trễ dữ liệu, dữ liệu thiếu và sự cố của chính nền tảng quan sát
+  - Bảo vệ dữ liệu nhạy cảm và kiểm soát thời gian lưu tín hiệu
+- level1: Cảnh báo
+  level2:
+  - Phân biệt dashboard, cảnh báo, thông báo và yêu cầu xử lý
+  - Cảnh báo theo triệu chứng người dùng và theo nguyên nhân kỹ thuật
+  - Điều kiện cảnh báo có thể dẫn tới hành động cụ thể
+  - Ngưỡng, khoảng thời gian đánh giá và hiện tượng bật tắt liên tục
+  - Mức ưu tiên theo tác động và thời gian cần phản ứng
+  - Định tuyến, gộp, khử trùng và chuyển cấp cảnh báo
+  - Giảm nhiễu và tránh mệt mỏi do cảnh báo
+  - Liên kết cảnh báo với dashboard, chủ sở hữu và runbook
+  - Kiểm thử đường gửi cảnh báo và đánh giá chất lượng sau sự cố
+- level1: Vận hành thường ngày
+  level2:
+  - Kiểm tra sức khỏe dịch vụ và nhận diện trạng thái bình thường
+  - Đánh giá lưu lượng, lỗi, độ trễ và công suất sử dụng
+  - Theo dõi tác vụ định kỳ, hàng đợi và tiến độ xử lý nền
+  - Kiểm tra dung lượng đĩa, thời hạn chứng chỉ và tài nguyên sắp hết
+  - Rà soát sao lưu, tác vụ bảo trì và kết quả kiểm tra tự động
+  - Bàn giao thay đổi, rủi ro đang mở và sự cố chưa kết thúc
+  - Runbook, checklist và ghi nhận thao tác có thể kiểm tra lại
+  - Phân biệt xử lý triệu chứng trước mắt với sửa nguyên nhân lâu dài
+  - Xác minh kết quả và tác động phụ sau mỗi thao tác vận hành
+- level1: Trực và phối hợp
+  level2:
+  - Trực vận hành (on-call) và phạm vi trách nhiệm của ca trực
+  - Lịch trực, người dự phòng và cơ chế chuyển cấp
+  - Thông tin tối thiểu cần có khi nhận bàn giao ca
+  - Phân vai điều phối, xử lý kỹ thuật và liên lạc trong sự cố
+  - Kênh trao đổi, nhật ký quyết định và nguồn thông tin thống nhất
+  - Phối hợp giữa phát triển, nền tảng, bảo mật và nhà cung cấp
+  - Giới hạn khối lượng trực và bảo vệ khả năng tập trung của người xử lý
+  - Đào tạo người trực và duy trì khả năng xử lý khi thiếu cá nhân chủ chốt
+- level1: Ứng phó sự cố
+  level2:
+  - Sự cố là gì và khi nào cần kích hoạt quy trình ứng phó
+  - Phát hiện, xác nhận và đánh giá phạm vi ảnh hưởng
+  - Phân mức nghiêm trọng theo tác động người dùng và nghiệp vụ
+  - Ưu tiên ổn định dịch vụ và giảm thiểu thiệt hại
+  - Chọn rollback, chuyển lưu lượng, giảm tải hoặc tắt tính năng
+  - Kiểm soát thay đổi đồng thời và tránh thao tác xung đột
+  - Cập nhật tình trạng với thông tin đã xác minh và điều chưa chắc chắn
+  - Phối hợp xử lý khi nhiều dịch vụ hoặc nhà cung cấp bị ảnh hưởng
+  - Tiêu chí phục hồi, theo dõi sau khắc phục và kết thúc sự cố
+  - Lưu mốc thời gian, bằng chứng và công việc cần tiếp tục xử lý
+- level1: Chẩn đoán sự cố
+  level2:
+  - Bắt đầu từ triệu chứng, thời điểm và phạm vi ảnh hưởng
+  - So sánh trạng thái lỗi với thời điểm, phiên bản hoặc môi trường bình thường
+  - Xây dựng giả thuyết và chọn phép kiểm tra có giá trị phân biệt
+  - Đối chiếu metrics, logs, traces và lịch sử thay đổi
+  - 'Khoanh vùng theo lớp: client, mạng, ứng dụng, dữ liệu và phụ thuộc'
+  - Điều tra độ trễ, lỗi tăng, cạn tài nguyên và hàng đợi tồn đọng
+  - Phân biệt nguyên nhân, yếu tố góp phần và hệ quả dây chuyền
+  - Thao tác quan sát an toàn và giới hạn của thử nghiệm trên production
+  - Nhận diện thiên kiến xác nhận và tránh kết luận từ tương quan đơn thuần
+  - Kiểm chứng giả thuyết sau khi giảm thiểu và ghi lại bằng chứng
+- level1: Khả năng chống chịu
+  level2:
+  - Timeout và thời hạn tổng thể của một yêu cầu
+  - Thử lại (retry), exponential backoff, jitter và giới hạn số lần thử
+  - Yêu cầu lặp lại an toàn (idempotency) khi thao tác có thể được gửi lại
+  - Ngắt mạch (circuit breaker) khi phụ thuộc liên tục gặp lỗi
+  - Cô lập tài nguyên (bulkhead) để giới hạn lỗi lan truyền
+  - Giới hạn tốc độ, kiểm soát đầu vào và từ chối tải khi quá sức
+  - Backpressure, hàng đợi hữu hạn và kiểm soát công việc tồn đọng
+  - Phương án thay thế (fallback) và chế độ suy giảm có kiểm soát
+  - Dự phòng, health check và chuyển lưu lượng khỏi thành phần lỗi
+  - Khởi động, tắt an toàn và hoàn tất yêu cầu đang xử lý
+  - Nguy cơ cơ chế bảo vệ tự gây lỗi hoặc khuếch đại sự cố
+  - Kiểm thử hành vi khi phụ thuộc chậm, lỗi hoặc không phản hồi
+- level1: Hiệu năng và năng lực
+  level2:
+  - Phân biệt độ trễ, thông lượng, mức đồng thời và công suất
+  - Mẫu tải, giờ cao điểm, tăng trưởng và biến động bất thường
+  - Nút thắt cổ chai và sự chuyển dịch nút thắt sau tối ưu
+  - Mức sử dụng, bão hòa và khoảng dự phòng tài nguyên
+  - Kiểm thử tải, tải kéo dài và kiểm tra giới hạn chịu đựng
+  - Mở rộng theo chiều dọc, chiều ngang và các giới hạn thực tế
+  - Tự động mở rộng, độ trễ cấp phát và dao động tài nguyên
+  - Ảnh hưởng của pool kết nối, cache và hàng đợi đến năng lực phục vụ
+  - Hoạch định năng lực cho bảo trì hoặc mất một phần hạ tầng
+  - Cân bằng chi phí, hiệu năng và mục tiêu độ tin cậy
+- level1: Thay đổi và phát hành
+  level2:
+  - Thay đổi mã, cấu hình, dữ liệu và hạ tầng như nguồn rủi ro vận hành
+  - Hiện vật bất biến, nguồn gốc phiên bản và khả năng tái dựng
+  - Kiểm thử, review và cổng kiểm soát trước khi triển khai
+  - Triển khai cuốn chiếu, blue-green và canary ở mức nguyên lý
+  - Chọn nhóm thử nghiệm và tín hiệu đánh giá sau triển khai
+  - Feature flag và tách phát hành tính năng khỏi triển khai mã
+  - Tương thích ngược của API, thông điệp và schema dữ liệu
+  - Rollback, roll-forward và giới hạn khi dữ liệu đã thay đổi
+  - Giới hạn phạm vi ảnh hưởng và điều kiện dừng phát hành
+  - Thay đổi khẩn cấp, quyền phê duyệt và lưu vết thực thi
+  - Gắn sự kiện phát hành với tín hiệu quan sát và kết quả phục vụ
+- level1: Dữ liệu và khôi phục
+  level2:
+  - Phân biệt sao lưu, sao chép, tính sẵn sàng cao và DR
+  - Phân loại dữ liệu theo độ quan trọng và khả năng tái tạo
+  - RPO và RTO trong xác định yêu cầu khôi phục
+  - Snapshot, bản sao lưu và nhật ký giao dịch ở mức nền tảng
+  - Tính nhất quán của dữ liệu và các hệ thống liên quan khi phục hồi
+  - Bảo vệ bản sao khỏi xóa nhầm, miền lỗi chung và mất quyền truy cập
+  - Thử phục hồi để kiểm chứng bản sao thực sự sử dụng được
+  - Chuyển đổi dự phòng, ngăn hai phía cùng ghi và trở về hệ thống chính
+  - Đối soát nghiệp vụ và xác minh dịch vụ sau phục hồi
+  - Ranh giới giữa xử lý sự cố thông thường và kích hoạt kế hoạch DR
+- level1: Tự động hóa
+  level2:
+  - Công việc vận hành lặp lại (toil) và cách nhận diện
+  - Chọn tác vụ tự động hóa theo tần suất, rủi ro và giá trị
+  - Chuẩn hóa quy trình trước khi chuyển thành script hoặc workflow
+  - Tham số, điều kiện tiên quyết và kiểm tra đầu vào
+  - Thiết kế thao tác chạy lại an toàn và xử lý thực thi một phần
+  - Giới hạn quyền, phạm vi ảnh hưởng và thời gian chạy
+  - Chế độ xem trước, bước phê duyệt và cơ chế dừng
+  - Nhật ký, kết quả và xác minh sau tự động hóa
+  - Rủi ro nhân rộng sai sót và nhu cầu kiểm thử công cụ vận hành
+- level1: Cấu hình và hạ tầng
+  level2:
+  - Quản lý cấu hình dưới dạng mã và nguồn sự thật thống nhất
+  - Tách cấu hình theo môi trường và bảo vệ thông tin bí mật
+  - Hạ tầng dưới dạng mã (IaC) và môi trường có thể tái tạo
+  - Phát hiện sai lệch cấu hình giữa mã và hệ thống thực tế
+  - Quản lý phiên bản, quan hệ phụ thuộc và trạng thái của công cụ hạ tầng
+  - Thay đổi cấu hình có kiểm chứng và phương án khôi phục
+  - Quản lý vòng đời tài nguyên, chứng chỉ và phiên bản nền tảng
+  - Chuẩn hóa thao tác thông thường bằng mẫu và quy trình dùng chung
+  - Đánh giá phụ thuộc của dịch vụ vào chính nền tảng quản trị và triển khai
+- level1: Bảo mật vận hành
+  level2:
+  - Mối liên hệ giữa bảo mật và độ tin cậy của dịch vụ
+  - Quyền tối thiểu và phân tách quyền thao tác production
+  - Tài khoản phục vụ, quyền truy cập khẩn cấp và thu hồi quyền
+  - Quản lý secret, khóa và chứng chỉ trong vòng đời vận hành
+  - Lưu vết truy cập, thay đổi cấu hình và thao tác đặc quyền
+  - Bảo vệ dữ liệu nhạy cảm trong log, dashboard và công cụ chẩn đoán
+  - Cập nhật bản vá, phụ thuộc và thành phần nền tảng có kiểm soát
+  - Phối hợp với nhóm bảo mật khi nghi ngờ bị xâm phạm
+  - Kiểm chứng quyền và cấu hình bảo vệ sau thay đổi hoặc khôi phục
+- level1: Sẵn sàng vận hành
+  level2:
+  - Đánh giá sẵn sàng vận hành trước khi đưa dịch vụ vào production
+  - Chủ sở hữu, lịch trực và đường liên lạc khi có sự cố
+  - Mục tiêu dịch vụ, dashboard và cảnh báo có thể hành động
+  - Runbook cho lỗi thường gặp và quyền cần để thực hiện
+  - Năng lực phục vụ, hạn mức tài nguyên và giới hạn phụ thuộc
+  - Phương án rollback, sao lưu và bằng chứng thử khôi phục
+  - Kiểm chứng tình huống phụ thuộc chậm, mất kết nối hoặc lỗi
+  - Tài liệu bàn giao và khoảng trống kiến thức của nhóm tiếp nhận
+  - Tiêu chí cho phép phát hành và rủi ro được chấp nhận có chủ sở hữu
+  - Đánh giá lại mức sẵn sàng sau thay đổi lớn
+- level1: Cải tiến liên tục
+  level2:
+  - Rà soát sau sự cố (postmortem) và văn hóa không đổ lỗi
+  - Xây dựng dòng thời gian từ bằng chứng có thể kiểm tra
+  - Phân tích điều kiện hệ thống và yếu tố góp phần thay vì chỉ tìm người gây lỗi
+  - Phân biệt hành động khắc phục tức thời với phòng ngừa tái diễn
+  - Giao chủ sở hữu, mức ưu tiên và tiêu chí hoàn thành cho hành động
+  - Theo dõi nợ độ tin cậy, công việc lặp lại và rủi ro tồn đọng
+  - Đánh giá kết quả qua trải nghiệm người dùng và dữ liệu vận hành
+  - Diễn tập có giới hạn để kiểm tra giả định và nâng năng lực phối hợp
+  - Cập nhật thiết kế, mục tiêu, cảnh báo và tài liệu từ bài học thực tế
+- level1: Thực hành
+  level2:
+  - Lập bản đồ dịch vụ mẫu và đánh dấu trạng thái, phụ thuộc, chủ sở hữu
+  - Xác định hành trình người dùng và đề xuất SLI/SLO cơ bản
+  - Thu thập metrics, logs và traces để giải thích một yêu cầu lỗi
+  - Thiết kế dashboard và cảnh báo kèm hành động xử lý
+  - Mô phỏng phụ thuộc chậm trong môi trường cô lập và kiểm tra timeout, retry
+  - Thử tải có kiểm soát để nhận diện bão hòa và giới hạn phục vụ
+  - Diễn tập phát hành lỗi, phát hiện tác động và rollback
+  - Viết runbook có điều kiện tiên quyết, tiêu chí dừng và bước xác minh
+  - Thử khôi phục dữ liệu và đo kết quả so với RTO/RPO
+  - Diễn tập phối hợp xử lý sự cố và ghi lại dòng thời gian
+  - Viết postmortem và chọn hành động cải tiến có thể kiểm chứng
+- level1: Sai lầm thường gặp
+  level2:
+  - Máy chủ còn chạy nhưng người dùng không hoàn thành được nghiệp vụ
+  - Chỉ theo dõi trung bình và bỏ qua nhóm người dùng bị ảnh hưởng
+  - Đặt mục tiêu tuyệt đối mà không xét chi phí và giá trị kinh doanh
+  - Cảnh báo mọi biến động và không xác định người cần xử lý
+  - Thêm retry hoặc khởi động lại liên tục mà chưa kiểm tra nguyên nhân
+  - Tăng tài nguyên nhưng không kiểm chứng nút thắt và giới hạn phụ thuộc
+  - Thao tác sửa production không ghi nhận hoặc không có cách đảo ngược
+  - Tin rằng sao lưu thành công đồng nghĩa với khôi phục thành công
+  - Quy kết sự cố cho cá nhân và bỏ qua điều kiện hệ thống
+  - Cải tiến bằng số lượng công cụ thay vì bằng kết quả phục vụ

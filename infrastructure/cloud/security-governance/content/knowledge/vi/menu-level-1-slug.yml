@@ -1,0 +1,100 @@
+menu:
+  - title: "Nền tảng bảo mật đám mây"
+    slug: cloud-security-fundamentals
+    index: 0
+  - title: "Mô hình quản trị và trách nhiệm"
+    slug: governance-models-and-accountability
+    index: 1
+  - title: "Quản lý rủi ro đám mây"
+    slug: cloud-risk-management
+    index: 2
+  - title: "Chính sách và tiêu chuẩn kiểm soát"
+    slug: policies-and-control-standards
+    index: 3
+  - title: "Tuân thủ và chủ quyền dữ liệu"
+    slug: compliance-and-data-sovereignty
+    index: 4
+  - title: "Tổ chức tài nguyên và landing zone"
+    slug: resource-organization-and-landing-zones
+    index: 5
+  - title: "Kiểm kê tài sản và bề mặt tấn công"
+    slug: asset-inventory-and-attack-surface
+    index: 6
+  - title: "Danh tính người dùng và liên kết"
+    slug: user-identity-and-federation
+    index: 7
+  - title: "Phân quyền và truy cập đặc quyền"
+    slug: authorization-and-privileged-access
+    index: 8
+  - title: "Danh tính máy và quản lý bí mật"
+    slug: machine-identity-and-secrets
+    index: 9
+  - title: "Bảo vệ dữ liệu và quyền riêng tư"
+    slug: data-protection-and-privacy
+    index: 10
+  - title: "Mã hóa và quản trị khóa"
+    slug: encryption-and-key-management
+    index: 11
+  - title: "Mạng đám mây và kết nối"
+    slug: cloud-networking-and-connectivity
+    index: 12
+  - title: "Bảo mật máy ảo và hệ điều hành"
+    slug: virtual-machine-and-os-security
+    index: 13
+  - title: "Bảo mật container và Kubernetes"
+    slug: container-and-kubernetes-security
+    index: 14
+  - title: "Serverless và dịch vụ được quản lý"
+    slug: serverless-and-managed-services
+    index: 15
+  - title: "Bảo mật dịch vụ lưu trữ và dữ liệu"
+    slug: storage-and-data-services-security
+    index: 16
+  - title: "Bảo mật ứng dụng, API và phân phối biên"
+    slug: application-api-and-edge-security
+    index: 17
+  - title: "Bảo mật dịch vụ AI và học máy"
+    slug: ai-and-machine-learning-security
+    index: 18
+  - title: "Chuỗi cung ứng phần mềm và CI/CD"
+    slug: software-supply-chain-and-cicd
+    index: 19
+  - title: "Hạ tầng dưới dạng mã và policy as code"
+    slug: infrastructure-and-policy-as-code
+    index: 20
+  - title: "Quản lý tư thế và đường tấn công"
+    slug: security-posture-and-attack-paths
+    index: 21
+  - title: "Quản lý lỗ hổng và cập nhật"
+    slug: vulnerability-and-patch-management
+    index: 22
+  - title: "Nhật ký và bảo toàn bằng chứng"
+    slug: logging-and-evidence-preservation
+    index: 23
+  - title: "Phát hiện và săn tìm mối đe dọa"
+    slug: threat-detection-and-hunting
+    index: 24
+  - title: "Ứng phó sự cố và điều tra"
+    slug: incident-response-and-investigation
+    index: 25
+  - title: "Khả năng phục hồi và khôi phục"
+    slug: resilience-and-disaster-recovery
+    index: 26
+  - title: "Kiểm thử và xác minh bảo mật"
+    slug: security-testing-and-validation
+    index: 27
+  - title: "Quản trị multicloud, hybrid và SaaS"
+    slug: multicloud-hybrid-and-saas-governance
+    index: 28
+  - title: "Nhà cung cấp và bên thứ ba"
+    slug: vendor-and-third-party-management
+    index: 29
+  - title: "Kiểm toán và bảo đảm liên tục"
+    slug: auditing-and-continuous-assurance
+    index: 30
+  - title: "Vận hành, đo lường và cải tiến"
+    slug: operations-metrics-and-improvement
+    index: 31
+  - title: "Thực hành và đồ án tổng hợp"
+    slug: hands-on-labs-and-capstone-projects
+    index: 32

@@ -1,0 +1,3376 @@
+menu:
+- slug: connectivity-overview
+  title: Tổng quan
+  childs:
+  - slug: connectivity-overview-001
+    title: Kết nối mạng là gì và khi nào được xem là thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-002
+    title: Phân biệt liên kết vật lý, khả năng tới đích và dịch vụ hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-003
+    title: Các thành phần nguồn, đích, địa chỉ, cổng, giao thức và đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-004
+    title: Hành trình từ ứng dụng gửi đến ứng dụng nhận và đường phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-005
+    title: Vai trò của thiết bị đầu cuối, switch, router, gateway và firewall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-006
+    title: Quan hệ giữa DNS, định tuyến, kết nối truyền tải và phiên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-007
+    title: Kết nối cùng máy, cùng LAN, khác mạng và qua Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-008
+    title: Kết nối đi vào, đi ra và giữa các dịch vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-009
+    title: Phân biệt lỗi kết nối với lỗi xác thực, phân quyền và nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-overview-010
+    title: Kiến thức tiên quyết và cách học theo các kịch bản kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-labs
+  title: Phòng thực hành
+  childs:
+  - slug: network-labs-001
+    title: Thiết kế mô hình hai máy và một router để quan sát đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-002
+    title: Chuẩn bị máy Linux, Windows và công cụ kiểm tra cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-003
+    title: Tổ chức mạng bằng máy ảo hoặc network namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-004
+    title: Đặt địa chỉ, tên máy và cổng dịch vụ nhất quán cho bài thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-005
+    title: Dựng dịch vụ TCP, UDP và HTTP tối thiểu để kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-006
+    title: Ghi lại cấu hình ban đầu, kết quả mong đợi và cách khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-007
+    title: Tạo lỗi có chủ đích về DNS, route, firewall và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-labs-008
+    title: Thu thập kết quả từ cả nguồn và đích theo cùng mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: physical-links-devices
+  title: Liên kết và thiết bị
+  childs:
+  - slug: physical-links-devices-001
+    title: Card mạng, giao diện mạng và sự khác nhau giữa trạng thái quản trị với trạng thái liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-002
+    title: 'Kết nối Ethernet: cáp, cổng switch và thương lượng tốc độ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-003
+    title: 'Kết nối Wi-Fi: liên kết vô tuyến, xác thực và chất lượng tín hiệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-004
+    title: Địa chỉ MAC và vai trò trong truyền dữ liệu trên liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-005
+    title: Switch, router, access point và modem trong mạng gia đình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-006
+    title: Bridge, gateway và điểm chuyển tiếp giữa các miền mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-007
+    title: VLAN, cổng access, cổng trunk và tác động của gắn thẻ VLAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-008
+    title: Cách ly máy khách Wi-Fi, mạng khách và giới hạn liên lạc nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: physical-links-devices-009
+    title: Lỗi cáp, mất sóng, sai VLAN và liên kết chập chờn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ipv4-addressing
+  title: Địa chỉ IPv4
+  childs:
+  - slug: ipv4-addressing-001
+    title: Địa chỉ IPv4, subnet mask và biểu diễn CIDR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-002
+    title: Xác định địa chỉ mạng, địa chỉ host và phạm vi cùng subnet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-003
+    title: Dải địa chỉ riêng, địa chỉ công cộng và khả năng định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-004
+    title: Địa chỉ loopback, link-local và các địa chỉ đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-005
+    title: Phân biệt 127.0.0.1, địa chỉ LAN và địa chỉ công cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-006
+    title: Địa chỉ 0.0.0.0 trong cấu hình lắng nghe và bảng định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-007
+    title: Một máy có nhiều địa chỉ hoặc nhiều card mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-008
+    title: Địa chỉ tĩnh, địa chỉ động và thời điểm địa chỉ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-009
+    title: Xung đột địa chỉ, sai subnet mask và trùng dải mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv4-addressing-010
+    title: Lập kế hoạch CIDR cho LAN, VPN, container và đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ipv6-dual-stack
+  title: IPv6 và Dual Stack
+  childs:
+  - slug: ipv6-dual-stack-001
+    title: Cách đọc địa chỉ IPv6, tiền tố và cú pháp rút gọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-002
+    title: Địa chỉ global, unique-local, link-local và loopback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-003
+    title: Scope ID khi truy cập địa chỉ IPv6 link-local
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-004
+    title: Neighbor Discovery và vai trò của ICMPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-005
+    title: Router Advertisement, SLAAC và quan hệ với DHCPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-006
+    title: Định tuyến IPv6 và default gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-007
+    title: Ứng dụng lắng nghe trên IPv4, IPv6 hoặc cả hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-008
+    title: Bản ghi A, AAAA và lựa chọn họ địa chỉ của máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-009
+    title: Dual stack, cơ chế thử kết nối nhiều địa chỉ và Happy Eyeballs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-010
+    title: Kiểm tra riêng IPv4, IPv6 để nhận diện kết nối chỉ hỏng một phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-011
+    title: Khái niệm NAT64, DNS64 và kết nối giữa môi trường chỉ IPv6 với IPv4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ipv6-dual-stack-012
+    title: Chính sách firewall và công khai dịch vụ khi sử dụng IPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-networks
+  title: Mạng nội bộ
+  childs:
+  - slug: local-networks-001
+    title: Quyết định gửi trực tiếp tới máy cùng subnet hay qua gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-002
+    title: 'ARP: tìm địa chỉ MAC của đích hoặc next hop trong IPv4'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-003
+    title: Bộ nhớ đệm neighbor, bản ghi thiếu và bản ghi cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-004
+    title: Đường đi của frame qua switch trong cùng mạng LAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-005
+    title: Broadcast domain, VLAN và kết nối giữa các VLAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-006
+    title: Unicast, broadcast và multicast trong các tình huống kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-007
+    title: mDNS và khám phá dịch vụ trong phạm vi liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-008
+    title: Vì sao hai máy chung Wi-Fi vẫn có thể không liên lạc được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-009
+    title: Kiểm tra kết nối cùng LAN trước khi kiểm tra Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-networks-010
+    title: Nhận diện sai cổng switch, sai VLAN và gateway không tới được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-provisioning
+  title: Cấp phát cấu hình
+  childs:
+  - slug: configuration-provisioning-001
+    title: Những cấu hình tối thiểu để một máy tham gia mạng IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-002
+    title: 'DHCP: nhận địa chỉ, subnet mask, gateway và DNS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-003
+    title: Thời hạn thuê, gia hạn và thay đổi mạng đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-004
+    title: DHCP reservation và lựa chọn địa chỉ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-005
+    title: DHCP relay khi máy khách và máy chủ ở khác subnet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-006
+    title: Phát hiện DHCP không phản hồi và địa chỉ link-local tự gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-007
+    title: Cấu hình DNS search domain và hậu tố tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-008
+    title: Ưu tiên cấu hình khi cùng tồn tại nhiều giao diện mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-provisioning-009
+    title: Lưu cấu hình bền vững và phân biệt với thay đổi tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing
+  title: Định tuyến
+  childs:
+  - slug: routing-001
+    title: Bảng định tuyến, mạng đích, next hop và giao diện đi ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-002
+    title: Chọn tuyến theo tiền tố khớp dài nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-003
+    title: Default route và trường hợp không có đường tới đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-004
+    title: Route trực tiếp, route tĩnh và vai trò của định tuyến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-005
+    title: Metric, nhiều default gateway và lựa chọn tuyến trên máy nhiều card
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-006
+    title: 'Đường đi và đường về: điều kiện để kết nối hai chiều thành công'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-007
+    title: Chuyển tiếp IP giữa các giao diện và vai trò của máy làm router
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-008
+    title: Policy-based routing và lựa chọn đường theo nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-009
+    title: Định tuyến bất đối xứng và tương tác với kiểm tra nguồn, firewall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-010
+    title: Tuyến blackhole, vòng lặp định tuyến và TTL hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-011
+    title: Chồng lấn dải mạng khi kết nối VPN hoặc nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-012
+    title: Xác minh tuyến thực tế bằng ip route get và công cụ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-name-resolution
+  title: Tên và phân giải
+  childs:
+  - slug: dns-name-resolution-001
+    title: Từ tên dịch vụ đến danh sách địa chỉ IP có thể kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-002
+    title: Phân biệt DNS resolver của máy, ứng dụng và trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-003
+    title: Tệp hosts, thứ tự tra cứu và bộ nhớ đệm tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-004
+    title: Bản ghi A, AAAA, CNAME và SRV trong truy cập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-005
+    title: FQDN, tên ngắn và ảnh hưởng của DNS search domain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-006
+    title: 'Split DNS: cùng tên nhưng trả địa chỉ khác theo môi trường'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-007
+    title: DNS nội bộ, DNS công cộng và tên chỉ sử dụng trong mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-008
+    title: Phân biệt không có tên, DNS timeout và trả sai địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-009
+    title: Kiểm tra bằng IP để khoanh vùng và giữ đúng Host hoặc SNI khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-010
+    title: DNS qua VPN, proxy và những khác biệt với truy cập trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-name-resolution-011
+    title: TTL, bản ghi cũ và thay đổi đích sau khi ứng dụng đã khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ports-sockets
+  title: Cổng và socket
+  childs:
+  - slug: ports-sockets-001
+    title: Socket, địa chỉ IP, cổng và giao thức truyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-002
+    title: Vai trò máy khách, máy chủ và cổng nguồn tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-003
+    title: Phân biệt bind, listen, connect, accept và trao đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-004
+    title: Lắng nghe trên loopback, một giao diện hoặc mọi giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-005
+    title: Cùng số cổng trên TCP và UDP là các điểm kết nối khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-006
+    title: Xác định tiến trình đang lắng nghe hoặc chiếm cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-007
+    title: Cổng cục bộ, cổng dịch vụ và cổng được ánh xạ qua trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-008
+    title: 'Port đang mở, đang đóng hoặc bị lọc: giới hạn của việc suy luận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-009
+    title: Backlog và tình huống dịch vụ tồn tại nhưng không nhận thêm kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-sockets-010
+    title: Địa chỉ đã sử dụng, cạn cổng tạm và giới hạn tài nguyên socket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tcp-udp
+  title: TCP và UDP
+  childs:
+  - slug: tcp-udp-001
+    title: Bắt tay TCP và những gì một phép connect thành công chứng minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-002
+    title: Trao đổi dữ liệu sau bắt tay và kiểm tra ở tầng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-003
+    title: TCP timeout, connection refused và network unreachable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-004
+    title: TCP reset, đóng kết nối bình thường và kết nối bị ngắt giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-005
+    title: Mất gói, truyền lại và ảnh hưởng tới kết nối TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-006
+    title: TCP keepalive và giới hạn phát hiện sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-007
+    title: UDP không có bắt tay và cách xây dựng phép kiểm tra có phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-008
+    title: Phân biệt không có phản hồi UDP với cổng đích không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-009
+    title: Ánh xạ trạng thái UDP trên NAT và firewall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-010
+    title: Kết nối dài hạn, kết nối nhàn rỗi và timeout của thiết bị trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tcp-udp-011
+    title: Lựa chọn công cụ kiểm tra đúng giao thức của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: icmp-path-tracing
+  title: ICMP và đường đi
+  childs:
+  - slug: icmp-path-tracing-001
+    title: Ping kiểm tra điều gì và vì sao không thay thế kiểm tra cổng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-002
+    title: ICMP Echo Request, Echo Reply và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-003
+    title: Destination Unreachable và cách xác định nút phát thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-004
+    title: TTL, Hop Limit và nguyên lý của traceroute hoặc tracert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-005
+    title: Traceroute dùng ICMP, UDP hoặc TCP và kết quả có thể khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-006
+    title: Dấu sao trong traceroute và giới hạn phản hồi của router
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-007
+    title: MTR, pathping và cách đọc mất gói ở từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-008
+    title: Đường đi nhiều nhánh, bất đối xứng và giới hạn nhìn từ một phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: icmp-path-tracing-009
+    title: ICMP cần thiết cho chẩn đoán và phát hiện giới hạn MTU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nat-port-forwarding
+  title: NAT và ánh xạ cổng
+  childs:
+  - slug: nat-port-forwarding-001
+    title: Vì sao cần chuyển đổi địa chỉ trong các mô hình kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-002
+    title: SNAT, DNAT, PAT và masquerade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-003
+    title: Theo dõi kết nối và ánh xạ chiều đi, chiều về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-004
+    title: Truy cập Internet từ nhiều máy dùng chung một IPv4 công cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-005
+    title: Port forwarding từ cổng công cộng tới dịch vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-006
+    title: Ánh xạ sai địa chỉ, sai cổng hoặc sai giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-007
+    title: Hairpin NAT khi máy nội bộ truy cập địa chỉ công cộng của chính mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-008
+    title: Double NAT và cách xác định từng lớp chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-009
+    title: CGNAT và giới hạn nhận kết nối từ Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-010
+    title: Timeout ánh xạ NAT và lý do kết nối nhàn rỗi bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-011
+    title: Phân biệt NAT, firewall, proxy và cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nat-port-forwarding-012
+    title: Khái niệm NAT traversal, STUN, TURN và ICE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: firewalls
+  title: Tường lửa
+  childs:
+  - slug: firewalls-001
+    title: Chính sách cho lưu lượng đi vào, đi ra và đi xuyên qua máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-002
+    title: Lọc theo địa chỉ nguồn, đích, cổng, giao thức và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-003
+    title: Firewall có trạng thái và không trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-004
+    title: Kết nối established, related và lưu lượng phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-005
+    title: Phân biệt drop, reject và các biểu hiện phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-006
+    title: Thứ tự luật, luật mặc định và trường hợp luật bị che khuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-007
+    title: Tường lửa hệ điều hành, firewall mạng và chính sách đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-008
+    title: Đường đi INPUT, OUTPUT, FORWARD và tương tác với NAT trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-009
+    title: Security Group, Network ACL và quy tắc cho chiều phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-010
+    title: Thiết kế quyền kết nối tối thiểu theo từng luồng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-011
+    title: Kiểm chứng thay đổi bằng luật có phạm vi hẹp, log và bộ đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-012
+    title: Xử lý kết nối IPv4 và IPv6 nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: firewalls-013
+    title: Tường lửa chỉ cho phép truyền tải và giới hạn so với phân quyền ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internet-access
+  title: Truy cập Internet
+  childs:
+  - slug: internet-access-001
+    title: Đường đi từ máy cá nhân qua LAN, router và nhà cung cấp Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-002
+    title: Phân biệt lỗi liên kết nội bộ, lỗi gateway, lỗi ISP và lỗi dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-003
+    title: Địa chỉ WAN, địa chỉ công cộng và phát hiện CGNAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-004
+    title: PPPoE, DHCP phía WAN và vai trò của thiết bị modem, router
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-005
+    title: 'Captive portal: đã nối Wi-Fi nhưng chưa được phép ra Internet'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-006
+    title: Kiểm tra Internet bằng nhiều đích và nhiều kiểu yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-007
+    title: Đường đi IPv4 và IPv6 có thể hoạt động độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-008
+    title: DNS, proxy hoặc VPN khiến các ứng dụng có kết quả truy cập khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-009
+    title: Công khai dịch vụ từ mạng gia đình và các điều kiện cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internet-access-010
+    title: Dynamic DNS khi địa chỉ công cộng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-connectivity
+  title: Kết nối ứng dụng
+  childs:
+  - slug: application-connectivity-001
+    title: Chuỗi kiểm tra từ phân giải tên đến phản hồi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-002
+    title: URL, scheme, hostname, cổng và điểm kết nối thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-003
+    title: Kiểm tra HTTP bằng curl và diễn giải các nhóm mã phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-004
+    title: 'Kết nối TLS: SNI, chứng chỉ, tên máy chủ và CA tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-005
+    title: Đồng hồ hệ thống và lỗi xác minh thời hạn chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-006
+    title: Phân biệt TLS handshake thành công với xác thực ứng dụng thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-007
+    title: 'Truy cập cơ sở dữ liệu: listener, quyền truy cập từ xa và đăng nhập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-008
+    title: WebSocket, gRPC và luồng dữ liệu dài hạn qua thiết bị trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-009
+    title: CORS, mixed content và các lỗi trình duyệt dễ bị nhầm với lỗi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-010
+    title: Liveness, readiness và khả năng phục vụ yêu cầu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-011
+    title: Kiểm tra từ đúng máy, container hoặc tài khoản mà ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxies-forwarding
+  title: Proxy và chuyển tiếp
+  childs:
+  - slug: proxies-forwarding-001
+    title: Truy cập trực tiếp, forward proxy và reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-002
+    title: HTTP proxy, HTTPS CONNECT và SOCKS proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-003
+    title: Biến HTTP_PROXY, HTTPS_PROXY, NO_PROXY và khác biệt giữa công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-004
+    title: Chính sách PAC và cấu hình proxy ở hệ điều hành, trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-005
+    title: Phân giải tên tại máy khách hay tại proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-006
+    title: TLS inspection và ảnh hưởng tới CA tin cậy của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-007
+    title: Đường đi khi có CDN, cân bằng tải hoặc nhiều lớp reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-008
+    title: Xác định địa chỉ nguồn mà hệ thống đích thực sự quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-009
+    title: Kiểm tra riêng chặng máy khách đến proxy và proxy đến backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxies-forwarding-010
+    title: Phân biệt lỗi proxy authentication, lỗi đích và lỗi kết nối trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ssh-tunnels
+  title: SSH và đường hầm
+  childs:
+  - slug: ssh-tunnels-001
+    title: Điều kiện để kết nối SSH tới máy chủ từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-002
+    title: Phân biệt lỗi TCP, lỗi xác minh host key và lỗi xác thực SSH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-003
+    title: Chuyển tiếp cổng cục bộ bằng SSH local forwarding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-004
+    title: Chuyển tiếp cổng từ xa bằng SSH remote forwarding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-005
+    title: SOCKS qua SSH dynamic forwarding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-006
+    title: Bastion host, jump host và chuỗi truy cập mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-007
+    title: Địa chỉ bind của đầu đường hầm và phạm vi máy được truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-008
+    title: Phân biệt tên hoặc địa chỉ được hiểu ở đầu cục bộ với đầu từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-009
+    title: Keepalive, mất kết nối và khôi phục đường hầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ssh-tunnels-010
+    title: Giới hạn quyền chuyển tiếp và kiểm chứng trước khi sử dụng đường hầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vpn
+  title: VPN
+  childs:
+  - slug: vpn-001
+    title: VPN giải quyết bài toán kết nối riêng qua hạ tầng dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-002
+    title: Remote-access VPN và site-to-site VPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-003
+    title: Mạng nền, mạng bên trong đường hầm và lớp đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-004
+    title: Full tunnel, split tunnel và lựa chọn đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-005
+    title: Định tuyến và DNS cần thay đổi khi bật VPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-006
+    title: Quan hệ giữa route và AllowedIPs trong WireGuard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-007
+    title: NAT, firewall và keepalive cho peer nằm sau thiết bị chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-008
+    title: IPsec, WireGuard, OpenVPN và các khác biệt cần xét khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-009
+    title: Trùng CIDR giữa mạng nhà, mạng công ty và mạng đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-010
+    title: MTU của đường hầm và tình huống kết nối được nhưng truyền dữ liệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-011
+    title: VPN đã bắt tay nhưng không truy cập được mạng phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vpn-012
+    title: Thu hồi truy cập, thay khóa và kiểm tra phạm vi mạng được phép đi qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-networks
+  title: Mạng ảo
+  childs:
+  - slug: virtual-networks-001
+    title: Máy thật, máy ảo, host và guest trong một đường kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-002
+    title: Chế độ NAT, bridged và host-only của mạng máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-003
+    title: Virtual switch, bridge và card mạng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-004
+    title: Network namespace và phạm vi của localhost
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-005
+    title: Veth pair và kết nối giữa các namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-006
+    title: Route, forwarding, NAT và firewall trên máy làm host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-007
+    title: Underlay, overlay và chi phí đóng gói mạng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-008
+    title: Linux network namespace làm phòng thực hành nhiều mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-networks-009
+    title: Giới hạn khi suy luận cấu hình guest từ kết quả đo trên host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: docker-networking
+  title: Docker
+  childs:
+  - slug: docker-networking-001
+    title: Đường đi giữa container, Docker host, LAN và Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-002
+    title: Bridge network mặc định và user-defined bridge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-003
+    title: DNS nội bộ Docker và kết nối bằng tên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-004
+    title: Giao tiếp giữa các dịch vụ trong Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-005
+    title: Cổng container, EXPOSE và cổng được publish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-006
+    title: Ánh xạ cổng tới loopback hoặc giao diện công cộng của host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-007
+    title: Ứng dụng trong container cần bind đúng giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-008
+    title: Truy cập từ container tới host và khác biệt theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-009
+    title: 'Network host, none, macvlan và ipvlan: phạm vi sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-010
+    title: Kết nối ra ngoài qua NAT và tương tác với luật firewall của Docker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-011
+    title: Khác biệt đường mạng giữa Docker Engine trên Linux và Docker Desktop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-012
+    title: Kiểm tra kết nối từ chính namespace của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: docker-networking-013
+    title: Xử lý trùng subnet Docker với LAN hoặc VPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-networking
+  title: Kubernetes
+  childs:
+  - slug: kubernetes-networking-001
+    title: Đường kết nối Pod-to-Pod, Pod-to-Service và từ ngoài vào cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-002
+    title: Pod IP, node IP, Service IP và phạm vi của localhost trong Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-003
+    title: CNI và vai trò triển khai mạng giữa các node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-004
+    title: Service, selector, EndpointSlice và đích thực sự nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-005
+    title: Phân biệt port, targetPort và nodePort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-006
+    title: DNS dịch vụ, namespace và tên đầy đủ trong cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-007
+    title: ClusterIP, NodePort, LoadBalancer và lựa chọn cách tiếp cận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-008
+    title: Ingress, Gateway API và các lớp kết nối tới ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-009
+    title: NetworkPolicy cho chiều ingress, egress và điều kiện CNI hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-010
+    title: Readiness, endpoint chưa sẵn sàng và dịch vụ không có đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-011
+    title: Bảo toàn hoặc chuyển đổi địa chỉ nguồn theo chính sách lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-012
+    title: Egress từ Pod tới Internet, cơ sở dữ liệu và mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-networking-013
+    title: Kiểm tra từng chặng bằng Pod chẩn đoán và công cụ trong cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-networking
+  title: Mạng đám mây
+  childs:
+  - slug: cloud-networking-001
+    title: VPC, VNet, subnet và ranh giới kết nối trong đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-002
+    title: Phân biệt subnet công cộng, subnet riêng và route liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-003
+    title: Địa chỉ riêng, địa chỉ công cộng và địa chỉ công cộng cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-004
+    title: Internet Gateway, NAT Gateway và kết nối đi ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-005
+    title: Bảng định tuyến và liên kết đúng subnet hoặc giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-006
+    title: Security Group, Network ACL và firewall của máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-007
+    title: Load balancer công cộng, nội bộ và kiểm tra backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-008
+    title: Private endpoint và phân giải tên dịch vụ qua mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-009
+    title: VPC peering và giới hạn truyền tiếp theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-010
+    title: Transit gateway hoặc hub mạng cho nhiều mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-011
+    title: Flow log và công cụ phân tích khả năng tới đích của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-networking-012
+    title: Chi phí NAT, truyền dữ liệu và lựa chọn đường đi giữa vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hybrid-networks
+  title: Mạng lai
+  childs:
+  - slug: hybrid-networks-001
+    title: Kết nối mạng tại chỗ với một hoặc nhiều mạng đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-002
+    title: Site-to-site VPN và đường kết nối chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-003
+    title: Quy hoạch địa chỉ để tránh trùng CIDR giữa các bên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-004
+    title: Trao đổi route tĩnh hoặc động và kiểm soát tuyến được quảng bá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-005
+    title: Phân giải tên giữa mạng nội bộ và đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-006
+    title: Đường về, NAT và địa chỉ nguồn mà dịch vụ đích cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-007
+    title: Kết nối liên vùng, đa đám mây và thiết kế hub-and-spoke
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-008
+    title: Chuyển tuyến khi một đường truyền lỗi và tác động tới phiên đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-networks-009
+    title: Kiểm thử từ từng miền mạng thay vì chỉ kiểm tra tại điểm trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-networking
+  title: Kết nối trong Java
+  childs:
+  - slug: java-networking-001
+    title: InetAddress và kiểm tra kết quả phân giải tên trong JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-002
+    title: Giới hạn của InetAddress.isReachable khi xác minh dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-003
+    title: Socket.connect và timeout khi thiết lập kết nối TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-004
+    title: Đọc, ghi socket và phân biệt timeout kết nối với timeout đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-005
+    title: 'HttpClient: chọn đích, timeout, proxy và phản hồi HTTP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-006
+    title: Cấu hình proxy của JVM so với biến môi trường của công cụ dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-007
+    title: Truststore của JVM và khác biệt với CA tin cậy của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-008
+    title: DNS cache trong JVM khi địa chỉ dịch vụ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-009
+    title: Khác biệt localhost khi chạy Java trực tiếp, trong container hoặc trong Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-010
+    title: Cấu hình địa chỉ bind và cổng ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-011
+    title: 'Connection pool: kết nối cũ, kiểm tra sống và khôi phục sau gián đoạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-012
+    title: Đọc UnknownHostException, ConnectException, SocketTimeoutException và SSLHandshakeException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-networking-013
+    title: Đối chiếu kết quả curl với hành vi thật của ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linux-tools
+  title: Công cụ Linux
+  childs:
+  - slug: linux-tools-001
+    title: Xem giao diện, địa chỉ và trạng thái bằng ip link, ip addr
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-002
+    title: Xem route, neighbor và đường đi dự kiến bằng iproute2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-003
+    title: Xác định socket, cổng và tiến trình bằng ss
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-004
+    title: Kiểm tra DNS bằng getent, dig và resolvectl theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-005
+    title: Kiểm tra ICMP và chặng mạng bằng ping, traceroute, tracepath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-006
+    title: Kiểm tra TCP hoặc UDP bằng nc và socat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-007
+    title: Kiểm tra HTTP, HTTPS và chỉ định đích bằng curl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-008
+    title: Kiểm tra TLS bằng openssl s_client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-009
+    title: Đọc luật và bộ đếm nftables hoặc iptables
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-010
+    title: Đọc cấu hình NetworkManager hoặc systemd-networkd đang có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-011
+    title: Thực thi phép đo trong đúng network namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: windows-wsl
+  title: Windows và WSL
+  childs:
+  - slug: windows-wsl-001
+    title: Đọc địa chỉ, gateway và DNS bằng ipconfig và PowerShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-002
+    title: Xem giao diện và cấu hình bằng Get-NetAdapter, Get-NetIPConfiguration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-003
+    title: Xem route bằng route print và Get-NetRoute
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-004
+    title: Kiểm tra TCP, route và giao diện nguồn bằng Test-NetConnection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-005
+    title: Kiểm tra tên bằng Resolve-DnsName và nslookup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-006
+    title: Xem cổng, kết nối và tiến trình bằng Get-NetTCPConnection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-007
+    title: 'Windows Defender Firewall: profile, luật vào và luật ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-008
+    title: Kiểm tra nhiều chặng bằng tracert và pathping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-009
+    title: 'WSL2: mô hình NAT, mirrored networking và điều kiện hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-010
+    title: Truy cập dịch vụ giữa Windows, WSL và các máy trong LAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-011
+    title: DNS, proxy, VPN và Hyper-V firewall ảnh hưởng tới WSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-wsl-012
+    title: Những cấu hình mạng không được chia sẻ tự động giữa Windows và Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packet-capture-analysis
+  title: Bắt và đọc gói tin
+  childs:
+  - slug: packet-capture-analysis-001
+    title: Chọn vị trí bắt gói ở nguồn, đích hoặc nút trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-002
+    title: Dùng tcpdump và Wireshark để quan sát đúng giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-003
+    title: Phân biệt capture filter với display filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-004
+    title: Lọc theo địa chỉ, cổng, giao thức và kết nối cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-005
+    title: Đọc ARP, DNS, bắt tay TCP, ICMP và TLS trong một lần truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-006
+    title: Đối chiếu số thứ tự, cờ TCP và thời gian giữa hai đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-007
+    title: Nhận diện SYN không được trả lời, RST và truyền lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-008
+    title: Quan sát địa chỉ, cổng trước và sau NAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-009
+    title: Giới hạn do mã hóa, offloading và vị trí bắt gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-010
+    title: Giảm dữ liệu thu thập, che thông tin nhạy cảm và lưu bằng chứng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packet-capture-analysis-011
+    title: Phân biệt không thấy gói tại điểm đo với kết luận gói không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mtu-performance
+  title: MTU và hiệu năng
+  childs:
+  - slug: mtu-performance-001
+    title: Độ trễ, RTT, jitter, mất gói và thông lượng khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-002
+    title: Băng thông danh nghĩa và tốc độ truyền dữ liệu hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-003
+    title: MTU, MSS và kích thước gói đi qua nhiều liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-004
+    title: Path MTU Discovery và vai trò của ICMP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-005
+    title: MTU black hole khi gói nhỏ đi được nhưng gói lớn bị kẹt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-006
+    title: Chi phí đóng gói VPN, overlay và điều chỉnh MTU phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-007
+    title: Đo bằng iperf3 và kiểm soát các điều kiện của phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-008
+    title: Phân biệt giới hạn một chiều, hai chiều và số luồng đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-009
+    title: Nghẽn hàng đợi, bufferbloat và phía nhận chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-010
+    title: CPU, TLS, đĩa hoặc máy phát tải tạo giới hạn ngoài đường mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mtu-performance-011
+    title: So sánh trước và sau thay đổi bằng các phép đo lặp lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Phát hiện kết nối chết và phân biệt với mất mạng tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Connect timeout, read timeout, idle timeout và ngân sách thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Keepalive ở TCP, ứng dụng, NAT và VPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Retry có giới hạn, exponential backoff và jitter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Tính lũy đẳng và nguy cơ gửi giao dịch trùng sau lỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Tái sử dụng kết nối và xử lý kết nối cũ trong pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Heartbeat, reconnect và phục hồi các phiên dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Chuyển Wi-Fi, đổi IP, bật VPN và tác động tới kết nối đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Nhiều đường ra, failover và giới hạn duy trì phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-010
+    title: Thay đổi DNS hoặc backend và thời điểm máy khách nhận đích mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-011
+    title: Kiểm tra sức khỏe theo chặng và theo luồng nghiệp vụ đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-design-operations
+  title: Thiết kế và vận hành
+  childs:
+  - slug: network-design-operations-001
+    title: Vẽ sơ đồ nguồn, đích, subnet, gateway và các điểm trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-002
+    title: Lập ma trận kết nối theo cổng, giao thức, hướng và danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-003
+    title: Ghi rõ điểm phân giải tên, điểm NAT và nơi kết thúc TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-004
+    title: Giữ ranh giới mạng và quyền truy cập nhất quán giữa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-005
+    title: Giám sát khả năng kết nối từ bên ngoài và bên trong hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-006
+    title: Đo riêng DNS, thời gian connect, TLS handshake và phản hồi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-007
+    title: Kết hợp flow log, firewall log, packet capture và log ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-008
+    title: Triển khai thay đổi mạng theo phạm vi nhỏ và có phương án khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-009
+    title: Xác minh lưu lượng dự kiến được phép và lưu lượng ngoài phạm vi bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-design-operations-010
+    title: Duy trì hướng dẫn chẩn đoán, đầu mối sở hữu và bằng chứng cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Chuyển mô tả không kết nối được thành nguồn, đích, cổng và lỗi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chọn phép đo từ đúng vị trí xảy ra lỗi và so sánh với nơi hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Đã nối mạng nhưng không nhận được cấu hình IP hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Cùng subnet nhưng không liên lạc được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tới được gateway nhưng không tới được mạng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Ping thành công nhưng cổng ứng dụng không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Truy cập bằng IP được nhưng bằng tên thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Kết nối bị từ chối, bị timeout hoặc bị reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chỉ một chiều hoạt động do thiếu route về hoặc luật phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Chỉ máy cá nhân truy cập được, ứng dụng trong container lại thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Bật VPN làm mất Internet hoặc không tới được dịch vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Truy cập nội bộ được nhưng từ Internet không được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Kết nối thành công nhưng tải lớn, phiên dài hoặc yêu cầu thực tế bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Kết nối lúc được lúc không do nhiều IP, nhiều backend hoặc nhiều đường mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-015
+    title: Xác minh nguyên nhân bằng thay đổi tối thiểu và kiểm tra hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Kết nối hai máy cùng LAN và chứng minh cách phân giải địa chỉ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Dựng hai subnet, thêm route và kiểm chứng cả đường đi lẫn đường về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Tạo lỗi DNS rồi so sánh kiểm tra tên, IP, Host và SNI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: Công khai dịch vụ qua NAT và giới hạn địa chỉ nguồn bằng firewall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: So sánh truy cập từ LAN, Internet và mạng nằm sau CGNAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Thiết lập truy cập mạng riêng qua bastion và SSH forwarding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: Dựng VPN chia tuyến và kiểm tra DNS, route, MTU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Cho ứng dụng Docker kết nối host, container khác và Internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Kiểm tra Kubernetes Service, EndpointSlice và NetworkPolicy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Thiết kế kết nối từ máy ảo cloud tới Internet và dịch vụ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-011
+    title: Kết nối ứng dụng Java tới HTTP, HTTPS và cơ sở dữ liệu trong các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-012
+    title: Thu thập gói ở hai đầu để chứng minh nơi làm mất hoặc từ chối kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-013
+    title: Tạo lỗi MTU, mất gói và timeout trong phòng thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-014
+    title: Diễn tập đổi IP, đổi route và phục hồi kết nối dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-015
+    title: Lập báo cáo sự cố gồm giả thuyết, bằng chứng, nguyên nhân và kết quả xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

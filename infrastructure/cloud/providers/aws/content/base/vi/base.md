@@ -1,0 +1,7 @@
+# Cloud Providers AWS
+
+Amazon Web Services (AWS) là nền tảng điện toán đám mây cung cấp các dịch vụ theo nhu cầu như máy chủ, mạng, lưu trữ, cơ sở dữ liệu, xử lý sự kiện và công cụ quản trị. Module này giúp người học xây dựng cái nhìn tổng thể về hệ sinh thái AWS, lựa chọn dịch vụ phù hợp để triển khai ứng dụng Java và hiểu trách nhiệm bảo mật giữa AWS với khách hàng. Điểm xuất phát là hạ tầng toàn cầu gồm Region và Availability Zone, trước khi đi vào các dịch vụ cụ thể.
+
+Người học nên có kiến thức Java, HTTP, Linux và mạng căn bản. Lộ trình bắt đầu bằng mô hình AWS, thiết lập tài khoản, IAM và AWS CLI; tiếp đó là thiết kế VPC, triển khai compute với EC2, cân nhắc load balancing/Auto Scaling, chọn S3 hoặc storage khác và sử dụng RDS hay DynamoDB. Các mốc cuối giới thiệu Lambda cùng dịch vụ tích hợp sự kiện, sau đó thực hành quản lý hạ tầng bằng CloudFormation, giám sát qua CloudWatch và kiểm soát chi phí với AWS Budgets, đối chiếu nguyên tắc Well-Architected.
+
+Sau khi hoàn thành, bạn có thể phác thảo kiến trúc AWS cơ bản cho một ứng dụng, phân biệt các nhóm dịch vụ chính, cấu hình danh tính/mạng theo hướng ít quyền, triển khai và theo dõi tài nguyên ở mức nhập môn. Khi thực hành cần chọn Region, kiểm tra bảng giá và ngân sách trước khi tạo tài nguyên vì một số dịch vụ phát sinh chi phí ngay cả khi ứng dụng ít hoạt động.

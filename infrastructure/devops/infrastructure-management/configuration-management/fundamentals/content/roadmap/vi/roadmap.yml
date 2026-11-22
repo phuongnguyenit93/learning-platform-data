@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-configuration-management
+  title: Vai trò Configuration Management
+  purpose: Hiểu vì sao cần tự động quản lý cấu hình nhất quán trên nhiều máy và môi trường.
+  objectives:
+  - Phân biệt cấu hình hệ thống với cấp phát hạ tầng
+  - Kể tên các đối tượng như package, file và service
+  - Giải thích lợi ích so với chỉnh sửa thủ công
+- id: desired-state-idempotence
+  title: Desired State & Idempotence
+  purpose: Nắm nguyên tắc khai báo trạng thái mong muốn và chạy lại cấu hình mà không gây thay đổi thừa.
+  objectives:
+  - So sánh desired state với actual state
+  - Giải thích idempotence và convergence
+  - Kiểm chứng chạy lại không tạo thay đổi ngoài ý muốn
+- id: inventory-nhom-may
+  title: Inventory & Nhóm máy
+  purpose: Biết xác định hệ thống chịu quản lý và phân nhóm để áp dụng cấu hình phù hợp.
+  objectives:
+  - Khai báo inventory gồm host và nhóm
+  - Tách biến theo môi trường hoặc vai trò
+  - Giới hạn phạm vi triển khai tới nhóm mục tiêu
+- id: resources-templates
+  title: Resources & Templates
+  purpose: Mô hình hóa cấu hình bằng các đơn vị tái sử dụng để quản lý dịch vụ, tập tin và tham số.
+  objectives:
+  - Mô tả resource package, file, user và service
+  - Tạo template cho cấu hình thay đổi theo môi trường
+  - Phân biệt giá trị mặc định với giá trị ghi đè
+- id: automation-dependencies
+  title: Automation & Dependencies
+  purpose: Tổ chức các bước cấu hình có thứ tự và phụ thuộc để việc thực thi dễ hiểu, dễ kiểm thử.
+  objectives:
+  - Mô tả task, playbook hoặc manifest
+  - Xác định quan hệ phụ thuộc giữa các resource
+  - Tách logic chung thành role hoặc module
+- id: versioning-moi-truong
+  title: Versioning & Môi trường
+  purpose: Duy trì cấu hình như mã nguồn có thể review, tái tạo và triển khai theo từng môi trường.
+  objectives:
+  - Lưu cấu hình trong Git và code review
+  - Phân tách dev, staging và production
+  - Đề xuất cách quản lý thay đổi và rollback
+- id: bao-mat-trien-khai-an-toan
+  title: Bảo mật & Triển khai an toàn
+  purpose: Giảm rủi ro lộ bí mật hoặc gián đoạn dịch vụ trong lúc thay đổi cấu hình.
+  objectives:
+  - Không đặt secret trực tiếp trong repository
+  - Dùng quyền tối thiểu và mã hóa khi kết nối
+  - Áp dụng dry-run, canary hoặc triển khai theo nhóm
+- id: drift-kiem-thu-giam-sat
+  title: Drift, Kiểm thử & Giám sát
+  purpose: Phát hiện sai lệch giữa cấu hình mong muốn và thực tế, đồng thời đánh giá chất lượng tự động hóa.
+  objectives:
+  - So sánh trạng thái thực với bản khai báo
+  - Thử cấu hình trên môi trường kiểm thử
+  - Theo dõi kết quả chạy và xử lý cấu hình lệch

@@ -1,0 +1,522 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Datadog là gì và giải quyết bài toán quan sát hệ thống nào
+  - Vị trí của Datadog trong kiến trúc ứng dụng và hạ tầng
+  - Metrics, logs, traces, profiles và sự kiện thay đổi
+  - Phân biệt monitoring, observability và quy trình điều tra sự cố
+  - Quan hệ giữa Agent, SDK, integration và nền tảng SaaS
+  - Luồng dữ liệu từ nguồn phát sinh đến truy vấn và cảnh báo
+  - Quan sát từ hạ tầng đến dịch vụ và trải nghiệm người dùng
+  - Ranh giới giữa năng lực quan sát và các sản phẩm bảo mật mở rộng
+  - Lộ trình học và kiến thức nền về hệ điều hành, mạng, JVM và cloud
+- level1: Tổ chức và môi trường
+  level2:
+  - Datadog site, organization và cách chọn endpoint tương ứng
+  - Phạm vi dữ liệu giữa site, organization và môi trường ứng dụng
+  - Tổ chức tài khoản cho phát triển, kiểm thử và production
+  - Phân biệt API key, application key và client token
+  - Vai trò người dùng, nhóm và tài khoản dịch vụ
+  - Kiểm tra quyền sử dụng sản phẩm và mức khả dụng theo site
+  - Điều hướng giao diện, tìm kiếm chung và bộ chọn thời gian
+  - Chuẩn bị môi trường thực hành và dữ liệu không nhạy cảm
+- level1: Datadog Agent
+  level2:
+  - Kiến trúc core Agent, Trace Agent, Process Agent và system-probe
+  - Cài đặt Agent trên Linux, Windows và macOS
+  - Tổ chức datadog.yaml, conf.d và cấu hình integration
+  - Cấu hình API key, DD_SITE và biến môi trường
+  - Quản lý dịch vụ Agent và quyền truy cập tài nguyên
+  - Kết nối qua proxy, TLS và các endpoint gửi dữ liệu
+  - Đọc trạng thái Agent và danh sách check đang chạy
+  - Kiểm tra cấu hình bằng status, configcheck và check
+  - Quản lý phiên bản, nâng cấp và Fleet Automation
+- level1: Thu thập đầu tiên
+  level2:
+  - Dựng ứng dụng thử nghiệm và Agent trong môi trường riêng
+  - Xác minh host và system metrics xuất hiện trên Datadog
+  - Gửi một custom metric bằng DogStatsD
+  - Thu thập JSON log từ một tệp ứng dụng
+  - Gửi trace của một yêu cầu HTTP từ ứng dụng Java
+  - Tìm cùng dịch vụ qua metrics, logs và traces
+  - Tạo dashboard và monitor thử nghiệm cho luồng dữ liệu
+  - Phân biệt dữ liệu chưa phát sinh, đang trễ và bị lỗi thu thập
+- level1: Tags và định danh
+  level2:
+  - Tags dạng key:value và vai trò trong lọc, tổng hợp, phân quyền
+  - Unified Service Tagging với env, service và version
+  - Tags ở host, container, pod, integration và ứng dụng
+  - Ánh xạ Kubernetes labels và Docker labels sang tags
+  - Host name, host alias và tránh nhận diện trùng máy chủ
+  - Định danh service, resource, operation và phiên bản triển khai
+  - Quy ước team, region, cluster và namespace
+  - Tránh xung đột tag, thiếu tag và giá trị không nhất quán
+  - Cardinality và tác động của user_id, request_id đến metrics
+- level1: Tích hợp dữ liệu
+  level2:
+  - Phân biệt Agent-based, API-based và cloud integration
+  - Kích hoạt integration và xác minh dữ liệu thực sự được nhận
+  - Cấu trúc init_config, instances và quyền truy cập dịch vụ
+  - Autodiscovery và cấu hình theo container hoặc workload
+  - Thu thập Prometheus/OpenMetrics bằng integration tương ứng
+  - Thu thập JMX bằng JMXFetch
+  - Tích hợp MySQL, PostgreSQL, Redis, Kafka và NGINX
+  - Viết custom Agent check khi chưa có integration phù hợp
+  - Kiểm soát khoảng thu thập, timeout và số instance
+  - Đánh giá integration cộng đồng, phiên bản và trách nhiệm vận hành
+- level1: Mô hình metrics
+  level2:
+  - Metric name, điểm dữ liệu, timestamp, tags và chuỗi thời gian
+  - Phân biệt kiểu gửi dữ liệu và kiểu metrics trong giao diện
+  - Gauge, count và rate trong dữ liệu đo lường
+  - Histogram tại Agent và distribution tổng hợp trên hệ thống
+  - Set, timer và cách ánh xạ từ StatsD/DogStatsD
+  - Đơn vị, metadata và ý nghĩa của metric
+  - Metrics hạ tầng, integration metrics và custom metrics
+  - Phân biệt missing data, giá trị zero và dữ liệu đến trễ
+  - Độ phân giải, lưu giữ dữ liệu và rollup theo thời gian
+- level1: Metrics tùy chỉnh
+  level2:
+  - Thiết kế metric từ câu hỏi nghiệp vụ hoặc vận hành
+  - Gửi metrics qua DogStatsD bằng UDP
+  - Sử dụng Unix Domain Socket và nhận diện nguồn gửi khi được hỗ trợ
+  - Namespace, tags, sample rate và cơ chế gom dữ liệu tại client
+  - Chọn count, gauge, histogram hoặc distribution đúng ngữ nghĩa
+  - Gửi metrics qua HTTP API và hiểu trách nhiệm tổng hợp
+  - Thu thập Micrometer metrics bằng DogStatsD hoặc Datadog registry
+  - Thu thập endpoint OpenMetrics của ứng dụng
+  - Tạo metrics từ log hoặc span và hiểu tập dữ liệu đầu vào
+  - Kiểm tra mất gói, queue đầy và chi phí do cardinality
+- level1: Truy vấn metrics
+  level2:
+  - Cấu trúc truy vấn metrics và bộ lọc theo tags
+  - Tổng hợp theo không gian và nhóm theo host, service, region
+  - Tổng hợp theo thời gian và lựa chọn rollup
+  - Phân biệt as_count, as_rate, rate và derivative
+  - Công thức nhiều truy vấn và tính tỷ lệ lỗi đúng mẫu số
+  - Percentile của distribution và giới hạn của trung bình percentile
+  - Xử lý interpolation, fill, default_zero và dữ liệu thưa
+  - Top list, xếp hạng và so sánh theo nhóm
+  - Timeshift, smoothing, anomaly và forecast trong phân tích
+  - Kiểm tra chênh lệch kết quả giữa dashboard và monitor
+- level1: Thu thập logs
+  level2:
+  - Chọn Agent, cloud forwarder, HTTP API hoặc collector trung gian
+  - Bật log collection và cấu hình nguồn tệp
+  - Gán service, source, status, host và tags cho log
+  - Thu thập stdout, stderr và log từ container
+  - Ghép nhiều dòng và stack trace Java tại nguồn thu thập
+  - Theo dõi vị trí đọc, log rotation và tệp bị truncate
+  - Lọc include/exclude và che nội dung trước khi gửi
+  - Thu thập Kubernetes logs theo workload
+  - Tiếp nhận log từ AWS, Azure và Google Cloud
+  - Kiểm tra timestamp, mã hóa và giới hạn kích thước bản ghi
+- level1: Xử lý logs
+  level2:
+  - Vòng đời ingestion, pipeline, processor và indexing
+  - Thứ tự pipeline và bộ lọc chọn bản ghi
+  - Tự động phân tích JSON và dùng Grok cho log văn bản
+  - Viết, thử và bảo trì quy tắc Grok với mẫu dữ liệu
+  - Chuẩn hóa timestamp bằng Date Remapper
+  - Chuẩn hóa service, status, message và trace ID
+  - Trích xuất thuộc tính, đổi tên trường và chuyển kiểu
+  - Bổ sung dữ liệu bằng lookup và bảng tham chiếu
+  - Phân biệt xử lý tại Agent, Observability Pipelines và phía Datadog
+  - Kiểm chứng log trước sau xử lý và tránh mất trường quan trọng
+- level1: Phân tích logs
+  level2:
+  - Phân biệt Live Tail và Log Explorer
+  - Tìm kiếm văn bản, thuộc tính, tags và cú pháp boolean
+  - Sử dụng facet và measure đúng mục đích
+  - Lọc theo thời gian, service, environment và mức lỗi
+  - Tổng hợp thành timeseries, top list và bảng
+  - Phát hiện mẫu log lặp lại bằng Patterns
+  - Tạo saved view và chia sẻ ngữ cảnh truy vấn
+  - Đi từ log đến trace, host, container và source code
+  - Tạo log-based metric, dashboard và monitor từ truy vấn
+  - Điều tra log không tìm thấy dù Agent đã gửi
+- level1: Lưu trữ logs
+  level2:
+  - Phân biệt log được nhận, được index và được archive
+  - Thiết kế index, thứ tự định tuyến và thời gian lưu giữ
+  - Exclusion filter, sampling và quota theo index
+  - Đánh giá Standard Indexing và Flex Logs theo workload
+  - Archive sang lưu trữ đối tượng trên cloud
+  - Tìm dữ liệu trực tiếp bằng Archive Search khi khả dụng
+  - Rehydrate dữ liệu và sử dụng historical view
+  - Quyền truy cập archive, historical view và dữ liệu được phục hồi
+  - Đánh đổi khả năng tìm kiếm, thời gian truy cập và mức sử dụng
+  - Kiểm chứng thay đổi retention mà không suy diễn dữ liệu còn tồn tại
+- level1: Observability Pipelines
+  level2:
+  - Khi nào cần xử lý telemetry trong hạ tầng của mình
+  - Vai trò của control plane và Observability Pipelines Worker
+  - Kết nối source, processor và destination được hỗ trợ
+  - Phân tích, bổ sung trường, lọc và che dữ liệu tại Worker
+  - Định tuyến đến Datadog, kho lưu trữ và các đích khác
+  - Xử lý logs và metrics theo khả năng của phiên bản Worker
+  - Buffer bộ nhớ, buffer đĩa và áp lực ngược
+  - Hành vi khi đích chậm, buffer đầy hoặc Worker khởi động lại
+  - Triển khai, nâng cấp và giám sát sức khỏe pipeline
+- level1: Thu thập traces
+  level2:
+  - Trace, span, parent span, service, resource và operation
+  - Phân biệt instrumentation tự động và thủ công
+  - Cài Datadog SDK theo ngôn ngữ và runtime
+  - Kết nối ứng dụng với Trace Agent
+  - Truyền context qua HTTP và W3C Trace Context
+  - Truyền context qua hàng đợi và tác vụ bất đồng bộ
+  - Thêm span, tag, lỗi và sự kiện tại điểm nghiệp vụ
+  - Chuẩn hóa tên resource và tránh URL có cardinality cao
+  - Liên kết trace với logs và runtime metrics
+  - Kiểm tra dữ liệu nhạy cảm trong headers, tags và payload
+- level1: Phân tích APM
+  level2:
+  - Đọc trang dịch vụ và các chỉ số request, error, duration
+  - Phân tích endpoint và resource có độ trễ cao
+  - Đọc flame graph, waterfall và cây span
+  - Phân biệt thời gian của span, thời gian chờ và thời gian tự xử lý
+  - Tìm kiếm span bằng Trace Explorer
+  - So sánh Live Search với dữ liệu đã được index
+  - Tổng hợp spans theo thuộc tính và tạo phân tích
+  - Tìm trace theo quan hệ giữa nhiều spans
+  - Theo dõi dependency map và tác động đến dịch vụ liên quan
+  - Phân tích phiên bản triển khai và thay đổi hiệu năng
+- level1: Sampling và retention
+  level2:
+  - Phân biệt thu thập, ingestion sampling và retention filtering
+  - Kiểm soát ingestion tại SDK, Agent và theo dịch vụ
+  - Sampling ở đầu trace và theo kết quả trace
+  - Quy tắc giữ trace lỗi, trace chậm và luồng nghiệp vụ quan trọng
+  - Phân biệt lấy mẫu cả trace và giữ riêng spans
+  - Custom retention filter và intelligent retention
+  - Thứ tự filter và khả năng tìm kiếm từng span
+  - Trace metrics, span-based metrics và ảnh hưởng của lấy mẫu
+  - Ảnh hưởng của sampling đến liên kết logs, RUM và traces
+  - Đo volume, chất lượng dữ liệu và hiệu quả sau thay đổi
+- level1: Java và Spring Boot
+  level2:
+  - Kiểm tra hỗ trợ JDK, framework và thư viện Java
+  - Khởi chạy JVM với dd-java-agent.jar
+  - Cấu hình DD_SERVICE, DD_ENV, DD_VERSION và địa chỉ Agent
+  - Quan sát Spring MVC, WebFlux và lời gọi HTTP client
+  - Quan sát JDBC, connection pool, Redis và Kafka
+  - JVM runtime metrics, heap, GC và luồng thực thi
+  - Tương quan Logback hoặc Log4j2 với trace
+  - Custom spans và OpenTelemetry API với Datadog SDK
+  - Quan sát Executor, CompletableFuture và reactive context
+  - Kết hợp Micrometer, JMX và tracing mà tránh ghi trùng dữ liệu
+  - Phân tích một yêu cầu chậm từ HTTP đến truy vấn SQL
+- level1: Profiling liên tục
+  level2:
+  - Continuous Profiler bổ sung gì cho APM và metrics
+  - Điều kiện hỗ trợ theo ngôn ngữ, nền tảng và phiên bản
+  - Bật profiling trong ứng dụng Java
+  - Phân biệt CPU time, wall-clock time và các kiểu profile
+  - Điều tra cấp phát bộ nhớ, contention và phương thức tốn tài nguyên
+  - Đọc flame graph và so sánh profile theo thời gian
+  - Liên kết profile với service, version và trace
+  - Phân biệt Datadog Profiler và JFR theo nền tảng
+  - Đánh giá chi phí thu thập và ảnh hưởng đến ứng dụng
+- level1: Gỡ lỗi ứng dụng
+  level2:
+  - Error Tracking và cách nhóm lỗi theo dấu vết
+  - Theo dõi lỗi mới, lỗi tái xuất hiện và phiên bản bị ảnh hưởng
+  - Liên kết lỗi với logs, traces, RUM và source code
+  - Dynamic Instrumentation và điều kiện bật tính năng
+  - Thêm log probe, metric probe và span probe khi được hỗ trợ
+  - Điều kiện kích hoạt, giới hạn tần suất và thời gian thu thập
+  - Kiểm soát biến cục bộ, dữ liệu nhạy cảm và quyền gỡ lỗi
+  - Exception Replay và dữ liệu trạng thái tại thời điểm lỗi
+  - Gỡ probe sau điều tra và kiểm chứng mức dùng tài nguyên
+- level1: OpenTelemetry
+  level2:
+  - Phân biệt OTel API, SDK, Collector và Datadog SDK
+  - Chọn đường tích hợp theo bảng tương thích tính năng
+  - Datadog Distribution of OpenTelemetry Collector và DDOT
+  - Tiếp nhận OTLP qua Datadog Agent
+  - Xuất dữ liệu từ upstream Collector sang Datadog
+  - Gửi trực tiếp đến OTLP intake trong trường hợp phù hợp
+  - Phân biệt endpoint, giao thức và xác thực của từng đường gửi
+  - Ánh xạ resource attributes sang host, service và tags
+  - Ánh xạ OTel metrics, histogram và temporality
+  - Tạo trace metrics trước sampling và kiểm chứng dữ liệu
+  - Di chuyển instrumentation và tránh chạy chồng các SDK
+- level1: Hạ tầng và container
+  level2:
+  - Host Map, host list và phạm vi dữ liệu của từng host
+  - Theo dõi CPU, memory, disk I/O, network và filesystem
+  - Live Processes và phân tích tiến trình sử dụng tài nguyên
+  - Cài Datadog Agent bằng Docker
+  - Thu thập container metrics và metadata
+  - Autodiscovery qua Docker labels
+  - Giới hạn thu thập theo container và image
+  - Cấu hình volume, socket và quyền truy cập host
+  - Phân biệt tài nguyên host, container và ứng dụng
+  - Giám sát mất kết nối Agent và host ngừng gửi dữ liệu
+- level1: Kubernetes
+  level2:
+  - Kiến trúc node Agent, Cluster Agent và Cluster Check Runner
+  - Cài đặt bằng Datadog Operator hoặc Helm
+  - DatadogAgent resource, values.yaml và Kubernetes Secret
+  - Định danh cluster và ánh xạ namespace, pod, workload thành tags
+  - Autodiscovery bằng annotations và DatadogInstrumentation khi hỗ trợ
+  - Thu thập kubelet metrics, trạng thái workload và events
+  - Thu thập logs và APM từ pod ứng dụng
+  - Admission Controller và lựa chọn instrumentation tự động
+  - Cluster checks, endpoint checks và phân phối workload thu thập
+  - Kubernetes Explorer và điều tra restart, pending, OOMKilled
+  - Quyền RBAC, security context và giới hạn tài nguyên Agent
+  - Giám sát Fargate, Autopilot và các giới hạn môi trường quản lý
+- level1: Cloud và serverless
+  level2:
+  - Kết nối AWS, Azure và Google Cloud theo phạm vi cần quan sát
+  - Phân biệt cloud API integration với Agent trên máy chủ
+  - Quyền IAM, service account và giới hạn truy cập dữ liệu
+  - Thu thập metrics, events, tags và logs từ cloud
+  - Tránh đếm trùng tài nguyên và dữ liệu từ nhiều đường thu thập
+  - Quan sát AWS Lambda và vai trò extension, SDK, forwarder
+  - Điều tra cold start, timeout, lỗi và thời gian thực thi
+  - Quan sát ECS Fargate, Azure Functions và Cloud Run theo hỗ trợ
+  - Liên kết yêu cầu serverless với dịch vụ và hàng đợi bên ngoài
+  - Tính đến độ trễ cloud metrics trong truy vấn và monitor
+- level1: Cơ sở dữ liệu
+  level2:
+  - Phân biệt integration metrics và Database Monitoring
+  - Thiết lập PostgreSQL, MySQL hoặc database được hỗ trợ
+  - Quyền database tối thiểu và lựa chọn nguồn kết nối
+  - Theo dõi query metrics, normalized query và query samples
+  - Đọc explain plan và tìm truy vấn chậm
+  - Điều tra lock, wait, connection và giới hạn tài nguyên
+  - Liên kết APM với truy vấn SQL trong DBM
+  - Theo dõi thay đổi plan và hiệu năng sau triển khai
+  - Che câu lệnh SQL, tham số và giới hạn dữ liệu truy vấn
+  - Tạo dashboard và monitor cho sức khỏe database
+- level1: Mạng và phụ thuộc
+  level2:
+  - Phân biệt Cloud Network Monitoring và Network Device Monitoring
+  - Luồng mạng, kết nối và quan hệ client-server
+  - Điều kiện system-probe, eBPF và quyền theo hệ điều hành
+  - Phân tích lưu lượng theo service, pod, host và availability zone
+  - Điều tra latency, retransmission và kết nối thất bại
+  - DNS Monitoring và phân biệt timeout với lỗi phân giải
+  - Network map và lần theo phụ thuộc chưa được instrument
+  - Thu thập thiết bị mạng qua SNMP khi cần
+  - Liên kết dữ liệu mạng với APM, logs và hạ tầng
+- level1: Luồng dữ liệu
+  level2:
+  - Data Streams Monitoring và quan sát ứng dụng hướng sự kiện
+  - Phân biệt broker metrics, consumer lag và độ trễ đầu cuối
+  - Instrument producer và consumer Java theo phiên bản hỗ trợ
+  - Truyền context qua message headers
+  - Đọc topology, pathway, throughput và payload size
+  - Điều tra consumer chậm, backlog và độ trễ lan truyền
+  - Liên kết Kafka, RabbitMQ, SQS với ứng dụng và đội sở hữu
+  - Kafka Console và quan hệ giữa topic, broker, schema, service
+  - Jobs Monitoring trong Data Observability cho tác vụ dữ liệu
+- level1: RUM và Session Replay
+  level2:
+  - Phân biệt trải nghiệm người dùng thực và kiểm thử tổng hợp
+  - Khởi tạo Browser RUM SDK và chọn client token đúng phạm vi
+  - Views, actions, resources, errors và sessions
+  - Theo dõi Core Web Vitals và hiệu năng điều hướng
+  - Thu thập lỗi frontend và source maps
+  - Đo user action và hành trình quan trọng trong ứng dụng
+  - Liên kết yêu cầu trình duyệt với backend traces
+  - Cấu hình sampling cho RUM và Session Replay
+  - Che nội dung, giới hạn dữ liệu và xử lý consent
+  - Dùng Session Replay để tái hiện vấn đề
+  - Quan sát ứng dụng mobile theo SDK và nền tảng hỗ trợ
+- level1: Kiểm thử tổng hợp
+  level2:
+  - API tests cho HTTP, DNS, TCP, SSL và gRPC theo hỗ trợ
+  - Thiết kế assertion về trạng thái, nội dung và thời gian phản hồi
+  - Multistep API tests và chuỗi giao dịch có xác thực
+  - Browser tests cho hành trình người dùng
+  - Quản lý biến, tài khoản thử nghiệm và thông tin bí mật
+  - Chọn managed location hoặc private location
+  - Triển khai và giám sát private location worker
+  - Lịch chạy, retry và điều kiện phát cảnh báo
+  - Liên kết Synthetic test với APM trace
+  - Tích hợp Continuous Testing vào CI/CD
+  - Phân biệt lỗi ứng dụng, lỗi môi trường test và test không ổn định
+- level1: Quan sát ứng dụng AI
+  level2:
+  - Agent Observability cho ứng dụng LLM và tác nhân AI
+  - Phân biệt giám sát LLM workflow với giám sát hạ tầng AI
+  - Tracing lời gọi model, tool, retrieval và chuỗi xử lý
+  - Theo dõi latency, lỗi, token và chi phí theo model
+  - Liên kết prompt, phiên bản và kết quả thực thi
+  - Đánh giá chất lượng bằng evaluator và phản hồi người dùng
+  - Che dữ liệu trong prompt, input và output
+  - Điều kiện SDK, site và giới hạn tích hợp theo ứng dụng
+- level1: Dashboard và Notebook
+  level2:
+  - Thiết kế dashboard theo câu hỏi vận hành và đối tượng sử dụng
+  - Chọn timeseries, query value, table, toplist và heatmap
+  - Kết hợp metrics, logs, traces và SLO trong cùng ngữ cảnh
+  - Sử dụng template variables và bộ lọc dùng chung
+  - Công thức, đơn vị, trục và ngưỡng hiển thị
+  - Đánh dấu deployment và sự kiện lên đồ thị
+  - Tổ chức widget, liên kết điều tra và dashboard mẫu
+  - Quyền xem, quyền sửa và giới hạn chia sẻ
+  - Dùng Notebook để ghi giả thuyết, bằng chứng và kết quả
+  - Quản lý JSON, phiên bản và tái sử dụng dashboard
+- level1: Monitor cơ bản
+  level2:
+  - Phân biệt biểu đồ phân tích và điều kiện đánh giá monitor
+  - Chọn metric, service check, logs hoặc APM monitor
+  - Ngưỡng warning, alert và recovery
+  - Evaluation window, aggregation và tần suất đánh giá
+  - Simple alert và multi alert theo nhóm
+  - Hành vi khi dữ liệu thiếu, zero hoặc đến trễ
+  - Evaluation delay, new group delay và require full window
+  - Trạng thái OK, WARN, ALERT và NO DATA
+  - Kiểm thử monitor với dữ liệu và lịch sử thực tế
+- level1: Cảnh báo nâng cao
+  level2:
+  - Change alert và so sánh biến động theo thời gian
+  - Anomaly monitor và điều kiện dữ liệu lịch sử
+  - Outlier monitor và so sánh giữa các thành viên cùng nhóm
+  - Forecast monitor và dự báo vượt ngưỡng
+  - Composite monitor và quan hệ giữa các monitor thành phần
+  - Cảnh báo tỷ lệ lỗi bằng as_count và đúng thứ tự tổng hợp
+  - Theo dõi phân phối độ trễ bằng percentile
+  - RUM, Synthetics, database và network monitors theo nguồn dữ liệu
+  - Giảm flapping bằng ngưỡng phục hồi và cửa sổ đánh giá
+  - Đánh giá false positive, false negative và dữ liệu thưa
+- level1: Định tuyến thông báo
+  level2:
+  - Thiết kế thông báo có tác động, bằng chứng và bước xử lý
+  - Biến mẫu theo trạng thái và theo nhóm bị ảnh hưởng
+  - Định tuyến theo team, service, environment và mức ưu tiên
+  - Tích hợp email, Slack, Microsoft Teams và công cụ trực vận hành
+  - Renotify, escalation và giới hạn thông báo lặp
+  - Downtime, maintenance window và phạm vi mute
+  - Quản lý monitor ownership, tags và quyền chỉnh sửa
+  - Xác minh đường thông báo trong môi trường thử nghiệm
+  - Đo chất lượng cảnh báo và xử lý monitor không còn hữu ích
+- level1: SLO và error budget
+  level2:
+  - Phân biệt SLI, SLO và mục tiêu chất lượng dịch vụ
+  - Chọn chỉ số theo hành trình người dùng
+  - Metric-based SLO và tỷ lệ good events trên total events
+  - Monitor-based SLO và thời gian monitor đạt yêu cầu
+  - Time Slice SLO và định nghĩa khoảng thời gian tốt
+  - Mục tiêu, cửa sổ thời gian và tác động của lưu lượng thấp
+  - Tính error budget và tốc độ tiêu thụ ngân sách lỗi
+  - Burn-rate alert với nhiều cửa sổ đánh giá
+  - Xử lý missing data, maintenance và status correction
+  - Dùng SLO để ưu tiên cải thiện và đánh giá thay đổi
+- level1: Catalog và thay đổi
+  level2:
+  - Catalog trong Internal Developer Portal và mô hình entity
+  - Khai báo service, system, API và phụ thuộc theo schema hỗ trợ
+  - Gắn đội sở hữu, repository, tài liệu và thông tin trực
+  - Khám phá entity từ telemetry và bổ sung metadata chủ động
+  - Liên kết catalog với APM, SLO, monitors và incidents
+  - Scorecards và theo dõi tiêu chuẩn vận hành
+  - Thu thập Events từ hạ tầng, công cụ CI/CD và ứng dụng
+  - Đánh dấu deployment theo service, version và environment
+  - Change Tracking và đối chiếu thay đổi với tín hiệu bất thường
+- level1: Ứng phó sự cố
+  level2:
+  - Phân biệt monitor alert, case và incident
+  - Khai báo incident, severity và phạm vi tác động
+  - Phân công Incident Commander và người xử lý
+  - Gắn graphs, logs, traces và thay đổi vào timeline
+  - Datadog On-Call và quy trình nhận, chuyển, leo thang cảnh báo
+  - Phối hợp điều tra và ghi nhận mốc thời gian có bằng chứng
+  - Xác minh phục hồi bằng dữ liệu và kết quả người dùng
+  - Tạo postmortem và phân biệt nguyên nhân với tương quan
+  - Theo dõi hành động sau sự cố và đội chịu trách nhiệm
+  - Workflow Automation cho tác vụ lặp lại với quyền được kiểm soát
+- level1: CI/CD và chất lượng mã
+  level2:
+  - CI/CD Optimization và quan hệ với CI Visibility, Test Optimization
+  - Thu thập pipeline, job, stage và trạng thái thực thi
+  - Tích hợp GitHub Actions hoặc nền tảng CI được hỗ trợ
+  - Phân tích thời gian chờ, thời gian chạy và pipeline thất bại
+  - Thu thập kết quả JUnit và thông tin Git của bài kiểm thử
+  - Phát hiện flaky tests và kiểm thử làm chậm pipeline
+  - Liên kết commit, deployment và hồi quy trong production
+  - Source Code Integration và điều hướng từ telemetry đến mã
+  - Quan hệ với Code Security, SAST và SCA khi cần mở rộng
+- level1: Liên kết và điều tra
+  level2:
+  - Chuẩn hóa thời gian và phạm vi trước khi so sánh tín hiệu
+  - Đi từ triệu chứng người dùng đến service bị ảnh hưởng
+  - Kết hợp metrics để xác định thời điểm và quy mô tác động
+  - Dùng traces để khoanh vùng lời gọi hoặc phụ thuộc chậm
+  - Dùng logs để kiểm tra lỗi cụ thể và dữ liệu thực thi
+  - Dùng profiles, database và network để kiểm chứng giả thuyết
+  - Sử dụng Watchdog để phát hiện điểm khác thường
+  - Sử dụng Bits Investigation và đánh giá bằng chứng được cung cấp
+  - Phân biệt tương quan, giả thuyết và nguyên nhân đã kiểm chứng
+  - Ghi lại truy vấn, mốc thời gian và giới hạn dữ liệu điều tra
+- level1: Bảo mật dữ liệu
+  level2:
+  - Lập danh mục telemetry và dữ liệu nhạy cảm có thể bị thu thập
+  - Quyền RBAC và giới hạn dữ liệu theo sản phẩm
+  - Kiểm soát truy cập logs bằng cơ chế phù hợp với tổ chức
+  - Quản lý API key, scoped application key và client token
+  - SSO, service account và vòng đời quyền truy cập
+  - Che hoặc loại bỏ dữ liệu tại ứng dụng, Agent và pipeline
+  - Sensitive Data Scanner và vị trí xử lý dữ liệu
+  - Bảo vệ secrets, debug snapshots và dữ liệu Session Replay
+  - Kiểm soát việc chia sẻ dashboard, notebook và ảnh chụp
+  - Audit Trail và kiểm tra thay đổi cấu hình
+  - Phân biệt sản phẩm bảo mật mở rộng với chính sách bảo vệ telemetry
+- level1: API và Terraform
+  level2:
+  - Chọn Datadog API v1/v2 và endpoint đúng site
+  - Xác thực, scopes và quyền tài khoản gọi API
+  - Phân trang, giới hạn tốc độ, retry và xử lý lỗi
+  - Đọc và gửi metrics, logs, events qua API phù hợp
+  - Quản lý monitor, dashboard, SLO và log configuration
+  - Sử dụng SDK chính thức và cố định phiên bản
+  - Quản lý tài nguyên bằng Datadog Terraform provider
+  - Import tài nguyên có sẵn và xử lý configuration drift
+  - Tách cấu hình môi trường và bảo vệ credentials, state
+  - Review, plan, apply và kiểm chứng sau thay đổi
+- level1: Chi phí và quản trị
+  level2:
+  - Xác định các đơn vị sử dụng của từng sản phẩm đang bật
+  - Phân biệt ingestion, indexing, retention và khả năng truy vấn
+  - Theo dõi usage và estimated usage theo nguồn dữ liệu
+  - Metrics without Limits và tag indexing của custom metrics
+  - Cardinality Explorer và kiểm soát tags làm tăng số chuỗi
+  - Điều chỉnh log indexing, archive và quota theo giá trị sử dụng
+  - Điều chỉnh APM ingestion và retention có đo chất lượng
+  - Kiểm soát volume RUM, Session Replay và Synthetic test
+  - Phân bổ usage theo team, service và environment
+  - Đặt cảnh báo tăng trưởng và rà soát dữ liệu không còn cần thiết
+  - Đánh giá tính khả dụng, gói sử dụng và tài liệu hiện hành trước triển khai
+- level1: Vận hành và khắc phục
+  level2:
+  - Giám sát Agent, integration và đường vận chuyển telemetry
+  - Điều tra sai API key, sai site, DNS, proxy và chứng chỉ
+  - Điều tra metrics thiếu, sai đơn vị, sai tag hoặc ghi trùng
+  - Điều tra logs chỉ có ở Live Tail nhưng không có trong Explorer
+  - Điều tra lỗi parsing, timestamp và log rotation
+  - Điều tra trace mất context, thiếu spans và sampling ngoài dự kiến
+  - Điều tra dữ liệu lệch giữa dashboard, monitor và SLO
+  - Điều tra thiếu dữ liệu Kubernetes, cloud và database
+  - Đo overhead của Agent, SDK, profiler và pipeline
+  - Xây quy trình nâng cấp canary, rollback và kiểm tra tương thích
+  - Thu thập diagnostic và flare sau khi rà soát dữ liệu nhạy cảm
+  - Lập sổ tay vận hành và kiểm tra phục hồi đường telemetry
+- level1: Thực hành tổng hợp
+  level2:
+  - Quan sát ứng dụng Spring Boot với PostgreSQL, Redis và Kafka
+  - Chuẩn hóa tags và liên kết metrics, logs, traces, profiles
+  - Thiết kế dashboard theo RED, USE và hành trình người dùng
+  - Phát hiện và điều tra API chậm do truy vấn SQL
+  - Điều tra GC, memory pressure và lỗi ứng dụng tái xuất hiện
+  - Quan sát consumer lag và độ trễ xử lý message đầu cuối
+  - Triển khai Agent và APM cho workload Kubernetes
+  - Kết hợp RUM, Synthetic test và trace để điều tra lỗi frontend
+  - Xây SLO, burn-rate alert và diễn tập incident
+  - Quản lý dashboard, monitors và SLO bằng Terraform
+  - Giảm volume và cardinality rồi kiểm chứng khả năng điều tra
+  - Tích hợp một dịch vụ OpenTelemetry và đối chiếu dữ liệu

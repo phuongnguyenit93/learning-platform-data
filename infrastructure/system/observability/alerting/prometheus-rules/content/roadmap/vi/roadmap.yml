@@ -1,0 +1,49 @@
+roadmap:
+- id: luong-canh-bao
+  title: Luồng cảnh báo
+  purpose: Nắm cách Prometheus phát hiện điều kiện cảnh báo và chuyển cảnh báo tới Alertmanager.
+  objectives:
+  - Mô tả metric → PromQL → alert → Alertmanager.
+  - Phân biệt đánh giá rule và gửi thông báo.
+- id: cau-truc-rule
+  title: Cấu trúc rule
+  purpose: Hiểu mẫu YAML để khai báo alerting rule rõ ràng.
+  objectives:
+  - Nhận diện groups, name, rules, alert, expr.
+  - Tạo một rule cảnh báo hợp lệ.
+- id: dieu-kien-promql
+  title: Điều kiện PromQL
+  purpose: Chọn tín hiệu và ngưỡng phản ánh sự cố thực tế.
+  objectives:
+  - Viết expr cho mất kết nối, lỗi hoặc độ trễ.
+  - Kiểm tra bộ lọc nhãn và phép tổng hợp.
+- id: trang-thai-thoi-gian
+  title: Trạng thái & thời gian
+  purpose: Điều chỉnh thời gian kích hoạt và kết thúc để giảm cảnh báo chập chờn.
+  objectives:
+  - Giải thích pending, firing, for, keep_firing_for.
+  - Chọn thời lượng phù hợp với nhịp đánh giá.
+- id: nhan-chu-thich
+  title: Nhãn & chú thích
+  purpose: Cung cấp mức độ, chủ sở hữu và thông tin xử lý hữu ích.
+  objectives:
+  - Đặt severity và nhãn định tuyến nhất quán.
+  - Viết summary, description và liên kết runbook.
+- id: to-chuc-rule-groups
+  title: Tổ chức rule groups
+  purpose: Sắp xếp bộ rule dễ quản lý và nạp vào Prometheus.
+  objectives:
+  - Nhóm rule theo dịch vụ hoặc mục đích.
+  - Khai báo rule_files và chu kỳ đánh giá.
+- id: kiem-thu-trien-khai
+  title: Kiểm thử & triển khai
+  purpose: Bắt lỗi cấu hình và xác minh hành vi trước khi vận hành.
+  objectives:
+  - Chạy promtool check rules và test rules.
+  - Xác minh pending/firing sau khi nạp rule.
+- id: chat-luong-canh-bao
+  title: Chất lượng cảnh báo
+  purpose: Giữ cảnh báo có thể hành động, ít nhiễu và gắn với tác động người dùng.
+  objectives:
+  - Ưu tiên triệu chứng ảnh hưởng dịch vụ.
+  - Rà soát ngưỡng, cảnh báo lặp và hướng xử lý.

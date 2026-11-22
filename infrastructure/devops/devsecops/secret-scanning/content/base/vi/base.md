@@ -1,0 +1,7 @@
+# DevOps DevSecOps Secret Scanning
+
+*Secret scanning* là hoạt động phát hiện thông tin xác thực bị đưa nhầm vào mã nguồn, cấu hình hoặc lịch sử Git, chẳng hạn API key, access token, mật khẩu và private key. Một credential bị lộ có thể tiếp tục tồn tại trong commit cũ, fork hoặc bản sao repository dù đã xóa khỏi file hiện tại. Module dành cho người học đã biết Git, quy trình pull/merge request và CI/CD cơ bản, nhằm xây dựng thói quen phát hiện sớm và xử lý an toàn các rủi ro này.
+
+Lộ trình bắt đầu từ phân loại secret và các kỹ thuật nhận diện bằng pattern, entropy hoặc xác minh có kiểm soát. Người học thử quét local với Gitleaks bằng **token giả**, thiết lập pre-commit hook và tìm hiểu push protection, sau đó đưa secret detection vào pipeline. Các bước kế tiếp tập trung vào cấu hình rules, quản lý false positive, phân loại alert và quy trình khắc phục: thu hồi hoặc rotate credential, đánh giá khả năng bị sử dụng và cân nhắc làm sạch Git history khi cần. Cuối cùng là sử dụng secret manager hoặc identity ngắn hạn để tránh hardcode, đồng thời theo dõi hiệu quả kiểm soát.
+
+Sau khi hoàn thành, bạn có thể thiết kế một lớp secret scanning trước commit, lúc push và trong CI/CD; giải thích vì sao quét thành công không bảo đảm phát hiện mọi secret; và xây dựng checklist xử lý cảnh báo theo mức độ rủi ro. Nguyên tắc quan trọng nhất là **không đưa secret thật vào bài kiểm thử hay báo cáo**, không coi việc xóa chuỗi trong code là đủ, và ưu tiên vô hiệu hóa credential đã lộ trước các bước thay đổi lịch sử repository.

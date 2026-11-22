@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan chiến lược
+  slug: strategy-overview
+  index: 0
+- title: Tiêu chí lựa chọn
+  slug: selection-criteria
+  index: 1
+- title: Chuẩn bị triển khai
+  slug: deployment-preparation
+  index: 2
+- title: Triển khai Recreate
+  slug: recreate-deployment
+  index: 3
+- title: Triển khai cuốn chiếu
+  slug: rolling-deployment
+  index: 4
+- title: Triển khai Blue-Green
+  slug: blue-green-deployment
+  index: 5
+- title: Triển khai Canary
+  slug: canary-deployment
+  index: 6
+- title: Phát hành tăng dần
+  slug: progressive-delivery
+  index: 7
+- title: Điều phối lưu lượng
+  slug: traffic-routing
+  index: 8
+- title: Sao chép lưu lượng
+  slug: traffic-mirroring
+  index: 9
+- title: Cờ tính năng
+  slug: feature-flags
+  index: 10
+- title: Thử nghiệm A/B
+  slug: ab-testing
+  index: 11
+- title: Triển khai theo vòng
+  slug: ring-deployment
+  index: 12
+- title: Triển khai đa vùng
+  slug: multi-region-deployment
+  index: 13
+- title: Tương thích phiên bản
+  slug: version-compatibility
+  index: 14
+- title: Di chuyển cơ sở dữ liệu
+  slug: database-migrations
+  index: 15
+- title: Hàng đợi và tác vụ nền
+  slug: queues-background-jobs
+  index: 16
+- title: Phiên và kết nối
+  slug: sessions-connections
+  index: 17
+- title: Kiểm tra sức khỏe
+  slug: health-checks
+  index: 18
+- title: Quan sát và phân tích
+  slug: observability-analysis
+  index: 19
+- title: Cổng kiểm soát
+  slug: quality-gates
+  index: 20
+- title: Rollback và Roll-forward
+  slug: rollback-rollforward
+  index: 21
+- title: Cấu hình và bí mật
+  slug: configuration-secrets
+  index: 22
+- title: CI/CD và GitOps
+  slug: cicd-gitops
+  index: 23
+- title: Triển khai Kubernetes
+  slug: kubernetes-deployment
+  index: 24
+- title: Máy ảo và máy chủ
+  slug: vms-servers
+  index: 25
+- title: Triển khai Serverless
+  slug: serverless-deployment
+  index: 26
+- title: Năng lực và chi phí
+  slug: capacity-cost
+  index: 27
+- title: Kiểm thử chiến lược
+  slug: strategy-testing
+  index: 28
+- title: Bảo mật và kiểm soát
+  slug: security-controls
+  index: 29
+- title: Sự cố và chẩn đoán
+  slug: incident-diagnostics
+  index: 30
+- title: Phối hợp chiến lược
+  slug: strategy-coordination
+  index: 31
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 32

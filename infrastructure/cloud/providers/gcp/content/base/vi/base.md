@@ -1,0 +1,7 @@
+# Cloud Providers GCP
+
+Google Cloud Platform (GCP), hiện được gọi phổ biến là Google Cloud, cung cấp các dịch vụ hạ tầng, ứng dụng và dữ liệu được quản lý trên nền tảng điện toán đám mây. Module này giới thiệu những dịch vụ trọng tâm cần biết khi bắt đầu xây dựng và vận hành ứng dụng: tổ chức project và tài nguyên, bảo vệ quyền truy cập, kết nối mạng, chạy workload, lưu trữ dữ liệu và theo dõi hệ thống. Người học tập trung vào việc hiểu cách chọn dịch vụ và những đánh đổi cơ bản, thay vì chỉ ghi nhớ tên sản phẩm.
+
+Roadmap một cấp gồm tám mốc. Bạn bắt đầu với resource hierarchy, project, region/zone và IAM; sau đó tìm hiểu VPC, Compute Engine, cách triển khai container bằng Cloud Run hoặc GKE, rồi chọn giữa Cloud Storage và Cloud SQL. Phần tiếp theo giới thiệu tích hợp bất đồng bộ bằng Pub/Sub, tự động hóa build với Cloud Build, cuối cùng sử dụng Cloud Monitoring và Cloud Billing để theo dõi độ tin cậy cũng như chi phí sử dụng tài nguyên.
+
+Module phù hợp với người đã biết mạng máy tính, Linux và quy trình phát triển ứng dụng cơ bản. Sau khi hoàn thành, bạn có thể mô tả một kiến trúc Google Cloud đơn giản, phân quyền hợp lý, lựa chọn dịch vụ compute và dữ liệu theo nhu cầu, đồng thời đưa ra các bước kiểm thử, giám sát và kiểm soát chi phí khi triển khai thực tế.

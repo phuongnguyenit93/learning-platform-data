@@ -1,0 +1,7 @@
+# Security Secrets Management Fundamentals
+
+**Secrets management** là việc bảo vệ và kiểm soát vòng đời của thông tin nhạy cảm mà ứng dụng hoặc hệ thống dùng để xác thực và truy cập tài nguyên, chẳng hạn mật khẩu cơ sở dữ liệu, API key, access token và private key. Secret không nên nằm cố định trong mã nguồn, container image hay log; thay vào đó cần được lưu trong hệ thống có mã hóa, phân quyền, quản lý phiên bản và nhật ký truy cập. Mục tiêu là hạn chế số chủ thể được đọc secret và thu hẹp tác động nếu một credential bị lộ.
+
+Module dành cho người đã biết kiến thức ứng dụng, Git, CI/CD và các khái niệm IAM cơ bản. Bạn sẽ học cách nhận diện và phân loại secret, chọn nơi lưu trữ tập trung, áp dụng mã hóa và least privilege, rồi cấp phát bí mật cho workload trong lúc chạy. Các mốc tiếp theo đề cập danh tính ngắn hạn, secret động, xoay vòng và thu hồi, sử dụng secret an toàn trong pipeline/Kubernetes, kiểm tra truy cập qua audit log và phát hiện credential bị đưa vào repository.
+
+Sau tám mốc, bạn có thể thiết kế một luồng quản lý secret có chủ sở hữu, phạm vi truy cập, kế hoạch rotation và cách ứng phó khi rò rỉ. Cần phân biệt **encoding với encryption**: giá trị base64 trong Kubernetes Secret không tự tạo tính bảo mật. Xóa secret khỏi commit mới cũng không vô hiệu hóa credential đã lộ; cần thu hồi hoặc thay khóa tại hệ thống phát hành, kiểm tra dấu hiệu lạm dụng và cập nhật các ứng dụng phụ thuộc.

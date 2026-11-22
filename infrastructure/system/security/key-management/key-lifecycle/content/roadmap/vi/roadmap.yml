@@ -1,0 +1,57 @@
+roadmap:
+- id: chinh-sach-kiem-ke-khoa
+  title: Chính sách & kiểm kê khóa
+  purpose: Xác định mục đích sử dụng, người quản lý và yêu cầu bảo vệ của mỗi khóa.
+  objectives:
+  - Phân biệt khóa mã hóa, ký số và khóa bọc khóa.
+  - Tạo key inventory gồm ID, owner và mục đích.
+  - Đề xuất cryptoperiod theo rủi ro và yêu cầu dữ liệu.
+- id: sinh-khoa-an-toan
+  title: Sinh khóa an toàn
+  purpose: Khởi tạo key material có chất lượng và nguồn gốc kiểm soát được.
+  objectives:
+  - Chọn loại khóa và độ dài phù hợp mục đích.
+  - Giải thích vai trò của CSPRNG và KMS/HSM.
+  - Ghi nhận metadata của khóa mà không lộ key material.
+- id: phan-phoi-kich-hoat
+  title: Phân phối & kích hoạt
+  purpose: Đưa khóa đến đúng dịch vụ và chuyển sang trạng thái hoạt động có kiểm soát.
+  objectives:
+  - Phân biệt key transport với key wrapping.
+  - Nhận diện trạng thái pre-activation và active.
+  - Kiểm tra ứng dụng chỉ dùng khóa đã được cấp quyền.
+- id: luu-tru-phan-quyen
+  title: Lưu trữ & phân quyền
+  purpose: Giữ key material an toàn trong suốt thời gian sử dụng và hạn chế quyền truy cập.
+  objectives:
+  - Chọn KMS/HSM hoặc key vault phù hợp.
+  - Áp dụng least privilege và tách vai trò quản trị/sử dụng.
+  - Tránh lưu khóa trong source code hay log.
+- id: su-dung-giam-sat
+  title: Sử dụng & giám sát
+  purpose: Theo dõi hoạt động mật mã và dấu hiệu truy cập hoặc sử dụng khóa bất thường.
+  objectives:
+  - Phân biệt quyền encrypt, decrypt và sign.
+  - Kiểm tra audit log của thao tác quản lý/sử dụng khóa.
+  - Gắn cảnh báo cho truy cập trái phép và thay đổi policy.
+- id: cryptoperiod-rotation
+  title: Cryptoperiod & rotation
+  purpose: Thay phiên bản khóa có kế hoạch mà không làm mất khả năng đọc dữ liệu cũ.
+  objectives:
+  - Đặt lịch rotation theo rủi ro và cryptoperiod.
+  - Phân biệt rotation với re-encryption dữ liệu.
+  - Kiểm thử giải mã dữ liệu cũ sau khi đổi phiên bản.
+- id: phuc-hoi-lo-khoa
+  title: Phục hồi & lộ khóa
+  purpose: Chuẩn bị tính sẵn sàng của khóa và phản ứng khi nghi ngờ bị xâm phạm.
+  objectives:
+  - Xác định yêu cầu backup và recovery có kiểm soát.
+  - Diễn tập cách cô lập/thu hồi quyền với khóa lộ.
+  - Lập kế hoạch rekey và migration dữ liệu bị ảnh hưởng.
+- id: ngung-dung-tieu-huy
+  title: Ngừng dùng & tiêu hủy
+  purpose: Kết thúc vòng đời khóa theo chính sách lưu giữ mà không phá hủy dữ liệu còn cần.
+  objectives:
+  - Phân biệt deactivated, compromised và destroyed.
+  - Kiểm tra phụ thuộc, bản lưu và nghĩa vụ lưu trữ.
+  - Thực hiện quy trình disable, archive hoặc destroy có phê duyệt.

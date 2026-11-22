@@ -1,0 +1,338 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bitbucket là gì và vai trò trong quản lý mã nguồn DevOps
+  - Phân biệt Git, dịch vụ lưu trữ kho mã và nền tảng cộng tác
+  - Mối quan hệ giữa tài khoản, workspace, project và repository
+  - Luồng công việc từ yêu cầu thay đổi đến pull request và triển khai
+  - Vai trò của lập trình viên, người rà soát và quản trị viên
+  - So sánh Bitbucket Cloud và Bitbucket Data Center
+  - Đọc ma trận tính năng theo gói Cloud và phiên bản Data Center
+  - Kiến thức Git cần có và trình tự học Bitbucket
+- level1: Bắt đầu
+  level2:
+  - Chuẩn bị tài khoản Atlassian và môi trường Git
+  - Đăng nhập Bitbucket Cloud và thiết lập hồ sơ cá nhân
+  - Tham gia workspace và kiểm tra quyền truy cập ban đầu
+  - Nhận diện các khu vực mã nguồn, pull request và cấu hình
+  - Tạo kho mã thử nghiệm và kết nối máy cá nhân
+  - Thực hiện vòng thay đổi đầu tiên từ clone đến hợp nhất
+  - Thiết lập thông báo, theo dõi đối tượng và tùy chọn giao diện
+- level1: Workspace và project
+  level2:
+  - Phạm vi quản lý của workspace và project trong Bitbucket Cloud
+  - Tạo workspace và lựa chọn cấu trúc quản lý nhóm
+  - Tạo project, đặt khóa định danh và mô tả phạm vi
+  - Đưa repository vào project và tổ chức danh mục kho mã
+  - Mời thành viên, quản lý nhóm và thu hồi lời mời
+  - Liên kết workspace với tổ chức Atlassian
+  - Cấu hình mặc định ở project và kiểm tra ảnh hưởng tới repository
+  - Thay đổi workspace ID và đánh giá ảnh hưởng đến liên kết
+  - Quy ước đặt tên, quyền sở hữu và bàn giao quản trị
+- level1: Kho mã
+  level2:
+  - Tạo repository công khai hoặc riêng tư trong Bitbucket Cloud
+  - Khởi tạo README, .gitignore và cấu trúc tài liệu
+  - Đưa mã nguồn có sẵn từ máy cá nhân lên Bitbucket
+  - Nhập repository từ dịch vụ Git khác
+  - Cấu hình nhánh mặc định và thông tin repository
+  - Cấu hình quyền riêng tư và chính sách cho phép fork
+  - Đổi tên repository và cập nhật remote URL
+  - Chuyển repository giữa project hoặc workspace
+  - Kiểm kê dữ liệu và phụ thuộc trước khi xóa repository
+- level1: Xác thực
+  level2:
+  - Phân biệt đăng nhập trình duyệt, Git qua SSH và Git qua HTTPS
+  - Tạo và đăng ký SSH key cá nhân
+  - Xác minh SSH host key và kiểm tra kết nối an toàn
+  - Quản lý nhiều tài khoản bằng SSH config và ssh-agent
+  - Tạo API token có phạm vi quyền cho Bitbucket Cloud
+  - Sử dụng API token với Git qua HTTPS và REST API đúng ngữ cảnh
+  - Phân biệt API token cá nhân và access token theo tài nguyên
+  - Lựa chọn repository, project hoặc workspace access token
+  - Sử dụng SSH access key cho tác vụ đọc mã tự động
+  - Thiết lập ngày hết hạn, luân chuyển và thu hồi thông tin xác thực
+  - Di chuyển tích hợp cũ từ app passwords sang API tokens
+- level1: Phân quyền
+  level2:
+  - Phân biệt quyền quản trị workspace, project và repository
+  - Cấp quyền Read, Write và Admin theo nhiệm vụ
+  - Quản lý quyền qua nhóm thay cho cấp riêng từng người
+  - Kiểm tra quyền kế thừa và quyền được cấp trực tiếp
+  - Phân biệt quyền truy cập repository và quyền thao tác nhánh
+  - Thiết kế quyền cho cộng tác viên bên ngoài
+  - Cấp quyền tối thiểu cho bot, CI và tích hợp
+  - Kiểm thử quyền hiệu lực bằng các vai trò mẫu
+  - Rà soát và thu hồi quyền khi chuyển nhóm hoặc nghỉ việc
+- level1: Duyệt và sửa mã
+  level2:
+  - Duyệt cây thư mục và chuyển nhánh hoặc tag trên giao diện
+  - Đọc lịch sử commit và nhận diện tác giả thay đổi
+  - So sánh commit, nhánh và nội dung tệp
+  - Tìm kiếm mã nguồn bằng phạm vi và bộ lọc hỗ trợ
+  - Sử dụng blame để truy vết thay đổi theo dòng
+  - Tạo, sửa và commit tệp qua giao diện web
+  - Liên kết ổn định tới commit, tệp và dòng mã
+  - Ánh xạ danh tính commit và kiểm tra chữ ký commit
+- level1: Nhánh và fork
+  level2:
+  - Áp dụng quy trình nhánh tính năng trong repository Bitbucket
+  - Cấu hình branching model và quy ước tên nhánh
+  - Tạo nhánh từ giao diện hoặc từ Git cục bộ
+  - Đẩy nhánh, theo dõi remote và đồng bộ thay đổi
+  - Phân biệt nhánh trong cùng repository và fork độc lập
+  - Tạo fork và xác định quan hệ origin với upstream
+  - Đồng bộ fork trước khi gửi thay đổi về repository gốc
+  - Quản lý nhánh chưa hợp nhất và dọn nhánh sau khi hợp nhất
+  - Phối hợp nhánh tính năng, nhánh sửa lỗi gấp và tag phát hành
+- level1: Pull request
+  level2:
+  - Vai trò của pull request trong đề xuất và truy vết thay đổi
+  - Chọn đúng nhánh nguồn, nhánh đích và phạm vi so sánh
+  - Tạo pull request trong cùng repository hoặc từ fork
+  - Viết tiêu đề và mô tả với mục đích, phạm vi và bằng chứng kiểm tra
+  - Cấu hình mô tả mặc định cho pull request
+  - Sử dụng pull request nháp và chuyển sang sẵn sàng rà soát
+  - Thêm người rà soát và quản lý người tham gia
+  - Cập nhật pull request bằng commit mới và thay đổi nhánh đích
+  - Theo dõi trạng thái mở, hợp nhất và từ chối
+  - Tìm kiếm, lọc và quản lý danh sách pull request
+- level1: Rà soát mã
+  level2:
+  - Đọc diff theo tệp và nhận diện phần thay đổi cần chú ý
+  - Phân biệt bình luận chung và bình luận theo dòng
+  - Đặt câu hỏi, phản hồi và xử lý chuỗi thảo luận
+  - Tạo nhiệm vụ rà soát và xác nhận đã hoàn tất
+  - Phê duyệt, rút phê duyệt và yêu cầu sửa đổi khi được hỗ trợ
+  - Thiết lập người rà soát mặc định ở project và repository
+  - Cấu hình code owners theo cú pháp Bitbucket Cloud
+  - Phân biệt gợi ý người rà soát và điều kiện bắt buộc để hợp nhất
+  - Kiểm tra lại thay đổi mới sau vòng phản hồi
+  - Tổ chức pull request nhỏ và thống nhất tiêu chí rà soát trong nhóm
+- level1: Quy tắc hợp nhất
+  level2:
+  - Phân biệt branch permissions, branch restrictions và merge checks
+  - Bảo vệ nhánh chính khỏi đẩy trực tiếp, xóa và ghi lại lịch sử
+  - Áp dụng hạn chế theo tên nhánh hoặc mẫu tên
+  - Tách quyền đẩy mã và quyền hợp nhất qua pull request
+  - Cấu hình số phê duyệt, nhiệm vụ còn mở và kết quả build
+  - Phân biệt kiểm tra khuyến nghị và kiểm tra bắt buộc theo gói Cloud
+  - Lựa chọn merge commit, squash hoặc fast-forward theo tùy chọn hỗ trợ
+  - Giải quyết xung đột và kiểm tra lại nhánh đích trước khi hợp nhất
+  - Thiết lập custom merge checks bằng Forge trong Bitbucket Cloud
+  - Sử dụng merge queue và xử lý pull request rời hàng đợi khi được hỗ trợ
+- level1: Jira và cộng tác
+  level2:
+  - Kết nối Bitbucket Cloud với Jira Cloud hoặc Jira Data Center
+  - Liên kết nhánh, commit và pull request bằng khóa công việc Jira
+  - Tạo nhánh và theo dõi hoạt động phát triển từ công việc Jira
+  - Bật Smart Commits và kiểm tra ánh xạ danh tính
+  - Sử dụng Smart Commits với bình luận, thời gian và chuyển trạng thái
+  - Thiết lập chuyển trạng thái Jira khi hợp nhất pull request
+  - Truy vết công việc qua commit, build và lần triển khai
+  - Kết nối thông báo Slack và giảm thông báo không cần thiết
+  - Phân biệt quyền đọc mã với quyền xem công việc trong Jira
+- level1: Tài liệu dự án
+  level2:
+  - Thiết kế README hỗ trợ người mới sử dụng repository
+  - Viết Markdown cho mô tả, bình luận và tài liệu trong Bitbucket
+  - Sử dụng wiki khi workspace và repository hỗ trợ
+  - Sử dụng trình theo dõi công việc tích hợp khi khả dụng
+  - Chia sẻ đoạn mã bằng snippets và kiểm soát quyền riêng tư
+  - Quản lý tệp phân phối tại khu vực Downloads
+  - Liên kết tài liệu với commit và quy trình cập nhật mã nguồn
+- level1: Code Insights
+  level2:
+  - Vai trò của Code Insights trong quyết định rà soát mã
+  - Phân biệt build status, báo cáo và chú thích theo dòng
+  - Đọc kết quả kiểm thử, độ bao phủ và phân tích chất lượng
+  - Đưa kết quả quét bảo mật từ công cụ ngoài vào pull request
+  - Gửi và cập nhật báo cáo gắn với đúng commit qua API
+  - Định danh báo cáo để cập nhật ổn định qua các lần chạy
+  - Liên kết kết quả kiểm tra với merge checks
+  - Phát hiện báo cáo cũ hoặc kết quả không thuộc commit hiện tại
+- level1: Webhook
+  level2:
+  - Nguyên lý webhook và lựa chọn sự kiện push hoặc pull request
+  - Tạo webhook và giới hạn phạm vi sự kiện cần nhận
+  - Đọc cấu trúc payload, loại sự kiện và định danh tài nguyên
+  - Bảo vệ endpoint bằng HTTPS và xác minh chữ ký với webhook secret
+  - Tiếp nhận nhanh và xử lý tác vụ dài ở phía hệ thống nhận
+  - Xử lý sự kiện lặp, sai thứ tự và chống tác dụng phụ trùng
+  - Theo dõi lịch sử gửi và chẩn đoán phản hồi HTTP
+  - Kiểm thử webhook khi phát triển và khi triển khai tích hợp
+  - Ngăn vòng lặp khi hệ thống nhận lại ghi dữ liệu về Bitbucket
+- level1: REST API
+  level2:
+  - Nhận diện REST API 2.0 của Cloud và API riêng của Data Center
+  - Chọn phương thức xác thực và phạm vi quyền theo endpoint
+  - Đọc định danh workspace, repository slug và UUID
+  - Liệt kê repository, nhánh, tag và commit
+  - Tạo, truy vấn và cập nhật pull request bằng API
+  - Tự động hóa bình luận, nhiệm vụ, phê duyệt và trạng thái build
+  - Phân trang bằng liên kết next do API trả về
+  - Lọc, sắp xếp và giới hạn trường phản hồi khi endpoint hỗ trợ
+  - Xử lý lỗi quyền, giới hạn tần suất và retry có độ trễ
+  - Thiết kế tự động hóa có kiểm tra trạng thái trước khi thay đổi
+- level1: Pipelines cơ bản
+  level2:
+  - Vai trò và phạm vi của Bitbucket Pipelines trên Cloud
+  - Bật Pipelines và tạo bitbucket-pipelines.yml đầu tiên
+  - Hiểu image, step, script và vòng đời môi trường chạy
+  - Cấu hình pipeline mặc định và pipeline theo nhánh hoặc tag
+  - Kích hoạt pipeline cho pull request và tránh chạy trùng không cần thiết
+  - Tạo pipeline chạy thủ công hoặc theo lịch
+  - Xây dựng pipeline Java với JDK, Gradle hoặc Maven
+  - Sử dụng cache phụ thuộc và phân biệt cache với artifact
+  - Thu thập artifact, kết quả kiểm thử và nhật ký
+  - Đọc trạng thái pipeline và liên hệ với commit hoặc pull request
+- level1: Pipeline nâng cao
+  level2:
+  - Tổ chức step, stage và bước chạy song song
+  - Sử dụng service container cho cơ sở dữ liệu và phụ thuộc kiểm thử
+  - Quản lý biến theo workspace, repository và môi trường triển khai
+  - Bảo vệ biến bí mật và đánh giá nguy cơ lộ dữ liệu trong log
+  - Tái sử dụng cấu hình bằng YAML anchors, definitions và pipes
+  - Chia sẻ cấu hình và sử dụng pipeline cha-con khi được hỗ trợ
+  - Điều khiển điều kiện chạy, bước thủ công và hành vi khi thất bại
+  - Cấu hình clone depth, thời gian chạy và tài nguyên của step
+  - Tối ưu thời lượng, khả năng tái lập và phạm vi build theo thay đổi
+  - Đánh giá dynamic pipelines và agentic pipelines theo nhu cầu, quyền và gói
+- level1: Runner
+  level2:
+  - Phân biệt môi trường chạy do Atlassian cung cấp và self-hosted runner
+  - Chọn runner theo hệ điều hành, Docker hoặc shell
+  - Đăng ký runner ở phạm vi repository hoặc workspace
+  - Gán nhãn và định tuyến step bằng runs-on
+  - Cấu hình mạng, proxy và truy cập tài nguyên nội bộ
+  - Cô lập tác vụ và bảo vệ máy chủ runner khỏi mã không tin cậy
+  - Quản lý thông tin xác thực, phiên bản và vòng đời runner
+  - Theo dõi hàng đợi, mức đồng thời và tài nguyên sử dụng
+  - Chẩn đoán runner ngoại tuyến, hết tài nguyên hoặc không khớp nhãn
+- level1: Triển khai
+  level2:
+  - Mô hình môi trường test, staging và production trong Deployments
+  - Khai báo deployment step và quản lý biến theo môi trường
+  - Kiểm soát quyền triển khai và cổng xác nhận thủ công
+  - Sử dụng OIDC để truy cập dịch vụ đám mây bằng thông tin xác thực tạm thời
+  - Giới hạn quan hệ tin cậy OIDC theo repository và môi trường
+  - Triển khai artifact đã kiểm tra và truy vết về commit nguồn
+  - Kiểm soát triển khai đồng thời vào cùng môi trường
+  - Theo dõi lịch sử, trạng thái và liên kết triển khai
+  - Thiết kế chạy lại hoặc quay lui bằng quy trình triển khai đã kiểm chứng
+- level1: Gói và bản phát hành
+  level2:
+  - Phân biệt tag Git, Downloads, pipeline artifact và package registry
+  - Kiểm tra điều kiện sử dụng Packages của Bitbucket Cloud
+  - Tổ chức package theo workspace và repository liên kết
+  - Xác thực client và giới hạn quyền đọc hoặc xuất bản package
+  - Xuất bản và sử dụng container image với Bitbucket registry
+  - Xuất bản và sử dụng Maven package từ quy trình Java
+  - Nhận diện quy trình package cho npm, NuGet và PyPI
+  - Quản lý phiên bản, quyền hiển thị và tag bất biến khi hỗ trợ
+  - Truy vết package tới pipeline và kiểm tra ảnh hưởng trước khi xóa
+- level1: Tích hợp mở rộng
+  level2:
+  - Kết nối Jenkins hoặc Bamboo và trả trạng thái build về Bitbucket
+  - Tích hợp công cụ phân tích mã, kiểm thử và quét lỗ hổng
+  - Sử dụng Sourcetree cùng repository Bitbucket
+  - Làm việc với pull request bằng Atlassian for VS Code
+  - Kết nối ứng dụng bằng OAuth và quản lý quyền đã cấp
+  - Lựa chọn Marketplace app và đánh giá phạm vi dữ liệu truy cập
+  - Phân biệt mô hình mở rộng Forge trên Cloud và plugin Data Center
+  - Kết nối công cụ AI với giới hạn quyền, dữ liệu và phê duyệt thay đổi
+- level1: Bảo mật
+  level2:
+  - Thiết lập xác minh hai bước và bảo vệ tài khoản Atlassian
+  - Phối hợp SSO, chính sách danh tính và quản lý tổ chức khi được hỗ trợ
+  - Áp dụng quyền tối thiểu và tách nhiệm vụ quản trị, rà soát, triển khai
+  - Quản lý bí mật bên ngoài mã nguồn và xử lý khi bí mật bị lộ
+  - Ký commit bằng GPG hoặc SSH và kiểm tra dấu xác minh
+  - Áp dụng yêu cầu commit có chữ ký theo tính năng được cấp
+  - Bảo vệ pipeline và runner trước pull request từ nguồn không tin cậy
+  - Kiểm soát ứng dụng bên thứ ba và ranh giới truy cập dữ liệu
+  - Sử dụng kiểm soát truy cập mạng theo tính năng của gói hoặc bản triển khai
+  - Xây dựng quy trình ứng phó khi tài khoản hoặc token bị xâm phạm
+- level1: Quản trị Cloud
+  level2:
+  - Phân biệt quản trị tổ chức Atlassian và quản trị workspace
+  - Lựa chọn gói theo nhu cầu quyền, kiểm tra hợp nhất và tài nguyên
+  - Quản lý thành viên, chỗ sử dụng và trách nhiệm thanh toán
+  - Theo dõi hạn mức Pipelines, lưu trữ LFS và Packages
+  - Chuẩn hóa cấu hình project và repository trong nhiều nhóm
+  - Rà soát token, access key, webhook và ứng dụng tích hợp
+  - Thu thập sự kiện kiểm toán theo tính năng của tổ chức và gói
+  - Theo dõi thay đổi sản phẩm, API và thông báo ngừng hỗ trợ
+  - Bàn giao workspace và lập danh mục cấu hình cần phục hồi
+- level1: Dữ liệu và hiệu năng
+  level2:
+  - Chọn Git LFS cho tệp lớn và cấu hình quy tắc theo dõi
+  - Đưa tệp đã có sang LFS và phối hợp khi viết lại lịch sử
+  - Quản lý submodule và quyền truy cập repository phụ thuộc
+  - Theo dõi dung lượng repository và giới hạn hiển thị diff
+  - Giảm tệp sinh tự động và dữ liệu nhị phân trong lịch sử Git
+  - Tối ưu clone cho máy cá nhân, CI và nhóm phân tán
+  - Phân biệt Git mirror, bản sao lưu và hệ thống phục hồi
+  - Sao lưu mã, LFS, wiki và kiểm kê metadata cộng tác riêng biệt
+  - Kiểm thử phục hồi và xác nhận tính đầy đủ của dữ liệu
+- level1: Data Center
+  level2:
+  - Kiến trúc Bitbucket Data Center và trách nhiệm tự vận hành
+  - Phân biệt project, repository và quyền toàn cục của Data Center
+  - Đánh giá yêu cầu hệ thống và ma trận phiên bản hỗ trợ
+  - Lựa chọn mô hình triển khai một nút hoặc cụm
+  - Cài đặt, cấu hình cơ sở dữ liệu và thư mục dữ liệu
+  - Thiết lập base URL, reverse proxy, TLS và SSH
+  - Kết nối danh bạ người dùng, SSO và phân quyền nhóm
+  - Cấu hình branch permissions và merge checks theo phiên bản
+  - Quản lý HTTP access token và SSH key của Data Center
+  - Kết nối Jira, Bamboo hoặc Jenkins trong hệ thống tự quản lý
+- level1: Vận hành Data Center
+  level2:
+  - Phân tách dữ liệu Git, cơ sở dữ liệu và cấu hình cần bảo vệ
+  - Thiết kế cụm sẵn sàng cao và kiểm tra phụ thuộc dùng chung
+  - Đánh giá Bitbucket Mesh cho lưu trữ Git phân tán theo phiên bản
+  - Sử dụng Smart Mirroring cho nhóm làm việc phân tán
+  - Theo dõi nhật ký, chỉ số vận hành và tài nguyên Git
+  - Cấu hình kiểm toán và lưu trữ sự kiện quản trị
+  - Lập lịch sao lưu nhất quán và diễn tập phục hồi sự cố
+  - Nâng cấp trên môi trường thử nghiệm và kiểm tra tương thích plugin
+  - Theo dõi bản vá, cảnh báo bảo mật và vòng đời hỗ trợ
+  - Lập kế hoạch dung lượng và xử lý điểm nghẽn của cụm
+- level1: Di chuyển
+  level2:
+  - Kiểm kê repository, người dùng, quyền và tích hợp trước di chuyển
+  - Lựa chọn công cụ nhập mã hoặc công cụ di chuyển của Atlassian
+  - Di chuyển từ nền tảng Git khác vào Bitbucket Cloud
+  - Lập kế hoạch di chuyển Bitbucket Server hoặc Data Center sang Cloud
+  - Đối chiếu phạm vi hỗ trợ cho pull request, bình luận và lịch sử cộng tác
+  - Di chuyển LFS, wiki, tệp phân phối và dữ liệu package theo công cụ
+  - Ánh xạ danh tính, nhóm và quyền sau khi di chuyển
+  - Cập nhật remote, token, webhook, CI và liên kết Jira
+  - Diễn tập, chốt thời điểm chuyển đổi, kiểm tra và chuẩn bị quay lui
+- level1: Xử lý sự cố
+  level2:
+  - Chẩn đoán SSH Permission denied và khóa không đúng tài khoản
+  - Xử lý lỗi HTTPS do token hết hạn, sai phạm vi hoặc credential cache
+  - Phân biệt repository không tồn tại, sai URL và thiếu quyền
+  - Xử lý push bị từ chối bởi branch restrictions
+  - Chẩn đoán pull request không thể hợp nhất dù đã được phê duyệt
+  - Giải quyết xung đột và kết quả kiểm tra bị lỗi thời
+  - Chẩn đoán webhook không đến, bị gửi lặp hoặc lỗi chữ ký
+  - Xử lý REST API trả 401, 403, 404 hoặc 429
+  - Chẩn đoán pipeline không kích hoạt hoặc sai cấu hình YAML
+  - Xử lý cache, artifact, biến bí mật và runner gây lỗi pipeline
+  - Chẩn đoán clone chậm, vượt dung lượng hoặc thiếu đối tượng LFS
+  - Phân biệt sự cố dịch vụ Cloud với lỗi mạng hoặc cấu hình Data Center
+- level1: Thực hành
+  level2:
+  - Dựng workspace và project cho nhóm phát triển Java mẫu
+  - Tạo repository và thực hiện quy trình nhánh đến pull request
+  - Rà soát hai vòng với bình luận, nhiệm vụ và cập nhật commit
+  - Thiết lập bảo vệ nhánh và chứng minh các trường hợp bị chặn
+  - Kết nối công việc Jira với commit và pull request
+  - Xây dựng pipeline Java chạy build, kiểm thử và xuất artifact
+  - Nhận webhook và cập nhật báo cáo Code Insights cho đúng commit
+  - Triển khai staging qua OIDC và kiểm tra quyền production
+  - Diễn tập luân chuyển token và thu hồi quyền thành viên
+  - Diễn tập di chuyển, phục hồi và đánh giá cấu hình Bitbucket của nhóm

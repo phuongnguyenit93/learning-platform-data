@@ -1,0 +1,49 @@
+roadmap:
+- id: database-dbms
+  title: Database & DBMS
+  purpose: Hiểu vì sao ứng dụng cần cơ sở dữ liệu và hệ quản trị dữ liệu thay vì chỉ dùng tệp.
+  objectives:
+  - '- Phân biệt database, DBMS và database server.'
+  - '- Giải thích lưu trữ bền vững, truy vấn và truy cập đồng thời.'
+- id: mo-hinh-du-lieu
+  title: Mô hình dữ liệu
+  purpose: Nhận diện mô hình lưu trữ phù hợp với đặc điểm dữ liệu và cách truy cập.
+  objectives:
+  - '- Phân biệt relational, document, key-value và graph.'
+  - '- Chọn mô hình từ nhu cầu quan hệ, truy vấn và mở rộng.'
+- id: schema-bang-kieu-du-lieu
+  title: Schema, Bảng & Kiểu dữ liệu
+  purpose: Biết cách tổ chức dữ liệu có cấu trúc và lựa chọn ràng buộc phù hợp.
+  objectives:
+  - '- Phân biệt table, row, column, schema và data type.'
+  - '- Tạo bảng với NOT NULL, UNIQUE và PRIMARY KEY.'
+- id: khoa-quan-he-chuan-hoa
+  title: Khóa, Quan hệ & Chuẩn hóa
+  purpose: Thiết kế các liên kết dữ liệu nhất quán và giảm trùng lặp không cần thiết.
+  objectives:
+  - '- Phân biệt primary key, foreign key và quan hệ 1-N/N-N.'
+  - '- Giải thích mục đích chuẩn hóa và toàn vẹn tham chiếu.'
+- id: sql-crud-co-ban
+  title: SQL & CRUD cơ bản
+  purpose: Thực hành thao tác dữ liệu để hiểu vòng đời một bản ghi trong cơ sở dữ liệu quan hệ.
+  objectives:
+  - '- Dùng SELECT, INSERT, UPDATE và DELETE với WHERE.'
+  - '- Thử JOIN, ORDER BY và GROUP BY trên dữ liệu mẫu.'
+- id: transaction-acid
+  title: Transaction & ACID
+  purpose: Hiểu cách giữ dữ liệu nhất quán khi nhiều thao tác hoặc nhiều kết nối cùng diễn ra.
+  objectives:
+  - '- Giải thích Atomicity, Consistency, Isolation, Durability.'
+  - '- Thực hành BEGIN, COMMIT, ROLLBACK và nhận biết xung đột.'
+- id: index-hieu-nang
+  title: Index & Hiệu năng
+  purpose: Hiểu đánh đổi giữa tốc độ đọc và chi phí ghi/lưu trữ trước khi tối ưu.
+  objectives:
+  - '- Tạo index cho một truy vấn lọc dữ liệu thường gặp.'
+  - '- Dùng EXPLAIN và so sánh kế hoạch truy vấn trước/sau.'
+- id: ket-noi-an-toan-du-lieu
+  title: Kết nối & An toàn dữ liệu
+  purpose: Kết nối ứng dụng đến DBMS và nắm các yêu cầu vận hành an toàn tối thiểu.
+  objectives:
+  - '- Tạo kết nối JDBC và sử dụng PreparedStatement.'
+  - '- Nhận diện least privilege, backup/restore và bảo vệ credential.'

@@ -1,0 +1,154 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Mục tiêu nền tảng
+  slug: platform-security-objectives
+  index: 1
+- title: Phạm vi nền tảng
+  slug: platform-scope
+  index: 2
+- title: Tài sản nền tảng
+  slug: platform-assets
+  index: 3
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 4
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 5
+- title: Nguyên tắc nền tảng
+  slug: platform-security-principles
+  index: 6
+- title: Hệ điều hành
+  slug: operating-system-security
+  index: 7
+- title: Kernel và system call
+  slug: kernel-system-call
+  index: 8
+- title: Process và service
+  slug: process-service
+  index: 9
+- title: Memory và execution
+  slug: memory-execution
+  index: 10
+- title: Filesystem và storage
+  slug: filesystem-storage
+  index: 11
+- title: Danh tính nền tảng
+  slug: platform-identities
+  index: 12
+- title: Quyền đặc quyền
+  slug: privileged-permissions
+  index: 13
+- title: Xác thực nền tảng
+  slug: platform-authentication
+  index: 14
+- title: Mạng nền tảng
+  slug: platform-networking
+  index: 15
+- title: Phân đoạn mạng
+  slug: network-segmentation
+  index: 16
+- title: TLS và PKI
+  slug: tls-and-pki
+  index: 17
+- title: Endpoint và truy cập từ xa
+  slug: endpoints-and-remote-access
+  index: 18
+- title: Secret và khóa
+  slug: secrets-and-keys
+  index: 19
+- title: Cấu hình nền tảng
+  slug: platform-configuration
+  index: 20
+- title: Hardening
+  slug: hardening
+  index: 21
+- title: Vá lỗi và lỗ hổng
+  slug: patching-and-vulnerabilities
+  index: 22
+- title: Container
+  slug: container
+  index: 23
+- title: Container image
+  slug: container-image
+  index: 24
+- title: Kubernetes
+  slug: kubernetes
+  index: 25
+- title: Kubernetes vận hành
+  slug: kubernetes-operations
+  index: 26
+- title: Ảo hóa
+  slug: virtualization
+  index: 27
+- title: Cloud platform
+  slug: cloud-platform
+  index: 28
+- title: IAM cloud
+  slug: iam-cloud
+  index: 29
+- title: Object storage
+  slug: object-storage
+  index: 30
+- title: Database platform
+  slug: database-platform
+  index: 31
+- title: Messaging platform
+  slug: messaging-platform
+  index: 32
+- title: API gateway
+  slug: api-gateway
+  index: 33
+- title: Load balancer
+  slug: load-balancer
+  index: 34
+- title: CI/CD platform
+  slug: ci-cd-platform
+  index: 35
+- title: Infrastructure as code
+  slug: infrastructure-as-code
+  index: 36
+- title: Chuỗi cung ứng
+  slug: software-supply-chain
+  index: 37
+- title: Runtime protection
+  slug: runtime-protection
+  index: 38
+- title: Log và audit
+  slug: logging-and-auditing
+  index: 39
+- title: Giám sát và phát hiện
+  slug: monitoring-and-threat-detection
+  index: 40
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 41
+- title: Backup và phục hồi
+  slug: backup-and-recovery
+  index: 42
+- title: Khả dụng và phục hồi
+  slug: availability-and-resilience
+  index: 43
+- title: Bảo vệ dữ liệu
+  slug: data-protection
+  index: 44
+- title: Quản trị và tuân thủ
+  slug: governance-and-compliance
+  index: 45
+- title: Phân phối nền tảng
+  slug: platform-distribution
+  index: 46
+- title: Kiểm thử nền tảng
+  slug: platform-security-testing
+  index: 47
+- title: Vận hành an toàn
+  slug: secure-operations
+  index: 48
+- title: Case study
+  slug: case-study
+  index: 49
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 50

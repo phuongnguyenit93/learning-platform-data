@@ -1,0 +1,106 @@
+menu:
+- title: Tư duy chẩn đoán
+  slug: diagnostic-mindset
+  index: 0
+- title: Bối cảnh sự cố
+  slug: incident-context
+  index: 1
+- title: Quy trình khoanh vùng
+  slug: fault-isolation-workflow
+  index: 2
+- title: Bộ công cụ
+  slug: diagnostic-toolkit
+  index: 3
+- title: Liên kết vật lý
+  slug: physical-layer
+  index: 4
+- title: Mạng cục bộ
+  slug: lan-connectivity
+  index: 5
+- title: Kết nối Wi-Fi
+  slug: wifi-connectivity
+  index: 6
+- title: Cấu hình IP
+  slug: ip-configuration
+  index: 7
+- title: Định tuyến
+  slug: routing
+  index: 8
+- title: DNS
+  slug: dns
+  index: 9
+- title: ICMP và đường đi
+  slug: icmp-path-tracing
+  index: 10
+- title: TCP
+  slug: tcp
+  index: 11
+- title: UDP và QUIC
+  slug: udp-quic
+  index: 12
+- title: TLS
+  slug: tls
+  index: 13
+- title: HTTP và gRPC
+  slug: http-grpc
+  index: 14
+- title: Proxy và cân bằng tải
+  slug: proxies-load-balancing
+  index: 15
+- title: NAT và conntrack
+  slug: nat-conntrack
+  index: 16
+- title: Firewall và chính sách
+  slug: firewall-policies
+  index: 17
+- title: MTU và phân mảnh
+  slug: mtu-fragmentation
+  index: 18
+- title: IPv6 và dual-stack
+  slug: ipv6-dual-stack
+  index: 19
+- title: Bắt gói tin
+  slug: packet-capture
+  index: 20
+- title: Phân tích Wireshark
+  slug: wireshark-analysis
+  index: 21
+- title: Hiệu năng mạng
+  slug: network-performance
+  index: 22
+- title: Chẩn đoán Linux
+  slug: linux-diagnostics
+  index: 23
+- title: Chẩn đoán Windows
+  slug: windows-diagnostics
+  index: 24
+- title: Docker và container
+  slug: docker-container-networking
+  index: 25
+- title: Kubernetes
+  slug: kubernetes-networking
+  index: 26
+- title: Service mesh
+  slug: service-mesh
+  index: 27
+- title: Mạng đám mây
+  slug: cloud-networking
+  index: 28
+- title: VPN và kết nối lai
+  slug: vpn-hybrid-connectivity
+  index: 29
+- title: Ứng dụng Java
+  slug: java-network-diagnostics
+  index: 30
+- title: Liên kết dữ liệu quan sát
+  slug: observability-correlation
+  index: 31
+- title: Lỗi gián đoạn
+  slug: intermittent-failures
+  index: 32
+- title: Khắc phục và xác minh
+  slug: remediation-validation
+  index: 33
+- title: Thực hành tổng hợp
+  slug: hands-on-troubleshooting
+  index: 34

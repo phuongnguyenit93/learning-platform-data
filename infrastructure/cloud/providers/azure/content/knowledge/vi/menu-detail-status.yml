@@ -1,0 +1,4021 @@
+menu:
+- slug: azure-fundamentals
+  title: Nền tảng Azure
+  childs:
+  - slug: azure-fundamentals-001
+    title: Azure là gì và các mô hình dịch vụ đám mây
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-002
+    title: Mô hình trách nhiệm chia sẻ trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-003
+    title: Region, geography và lựa chọn vị trí triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-004
+    title: Availability Zone và thiết kế phân bố tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-005
+    title: Resource Provider, loại tài nguyên và Resource ID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-006
+    title: Azure Resource Manager và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-007
+    title: Control plane, data plane và phạm vi phân quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-008
+    title: Quota, giới hạn dịch vụ và yêu cầu tăng hạn mức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-fundamentals-009
+    title: Đọc tài liệu, SLA và trạng thái dịch vụ Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: accounts-and-tools
+  title: Tài khoản và công cụ
+  childs:
+  - slug: accounts-and-tools-001
+    title: Tạo tài khoản và lựa chọn loại Azure subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-002
+    title: Thiết lập môi trường thực hành và ngân sách ban đầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-003
+    title: Sử dụng Azure Portal và Cloud Shell
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-004
+    title: Cài đặt Azure CLI và quản lý phiên đăng nhập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-005
+    title: Quản lý Azure bằng Azure PowerShell
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-006
+    title: Chọn tenant, subscription và ngữ cảnh làm việc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-007
+    title: Truy vấn tài nguyên bằng Azure Resource Graph
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-008
+    title: Gọi Azure Resource Manager REST API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-tools-009
+    title: Dọn dẹp tài nguyên và kiểm tra chi phí sau thực hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-organization-and-governance
+  title: Tổ chức và quản trị tài nguyên
+  childs:
+  - slug: resource-organization-and-governance-001
+    title: Phân cấp tenant, management group, subscription và resource group
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-002
+    title: Thiết kế ranh giới subscription theo môi trường và đội nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-003
+    title: Thiết kế resource group theo vòng đời ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-004
+    title: Quy ước đặt tên và chiến lược gắn tag
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-005
+    title: Quản lý tài nguyên bằng Azure RBAC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-006
+    title: Thiết kế custom role và kiểm soát quyền tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-007
+    title: Ngăn thao tác nhầm bằng resource lock
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-008
+    title: Azure Policy, initiative và remediation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-009
+    title: Tổ chức landing zone và các subscription nền tảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-010
+    title: Theo dõi thay đổi tài nguyên bằng Activity Log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-governance-011
+    title: Di chuyển tài nguyên giữa resource group và subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: entra-id-identity
+  title: Danh tính với Microsoft Entra ID
+  childs:
+  - slug: entra-id-identity-001
+    title: Tenant Microsoft Entra ID và quan hệ với Azure subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-002
+    title: User, group và quản lý danh tính bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-003
+    title: App registration, service principal và enterprise application
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-004
+    title: OAuth 2.0, OpenID Connect và token trong ứng dụng Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-005
+    title: Phân biệt quyền Microsoft Entra ID và quyền Azure RBAC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-006
+    title: Managed identity do hệ thống và người dùng quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-007
+    title: Workload identity federation cho ứng dụng và pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-008
+    title: Xác thực đa yếu tố và Conditional Access
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-009
+    title: Quản lý quyền đặc quyền bằng Privileged Identity Management
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-010
+    title: Bảo vệ thông tin xác thực và luân chuyển credential
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-011
+    title: Chẩn đoán lỗi đăng nhập bằng sign-in log và audit log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: entra-id-identity-012
+    title: Thiết kế truy cập ứng dụng đơn tenant và đa tenant
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-and-compliance
+  title: Bảo mật và tuân thủ
+  childs:
+  - slug: security-and-compliance-001
+    title: Áp dụng Zero Trust cho kiến trúc Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-002
+    title: Đánh giá tư thế bảo mật bằng Microsoft Defender for Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-003
+    title: Bảo vệ workload và xử lý khuyến nghị bảo mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-004
+    title: Thu thập và điều tra sự kiện với Microsoft Sentinel
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-005
+    title: Thiết lập quyền truy cập khẩn cấp và ứng phó sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-006
+    title: Mã hóa dữ liệu khi truyền và khi lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-007
+    title: Customer-managed key và yêu cầu kiểm soát khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-008
+    title: Kiểm soát vị trí dữ liệu và yêu cầu tuân thủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-009
+    title: Xây dựng baseline bảo mật bằng Azure Policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-010
+    title: Rà soát quyền, public endpoint và nguy cơ lộ dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-011
+    title: Quy trình xử lý cảnh báo và bằng chứng kiểm toán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-networks-and-dns
+  title: Mạng ảo và phân giải tên
+  childs:
+  - slug: virtual-networks-and-dns-001
+    title: Thiết kế địa chỉ IP cho Azure Virtual Network
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-002
+    title: Subnet, IP công cộng và IP riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-003
+    title: Network interface và cấu hình IP cho workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-004
+    title: Network Security Group và Application Security Group
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-005
+    title: Route table, system route và user-defined route
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-006
+    title: Kết nối mạng bằng VNet peering
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-007
+    title: Thiết kế mạng hub-spoke
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-008
+    title: Azure DNS và quản lý vùng DNS công cộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-009
+    title: Private DNS Zone và liên kết với VNet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-010
+    title: Azure DNS Private Resolver cho môi trường hybrid
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-011
+    title: Service endpoint và giới hạn phạm vi truy cập dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-012
+    title: Private Endpoint, Private Link và luồng phân giải DNS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-dns-013
+    title: Kiểm tra kết nối bằng Network Watcher
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-connectivity-and-security
+  title: Kết nối và bảo vệ mạng
+  childs:
+  - slug: network-connectivity-and-security-001
+    title: Kết nối point-to-site và site-to-site bằng VPN Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-002
+    title: Kết nối chuyên dụng với ExpressRoute
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-003
+    title: Kết hợp ExpressRoute và VPN cho dự phòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-004
+    title: Tổ chức kết nối nhiều chi nhánh bằng Azure Virtual WAN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-005
+    title: Kiểm soát lưu lượng ra Internet bằng NAT Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-006
+    title: Azure Firewall và quản lý firewall policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-007
+    title: Bảo vệ ứng dụng web bằng Web Application Firewall
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-008
+    title: Giảm thiểu tấn công bằng Azure DDoS Protection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-009
+    title: Truy cập quản trị máy ảo bằng Azure Bastion
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-010
+    title: Thiết kế network appliance và định tuyến lưu lượng kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-011
+    title: Tách mạng quản trị, ứng dụng và dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-and-security-012
+    title: Chẩn đoán lỗi kết nối hybrid và định tuyến bất đối xứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-balancing-and-app-delivery
+  title: Cân bằng tải và phân phối ứng dụng
+  childs:
+  - slug: load-balancing-and-app-delivery-001
+    title: Lựa chọn dịch vụ phân phối lưu lượng trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-002
+    title: Cân bằng tải tầng vận chuyển với Azure Load Balancer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-003
+    title: Health probe, quy tắc cân bằng tải và kết nối ra ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-004
+    title: Định tuyến HTTP với Azure Application Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-005
+    title: TLS termination, listener và backend pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-006
+    title: Phân phối ứng dụng toàn cầu bằng Azure Front Door
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-007
+    title: Định tuyến DNS bằng Azure Traffic Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-008
+    title: Thiết kế failover giữa nhiều region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-009
+    title: Tối ưu cache, nội dung tĩnh và độ trễ tại biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-010
+    title: Kết hợp Front Door, Application Gateway và private backend
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-app-delivery-011
+    title: Chẩn đoán lỗi TLS, health probe và HTTP gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-fundamentals
+  title: Nền tảng Azure Storage
+  childs:
+  - slug: storage-fundamentals-001
+    title: Lựa chọn dịch vụ lưu trữ theo kiểu dữ liệu và workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-002
+    title: Storage account, endpoint và namespace
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-003
+    title: Redundancy LRS, ZRS, GRS và GZRS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-004
+    title: Thiết kế độ bền dữ liệu và khả năng đọc khi gián đoạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-005
+    title: Phân quyền Azure Storage bằng Microsoft Entra ID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-006
+    title: Shared key, Shared Access Signature và user delegation SAS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-007
+    title: Firewall, private endpoint và truy cập Storage an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-008
+    title: Mã hóa, encryption scope và khóa do khách hàng quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-009
+    title: Theo dõi dung lượng, request và giới hạn thông lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-010
+    title: Azurite và quy trình phát triển Storage tại máy cá nhân
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: blob-storage
+  title: Lưu trữ đối tượng với Blob Storage
+  childs:
+  - slug: blob-storage-001
+    title: Container, blob và cách tổ chức dữ liệu đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-002
+    title: Block blob, append blob và page blob
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-003
+    title: Upload tệp lớn bằng block và truyền tải song song
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-004
+    title: Lựa chọn access tier và quy tắc lifecycle management
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-005
+    title: Blob versioning, snapshot và soft delete
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-006
+    title: Immutable storage, retention policy và legal hold
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-007
+    title: Truy cập tệp bằng SAS có thời hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-008
+    title: Object replication và sao chép dữ liệu giữa tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-009
+    title: Đồng bộ dữ liệu bằng AzCopy và Azure Storage Explorer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-010
+    title: Blob index tag, metadata và tìm kiếm đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: blob-storage-011
+    title: Thiết kế luồng xử lý tệp dựa trên sự kiện Blob
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: file-and-disk-storage
+  title: Lưu trữ tệp và đĩa
+  childs:
+  - slug: file-and-disk-storage-001
+    title: Azure Files với SMB và NFS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-002
+    title: Xác thực và phân quyền truy cập file share
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-003
+    title: Đồng bộ file server bằng Azure File Sync
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-004
+    title: Snapshot, backup và khôi phục Azure Files
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-005
+    title: Azure NetApp Files và workload cần chia sẻ tệp hiệu năng cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-006
+    title: Managed disk và lựa chọn loại đĩa cho máy ảo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-007
+    title: OS disk, data disk và temporary disk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-008
+    title: IOPS, throughput, host cache và disk bursting
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-009
+    title: Snapshot đĩa và tạo bản sao dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-and-disk-storage-010
+    title: Shared disk và yêu cầu của ứng dụng cluster
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-machines
+  title: Máy ảo Azure
+  childs:
+  - slug: virtual-machines-001
+    title: Lựa chọn Virtual Machine theo CPU, bộ nhớ và workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-002
+    title: Tạo máy ảo Linux và Windows
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-003
+    title: Image, Azure Compute Gallery và chuẩn hóa máy ảo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-004
+    title: Khởi tạo cấu hình bằng cloud-init và VM extension
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-005
+    title: Quản lý SSH, RDP và truy cập quản trị an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-006
+    title: Availability Set và triển khai máy ảo theo zone
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-007
+    title: Vòng đời start, stop, deallocate và ảnh hưởng chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-008
+    title: Trusted Launch, confidential VM và bảo vệ máy ảo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-009
+    title: Patch và quản lý cập nhật bằng Azure Update Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-010
+    title: Tự động hóa cấu hình máy ảo bằng công cụ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-011
+    title: Boot Diagnostics, Serial Console và khắc phục lỗi khởi động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: elastic-compute-and-batch-processing
+  title: Compute co giãn và xử lý theo lô
+  childs:
+  - slug: elastic-compute-and-batch-processing-001
+    title: Thiết kế Virtual Machine Scale Sets
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-002
+    title: Lựa chọn orchestration mode cho Scale Sets
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-003
+    title: Autoscale theo metric, lịch và nhu cầu tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-004
+    title: Health check, thay thế instance và nâng cấp theo đợt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-005
+    title: Spot Virtual Machines và xử lý gián đoạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-006
+    title: Phân bổ năng lực bằng capacity reservation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-007
+    title: Azure Batch, pool, job và task
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-008
+    title: Đóng gói và chạy batch job Java trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: elastic-compute-and-batch-processing-009
+    title: Thiết kế workload HPC và sử dụng máy ảo GPU
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: app-service
+  title: Ứng dụng web với App Service
+  childs:
+  - slug: app-service-001
+    title: App Service Plan và mô hình tài nguyên ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-002
+    title: Triển khai Java SE và ứng dụng Java web
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-003
+    title: Cấu hình runtime, biến môi trường và startup command
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-004
+    title: Triển khai container lên App Service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-005
+    title: Deployment slot, warm-up và swap phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-006
+    title: Scale up, scale out và autoscale ứng dụng web
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-007
+    title: Custom domain, chứng chỉ và cấu hình HTTPS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-008
+    title: Xác thực tích hợp và managed identity cho web app
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-009
+    title: VNet integration, private endpoint và access restriction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-010
+    title: Lưu trữ, backup và dữ liệu bền vững của ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-service-011
+    title: Log stream, health check và chẩn đoán lỗi App Service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-registry-and-container-apps
+  title: Container Registry và Container Apps
+  childs:
+  - slug: container-registry-and-container-apps-001
+    title: Xây dựng image container phù hợp môi trường Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-002
+    title: Azure Container Registry, repository và image tag
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-003
+    title: Xác thực Registry bằng RBAC và managed identity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-004
+    title: ACR Tasks và tự động hóa quá trình build image
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-005
+    title: Phân phối image đa region và giới hạn truy cập Registry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-006
+    title: Azure Container Instances và workload container ngắn hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-007
+    title: Container Apps Environment và lựa chọn cấu hình mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-008
+    title: Triển khai microservice bằng Azure Container Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-009
+    title: Revision, traffic splitting và rollback trên Container Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-010
+    title: Scale theo sự kiện với KEDA trong Container Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-011
+    title: Container Apps Jobs cho tác vụ nền và tác vụ theo lịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-012
+    title: Dapr và giao tiếp giữa các dịch vụ trong Container Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-registry-and-container-apps-013
+    title: Secret, persistent volume và quan sát Container Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aks-fundamentals
+  title: Nền tảng Azure Kubernetes Service
+  childs:
+  - slug: aks-fundamentals-001
+    title: Kiến trúc AKS và lựa chọn mô hình cluster
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-002
+    title: Tạo AKS cluster và kết nối bằng kubectl
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-003
+    title: System node pool, user node pool và lựa chọn kích cỡ node
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-004
+    title: Azure CNI và quy hoạch địa chỉ IP cho AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-005
+    title: Private cluster và quyền truy cập Kubernetes API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-006
+    title: Tích hợp Microsoft Entra ID và phân quyền AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-007
+    title: AKS Workload Identity cho pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-008
+    title: Kết nối AKS với Azure Container Registry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-009
+    title: Triển khai ứng dụng Java bằng Deployment và Service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-010
+    title: Ingress, Gateway API và công bố ứng dụng trên AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-011
+    title: Azure Disk CSI và Azure Files CSI cho persistent volume
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-012
+    title: Quản lý secret bằng tích hợp Azure Key Vault
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-fundamentals-013
+    title: Network policy và kiểm soát giao tiếp giữa pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aks-operations
+  title: Vận hành AKS
+  childs:
+  - slug: aks-operations-001
+    title: Đặt resource request, limit và phân bổ tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-002
+    title: Horizontal Pod Autoscaler và Cluster Autoscaler
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-003
+    title: Scale workload AKS theo sự kiện bằng KEDA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-004
+    title: Scheduling bằng affinity, taint và toleration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-005
+    title: Pod Disruption Budget và bảo đảm khi bảo trì node
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-006
+    title: Nâng cấp Kubernetes, node image và điều phối bảo trì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-007
+    title: Phân phối ứng dụng AKS bằng Helm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-008
+    title: GitOps cho AKS với Flux
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-009
+    title: Bảo mật image, admission policy và workload AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-010
+    title: Thu thập log và metric bằng Container Insights
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-011
+    title: Managed Prometheus và Azure Managed Grafana cho AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-012
+    title: Backup, phục hồi ứng dụng và dữ liệu AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aks-operations-013
+    title: Chẩn đoán lỗi pod, node, DNS và kết nối trong AKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-functions
+  title: Serverless với Azure Functions
+  childs:
+  - slug: serverless-functions-001
+    title: Function App và mô hình thực thi Azure Functions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-002
+    title: Lựa chọn hosting plan theo tải và yêu cầu mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-003
+    title: Phát triển Azure Functions bằng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-004
+    title: Trigger và binding cho HTTP, timer và Storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-005
+    title: Tích hợp Function với Service Bus và Event Hubs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-006
+    title: Cấu hình ứng dụng, secret và managed identity cho Function
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-007
+    title: Concurrency, cold start và tối ưu thời gian khởi động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-008
+    title: Retry, xử lý trùng lặp và tính idempotent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-009
+    title: Durable Functions với orchestrator, activity và entity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-010
+    title: Mẫu fan-out, fan-in và quy trình chạy dài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-011
+    title: Triển khai, phân tách môi trường và quản lý phiên bản Function
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-functions-012
+    title: Quan sát và chẩn đoán lỗi thực thi Function
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: queues-and-messaging
+  title: Hàng đợi và thông điệp
+  childs:
+  - slug: queues-and-messaging-001
+    title: Lựa chọn Azure Queue Storage và Azure Service Bus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-002
+    title: Gửi, nhận và quản lý visibility timeout với Queue Storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-003
+    title: Service Bus namespace, queue, topic và subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-004
+    title: Thiết kế bộ lọc và định tuyến message trong Service Bus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-005
+    title: Peek-lock, settlement và gia hạn khóa message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-006
+    title: Dead-letter queue và quy trình xử lý message lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-007
+    title: Duplicate detection và thiết kế consumer idempotent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-008
+    title: Message session và bảo đảm thứ tự xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-009
+    title: Transaction, scheduling và deferred message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-010
+    title: Retry, backoff và kiểm soát thông lượng producer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-011
+    title: Phân quyền và truy cập mạng riêng cho Service Bus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-messaging-012
+    title: Thiết kế tích hợp Java bằng Service Bus SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-streaming
+  title: Sự kiện và dữ liệu streaming
+  childs:
+  - slug: events-and-streaming-001
+    title: Phân biệt event routing và event streaming trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-002
+    title: Event Grid topic, system topic và subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-003
+    title: Thiết kế event schema và sử dụng CloudEvents
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-004
+    title: Delivery retry, dead-letter và chống xử lý trùng sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-005
+    title: Event Hubs namespace, partition và consumer group
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-006
+    title: Partition key, checkpoint và cân bằng tải consumer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-007
+    title: Phát triển producer và consumer Java cho Event Hubs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-008
+    title: Tích hợp client Kafka với Event Hubs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-009
+    title: Event Hubs Capture và lưu trữ luồng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-010
+    title: Xử lý luồng với Azure Stream Analytics
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-streaming-011
+    title: Thiết kế backpressure, replay và xử lý sự kiện đến muộn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-and-workflow-integration
+  title: API và tích hợp quy trình
+  childs:
+  - slug: api-and-workflow-integration-001
+    title: Azure API Management và tổ chức API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-002
+    title: Import OpenAPI, version và revision trong API Management
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-003
+    title: Subscription, sản phẩm API và developer portal
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-004
+    title: Policy xác thực JWT và bảo vệ backend API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-005
+    title: Rate limit, quota, cache và chuyển đổi request
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-006
+    title: Kết nối API Management với backend mạng riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-007
+    title: Quan sát API và theo dõi lỗi qua nhiều dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-008
+    title: Logic Apps và mô hình workflow tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-009
+    title: Connector, trigger và action trong Logic Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-010
+    title: Quản lý lỗi, retry và bù trừ workflow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-011
+    title: Tích hợp hệ thống doanh nghiệp và B2B bằng Logic Apps
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-workflow-integration-012
+    title: Lựa chọn API Management, Logic Apps và Functions theo tình huống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: relational-databases
+  title: Cơ sở dữ liệu quan hệ
+  childs:
+  - slug: relational-databases-001
+    title: Lựa chọn Azure SQL và cơ sở dữ liệu quan hệ được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-002
+    title: Azure SQL Database và mô hình triển khai dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-003
+    title: DTU, vCore, serverless và elastic pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-004
+    title: Azure SQL Managed Instance cho tương thích SQL Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-005
+    title: SQL Server trên Azure Virtual Machines
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-006
+    title: Azure Database for PostgreSQL Flexible Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-007
+    title: Azure Database for MySQL Flexible Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-008
+    title: Microsoft Entra authentication và quyền truy cập cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-009
+    title: Private endpoint, firewall và bảo vệ kết nối database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-010
+    title: Backup tự động, point-in-time restore và lưu giữ dài hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-011
+    title: High availability, read replica và geo-replication
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-012
+    title: Tối ưu truy vấn bằng Query Store và công cụ giám sát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-013
+    title: Kết nối JDBC, connection pool và retry trong ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: nosql-and-cosmos-db
+  title: Dữ liệu NoSQL với Cosmos DB
+  childs:
+  - slug: nosql-and-cosmos-db-001
+    title: Kiến trúc Azure Cosmos DB và lựa chọn API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-002
+    title: Account, database, container và mô hình dữ liệu tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-003
+    title: Partition key và phân phối dữ liệu theo workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-004
+    title: Request Unit, provisioned throughput, autoscale và serverless
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-005
+    title: Consistency level và đánh đổi khi đọc ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-006
+    title: Phân phối nhiều region và cơ chế failover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-007
+    title: Index policy và tối ưu truy vấn Cosmos DB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-008
+    title: Transaction trong logical partition và transactional batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-009
+    title: Change feed và luồng xử lý thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-010
+    title: TTL, unique key và quản lý vòng đời tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-011
+    title: Backup, restore và bảo vệ truy cập Cosmos DB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-012
+    title: Cosmos DB Java SDK và xử lý throttling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: nosql-and-cosmos-db-013
+    title: Azure Table Storage và mô hình dữ liệu key-value
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: caching-and-realtime-communication
+  title: Cache và giao tiếp thời gian thực
+  childs:
+  - slug: caching-and-realtime-communication-001
+    title: Lựa chọn Azure Managed Redis cho ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-002
+    title: Thiết kế key, TTL và chính sách eviction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-003
+    title: Áp dụng cache-aside và xử lý cache stampede
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-004
+    title: Kết nối Redis an toàn từ ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-005
+    title: High availability, scaling và theo dõi Redis
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-006
+    title: Azure SignalR Service và quản lý kết nối thời gian thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-007
+    title: Azure Web PubSub cho ứng dụng WebSocket
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-008
+    title: Phân quyền client và quản lý group kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-009
+    title: Tích hợp backend Java với dịch vụ thời gian thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-realtime-communication-010
+    title: Thiết kế thông báo trực tiếp kết hợp message và cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-platforms-and-analytics
+  title: Nền tảng dữ liệu và phân tích
+  childs:
+  - slug: data-platforms-and-analytics-001
+    title: Thiết kế data lake với Azure Data Lake Storage Gen2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-002
+    title: Hierarchical namespace, ACL và phân quyền dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-003
+    title: Tổ chức vùng dữ liệu thô, chuẩn hóa và phục vụ phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-004
+    title: Azure Data Factory với pipeline, dataset và linked service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-005
+    title: Integration Runtime và kết nối nguồn dữ liệu tại chỗ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-006
+    title: Copy activity, incremental load và điều phối pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-007
+    title: Azure Databricks và xử lý dữ liệu bằng Apache Spark
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-008
+    title: Azure Synapse Analytics và truy vấn dữ liệu phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-009
+    title: Azure Data Explorer và phân tích log hoặc telemetry bằng KQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-010
+    title: Microsoft Fabric trong hệ sinh thái dữ liệu Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-011
+    title: Microsoft Purview, data catalog và data lineage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-platforms-and-analytics-012
+    title: Thiết kế chất lượng dữ liệu, phân vùng và tối ưu chi phí phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ai-and-machine-learning
+  title: AI và học máy trên Azure
+  childs:
+  - slug: ai-and-machine-learning-001
+    title: Lựa chọn dịch vụ AI được quản lý và mô hình triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-002
+    title: Azure OpenAI, model deployment và endpoint suy luận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-003
+    title: Xác thực, quota và quản lý giới hạn gọi mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-004
+    title: Xây dựng ứng dụng Java gọi mô hình AI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-005
+    title: Azure AI Search với index, indexer và enrichment
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-006
+    title: Tìm kiếm vector, tìm kiếm kết hợp và semantic ranking
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-007
+    title: Thiết kế RAG với Blob Storage, AI Search và mô hình ngôn ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-008
+    title: Dịch vụ AI cho ngôn ngữ, hình ảnh, giọng nói và tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-009
+    title: Azure Machine Learning với workspace, compute và data asset
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-010
+    title: Huấn luyện, đăng ký và triển khai mô hình trong Azure Machine Learning
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-011
+    title: Đánh giá đầu ra, lọc nội dung và bảo vệ dữ liệu AI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-012
+    title: Theo dõi độ trễ, chất lượng và chi phí ứng dụng AI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: iot-and-edge-computing
+  title: IoT và xử lý tại biên
+  childs:
+  - slug: iot-and-edge-computing-001
+    title: Kiến trúc tiếp nhận telemetry IoT trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-002
+    title: Azure IoT Hub và định danh thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-003
+    title: Device Provisioning Service và cấp phát thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-004
+    title: Device twin, direct method và cloud-to-device message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-005
+    title: Định tuyến telemetry từ IoT Hub đến dịch vụ xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-006
+    title: Azure IoT Edge và triển khai module tại thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-007
+    title: Azure Digital Twins và mô hình hóa môi trường thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-008
+    title: Bảo mật thiết bị, xoay vòng credential và vận hành khi mất kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-sdk
+  title: Azure SDK cho Java
+  childs:
+  - slug: java-sdk-001
+    title: Cấu trúc Azure SDK for Java và quản lý phiên bản thư viện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-002
+    title: Đồng bộ và bất đồng bộ trong Azure Java client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-003
+    title: DefaultAzureCredential và chuỗi xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-004
+    title: Dùng managed identity từ ứng dụng Java trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-005
+    title: Tùy biến HTTP pipeline, timeout và retry policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-006
+    title: Pagination, long-running operation và quản lý tài nguyên client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-007
+    title: Upload và download dữ liệu bằng Blob Storage SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-008
+    title: Truy cập Key Vault bằng Azure SDK for Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-009
+    title: Quản lý hạ tầng bằng Azure Resource Manager SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-010
+    title: Tracing, logging và xử lý lỗi Azure SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-011
+    title: Kiểm thử tích hợp SDK bằng emulator và tài nguyên thử nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-boot
+  title: Spring Boot trên Azure
+  childs:
+  - slug: spring-boot-001
+    title: Lựa chọn nền tảng Azure để chạy ứng dụng Spring Boot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-002
+    title: Quản lý dependency bằng Spring Cloud Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-003
+    title: Cấu hình ứng dụng theo môi trường Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-004
+    title: Đăng nhập Microsoft Entra ID bằng Spring Security
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-005
+    title: Bảo vệ REST API bằng Microsoft Entra access token
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-006
+    title: Truy cập Azure SQL và PostgreSQL bằng Spring Data
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-007
+    title: Tích hợp Cosmos DB với Spring Data
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-008
+    title: Tích hợp Blob Storage vào ứng dụng Spring Boot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-009
+    title: Tích hợp Service Bus và Event Hubs trong ứng dụng Spring
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-010
+    title: Quản lý cấu hình bằng Azure App Configuration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-011
+    title: Feature flag và làm mới cấu hình ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-012
+    title: Quản lý secret Spring Boot bằng Azure Key Vault
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-013
+    title: Đóng gói, health probe và graceful shutdown trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: secrets-keys-and-certificates
+  title: Secret, khóa và chứng chỉ
+  childs:
+  - slug: secrets-keys-and-certificates-001
+    title: Azure Key Vault và ranh giới quản lý secret
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-002
+    title: Phân quyền Key Vault bằng Azure RBAC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-003
+    title: Secret version, hạn sử dụng và chiến lược luân chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-004
+    title: Quản lý khóa và thao tác mã hóa với Key Vault
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-005
+    title: Quản lý chứng chỉ và vòng đời TLS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-006
+    title: Azure Managed HSM và yêu cầu bảo vệ khóa chuyên dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-007
+    title: Private endpoint và giới hạn truy cập Key Vault
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-008
+    title: Soft delete, purge protection và khôi phục Key Vault
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-009
+    title: Luân chuyển secret bằng sự kiện và tự động hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secrets-keys-and-certificates-010
+    title: Audit truy cập secret và xử lý sự cố xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring-and-observability
+  title: Giám sát và quan sát hệ thống
+  childs:
+  - slug: monitoring-and-observability-001
+    title: Kiến trúc Azure Monitor với metric, log và trace
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-002
+    title: Diagnostic setting và đích xuất dữ liệu giám sát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-003
+    title: Log Analytics Workspace và thiết kế lưu giữ log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-004
+    title: Thu thập dữ liệu bằng Azure Monitor Agent và Data Collection Rule
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-005
+    title: Viết truy vấn KQL để điều tra ứng dụng và hạ tầng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-006
+    title: Application Insights cho ứng dụng Java và Spring Boot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-007
+    title: OpenTelemetry và distributed tracing trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-008
+    title: Theo dõi dependency, exception và transaction ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-009
+    title: Metric alert, log alert và action group
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-010
+    title: Dashboard, Azure Monitor Workbook và báo cáo vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-011
+    title: Availability test và theo dõi trải nghiệm truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-012
+    title: Service Health, Resource Health và cảnh báo sự cố nền tảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-013
+    title: Sampling, retention và kiểm soát chi phí telemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-cd-and-software-supply-chain
+  title: CI/CD và chuỗi cung ứng phần mềm
+  childs:
+  - slug: ci-cd-and-software-supply-chain-001
+    title: Tổ chức mã nguồn và môi trường triển khai Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-002
+    title: Azure Pipelines cho quy trình build ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-003
+    title: GitHub Actions và triển khai workload lên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-004
+    title: Service connection và đăng nhập pipeline bằng federation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-005
+    title: Quản lý artifact, package và container image
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-006
+    title: Quét dependency, secret và image trong pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-007
+    title: Tạo SBOM và kiểm soát nguồn gốc artifact
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-008
+    title: Triển khai qua môi trường dev, test và production
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-009
+    title: Approval, environment check và kiểm soát quyền triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-010
+    title: Triển khai canary, blue-green và rollback trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-011
+    title: Triển khai thay đổi database cùng phiên bản ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-software-supply-chain-012
+    title: Quản lý biến, secret và cấu hình của pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-as-code
+  title: Hạ tầng dưới dạng mã
+  childs:
+  - slug: infrastructure-as-code-001
+    title: Mô hình khai báo tài nguyên bằng ARM template
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-002
+    title: Bicep với resource, parameter, variable và output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-003
+    title: Module Bicep và tái sử dụng thành phần hạ tầng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-004
+    title: Tham chiếu tài nguyên có sẵn và quản lý dependency
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-005
+    title: Quản lý parameter theo môi trường và bảo vệ giá trị nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-006
+    title: Kiểm tra thay đổi bằng ARM what-if
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-007
+    title: Triển khai theo phạm vi resource group và subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-008
+    title: Deployment stack và quản lý vòng đời tập tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-009
+    title: Terraform Azure provider và tổ chức cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-010
+    title: Lưu Terraform state từ xa trong Azure Storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-011
+    title: Phát hiện drift, import tài nguyên và kiểm soát thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-012
+    title: Kiểm tra policy, quyền và chất lượng IaC trong pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability-and-disaster-recovery
+  title: Độ tin cậy và khôi phục thảm họa
+  childs:
+  - slug: reliability-and-disaster-recovery-001
+    title: Áp dụng trụ cột độ tin cậy của Azure Well-Architected Framework
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-002
+    title: Xác định SLI, SLO, RTO và RPO cho ứng dụng Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-003
+    title: Thiết kế theo Availability Zone và xử lý lỗi cục bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-004
+    title: Thiết kế multi-region và lựa chọn active-active hoặc active-passive
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-005
+    title: Retry, circuit breaker, timeout và bulkhead trong ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-006
+    title: Azure Backup và lựa chọn vault theo workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-007
+    title: Backup máy ảo và kiểm tra khả năng khôi phục dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-008
+    title: Azure Site Recovery và sao chép workload phục vụ DR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-009
+    title: Runbook failover, failback và điều phối phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-010
+    title: Thiết kế phục hồi dữ liệu phù hợp từng dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-011
+    title: Kiểm thử chịu lỗi bằng Azure Chaos Studio
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-disaster-recovery-012
+    title: Diễn tập DR và đánh giá sau sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-operations
+  title: Hiệu năng và vận hành
+  childs:
+  - slug: performance-and-operations-001
+    title: Áp dụng trụ cột hiệu năng và vận hành của Well-Architected Framework
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-002
+    title: Xây dựng baseline hiệu năng và capacity plan
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-003
+    title: Kiểm thử tải ứng dụng bằng Azure Load Testing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-004
+    title: Tối ưu JVM, bộ nhớ và garbage collection trên Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-005
+    title: Chẩn đoán nghẽn CPU, bộ nhớ, đĩa và mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-006
+    title: Tối ưu connection pool và tái sử dụng kết nối dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-007
+    title: Kiểm soát throttling, giới hạn API và quota khi tăng tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-008
+    title: Tự động hóa vận hành bằng Azure Automation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-009
+    title: Azure Run Command và thao tác quản trị từ xa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-010
+    title: Thiết kế maintenance window và triển khai thay đổi an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-operations-011
+    title: Xây dựng runbook xử lý sự cố và hồ sơ yêu cầu hỗ trợ Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-management
+  title: Quản lý chi phí
+  childs:
+  - slug: cost-management-001
+    title: Mô hình tính phí, meter và các thành phần hóa đơn Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-002
+    title: Ước tính chi phí bằng Azure Pricing Calculator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-003
+    title: Phân tích chi phí theo subscription, resource group và tag
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-004
+    title: Thiết lập budget và cảnh báo chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-005
+    title: Phân bổ chi phí bằng mô hình showback và chargeback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-006
+    title: Rightsizing tài nguyên dựa trên Azure Advisor và metric
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-007
+    title: Reservations, savings plan và Azure Hybrid Benefit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-008
+    title: Lên lịch tắt môi trường và xử lý tài nguyên nhàn rỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-009
+    title: Tính chi phí data transfer, kết nối mạng và private endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-010
+    title: Tối ưu chi phí lưu trữ, cơ sở dữ liệu và telemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-011
+    title: Quản lý cam kết chi tiêu và đánh giá chi phí mỗi workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hybrid-cloud-and-migration
+  title: Hybrid cloud và di chuyển lên Azure
+  childs:
+  - slug: hybrid-cloud-and-migration-001
+    title: Khảo sát hệ thống hiện có và chọn chiến lược migration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-002
+    title: Azure Migrate với discovery, assessment và dependency mapping
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-003
+    title: Di chuyển máy chủ lên Azure và xác minh sau cutover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-004
+    title: Di chuyển dữ liệu và cơ sở dữ liệu bằng dịch vụ migration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-005
+    title: Chuyển dữ liệu dung lượng lớn bằng Azure Data Box
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-006
+    title: Lập kế hoạch DNS, kết nối và đồng bộ danh tính khi di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-007
+    title: Azure Arc-enabled Servers và quản trị máy chủ ngoài Azure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-008
+    title: Azure Arc-enabled Kubernetes và quản trị cluster hybrid
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-009
+    title: Áp dụng policy, monitoring và cập nhật cho tài nguyên Azure Arc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-010
+    title: Azure Local và lựa chọn hạ tầng hybrid tại chỗ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-011
+    title: Azure Resource Mover và kế hoạch chuyển tài nguyên giữa region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-cloud-and-migration-012
+    title: Lập kế hoạch rollback, nghiệm thu và đóng hệ thống nguồn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-and-capstone-labs
+  title: Kiến trúc và thực hành tổng hợp
+  childs:
+  - slug: architecture-and-capstone-labs-001
+    title: Đánh giá kiến trúc bằng Azure Well-Architected Review
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-002
+    title: Thực hành landing zone có policy, ngân sách và phân quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-003
+    title: Thực hành ứng dụng Spring Boot trên App Service với Azure SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-004
+    title: Thực hành microservice Java trên Container Apps với Service Bus
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-005
+    title: Thực hành nền tảng AKS có mạng riêng và Workload Identity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-006
+    title: Thực hành xử lý tệp bằng Blob Storage, Event Grid và Functions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-007
+    title: Thực hành tiếp nhận telemetry bằng Event Hubs và xử lý streaming
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-008
+    title: Thực hành ứng dụng phân phối toàn cầu với Cosmos DB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-009
+    title: Thực hành cổng API có Microsoft Entra ID và API Management
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-010
+    title: Thực hành ứng dụng RAG có kiểm soát truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-011
+    title: Thực hành pipeline IaC và triển khai ứng dụng đa môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-012
+    title: Thực hành giám sát, thử tải và diễn tập khôi phục hệ thống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-and-capstone-labs-013
+    title: Rà soát bảo mật, chi phí và dọn dẹp dự án Azure hoàn chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

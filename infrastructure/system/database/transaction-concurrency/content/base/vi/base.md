@@ -1,0 +1,5 @@
+# Database Transaction Concurrency
+
+Transaction concurrency là cách hệ quản trị cơ sở dữ liệu điều phối nhiều giao dịch cùng đọc và ghi dữ liệu. Khi các thao tác xen kẽ, hệ thống phải giữ tính đúng đắn của nghiệp vụ mà vẫn cho phép nhiều người dùng làm việc. Các khái niệm trọng tâm gồm ACID, những bất thường khi thực thi đồng thời, mức cô lập, MVCC, khóa và xử lý xung đột.
+
+Module dành cho người đã biết SQL và các thao tác CRUD, muốn hiểu điều gì xảy ra khi nhiều transaction truy cập cùng bản ghi. Bạn sẽ bắt đầu từ vòng đời giao dịch, tái hiện bất thường bằng hai phiên kết nối, so sánh isolation levels, tìm hiểu snapshot và locking, sau đó xử lý deadlock, lỗi serialization và retry. Các ví dụ PostgreSQL và MySQL giúp thực hành nhưng cũng làm rõ rằng hành vi chi tiết tùy hệ quản trị. Cuối lộ trình, bạn có thể chọn chiến lược đồng thời phù hợp và kiểm chứng kết quả bằng thử nghiệm.

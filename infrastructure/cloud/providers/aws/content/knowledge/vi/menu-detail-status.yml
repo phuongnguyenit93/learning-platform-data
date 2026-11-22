@@ -1,0 +1,4426 @@
+menu:
+- slug: aws-overview
+  title: Tổng quan AWS
+  childs:
+  - slug: aws-overview-001
+    title: AWS là gì và mô hình điện toán đám mây
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-002
+    title: Mô hình trách nhiệm chia sẻ trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-003
+    title: Region, Availability Zone và hạ tầng biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-004
+    title: Phạm vi tài nguyên toàn cục, theo Region và theo AZ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-005
+    title: Tiêu chí chọn Region và yêu cầu lưu trú dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-006
+    title: Danh mục dịch vụ và cách chọn dịch vụ AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-007
+    title: AWS Management Console, CloudShell và AWS CLI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-008
+    title: Thiết lập môi trường thực hành và quy ước đặt tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-009
+    title: ARN, resource ID, endpoint và service quota
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-overview-010
+    title: Tra cứu tài liệu, AWS Health và thay đổi vòng đời dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: accounts-and-organizations
+  title: Tài khoản và Organizations
+  childs:
+  - slug: accounts-and-organizations-001
+    title: Khởi tạo tài khoản và bảo vệ root user
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-002
+    title: Thiết lập thông tin liên hệ và cảnh báo chi phí ban đầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-003
+    title: AWS Organizations, organizational unit và tài khoản thành viên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-004
+    title: Thiết kế chiến lược nhiều tài khoản cho dev, staging và production
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-005
+    title: Service Control Policy và giới hạn quyền của tổ chức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-006
+    title: AWS Control Tower và xây dựng landing zone
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-007
+    title: IAM Identity Center và đăng nhập tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-008
+    title: Permission set và phân quyền theo nhóm công việc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-009
+    title: Delegated administrator và quản trị dịch vụ tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-organizations-010
+    title: Chính sách tag, quản lý quota và vòng đời tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: iam-and-permissions
+  title: IAM và phân quyền
+  childs:
+  - slug: iam-and-permissions-001
+    title: IAM user, group, role và policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-002
+    title: Cấu trúc policy với action, resource và condition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-003
+    title: Cách IAM đánh giá quyền và explicit deny
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-004
+    title: Identity-based policy và resource-based policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-005
+    title: Trust policy và cơ chế assume role
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-006
+    title: AWS STS và thông tin xác thực tạm thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-007
+    title: Thiết kế quyền tối thiểu cho người dùng và workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-008
+    title: Permission boundary, session policy và quan hệ với SCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-009
+    title: ABAC với tag và điều kiện truy cập tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-010
+    title: Truy cập liên tài khoản và external ID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-011
+    title: Liên kết danh tính qua SAML, OIDC và workload identity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-permissions-012
+    title: IAM Access Analyzer, policy simulator và xử lý AccessDenied
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vpc-networking
+  title: Mạng VPC
+  childs:
+  - slug: vpc-networking-001
+    title: VPC, CIDR và lập kế hoạch địa chỉ IP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-002
+    title: Subnet công khai, riêng tư và biệt lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-003
+    title: Route table, local route và Internet Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-004
+    title: NAT Gateway và truy cập Internet từ subnet riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-005
+    title: Security Group và quy tắc stateful
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-006
+    title: Network ACL và quy tắc stateless
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-007
+    title: Elastic Network Interface, private IP và Elastic IP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-008
+    title: DNS trong VPC và DHCP option
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-009
+    title: IPv6, dual stack và egress-only Internet Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-010
+    title: Gateway endpoint và interface endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-011
+    title: VPC Flow Logs và phân tích lưu lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-012
+    title: Thiết kế VPC nhiều AZ cho ứng dụng production
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: advanced-network-connectivity
+  title: Kết nối mạng nâng cao
+  childs:
+  - slug: advanced-network-connectivity-001
+    title: VPC Peering và giới hạn định tuyến bắc cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-002
+    title: Transit Gateway và mô hình hub-and-spoke
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-003
+    title: AWS PrivateLink và cung cấp dịch vụ riêng tư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-004
+    title: Site-to-Site VPN và kết nối mạng doanh nghiệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-005
+    title: Client VPN cho truy cập từ xa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-006
+    title: AWS Direct Connect, virtual interface và dự phòng kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-007
+    title: Route 53 Resolver trong mạng hybrid
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-008
+    title: AWS IPAM và quản lý địa chỉ tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-009
+    title: VPC Lattice và kết nối dịch vụ giữa nhiều VPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-network-connectivity-010
+    title: Reachability Analyzer và chẩn đoán lỗi định tuyến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ec2-instances
+  title: Máy chủ EC2
+  childs:
+  - slug: ec2-instances-001
+    title: Instance family và lựa chọn cấu hình EC2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-002
+    title: AMI, EC2 Image Builder và quản lý image
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-003
+    title: Khởi tạo instance với user data và cloud-init
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-004
+    title: Instance profile và truy cập dịch vụ từ EC2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-005
+    title: Truy cập máy chủ qua Session Manager và EC2 Instance Connect
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-006
+    title: Instance Metadata Service và yêu cầu IMDSv2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-007
+    title: Vòng đời instance, stop, hibernate và terminate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-008
+    title: On-Demand, Spot và lựa chọn năng lực tính toán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-009
+    title: Placement group, tenancy và Dedicated Host
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-010
+    title: Graviton và lựa chọn kiến trúc ARM cho workload Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-011
+    title: EC2 status check và phục hồi instance
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ec2-instances-012
+    title: Cấu hình máy chủ an toàn và quản lý bản vá
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: block-and-file-storage
+  title: Lưu trữ block và file
+  childs:
+  - slug: block-and-file-storage-001
+    title: Phân biệt block storage, file storage và object storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-002
+    title: EBS volume và lựa chọn loại ổ đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-003
+    title: EBS IOPS, throughput và tối ưu hiệu năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-004
+    title: Gắn, mở rộng và mã hóa EBS volume
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-005
+    title: EBS snapshot và Data Lifecycle Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-006
+    title: Instance store và đặc tính dữ liệu tạm thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-007
+    title: EFS, mount target và truy cập NFS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-008
+    title: EFS performance mode, throughput và lifecycle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-009
+    title: Amazon FSx và lựa chọn hệ thống file được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-010
+    title: Chọn EBS, EFS hoặc FSx theo nhu cầu ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: s3-object-storage
+  title: Lưu trữ đối tượng S3
+  childs:
+  - slug: s3-object-storage-001
+    title: Bucket, object, key và mô hình nhất quán S3
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-002
+    title: Quy tắc đặt tên bucket và thiết kế cấu trúc object key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-003
+    title: Bucket policy, Access Point và Block Public Access
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-004
+    title: Object Ownership và kiểm soát ACL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-005
+    title: Mã hóa S3 và quyền sử dụng KMS key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-006
+    title: Versioning, delete marker và bảo vệ dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-007
+    title: Storage class, Intelligent-Tiering và lớp lưu trữ Glacier
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-008
+    title: Lifecycle rule và phục hồi dữ liệu lưu trữ dài hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-009
+    title: Multipart upload, checksum và tối ưu truyền dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-010
+    title: Presigned URL, CORS và tải tệp từ trình duyệt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-011
+    title: Replication cùng Region và khác Region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-012
+    title: S3 Event Notifications và xử lý sự kiện object
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: s3-object-storage-013
+    title: Object Lock, Inventory, Storage Lens và Batch Operations
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-balancing-and-scaling
+  title: Cân bằng tải và mở rộng
+  childs:
+  - slug: load-balancing-and-scaling-001
+    title: Lựa chọn Application, Network và Gateway Load Balancer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-002
+    title: ALB listener, target group và health check
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-003
+    title: Định tuyến theo host, path, header và trọng số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-004
+    title: TLS termination và kết nối HTTPS đến backend
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-005
+    title: NLB, địa chỉ IP cố định và lưu lượng tầng giao vận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-006
+    title: Launch template và Auto Scaling Group
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-007
+    title: Target tracking, step scaling và scheduled scaling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-008
+    title: Warm pool, lifecycle hook và instance refresh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-009
+    title: Sticky session, connection draining và graceful shutdown
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-scaling-010
+    title: Phối hợp load balancer, Auto Scaling và nhiều AZ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dns-and-content-delivery
+  title: DNS và phân phối nội dung
+  childs:
+  - slug: dns-and-content-delivery-001
+    title: Route 53 hosted zone và quản lý bản ghi DNS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-002
+    title: Alias record, CNAME và định tuyến đến tài nguyên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-003
+    title: Routing policy theo trọng số, độ trễ và vị trí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-004
+    title: Health check, failover DNS và thời gian TTL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-005
+    title: Đăng ký tên miền và cấu hình DNSSEC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-006
+    title: CloudFront distribution, origin và cache behavior
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-007
+    title: Cache key, cache policy và invalidation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-008
+    title: Origin Access Control và bảo vệ S3 origin
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-009
+    title: Signed URL, signed cookie và bảo vệ nội dung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-content-delivery-010
+    title: CloudFront Functions, Lambda@Edge và Global Accelerator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ecs-containers
+  title: Container với ECS
+  childs:
+  - slug: ecs-containers-001
+    title: Lựa chọn ECS, EKS và Fargate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-002
+    title: ECR repository, image tag và lifecycle policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-003
+    title: Quét image và phân quyền truy cập ECR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-004
+    title: ECS cluster, task definition và service
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-005
+    title: ECS trên EC2 và ECS trên Fargate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-006
+    title: Task role, execution role và quản lý secret
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-007
+    title: Mạng awsvpc, Security Group và kết nối ALB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-008
+    title: Service discovery với AWS Cloud Map
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-009
+    title: ECS Service Auto Scaling và capacity provider
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-010
+    title: Rolling deployment, deployment circuit breaker và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-containers-011
+    title: Thu thập log, ECS Exec và xử lý task bị dừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: eks-kubernetes
+  title: Kubernetes với EKS
+  childs:
+  - slug: eks-kubernetes-001
+    title: Kiến trúc EKS control plane và data plane
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-002
+    title: Thiết kế subnet, endpoint và quyền truy cập cluster
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-003
+    title: Managed node group, self-managed node và Fargate profile
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-004
+    title: EKS access entry và phân quyền Kubernetes RBAC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-005
+    title: IAM Roles for Service Accounts và EKS Pod Identity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-006
+    title: Amazon VPC CNI và quản lý địa chỉ IP cho Pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-007
+    title: AWS Load Balancer Controller và công bố dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-008
+    title: EBS CSI, EFS CSI và lưu trữ cho workload Kubernetes
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-009
+    title: Horizontal Pod Autoscaler, Cluster Autoscaler và Karpenter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-010
+    title: Quản lý add-on, version và nâng cấp EKS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-011
+    title: Quan sát cluster, log control plane và hiệu năng Pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: eks-kubernetes-012
+    title: Bảo mật network policy và vận hành EKS nhiều AZ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: managed-application-platforms
+  title: Nền tảng ứng dụng quản lý
+  childs:
+  - slug: managed-application-platforms-001
+    title: Chọn Elastic Beanstalk, App Runner hoặc Lightsail
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-002
+    title: Elastic Beanstalk application, environment và platform
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-003
+    title: Triển khai Java trên Elastic Beanstalk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-004
+    title: Cấu hình môi trường, secret và kết nối dữ liệu trong Beanstalk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-005
+    title: Chính sách triển khai và thay thế môi trường Beanstalk
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-006
+    title: App Runner service từ mã nguồn hoặc container image
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-007
+    title: App Runner VPC connector, autoscaling và observability
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: managed-application-platforms-008
+    title: Lightsail instance và phạm vi sử dụng phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lambda-compute
+  title: Điện toán Lambda
+  childs:
+  - slug: lambda-compute-001
+    title: Mô hình thực thi và vòng đời Lambda function
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-002
+    title: Lambda runtime, handler và triển khai bằng ZIP hoặc container
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-003
+    title: Memory, CPU, timeout và ephemeral storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-004
+    title: Execution role, resource policy và cấu hình môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-005
+    title: Gọi đồng bộ, bất đồng bộ và event source mapping
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-006
+    title: Reserved concurrency và provisioned concurrency
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-007
+    title: Cold start, Java SnapStart và tối ưu khởi tạo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-008
+    title: Kết nối Lambda với VPC và dịch vụ riêng tư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-009
+    title: Retry, destination và dead-letter queue
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-010
+    title: Xử lý batch, partial failure và idempotency
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-011
+    title: Version, alias, canary và rollback Lambda
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lambda-compute-012
+    title: Quan sát Lambda và kiểm soát chi phí thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-gateway-and-appsync
+  title: API Gateway và AppSync
+  childs:
+  - slug: api-gateway-and-appsync-001
+    title: Chọn REST API, HTTP API và WebSocket API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-002
+    title: Route, method, stage và tích hợp backend
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-003
+    title: Lambda proxy integration và ánh xạ request, response
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-004
+    title: IAM authorization, JWT authorizer và Lambda authorizer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-005
+    title: API key, usage plan, throttling và quota
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-006
+    title: Validation, CORS và xử lý lỗi API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-007
+    title: Custom domain, certificate và endpoint API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-008
+    title: Private API, VPC Link và backend trong VPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-009
+    title: WebSocket route và quản lý kết nối thời gian thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-appsync-010
+    title: AppSync GraphQL, resolver và subscription
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cognito-application-identity
+  title: Danh tính ứng dụng với Cognito
+  childs:
+  - slug: cognito-application-identity-001
+    title: Phân biệt Cognito User Pool và Identity Pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-002
+    title: Thiết kế user attribute, group và app client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-003
+    title: Đăng ký, xác minh, đăng nhập và khôi phục tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-004
+    title: OAuth 2.0, OpenID Connect và authorization code với PKCE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-005
+    title: JWT, JWKS, scope và kiểm tra token ở backend
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-006
+    title: MFA, chính sách mật khẩu và bảo vệ luồng xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-007
+    title: Liên kết nhà cung cấp danh tính xã hội và doanh nghiệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-008
+    title: Lambda trigger và tùy biến quy trình xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cognito-application-identity-009
+    title: Cấp quyền truy cập AWS tạm thời qua Identity Pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: queues-and-notifications
+  title: Hàng đợi và thông báo
+  childs:
+  - slug: queues-and-notifications-001
+    title: Lựa chọn SQS, SNS và Amazon MQ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-002
+    title: SQS Standard, FIFO và thứ tự xử lý thông điệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-003
+    title: Visibility timeout, long polling và cơ chế acknowledgment
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-004
+    title: Message group, deduplication và thiết kế consumer idempotent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-005
+    title: Dead-letter queue, redrive policy và poison message
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-006
+    title: Batch operation, backpressure và mở rộng consumer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-007
+    title: Mã hóa hàng đợi và phân quyền producer, consumer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-008
+    title: SNS topic, subscription và giao thức phân phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-009
+    title: SNS message filtering và delivery policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-010
+    title: Mô hình fan-out SNS đến nhiều hàng đợi SQS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-011
+    title: Amazon MQ với ActiveMQ, RabbitMQ và giao thức messaging
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-notifications-012
+    title: Thiết kế xử lý bất đồng bộ với bảo đảm giao nhận phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-orchestration
+  title: Sự kiện và điều phối
+  childs:
+  - slug: events-and-orchestration-001
+    title: EventBridge event bus, event pattern và rule
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-002
+    title: Custom event và hợp đồng dữ liệu sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-003
+    title: EventBridge Scheduler và công việc theo lịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-004
+    title: EventBridge Pipes và kết nối nguồn với đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-005
+    title: Archive, replay và phát sự kiện liên tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-006
+    title: Step Functions Standard và Express Workflow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-007
+    title: Amazon States Language và các loại state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-008
+    title: Retry, Catch, timeout và xử lý lỗi workflow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-009
+    title: Parallel, Map và điều phối xử lý dữ liệu hàng loạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-orchestration-010
+    title: Callback task token và thiết kế saga trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rds-and-aurora-databases
+  title: Cơ sở dữ liệu RDS và Aurora
+  childs:
+  - slug: rds-and-aurora-databases-001
+    title: Lựa chọn RDS engine và Amazon Aurora
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-002
+    title: DB instance, storage và nhóm tham số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-003
+    title: DB subnet group, Security Group và kết nối riêng tư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-004
+    title: RDS Multi-AZ và cơ chế failover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-005
+    title: Read replica và chiến lược tách đọc ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-006
+    title: Aurora cluster, reader endpoint và custom endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-007
+    title: Aurora Serverless v2 và lựa chọn capacity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-008
+    title: Connection pooling và Amazon RDS Proxy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-009
+    title: Backup tự động, snapshot và khôi phục theo thời điểm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-010
+    title: Mã hóa, IAM database authentication và quản lý credential
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-011
+    title: Giám sát truy vấn chậm, connection và tài nguyên database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rds-and-aurora-databases-012
+    title: Bảo trì, nâng cấp phiên bản và triển khai database blue/green
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dynamodb
+  title: DynamoDB
+  childs:
+  - slug: dynamodb-001
+    title: Table, item, attribute và khóa chính DynamoDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-002
+    title: Thiết kế access pattern trước khi thiết kế bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-003
+    title: Partition key, sort key và phân bố dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-004
+    title: Global Secondary Index và Local Secondary Index
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-005
+    title: Query, Scan, pagination và biểu thức lọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-006
+    title: Read consistency và đánh đổi hiệu năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-007
+    title: On-demand, provisioned capacity và autoscaling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-008
+    title: Conditional write, optimistic locking và transaction
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-009
+    title: Single-table design và mô hình quan hệ dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-010
+    title: TTL, DynamoDB Streams và xử lý thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-011
+    title: Global Tables và xử lý xung đột đa Region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dynamodb-012
+    title: Hot partition, throttling, backup và khôi phục DynamoDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: caching-and-specialized-databases
+  title: Cache và dữ liệu chuyên dụng
+  childs:
+  - slug: caching-and-specialized-databases-001
+    title: Lựa chọn cache, document, graph và time-series database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-002
+    title: ElastiCache và lựa chọn engine cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-003
+    title: Cache-aside, write-through và chính sách TTL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-004
+    title: Replication, failover và phân mảnh cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-005
+    title: Bảo mật kết nối và quan sát cache hit ratio
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-006
+    title: Amazon MemoryDB và lưu trữ dữ liệu trong bộ nhớ có độ bền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-007
+    title: DynamoDB Accelerator và tăng tốc truy vấn DynamoDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-008
+    title: Amazon DocumentDB và lưu ý tương thích MongoDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-009
+    title: Amazon Neptune và mô hình dữ liệu đồ thị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-specialized-databases-010
+    title: Đánh giá giải pháp time-series trên AWS theo yêu cầu workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aws-sdk-for-java
+  title: AWS SDK cho Java
+  childs:
+  - slug: aws-sdk-for-java-001
+    title: Kiến trúc AWS SDK for Java v2 và quản lý dependency bằng BOM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-002
+    title: Default credential provider chain và cấu hình profile
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-003
+    title: SSO, AssumeRole và tự động làm mới credential
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-004
+    title: Region provider chain, endpoint và AWS Signature Version 4
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-005
+    title: Thiết kế vòng đời SDK client và tái sử dụng kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-006
+    title: Synchronous client, asynchronous client và HTTP transport
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-007
+    title: Timeout, retry, exponential backoff và jitter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-008
+    title: Paginator, waiter và xử lý kết quả nhiều trang
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-009
+    title: Exception, request ID và chẩn đoán lỗi từ SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-010
+    title: S3 client, Transfer Manager và truyền tệp lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-011
+    title: DynamoDB Enhanced Client và ánh xạ đối tượng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-012
+    title: Gọi SQS, SNS, STS và Secrets Manager từ Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-sdk-for-java-013
+    title: Kiểm thử SDK bằng mock, endpoint tùy chỉnh và tài khoản thử nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-and-spring-boot-applications
+  title: Ứng dụng Java và Spring Boot
+  childs:
+  - slug: java-and-spring-boot-applications-001
+    title: Lựa chọn môi trường chạy Spring Boot trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-002
+    title: Cấu hình Spring Boot theo môi trường và IAM role
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-003
+    title: Tích hợp Spring Cloud AWS và kiểm tra ma trận tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-004
+    title: Lưu trữ tệp ứng dụng bằng S3
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-005
+    title: Xây dựng SQS listener với retry và idempotency
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-006
+    title: Kết nối RDS an toàn và điều chỉnh connection pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-007
+    title: Sử dụng DynamoDB cho repository theo access pattern
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-008
+    title: Nạp và làm mới cấu hình từ Parameter Store, Secrets Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-009
+    title: Bảo vệ Spring Security API bằng Cognito JWT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-010
+    title: Triển khai Lambda handler Java và Spring Cloud Function
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-011
+    title: Tối ưu JVM, bộ nhớ container và graceful shutdown
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-boot-applications-012
+    title: Truyền trace context và xuất telemetry từ ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-as-code
+  title: Hạ tầng dưới dạng mã
+  childs:
+  - slug: infrastructure-as-code-001
+    title: Nguyên tắc Infrastructure as Code và vòng đời stack
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-002
+    title: CloudFormation template, parameter, output và intrinsic function
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-003
+    title: Dependency, nested stack và cross-stack reference
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-004
+    title: Change set, cập nhật stack và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-005
+    title: DeletionPolicy, UpdateReplacePolicy và bảo vệ tài nguyên dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-006
+    title: Drift detection, import resource và quản lý thay đổi ngoài mã
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-007
+    title: CloudFormation StackSets cho nhiều tài khoản và Region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-008
+    title: AWS CDK construct, stack, app và môi trường triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-009
+    title: CDK bootstrap, synth, diff và deploy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-010
+    title: Viết hạ tầng AWS bằng CDK với Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-011
+    title: Terraform AWS provider, remote state và lựa chọn công cụ IaC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-012
+    title: Kiểm tra policy, secret và cấu hình an toàn trong IaC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cicd-pipelines
+  title: CI/CD trên AWS
+  childs:
+  - slug: cicd-pipelines-001
+    title: Thiết kế pipeline build, test, release và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-002
+    title: Kết nối kho mã qua AWS CodeConnections
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-003
+    title: CodeBuild project, buildspec và môi trường build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-004
+    title: Cache dependency và đóng gói ứng dụng Java trong CodeBuild
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-005
+    title: CodeArtifact repository và quản lý dependency nội bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-006
+    title: CodePipeline stage, action, artifact và trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-007
+    title: CodeDeploy deployment group và triển khai trên EC2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-008
+    title: Blue/green deployment cho ECS và canary cho Lambda
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-009
+    title: Triển khai IaC qua pipeline và kiểm duyệt change set
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-010
+    title: CI/CD liên tài khoản và xác thực OIDC từ hệ thống ngoài AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-pipelines-011
+    title: Quản lý artifact, chữ ký image và truy vết phiên bản phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloudwatch-observability
+  title: Quan sát với CloudWatch
+  childs:
+  - slug: cloudwatch-observability-001
+    title: Metrics, logs, traces và chiến lược quan sát AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-002
+    title: CloudWatch namespace, dimension, statistic và period
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-003
+    title: CloudWatch Agent và thu thập metric máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-004
+    title: Log group, log stream, retention và quyền truy cập log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-005
+    title: CloudWatch Logs Insights và truy vấn log ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-006
+    title: Custom metric và Embedded Metric Format
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-007
+    title: Alarm, composite alarm và anomaly detection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-008
+    title: Dashboard theo dịch vụ và chỉ số nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-009
+    title: AWS X-Ray, service map và phân tích distributed trace
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-010
+    title: OpenTelemetry và AWS Distro for OpenTelemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-011
+    title: CloudWatch Synthetics và giám sát trải nghiệm người dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloudwatch-observability-012
+    title: SLO, cảnh báo có thể xử lý và kiểm soát chi phí telemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: auditing-and-compliance
+  title: Kiểm toán và tuân thủ
+  childs:
+  - slug: auditing-and-compliance-001
+    title: CloudTrail event history, trail và loại sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-002
+    title: Organization trail và lưu trữ audit log tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-003
+    title: CloudTrail Lake và điều tra hoạt động tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-004
+    title: AWS Config resource inventory và lịch sử cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-005
+    title: Config rule, conformance pack và tự động khắc phục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-006
+    title: Phân biệt CloudTrail, CloudWatch và AWS Config
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-007
+    title: Service Catalog và danh mục hạ tầng được phê duyệt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-008
+    title: AWS Audit Manager và thu thập bằng chứng kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-009
+    title: AWS Artifact và tài liệu tuân thủ của nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-compliance-010
+    title: Bảo vệ audit log và xây dựng cơ chế truy xuất bằng chứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systems-manager-operations
+  title: Vận hành với Systems Manager
+  childs:
+  - slug: systems-manager-operations-001
+    title: Systems Manager managed node và điều kiện kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-002
+    title: Session Manager và truy cập không mở cổng quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-003
+    title: Run Command và thực thi tác vụ trên nhiều máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-004
+    title: State Manager và duy trì cấu hình mong muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-005
+    title: Patch Manager và chiến lược cập nhật hệ điều hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-006
+    title: Inventory và quản lý phần mềm trên fleet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-007
+    title: Automation runbook và xử lý sự cố lặp lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-008
+    title: Maintenance Window và giới hạn ảnh hưởng thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-009
+    title: Parameter Store, hierarchy và kiểm soát quyền cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-manager-operations-010
+    title: AWS Health, thông báo vận hành và quản lý sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: encryption-secrets-and-certificates
+  title: Mã hóa, secret và chứng chỉ
+  childs:
+  - slug: encryption-secrets-and-certificates-001
+    title: Mã hóa khi lưu trữ, khi truyền và envelope encryption
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-002
+    title: KMS key, key policy và quyền IAM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-003
+    title: AWS managed key, customer managed key và chiến lược lựa chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-004
+    title: KMS grant, encryption context và quyền liên tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-005
+    title: Rotation, disable, scheduled deletion và khôi phục quyền dùng key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-006
+    title: Multi-Region KMS key và yêu cầu khôi phục dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-007
+    title: Secrets Manager và lưu trữ bí mật ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-008
+    title: Rotation secret, đồng bộ credential và cache secret
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-009
+    title: Lựa chọn Secrets Manager hoặc Parameter Store
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-010
+    title: ACM, xác minh tên miền và tự động gia hạn chứng chỉ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-secrets-and-certificates-011
+    title: AWS Private CA, CloudHSM và nhu cầu quản lý khóa chuyên biệt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-and-application-security
+  title: Bảo vệ mạng và ứng dụng
+  childs:
+  - slug: network-and-application-security-001
+    title: Thiết kế phân lớp bảo vệ từ edge đến dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-002
+    title: AWS WAF web ACL, rule và managed rule group
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-003
+    title: Rate-based rule và giảm thiểu bot, lạm dụng API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-004
+    title: Kiểm thử WAF bằng count mode và phân tích log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-005
+    title: AWS Shield và kiến trúc giảm thiểu DDoS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-006
+    title: AWS Network Firewall và lọc lưu lượng VPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-007
+    title: Firewall Manager và quản lý policy bảo vệ tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-008
+    title: Bảo vệ luồng egress và truy cập dịch vụ qua endpoint
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-009
+    title: TLS policy, mTLS và quản lý trust giữa các thành phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-and-application-security-010
+    title: Cô lập workload, kiểm soát east-west traffic và nguyên tắc zero trust
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-monitoring-and-response
+  title: Giám sát an ninh và ứng phó
+  childs:
+  - slug: security-monitoring-and-response-001
+    title: Amazon GuardDuty và phát hiện hành vi bất thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-002
+    title: AWS Security Hub và tổng hợp phát hiện bảo mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-003
+    title: Amazon Inspector và quản lý lỗ hổng workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-004
+    title: Amazon Macie và phát hiện dữ liệu nhạy cảm trên S3
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-005
+    title: Amazon Detective và điều tra quan hệ sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-006
+    title: Tập trung phát hiện bảo mật trong mô hình nhiều tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-007
+    title: Ưu tiên, phân công và theo dõi khắc phục finding
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-008
+    title: Playbook xử lý lộ credential và tài nguyên bị xâm nhập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-009
+    title: Cô lập tài nguyên, bảo toàn bằng chứng và phục hồi an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-monitoring-and-response-010
+    title: Tự động hóa ứng phó bằng EventBridge và Systems Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-disaster-recovery
+  title: Sao lưu và khôi phục thảm họa
+  childs:
+  - slug: backup-and-disaster-recovery-001
+    title: Xác định RTO, RPO và phân loại dữ liệu cần bảo vệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-002
+    title: AWS Backup plan, selection và backup vault
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-003
+    title: Backup policy tập trung và sao lưu liên tài khoản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-004
+    title: Sao chép backup khác Region và AWS Backup Vault Lock
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-005
+    title: Kiểm thử restore và xác minh tính toàn vẹn dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-006
+    title: Thiết kế dự phòng nhiều AZ và xử lý lỗi một AZ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-007
+    title: Chiến lược backup-restore cho hệ thống AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-008
+    title: Chiến lược pilot light và warm standby
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-009
+    title: Kiến trúc active-passive và active-active đa Region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-010
+    title: AWS Elastic Disaster Recovery và phục hồi máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-011
+    title: Failover, failback và đồng bộ dữ liệu sau sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-012
+    title: Runbook DR, game day và đánh giá mục tiêu phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-design
+  title: Thiết kế kiến trúc AWS
+  childs:
+  - slug: architecture-design-001
+    title: AWS Well-Architected Framework và sáu trụ cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-002
+    title: Thiết kế kiến trúc ba lớp có tính sẵn sàng cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-003
+    title: Phân rã monolith và ranh giới dịch vụ trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-004
+    title: Kiến trúc serverless và lựa chọn mức độ quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-005
+    title: Kiến trúc hướng sự kiện và giao tiếp bất đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-006
+    title: Retry budget, circuit breaker và bulkhead
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-007
+    title: Idempotency, outbox và tính nhất quán phân tán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-008
+    title: Quản lý session, cache và trạng thái ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-009
+    title: Thiết kế nền tảng SaaS nhiều tenant trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-010
+    title: Kiến trúc nhiều tài khoản và cô lập blast radius
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-011
+    title: Đánh đổi giữa độ trễ, độ bền, chi phí và độ phức tạp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-012
+    title: Architecture review và ghi nhận quyết định thiết kế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: costs-and-finops
+  title: Chi phí và FinOps
+  childs:
+  - slug: costs-and-finops-001
+    title: Mô hình tính phí và các nguồn chi phí phổ biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-002
+    title: AWS Pricing Calculator và ước tính chi phí kiến trúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-003
+    title: Billing, consolidated billing và phân bổ chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-004
+    title: Cost Explorer và phân tích biến động sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-005
+    title: AWS Budgets, cảnh báo và kiểm soát ngân sách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-006
+    title: Cost and Usage Report, AWS Data Exports và dữ liệu chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-007
+    title: Cost allocation tag và Cost Category
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-008
+    title: Savings Plans, Reserved Instances và lựa chọn cam kết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-009
+    title: Spot interruption và thiết kế workload chịu gián đoạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-010
+    title: Compute Optimizer và tối ưu kích thước tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-011
+    title: Tối ưu chi phí lưu trữ, NAT, data transfer và telemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: costs-and-finops-012
+    title: Unit economics, phát hiện chi phí bất thường và dọn tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-and-hybrid-infrastructure
+  title: Di chuyển và hạ tầng hybrid
+  childs:
+  - slug: migration-and-hybrid-infrastructure-001
+    title: Khảo sát hệ thống và lựa chọn chiến lược di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-002
+    title: Đánh giá phụ thuộc và lập kế hoạch migration wave
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-003
+    title: AWS Migration Hub và theo dõi tiến độ di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-004
+    title: AWS Application Migration Service và di chuyển máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-005
+    title: AWS DMS, full load và change data capture
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-006
+    title: Đánh giá tương thích và chuyển đổi schema database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-007
+    title: AWS DataSync và di chuyển dữ liệu file, object
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-008
+    title: AWS Transfer Family và tích hợp SFTP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-009
+    title: AWS Storage Gateway và tích hợp lưu trữ tại chỗ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-infrastructure-010
+    title: AWS Outposts, cutover, rollback và vận hành sau di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-streaming
+  title: Dữ liệu streaming
+  childs:
+  - slug: data-streaming-001
+    title: Phân biệt event stream, hàng đợi và log phân tán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-002
+    title: Kinesis Data Streams, shard và partition key
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-003
+    title: Producer, consumer và lựa chọn chế độ capacity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-004
+    title: Kinesis Client Library và checkpoint khi xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-005
+    title: Enhanced fan-out, ordering và dữ liệu đến muộn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-006
+    title: Amazon Data Firehose và phân phối dữ liệu đến đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-007
+    title: Amazon MSK, broker và lựa chọn mô hình triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-008
+    title: Bảo mật, xác thực IAM và kết nối client Kafka với MSK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-009
+    title: Managed Service for Apache Flink và xử lý stream có trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-streaming-010
+    title: Backpressure, replay và quan sát độ trễ xử lý streaming
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-lakes-and-data-integration
+  title: Data lake và tích hợp dữ liệu
+  childs:
+  - slug: data-lakes-and-data-integration-001
+    title: Kiến trúc data lake trên S3
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-002
+    title: Phân vùng dữ liệu và định dạng Parquet, ORC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-003
+    title: AWS Glue Data Catalog và quản lý metadata
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-004
+    title: Glue crawler và kiểm soát thay đổi schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-005
+    title: Glue ETL job với Spark và xử lý dữ liệu theo lô
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-006
+    title: Glue bookmark, workflow và tối ưu tài nguyên ETL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-007
+    title: Lake Formation và phân quyền dữ liệu chi tiết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-008
+    title: Chia sẻ dữ liệu liên tài khoản và quản trị truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-009
+    title: Amazon EMR trên EC2, EKS và mô hình serverless
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-010
+    title: Table format Apache Iceberg và quản lý vòng đời bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lakes-and-data-integration-011
+    title: Chất lượng dữ liệu, lineage và điều phối data pipeline
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: analytics-and-search
+  title: Phân tích và tìm kiếm
+  childs:
+  - slug: analytics-and-search-001
+    title: Amazon Athena và truy vấn dữ liệu S3 bằng SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-002
+    title: Athena workgroup, partition pruning và kiểm soát chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-003
+    title: Amazon Redshift và mô hình kho dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-004
+    title: Redshift provisioned, serverless và quản lý workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-005
+    title: Nạp dữ liệu, phân phối bảng và tối ưu truy vấn Redshift
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-006
+    title: Redshift Spectrum và chia sẻ dữ liệu phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-007
+    title: Amazon OpenSearch Service và thiết kế index tìm kiếm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-008
+    title: OpenSearch shard, replica và quản lý dữ liệu theo thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-009
+    title: Nạp log, bảo mật và quan sát OpenSearch domain
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-010
+    title: OpenSearch Serverless và lựa chọn workload phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytics-and-search-011
+    title: Amazon QuickSight, dashboard và phân quyền dữ liệu báo cáo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ai-and-machine-learning
+  title: AI và machine learning
+  childs:
+  - slug: ai-and-machine-learning-001
+    title: Lựa chọn dịch vụ AI được quản lý, Bedrock và SageMaker
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-002
+    title: Amazon Bedrock, foundation model và quyền truy cập mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-003
+    title: Gọi Bedrock từ Java và xử lý phản hồi streaming
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-004
+    title: Thiết kế prompt, giới hạn token và quản lý chi phí suy luận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-005
+    title: Embedding, vector search và kiến trúc RAG trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-006
+    title: Bedrock Knowledge Bases và quy trình nạp dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-007
+    title: Bedrock Agents, công cụ và kiểm soát quyền thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-008
+    title: Guardrails, đánh giá mô hình và bảo vệ dữ liệu AI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-009
+    title: Amazon SageMaker và vòng đời huấn luyện, triển khai mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-010
+    title: Lựa chọn inference endpoint, batch và chiến lược mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-011
+    title: Textract, Comprehend, Rekognition và xử lý tài liệu, hình ảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-012
+    title: Transcribe, Translate, Polly và tích hợp xử lý ngôn ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: iot-and-edge-computing
+  title: IoT và điện toán biên
+  childs:
+  - slug: iot-and-edge-computing-001
+    title: AWS IoT Core và kiến trúc kết nối thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-002
+    title: MQTT topic, publish, subscribe và chất lượng dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-003
+    title: Chứng chỉ X.509, IoT policy và danh tính thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-004
+    title: Device Shadow và đồng bộ trạng thái thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-005
+    title: IoT Rules Engine và định tuyến telemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-006
+    title: Provisioning, device registry và quản lý fleet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-007
+    title: IoT Jobs và cập nhật thiết bị từ xa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-008
+    title: AWS IoT Greengrass và xử lý khi mất kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iot-and-edge-computing-009
+    title: Bảo mật thiết bị, quan sát telemetry và tích hợp backend AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: batch-and-high-performance-computing
+  title: Batch và tính toán hiệu năng cao
+  childs:
+  - slug: batch-and-high-performance-computing-001
+    title: Lựa chọn EC2, ECS, EKS hoặc AWS Batch cho xử lý theo lô
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-002
+    title: AWS Batch compute environment, job queue và job definition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-003
+    title: Dependency, array job, retry và timeout cho Batch job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-004
+    title: Kết hợp Fargate, EC2 và Spot cho xử lý batch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-005
+    title: GPU instance và lựa chọn tài nguyên tăng tốc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-006
+    title: AWS ParallelCluster và kiến trúc cụm HPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-007
+    title: FSx for Lustre, EFA và đường truyền dữ liệu HPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: batch-and-high-performance-computing-008
+    title: Điều phối batch pipeline và kiểm soát chi phí tính toán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-and-troubleshooting
+  title: Kiểm thử và xử lý sự cố
+  childs:
+  - slug: testing-and-troubleshooting-001
+    title: Chiến lược unit, integration và end-to-end test trên AWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-002
+    title: Tài khoản sandbox, dữ liệu thử và cô lập môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-003
+    title: Giới hạn mô phỏng cục bộ và kiểm thử với dịch vụ thật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-004
+    title: AWS Fault Injection Service và thí nghiệm hỗn loạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-005
+    title: Load test, capacity test và kiểm chứng autoscaling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-006
+    title: Chẩn đoán lỗi IAM, STS và credential hết hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-007
+    title: Chẩn đoán DNS, route, Security Group và kết nối VPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-008
+    title: Chẩn đoán lỗi 4xx, 5xx qua CloudFront, ALB và API Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-009
+    title: Chẩn đoán Lambda timeout, throttling và backlog hàng đợi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-010
+    title: Chẩn đoán kết nối RDS, khóa truy vấn và DynamoDB throttling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-011
+    title: Liên kết log, metric, trace và CloudTrail để tìm nguyên nhân
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-troubleshooting-012
+    title: Viết runbook, postmortem và hành động ngăn tái diễn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: foundational-hands-on-labs
+  title: Bài thực hành nền tảng
+  childs:
+  - slug: foundational-hands-on-labs-001
+    title: Thiết lập sandbox an toàn với SSO và cảnh báo ngân sách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-002
+    title: Dựng VPC hai AZ với subnet công khai và riêng tư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-003
+    title: Chạy ứng dụng Java trên EC2 sau ALB và Auto Scaling
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-004
+    title: Tạo luồng upload S3 riêng tư bằng presigned URL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-005
+    title: Triển khai Spring Boot với RDS và Secrets Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-006
+    title: Xây dựng producer, consumer SQS và luồng xử lý DLQ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-007
+    title: Tạo API serverless bằng API Gateway, Lambda và DynamoDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-008
+    title: Bảo vệ API ứng dụng bằng Cognito và kiểm tra JWT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-009
+    title: Triển khai container Java lên ECS Fargate từ ECR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-hands-on-labs-010
+    title: Tạo dashboard, cảnh báo và thực hành điều tra lỗi ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-projects
+  title: Dự án tổng hợp AWS
+  childs:
+  - slug: capstone-projects-001
+    title: Thiết kế yêu cầu, sơ đồ kiến trúc và ước tính chi phí dự án
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-002
+    title: Xây dựng hạ tầng nhiều môi trường bằng CDK Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-003
+    title: Xây dựng hệ thống đơn hàng hướng sự kiện với saga
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-004
+    title: Triển khai microservices Java lên EKS với workload identity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-005
+    title: Thiết lập pipeline CI/CD liên tài khoản và rollback tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-006
+    title: Xây dựng data lake từ luồng sự kiện đến dashboard phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-007
+    title: Tạo trợ lý RAG bằng Bedrock với phân quyền dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-008
+    title: Di chuyển ứng dụng và database với kế hoạch cutover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-009
+    title: Diễn tập phục hồi thảm họa và xác minh RTO, RPO
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-010
+    title: Đánh giá Well-Architected, bàn giao vận hành và thu hồi tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

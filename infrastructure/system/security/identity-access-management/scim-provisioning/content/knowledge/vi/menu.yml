@@ -1,0 +1,315 @@
+menu:
+- level1: 1. Tổng quan vòng đời danh tính
+  level2:
+  - 1.1. Danh tính số và vì sao phải quản lý từ khởi tạo đến ngừng sử dụng
+  - 1.2. Phân biệt danh tính, hồ sơ người dùng, tài khoản và quyền truy cập
+  - 1.3. Cấp phát, cập nhật, vô hiệu hóa và thu hồi tài khoản
+  - 1.4. Các giai đoạn gia nhập, thay đổi vai trò và rời tổ chức
+  - 1.5. Vai trò của SCIM trong tự động hóa quản lý danh tính
+  - 1.6. Phân biệt SCIM với SSO, xác thực và quyết định cấp quyền
+  - 1.7. Chi phí và rủi ro của quản lý tài khoản thủ công
+  - 1.8. Lộ trình từ mô hình dữ liệu đến giao thức, đồng bộ và vận hành
+- level1: 2. Kiến trúc cấp phát
+  level2:
+  - 2.1. Nguồn danh tính có thẩm quyền và hệ thống đích
+  - 2.2. Hệ thống nhân sự, danh bạ, IdP và nền tảng quản trị danh tính
+  - 2.3. SCIM client và SCIM service provider
+  - 2.4. Cấp phát chủ động, đồng bộ định kỳ và đồng bộ theo sự kiện
+  - 2.5. Luồng một chiều, nhiều nguồn và các trường hợp hai chiều
+  - 2.6. Ranh giới trách nhiệm giữa nguồn dữ liệu, bộ kết nối và ứng dụng
+  - 2.7. Mô hình nhất quán cuối cùng và khoảng thời gian trạng thái chưa đồng bộ
+  - 2.8. Vị trí lưu trạng thái ánh xạ, hàng đợi và bằng chứng thực thi
+  - 2.9. Phân biệt giao thức tiêu chuẩn với chức năng riêng của nhà cung cấp
+- level1: 3. Nguồn dữ liệu và sở hữu
+  level2:
+  - 3.1. Chọn hệ thống có thẩm quyền theo từng loại danh tính
+  - 3.2. Chủ sở hữu từng thuộc tính và nguyên tắc ưu tiên nguồn
+  - 3.3. Định danh nhân sự ổn định và thay đổi thông tin cá nhân
+  - 3.4. Quản lý nhân viên, nhà thầu, đối tác và người dùng ngoài tổ chức
+  - 3.5. Nguồn dữ liệu cho quan hệ quản lý, phòng ban và trạng thái làm việc
+  - 3.6. Giải quyết dữ liệu thiếu, xung đột và đến muộn
+  - 3.7. Ngăn thay đổi thủ công ở hệ thống đích ghi đè dữ liệu có thẩm quyền
+  - 3.8. Phê duyệt, sửa sai và lưu lịch sử thay đổi danh tính
+  - 3.9. Kiểm soát dữ liệu đầu vào trước khi tác động đến quyền truy cập
+- level1: 4. Nền tảng SCIM
+  level2:
+  - 4.1. Mục tiêu và phạm vi của SCIM 2.0
+  - 4.2. Tài nguyên, schema, thuộc tính và thông điệp JSON
+  - 4.3. Đường dẫn cơ sở, endpoint và định danh tài nguyên
+  - 4.4. HTTP methods, mã trạng thái và kiểu nội dung SCIM
+  - 4.5. Phân biệt yêu cầu đối tượng đơn với phản hồi danh sách
+  - 4.6. URI schema và khai báo schemas trong thông điệp
+  - 4.7. Các khả năng bắt buộc, tùy chọn và khác biệt triển khai
+  - 4.8. Khám phá năng lực trước khi chọn chiến lược đồng bộ
+  - 4.9. Phân biệt SCIM cơ sở với cơ chế sự kiện hoặc mở rộng riêng
+- level1: 5. Schema và thuộc tính
+  level2:
+  - 5.1. Thuộc tính đơn, phức hợp, đơn giá trị và đa giá trị
+  - 5.2. Kiểu dữ liệu string, boolean, integer, decimal, dateTime, reference và binary
+  - 5.3. Thuộc tính bắt buộc, giá trị mặc định và dữ liệu chưa được gán
+  - 5.4. caseExact và quy tắc so sánh giá trị
+  - '5.5. mutability: readOnly, readWrite, immutable và writeOnly'
+  - 5.6. returned và điều kiện xuất thuộc tính trong phản hồi
+  - 5.7. uniqueness và phạm vi kiểm tra trùng
+  - 5.8. Thuộc tính con, giá trị primary và kiểu của mục đa giá trị
+  - 5.9. Phân biệt bỏ qua thuộc tính, xóa giá trị và đặt lại mặc định
+  - 5.10. Schema mở rộng, namespace và tính tương thích giữa các bên
+- level1: 6. Định danh và ánh xạ
+  level2:
+  - 6.1. id do hệ thống đích cấp và đặc tính ổn định của định danh
+  - 6.2. externalId do bên cấp phát quản lý và phạm vi đối chiếu
+  - 6.3. userName, email và các định danh có thể thay đổi
+  - 6.4. Lưu quan hệ giữa danh tính nguồn với tài nguyên SCIM đích
+  - 6.5. Tránh dùng tên hiển thị hoặc email làm khóa liên kết duy nhất
+  - 6.6. Đối chiếu tài khoản có sẵn trước khi tạo tài khoản mới
+  - 6.7. Xử lý trùng tên đăng nhập, trùng externalId và ánh xạ mơ hồ
+  - 6.8. Thay đổi miền, đổi tên và chuyển hệ thống nguồn
+  - 6.9. Ngăn liên kết sai tài khoản và chiếm quyền qua dữ liệu danh tính
+  - 6.10. Khôi phục ánh xạ khi mất trạng thái bộ kết nối
+- level1: 7. Tài nguyên User
+  level2:
+  - 7.1. Cấu trúc User và các nhóm thuộc tính hồ sơ
+  - 7.2. userName, name, displayName và preferredLanguage
+  - 7.3. emails, phoneNumbers, addresses và giá trị đa mục
+  - 7.4. active và ý nghĩa cần xác minh tại hệ thống đích
+  - 7.5. password, tính chất chỉ ghi và chính sách hỗ trợ của nhà cung cấp
+  - 7.6. groups trong hồ sơ người dùng và quan hệ với quản lý Group
+  - 7.7. roles, entitlements và giới hạn ngữ nghĩa cấp quyền
+  - '7.8. meta: resourceType, created, lastModified, location và version'
+  - 7.9. Thuộc tính mở rộng dành cho tổ chức và quan hệ người quản lý
+  - 7.10. Dữ liệu nhạy cảm và nguyên tắc chỉ đồng bộ thuộc tính cần thiết
+- level1: 8. Tài nguyên Group
+  level2:
+  - 8.1. Cấu trúc Group, displayName và siêu dữ liệu
+  - '8.2. members: value, $ref, display và cách tham chiếu thành viên'
+  - 8.3. Phân biệt quản lý thành viên tại Group với dữ liệu nhóm trên User
+  - 8.4. Thêm, loại bỏ và đối soát thành viên nhóm
+  - 8.5. Nhóm lồng nhau và yêu cầu xác minh mức hỗ trợ
+  - 8.6. Quan hệ giữa nhóm, vai trò và quyền ứng dụng
+  - 8.7. Nhóm động được tính tại nguồn so với nhóm do ứng dụng quản lý
+  - 8.8. Nhóm đặc quyền và yêu cầu phê duyệt riêng
+  - 8.9. Xử lý người dùng chưa tồn tại khi đồng bộ nhóm
+  - 8.10. Xóa nhóm và đánh giá tác động đến quyền cùng tài nguyên phụ thuộc
+- level1: 9. Khám phá năng lực
+  level2:
+  - 9.1. /ServiceProviderConfig và các khả năng được công bố
+  - 9.2. Hỗ trợ PATCH, Bulk, filter, sort và ETag
+  - 9.3. Giới hạn số thao tác, kích thước tải và khả năng thay đổi mật khẩu
+  - 9.4. authenticationSchemes và thông tin phương thức xác thực
+  - 9.5. /ResourceTypes và danh mục tài nguyên được hỗ trợ
+  - 9.6. /Schemas và khai báo thuộc tính, phần mở rộng
+  - 9.7. Đối chiếu metadata với hành vi thực tế của nhà cung cấp
+  - 9.8. Lưu cấu hình tương thích theo từng hệ thống đích
+  - 9.9. Xử lý thay đổi schema hoặc năng lực sau nâng cấp
+  - 9.10. Thiết kế chế độ suy giảm khi thiếu khả năng tùy chọn
+- level1: 10. Tạo và đọc tài nguyên
+  level2:
+  - 10.1. POST tạo User hoặc Group với dữ liệu hợp lệ
+  - 10.2. Đọc phản hồi tạo để lưu id và giá trị đã được chuẩn hóa
+  - 10.3. Xử lý xung đột định danh và dữ liệu không đáp ứng schema
+  - 10.4. GET theo id và phân biệt tài nguyên không tồn tại với không đủ quyền
+  - '10.5. ListResponse: totalResults, startIndex, itemsPerPage và Resources'
+  - 10.6. attributes, excludedAttributes và giảm dữ liệu phản hồi
+  - 10.7. Truy vấn POST qua endpoint .search khi được hỗ trợ phù hợp
+  - 10.8. /Me và phạm vi dùng cho người gọi đã xác thực
+  - 10.9. Phân biệt lỗi tạo thật với mất phản hồi sau khi tạo thành công
+  - 10.10. Đối soát trạng thái trước khi tạo lại để tránh tài khoản trùng
+- level1: 11. Lọc và phân trang
+  level2:
+  - 11.1. Cấu trúc biểu thức filter và tên thuộc tính theo schema
+  - 11.2. Toán tử so sánh, kiểm tra hiện diện và kết hợp điều kiện
+  - 11.3. Lọc thuộc tính phức hợp, đa giá trị và biểu thức valuePath
+  - 11.4. Quy tắc chuỗi, ký tự đặc biệt và mã hóa tham số
+  - 11.5. sortBy, sortOrder và phụ thuộc mức hỗ trợ
+  - 11.6. Phân trang bằng startIndex, count và các giới hạn của nguồn đích
+  - 11.7. Ngăn bỏ sót hoặc xử lý trùng khi dữ liệu đổi giữa các trang
+  - 11.8. Lựa chọn thuộc tính đối chiếu có tính duy nhất phù hợp
+  - 11.9. Giới hạn truy vấn tốn tài nguyên và tránh chèn biểu thức filter
+  - 11.10. Đồng bộ gia tăng dựa trên khả năng được kiểm chứng của hệ thống
+- level1: 12. Thay thế và cập nhật
+  level2:
+  - 12.1. PUT và ngữ nghĩa thay thế tài nguyên theo quyền sửa thuộc tính
+  - 12.2. Ảnh hưởng khi bỏ qua thuộc tính trong yêu cầu thay thế
+  - 12.3. PATCH và schema của thông điệp PatchOp
+  - 12.4. Các thao tác add, replace và remove
+  - 12.5. Đường dẫn thuộc tính, thuộc tính con và valuePath
+  - 12.6. Cập nhật một mục hoặc toàn bộ thuộc tính đa giá trị
+  - 12.7. Thêm hoặc xóa thành viên nhóm mà không làm mất thành viên khác
+  - 12.8. Xử lý thuộc tính readOnly, immutable và dữ liệu không hợp lệ
+  - 12.9. Thứ tự thao tác và hành vi khi một PATCH thất bại
+  - 12.10. Chọn PUT hoặc PATCH theo mức hỗ trợ và nguy cơ ghi đè
+- level1: 13. Đồng thời và phiên bản
+  level2:
+  - 13.1. Nguy cơ mất cập nhật khi nhiều bên cùng sửa tài nguyên
+  - 13.2. meta.version, ETag và mức hỗ trợ của hệ thống đích
+  - 13.3. Điều kiện If-Match khi cập nhật hoặc xóa
+  - 13.4. Xử lý xung đột phiên bản và đọc lại trước khi áp dụng
+  - 13.5. Phân biệt thay đổi mới tại nguồn với sự kiện đến trễ
+  - 13.6. Tuần tự hóa thao tác theo người dùng hoặc nhóm khi cần
+  - 13.7. Lưu phiên bản đồng bộ và mốc tiến độ theo phạm vi
+  - 13.8. Giới hạn của dấu thời gian khi đồng hồ hoặc thứ tự sự kiện không đáng tin
+  - 13.9. Ngăn lần thử lại cũ ghi đè trạng thái danh tính mới hơn
+- level1: 14. Xử lý hàng loạt và lỗi
+  level2:
+  - 14.1. /Bulk và điều kiện sử dụng khả năng tùy chọn
+  - 14.2. Cấu trúc Operations và định danh bulkId cho phụ thuộc
+  - 14.3. Thứ tự thao tác và tham chiếu tài nguyên vừa tạo
+  - 14.4. failOnErrors và cách đọc kết quả của từng thao tác
+  - 14.5. Không giả định toàn bộ Bulk là một giao dịch nguyên tử
+  - 14.6. Thông điệp Error, status, scimType và detail
+  - 14.7. Phân loại lỗi cú pháp, dữ liệu, xung đột, quyền và hệ thống
+  - 14.8. Giới hạn tốc độ, thời gian chờ và hướng dẫn thử lại của nhà cung cấp
+  - 14.9. Thử lại theo cấp số tăng có giới hạn và độ lệch ngẫu nhiên
+  - 14.10. Cô lập bản ghi lỗi mà vẫn bảo toàn tiến độ cùng khả năng đối soát
+- level1: 15. Đồng bộ đáng tin cậy
+  level2:
+  - 15.1. Thiết kế xử lý ít nhất một lần và thao tác thực hiện lại an toàn
+  - 15.2. Lưu sự kiện thay đổi bền vững trước khi gửi đến hệ thống đích
+  - 15.3. Hàng đợi, công việc đang xử lý và phục hồi sau khi tiến trình dừng
+  - 15.4. Chống tạo trùng khi nhận sự kiện lặp hoặc mất phản hồi
+  - 15.5. Phân biệt tính lặp an toàn của thao tác với cơ chế riêng của nhà cung cấp
+  - 15.6. Xử lý sự kiện sai thứ tự, gộp thay đổi và loại bỏ công việc lỗi thời
+  - 15.7. Điểm kiểm tra, phát lại và giới hạn phạm vi khôi phục
+  - 15.8. Đồng bộ đầy đủ, gia tăng và đối soát định kỳ
+  - 15.9. Phát hiện lệch trạng thái giữa nguồn mong muốn và hệ thống thực tế
+  - 15.10. Ngăn vòng lặp đồng bộ khi nhiều nguồn hoặc hai chiều cùng ghi
+- level1: 16. Gia nhập tổ chức
+  level2:
+  - 16.1. Tạo danh tính từ dữ liệu đã được xác minh và phê duyệt
+  - 16.2. Ngày bắt đầu, thời điểm kích hoạt và tài khoản trước khi nhận việc
+  - 16.3. Chọn ứng dụng được cấp theo vai trò và chính sách
+  - 16.4. Tạo User trước khi thiết lập thành viên hoặc phụ thuộc liên quan
+  - 16.5. Gán quyền tối thiểu và tránh quyền mặc định quá rộng
+  - 16.6. Cấp quyền theo yêu cầu với phê duyệt cho ứng dụng nhạy cảm
+  - 16.7. Thứ tự phối hợp tài khoản, SSO và đăng ký yếu tố xác thực
+  - 16.8. Xác nhận sẵn sàng sử dụng bằng trạng thái thực tế tại hệ thống đích
+  - 16.9. Xử lý hủy tuyển dụng, dời ngày bắt đầu và dữ liệu chưa hoàn chỉnh
+- level1: 17. Thay đổi vai trò
+  level2:
+  - 17.1. Đổi phòng ban, quản lý, vị trí và địa điểm làm việc
+  - 17.2. Tính lại quyền theo dữ liệu có thẩm quyền
+  - 17.3. Thêm quyền mới và thu hồi quyền cũ theo thứ tự phù hợp
+  - 17.4. Ngăn tích lũy quyền qua nhiều lần chuyển vai trò
+  - 17.5. Phân tách nhiệm vụ và phát hiện kết hợp quyền nguy hiểm
+  - 17.6. Giữ quyền chuyển tiếp có thời hạn khi có nhu cầu hợp lệ
+  - 17.7. Đổi tên, email hoặc tài khoản mà không mất liên kết danh tính
+  - 17.8. Xử lý thay đổi đồng thời và sự kiện điều chỉnh ngược
+  - 17.9. Rà soát quyền sau chuyển đổi và xác nhận kết quả tại ứng dụng
+  - 17.10. Thông báo và điều phối với chủ ứng dụng khi thay đổi có tác động lớn
+- level1: 18. Rời tổ chức và thu hồi
+  level2:
+  - 18.1. Xác định nguồn và thời điểm có hiệu lực của quyết định rời tổ chức
+  - 18.2. Ưu tiên ứng dụng nhạy cảm và quyền đặc biệt khi thu hồi
+  - 18.3. Vô hiệu hóa tài khoản bằng active và giới hạn của hệ thống đích
+  - 18.4. Loại bỏ thành viên nhóm cùng quyền được gán trực tiếp
+  - 18.5. Thu hồi phiên, token và khóa truy cập qua cơ chế bổ sung khi cần
+  - 18.6. Phân biệt vô hiệu hóa, xóa tài khoản và xóa dữ liệu người dùng
+  - 18.7. Bàn giao tài nguyên, quyền sở hữu nội dung và tác vụ đang chạy
+  - 18.8. Xử lý lỗi thu hồi từng phần và đường xử lý khẩn cấp
+  - 18.9. Kiểm chứng người dùng không còn truy cập sau thời hạn mục tiêu
+  - 18.10. Quản lý người quay lại tổ chức và tránh tái cấp quyền cũ ngoài ý muốn
+- level1: 19. Các vòng đời đặc thù
+  level2:
+  - 19.1. Nhà thầu với người bảo trợ và ngày hết hạn hợp đồng
+  - 19.2. Đối tác, khách mời và danh tính từ tổ chức bên ngoài
+  - 19.3. Nghỉ phép dài hạn, tạm đình chỉ và kích hoạt lại
+  - 19.4. Người có nhiều hợp đồng hoặc nhiều quan hệ với tổ chức
+  - 19.5. Sáp nhập tổ chức, đổi miền và hợp nhất tài khoản
+  - 19.6. Tài khoản dùng chung và tài khoản không gắn một người cụ thể
+  - 19.7. Danh tính máy và giới hạn mô hình SCIM mà nhà cung cấp hỗ trợ
+  - 19.8. Ứng dụng nhiều khách hàng và người dùng thuộc nhiều tổ chức
+  - 19.9. Quy trình ngoại lệ với chủ sở hữu, thời hạn và rà soát
+- level1: 20. Quyền và quản trị truy cập
+  level2:
+  - 20.1. Nhóm làm đầu vào cấp quyền và giới hạn của đồng bộ thành viên
+  - 20.2. Vai trò, entitlement và hợp đồng ngữ nghĩa với từng ứng dụng
+  - 20.3. Phân biệt quyền do bộ cấp phát quản lý với quyền cục bộ
+  - 20.4. Quyền mặc định, quyền theo chính sách và quyền theo yêu cầu
+  - 20.5. Phê duyệt, chứng nhận quyền và rà soát định kỳ
+  - 20.6. Kiểm soát quyền nhạy cảm cùng phân tách nhiệm vụ
+  - 20.7. Ngăn người dùng tự sửa thuộc tính để được cấp quyền
+  - 20.8. Thu hồi ngoại lệ và quyền không còn nhu cầu
+  - 20.9. Đối soát quyền thực tế ngoài trạng thái User hoặc Group
+  - 20.10. Phân công trách nhiệm giữa quản trị danh tính và chủ ứng dụng
+- level1: 21. Bảo mật SCIM API
+  level2:
+  - 21.1. Bảo vệ kênh truyền và xác minh đúng hệ thống đích
+  - 21.2. Token cấp phát, danh tính máy và phương thức xác thực được hỗ trợ
+  - 21.3. Quyền tối thiểu cho bộ kết nối và phân tách theo môi trường
+  - 21.4. Luân chuyển, thu hồi và lưu trữ an toàn thông tin xác thực
+  - 21.5. Cách ly khách hàng và kiểm tra quyền ở mức tài nguyên
+  - 21.6. Giới hạn thuộc tính có thể tạo hoặc sửa để tránh leo thang quyền
+  - 21.7. Kiểm tra JSON, filter, tham chiếu và nội dung do phía ngoài cung cấp
+  - 21.8. Không truy cập tùy ý vào URL tham chiếu chưa được tin cậy
+  - 21.9. Giới hạn lưu lượng, tải Bulk và truy vấn tốn tài nguyên
+  - 21.10. Bảo vệ endpoint quản trị, cấu hình kết nối và nhật ký kiểm toán
+- level1: 22. Quyền riêng tư và dữ liệu
+  level2:
+  - 22.1. Chọn thuộc tính cần thiết theo mục đích của ứng dụng
+  - 22.2. Phân loại dữ liệu nhân sự, thông tin liên hệ và thuộc tính nhạy cảm
+  - 22.3. Ngăn gửi mật khẩu hoặc dữ liệu không cần thiết đến hệ thống đích
+  - 22.4. Kiểm soát log yêu cầu, phản hồi và dữ liệu lỗi
+  - 22.5. Giới hạn quyền xem hồ sơ và bằng chứng đồng bộ
+  - 22.6. Thời hạn lưu danh tính, lịch sử và bản sao đối soát
+  - 22.7. Xóa dữ liệu theo yêu cầu và phân biệt với chặn truy cập
+  - 22.8. Vị trí xử lý, nhà cung cấp phụ trợ và chia sẻ xuyên tổ chức
+  - 22.9. Dùng dữ liệu giả hoặc đã ẩn danh trong môi trường kiểm thử
+- level1: 23. Quan sát và kiểm toán
+  level2:
+  - 23.1. Mã tương quan cho sự kiện nguồn, tác vụ đồng bộ và yêu cầu SCIM
+  - 23.2. Ghi nhận ai hoặc điều gì làm thay đổi danh tính và quyền
+  - 23.3. Theo dõi số công việc chờ, độ trễ và tuổi bản ghi chưa xử lý
+  - 23.4. Đo thời gian cấp tài khoản, đổi quyền và thu hồi truy cập
+  - 23.5. Cảnh báo lỗi kéo dài, tăng đột biến và tài khoản không được vô hiệu hóa
+  - 23.6. Đối soát số lượng tài nguyên và trạng thái mà không coi số đếm là bằng chứng đầy đủ
+  - 23.7. Phát hiện tài khoản mồ côi, nhóm thừa và sai lệch quyền
+  - 23.8. Bằng chứng phê duyệt, thực thi, lỗi và khắc phục
+  - 23.9. Bảo vệ tính toàn vẹn và giới hạn dữ liệu cá nhân trong log
+  - 23.10. Bảng theo dõi mức đáp ứng cam kết vòng đời theo từng ứng dụng
+- level1: 24. Khả dụng và phục hồi
+  level2:
+  - 24.1. Hành vi khi nguồn danh tính hoặc hệ thống đích không sẵn sàng
+  - 24.2. Lưu hàng đợi bền vững và tiếp tục từ điểm kiểm tra
+  - 24.3. Phân phối tải theo giới hạn của từng nhà cung cấp
+  - 24.4. Ưu tiên thu hồi khẩn cấp trong khi vẫn kiểm soát thứ tự thay đổi
+  - 24.5. Phục hồi sau mất ánh xạ hoặc cơ sở dữ liệu bộ kết nối
+  - 24.6. Sao lưu cấu hình, chính sách ánh xạ và trạng thái đồng bộ
+  - 24.7. Ngăn khôi phục bản sao cũ kích hoạt lại tài khoản đã bị thu hồi
+  - 24.8. Đối soát toàn bộ sau sự cố trước khi khẳng định đồng bộ hoàn tất
+  - 24.9. Quy trình thủ công có kiểm soát khi tự động hóa không đáp ứng kịp
+- level1: 25. Triển khai và chuyển đổi
+  level2:
+  - 25.1. Khảo sát API, schema, giới hạn và hành vi thực tế của hệ thống đích
+  - 25.2. Lập hợp đồng ánh xạ thuộc tính và sở hữu quyền
+  - 25.3. Đối chiếu tài khoản tồn tại trước lần đồng bộ đầu tiên
+  - 25.4. Chế độ mô phỏng và đánh giá tác động trước khi ghi
+  - 25.5. Thí điểm theo nhóm người dùng và ứng dụng có rủi ro kiểm soát được
+  - 25.6. Ngưỡng bảo vệ khi số lượng xóa hoặc vô hiệu hóa tăng bất thường
+  - 25.7. Chạy song song có kiểm soát và tránh hai bộ cấp phát cùng sở hữu một thuộc tính
+  - 25.8. Chuyển IdP, nguồn nhân sự hoặc hệ thống quản trị danh tính
+  - 25.9. Phương án quay lui mà không phục hồi quyền đã bị thu hồi hợp lệ
+  - 25.10. Tiêu chí nghiệm thu và bàn giao vận hành cho chủ ứng dụng
+- level1: 26. Kiểm thử và tương thích
+  level2:
+  - 26.1. Kiểm thử schema, thuộc tính bắt buộc và quy tắc mutability
+  - 26.2. Kiểm thử tạo, đọc, PUT, PATCH, DELETE và hành vi không được hỗ trợ
+  - 26.3. Kiểm thử filter, đa giá trị, phân trang và thay đổi dữ liệu giữa các trang
+  - 26.4. Kiểm thử thêm, xóa thành viên và nhóm phụ thuộc người dùng
+  - 26.5. Kiểm thử trùng danh tính, đổi email, đổi userName và người quay lại
+  - 26.6. Kiểm thử lỗi mạng sau khi hệ thống đích đã cập nhật thành công
+  - 26.7. Kiểm thử gửi lặp, sai thứ tự, xung đột phiên bản và lỗi từng phần
+  - 26.8. Kiểm thử token hết hạn, quyền thiếu và truy cập chéo khách hàng
+  - 26.9. Kiểm thử quy trình rời tổ chức gồm cả phiên và quyền ngoài SCIM
+  - 26.10. Diễn tập khôi phục và kiểm chứng trạng thái thực tế ở hệ thống đích
+- level1: 27. Sai lầm và thực hành
+  level2:
+  - 27.1. Coi đăng nhập SSO thành công là tài khoản đã được quản lý đầy đủ
+  - 27.2. Coi active=false hoặc DELETE luôn kết thúc mọi phiên truy cập
+  - 27.3. Dùng email thay đổi được làm định danh duy nhất của toàn vòng đời
+  - 27.4. Dùng PUT hoặc xóa nhóm mà không kiểm tra dữ liệu đang được bên khác quản lý
+  - 27.5. Thử lại tạo tài khoản không đối soát khiến phát sinh tài khoản trùng
+  - 27.6. Đồng bộ thành viên nhóm nhưng bỏ sót quyền được gán trực tiếp
+  - 27.7. Cho phép thay đổi nguồn hàng loạt dẫn đến thu hồi ngoài ý muốn
+  - 27.8. Lập sơ đồ gia nhập, chuyển vai trò và rời tổ chức cho một ứng dụng mẫu
+  - 27.9. Thiết kế bộ đối soát cùng hàng đợi lỗi và bằng chứng kiểm toán
+  - 27.10. Hoàn thiện tiêu chí vòng đời bằng ca được phép và ca bị từ chối thực tế

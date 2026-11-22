@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Security này là security chung , không chỉ bao gồm java , vì vậy các knowledge liên quan đến chỉ riêng java hay spring , đặc biệt là spring security hãy bỏ qua"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_AUTHORIZATION_ABAC"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Thiết kế phân quyền ABAC dựa trên thuộc tính chủ thể, tài nguyên, hành động và ngữ cảnh thay vì chỉ dựa vào vai trò. Học xây chính sách, luồng PDP/PEP/PIP, xử lý xung đột, bảo vệ nguồn thuộc tính và kiểm thử quyết định truy cập trong hệ thống phân tán."
+  }
+}

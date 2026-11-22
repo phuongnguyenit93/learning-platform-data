@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chuỗi thực thi
+  slug: execution-chain
+  index: 1
+- title: Hình thức phân phối
+  slug: distribution-formats
+  index: 2
+- title: Điểm vào chương trình
+  slug: application-entry-points
+  index: 3
+- title: Cấu trúc JAR
+  slug: jar-structure
+  index: 4
+- title: Classpath và module path
+  slug: classpath-and-module-path
+  index: 5
+- title: Phụ thuộc khi chạy
+  slug: runtime-dependencies
+  index: 6
+- title: JAR thực thi
+  slug: executable-jars
+  index: 7
+- title: Gói Spring Boot
+  slug: spring-boot-packaging
+  index: 8
+- title: Gói WAR
+  slug: war-packaging
+  index: 9
+- title: Công cụ đóng gói
+  slug: packaging-tools
+  index: 10
+- title: Bộ khởi chạy Java
+  slug: java-launchers
+  index: 11
+- title: Tham số JVM
+  slug: jvm-options
+  index: 12
+- title: Môi trường và cấu hình
+  slug: environment-configuration
+  index: 13
+- title: Script khởi chạy
+  slug: launch-scripts
+  index: 14
+- title: Tiến trình và vòng đời
+  slug: process-lifecycle
+  index: 15
+- title: Bố cục cài đặt
+  slug: installation-layout
+  index: 16
+- title: Runtime tùy chỉnh
+  slug: custom-runtimes
+  index: 17
+- title: Bộ cài ứng dụng
+  slug: application-installers
+  index: 18
+- title: Tệp thực thi native
+  slug: native-executables
+  index: 19
+- title: Đóng gói container
+  slug: container-packaging
+  index: 20
+- title: Chạy trong container
+  slug: container-execution
+  index: 21
+- title: Dịch vụ hệ điều hành
+  slug: os-services
+  index: 22
+- title: Phiên bản và phân phối
+  slug: versioning-distribution
+  index: 23
+- title: Build tái lập
+  slug: reproducible-builds
+  index: 24
+- title: An toàn gói chạy
+  slug: package-security
+  index: 25
+- title: Khởi động và sẵn sàng
+  slug: startup-readiness
+  index: 26
+- title: Nâng cấp và rollback
+  slug: upgrades-rollback
+  index: 27
+- title: Kiểm thử gói chạy
+  slug: package-testing
+  index: 28
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 29
+- title: Hiệu năng khởi động
+  slug: startup-performance
+  index: 30
+- title: Quy trình phát hành
+  slug: release-process
+  index: 31
+- title: Bài tập thực hành
+  slug: hands-on-exercises
+  index: 32

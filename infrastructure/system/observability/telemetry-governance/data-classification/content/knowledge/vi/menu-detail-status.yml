@@ -1,0 +1,2056 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Phân loại dữ liệu (data classification) là gì trong hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao dữ liệu kỹ thuật vẫn có thể cần được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các thành phần: tài sản dữ liệu, nhóm dữ liệu, mức nhạy cảm, nhãn và chính sách'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt nhận diện dữ liệu, quyết định phân loại và gắn nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt phân loại theo bảo vệ dữ liệu với phân nhóm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt mức nhạy cảm với mức log và mức nghiêm trọng của sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Quan hệ giữa phân loại, kiểm soát truy cập, làm sạch dữ liệu và lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Ví dụ phân loại một bản ghi tổng hợp từ trường dữ liệu đến yêu cầu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình từ kiểm kê dữ liệu đến kiểm chứng chính sách toàn tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-inventory-lineage
+  title: Kiểm kê và nguồn gốc
+  childs:
+  - slug: data-inventory-lineage-001
+    title: Lập bản đồ nhật ký (logs), chỉ số (metrics), truy vết (traces) và hồ sơ hiệu năng (profiles)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-002
+    title: Kiểm kê nơi tạo, nơi thu nhận, nơi xử lý và nơi lưu telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-003
+    title: Nhận diện dữ liệu gốc, dữ liệu tổng hợp và bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-004
+    title: Kiểm kê nội dung trong chỉ mục, bộ đệm, hàng đợi và tệp tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-005
+    title: Theo dõi bản xuất, cảnh báo, dashboard và dữ liệu gửi cho bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-006
+    title: Ghi nhận dịch vụ, môi trường, tenant và chủ sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-007
+    title: Lập danh mục lược đồ, đường dẫn trường và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-008
+    title: Theo dõi nguồn gốc và các phép biến đổi dữ liệu (data lineage)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-inventory-lineage-009
+    title: Phát hiện nguồn dữ liệu mới hoặc luồng chưa có trong danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-categories
+  title: Nhóm dữ liệu
+  childs:
+  - slug: data-categories-001
+    title: Thông tin nhận dạng trực tiếp như họ tên, email và số điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-002
+    title: Định danh gián tiếp và các thuộc tính có thể kết hợp để nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-003
+    title: Mật khẩu, khóa API, access token, cookie và mã phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-004
+    title: Dữ liệu tài chính, sức khỏe và các nhóm cần yêu cầu xử lý riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-005
+    title: Thông tin nghiệp vụ như giao dịch, giá, hợp đồng và hành vi khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-006
+    title: Thông tin hạ tầng như địa chỉ mạng, topology và tên tài nguyên nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-007
+    title: Mã nguồn, câu truy vấn, đường dẫn tệp và chi tiết lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-008
+    title: Dữ liệu đã che, băm hoặc token hóa và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-009
+    title: Dữ liệu tổng hợp phục vụ kiểm thử và dữ liệu được phép công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-categories-010
+    title: Xây dựng nhóm dữ liệu riêng theo ngữ cảnh tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sensitivity-levels
+  title: Mức nhạy cảm
+  childs:
+  - slug: sensitivity-levels-001
+    title: Xây dựng thang phân cấp dựa trên nhu cầu bảo vệ của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-002
+    title: Ví dụ các mức Công khai, Nội bộ, Nhạy cảm và Hạn chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-003
+    title: Định nghĩa tiêu chí, ví dụ và yêu cầu xử lý cho từng mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-004
+    title: Phân biệt loại thông tin với mức nhạy cảm được gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-005
+    title: Phân biệt mức nhạy cảm, độ tin cậy nhận diện và rủi ro phơi lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-006
+    title: Quy định trạng thái chưa biết, chưa đánh giá và không phân loại được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-007
+    title: Xác định điều kiện nâng mức hoặc hạ mức phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitivity-levels-008
+    title: Tránh coi tên mức của một công cụ là hệ phân cấp chung cho mọi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-impact
+  title: Ngữ cảnh và tác động
+  childs:
+  - slug: context-impact-001
+    title: Đánh giá tác động khi dữ liệu bị tiết lộ, sửa sai hoặc mất khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-002
+    title: Phân biệt tính bí mật, tính toàn vẹn và tính sẵn sàng của telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-003
+    title: Đánh giá cùng một giá trị trong các mục đích và ngữ cảnh khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-004
+    title: Quan hệ giữa khả năng nhận dạng, khả năng liên kết và mức nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-005
+    title: Phân tích rủi ro khi kết hợp nhiều trường hoặc nhiều nguồn quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-006
+    title: Xem xét quy mô tập dữ liệu, tần suất và độ chi tiết thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-007
+    title: Chuyển yêu cầu tổ chức hoặc hợp đồng đã xác nhận thành tiêu chí phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-impact-008
+    title: Đánh giá rủi ro còn lại mà không coi nhãn phân loại là bảo đảm an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classification-granularity
+  title: Độ hạt phân loại
+  childs:
+  - slug: classification-granularity-001
+    title: 'Lựa chọn đơn vị phân loại: giá trị, trường, bản ghi, luồng hoặc tập dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-002
+    title: Phân biệt phân loại theo lược đồ với kiểm tra từng giá trị thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-003
+    title: Phân loại trường lồng nhau, mảng, map và tên khóa động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-004
+    title: Xử lý một bản ghi chứa nhiều nhóm dữ liệu và nhiều mức nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-005
+    title: Thiết kế quy tắc kế thừa nhãn từ trường lên bản ghi hoặc tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-006
+    title: Xử lý giá trị thiếu, null, chuỗi rỗng và trường chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-007
+    title: Đánh giá trường có nội dung thay đổi theo từng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-granularity-008
+    title: Giữ khả năng truy nguyên quyết định mà không sao chép dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: label-model
+  title: Mô hình nhãn
+  childs:
+  - slug: label-model-001
+    title: Thiết kế từ vựng kiểm soát cho nhóm dữ liệu và mức nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-002
+    title: Tách nhãn về chủ sở hữu, mục đích, tenant và phạm vi được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-003
+    title: Định nghĩa mã nhãn ổn định và tên hiển thị theo ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-004
+    title: Biểu diễn quyết định phân loại bằng metadata có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-005
+    title: Ghi nhận nguồn quyết định, phiên bản quy tắc và thời điểm đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-006
+    title: Phân biệt nhãn do nguồn tự khai báo với nhãn đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-007
+    title: Quy định nhiều nhãn, nhãn xung đột và thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-008
+    title: Ngăn nhãn hoặc tên trường phân loại tự chứa thông tin cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-model-009
+    title: Quản lý nhãn không hợp lệ, không được hỗ trợ hoặc đã ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-identification
+  title: Nhận diện dữ liệu
+  childs:
+  - slug: data-identification-001
+    title: Nhận diện dựa trên tên trường, đường dẫn và lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-002
+    title: Nhận diện dựa trên mẫu nội dung và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-003
+    title: Dùng từ điển, danh sách thuật ngữ và bộ nhận diện riêng cho nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-004
+    title: Kết hợp ngữ cảnh xung quanh với kiểu dữ liệu và nguồn phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-005
+    title: Vai trò và giới hạn của kiểm tra định dạng hoặc checksum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-006
+    title: Vai trò và giới hạn của độ ngẫu nhiên khi tìm chuỗi nghi là bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-007
+    title: Chuẩn hóa Unicode, kiểu chữ và cách mã hóa trước khi kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-008
+    title: Xử lý văn bản tự do, nội dung nhiều dòng và chuỗi chứa dữ liệu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-009
+    title: Phân loại thủ công, theo quy tắc và có mô hình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-010
+    title: Lựa chọn phát hiện trực tiếp trên luồng hoặc quét dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identification-quality
+  title: Chất lượng nhận diện
+  childs:
+  - slug: identification-quality-001
+    title: Phân biệt nhận diện nhầm (false positive) và bỏ sót (false negative)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-002
+    title: Đánh giá precision, recall và độ bao phủ theo từng nhóm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-003
+    title: Hiểu điểm tin cậy hoặc mức likelihood mà không xem là xác suất đã được hiệu chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-004
+    title: Chọn ngưỡng nhận diện theo tác động của từng loại sai sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-005
+    title: Phân biệt không phát hiện với đã chứng minh không có dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-006
+    title: Giới hạn của lấy mẫu khi đánh giá một tập telemetry lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-007
+    title: Xây dựng bộ dữ liệu tổng hợp và kết quả chuẩn để đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-008
+    title: Rà soát thủ công các trường hợp mơ hồ mà không mở rộng quyền xem dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identification-quality-009
+    title: Xử lý lỗi phân tích, hết thời gian và dữ liệu chưa được quét đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logs
+  title: Nhật ký
+  childs:
+  - slug: logs-001
+    title: Phân loại nội dung body, thuộc tính và metadata tài nguyên của log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-002
+    title: Tách mức nhạy cảm khỏi severity và loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-003
+    title: Nhận diện dữ liệu trong tham số thông điệp và văn bản ghép chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-004
+    title: Phân loại stack trace, thông tin ngoại lệ và chuỗi nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-005
+    title: Kiểm kê dữ liệu trong ngữ cảnh chẩn đoán (MDC) và thuộc tính bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-006
+    title: Xử lý log có cấu trúc, JSON lồng nhau và chuỗi chứa JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-007
+    title: Phân biệt nhu cầu xử lý của log ứng dụng, access log và audit log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-008
+    title: Nhận diện dữ liệu trong stdout, tệp xoay vòng và nhật ký thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-009
+    title: Kiểm soát việc phân loại bản sao log ở các appender và đích nhận khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics
+  title: Chỉ số
+  childs:
+  - slug: metrics-001
+    title: Phân loại tên phép đo, mô tả và thuộc tính điểm đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-002
+    title: Nhận diện định danh người dùng hoặc giao dịch trong nhãn metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-003
+    title: Phân biệt rủi ro lộ dữ liệu với số lượng tổ hợp nhãn (cardinality)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-004
+    title: Đánh giá khả năng suy ra thông tin nghiệp vụ từ số đo tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-005
+    title: Đánh giá nhóm có ít thành viên và mức chi tiết của phép phân nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-006
+    title: Phân loại exemplars và liên kết sang dữ liệu traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-007
+    title: Phân loại chuỗi sinh từ recording rule và các phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-008
+    title: Giới hạn metadata phân loại để không làm tăng cardinality không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traces-profiles
+  title: Truy vết và hồ sơ
+  childs:
+  - slug: traces-profiles-001
+    title: Phân loại tên span, thuộc tính, sự kiện và thông tin ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-002
+    title: Xem xét trace ID, span ID và định danh nghiệp vụ theo khả năng liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-003
+    title: Đánh giá nội dung HTTP, database và messaging do instrumentation thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-004
+    title: Phân loại baggage và ngữ cảnh được truyền qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-005
+    title: Phân biệt dữ liệu chỉ được xuất thành telemetry với dữ liệu được truyền trên yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-006
+    title: Đánh giá trace chứa dữ liệu từ nhiều dịch vụ hoặc nhiều phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-007
+    title: Phân loại hồ sơ hiệu năng, nhãn luồng và thông tin tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-008
+    title: Xem xét tên hàm, đường dẫn mã nguồn và metadata ký hiệu gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-profiles-009
+    title: Đánh giá snapshot biến và dữ liệu chẩn đoán chi tiết trước khi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocols-content
+  title: Giao thức và nội dung
+  childs:
+  - slug: protocols-content-001
+    title: Nhận diện dữ liệu trong HTTP header, cookie và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-002
+    title: Phân loại thành phần đường dẫn, query string và URL có chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-003
+    title: Đánh giá request body và response body theo kiểu nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-004
+    title: Phân loại SQL, tham số truy vấn và chuỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-005
+    title: Nhận diện dữ liệu trong header, metadata và payload của message
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-006
+    title: Xử lý gRPC metadata và nội dung lỗi tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-007
+    title: Phân loại tên máy, địa chỉ IP, nhãn container và Kubernetes metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-content-008
+    title: Đánh giá dữ liệu mã hóa, nén hoặc không thể phân tích bằng bộ nhận diện hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classification-workflow
+  title: Luồng phân loại
+  childs:
+  - slug: classification-workflow-001
+    title: Phân công nhận diện và gắn nhãn tại ứng dụng, agent hoặc gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-002
+    title: Chọn điểm phân loại trước khi dữ liệu vượt ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-003
+    title: Phân biệt kiểm tra trước khi xuất với quét phát hiện sau khi đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-004
+    title: Thiết kế thứ tự phân tích, chuẩn hóa, phân loại, bảo vệ và xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-005
+    title: Tách bằng chứng quyết định khỏi nội dung nhạy cảm đã được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-006
+    title: Xác định quy tắc khi nhiều nguồn nhãn hoặc bộ nhận diện bất đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-007
+    title: Xử lý dữ liệu chưa phân loại bằng chặn, cách ly hoặc chính sách mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-008
+    title: Ngăn đường xuất phụ, log gỡ lỗi và cơ chế thử lại bỏ qua chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-workflow-009
+    title: Xác định hành vi khi bộ phân loại lỗi hoặc không tải được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry
+  title: OpenTelemetry
+  childs:
+  - slug: opentelemetry-001
+    title: Phân biệt thuộc tính semantic conventions với nhãn quản trị do tổ chức định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-002
+    title: Thiết kế namespace riêng và lược đồ nhãn phân loại có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-003
+    title: Chọn phạm vi resource, log, span hoặc datapoint phù hợp với độ hạt quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-004
+    title: Dùng transform processor và OTTL cho quy tắc kiểm tra hoặc gắn nhãn có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-005
+    title: Phân biệt xử lý theo quy tắc với dịch vụ nhận diện dữ liệu chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-006
+    title: Đối chiếu phiên bản, bản phân phối và khả năng của từng processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-007
+    title: Phối hợp nhãn phân loại với lọc, làm sạch và định tuyến telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-008
+    title: Đánh giá error_mode và đường dữ liệu chưa được áp dụng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-009
+    title: Kiểm chứng nhãn và yêu cầu bảo vệ trên mọi exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring-boot
+  title: Java và Spring Boot
+  childs:
+  - slug: java-spring-boot-001
+    title: Lập hợp đồng telemetry và phân loại các trường ngay khi thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-002
+    title: Thiết kế đối tượng nhật ký chỉ chứa dữ liệu được phép thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-003
+    title: Vai trò và giới hạn của annotation phân loại do ứng dụng tự định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-004
+    title: Kiểm soát Jackson, toString và các đường tuần tự hóa khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-005
+    title: Truyền metadata phân loại qua SLF4J, MDC và ngữ cảnh bất đồng bộ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-006
+    title: Phân loại dữ liệu trong filter, interceptor, HTTP client và exception handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-007
+    title: Phân biệt telemetry do ứng dụng viết với dữ liệu Java agent tự động tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-008
+    title: Ngăn metadata phân loại làm thay đổi dữ liệu hoặc logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-009
+    title: Kiểm chứng các trường mới, thư viện mới và cấu hình tự động thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classification-protection
+  title: Bảo vệ theo phân loại
+  childs:
+  - slug: classification-protection-001
+    title: Xây dựng ma trận từ nhóm dữ liệu và mức nhạy cảm đến yêu cầu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-002
+    title: Quyết định dữ liệu không thu thập, cần loại bỏ hoặc được phép giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-003
+    title: Ánh xạ phân loại sang che dữ liệu, xóa trường và lọc sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-004
+    title: Ánh xạ phân loại sang quyền truy cập và phân tách nơi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-005
+    title: Ánh xạ phân loại sang thời hạn lưu giữ và yêu cầu xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-006
+    title: Quy định đích xuất, phạm vi chia sẻ và vị trí xử lý được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-007
+    title: Phối hợp mã hóa đường truyền và mã hóa lưu trữ với quyền sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-008
+    title: Thiết kế điểm thực thi chính sách thay vì chỉ hiển thị nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-009
+    title: Xử lý xung đột chính sách và dữ liệu vượt khả năng bảo vệ của đích nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-protection-010
+    title: Kiểm chứng hiệu lực bảo vệ sau khi nhãn đã được gắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: derived-data
+  title: Dữ liệu dẫn xuất
+  childs:
+  - slug: derived-data-001
+    title: Kế thừa phân loại khi sao chép, trích xuất hoặc đổi định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-002
+    title: Đánh giá lại sau khi che, xóa trường, băm hoặc token hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-003
+    title: Phân biệt dữ liệu dùng định danh thay thế với dữ liệu đã ẩn danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-004
+    title: Đánh giá mức nhạy cảm sau tổng hợp, lấy mẫu hoặc giảm độ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-005
+    title: Nhận diện rủi ro tăng lên khi nối nhiều tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-006
+    title: Phân loại báo cáo, dashboard và cảnh báo được tạo từ telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-007
+    title: Xác định điều kiện và thẩm quyền phê duyệt hạ mức phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: derived-data-008
+    title: Duy trì nguồn gốc, phiên bản quy tắc và bằng chứng cho quyết định mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tenants-sharing
+  title: Tenant và chia sẻ
+  childs:
+  - slug: tenants-sharing-001
+    title: Phân biệt định danh tenant với mức nhạy cảm của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-002
+    title: Thiết lập nguồn đáng tin cậy cho tenant và nhãn quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-003
+    title: Ngăn nguồn phát giả nhãn mức thấp để đi qua đường xuất ít bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-004
+    title: Xử lý nhãn bị thiếu, bị thay đổi hoặc bị loại bỏ giữa các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-005
+    title: Kiểm soát truy vấn, xuất dữ liệu và liên kết giữa nhiều tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-006
+    title: Quản lý chia sẻ với nhà cung cấp quan sát và bên hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-007
+    title: Đánh giá việc gửi mẫu hoặc dữ liệu thô tới dịch vụ phân loại bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenants-sharing-008
+    title: Bảo vệ thông tin phân loại khi bản thân metadata có thể tiết lộ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-limits
+  title: Hiệu năng và giới hạn
+  childs:
+  - slug: performance-limits-001
+    title: Đo độ trễ, thông lượng, CPU và bộ nhớ của quá trình nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-002
+    title: Chọn tập bộ nhận diện phù hợp thay vì quét mọi mẫu trên mọi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-003
+    title: Giới hạn kích thước nội dung, độ sâu lồng nhau và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-004
+    title: Phân biệt đối sánh xác định với nhận diện cần dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-005
+    title: Đánh giá chi phí xử lý trực tiếp trên luồng và quét định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-006
+    title: Dùng bộ nhớ đệm có kiểm soát mà không lưu thêm dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-007
+    title: Đánh giá phần dữ liệu chưa được quét khi áp dụng lấy mẫu hoặc giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-limits-008
+    title: Thiết kế trạng thái chưa xác định và hành vi an toàn khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Xây dựng bộ dữ liệu tổng hợp có nhãn chuẩn cho từng nhóm thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử cùng kiểu dữ liệu trong các ngữ cảnh có mức nhạy cảm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử Unicode, nhiều dòng, trường lồng nhau và các dạng mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Đánh giá nhận diện nhầm, bỏ sót và độ bao phủ theo từng loại telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử nhãn thiếu, nhãn sai, nhãn giả và xung đột nguồn quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử kế thừa nhãn qua sao chép, tổng hợp và kết hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử điểm thực thi chính sách trên tất cả đường xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử ranh giới tenant và các trường hợp truy cập không được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử lỗi bộ nhận diện, dữ liệu quá lớn và hết thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử hồi quy khi đổi lược đồ, quy tắc hoặc instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm chứng kết quả phân loại không bị ghi lại kèm dữ liệu thô không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản lý thay đổi
+  childs:
+  - slug: change-management-001
+    title: Quản lý lược đồ nhãn và quy tắc bằng cấu hình có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Rà soát dữ liệu chịu tác động trước khi thêm hoặc sửa bộ nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Kiểm tra khả năng tương thích giữa nguồn phát, collector và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Triển khai thử với dữ liệu tổng hợp hoặc phạm vi được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Phối hợp thay đổi nhãn với thay đổi quyền, định tuyến và lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Phân loại lại dữ liệu lịch sử khi tiêu chí hoặc mục đích thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Di chuyển nhãn cũ sang nhãn mới mà không làm mất yêu cầu bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Thiết kế quay lui và ghi nhận phiên bản quyết định đã áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-009
+    title: Phát hiện trường mới và độ lệch lược đồ sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-remediation
+  title: Giám sát và xử lý
+  childs:
+  - slug: monitoring-remediation-001
+    title: Theo dõi tỷ lệ dữ liệu có nhãn hợp lệ, chưa biết và không xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-002
+    title: Theo dõi độ bao phủ theo dịch vụ, tín hiệu, môi trường và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-003
+    title: Phát hiện thay đổi bất thường về nhóm dữ liệu hoặc mức nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-004
+    title: Giám sát lỗi nhận diện và độ trễ thực thi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-005
+    title: Thiết kế chỉ số, cảnh báo và báo cáo không chứa mẫu dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-006
+    title: Điều tra trường hợp nhãn đúng nhưng dữ liệu vẫn đến đích không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-007
+    title: Khoanh vùng tác động khi phân loại sai hoặc bỏ sót dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-remediation-008
+    title: Đánh giá lại, xử lý bản sao liên quan và bổ sung kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classification-governance
+  title: Quản trị phân loại
+  childs:
+  - slug: classification-governance-001
+    title: Phân định chủ sở hữu dữ liệu, người quản lý danh mục và nhóm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-002
+    title: Quy định thẩm quyền phê duyệt tiêu chí, ngoại lệ và hạ mức phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-003
+    title: Lưu lý do, bằng chứng và lịch sử của quyết định phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-004
+    title: Rà soát định kỳ danh mục, bộ nhận diện và yêu cầu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-005
+    title: Quản lý ngoại lệ có phạm vi, chủ sở hữu và thời hạn đánh giá lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-006
+    title: Hướng dẫn nhóm phát triển phân loại khi tạo trường telemetry mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-007
+    title: Phân biệt nhãn nội bộ với kết luận về đáp ứng yêu cầu pháp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classification-governance-008
+    title: Đánh giá hiệu quả bằng chất lượng quyết định và mức thực thi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Kiểm kê luồng telemetry của một hệ thống Spring Boot nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế bảng nhóm dữ liệu, mức nhạy cảm và tiêu chí gán nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Phân loại một tập logs, metrics và traces tổng hợp có trường hợp mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Xây dựng lược đồ nhãn và hợp đồng telemetry cho các trường đã phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Áp dụng quy tắc gắn nhãn và bảo vệ trên một pipeline thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Đánh giá precision, recall và phần dữ liệu chưa được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Kiểm chứng giả nhãn, lỗi nhận diện và ranh giới tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Đánh giá lại dashboard hoặc tập dữ liệu sau khi tổng hợp và kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Hoàn thiện danh mục, ma trận xử lý và bảng kiểm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

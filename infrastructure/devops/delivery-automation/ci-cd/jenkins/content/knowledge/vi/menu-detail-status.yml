@@ -1,0 +1,2641 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Jenkins là gì và giữ vai trò nào trong quy trình CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt tự động hóa tích hợp, bàn giao và triển khai liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Luồng từ thay đổi mã nguồn đến kết quả kiểm thử và gói đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Thuật ngữ controller, agent, node, executor, job và build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt một lần chạy pipeline với một bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Jenkins quản lý điều phối còn công cụ bên ngoài thực hiện công việc như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi module và lộ trình xây dựng một pipeline Java xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Controller điều phối cấu hình, hàng đợi và lịch sử thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Agent cung cấp môi trường thực hiện các bước công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Quan hệ giữa node, executor, nhãn và workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Phân biệt tiến trình controller với tiến trình của tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Vòng đời một công việc từ hàng đợi đến khi có executor phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: Phân biệt dữ liệu tại JENKINS_HOME với dữ liệu workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Luồng kết nối giữa Jenkins, hệ thống Git, kho gói và môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Nhận diện ranh giới tin cậy giữa controller, agent và mã nguồn được chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation
+  title: Cài đặt
+  childs:
+  - slug: installation-001
+    title: Đối chiếu yêu cầu Java, hệ điều hành và tài nguyên của phiên bản Jenkins
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-002
+    title: Chọn cách cài bằng gói hệ thống, WAR hoặc container theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-003
+    title: Chuẩn bị môi trường Jenkins cục bộ để thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-004
+    title: Khởi động lần đầu và thiết lập tài khoản quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-005
+    title: Lưu dữ liệu Jenkins bền vững khi sử dụng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-006
+    title: Cấu hình địa chỉ truy cập và cổng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-007
+    title: Kiểm tra quyền đọc ghi thư mục cùng tài nguyên cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-008
+    title: Xác nhận cài đặt bằng một công việc chạy thử có kết quả quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-administration
+  title: Quản trị cơ bản
+  childs:
+  - slug: basic-administration-001
+    title: Làm quen trang quản trị, danh sách job và lịch sử build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-002
+    title: Cấu hình URL gốc và thông tin hệ thống cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-003
+    title: Quản lý người dùng và quyền truy cập ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-004
+    title: Thiết lập công cụ dùng chung và kiểm tra đường dẫn thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-005
+    title: Tổ chức job bằng thư mục và quy ước tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-006
+    title: Quy định lưu giữ lịch sử build và dữ liệu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-007
+    title: Phân biệt cấu hình toàn cục với cấu hình riêng của job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-administration-008
+    title: Kiểm tra tác động trước khi thay đổi cấu hình dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: job-types
+  title: Loại công việc
+  childs:
+  - slug: job-types-001
+    title: Tạo Freestyle job để hiểu các bước thực thi cơ bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-002
+    title: Phân biệt Freestyle job với Pipeline job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-003
+    title: Chọn Pipeline script trực tiếp hoặc Pipeline script from SCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-004
+    title: Nhận diện vai trò của Multibranch Pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-005
+    title: Phân biệt job, lần build, stage và step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-006
+    title: Đọc trạng thái thành công, thất bại, không ổn định và bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-007
+    title: Chạy job thủ công và đọc nguyên nhân kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: job-types-008
+    title: Chuyển một job cấu hình thủ công sang pipeline được lưu trong Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-control-integration
+  title: Kết nối mã nguồn
+  childs:
+  - slug: source-control-integration-001
+    title: Kết nối repository Git và cấp quyền đọc phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-002
+    title: Chọn nhánh, commit và đường dẫn Jenkinsfile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-003
+    title: Phân biệt lấy Jenkinsfile với checkout mã để xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-004
+    title: Kiểm soát phiên bản mã nguồn thực sự được checkout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-005
+    title: Làm việc với repository riêng tư và chứng chỉ truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-006
+    title: Quản lý checkout nhiều repository khi bài toán cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-007
+    title: Xử lý thay đổi nhánh, submodule và tệp lớn theo khả năng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-integration-008
+    title: Truy vết kết quả build về commit và repository gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jenkinsfile
+  title: Jenkinsfile
+  childs:
+  - slug: jenkinsfile-001
+    title: Jenkinsfile là gì và vì sao nên được quản lý cùng mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkinsfile-002
+    title: Phân biệt Declarative Pipeline với Scripted Pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkinsfile-003
+    title: Tổ chức các giai đoạn checkout, build, test và đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkinsfile-004
+    title: Xác định đầu vào, đầu ra và phụ thuộc của từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkinsfile-005
+    title: Giữ Jenkinsfile mô tả điều phối thay vì chứa toàn bộ nghiệp vụ xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkinsfile-006
+    title: Đặt quy ước tên stage và thông báo để người đọc theo dõi được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkinsfile-007
+    title: Kiểm tra cú pháp và khả năng tương thích trước khi đưa pipeline vào dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: declarative-pipeline
+  title: Declarative Pipeline
+  childs:
+  - slug: declarative-pipeline-001
+    title: Cấu trúc pipeline, agent, stages, stage và steps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-002
+    title: Khai báo environment, parameters và tools
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-003
+    title: Sử dụng options để kiểm soát hành vi của lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-004
+    title: Đặt điều kiện thực thi bằng when
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-005
+    title: Xử lý kết quả bằng post ở phạm vi pipeline hoặc stage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-006
+    title: Phân chia agent toàn cục với agent cho từng stage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-007
+    title: Tổ chức các stage con khi cần nhóm công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-008
+    title: Dùng script để thực hiện phần logic cần Groovy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-pipeline-009
+    title: Phân biệt chỉ thị Declarative với step do Jenkins hoặc plugin cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scripted-pipelines-and-groovy
+  title: Scripted và Groovy
+  childs:
+  - slug: scripted-pipelines-and-groovy-001
+    title: Cấu trúc node, stage và luồng điều khiển trong Scripted Pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-002
+    title: Dùng biến, điều kiện, vòng lặp và hàm hỗ trợ trong phạm vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-003
+    title: Hiểu cơ chế tiếp tục thực thi của Pipeline CPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-004
+    title: Nhận diện dữ liệu cần được tuần tự hóa khi pipeline tạm dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-005
+    title: Tránh giữ đối tượng không phù hợp qua điểm tạm dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-006
+    title: Hiểu giới hạn của @NonCPS và việc gọi pipeline step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-007
+    title: Nhận diện lỗi do kết hợp closure hoặc phương thức không tương thích CPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripted-pipelines-and-groovy-008
+    title: Chọn mức dùng Groovy phù hợp để pipeline vẫn dễ đọc và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parameters-and-environment
+  title: Tham số và môi trường
+  childs:
+  - slug: parameters-and-environment-001
+    title: Khai báo tham số chuỗi, lựa chọn và giá trị boolean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-002
+    title: Phân biệt params với biến môi trường env
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-003
+    title: Xác định phạm vi và thứ tự ghi đè biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-004
+    title: Truyền cấu hình vào công cụ xây dựng mà không sửa mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-005
+    title: Kiểm tra tham số đầu vào trước khi thực hiện thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-006
+    title: Xử lý chuỗi, dấu nháy và khoảng trắng khi chạy lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-007
+    title: Phân biệt cấu hình không nhạy cảm với thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parameters-and-environment-008
+    title: Ngăn tham số người dùng biến thành lệnh shell ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: agents-and-tools
+  title: Agent và công cụ
+  childs:
+  - slug: agents-and-tools-001
+    title: Thêm agent và kiểm tra kết nối từ controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-002
+    title: Phân biệt cách kết nối agent qua SSH với kết nối do agent khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-003
+    title: Chọn node theo nhãn thay vì dựa vào tên máy cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-004
+    title: Cấu hình số executor theo tải công việc và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-005
+    title: Chuẩn bị JDK, Git và công cụ xây dựng trên agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-006
+    title: Phân biệt môi trường Linux và Windows khi viết pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-007
+    title: Quản lý agent cố định với agent tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-008
+    title: Xử lý agent bị mất kết nối trong lúc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: agents-and-tools-009
+    title: Giới hạn quyền hệ điều hành và dữ liệu mà agent có thể truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workspaces-and-files
+  title: Workspace và tệp
+  childs:
+  - slug: workspaces-and-files-001
+    title: Xác định vị trí workspace của job trên từng agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-002
+    title: Phân biệt đường dẫn tương đối trong workspace với đường dẫn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-003
+    title: Đọc ghi tệp bằng các step phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-004
+    title: Quản lý workspace khi nhiều lần build chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-005
+    title: Dùng stash và unstash để chuyển lượng dữ liệu phù hợp giữa các stage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-006
+    title: Phân biệt stash với lưu trữ artifact dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-007
+    title: Dọn workspace mà không xóa nhầm dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workspaces-and-files-008
+    title: Không giả định tệp cục bộ vẫn tồn tại khi pipeline đổi agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-builds
+  title: Xây dựng Java
+  childs:
+  - slug: java-builds-001
+    title: Chuẩn bị ứng dụng Java mẫu và cấu trúc repository cho CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-002
+    title: Dùng Gradle Wrapper hoặc Maven Wrapper để cố định công cụ dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-003
+    title: Chọn JDK theo yêu cầu của dự án và kiểm tra phiên bản thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-004
+    title: Tách biên dịch, kiểm thử và đóng gói theo nhu cầu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-005
+    title: Quản lý tham số build cùng cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-006
+    title: Tận dụng cache phụ thuộc mà vẫn kiểm soát tính đúng của đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-007
+    title: Xây dựng dự án nhiều module và xác định phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-008
+    title: Thu thập JAR và siêu dữ liệu phiên bản từ đúng lần build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-builds-009
+    title: Chẩn đoán khác biệt giữa kết quả trên máy phát triển và agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-quality
+  title: Kiểm thử và chất lượng
+  childs:
+  - slug: testing-and-quality-001
+    title: Chạy kiểm thử đơn vị và xuất kết quả theo định dạng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-002
+    title: Công bố báo cáo JUnit và đối chiếu số kiểm thử đã chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-003
+    title: Tách kiểm thử tích hợp cần dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-004
+    title: Quản lý dữ liệu thử và tài nguyên sau khi kiểm thử kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-005
+    title: Tổng hợp độ bao phủ và phân tích tĩnh khi dự án có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-006
+    title: Quy định điều kiện dừng dựa trên kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-007
+    title: Phân biệt lỗi kiểm thử với lỗi hạ tầng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-008
+    title: Xử lý kiểm thử không ổn định mà không che mất lỗi thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-quality-009
+    title: Giữ báo cáo gắn với commit và gói đã được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-artifacts
+  title: Gói đầu ra
+  childs:
+  - slug: build-artifacts-001
+    title: Lưu artifact từ workspace bằng đường dẫn có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-002
+    title: Phân biệt archiveArtifacts với xuất bản vào kho gói chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-003
+    title: Định danh đầu ra bằng phiên bản, commit và mã băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-004
+    title: Truy vết artifact qua fingerprint khi sử dụng khả năng này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-005
+    title: Đưa JAR hoặc container image vào kho bằng danh tính phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-006
+    title: Giữ cùng một gói đã kiểm chứng khi chuyển môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-007
+    title: Quy định thời hạn giữ artifact và khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-artifacts-008
+    title: Kiểm tra gói đã được xuất bản thay vì chỉ dựa vào mã thoát của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: credentials-and-secrets
+  title: Thông tin bí mật
+  childs:
+  - slug: credentials-and-secrets-001
+    title: Phân biệt mật khẩu, token, khóa SSH và tệp bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-002
+    title: Tạo credential và tham chiếu bằng định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-003
+    title: Giới hạn phạm vi credential theo hệ thống hoặc thư mục phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-004
+    title: Truyền bí mật vào bước thực thi bằng cơ chế binding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-005
+    title: Tránh nội suy Groovy làm lộ bí mật vào đối số hoặc thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-006
+    title: Hiểu giới hạn của che giá trị bí mật trong console log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-007
+    title: Ngăn bí mật đi vào artifact, workspace công khai hoặc cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-008
+    title: Luân chuyển và thu hồi bí mật đang được pipeline sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credentials-and-secrets-009
+    title: Kiểm soát việc cấp credential cho mã nguồn từ nhánh hoặc đóng góp không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-triggers
+  title: Kích hoạt pipeline
+  childs:
+  - slug: pipeline-triggers-001
+    title: Kích hoạt thủ công với bộ tham số xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-002
+    title: Kích hoạt từ webhook của nền tảng Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-003
+    title: Phân biệt webhook với thăm dò thay đổi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-004
+    title: Lập lịch bằng biểu thức cron và phân bố thời điểm chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-005
+    title: Liên kết lần chạy với sự kiện, nhánh và commit tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-006
+    title: Chẩn đoán webhook không đến hoặc bị nhận lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-007
+    title: Xử lý thay đổi dồn dập và tránh chạy thừa khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-triggers-008
+    title: Giới hạn quyền cho API hoặc hệ thống bên ngoài kích hoạt job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multibranch-pipeline
+  title: Multibranch Pipeline
+  childs:
+  - slug: multibranch-pipeline-001
+    title: Tự khám phá nhánh có Jenkinsfile bằng Multibranch Pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-002
+    title: Phân biệt quét nhánh với thực thi một lần build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-003
+    title: Xử lý branch và pull request theo khả năng tích hợp SCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-004
+    title: Đặt quy tắc phát hiện, loại trừ và dọn nhánh đã xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-005
+    title: Phân biệt mã ứng viên với mã đã được hợp nhất khi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-006
+    title: Thiết kế điều kiện build, kiểm thử và xuất bản theo nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-007
+    title: Xác định nguồn Jenkinsfile được tin cậy khi chạy đóng góp bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-008
+    title: Ngăn thay đổi trong pull request truy cập bí mật hoặc quyền triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multibranch-pipeline-009
+    title: Quản lý lịch sử và tài nguyên khi số nhánh tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-orchestration
+  title: Điều phối thực thi
+  childs:
+  - slug: execution-orchestration-001
+    title: Giới hạn thời gian chạy bằng timeout theo phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-002
+    title: Dùng retry cho lỗi có thể phục hồi mà không lặp tác dụng phụ ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-003
+    title: Chờ quyết định bằng input và giới hạn người được phép quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-004
+    title: Xử lý ngoại lệ với try, catch, finally hoặc catchError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-005
+    title: Phân biệt kết quả step, stage và toàn bộ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-006
+    title: Kiểm soát lần chạy đồng thời bằng tùy chọn của job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-007
+    title: Tuần tự hóa truy cập tài nguyên dùng chung bằng cơ chế khóa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-orchestration-008
+    title: Xử lý yêu cầu hủy và bảo đảm công việc dọn dẹp cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parallel-and-matrix
+  title: Song song và ma trận
+  childs:
+  - slug: parallel-and-matrix-001
+    title: Chia công việc độc lập thành các nhánh parallel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-002
+    title: Chọn phạm vi song song theo giới hạn executor và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-003
+    title: Tạo ma trận kiểm thử theo JDK, hệ điều hành hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-004
+    title: Loại tổ hợp không cần thiết và giữ ma trận có thể quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-005
+    title: Quy định hành vi khi một nhánh song song thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-006
+    title: Tránh ghi đè workspace, cổng dịch vụ hoặc báo cáo dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-007
+    title: Tổng hợp kết quả từ nhiều nhánh về cùng lần build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parallel-and-matrix-008
+    title: Cân bằng tốc độ phản hồi với chi phí và độ ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-environments
+  title: Môi trường container
+  childs:
+  - slug: container-environments-001
+    title: Phân biệt chạy Jenkins trong container với chạy step trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-002
+    title: Dùng môi trường container để kiểm soát bộ công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-003
+    title: Quản lý workspace, mount và quyền tệp giữa host với container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-004
+    title: Đối chiếu danh tính ảnh dùng để build bằng tag hoặc digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-005
+    title: Xác thực với registry khi kéo hoặc đẩy ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-006
+    title: Đánh giá quyền truy cập Docker daemon và socket từ agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-007
+    title: Nhận diện vai trò của agent tạm thời trên Kubernetes khi dùng tích hợp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-008
+    title: Quản lý mạng, tài nguyên và dọn dẹp container sau công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-environments-009
+    title: Phân biệt cache container với dữ liệu đầu ra cần lưu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-deployment
+  title: Triển khai ứng dụng
+  childs:
+  - slug: application-deployment-001
+    title: Xác định điều kiện để một gói đủ khả năng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-002
+    title: Tách tạo gói với triển khai cùng gói qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-003
+    title: Tham chiếu chính xác phiên bản hoặc digest của gói đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-004
+    title: Quản lý quyền triển khai và cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-005
+    title: Ngăn hai pipeline đồng thời thay đổi một đích triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-006
+    title: Xác minh phiên bản cùng luồng nghiệp vụ sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-007
+    title: Thiết kế quay lui theo tương thích mã, dữ liệu và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-deployment-008
+    title: Chỉ công bố kết quả dựa trên tình trạng thực tế đã kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-library
+  title: Shared Library
+  childs:
+  - slug: shared-library-001
+    title: Nhận diện logic lặp đáng tách thành thư viện pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-002
+    title: Tổ chức thư viện với vars, src và resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-003
+    title: Nạp thư viện và cố định phiên bản phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-004
+    title: Thiết kế hàm dùng chung có đầu vào, đầu ra và lỗi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-005
+    title: Phân biệt thư viện được tin cậy với mã chịu giới hạn sandbox
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-006
+    title: Quản lý thay đổi hợp đồng khi nhiều repository cùng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-007
+    title: Kiểm thử thư viện trước khi cập nhật các pipeline phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-library-008
+    title: Tránh thư viện dùng chung trở thành bộ khung che giấu toàn bộ luồng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-as-code
+  title: Cấu hình bằng mã
+  childs:
+  - slug: configuration-as-code-001
+    title: Phân biệt Jenkinsfile, cấu hình job và cấu hình hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-002
+    title: Nhận diện vai trò của Jenkins Configuration as Code khi được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-003
+    title: Quản lý cấu hình khai báo trong Git với quy trình rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-004
+    title: Tách bí mật khỏi nội dung cấu hình được lưu trong repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-005
+    title: Kiểm tra khả năng hỗ trợ của từng plugin đối với cấu hình bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-006
+    title: Khởi tạo job bằng cơ chế khai báo phù hợp khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-007
+    title: Kiểm tra thay đổi trong môi trường thử trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-as-code-008
+    title: Phát hiện sai lệch giữa cấu hình đang chạy và cấu hình đã quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plugin-management
+  title: Quản lý plugin
+  childs:
+  - slug: plugin-management-001
+    title: Phân biệt tính năng Jenkins lõi với tính năng do plugin cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-002
+    title: Chọn plugin từ nhu cầu cụ thể của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-003
+    title: Kiểm tra phụ thuộc và tương thích với phiên bản Jenkins
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-004
+    title: Quản lý danh sách cùng phiên bản plugin để tái tạo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-005
+    title: Thử nâng cấp plugin trên bản sao hoặc môi trường kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-006
+    title: Đánh giá tác động khi vô hiệu hóa hoặc gỡ plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-007
+    title: Theo dõi tình trạng bảo trì và thông báo bảo mật liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plugin-management-008
+    title: Giảm phụ thuộc không cần thiết và tránh cài plugin trùng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân biệt xác thực danh tính với phân quyền thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Thiết kế quyền tối thiểu cho người dùng, nhóm và hệ thống tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Giới hạn quyền sửa job, Jenkinsfile, thư viện và cấu hình hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Hiểu phạm vi Script Security, sandbox và phê duyệt script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Phân biệt giới hạn Groovy với quyền của lệnh chạy trên agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Bảo vệ URL truy cập, kết nối TLS và bề mặt quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Quản lý API token cùng vòng đời tài khoản tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Tách công việc không tin cậy khỏi agent và bí mật có quyền cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Kiểm tra bản vá bảo mật và lập kế hoạch cập nhật theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: build-results
+  title: Theo dõi kết quả
+  childs:
+  - slug: build-results-001
+    title: Đọc console log theo stage và theo thời điểm xảy ra lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-results-002
+    title: Liên kết build với commit, tham số, agent và artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-results-003
+    title: Công bố báo cáo để người phát triển thấy rõ nguyên nhân thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-results-004
+    title: Thiết kế thông báo theo kết quả cần hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-results-005
+    title: Giới hạn dữ liệu và bí mật xuất hiện trong thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-results-006
+    title: Theo dõi tỷ lệ thất bại, thời gian chạy và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: build-results-007
+    title: Phân biệt lỗi dự án với lỗi hệ thống Jenkins khi tổng hợp số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo thời gian từng stage trước khi tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân biệt thiếu executor với thiếu CPU, bộ nhớ hoặc I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Giảm công việc không cần thiết và phản hồi sớm khi điều kiện không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Thiết kế cache có khóa phù hợp và cơ chế vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Đánh giá chi phí stash, artifact lớn và truyền dữ liệu giữa agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Giảm logic Groovy và dữ liệu lớn được giữ trên controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Quản lý số lần chạy, lịch sử và workspace để giới hạn tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá hiệu quả song song bằng tài nguyên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jenkins-operations
+  title: Vận hành Jenkins
+  childs:
+  - slug: jenkins-operations-001
+    title: Kiểm tra sức khỏe controller, agent và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-002
+    title: Theo dõi dung lượng JENKINS_HOME cùng nơi lưu artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-003
+    title: Quản lý kết nối mạng tới Git, kho phụ thuộc và hệ thống triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-004
+    title: Dừng nhận công việc mới để bảo trì có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-005
+    title: Lập kế hoạch nâng cấp Jenkins, Java và plugin cùng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-006
+    title: Kiểm tra khả năng tiếp tục pipeline sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-007
+    title: Hiểu mức bền vững dữ liệu pipeline và giới hạn khôi phục của từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jenkins-operations-008
+    title: Ghi lại thay đổi quản trị và quy trình ứng phó sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Xác định cấu hình, dữ liệu job và tài nguyên cần sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-002
+    title: Phân biệt dữ liệu có thể tái tạo với dữ liệu phải bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-003
+    title: Bảo vệ khóa mã hóa và dữ liệu bí mật cần thiết để khôi phục credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-004
+    title: Giữ bản sao lưu nhất quán với trạng thái hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-005
+    title: Quy định mục tiêu mất dữ liệu và thời gian phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-006
+    title: Khôi phục Jenkins trong môi trường kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-007
+    title: Đối chiếu cấu hình, quyền và plugin sau khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-008
+    title: Chạy pipeline thử mà không vô tình triển khai hoặc thông báo tới hệ thống thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-pipeline
+  title: Kiểm thử pipeline
+  childs:
+  - slug: testing-pipeline-001
+    title: Kiểm tra cú pháp Declarative Pipeline trước khi hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-002
+    title: Kiểm thử logic Groovy và thư viện dùng chung theo khả năng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-003
+    title: Tạo repository mẫu cho kiểm thử tích hợp pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-004
+    title: Giả lập lỗi checkout, build, kiểm thử và xuất bản artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-005
+    title: Kiểm thử timeout, retry, hủy và lỗi giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-006
+    title: Kiểm tra nhánh không tin cậy không nhận credential có quyền cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-007
+    title: Kiểm tra kết quả sau chạy lại để phát hiện tác dụng phụ trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-pipeline-008
+    title: Đối chiếu bằng chứng với commit và gói thực sự được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Job chờ lâu do nhãn agent không khớp hoặc thiếu executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Agent mất kết nối và công việc bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Lỗi checkout, credential hoặc quyền truy cập repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Sai JDK, công cụ không tồn tại và khác biệt PATH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Lỗi quyền tệp, đường dẫn hoặc workspace còn dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi NotSerializableException và vấn đề liên quan Pipeline CPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Lệnh thành công nhưng Jenkins ghi nhận kết quả không như dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Báo cáo kiểm thử hoặc artifact không được tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Webhook không kích hoạt hoặc pipeline chạy nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Triển khai đã xảy ra nhưng pipeline mất kết nối trước khi ghi nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Chạy mọi công việc xây dựng trực tiếp trên controller
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Lưu bí mật trong Jenkinsfile hoặc in biến môi trường ra log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Cho rằng che log là đủ để bảo vệ credential trước mã không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Phụ thuộc máy agent có cấu hình thủ công không được ghi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Trộn nghiệp vụ xây dựng lớn vào Groovy của Jenkinsfile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Retry toàn bộ stage có tác dụng phụ mà không xác minh trạng thái thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Dùng chung workspace hoặc tài nguyên mà không xử lý cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Xây dựng lại gói sau kiểm thử rồi triển khai mà không kiểm chứng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Đánh dấu thành công chỉ vì lệnh triển khai trả về mã thoát bằng không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Cài Jenkins thực hành với dữ liệu bền vững và agent riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Xây dựng Jenkinsfile cho ứng dụng Java bằng Gradle hoặc Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Tự động checkout, kiểm thử và lưu JAR theo commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Công bố báo cáo JUnit và kiểm tra điều kiện chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Tạo Multibranch Pipeline có kiểm soát quyền cho pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Chạy kiểm thử song song và xử lý tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Xuất bản container image rồi truyền digest cho bước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Tách logic dùng chung thành thư viện có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Diễn tập pipeline bị hủy, chạy lại và khôi phục triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Sao lưu Jenkins, phục hồi trong môi trường thử và xác minh pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

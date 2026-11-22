@@ -1,0 +1,371 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Nexus Repository là gì và vai trò trong quản lý sản phẩm build
+  - Bài toán phân phối thư viện nội bộ và phụ thuộc bên ngoài
+  - Mối liên hệ giữa mã nguồn, quá trình build, artifact và bản phát hành
+  - Phân biệt kho mã nguồn, kho artifact và bộ nhớ đệm của công cụ build
+  - Vai trò của Nexus trong chuỗi cung ứng phần mềm
+  - Lợi ích, chi phí vận hành và trường hợp nên sử dụng
+  - Lộ trình từ kho Maven đầu tiên đến dịch vụ artifact dùng chung
+- level1: Sản phẩm và phiên bản
+  level2:
+  - Phân biệt Nexus Repository với Sonatype Lifecycle và Repository Firewall
+  - Phân biệt Nexus Repository 3 với tài liệu Nexus Repository 2 cũ
+  - Đối chiếu Community Edition, Pro và Pro+ theo nhu cầu
+  - Kiểm tra định dạng, loại kho và tính năng theo phiên bản
+  - Kiểm tra giới hạn sử dụng và điều kiện giấy phép của edition
+  - Phân biệt triển khai tự quản lý với dịch vụ Sonatype Cloud
+  - Chọn phiên bản còn được hỗ trợ và lập danh sách khả năng cần dùng
+- level1: Kiến trúc và dữ liệu
+  level2:
+  - Nhận diện ứng dụng Nexus, cơ sở dữ liệu và blob store
+  - Phân biệt repository, component, asset và blob
+  - Mối liên hệ giữa dữ liệu nhị phân với siêu dữ liệu
+  - Phân biệt thư mục cài đặt và thư mục dữ liệu
+  - Đọc luồng tải xuống qua proxy và luồng xuất bản vào hosted
+  - Xác định cổng giao diện quản trị và endpoint giao thức kho
+  - Phân biệt cấu hình hệ thống với cấu hình từng repository
+  - Xác định ranh giới trách nhiệm giữa Nexus, công cụ build và CI
+- level1: Cài đặt
+  level2:
+  - Kiểm tra yêu cầu hệ điều hành, Java và kiến trúc máy theo phiên bản
+  - Ước lượng CPU, RAM, dung lượng và hiệu năng lưu trữ
+  - Cài đặt từ bản phân phối chính thức và kiểm tra tính toàn vẹn
+  - Khởi chạy bằng container với phiên bản image được ghim
+  - Gắn vùng lưu trữ bền vững và thiết lập quyền thư mục
+  - Chạy bằng tài khoản hệ thống có quyền phù hợp
+  - Tổ chức cấu hình môi trường và tham số JVM
+  - Chạy như dịch vụ và kiểm tra quá trình khởi động
+  - Phân biệt môi trường thực hành với yêu cầu triển khai thực tế
+- level1: Quản trị ban đầu
+  level2:
+  - Đăng nhập ban đầu và thay thông tin quản trị mặc định
+  - Làm quen giao diện Browse, Search và Administration
+  - Xác định thông tin phiên bản, giấy phép và trạng thái hệ thống
+  - Kiểm tra các repository mặc định trước khi sử dụng
+  - Thiết lập truy cập ẩn danh theo chính sách tổ chức
+  - Tạo tài khoản dùng thử chỉ có quyền cần thiết
+  - Kiểm chứng tải lên và tải xuống một artifact đầu tiên
+- level1: Mô hình repository
+  level2:
+  - 'Hosted: lưu artifact mà tổ chức sở hữu và xuất bản'
+  - 'Proxy: truy cập và lưu đệm artifact từ kho nguồn'
+  - 'Group: cung cấp điểm truy cập chung cho nhiều repository'
+  - Phân biệt định dạng kho với loại hosted, proxy hoặc group
+  - Đọc ma trận hỗ trợ loại kho của từng định dạng
+  - Quy ước đặt tên, URL và chủ sở hữu repository
+  - Thiết kế kho theo nhóm phát triển, sản phẩm và mức tin cậy
+  - Chọn endpoint đọc và endpoint xuất bản theo giao thức
+  - Tránh tạo quá nhiều kho mà không có ranh giới quản trị rõ ràng
+- level1: Lưu trữ
+  level2:
+  - Lựa chọn cơ sở dữ liệu được hỗ trợ theo phiên bản và edition
+  - Phân biệt H2 nhúng với PostgreSQL bên ngoài
+  - Tạo và gán blob store cho repository
+  - Đánh giá blob store dạng tệp và lưu trữ đối tượng theo khả năng hỗ trợ
+  - Tổ chức dung lượng cho dữ liệu, cơ sở dữ liệu, nhật ký và tệp tạm
+  - Đặt ngưỡng theo dõi và cảnh báo dung lượng
+  - Hiểu tác động của độ trễ lưu trữ lên tải lên và tải xuống
+  - Kiểm tra ràng buộc khi thay đổi hoặc di chuyển blob store
+  - Không sửa hoặc xóa trực tiếp tệp blob để quản lý artifact
+- level1: Kho Maven
+  level2:
+  - Hiểu tọa độ groupId, artifactId, version, classifier và extension
+  - Phân biệt một component Maven với các asset đi kèm
+  - Tạo Maven hosted dành cho release
+  - Tạo Maven hosted dành cho snapshot
+  - Tạo proxy đến Maven Central hoặc kho Maven bên ngoài
+  - Tạo group làm endpoint tải phụ thuộc dùng chung
+  - Cấu hình version policy, layout policy và kiểm tra kiểu nội dung
+  - Chọn deployment policy và kiểm soát ghi đè phiên bản
+  - Hiểu cấu trúc đường dẫn và maven-metadata.xml
+  - Kiểm tra POM, JAR, sources và Javadoc sau khi xuất bản
+- level1: Maven client
+  level2:
+  - Cấu hình mirror trong settings.xml để tải qua Nexus
+  - Phân biệt repository tải thư viện và pluginRepository
+  - Đặt thông tin xác thực trong server theo đúng id
+  - Cấu hình distributionManagement cho release và snapshot
+  - Xuất bản bằng Maven Deploy Plugin
+  - Đưa thư viện bên thứ ba vào hosted với tọa độ và POM phù hợp
+  - Kiểm tra phụ thuộc trực tiếp và phụ thuộc bắc cầu từ máy sạch
+  - Phân biệt bộ nhớ đệm .m2 cục bộ với bộ nhớ đệm Nexus
+  - Chẩn đoán endpoint, profile và thông tin cấu hình Maven hiệu lực
+- level1: Gradle
+  level2:
+  - Khai báo repository Maven của Nexus để phân giải thư viện
+  - Quản lý repository tập trung trong settings.gradle
+  - Phân biệt pluginManagement với dependencyResolutionManagement
+  - Sử dụng maven-publish để tạo MavenPublication
+  - Khai báo tọa độ, thành phần Java và thông tin POM
+  - Xuất bản sources, Javadoc và siêu dữ liệu cần thiết
+  - Chọn kho release hoặc snapshot theo phiên bản artifact
+  - Truyền thông tin xác thực qua biến môi trường hoặc cấu hình riêng
+  - Áp dụng bộ lọc nội dung để chọn nguồn phụ thuộc phù hợp
+  - Kiểm chứng thư viện đã xuất bản từ một dự án sử dụng độc lập
+- level1: Quy trình xuất bản
+  level2:
+  - Phân biệt tạo artifact, tải lên và công bố cho bên sử dụng
+  - Đặt phiên bản phát hành và phiên bản phát triển nhất quán
+  - Giữ release bất biến và xác định quy tắc cập nhật snapshot
+  - Xuất bản đủ dữ liệu nhị phân cùng siêu dữ liệu phụ thuộc
+  - Kiểm tra checksum, chữ ký và nội dung theo yêu cầu dự án
+  - Xử lý lần tải lên thất bại hoặc chỉ hoàn tất một phần
+  - Đánh giá việc thử lại khi không rõ kết quả xuất bản
+  - Liên kết artifact với commit nguồn và lần chạy build
+  - Tránh đồng nhất kho Nexus nội bộ với quy trình xuất bản Maven Central
+- level1: Proxy và cache
+  level2:
+  - Cấu hình kho nguồn, xác thực upstream và kết nối HTTP
+  - Hiểu thời hạn bộ nhớ đệm component và metadata
+  - Hiểu negative cache khi artifact chưa tồn tại
+  - Phân biệt làm mới cache với xóa artifact đã lưu
+  - Xử lý snapshot hoặc metadata thay đổi ở kho nguồn
+  - Kiểm tra tự động chặn upstream và trạng thái kết nối
+  - Đánh giá khả năng phục vụ khi kho nguồn mất kết nối
+  - Phân biệt proxy cache với bản sao đầy đủ của kho nguồn
+  - Cân bằng độ mới dữ liệu với số lần gọi upstream
+  - Kiểm tra chính sách cache sau khi thay cấu hình hoặc phiên bản
+- level1: Group và định tuyến
+  level2:
+  - Sắp xếp thứ tự thành viên trong group theo nguồn ưu tiên
+  - Hiểu tác động khi cùng tọa độ xuất hiện ở nhiều kho
+  - Phân biệt quyền truy cập qua group và truy cập trực tiếp thành viên
+  - Thiết kế group dùng chung mà vẫn kiểm soát nguồn nội bộ
+  - Dùng routing rule để giới hạn đường dẫn được lấy từ upstream
+  - Phân biệt quy tắc định tuyến với content selector
+  - Kiểm tra repository lồng nhau và tránh cấu hình khó truy vết
+  - Xác minh nguồn artifact thực tế thay vì chỉ kiểm tra URL group
+- level1: npm
+  level2:
+  - Tạo npm hosted, proxy và group theo mô hình sử dụng
+  - Cấu hình registry và phạm vi gói trong .npmrc
+  - Thiết lập realm và cơ chế xác thực phù hợp cho npm
+  - Xuất bản gói nội bộ và cài đặt qua endpoint đọc
+  - Kiểm soát namespace để hạn chế nhầm gói nội bộ với gói công khai
+  - Phân biệt nội dung gói, metadata và phiên bản phát hành
+  - Quản lý thông tin xác thực npm trong CI
+  - Kiểm chứng cài đặt từ môi trường không có cache cục bộ
+- level1: Container
+  level2:
+  - Xác định phạm vi hỗ trợ Docker và OCI theo phiên bản
+  - Tạo kho container hosted, proxy và group phù hợp
+  - Chọn phương án endpoint qua cổng, tên miền hoặc reverse proxy
+  - Cấu hình xác thực registry và kiểm tra Docker Bearer Token Realm
+  - Đăng nhập, gắn tên image, đẩy và kéo image
+  - Phân biệt tag thay đổi được với digest định danh nội dung
+  - Kiểm tra manifest, lớp image và dung lượng lưu trữ
+  - Kiểm tra điều kiện hỗ trợ xuất bản qua group trước khi sử dụng
+  - Giới hạn phạm vi Nexus registry với các nội dung container chuyên sâu
+- level1: Python và NuGet
+  level2:
+  - Tạo PyPI hosted, proxy và group theo khả năng hỗ trợ
+  - Cấu hình pip để tải thư viện qua Nexus
+  - Xuất bản gói Python bằng twine và xác thực phù hợp
+  - Kiểm tra metadata và nguy cơ nhầm nguồn gói Python
+  - Tạo NuGet hosted, proxy và group
+  - Chọn endpoint NuGet v2 hoặc v3 theo nhu cầu công cụ
+  - Cấu hình nguồn gói, xác thực và xuất bản gói .NET
+  - Kiểm chứng tải phụ thuộc của Python và .NET từ môi trường sạch
+- level1: Định dạng mở rộng
+  level2:
+  - Đọc ma trận định dạng trước khi thiết kế kho mới
+  - Quản lý Helm chart và phân biệt kho Helm với artifact OCI
+  - Quản lý gói hệ điều hành APT và Yum theo loại kho được hỗ trợ
+  - Thiết lập Go modules và phạm vi mô-đun riêng
+  - Thiết lập Rust Cargo và nguồn crate nội bộ
+  - Đánh giá Conan, Conda, Composer và RubyGems theo hệ sinh thái
+  - Nhận diện các định dạng khác như Ansible, Alpine và Hugging Face
+  - Phân biệt khả năng tích hợp chính thức với plugin cộng đồng
+  - Kiểm tra công cụ khách, xác thực và metadata riêng của từng định dạng
+- level1: Kho Raw
+  level2:
+  - Xác định trường hợp dùng Raw thay cho định dạng chuyên biệt
+  - Tạo Raw hosted, proxy hoặc group theo nhu cầu
+  - Tổ chức đường dẫn và quy ước phiên bản cho tệp phân phối
+  - Tải lên và tải xuống tệp bằng HTTP hoặc API được hỗ trợ
+  - Lưu gói ZIP, tài liệu và tệp kiểm chứng đi kèm
+  - Kiểm tra kiểu nội dung, checksum và quyền truy cập
+  - Hiểu giới hạn của Raw đối với phân giải phụ thuộc và metadata
+- level1: Xác thực
+  level2:
+  - Phân biệt xác thực danh tính với phân quyền thao tác
+  - Tạo tài khoản cục bộ và quản lý vòng đời người sử dụng
+  - Thiết kế tài khoản riêng cho máy build và tự động hóa
+  - Đánh giá user token hoặc cơ chế token theo edition và giao thức
+  - Cấu hình realms và thứ tự xử lý xác thực
+  - Tích hợp LDAP theo mô hình danh tính của tổ chức
+  - Kiểm tra khả năng hỗ trợ SAML hoặc OIDC theo edition
+  - Xác định phạm vi và rủi ro của truy cập ẩn danh
+  - Luân chuyển, thu hồi và kiểm chứng thông tin xác thực
+- level1: Phân quyền
+  level2:
+  - Mô hình user, role và privilege trong Nexus
+  - Phân biệt quyền browse, read, add, edit và delete
+  - Thiết kế vai trò tải phụ thuộc, xuất bản và quản trị
+  - Giới hạn quyền theo repository và định dạng
+  - Dùng content selector để giới hạn một phần nội dung
+  - Kiểm tra phạm vi content selector theo giao thức sử dụng
+  - Kiểm tra tác động của quyền qua repository group
+  - Tránh cấp wildcard hoặc quyền quản trị cho tài khoản CI
+  - Phân tách quyền xuất bản release với xóa hoặc ghi đè dữ liệu
+  - Kiểm chứng cả thao tác được phép và thao tác phải bị từ chối
+- level1: Chuỗi cung ứng
+  level2:
+  - Xác định mức tin cậy của nguồn artifact và tài khoản xuất bản
+  - Giảm nguy cơ dependency confusion bằng nguồn và namespace có chủ đích
+  - Kiểm tra tính toàn vẹn bằng checksum và chính sách xác minh
+  - Phân biệt checksum, chữ ký số và bằng chứng nguồn gốc build
+  - Lưu hoặc liên kết SBOM cùng artifact theo yêu cầu
+  - Đánh giá tích hợp Sonatype Lifecycle và Repository Firewall theo giấy phép
+  - Phân biệt lưu trữ artifact với quét lỗ hổng hoặc chặn thành phần
+  - Thiết kế cách ly và xử lý artifact bị nghi ngờ mà vẫn giữ khả năng điều tra
+- level1: Mạng và TLS
+  level2:
+  - Đặt Nexus sau reverse proxy và xác định URL công khai
+  - Cấu hình HTTPS, chứng chỉ và chuỗi tin cậy
+  - Phân biệt TLS phía công cụ khách với TLS đến upstream
+  - Kiểm tra truststore của JVM và kho chứng chỉ hệ điều hành
+  - Điều chỉnh header chuyển tiếp, đường dẫn ngữ cảnh và chuyển hướng
+  - Cấu hình HTTP proxy cho kết nối ra ngoài
+  - Xử lý giới hạn kích thước yêu cầu và thời gian tải lên
+  - Tách mạng quản trị với truy cập artifact theo kiến trúc
+  - Kiểm chứng các giao thức kho qua cùng hạ tầng mạng
+- level1: API và tự động hóa
+  level2:
+  - Tra cứu OpenAPI và Swagger của đúng phiên bản Nexus đang chạy
+  - Xác thực và phân quyền cho công cụ gọi REST API
+  - Liệt kê repository, component và asset
+  - Tìm kiếm có điều kiện và xử lý continuationToken
+  - Tải lên component theo định dạng được API hỗ trợ
+  - Tải xuống bằng định danh chính xác và xác minh checksum
+  - Tạo hoặc cập nhật repository bằng API có kiểm tra trạng thái hiện tại
+  - Quản lý tác vụ và theo dõi kết quả tự động hóa
+  - Phân biệt REST API được hỗ trợ với Groovy scripting bị giới hạn
+  - Thiết kế thao tác thử lại an toàn và xử lý lỗi từng bước
+- level1: CI/CD
+  level2:
+  - Tách giai đoạn tải phụ thuộc khỏi giai đoạn xuất bản
+  - Cấp thông tin xác thực bằng kho bí mật của nền tảng CI
+  - Dùng danh tính chỉ đọc cho kiểm thử pull request
+  - Giới hạn xuất bản release cho nguồn và nhánh được tin cậy
+  - Tích hợp Maven hoặc Gradle với GitHub Actions
+  - Tích hợp quy trình xuất bản với GitLab CI hoặc Jenkins
+  - Dùng phiên bản duy nhất và kiểm soát hai lần chạy xuất bản đồng thời
+  - Dựng một lần và dùng cùng artifact qua các môi trường
+  - Kiểm tra kết quả xuất bản trước khi cho bước triển khai tiếp tục
+  - Lưu thông tin truy vết giữa commit, pipeline và artifact
+- level1: Quản lý phát hành
+  level2:
+  - Thiết kế luồng snapshot, ứng viên phát hành và release
+  - Phân biệt promotion với dựng lại artifact từ cùng mã nguồn
+  - Đánh giá staging, tagging và khả năng hỗ trợ theo edition
+  - Phân biệt công cụ staging của Nexus Repository 2 với Nexus Repository 3
+  - Kiểm tra nội dung, phụ thuộc và chính sách trước khi công bố
+  - Tổ chức điểm truy cập cho bên sử dụng sau khi phát hành
+  - Khôi phục ứng dụng bằng artifact đã phát hành và xác minh được
+  - Tránh sửa nội dung release để xử lý lỗi của một lần triển khai
+- level1: Chính sách lưu giữ
+  level2:
+  - Phân loại dữ liệu cần giữ lâu và dữ liệu có thể dọn
+  - Kiểm tra khả năng cleanup theo edition và phiên bản
+  - Thiết kế chính sách theo tuổi, lần tải gần nhất và mẫu tên
+  - Đánh giá tác động với release, snapshot và phụ thuộc còn sử dụng
+  - Xem trước phạm vi khi tính năng hỗ trợ và kiểm tra trước khi áp dụng
+  - Hiểu soft delete và việc chưa thu hồi dung lượng ngay
+  - Lập lịch compact hoặc thu gom theo loại blob store
+  - Phân biệt xóa component với xóa từng asset
+  - Theo dõi kết quả tác vụ và tốc độ tăng dung lượng
+  - Giữ đủ artifact để dựng lại và quay về bản phát hành cần thiết
+- level1: Quan sát hệ thống
+  level2:
+  - Đọc nhật ký ứng dụng, truy cập và kiểm toán theo khả năng hỗ trợ
+  - Theo dõi trạng thái dịch vụ và các endpoint kiểm tra sẵn sàng
+  - Đo độ trễ, tỷ lệ lỗi và tốc độ tải lên hoặc tải xuống
+  - Theo dõi JVM, heap, thu gom rác và số luồng
+  - Theo dõi cơ sở dữ liệu, dung lượng và độ trễ blob store
+  - Giám sát proxy bị chặn, upstream lỗi và tỷ lệ dùng cache
+  - Theo dõi tác vụ dọn dữ liệu, sao lưu và bảo trì
+  - Phát hiện sử dụng vượt giới hạn hoặc lưu lượng xuất bản bất thường
+  - Xây dựng cảnh báo và hướng dẫn điều tra theo ảnh hưởng đến pipeline
+- level1: Hiệu năng
+  level2:
+  - Đo tải thực tế theo số yêu cầu và kích thước artifact
+  - Phân biệt nghẽn CPU, bộ nhớ, cơ sở dữ liệu và lưu trữ
+  - Điều chỉnh JVM theo hướng dẫn của phiên bản đang dùng
+  - Quản lý số kết nối, thời gian chờ và tác vụ nền
+  - Tối ưu đường truyền và cấu hình reverse proxy cho tệp lớn
+  - Điều chỉnh cache dựa trên độ mới và độ ổn định nguồn
+  - Tránh chạy tác vụ bảo trì nặng vào thời điểm tải cao
+  - Kiểm thử tải với giới hạn và dữ liệu gần thực tế
+- level1: Sao lưu và phục hồi
+  level2:
+  - Xác định mục tiêu mất dữ liệu cho phép và thời gian khôi phục
+  - Sao lưu cơ sở dữ liệu cùng blob store tương ứng
+  - Bảo toàn thư mục dữ liệu, cấu hình, khóa và định danh node cần thiết
+  - Chọn phương án sao lưu H2 hoặc PostgreSQL theo tài liệu hiện hành
+  - Giữ tính nhất quán khi sao lưu trong lúc hệ thống hoạt động
+  - Phân biệt snapshot hạ tầng, sao chép lưu trữ và bản sao lưu độc lập
+  - Phục hồi vào phiên bản và cấu hình tương thích
+  - Kiểm chứng đăng nhập, tải artifact và xuất bản sau phục hồi
+  - Đánh giá kế hoạch sửa dữ liệu chỉ khi có nguyên nhân và hướng dẫn phù hợp
+  - Diễn tập phục hồi và ghi lại bằng chứng kiểm chứng
+- level1: Nâng cấp và di chuyển
+  level2:
+  - Đọc release notes, cảnh báo bảo mật và đường nâng cấp được hỗ trợ
+  - Kiểm tra thay đổi yêu cầu Java, cơ sở dữ liệu và hệ điều hành
+  - Phân biệt nâng cấp ứng dụng với chuyển đổi cơ sở dữ liệu
+  - Nhận diện OrientDB và kiến trúc cũ khi tiếp quản hệ thống
+  - Sao lưu và thử nâng cấp trên môi trường cô lập
+  - Kiểm tra plugin, API và công cụ tích hợp sau nâng cấp
+  - Di chuyển máy chủ hoặc blob store bằng quy trình được hỗ trợ
+  - Lập kế hoạch chuyển endpoint mà không làm gián đoạn công cụ build
+  - Xác định giới hạn quay lui sau khi đã chuyển đổi lược đồ dữ liệu
+- level1: Tính sẵn sàng
+  level2:
+  - Phân biệt một node có khả năng phục hồi với cụm sẵn sàng cao
+  - Đối chiếu kiến trúc HA, giấy phép và phiên bản được hỗ trợ
+  - Thiết kế cân bằng tải, kiểm tra sẵn sàng và dữ liệu dùng chung
+  - Hiểu vì sao không thể tùy ý tăng số container dùng chung thư mục dữ liệu
+  - Đánh giá proxy vùng, sao chép và dự phòng theo tính năng sẵn có
+  - Xử lý mất upstream mà không giả định mọi artifact đã được cache
+  - Diễn tập lỗi node, cơ sở dữ liệu và hệ thống lưu trữ
+- level1: Xử lý lỗi
+  level2:
+  - Phân biệt HTTP 401, 403, 404, lỗi chính sách và lỗi máy chủ
+  - Kiểm tra sai endpoint hoặc nhầm hosted, proxy và group
+  - Chẩn đoán thiếu quyền add, edit hoặc quyền theo đường dẫn
+  - Xử lý release bị từ chối ghi đè hoặc sai version policy
+  - Xử lý artifact đã có ở upstream nhưng còn bị negative cache
+  - Chẩn đoán Maven metadata hoặc checksum không khớp
+  - Kiểm tra Gradle hoặc Maven vẫn truy cập kho ngoài Nexus
+  - Xử lý lỗi chứng chỉ, chuyển hướng và xác thực qua reverse proxy
+  - Chẩn đoán container push hoặc pull không đúng endpoint
+  - Xử lý đầy đĩa, quyền thư mục và blob store không sẵn sàng
+  - Kiểm tra tác vụ thất bại mà không tự sửa dữ liệu lưu trữ trực tiếp
+  - Thu thập thông tin phiên bản, yêu cầu lỗi và nhật ký để tái hiện
+- level1: Kiểm chứng
+  level2:
+  - Thiết kế bộ kiểm tra tải lên và tải xuống cho từng định dạng sử dụng
+  - Kiểm tra release bất biến và snapshot theo chính sách
+  - Kiểm tra phân quyền bằng nhiều vai trò riêng biệt
+  - Kiểm tra proxy khi cache trống, cache có dữ liệu và upstream mất kết nối
+  - Kiểm tra nguồn artifact trong repository group
+  - Kiểm tra pipeline dùng Nexus từ môi trường không có cache cục bộ
+  - Kiểm tra tính toàn vẹn và metadata của artifact xuất bản
+  - Kiểm tra cleanup với dữ liệu đại diện trước khi dùng thực tế
+  - Kiểm tra lại chức năng sau nâng cấp hoặc phục hồi
+- level1: Thực hành
+  level2:
+  - Dựng Nexus bằng container với dữ liệu bền vững
+  - Tạo bộ Maven release, snapshot, proxy và group
+  - Xuất bản thư viện bằng Maven rồi sử dụng từ dự án độc lập
+  - Xuất bản thư viện bằng Gradle cùng POM, sources và Javadoc
+  - Tạo vai trò chỉ đọc và vai trò xuất bản có phạm vi hẹp
+  - Tích hợp pipeline xuất bản bằng danh tính máy build
+  - Thêm một hệ sinh thái như npm hoặc PyPI vào cùng hệ thống
+  - Xuất bản và kéo image qua Nexus container registry
+  - Thử nghiệm cache, phân quyền và lỗi xuất bản thường gặp
+  - Thiết kế chính sách lưu giữ cùng kế hoạch sao lưu và phục hồi
+  - Tự đánh giá độ đúng, khả năng tái tạo build và chi phí vận hành

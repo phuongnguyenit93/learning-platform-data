@@ -1,0 +1,57 @@
+roadmap:
+- id: helm-release
+  title: Helm & Release
+  purpose: Hiểu cách Helm đóng gói tài nguyên Kubernetes và quản lý từng lần triển khai.
+  objectives:
+  - Cài Helm CLI và kiểm tra kết nối cluster
+  - Phân biệt chart, release và revision
+  - Dùng helm list/status xem release
+- id: cau-truc-chart
+  title: Cấu trúc Chart
+  purpose: Tạo bộ chart có metadata, cấu hình mặc định và mẫu tài nguyên rõ ràng.
+  objectives:
+  - Chạy helm create và xem cấu trúc thư mục
+  - Giải thích Chart.yaml, values.yaml, templates/
+  - Điều chỉnh manifest Deployment và Service
+- id: values-override
+  title: Values & Override
+  purpose: Tách cấu hình của môi trường khỏi các template để tái sử dụng chart.
+  objectives:
+  - Khai báo giá trị mặc định trong values.yaml
+  - Thử ghi đè bằng -f và --set
+  - Tránh đưa secrets dạng rõ vào Git hoặc CLI
+- id: go-templates
+  title: Go Templates
+  purpose: Sinh Kubernetes manifest linh hoạt bằng cú pháp và hàm template của Helm.
+  objectives:
+  - Dùng .Values, .Release và .Chart
+  - Áp dụng if, range và include
+  - Kiểm tra kết quả bằng helm template
+- id: dependencies-hooks
+  title: Dependencies & Hooks
+  purpose: Kết hợp chart phụ thuộc và hiểu tác động của tác vụ theo vòng đời release.
+  objectives:
+  - Khai báo dependencies trong Chart.yaml
+  - Chạy helm dependency update
+  - Phân biệt hook với tài nguyên thông thường
+- id: install-upgrade
+  title: Install & Upgrade
+  purpose: Triển khai thay đổi có kiểm soát và quay lại revision khi gặp lỗi.
+  objectives:
+  - Chạy helm install và helm upgrade
+  - Xem helm history và helm get values
+  - Thực hành helm rollback trên môi trường thử
+- id: lint-release-tests
+  title: Lint & Release Tests
+  purpose: Phát hiện lỗi manifest trước triển khai và kiểm chứng release sau khi cài.
+  objectives:
+  - Chạy helm lint trên chart mẫu
+  - Render bằng helm template và đọc YAML
+  - Viết test hook đơn giản rồi chạy helm test
+- id: package-distribution
+  title: Package & Distribution
+  purpose: Đóng gói chart có phiên bản và phân phối qua kho lưu trữ đáng tin cậy.
+  objectives:
+  - Tăng chart version và chạy helm package
+  - Đẩy hoặc tải chart qua OCI registry
+  - Kiểm tra nguồn chart và quyền truy cập

@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Vòng đời phát hành
+  slug: release-lifecycle
+  index: 1
+- title: Vai trò và trách nhiệm
+  slug: roles-and-responsibilities
+  index: 2
+- title: Chính sách phát hành
+  slug: release-policies
+  index: 3
+- title: Phạm vi thay đổi
+  slug: change-scope
+  index: 4
+- title: Lập kế hoạch
+  slug: release-planning
+  index: 5
+- title: Mã nguồn và phiên bản
+  slug: source-control-and-versioning
+  index: 6
+- title: Ứng viên phát hành
+  slug: release-candidates
+  index: 7
+- title: Gói phát hành
+  slug: release-packages
+  index: 8
+- title: Điều kiện chất lượng
+  slug: quality-gates
+  index: 9
+- title: Rủi ro phát hành
+  slug: release-risks
+  index: 10
+- title: Nguồn gốc gói
+  slug: artifact-provenance
+  index: 11
+- title: Môi trường và cấu hình
+  slug: environments-and-configuration
+  index: 12
+- title: Tương thích
+  slug: compatibility
+  index: 13
+- title: Thay đổi dữ liệu
+  slug: data-changes
+  index: 14
+- title: Chiến lược triển khai
+  slug: deployment-strategies
+  index: 15
+- title: Bật tắt tính năng
+  slug: feature-flags
+  index: 16
+- title: Tự động hóa
+  slug: automation
+  index: 17
+- title: Điều phối phát hành
+  slug: release-orchestration
+  index: 18
+- title: Phê duyệt và quyền
+  slug: approvals-and-permissions
+  index: 19
+- title: Thực hiện phát hành
+  slug: release-execution
+  index: 20
+- title: Xác minh sau triển khai
+  slug: post-deployment-verification
+  index: 21
+- title: Khôi phục
+  slug: recovery
+  index: 22
+- title: Bản vá khẩn cấp
+  slug: emergency-hotfixes
+  index: 23
+- title: Nhiều thành phần
+  slug: multi-component-releases
+  index: 24
+- title: Ghi chú phát hành
+  slug: release-notes
+  index: 25
+- title: Truyền thông
+  slug: communications
+  index: 26
+- title: Hồ sơ và cải tiến
+  slug: documentation-and-improvement
+  index: 27
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 28
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 29

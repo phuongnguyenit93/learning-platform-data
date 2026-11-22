@@ -1,0 +1,57 @@
+roadmap:
+- id: compute-mo-hinh-dich-vu
+  title: Compute & mô hình dịch vụ
+  purpose: Nhận diện lựa chọn tính toán trên cloud theo mức độ quản lý hạ tầng và loại workload.
+  objectives:
+  - Phân biệt IaaS VM, container và serverless compute
+  - So sánh quyền kiểm soát, vận hành và mô hình tính phí
+  - Chọn mô hình cho web app, worker và tác vụ theo sự kiện
+- id: vm-chon-cau-hinh
+  title: VM & chọn cấu hình
+  purpose: Lựa chọn tài nguyên máy ảo theo nhu cầu CPU, bộ nhớ, dung lượng và đặc thù ứng dụng.
+  objectives:
+  - Chọn instance type theo vCPU, RAM và kiến trúc CPU
+  - Phân biệt vùng, zone, quota và giới hạn tài nguyên
+  - Tạo và dừng một VM thực hành để kiểm soát chi phí
+- id: image-khoi-tao
+  title: Image & khởi tạo
+  purpose: Tạo môi trường ứng dụng có khả năng tái lập, thay vì cấu hình máy chủ hoàn toàn thủ công.
+  objectives:
+  - Phân biệt machine image với disk và snapshot
+  - Khởi tạo hệ điều hành bằng user data hoặc cloud-init
+  - Triển khai ứng dụng Java và kiểm tra tiến trình
+- id: ket-noi-bao-mat
+  title: Kết nối & bảo mật
+  purpose: Bảo vệ VM và giới hạn giao tiếp đến đúng thành phần ứng dụng cần thiết.
+  objectives:
+  - Giải thích private IP, public IP và security group/firewall
+  - Mở đúng cổng, nguồn truy cập và kiểm thử kết nối
+  - Dùng IAM/managed identity thay khóa tĩnh khi có thể
+- id: container-compute
+  title: Container Compute
+  purpose: Nắm cách đóng gói và triển khai ứng dụng bằng container mà không phụ thuộc vào một VM duy nhất.
+  objectives:
+  - Tạo container image cho ứng dụng Java
+  - So sánh VM, managed containers và Kubernetes Pods
+  - Giải thích service, replica và rolling update
+- id: scaling-kha-dung-cao
+  title: Scaling & khả dụng cao
+  purpose: Thích ứng tải tăng giảm và giảm rủi ro khi một instance bị lỗi.
+  objectives:
+  - Phân biệt scale up, scale out và auto scaling
+  - Kết hợp load balancer với health check
+  - Mô tả triển khai nhiều zone và khôi phục instance lỗi
+- id: serverless-tac-vu-nen
+  title: Serverless & tác vụ nền
+  purpose: Chọn mô hình chạy code hoặc job theo yêu cầu thay vì duy trì máy ảo luôn bật.
+  objectives:
+  - Phân biệt function, container service và batch job
+  - Thiết lập trigger HTTP hoặc sự kiện và giới hạn timeout
+  - Giải thích cold start, concurrency và tính phi trạng thái
+- id: giam-sat-toi-uu-chi-phi
+  title: Giám sát & tối ưu chi phí
+  purpose: Đánh giá hiệu năng, tính sẵn sàng và mức sử dụng để chọn cấu hình compute phù hợp.
+  objectives:
+  - Theo dõi CPU, memory, latency và lỗi ứng dụng
+  - Tạo cảnh báo, thử tải nhỏ và đánh giá right-sizing
+  - Dọn tài nguyên, kiểm tra chi phí và ghi nhận kết quả

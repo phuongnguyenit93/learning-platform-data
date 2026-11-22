@@ -1,0 +1,49 @@
+roadmap:
+- id: document-bson
+  title: Document & BSON
+  purpose: Nắm mô hình dữ liệu document và cách MongoDB biểu diễn dữ liệu linh hoạt.
+  objectives:
+  - '- Phân biệt database, collection, document và BSON.'
+  - '- Giải thích _id, ObjectId, embedded document và array.'
+- id: khoi-chay-mongodb
+  title: Khởi chạy MongoDB
+  purpose: Tạo môi trường thực hành và kết nối đến một MongoDB deployment.
+  objectives:
+  - '- Khởi tạo MongoDB local hoặc MongoDB Atlas.'
+  - '- Kết nối mongosh và kiểm tra database/collection.'
+- id: crud-truy-van
+  title: CRUD & Truy vấn
+  purpose: Thực hiện các thao tác cơ bản để lưu và tìm dữ liệu theo điều kiện.
+  objectives:
+  - '- Dùng insertOne, find, updateOne và deleteOne.'
+  - '- Viết filter, projection, sort và limit.'
+- id: data-modeling
+  title: Data Modeling
+  purpose: Thiết kế cấu trúc document dựa trên cách ứng dụng đọc và cập nhật dữ liệu.
+  objectives:
+  - '- So sánh embedding và referencing theo access pattern.'
+  - '- Chọn kiểu field, quy ước schema và schema validation.'
+- id: index-explain
+  title: Index & Explain
+  purpose: Cải thiện truy vấn phổ biến và đo hiệu quả của index trước khi tối ưu.
+  objectives:
+  - '- Tạo single-field, compound và unique index.'
+  - '- Đọc explain để nhận diện COLLSCAN, IXSCAN và số document quét.'
+- id: aggregation-pipeline
+  title: Aggregation Pipeline
+  purpose: Tổng hợp, biến đổi và thống kê dữ liệu ngay trong database.
+  objectives:
+  - '- Dùng $match, $project, $group và $sort.'
+  - '- Tạo pipeline phân tích số lượng hoặc doanh thu.'
+- id: java-sync-driver
+  title: Java Sync Driver
+  purpose: Kết nối ứng dụng Java với MongoDB qua driver chính thức và xử lý dữ liệu có cấu trúc.
+  objectives:
+  - '- Tạo MongoClient và gọi MongoCollection CRUD.'
+  - '- Dùng Filters/Aggregates builder, kiểm soát kết nối và lỗi.'
+- id: transactions-scale
+  title: Transactions & Scale
+  purpose: Hiểu độ tin cậy của thao tác ghi và cách MongoDB mở rộng, duy trì sẵn sàng.
+  objectives:
+  - '- Phân biệt atomic document với multi-document transaction.'
+  - '- Giải thích replica set, read/write concern và shard key.'

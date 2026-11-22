@@ -1,0 +1,2143 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: 'Proxy là gì: vai trò trung gian giữa bên gửi và bên nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Vì sao cần proxy: kiểm soát truy cập, che giấu cấu trúc và phân phối lưu lượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mô hình client – proxy – upstream và các thuật ngữ nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt proxy, router, NAT, firewall, load balancer và API gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Những gì proxy quan sát hoặc thay đổi ở từng tầng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lợi ích và đánh đổi về độ trễ, độ phức tạp và điểm lỗi tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ranh giới nội dung nền tảng và các module Nginx, HAProxy, API gateway, service mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và cách đọc sơ đồ đường đi của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: foundations
+  title: Kiến thức nền
+  childs:
+  - slug: foundations-001
+    title: Địa chỉ IP, cổng, socket và cặp đầu cuối của một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-002
+    title: DNS và vai trò phân giải tên trước khi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-003
+    title: 'TCP và UDP: khác biệt khi đặt proxy ở tầng vận chuyển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-004
+    title: 'HTTP: yêu cầu, phản hồi, phương thức, trạng thái, header và body'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-005
+    title: 'TLS: mã hóa, chứng chỉ và xác thực đầu cuối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-006
+    title: Phân biệt kết nối mạng, yêu cầu HTTP và phiên đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-007
+    title: Chiều vào, chiều ra và ranh giới tin cậy trong sơ đồ mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-types
+  title: Các kiểu proxy
+  childs:
+  - slug: proxy-types-001
+    title: 'Forward proxy: đại diện cho phía client khi truy cập tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-002
+    title: 'Reverse proxy: đại diện cho phía dịch vụ khi tiếp nhận yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-003
+    title: 'Explicit proxy và transparent proxy: cách lưu lượng được chuyển qua trung gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-004
+    title: 'Proxy tầng 4 và tầng 7: thông tin định tuyến và mức độ can thiệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-005
+    title: Proxy cho lưu lượng vào (ingress) và lưu lượng ra (egress)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-006
+    title: Proxy trên máy người dùng, proxy dùng chung và proxy cạnh dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-007
+    title: 'Chuỗi nhiều proxy: điểm vào, các chặng trung gian và điểm ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-008
+    title: Biến môi trường HTTP_PROXY, HTTPS_PROXY, NO_PROXY và sự khác biệt giữa ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-types-009
+    title: Cấu hình tự động bằng PAC/WPAD và các giới hạn an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-flows
+  title: Luồng kết nối
+  childs:
+  - slug: connection-flows-001
+    title: 'Đường đi trực tiếp và đường đi qua proxy: so sánh từng chặng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-002
+    title: Hai chặng kết nối client–proxy và proxy–upstream độc lập như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-003
+    title: 'Vòng đời yêu cầu: tiếp nhận, kiểm tra, chọn đích, chuyển tiếp và phản hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-004
+    title: Điểm thực hiện DNS khi dùng forward proxy, reverse proxy và đường hầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-005
+    title: Địa chỉ nguồn và địa chỉ đích thay đổi qua từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-006
+    title: Proxy TCP chấm dứt kết nối và cơ chế chuyển tiếp gói tin khác nhau ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-007
+    title: Luồng trả về, định tuyến bất đối xứng và điều kiện kết nối thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-flows-008
+    title: FIN, RST, ngắt kết nối một chiều và yêu cầu còn đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-proxies
+  title: Proxy HTTP
+  childs:
+  - slug: http-proxies-001
+    title: HTTP/1.1 origin-form, absolute-form và authority-form trong các ngữ cảnh proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-002
+    title: Forward proxy xử lý URL đích và trường Host như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-003
+    title: Reverse proxy tiếp nhận yêu cầu rồi xây dựng yêu cầu gửi upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-004
+    title: 'Header đầu cuối và header theo từng chặng: quy tắc chuyển tiếp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-005
+    title: Connection và việc loại bỏ các header chỉ dành cho một chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-006
+    title: Content-Length, Transfer-Encoding và ranh giới thông điệp HTTP/1.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-007
+    title: Chuyển tiếp phương thức, mã trạng thái, body và nội dung lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-008
+    title: 'Viết lại URL và đường dẫn: tiền tố, dấu gạch chéo và query string'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-009
+    title: Chuyển hướng Location và ảnh hưởng của địa chỉ công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-010
+    title: Cookie Domain, Path, Secure và ứng dụng đặt sau reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-proxies-011
+    title: Proxy-Authorization, Proxy-Authenticate và phản hồi 407
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tunneling-socks
+  title: Đường hầm và SOCKS
+  childs:
+  - slug: tunneling-socks-001
+    title: Đường hầm (tunnel) khác chuyển tiếp yêu cầu ứng dụng như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-002
+    title: 'HTTP CONNECT: thiết lập đường hầm tới host và cổng đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-003
+    title: 'HTTPS qua CONNECT: TLS chạy giữa những đầu cuối nào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-004
+    title: Giới hạn khả năng quan sát nội dung bên trong đường hầm mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-005
+    title: 'SOCKS5: thương lượng phương thức xác thực và yêu cầu kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-006
+    title: Phân giải DNS tại client hoặc tại SOCKS proxy và nguy cơ lộ truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-007
+    title: 'SOCKS5 UDP ASSOCIATE: phạm vi hỗ trợ và khác biệt với CONNECT TCP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-008
+    title: Phân biệt HTTP proxy, HTTPS proxy và SOCKS proxy khi cấu hình client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tunneling-socks-009
+    title: Giới hạn cổng, đích kết nối và tài nguyên cho đường hầm dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-proxies
+  title: Proxy TLS
+  childs:
+  - slug: tls-proxies-001
+    title: 'TLS passthrough, termination và re-encryption: so sánh đường đi mã hóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-002
+    title: 'TLS termination: nơi giữ khóa riêng và nơi nhìn thấy dữ liệu rõ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-003
+    title: Mã hóa lại tới upstream và xác minh danh tính máy chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-004
+    title: SNI, chứng chỉ đa tên miền và lựa chọn đích khi chưa giải mã HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-005
+    title: ALPN và thương lượng giao thức trên từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-006
+    title: 'mTLS: xác thực client ở proxy và xác thực giữa proxy với upstream'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-007
+    title: Chuỗi chứng chỉ, kho tin cậy, tên máy chủ và lỗi xác minh thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-008
+    title: Chứng chỉ hết hạn, gia hạn và thay chứng chỉ khi hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-009
+    title: 'TLS inspection qua CA được tin cậy: cơ chế và giới hạn quyền riêng tư'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-010
+    title: Certificate pinning và những trường hợp TLS interception không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-proxies-011
+    title: Thông tin HTTPS công khai khi chặng nội bộ dùng HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing
+  title: Định tuyến
+  childs:
+  - slug: routing-001
+    title: Listener, địa chỉ bind, cổng tiếp nhận và giao diện mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-002
+    title: Virtual host và định tuyến theo tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-003
+    title: Định tuyến theo đường dẫn, phương thức và header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-004
+    title: Thứ tự khớp quy tắc, quy tắc mặc định và trường hợp chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-005
+    title: Phân biệt chọn route, chọn nhóm upstream và chọn máy chủ trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-006
+    title: Đích upstream cố định, đích qua DNS và thay đổi địa chỉ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-007
+    title: TTL, lưu DNS trong bộ nhớ và ảnh hưởng của bản ghi cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-008
+    title: IPv4, IPv6 và lỗi khác biệt giữa hai họ địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-009
+    title: Chuẩn hóa, giải mã URL và bảo toàn query khi chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-010
+    title: Tránh vòng lặp định tuyến khi proxy trỏ về chính nó hoặc proxy khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-address-information
+  title: Thông tin nguồn
+  childs:
+  - slug: source-address-information-001
+    title: Vì sao upstream thường chỉ thấy địa chỉ IP của proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-002
+    title: 'Forwarded: biểu diễn địa chỉ nguồn, host và giao thức gốc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-003
+    title: X-Forwarded-For, X-Forwarded-Host và X-Forwarded-Proto
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-004
+    title: X-Real-IP và giới hạn khi đường đi có nhiều proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-005
+    title: Chọn đúng IP client trong chuỗi proxy dựa trên danh sách trung gian tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-006
+    title: Ngăn giả mạo header bằng cách loại bỏ, ghi đè hoặc nối theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-007
+    title: 'PROXY protocol: truyền thông tin đầu cuối trước giao thức ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-008
+    title: Sự khác biệt giữa PROXY protocol, HTTP header và giữ nguyên IP ở tầng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-address-information-009
+    title: URL tuyệt đối, ghi log và kiểm soát truy cập khi ứng dụng tin thông tin proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-balancing
+  title: Cân bằng tải
+  childs:
+  - slug: load-balancing-001
+    title: Quan hệ giữa reverse proxy, nhóm upstream và bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-002
+    title: Round robin và phân phối theo trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-003
+    title: Least connections và ảnh hưởng của kết nối kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-004
+    title: 'Băm theo khóa và consistent hashing: tính ổn định khi thay đổi nhóm máy chủ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-005
+    title: 'Sticky session: cách duy trì máy chủ đích và đánh đổi về khả năng phục hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-006
+    title: Kiểm tra sức khỏe chủ động và phát hiện lỗi thụ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-007
+    title: Liveness, readiness và vì sao cổng mở chưa chứng minh dịch vụ dùng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-008
+    title: Loại máy chủ lỗi, đưa máy chủ phục hồi trở lại và tránh dao động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-009
+    title: Phân phối lưu lượng cho canary, blue-green và chuyển vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-010
+    title: Nhận diện phân phối lệch khi tải theo yêu cầu khác tải theo kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-management
+  title: Quản lý kết nối
+  childs:
+  - slug: connection-management-001
+    title: Keep-alive và tái sử dụng kết nối trên từng chặng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-002
+    title: 'Connection pool tới upstream: kích thước, phạm vi và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-003
+    title: HTTP/1.1 tuần tự, HTTP/2 ghép nhiều luồng và áp lực lên upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-004
+    title: Kết nối nhàn rỗi, giới hạn tuổi thọ và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-005
+    title: Connection backlog và hàng đợi chờ kết nối hoặc chờ upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-006
+    title: File descriptor, cổng nguồn tạm thời, TIME_WAIT và giới hạn hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-007
+    title: TCP keepalive khác HTTP keep-alive như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-008
+    title: Giới hạn kết nối đồng thời cho client, proxy và upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-management-009
+    title: 'Tái sử dụng kết nối đã bị đóng: nguyên nhân reset và lỗi chập chờn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts-retries
+  title: Thời hạn và thử lại
+  childs:
+  - slug: timeouts-retries-001
+    title: Thời hạn DNS, kết nối, bắt tay TLS, đọc và ghi thuộc các giai đoạn nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-002
+    title: Phân biệt timeout tổng, timeout chờ nhàn rỗi và khoảng chờ giữa các lần đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-003
+    title: Phân bổ ngân sách thời gian cho chuỗi nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-004
+    title: Hủy yêu cầu khi client rời đi và xử lý công việc vẫn chạy ở upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-005
+    title: 'Thử lại ở client, proxy và dịch vụ: nguy cơ nhân số lần gọi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-006
+    title: Điều kiện thử lại theo lỗi mạng, mã trạng thái và trạng thái gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-007
+    title: Tính idempotent và nguy cơ lặp thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-008
+    title: Giới hạn số lần thử, backoff, jitter và ngân sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-009
+    title: Chuyển sang upstream khác và giới hạn khi phản hồi đã bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-010
+    title: Circuit breaker, giới hạn đồng thời và ngăn lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-011
+    title: Fallback và trả lỗi có kiểm soát khi không còn upstream khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: buffering-streaming
+  title: Bộ đệm và truyền luồng
+  childs:
+  - slug: buffering-streaming-001
+    title: Bộ đệm yêu cầu và bộ đệm phản hồi giải quyết vấn đề gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-002
+    title: Truyền luồng trực tiếp so với nhận đủ dữ liệu rồi chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-003
+    title: Giới hạn body, header và việc từ chối yêu cầu quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-004
+    title: 'Dữ liệu lưu trong RAM hoặc tệp tạm: chi phí và rủi ro tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-005
+    title: Backpressure khi client, proxy và upstream có tốc độ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-006
+    title: Tải lên và tải xuống tệp lớn qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-007
+    title: 'Nén và giải nén nội dung: băng thông, CPU và tính đúng đắn của header'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-008
+    title: Độ trễ tới byte đầu tiên và thời điểm flush dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: buffering-streaming-009
+    title: Ngắt luồng giữa chừng và giới hạn khôi phục sau khi đã gửi phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Bộ nhớ đệm HTTP tại proxy và khác biệt với bộ đệm truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: 'Cache key: phương thức, host, đường dẫn, query và các biến thể nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Cache-Control, Expires, Date và Age trong tính độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Shared cache, private, public, no-cache và no-store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Vary và tránh trả nhầm biến thể nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: ETag, Last-Modified và xác thực lại bằng yêu cầu có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Cache HIT, MISS, BYPASS, EXPIRED và REVALIDATED biểu thị điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Cookie, Authorization và ngăn rò rỉ dữ liệu cá nhân qua cache dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Làm mới, vô hiệu hóa và xóa cache khi dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-010
+    title: Cache stampede, gộp yêu cầu và phục vụ bản cũ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-011
+    title: Cache poisoning và sự nhất quán giữa khóa cache với định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-protocols
+  title: Giao thức ứng dụng
+  childs:
+  - slug: application-protocols-001
+    title: Proxy HTTP/1.1, HTTP/2 và chuyển đổi giao thức giữa hai chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-002
+    title: HTTP/3 trên QUIC và ranh giới hỗ trợ của proxy UDP hoặc proxy HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-003
+    title: 'WebSocket: bắt tay, nâng cấp giao thức và kết nối hai chiều kéo dài'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-004
+    title: 'Server-Sent Events: truyền sự kiện, buffering và idle timeout'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-005
+    title: 'gRPC: HTTP/2, trailer, mã trạng thái và deadline'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-006
+    title: gRPC streaming và ảnh hưởng của ngắt kết nối giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-007
+    title: Proxy TCP cho giao thức ngoài HTTP và giới hạn kiểm tra nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-008
+    title: 'Proxy UDP: ánh xạ luồng, thời gian nhàn rỗi và thiếu bảo đảm giao nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-protocols-009
+    title: Ma trận khả năng hỗ trợ giao thức trước khi chọn proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-control
+  title: Kiểm soát truy cập
+  childs:
+  - slug: access-control-001
+    title: Ranh giới trách nhiệm giữa xác thực tại proxy và phân quyền trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-002
+    title: Xác thực người dùng của forward proxy và xử lý thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-003
+    title: Danh sách cho phép hoặc chặn theo IP, mạng, tên miền và đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-004
+    title: Giới hạn phương thức HTTP, cổng đích và nhóm dịch vụ được truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-005
+    title: 'Giới hạn tốc độ: token bucket, leaky bucket và cho phép tải đột biến'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-006
+    title: Chọn khóa giới hạn theo IP, tài khoản hoặc API key trong môi trường nhiều proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-007
+    title: Giới hạn số kết nối và số yêu cầu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-008
+    title: Trả phản hồi 429, Retry-After và hành vi mong đợi ở client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-control-009
+    title: CORS và phân biệt chính sách trình duyệt với kiểm soát truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-security
+  title: An toàn giao thức
+  childs:
+  - slug: protocol-security-001
+    title: 'Open proxy: nguyên nhân hình thành và cách giới hạn phạm vi sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-002
+    title: SSRF qua proxy và ngăn truy cập địa chỉ nội bộ hoặc metadata endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-003
+    title: DNS rebinding và kiểm tra đích sau phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-004
+    title: HTTP request smuggling do các chặng hiểu ranh giới thông điệp khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-005
+    title: Chuẩn hóa đường dẫn không thống nhất và nguy cơ vượt quy tắc truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-006
+    title: Host header injection và không tin Host do client tự gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-007
+    title: Giả mạo header danh tính và bảo vệ chặng kết nối tới upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-008
+    title: Slow client, slow headers và cạn tài nguyên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-009
+    title: Giảm bề mặt tấn công của trang quản trị và cổng kiểm tra sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-010
+    title: Ẩn dữ liệu nhạy cảm trong log và bảo vệ khóa, chứng chỉ, mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-security-011
+    title: Quan hệ với WAF và giới hạn của proxy trong chống DDoS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: 'Access log và error log: mục đích, trường dữ liệu và cách liên kết'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Phân biệt mã trạng thái proxy trả về và mã do upstream sinh ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Request ID, correlation ID và truyền trace context qua nhiều chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Tách thời gian chờ, kết nối, TLS, upstream và tổng thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Đo số yêu cầu, tỷ lệ lỗi, thông lượng và phân vị độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Theo dõi kết nối đang mở, hàng đợi, pool, retry và upstream health
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Đo cache hit ratio, dữ liệu nén và số byte truyền trên từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Phân biệt quan sát theo yêu cầu, theo kết nối và theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Thiết kế cảnh báo gắn với triệu chứng người dùng và tín hiệu bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Giới hạn nhãn metric, lấy mẫu trace và che dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Phân biệt độ trễ, thông lượng, mức đồng thời và khả năng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Phân rã chi phí DNS, bắt tay TCP/TLS và xử lý tại proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Mô hình xử lý đồng bộ, theo luồng và theo sự kiện ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Nhận diện nút thắt CPU, RAM, băng thông, đĩa tạm và upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Ảnh hưởng của connection pool, buffering, nén và cache tới hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Quan hệ giữa mức đồng thời, tốc độ yêu cầu và thời gian đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: 'Thiết kế thử tải: tải đại diện, warm-up và giới hạn của máy tạo tải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đọc p50, p95, p99, lỗi và hàng đợi cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: So sánh đường đi trực tiếp với đường đi qua proxy bằng điều kiện tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability
+  title: Tính sẵn sàng
+  childs:
+  - slug: availability-001
+    title: Proxy đơn lẻ trở thành điểm lỗi tập trung như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-002
+    title: Nhiều bản sao proxy và cách phân phối kết nối tới các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-003
+    title: Khả năng phục hồi của active-active và active-passive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-004
+    title: DNS failover, virtual IP và các giới hạn hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-005
+    title: 'Trạng thái cục bộ: session, cache, rate limit và ảnh hưởng khi đổi bản sao'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-006
+    title: Graceful shutdown và connection draining khi bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-007
+    title: Reload cấu hình và tác động tới kết nối mới, kết nối đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-008
+    title: Khôi phục khi upstream, DNS hoặc một vùng mạng gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-009
+    title: Kiểm thử lỗi, phạm vi ảnh hưởng và tiêu chí phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Đặt proxy tại biên mạng, vùng trung gian hoặc cạnh ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Địa chỉ bind, port mapping, firewall và đường đi trong môi trường container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Kết nối tới upstream qua mạng riêng và hạn chế đường đi bỏ qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Quản lý cấu hình, biến môi trường và bí mật theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Kiểm tra hợp lệ cấu hình trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Triển khai thay đổi theo giai đoạn và chuẩn bị phương án rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Thiết kế endpoint kiểm tra sức khỏe cho chính proxy và cho upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Chính sách chuyển tiếp header thống nhất giữa proxy với ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Tài liệu hóa topology, cổng, timeout, giới hạn và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Khoanh vùng lỗi tại client, DNS, proxy, mạng hay upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-002
+    title: Phân biệt 400, 401, 403, 407, 413 và 429 theo chặng phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-003
+    title: '502, 503 và 504: nguyên nhân thường gặp và bằng chứng cần kiểm tra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-004
+    title: Connection refused, timeout, reset và lỗi TLS khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-005
+    title: Vòng lặp chuyển hướng khi thông tin HTTP/HTTPS công khai bị sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-006
+    title: Sai đường dẫn, tài nguyên tĩnh, cookie và phiên đăng nhập sau proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-007
+    title: Sai IP client hoặc giả mạo header do cấu hình trust proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-008
+    title: WebSocket, SSE hoặc gRPC bị ngắt dù yêu cầu HTTP thông thường vẫn chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-009
+    title: 'Lỗi chỉ xuất hiện khi tải cao: pool, hàng đợi, cổng nguồn và bộ nhớ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-010
+    title: Dùng curl, openssl s_client, dig, ss và tcpdump để thu bằng chứng theo từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-011
+    title: Lập bảng giả thuyết, tái hiện tối thiểu và xác minh sau khi sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solution-selection
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: solution-selection-001
+    title: Khi nào cần forward proxy, reverse proxy hoặc chỉ cần kết nối trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-002
+    title: Tiêu chí chọn proxy tầng 4 hay tầng 7 theo giao thức và mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-003
+    title: Chọn điểm kết thúc TLS theo yêu cầu quan sát và bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-004
+    title: Phân định reverse proxy, API gateway, ingress controller, CDN và service mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-005
+    title: Đánh giá tính năng, độ tin cậy, hiệu năng và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-006
+    title: Cân nhắc proxy tự quản lý và dịch vụ proxy được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-007
+    title: Khi nào chuyển sang học triển khai Nginx hoặc HAProxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-008
+    title: Checklist thiết kế và các ngộ nhận phổ biến về proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Vẽ và giải thích luồng direct, forward proxy và reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Quan sát hai chặng TCP cùng địa chỉ nguồn bằng công cụ mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: So sánh HTTP qua forward proxy với HTTPS qua CONNECT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Đối chiếu TLS passthrough, termination và re-encryption bằng chứng chỉ và log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Thử định tuyến theo host, đường dẫn và xử lý route không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Thử giả mạo X-Forwarded-For trong phạm vi lab để kiểm chứng ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Quan sát cân bằng tải và loại upstream lỗi khi dừng một dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Tạo timeout và retry có kiểm soát để phát hiện thao tác bị thực hiện lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Đối chiếu buffering với streaming bằng phản hồi chậm hoặc SSE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Kiểm chứng cache HIT, xác thực lại và không lưu phản hồi cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Thử tải và đo tác động của keep-alive, pool và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Thực hành đọc log để phân biệt lỗi 502, 503 và 504
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-013
+    title: 'Bài tập tổng hợp: thiết kế proxy cho ứng dụng web và bảo vệ quyết định bằng bằng chứng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

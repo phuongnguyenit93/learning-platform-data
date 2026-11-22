@@ -1,0 +1,359 @@
+menu:
+- level1: Định hướng chẩn đoán
+  level2:
+  - Chẩn đoán hệ thống là gì và khác gì với giám sát hoặc sửa lỗi
+  - Quan hệ giữa khả năng quan sát, tín hiệu, triệu chứng và giả thuyết
+  - Vai trò của metrics, logs, traces, profiles và bản chụp trạng thái
+  - Phân biệt phát hiện, khoanh vùng, xác định nguyên nhân và khôi phục dịch vụ
+  - 'Các lớp điều tra: nghiệp vụ, ứng dụng, JVM, hệ điều hành và hạ tầng'
+  - Hiểu luồng yêu cầu và các phụ thuộc trước khi chọn công cụ
+  - Lựa chọn bằng chứng theo câu hỏi cần trả lời
+  - Trình tự học và các kỹ năng nền tảng cần có
+- level1: Tư duy điều tra
+  level2:
+  - Phân biệt triệu chứng, nguyên nhân trực tiếp và yếu tố góp phần
+  - Xây dựng giả thuyết có dự đoán và điều kiện bác bỏ
+  - Phân biệt tương quan theo thời gian với quan hệ nhân quả
+  - So sánh trạng thái bất thường với đường cơ sở bình thường
+  - Chia nhỏ không gian điều tra theo thời gian, dịch vụ và nhóm yêu cầu
+  - Tìm thay đổi gần thời điểm sự cố mà không mặc định thay đổi đó là nguyên nhân
+  - Tránh thiên kiến xác nhận, kết luận vội và suy diễn từ một mẫu đơn lẻ
+  - Chọn bước kiểm tra tiếp theo theo giá trị thông tin và chi phí thực hiện
+- level1: Quy trình chẩn đoán
+  level2:
+  - Tiếp nhận cảnh báo và xác minh vấn đề thực sự đang xảy ra
+  - Xác định phạm vi ảnh hưởng, mức độ nghiêm trọng và mốc thời gian
+  - Lập dòng thời gian gồm triệu chứng, thay đổi và hành động xử lý
+  - Khoanh vùng theo từ ngoài vào trong hoặc lần theo một yêu cầu cụ thể
+  - Ưu tiên khôi phục khi tác động người dùng đang tiếp diễn
+  - Thu thập bằng chứng trước các thao tác có thể làm mất trạng thái
+  - Thực hiện một thay đổi có kiểm soát và đánh giá kết quả
+  - Ghi lại điều đã biết, điều chưa biết và tiêu chí chuyển bước
+- level1: Chuẩn bị quan sát
+  level2:
+  - Lập bản đồ dịch vụ, phụ thuộc, chủ sở hữu và đường đi của yêu cầu
+  - Thiết kế tín hiệu cho lưu lượng, lỗi, độ trễ và mức bão hòa
+  - Chuẩn bị thông tin phiên bản, môi trường, triển khai và cấu hình
+  - Thiết kế log có cấu trúc và mã sự kiện phục vụ điều tra
+  - Thiết lập liên kết log–trace–metric bằng ngữ cảnh nhất quán
+  - Chuẩn bị đường cơ sở, dashboard và truy vấn cho tình huống thường gặp
+  - Chuẩn bị công cụ, quyền truy cập và nơi lưu bằng chứng
+  - Kiểm tra khả năng chẩn đoán khi một phần hệ thống quan sát gặp sự cố
+- level1: Chất lượng bằng chứng
+  level2:
+  - Kiểm tra dấu thời gian, múi giờ và độ lệch đồng hồ giữa các nguồn
+  - Phân biệt thời điểm phát sinh, thu thập và hiển thị dữ liệu
+  - Nhận diện độ trễ nhập liệu, dữ liệu đến muộn và khoảng trống telemetry
+  - Đánh giá ảnh hưởng của lấy mẫu, tổng hợp và chính sách lưu giữ
+  - Phân biệt thiếu dữ liệu với giá trị bằng không hoặc hệ thống không có lỗi
+  - Kiểm tra độ đầy đủ của ngữ cảnh, định danh và phạm vi truy vấn
+  - Đối chiếu nhiều nguồn bằng chứng độc lập
+  - Ghi nhận mức chắc chắn, giới hạn quan sát và giả thuyết còn bỏ ngỏ
+- level1: Phân tích metrics
+  level2:
+  - Chọn metric theo triệu chứng và câu hỏi chẩn đoán
+  - Đọc counter, gauge, histogram và đơn vị đo đúng ngữ nghĩa
+  - Phân tích tốc độ biến thiên, counter reset và cửa sổ thời gian
+  - So sánh trung bình với phân bố và các phân vị độ trễ
+  - Tránh cộng hoặc lấy trung bình các phân vị theo cách không hợp lệ
+  - Khoanh vùng theo phiên bản, vùng triển khai, instance và nhóm kết quả
+  - Nhận diện điểm nóng bị che khuất bởi số liệu tổng hợp
+  - Áp dụng RED và USE để kiểm tra dịch vụ và tài nguyên
+  - Phân biệt biến động lưu lượng với suy giảm hiệu năng thực sự
+  - Kiểm tra ảnh hưởng của cardinality, độ phân giải và cách thu thập
+- level1: Phân tích logs
+  level2:
+  - Tìm sự kiện liên quan bằng thời gian, dịch vụ và mã tương quan
+  - Đọc stack trace, chuỗi nguyên nhân và vị trí lỗi đầu tiên có ý nghĩa
+  - Phân biệt lỗi gốc với lỗi dây chuyền hoặc lỗi trong quá trình xử lý lỗi
+  - Nhóm lỗi theo mẫu thông điệp và dấu vết ngăn xếp
+  - Đối chiếu log ứng dụng, access log và log hệ thống
+  - Phân tích log nhiều dòng, bản ghi trùng và các lần thử lại
+  - Phát hiện ngữ cảnh bị thiếu hoặc MDC không được truyền qua tác vụ
+  - Tăng mức log có phạm vi, thời hạn và giới hạn lưu lượng
+  - Tránh kết luận chỉ từ số lượng log ERROR hoặc việc không có stack trace
+- level1: Phân tích traces
+  level2:
+  - Đọc quan hệ cha–con, span liên kết và đường đi của một yêu cầu
+  - Phân tích biểu đồ thác nước và chuỗi tác vụ quyết định thời gian hoàn thành
+  - Phân biệt thời gian của span với thời gian tự xử lý khi có span con
+  - Nhận diện lời gọi nối tiếp, song song và thời gian chờ
+  - Khoanh vùng dịch vụ chậm bằng thuộc tính, sự kiện và trạng thái span
+  - Điều tra lỗi khi ngữ cảnh trace bị mất qua HTTP, hàng đợi hoặc luồng bất đồng bộ
+  - Nhận diện span thiếu, span mồ côi và giới hạn của lấy mẫu
+  - Đối chiếu trace bất thường với trace bình thường có cùng đặc điểm
+  - Liên kết trace với log, exemplar và thay đổi triển khai
+  - Tránh cộng thời gian span chồng lấn hoặc suy diễn thời gian mạng từ dấu thời gian chưa đồng bộ
+- level1: Profiling
+  level2:
+  - Profiling trả lời được câu hỏi nào mà log và metric chưa giải thích được
+  - Phân biệt lấy mẫu CPU, thời gian thực trôi qua, cấp phát bộ nhớ và tranh chấp khóa
+  - Đọc cây lời gọi, flame graph và mức độ đóng góp của một nhánh
+  - Phân biệt thời gian bao gồm lời gọi con với thời gian riêng của hàm
+  - Chọn cửa sổ ghi nhận và tải đại diện cho triệu chứng
+  - So sánh profile trước và sau thay đổi hoặc giữa hai nhóm instance
+  - Đánh giá sai lệch lấy mẫu và chi phí do công cụ tạo ra
+  - Đối chiếu điểm nóng trong profile với trace và số liệu tài nguyên
+- level1: Công cụ JVM
+  level2:
+  - Chọn công cụ theo triệu chứng, loại JVM và phiên bản JDK
+  - Xác định đúng tiến trình, thông tin JVM và tham số khởi động
+  - Dùng jcmd và trợ giúp của từng lệnh để chọn dữ liệu chẩn đoán
+  - Thu thập thread dump, heap histogram và heap dump theo mục đích
+  - Ghi và phân tích Java Flight Recorder bằng JFR và JDK Mission Control
+  - Phân tích bộ nhớ ngoài heap bằng Native Memory Tracking khi đã được cấu hình
+  - Phân biệt snapshot, dữ liệu theo thời gian và thời điểm cần thu thập
+  - Đánh giá quyền attach, giới hạn môi trường và tác động của từng thao tác
+  - Rà soát tệp hs_err, core dump và dữ liệu khi JVM thoát bất thường
+- level1: Luồng và đồng bộ
+  level2:
+  - Đọc trạng thái RUNNABLE, BLOCKED, WAITING và TIMED_WAITING trong ngữ cảnh
+  - Đối chiếu nhiều thread dump để phân biệt trạng thái nhất thời với kẹt kéo dài
+  - Xác định luồng dùng CPU cao và liên kết với stack trace
+  - Nhận diện deadlock, tranh chấp khóa và thời gian giữ khóa dài
+  - Phân biệt livelock, starvation và thiếu luồng thực thi
+  - Chẩn đoán tác vụ chờ điều kiện, chờ I/O hoặc chờ tài nguyên bên ngoài
+  - Điều tra tác vụ bị treo do bỏ lỡ tín hiệu, chờ Future hoặc khóa lồng nhau
+  - Chọn dữ liệu chẩn đoán cho virtual thread và kiểm tra giới hạn theo phiên bản JDK
+  - Phân biệt blocking, pinning và thiếu tài nguyên khi sử dụng virtual thread
+- level1: Bộ nhớ
+  level2:
+  - Phân biệt heap, metaspace, bộ nhớ trực tiếp, ngăn xếp luồng và bộ nhớ native
+  - Đọc heap usage, committed memory và RSS theo thời gian
+  - Phân biệt rò rỉ bộ nhớ với tốc độ cấp phát cao hoặc bộ nhớ tăng tạm thời
+  - So sánh histogram để tìm loại đối tượng tăng bất thường
+  - Phân tích heap dump bằng cây chi phối và đường tham chiếu đến GC root
+  - Đối chiếu shallow size, retained size và vòng đời đối tượng
+  - Điều tra cache không giới hạn, collection giữ tham chiếu và ThreadLocal
+  - Phân biệt các dạng OutOfMemoryError với việc tiến trình bị hệ điều hành kết thúc
+  - Kiểm tra direct buffer, class loader và giới hạn quan sát của dữ liệu native
+- level1: Thu gom rác
+  level2:
+  - Đọc GC log và liên kết với metric bộ nhớ, CPU và độ trễ
+  - Phân biệt thời gian tạm dừng, công việc đồng thời và tần suất thu gom
+  - Đánh giá tốc độ cấp phát, mức sống sót và lượng bộ nhớ sau thu gom
+  - Nhận diện chu kỳ thu gom dày, thu gom kéo dài và áp lực bộ nhớ
+  - Phân biệt giới hạn heap không phù hợp với việc đối tượng bị giữ quá lâu
+  - Đối chiếu sự kiện safepoint và thời gian ngừng ứng dụng
+  - Kiểm tra tác động của CPU quota và tải container đối với hoạt động GC
+  - Chọn hướng khắc phục từ bằng chứng thay vì thay collector hoặc tăng heap tùy ý
+- level1: CPU và tính toán
+  level2:
+  - Phân biệt CPU của tiến trình, của từng luồng và của toàn máy
+  - Đối chiếu CPU user, system, iowait và thời gian bị giới hạn tài nguyên
+  - Nhận diện vòng lặp bận, tính toán nặng và xử lý dữ liệu dư thừa
+  - Phân tích chi phí tuần tự hóa, nén, regex và ghi log
+  - Đối chiếu CPU profile với thông lượng và phân bố độ trễ
+  - Phân biệt CPU do ứng dụng, GC, JIT hoặc tác nhân giám sát
+  - Điều tra tải tăng khi retry, polling hoặc cache mất hiệu lực
+  - Xác minh nút thắt CPU bằng thay đổi có kiểm soát và tải tương đương
+- level1: Độ trễ và thông lượng
+  level2:
+  - Phân biệt độ trễ ở phía người dùng, gateway và từng dịch vụ
+  - Tách thời gian xếp hàng, xử lý, truy cập phụ thuộc và truyền dữ liệu
+  - Phân tích độ trễ đuôi và nhóm yêu cầu chậm
+  - Đối chiếu lưu lượng, số yêu cầu đồng thời và thời gian đáp ứng
+  - Nhận diện điểm bão hòa và quan hệ giữa hàng chờ với độ trễ
+  - Phân biệt tác vụ chậm do CPU với chờ I/O hoặc chờ tài nguyên
+  - Điều tra timeout theo ngân sách thời gian của toàn chuỗi gọi
+  - Kiểm tra ảnh hưởng của warm-up, tải lạnh và phân phối yêu cầu không đều
+  - Tránh sai lệch đo độ trễ do cách tạo tải và bỏ sót thời gian chờ
+- level1: Lỗi và tính sẵn sàng
+  level2:
+  - Phân loại lỗi theo nghiệp vụ, ứng dụng, phụ thuộc và hạ tầng
+  - Chọn mẫu số đúng khi tính tỷ lệ lỗi và so sánh các khoảng thời gian
+  - Phân biệt kết quả lỗi, timeout, hủy tác vụ và ngắt kết nối
+  - Điều tra lỗi ngắt quãng theo nhóm người dùng, vùng hoặc phiên bản
+  - Nhận diện lỗi bị che bởi retry, fallback hoặc phản hồi thành công không đầy đủ
+  - Phân biệt ứng dụng còn sống với thực sự sẵn sàng phục vụ
+  - Đối chiếu health check với giao dịch tổng hợp và trải nghiệm thực tế
+  - Kiểm tra tác động của restart, failover và thay đổi định tuyến
+- level1: Nhóm tài nguyên
+  level2:
+  - Đọc số tác vụ đang chạy, số tài nguyên đang dùng và độ dài hàng chờ
+  - Chẩn đoán thread pool hết chỗ và tác vụ bị từ chối
+  - Chẩn đoán connection pool cạn, thời gian mượn dài và kết nối không được trả
+  - Phân biệt tăng kích thước pool với khắc phục phụ thuộc chậm
+  - Điều tra giới hạn số kết nối HTTP và số file descriptor
+  - Nhận diện giữ tài nguyên trong khi chờ tác vụ khác
+  - Đánh giá timeout, hàng đợi không giới hạn và áp lực ngược
+  - Kiểm chứng cấu hình pool bằng tải, thời gian chờ và năng lực phía phụ thuộc
+- level1: Bất đồng bộ và reactive
+  level2:
+  - Lần theo tác vụ qua executor, Future và CompletableFuture
+  - Chẩn đoán mất ngữ cảnh log hoặc trace khi chuyển luồng
+  - Phát hiện blocking trên event loop và scheduler không phù hợp
+  - Phân tích luồng tín hiệu, lỗi và hủy trong pipeline reactive
+  - Điều tra backpressure, bộ đệm tăng và phía tiêu thụ chậm
+  - Phân biệt tác vụ chưa được thực thi với tác vụ đã chạy nhưng mất kết quả
+  - Nhận diện xử lý lặp, retry không giới hạn và tác vụ mồ côi
+  - Kết hợp trace, thread dump và profile khi stack trace không thể hiện toàn bộ chuỗi
+- level1: Mạng và giao thức
+  level2:
+  - Khoanh vùng lỗi DNS, thiết lập kết nối, TLS và trao đổi dữ liệu
+  - Phân biệt lỗi phân giải tên, từ chối kết nối, timeout và reset
+  - Đối chiếu thời gian kết nối, thời gian chờ phản hồi và thời gian đọc
+  - Kiểm tra proxy, load balancer và service discovery trong đường đi
+  - Điều tra mất gói, truyền lại, giới hạn băng thông và kết nối bị giữ
+  - Rà soát tái sử dụng kết nối, keep-alive và cạn cổng tạm
+  - Chẩn đoán chứng chỉ, hostname, thời gian hệ thống và chuỗi tin cậy
+  - Thu thập packet capture có phạm vi khi log và trace chưa đủ
+  - Phân biệt lỗi mạng thực sự với hàng chờ hoặc ứng dụng phía nhận bị chậm
+- level1: Cơ sở dữ liệu
+  level2:
+  - Tách thời gian chờ connection pool khỏi thời gian thực thi truy vấn
+  - Nhận diện truy vấn chậm bằng trace, thống kê và log có kiểm soát
+  - Đọc kế hoạch thực thi và so sánh số dòng dự kiến với thực tế
+  - Phát hiện truy vấn N+1, truy vấn lặp và lượng dữ liệu trả về quá lớn
+  - Điều tra khóa, chờ khóa, deadlock và giao dịch kéo dài
+  - Đối chiếu CPU, I/O, cache và số kết nối ở máy chủ cơ sở dữ liệu
+  - Nhận diện thay đổi kế hoạch, phân bố dữ liệu và thống kê không còn phù hợp
+  - Phân tích độ trễ bản sao, kết nối sai đích và lỗi chuyển đổi dự phòng
+  - Xác minh tác động trước khi chạy công cụ phân tích có thực thi truy vấn
+- level1: Cache
+  level2:
+  - Đối chiếu tỷ lệ hit, miss, thời gian truy cập và tải phía dữ liệu gốc
+  - Phân biệt cache lạnh với cache không có hiệu quả hoặc khóa cache thiết kế sai
+  - Chẩn đoán dữ liệu cũ, TTL không phù hợp và mất hiệu lực không nhất quán
+  - Nhận diện cache stampede và nhiều yêu cầu cùng tái tạo một giá trị
+  - Phát hiện cache tăng không giới hạn, eviction dày và áp lực bộ nhớ
+  - Khoanh vùng khóa nóng, phân vùng lệch và instance chịu tải không đều
+  - Kiểm tra tác động dây chuyền khi cache chậm, mất kết nối hoặc bị bỏ qua
+- level1: Hàng đợi thông điệp
+  level2:
+  - Đối chiếu tốc độ phát, tốc độ xử lý, độ sâu hàng đợi và tuổi thông điệp
+  - Phân biệt consumer lag với độ trễ xử lý của một thông điệp
+  - Khoanh vùng partition nóng và phân phối công việc không đều
+  - Điều tra retry lặp, thông điệp lỗi và dead-letter queue
+  - Phát hiện xử lý trùng, mất xác nhận và commit vị trí không đúng thời điểm
+  - Chẩn đoán consumer rebalance, kết nối gián đoạn và thiếu phía tiêu thụ
+  - Lần theo ngữ cảnh giữa producer, broker và consumer
+  - Kiểm tra giới hạn dung lượng, thời gian lưu và tác động khi backlog tăng
+- level1: Hệ điều hành
+  level2:
+  - Đối chiếu tải hệ thống, CPU, bộ nhớ và số tiến trình
+  - Phân biệt thiếu RAM, áp lực bộ nhớ, swap và tiến trình bị OOM killer kết thúc
+  - Phân tích độ trễ I/O, thông lượng đĩa và dung lượng còn trống
+  - Điều tra đầy inode, đầy phân vùng và log tăng đột biến
+  - Kiểm tra file descriptor, socket và giới hạn tài nguyên tiến trình
+  - Phân biệt mức sử dụng tài nguyên của ứng dụng với tiến trình cùng máy
+  - Đọc sự kiện hệ thống và mốc thời gian của các lần tiến trình bị kết thúc
+  - Chọn công cụ theo hệ điều hành và xác minh ngữ nghĩa từng chỉ số
+- level1: Container và Kubernetes
+  level2:
+  - Đối chiếu trạng thái container, pod, node và các sự kiện điều phối
+  - Phân biệt lỗi ứng dụng với OOMKilled, eviction và lỗi node
+  - Điều tra CPU throttling, memory limit và sự khác biệt giữa tài nguyên host với container
+  - Chẩn đoán restart liên tục và thu thập log của lần chạy trước
+  - Kiểm tra startup probe, readiness probe và liveness probe
+  - Điều tra Service, endpoint, DNS và chính sách mạng
+  - Phân tích triển khai cuốn chiếu, lệch phiên bản và pod chưa sẵn sàng
+  - Rà soát volume, quyền tệp và giới hạn lưu trữ tạm
+  - Chọn cách điều tra khi image tối giản không có sẵn công cụ
+  - Bảo toàn ngữ cảnh điều tra khi pod bị thay thế hoặc tự mở rộng
+- level1: Spring Boot
+  level2:
+  - Chọn dữ liệu Actuator theo câu hỏi chẩn đoán và quyền truy cập phù hợp
+  - Đối chiếu health indicator với trạng thái phục vụ thực tế
+  - Phân tích metrics và Micrometer Observation theo thành phần ứng dụng
+  - Điều tra lỗi khởi động, bean, điều kiện tự cấu hình và phụ thuộc vòng
+  - Kiểm tra profile, thứ tự nguồn cấu hình và giá trị cấu hình hiệu lực
+  - Đối chiếu request mapping, bộ lọc và chuỗi xử lý HTTP
+  - Chẩn đoán HTTP server, connection pool và scheduler từ metric và thread dump
+  - Thu thập thông tin từ loggers, threaddump, heapdump và startup khi phù hợp
+  - Phân biệt lỗi cấu hình endpoint chẩn đoán với lỗi của thành phần đang được kiểm tra
+- level1: Hệ phân tán
+  level2:
+  - Xác định phạm vi lỗi cục bộ, lỗi phụ thuộc và lỗi lan truyền
+  - Điều tra timeout không đồng bộ giữa client, gateway và dịch vụ
+  - Nhận diện retry storm, khuếch đại tải và cạn ngân sách thời gian
+  - Phân tích circuit breaker, fallback và tác động che khuất lỗi gốc
+  - Chẩn đoán lỗi từng phần khi một số vùng hoặc instance vẫn hoạt động
+  - Phân biệt độ trễ đồng bộ dữ liệu với lỗi mất hoặc ghi sai dữ liệu
+  - Kiểm tra thứ tự sự kiện khi đồng hồ, hàng đợi và retry tạo diễn biến phức tạp
+  - Đối chiếu thay đổi service discovery, cân bằng tải và phiên bản giao thức
+- level1: Pipeline telemetry
+  level2:
+  - Lần theo dữ liệu từ instrumentation, SDK, agent, collector đến kho lưu trữ
+  - Phân biệt không phát sinh dữ liệu với không thu thập hoặc không hiển thị được
+  - Kiểm tra endpoint, giao thức, cấu hình kết nối và chứng thực OTLP
+  - Đối chiếu số bản ghi nhận, xử lý, từ chối, xếp hàng và xuất
+  - Điều tra lỗi processor, cấu trúc dữ liệu và định tuyến sai pipeline
+  - Phân tích sampling, filtering và giới hạn làm dữ liệu biến mất có chủ đích
+  - Chẩn đoán exporter lỗi, retry, backpressure và hàng đợi đầy
+  - Kiểm tra độ trễ nhập liệu, cửa sổ truy vấn và cấu hình nơi lưu trữ
+  - Dùng telemetry nội bộ và dữ liệu thử có kiểm soát để khoanh vùng Collector
+  - Đánh giá tác động của chính hệ thống quan sát lên tài nguyên ứng dụng
+- level1: Triển khai và cấu hình
+  level2:
+  - So sánh phiên bản ứng dụng, thư viện, JVM và cấu hình trước–sau sự cố
+  - Đối chiếu thời điểm triển khai, thay đổi hạ tầng và thời điểm triệu chứng bắt đầu
+  - Nhận diện lệch cấu hình giữa instance hoặc môi trường
+  - Phân tích feature flag, biến môi trường và thay đổi bí mật truy cập
+  - Điều tra lỗi chỉ xuất hiện sau warm-up, restart hoặc chạy lâu
+  - Phân biệt sai khác cấu hình với sai khác lưu lượng và dữ liệu đầu vào
+  - Kiểm tra tương thích client–server và hợp đồng dữ liệu khi nâng cấp
+  - Đánh giá rollback bằng bằng chứng khôi phục và rủi ro thay đổi trạng thái
+- level1: Bảo vệ bằng chứng
+  level2:
+  - Xác định quyền tối thiểu để đọc telemetry và sử dụng công cụ chẩn đoán
+  - Rà soát dữ liệu nhạy cảm trong log, trace, heap dump và packet capture
+  - Giới hạn phạm vi, thời lượng và dung lượng dữ liệu thu thập
+  - Bảo vệ endpoint quản trị và kênh truy cập công cụ chẩn đoán
+  - Ghi nhận thời gian, phiên bản công cụ và thao tác đã thực hiện
+  - Lưu dấu kiểm tra toàn vẹn và quản lý bản sao của gói bằng chứng
+  - Chia sẻ dữ liệu đã được kiểm soát theo đúng người nhận và mục đích
+  - Áp dụng thời gian lưu giữ và xử lý dữ liệu chẩn đoán sau khi kết thúc điều tra
+- level1: Ứng phó sự cố
+  level2:
+  - Phân công điều phối, điều tra kỹ thuật và ghi nhận diễn biến
+  - Ưu tiên hành động theo ảnh hưởng người dùng và khả năng phục hồi
+  - Chọn giảm tải, vô hiệu hóa tính năng, chuyển hướng hoặc khôi phục phiên bản
+  - Phân biệt biện pháp giảm tác động với sửa nguyên nhân gốc
+  - Ghi lại giả thuyết, thao tác và kết quả để tránh thử nghiệm lặp
+  - Giữ thông tin nhất quán khi nhiều nhóm cùng điều tra
+  - Chuyển giao điều tra kèm dòng thời gian, bằng chứng và việc còn dang dở
+  - Xác định tiêu chí dịch vụ đã ổn định và thời điểm kết thúc ứng phó
+- level1: Nguyên nhân gốc rễ
+  level2:
+  - Dựng dòng thời gian có căn cứ từ nhiều nguồn dữ liệu
+  - Phân biệt tác nhân kích hoạt với điều kiện nền và cơ chế lỗi
+  - Vẽ chuỗi nhân quả và xác định yếu tố làm sự cố lan rộng
+  - Sử dụng câu hỏi vì sao và cây lỗi mà không ép mọi sự cố về một nguyên nhân
+  - Giải thích vì sao cơ chế phòng ngừa hoặc phát hiện chưa ngăn được sự cố
+  - Phân biệt kết luận đã kiểm chứng với giả thuyết chưa đủ bằng chứng
+  - Viết postmortem tập trung vào hệ thống và điều kiện vận hành
+  - Chuyển kết luận thành hành động có người phụ trách và tiêu chí hoàn tất
+- level1: Kiểm chứng khắc phục
+  level2:
+  - Tái hiện triệu chứng bằng kịch bản và dữ liệu được kiểm soát
+  - Chọn metric và bằng chứng chứng minh cơ chế lỗi đã được xử lý
+  - So sánh trước–sau với tải, dữ liệu và cấu hình tương đương
+  - Kiểm tra khả năng chẩn đoán và hiệu năng ở các trường hợp biên
+  - Thử tải kéo dài để kiểm chứng rò rỉ hoặc suy giảm theo thời gian
+  - Kiểm tra ảnh hưởng phụ lên lỗi, độ trễ, tài nguyên và tính đúng dữ liệu
+  - Dùng triển khai thử hoặc nhóm đối chứng để giảm sai lệch đánh giá
+  - Xác nhận cảnh báo và runbook phản ánh cách phát hiện, xử lý mới
+  - Theo dõi sau triển khai để phát hiện tái diễn và hồi quy
+- level1: Tự động hóa chẩn đoán
+  level2:
+  - Thiết kế runbook theo triệu chứng, câu hỏi và bằng chứng cần thu thập
+  - Tạo gói chẩn đoán có cấu trúc gồm cấu hình, metric và dữ liệu trạng thái
+  - Kích hoạt thu thập theo điều kiện với giới hạn tài nguyên và quyền truy cập
+  - Kiểm soát tác động của tự động thread dump, profiling hoặc heap dump
+  - Chuẩn hóa nhãn phiên bản, thời gian và môi trường cho bằng chứng
+  - Kiểm tra truy vấn, dashboard và liên kết giữa tín hiệu trong CI
+  - Diễn tập tình huống lỗi để đánh giá khả năng quan sát và quy trình điều tra
+  - Đánh giá kết luận do công cụ gợi ý bằng dữ liệu có thể kiểm chứng
+- level1: Thực hành tình huống
+  level2:
+  - Điều tra API chậm do truy vấn N+1 bằng metric, log và trace
+  - Chẩn đoán CPU cao do vòng lặp bận bằng thread dump và profile
+  - Phân biệt rò rỉ heap với cấp phát cao bằng GC log và heap dump
+  - Điều tra deadlock hoặc cạn thread pool qua nhiều bản chụp trạng thái
+  - Khoanh vùng timeout do connection pool, mạng hoặc dịch vụ phụ thuộc
+  - Tìm nguyên nhân mất trace qua tác vụ bất đồng bộ và hàng đợi
+  - Chẩn đoán pod restart do giới hạn bộ nhớ hoặc probe không phù hợp
+  - Điều tra collector đầy hàng đợi khiến telemetry đến muộn hoặc bị mất
+  - Phân tích retry storm và cache stampede trong hệ thống nhiều dịch vụ
+  - Hoàn thiện báo cáo nguyên nhân, bản sửa và bộ bằng chứng kiểm chứng

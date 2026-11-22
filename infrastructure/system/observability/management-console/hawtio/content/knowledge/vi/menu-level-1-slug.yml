@@ -1,0 +1,64 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: JMX và Jolokia
+  slug: jmx-jolokia
+  index: 1
+- title: Kiến trúc Hawtio
+  slug: hawtio-architecture
+  index: 2
+- title: Cài đặt và phiên bản
+  slug: installation-versions
+  index: 3
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 4
+- title: Các runtime khác
+  slug: other-runtimes
+  index: 5
+- title: Kết nối JVM
+  slug: jvm-connectivity
+  index: 6
+- title: Quản lý MBeans
+  slug: mbean-management
+  index: 7
+- title: Theo dõi JVM
+  slug: jvm-monitoring
+  index: 8
+- title: Quản lý Camel
+  slug: camel-management
+  index: 9
+- title: Chẩn đoán Camel
+  slug: camel-diagnostics
+  index: 10
+- title: Plugin ứng dụng
+  slug: application-plugins
+  index: 11
+- title: Quản trị broker
+  slug: broker-administration
+  index: 12
+- title: Cấu hình console
+  slug: console-configuration
+  index: 13
+- title: Xác thực người dùng
+  slug: user-authentication
+  index: 14
+- title: Phân quyền và bảo vệ
+  slug: authorization-protection
+  index: 15
+- title: Hawtio Online
+  slug: hawtio-online
+  index: 16
+- title: Mở rộng Hawtio
+  slug: hawtio-extensions
+  index: 17
+- title: Vận hành thực tế
+  slug: production-operations
+  index: 18
+- title: Kiểm thử và sự cố
+  slug: testing-troubleshooting
+  index: 19
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 20

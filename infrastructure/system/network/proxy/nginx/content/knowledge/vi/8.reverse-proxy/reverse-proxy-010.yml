@@ -1,0 +1,3 @@
+menuLevel1: Reverse proxy
+menuLevel2: Dùng proxy_redirect để xử lý Location và Refresh từ upstream
+status: ''

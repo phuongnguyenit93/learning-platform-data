@@ -1,0 +1,57 @@
+roadmap:
+- id: khoi-dong-postgresql
+  title: Khởi động PostgreSQL
+  purpose: Nắm các thành phần cơ bản và thao tác kết nối để tạo môi trường thực hành an toàn.
+  objectives:
+  - Cài đặt và khởi động một PostgreSQL instance
+  - Tạo database và kết nối qua psql
+  - Phân biệt server, database, schema và role
+- id: schema-rang-buoc
+  title: Schema & ràng buộc
+  purpose: Thiết kế bảng quan hệ có kiểu dữ liệu và quy tắc toàn vẹn rõ ràng.
+  objectives:
+  - Tạo bảng với kiểu dữ liệu phù hợp
+  - Định nghĩa PK, FK, UNIQUE, NOT NULL và CHECK
+  - Thay đổi schema bằng ALTER TABLE
+- id: sql-truy-van
+  title: SQL & truy vấn
+  purpose: Thao tác và tổng hợp dữ liệu quan hệ với câu lệnh SQL chuẩn.
+  objectives:
+  - Viết INSERT, SELECT, UPDATE và DELETE
+  - Kết hợp bảng bằng JOIN và lọc bằng WHERE
+  - Tổng hợp bằng GROUP BY, HAVING và ORDER BY
+- id: kieu-du-lieu-nang-cao
+  title: Kiểu dữ liệu nâng cao
+  purpose: Nhận diện các kiểu dữ liệu PostgreSQL hữu ích và giới hạn sử dụng trong mô hình quan hệ.
+  objectives:
+  - Lựa chọn timestamp, UUID, array và JSONB theo nhu cầu
+  - Truy vấn dữ liệu JSONB bằng toán tử phù hợp
+  - Giải thích đánh đổi giữa JSONB và bảng chuẩn hóa
+- id: index-explain
+  title: Index & EXPLAIN
+  purpose: Tối ưu truy vấn dựa trên số liệu thực tế thay vì thêm chỉ mục theo cảm tính.
+  objectives:
+  - Tạo và so sánh B-tree, GIN khi phù hợp
+  - Đọc Seq Scan, Index Scan qua EXPLAIN
+  - Dùng EXPLAIN ANALYZE để xác định nút thắt
+- id: transaction-mvcc
+  title: Transaction & MVCC
+  purpose: Giữ dữ liệu nhất quán khi nhiều kết nối đọc và ghi đồng thời.
+  objectives:
+  - Thực hành BEGIN, COMMIT và ROLLBACK
+  - Phân biệt Read Committed, Repeatable Read, Serializable
+  - Giải thích MVCC, lock và trường hợp cần retry
+- id: bao-mat-bao-tri
+  title: Bảo mật & bảo trì
+  purpose: Vận hành cơ sở dữ liệu ổn định bằng phân quyền tối thiểu và quan sát trạng thái.
+  objectives:
+  - Tạo role và cấp quyền theo nguyên tắc tối thiểu
+  - Giải thích VACUUM, ANALYZE và autovacuum
+  - Theo dõi session, lock và hoạt động bằng pg_stat
+- id: sao-luu-phuc-hoi
+  title: Sao lưu & phục hồi
+  purpose: Chuẩn bị khả năng phục hồi dữ liệu trước sự cố thay vì chỉ dựa vào môi trường đang chạy.
+  objectives:
+  - Tạo backup logic với pg_dump và phục hồi thử
+  - Phân biệt logical dump với base backup/WAL
+  - Giải thích PITR và kiểm thử restore theo kịch bản

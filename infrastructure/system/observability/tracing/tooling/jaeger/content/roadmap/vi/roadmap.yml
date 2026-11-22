@@ -1,0 +1,57 @@
+roadmap:
+- id: distributed-tracing-jaeger
+  title: Distributed Tracing & Jaeger
+  purpose: Hiểu cách trace và span biểu diễn hành trình của một request xuyên nhiều service, và vai trò backend của Jaeger.
+  objectives:
+  - Phân biệt trace, span, context và baggage
+  - Đọc trace ID, span ID, parent-child và timeline
+  - Giải thích Jaeger lưu trữ và trực quan hóa trace
+- id: opentelemetry-instrumentation
+  title: OpenTelemetry Instrumentation
+  purpose: Tạo dữ liệu trace trong ứng dụng bằng OpenTelemetry API/SDK rồi gửi về Jaeger qua OTLP.
+  objectives:
+  - Tạo span và gắn attributes, events phù hợp
+  - Propagate trace context qua lời gọi HTTP/RPC
+  - Cấu hình OTLP exporter tới Jaeger
+- id: jaeger-v2-architecture
+  title: Jaeger v2 Architecture
+  purpose: Nhận diện các vai trò tiếp nhận, xử lý, lưu và truy vấn trace trong kiến trúc Jaeger hiện hành.
+  objectives:
+  - Phân biệt all-in-one, collector, query và ingester
+  - Mô tả pipeline receiver, processor, exporter và extension
+  - Giải thích vị trí của OpenTelemetry Collector trong pipeline
+- id: run-configure-jaeger
+  title: Run & Configure Jaeger
+  purpose: Khởi chạy Jaeger local để thử nghiệm rồi chuyển sang cấu hình YAML tường minh cho từng vai trò.
+  objectives:
+  - Chạy all-in-one bằng container và truy cập UI
+  - Cấu hình OTLP receiver và Jaeger query extension
+  - Phân biệt cấu hình thử nghiệm với cấu hình production
+- id: storage-trace-query
+  title: Storage & Trace Query
+  purpose: Lựa chọn backend lưu trace và truy vấn dữ liệu để phân tích request chậm hoặc lỗi giữa các service.
+  objectives:
+  - So sánh memory, Badger và backend phân tán
+  - Cấu hình storage extension và query service
+  - Tìm trace theo service, operation, duration và tag
+- id: sampling-data-pipeline
+  title: Sampling & Data Pipeline
+  purpose: Kiểm soát lượng trace được thu thập và xử lý để cân bằng chi phí, độ chi tiết và khả năng điều tra.
+  objectives:
+  - Phân biệt head-based và tail-based sampling
+  - Giải thích batch, memory limiter và tail sampling processor
+  - Đánh giá tác động sampling tới khả năng tìm lỗi
+- id: production-deployment-scale
+  title: Production Deployment & Scale
+  purpose: Thiết kế triển khai Jaeger có khả năng mở rộng, lưu dữ liệu bền vững và bảo vệ các endpoint telemetry.
+  objectives:
+  - Tách collector/query và chọn storage phù hợp
+  - Cân nhắc Kafka buffer, replica và tải ingest/query
+  - Cấu hình network, resource limits và quyền truy cập
+- id: monitoring-troubleshooting
+  title: Monitoring & Troubleshooting
+  purpose: Theo dõi sức khỏe pipeline và truy nguyên nguyên nhân khi span bị thiếu, ghi storage thất bại hoặc truy vấn chậm.
+  objectives:
+  - Theo dõi accepted/refused/sent spans và logs
+  - Kiểm tra OTLP endpoint, sampling và kết nối mạng
+  - Dùng trace để phát hiện latency, lỗi và dependency

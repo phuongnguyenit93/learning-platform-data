@@ -1,0 +1,394 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Mô hình hóa dữ liệu (data modeling) là gì và giải quyết vấn đề nào
+  - Phân biệt dữ liệu thực tế, khái niệm nghiệp vụ và cách biểu diễn trong hệ thống
+  - 'Ba mức mô hình: khái niệm, logic và vật lý'
+  - Phân biệt mô hình dữ liệu, mô hình miền, lược đồ lưu trữ và hợp đồng trao đổi
+  - Vòng đời từ yêu cầu nghiệp vụ đến mô hình, triển khai và phản hồi sử dụng
+  - Đánh đổi giữa tính đúng, khả năng thay đổi, hiệu năng và độ phức tạp
+  - 'Ví dụ xuyên suốt: khách hàng, danh mục, đơn hàng, thanh toán và tồn kho'
+  - Lộ trình học và tiêu chí đánh giá một mô hình dữ liệu tốt
+- level1: Khảo sát yêu cầu
+  level2:
+  - Xác định mục tiêu hệ thống, đối tượng sử dụng và câu hỏi cần trả lời
+  - Thu thập quy trình nghiệp vụ, dữ liệu mẫu và trường hợp ngoại lệ
+  - Xác định thuật ngữ, từ đồng nghĩa và cùng một tên nhưng khác ý nghĩa
+  - Phân biệt yêu cầu hiện tại, giả định thiết kế và khả năng mở rộng chưa được xác nhận
+  - Liệt kê thao tác đọc, ghi, tìm kiếm, tổng hợp và tần suất thực hiện
+  - Ước lượng khối lượng, tốc độ tăng trưởng, độ trễ và thời gian lưu
+  - Yêu cầu về tính nhất quán, lịch sử, truy vết và bảo vệ dữ liệu
+  - Xác định hệ thống nguồn, người sở hữu và bên sử dụng dữ liệu
+  - Ghi lại câu hỏi chưa rõ, quyết định cần xác nhận và tiêu chí chấp nhận
+- level1: Mô hình khái niệm
+  level2:
+  - Nhận diện khái niệm cốt lõi từ tình huống và ngôn ngữ nghiệp vụ
+  - Phân biệt thực thể, thuộc tính, quan hệ và sự kiện
+  - Xác định phạm vi mô hình và loại bỏ chi tiết triển khai quá sớm
+  - 'Độ hạt (grain): một đối tượng hoặc bản ghi đại diện cho điều gì'
+  - Biểu diễn thực thể và quan hệ bằng sơ đồ ER
+  - Bội số, tính bắt buộc và ký pháp chân quạ (crow's foot)
+  - So sánh sơ đồ ER với sơ đồ lớp UML theo mục đích sử dụng
+  - Rà soát mô hình bằng các tình huống tạo mới, thay đổi và kết thúc vòng đời
+  - Chuyển từ mô hình khái niệm sang mô hình logic mà vẫn giữ đúng ý nghĩa
+- level1: Thực thể và định danh
+  level2:
+  - Tiêu chí để một khái niệm có định danh và vòng đời riêng
+  - Thực thể mạnh, thực thể yếu và sự phụ thuộc vào thực thể sở hữu
+  - Phân biệt định danh, tên hiển thị và thuộc tính có thể thay đổi
+  - Khóa tự nhiên, khóa thay thế và tiêu chí lựa chọn
+  - Khóa đơn, khóa ghép và phạm vi duy nhất theo ngữ cảnh
+  - Định danh nội bộ, mã nghiệp vụ và mã từ hệ thống bên ngoài
+  - Định danh trong nhiều tổ chức và không gian tên
+  - Tính ổn định khi đổi tên, hợp nhất hoặc tách chủ thể
+  - Phân biệt bản ghi trùng với hai thực thể có thuộc tính giống nhau
+  - Định danh chủ thể hiện tại và định danh một phiên bản lịch sử
+- level1: Thuộc tính và kiểu
+  level2:
+  - Thuộc tính đơn, thuộc tính phức hợp và thuộc tính nhiều giá trị
+  - Thuộc tính gốc, thuộc tính suy ra và kết quả tổng hợp
+  - Miền giá trị và lựa chọn kiểu theo ý nghĩa nghiệp vụ
+  - Số nguyên, số thập phân, độ chính xác và thang số
+  - Tiền tệ, đại lượng đo và yêu cầu gắn đơn vị với giá trị
+  - Văn bản, mã kỹ thuật, độ dài và quy tắc Unicode
+  - Ngày lịch, giờ địa phương, thời điểm và múi giờ
+  - Null, dữ liệu vắng mặt, giá trị rỗng và giá trị mặc định
+  - Enum, bảng danh mục và miền giá trị có thể mở rộng
+  - Nhóm thuộc tính lặp lại và dấu hiệu cần tách thành cấu trúc riêng
+- level1: Quan hệ
+  level2:
+  - Quan hệ một với một, một với nhiều và nhiều với nhiều
+  - Bội số tối thiểu, tối đa và tính tùy chọn ở từng đầu quan hệ
+  - Vai trò của hai đầu quan hệ và cách đặt tên rõ nghĩa
+  - Quan hệ nhận diện và quan hệ không nhận diện
+  - Thực thể liên kết khi quan hệ có thuộc tính hoặc vòng đời riêng
+  - Quan hệ tự tham chiếu và nhiều vai trò giữa cùng một loại thực thể
+  - Quan hệ ba ngôi và nguy cơ mất ý nghĩa khi tách thành các quan hệ đôi
+  - Quan hệ có hướng, có thứ tự hoặc có giới hạn số lượng
+  - Quyền sở hữu, vòng đời phụ thuộc và ý nghĩa khi xóa thực thể liên quan
+  - Quan hệ theo thời gian và các điều kiện có hiệu lực
+- level1: Bất biến và ràng buộc
+  level2:
+  - Bất biến (invariant) mô tả điều luôn phải đúng trong một mô hình
+  - Ràng buộc miền giá trị, duy nhất, tham chiếu và liên hệ nhiều thuộc tính
+  - Quy tắc trong một bản ghi, trong một nhóm và giữa nhiều nhóm dữ liệu
+  - Trạng thái hợp lệ khác với chuyển trạng thái hợp lệ
+  - Ranh giới giao dịch cần thiết để bảo vệ từng bất biến
+  - Phân chia ràng buộc giữa kiểu Java, mô hình miền, ứng dụng và cơ sở dữ liệu
+  - Kiểm tra trước khi ghi và tranh chấp khi nhiều thao tác xảy ra đồng thời
+  - Tài liệu hóa ngoại lệ có thời hạn thay vì ngầm bỏ qua ràng buộc
+- level1: Kế thừa và phân cấp
+  level2:
+  - Tổng quát hóa, chuyên biệt hóa và tiêu chí chia kiểu con
+  - Kiểu con loại trừ nhau hoặc có thể chồng lấp
+  - Chuyên biệt hóa toàn phần hoặc một phần
+  - Phân biệt quan hệ là một, có một và đóng vai trò
+  - Mô hình cây bằng danh sách kề (adjacency list)
+  - Mô hình đường dẫn vật chất hóa, tập lồng nhau và bảng bao đóng
+  - So sánh chi phí đọc tổ tiên, đọc cây con, di chuyển và cập nhật nút
+  - Phát hiện chu trình, nhiều cha và trường hợp phải dùng đồ thị
+  - Tránh dùng quan hệ kế thừa chỉ để tái sử dụng vài thuộc tính
+- level1: Mô hình quan hệ
+  level2:
+  - Quan hệ, bộ và thuộc tính trong mô hình logic quan hệ
+  - Phân biệt quan hệ toán học với bảng SQL có phần tử trùng hoặc NULL
+  - Khóa ứng viên, khóa chính, khóa ứng viên không được chọn và khóa ngoại
+  - Chuyển thực thể mạnh và thực thể yếu thành bảng
+  - Chuyển quan hệ một với một hoặc một với nhiều thành khóa ngoại
+  - Chuyển quan hệ nhiều với nhiều thành bảng liên kết
+  - Biểu diễn thuộc tính nhiều giá trị và thuộc tính phức hợp
+  - Chuyển cấu trúc kiểu cha, kiểu con sang các phương án bảng
+  - Thiết kế bảng danh mục và ràng buộc tham chiếu
+  - Quy định hành vi cập nhật, xóa và tính toàn vẹn dữ liệu
+  - Đọc sơ đồ logic mà chưa gắn chặt với một hệ quản trị cụ thể
+- level1: Phụ thuộc dữ liệu
+  level2:
+  - Phụ thuộc hàm (functional dependency) và cách suy ra từ quy tắc nghiệp vụ
+  - Phụ thuộc tầm thường, đầy đủ, bộ phận và bắc cầu
+  - Bao đóng tập thuộc tính và xác định khóa ứng viên
+  - Phủ tối thiểu và vai trò khi phân rã lược đồ
+  - Không suy luận quy tắc phụ thuộc chỉ từ vài dòng dữ liệu mẫu
+  - Phụ thuộc đa trị và những tập giá trị độc lập trong cùng một quan hệ
+  - Phụ thuộc nối và giới hạn khi phân rã thành nhiều quan hệ
+  - Phân rã nối không mất mát và tiêu chí khôi phục đúng dữ liệu
+  - Bảo toàn phụ thuộc và đánh đổi với mức chuẩn hóa
+- level1: Chuẩn hóa
+  level2:
+  - Bất thường khi thêm, sửa hoặc xóa và nguồn gốc từ dữ liệu dư thừa
+  - Dạng chuẩn thứ nhất và ý nghĩa tính nguyên tử theo miền dữ liệu
+  - Dạng chuẩn thứ hai và loại bỏ phụ thuộc bộ phận vào khóa ứng viên
+  - Dạng chuẩn thứ ba và các phụ thuộc cần tách
+  - Dạng chuẩn Boyce–Codd (BCNF) và vai trò của siêu khóa
+  - Phân biệt 3NF với BCNF bằng ví dụ có nhiều khóa ứng viên
+  - Dạng chuẩn thứ tư và loại bỏ phụ thuộc đa trị không phù hợp
+  - Dạng chuẩn thứ năm và phân rã theo phụ thuộc nối
+  - Quy trình chuẩn hóa từng bước từ bảng đơn hàng chưa hợp lý
+  - Kiểm tra nối không mất mát và bảo toàn phụ thuộc sau phân rã
+  - Khi nào chuẩn hóa là đủ và cách tránh chia bảng thiếu mục đích
+  - Chuẩn hóa cấu trúc không thay thế định nghĩa đúng thuật ngữ và quy tắc nghiệp vụ
+- level1: Phi chuẩn hóa
+  level2:
+  - Phi chuẩn hóa có chủ đích khác với thiết kế dư thừa ngoài kiểm soát
+  - Chọn phương án theo mẫu truy cập và bằng chứng đo lường
+  - Sao chép thuộc tính hiển thị để giảm phép nối
+  - Bảng tổng hợp, bộ đếm và kết quả tính sẵn
+  - Ảnh chụp giá hoặc địa chỉ tại thời điểm giao dịch khác với bản sao để tăng tốc
+  - Nguồn dữ liệu chuẩn, dữ liệu dẫn xuất và trách nhiệm đồng bộ
+  - Nhất quán tức thời, nhất quán cuối cùng và chi phí cập nhật
+  - Tái tạo dữ liệu dẫn xuất, đối soát và xử lý sai lệch
+  - Giới hạn dư thừa để mô hình vẫn giải thích và bảo trì được
+- level1: Mô hình vật lý
+  level2:
+  - Chuyển mô hình logic sang kiểu dữ liệu và giới hạn của hệ quản trị
+  - Thiết kế cột bắt buộc, giá trị mặc định và ràng buộc kiểm tra
+  - Chọn khóa tuần tự, định danh phân tán hoặc khóa nghiệp vụ theo yêu cầu
+  - Khóa ghép, độ rộng khóa và ảnh hưởng đến tham chiếu hoặc chỉ mục
+  - Chỉ mục đơn, chỉ mục ghép và thứ tự cột theo mẫu truy cập
+  - Tính chọn lọc, chi phí ghi và giới hạn của việc thêm chỉ mục
+  - Phân vùng bảng theo thời gian, miền dữ liệu hoặc khóa phân phối
+  - Phân biệt ràng buộc logic với cơ chế thực thi riêng của hệ quản trị
+  - Cột JSON, mảng hoặc kiểu đặc thù và các đánh đổi về truy vấn với ràng buộc
+  - Chính sách xóa, lưu trữ dài hạn và dung lượng tăng theo thời gian
+  - Đánh giá thiết kế bằng kế hoạch truy vấn và dữ liệu có quy mô phù hợp
+- level1: Mô hình Java
+  level2:
+  - Chọn class, record hoặc enum theo ý nghĩa và vòng đời dữ liệu
+  - Tạo đối tượng giá trị cho định danh, tiền tệ, đại lượng và khoảng thời gian
+  - Constructor, factory và điều kiện để đối tượng tồn tại hợp lệ
+  - Thiết kế bất biến và sao chép phòng vệ cho dữ liệu có thể sửa
+  - equals và hashCode theo ngữ nghĩa của thực thể hoặc giá trị
+  - List, Set và Map theo thứ tự, tính duy nhất và kiểu quan hệ
+  - Biểu diễn phần tử tùy chọn mà không đánh đồng thiếu với giá trị mặc định
+  - Sealed class và hệ phân cấp cho các biến thể dữ liệu hữu hạn
+  - Generic và giới hạn kiểu để tránh trộn những loại dữ liệu khác nghĩa
+  - Tách mô hình miền, DTO trao đổi và đối tượng phục vụ lưu trữ
+- level1: Mô hình miền
+  level2:
+  - Ngữ cảnh giới hạn và phạm vi nhất quán của một mô hình
+  - Thực thể, đối tượng giá trị và dịch vụ miền trong mô hình dữ liệu
+  - Cụm nhất quán (aggregate) và đối tượng gốc kiểm soát thay đổi
+  - Chọn ranh giới aggregate từ bất biến thay vì sao chép cấu trúc bảng
+  - Tham chiếu bằng định danh giữa các aggregate
+  - Vòng đời, quyền sở hữu và thao tác làm thay đổi trạng thái
+  - Sự kiện miền để biểu diễn thay đổi có ý nghĩa nghiệp vụ
+  - Đánh đổi giữa aggregate lớn, tranh chấp và yêu cầu giao dịch
+  - Tránh mô hình chỉ có getter, setter khi quy tắc nghiệp vụ cần được bảo vệ
+- level1: Ánh xạ đối tượng
+  level2:
+  - Độ lệch giữa mô hình đối tượng và mô hình quan hệ
+  - Phân biệt định danh đối tượng Java với khóa của bản ghi lưu trữ
+  - Ánh xạ đối tượng giá trị vào nhiều cột hoặc bảng thành phần
+  - Ánh xạ quan hệ và phân biệt bên quản lý liên kết với chủ sở hữu nghiệp vụ
+  - 'Lựa chọn bảng cho kế thừa: một bảng, bảng nối hoặc bảng theo lớp cụ thể'
+  - Thiết kế khóa ghép và danh tính phụ thuộc theo yêu cầu mô hình
+  - Xóa lan truyền, phần tử mồ côi và vòng đời cần giữ lại
+  - Trường phiên bản cho kiểm soát cập nhật đồng thời
+  - Lựa chọn dữ liệu cần nạp và nguy cơ đồ thị đối tượng quá lớn
+  - Giữ mô hình miền độc lập với chi tiết ORM trong phạm vi hợp lý
+- level1: Mô hình tài liệu
+  level2:
+  - Mô hình tài liệu và cách tổ chức dữ liệu theo đơn vị đọc hoặc ghi
+  - Nhúng dữ liệu hay tham chiếu sang tài liệu khác
+  - Bội số, kích thước và tần suất thay đổi khi chọn ranh giới tài liệu
+  - Dữ liệu lồng nhau, mảng và nguy cơ tăng kích thước không giới hạn
+  - Trùng lặp có chủ đích và nguồn chịu trách nhiệm cập nhật
+  - Tính nguyên tử của thao tác và giới hạn giao dịch theo hệ lưu trữ
+  - Chọn khóa tài liệu, chỉ mục và các trường cần truy vấn
+  - Tài liệu nhiều phiên bản và quy tắc đọc dữ liệu có cấu trúc khác nhau
+  - Cấu trúc linh hoạt không có nghĩa là dữ liệu không cần lược đồ
+  - Chuyển mô hình đơn hàng quan hệ sang mô hình tài liệu và đối chiếu đánh đổi
+- level1: Khóa giá trị và cột rộng
+  level2:
+  - Mô hình khóa–giá trị và lựa chọn đơn vị dữ liệu được truy cập nguyên khối
+  - Thiết kế không gian khóa, khóa ghép và quy ước định danh
+  - Biểu diễn cấu trúc bên trong giá trị và trách nhiệm của ứng dụng
+  - Giới hạn truy vấn khi thông tin cần tìm không nằm trong khóa
+  - Mô hình cột rộng và thiết kế bắt đầu từ câu truy vấn
+  - Khóa phân vùng, khóa sắp xếp và dữ liệu cùng được truy cập
+  - Một bảng theo mẫu truy cập và nhu cầu nhân bản dữ liệu có kiểm soát
+  - Phân vùng quá lớn, khóa nóng và dữ liệu phân bố lệch
+  - Thời hạn sống, xóa dữ liệu và ý nghĩa của bản ghi đánh dấu xóa
+  - Phân biệt mô hình cột rộng với lưu trữ cột phục vụ phân tích
+- level1: Mô hình đồ thị
+  level2:
+  - Khi nào quan hệ giữa các đối tượng là trọng tâm của mô hình
+  - Đỉnh, cạnh, nhãn và thuộc tính trong mô hình đồ thị thuộc tính
+  - Chọn thực thể làm đỉnh, quan hệ làm cạnh hay làm đỉnh trung gian
+  - Chiều cạnh, bội số và quan hệ có thuộc tính hoặc thời gian hiệu lực
+  - Định danh, ràng buộc duy nhất và tránh tạo đỉnh trùng
+  - Đường đi, lân cận và kiểu truy vấn chi phối thiết kế
+  - Quan hệ nhiều vai trò và cách giữ rõ ý nghĩa các đầu liên kết
+  - Phân biệt đồ thị thuộc tính với mô hình bộ ba RDF
+  - Mô hình mạng quan hệ khách hàng, sản phẩm hoặc quyền truy cập
+  - So sánh mô hình đồ thị với bảng liên kết quan hệ theo yêu cầu truy vấn
+- level1: Thời gian và lịch sử
+  level2:
+  - Chọn lưu trạng thái hiện tại, lịch sử thay đổi hay cả hai
+  - Thời điểm có hiệu lực nghiệp vụ và thời điểm hệ thống ghi nhận
+  - Bản ghi theo phiên bản với khoảng hiệu lực rõ ràng
+  - Biên đóng, biên mở và quy tắc ngăn khoảng hiệu lực chồng lấp
+  - Lưu lịch sử thuộc tính và lịch sử quan hệ
+  - Mô hình hai chiều thời gian để xử lý điều chỉnh hồi tố
+  - Ảnh chụp định kỳ và truy vấn dữ liệu tại một thời điểm
+  - Phân biệt bảng ghi dấu thao tác, lịch sử nghiệp vụ và nhật ký sự kiện
+  - Xóa mềm, trạng thái ngừng hiệu lực và chính sách lưu lịch sử
+  - Giữ đúng ngữ nghĩa khi danh mục hoặc thông tin tham chiếu thay đổi
+- level1: Sự kiện và trạng thái
+  level2:
+  - Mô hình sự kiện cho sự việc đã xảy ra thay vì chỉ lưu trạng thái cuối
+  - Chọn tên sự kiện, chủ thể, dữ liệu và thời điểm có ý nghĩa nghiệp vụ
+  - Phân biệt sự kiện miền, sự kiện tích hợp và bản ghi thay đổi lưu trữ
+  - Lưu sự kiện làm nguồn dữ liệu (event sourcing) và giới hạn áp dụng
+  - Định danh luồng, thứ tự phiên bản và cập nhật đồng thời
+  - Sự kiện bất biến, sửa sai và hành động bù trừ
+  - Chiếu sự kiện thành mô hình đọc và khả năng tái tạo
+  - Ảnh chụp trạng thái để hỗ trợ đọc lại lịch sử dài
+  - Tiến hóa cấu trúc sự kiện và cách hiểu dữ liệu cũ
+  - Chọn mô hình trạng thái hoặc mô hình sự kiện theo yêu cầu thực tế
+- level1: Mô hình phân tích
+  level2:
+  - Phân biệt nhu cầu giao dịch OLTP với nhu cầu phân tích OLAP
+  - Bắt đầu từ câu hỏi phân tích, quy trình nghiệp vụ và độ hạt
+  - Số đo, chiều phân tích và quan hệ giữa chúng
+  - Lược đồ hình sao, bông tuyết và nhiều bảng dữ kiện dùng chung chiều
+  - Mô hình chiều so với mô hình quan hệ chuẩn hóa
+  - Vai trò của lớp tiếp nhận, dữ liệu chuẩn hóa và dữ liệu phục vụ phân tích
+  - Chiều dùng chung và định nghĩa nhất quán giữa các quy trình
+  - Tổng quan Data Vault với hub, link và satellite
+  - Khi nào chọn mô hình chiều, Data Vault hoặc cách kết hợp
+  - 'Giới hạn phạm vi: mô hình dữ liệu phân tích khác với triển khai toàn bộ luồng ETL'
+- level1: Bảng dữ kiện
+  level2:
+  - Tuyên bố độ hạt trước khi chọn khóa và số đo
+  - Bảng dữ kiện giao dịch, ảnh chụp định kỳ và ảnh chụp tích lũy
+  - Số đo cộng được, cộng được theo một số chiều và không cộng được
+  - Bảng dữ kiện không có số đo để mô tả sự tham gia hoặc sự xuất hiện
+  - Khóa chiều, thời điểm và định danh giao dịch trong bảng dữ kiện
+  - Lưu số dư, tỷ lệ, đơn giá và quy tắc tổng hợp đúng
+  - Số đo gốc so với số đo suy ra hoặc tính sẵn
+  - Dữ kiện đến trễ, điều chỉnh và bản ghi bù trừ
+  - Dữ kiện có nhiều tiền tệ, đơn vị hoặc mức chi tiết
+  - Phát hiện nhân đôi số đo khi nối nhiều bảng dữ kiện
+- level1: Bảng chiều
+  level2:
+  - Khóa nghiệp vụ, khóa thay thế và thuộc tính mô tả của chiều
+  - 'Chiều thay đổi chậm kiểu 1: ghi đè giá trị'
+  - 'Chiều thay đổi chậm kiểu 2: tạo phiên bản và khoảng hiệu lực'
+  - 'Chiều thay đổi chậm kiểu 3: giữ một phần giá trị trước'
+  - Chọn cách lưu lịch sử theo từng thuộc tính và yêu cầu phân tích
+  - Chiều ngày, chiều thời gian và một chiều đóng nhiều vai trò
+  - Định danh giao dịch làm chiều suy biến (degenerate dimension)
+  - Gom các cờ hoặc mã ít giá trị thành chiều phụ (junk dimension)
+  - Chiều nhiều giá trị và bảng cầu để giữ đúng độ hạt
+  - Thành viên chưa biết, không áp dụng và chiều đến trễ
+  - Phân cấp phân tích và chiều dùng chung giữa nhiều bảng dữ kiện
+- level1: Dữ liệu chuỗi thời gian
+  level2:
+  - Phân biệt dữ liệu đo theo thời gian, sự kiện và ảnh chụp trạng thái
+  - Khóa chuỗi, thời điểm và các chiều dùng để xác định một phép đo
+  - Giá trị đo tức thời, bộ đếm tích lũy và giá trị biến thiên
+  - Tần suất lấy mẫu, độ chính xác và giá trị bị thiếu
+  - Chia khoảng thời gian để tổ chức lưu trữ và truy vấn
+  - Dữ liệu đến trễ, trùng thời điểm và điều chỉnh phép đo
+  - Lưu dữ liệu thô, tổng hợp nhiều mức và giảm độ phân giải
+  - Thời gian lưu theo từng mức chi tiết và yêu cầu truy vết
+  - Số lượng tổ hợp nhãn và rủi ro bùng nổ số chuỗi
+  - Mô hình nhiệt độ thiết bị hoặc chỉ số vận hành theo nhu cầu đọc
+- level1: Phân tán và phân vùng
+  level2:
+  - Thiết kế theo ranh giới dữ liệu thường được đọc hoặc ghi cùng nhau
+  - Chọn khóa phân vùng theo phân bố dữ liệu và mẫu truy cập
+  - Phân vùng theo khoảng, theo hàm băm hoặc theo thư mục định tuyến
+  - Khóa nóng, khách hàng quá lớn và nguy cơ phân bố lệch
+  - Định danh duy nhất khi dữ liệu được tạo tại nhiều nơi
+  - Ràng buộc duy nhất trong một phân vùng so với toàn hệ thống
+  - Dữ liệu nhiều tổ chức với bảng dùng chung hoặc vùng lưu trữ tách biệt
+  - Nhân bản dữ liệu và xác định nguồn chịu trách nhiệm
+  - Truy vấn xuyên phân vùng, giao dịch phân tán và chi phí phối hợp
+  - Thiết kế lại ranh giới khi bất biến không thể được bảo vệ hợp lý
+- level1: Ranh giới và tích hợp
+  level2:
+  - Mô hình dữ liệu riêng cho từng ngữ cảnh thay vì một mô hình dùng cho mọi hệ thống
+  - Quan hệ giữa mô hình miền, mô hình lưu trữ và mô hình trao đổi
+  - Hợp đồng API hoặc sự kiện như phép chiếu có mục đích
+  - Chọn dữ liệu cần công bố và tránh lộ cấu trúc lưu trữ nội bộ
+  - Đối chiếu định danh, thuật ngữ và dữ liệu danh mục giữa các nguồn
+  - Mô hình chuẩn dùng chung và nguy cơ trở thành điểm phụ thuộc quá lớn
+  - Lớp chuyển đổi để bảo vệ mô hình khỏi cách hiểu bên ngoài
+  - Tách mô hình đọc với mô hình ghi theo CQRS khi nhu cầu khác biệt
+  - Quyền sở hữu dữ liệu giữa dịch vụ và tránh chia sẻ bảng ngoài kiểm soát
+  - Theo dõi nguồn gốc của dữ liệu được sao chép hoặc tổng hợp
+- level1: Bảo vệ dữ liệu
+  level2:
+  - Nhận diện dữ liệu cá nhân, dữ liệu nhạy cảm và thuộc tính suy ra
+  - Chỉ mô hình hóa dữ liệu cần thiết cho mục đích đã xác định
+  - Tách thông tin định danh khỏi dữ liệu nghiệp vụ khi phù hợp
+  - Mã thay thế, mã hóa và ảnh hưởng đến truy vấn với ràng buộc
+  - Mô hình quyền truy cập theo chủ thể, tài nguyên, vai trò hoặc thuộc tính
+  - Ranh giới tổ chức và nguy cơ liên kết dữ liệu chéo phạm vi
+  - Thời hạn lưu, điều kiện xóa và dữ liệu còn nằm trong bản sao hoặc lịch sử
+  - Cân bằng truy vết nghiệp vụ với yêu cầu hạn chế dữ liệu nhạy cảm
+  - Biểu diễn trạng thái đồng ý, mục đích sử dụng và thời gian hiệu lực
+- level1: Tiến hóa mô hình
+  level2:
+  - Phân biệt đổi tên, đổi cấu trúc và đổi ý nghĩa dữ liệu
+  - Thêm thuộc tính, đổi kiểu, siết ràng buộc và đánh giá dữ liệu hiện có
+  - Phiên bản lược đồ và quản lý các trạng thái trung gian khi triển khai
+  - Mở rộng trước, chuyển đổi dần rồi thu hẹp cấu trúc cũ
+  - Điền bổ sung dữ liệu lịch sử với khả năng tiếp tục và đối soát
+  - Chuyển khóa chính, tách thực thể và hợp nhất thực thể
+  - Đọc hoặc ghi nhiều phiên bản trong giai đoạn chuyển đổi
+  - Kiểm tra khả năng quay về phiên bản cũ và giới hạn khi mất thông tin
+  - Đồng bộ thay đổi giữa mô hình Java, lưu trữ, sự kiện và báo cáo
+  - Đánh giá tác động đến bên sử dụng và dữ liệu dẫn xuất
+- level1: Tài liệu mô hình
+  level2:
+  - Chọn mức chi tiết sơ đồ theo đối tượng đọc và mục đích trao đổi
+  - Từ điển dữ liệu cho bảng, trường, kiểu, đơn vị và miền giá trị
+  - Định nghĩa khóa, quan hệ, bội số và hành vi vòng đời
+  - Tài liệu hóa độ hạt, nguồn dữ liệu và thời điểm có hiệu lực
+  - Quy ước đặt tên nhất quán mà vẫn giữ đúng ngôn ngữ nghiệp vụ
+  - Lưu ví dụ hợp lệ, phản ví dụ và quy tắc không thể hiện hết trên sơ đồ
+  - Ghi quyết định kiến trúc, phương án đã cân nhắc và lý do đánh đổi
+  - Sơ đồ được sinh từ triển khai và giới hạn khi thiếu ý nghĩa nghiệp vụ
+  - Quản lý mô hình trong kiểm soát phiên bản và rà soát cùng thay đổi mã
+- level1: Kiểm chứng thiết kế
+  level2:
+  - Rà soát mô hình bằng tình huống nghiệp vụ từ đầu đến cuối
+  - Kiểm tra độ hạt, định danh, tính tùy chọn và vòng đời
+  - Kiểm tra bất biến với dữ liệu biên, dữ liệu thiếu và trạng thái không hợp lệ
+  - Chứng minh phân rã không mất mát và kiểm tra phụ thuộc cần bảo toàn
+  - Kiểm thử tính đúng của phép nối, tổng hợp và lịch sử theo thời gian
+  - Kiểm thử equals, hashCode và tính bất biến của mô hình Java
+  - Kiểm tra ràng buộc khi có thao tác đồng thời hoặc dữ liệu đến trễ
+  - Đo truy vấn đọc, chi phí ghi và dung lượng trên dữ liệu đại diện
+  - Kiểm thử chuyển đổi lược đồ, đối soát và khả năng khôi phục
+  - Rà soát quyền truy cập, phạm vi tổ chức và yêu cầu xóa dữ liệu
+  - Danh sách tiêu chí để chấp nhận một mô hình trước khi triển khai
+- level1: Lỗi thường gặp
+  level2:
+  - Vẽ bảng trước khi thống nhất khái niệm và độ hạt
+  - Đồng nhất lớp Java, bảng lưu trữ và DTO thành một mô hình duy nhất
+  - Một bảng hoặc một tài liệu chứa quá nhiều khái niệm khác vòng đời
+  - Tạo quá nhiều bảng hoặc kiểu chỉ để thể hiện khác biệt rất nhỏ
+  - Danh sách phân cách bằng dấu phẩy và nhóm cột lặp như item1, item2
+  - Mô hình thực thể–thuộc tính–giá trị (EAV) và chi phí của cấu trúc quá tổng quát
+  - Khóa ngoại đa hình không có cách kiểm soát tham chiếu rõ ràng
+  - Lạm dụng cột JSON để né xác định cấu trúc dữ liệu
+  - Dư thừa dữ liệu nhưng không có nguồn chuẩn hoặc quy tắc đồng bộ
+  - Xóa lan truyền làm mất lịch sử cần giữ
+  - Thiết kế cho mọi khả năng tương lai mà không có yêu cầu hoặc bằng chứng
+- level1: Thực hành tổng hợp
+  level2:
+  - Khảo sát quy trình bán hàng và xây dựng bảng thuật ngữ
+  - Vẽ mô hình khái niệm cho khách hàng, sản phẩm, đơn hàng và thanh toán
+  - Xác định khóa, quan hệ, thuộc tính và bất biến của từng phần
+  - Chuẩn hóa mô hình quan hệ và kiểm tra các phương án phân rã
+  - Thiết kế mô hình Java với đối tượng giá trị và ranh giới aggregate
+  - Chọn mô hình vật lý và chỉ mục từ các truy vấn thực tế
+  - So sánh biểu diễn đơn hàng bằng bảng quan hệ với tài liệu
+  - Lưu giá bán tại giao dịch và lịch sử thay đổi thông tin khách hàng
+  - Thiết kế mô hình đọc, sự kiện và hợp đồng trao đổi phù hợp
+  - Xây dựng bảng dữ kiện bán hàng cùng các chiều phân tích
+  - Thực hiện một thay đổi mô hình có chuyển đổi dữ liệu và đối soát
+  - Hoàn thiện sơ đồ, từ điển dữ liệu, quyết định thiết kế và bộ kiểm chứng

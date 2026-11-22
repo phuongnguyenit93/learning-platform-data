@@ -1,0 +1,154 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cài đặt
+  slug: installation
+  index: 1
+- title: Công cụ
+  slug: tools
+  index: 2
+- title: Kiến trúc
+  slug: architecture
+  index: 3
+- title: Cấu hình
+  slug: configuration
+  index: 4
+- title: Tổ chức dữ liệu
+  slug: data-organization
+  index: 5
+- title: Thiết kế lược đồ
+  slug: schema-design
+  index: 6
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 7
+- title: Ràng buộc
+  slug: constraints
+  index: 8
+- title: Truy vấn cơ bản
+  slug: basic-queries
+  index: 9
+- title: Kết hợp dữ liệu
+  slug: joins
+  index: 10
+- title: Tổng hợp dữ liệu
+  slug: aggregation
+  index: 11
+- title: Truy vấn nâng cao
+  slug: advanced-queries
+  index: 12
+- title: Hàm và biểu thức
+  slug: functions-expressions
+  index: 13
+- title: Hàm cửa sổ
+  slug: window-functions
+  index: 14
+- title: Thay đổi dữ liệu
+  slug: data-modification
+  index: 15
+- title: Giao dịch
+  slug: transactions
+  index: 16
+- title: MVCC
+  slug: mvcc
+  index: 17
+- title: Khóa
+  slug: locks
+  index: 18
+- title: Chỉ mục
+  slug: indexes
+  index: 19
+- title: Kế hoạch truy vấn
+  slug: query-plans
+  index: 20
+- title: Tối ưu truy vấn
+  slug: query-optimization
+  index: 21
+- title: Phân vùng
+  slug: partitioning
+  index: 22
+- title: JSON và mảng
+  slug: json-arrays
+  index: 23
+- title: Tìm kiếm văn bản
+  slug: full-text-search
+  index: 24
+- title: View
+  slug: view
+  index: 25
+- title: Hàm và thủ tục
+  slug: functions-procedures
+  index: 26
+- title: PL/pgSQL
+  slug: plpgsql
+  index: 27
+- title: Trigger và luật
+  slug: triggers-rules
+  index: 28
+- title: Bảo mật
+  slug: security
+  index: 29
+- title: Kết nối ứng dụng
+  slug: application-connections
+  index: 30
+- title: Nhập xuất dữ liệu
+  slug: data-import-export
+  index: 31
+- title: Lưu trữ
+  slug: storage
+  index: 32
+- title: VACUUM
+  slug: vacuum
+  index: 33
+- title: WAL và checkpoint
+  slug: wal-checkpoints
+  index: 34
+- title: Sao lưu
+  slug: backup
+  index: 35
+- title: Khôi phục
+  slug: recovery
+  index: 36
+- title: Sao chép vật lý
+  slug: physical-replication
+  index: 37
+- title: Sao chép logic
+  slug: logical-replication
+  index: 38
+- title: Tính sẵn sàng cao
+  slug: high-availability
+  index: 39
+- title: Giám sát
+  slug: monitoring
+  index: 40
+- title: Tối ưu tài nguyên
+  slug: resource-tuning
+  index: 41
+- title: Quản trị
+  slug: administration
+  index: 42
+- title: Nâng cấp
+  slug: upgrades
+  index: 43
+- title: Thay đổi lược đồ
+  slug: schema-migrations
+  index: 44
+- title: Mở rộng
+  slug: scaling
+  index: 45
+- title: Tích hợp dữ liệu
+  slug: data-integration
+  index: 46
+- title: Kiểm thử
+  slug: testing
+  index: 47
+- title: Triển khai
+  slug: deployment
+  index: 48
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 49
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 50

@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Hợp đồng metric
+  slug: metric-contracts
+  index: 2
+- title: PromQL cho cảnh báo
+  slug: promql-for-alerts
+  index: 3
+- title: Gom và ghép chuỗi
+  slug: series-aggregation-and-joins
+  index: 4
+- title: Tệp và nhóm rule
+  slug: rule-files-and-groups
+  index: 5
+- title: Recording rule
+  slug: recording-rules
+  index: 6
+- title: Alerting rule
+  slug: alerting-rules
+  index: 7
+- title: Vòng đời cảnh báo
+  slug: alert-lifecycle
+  index: 8
+- title: Thời gian đánh giá
+  slug: evaluation-intervals
+  index: 9
+- title: Nhãn và định danh
+  slug: labels-and-identities
+  index: 10
+- title: Chú thích và mẫu
+  slug: annotations-and-templates
+  index: 11
+- title: Thiết kế tín hiệu
+  slug: signal-design
+  index: 12
+- title: Mất và thiếu dữ liệu
+  slug: missing-data-handling
+  index: 13
+- title: Tài nguyên và hạ tầng
+  slug: resource-and-infra-alerts
+  index: 14
+- title: Dịch vụ và ứng dụng
+  slug: service-and-app-alerts
+  index: 15
+- title: Độ trễ và histogram
+  slug: latency-and-histograms
+  index: 16
+- title: SLO và ngân sách lỗi
+  slug: slos-and-error-budgets
+  index: 17
+- title: Kết nối Alertmanager
+  slug: alertmanager-integration
+  index: 18
+- title: Kiểm tra cú pháp
+  slug: syntax-validation
+  index: 19
+- title: Kiểm thử rule
+  slug: rule-testing
+  index: 20
+- title: Triển khai an toàn
+  slug: safe-deployment
+  index: 21
+- title: Kubernetes
+  slug: kubernetes
+  index: 22
+- title: Hiệu năng và quy mô
+  slug: performance-and-scale
+  index: 23
+- title: Tự giám sát
+  slug: self-monitoring
+  index: 24
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 25
+- title: Quản trị rule
+  slug: rule-governance
+  index: 26
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 27

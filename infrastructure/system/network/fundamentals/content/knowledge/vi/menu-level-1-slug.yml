@@ -1,0 +1,97 @@
+menu:
+- title: Tư duy nền tảng
+  slug: networking-foundations
+  index: 0
+- title: Phạm vi và cấu trúc
+  slug: scope-network-structure
+  index: 1
+- title: Mô hình phân tầng
+  slug: layered-models
+  index: 2
+- title: Đường truyền
+  slug: physical-transmission
+  index: 3
+- title: Ethernet và Wi-Fi
+  slug: ethernet-wifi
+  index: 4
+- title: Thiết bị mạng
+  slug: network-devices
+  index: 5
+- title: Switching và VLAN
+  slug: switching-vlans
+  index: 6
+- title: Địa chỉ IPv4
+  slug: ipv4-addressing
+  index: 7
+- title: Chia mạng IPv4
+  slug: ipv4-subnetting
+  index: 8
+- title: IPv6
+  slug: ipv6
+  index: 9
+- title: ARP và NDP
+  slug: arp-ndp
+  index: 10
+- title: Cấp phát cấu hình
+  slug: network-configuration-assignment
+  index: 11
+- title: Định tuyến
+  slug: routing
+  index: 12
+- title: ICMP và MTU
+  slug: icmp-mtu
+  index: 13
+- title: NAT và Internet
+  slug: nat-internet
+  index: 14
+- title: TCP
+  slug: tcp
+  index: 15
+- title: UDP và QUIC
+  slug: udp-quic
+  index: 16
+- title: Cổng và socket
+  slug: ports-sockets
+  index: 17
+- title: DNS
+  slug: dns
+  index: 18
+- title: Giao thức ứng dụng
+  slug: application-protocols
+  index: 19
+- title: TLS và danh tính
+  slug: tls-identity
+  index: 20
+- title: Firewall và phân đoạn
+  slug: firewalls-segmentation
+  index: 21
+- title: Bảo mật mạng
+  slug: network-security
+  index: 22
+- title: VPN và đường hầm
+  slug: vpn-tunneling
+  index: 23
+- title: Proxy và cân bằng tải
+  slug: proxies-load-balancing
+  index: 24
+- title: Mạng ảo
+  slug: virtual-networks
+  index: 25
+- title: Mạng cloud
+  slug: cloud-networking
+  index: 26
+- title: Hiệu năng mạng
+  slug: network-performance
+  index: 27
+- title: Khả dụng
+  slug: availability
+  index: 28
+- title: Công cụ quan sát
+  slug: observability-tools
+  index: 29
+- title: Tư duy xử lý lỗi
+  slug: network-troubleshooting
+  index: 30
+- title: Bài thực hành
+  slug: practice-labs
+  index: 31

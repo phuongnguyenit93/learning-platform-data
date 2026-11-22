@@ -1,0 +1,88 @@
+menu:
+- title: 1. Tổng quan bí mật
+  slug: secrets-overview
+  index: 0
+- title: 2. Mô hình đe dọa
+  slug: threat-model
+  index: 1
+- title: 3. Mô hình vòng đời
+  slug: secret-lifecycle-model
+  index: 2
+- title: 4. Kiểm kê và khám phá
+  slug: inventory-and-discovery
+  index: 3
+- title: 5. Chính sách và sở hữu
+  slug: policies-and-ownership
+  index: 4
+- title: 6. Tạo bí mật
+  slug: secret-generation
+  index: 5
+- title: 7. Khởi tạo tin cậy
+  slug: trust-bootstrap
+  index: 6
+- title: 8. Kiến trúc quản lý
+  slug: management-architecture
+  index: 7
+- title: 9. Lưu trữ và bảo vệ
+  slug: storage-and-protection
+  index: 8
+- title: 10. Danh tính và cấp quyền
+  slug: identity-and-access
+  index: 9
+- title: 11. Phân phối bí mật
+  slug: secret-distribution
+  index: 10
+- title: 12. Sử dụng khi chạy
+  slug: runtime-usage
+  index: 11
+- title: 13. Bí mật động và thời hạn
+  slug: dynamic-secrets-and-ttl
+  index: 12
+- title: 14. Thiết kế luân chuyển
+  slug: rotation-design
+  index: 13
+- title: 15. Vận hành luân chuyển
+  slug: rotation-operations
+  index: 14
+- title: 16. Thu hồi và hết hạn
+  slug: revocation-and-expiration
+  index: 15
+- title: 17. Ngừng dùng và hủy
+  slug: retirement-and-destruction
+  index: 16
+- title: 18. Mã nguồn và CI/CD
+  slug: source-code-and-cicd
+  index: 17
+- title: 19. Hạ tầng và cấu hình
+  slug: infrastructure-and-config
+  index: 18
+- title: 20. Con người và môi trường phát triển
+  slug: developer-environments
+  index: 19
+- title: 21. Nhật ký và chống rò rỉ
+  slug: logging-and-leak-prevention
+  index: 20
+- title: 22. Kiểm toán và giám sát
+  slug: auditing-and-monitoring
+  index: 21
+- title: 23. Khả dụng và phục hồi
+  slug: availability-and-recovery
+  index: 22
+- title: 24. Ứng phó bí mật bị lộ
+  slug: secret-exposure-response
+  index: 23
+- title: 25. Bí mật theo hệ thống
+  slug: system-specific-secrets
+  index: 24
+- title: 26. Kiểm thử vòng đời
+  slug: lifecycle-testing
+  index: 25
+- title: 27. Chuyển đổi và vận hành
+  slug: migration-and-operations
+  index: 26
+- title: 28. Sai lầm thường gặp
+  slug: common-mistakes
+  index: 27
+- title: 29. Tình huống và thực hành
+  slug: scenarios-and-exercises
+  index: 28

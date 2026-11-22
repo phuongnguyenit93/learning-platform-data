@@ -1,0 +1,49 @@
+roadmap:
+- id: yeu-cau-trade-off
+  title: Yêu cầu & Trade-off
+  purpose: Xác định yêu cầu nghiệp vụ và tiêu chí chất lượng trước khi chọn dịch vụ cloud.
+  objectives:
+  - Phân biệt functional và non-functional requirements.
+  - Ưu tiên availability, latency, security, cost và giới hạn thực tế.
+- id: architecture-styles
+  title: Architecture Styles
+  purpose: Chọn kiểu kiến trúc phù hợp với đặc điểm workload thay vì chạy theo công nghệ.
+  objectives:
+  - So sánh N-tier, microservices, event-driven và serverless.
+  - Giải thích lợi ích và độ phức tạp của từng lựa chọn.
+- id: topology-networking
+  title: Topology & Networking
+  purpose: Vẽ đường đi lưu lượng và phân vùng triển khai an toàn, có khả năng mở rộng.
+  objectives:
+  - Phân biệt region, availability zone, VPC/VNet và subnet.
+  - Thiết kế sơ đồ ingress, load balancer và mạng private.
+- id: compute-data-integration
+  title: Compute, Data & Integration
+  purpose: Lựa chọn nhóm dịch vụ triển khai và lưu trữ phù hợp luồng dữ liệu.
+  objectives:
+  - So sánh VM, container, managed services và serverless.
+  - Chọn data store, cache hoặc queue theo yêu cầu nghiệp vụ.
+- id: security-governance
+  title: Security & Governance
+  purpose: Áp dụng lớp bảo vệ ngay từ thiết kế và nhận diện phần trách nhiệm của tổ chức.
+  objectives:
+  - Phân biệt shared responsibility của provider và khách hàng.
+  - Áp dụng IAM tối thiểu, mã hóa, secret và phân đoạn mạng.
+- id: reliability-recovery
+  title: Reliability & Recovery
+  purpose: Thiết kế khả năng chịu lỗi và khôi phục theo cam kết dịch vụ.
+  objectives:
+  - Chọn đa AZ/region, health check và failover phù hợp.
+  - Xác định RTO/RPO, backup và kiểm thử khôi phục.
+- id: performance-cost
+  title: Performance & Cost
+  purpose: Cân bằng hiệu năng khi tải tăng với chi phí tài nguyên sử dụng.
+  objectives:
+  - Đề xuất autoscaling, caching và kiểm thử tải.
+  - Ước tính chi phí, right-sizing và cảnh báo ngân sách.
+- id: operations-review
+  title: Operations & Review
+  purpose: Đánh giá thiết kế và chuẩn bị cách triển khai, quan sát, cải tiến liên tục.
+  objectives:
+  - Mô tả IaC, CI/CD, metrics, logs, traces và alerts.
+  - Review kiến trúc theo Well-Architected và ghi lại trade-off.

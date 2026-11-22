@@ -1,0 +1,2206 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Quản lý lưu lượng mạng là gì và vì sao cần kiểm soát luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt gói tin, luồng kết nối, yêu cầu và phiên làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mục tiêu về độ trễ, thông lượng, độ sẵn sàng và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt quản lý lưu lượng, định tuyến mạng và kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của điều tiết băng thông, QoS, cân bằng tải và định tuyến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Lưu lượng vào ra hệ thống và lưu lượng giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Luồng xử lý từ phân loại đến lựa chọn đích và thực thi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và cách đọc sơ đồ quản lý lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-characteristics
+  title: Đặc tính lưu lượng
+  childs:
+  - slug: traffic-characteristics-001
+    title: Băng thông đường truyền, thông lượng và tốc độ dữ liệu hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-002
+    title: Đơn vị bit, byte, gói tin, kết nối và yêu cầu mỗi giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-003
+    title: Độ trễ truyền, xử lý, xếp hàng và thời gian khứ hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-004
+    title: Jitter, mất gói, truyền lại và ảnh hưởng lên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-005
+    title: Lưu lượng đều, tăng đột biến và biến động theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-006
+    title: Tải nhạy độ trễ, tải truyền khối lượng lớn và tải thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-007
+    title: Kích thước yêu cầu, thời gian xử lý và chi phí mỗi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-008
+    title: Luồng ngắn, luồng dài và phân bố kích thước không đồng đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-009
+    title: Phân biệt tải được gửi đến, tải được chấp nhận và tải xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-characteristics-010
+    title: Phân vị độ trễ và giới hạn của số trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-classification
+  title: Phân loại lưu lượng
+  childs:
+  - slug: traffic-classification-001
+    title: Nhận diện luồng bằng địa chỉ, cổng và giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-002
+    title: Phân loại theo giao diện, mạng nguồn, mạng đích và hướng truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-003
+    title: Phân loại theo dịch vụ, tuyến API và loại thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-004
+    title: Phân loại theo khách hàng, danh tính và gói sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-005
+    title: Đặc điểm có thể quan sát tại lớp mạng và lớp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-006
+    title: Metadata từ proxy và giới hạn tin cậy của header do bên gửi cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-007
+    title: Giới hạn nhận diện nội dung khi dữ liệu được mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-008
+    title: Phân biệt phân loại có trạng thái và không lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-009
+    title: Quy tắc mặc định, độ ưu tiên và xung đột giữa bộ phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-classification-010
+    title: Đánh dấu phân lớp tại ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-architecture
+  title: Kiến trúc chính sách
+  childs:
+  - slug: policy-architecture-001
+    title: Mặt phẳng điều khiển và mặt phẳng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-002
+    title: Điểm thực thi tại máy chủ, thiết bị mạng, proxy và gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-003
+    title: Điều khiển từ phía máy khách và từ phía hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-004
+    title: Chính sách tập trung và thực thi phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-005
+    title: Mô hình đo lường, ra quyết định, thực thi và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-006
+    title: Phạm vi chính sách theo kết nối, dịch vụ, tuyến và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-007
+    title: Phối hợp nhiều tầng và tránh giới hạn hoặc thử lại chồng chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-008
+    title: Trạng thái cục bộ, trạng thái dùng chung và tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-architecture-009
+    title: Quyền sở hữu cấu hình và ranh giới thay đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-of-service
+  title: Chất lượng dịch vụ
+  childs:
+  - slug: quality-of-service-001
+    title: QoS và yêu cầu ưu tiên giữa các lớp lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-002
+    title: Mô hình best effort và dịch vụ phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-003
+    title: DSCP, đánh dấu gói tin và hành vi xử lý tại từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-004
+    title: Phân biệt nhãn ưu tiên với bảo đảm chất lượng toàn tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-005
+    title: Ranh giới tin cậy, giữ nguyên và đánh dấu lại lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-006
+    title: Dành băng thông tối thiểu và giới hạn băng thông tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-007
+    title: Chính sách ưu tiên cho dữ liệu thời gian thực và lưu lượng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-008
+    title: Khả năng tương thích QoS giữa các miền mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-of-service-009
+    title: Đo kết quả QoS khi nhiều lớp cùng tranh chấp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bandwidth-shaping
+  title: Điều tiết băng thông
+  childs:
+  - slug: bandwidth-shaping-001
+    title: Traffic profile và cách xác định lưu lượng trong hoặc ngoài ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-002
+    title: Meter, marker, shaper và dropper trong chuỗi điều tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-003
+    title: Phân biệt shaping bằng trì hoãn với policing bằng loại bỏ hoặc đánh dấu lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-004
+    title: 'Token bucket: tốc độ nạp, dung lượng và lượng vượt ngưỡng ngắn hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-005
+    title: Leaky bucket và ý nghĩa phụ thuộc vào cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-006
+    title: Tốc độ trung bình, tốc độ đỉnh và kích thước burst
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-007
+    title: Điều tiết chiều vào, chiều ra và vị trí nghẽn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-008
+    title: Dung lượng bộ đệm và độ trễ phát sinh do shaping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-009
+    title: Chia sẻ băng thông theo lớp và phân cấp chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bandwidth-shaping-010
+    title: Ảnh hưởng của policing đến TCP, UDP và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queueing-and-scheduling
+  title: Hàng đợi và lập lịch
+  childs:
+  - slug: queueing-and-scheduling-001
+    title: Vai trò của hàng đợi khi tốc độ đầu vào vượt tốc độ phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-002
+    title: Độ dài hàng đợi, thời gian chờ và giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-003
+    title: FIFO và hiện tượng chặn các phần tử phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-004
+    title: Hàng đợi ưu tiên và nguy cơ lớp ưu tiên thấp không được phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-005
+    title: Lập lịch luân phiên và luân phiên có trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-006
+    title: Chia sẻ công bằng theo luồng và theo khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-007
+    title: Deficit Round Robin và xử lý gói tin có kích thước khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-008
+    title: Phân cấp lớp lưu lượng và phân phối phần băng thông còn dư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-009
+    title: Lựa chọn vị trí xếp hàng trong mạng và trong proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queueing-and-scheduling-010
+    title: Đánh đổi giữa công bằng, thông lượng và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: congestion-and-aqm
+  title: Tắc nghẽn và AQM
+  childs:
+  - slug: congestion-and-aqm-001
+    title: Phân biệt thiếu băng thông, tắc nghẽn và quá tải ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-002
+    title: Bufferbloat và độ trễ tăng do hàng đợi quá dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-003
+    title: Loại bỏ khi đầy hàng đợi và hạn chế của tail drop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-004
+    title: Quản lý hàng đợi chủ động (AQM)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-005
+    title: RED, CoDel và các tín hiệu dùng để quyết định quản lý hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-006
+    title: FQ-CoDel và phối hợp công bằng theo luồng với kiểm soát độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-007
+    title: ECN và báo hiệu tắc nghẽn khi các đầu cuối hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-008
+    title: Quan hệ giữa AQM và điều khiển tắc nghẽn ở tầng vận chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: congestion-and-aqm-009
+    title: Giới hạn của tăng bộ đệm khi tốc độ phục vụ không thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ingress-limits
+  title: Giới hạn đầu vào
+  childs:
+  - slug: ingress-limits-001
+    title: Giới hạn tốc độ, hạn ngạch và giới hạn số tác vụ đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-002
+    title: Fixed window và rủi ro tăng đột biến tại ranh giới cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-003
+    title: Sliding window log và sliding window counter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-004
+    title: Token bucket cho yêu cầu ứng dụng và kiểm soát burst
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-005
+    title: Giới hạn theo IP, danh tính, tuyến và khóa nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-006
+    title: Giới hạn cục bộ so với giới hạn dùng chung toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-007
+    title: Độ chính xác, độ trễ và chi phí đồng bộ của bộ đếm phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-008
+    title: Giới hạn theo chi phí yêu cầu thay vì chỉ theo số yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-009
+    title: Xử lý khi kho trạng thái hoặc dịch vụ hạn ngạch không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-010
+    title: Phản hồi từ chối, thời điểm thử lại và hành vi của máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-limits-011
+    title: Tiếp nhận có điều kiện và chủ động giảm tải khi gần bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-balancing
+  title: Cân bằng tải
+  childs:
+  - slug: load-balancing-001
+    title: Cân bằng tải lớp 4 và lớp 7
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-002
+    title: Cân bằng phía máy khách, phía máy chủ và qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-003
+    title: Round robin, weighted round robin và lựa chọn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-004
+    title: Least connections, least requests và khác biệt về đơn vị đo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-005
+    title: Chọn theo độ trễ hoặc mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-006
+    title: Power of two choices và giảm chi phí lựa chọn đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-007
+    title: Băm theo khóa và consistent hashing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-008
+    title: Session affinity, tính ổn định đích và rủi ro lệch tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-009
+    title: Trọng số máy chủ và năng lực xử lý không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-010
+    title: Khởi động chậm có kiểm soát khi thêm máy chủ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-011
+    title: Khác biệt giữa phân phối kết nối và phân phối từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-012
+    title: Tác động của NAT và kết nối dùng lại lên độ đồng đều của tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backend-health
+  title: Sức khỏe đích nhận
+  childs:
+  - slug: backend-health-001
+    title: Service discovery và danh sách đích có thể nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-002
+    title: Kiểm tra sức khỏe chủ động và quan sát lỗi thụ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-003
+    title: Phân biệt tiến trình còn sống với khả năng phục vụ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-004
+    title: Ngưỡng lỗi, ngưỡng phục hồi và khoảng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-005
+    title: Phát hiện đích có hành vi bất thường và tạm loại khỏi tập cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-006
+    title: DNS cache, thời gian hội tụ và đích đã bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-007
+    title: Flapping và nguy cơ liên tục đưa đích ra vào hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-008
+    title: Trường hợp không còn đích khỏe và lựa chọn hành vi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backend-health-009
+    title: Đưa đích trở lại với lưu lượng tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-routing
+  title: Định tuyến ứng dụng
+  childs:
+  - slug: application-routing-001
+    title: Định tuyến theo hostname, đường dẫn, phương thức và header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-002
+    title: Định tuyến theo phiên bản dịch vụ và nhóm đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-003
+    title: Điều kiện so khớp chính xác, tiền tố và biểu thức mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-004
+    title: Thứ tự quy tắc, độ ưu tiên và tuyến mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-005
+    title: Định tuyến theo danh tính hoặc nhóm người dùng đã được xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-006
+    title: Chia lưu lượng theo trọng số giữa các nhóm đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-007
+    title: Phân biệt thay đổi tuyến, chuyển hướng và viết lại URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-008
+    title: Định tuyến HTTP, gRPC, TCP và UDP theo khả năng tầng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-009
+    title: SNI, TLS termination và giới hạn định tuyến khi TLS đi xuyên qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-010
+    title: Vòng lặp định tuyến và đường đi vượt qua điểm kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-routing-011
+    title: Kiểm tra đích cuối thực tế thay vì chỉ đọc cấu hình mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connections-and-protocols
+  title: Kết nối và giao thức
+  childs:
+  - slug: connections-and-protocols-001
+    title: Vòng đời kết nối và chi phí thiết lập TCP hoặc TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-002
+    title: Keep-alive, tái sử dụng kết nối và connection pooling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-003
+    title: Giới hạn kết nối vào, kết nối ra và yêu cầu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-004
+    title: HTTP/2 multiplexing và cân bằng giữa kết nối với luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-005
+    title: HTTP/3, QUIC và các yêu cầu nhận diện kết nối tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-006
+    title: Kết nối dài hạn của WebSocket và gRPC streaming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-007
+    title: UDP, trạng thái giả lập luồng và thời gian hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-008
+    title: Giới hạn cổng tạm, file descriptor và bảng theo dõi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-009
+    title: Idle timeout, connection lifetime và vòng đời pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connections-and-protocols-010
+    title: Ngừng nhận kết nối mới và xử lý hết kết nối đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts-and-deadlines
+  title: Timeout và deadline
+  childs:
+  - slug: timeouts-and-deadlines-001
+    title: Phân biệt connection timeout, request timeout và idle timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-002
+    title: Deadline toàn tuyến và ngân sách thời gian cho từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-003
+    title: Thời gian xếp hàng có nằm trong giới hạn chờ hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-004
+    title: Timeout cho từng lần thử và timeout của toàn bộ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-005
+    title: Lan truyền deadline qua chuỗi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-006
+    title: Hủy yêu cầu và nguy cơ phía đích vẫn tiếp tục xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-007
+    title: Timeout cho luồng dài hạn và dữ liệu truyền không liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-008
+    title: Lựa chọn ngưỡng dựa trên phân bố độ trễ và mục tiêu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-and-deadlines-009
+    title: Phối hợp timeout giữa máy khách, gateway, proxy và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retries-and-circuit-breakers
+  title: Thử lại và ngắt mạch
+  childs:
+  - slug: retries-and-circuit-breakers-001
+    title: Lỗi tạm thời, lỗi vĩnh viễn và điều kiện cho phép thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-002
+    title: Tính lũy đẳng và nguy cơ lặp tác dụng phụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-003
+    title: Exponential backoff, jitter và giới hạn số lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-004
+    title: Ngân sách thử lại và nguy cơ khuếch đại tải qua nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-005
+    title: Chuyển lần thử sang đích khác và giới hạn khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-006
+    title: Hedging, hủy yêu cầu dư thừa và chi phí tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-007
+    title: Ngắt mạch theo trạng thái và ngắt mạch theo ngưỡng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-008
+    title: Giới hạn kết nối, yêu cầu chờ và số lần thử lại đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-009
+    title: Phân biệt circuit breaking với loại đích lỗi khỏi bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-010
+    title: Thăm dò phục hồi và đưa lưu lượng trở lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retries-and-circuit-breakers-011
+    title: Phối hợp ngắt mạch, timeout và giới hạn đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-shifting
+  title: Chuyển đổi lưu lượng
+  childs:
+  - slug: traffic-shifting-001
+    title: Triển khai blue-green và chuyển đích phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-002
+    title: Canary theo trọng số và canary theo nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-003
+    title: Độ ổn định nhóm thử nghiệm và ảnh hưởng của session affinity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-004
+    title: Tỷ lệ cấu hình so với tỷ lệ yêu cầu thực tế được quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-005
+    title: Nhân bản lưu lượng thử nghiệm và giới hạn của traffic mirroring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-006
+    title: Nguy cơ ghi dữ liệu hoặc phát sinh tác dụng phụ tại đích được nhân bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-007
+    title: So sánh độ trễ, lỗi và hành vi giữa phiên bản cũ với mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-008
+    title: Tăng lưu lượng từng bước với điều kiện dừng xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-009
+    title: Quay lui tuyến và xử lý kết nối còn gắn với phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-shifting-010
+    title: Điều phối chuyển tuyến với thay đổi schema và trạng thái ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-and-recovery
+  title: Khả dụng và khôi phục
+  childs:
+  - slug: availability-and-recovery-001
+    title: Điểm lỗi đơn trong bộ cân bằng tải và tầng thực thi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-002
+    title: Dự phòng chủ động, dự phòng chờ và cách phát hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-003
+    title: Chuyển đích trong cùng vùng và chuyển sang vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-004
+    title: Năng lực vùng dự phòng và nguy cơ quá tải sau failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-005
+    title: Tách nhóm tài nguyên để giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-006
+    title: Giảm chất lượng dịch vụ có kiểm soát khi thiếu năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-007
+    title: Phân biệt fallback với trả kết quả thành công giả tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-008
+    title: Khôi phục sau sự cố mà không tạo đợt tăng tải đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-009
+    title: Xử lý lưu lượng trong quá trình nâng cấp và thay thế nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-region-and-tenants
+  title: Đa vùng và khách hàng
+  childs:
+  - slug: multi-region-and-tenants-001
+    title: Cân bằng tải toàn cục và cân bằng trong từng vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-002
+    title: Định tuyến theo vị trí gần và đánh đổi độ trễ với năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-003
+    title: Định tuyến dựa trên DNS và giới hạn của bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-004
+    title: Phân phối theo vùng sẵn sàng và chi phí truyền chéo vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-005
+    title: Ràng buộc vị trí xử lý và dữ liệu có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-006
+    title: Cô lập hạn ngạch, hàng đợi và tài nguyên giữa khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-007
+    title: Khách hàng gây tải lớn và chính sách chia sẻ công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-008
+    title: Ưu tiên tác vụ quan trọng trong hệ thống dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-009
+    title: Phân tách lưu lượng tương tác với lưu lượng xử lý nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-and-tenants-010
+    title: Điều phối chính sách khi một yêu cầu đi qua nhiều miền quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-protection
+  title: Bảo vệ lưu lượng
+  childs:
+  - slug: traffic-protection-001
+    title: Phân biệt điều tiết tải hợp lệ với chống lạm dụng và tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-002
+    title: Giới hạn lưu lượng tại biên trước khi tiêu tốn tài nguyên đắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-003
+    title: Xác thực danh tính trước khi áp dụng hạn ngạch theo người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-004
+    title: Giả mạo địa chỉ hoặc header và ảnh hưởng đến khóa giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-005
+    title: Giới hạn kích thước header, nội dung và số luồng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-006
+    title: Kết nối chậm, yêu cầu kéo dài và chiếm giữ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-007
+    title: Kiểm soát lưu lượng đi ra và đích được phép truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-008
+    title: Bảo vệ dữ liệu nhạy cảm khi nhân bản hoặc ghi nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-protection-009
+    title: Ngăn đường kết nối trực tiếp vượt qua chính sách chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-and-cost
+  title: Năng lực và chi phí
+  childs:
+  - slug: capacity-and-cost-001
+    title: Ước lượng lưu lượng từ số người dùng, tần suất và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-002
+    title: Định luật Little trong phạm vi hệ thống ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-003
+    title: Quan hệ giữa mức sử dụng tài nguyên và độ trễ khi gần bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-004
+    title: Tìm điểm nghẽn tại mạng, proxy, hàng đợi và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-005
+    title: CPU, bộ nhớ, băng thông và chi phí xử lý TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-006
+    title: Mở rộng tự động theo tín hiệu tải và độ trễ phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-007
+    title: Năng lực dự phòng cho burst, failover và triển khai phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-008
+    title: Giới hạn chi phí egress và truyền dữ liệu giữa các vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-009
+    title: Tối ưu bằng nén hoặc cache và tác động lên độ trễ cùng tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-cost-010
+    title: Đánh giá lợi ích tối ưu bằng dữ liệu đo dưới tải đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-observability
+  title: Quan sát lưu lượng
+  childs:
+  - slug: traffic-observability-001
+    title: Đo đầu vào, yêu cầu được chấp nhận, bị từ chối và hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-002
+    title: Thông lượng, độ trễ, lỗi và mức bão hòa theo từng tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-003
+    title: Số kết nối, yêu cầu đang xử lý và chiều dài hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-004
+    title: Bộ đếm gói bị loại, dấu ECN và dữ liệu truyền lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-005
+    title: Phân phối tải thực tế theo đích, vùng và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-006
+    title: Theo dõi quyết định định tuyến, giới hạn và ngắt mạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-007
+    title: Truy vết yêu cầu qua gateway, proxy và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-008
+    title: SLI, SLO và ngân sách lỗi cho từng lớp lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-009
+    title: Giới hạn cardinality và bảo vệ dữ liệu trong telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-observability-010
+    title: Cảnh báo triệu chứng người dùng và đối chiếu nguyên nhân hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-deployment
+  title: Cấu hình và triển khai
+  childs:
+  - slug: configuration-and-deployment-001
+    title: Mô hình cấu hình khai báo và nguồn chính sách được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-002
+    title: Kiểm tra schema, tham chiếu đích và mâu thuẫn quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-003
+    title: Phân biệt cấu hình mong muốn, đã phân phối và có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-004
+    title: Phân phối cấu hình nhất quán đến nhiều điểm thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-005
+    title: Thay đổi cấu hình động và thay đổi cần khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-006
+    title: Chạy đối chiếu quyết định trước khi bật thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-007
+    title: Triển khai từng phần và giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-008
+    title: Quay lui chính sách, phiên bản cấu hình và kiểm chứng sau quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-deployment-009
+    title: Phân quyền thay đổi, nhật ký phê duyệt và xử lý ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-troubleshooting
+  title: Kiểm thử và sự cố
+  childs:
+  - slug: testing-and-troubleshooting-001
+    title: Thiết lập mạng hoặc cụm dịch vụ thực hành có thể cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-002
+    title: Bộ dữ liệu kiểm thử cho phân loại, định tuyến và chính sách mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-003
+    title: Kiểm thử shaping, policing và mức ưu tiên khi có tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-004
+    title: Kiểm thử giới hạn tốc độ tại ranh giới cửa sổ và khi tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-005
+    title: Kiểm thử công bằng giữa nhiều nguồn và nhiều khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-006
+    title: Kiểm thử cân bằng tải với đích có năng lực khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-007
+    title: Mô phỏng độ trễ, mất gói, lỗi kết nối và backend chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-008
+    title: Kiểm thử retry, ngắt mạch và failover dưới tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-009
+    title: Kiểm thử chuyển tuyến khi có kết nối hoặc luồng dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-010
+    title: Đo tải vòng mở, vòng kín và tránh bỏ sót độ trễ khi hệ thống quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-011
+    title: Chẩn đoán lệch tải, hàng đợi tăng và vòng lặp thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-troubleshooting-012
+    title: Runbook kiểm tra đường đi, chính sách có hiệu lực và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-design
+  title: Thiết kế thực hành
+  childs:
+  - slug: hands-on-design-001
+    title: Chuyển yêu cầu nghiệp vụ thành lớp lưu lượng và mục tiêu chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-002
+    title: Lập bản đồ điểm nghẽn, điểm thực thi và miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-003
+    title: Thiết kế QoS cho lưu lượng tương tác, thời gian thực và truyền khối lượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-004
+    title: Thực hành điều tiết băng thông và hàng đợi với Linux tc trong mạng cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-005
+    title: Thiết kế hạn ngạch và giới hạn đồng thời cho API nhiều khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-006
+    title: Thiết kế cân bằng tải kèm kiểm tra sức khỏe và ngừng phục vụ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-007
+    title: Thiết kế timeout, retry và circuit breaking theo ngân sách toàn tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-008
+    title: Thiết kế canary có chỉ số đánh giá và điều kiện quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-009
+    title: Thiết kế phân phối đa vùng có xét năng lực dự phòng và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-design-010
+    title: Đánh giá giải pháp theo bằng chứng kiểm thử, SLO và khả năng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

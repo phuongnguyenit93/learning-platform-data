@@ -1,0 +1,49 @@
+roadmap:
+- id: rui-ro-logic-nghiep-vu
+  title: Rủi ro Logic Nghiệp vụ
+  purpose: Hiểu lỗ hổng phát sinh từ quy trình hợp lệ bị sử dụng trái ý định thiết kế.
+  objectives:
+  - Phân biệt lỗi business logic với lỗi cú pháp đầu vào.
+  - Xác định invariant của đơn hàng, ví hoặc giao dịch.
+- id: du-lieu-tin-cay-tu-server
+  title: Dữ liệu Tin cậy từ Server
+  purpose: Không để client quyết định giá trị có ảnh hưởng tới tiền hoặc quyền.
+  objectives:
+  - Tính lại giá, số dư và ưu đãi ở server.
+  - Kiểm tra quan hệ hợp lệ giữa số lượng, trạng thái và hạn mức.
+- id: workflow-state-machine
+  title: Workflow & State Machine
+  purpose: Ràng buộc các thao tác vào thứ tự và trạng thái nghiệp vụ hợp lệ.
+  objectives:
+  - Vẽ trạng thái và chuyển tiếp của đơn hàng hoặc phê duyệt.
+  - Từ chối bỏ bước, đảo thứ tự và gọi lại bước đã hoàn tất.
+- id: uy-quyen-theo-ngu-canh
+  title: Ủy quyền Theo Ngữ cảnh
+  purpose: Kiểm tra quyền hành động đối với đúng đối tượng, thời điểm và trạng thái.
+  objectives:
+  - Xác minh ownership, vai trò và trạng thái trước khi thao tác.
+  - Chặn tự phê duyệt hoặc sửa giao dịch đã khóa.
+- id: han-muc-chong-lam-dung
+  title: Hạn mức & Chống Lạm dụng
+  purpose: Hạn chế việc khai thác các luồng tạo lợi ích hoặc chiếm tài nguyên.
+  objectives:
+  - Đặt giới hạn coupon, hoàn tiền và đặt chỗ theo tài khoản.
+  - Thiết kế rate limit và kiểm soát tự động hóa theo rủi ro.
+- id: race-condition-idempotency
+  title: Race Condition & Idempotency
+  purpose: Bảo đảm thao tác đồng thời hoặc retry không phá vỡ bất biến dữ liệu.
+  objectives:
+  - Dùng transaction, khóa hoặc cập nhật có điều kiện cho check-then-act.
+  - Thiết kế idempotency key cho yêu cầu có thể gửi lại.
+- id: xac-nhan-giao-dich-quan-trong
+  title: Xác nhận Giao dịch Quan trọng
+  purpose: Bảo vệ thao tác nhạy cảm bằng xác thực và xác nhận gắn với dữ liệu cụ thể.
+  objectives:
+  - Kiểm tra giao dịch cuối cùng ở server trước thực thi.
+  - Ngăn sửa nội dung sau xác nhận và chống replay.
+- id: kiem-thu-giam-sat
+  title: Kiểm thử & Giám sát
+  purpose: Chủ động phát hiện sai sót trong luồng nghiệp vụ bằng test và quan sát.
+  objectives:
+  - Test bỏ bước, sửa giá, thao tác trùng và request đồng thời.
+  - Ghi audit log, đặt cảnh báo hành vi bất thường.

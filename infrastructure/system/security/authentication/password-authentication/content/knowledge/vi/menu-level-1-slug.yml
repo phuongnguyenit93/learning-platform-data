@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 1
+- title: Định danh tài khoản
+  slug: account-identities
+  index: 2
+- title: Trải nghiệm người dùng
+  slug: user-experience
+  index: 3
+- title: Chính sách mật khẩu
+  slug: password-policy
+  index: 4
+- title: Xử lý ký tự
+  slug: character-handling
+  index: 5
+- title: Luồng đăng ký
+  slug: registration-flow
+  index: 6
+- title: Luồng đăng nhập
+  slug: login-flow
+  index: 7
+- title: Nền tảng lưu trữ
+  slug: storage-fundamentals
+  index: 8
+- title: Thuật toán băm
+  slug: hashing-algorithms
+  index: 9
+- title: Cấu hình và hiệu năng
+  slug: configuration-performance
+  index: 10
+- title: Salt và pepper
+  slug: salt-pepper
+  index: 11
+- title: Kiểm chứng mật khẩu
+  slug: password-verification
+  index: 12
+- title: Nâng cấp dữ liệu băm
+  slug: hash-upgrades
+  index: 13
+- title: Chống dò tài khoản
+  slug: account-enumeration-defense
+  index: 14
+- title: Chống tấn công đăng nhập
+  slug: login-attack-defense
+  index: 15
+- title: Đổi mật khẩu
+  slug: password-change
+  index: 16
+- title: Quên mật khẩu
+  slug: forgot-password
+  index: 17
+- title: Token khôi phục
+  slug: recovery-tokens
+  index: 18
+- title: Phiên và tái xác thực
+  slug: sessions-reauthentication
+  index: 19
+- title: MFA và khôi phục
+  slug: mfa-recovery
+  index: 20
+- title: Bảo vệ đường truyền
+  slug: transport-security
+  index: 21
+- title: Phía máy khách
+  slug: client-side-security
+  index: 22
+- title: Giao thức mật khẩu
+  slug: password-protocols
+  index: 23
+- title: Hệ thống phân tán
+  slug: distributed-systems
+  index: 24
+- title: Lưu trữ và vận hành
+  slug: storage-operations
+  index: 25
+- title: Nhật ký và giám sát
+  slug: logging-monitoring
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Sự cố lộ mật khẩu
+  slug: password-breach-response
+  index: 28
+- title: Tiêu chuẩn và quản trị
+  slug: standards-governance
+  index: 29
+- title: Chuyển đổi phương thức
+  slug: authentication-migration
+  index: 30
+- title: Thực hành
+  slug: hands-on-practice
+  index: 31

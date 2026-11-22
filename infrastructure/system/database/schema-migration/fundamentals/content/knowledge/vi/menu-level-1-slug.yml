@@ -1,0 +1,79 @@
+menu:
+  - title: "Tổng quan migration"
+    slug: migration-overview
+    index: 0
+  - title: "Mô hình phiên bản"
+    slug: versioning-model
+    index: 1
+  - title: "Vòng đời thực thi"
+    slug: execution-lifecycle
+    index: 2
+  - title: "Quy trình làm việc nhóm"
+    slug: team-workflow
+    index: 3
+  - title: "Thiết kế thay đổi"
+    slug: schema-change-design
+    index: 4
+  - title: "Thay đổi cấu trúc"
+    slug: schema-changes
+    index: 5
+  - title: "Tương thích ứng dụng"
+    slug: application-compatibility
+    index: 6
+  - title: "Mẫu expand–contract"
+    slug: expand-contract-pattern
+    index: 7
+  - title: "Chuyển đổi dữ liệu"
+    slug: data-transformation
+    index: 8
+  - title: "Backfill theo lô"
+    slug: batched-backfill
+    index: 9
+  - title: "Giao dịch và lỗi"
+    slug: transactions-and-failures
+    index: 10
+  - title: "Khóa và hiệu năng"
+    slug: locking-and-performance
+    index: 11
+  - title: "Rollback và phục hồi"
+    slug: rollback-and-recovery
+    index: 12
+  - title: "Lựa chọn công cụ"
+    slug: migration-tool-selection
+    index: 13
+  - title: "Flyway căn bản"
+    slug: flyway-basics
+    index: 14
+  - title: "Liquibase căn bản"
+    slug: liquibase-basics
+    index: 15
+  - title: "Tích hợp Java"
+    slug: java-integration
+    index: 16
+  - title: "Quản lý môi trường"
+    slug: environment-management
+    index: 17
+  - title: "Tiếp nhận hệ thống cũ"
+    slug: legacy-database-adoption
+    index: 18
+  - title: "Kiểm thử migration"
+    slug: migration-testing
+    index: 19
+  - title: "Kiểm tra trong CI"
+    slug: ci-validation
+    index: 20
+  - title: "Triển khai trong CD"
+    slug: cd-deployment
+    index: 21
+  - title: "Quan sát và vận hành"
+    slug: observability-and-operations
+    index: 22
+  - title: "Bảo mật và quản trị"
+    slug: security-and-governance
+    index: 23
+  - title: "Xử lý sự cố"
+    slug: migration-troubleshooting
+    index: 24
+  - title: "Bài thực hành"
+    slug: migration-exercises
+    index: 25

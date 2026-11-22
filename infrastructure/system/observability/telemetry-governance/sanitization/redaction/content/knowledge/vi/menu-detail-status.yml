@@ -1,0 +1,2062 @@
+menu:
+- slug: redaction-basics
+  title: Nền tảng redaction
+  childs:
+  - slug: redaction-basics-001
+    title: Redaction là gì và vai trò trong quản trị dữ liệu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-basics-002
+    title: Vì sao log, trace và metric có thể làm lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-basics-003
+    title: 'Các thành phần: dữ liệu đầu vào, bộ nhận diện, quy tắc và đầu ra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-basics-004
+    title: Luồng dữ liệu từ ứng dụng đến nơi lưu trữ và người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-basics-005
+    title: Ví dụ trước và sau redaction với dữ liệu hoàn toàn giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-basics-006
+    title: Cân bằng bảo vệ dữ liệu với khả năng chẩn đoán hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-basics-007
+    title: Điều kiện tiên quyết và trình tự học từ khái niệm đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technical-boundaries
+  title: Ranh giới kỹ thuật
+  childs:
+  - slug: technical-boundaries-001
+    title: Phân biệt redaction với che một phần giá trị (masking)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-boundaries-002
+    title: Phân biệt xóa trường nhạy cảm với lọc bỏ toàn bộ bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-boundaries-003
+    title: Quan hệ giữa redaction và giảm thiểu dữ liệu ngay khi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-boundaries-004
+    title: Phân biệt redaction với băm, mã hóa và thay bằng mã đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-boundaries-005
+    title: Vì sao redaction không tự bảo đảm dữ liệu đã được ẩn danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-boundaries-006
+    title: Giới hạn của cắt ngắn chuỗi, lấy mẫu và che dữ liệu trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technical-boundaries-007
+    title: Phạm vi của redaction trong bảo vệ dữ liệu và yêu cầu tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sensitive-data
+  title: Dữ liệu cần bảo vệ
+  childs:
+  - slug: sensitive-data-001
+    title: Dữ liệu định danh trực tiếp và thông tin có thể kết hợp để định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-002
+    title: Mật khẩu, khóa API, token truy cập và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-003
+    title: Cookie phiên, mã đặt lại mật khẩu và liên kết chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-004
+    title: Thông tin thanh toán, tài chính, sức khỏe và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-005
+    title: Địa chỉ IP, vị trí, định danh thiết bị và thông tin người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-006
+    title: Tên trường, tên tệp và siêu dữ liệu cũng có thể chứa thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-007
+    title: Phân loại dữ liệu theo ngữ cảnh thay vì chỉ dựa vào mẫu ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sensitive-data-008
+    title: Lập danh mục trường cần loại bỏ, thay thế hoặc được phép giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: leakage-mapping
+  title: Bản đồ rò rỉ
+  childs:
+  - slug: leakage-mapping-001
+    title: Kiểm kê nơi phát sinh dữ liệu quan sát và bên sở hữu nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-002
+    title: Xác định ranh giới tin cậy giữa ứng dụng, agent, gateway và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-003
+    title: Theo dấu bản sao qua stdout, tệp log, hàng đợi và kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-004
+    title: Phát hiện đường xuất phụ, chế độ debug và kênh dự phòng bỏ qua redaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-005
+    title: Rủi ro từ tự động đo đạc, thư viện bên thứ ba và cấu hình thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-006
+    title: Rủi ro từ dashboard, cảnh báo, báo cáo và tệp xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-007
+    title: Đánh giá tình huống đầu vào cố tình né quy tắc nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leakage-mapping-008
+    title: Ưu tiên vị trí khắc phục theo mức nhạy cảm và phạm vi phát tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redaction-policies
+  title: Chính sách redaction
+  childs:
+  - slug: redaction-policies-001
+    title: Xác định mục tiêu bảo vệ và thông tin chẩn đoán tối thiểu cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-002
+    title: Mô tả quy tắc theo tín hiệu, dịch vụ, trường dữ liệu và điểm xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-003
+    title: Danh sách trường được phép và danh sách trường cần loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-004
+    title: Chọn xóa trường hoặc thay toàn bộ giá trị theo từng trường hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-005
+    title: Quy ước nhãn thay thế để phân biệt đã xử lý với dữ liệu vốn bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-006
+    title: Thứ tự ưu tiên khi nhiều quy tắc cùng áp dụng hoặc mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-007
+    title: Xử lý trường chưa biết, khóa động và thay đổi cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-008
+    title: Ngoại lệ có chủ sở hữu, phạm vi, thời hạn và tiêu chí chấm dứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-policies-009
+    title: Tiêu chí chấp nhận và trường hợp bắt buộc ngăn dữ liệu đi tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-locations
+  title: Vị trí xử lý
+  childs:
+  - slug: processing-locations-001
+    title: Ngăn ghi dữ liệu nhạy cảm ngay tại mã nguồn và điểm đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-002
+    title: Redaction ở SDK, bộ ghi log và trước khi tạo hàng đợi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-003
+    title: Redaction tại agent cục bộ và gateway tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-004
+    title: Xử lý trước khi truyền ra ngoài hoặc ghi vào bộ đệm bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-005
+    title: Phối hợp nhiều lớp bảo vệ và xác định trách nhiệm từng lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-006
+    title: Thứ tự phân tích cấu trúc, làm giàu dữ liệu, redaction và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-007
+    title: Ngăn dữ liệu nhạy cảm xuất hiện lại sau bước làm giàu hoặc định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-locations-008
+    title: Giới hạn của xử lý tại kho dữ liệu khi bản gốc đã được thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-identification
+  title: Nhận diện dữ liệu
+  childs:
+  - slug: data-identification-001
+    title: Nhận diện theo tên khóa, đường dẫn trường và cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-002
+    title: Nhận diện theo mẫu giá trị và biểu thức chính quy (regex)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-003
+    title: Kết hợp loại dữ liệu, ngữ cảnh nghiệp vụ và quy tắc nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-004
+    title: Nhận diện email, số điện thoại và định danh có nhiều cách biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-005
+    title: Nhận diện token, chuỗi kết nối và bí mật không có định dạng cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-006
+    title: Khớp nhầm dữ liệu an toàn và bỏ sót dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-007
+    title: Giới hạn của kiểm tra định dạng, checksum và độ ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-008
+    title: Chọn bộ phân tích chuyên dụng thay vì áp dụng regex cho mọi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-identification-009
+    title: Giới hạn và cách đánh giá bộ nhận diện dùng mô hình học máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-normalization
+  title: Chuẩn hóa đầu vào
+  childs:
+  - slug: input-normalization-001
+    title: Chuẩn hóa chữ hoa, chữ thường và bí danh của tên trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-002
+    title: Xử lý Unicode, dấu tiếng Việt và ký tự có hình dạng tương tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-003
+    title: Xử lý khoảng trắng, ký tự điều khiển và ký tự phân tách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-004
+    title: Nhận diện dữ liệu trong URL encoding, JSON escape và chuỗi lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-005
+    title: Giải mã có giới hạn đối với dữ liệu Base64 hoặc mã hóa nhiều lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-006
+    title: Phân tích JSON trong chuỗi và xử lý dữ liệu không đúng định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-007
+    title: Đặt giới hạn độ sâu, kích thước và số bước giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-normalization-008
+    title: Giữ ngữ nghĩa đầu vào và tránh chuẩn hóa làm mất dấu vết cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-enforcement
+  title: Thực thi quy tắc
+  childs:
+  - slug: rule-enforcement-001
+    title: Xóa trường nhạy cảm và xử lý trường bắt buộc của cấu trúc đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-002
+    title: Thay toàn bộ giá trị hoặc phần nhạy cảm bằng nhãn cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-003
+    title: Xử lý object lồng nhau, mảng và tập hợp có kiểu phần tử khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-004
+    title: Xử lý khóa chứa dữ liệu nhạy cảm và xung đột sau khi đổi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-005
+    title: Phân biệt trường không tồn tại, null, chuỗi rỗng và giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-006
+    title: Xử lý nhiều lần xuất hiện, mẫu chồng lấn và thứ tự thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-007
+    title: Tính xác định và tính lũy đẳng khi dữ liệu đi qua nhiều lớp redaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-enforcement-008
+    title: Ngăn tham chiếu dùng chung hoặc xử lý đồng thời làm lọt bản gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-logs
+  title: Log có cấu trúc
+  childs:
+  - slug: structured-logs-001
+    title: Redaction trong nội dung bản ghi và thuộc tính đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-002
+    title: Chọn trường theo đường dẫn trong JSON có cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-003
+    title: Loại bỏ dữ liệu nhạy cảm trong MDC và ngữ cảnh ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-004
+    title: Bảo vệ đối tượng được tuần tự hóa từ DTO, Map và thông điệp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-005
+    title: Xử lý JSON trùng khóa, khóa động và cấu trúc thay đổi giữa bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-006
+    title: Redaction thông báo lỗi, chi tiết xác thực đầu vào và ngăn xếp lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-007
+    title: Giữ mức log, thời gian, mã sự kiện và ngữ cảnh chẩn đoán cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-008
+    title: Ngăn logger phụ, appender khác hoặc tệp dự phòng ghi bản chưa xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-logs
+  title: Log văn bản
+  childs:
+  - slug: text-logs-001
+    title: Khác biệt giữa xử lý thông điệp tự do và log có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-002
+    title: Phân tích chuỗi khóa–giá trị, dấu phân cách và ký tự escape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-003
+    title: Redaction nhiều loại thông tin nhạy cảm trong cùng một thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-004
+    title: Xử lý log nhiều dòng, ngăn xếp ngoại lệ và ranh giới bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-005
+    title: Xử lý bản ghi bị cắt, bị chia khối hoặc thiếu dấu kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-006
+    title: Giới hạn regex khi bí mật trải qua nhiều phần hoặc nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-007
+    title: Phân biệt ngăn chèn log (log injection) với loại bỏ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-logs-008
+    title: Chính sách xử lý văn bản không thể phân tích an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traces-context
+  title: Traces và ngữ cảnh
+  childs:
+  - slug: traces-context-001
+    title: Rà soát tên span, thuộc tính, sự kiện, liên kết và thông báo trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-002
+    title: Redaction dữ liệu nhạy cảm trong thuộc tính resource và scope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-003
+    title: Dùng mẫu tuyến đường thay cho URL chứa định danh cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-004
+    title: Xử lý sự kiện ngoại lệ và tham số nghiệp vụ trong trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-005
+    title: Bảo vệ baggage và dữ liệu lan truyền giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-006
+    title: Phân biệt Trace ID, Span ID và định danh người dùng hoặc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-007
+    title: Giữ liên kết log–trace mà không tái đưa dữ liệu nhạy cảm vào bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-008
+    title: Đánh giá tác động lên lấy mẫu theo đuôi và định tuyến trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-context-009
+    title: Kiểm tra tính nhất quán giữa tự động đo đạc và đo đạc thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-profiles
+  title: Metrics và profiles
+  childs:
+  - slug: metrics-profiles-001
+    title: Phát hiện dữ liệu nhạy cảm trong nhãn và thuộc tính điểm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-profiles-002
+    title: Tránh dùng thông tin người dùng làm tên hoặc nhãn metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-profiles-003
+    title: Xóa nhãn có thể làm trùng chuỗi thời gian và thay đổi phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-profiles-004
+    title: Giữ ý nghĩa đo lường khi loại bỏ chiều dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-profiles-005
+    title: Rà soát exemplar, thuộc tính resource và thông tin liên kết trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-profiles-006
+    title: Nhận diện thông tin nhạy cảm trong nhãn profile và đường dẫn tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-profiles-007
+    title: Kiểm tra khả năng hỗ trợ redaction theo tín hiệu và phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-apis
+  title: HTTP và API
+  childs:
+  - slug: http-apis-001
+    title: Loại bỏ Authorization, Cookie và header tùy biến chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-002
+    title: Redaction tham số truy vấn, đoạn đường dẫn và URL có thông tin đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-003
+    title: Xử lý URL ký số, liên kết dùng một lần và tham số chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-004
+    title: Chính sách thu thập request body và response body theo loại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-005
+    title: Xử lý JSON, form, multipart và nội dung tệp được tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-006
+    title: Loại bỏ mật khẩu, OTP và token khỏi log đăng nhập hoặc xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-007
+    title: Ngăn lỗi xác thực đầu vào phản chiếu dữ liệu nhạy cảm vào telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-apis-008
+    title: Kiểm tra dữ liệu ở reverse proxy, access log và phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queries-messages
+  title: Truy vấn và thông điệp
+  childs:
+  - slug: queries-messages-001
+    title: Loại bỏ giá trị literal và tham số nhạy cảm trong câu truy vấn SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-002
+    title: Phân biệt câu truy vấn đã tham số hóa với log ghi giá trị bind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-003
+    title: Xử lý chuỗi kết nối, tên cơ sở dữ liệu và thông tin truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-004
+    title: Redaction lệnh Redis và truy vấn dữ liệu có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-005
+    title: Rà soát tham số và biến đầu vào trong lời gọi RPC hoặc GraphQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-006
+    title: Bảo vệ header, khóa và payload thông điệp trong hệ thống hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-007
+    title: Xử lý telemetry từ retry, dead-letter queue và công cụ phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-messages-008
+    title: Giữ loại thao tác và thông tin lỗi mà không giữ dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring-boot
+  title: Java và Spring Boot
+  childs:
+  - slug: java-spring-boot-001
+    title: Thiết kế đối tượng ghi log an toàn thay cho ghi toàn bộ đối tượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-002
+    title: Rà soát toString(), record và mã sinh tự động có thể lộ trường nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-003
+    title: Giới hạn của ghi log có tham số trong SLF4J đối với bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-004
+    title: Redaction qua Logback encoder, layout và appender theo cấu trúc đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-005
+    title: Kiểm soát MDC khi xử lý bất đồng bộ và chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-006
+    title: Loại bỏ bí mật trong exception message, cause và lỗi kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-007
+    title: Rà soát bộ lọc, interceptor và cơ chế ghi request/response trong Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-008
+    title: Rà soát cấu hình Java agent và dữ liệu tự động thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-009
+    title: Kiểm tra redaction với AsyncAppender, log xoay vòng và nhiều đích ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-010
+    title: Kiểm thử đầu ra log và OTLP bằng dữ liệu giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: otel-collector
+  title: OpenTelemetry Collector
+  childs:
+  - slug: otel-collector-001
+    title: Chọn redaction processor, transform processor hoặc xử lý tại nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-002
+    title: Kiểm tra bản phân phối, phiên bản và tín hiệu được processor hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-003
+    title: Thiết kế danh sách khóa được phép và quy tắc xử lý giá trị nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-004
+    title: 'Xác minh phạm vi xử lý: thuộc tính, nội dung log và tên span'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-005
+    title: Kiểm tra thứ tự processor trong từng pipeline logs, traces và metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-006
+    title: Rà soát pipeline phân nhánh, connector và đường xuất trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-007
+    title: Ngăn log debug và thuộc tính chẩn đoán của processor làm lộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-collector-008
+    title: Kiểm chứng cấu hình với dữ liệu thực nghiệm trước khi đưa vào vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ottl-transformations
+  title: Biến đổi bằng OTTL
+  childs:
+  - slug: ottl-transformations-001
+    title: Ngữ cảnh resource, scope, log, span, spanevent và datapoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-002
+    title: Chọn đường dẫn và điều kiện áp dụng đúng kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-003
+    title: Xóa khóa nhạy cảm hoặc chỉ giữ danh sách khóa được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-004
+    title: Thay mẫu trong giá trị chuỗi bằng hàm biến đổi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-005
+    title: Phân tích nội dung JSON trước khi xử lý các trường lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-006
+    title: Kiểm tra nil, kiểu dữ liệu và dữ liệu không phân tích được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-007
+    title: Thứ tự câu lệnh và nguy cơ tạo bản sao trong bộ nhớ tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-008
+    title: Ý nghĩa error_mode và cách kiểm chứng hành vi khi biến đổi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ottl-transformations-009
+    title: Giới hạn tính năng, cú pháp và khả năng tương thích giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fail-safe-handling
+  title: An toàn khi lỗi
+  childs:
+  - slug: fail-safe-handling-001
+    title: Chọn ngừng chuyển dữ liệu hoặc tiếp tục khi redaction thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-002
+    title: Xử lý lỗi cấu hình, regex không hợp lệ và quy tắc không tải được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-003
+    title: Xử lý quá thời gian, thiếu bộ nhớ và bộ nhận diện không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-004
+    title: Tránh đường dự phòng tự động chuyển tiếp dữ liệu nguyên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-005
+    title: Kiểm soát dữ liệu trong bộ đệm, hàng đợi bền vững và vùng cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-006
+    title: Xử lý bản ghi không hợp lệ mà không ghi nguyên văn vào log lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-007
+    title: Kiểm tra retry, phát lại và tính lũy đẳng sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fail-safe-handling-008
+    title: Đánh đổi giữa mất tín hiệu quan sát và nguy cơ lộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-value
+  title: Giá trị chẩn đoán
+  childs:
+  - slug: diagnostic-value-001
+    title: Định nghĩa những câu hỏi vận hành phải trả lời được sau redaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-value-002
+    title: Giữ mã lỗi, loại thao tác và ngữ cảnh kỹ thuật cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-value-003
+    title: Tránh xóa quá mức làm mất khả năng điều tra nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-value-004
+    title: Phân biệt dữ liệu vốn bị thiếu với dữ liệu đã bị loại bỏ theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-value-005
+    title: Đánh giá tác động lên truy vấn, dashboard, cảnh báo và SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-value-006
+    title: Đánh giá khả năng liên kết dữ liệu còn lại và rủi ro tái định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-value-007
+    title: Thiết kế mã tương quan an toàn khi cần theo dõi một luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-testing
+  title: Kiểm thử quy tắc
+  childs:
+  - slug: rule-testing-001
+    title: Xây dựng bộ dữ liệu giả lập có nhãn nhạy cảm và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-002
+    title: Kiểm thử trường hợp khớp đúng, khớp nhầm và bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-003
+    title: Kiểm thử Unicode, mã hóa, chuỗi nhiều dòng và mẫu bị biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-004
+    title: Kiểm thử object lồng nhau, mảng, null và dữ liệu sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-005
+    title: Kiểm thử nhiều quy tắc, mẫu chồng lấn và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-006
+    title: Kiểm thử tính lũy đẳng, tính xác định và bảo toàn cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-007
+    title: Kiểm thử sinh dữ liệu và fuzzing đối với đầu vào bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-008
+    title: So sánh đầu ra chuẩn và kiểm tra âm tính rằng bí mật không còn xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-009
+    title: Quản lý dữ liệu kiểm thử để tránh dùng thông tin thật hoặc bí mật thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-testing
+  title: Kiểm thử xuyên suốt
+  childs:
+  - slug: end-to-end-testing-001
+    title: Dựng luồng ứng dụng–collector–kho thử nghiệm có thể kiểm tra đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-002
+    title: Đưa chuỗi đánh dấu giả lập vào mọi vị trí có khả năng rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-003
+    title: Kiểm tra đồng thời log, trace, metric và các bản sao trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-004
+    title: Kiểm tra hàng đợi, tệp cục bộ, dead-letter queue và đường xuất phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-005
+    title: Thử lỗi processor, mất kết nối, khởi động lại và tải cấu hình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-006
+    title: Kiểm tra dữ liệu sau phát lại và sau khi quay về phiên bản cấu hình trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-007
+    title: Xác nhận truy vấn chẩn đoán vẫn hoạt động sau khi áp dụng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-testing-008
+    title: Thiết lập cổng kiểm tra trong CI để phát hiện hồi quy và cấu hình bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-scalability
+  title: Hiệu năng và quy mô
+  childs:
+  - slug: performance-scalability-001
+    title: Đo độ trễ, thông lượng, CPU và bộ nhớ của từng lớp redaction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-002
+    title: Đánh giá chi phí phân tích cấu trúc so với quét văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-003
+    title: Biên dịch và tái sử dụng mẫu theo khả năng của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-004
+    title: Nhận diện regex tốn tài nguyên và khác biệt giữa các bộ máy regex
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-005
+    title: Giới hạn kích thước bản ghi, độ sâu dữ liệu và số quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-006
+    title: Xử lý áp lực ngược, đầy hàng đợi và dữ liệu tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-007
+    title: Đánh giá xử lý song song, chia lô và số lần sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scalability-008
+    title: Đo hiệu năng với đầu vào xấu mà vẫn giữ yêu cầu bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-deployment
+  title: Triển khai chính sách
+  childs:
+  - slug: policy-deployment-001
+    title: Quản lý cấu hình redaction bằng phiên bản và quy trình duyệt thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-002
+    title: Phân phối chính sách nhất quán giữa môi trường, dịch vụ và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-003
+    title: Kiểm tra cấu hình và khả năng hỗ trợ trước khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-004
+    title: Triển khai thử trên phạm vi hẹp bằng dữ liệu đã được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-005
+    title: Đánh giá quy tắc mới mà không xuất thêm bản sao dữ liệu nguyên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-006
+    title: Phát hiện lệch cấu hình, pipeline thiếu processor và đường đi bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-007
+    title: Quay về phiên bản trước mà không khôi phục lỗ hổng đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-deployment-008
+    title: Rà soát quy tắc khi nâng cấp công cụ hoặc thay đổi cấu trúc telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redaction-monitoring
+  title: Giám sát redaction
+  childs:
+  - slug: redaction-monitoring-001
+    title: Theo dõi số bản ghi xử lý, số trường loại bỏ và lỗi biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-002
+    title: Đo tỷ lệ khớp theo quy tắc mà không đưa dữ liệu nhạy cảm vào nhãn metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-003
+    title: Giới hạn độ chi tiết của log chẩn đoán và dấu vết kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-004
+    title: Cảnh báo khi tỷ lệ xử lý thay đổi bất thường hoặc quy tắc ngừng có tác dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-005
+    title: Kiểm tra khả năng phát hiện rò rỉ bằng dữ liệu đánh dấu giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-006
+    title: Đánh giá bỏ sót bằng bộ dữ liệu kiểm soát thay vì chỉ nhìn số lần khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-007
+    title: Theo dõi phiên bản chính sách đang chạy và độ bao phủ từng pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redaction-monitoring-008
+    title: Thiết kế dashboard vận hành và quy trình xử lý cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response-governance
+  title: Ứng phó và quản trị
+  childs:
+  - slug: incident-response-governance-001
+    title: Ngăn phát tán tiếp khi phát hiện telemetry chứa dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-002
+    title: Xác định khoảng thời gian, dịch vụ, đường xuất và bản sao bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-003
+    title: Thu hồi hoặc thay thông tin xác thực đã bị lộ khi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-004
+    title: Xử lý dữ liệu đã lưu trong index, cache, tệp xuất và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-005
+    title: Phối hợp quyền truy cập, lưu giữ và xóa dữ liệu sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-006
+    title: Lưu bằng chứng xử lý mà không nhân bản dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-007
+    title: Phân công chủ sở hữu chính sách, phê duyệt ngoại lệ và rà soát định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-008
+    title: Lập báo cáo phạm vi bảo vệ, giới hạn và rủi ro còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-governance-009
+    title: Không suy diễn đạt tuân thủ chỉ từ việc bộ quy tắc chạy thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Thiết kế chính sách redaction cho telemetry của một API đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây dựng bộ ghi log JSON an toàn cho ứng dụng Java/Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Loại bỏ dữ liệu nhạy cảm trong HTTP, truy vấn và trace ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Cấu hình Collector và OTTL cho luồng nhiều tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Tìm và khắc phục đường rò rỉ qua debug exporter hoặc hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Kiểm chứng tác động của xóa nhãn metric lên kết quả tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Diễn tập lỗi redaction, phát lại dữ liệu và khôi phục cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Hoàn thiện bộ kiểm thử, bằng chứng đầu ra và danh sách kiểm tra vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

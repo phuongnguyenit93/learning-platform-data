@@ -1,0 +1,57 @@
+roadmap:
+- id: kien-truc-oracle
+  title: Kiến trúc Oracle
+  purpose: Nắm cấu trúc cơ sở dữ liệu Oracle và kết nối tới một pluggable database.
+  objectives:
+  - Phân biệt instance, database và PDB
+  - Giải thích CDB, SGA và background processes
+  - Kết nối PDB bằng SQL Developer hoặc SQL*Plus
+- id: schema-ddl
+  title: Schema & DDL
+  purpose: Thiết kế đối tượng dữ liệu có ràng buộc để bảo vệ tính toàn vẹn.
+  objectives:
+  - Tạo table với kiểu dữ liệu Oracle phù hợp
+  - Khai báo PK, FK, UNIQUE và CHECK
+  - Dùng sequence hoặc identity tạo định danh
+- id: truy-van-oracle-sql
+  title: Truy vấn Oracle SQL
+  purpose: Khai thác dữ liệu bằng cú pháp SQL và các khả năng truy vấn đặc trưng của Oracle.
+  objectives:
+  - Viết JOIN và subquery có điều kiện
+  - Dùng CTE và analytic function
+  - Thực hành INSERT, UPDATE, DELETE, MERGE
+- id: transaction-lock
+  title: Transaction & Lock
+  purpose: Hiểu tính nhất quán khi nhiều phiên cùng truy cập và cập nhật dữ liệu.
+  objectives:
+  - Thử COMMIT, ROLLBACK và SAVEPOINT
+  - Giải thích read consistency bằng undo
+  - Nhận diện khóa hàng và tình huống deadlock
+- id: pl-sql-exception
+  title: PL/SQL & Exception
+  purpose: Đóng gói xử lý phía cơ sở dữ liệu bằng khối lệnh, thủ tục và hàm.
+  objectives:
+  - Viết block PL/SQL với biến và vòng lặp
+  - Tạo procedure hoặc function đơn giản
+  - Xử lý lỗi bằng EXCEPTION
+- id: index-optimizer
+  title: Index & Optimizer
+  purpose: Đọc kế hoạch thực thi và chọn cách tối ưu truy vấn dựa trên số liệu.
+  objectives:
+  - Tạo B-tree index cho cột lọc
+  - Đọc EXPLAIN PLAN và DBMS_XPLAN
+  - So sánh chi phí truy vấn trước và sau index
+- id: users-privileges
+  title: Users & Privileges
+  purpose: Bảo vệ dữ liệu bằng tài khoản, role và quyền truy cập tối thiểu.
+  objectives:
+  - Phân biệt user, schema và role
+  - Thực hành GRANT và REVOKE
+  - Kiểm tra quyền truy cập trên bảng
+- id: van-hanh-recovery
+  title: Vận hành & Recovery
+  purpose: Nắm thao tác giám sát, lưu trữ và khôi phục Oracle Database ở mức nền tảng.
+  objectives:
+  - Nhận diện tablespace và datafile
+  - Kiểm tra phiên và trạng thái cơ sở dữ liệu
+  - Mô tả quy trình backup và restore bằng RMAN

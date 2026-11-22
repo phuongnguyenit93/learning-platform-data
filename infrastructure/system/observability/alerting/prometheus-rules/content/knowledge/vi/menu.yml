@@ -1,0 +1,305 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Quy tắc Prometheus là gì và vì sao cần tự động đánh giá metric
+  - Vai trò của recording rule và alerting rule trong hệ thống quan sát
+  - Từ chuỗi thời gian đến điều kiện, trạng thái cảnh báo và thông báo
+  - Phân biệt một rule, một nhóm rule và một thực thể cảnh báo
+  - Ranh giới trách nhiệm giữa Prometheus, Alertmanager và bảng điều khiển
+  - Cảnh báo triệu chứng ảnh hưởng người dùng và tín hiệu phục vụ chẩn đoán
+  - Kiến thức đầu vào và thứ tự học từ rule đầu tiên đến vận hành thực tế
+- level1: Môi trường thực hành
+  level2:
+  - Chuẩn bị Prometheus, promtool, nguồn metric và Alertmanager cho phòng thực hành
+  - Cố định phiên bản công cụ và xác minh tính năng rule được hỗ trợ
+  - Tổ chức prometheus.yml, thư mục rule và dữ liệu kiểm thử
+  - Khai báo rule_files và kiểm tra đường dẫn trong môi trường container
+  - Tạo metric có nhãn ổn định để mô phỏng trạng thái bình thường và sự cố
+  - Thực hiện vòng lặp sửa rule, kiểm tra, nạp lại và quan sát kết quả
+  - Xây dựng kịch bản lỗi có thể lặp lại mà không phụ thuộc hệ thống thật
+- level1: Hợp đồng metric
+  level2:
+  - Đọc tên metric, đơn vị và ý nghĩa nghiệp vụ trước khi đặt ngưỡng
+  - Chọn counter, gauge hoặc histogram theo loại điều kiện cần phát hiện
+  - Phân biệt tổng số sự kiện, tốc độ sự kiện và tỷ lệ lỗi
+  - Xác định tập nhãn dịch vụ, môi trường, cụm và đối tượng cần cảnh báo
+  - Phân biệt metric bằng không, metric chưa xuất hiện và metric ngừng cập nhật
+  - Ảnh hưởng của lần khởi động lại, thay phiên bản và thay nhãn đến rule
+  - Kiểm soát số tổ hợp nhãn và tránh nhãn chứa dữ liệu người dùng
+  - Xác minh tên và nhãn metric thực tế từ exporter hoặc Micrometer
+- level1: PromQL cho cảnh báo
+  level2:
+  - Chọn chuỗi bằng tên metric, bộ lọc nhãn và biểu thức chính quy
+  - Phân biệt giá trị vô hướng, vector tức thời và vector khoảng thời gian
+  - Viết expr trả về đúng các chuỗi cần trở thành cảnh báo
+  - So sánh có lọc và bẫy dùng bool khiến giá trị 0 vẫn còn trong vector
+  - Dùng rate và increase cho counter, xử lý sự kiện đặt lại bộ đếm
+  - Chọn rate hay irate theo độ ổn định cần có của tín hiệu cảnh báo
+  - Dùng min_over_time, max_over_time và avg_over_time cho gauge
+  - Phân biệt điều kiện trên giá trị hiện tại với điều kiện trên cả cửa sổ
+  - Xử lý phép chia cho 0, NaN và giá trị vô hạn khi tạo điều kiện
+  - Kiểm tra biểu thức tại nhiều thời điểm trước khi đưa vào rule
+- level1: Gom và ghép chuỗi
+  level2:
+  - Chọn mức cảnh báo theo instance, dịch vụ, cụm hoặc toàn hệ thống
+  - Gom chuỗi bằng by và without, bảo toàn nhãn cần cho xử lý sự cố
+  - Tính tốc độ trước khi cộng counter của nhiều tiến trình
+  - Cộng tử số và mẫu số trước khi tính tỷ lệ của nhiều instance
+  - Kiểm soát ghép vector bằng on và ignoring
+  - Dùng group_left hoặc group_right khi quan hệ nhãn phù hợp
+  - Phát hiện lỗi ghép nhiều với nhiều và nhãn kết quả không duy nhất
+  - Kết hợp điều kiện bằng and, or và unless theo ngữ nghĩa tập hợp
+  - Kiểm tra tác động của phép gom và phép ghép đến định danh cảnh báo
+- level1: Tệp và nhóm rule
+  level2:
+  - Cấu trúc YAML groups, name, rules và cách chia tệp theo phạm vi
+  - Phân biệt trường record với alert trong từng phần tử rule
+  - Viết expr nhiều dòng và kiểm soát thụt lề, dấu nháy trong YAML
+  - Đặt tên nhóm duy nhất trong tệp và tổ chức nhóm theo trách nhiệm
+  - Chọn interval của nhóm so với evaluation_interval toàn cục
+  - Dùng labels của nhóm và xác định ưu tiên khi rule ghi đè nhãn
+  - Dùng query_offset và đối chiếu khả năng hỗ trợ của phiên bản
+  - Đặt limit cho số chuỗi hoặc cảnh báo và xử lý khi vượt giới hạn
+  - Thứ tự đánh giá trong nhóm và giới hạn phụ thuộc giữa các nhóm
+- level1: Recording rule
+  level2:
+  - Khi nào cần ghi trước kết quả thay vì lặp lại biểu thức trong cảnh báo
+  - Cấu trúc record, expr và labels của recording rule
+  - Đặt tên kết quả theo quy ước level:metric:operations
+  - Thiết kế chuỗi kết quả với đơn vị, cửa sổ và mức gom rõ ràng
+  - Tách các phép tính tốc độ, tỷ lệ và độ trễ dùng chung
+  - Đặt rule phụ thuộc trong nhóm theo thứ tự đánh giá phù hợp
+  - Đánh đổi giữa chi phí truy vấn, độ trễ kết quả và dung lượng lưu trữ
+  - Ảnh hưởng của đổi tên hoặc xóa recording rule đến rule sử dụng nó
+  - Kiểm tra tính tương đương giữa biểu thức gốc và chuỗi đã ghi
+- level1: Alerting rule
+  level2:
+  - Cấu trúc alert, expr, for, keep_firing_for, labels và annotations
+  - Đặt tên cảnh báo thể hiện rõ tình trạng cần xử lý
+  - Chuyển điều kiện nghiệp vụ thành biểu thức có ngưỡng và đơn vị đúng
+  - Tạo một cảnh báo cho mỗi tập nhãn mà biểu thức trả về
+  - Phân biệt nhãn dùng để định danh với chú thích dùng để giải thích
+  - Chọn thời gian for theo mức độ kéo dài của sự cố
+  - Dùng keep_firing_for để giữ cảnh báo sau khi điều kiện ngừng thỏa
+  - Đọc một rule hoàn chỉnh từ biểu thức đến thông tin xử lý sự cố
+- level1: Vòng đời cảnh báo
+  level2:
+  - Diễn giải các trạng thái inactive, pending và firing
+  - Theo dõi dòng thời gian khi điều kiện lần đầu xuất hiện
+  - Điều kiện liên tục qua các lần đánh giá và thời điểm đủ for
+  - Điều gì xảy ra khi điều kiện mất trước khi đủ for
+  - Kết thúc firing khi điều kiện hết và khi keep_firing_for hết hạn
+  - Ảnh hưởng của đổi nhãn đến việc tạo thực thể cảnh báo mới
+  - Phân biệt cảnh báo đang hoạt động với thông báo đã được gửi
+  - Quan sát trạng thái bằng giao diện và chuỗi ALERTS
+  - Kiểm tra hành vi trạng thái khi nạp lại rule hoặc khởi động lại Prometheus
+- level1: Thời gian đánh giá
+  level2:
+  - Phối hợp scrape_interval, evaluation_interval và interval của nhóm
+  - Chọn cửa sổ rate theo mật độ mẫu và độ ổn định cần thiết
+  - Tính độ trễ phát hiện từ thu thập, cửa sổ truy vấn và thời gian for
+  - Phân biệt cửa sổ truy vấn với thời gian chờ for
+  - Ảnh hưởng của thời gian nhìn lại và mẫu hết hiệu lực đến truy vấn tức thời
+  - Dùng query_offset để xử lý dữ liệu đến chậm và đánh giá độ trễ bổ sung
+  - Phân biệt query_offset của nhóm với offset và bộ sửa đổi @ trong PromQL
+  - Ảnh hưởng của lệch đồng hồ và mốc thời gian metric đến cảnh báo
+  - Đánh giá hệ quả khi nhóm chạy quá lâu hoặc bỏ lỡ một lượt
+- level1: Nhãn và định danh
+  level2:
+  - Tập nhãn nào tạo nên định danh của một thực thể cảnh báo
+  - Thiết kế alertname, severity, team, service và environment nhất quán
+  - Giữ nhãn phục vụ xác định đối tượng và định tuyến thông báo
+  - Ưu tiên nhãn từ biểu thức, nhóm và từng rule khi có trùng khóa
+  - Vai trò của external_labels khi gửi cảnh báo ra ngoài Prometheus
+  - Phân biệt nhãn cục bộ với nhãn bên ngoài trong truy vấn và mẫu
+  - Vì sao giá trị thay đổi theo mỗi lần đánh giá nên đặt trong annotations
+  - Ngăn bùng nổ số cảnh báo do request ID, URL động hoặc nhãn thiếu ổn định
+  - Kiểm tra xung đột khi nhiều chuỗi bị ghi đè thành cùng tập nhãn
+- level1: Chú thích và mẫu
+  level2:
+  - Viết summary và description nêu vấn đề, đối tượng và tác động
+  - Chèn nhãn và giá trị bằng $labels, $value và $externalLabels
+  - Định dạng số, tỷ lệ, dung lượng và thời gian cho người xử lý
+  - Thêm liên kết bảng điều khiển và tài liệu xử lý sự cố
+  - Viết hướng dẫn xác minh nguyên nhân và hành động đầu tiên
+  - Xử lý nhãn thiếu, dấu nháy và ký tự đặc biệt trong YAML cùng mẫu
+  - Giới hạn truy vấn bổ sung trong mẫu để tránh tăng chi phí đánh giá
+  - Phân biệt mẫu rule Prometheus với mẫu thông báo Alertmanager
+  - Kiểm thử nội dung mẫu với nhiều tập nhãn và giá trị biên
+- level1: Thiết kế tín hiệu
+  level2:
+  - Xác định tác động, người chịu trách nhiệm và hành động trước khi viết rule
+  - Chọn cảnh báo triệu chứng, cảnh báo nguyên nhân hoặc cảnh báo dự báo
+  - Phân cấp mức nghiêm trọng theo tác động và thời gian cần phản ứng
+  - Chọn ngưỡng từ mục tiêu dịch vụ và số liệu thực tế
+  - Kết hợp tỷ lệ lỗi với lượng yêu cầu tối thiểu để giảm nhiễu
+  - Phân biệt dao động quanh ngưỡng với sự cố kéo dài
+  - Điều chỉnh cửa sổ, for và keep_firing_for theo đánh đổi phát hiện và phục hồi
+  - Xác định trường hợp cần gọi trực ngay, tạo công việc hoặc chỉ theo dõi
+  - Đánh giá cảnh báo sai, sự cố bị bỏ sót và tính khả thi của hành động
+- level1: Mất và thiếu dữ liệu
+  level2:
+  - Phân biệt target không truy cập được với target biến mất khỏi khám phá dịch vụ
+  - Viết cảnh báo up == 0 và nhận diện giới hạn của điều kiện này
+  - Dùng absent cho một tập chuỗi được kỳ vọng tồn tại
+  - Dùng absent_over_time để phát hiện không có mẫu trong một khoảng
+  - Phát hiện thiếu từng đối tượng bằng tập đối tượng kỳ vọng và unless
+  - Kiểm tra độ mới của dữ liệu bằng mốc thời gian và metric lần thành công cuối
+  - Phân biệt dịch vụ không có lưu lượng với hệ thống thu thập bị lỗi
+  - Tránh mặc định mọi dữ liệu thiếu thành 0 bằng or vector(0)
+  - Thiết kế điều kiện cho tác vụ định kỳ và khoảng nghỉ hợp lệ
+  - Kiểm tra phục hồi sau gián đoạn mà không tạo thông báo sai
+- level1: Tài nguyên và hạ tầng
+  level2:
+  - Thiết kế cảnh báo CPU theo mức sử dụng, thời gian kéo dài và phạm vi máy
+  - Phân biệt bộ nhớ còn khả dụng với bộ nhớ trống khi đặt ngưỡng
+  - Kết hợp dung lượng đĩa, inode và loại hệ thống tệp cần theo dõi
+  - Dùng predict_linear cho dự báo hết dung lượng và nhận diện giới hạn
+  - Đánh giá độ trễ I/O, hàng đợi và nghẽn tài nguyên
+  - Chọn tín hiệu mất kết nối, lỗi hoặc suy giảm mạng phù hợp
+  - Phát hiện thiếu bản sao sẵn sàng theo mức ảnh hưởng dịch vụ
+  - Kiểm soát cảnh báo trùng khi một máy hoặc thành phần nền tảng gặp sự cố
+- level1: Dịch vụ và ứng dụng
+  level2:
+  - Viết rule theo lưu lượng, tỷ lệ lỗi, độ trễ và mức bão hòa dịch vụ
+  - Xác định lỗi HTTP cần tính theo hợp đồng phục vụ người dùng
+  - Tránh để tuyến có lưu lượng lớn che khuất lỗi của chức năng quan trọng
+  - Theo dõi hàng đợi, tốc độ xử lý và tuổi công việc chưa hoàn thành
+  - Phát hiện tác vụ định kỳ không hoàn thành thành công đúng hạn
+  - Thiết kế cảnh báo kết nối cơ sở dữ liệu và nhóm kết nối cạn tài nguyên
+  - Chọn tín hiệu JVM về heap, GC và luồng gắn với ảnh hưởng ứng dụng
+  - Ánh xạ metric Spring Boot và Micrometer sang rule theo tên thực tế
+  - Kết hợp kiểm tra từ bên ngoài với metric nội bộ để xác minh khả dụng
+- level1: Độ trễ và histogram
+  level2:
+  - Chọn tỷ lệ yêu cầu chậm hay phân vị theo mục tiêu cảnh báo
+  - Tính phân vị từ classic histogram bằng histogram_quantile
+  - Bảo toàn nhãn le và mức gom phù hợp khi cộng classic histogram
+  - Vì sao không cộng hoặc lấy trung bình các phân vị của nhiều instance
+  - Tính tỷ lệ vượt ngưỡng độ trễ từ các bucket phù hợp
+  - Đánh giá ảnh hưởng của ranh giới bucket đến độ chính xác cảnh báo
+  - Xử lý dịch vụ ít yêu cầu, không có quan sát hoặc mẫu quá thưa
+  - Viết biểu thức cho native histogram và kiểm tra phiên bản hỗ trợ
+  - Kiểm thử thay đổi kiểu histogram và tránh trộn dữ liệu không tương thích
+- level1: SLO và ngân sách lỗi
+  level2:
+  - Chuyển mục tiêu độ tin cậy thành SLI và ngân sách lỗi
+  - Định nghĩa sự kiện tốt, sự kiện xấu và tổng sự kiện hợp lệ
+  - Tính tỷ lệ lỗi và tốc độ tiêu hao ngân sách lỗi
+  - Vì sao chỉ so tỷ lệ lỗi ngắn hạn với ngưỡng SLO có thể gây nhiễu
+  - Thiết kế cảnh báo tiêu hao nhanh và tiêu hao chậm
+  - Kết hợp nhiều cửa sổ thời gian để cân bằng phát hiện và phục hồi
+  - Suy ra ngưỡng từ ngân sách được phép tiêu hao và thời hạn phản ứng
+  - Tổ chức recording rule dùng chung cho các cửa sổ SLO
+  - Xử lý lưu lượng thấp, thiếu dữ liệu và mẫu số bằng 0
+  - Kiểm thử sự cố ngắn, sự cố kéo dài và sự cố đã phục hồi
+- level1: Kết nối Alertmanager
+  level2:
+  - Khai báo đích Alertmanager để gửi cảnh báo từ Prometheus
+  - Xác định bộ nhãn bàn giao cho định tuyến, gom nhóm và khử trùng lặp
+  - Phân biệt for với group_wait, group_interval và repeat_interval
+  - Phân biệt điều kiện hết firing với thời điểm gửi thông báo phục hồi
+  - Vai trò của silence và inhibition khi rule vẫn tiếp tục đánh giá
+  - Chuẩn hóa nhãn khi nhiều bản sao Prometheus gửi cùng cảnh báo
+  - Dùng alert_relabel_configs có kiểm soát trước khi gửi
+  - Xác minh cảnh báo đã firing, đã gửi và đã được nhận ở từng chặng
+  - Thử đường truyền bằng đầu nhận cục bộ và một cảnh báo kiểm tra
+- level1: Kiểm tra cú pháp
+  level2:
+  - Dùng promtool check rules để kiểm tra các tệp rule
+  - Dùng promtool check config để kiểm tra cấu hình nạp rule
+  - Phân loại lỗi YAML, lỗi PromQL và lỗi cấu trúc rule
+  - Phân biệt vượt kiểm tra cú pháp với tính đúng của điều kiện nghiệp vụ
+  - Kiểm tra tên, nhãn bắt buộc, đơn vị và chú thích theo quy ước nhóm
+  - Đối chiếu phiên bản promtool với Prometheus chạy thực tế
+  - Kiểm tra khả năng tương thích khi thêm trường hoặc tính năng mới
+- level1: Kiểm thử rule
+  level2:
+  - Cấu trúc tệp kiểm thử promtool và cách liên kết rule_files
+  - Khai báo input_series cùng nhãn và chuỗi giá trị theo thời gian
+  - Mô phỏng mẫu bị thiếu bằng _ và mẫu hết hiệu lực bằng stale
+  - Phối hợp evaluation_interval, interval dữ liệu và eval_time
+  - Dùng alert_rule_test để xác nhận tập cảnh báo cùng nhãn và chú thích
+  - Dùng promql_expr_test để kiểm tra recording rule và biểu thức trung gian
+  - Kiểm tra trước, tại và sau ranh giới thời gian for
+  - Kiểm tra hết điều kiện và khoảng giữ firing của keep_firing_for
+  - Kiểm thử đặt lại counter, lưu lượng thấp, mất dữ liệu và đổi nhãn
+  - Khai báo thứ tự nhóm khi kiểm thử các rule có quan hệ phụ thuộc
+  - Kiểm thử mẫu, nhãn bên ngoài và trường hợp không được có cảnh báo
+- level1: Triển khai an toàn
+  level2:
+  - Đưa kiểm tra cú pháp và kiểm thử rule vào quy trình tích hợp liên tục
+  - Rà soát biểu thức, tập nhãn và tác động trước khi chấp nhận thay đổi
+  - Đóng gói và phân phối tệp rule theo từng môi trường
+  - Chọn nạp lại bằng SIGHUP hoặc API /-/reload
+  - Bảo vệ API vòng đời khi bật --web.enable-lifecycle
+  - Xác nhận nạp lại thành công và rule mới thực sự xuất hiện
+  - Xử lý tệp lỗi khi nạp lại và xác minh cấu hình nào còn hiệu lực
+  - Triển khai thử trong phạm vi nhỏ và chuẩn bị quay về bản rule trước
+  - Đánh giá tác động của đổi tên, đổi nhãn hoặc xóa cảnh báo đang firing
+- level1: Kubernetes
+  level2:
+  - Vai trò của tài nguyên PrometheusRule trong Prometheus Operator
+  - Ánh xạ spec.groups sang nhóm recording rule và alerting rule
+  - Phân biệt nhãn metadata của tài nguyên với nhãn cảnh báo
+  - Chọn tài nguyên qua ruleSelector và ruleNamespaceSelector
+  - Phân biệt tài nguyên đã được tạo với rule đã được Prometheus nạp
+  - Kiểm tra lỗi xác thực, sự kiện và nhật ký Operator khi rule không xuất hiện
+  - Đối chiếu phiên bản CRD, Operator và Prometheus trước khi dùng trường mới
+  - Quản lý rule qua Helm hoặc GitOps và kiểm tra YAML sau khi kết xuất
+  - Thử triển khai, cập nhật và quay lui PrometheusRule trong cụm thực hành
+- level1: Hiệu năng và quy mô
+  level2:
+  - Ước lượng chi phí từ số chuỗi đầu vào, cửa sổ và độ phức tạp biểu thức
+  - Giới hạn phạm vi chọn chuỗi và tránh truy vấn quá rộng
+  - Dùng recording rule để giảm công việc lặp lại của nhiều cảnh báo
+  - Kiểm soát số chuỗi đầu ra và số thực thể cảnh báo mỗi rule
+  - Chia nhóm theo chu kỳ và phụ thuộc để tránh lượt đánh giá kéo dài
+  - Đánh giá chi phí ghép vector, truy vấn con và cửa sổ dài
+  - Đo thời gian chạy và phát hiện nhóm bỏ lỡ lịch đánh giá
+  - Phân biệt rule đánh giá trên dữ liệu cục bộ với hệ thống Ruler phân tán
+  - Kiểm tra tác động hiệu năng trước khi mở rộng bộ rule
+- level1: Tự giám sát
+  level2:
+  - Giám sát Prometheus và đường truyền cảnh báo bằng hệ thống độc lập
+  - Phát hiện lỗi đánh giá qua prometheus_rule_evaluation_failures_total
+  - Theo dõi thời gian đánh giá và các lượt nhóm bị bỏ lỡ
+  - Theo dõi kết quả nạp lại cấu hình và thời điểm nạp thành công cuối
+  - Phát hiện lỗi gửi cảnh báo và tình trạng không còn Alertmanager khả dụng
+  - Thiết kế cảnh báo kiểm tra liên tục và cơ chế phát hiện mất tín hiệu bên ngoài
+  - Dùng /api/v1/rules và /api/v1/alerts để kiểm tra trạng thái thực tế
+  - Xây dựng bảng theo dõi sức khỏe bộ rule và cảnh báo đang hoạt động
+- level1: Chẩn đoán lỗi
+  level2:
+  - Rule không xuất hiện dù tệp hoặc tài nguyên đã tồn tại
+  - Biểu thức có kết quả nhưng cảnh báo chưa chuyển sang firing
+  - Cảnh báo pending liên tục do điều kiện chập chờn hoặc nhãn thay đổi
+  - Cảnh báo firing ngoài dự kiến do bool, phép gom hoặc đơn vị sai
+  - Không có cảnh báo vì ghép nhãn sai, mất dữ liệu hoặc thiếu chuỗi đầu vào
+  - Lỗi nhiều với nhiều, trùng tập nhãn hoặc vượt limit
+  - Cảnh báo biến mất hoặc phục hồi giả khi nguồn dữ liệu gián đoạn
+  - Truy vấn thủ công khác kết quả rule do thời điểm, offset hoặc nguồn dữ liệu
+  - Prometheus đã firing nhưng người trực không nhận được thông báo
+  - Lần theo chuỗi bằng chứng từ metric đến rule và Alertmanager
+- level1: Quản trị rule
+  level2:
+  - Xác định chủ sở hữu, phạm vi dịch vụ và người duyệt từng nhóm rule
+  - Chuẩn hóa cách đặt tên, mức nghiêm trọng và bộ nhãn bắt buộc
+  - Quản lý ngưỡng theo môi trường và tránh sao chép rule mất kiểm soát
+  - Rà soát rule cộng đồng theo metric, phiên bản và điều kiện hệ thống
+  - Giữ tài liệu xử lý sự cố và liên kết bảng điều khiển còn sử dụng được
+  - Loại bỏ bí mật và dữ liệu nhạy cảm khỏi nhãn, chú thích và liên kết
+  - Đo mức hữu ích, tần suất gây nhiễu và số cảnh báo không có hành động
+  - Cập nhật hoặc ngừng dùng rule sau thay đổi kiến trúc và sự cố thực tế
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo recording rule và cảnh báo mất kết nối target từ đầu
+  - Xây dựng cảnh báo tỷ lệ lỗi HTTP có điều kiện lưu lượng tối thiểu
+  - Xây dựng cảnh báo độ trễ dịch vụ từ histogram
+  - Phát hiện thiếu metric của từng đối tượng trong danh sách kỳ vọng
+  - Thiết kế rule cho tác vụ định kỳ và thời điểm thành công cuối
+  - Xây dựng bộ cảnh báo SLO với nhiều cửa sổ thời gian
+  - Tạo bộ kiểm thử tái hiện dao động, mất mẫu và đổi nhãn
+  - Triển khai thử, nạp lại và quay lui bộ rule có lỗi được cài sẵn
+  - Xác minh đường đi từ sự cố mô phỏng đến trạng thái và đầu nhận cảnh báo
+  - Rà soát bộ rule hoàn chỉnh bằng tiêu chí đúng, ổn định và có thể xử lý

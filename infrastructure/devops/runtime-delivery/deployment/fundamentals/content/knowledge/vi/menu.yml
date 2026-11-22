@@ -1,0 +1,317 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Triển khai phần mềm (deployment) là gì và giải quyết vấn đề nào
+  - Phân biệt xây dựng, chuyển giao, triển khai và phát hành
+  - Vai trò của triển khai trong vòng đời phát triển và vận hành
+  - Từ mã nguồn đến phiên bản thực sự phục vụ người dùng
+  - 'Các thành phần: gói phần mềm, cấu hình, môi trường và tiến trình'
+  - Triển khai thành công về kỹ thuật khác với thay đổi thành công về nghiệp vụ
+  - Rủi ro về gián đoạn, mất dữ liệu, bảo mật và hiệu năng
+  - Khả năng tái lập, truy vết và phục hồi của một quy trình triển khai
+  - Ranh giới với quản lý hạ tầng, CI/CD và quản lý bản phát hành
+- level1: Mô hình triển khai
+  level2:
+  - 'Đơn vị triển khai: ứng dụng, dịch vụ, tác vụ và thành phần dùng chung'
+  - Phân biệt phiên bản phần mềm, bản triển khai và bản sao đang chạy
+  - Một dịch vụ có nhiều phiên bản cùng tồn tại như thế nào
+  - Trạng thái mong muốn, trạng thái thực tế và vòng điều chỉnh
+  - Từ tạo mới đến cập nhật, thay thế và gỡ bỏ
+  - Thành phần điều khiển triển khai và thành phần xử lý lưu lượng
+  - Quan hệ phụ thuộc giữa ứng dụng, dữ liệu và dịch vụ ngoài
+  - Phạm vi ảnh hưởng của một lần thay đổi
+  - Vì sao một lần triển khai không phải giao dịch nguyên tử của toàn hệ thống
+- level1: Nền tảng thực thi
+  level2:
+  - Triển khai trên máy vật lý và máy ảo
+  - Triển khai tiến trình qua hệ thống quản lý dịch vụ
+  - Triển khai bằng container và sự khác biệt với máy ảo
+  - Vai trò của nền tảng điều phối container
+  - Triển khai trên nền tảng ứng dụng được quản lý
+  - Triển khai hàm và tác vụ trong môi trường serverless
+  - Khác biệt giữa dịch vụ dài hạn, tác vụ một lần và tác vụ định kỳ
+  - Phân chia trách nhiệm giữa đội ứng dụng và nền tảng chạy
+  - Tiêu chí lựa chọn cách triển khai theo nhu cầu vận hành
+- level1: Gói triển khai
+  level2:
+  - Artifact là gì và quan hệ với mã nguồn tạo ra nó
+  - Tệp thực thi, gói ứng dụng, ảnh container và nội dung tĩnh
+  - Xây dựng một lần và chuyển cùng gói qua các môi trường
+  - Phiên bản, mã băm và cách nhận diện chính xác gói được triển khai
+  - Phân biệt nhãn có thể đổi với danh tính nội dung bất biến
+  - Lưu trữ, phân quyền và tải gói từ kho artifact
+  - Đóng gói phụ thuộc và kiểm tra tương thích môi trường chạy
+  - Giữ bằng chứng về nguồn gốc và kết quả kiểm tra của gói
+  - Chính sách lưu phiên bản phục vụ đối chiếu và hoàn tác
+  - Tránh sửa trực tiếp tệp hoặc cài thêm phụ thuộc trên bản đang phục vụ
+- level1: Cấu hình và bí mật
+  level2:
+  - Tách cấu hình theo môi trường khỏi nội dung gói triển khai
+  - 'Nguồn cấu hình: tệp, biến môi trường và dịch vụ cấu hình'
+  - Thứ tự ưu tiên và cách kiểm tra cấu hình có hiệu lực
+  - Cấu hình bắt buộc, giá trị mặc định và kiểm tra trước khi khởi động
+  - Bí mật khác với cấu hình thông thường như thế nào
+  - Cấp bí mật cho ứng dụng qua cơ chế được phân quyền
+  - Thay đổi cấu hình cần khởi động lại hay có thể nạp động
+  - Luân chuyển bí mật trong khi nhiều phiên bản cùng chạy
+  - Truy vết phiên bản cấu hình mà không ghi lộ giá trị nhạy cảm
+  - Ngăn cấu hình cục bộ và giá trị thử nghiệm đi vào môi trường sản xuất
+- level1: Môi trường đích
+  level2:
+  - Vai trò của môi trường phát triển, kiểm thử, tiền sản xuất và sản xuất
+  - Cách ly tài khoản, mạng, danh tính và dữ liệu giữa các môi trường
+  - Giữ sự tương đồng có ý nghĩa giữa tiền sản xuất và sản xuất
+  - Khác biệt về quy mô, dữ liệu và dịch vụ phụ thuộc
+  - Định danh rõ môi trường trước khi thực thi thay đổi
+  - Môi trường tạm thời cho xem xét và kiểm thử tích hợp
+  - Dữ liệu thử nghiệm, dữ liệu nhạy cảm và giới hạn sao chép
+  - Chủ sở hữu, thời hạn sử dụng và quy trình thu hồi môi trường
+  - Nhận diện thay đổi thủ công và sai lệch giữa môi trường với cấu hình quản lý
+- level1: Quy trình triển khai
+  level2:
+  - Xác định yêu cầu, phạm vi và điều kiện thành công của thay đổi
+  - Chọn đúng phiên bản gói, cấu hình và môi trường đích
+  - Kiểm tra điều kiện đầu vào và các phụ thuộc cần sẵn sàng
+  - Xem xét rủi ro và phê duyệt theo mức ảnh hưởng
+  - Thực hiện thay đổi theo từng bước có thể theo dõi
+  - Chờ ứng dụng sẵn sàng trước khi cho nhận lưu lượng
+  - Xác minh hành vi thực tế sau khi đưa vào phục vụ
+  - Quyết định tiếp tục, tạm dừng, hoàn tác hoặc sửa tiếp
+  - Ghi nhận kết quả và bàn giao cho người vận hành
+  - Phân biệt hết thời gian chờ theo dõi với việc triển khai đã dừng thực sự
+- level1: Kiểm tra trước triển khai
+  level2:
+  - Đối chiếu phiên bản gói với mã nguồn và bằng chứng kiểm thử
+  - Kiểm tra cấu hình, bí mật và quyền truy cập cần thiết
+  - Kiểm tra kết nối tới cơ sở dữ liệu và dịch vụ phụ thuộc
+  - Đánh giá tương thích dữ liệu, API và cấu hình
+  - Kiểm tra sức chứa, hạn mức và khả năng tạo bản sao bổ sung
+  - Nhận diện bước phá hủy, thay thế hoặc khó đảo ngược
+  - Xác nhận cửa sổ thay đổi và người có quyền quyết định
+  - Chuẩn bị phương án phục hồi và phiên bản có thể quay lại
+  - Đối chiếu hiện trạng với kế hoạch để phát hiện thay đổi xen vào
+- level1: Khởi động và sức khỏe
+  level2:
+  - Phân biệt tiến trình đang chạy với ứng dụng hoạt động đúng
+  - Các giai đoạn khởi động, nạp cấu hình và kết nối phụ thuộc
+  - Kiểm tra sống (liveness), sẵn sàng (readiness) và khởi động (startup)
+  - Thiết kế kiểm tra sức khỏe theo mục đích sử dụng
+  - Giới hạn thời gian, ngưỡng lỗi và chu kỳ kiểm tra
+  - Làm nóng bộ nhớ đệm, kết nối và tài nguyên trước khi nhận tải
+  - Phụ thuộc chưa sẵn sàng và cách chờ hoặc thử lại có giới hạn
+  - Ngăn vòng lặp khởi động lại do kiểm tra quá nhạy
+  - Phân biệt khả năng nhận yêu cầu với sức khỏe của toàn bộ dịch vụ phụ thuộc
+  - Quan sát lỗi chỉ xuất hiện sau khi ứng dụng bắt đầu nhận lưu lượng
+- level1: Dừng và thay thế
+  level2:
+  - Dừng mềm (graceful shutdown) và dừng cưỡng bức
+  - Ngừng nhận yêu cầu mới trước khi kết thúc tiến trình
+  - Rút lưu lượng và xử lý yêu cầu đang thực hiện
+  - Thời gian chờ của bộ cân bằng tải, ứng dụng và nền tảng chạy
+  - Kết nối dài hạn, phiên người dùng và giao thức giữ kết nối
+  - Xử lý tác vụ nền, thông điệp đang nhận và công việc chưa hoàn tất
+  - Giải phóng tài nguyên và lưu trạng thái cần thiết
+  - Thứ tự thay thế để tránh mất toàn bộ bản sao phục vụ
+  - Kiểm chứng hành vi khi hết thời gian chờ hoặc máy chạy bị mất đột ngột
+- level1: Mạng và lưu lượng
+  level2:
+  - Đường đi của yêu cầu từ tên miền đến phiên bản ứng dụng
+  - DNS, bộ cân bằng tải, proxy và cổng vào dịch vụ
+  - Phát hiện dịch vụ và cập nhật danh sách bản sao
+  - Định tuyến theo môi trường, phiên bản và nhóm người dùng
+  - Kiểm tra sức khỏe tại lớp cân bằng tải và tại ứng dụng
+  - Độ trễ cập nhật DNS, bộ nhớ đệm và thay đổi tuyến
+  - TLS, chứng chỉ, tên máy chủ và tính tương thích khi chuyển đích
+  - Timeout, retry và nguy cơ nhân đôi yêu cầu khi chuyển phiên bản
+  - Phân phối không đều, bám phiên và ảnh hưởng đến quan sát kết quả
+  - Xác minh qua đường truy cập thực thay vì chỉ gọi trực tiếp tiến trình
+- level1: Tài nguyên và sức chứa
+  level2:
+  - Ước lượng CPU, bộ nhớ, lưu trữ và số kết nối cần thiết
+  - Giới hạn tài nguyên và biểu hiện thiếu sức chứa khi triển khai
+  - Dung lượng dự phòng cho các bản sao mới và phiên bản cũ
+  - Quan hệ giữa số bản sao, mức sẵn sàng và mức gián đoạn cho phép
+  - Lập lịch tài nguyên và nguyên nhân bản sao mới chưa được chạy
+  - Ảnh hưởng của tự động co giãn trong lúc thay đổi phiên bản
+  - Đánh giá sức chứa của cơ sở dữ liệu và dịch vụ dùng chung
+  - Chi phí tạm thời khi chạy song song nhiều phiên bản
+  - Ngưỡng tải và cơ chế giảm tải khi sức chứa chưa đủ
+- level1: Chiến lược triển khai
+  level2:
+  - Tiêu chí lựa chọn theo gián đoạn, rủi ro, sức chứa và khả năng phục hồi
+  - Thay toàn bộ phiên bản bằng chiến lược recreate
+  - Thay dần từng nhóm bản sao bằng rolling deployment
+  - Giới hạn bản sao không sẵn sàng và bản sao bổ sung khi cuốn chiếu
+  - Chạy hai môi trường bằng chiến lược blue-green
+  - Điều kiện chuyển lưu lượng và loại bỏ môi trường cũ trong blue-green
+  - Đưa thay đổi đến một phần lưu lượng bằng chiến lược canary
+  - Chọn nhóm quan sát, tăng tỷ lệ và điều kiện dừng canary
+  - So sánh canary theo lượng lưu lượng với triển khai theo nhóm người dùng
+  - Phân biệt thử nghiệm A/B với cơ chế triển khai phiên bản
+  - Nhân bản lưu lượng thử nghiệm (shadow traffic) và kiểm soát tác dụng phụ
+  - So sánh các chiến lược khi ứng dụng có trạng thái hoặc dữ liệu dùng chung
+- level1: Tách triển khai và phát hành
+  level2:
+  - Đưa mã lên môi trường khác với bật tính năng cho người dùng
+  - Cờ tính năng (feature flag) trong việc kiểm soát phát hành
+  - Bật theo tỷ lệ, theo tài khoản và theo điều kiện nghiệp vụ
+  - Giữ hành vi mặc định an toàn khi hệ thống cờ gặp sự cố
+  - Tương tác giữa cờ tính năng với nhiều phiên bản đang chạy
+  - Tắt tính năng khẩn cấp và giới hạn đối với tác dụng phụ đã xảy ra
+  - Phân quyền, ghi nhận và kiểm thử thay đổi cờ
+  - Dọn cờ hết hạn và mã nhánh sau khi phát hành ổn định
+- level1: Tương thích phiên bản
+  level2:
+  - Vì sao phiên bản cũ và mới cần cùng hoạt động trong giai đoạn chuyển tiếp
+  - Tương thích ngược và tương thích xuôi trong giao tiếp
+  - Thay đổi hợp đồng API giữa bên cung cấp và bên gọi
+  - Thay đổi cấu trúc thông điệp, sự kiện và dữ liệu tuần tự hóa
+  - Định dạng phiên người dùng và dữ liệu bộ nhớ đệm dùng chung
+  - Khác biệt giữa triển khai dịch vụ độc lập và triển khai cần phối hợp
+  - Thứ tự cập nhật bên cung cấp, bên sử dụng và tác vụ nền
+  - Thiết lập khoảng phiên bản được phép cùng tồn tại
+  - Loại bỏ hợp đồng cũ sau khi xác nhận không còn bên phụ thuộc
+- level1: Thay đổi dữ liệu
+  level2:
+  - Tách triển khai ứng dụng khỏi thay đổi lược đồ và dữ liệu
+  - Mô hình mở rộng, chuyển đổi và thu gọn (expand-contract)
+  - Thêm thuộc tính hoặc cấu trúc mới trước khi mã bắt đầu sử dụng
+  - Chuyển dữ liệu lịch sử theo từng phần có thể theo dõi
+  - Đọc và ghi tương thích trong giai đoạn chuyển tiếp
+  - Khóa dữ liệu, thời gian chạy và tác động của thao tác thay đổi lược đồ
+  - Điều phối để bước chuyển đổi không bị nhiều bản sao thực thi đồng thời
+  - Kiểm tra tính đúng và tiến độ trước khi bỏ cấu trúc cũ
+  - Vì sao bản sao lưu không đồng nghĩa có thể hoàn tác tức thời
+  - Xử lý bước chuyển đổi thất bại hoặc chỉ hoàn thành một phần
+  - Điều kiện phục hồi phiên bản ứng dụng sau khi dữ liệu đã thay đổi
+- level1: Tự động hóa thực thi
+  level2:
+  - Từ thao tác thủ công có hướng dẫn đến quy trình thực thi tự động
+  - Khai báo trạng thái mong muốn và thực thi chuỗi lệnh triển khai
+  - Tham số hóa môi trường, phiên bản và phạm vi thay đổi
+  - Tính lũy đẳng và điều kiện chạy lại từng bước
+  - Mã thoát, thời gian chờ và việc theo dõi tác vụ bất đồng bộ
+  - Lưu tiến độ và phân biệt bước đã làm với bước chưa hoàn tất
+  - Khóa hoặc tuần tự hóa các thay đổi trên cùng đơn vị triển khai
+  - Phân biệt yêu cầu hủy với việc dừng được mọi tác dụng phụ
+  - Ngăn script che lỗi, bỏ qua kết quả hoặc chọn ngầm sai môi trường
+  - Nhật ký có cấu trúc và bằng chứng cho từng lần thực thi
+- level1: Tích hợp CI/CD
+  level2:
+  - Phân biệt tích hợp liên tục, chuyển giao liên tục và triển khai liên tục
+  - Gắn giai đoạn triển khai với gói đã qua kiểm tra
+  - Chuyển cùng danh tính gói qua các môi trường
+  - Điểm phê duyệt và điều kiện tự động chuyển giai đoạn
+  - Cung cấp thông tin xác thực đúng phạm vi cho máy chạy
+  - Bảo vệ môi trường quan trọng khỏi mã hoặc đề xuất không tin cậy
+  - Xử lý nhiều thay đổi đến liên tiếp và bản triển khai đã lỗi thời
+  - Theo dõi quá trình trên nền tảng đích sau khi lệnh gửi thành công
+  - Xác minh sau triển khai và truyền kết quả về quy trình chuyển giao
+  - Quản lý thử lại, chạy lại và trách nhiệm phê duyệt khi có lỗi
+- level1: Mô hình GitOps
+  level2:
+  - GitOps mô tả trạng thái mong muốn trong nguồn được quản lý phiên bản
+  - Phân biệt đẩy lệnh triển khai với bộ điều khiển kéo cấu hình
+  - Vòng đối chiếu giữa cấu hình và hệ thống đang chạy
+  - Cập nhật danh tính gói trong cấu hình triển khai
+  - Phát hiện và xử lý sai lệch do thay đổi thủ công
+  - Giới hạn của hoàn tác commit khi dữ liệu hoặc tác dụng phụ đã thay đổi
+  - Quản lý bí mật bên ngoài nội dung công khai của kho mã
+  - Ranh giới giữa GitOps, CI/CD và công cụ cấp phát hạ tầng
+- level1: Bảo mật triển khai
+  level2:
+  - Phân quyền tối thiểu cho người dùng, máy chạy và ứng dụng
+  - Tách quyền đề xuất thay đổi, phê duyệt và áp dụng
+  - Thông tin xác thực ngắn hạn và giới hạn theo môi trường
+  - Kiểm tra nguồn gốc, tính toàn vẹn và chữ ký gói
+  - Rà soát thành phần phụ thuộc và danh mục thành phần phần mềm
+  - Bảo vệ kho gói, kênh tải và nền tảng thực thi
+  - Ngăn bí mật xuất hiện trong lệnh, nhật ký và kết quả kiểm tra
+  - Thay đổi quyền mạng hoặc danh tính cùng với phiên bản ứng dụng
+  - Ghi nhận thao tác và thu hồi quyền truy cập tạm thời
+  - Xử lý gói bị nghi ngờ, thông tin xác thực bị lộ hoặc nguồn triển khai bị xâm nhập
+- level1: Kiểm thử và xác minh
+  level2:
+  - Kiểm thử trước triển khai và kiểm chứng sau triển khai khác nhau thế nào
+  - Kiểm tra nhanh chức năng thiết yếu bằng smoke test
+  - Kiểm thử tích hợp với dữ liệu và phụ thuộc đại diện
+  - Kiểm thử hợp đồng giữa các phiên bản cùng tồn tại
+  - Kiểm thử tải và ảnh hưởng của khởi động lạnh
+  - Kiểm thử đường truy cập thực, chứng chỉ và định tuyến
+  - Kiểm tra luồng người dùng mà không tạo dữ liệu hoặc giao dịch ngoài ý muốn
+  - Kiểm thử quá trình dừng, thay thế và hoàn tác
+  - Quan sát đủ lâu để phát hiện lỗi xuất hiện trễ
+  - Giới hạn của môi trường thử nghiệm và của một lần kiểm tra thành công
+- level1: Quan sát thay đổi
+  level2:
+  - Kết hợp nhật ký, số đo và dấu vết yêu cầu để đánh giá phiên bản
+  - Đánh dấu thời điểm triển khai và liên kết với danh tính gói
+  - Theo dõi tỷ lệ lỗi, độ trễ, lưu lượng và mức sử dụng tài nguyên
+  - So sánh với mức nền trước thay đổi và với nhóm đang chạy bản cũ
+  - Phân tách số đo theo phiên bản, môi trường và nhóm lưu lượng
+  - Chỉ báo kỹ thuật và chỉ báo nghiệp vụ cần theo dõi
+  - Mục tiêu mức dịch vụ và điều kiện chấp nhận rủi ro
+  - Chọn ngưỡng, cửa sổ quan sát và cỡ mẫu phù hợp
+  - Tránh kết luận từ nhiễu, lưu lượng quá ít hoặc thay đổi tải
+  - Điều kiện tiếp tục, tạm dừng hoặc kích hoạt phương án phục hồi
+  - Giảm cảnh báo trùng lặp và giữ thông tin có ích cho người xử lý
+- level1: Hoàn tác và sửa tiếp
+  level2:
+  - Phân biệt hoàn tác (rollback), sửa tiếp (roll forward) và tắt tính năng
+  - Xác định điều kiện ra quyết định trước khi triển khai
+  - Giữ gói, cấu hình và tài nguyên cần cho phiên bản có thể quay lại
+  - Kiểm tra khả năng tương thích dữ liệu trước khi chạy phiên bản cũ
+  - Hoàn tác bằng thay phiên bản và hoàn tác bằng chuyển lưu lượng
+  - Ảnh hưởng của thay đổi bí mật, quyền và cấu hình đến khả năng hoàn tác
+  - Khi nào quay lại phiên bản cũ làm tình hình xấu hơn
+  - Khôi phục tác dụng phụ ngoài ứng dụng bằng hành động bù phù hợp
+  - Giới hạn thời gian quyết định và phân công người chịu trách nhiệm
+  - Xác minh hệ thống sau hoàn tác thay vì chỉ xác nhận lệnh đã chạy
+  - Thu dọn phiên bản lỗi và ghi nhận nguyên nhân sau khi dịch vụ ổn định
+- level1: Sự cố triển khai
+  level2:
+  - Phân loại lỗi gói, cấu hình, phụ thuộc, hạ tầng và định tuyến
+  - Gói không tải được hoặc môi trường thiếu thành phần chạy
+  - Tiến trình thoát sớm, lặp khởi động hoặc chưa sẵn sàng
+  - Phiên bản mới hoạt động khi gọi trực tiếp nhưng người dùng vẫn gặp lỗi
+  - Một phần bản sao cập nhật và nhiều trạng thái cùng tồn tại
+  - Quá trình thay đổi bị treo, mất kết nối hoặc hết thời gian theo dõi
+  - Thiếu tài nguyên, vượt hạn mức và lỗi chỉ xuất hiện khi có tải
+  - Xung đột giữa hai lần triển khai hoặc giữa tự động hóa với sửa tay
+  - Ổn định dịch vụ, thu thập bằng chứng và giới hạn thay đổi bổ sung
+  - Điều tra sau sự cố và chuyển phát hiện thành kiểm tra phòng ngừa
+- level1: Nhiều địa điểm
+  level2:
+  - Vai trò của máy chạy, miền lỗi, vùng sẵn sàng và khu vực địa lý
+  - Triển khai theo từng nhóm để giới hạn phạm vi ảnh hưởng
+  - Điều phối phiên bản khi các địa điểm cập nhật không đồng thời
+  - Chuyển lưu lượng liên vùng và giới hạn do DNS hoặc dữ liệu
+  - Tương thích với độ trễ, sao chép dữ liệu và phụ thuộc dùng chung
+  - Phân biệt cập nhật phiên bản với chuyển sang địa điểm dự phòng
+  - Kiểm chứng phương án phục hồi khi một miền lỗi không hoạt động
+- level1: Phối hợp và quản trị
+  level2:
+  - Chủ sở hữu dịch vụ, người phê duyệt và người trực vận hành
+  - Tiêu chí chấp nhận và phân loại mức rủi ro thay đổi
+  - Thông tin tối thiểu trong kế hoạch và phiếu triển khai
+  - Tài liệu thao tác, phương án phục hồi và danh sách kiểm tra
+  - Cửa sổ thay đổi và cách phối hợp nhiều đội
+  - Truy vết ai triển khai gì, ở đâu, khi nào và kết quả ra sao
+  - Bàn giao hệ thống sau triển khai và xử lý việc còn dang dở
+  - Đo thời gian triển khai, tỷ lệ lỗi và thời gian phục hồi
+  - Cải tiến quy trình từ bằng chứng thay vì chỉ tăng số lần triển khai
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ luồng từ mã nguồn đến yêu cầu người dùng được phục vụ
+  - Đóng gói hai phiên bản và đối chiếu danh tính qua các môi trường
+  - Thiết kế cấu hình môi trường và cấp bí mật không nằm trong gói
+  - Xây dựng quy trình có kiểm tra trước, áp dụng và xác minh sau
+  - Mô phỏng khởi động chậm và kiểm tra readiness không đạt
+  - Thay phiên bản trong khi có yêu cầu và tác vụ đang thực hiện
+  - So sánh recreate, rolling, blue-green và canary trên cùng tình huống
+  - Đặt ngưỡng quan sát để tiếp tục hoặc dừng một canary
+  - Mô phỏng hai phiên bản sử dụng chung dữ liệu trong giai đoạn chuyển tiếp
+  - Lập kế hoạch thay đổi lược đồ theo expand-contract
+  - Diễn tập hoàn tác và tình huống buộc phải sửa tiếp
+  - Mô phỏng quá trình bị ngắt rồi xác minh trạng thái trước khi chạy lại
+  - Lập báo cáo triển khai có bằng chứng, quyết định và phần việc bàn giao

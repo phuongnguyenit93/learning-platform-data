@@ -1,0 +1,3196 @@
+menu:
+- slug: loki-foundations
+  title: Nền tảng Loki
+  childs:
+  - slug: loki-foundations-001
+    title: Grafana Loki là gì và giải quyết bài toán lưu trữ, phân tích nhật ký nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-002
+    title: Vai trò của Loki, Grafana và bộ thu thập trong một Loki Stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-003
+    title: Luồng từ ứng dụng phát nhật ký đến người dùng tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-004
+    title: Chỉ mục theo nhãn và khác biệt với chỉ mục toàn văn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-005
+    title: Điểm mạnh, giới hạn và phạm vi sử dụng phù hợp của Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-006
+    title: Phân biệt lưu trữ nhật ký, số đo và dấu vết phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-007
+    title: Tự vận hành Loki và sử dụng dịch vụ quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-foundations-008
+    title: Các thuật ngữ cần nắm trước khi triển khai và viết truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loki-architecture
+  title: Kiến trúc Loki
+  childs:
+  - slug: loki-architecture-001
+    title: Phân biệt đường ghi và đường đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-002
+    title: 'Distributor: tiếp nhận, kiểm tra và phân phối bản ghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-003
+    title: 'Ingester: quản lý luồng, gom khối dữ liệu và ghi xuống lưu trữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-004
+    title: Nhật ký ghi trước (WAL) và giới hạn bảo đảm khi tiến trình gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-005
+    title: 'Ring: thành viên cụm, phân vùng trách nhiệm và sao chép'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-006
+    title: 'Querier: đọc dữ liệu đang tiếp nhận và dữ liệu đã lưu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-007
+    title: 'Query frontend và query scheduler: chia việc, xếp lịch và điều phối truy vấn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-008
+    title: 'Index gateway: phục vụ tra cứu chỉ mục'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-009
+    title: 'Compactor: hợp nhất chỉ mục và thực thi chính sách lưu giữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-010
+    title: 'Ruler: đánh giá quy tắc tạo số đo và cảnh báo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-011
+    title: 'Gateway: định tuyến yêu cầu và ranh giới tích hợp bảo vệ truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-architecture-012
+    title: Quan hệ giữa các thành phần và chế độ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-model
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-model-001
+    title: 'Bản ghi nhật ký: thời điểm, nội dung và thông tin đi kèm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-002
+    title: Luồng nhật ký (log stream) và tập nhãn xác định luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-003
+    title: Một thay đổi nhãn tạo ra một luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-004
+    title: Khối dữ liệu (chunk), nén và khoảng thời gian chứa bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-005
+    title: 'Chỉ mục (index): tìm khối dữ liệu từ nhãn và thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-006
+    title: Thời điểm sự kiện và thời điểm hệ thống tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-007
+    title: Bản ghi đến muộn, không theo thứ tự và có cùng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-008
+    title: Phân biệt bản ghi trùng, bản ghi được gửi lại và bản ghi có nội dung giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-009
+    title: Đơn vị sử dụng (tenant) và ranh giới dữ liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-010
+    title: Quan hệ giữa mô hình dữ liệu, chi phí ghi và chi phí truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: label-design
+  title: Thiết kế nhãn
+  childs:
+  - slug: label-design-001
+    title: Nhãn được lập chỉ mục (index labels) và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-002
+    title: 'Chọn nhãn theo nguồn phát: dịch vụ, môi trường, cụm và vùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-003
+    title: Quy ước tên nhãn và giá trị nhất quán giữa các nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-004
+    title: Số loại giá trị nhãn (cardinality) và tổ hợp tạo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-005
+    title: Nhãn ổn định và nhãn thay đổi theo từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-006
+    title: Vì sao trace ID, request ID và user ID không phù hợp làm nhãn chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-007
+    title: Đường dẫn đầy đủ, mã phiên bản chạy và nguy cơ bùng nổ luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-008
+    title: Nhận dạng service_name và đối chiếu dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-009
+    title: Phân biệt nhãn nguồn, nhãn nội bộ và trường trích xuất khi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-010
+    title: Đổi, giữ hoặc loại nhãn bằng quy tắc relabeling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-011
+    title: Đánh giá số luồng hoạt động và hiệu quả thiết kế nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: label-design-012
+    title: Thay đổi chiến lược nhãn khi dữ liệu cũ vẫn còn được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata
+  title: Siêu dữ liệu
+  childs:
+  - slug: metadata-001
+    title: Siêu dữ liệu có cấu trúc (structured metadata) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-002
+    title: Phân biệt nhãn chỉ mục, metadata có cấu trúc và nội dung bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-003
+    title: Chọn nơi đặt mã trace, mã yêu cầu và định danh phiên bản chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-004
+    title: Điều kiện về schema và loại chỉ mục để sử dụng structured metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-005
+    title: Gắn metadata tại nguồn thu thập và qua dữ liệu OpenTelemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-006
+    title: Lọc metadata khi truy vấn mà không phân tích lại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-007
+    title: Giới hạn kích thước, số trường và chi phí dữ liệu đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-008
+    title: Phân biệt metadata được lưu và nhãn được trích xuất tại thời điểm truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-009
+    title: Thiết kế bộ trường chung cho điều tra và liên kết tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Khởi tạo môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Chốt phiên bản Loki, Alloy, Grafana và tài liệu tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Chọn mô hình một tiến trình cho môi trường học tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Dựng Loki, Alloy và Grafana bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Tạo nguồn nhật ký mẫu có dữ liệu bình thường, lỗi và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Mạng container, tên dịch vụ và đường truy cập từ máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Cấu trúc tệp cấu hình Loki và các nhóm thiết lập chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Phân biệt cấu hình Loki YAML và cấu hình thành phần của Alloy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Đường dẫn dữ liệu, quyền ghi và lưu trữ bền vững cho môi trường cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-009
+    title: Kiểm tra cấu hình và phát hiện thiết lập không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-010
+    title: Kiểm tra trạng thái sẵn sàng và bản ghi đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-011
+    title: Kết nối nguồn dữ liệu Loki trong Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-012
+    title: Khởi động lại và kiểm chứng dữ liệu còn có thể tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alloy-collection
+  title: Thu thập với Alloy
+  childs:
+  - slug: alloy-collection-001
+    title: Mô hình thành phần và luồng chuyển tiếp dữ liệu trong Grafana Alloy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-002
+    title: Phát hiện nguồn (discovery), xác định đích đọc và xử lý metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-003
+    title: local.file_match và lựa chọn tập tệp cần theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-004
+    title: loki.source.file và cơ chế đọc tiếp từ vị trí đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-005
+    title: loki.source.docker và thu thập nhật ký container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-006
+    title: discovery.relabel và chuẩn hóa nhãn nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-007
+    title: loki.process và chuỗi bước xử lý bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-008
+    title: loki.write và gửi dữ liệu đến Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-009
+    title: Cấu hình điểm nhận, tenant, TLS và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-010
+    title: Trạng thái đọc, thư mục dữ liệu và khả năng tiếp tục sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-011
+    title: Quan sát đồ thị thành phần, trạng thái lỗi và số liệu của Alloy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alloy-collection-012
+    title: Giới hạn trách nhiệm giữa bộ thu thập và máy chủ Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-processing
+  title: Xử lý đầu vào
+  childs:
+  - slug: input-processing-001
+    title: Thứ tự các bước trong chuỗi xử lý và ảnh hưởng tới kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-002
+    title: Phân tích nhật ký JSON và logfmt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-003
+    title: Trích xuất bằng biểu thức chính quy khi nguồn không có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-004
+    title: Gộp nhiều dòng thành một sự kiện và xử lý stack trace Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-005
+    title: Giải mã định dạng nhật ký Docker và CRI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-006
+    title: Đọc timestamp, định dạng thời gian và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-007
+    title: Chuẩn hóa mức độ nhật ký và các trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-008
+    title: Tạo nhãn chỉ mục và structured metadata từ trường đã trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-009
+    title: Chọn lại nội dung đầu ra sau xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-010
+    title: Lọc theo điều kiện, loại bản ghi và kiểm soát dữ liệu bị bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-011
+    title: Che bí mật và dữ liệu cá nhân trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-012
+    title: Xử lý lỗi phân tích, trường thiếu và bản ghi sai định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-processing-013
+    title: Thử chuỗi xử lý bằng bộ dữ liệu đại diện trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-sources
+  title: Nguồn nhật ký
+  childs:
+  - slug: log-sources-001
+    title: Tệp đang ghi, đổi tên tệp và xoay vòng nhật ký (log rotation)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-002
+    title: Trường hợp truncate, tệp bị xóa và mất vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-003
+    title: Thu thập stdout và stderr của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-004
+    title: Nhật ký hệ điều hành qua journal hoặc syslog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-005
+    title: Nhật ký máy chủ web, reverse proxy và cổng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-006
+    title: Nhật ký ứng dụng, cơ sở dữ liệu và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-007
+    title: Tiếp nhận từ bộ chuyển tiếp hoặc giao thức trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-008
+    title: Vai trò của Fluent Bit, Vector và OpenTelemetry Collector khi tích hợp Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-009
+    title: Chọn thu thập gần nguồn hay qua cổng tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-sources-010
+    title: Nguy cơ gửi trùng khi nhiều bộ thu thập theo dõi cùng một nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-logs
+  title: Nhật ký Java
+  childs:
+  - slug: java-logs-001
+    title: Từ SLF4J và Logback đến tệp hoặc stdout được Alloy thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-002
+    title: Thiết kế nhật ký JSON cho ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-003
+    title: Các trường thời gian, mức độ, logger, luồng và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-004
+    title: Thông tin dịch vụ, môi trường và phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-005
+    title: Đưa trace ID và span ID vào nhật ký qua ngữ cảnh ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-006
+    title: Phân biệt trường trong nội dung với nhãn chỉ mục của Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-007
+    title: Ngoại lệ nhiều dòng và lựa chọn một bản ghi có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-008
+    title: Ngữ cảnh bất đồng bộ và trường hợp mất thông tin liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-009
+    title: Kiểm soát kích thước bản ghi, dữ liệu nhạy cảm và lượng nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logs-010
+    title: Kiểm chứng từ yêu cầu HTTP đến bản ghi tìm được trong Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-logs
+  title: Nhật ký Kubernetes
+  childs:
+  - slug: kubernetes-logs-001
+    title: Luồng nhật ký từ container đến bộ thu thập và Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-002
+    title: Chọn đọc tệp tại node hoặc đọc qua Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-003
+    title: discovery.kubernetes và metadata của workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-004
+    title: loki.source.kubernetes và lựa chọn phạm vi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-005
+    title: Namespace, cluster, workload và container trong chiến lược nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-006
+    title: 'Pod name và container ID: cân nhắc dùng structured metadata'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-007
+    title: Triển khai Alloy theo DaemonSet hoặc mô hình phù hợp với nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-008
+    title: RBAC, ServiceAccount, volume và quyền truy cập nguồn nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-009
+    title: Pod thay thế, container khởi động lại và vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-010
+    title: Đọc dữ liệu CRI bị chia đoạn và sự kiện ứng dụng nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-011
+    title: Phân biệt nhật ký container với Kubernetes Events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-logs-012
+    title: Tránh bỏ sót hoặc thu thập lặp khi thay đổi bộ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-opentelemetry
+  title: API và OpenTelemetry
+  childs:
+  - slug: api-opentelemetry-001
+    title: Loki Push API và cấu trúc tập luồng được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-002
+    title: Timestamp và kiểu biểu diễn dữ liệu theo định dạng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-003
+    title: Gửi trực tiếp để kiểm chứng đường tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-004
+    title: Truy vấn tức thời và truy vấn theo khoảng qua HTTP API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-005
+    title: Giới hạn kết quả, chiều thời gian và luồng theo dõi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-006
+    title: 'LogCLI: tra cứu và theo dõi nhật ký từ dòng lệnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-007
+    title: Native OTLP over HTTP và vai trò của otlphttp exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-008
+    title: Ánh xạ LogRecord, tài nguyên và phạm vi thư viện sang dữ liệu Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-009
+    title: Chọn thuộc tính OpenTelemetry làm nhãn hoặc structured metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-010
+    title: Chuẩn hóa tên thuộc tính khi chuyển sang mô hình Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-011
+    title: Yêu cầu structured metadata khi tiếp nhận OTLP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-012
+    title: Tenant và xác thực trên yêu cầu ghi hoặc đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-opentelemetry-013
+    title: Phân biệt lỗi payload, lỗi quyền, giới hạn lưu lượng và lỗi máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-tsdb
+  title: Lưu trữ và TSDB
+  childs:
+  - slug: storage-tsdb-001
+    title: Lưu trữ nội dung và chỉ mục trong kiến trúc Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-002
+    title: TSDB index và quan hệ với object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-003
+    title: 'schema_config: thời điểm áp dụng, schema và loại chỉ mục'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-004
+    title: Đối chiếu schema với phiên bản Loki và tính năng cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-005
+    title: 'Object storage: bucket, endpoint, vùng và thông tin xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-006
+    title: Lưu trữ tệp cục bộ cho môi trường thử nghiệm và các giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-007
+    title: Phân biệt thư mục WAL, bộ đệm, chỉ mục cục bộ và dữ liệu lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-008
+    title: Tạo, đóng, nén và đẩy chunk xuống kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-009
+    title: Quyền truy cập kho lưu trữ và kiểm chứng đọc, ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-010
+    title: Độ trễ, lỗi object storage và ảnh hưởng tới ghi hoặc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-011
+    title: Thay đổi schema theo mốc thời gian và bảo toàn khả năng đọc dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-tsdb-012
+    title: Nhận diện cấu hình BoltDB hoặc Table Manager cũ khi bảo trì hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-deletion
+  title: Lưu giữ và xóa
+  childs:
+  - slug: retention-deletion-001
+    title: Chính sách lưu giữ (retention) và mục tiêu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-002
+    title: Vai trò Compactor trong thực thi retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-003
+    title: Thời hạn chung, theo tenant và theo tập nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-004
+    title: Chu kỳ xử lý và độ trễ trước khi dữ liệu thực sự được xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-005
+    title: Marker xóa và trạng thái cần bảo toàn khi Compactor khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-006
+    title: Phân biệt xóa theo retention và yêu cầu xóa có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-007
+    title: Cấu hình và kiểm soát quyền gửi yêu cầu xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-008
+    title: Quan hệ giữa retention của Loki và lifecycle của object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-009
+    title: Kiểm chứng chính sách bằng dữ liệu thử nghiệm có mốc thời gian rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-deletion-010
+    title: Rủi ro mất dữ liệu do cấu hình xóa hoặc vòng đời bucket không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logql-basics
+  title: LogQL cơ bản
+  childs:
+  - slug: logql-basics-001
+    title: 'Cấu trúc truy vấn LogQL: chọn luồng và chuỗi xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-002
+    title: Bộ chọn luồng (stream selector) theo tập nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-003
+    title: Toán tử nhãn =, !=, =~ và !~
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-004
+    title: Ngữ nghĩa khớp biểu thức chính quy ở nhãn và ở nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-005
+    title: Lọc dòng chứa hoặc không chứa chuỗi với |= và !=
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-006
+    title: Lọc dòng bằng biểu thức chính quy với |~ và !~
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-007
+    title: Lọc mẫu dòng bằng |> và !> khi phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-008
+    title: Kết hợp nhiều bộ lọc và ảnh hưởng của thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-009
+    title: Chuỗi ký tự, dấu nháy và ký tự cần escape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-010
+    title: Chọn khoảng thời gian tìm kiếm và nhận biết dữ liệu ngoài khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-011
+    title: Phân biệt không có bản ghi với truy vấn không đúng nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-basics-012
+    title: Thu hẹp phạm vi trước khi phân tích nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logql-field-parsing
+  title: LogQL phân tích trường
+  childs:
+  - slug: logql-field-parsing-001
+    title: Phân biệt phân tích tại lúc thu thập và tại lúc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-002
+    title: Bộ phân tích json và lựa chọn các trường cần trích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-003
+    title: Bộ phân tích logfmt và dữ liệu có trường không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-004
+    title: Bộ phân tích pattern và các phần nội dung cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-005
+    title: Bộ phân tích regexp và nhóm bắt có tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-006
+    title: Lọc theo nhãn được trích xuất sau bước phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-007
+    title: Điều kiện số, thời lượng và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-008
+    title: Kết hợp điều kiện AND, OR và thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-009
+    title: 'line_format: trình bày lại nội dung kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-010
+    title: 'label_format: tạo hoặc đổi nhãn trong chuỗi truy vấn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-011
+    title: 'drop và keep: kiểm soát nhãn trong kết quả truy vấn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-012
+    title: Nhãn lỗi __error__ và cách nhận diện lỗi phân tích hoặc chuyển kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logql-field-parsing-013
+    title: Xung đột tên trường, nhãn đã tồn tại và dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-derived-metrics
+  title: Số đo từ nhật ký
+  childs:
+  - slug: log-derived-metrics-001
+    title: Phân biệt truy vấn bản ghi và truy vấn tạo chuỗi số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-002
+    title: Cửa sổ thời gian và vector khoảng trong LogQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-003
+    title: 'count_over_time: đếm bản ghi trong một khoảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-004
+    title: 'rate: tốc độ phát sinh bản ghi theo thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-005
+    title: 'bytes_over_time và bytes_rate: lượng dữ liệu nhật ký'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-006
+    title: absent_over_time và phát hiện nguồn ngừng phát dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-007
+    title: Tổng hợp bằng sum, avg, min, max và count
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-008
+    title: Nhóm kết quả với by và without
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-009
+    title: topk, bottomk và xác định nguồn nổi bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-010
+    title: 'unwrap: chuyển trường trích xuất thành giá trị số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-011
+    title: Tổng hợp giá trị với các hàm *_over_time
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-012
+    title: quantile_over_time và phân vị của giá trị lấy từ nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-013
+    title: Lọc lỗi __error__ trước khi dùng giá trị đã chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-derived-metrics-014
+    title: Phân biệt số bản ghi, số yêu cầu và số sự kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-logql
+  title: LogQL nâng cao
+  childs:
+  - slug: advanced-logql-001
+    title: Toán tử số học, so sánh và phép kết hợp tập kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-002
+    title: Phân biệt scalar, vector tức thời và vector khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-003
+    title: Ghép chuỗi số đo theo nhãn với on và ignoring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-004
+    title: Quan hệ một–nhiều và group_left hoặc group_right
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-005
+    title: Tính tỷ lệ lỗi với tử số, mẫu số và tập nhãn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-006
+    title: Giá trị bằng không, không có chuỗi và phép chia không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-007
+    title: offset và đối chiếu các giai đoạn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-008
+    title: Phân biệt cửa sổ tính toán, bước truy vấn và khoảng hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-009
+    title: Lỗi vượt giới hạn số chuỗi sau phân tích hoặc tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-logql-010
+    title: Giới hạn suy luận khi nhật ký bị lọc, lấy mẫu hoặc thu thập thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grafana-exploration
+  title: Khám phá với Grafana
+  childs:
+  - slug: grafana-exploration-001
+    title: Cấu hình nguồn dữ liệu Loki, endpoint và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-002
+    title: Phân biệt kết nối từ máy chủ Grafana và từ trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-003
+    title: Kiểm tra kết nối, quyền và header cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-004
+    title: 'Grafana Explore: chọn nguồn và khoảng thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-005
+    title: Trình dựng truy vấn và trình soạn LogQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-006
+    title: Xem trường, nhãn, mức độ và chi tiết từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-007
+    title: Xem ngữ cảnh trước hoặc sau một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-008
+    title: Theo dõi nhật ký trực tiếp (live tail) và giới hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-009
+    title: Tra cứu theo dịch vụ với Logs Drilldown khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-010
+    title: Chia sẻ truy vấn, đường liên kết và mốc thời gian điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-011
+    title: Nhận biết giới hạn hiển thị và kết quả bị cắt ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboards-links
+  title: Dashboard và liên kết
+  childs:
+  - slug: dashboards-links-001
+    title: Chọn panel nhật ký, chuỗi thời gian, bảng và thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-002
+    title: Biến dashboard theo môi trường, dịch vụ và tập nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-003
+    title: Chuỗi biến phụ thuộc và tránh truy vấn quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-004
+    title: Biến thời gian, cửa sổ tính toán và bước truy vấn của Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-005
+    title: Hiển thị lượng lỗi, nguồn lỗi và xu hướng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-006
+    title: Tách bộ lọc giao diện với biến đổi dữ liệu ở phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-007
+    title: Từ số đo tổng hợp chuyển tới tập bản ghi tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-008
+    title: Derived fields và liên kết từ trace ID sang hệ truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-009
+    title: Liên kết nhật ký, số đo và trace trong cùng giai đoạn điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-010
+    title: Định danh nghiệp vụ và liên kết nhiều dịch vụ mà không tăng nhãn chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-011
+    title: Quản lý nguồn dữ liệu và dashboard bằng provisioning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-links-012
+    title: Kiểm tra quyền truy cập khi chia sẻ dashboard và đường dẫn điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rules-alerts
+  title: Quy tắc và cảnh báo
+  childs:
+  - slug: rules-alerts-001
+    title: Điều kiện nào từ nhật ký phù hợp để tạo cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-002
+    title: Phân biệt Grafana-managed alert rules và quy tắc của Loki Ruler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-003
+    title: 'Alerting rules: biểu thức, thời gian duy trì và nhãn cảnh báo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-004
+    title: 'Recording rules: tính trước số đo từ truy vấn nhật ký'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-005
+    title: Remote write và nơi lưu chuỗi số đo được Ruler tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-006
+    title: Tổ chức nhóm quy tắc và chu kỳ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-007
+    title: Cảnh báo tỷ lệ lỗi, số lỗi và thiếu nhật ký theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-008
+    title: Xử lý dữ liệu thiếu, kết quả rỗng và lỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-009
+    title: Luồng từ kết quả đánh giá tới Alertmanager hoặc nơi gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-010
+    title: Quyền, cách lưu và quản lý cấu hình quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rules-alerts-011
+    title: Kiểm thử và giới hạn chi phí truy vấn khi tăng số quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tenant-security
+  title: Bảo mật và tenant
+  childs:
+  - slug: tenant-security-001
+    title: Chế độ một tenant và nhiều tenant trong Loki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-002
+    title: Ý nghĩa auth_enabled và phân biệt với xác thực danh tính người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-003
+    title: 'X-Scope-OrgID: định danh tenant trên đường ghi và đường đọc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-004
+    title: Reverse proxy xác thực và nguồn xác định tenant đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-005
+    title: Ngăn phía khách tự giả mạo tenant bằng header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-006
+    title: TLS, mTLS và bảo vệ giao tiếp giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-007
+    title: Quản lý thông tin xác thực cho Alloy, Grafana và object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-008
+    title: Phân quyền đọc, ghi, quản trị và thao tác xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-009
+    title: Cô lập lưu lượng, hạn mức và tài nguyên giữa các tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-010
+    title: Truy vấn nhiều tenant và giới hạn quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-011
+    title: Che dữ liệu cá nhân, bí mật và thông tin trong URL hoặc payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-security-012
+    title: Nhật ký kiểm toán và chính sách lưu giữ phù hợp với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-deployment
+  title: Triển khai vận hành
+  childs:
+  - slug: production-deployment-001
+    title: Chọn monolithic hoặc distributed theo tải và năng lực vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-002
+    title: 'Simple Scalable Deployment: nhận diện mô hình đang bị loại bỏ và kế hoạch chuyển đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-003
+    title: Phân biệt cấu hình máy chủ Loki, Helm values và tài nguyên Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-004
+    title: Chốt phiên bản chart, image và đối chiếu nguồn chart được duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-005
+    title: Triển khai bằng Helm với object storage bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-006
+    title: Phân bổ CPU, bộ nhớ và đĩa theo vai trò thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-007
+    title: PersistentVolume cho dữ liệu cục bộ cần bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-008
+    title: Readiness, liveness và kiểm tra khả năng xử lý thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-009
+    title: Gateway, ingress, DNS và đường truy cập nội bộ hoặc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-010
+    title: Phân bố thành phần theo node, vùng lỗi và yêu cầu sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-011
+    title: Quản lý cấu hình, secrets và thay đổi triển khai bằng Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-scaling
+  title: Sẵn sàng và mở rộng
+  childs:
+  - slug: availability-scaling-001
+    title: Sao chép dữ liệu, quorum và đánh đổi khi một thành phần gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-002
+    title: Ring, cơ chế khám phá thành viên và xử lý thành viên không khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-003
+    title: Replication factor và số bản sao cần cho thiết kế đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-004
+    title: Phân bố theo vùng lỗi và giới hạn lỗi có thể chịu được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-005
+    title: Khởi động lại ingester, phục hồi WAL và đẩy dữ liệu có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-006
+    title: Mở rộng đường ghi và cân bằng trách nhiệm giữa các ingester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-007
+    title: Mở rộng đường đọc, hàng đợi và khả năng chạy truy vấn song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-008
+    title: Luồng quá nóng và giới hạn tốc độ theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-009
+    title: Tách tải giữa tenant và tránh một bên chiếm hết tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-010
+    title: Kiểm tra hành vi khi object storage, mạng hoặc một node gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-scaling-011
+    title: Phân biệt có bản sao, sao lưu và khả năng khôi phục sau thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-costs
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-costs-001
+    title: Ước tính dữ liệu ghi, số luồng hoạt động và thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-002
+    title: Giới hạn tiếp nhận chung, theo tenant và theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-003
+    title: Gom lô, nén và đánh đổi bộ nhớ với độ trễ tại Alloy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-004
+    title: Thử lại, giãn cách gửi và phản ứng khi Loki trả giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-005
+    title: Giảm số luồng và tránh nhiều chunk nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-006
+    title: Chọn nhãn và khoảng thời gian trước khi lọc nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-007
+    title: Đặt bộ lọc rẻ trước bộ phân tích hoặc biểu thức tốn chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-008
+    title: Trích xuất có chọn lọc và tránh biểu thức chính quy không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-009
+    title: Chia truy vấn, chia đoạn xử lý và kiểm soát mức song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-010
+    title: 'Bộ đệm kết quả và bộ đệm chunk: lợi ích, giới hạn và chi phí'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-011
+    title: 'Bộ lọc Bloom: vai trò tăng tốc và điều kiện hỗ trợ theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-012
+    title: Giới hạn lượng dữ liệu quét, thời gian chờ và số chuỗi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-013
+    title: Đọc thống kê truy vấn để xác định nút thắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-014
+    title: Tổng hợp chi phí lưu trữ, yêu cầu object storage và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: loki-monitoring
+  title: Giám sát Loki Stack
+  childs:
+  - slug: loki-monitoring-001
+    title: Theo dõi chính Loki, Alloy, Grafana và các phụ thuộc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-002
+    title: Tốc độ bản ghi hoặc byte được nhận, gửi và bị loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-003
+    title: Lỗi tiếp nhận, lỗi xác thực và vượt hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-004
+    title: Số luồng hoạt động, bộ nhớ ingester và tình trạng WAL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-005
+    title: Chunk được tạo, đẩy thành công hoặc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-006
+    title: Độ trễ, tỷ lệ lỗi và hàng đợi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-007
+    title: Hiệu quả bộ đệm và lượng dữ liệu truy vấn phải đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-008
+    title: Tình trạng Compactor, retention và quy tắc Ruler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-009
+    title: Loki Canary và kiểm chứng dữ liệu đi qua toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-010
+    title: Dashboard vận hành, cảnh báo và tài liệu ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: loki-monitoring-011
+    title: Điểm kiểm tra độc lập khi hệ thống nhật ký bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không thấy nhật ký: khoanh vùng từ nguồn đến Grafana'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Alloy không phát hiện tệp, không có quyền hoặc đọc sai vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Lỗi gộp nhiều dòng và sai timestamp hoặc múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Lỗi thiếu tenant, sai thông tin xác thực hoặc TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Bản ghi bị từ chối do quá cũ, quá xa tương lai hoặc ngoài cửa sổ cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Bản ghi vượt kích thước và nhãn hoặc metadata không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: HTTP 429 và phân biệt giới hạn tenant với giới hạn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Gửi lặp, trùng nguồn thu thập và hiểu nhầm thứ tự hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Truy vấn không có kết quả do sai nhãn, tenant hoặc khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi __error__, chuyển kiểu và giới hạn chuỗi số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Truy vấn chậm, hết thời gian hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Lỗi ring, object storage, thiếu đĩa hoặc thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Dữ liệu biến mất sau khởi động lại hoặc sau chính sách retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-acceptance
+  title: Kiểm thử và nghiệm thu
+  childs:
+  - slug: testing-acceptance-001
+    title: Thiết kế bộ nhật ký mẫu và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-002
+    title: Kiểm tra chuỗi xử lý với JSON, dòng lỗi và ngoại lệ nhiều dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-003
+    title: Đối chiếu nhãn chỉ mục, metadata và nội dung sau thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-004
+    title: Kiểm tra LogQL với trường thiếu, dữ liệu sai và kết quả rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-005
+    title: Kiểm tra số đo từ nhật ký bằng dữ liệu có thể tính tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-006
+    title: Kiểm tra xoay vòng tệp, khởi động lại Alloy và việc đọc tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-007
+    title: Kiểm tra mất kết nối, thử lại và giới hạn tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-008
+    title: Kiểm tra cách ly tenant, quyền và che dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-009
+    title: Kiểm tra dữ liệu gần đây, dữ liệu đã lưu và độ trễ xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-010
+    title: Kiểm thử tải ghi, tải đọc và tải hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-acceptance-011
+    title: Nghiệm thu dashboard, cảnh báo, retention và tài liệu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-migration
+  title: Nâng cấp và chuyển đổi
+  childs:
+  - slug: upgrades-migration-001
+    title: Đọc thay đổi không tương thích và lập ma trận phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-002
+    title: Sao lưu cấu hình, quy tắc, dashboard và thông tin vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-003
+    title: Phạm vi sao lưu object storage và dữ liệu trạng thái cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-004
+    title: Thử phục hồi và xác nhận khả năng truy vấn dữ liệu đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-005
+    title: Chuyển schema hoặc loại chỉ mục theo lịch áp dụng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-006
+    title: Nâng cấp từng phần và đối chiếu độ tương thích đọc, ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-007
+    title: Điều kiện quay lui và giới hạn khi dữ liệu mới đã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-008
+    title: 'Promtail đã hết vòng đời: phạm vi bảo trì và lộ trình thay thế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-009
+    title: Chuyển cấu hình Promtail sang Alloy và kiểm tra kết quả chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-010
+    title: Bảo toàn vị trí đọc, nhãn, timestamp và hành vi xử lý khi đổi bộ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-011
+    title: Đối chiếu số liệu giám sát và dashboard sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-012
+    title: Chuyển khỏi Simple Scalable Deployment sang mô hình được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-013
+    title: Chạy đối chiếu trước khi cắt chuyển và tránh thu thập lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Dựng Loki, Alloy và Grafana để tra cứu nhật ký một ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế nhãn và structured metadata cho nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thu thập JSON và stack trace mà không làm mất ranh giới sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Xây bộ truy vấn điều tra lỗi, độ trễ và giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Tạo dashboard từ nhật ký và liên kết sang trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Cảnh báo tỷ lệ lỗi và nguồn ngừng gửi nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Triển khai nguồn Kubernetes với quyền và metadata phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Điều tra luồng quá nóng hoặc truy vấn quét quá nhiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Diễn tập khởi động lại, mất kết nối, phục hồi và retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Chuyển một cấu hình Promtail cũ sang Alloy có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Rà soát thiết kế Loki Stack theo độ tin cậy, bảo mật và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "DATABASE_ENGINE_ANALYTICAL_CLICKHOUSE"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Học xây dựng hệ thống phân tích dữ liệu với ClickHouse, cơ sở dữ liệu hướng cột tối ưu cho truy vấn OLAP trên tập dữ liệu lớn. Thực hành MergeTree, khóa sắp xếp, phân vùng, nạp dữ liệu, SQL tổng hợp và materialized view, rồi tối ưu hiệu năng, mở rộng, sao lưu và vận hành."
+  }
+}

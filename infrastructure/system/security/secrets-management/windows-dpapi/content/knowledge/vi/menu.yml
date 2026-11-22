@@ -1,0 +1,281 @@
+menu:
+- level1: Tổng quan DPAPI
+  level2:
+  - DPAPI là gì và bài toán bảo vệ bí mật trên Windows
+  - Phân biệt mã hóa dữ liệu với xác thực và phân quyền truy cập
+  - Bảo vệ dữ liệu khi lưu trữ và giới hạn khi ứng dụng đang chạy
+  - 'Những loại dữ liệu phù hợp: mật khẩu ứng dụng, token và khóa mã hóa'
+  - Vai trò của Windows trong quản lý khóa thay cho ứng dụng
+  - 'Thuật ngữ nền tảng: blob, master key, SID, profile và security context'
+  - Bản đồ quan hệ giữa tài khoản, khóa chính và dữ liệu được bảo vệ
+  - Lộ trình học và môi trường thực hành độc lập với ngôn ngữ
+- level1: Nền tảng Windows
+  level2:
+  - Tài khoản cục bộ, tài khoản miền và tài khoản dịch vụ
+  - SID và sự khác biệt giữa tên tài khoản với danh tính bảo mật
+  - Access token, phiên đăng nhập và danh tính của tiến trình
+  - Hồ sơ người dùng và vai trò của việc nạp user profile
+  - Quyền NTFS, ACL và kế thừa quyền trên tệp chứa bí mật
+  - Impersonation và danh tính thực tế khi gọi API
+  - Windows service, tác vụ định kỳ và phiên chạy không tương tác
+  - Phân biệt quyền quản trị, UAC và quyền truy cập bí mật
+- level1: Kiến trúc bảo vệ
+  level2:
+  - Luồng tổng thể từ bản rõ đến blob được bảo vệ
+  - Khóa chính (master key) và mối liên hệ với dữ liệu người dùng
+  - Thông tin đăng nhập và cơ chế bảo vệ master key
+  - Phân biệt khóa bảo vệ dữ liệu với mật khẩu đăng nhập
+  - Thông tin nhận dạng khóa và metadata trong blob
+  - Bảo mật nội dung và kiểm tra tính toàn vẹn của blob
+  - Vai trò của hệ điều hành trong chọn thuật toán và quản lý phiên bản
+  - Vòng đời master key và khả năng giải mã dữ liệu cũ
+  - Ranh giới giữa hợp đồng API công khai và chi tiết lưu trữ nội bộ
+- level1: Phạm vi bảo vệ
+  level2:
+  - Phạm vi người dùng mặc định của CryptProtectData
+  - Phạm vi máy với CRYPTPROTECT_LOCAL_MACHINE
+  - Ai có thể giải mã dữ liệu trong từng phạm vi
+  - Vì sao phạm vi máy phải kết hợp với ACL của tệp
+  - Ảnh hưởng của máy tính, tài khoản và hồ sơ người dùng
+  - Hai tiến trình cùng người dùng và giới hạn cô lập giữa ứng dụng
+  - Nâng quyền và thay đổi danh tính thực thi
+  - Ma trận chọn phạm vi cho desktop, dịch vụ và tác vụ định kỳ
+  - Các giả định sai về khả năng chia sẻ blob giữa máy
+- level1: Dữ liệu và entropy
+  level2:
+  - 'DATA_BLOB: con trỏ, độ dài và dữ liệu nhị phân'
+  - Mã hóa ký tự và chuyển đổi văn bản thành byte
+  - Byte rỗng, chuỗi kết thúc null và độ dài dữ liệu thực
+  - Optional entropy là gì và khi nào cần sử dụng
+  - Yêu cầu cung cấp đúng entropy khi giải mã
+  - Lưu giữ, cấp phát và phục hồi entropy bổ sung
+  - Phân biệt entropy bí mật với hằng số nhận dạng ứng dụng
+  - Rủi ro mất entropy hoặc lưu entropy cạnh blob
+  - Giới hạn kích thước và lựa chọn mã hóa tệp lớn
+- level1: CryptProtectData
+  level2:
+  - Chữ ký hàm và ý nghĩa từng tham số
+  - Chuẩn bị bản rõ, DATA_BLOB đầu vào và đầu ra
+  - Mô tả dữ liệu (szDataDescr) và giới hạn bảo mật của metadata
+  - Sử dụng pOptionalEntropy theo hợp đồng API
+  - Tham số dành riêng và yêu cầu tương thích
+  - Lựa chọn cờ bảo vệ và tránh kết hợp không phù hợp
+  - CRYPTPROTECT_UI_FORBIDDEN trong tiến trình không tương tác
+  - CRYPTPROTECT_PROMPTSTRUCT và ảnh hưởng của yêu cầu giao diện
+  - Giá trị trả về, GetLastError và xử lý lỗi ngay tại điểm gọi
+  - Luồng mã hóa tối thiểu với Win32 API
+- level1: CryptUnprotectData
+  level2:
+  - Chữ ký hàm và luồng phục hồi bản rõ
+  - Nạp nguyên vẹn blob trước khi giải mã
+  - Cung cấp entropy và danh tính thực thi phù hợp
+  - Nhận mô tả dữ liệu và quản lý bộ nhớ trả về
+  - Kiểm tra kết quả và xử lý blob bị sửa hoặc hỏng
+  - CRYPTPROTECT_VERIFY_PROTECTION và ý nghĩa CRYPT_I_NEW_PROTECTION_REQUIRED
+  - Phân biệt lỗi giải mã với lỗi định dạng dữ liệu ứng dụng
+  - Không tự suy đoán phạm vi từ thông tin đầu vào không tin cậy
+  - Luồng giải mã tối thiểu với Win32 API
+- level1: Bộ nhớ và tài nguyên
+  level2:
+  - Quyền sở hữu buffer trước và sau lời gọi DPAPI
+  - Giải phóng vùng nhớ API cấp phát bằng LocalFree
+  - Xóa bản rõ khỏi bộ nhớ bằng SecureZeroMemory
+  - Giới hạn của xóa bộ nhớ trước bản sao tạm, heap và runtime
+  - Bảo vệ đường đi của dữ liệu qua chuỗi, buffer và exception
+  - RAII và xử lý tài nguyên trên mọi nhánh lỗi trong C/C++
+  - Không ghi bản rõ, entropy hoặc buffer nhạy cảm vào log
+  - Crash dump, page file và các kênh làm lộ dữ liệu trong bộ nhớ
+- level1: Lưu trữ blob
+  level2:
+  - Thiết kế định dạng chứa phiên bản ứng dụng và blob DPAPI
+  - Base64 là cách biểu diễn, không phải một lớp mã hóa
+  - Chọn nơi lưu trong hồ sơ người dùng hoặc dữ liệu ứng dụng
+  - Áp dụng quyền NTFS tối thiểu cho tệp và thư mục
+  - Ghi tệp nguyên tử và tránh mất dữ liệu khi tiến trình dừng
+  - Kiểm soát truy cập đồng thời và cập nhật bí mật
+  - Kiểm tra độ dài, phiên bản và cấu trúc trước khi gọi API
+  - Ngăn lộ bí mật qua tệp tạm, bản sao và lịch sử cấu hình
+  - Chống phát lại blob cũ và giới hạn của tính toàn vẹn DPAPI
+- level1: Ứng dụng desktop
+  level2:
+  - Bảo vệ cấu hình chứa bí mật của một người dùng
+  - Thiết kế lần lưu đầu tiên và lần mở ứng dụng tiếp theo
+  - Thay đổi, xóa và cấp lại bí mật đã lưu
+  - Khác biệt khi chạy bằng người dùng khác hoặc Run as
+  - Cài đặt theo người dùng và cài đặt cho toàn máy
+  - Giới hạn cô lập với phần mềm khác chạy cùng tài khoản
+  - Thiết kế lỗi thân thiện khi không thể giải mã
+  - Gỡ cài đặt, cài lại và chính sách giữ hoặc xóa dữ liệu
+- level1: Dịch vụ và tác vụ
+  level2:
+  - Chọn danh tính và phạm vi bảo vệ cho Windows service
+  - LocalSystem, LocalService, NetworkService và tài khoản riêng
+  - Yêu cầu nạp hồ sơ khi dùng phạm vi người dùng
+  - Dịch vụ dùng chung tài khoản và nguy cơ chia sẻ quyền giải mã
+  - 'Impersonation: chọn đúng danh tính tại thời điểm bảo vệ và giải mã'
+  - Tác vụ định kỳ chạy khi người dùng không đăng nhập
+  - Cấp bí mật ban đầu cho dịch vụ mà không ghi vào mã nguồn
+  - Thay tài khoản dịch vụ và kế hoạch chuyển đổi dữ liệu
+  - Ma trận triển khai giữa máy phát triển, kiểm thử và sản xuất
+- level1: .NET và PowerShell
+  level2:
+  - System.Security.Cryptography.ProtectedData và ranh giới hỗ trợ Windows
+  - DataProtectionScope.CurrentUser và LocalMachine
+  - Chuẩn bị byte, entropy và xử lý CryptographicException
+  - Giới hạn bảo mật của string và SecureString trong ứng dụng
+  - ConvertFrom-SecureString và ConvertTo-SecureString khi dùng DPAPI mặc định
+  - Sự khác biệt khi chỉ định -Key hoặc -SecureKey
+  - Tập lệnh chạy tương tác so với tài khoản chạy tự động
+  - Truyền bí mật an toàn qua tham số, pipeline và nhật ký PowerShell
+  - Kiểm tra tương tác dữ liệu giữa Win32 và .NET theo cùng hợp đồng
+- level1: Tài khoản và mật khẩu
+  level2:
+  - Đổi mật khẩu thông thường và tính liên tục truy cập dữ liệu
+  - Đặt lại mật khẩu bởi quản trị viên và nguy cơ mất khả năng giải mã
+  - Khác biệt giữa tài khoản cục bộ và tài khoản miền
+  - Tạo lại tài khoản cùng tên nhưng khác SID
+  - Xóa hồ sơ, tạo hồ sơ mới và ảnh hưởng đến master key
+  - 'Windows Hello, PIN và mật khẩu: tránh đồng nhất các cơ chế'
+  - Khóa tài khoản, vô hiệu hóa tài khoản và thu hồi quyền thực tế
+  - Tác động của việc đổi danh tính ứng dụng hoặc dịch vụ
+  - Kịch bản cần kiểm chứng thay vì suy đoán từ trạng thái đăng nhập
+- level1: Miền và khôi phục
+  level2:
+  - DPAPI trong môi trường Active Directory
+  - Vai trò của khóa sao lưu miền trong khôi phục master key
+  - Phân biệt khôi phục qua miền với giải mã tùy ý trên mọi máy
+  - Rủi ro khi khóa sao lưu miền bị lộ
+  - Phân quyền, kiểm toán và bảo vệ hạ tầng khôi phục
+  - Hồ sơ chuyển vùng và các điều kiện ảnh hưởng khả năng truy cập
+  - Đổi miền, rời miền hoặc chuyển tài khoản
+  - Lập kế hoạch phục hồi khi người dùng quên hoặc mất thông tin đăng nhập
+  - Giới hạn khôi phục và yêu cầu kiểm thử trong môi trường thực tế
+- level1: Sao lưu và di chuyển
+  level2:
+  - Vì sao chỉ sao chép blob thường chưa đủ để khôi phục
+  - Những phụ thuộc phải đưa vào kế hoạch sao lưu
+  - Phục hồi trên cùng máy và cùng danh tính
+  - Phục hồi sau cài lại Windows hoặc tạo lại hồ sơ
+  - Chuyển sang máy khác bằng quy trình giải mã và bảo vệ lại có kiểm soát
+  - Chuyển phạm vi người dùng sang phạm vi máy và ngược lại
+  - Sao lưu máy ảo, snapshot và rủi ro nhân bản bí mật
+  - Khôi phục thử định kỳ và xác định dữ liệu không thể phục hồi
+  - Xử lý bản sao cũ sau khi di chuyển hoàn tất
+- level1: DPAPI-NG
+  level2:
+  - DPAPI-NG là gì và khác DPAPI truyền thống ở đâu
+  - CNG, protection descriptor và bảo vệ theo tập người nhận
+  - NCryptCreateProtectionDescriptor và vòng đời descriptor
+  - NCryptProtectSecret và NCryptUnprotectSecret
+  - Thiết kế protection descriptor theo các nhà cung cấp được hỗ trợ
+  - Bảo vệ theo danh tính và nhóm trong Active Directory
+  - Phụ thuộc miền, KDS và khả năng truy cập hạ tầng
+  - Quản lý buffer, handle và mã trạng thái của họ NCrypt
+  - Chia sẻ bí mật giữa các chủ thể được ủy quyền
+  - Thay đổi thành viên nhóm và giới hạn thu hồi bản rõ đã lộ
+  - Khả năng tương thích và kế hoạch chuyển đổi từ DPAPI truyền thống
+- level1: Bảo vệ bộ nhớ
+  level2:
+  - CryptProtectMemory và bài toán bảo vệ dữ liệu trong RAM
+  - Phân biệt CryptProtectMemory với CryptProtectData
+  - Yêu cầu kích thước buffer theo CRYPTPROTECTMEMORY_BLOCK_SIZE
+  - Phạm vi SAME_PROCESS, SAME_LOGON và CROSS_PROCESS
+  - CryptUnprotectMemory và thời điểm bản rõ xuất hiện
+  - Vì sao dữ liệu bảo vệ trong bộ nhớ không thay cho lưu trữ bền vững
+  - Giới hạn trước trình gỡ lỗi, mã độc và tiến trình bị chiếm quyền
+  - Kết hợp bảo vệ bộ nhớ với quản lý vòng đời bí mật
+- level1: Mô hình đe dọa
+  level2:
+  - Xác định tài sản, đối thủ và ranh giới tin cậy
+  - Kẻ đọc trộm tệp so với kẻ chạy mã dưới cùng tài khoản
+  - Truy cập ngoại tuyến vào ổ đĩa và bản sao lưu
+  - Chiếm quyền người dùng, quản trị viên hoặc SYSTEM
+  - Lộ thông tin đăng nhập và vật liệu khóa liên quan
+  - Đánh cắp blob, entropy và master key qua các đường khác nhau
+  - Tấn công sửa dữ liệu và phát lại bản mã hợp lệ
+  - DPAPI không tạo ranh giới tin cậy giữa các ứng dụng cùng người dùng
+  - Giới hạn thu hồi khi bản rõ hoặc khóa ứng dụng đã bị sao chép
+  - Phân biệt bảo mật hệ điều hành với khả năng chống trích xuất tuyệt đối
+- level1: Phòng vệ thực tế
+  level2:
+  - Quyền tối thiểu cho tài khoản và thư mục chứa bí mật
+  - Tách tài khoản dịch vụ theo ranh giới trách nhiệm
+  - BitLocker và DPAPI trong bảo vệ nhiều lớp
+  - Cập nhật Windows và giảm bề mặt tấn công trên máy
+  - Hạn chế quyền gỡ lỗi và truy cập crash dump
+  - Credential Guard và phạm vi bảo vệ cần hiểu đúng
+  - Bảo vệ khóa sao lưu miền và các tài khoản đặc quyền
+  - Giám sát truy cập bất thường vào dữ liệu và vật liệu khóa
+  - Ứng phó khi máy hoặc tài khoản bị xâm nhập
+  - Đổi bí mật tại hệ thống nguồn sau sự cố và bảo vệ lại dữ liệu
+- level1: Chọn công nghệ
+  level2:
+  - DPAPI, Credential Manager và Credential Locker
+  - DPAPI, EFS và BitLocker theo lớp dữ liệu được bảo vệ
+  - DPAPI truyền thống và DPAPI-NG theo nhu cầu chia sẻ
+  - DPAPI với chứng thư, CNG Key Storage Provider và khóa không xuất được
+  - Vai trò của TPM và khác biệt với hợp đồng DPAPI
+  - DPAPI so với kho bí mật tập trung, KMS và HSM
+  - 'Mã hóa phong bì: dùng DPAPI bảo vệ khóa thay vì toàn bộ tệp'
+  - 'Khi nào tránh DPAPI: đa nền tảng, đa máy hoặc phân quyền tập trung'
+  - Tiêu chí chọn theo vận hành, phục hồi và mô hình đe dọa
+- level1: Thiết kế tích hợp
+  level2:
+  - Tách lớp lưu trữ bí mật khỏi nghiệp vụ ứng dụng
+  - Xây dựng hợp đồng bảo vệ và giải mã có phiên bản
+  - Thiết kế lỗi rõ ràng nhưng không làm lộ dữ liệu
+  - Giảm thời gian tồn tại và số bản sao của bản rõ
+  - Khởi tạo, đọc, cập nhật và xóa bí mật theo vòng đời
+  - Đổi định dạng hoặc chính sách bằng đọc cũ, ghi mới có kiểm soát
+  - Bảo vệ khóa mã hóa dữ liệu lớn theo mô hình phong bì
+  - Thiết kế khôi phục và cấp lại bí mật ngay từ đầu
+  - Tránh dùng khóa cứng hoặc cơ chế mã hóa tự chế làm phương án dự phòng
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử mã hóa và giải mã vòng kín với dữ liệu nhị phân
+  - Kiểm thử Unicode, độ dài và các điều kiện biên
+  - Đúng, thiếu và sai optional entropy
+  - Hai người dùng trên cùng máy với từng phạm vi bảo vệ
+  - Cùng người dùng trên hai máy và các điều kiện hồ sơ khác nhau
+  - Blob bị cắt, thay byte, sai phiên bản và dữ liệu ngẫu nhiên
+  - Chạy dưới desktop, dịch vụ, tác vụ định kỳ và impersonation
+  - Kiểm thử quyền tệp độc lập với quyền giải mã
+  - Đổi mật khẩu, đặt lại mật khẩu và khôi phục từ sao lưu
+  - Kiểm thử lỗi bộ nhớ, dừng đột ngột và cập nhật đồng thời
+  - Ma trận tương thích giữa các môi trường Windows được hỗ trợ
+- level1: Chẩn đoán lỗi
+  level2:
+  - Thu thập mã lỗi, danh tính và điều kiện chạy an toàn
+  - Lỗi dữ liệu không hợp lệ và kiểm tra nguyên vẹn blob
+  - Lỗi do sai entropy hoặc sai cách biểu diễn byte
+  - Lỗi do khác tài khoản, SID hoặc hồ sơ chưa nạp
+  - Lỗi khi chạy thành công thủ công nhưng thất bại trong dịch vụ
+  - Lỗi liên quan giao diện trong phiên không tương tác
+  - Phân biệt lỗi quyền tệp với lỗi DPAPI
+  - Lỗi sau đổi mật khẩu, di chuyển hoặc phục hồi hệ thống
+  - Giới hạn của log và công cụ chẩn đoán có chứa dữ liệu nhạy cảm
+  - Quy trình xử lý không xóa dữ liệu gốc hoặc làm mất khả năng phục hồi
+- level1: Vận hành
+  level2:
+  - Lập danh mục bí mật, chủ sở hữu và phạm vi bảo vệ
+  - Quản lý cấu hình và cấp bí mật giữa các môi trường
+  - Phân biệt đổi master key, bảo vệ lại blob và đổi bí mật nguồn
+  - Thiết kế chính sách xoay vòng và thu hồi phù hợp
+  - Sao lưu, lưu giữ và kiểm thử phục hồi định kỳ
+  - Theo dõi lỗi giải mã mà không thu thập bản rõ
+  - Quản lý thay đổi tài khoản, hệ điều hành và hạ tầng miền
+  - Xử lý gỡ bỏ máy, xóa dữ liệu và giới hạn xóa trên thiết bị lưu trữ
+  - Danh sách rà soát bảo mật trước khi đưa vào sử dụng
+- level1: Thực hành
+  level2:
+  - Chuẩn bị máy ảo, tài khoản thử nghiệm và dữ liệu giả
+  - Viết công cụ Win32 bảo vệ và giải mã một bí mật
+  - Thử nghiệm CurrentUser với hai tài khoản khác nhau
+  - Thử nghiệm LocalMachine kết hợp quyền NTFS
+  - Thêm optional entropy và kiểm chứng các trường hợp sai
+  - Xây dựng kho bí mật nhỏ bằng .NET hoặc PowerShell
+  - Chạy cùng kịch bản dưới Windows service và tác vụ định kỳ
+  - Mô phỏng hỏng blob, mất profile và phục hồi trong môi trường cô lập
+  - Thiết kế thử nghiệm DPAPI-NG cho nhóm người nhận trong miền thử nghiệm
+  - So sánh mã hóa trực tiếp với mã hóa phong bì cho tệp
+  - Hoàn thiện tài liệu quyết định, mô hình đe dọa và kế hoạch khôi phục

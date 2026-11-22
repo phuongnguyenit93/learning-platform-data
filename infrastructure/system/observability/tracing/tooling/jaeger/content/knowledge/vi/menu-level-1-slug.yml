@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Dữ liệu truy vết
+  slug: tracing-data
+  index: 1
+- title: Kiến trúc Jaeger v2
+  slug: jaeger-v2-architecture
+  index: 2
+- title: Khởi chạy cục bộ
+  slug: local-setup
+  index: 3
+- title: Cấu hình
+  slug: configuration
+  index: 4
+- title: Tiếp nhận dữ liệu
+  slug: trace-ingestion
+  index: 5
+- title: Tích hợp Java
+  slug: java-integration
+  index: 6
+- title: Ngữ cảnh truy vết
+  slug: trace-context
+  index: 7
+- title: Xử lý pipeline
+  slug: processing-pipelines
+  index: 8
+- title: Lấy mẫu
+  slug: sampling
+  index: 9
+- title: Tìm kiếm trace
+  slug: trace-search
+  index: 10
+- title: Phân tích trace
+  slug: trace-analysis
+  index: 11
+- title: Quan hệ dịch vụ
+  slug: service-dependencies
+  index: 12
+- title: Giám sát dịch vụ
+  slug: service-monitoring
+  index: 13
+- title: Mô hình lưu trữ
+  slug: storage-model
+  index: 14
+- title: OpenSearch và Elasticsearch
+  slug: opensearch-elasticsearch
+  index: 15
+- title: Bộ đệm Kafka
+  slug: kafka-buffering
+  index: 16
+- title: Độ bền dữ liệu
+  slug: data-durability
+  index: 17
+- title: API truy vấn
+  slug: query-api
+  index: 18
+- title: Tùy biến và tích hợp
+  slug: customization-integrations
+  index: 19
+- title: Triển khai Kubernetes
+  slug: kubernetes-deployment
+  index: 20
+- title: Bảo mật và cách ly
+  slug: security-isolation
+  index: 21
+- title: Giám sát Jaeger
+  slug: jaeger-monitoring
+  index: 22
+- title: Hiệu năng và mở rộng
+  slug: performance-scaling
+  index: 23
+- title: Vận hành và nâng cấp
+  slug: operations-upgrades
+  index: 24
+- title: Chuyển đổi từ v1
+  slug: migration-from-v1
+  index: 25
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 26
+- title: AI và MCP
+  slug: ai-mcp
+  index: 27
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 28

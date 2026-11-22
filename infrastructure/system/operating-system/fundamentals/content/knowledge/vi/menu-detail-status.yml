@@ -1,0 +1,2773 @@
+menu:
+- slug: os-overview
+  title: Tổng quan
+  childs:
+  - slug: os-overview-001
+    title: 'Vai trò của hệ điều hành: quản lý tài nguyên và cung cấp các trừu tượng cho ứng dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-002
+    title: 'Mục tiêu thiết kế: hiệu năng, công bằng, khả năng đáp ứng, an toàn và độ tin cậy'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-003
+    title: 'Tài nguyên hệ thống: CPU, bộ nhớ, thiết bị, dữ liệu và băng thông I/O'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-004
+    title: Đa chương, đa nhiệm, chia sẻ thời gian và xử lý song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-005
+    title: Hệ điều hành máy chủ, máy cá nhân, di động, nhúng và thời gian thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-006
+    title: Ranh giới giữa phần cứng, firmware, kernel, thư viện hệ thống và ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-007
+    title: Phân biệt chương trình, tiến trình, luồng, dịch vụ và phiên làm việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-008
+    title: 'Khái quát Linux, Windows và macOS: nền tảng chung và khác biệt giao diện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-overview-009
+    title: Đọc thông số hệ thống và xác định tài nguyên mà một ứng dụng sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hardware-foundations
+  title: Phần cứng nền tảng
+  childs:
+  - slug: hardware-foundations-001
+    title: CPU, thanh ghi, tập lệnh và chu trình thực thi lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-002
+    title: 'Chế độ đặc quyền: user mode, kernel mode và lệnh đặc quyền'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-003
+    title: Ngắt phần cứng, ngoại lệ và trap đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-004
+    title: Bộ định thời phần cứng và vai trò trong giành quyền điều khiển CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-005
+    title: MMU, địa chỉ bộ nhớ và cơ chế hỗ trợ bảo vệ vùng nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-006
+    title: Cache CPU, phân cấp bộ nhớ và tính cục bộ truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-007
+    title: Lõi CPU, bộ xử lý logic, SMT và giới hạn của song song hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-008
+    title: Nhất quán cache, thứ tự bộ nhớ và ý nghĩa đối với chương trình đa luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hardware-foundations-009
+    title: Bus, bộ điều khiển thiết bị, thanh ghi thiết bị và truy cập DMA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: kernel-architecture
+  title: Kiến trúc kernel
+  childs:
+  - slug: kernel-architecture-001
+    title: Trách nhiệm của kernel và ranh giới giữa kernel space với user space
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-002
+    title: 'Kernel nguyên khối, microkernel và kiến trúc lai: đánh đổi thiết kế'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-003
+    title: 'Các phân hệ chính: tiến trình, lập lịch, bộ nhớ, VFS, mạng và driver'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-004
+    title: Kernel có thể giành quyền và các ngữ cảnh thực thi trong kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-005
+    title: Ngữ cảnh tiến trình, ngữ cảnh ngắt và giới hạn của thao tác có thể ngủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-006
+    title: Module kernel, driver tích hợp và cơ chế mở rộng kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-007
+    title: 'Cấu trúc dữ liệu kernel: bảng tiến trình, hàng đợi và bảng đối tượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-008
+    title: 'Chuyển chế độ đặc quyền và chuyển ngữ cảnh: sự khác nhau và chi phí'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kernel-architecture-009
+    title: API, ABI và tính tương thích giữa kernel, thư viện hệ thống và ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-boot
+  title: Khởi động hệ thống
+  childs:
+  - slug: system-boot-001
+    title: Từ cấp nguồn đến firmware BIOS hoặc UEFI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-002
+    title: Phân vùng khởi động, bootloader và quá trình nạp kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-003
+    title: Tham số khởi động, initramfs và chuẩn bị hệ thống tệp gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-004
+    title: Khởi tạo CPU, bộ nhớ, thiết bị và các phân hệ kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-005
+    title: Tiến trình đầu tiên, init và vai trò của trình quản lý dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-006
+    title: Vòng đời dịch vụ, phụ thuộc khởi động và chính sách tự khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-007
+    title: Phiên đăng nhập, terminal, shell và môi trường làm việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-008
+    title: Tắt máy, khởi động lại, suspend và hibernate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-boot-009
+    title: Các giai đoạn lỗi khởi động và nguồn thông tin phục hồi cơ bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-calls
+  title: System call
+  childs:
+  - slug: system-calls-001
+    title: System call là gì và vì sao ứng dụng cần đi qua kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-002
+    title: Phân biệt lời gọi hàm thư viện, API ứng dụng và system call
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-003
+    title: 'Đường đi của system call: tham số, chuyển đặc quyền, xử lý và trả về'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-004
+    title: Kiểm tra tham số và trao đổi dữ liệu giữa user space với kernel space
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-005
+    title: Nhóm system call quản lý tiến trình, bộ nhớ, tệp, thiết bị và mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-006
+    title: Giá trị trả về, mã lỗi, errno và quy ước xử lý lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-007
+    title: System call có thể chặn, bị ngắt, được thử lại và hoàn tất một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-008
+    title: File descriptor, handle và vòng đời tham chiếu đến tài nguyên kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-009
+    title: Chi phí system call, gom thao tác và cơ chế tối ưu như vDSO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-calls-010
+    title: Theo dõi chuỗi system call để giải thích hành vi của chương trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: processes
+  title: Tiến trình
+  childs:
+  - slug: processes-001
+    title: Tiến trình như một đơn vị thực thi, sở hữu tài nguyên và cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-002
+    title: Không gian địa chỉ, mã lệnh, dữ liệu, heap, stack và tài nguyên mở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-003
+    title: PCB, PID, PPID, thông tin định danh và cây tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-004
+    title: Trạng thái mới, sẵn sàng, đang chạy, chờ và kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-005
+    title: 'Tạo tiến trình và kế thừa tài nguyên: fork, spawn và CreateProcess'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-006
+    title: 'Nạp chương trình mới: exec, loader và việc thay thế ảnh tiến trình'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-007
+    title: Chờ tiến trình con, mã thoát và thu hồi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-008
+    title: Tiến trình zombie, tiến trình mồ côi và trách nhiệm thu dọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-009
+    title: Nhóm tiến trình, session, tiến trình tiền cảnh và nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-010
+    title: Biến môi trường, thư mục làm việc và tài nguyên được kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: processes-011
+    title: Chuyển ngữ cảnh tiến trình và tác động đến cache, TLB và hiệu năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: threads
+  title: Luồng
+  childs:
+  - slug: threads-001
+    title: 'Luồng là gì: tài nguyên dùng chung và trạng thái thực thi riêng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-002
+    title: Stack luồng, thanh ghi, định danh luồng và dữ liệu cục bộ TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-003
+    title: So sánh tiến trình với luồng về chi phí, chia sẻ và mức độ cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-004
+    title: Luồng ở user space, luồng kernel và mô hình ánh xạ luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-005
+    title: Tạo, kết thúc, join, detach và hủy luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-006
+    title: Concurrency và parallelism trong chương trình đa luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-007
+    title: Tác vụ giới hạn bởi CPU và tác vụ giới hạn bởi I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-008
+    title: Thread pool, số lượng luồng và chi phí tạo quá nhiều luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-009
+    title: Tính an toàn luồng, tính tái nhập và quản lý tài nguyên dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-010
+    title: Ảnh hưởng của mô hình luồng đến runtime, coroutine và tác vụ bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cpu-scheduling
+  title: Lập lịch CPU
+  childs:
+  - slug: cpu-scheduling-001
+    title: Mục tiêu lập lịch và sự đánh đổi giữa thông lượng với độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-002
+    title: Thời gian chờ, thời gian đáp ứng, thời gian hoàn thành và độ sử dụng CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-003
+    title: CPU burst, I/O burst và hành vi của các nhóm tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-004
+    title: Lập lịch có giành quyền, không giành quyền và điểm ra quyết định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-005
+    title: 'FCFS: thứ tự đến trước và hiệu ứng đoàn xe'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-006
+    title: 'SJF và SRTF: dự đoán CPU burst và hạn chế khi áp dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-007
+    title: 'Round Robin: lát thời gian và chi phí chuyển ngữ cảnh'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-008
+    title: Độ ưu tiên, hàng đợi nhiều mức, phản hồi nhiều mức và aging
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-009
+    title: Lập lịch công bằng và khái quát cách bộ lập lịch hiện đại hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-010
+    title: 'Lập lịch đa lõi: cân bằng tải, CPU affinity và tính cục bộ NUMA'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-011
+    title: 'Lập lịch thời gian thực: deadline, Rate Monotonic và EDF'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-scheduling-012
+    title: Phân tích biểu đồ Gantt và so sánh thuật toán trên cùng tập tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: interprocess-communication
+  title: Giao tiếp liên tiến trình
+  childs:
+  - slug: interprocess-communication-001
+    title: Mục đích của IPC và lựa chọn giữa truyền thông điệp với chia sẻ bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-002
+    title: Pipe vô danh, pipe có tên và luồng dữ liệu giữa các tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-003
+    title: 'Hàng đợi thông điệp: ranh giới bản tin, thứ tự và dung lượng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-004
+    title: Bộ nhớ chia sẻ, ánh xạ dùng chung và yêu cầu đồng bộ truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-005
+    title: Unix domain socket và giao tiếp cục bộ qua socket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-006
+    title: 'Signal: gửi, chặn, xử lý và các giới hạn trong signal handler'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-007
+    title: RPC cục bộ, tuần tự hóa dữ liệu và chi phí qua ranh giới tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-008
+    title: Giao tiếp đồng bộ, bất đồng bộ, backpressure và tránh mất dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-009
+    title: Quyền truy cập, quyền sở hữu và vòng đời đối tượng IPC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: interprocess-communication-010
+    title: Lựa chọn IPC theo kích thước dữ liệu, độ trễ, độ tin cậy và mức cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrency-synchronization
+  title: Đồng bộ
+  childs:
+  - slug: concurrency-synchronization-001
+    title: Race condition, vùng tới hạn và bất biến của dữ liệu dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-002
+    title: Yêu cầu loại trừ tương hỗ, tiến triển và chờ đợi hữu hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-003
+    title: Thao tác nguyên tử, compare-and-swap và nền tảng của khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-004
+    title: Mutex, spinlock và lựa chọn giữa ngủ chờ với chờ bận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-005
+    title: Semaphore nhị phân, semaphore đếm và giới hạn tài nguyên đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-006
+    title: Condition variable, monitor và kiểm tra điều kiện trong vòng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-007
+    title: Read-write lock và sự đánh đổi giữa tải đọc với tải ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-008
+    title: Memory barrier, quan hệ happens-before và khả năng nhìn thấy dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-009
+    title: Bài toán producer-consumer, readers-writers và dining philosophers
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-010
+    title: Tranh chấp khóa, độ hạt khóa, false sharing và chi phí đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrency-synchronization-011
+    title: Khái quát lock-free, wait-free và giới hạn của việc dùng biến atomic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deadlocks-and-liveness
+  title: Deadlock và tính sống
+  childs:
+  - slug: deadlocks-and-liveness-001
+    title: Phân biệt deadlock, livelock, starvation và chờ đợi kéo dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-002
+    title: Bốn điều kiện cần của deadlock và ví dụ về tài nguyên bị giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-003
+    title: Đồ thị cấp phát tài nguyên và đồ thị chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-004
+    title: Ngăn ngừa deadlock bằng thứ tự khóa và quy tắc sở hữu tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-005
+    title: Tránh deadlock, trạng thái an toàn và thuật toán Banker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-006
+    title: Phát hiện deadlock và lựa chọn chiến lược phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-007
+    title: Timeout, hủy thao tác, thử lại và giới hạn của từng biện pháp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-008
+    title: Priority inversion, priority inheritance và priority ceiling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deadlocks-and-liveness-009
+    title: Phân tích tình huống treo do khóa, cạn tài nguyên hoặc phụ thuộc vòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: memory-organization
+  title: Tổ chức bộ nhớ
+  childs:
+  - slug: memory-organization-001
+    title: Không gian địa chỉ logic, địa chỉ ảo và địa chỉ vật lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-002
+    title: 'Bố cục không gian địa chỉ tiến trình: text, data, BSS, heap và stack'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-003
+    title: Bố cục bộ nhớ kernel và ranh giới bảo vệ với vùng nhớ người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-004
+    title: Cấp phát liên tục, phân vùng và hạn chế của phương pháp truyền thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-005
+    title: Phân đoạn bộ nhớ và kiểm tra giới hạn truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-006
+    title: Phân trang, page, frame và cách chia địa chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-007
+    title: Bảng trang, các bit hiện diện, truy cập, ghi bẩn và quyền bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-008
+    title: Dịch địa chỉ qua bảng trang nhiều cấp và vai trò của MMU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-009
+    title: TLB, TLB hit, TLB miss và ảnh hưởng của chuyển ngữ cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-organization-010
+    title: Phân mảnh trong, phân mảnh ngoài và ý nghĩa của kích thước trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-memory
+  title: Bộ nhớ ảo
+  childs:
+  - slug: virtual-memory-001
+    title: 'Mục tiêu của bộ nhớ ảo: cô lập, mở rộng và sử dụng RAM hiệu quả'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-002
+    title: Demand paging và vòng đời xử lý page fault
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-003
+    title: Phân biệt page fault hợp lệ, vi phạm quyền và truy cập địa chỉ sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-004
+    title: Trang ẩn danh, trang dựa trên tệp và ánh xạ bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-005
+    title: Copy-on-write khi tạo tiến trình và khi ghi vào trang dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-006
+    title: 'Thay thế trang: OPT, FIFO, LRU và Clock'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-007
+    title: Working set, tính cục bộ và lựa chọn phạm vi thay thế trang
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-008
+    title: Swap, page-in, page-out và sự khác nhau với bộ nhớ dựa trên tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-009
+    title: Thrashing, áp lực bộ nhớ và sự suy giảm khả năng đáp ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-010
+    title: Thu hồi trang, ghi trả trang bẩn và quan hệ với page cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-011
+    title: Trang lớn, TLB reach và những đánh đổi về cấp phát bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-memory-012
+    title: Memory overcommit, giới hạn bộ nhớ và xử lý tình trạng hết bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: memory-allocation
+  title: Cấp phát bộ nhớ
+  childs:
+  - slug: memory-allocation-001
+    title: Vai trò khác nhau của bộ cấp phát kernel, thư viện và runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-002
+    title: Cấp phát stack, cấp phát heap và vòng đời đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-003
+    title: malloc, free, cấp phát động và việc yêu cầu thêm bộ nhớ từ hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-004
+    title: brk, mmap, ánh xạ riêng và ánh xạ dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-005
+    title: Buddy allocator, slab allocator và quản lý đối tượng trong kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-006
+    title: Căn chỉnh bộ nhớ, kích thước khối và phân mảnh do bộ cấp phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-007
+    title: Memory leak, use-after-free, double free và lỗi truy cập ngoài biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-008
+    title: Thu gom rác của runtime và sự khác nhau giữa heap với RAM thực dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-allocation-009
+    title: Đọc các chỉ số bộ nhớ ảo, resident, shared và private của tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: files-and-directories
+  title: Tệp và thư mục
+  childs:
+  - slug: files-and-directories-001
+    title: Tệp như một trừu tượng dữ liệu và các loại đối tượng có thể truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-002
+    title: Tên tệp, đường dẫn tuyệt đối, đường dẫn tương đối và thư mục làm việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-003
+    title: Thư mục, phân giải đường dẫn và các quy tắc tìm đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-004
+    title: 'Metadata: kích thước, loại tệp, chủ sở hữu, quyền và dấu thời gian'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-005
+    title: Mở, tạo, đọc, ghi, seek, đóng, xóa và đổi tên tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-006
+    title: File descriptor hoặc handle, bảng tệp mở và vị trí đọc ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-007
+    title: Hard link, symbolic link và ý nghĩa của số lượng liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-008
+    title: Xóa tệp đang mở và thời điểm dữ liệu được thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-009
+    title: Truy cập tuần tự, truy cập ngẫu nhiên và ánh xạ tệp vào bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-010
+    title: Khóa tệp, truy cập đồng thời và giới hạn của cam kết nguyên tử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: files-and-directories-011
+    title: Tệp thông thường, thư mục, thiết bị, pipe và socket trong không gian tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: file-systems
+  title: Hệ thống tệp
+  childs:
+  - slug: file-systems-001
+    title: Lớp VFS và giao diện thống nhất cho các hệ thống tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-002
+    title: Mount, unmount, mount point và cây thư mục đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-003
+    title: Superblock, inode hoặc cấu trúc tương đương và mục nhập thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-004
+    title: Khối dữ liệu, bitmap, danh sách trống và theo dõi không gian lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-005
+    title: Cấp phát liên tục, liên kết, theo chỉ mục và extent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-006
+    title: Tổ chức thư mục, tra cứu tên và cache metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-007
+    title: Journaling, thứ tự cập nhật và phục hồi sau mất điện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-008
+    title: Copy-on-write, snapshot và khác biệt giữa snapshot với sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-009
+    title: Tính nhất quán metadata, tính toàn vẹn dữ liệu và công cụ kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-010
+    title: Hệ thống tệp cục bộ, trên mạng, trong bộ nhớ và hệ thống tệp ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-011
+    title: Khái quát ext4, XFS, Btrfs, NTFS, APFS và các tiêu chí so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-systems-012
+    title: Dung lượng trống, inode, quota, sparse file và nguyên nhân hết chỗ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: block-storage
+  title: Lưu trữ khối
+  childs:
+  - slug: block-storage-001
+    title: Phân biệt thiết bị khối với thiết bị ký tự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-002
+    title: 'HDD: đầu đọc, seek, độ trễ quay và truy cập tuần tự'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-003
+    title: 'SSD và NVMe: flash, bộ điều khiển và đặc điểm truy cập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-004
+    title: Sector, block, dung lượng logic và căn chỉnh thao tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-005
+    title: Phân vùng, bảng phân vùng MBR hoặc GPT và thiết bị logic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-006
+    title: Logical volume, mở rộng dung lượng và ánh xạ thiết bị lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-007
+    title: 'RAID cơ bản: hiệu năng, tính sẵn sàng và giới hạn bảo vệ dữ liệu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-008
+    title: Hàng đợi I/O, gộp yêu cầu và lập lịch truy cập thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-009
+    title: Write amplification, TRIM và ảnh hưởng đến độ bền SSD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: devices-and-io
+  title: Thiết bị và I/O
+  childs:
+  - slug: devices-and-io-001
+    title: Driver, bộ điều khiển và giao diện giữa kernel với thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-002
+    title: Khám phá thiết bị, khởi tạo, hotplug và vòng đời driver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-003
+    title: Programmed I/O, interrupt-driven I/O và DMA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-004
+    title: Memory-mapped I/O, port I/O và truy cập thanh ghi thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-005
+    title: Đường đi một yêu cầu I/O từ ứng dụng qua kernel đến phần cứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-006
+    title: I/O chặn, không chặn, đồng bộ và bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-007
+    title: Poll, select, epoll, kqueue và mô hình theo dõi nhiều nguồn I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-008
+    title: Hoàn tất I/O, hàng đợi sự kiện và khái quát IOCP hoặc io_uring
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-009
+    title: Đọc ghi một phần, timeout, hủy yêu cầu và xử lý lỗi thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devices-and-io-010
+    title: Terminal, thiết bị đầu vào và các giao diện I/O thông dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: buffering-and-caching
+  title: Bộ đệm và cache
+  childs:
+  - slug: buffering-and-caching-001
+    title: 'Buffering, caching và spooling: mục tiêu và điểm khác biệt'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-002
+    title: Bộ đệm thư viện, page cache và cache của thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-003
+    title: Đường đi dữ liệu đọc ghi và số lần sao chép giữa các lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-004
+    title: Read-ahead, write-back, write-through và các đánh đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-005
+    title: Flush, fsync, fdatasync và ranh giới bảo đảm dữ liệu bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-006
+    title: Direct I/O, memory-mapped I/O và buffered I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-007
+    title: Zero-copy, sendfile và điều kiện giảm sao chép dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-008
+    title: Thông lượng, IOPS, độ trễ, độ sâu hàng đợi và kích thước yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffering-and-caching-009
+    title: Tương tác giữa cache, áp lực bộ nhớ và hiệu năng I/O của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: networking-and-sockets
+  title: Mạng và socket
+  childs:
+  - slug: networking-and-sockets-001
+    title: Vai trò của ngăn xếp mạng kernel trong giao tiếp ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-002
+    title: Socket, địa chỉ, cổng và điểm cuối giao tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-003
+    title: 'Vòng đời TCP socket: tạo, bind, listen, accept, connect và đóng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-004
+    title: UDP socket, ranh giới datagram và khác biệt với luồng TCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-005
+    title: Buffer gửi nhận, blocking, non-blocking và tín hiệu sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-006
+    title: Đọc ghi một phần, EOF, half-close và lỗi kết nối thường gặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-007
+    title: NIC, ngắt, hàng đợi gói tin và chuyển dữ liệu đến tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-008
+    title: Backlog, giới hạn socket và áp lực khi có nhiều kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-009
+    title: DNS resolver, bảng định tuyến và firewall trong đường đi kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-sockets-010
+    title: Phân biệt lỗi ứng dụng, giới hạn hệ điều hành và lỗi mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: clocks-timers-and-events
+  title: Thời gian và sự kiện
+  childs:
+  - slug: clocks-timers-and-events-001
+    title: Đồng hồ thời gian thực, đồng hồ đơn điệu và thời gian CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-002
+    title: Độ phân giải, độ chính xác và chi phí đọc thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-003
+    title: Tick hệ thống, timer và cơ chế tickless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-004
+    title: Sleep, timed wait, timeout và khả năng đánh thức muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-005
+    title: Timer định kỳ, độ lệch tích lũy và cách tính deadline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-006
+    title: Điều chỉnh đồng hồ hệ thống và ảnh hưởng đến việc đo thời lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-007
+    title: Sự kiện, cơ chế đánh thức và tránh mất tín hiệu thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: clocks-timers-and-events-008
+    title: Độ trễ ngắt, độ trễ lập lịch và giới hạn của bảo đảm thời gian thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: users-and-permissions
+  title: Người dùng và quyền
+  childs:
+  - slug: users-and-permissions-001
+    title: Danh tính người dùng, nhóm và tài khoản dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-002
+    title: 'Xác thực, phân quyền và kiểm toán: trách nhiệm khác nhau'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-003
+    title: UID, GID, danh tính thực, danh tính hiệu lực và ngữ cảnh bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-004
+    title: Quyền đọc, ghi, thực thi đối với tệp và thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-005
+    title: Quyền sở hữu, nhóm sở hữu, umask và quyền mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-006
+    title: ACL và biểu diễn quyền chi tiết trên Linux hoặc Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-007
+    title: setuid, setgid, sticky bit và các trường hợp sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-008
+    title: Quyền quản trị, sudo, UAC và nguyên tắc đặc quyền tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-009
+    title: Capabilities và phân chia quyền thay cho đặc quyền toàn phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: users-and-permissions-010
+    title: Thay đổi danh tính, kế thừa quyền và kiểm tra lỗi truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: protection-and-isolation
+  title: Bảo vệ và cô lập
+  childs:
+  - slug: protection-and-isolation-001
+    title: Miền bảo vệ, ranh giới tin cậy và các tài nguyên cần được bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-002
+    title: Cô lập không gian địa chỉ và kiểm tra quyền truy cập bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-003
+    title: NX, ASLR, canary và vai trò trong giảm khả năng khai thác lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-004
+    title: Kiểm tra dữ liệu đầu vào và bảo vệ ranh giới user-kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-005
+    title: Mô hình phân quyền DAC, MAC và chính sách SELinux hoặc AppArmor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-006
+    title: Sandbox, lọc system call và giới hạn phạm vi hoạt động của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-007
+    title: Đối tượng kernel, handle và kiểm soát truy cập tài nguyên dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-008
+    title: Secure Boot, chữ ký mã và chuỗi tin cậy khi nạp thành phần hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-009
+    title: Mã hóa ổ đĩa, quản lý khóa và giới hạn bảo vệ khi hệ thống đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protection-and-isolation-010
+    title: Bề mặt tấn công, cập nhật kernel và tác động của lỗi driver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-management
+  title: Quản lý tài nguyên
+  childs:
+  - slug: resource-management-001
+    title: Cấp phát, thu hồi và hạch toán tài nguyên theo tiến trình hoặc nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-002
+    title: Giới hạn mềm, giới hạn cứng và tài nguyên theo phiên làm việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-003
+    title: Giới hạn file descriptor, số tiến trình, số luồng và stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-004
+    title: CPU share, CPU quota, affinity và giới hạn mức sử dụng CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-005
+    title: Giới hạn bộ nhớ, áp lực bộ nhớ và hành vi khi vượt ngưỡng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-006
+    title: Ưu tiên I/O, giới hạn băng thông và sự cạnh tranh trên thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-007
+    title: cgroups trên Linux và Job Objects trên Windows ở mức khái niệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-008
+    title: Công bằng, khả năng đáp ứng và hiện tượng noisy neighbor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-009
+    title: Đối chiếu tài nguyên được cấu hình với tài nguyên ứng dụng thực nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-machines
+  title: Máy ảo
+  childs:
+  - slug: virtual-machines-001
+    title: Mục tiêu ảo hóa và sự khác nhau giữa host, guest với hypervisor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-002
+    title: Hypervisor loại 1, loại 2 và mô hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-003
+    title: Ảo hóa CPU, trap-and-emulate và hỗ trợ phần cứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-004
+    title: vCPU, lập lịch trên host, oversubscription và thời gian chờ CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-005
+    title: Bộ nhớ guest, bộ nhớ host và dịch địa chỉ hai giai đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-006
+    title: Ballooning, cấp phát vượt mức và áp lực bộ nhớ giữa các máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-007
+    title: Thiết bị mô phỏng, paravirtualization, virtio và passthrough
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-008
+    title: Đĩa ảo, snapshot máy ảo và trạng thái cần bảo toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-009
+    title: Ranh giới cô lập, bề mặt tấn công và trách nhiệm bảo vệ host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-010
+    title: Chi phí ảo hóa và lựa chọn máy ảo theo yêu cầu của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: containers
+  title: Container
+  childs:
+  - slug: containers-001
+    title: Container như một nhóm tiến trình được cô lập trên kernel dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-002
+    title: So sánh container với máy ảo về kernel, tài nguyên và khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-003
+    title: 'Namespaces: PID, mount, network, IPC, UTS, user và cgroup'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-004
+    title: cgroups và kiểm soát CPU, bộ nhớ, I/O cho container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-005
+    title: Root filesystem, image layer, copy-on-write và dữ liệu bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-006
+    title: PID 1, signal, thu dọn tiến trình con và dừng container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-007
+    title: User namespace, rootless, capabilities và quyền của tiến trình container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-008
+    title: Giới hạn bảo mật, kernel dùng chung và rủi ro thoát container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-009
+    title: Nhận biết tài nguyên, đồng hồ và chỉ số tiến trình trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-environment
+  title: Môi trường ứng dụng
+  childs:
+  - slug: application-environment-001
+    title: 'Từ mã nguồn đến tiến trình: biên dịch, liên kết, nạp và thực thi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-002
+    title: Định dạng thực thi ELF, PE, Mach-O và cấu trúc cơ bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-003
+    title: Liên kết tĩnh, liên kết động, shared library và dynamic loader
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-004
+    title: ABI, calling convention, kiến trúc CPU và tương thích nhị phân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-005
+    title: Runtime C, JVM và các môi trường quản lý bộ nhớ tương tác với kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-006
+    title: Tham số dòng lệnh, biến môi trường và cấu hình của tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-007
+    title: stdin, stdout, stderr, redirection và pipeline của shell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-008
+    title: Locale, encoding, múi giờ và ảnh hưởng đến hành vi ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-009
+    title: Chạy tương tác, daemon, dịch vụ và khác biệt về ngữ cảnh thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-010
+    title: Signal, mã thoát và cơ chế dừng ứng dụng có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-environment-011
+    title: Tính khả chuyển giữa các hệ điều hành và giới hạn của chuẩn POSIX
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability-and-recovery
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-and-recovery-001
+    title: Phân biệt lỗi ứng dụng, lỗi dịch vụ, lỗi kernel và lỗi phần cứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-002
+    title: Segmentation fault, access violation, core dump và crash dump
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-003
+    title: Kernel panic, bugcheck, watchdog và tình huống hệ thống bị treo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-004
+    title: Thu hồi tài nguyên khi tiến trình kết thúc hoặc bị cưỡng bức dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-005
+    title: Nhất quán dữ liệu khi crash và thứ tự ghi xuống lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-006
+    title: Lưu tệp an toàn với tệp tạm, đồng bộ dữ liệu và đổi tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-007
+    title: Phục hồi dịch vụ, backoff và tránh vòng lặp khởi động lại liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-008
+    title: Sao lưu, khôi phục và kiểm tra khả năng phục hồi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-and-recovery-009
+    title: Cập nhật hệ điều hành, chế độ phục hồi và lập kế hoạch khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Đọc mức sử dụng CPU theo user, system, idle và trạng thái chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-002
+    title: Load average, run queue, context switch và giới hạn khi diễn giải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-003
+    title: Đọc RAM khả dụng, cache, swap và áp lực bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-004
+    title: Đọc thông lượng, IOPS, độ trễ, hàng đợi và mức bận của thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-005
+    title: Quan sát tiến trình, luồng, cây tiến trình và tài nguyên đang mở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-006
+    title: Quan sát kết nối mạng, socket, cổng lắng nghe và bộ đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-007
+    title: Nhật ký hệ thống, nhật ký kernel và sự kiện quản lý dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-008
+    title: Theo dõi system call, stack trace, sampling và khái quát tracing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-009
+    title: 'Linux: ps, top, vmstat, free, iostat, lsof, ss, strace và procfs'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-010
+    title: 'Windows và macOS: công cụ quan sát tiến trình, tài nguyên và sự kiện'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-011
+    title: Xây dựng giả thuyết, thu thập chỉ số và phân biệt tương quan với nguyên nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: os-practice-labs
+  title: Thực hành tổng hợp
+  childs:
+  - slug: os-practice-labs-001
+    title: Lần theo một lệnh từ shell qua tạo tiến trình, system call đến kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-002
+    title: Quan sát vòng đời tiến trình, mã thoát, zombie và quan hệ cha-con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-003
+    title: So sánh tác vụ CPU-bound với I/O-bound khi thay đổi số luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-004
+    title: Mô phỏng lập lịch và tính thời gian chờ, đáp ứng, hoàn thành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-005
+    title: Tạo race condition, sửa bằng đồng bộ và phân tích tình huống deadlock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-006
+    title: Quan sát page fault, resident memory và ảnh hưởng của áp lực bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-007
+    title: Lần theo thao tác đọc ghi tệp qua descriptor, cache và thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-008
+    title: Thực hành quyền tệp, danh tính tiến trình và lỗi permission denied
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-009
+    title: So sánh tiến trình trên host, trong máy ảo và trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: os-practice-labs-010
+    title: Chẩn đoán tình huống CPU cao, thiếu RAM, I/O chậm và cạn descriptor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

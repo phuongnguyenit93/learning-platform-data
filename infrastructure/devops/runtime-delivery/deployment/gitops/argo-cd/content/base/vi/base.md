@@ -1,0 +1,7 @@
+# DevOps Runtime Delivery Deployment GitOps Argo CD
+
+**Argo CD** là công cụ continuous delivery theo mô hình **GitOps** dành cho Kubernetes. Thay vì pipeline phải trực tiếp chạy lệnh triển khai trong cluster, Git lưu trạng thái cấu hình mong muốn; Argo CD lấy manifest từ kho nguồn, so sánh với tài nguyên đang chạy và thực hiện đồng bộ theo chính sách. Mô hình này giúp thay đổi có lịch sử, dễ review và phát hiện cấu hình bị chỉnh trực tiếp ngoài Git.
+
+Module dành cho người đã quen với Git, Kubernetes cơ bản và YAML. Bạn sẽ bắt đầu từ vòng lặp đối soát của GitOps, cài Argo CD và làm quen UI/CLI, chuẩn bị repo manifest dưới dạng YAML, Helm hoặc Kustomize, rồi khai báo `Application` với `source`, `destination` và `project`. Tiếp theo là thao tác diff/sync, chế độ tự động, `prune` và `selfHeal`, phân quyền bằng `AppProject` và RBAC, quản lý nhiều ứng dụng qua `ApplicationSet` và điều khiển thứ tự bằng sync waves/hooks.
+
+Sau tám mốc, bạn có thể dựng luồng triển khai GitOps nhỏ, xác định nguyên nhân ứng dụng `OutOfSync` hoặc tài nguyên `Degraded`, kiểm soát quyền triển khai và thực hiện phục hồi bằng cách hoàn nguyên thay đổi trong Git. Cần phân biệt trạng thái đồng bộ cấu hình với sức khỏe ứng dụng; tự động đồng bộ không thay thế kiểm thử, phê duyệt và chiến lược khôi phục dữ liệu của hệ thống.

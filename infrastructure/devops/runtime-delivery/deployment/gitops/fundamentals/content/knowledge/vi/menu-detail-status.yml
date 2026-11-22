@@ -1,0 +1,2602 @@
+menu:
+- slug: gitops-overview
+  title: Tổng quan
+  childs:
+  - slug: gitops-overview-001
+    title: GitOps là gì và giải quyết vấn đề nào trong vận hành triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-002
+    title: Từ triển khai bằng lệnh thủ công đến vận hành theo trạng thái khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-003
+    title: 'Bản đồ khái niệm: kho nguồn, trạng thái mong muốn, bộ điều khiển và môi trường đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-004
+    title: Vòng đời thay đổi từ commit cấu hình đến ứng dụng đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-005
+    title: Phân biệt dùng Git lưu tệp cấu hình với xây dựng một quy trình GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-006
+    title: Mối liên hệ giữa GitOps, DevOps, IaC và quản lý cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-007
+    title: Phạm vi áp dụng trong Kubernetes và các hệ thống có cơ chế đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-overview-008
+    title: Kiến thức Git, container, cấu hình khai báo và triển khai cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gitops-principles
+  title: Nguyên tắc
+  childs:
+  - slug: gitops-principles-001
+    title: Mô tả trạng thái hệ thống bằng khai báo thay vì chuỗi thao tác tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-002
+    title: Phiên bản hóa trạng thái mong muốn và giữ lịch sử thay đổi có thể truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-003
+    title: Đưa thay đổi đến môi trường bằng cơ chế tự động kéo từ nguồn được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-004
+    title: Liên tục đối soát trạng thái thực tế với trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-005
+    title: Hiểu tính bất biến của một phiên bản khai báo và cách tạo phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-006
+    title: Xác định nguồn có thẩm quyền cho từng môi trường và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-007
+    title: Phân biệt nguyên tắc GitOps với khả năng riêng của từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-principles-008
+    title: Đánh giá một quy trình triển khai có đáp ứng các nguyên tắc GitOps hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reconciliation-loop
+  title: Vòng lặp đối soát
+  childs:
+  - slug: reconciliation-loop-001
+    title: Phân biệt trạng thái mong muốn, trạng thái quan sát được và trạng thái thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-002
+    title: Các bước lấy nguồn, tạo cấu hình, so sánh, áp dụng và xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-003
+    title: Phân biệt kích hoạt bằng sự kiện với đối soát theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-004
+    title: Hội tụ và các điều kiện để hệ thống tiến về trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-005
+    title: Tính lũy đẳng và tác động của việc áp dụng lại cùng một cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-006
+    title: Nhận diện độ trễ quan sát và tính nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-007
+    title: Xử lý lỗi tạm thời bằng thử lại, thời gian chờ và giãn khoảng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-008
+    title: Phân biệt hành động đồng bộ với kết quả đối soát thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-009
+    title: Xác định trạng thái chưa biết khi nguồn hoặc môi trường không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reconciliation-loop-010
+    title: Nhận diện vòng lặp không hội tụ và tác động của nhiều bên cùng sửa tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: desired-state-source
+  title: Nguồn trạng thái
+  childs:
+  - slug: desired-state-source-001
+    title: Xác định kho, đường dẫn và phiên bản tham chiếu cho môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-002
+    title: Phân biệt nhánh theo dõi, tag và commit cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-003
+    title: Phân biệt cấu hình đã commit, cấu hình đã render và cấu hình đang áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-004
+    title: Xác định thuộc tính khai báo và thuộc tính do hệ thống tự sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-005
+    title: Quản lý dữ liệu đầu vào nằm ngoài Git và kiểm tra khả năng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-006
+    title: Phân biệt nguồn cấu hình với nơi lưu image, chart và các artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-007
+    title: Đánh giá rủi ro khi cùng một tham chiếu có thể trỏ đến nội dung khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-008
+    title: Liên kết phiên bản nguồn với phiên bản ứng dụng và lần triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-source-009
+    title: Thiết lập ranh giới nguồn có thẩm quyền khi sử dụng nhiều kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Vai trò của hệ thống CI, kho cấu hình, registry và bộ điều khiển GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Phân biệt mô hình đẩy từ pipeline với mô hình kéo tại môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Vị trí đặt bộ điều khiển và ranh giới mạng cần vượt qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Tách mặt phẳng điều khiển khỏi nơi ứng dụng xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Lựa chọn quản lý tập trung hoặc phân tán theo cụm và đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: Thiết kế đường truy cập từ bộ điều khiển đến kho nguồn và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Đánh giá phụ thuộc vào Git, registry, DNS và hệ thống danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Xác định điểm lỗi tập trung và phạm vi ảnh hưởng khi bộ điều khiển gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-009
+    title: Phân định trách nhiệm giữa bộ điều khiển GitOps và các bộ điều khiển nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-relationship
+  title: Quan hệ với CI/CD
+  childs:
+  - slug: ci-cd-relationship-001
+    title: Phân chia trách nhiệm build, test, phát hành artifact và thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-002
+    title: Luồng CI tạo artifact rồi đề xuất cập nhật kho triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-003
+    title: Phân biệt pipeline thành công, commit được merge và triển khai thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-004
+    title: Tách quyền xuất bản artifact khỏi quyền thay đổi môi trường sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-005
+    title: Quản lý phê duyệt ở bước thay đổi khai báo thay vì chạy lệnh tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-006
+    title: Phân biệt continuous delivery và continuous deployment trong quy trình GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-007
+    title: Chọn điểm tích hợp webhook mà không bỏ qua vòng lặp đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-relationship-008
+    title: Truy vết một thay đổi mã nguồn qua artifact đến trạng thái ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-model
+  title: Mô hình tài nguyên
+  childs:
+  - slug: resource-model-001
+    title: Biểu diễn tài nguyên bằng định danh, thuộc tính và phạm vi quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-002
+    title: Đọc manifest Kubernetes ở mức cần thiết cho quy trình GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-003
+    title: Phân biệt cấu hình mong muốn, metadata và trạng thái do hệ thống cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-004
+    title: Nhận diện tài nguyên cấp namespace và tài nguyên cấp cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-005
+    title: Phân biệt tài nguyên bền vững với tác vụ chạy một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-006
+    title: Xác định các tài nguyên tạo gián tiếp bởi operator hoặc bộ điều khiển khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-007
+    title: Quản lý quyền sở hữu thuộc tính khi nhiều bộ điều khiển cùng tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-008
+    title: Đánh giá cấu hình không khai báo đầy đủ và phụ thuộc vào giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-009
+    title: Giới hạn của manifest đối với dữ liệu nghiệp vụ và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-organization
+  title: Tổ chức kho mã
+  childs:
+  - slug: repository-organization-001
+    title: So sánh lưu mã ứng dụng và cấu hình triển khai cùng kho hoặc khác kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-002
+    title: Tổ chức thư mục theo ứng dụng, môi trường, cụm và đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-003
+    title: Chọn mô hình nhánh và đường dẫn theo nhu cầu review và thăng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-004
+    title: Đánh giá monorepo và nhiều kho trong quản lý cấu hình GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-005
+    title: Tách cấu hình dùng chung khỏi cấu hình dành riêng cho môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-006
+    title: Quy định chủ sở hữu, phạm vi review và trách nhiệm phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-007
+    title: Tránh sao chép cấu hình và phụ thuộc vòng giữa các kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-008
+    title: Quản lý nhiều nguồn đầu vào mà vẫn xác định được một phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-009
+    title: Thiết lập quy ước tên, tài liệu và hợp đồng thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-organization-010
+    title: Đánh giá tác động của một commit đến các ứng dụng cùng theo dõi kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-data
+  title: Dữ liệu cấu hình
+  childs:
+  - slug: configuration-data-001
+    title: Tách dữ liệu cấu hình khỏi cấu trúc tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-002
+    title: Quản lý giá trị mặc định và phần ghi đè theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-003
+    title: Kiểm soát kiểu dữ liệu, giá trị thiếu và giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-004
+    title: Xác định thứ tự ưu tiên khi kết hợp nhiều lớp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-005
+    title: Phân biệt hợp nhất cấu trúc với thay thế danh sách hoặc toàn bộ giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-006
+    title: Kiểm tra cấu hình hiệu lực trước khi tạo tài nguyên đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-007
+    title: Quản lý cấu hình không bí mật và tham chiếu đến bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-008
+    title: Giới hạn khác biệt môi trường để giảm sai lệch không chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-009
+    title: Phiên bản hóa schema và xử lý tương thích khi cấu hình thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: manifest-generation
+  title: Sinh manifest
+  childs:
+  - slug: manifest-generation-001
+    title: Phân biệt manifest thuần, template và cấu hình ghép lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-002
+    title: Vai trò của Helm và Kustomize trong tạo đầu ra khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-003
+    title: Quy định nguồn, phiên bản và tham số của công cụ render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-004
+    title: Tạo đầu ra xác định từ cùng tập đầu vào được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-005
+    title: Nhận diện giá trị ngẫu nhiên, phụ thuộc thời gian và nguồn tải không cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-006
+    title: Kiểm tra đầu ra cuối cùng thay vì chỉ review tệp template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-007
+    title: Quản lý phụ thuộc chart, thành phần cơ sở và dữ liệu từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-008
+    title: Đánh giá quyền và độ tin cậy của phần mở rộng tham gia render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: manifest-generation-009
+    title: Phân định việc sinh manifest với việc áp dụng và đánh giá sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-artifacts
+  title: Artifact triển khai
+  childs:
+  - slug: deployment-artifacts-001
+    title: Phân biệt mã nguồn, image, chart và gói cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-002
+    title: Sử dụng phiên bản hoặc digest xác định để truy vết nội dung artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-003
+    title: Đánh giá rủi ro của tag image có thể thay đổi như latest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-004
+    title: Liên kết artifact với commit nguồn, kết quả kiểm thử và thông tin xuất xứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-005
+    title: Đề xuất cập nhật phiên bản artifact bằng commit hoặc pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-006
+    title: Phân biệt tự động phát hiện phiên bản mới với tự động triển khai phiên bản đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-007
+    title: Thăng cấp cùng artifact đã kiểm tra qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-008
+    title: Quản lý quyền đọc registry, chính sách lưu giữ và artifact phục vụ khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-artifacts-009
+    title: Kiểm tra sự tồn tại và tính sẵn sàng của artifact trước khi đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-workflow
+  title: Quy trình thay đổi
+  childs:
+  - slug: change-workflow-001
+    title: Tạo đề xuất thay đổi với mục tiêu, phạm vi và môi trường bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-002
+    title: Review diff cấu hình và đầu ra render trước khi hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-003
+    title: Áp dụng quy tắc nhánh được bảo vệ và review theo quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-004
+    title: Kiểm tra tự động và yêu cầu phê duyệt phù hợp với rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-005
+    title: Phân biệt merge đề xuất với phê duyệt cho phép tự động đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-006
+    title: Chia thay đổi lớn thành các bước tương thích và dễ kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-007
+    title: Xử lý hai thay đổi đồng thời cùng tác động đến một môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-008
+    title: Liên kết commit, yêu cầu thay đổi và lần đối soát để kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-workflow-009
+    title: Quản lý chỉnh sửa khẩn cấp mà vẫn cập nhật nguồn chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-promotion
+  title: Thăng cấp môi trường
+  childs:
+  - slug: environment-promotion-001
+    title: Thiết kế luồng phát triển → kiểm thử → tiền sản xuất → sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-002
+    title: Chọn thăng cấp bằng cập nhật phiên bản, sao chép có kiểm soát hoặc đề xuất thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-003
+    title: Giữ nguyên danh tính artifact trong khi thay dữ liệu môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-004
+    title: Phân biệt cấu hình môi trường với dữ liệu và trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-005
+    title: Đặt tiêu chí kiểm thử, sức khỏe và phê duyệt trước mỗi lần thăng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-006
+    title: Kiểm soát nhiều phiên bản ứng dụng cùng tồn tại giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-007
+    title: Tránh lấy nhánh ứng dụng làm bằng chứng duy nhất cho phiên bản đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-008
+    title: Truy vết lịch sử thăng cấp và xác định môi trường đang dùng phiên bản nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-promotion-009
+    title: Xử lý bản sửa khẩn cấp và đưa thay đổi trở lại luồng thăng cấp chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-synchronization
+  title: Đồng bộ tài nguyên
+  childs:
+  - slug: resource-synchronization-001
+    title: Phân biệt so sánh trạng thái, xem diff và thực hiện đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-002
+    title: Chọn đồng bộ tự động hoặc có thao tác cho phép của con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-003
+    title: Giới hạn phạm vi tài nguyên và môi trường trong một lần đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-004
+    title: Phân biệt tạo mới, cập nhật, thay thế và xóa tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-005
+    title: Hiểu tác động của cách áp dụng cấu hình đến quyền sở hữu thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-006
+    title: Xử lý tài nguyên chưa tồn tại, không hợp lệ hoặc không còn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-007
+    title: Thiết kế điều kiện tạm dừng, tiếp tục và hết thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-008
+    title: Đánh giá giới hạn tính nguyên tử của một lần đồng bộ nhiều tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-009
+    title: Xác minh kết quả sau đồng bộ và xử lý thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-010
+    title: Kiểm tra cách công cụ cụ thể báo cáo phiên bản nguồn đã xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-synchronization-011
+    title: Phân biệt vòng lặp GitOps với bộ điều khiển phát hành từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-health
+  title: Sức khỏe ứng dụng
+  childs:
+  - slug: application-health-001
+    title: Phân biệt trạng thái đã đồng bộ với trạng thái ứng dụng khỏe mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-002
+    title: Phân biệt tài nguyên được chấp nhận, sẵn sàng và phục vụ đúng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-003
+    title: Đọc điều kiện, sự kiện và trạng thái rollout của workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-004
+    title: Vai trò của kiểm tra khởi động, readiness và liveness
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-005
+    title: Xây dựng kiểm tra sức khỏe phù hợp cho tài nguyên tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-006
+    title: Xác định thời gian chờ và ngưỡng thất bại hợp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-007
+    title: Kết hợp kiểm tra tài nguyên với kiểm thử truy cập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-008
+    title: Phân biệt lỗi cấu hình, lỗi khởi động và lỗi phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-009
+    title: Đặt tiêu chí hoàn tất triển khai dựa trên sức khỏe và hành vi cần xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-010
+    title: Kết hợp GitOps với rolling update, blue-green hoặc canary theo chiến lược đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-health-011
+    title: Sử dụng chỉ số và kết quả kiểm tra để quyết định tiếp tục hoặc dừng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deletion-ownership
+  title: Xóa và quyền sở hữu
+  childs:
+  - slug: deletion-ownership-001
+    title: Xác định tài nguyên nào thực sự thuộc phạm vi quản lý của GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-002
+    title: Hiểu pruning và tác động khi xóa khai báo khỏi nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-003
+    title: Phân biệt tài nguyên bị bỏ quản lý với tài nguyên cần xóa khỏi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-004
+    title: Thiết lập xác nhận hoặc giới hạn cho thao tác xóa có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-005
+    title: Bảo vệ namespace, dữ liệu lưu trữ và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-006
+    title: Hiểu finalizer và quan hệ chủ sở hữu khi tài nguyên không xóa được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-007
+    title: Xử lý đổi tên hoặc chuyển định danh mà công cụ có thể xem là xóa rồi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-008
+    title: Đánh giá tác động khi xóa đối tượng quản lý ứng dụng hoặc bộ cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deletion-ownership-009
+    title: Kiểm tra tài nguyên mồ côi và kết thúc vòng đời quản lý có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-drift
+  title: Sai lệch cấu hình
+  childs:
+  - slug: configuration-drift-001
+    title: Sai lệch cấu hình (configuration drift) và khác biệt với thay đổi đã được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-002
+    title: Phát hiện sửa trực tiếp bằng giao diện, CLI hoặc hệ thống tự động khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-003
+    title: Phân biệt tự động đồng bộ thay đổi nguồn với tự động sửa sai lệch tại đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-004
+    title: Lựa chọn cảnh báo, yêu cầu review hoặc tự động khôi phục theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-005
+    title: Xử lý thuộc tính do autoscaler, operator hoặc admission webhook điều chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-006
+    title: Thiết lập ngoại lệ so sánh có phạm vi và lý do rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-007
+    title: Tránh bỏ qua diff quá rộng làm che khuất sai lệch quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-008
+    title: Nhận diện xung đột quyền sở hữu và vòng lặp ghi đè giữa các bộ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-009
+    title: Đưa sửa chữa khẩn cấp hợp lệ trở lại nguồn khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-010
+    title: Xác minh hội tụ và theo dõi sai lệch tái diễn sau khi khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets
+  title: Bí mật
+  childs:
+  - slug: secrets-001
+    title: Phân biệt bí mật, cấu hình công khai và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-002
+    title: Nhận diện rủi ro lưu bí mật dạng rõ trong Git và lịch sử commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-003
+    title: Phân biệt mã hóa thực sự với biểu diễn Base64 của Kubernetes Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-004
+    title: So sánh lưu bí mật đã mã hóa trong Git với tham chiếu đến kho bí mật ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-005
+    title: Quản lý khóa giải mã và quyền đọc bí mật của bộ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-006
+    title: Giữ bí mật khỏi diff, log, giao diện, artifact và đầu ra render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-007
+    title: Thiết kế cách cấp bí mật theo môi trường và danh tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-008
+    title: Xoay vòng bí mật và phối hợp việc nạp lại cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-009
+    title: Thu hồi bí mật bị lộ trước khi xử lý lịch sử và bản sao cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-010
+    title: Chuẩn bị khôi phục khóa và bí mật mà không mở rộng quyền ngoài nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permissions-trust
+  title: Quyền và độ tin cậy
+  childs:
+  - slug: permissions-trust-001
+    title: Xác định ranh giới tin cậy giữa kho Git, registry, CI và môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-002
+    title: Cấp quyền đọc nguồn và quyền thao tác tài nguyên theo nguyên tắc tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-003
+    title: Tách danh tính bộ điều khiển theo môi trường hoặc phạm vi sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-004
+    title: Giới hạn namespace, loại tài nguyên và hành động được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-005
+    title: Kiểm soát quyền sửa kho cấu hình như một quyền tác động đến hệ thống chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-006
+    title: Review nguồn từ xa, thành phần render và nội dung có thể thực thi mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-007
+    title: Kiểm tra nguồn gốc commit và artifact theo mô hình tin cậy đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-008
+    title: Giới hạn đường mạng và thông tin xác thực mà bộ điều khiển có thể sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-009
+    title: Quản lý tài khoản khẩn cấp, thao tác vượt quy trình và bằng chứng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-trust-010
+    title: Đánh giá chuỗi tác động khi một kho hoặc một bộ điều khiển bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multicluster-teams
+  title: Nhiều cụm và nhóm
+  childs:
+  - slug: multicluster-teams-001
+    title: Chọn phạm vi quản lý theo cụm, môi trường, ứng dụng và đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-002
+    title: Tách cấu hình nền tảng khỏi cấu hình của nhóm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-003
+    title: Thiết kế phân quyền và cô lập giữa các nhóm cùng dùng hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-004
+    title: Quản lý danh sách cụm, định danh đích và ánh xạ cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-005
+    title: Áp dụng cấu hình chung mà vẫn kiểm soát khác biệt từng cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-006
+    title: Chia đợt cập nhật nhiều cụm để giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-007
+    title: Ngăn một lỗi cấu hình lan đồng thời sang toàn bộ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-008
+    title: Quản lý cụm không kết nối được và trạng thái nguồn chưa cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-teams-009
+    title: Theo dõi phiên bản và sức khỏe theo từng nhóm tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-dependencies
+  title: Phụ thuộc triển khai
+  childs:
+  - slug: deployment-dependencies-001
+    title: Xác định quan hệ phụ thuộc giữa cấu hình nền, dịch vụ và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-002
+    title: Phân biệt thứ tự áp dụng tài nguyên với điều kiện phụ thuộc đã sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-003
+    title: Đảm bảo CRD sẵn sàng trước khi quản lý tài nguyên tùy chỉnh tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-004
+    title: Điều phối namespace, quyền, bí mật và cấu hình trước workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-005
+    title: Nhận diện phụ thuộc vòng và cách tách quy trình để phá vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-006
+    title: Đánh giá hook hoặc tác vụ trước và sau đồng bộ theo khả năng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-007
+    title: Thiết kế tác vụ một lần có kiểm tra trạng thái và khả năng chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-008
+    title: Xử lý phụ thuộc ngoài phạm vi bộ điều khiển GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-dependencies-009
+    title: Tránh giả định một commit có thể tạo giao dịch nguyên tử giữa nhiều ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-migrations
+  title: Dữ liệu và migration
+  childs:
+  - slug: data-migrations-001
+    title: Phân biệt trạng thái khai báo với dữ liệu bền vững của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-002
+    title: Đánh giá thay đổi schema cơ sở dữ liệu trong luồng GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-003
+    title: Thiết kế migration tương thích khi phiên bản cũ và mới cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-004
+    title: Xác định thứ tự, danh tính và quyền thực thi migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-005
+    title: Quản lý dấu mốc thực thi và tránh chạy lại thao tác không lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-006
+    title: Đánh giá giới hạn của Git revert đối với schema và dữ liệu đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-007
+    title: Phối hợp sao lưu, phục hồi dữ liệu và khôi phục cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-migrations-008
+    title: Xác minh toàn vẹn dữ liệu cùng với sức khỏe ứng dụng sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-policies
+  title: Kiểm thử và chính sách
+  childs:
+  - slug: testing-policies-001
+    title: Kiểm tra cú pháp và schema của tệp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-002
+    title: Render toàn bộ đầu ra cho từng môi trường cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-003
+    title: Phát hiện định danh trùng, tham chiếu thiếu và phụ thuộc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-004
+    title: Kiểm tra chính sách về quyền, image, tài nguyên và cấu hình bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-005
+    title: Phân biệt kiểm tra trong CI với kiểm soát tại thời điểm tiếp nhận tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-006
+    title: Xem trước diff và đánh giá thao tác tạo, sửa, thay thế hoặc xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-007
+    title: Kiểm thử tích hợp trên môi trường tạm có phạm vi giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-008
+    title: Kiểm thử hội tụ, tự sửa sai lệch và hành vi khi nguồn không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-009
+    title: Kiểm thử triển khai lỗi, thay đổi từng phần và phương án khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-policies-010
+    title: Đặt cổng kiểm tra cho đề xuất thay đổi và ghi nhận ngoại lệ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-auditing
+  title: Quan sát và kiểm toán
+  childs:
+  - slug: observability-auditing-001
+    title: Theo dõi khả năng truy cập nguồn, độ mới của phiên bản và kết quả render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-002
+    title: Theo dõi trạng thái đồng bộ, sức khỏe và thời gian hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-003
+    title: Phân biệt lỗi lấy nguồn, lỗi áp dụng và lỗi vận hành ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-004
+    title: Liên kết log, sự kiện và chỉ số với ứng dụng và môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-005
+    title: Cảnh báo sai lệch kéo dài, đồng bộ thất bại và vòng lặp thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-006
+    title: Truy vết người đề xuất, người phê duyệt, commit và phiên bản đã áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-007
+    title: Chứng minh phiên bản đang chạy từ cấu hình và artifact thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-008
+    title: Quản lý lưu giữ bằng chứng và giới hạn dữ liệu nhạy cảm trong báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-auditing-009
+    title: Đo thời gian đưa thay đổi đến môi trường và thời gian khôi phục theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recovery
+  title: Khôi phục
+  childs:
+  - slug: recovery-001
+    title: Phân biệt quay lại cấu hình, khôi phục dịch vụ và phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-002
+    title: Chọn Git revert, cập nhật về artifact cũ hoặc sửa tiến để phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-003
+    title: Đánh giá lịch sử thay đổi đồng thời trước khi hoàn tác một commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-004
+    title: Ngăn bộ điều khiển áp dụng lại nguồn lỗi trong lúc xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-005
+    title: Kiểm tra artifact cũ, schema và cấu hình còn tương thích trước khi quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-006
+    title: Thực hiện truy cập khẩn cấp và đưa trạng thái cuối trở lại nguồn khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-007
+    title: Phân biệt tái tạo tài nguyên từ Git với phục hồi đầy đủ một môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-008
+    title: 'Sao lưu thông tin ngoài Git: khóa, quyền truy cập, dữ liệu và cấu hình điều khiển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-009
+    title: Thiết kế khởi tạo lại bộ điều khiển khi chính hệ thống GitOps gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-010
+    title: Diễn tập mất cụm, mất nguồn hoặc mất khóa và xác minh khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-governance
+  title: Quản trị vận hành
+  childs:
+  - slug: operations-governance-001
+    title: Phân định trách nhiệm của nhóm nền tảng, ứng dụng và bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-002
+    title: Thiết lập quy ước tạo, tiếp quản và ngừng quản lý ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-003
+    title: Quản lý cửa sổ thay đổi, thời gian đóng băng và ngoại lệ khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-004
+    title: Nâng cấp bộ điều khiển và kiểm tra tương thích tài nguyên quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-005
+    title: Quản lý thông tin xác thực, kết nối nguồn và tích hợp theo vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-006
+    title: Rà soát quyền và nguồn có thể tác động đến môi trường sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-007
+    title: Kiểm soát chi phí đối soát, số lượng tài nguyên và tải lên API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-governance-008
+    title: Tài liệu hóa giới hạn dịch vụ, đường khôi phục và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: So sánh Argo CD và Flux ở mức mô hình GitOps và phạm vi quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: Đánh giá loại nguồn, cách render và khả năng quản lý nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: So sánh cơ chế đồng bộ, phát hiện sai lệch và đánh giá sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Đánh giá mô hình phân quyền, quản lý bí mật và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Kiểm tra khả năng quan sát, kiểm toán và tích hợp quy trình review
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Đánh giá vận hành, nâng cấp, khôi phục và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Thử nghiệm công cụ bằng cùng một bài toán và tiêu chí xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Phân định kiến thức nền tảng với cấu hình chuyên sâu của từng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gitops-adoption
+  title: Áp dụng GitOps
+  childs:
+  - slug: gitops-adoption-001
+    title: Khảo sát quy trình hiện tại và nhận diện trạng thái chưa được khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-002
+    title: Chọn ứng dụng thử nghiệm có rủi ro và phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-003
+    title: Chuẩn hóa artifact, nguồn cấu hình và quyền sở hữu trước khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-004
+    title: Tiếp quản tài nguyên đang chạy mà không vô tình tạo lại hoặc xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-005
+    title: Chạy đối chiếu trước khi cho phép bộ điều khiển thay đổi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-006
+    title: Chuyển giao quyền ghi từ pipeline hoặc thao tác thủ công sang bộ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-007
+    title: Mở rộng theo giai đoạn với tiêu chí dừng và phương án quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-008
+    title: Đánh giá kết quả bằng khả năng truy vết, hội tụ và khôi phục thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-adoption-009
+    title: Nhận diện hệ thống thiếu khả năng khai báo hoặc đối soát cần cách tiếp cận bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không lấy được nguồn: kiểm tra URL, phiên bản tham chiếu, mạng và xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Render thất bại do đầu vào thiếu, phụ thuộc thay đổi hoặc phiên bản công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Không thấy thay đổi mới do theo dõi sai đường dẫn hoặc sai phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Áp dụng bị từ chối do schema, chính sách hoặc quyền trên môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tài nguyên luôn báo khác biệt do giá trị mặc định hoặc bộ điều khiển khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Đã đồng bộ nhưng ứng dụng lỗi do image, cấu hình, tài nguyên hoặc phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Xóa bị treo do finalizer hoặc tài nguyên còn được thành phần khác sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Đồng bộ thành công một phần khiến nhiều ứng dụng ở phiên bản không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Nguồn hợp lệ nhưng artifact không tồn tại hoặc không có quyền tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Thao tác sửa trực tiếp bị hoàn tác trong quá trình xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Thu thập bằng chứng theo vòng lặp đối soát mà không làm lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Thiết kế luồng từ commit ứng dụng đến artifact và kho triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Tổ chức cấu hình cho hai môi trường với cùng artifact được thăng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Đề xuất thay đổi qua review, kiểm thử và phê duyệt có truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Đối chiếu cấu hình nguồn, đầu ra render và tài nguyên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Quan sát quá trình từ nhận phiên bản mới đến đồng bộ và khỏe mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Tạo sai lệch có kiểm soát rồi so sánh cảnh báo với tự động sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thực hành cập nhật bí mật mà không lưu thông tin rõ trong Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Kiểm tra giới hạn quyền và phạm vi ảnh hưởng bằng thay đổi thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Diễn tập cấu hình lỗi, khôi phục phiên bản và xác minh dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Ngừng quản lý hoặc xóa ứng dụng với biện pháp bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Đánh giá quy trình cuối bằng nguyên tắc GitOps và bằng chứng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: kien-truc-cluster-kubectl
+  title: Kiến trúc Cluster & kubectl
+  purpose: Hiểu các thành phần điều phối và cách quản lý tài nguyên trong một Kubernetes cluster.
+  objectives:
+  - Phân biệt control plane, worker node và kubelet
+  - Thiết lập kubeconfig và kiểm tra cluster bằng kubectl
+  - Giải thích declarative desired state và reconciliation
+- id: pod-manifest-yaml
+  title: Pod & Manifest YAML
+  purpose: Khai báo ứng dụng chạy trong Pod và hiểu vòng đời của đơn vị triển khai nhỏ nhất.
+  objectives:
+  - Viết manifest Pod với metadata và container image
+  - Thực hành kubectl apply, get, describe và logs
+  - Giải thích label, namespace và trạng thái Pod
+- id: deployment-rollout
+  title: Deployment & Rollout
+  purpose: Quản lý ứng dụng không trạng thái với số bản sao, cập nhật và khôi phục phiên bản.
+  objectives:
+  - Tạo Deployment và thay đổi số replica
+  - Theo dõi rolling update và rollout status
+  - Thực hiện rollback khi phiên bản mới gặp lỗi
+- id: service-networking
+  title: Service & Networking
+  purpose: Cung cấp endpoint ổn định để các Pod giao tiếp hoặc nhận lưu lượng từ bên ngoài.
+  objectives:
+  - Tạo Service và khớp selector với Pod labels
+  - Phân biệt ClusterIP, NodePort và LoadBalancer
+  - Giải thích DNS nội bộ và vai trò của Ingress
+- id: configmap-secret
+  title: ConfigMap & Secret
+  purpose: Tách dữ liệu cấu hình khỏi image và bảo vệ thông tin nhạy cảm khi triển khai.
+  objectives:
+  - Đưa giá trị cấu hình vào ConfigMap
+  - Truyền cấu hình qua biến môi trường hoặc volume
+  - Dùng Secret có kiểm soát và không coi base64 là mã hóa
+- id: storage-statefulset
+  title: Storage & StatefulSet
+  purpose: Tổ chức dữ liệu bền vững cho ứng dụng có trạng thái và hiểu vòng đời lưu trữ.
+  objectives:
+  - Phân biệt PersistentVolume và PersistentVolumeClaim
+  - Gắn PVC vào workload và kiểm tra dữ liệu sau restart
+  - Nhận diện khi nên sử dụng StatefulSet
+- id: health-tai-nguyen
+  title: Health & Tài nguyên
+  purpose: Duy trì dịch vụ ổn định nhờ kiểm tra sức khỏe và phân bổ tài nguyên hợp lý.
+  objectives:
+  - Cấu hình readiness, liveness và startup probes
+  - Khai báo requests/limits cho CPU và memory
+  - Giải thích scale thủ công và Horizontal Pod Autoscaler
+- id: bao-mat-van-hanh
+  title: Bảo mật & Vận hành
+  purpose: Giới hạn quyền và chẩn đoán sự cố để vận hành ứng dụng an toàn trên cluster.
+  objectives:
+  - Thiết lập ServiceAccount và RBAC tối thiểu
+  - Đọc events, logs và trạng thái rollout khi gặp lỗi
+  - Kiểm tra image, network access và kế hoạch khôi phục

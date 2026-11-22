@@ -1,0 +1,3 @@
+menuLevel1: Cấu trúc image, layers và filesystem của container
+menuLevel2: Đọc metadata bằng docker image inspect và lịch sử bằng docker history
+status: ""

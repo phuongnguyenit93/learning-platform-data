@@ -1,0 +1,342 @@
+menu:
+- level1: Mô hình Hash MAC Signature
+  level2:
+  - Hash tạo message digest từ dữ liệu đầu vào
+  - MAC dùng khóa bí mật chung để xác thực thông điệp
+  - Chữ ký số dùng cặp khóa để xác thực người ký
+  - Mỗi cơ chế cung cấp thuộc tính bảo mật khác nhau
+  - Không dùng hash, MAC và signature thay thế lẫn nhau
+- level1: Mục tiêu bảo vệ
+  level2:
+  - Phát hiện dữ liệu bị thay đổi bằng message digest
+  - Xác thực nguồn gửi bằng MAC hoặc chữ ký số
+  - Bảo vệ tính toàn vẹn trong lưu trữ và truyền tải
+  - Chống giả mạo và hỗ trợ truy vết trách nhiệm
+  - Phân biệt integrity, authenticity và non-repudiation
+  - Xác định mục tiêu trước khi chọn primitive
+- level1: Mô hình đe dọa
+  level2:
+  - Kẻ tấn công sửa payload nhưng không có khóa
+  - Kẻ tấn công thay digest hoặc MAC đi kèm dữ liệu
+  - Kẻ tấn công phát lại thông điệp hợp lệ
+  - Kẻ tấn công đo thời gian so sánh hoặc lỗi xác minh
+  - Kẻ tấn công tìm va chạm hoặc dự đoán đầu vào
+  - Rủi ro lộ khóa dùng chung và khóa riêng
+  - Giới hạn mà hash, MAC hoặc signature không giải quyết
+- level1: Hash cơ bản
+  level2:
+  - Hàm một chiều và ánh xạ đầu vào thành digest cố định
+  - Tính xác định của cùng một đầu vào
+  - Avalanche effect khi thay đổi một bit dữ liệu
+  - Không thể khôi phục dữ liệu từ digest theo cách thực tế
+  - Digest không chứa khóa bí mật
+  - Hash không phải là mã hóa có thể giải mã
+- level1: Tính chất hash
+  level2:
+  - Preimage resistance và second-preimage resistance
+  - Collision resistance giữa hai đầu vào khác nhau
+  - Độ dài digest và mức an toàn tương ứng
+  - Ảnh hưởng của birthday bound đến va chạm
+  - Tính kháng mở rộng và lựa chọn cấu trúc hàm
+  - Tác động của đầu vào có thể do người dùng kiểm soát
+- level1: Thuật toán hash
+  level2:
+  - SHA-256, SHA-384 và SHA-512 trong SHA-2
+  - SHA-3 và họ hàm dựa trên sponge
+  - SHA-512/256 và lựa chọn digest phù hợp
+  - BLAKE2 hoặc BLAKE3 trong hệ sinh thái hỗ trợ
+  - SHA-1 và MD5 không phù hợp cho mục tiêu chống va chạm
+  - Kiểm tra thuật toán được thư viện và chính sách phê duyệt
+- level1: Va chạm và tấn công
+  level2:
+  - Collision attack và khác biệt với preimage attack
+  - Chosen-prefix collision trong định dạng có cấu trúc
+  - Length-extension attack trên một số cấu trúc Merkle-Damgård
+  - Không xây MAC bằng cách nối khóa và message tùy tiện
+  - Ảnh hưởng của hash yếu đến chữ ký và chứng thư
+  - Kế hoạch chuyển đổi khi phát hiện thuật toán suy yếu
+- level1: Chuẩn hóa đầu vào
+  level2:
+  - Canonicalization trước khi tính digest hoặc MAC
+  - Khác biệt giữa Unicode, encoding và byte representation
+  - JSON field order, whitespace và số thập phân
+  - Newline, path separator và chuẩn hóa URL
+  - Chống ký một dạng dữ liệu nhưng xử lý dạng khác
+  - Test các biểu diễn tương đương và không tương đương
+- level1: Biểu diễn digest
+  level2:
+  - Raw bytes, hexadecimal và Base64 khác nhau thế nào
+  - Base64url cho token và dữ liệu trong URL
+  - Độ dài, chữ hoa chữ thường và padding
+  - So sánh digest sau khi decode đúng định dạng
+  - Không dùng chuỗi hiển thị làm nguồn entropy
+  - Đặt version và algorithm identifier trong định dạng
+- level1: Hash mật khẩu
+  level2:
+  - Vì sao password hashing khác hash thông thường
+  - Salt riêng cho từng mật khẩu
+  - Work factor và thuật toán chuyên dụng
+  - Không dùng SHA-256 đơn lẻ để lưu mật khẩu
+  - Pepper và nơi bảo vệ pepper
+  - Liên kết với module password hashing nhưng không trộn mục tiêu
+  - Xử lý nâng cấp cost khi người dùng đăng nhập
+- level1: MAC là gì
+  level2:
+  - Message Authentication Code tạo tag từ khóa và message
+  - Bên nhận cần cùng khóa bí mật để xác minh
+  - MAC bảo vệ toàn vẹn và xác thực nguồn trong phạm vi khóa
+  - MAC không tạo bằng chứng công khai cho bên thứ ba
+  - Không thể phủ nhận vai trò của quản lý khóa dùng chung
+  - Phân biệt MAC với hash không khóa
+- level1: HMAC
+  level2:
+  - Cấu trúc HMAC với hash, inner pad và outer pad
+  - Kích thước khóa và yêu cầu độ mạnh phù hợp
+  - HMAC-SHA-256 và lựa chọn hàm hash
+  - Xử lý khóa dài, khóa ngắn và block size
+  - Định dạng tag đầy đủ hay tag bị cắt ngắn
+  - Không tự biến HMAC thành cơ chế mã hóa
+  - Đọc tiêu chuẩn và vector kiểm thử chuẩn
+- level1: CMAC và KMAC
+  level2:
+  - CMAC dựa trên block cipher và trường hợp sử dụng
+  - KMAC dựa trên SHA-3 và cơ chế domain separation
+  - Khi nào chọn HMAC, CMAC hoặc KMAC
+  - Độ dài tag và chính sách cắt ngắn
+  - Tương thích provider và phần cứng mật mã
+  - Không trộn tham số giữa các họ MAC
+- level1: Quản lý khóa MAC
+  level2:
+  - Sinh khóa MAC bằng nguồn ngẫu nhiên mật mã
+  - Tách khóa MAC theo mục đích và dịch vụ
+  - Phân phối khóa dùng chung an toàn
+  - Xoay vòng, phiên bản và thời hạn khóa
+  - Thu hồi khi nghi ngờ lộ khóa
+  - Không dùng khóa MAC làm khóa mã hóa hoặc ký
+  - Kiểm kê bên giữ và bên được phép xác minh
+- level1: Xác minh MAC
+  level2:
+  - Tính lại tag trên đúng byte sequence
+  - So sánh constant-time để giảm timing leak
+  - Từ chối tag sai trước khi xử lý business logic
+  - Kiểm tra độ dài tag trước khi so sánh
+  - Không phân biệt chi tiết lỗi cho attacker
+  - Giới hạn số lần thử và ghi nhận sự kiện thất bại
+  - Xác minh key version và context cùng tag
+- level1: Chữ ký số
+  level2:
+  - Chữ ký tạo bằng private key và xác minh bằng public key
+  - Xác thực người ký qua liên kết danh tính và khóa công khai
+  - Phát hiện sửa đổi sau khi ký
+  - Hỗ trợ chứng minh nguồn gốc trong phạm vi tin cậy
+  - Không dùng chữ ký để giữ bí mật nội dung
+  - Khác biệt giữa chữ ký số và MAC
+  - Quản lý private key nghiêm ngặt hơn public key
+- level1: Quy trình ký
+  level2:
+  - Chuẩn hóa message trước khi ký
+  - Tính hash hoặc message representative theo thuật toán
+  - Ký trong HSM, KMS hoặc provider được kiểm soát
+  - Đóng gói chữ ký cùng key ID và algorithm
+  - Phân phối public key hoặc certificate cho bên xác minh
+  - Xác minh trước khi tin vào nội dung hoặc hành động
+  - Ghi lại phiên bản policy và thời điểm ký
+- level1: Thuật toán chữ ký
+  level2:
+  - RSA-PSS và yêu cầu padding phù hợp
+  - ECDSA và rủi ro nonce ký bị lặp hoặc yếu
+  - Ed25519 và EdDSA trong hệ sinh thái hỗ trợ
+  - DSA và các thuật toán legacy cần tránh
+  - Lựa chọn curve, key size và provider
+  - Khả năng tương thích giữa ngôn ngữ và thư viện
+  - Kế hoạch thay thuật toán khi chính sách thay đổi
+- level1: Định dạng chữ ký
+  level2:
+  - Chữ ký attached và detached
+  - DER, IEEE P1363 và khác biệt encoding ECDSA
+  - ASN.1, Base64 và binary envelope
+  - Đưa algorithm identifier vào signed structure
+  - Phân biệt chữ ký rỗng, thiếu và sai định dạng
+  - Chống ambiguity khi parse dữ liệu đã ký
+  - Test round-trip giữa các implementation
+- level1: Khóa công khai và PKI
+  level2:
+  - Public key pinning và giới hạn vận hành
+  - Certificate, chain và trust anchor
+  - Key ID, fingerprint và ánh xạ danh tính
+  - Rotation public key và overlap thời gian
+  - Revocation, expiry và kiểm tra trạng thái chứng thư
+  - Ranh giới giữa primitive chữ ký và PKI
+  - Không tin public key chỉ vì key được gửi kèm message
+- level1: Context và domain separation
+  level2:
+  - Gắn mục đích vào dữ liệu được hash hoặc ký
+  - Phân biệt môi trường, tenant và loại message
+  - Prefix domain để tránh dùng tag ở ngữ cảnh khác
+  - Không cho một chữ ký xác nhận nhiều semantic khác nhau
+  - Ràng buộc method, path, audience và phiên bản
+  - Kiểm thử cross-protocol và cross-tenant confusion
+- level1: Chống replay
+  level2:
+  - Nonce, timestamp và sequence number
+  - Request ID và cơ chế phát hiện đã dùng
+  - Window thời gian và sai lệch clock
+  - Idempotency khi message được gửi lại
+  - Lưu trạng thái replay theo tenant và key version
+  - Không nhầm tính mới của message với tính toàn vẹn
+  - Chữ ký hợp lệ vẫn có thể bị phát lại
+- level1: Webhook và API signing
+  level2:
+  - Thiết kế canonical request cho webhook
+  - Ký method, path, body và timestamp
+  - HMAC secret hoặc chữ ký bất đối xứng cho bên nhận
+  - Header, body encoding và canonicalization
+  - Xác minh trước khi enqueue hoặc thực thi side effect
+  - Quản lý secret theo từng đối tác
+  - Rotation không làm mất khả năng nhận message hợp lệ
+- level1: Token và JWS
+  level2:
+  - JWS và chữ ký trên protected header cùng payload
+  - Algorithm confusion và kiểm tra allowlist
+  - Không tin alg do token tự khai báo
+  - Key ID và resolver public key
+  - Detached payload và giới hạn khi xử lý
+  - Audience, issuer, expiry và chống replay
+  - Không coi chữ ký hợp lệ là đủ nếu claims sai
+- level1: Manifest và tính toàn vẹn file
+  level2:
+  - Manifest hash cho tập file hoặc artifact
+  - Merkle tree khi cần xác minh từng phần
+  - Ký manifest thay vì chỉ lưu hash cạnh file
+  - Bảo vệ manifest khỏi bị thay cùng dữ liệu
+  - Kiểm tra thứ tự, path và metadata trong manifest
+  - Xác minh artifact trước khi cài đặt hoặc chạy
+  - Xử lý file lớn bằng hash streaming
+- level1: Chữ ký trong phân phối
+  level2:
+  - Ký package, container image và release artifact
+  - Xác minh provenance và nguồn phát hành
+  - Tách khóa build khỏi khóa runtime
+  - Rotation signer mà vẫn xác minh release cũ
+  - Timestamp và bằng chứng tại thời điểm ký
+  - Chặn artifact nếu chữ ký, issuer hoặc policy sai
+  - Audit người và pipeline đã ký
+- level1: Độ an toàn khi so sánh
+  level2:
+  - Constant-time comparison cho digest và MAC
+  - Không dùng equals thông thường cho secret tag
+  - Tránh timing leak qua độ dài hoặc nhánh lỗi
+  - Không trả lỗi khác nhau theo từng byte sai
+  - Giới hạn quan sát qua log và HTTP response
+  - Benchmark và test trên môi trường triển khai thật
+- level1: Streaming và hiệu năng
+  level2:
+  - Hash streaming cho file và payload lớn
+  - Tái sử dụng state hợp lệ trong cùng một phép tính
+  - Giới hạn bộ nhớ khi nhận message lớn
+  - Chunking và thứ tự chunk trong MAC hoặc signature
+  - Tính toán song song mà không làm sai ngữ nghĩa
+  - Đo throughput, latency và chi phí provider
+  - Không tối ưu bằng cách bỏ xác minh
+- level1: Java JCA/JCE
+  level2:
+  - MessageDigest cho hash và xử lý byte array
+  - Mac cho HMAC, CMAC hoặc provider tương ứng
+  - Signature cho ký và xác minh bất đối xứng
+  - SecureRandom cho nonce và tham số ngẫu nhiên
+  - Provider, algorithm name và khác biệt phiên bản
+  - KeyStore, PrivateKey, PublicKey và SecretKey
+  - Không tự cài đặt primitive mật mã trong Java
+  - Đối chiếu API với vector kiểm thử chuẩn
+- level1: Thiết kế API
+  level2:
+  - API rõ ràng giữa hash, MAC và signature
+  - Định nghĩa input là bytes hay text đã chuẩn hóa
+  - Trả về kết quả xác minh dạng boolean an toàn
+  - Không để caller bỏ qua kiểm tra lỗi
+  - Version hóa format và algorithm policy
+  - Chặn thuật toán ngoài allowlist
+  - Thiết kế để thay provider hoặc KMS
+- level1: Kiểm thử hash
+  level2:
+  - Known-answer test với vector chính thức
+  - Kiểm tra input rỗng, một byte và payload lớn
+  - Kiểm tra avalanche khi thay đổi dữ liệu
+  - Test encoding, newline và canonicalization
+  - Test phát hiện thay đổi một byte
+  - Đối chiếu nhiều implementation độc lập
+  - Test migration từ thuật toán cũ
+- level1: Kiểm thử MAC
+  level2:
+  - Known-answer test cho HMAC và các biến thể
+  - Test sai message, sai key và sai tag
+  - Test tag bị cắt ngắn hoặc dư byte
+  - Test constant-time verification ở mức phù hợp
+  - Test key rotation và key version
+  - Test replay, context sai và tenant sai
+  - Test lỗi provider mà không fail open
+- level1: Kiểm thử chữ ký
+  level2:
+  - Known-answer test cho từng algorithm và encoding
+  - Test sửa payload, header, key và signature
+  - Test private key sai hoặc public key không tương ứng
+  - Test signature malleability và canonical form
+  - Test expiry, revocation và trust chain
+  - Test cross-language interoperability
+  - Test algorithm confusion và key resolver
+- level1: Giám sát và kiểm toán
+  level2:
+  - Ghi sự kiện ký, xác minh, thất bại và thay khóa
+  - Ghi key ID, algorithm, resource và thời điểm
+  - Không ghi private key, secret hoặc payload nhạy cảm
+  - Phát hiện thất bại xác minh tăng bất thường
+  - Theo dõi signer, verifier và consumer theo tenant
+  - Bảo vệ audit log khỏi sửa đổi
+  - Lưu bằng chứng đủ cho điều tra và truy vết
+- level1: Xoay vòng và thu hồi
+  level2:
+  - Xoay khóa MAC dùng chung theo từng consumer
+  - Xoay private key và phân phối public key mới
+  - Overlap cũ-mới trong thời gian chuyển đổi
+  - Đưa key version vào envelope hoặc header
+  - Thu hồi khi khóa bị lộ hoặc owner rời hệ thống
+  - Xử lý chữ ký cũ, artifact cũ và dữ liệu lưu trữ
+  - Không hủy khóa trước khi hoàn tất yêu cầu xác minh
+- level1: Sự cố mật mã
+  level2:
+  - Dấu hiệu hash collision hoặc thư viện bị lỗi
+  - Dấu hiệu MAC secret hoặc private key bị lộ
+  - Containment và chặn message mới
+  - Đánh giá artifact, token và giao dịch đã xác minh
+  - Thay khóa, ký lại và phát hành metadata mới
+  - Bảo toàn log và bằng chứng xác minh
+  - Cập nhật policy, dependency và runbook sau sự cố
+- level1: Anti-pattern
+  level2:
+  - Dùng hash không khóa để xác thực request
+  - Dùng MD5 hoặc SHA-1 cho mục tiêu chống giả mạo
+  - Tự nối secret với message thay vì dùng HMAC
+  - So sánh MAC bằng equals thông thường
+  - Dùng cùng một khóa cho MAC, mã hóa và ký
+  - Ký dữ liệu chưa canonicalize hoặc parse không nhất quán
+  - Tin vào algorithm do token hoặc header tự khai báo
+  - Bỏ qua timestamp, audience và chống replay
+  - Log secret, private key hoặc dữ liệu cần xác minh
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Luồng hash cho integrity của artifact
+  - Luồng HMAC cho service-to-service message
+  - Luồng signature cho bên gửi và bên nhận khác tổ chức
+  - Kho khóa, resolver và policy allowlist
+  - Xoay vòng, thu hồi và tương thích phiên bản
+  - Điểm kiểm tra audit, alert và incident response
+  - Ranh giới giữa primitive, protocol và PKI
+- level1: Checklist triển khai
+  level2:
+  - Checklist chọn primitive theo mục tiêu bảo vệ
+  - Checklist canonicalization, encoding và format
+  - Checklist key generation, storage và rotation
+  - Checklist verification, timing và replay protection
+  - Checklist interoperability, test vector và migration
+  - Checklist log, monitoring, audit và incident
+  - Checklist loại bỏ thuật toán và code legacy

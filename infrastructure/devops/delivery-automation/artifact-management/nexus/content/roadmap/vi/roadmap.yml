@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-nexus
+  title: Tổng quan Nexus
+  purpose: Hiểu vai trò Nexus Repository trong lưu trữ và phân phối artifact cho build và triển khai.
+  objectives:
+  - Phân biệt source repository với artifact repository.
+  - Mô tả luồng build → publish → consume artifact.
+- id: hosted-proxy-group
+  title: Hosted / Proxy / Group
+  purpose: Chọn đúng loại repository theo nguồn và cách sử dụng gói phần mềm.
+  objectives:
+  - Phân biệt hosted, proxy và group repository.
+  - Giải thích cache từ upstream và endpoint dùng chung.
+- id: repository-blob-store
+  title: Repository & Blob Store
+  purpose: Nắm các cấu hình cốt lõi để tạo và quản lý nơi lưu artifact.
+  objectives:
+  - Tạo repository theo format và chọn blob store.
+  - Phân biệt repository metadata với dữ liệu binary.
+- id: maven-artifacts
+  title: Maven Artifacts
+  purpose: Sử dụng Nexus để lưu và tải gói Maven trong dự án Java.
+  objectives:
+  - Phân biệt releases và snapshots theo version policy.
+  - Cấu hình Maven để tải dependency và publish artifact.
+- id: docker-registry
+  title: Docker Registry
+  purpose: Hiểu cách Nexus cung cấp hosted hoặc proxy registry cho container image.
+  objectives:
+  - Cấu hình Docker repository và endpoint phù hợp.
+  - Thực hiện push và pull image bằng Docker client.
+- id: users-permissions
+  title: Users & Permissions
+  purpose: Kiểm soát quyền đọc, ghi và quản trị artifact theo vai trò.
+  objectives:
+  - Phân biệt user, role và repository privileges.
+  - Phân quyền CI chỉ đủ để publish vào đúng repository.
+- id: tich-hop-ci-cd
+  title: Tích hợp CI/CD
+  purpose: Tự động xuất bản artifact có phiên bản và tái sử dụng ở các bước delivery.
+  objectives:
+  - Mô tả pipeline build → test → publish lên Nexus.
+  - Kiểm tra khả năng tải đúng phiên bản từ repository.
+- id: cleanup-recovery
+  title: Cleanup & Recovery
+  purpose: Duy trì dung lượng và khả năng phục hồi dịch vụ artifact lâu dài.
+  objectives:
+  - Giải thích retention và cleanup policy cho artifact cũ.
+  - 'Nêu các thành phần cần backup: database và blob stores.'

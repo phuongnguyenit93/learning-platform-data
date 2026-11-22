@@ -1,0 +1,3130 @@
+menu:
+- slug: grafana-overview
+  title: Tổng quan Grafana
+  childs:
+  - slug: grafana-overview-001
+    title: Grafana là gì và giải quyết bài toán trực quan hóa dữ liệu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-002
+    title: Vai trò của dashboard trong quan sát và điều tra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-003
+    title: Phân biệt Grafana với nơi thu thập và lưu trữ metric, log, trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-004
+    title: Mối liên hệ giữa nguồn dữ liệu, truy vấn, panel và dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-005
+    title: Luồng dữ liệu từ backend đến biểu đồ người dùng nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-006
+    title: Phân biệt Grafana OSS, Enterprise và Grafana Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-007
+    title: Xác định tính năng theo phiên bản, ấn bản và plugin đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-overview-008
+    title: Kiến thức đầu vào và lộ trình từ panel đầu tiên đến dashboard hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboard-design-thinking
+  title: Tư duy dashboard
+  childs:
+  - slug: dashboard-design-thinking-001
+    title: Xác định người xem, câu hỏi và quyết định cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-002
+    title: Phân biệt dashboard tổng quan, chẩn đoán và phân tích chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-003
+    title: Tổ chức luồng xem từ sức khỏe dịch vụ đến nguyên nhân khả dĩ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-004
+    title: Chọn tín hiệu theo lưu lượng, lỗi, độ trễ và mức bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-005
+    title: Chuyển câu hỏi vận hành thành truy vấn và cách trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-006
+    title: Chọn biểu đồ theo ý nghĩa dữ liệu thay vì hiệu ứng thị giác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-007
+    title: Phân biệt triệu chứng, tương quan và bằng chứng về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-008
+    title: Xác định nguồn, đơn vị và giới hạn diễn giải cho từng chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-design-thinking-009
+    title: Đặt tiêu chí hoàn thành trước khi xây dựng dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Chuẩn bị Grafana cùng dữ liệu mẫu có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-002
+    title: Chọn chạy cục bộ bằng container và cố định phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-003
+    title: Tổ chức cấu hình, cổng truy cập và vùng dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-004
+    title: Làm quen chế độ xem, chế độ sửa và trình biên tập panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-005
+    title: Tạo nguồn dữ liệu thử và kiểm tra truy vấn đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-006
+    title: Tạo, lưu và mở lại dashboard tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-007
+    title: Phân biệt dữ liệu mẫu với dữ liệu từ hệ thống đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-008
+    title: Kiểm tra trạng thái dashboard sau khi khởi động lại Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-sources
+  title: Nguồn dữ liệu
+  childs:
+  - slug: data-sources-001
+    title: Nguồn dữ liệu là kết nối đến backend và có định danh như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-002
+    title: Kết nối Prometheus cho metric, Loki cho log và Tempo cho trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-003
+    title: Kết nối SQL hoặc dịch vụ đám mây khi cần dữ liệu bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-004
+    title: Cấu hình địa chỉ, xác thực và TLS theo môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-005
+    title: Phân biệt kết nối từ Grafana server với truy cập từ trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-006
+    title: Chọn nguồn mặc định và quản lý UID ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-007
+    title: Dùng nguồn Mixed khi một panel cần nhiều backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-008
+    title: Dùng nguồn Dashboard để tái sử dụng kết quả truy vấn khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-009
+    title: Nhận diện dữ liệu thử, dữ liệu dựng sẵn và nguồn phát trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-010
+    title: Kiểm tra hỗ trợ plugin, phiên bản và tính năng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-sources-011
+    title: Xác minh kết nối thành công và quyền đọc tập dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-modeling
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-modeling-001
+    title: Khung dữ liệu (data frame) là cầu nối giữa truy vấn và trực quan hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-002
+    title: Trường dữ liệu, kiểu giá trị, nhãn và cấu hình hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-003
+    title: Phân biệt bảng dữ liệu với chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-004
+    title: Định dạng chuỗi thời gian dạng rộng và dạng dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-005
+    title: Vai trò của trường thời gian và thứ tự dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-006
+    title: Phân biệt một frame, nhiều frame và nhiều chuỗi trong cùng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-007
+    title: Giá trị null, dữ liệu thiếu và giá trị bằng 0
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-008
+    title: Đơn vị dữ liệu gốc và đơn vị hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-009
+    title: Đọc dữ liệu trả về trước khi chọn loại panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-010
+    title: Nhận diện kiểu dữ liệu không phù hợp với biểu đồ đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: panel-queries
+  title: Truy vấn panel
+  childs:
+  - slug: panel-queries-001
+    title: Chọn trình dựng truy vấn hoặc chế độ viết mã theo nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-002
+    title: Tổ chức nhiều truy vấn với định danh tham chiếu A, B và C
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-003
+    title: Phân biệt truy vấn tức thời với truy vấn theo khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-004
+    title: Lựa chọn đầu ra dạng bảng hoặc chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-005
+    title: Đặt tên truy vấn, chuỗi và nhãn để kết quả dễ nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-006
+    title: Kiểm tra truy vấn sau khi biến dashboard được nội suy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-007
+    title: Phân biệt truy vấn, biểu thức và phép biến đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-008
+    title: Phân biệt ẩn dữ liệu trong biểu đồ với ẩn hoặc vô hiệu hóa truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-009
+    title: Chọn nơi lọc và tổng hợp dữ liệu giữa backend với Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-010
+    title: Dùng Query inspector để kiểm tra yêu cầu và phản hồi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: panel-queries-011
+    title: Nhận diện tính năng lưu truy vấn hoặc ghi truy vấn phụ thuộc ấn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-resolution
+  title: Thời gian và độ phân giải
+  childs:
+  - slug: time-resolution-001
+    title: Chọn khoảng thời gian tương đối hoặc tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-002
+    title: Phân biệt múi giờ trình duyệt, dashboard và dữ liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-003
+    title: Điều chỉnh tự làm mới theo độ mới thực tế của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-004
+    title: Thiết lập khoảng thời gian riêng và dịch thời gian cho panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-005
+    title: Quan hệ giữa độ rộng panel, số điểm tối đa và bước truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-006
+    title: Vai trò của Min interval, Min step và các giới hạn theo nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-007
+    title: Sử dụng $__interval, $__range và biến thời gian đúng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-008
+    title: Dùng $__rate_interval với Prometheus theo khoảng thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-009
+    title: Phân biệt lấy mẫu hiển thị với cửa sổ tính toán trong truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-010
+    title: Ảnh hưởng của dữ liệu đến muộn và mốc now đến biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-resolution-011
+    title: Kiểm tra khoảng trống, dữ liệu thưa và so sánh giữa các khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: explore-drilldown
+  title: Explore và Drilldown
+  childs:
+  - slug: explore-drilldown-001
+    title: Khi nào nên khám phá dữ liệu trước khi tạo dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-002
+    title: Chạy và điều chỉnh truy vấn trong Explore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-003
+    title: Chia màn hình để so sánh nguồn dữ liệu hoặc giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-004
+    title: Sử dụng lịch sử truy vấn và giữ bối cảnh điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-005
+    title: Đọc kết quả, thống kê và lỗi qua trình kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-006
+    title: Chuyển từ truy vấn khám phá sang panel phục vụ theo dõi lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-007
+    title: Làm quen các trải nghiệm Drilldown cho metric, log, trace hoặc profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-008
+    title: Kiểm tra điều kiện phiên bản, plugin và nguồn dữ liệu của từng Drilldown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: explore-drilldown-009
+    title: Chia sẻ truy vấn cùng thời gian và bộ lọc đủ để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-series-charts
+  title: Biểu đồ thời gian
+  childs:
+  - slug: time-series-charts-001
+    title: Khi nào dùng Time series cho dữ liệu biến đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-002
+    title: Chọn đường, vùng hoặc cột theo tính chất chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-003
+    title: Cấu hình trục, đơn vị và khoảng giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-004
+    title: Phân biệt giới hạn trục cứng với giới hạn trục mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-005
+    title: Dùng trục logarithm và nhiều trục khi có lý do rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-006
+    title: Hiển thị điểm, độ dày đường và vùng tô phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-007
+    title: Điều chỉnh nối khoảng trống mà không che dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-008
+    title: Phân biệt xếp chồng giá trị với biểu đồ phần trăm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-009
+    title: Chọn tooltip và chú giải phục vụ so sánh chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-010
+    title: Giữ màu ổn định để nhận diện cùng dịch vụ qua nhiều panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-charts-011
+    title: Đọc đúng tốc độ, tổng tích lũy và số đo tức thời trên biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-thresholds
+  title: Chỉ số và ngưỡng
+  childs:
+  - slug: metrics-thresholds-001
+    title: Dùng Stat để trình bày một giá trị có ý nghĩa rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-002
+    title: 'Chọn phép rút gọn: cuối cùng, cuối hợp lệ, trung bình, nhỏ nhất hoặc lớn nhất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-003
+    title: Phân biệt hiển thị từng giá trị với tổng hợp cả tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-004
+    title: Kết hợp chỉ số lớn với đường xu hướng nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-005
+    title: Dùng Gauge và Bar gauge khi có khoảng giá trị tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-006
+    title: Chọn ngưỡng tuyệt đối hoặc theo phần trăm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-007
+    title: Ánh xạ giá trị thành nhãn trạng thái dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-008
+    title: Biểu diễn không có dữ liệu và giá trị ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-009
+    title: Phân biệt màu ngưỡng hiển thị với quy tắc phát cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-thresholds-010
+    title: Kiểm tra tỷ lệ 0–1 với phần trăm 0–100 để tránh sai đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tables-lists
+  title: Bảng và danh mục
+  childs:
+  - slug: tables-lists-001
+    title: Dùng Table khi cần so sánh nhiều thuộc tính cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-002
+    title: Chọn cột, thứ tự cột, độ rộng và định dạng từng trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-003
+    title: Sắp xếp, lọc và phân trang theo khả năng của bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-004
+    title: Hiển thị liên kết, trạng thái và dữ liệu dài trong ô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-005
+    title: Dùng Bar chart để so sánh các nhóm rời rạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-006
+    title: Chọn cột ngang hoặc dọc theo số nhóm và độ dài tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-007
+    title: Phân biệt nhóm cột với cột xếp chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-008
+    title: Dùng Pie chart khi dữ liệu thực sự biểu diễn các phần của một tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-009
+    title: Giới hạn số nhóm và xử lý phần còn lại có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tables-lists-010
+    title: Kiểm tra thứ tự, mẫu số và đơn vị để tránh so sánh gây hiểu nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributions-status
+  title: Phân bố và trạng thái
+  childs:
+  - slug: distributions-status-001
+    title: Phân biệt phân bố giá trị với xu hướng theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-002
+    title: Dùng Histogram cho tập quan sát và chọn độ rộng khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-003
+    title: Dùng Heatmap để biểu diễn phân bố thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-004
+    title: Phân biệt dữ liệu quan sát thô với dữ liệu histogram đã gom bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-005
+    title: Chọn thang màu, trục và khoảng giá trị để đọc đúng heatmap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-006
+    title: Dùng State timeline cho các khoảng trạng thái liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-007
+    title: Dùng Status history cho trạng thái tại từng thời điểm quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-008
+    title: Ánh xạ mã số hoặc chuỗi thành trạng thái có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-009
+    title: Xử lý trạng thái null, không xác định và khoảng gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributions-status-010
+    title: Liên kết thay đổi trạng thái với mốc triển khai hoặc sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-visualizations
+  title: Trực quan chuyên biệt
+  childs:
+  - slug: specialized-visualizations-001
+    title: Dùng Geomap khi dữ liệu có tọa độ hoặc định danh vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-002
+    title: Chọn lớp bản đồ và cách biểu diễn giá trị theo vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-003
+    title: Dùng Node graph cho tập nút và quan hệ có hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-004
+    title: Chuẩn bị trường định danh, liên kết và chỉ số cho sơ đồ nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-005
+    title: Dùng Canvas để trình bày sơ đồ hệ thống gắn dữ liệu động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-006
+    title: Dùng XY chart khi cần phân tích quan hệ giữa hai đại lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-007
+    title: Nhận diện trường hợp phù hợp với Trend hoặc Candlestick
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-008
+    title: Dùng Text và Dashboard list để tạo ngữ cảnh cùng điều hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-009
+    title: Đánh giá panel mở rộng theo tính năng, phiên bản và chi phí bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-visualizations-010
+    title: Xác minh sơ đồ phản ánh đúng dữ liệu thay vì suy diễn kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: field-customization
+  title: Tùy biến trường
+  childs:
+  - slug: field-customization-001
+    title: Cấu hình đơn vị, số chữ số và tên hiển thị qua Standard options
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-002
+    title: Phân biệt đổi định dạng với thay đổi giá trị dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-003
+    title: Thiết lập min, max và giá trị hiển thị khi thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-004
+    title: Chọn bảng màu và quy tắc gán màu theo chuỗi hoặc giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-005
+    title: Ánh xạ giá trị đơn, khoảng và giá trị đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-006
+    title: Dùng field override theo tên, biểu thức chính quy hoặc kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-007
+    title: Dùng override theo truy vấn hoặc đặc điểm giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-008
+    title: Phối hợp tùy chọn chung với nhiều override mà không gây xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-009
+    title: Giữ đơn vị và cách trình bày nhất quán giữa các panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: field-customization-010
+    title: Kiểm tra override sau khi đổi tên trường hoặc phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboard-variables
+  title: Biến dashboard
+  childs:
+  - slug: dashboard-variables-001
+    title: Biến giúp một dashboard phục vụ nhiều dịch vụ hoặc môi trường như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-002
+    title: Chọn biến Query, Custom, Constant, Text box hoặc Data source
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-003
+    title: Xây dựng chuỗi phụ thuộc giữa môi trường, cụm và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-004
+    title: Điều khiển thời điểm cập nhật và thứ tự biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-005
+    title: Phân biệt tên biến, nhãn hiển thị và giá trị truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-006
+    title: Xử lý nhiều lựa chọn và tùy chọn All
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-007
+    title: Định dạng, escape và nội suy biến theo từng ngôn ngữ truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-008
+    title: Dùng bộ lọc tùy biến theo khả năng của nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-009
+    title: Dùng biến trong tiêu đề, mô tả, liên kết và phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-010
+    title: Truyền biến qua URL và kiểm tra lựa chọn mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-011
+    title: Nhận diện biến trống, vòng phụ thuộc và truy vấn biến quá tốn kém
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-variables-012
+    title: Phân biệt biến điều khiển giao diện với giới hạn quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flexible-layouts
+  title: Bố cục linh hoạt
+  childs:
+  - slug: flexible-layouts-001
+    title: Tổ chức panel theo nhóm câu hỏi và thứ tự điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-002
+    title: Chọn kích thước, khoảng cách và vị trí panel theo mức quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-003
+    title: Phân biệt bố cục tự sắp xếp với lưới tùy chỉnh theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-004
+    title: Tổ chức nội dung bằng hàng hoặc tab khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-005
+    title: Lặp panel hoặc nhóm nội dung theo giá trị biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-006
+    title: Kiểm soát số panel phát sinh khi có nhiều lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-007
+    title: Thiết lập khả năng hiển thị có điều kiện theo tính năng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-008
+    title: Kiểm tra bố cục trên màn hình lớn, nhỏ và chế độ trình chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-009
+    title: Giữ điều khiển thời gian cùng bộ lọc dễ nhận biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flexible-layouts-010
+    title: Tránh nhầm nội dung bị ẩn với dữ liệu không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transformations
+  title: Biến đổi dữ liệu
+  childs:
+  - slug: data-transformations-001
+    title: Phép biến đổi xử lý dữ liệu trả về để phù hợp với cách hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-002
+    title: Phân biệt thay đổi dữ liệu với tùy chọn định dạng trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-003
+    title: Thứ tự áp dụng và quan hệ đầu vào, đầu ra giữa các bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-004
+    title: Lọc theo trường, giá trị hoặc định danh truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-005
+    title: Chọn, sắp xếp, ẩn và đổi tên trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-006
+    title: Chuyển kiểu chuỗi, số và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-007
+    title: Trích xuất trường từ nội dung có cấu trúc khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-008
+    title: Chuyển chuỗi thành hàng hoặc tổ chức lại bảng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-009
+    title: Giới hạn, sắp xếp và gom dữ liệu trước khi hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-010
+    title: Kiểm tra dữ liệu từng bước và tạm vô hiệu hóa phép biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transformations-011
+    title: Dùng biến dashboard trong phép biến đổi có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-joining-calculations
+  title: Ghép và tính toán
+  childs:
+  - slug: data-joining-calculations-001
+    title: Chọn khóa ghép theo thời gian, định danh hoặc nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-002
+    title: Phân biệt ghép trong với ghép ngoài và dữ liệu bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-003
+    title: Trộn nhiều bảng hoặc chuỗi theo cấu trúc dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-004
+    title: Tránh nhân số hàng do khóa ghép không duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-005
+    title: Gom nhóm và tính tổng, trung bình hoặc số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-006
+    title: Rút gọn chuỗi thành giá trị theo mục đích của panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-007
+    title: Tạo trường tính toán từ các trường đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-008
+    title: Phân biệt biểu thức phía server với biến đổi dữ liệu trong panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-009
+    title: Căn chỉnh thời điểm và đơn vị trước khi thực hiện phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-010
+    title: Xử lý mẫu số bằng 0, null và kết quả không hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-joining-calculations-011
+    title: Đối chiếu kết quả sau ghép với dữ liệu nguồn để tránh mất hoặc đếm trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interactive-links
+  title: Liên kết tương tác
+  childs:
+  - slug: interactive-links-001
+    title: Phân biệt dashboard link, panel link và data link
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-002
+    title: Tạo luồng đi từ tổng quan đến dashboard chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-003
+    title: Truyền thời gian và lựa chọn biến sang điểm đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-004
+    title: Dùng nhãn chuỗi, tên trường và giá trị điểm dữ liệu trong liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-005
+    title: Phân biệt giá trị thô với giá trị đã định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-006
+    title: Mã hóa URL và ánh xạ tên biến đúng giữa hai dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-007
+    title: Lọc các panel bằng thao tác chọn dữ liệu theo khả năng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-008
+    title: Đi từ panel đến Explore hoặc công cụ điều tra bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-009
+    title: Phân biệt liên kết điều hướng với action gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-010
+    title: Giới hạn action theo quyền, phạm vi ảnh hưởng và khả năng của panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interactive-links-011
+    title: Kiểm thử liên kết khi chọn nhiều giá trị hoặc không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations-alerts
+  title: Chú thích và cảnh báo
+  childs:
+  - slug: annotations-alerts-001
+    title: Annotation bổ sung ngữ cảnh cho biến động dữ liệu như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-002
+    title: Tạo mốc triển khai, thay đổi cấu hình và thời gian xảy ra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-003
+    title: Phân biệt chú thích điểm với vùng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-004
+    title: Lấy annotation từ nguồn truy vấn và lọc theo nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-005
+    title: Hiển thị annotation trên biểu đồ mà không che dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-006
+    title: Dùng Annotations list để tổng hợp sự kiện cần xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-007
+    title: Dùng Alert list để hiển thị trạng thái cảnh báo liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-008
+    title: Liên kết dashboard và panel với quy tắc cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-009
+    title: Phân biệt màu ngưỡng, trạng thái cảnh báo và thông báo đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-alerts-010
+    title: Xác định ranh giới giữa trực quan hóa với thiết kế hệ thống cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-visualization
+  title: Hiển thị metric
+  childs:
+  - slug: metrics-visualization-001
+    title: Chọn metric theo câu hỏi vận hành và hợp đồng đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-002
+    title: Biểu diễn counter bằng tốc độ hoặc mức tăng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-003
+    title: Giữ đúng nhãn dịch vụ và mức gom khi truy vấn Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-004
+    title: Tính tỷ lệ lỗi từ tử số và mẫu số có cùng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-005
+    title: Phân biệt trung bình, phân vị và giá trị cực đại của độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-006
+    title: Hiển thị histogram cùng cấu trúc bucket tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-007
+    title: Đặt đơn vị, tỷ lệ và cách làm tròn phù hợp với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-008
+    title: Phân biệt thiếu chuỗi, không có lưu lượng và chỉ số bằng 0
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-009
+    title: Biểu diễn SLI, SLO và ngân sách lỗi với cửa sổ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-010
+    title: Đối chiếu panel với truy vấn gốc và số liệu kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-visualization-011
+    title: Dùng recording rule hoặc dữ liệu tổng hợp khi biểu thức được dùng lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logs-visualization
+  title: Hiển thị log
+  childs:
+  - slug: logs-visualization-001
+    title: Chọn nguồn log và truy vấn theo dịch vụ, môi trường cùng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-002
+    title: Phân biệt lọc nhãn nguồn với lọc nội dung hoặc trường log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-003
+    title: Hiển thị thứ tự, mức độ và trường dữ liệu trong Logs panel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-004
+    title: Đọc log có cấu trúc và mở chi tiết từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-005
+    title: Phân biệt số dòng được trả về với tổng số sự kiện thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-006
+    title: Giới hạn số dòng và chọn cách làm mới hoặc theo dõi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-007
+    title: Tạo metric từ log để biểu diễn tần suất hoặc tỷ lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-008
+    title: Hiển thị bảng tổng hợp lỗi mà vẫn giữ đường đến log gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-009
+    title: Liên kết trace ID hoặc mã yêu cầu trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-010
+    title: Xử lý bản ghi trùng, nhiều dòng và dữ liệu đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-visualization-011
+    title: Giữ thông tin nhạy cảm ngoài tiêu đề, trường hiển thị và liên kết chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traces-visualization
+  title: Hiển thị trace
+  childs:
+  - slug: traces-visualization-001
+    title: Chọn nguồn tracing và tra cứu bằng trace ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-002
+    title: Tìm trace bằng thuộc tính và TraceQL khi dùng Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-003
+    title: Đọc dòng thời gian cùng quan hệ cha con của các span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-004
+    title: Phân biệt thời lượng span với thời gian toàn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-005
+    title: Nhận diện span lỗi, lời gọi chậm và khoảng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-006
+    title: Kiểm tra thuộc tính tài nguyên, sự kiện và mã trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-007
+    title: Chọn cách hiển thị trace trong Explore hoặc panel hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-008
+    title: Phân biệt cây span với sơ đồ phụ thuộc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-009
+    title: Dùng TraceQL metrics để trực quan hóa kết quả tổng hợp từ trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traces-visualization-010
+    title: Nhận diện giới hạn do lấy mẫu, thiếu span và dữ liệu chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-correlation
+  title: Liên kết tín hiệu
+  childs:
+  - slug: signal-correlation-001
+    title: Thiết kế hành trình điều tra từ metric đến log, trace và profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-002
+    title: Dùng exemplar để đi từ điểm metric đến trace đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-003
+    title: Đi từ trace đến log theo dịch vụ, định danh và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-004
+    title: Đi từ log có trace ID đến trace tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-005
+    title: Liên kết metric với log để kiểm tra mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-006
+    title: Kết nối Pyroscope và đọc Flame graph theo tài nguyên được đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-007
+    title: Phân biệt Flame graph của profile với dòng thời gian trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-008
+    title: Chuẩn hóa tên dịch vụ, nhãn môi trường và định danh giữa các nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-009
+    title: Phối hợp khoảng thời gian và quyền truy cập khi chuyển tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-010
+    title: Kiểm tra liên kết khi trace bị lấy mẫu hoặc dữ liệu đã hết thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-011
+    title: Đối chiếu khả năng hỗ trợ correlation theo nguồn và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-dashboards
+  title: Dashboard ứng dụng
+  childs:
+  - slug: application-dashboards-001
+    title: Thiết kế trang tổng quan sức khỏe cho một dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-002
+    title: Nhóm chỉ số theo lưu lượng, lỗi và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-003
+    title: Theo dõi tài nguyên theo mức sử dụng, bão hòa và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-004
+    title: Hiển thị metric Spring Boot và Micrometer theo tên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-005
+    title: Tổ chức panel JVM, heap, GC và luồng có ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-006
+    title: Theo dõi cơ sở dữ liệu, nhóm kết nối và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-007
+    title: Hiển thị hàng đợi, tuổi công việc và kết quả tác vụ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-008
+    title: Đặt mốc phát hành cạnh biến động lỗi hoặc độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-009
+    title: Tạo đường điều tra từ dịch vụ đến instance và thao tác cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-010
+    title: Biểu diễn trạng thái thiếu dữ liệu thay vì suy diễn dịch vụ khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dashboards-011
+    title: Kiểm tra dashboard bằng một kịch bản lỗi có kết quả đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interface-design
+  title: Thiết kế giao diện
+  childs:
+  - slug: interface-design-001
+    title: Đặt tên dashboard và tiêu đề panel theo câu hỏi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-002
+    title: Dùng mô tả ngắn để giải thích công thức và giới hạn diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-003
+    title: Tạo thứ bậc thị giác theo mức quan trọng của thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-004
+    title: Giữ đơn vị, quy ước màu và nhãn nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-005
+    title: Chọn màu có độ tương phản và không chỉ dựa vào đỏ hoặc xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-006
+    title: Giới hạn số chuỗi, số nhóm và thông tin trong chú giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-007
+    title: Tránh cắt trục, xếp chồng hoặc nhiều trục làm sai cảm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-008
+    title: Kiểm tra khả năng đọc ở giao diện sáng và tối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-009
+    title: Thiết kế cho màn hình nhỏ, bàn điều hành và chế độ trình chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-010
+    title: Dùng văn bản và hướng dẫn xử lý khi panel không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interface-design-011
+    title: Đánh giá dashboard bằng tác vụ thực tế của người xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboard-reuse
+  title: Tái sử dụng dashboard
+  childs:
+  - slug: dashboard-reuse-001
+    title: Tổ chức dashboard bằng thư mục, nhãn và quy ước đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-002
+    title: Dùng UID ổn định cho liên kết và quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-003
+    title: Phân biệt sao chép dashboard với dùng chung thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-004
+    title: Dùng library panel khi phù hợp và kiểm tra phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-005
+    title: Đánh giá tác động khi thay đổi panel đang được nhiều dashboard dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-006
+    title: Tận dụng biến để giảm các dashboard chỉ khác dịch vụ hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-007
+    title: Import dashboard có sẵn và ánh xạ lại nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-008
+    title: Rà soát dashboard cộng đồng theo metric, phiên bản và nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-009
+    title: Theo dõi lịch sử thay đổi và khôi phục phiên bản khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-reuse-010
+    title: Xác định chủ sở hữu, lịch rà soát và điều kiện ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sharing-access-control
+  title: Chia sẻ và phân quyền
+  childs:
+  - slug: sharing-access-control-001
+    title: Chọn cách chia sẻ nội bộ theo người xem và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-002
+    title: Giữ khoảng thời gian cùng lựa chọn biến trong liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-003
+    title: Phân biệt chia sẻ liên kết, snapshot và xuất cấu hình JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-004
+    title: Nhận diện dữ liệu thực tế còn hiện diện trong snapshot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-005
+    title: Xuất ảnh, PDF hoặc báo cáo theo ấn bản và dịch vụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-006
+    title: Đánh giá nhúng panel và chia sẻ ra ngoài theo mô hình xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-007
+    title: Phân biệt quyền thư mục, dashboard với quyền truy vấn nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-008
+    title: Nhận diện khả năng giới hạn nguồn dữ liệu và RBAC theo ấn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-009
+    title: Vì sao biến hoặc trường bị ẩn không bảo vệ dữ liệu phía backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-010
+    title: Kiểm tra dữ liệu, liên kết và thông tin nhạy cảm trước khi chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-access-control-011
+    title: Xác minh quyền bằng đúng vai trò của người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboards-as-code
+  title: Dashboard bằng mã
+  childs:
+  - slug: dashboards-as-code-001
+    title: Dashboard as code giúp kiểm soát thay đổi và triển khai như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-002
+    title: Đọc cấu hình JSON và các định danh nguồn dữ liệu được tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-003
+    title: Phân biệt mô hình Classic với schema v2 theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-004
+    title: Quản lý nguồn dữ liệu và dashboard qua provisioning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-005
+    title: Phân biệt tài nguyên được quản lý bằng mã với bản sửa trực tiếp trên UI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-006
+    title: Đưa cấu hình vào Git với biến môi trường và ánh xạ UID phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-007
+    title: Đánh giá Git Sync theo tính năng và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-008
+    title: Chọn Terraform, Grafana Operator hoặc Foundation SDK theo cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-009
+    title: Sử dụng API tài nguyên tương thích với phiên bản Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-010
+    title: Rà soát thay đổi truy vấn, biến, bố cục và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-011
+    title: Kiểm tra tính hợp lệ, import và khả năng quay lui trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-as-code-012
+    title: Xác minh dashboard sau nâng cấp Grafana hoặc plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboard-performance
+  title: Hiệu năng dashboard
+  childs:
+  - slug: dashboard-performance-001
+    title: Ước lượng số truy vấn từ panel, biến và nội dung lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-002
+    title: Chọn chu kỳ làm mới phù hợp với nhu cầu cùng độ trễ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-003
+    title: Thu hẹp thời gian, nhãn và số nhóm ngay tại nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-004
+    title: Giảm số điểm, số hàng và kích thước phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-005
+    title: Phân tích chi phí của phép ghép và biến đổi phía trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-006
+    title: Tái sử dụng kết quả khi nhiều panel cần cùng một truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-007
+    title: Kiểm tra hiệu quả của recording rule và dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-008
+    title: Đánh giá query caching theo backend và ấn bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-009
+    title: Phân biệt lỗi backend chậm với trình duyệt dựng biểu đồ chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-010
+    title: Đo trên dashboard có nhiều lựa chọn biến và số chuỗi lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboard-performance-011
+    title: Cân bằng độ chi tiết, tốc độ tải và chi phí truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostics-testing
+  title: Chẩn đoán và kiểm thử
+  childs:
+  - slug: diagnostics-testing-001
+    title: Phân loại lỗi kết nối, xác thực, truy vấn và trực quan hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-002
+    title: Kiểm tra No data do khoảng thời gian, bộ lọc hoặc biến rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-003
+    title: Lần theo dữ liệu từ phản hồi nguồn đến từng bước biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-004
+    title: Kiểm tra thời gian, múi giờ và đơn vị khi số liệu hiển thị sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-005
+    title: Chẩn đoán thiếu chuỗi hoặc nhân số hàng sau phép ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-006
+    title: Kiểm tra phép rút gọn, ngưỡng và ánh xạ giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-007
+    title: Dùng panel inspector để xem dữ liệu, yêu cầu, thống kê và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-008
+    title: Đối chiếu dữ liệu trước và sau định dạng khi xuất CSV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-009
+    title: Kiểm thử các trạng thái bình thường, lỗi, dữ liệu thưa và không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-010
+    title: Kiểm tra bộ lọc, liên kết và bố cục dưới nhiều lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-011
+    title: Kiểm tra quyền xem cùng khả năng chia sẻ bằng vai trò thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostics-testing-012
+    title: Rà soát tác động sau thay đổi schema, plugin hoặc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Tạo dashboard đầu tiên từ dữ liệu mẫu đến panel đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Xây dựng bảng theo dõi lưu lượng, lỗi và độ trễ từ Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Thêm biến môi trường, dịch vụ và instance có quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tạo Stat, Time series, Table và Heatmap cho cùng bài toán vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Ghép metric có đơn vị khác nhau và kiểm chứng từng bước tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Biểu diễn các đợt triển khai cùng trạng thái dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tạo luồng từ dashboard tổng quan đến log và trace của một yêu cầu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Liên kết metric, exemplar và trace để điều tra độ trễ tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Phân tích profile bằng Flame graph khi cần bằng chứng về CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Thiết kế dashboard ứng dụng Spring Boot có dữ liệu thiếu và lỗi mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Đóng gói dashboard bằng mã và triển khai sang môi trường khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Kiểm thử quyền xem, liên kết, hiệu năng và khả năng đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-013
+    title: Đánh giá dashboard hoàn chỉnh theo câu hỏi vận hành ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

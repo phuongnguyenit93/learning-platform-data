@@ -1,0 +1,7 @@
+# DevOps Delivery Automation CI/CD GitLab CI
+
+GitLab CI/CD là nền tảng tự động hóa quy trình tích hợp, kiểm thử và triển khai phần mềm ngay trong GitLab. Thông qua tệp `.gitlab-ci.yml`, người phát triển khai báo các jobs, stages và điều kiện chạy; GitLab Runner nhận và thực thi công việc để tạo ra phản hồi nhanh mỗi khi mã nguồn thay đổi. Hiểu rõ mối quan hệ giữa pipeline, job, runner và môi trường triển khai là nền tảng để xây dựng quy trình giao hàng có thể kiểm chứng.
+
+Module dành cho lập trình viên, DevOps và người đã làm quen với Git, terminal và quy trình build/test. Lộ trình bắt đầu bằng pipeline cơ bản, cấu hình YAML và runner, tiếp đến là `rules`, `workflow`, biến cấu hình và bảo vệ secrets. Sau đó, bạn học cách lưu artifacts, dùng cache cho dependency, tăng tốc bằng `needs`, tái sử dụng cấu hình và quản lý staging/production qua environments. Phần cuối tập trung vào CI Lint, phân tích lỗi job và các kiểm soát cần thiết trước khi phát hành.
+
+Hãy thực hành với một ứng dụng Java mẫu: chạy compile và unit test trên merge request, lưu báo cáo kiểm thử làm artifact, rồi triển khai thử nghiệm tới staging. Chỉ cho phép bước production trên nhánh được bảo vệ và qua xác nhận phù hợp. Kết thúc module, bạn có thể tự thiết kế pipeline GitLab CI/CD đơn giản, đọc log để khắc phục sự cố và phân biệt kết quả build tạm thời với dữ liệu cache.

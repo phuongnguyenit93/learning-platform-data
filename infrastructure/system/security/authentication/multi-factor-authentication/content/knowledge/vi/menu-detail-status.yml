@@ -1,0 +1,1504 @@
+menu:
+- slug: mfa-fundamentals
+  title: Nền tảng xác thực đa yếu tố
+  childs:
+  - slug: mfa-fundamentals-001
+    title: MFA là gì và giải quyết vấn đề nào?
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-002
+    title: Phân biệt định danh, xác thực và phân quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-003
+    title: Phân biệt MFA, 2FA và xác minh hai bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-004
+    title: Yếu tố kiến thức, sở hữu và sinh trắc học
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-005
+    title: MFA, xác thực không mật khẩu và giới hạn bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-006
+    title: Vì sao mật khẩu bị lộ, bị dùng lại và bị dò khiến cần có MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-007
+    title: Phân biệt yếu tố xác thực, phương tiện xác thực và thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-008
+    title: Các thành phần và luồng xác thực từ ứng dụng đến bộ xác minh MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mfa-fundamentals-009
+    title: Quan hệ giữa MFA, IAM, SSO và vòng đời tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: factor-independence-and-assurance
+  title: Tính độc lập và mức bảo đảm xác thực
+  childs:
+  - slug: factor-independence-and-assurance-001
+    title: Tính độc lập của các yếu tố và những lỗi đếm yếu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-002
+    title: Lựa chọn mức bảo đảm xác thực theo mô hình đe dọa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-003
+    title: Mật khẩu cộng PIN không tạo thành hai yếu tố độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-004
+    title: Chứng minh sở hữu thiết bị và nguy cơ sao chép bí mật dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-005
+    title: Phân biệt chạm thiết bị, hiện diện người dùng và xác minh người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-006
+    title: 'Sinh trắc học để kích hoạt phương tiện: ranh giới và dữ liệu nhạy cảm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-007
+    title: Giới hạn thử sinh trắc học, chống giả mạo và phương án thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-008
+    title: Địa chỉ IP, vị trí và mức tin cậy thiết bị là tín hiệu rủi ro, không phải yếu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-009
+    title: Mức bảo đảm xác thực AAL và cách đối chiếu yêu cầu bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-010
+    title: Phương tiện đa yếu tố và việc kết hợp nhiều phương tiện độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-independence-and-assurance-011
+    title: Lựa chọn phương thức theo bảo đảm, tính khả dụng và khả năng tiếp cận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: threat-modeling
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-modeling-001
+    title: Tài sản và bề mặt tấn công trong vòng đời MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-002
+    title: Dò mật khẩu, credential stuffing và vai trò của MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-003
+    title: Lừa đảo, chuyển tiếp xác thực và tấn công xen giữa AiTM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-004
+    title: SIM swap, chuyển số và chiếm đoạt kênh liên lạc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-005
+    title: Mã độc trên thiết bị và việc mất tính độc lập giữa các yếu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-006
+    title: Phát lại, đánh cắp phiên và các đường vòng bỏ qua MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-007
+    title: Tấn công đường đăng ký, thay đổi phương tiện và khôi phục tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-008
+    title: Đánh cắp cookie hoặc token phiên sau khi người dùng hoàn thành MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-modeling-009
+    title: Lạm dụng yêu cầu phê duyệt giả để chiếm quyền khi nạn nhân đang trực tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: one-time-passwords
+  title: Mã dùng một lần
+  childs:
+  - slug: one-time-passwords-001
+    title: Cơ chế OTP và giới hạn của mã dùng một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-002
+    title: 'HOTP: bộ đếm và đồng bộ trạng thái'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-003
+    title: 'TOTP: thời gian, độ lệch đồng hồ và cửa sổ chấp nhận'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-004
+    title: Ứng dụng tạo mã và thiết bị OTP phần cứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-005
+    title: Khởi tạo bí mật OTP và phân phối mã QR an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-006
+    title: Bảo vệ, lưu trữ và thay thế bí mật OTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-007
+    title: Giới hạn số lần thử và ngăn tái sử dụng mã OTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-008
+    title: Phân biệt OTP sinh trên thiết bị với mã được gửi qua kênh khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-009
+    title: HOTP sử dụng HMAC, bộ đếm và thuật toán rút gọn động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-010
+    title: Tiêu thụ OTP một lần bằng thao tác nguyên tử khi có xác minh đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-011
+    title: Đồng bộ lại HOTP, thay đổi thiết bị và xử lý lộ bí mật OTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: one-time-passwords-012
+    title: Giới hạn chống lừa đảo của OTP do người dùng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: communication-channel-authentication
+  title: Xác thực qua kênh liên lạc
+  childs:
+  - slug: communication-channel-authentication-001
+    title: 'OTP qua SMS và cuộc gọi: cách hoạt động và rủi ro'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-002
+    title: Xác minh qua email và điều kiện để xem là yếu tố độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-003
+    title: Phê duyệt qua thông báo đẩy và ràng buộc thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-004
+    title: MFA fatigue, đối chiếu số và ngữ cảnh yêu cầu phê duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-005
+    title: Xác thực ngoài băng và tính độc lập thực tế của các kênh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-006
+    title: Độ trễ, thất lạc thông điệp và phụ thuộc nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-007
+    title: Phân biệt kênh chính, kênh ngoài băng và cách ràng buộc yêu cầu xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-008
+    title: Hiển thị tài khoản, thao tác và thiết bị yêu cầu khi phê duyệt qua push
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-009
+    title: Thời hạn, gửi lại, số lần thử và giới hạn tần suất trên kênh ngoài băng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: communication-channel-authentication-010
+    title: Lựa chọn phương thức dự phòng khi SMS, email hoặc push không khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fido2-passkeys-and-biometrics
+  title: FIDO2, passkey và sinh trắc học
+  childs:
+  - slug: fido2-passkeys-and-biometrics-001
+    title: Xác thực bằng khóa công khai và bằng chứng sở hữu khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-002
+    title: Vai trò của FIDO2, WebAuthn và CTAP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-003
+    title: Challenge, origin và RP ID trong khả năng chống lừa đảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-004
+    title: Khóa bảo mật phần cứng và bộ xác thực nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-005
+    title: Passkey đồng bộ và passkey gắn với thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-006
+    title: Hiện diện người dùng, xác minh người dùng và điều kiện đáp ứng MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-007
+    title: Sinh trắc học, PIN cục bộ, attestation và ranh giới tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-008
+    title: Thẻ thông minh và chứng thư kết hợp PIN trong xác thực đa yếu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-009
+    title: Phân biệt chống phát lại, chống lừa đảo và bảo vệ thiết bị bị đánh cắp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fido2-passkeys-and-biometrics-010
+    title: Vòng đời khóa bảo mật, thu hồi khóa khi mất thiết bị và ranh giới passkey đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: method-selection-and-policy
+  title: Lựa chọn phương thức và chính sách
+  childs:
+  - slug: method-selection-and-policy-001
+    title: So sánh phương thức theo khả năng chống tấn công và chi phí sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-002
+    title: Yêu cầu MFA cho tài khoản đặc quyền và thao tác nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-003
+    title: 'Xác thực thích ứng: tín hiệu rủi ro không đồng nghĩa với yếu tố xác thực'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-004
+    title: Chính sách ngoại lệ, phương thức dự phòng và nguy cơ hạ cấp bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-005
+    title: Ranh giới áp dụng MFA cho người dùng và danh tính máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-006
+    title: Chính sách yêu cầu phương thức chống lừa đảo cho nhóm rủi ro cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-007
+    title: Xác thực tăng cường khi thay đổi thông tin hoặc thực hiện giao dịch nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-008
+    title: Ngoại lệ chính sách có chủ sở hữu, thời hạn và biện pháp bù đắp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-009
+    title: Phương án khi nhà cung cấp MFA không khả dụng mà không mở đường vòng mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: method-selection-and-policy-010
+    title: Phương thức dự phòng và nguy cơ làm hạ mức bảo đảm đã yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: factor-enrollment-and-lifecycle
+  title: Đăng ký và vòng đời yếu tố
+  childs:
+  - slug: factor-enrollment-and-lifecycle-001
+    title: Khởi tạo MFA và xác minh danh tính trước khi đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-002
+    title: Ràng buộc đăng ký yếu tố với tài khoản và phiên hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-003
+    title: Chứng minh quyền kiểm soát yếu tố trước khi kích hoạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-004
+    title: Đăng ký nhiều yếu tố và chuẩn bị phương thức dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-005
+    title: Thêm, thay thế và gỡ bỏ yếu tố với yêu cầu xác thực phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-006
+    title: Quản lý thiết bị, thu hồi yếu tố và xử lý đăng ký không còn sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-007
+    title: Đăng ký thêm phương tiện từ phiên đã đạt mức xác thực phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-008
+    title: Gắn giao dịch đăng ký với tài khoản, phương tiện và mục đích cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-009
+    title: Bảo vệ mã QR, bí mật OTP và thông tin đăng ký khỏi log và hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-010
+    title: Thông báo độc lập khi có phương tiện mới hoặc thay đổi trái phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-011
+    title: Danh mục phương tiện, nhãn nhận diện và lịch sử thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-012
+    title: Chuyển ứng dụng OTP, đổi số điện thoại và thay thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-013
+    title: Luân chuyển bí mật, khóa và thông tin đăng ký khi nghi ngờ lộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-014
+    title: Ngăn dùng lại phương tiện đã thu hồi và kiểm soát phiên đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: factor-enrollment-and-lifecycle-015
+    title: Xác thực lại khi thêm, thay hoặc xóa phương tiện nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: secure-authentication-flows
+  title: Thiết kế luồng xác thực an toàn
+  childs:
+  - slug: secure-authentication-flows-001
+    title: Trạng thái chưa xác thực, xác thực một phần và hoàn tất MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-002
+    title: Ràng buộc thử thách với tài khoản, phiên và mục đích xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-003
+    title: Thời hạn, tính dùng một lần và xử lý thử thách đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-004
+    title: Giới hạn tần suất, khóa tạm thời và chống lạm dụng luồng MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-005
+    title: Điều kiện cấp phiên và token sau khi hoàn tất MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-006
+    title: Phân biệt xác thực đăng nhập và xác nhận nội dung giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-007
+    title: Gắn thử thách với phương tiện, tài khoản, phiên, mục đích và giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-008
+    title: Tiêu thụ thử thách một lần và chống tranh chấp xác minh đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-009
+    title: Gửi lại mã, chuyển phương thức và xử lý nhiều giao dịch song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-010
+    title: Kiểm tra phản hồi push bất đồng bộ để tránh gắn nhầm giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-011
+    title: Phản hồi lỗi an toàn, tránh tiết lộ tài khoản và nguyên nhân nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-012
+    title: Giới hạn thử theo tài khoản, phương tiện và nguồn yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: secure-authentication-flows-013
+    title: Chỉ cấp quyền đầy đủ sau khi xác minh được bằng chứng MFA hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: authentication-sessions-and-federation
+  title: Phiên xác thực và liên kết định danh
+  childs:
+  - slug: authentication-sessions-and-federation-001
+    title: Xác thực tăng cường, thời gian hiệu lực và ghi nhớ thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-002
+    title: SSO, phiên liên kết và yêu cầu xác thực lại giữa các ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-003
+    title: Ghi nhận thời điểm, phương thức và mức bảo đảm xác thực trong phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-004
+    title: Đổi định danh phiên sau khi hoàn thành MFA hoặc nâng mức xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-005
+    title: Giới hạn thời gian xác thực tăng cường và yêu cầu xác thực lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-006
+    title: Phân biệt phiên ứng dụng, phiên IdP và phiên trong hệ thống liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-007
+    title: Diễn giải amr, acr và SAML AuthnContext theo hợp đồng tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-008
+    title: Kiểm tra tính mới của kết quả xác thực do IdP chuyển đến ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-009
+    title: Ngăn API, đăng nhập cũ và đường thay thế bỏ qua yêu cầu MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-010
+    title: 'Ghi nhớ trình duyệt: điều kiện ràng buộc, thời hạn và thu hồi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-sessions-and-federation-011
+    title: Phân biệt đăng xuất, thu hồi phiên và vô hiệu hóa phương tiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-system-integration
+  title: Tích hợp hệ thống định danh
+  childs:
+  - slug: identity-system-integration-001
+    title: Đặt MFA tại nhà cung cấp danh tính hay tại ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-002
+    title: Truyền và kiểm tra ngữ cảnh xác thực qua OIDC và SAML
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-003
+    title: Bảo đảm MFA trên web, ứng dụng di động, API và luồng cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-004
+    title: MFA cho VPN, cổng truy cập và hệ thống dùng RADIUS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-005
+    title: Ranh giới tin cậy và ngăn truy cập trực tiếp để bỏ qua MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-006
+    title: Chọn nơi thực hiện xác thực tăng cường giữa ứng dụng và IdP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-007
+    title: Kiểm tra claim và ánh xạ mức bảo đảm khi hệ thống liên kết trả kết quả MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-system-integration-008
+    title: Tích hợp MFA cho ứng dụng cũ không hỗ trợ giao thức xác thực hiện đại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: account-recovery
+  title: Khôi phục quyền truy cập
+  childs:
+  - slug: account-recovery-001
+    title: 'Mã khôi phục dùng một lần: tạo, lưu trữ và xác minh an toàn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-002
+    title: Khôi phục khi mất điện thoại, khóa bảo mật hoặc toàn bộ yếu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-003
+    title: Đặt lại MFA qua bộ phận hỗ trợ và bằng chứng xác minh danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-004
+    title: Chống thao túng nhân viên hỗ trợ và lạm dụng quy trình khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-005
+    title: Tài khoản truy cập khẩn cấp và kiểm soát việc sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-006
+    title: Thông báo khôi phục, thu hồi yếu tố cũ và vô hiệu hóa phiên liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-007
+    title: Khôi phục là một đường xác thực cần duy trì mức bảo đảm phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-008
+    title: Phương tiện dự phòng độc lập và nguy cơ khôi phục qua kênh đã bị chiếm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-009
+    title: Giới hạn câu hỏi bảo mật, email và SMS khi khôi phục MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-010
+    title: Thời gian chờ, thông báo độc lập và khả năng ngăn thay đổi trái phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: account-recovery-011
+    title: Ghi vết, giới hạn tần suất và chống lạm dụng gây khóa tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: user-experience-and-accessibility
+  title: Trải nghiệm và khả năng tiếp cận
+  childs:
+  - slug: user-experience-and-accessibility-001
+    title: Hướng dẫn đăng ký và giúp người dùng hiểu yêu cầu xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-002
+    title: Thiết kế MFA cho người dùng có nhu cầu trợ năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-003
+    title: Phương án cho người không có điện thoại thông minh hoặc kết nối mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-004
+    title: Thông báo lỗi và hỗ trợ người dùng mà không làm lộ thông tin nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-005
+    title: Cân bằng ma sát sử dụng, quyền riêng tư và mức bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-006
+    title: Hành trình đổi phương thức, hết hạn mã và mất kết nối khi đang xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-007
+    title: Hiển thị ngữ cảnh yêu cầu để người dùng nhận ra phê duyệt giả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-experience-and-accessibility-008
+    title: Quyền riêng tư khi thu thập tín hiệu thiết bị và dữ liệu sinh trắc học
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-incident-response
+  title: Vận hành và ứng phó sự cố
+  childs:
+  - slug: operations-and-incident-response-001
+    title: Chỉ số đăng ký, thành công, thất bại và khôi phục MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-002
+    title: Nhật ký kiểm toán và bảo vệ dữ liệu xác thực trong log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-003
+    title: Phát hiện đăng ký bất thường, yêu cầu dồn dập và thay đổi yếu tố đáng ngờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-004
+    title: Tính sẵn sàng, dự phòng và xử lý gián đoạn dịch vụ MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-005
+    title: Ứng phó lộ bí mật, mất thiết bị và thu hồi yếu tố hàng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-006
+    title: Đánh giá nhà cung cấp, sao lưu và bảo vệ dữ liệu vòng đời MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-007
+    title: 'Sự kiện cần ghi vết: đăng nhập, đăng ký, thu hồi, khôi phục và ngoại lệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-008
+    title: Quản lý bí mật, khóa và quyền truy cập của dịch vụ MFA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-009
+    title: Giám sát đồng hồ, hàng đợi thông báo và phụ thuộc nhà mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-010
+    title: Ứng phó sự cố diện rộng và truy cập khẩn cấp có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-011
+    title: Rà soát chính sách, lưu giữ dữ liệu, thời hạn ngoại lệ và đào tạo hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-and-rollout
+  title: Kiểm thử và triển khai
+  childs:
+  - slug: testing-and-rollout-001
+    title: Ma trận kiểm thử luồng hợp lệ, thất bại và các trạng thái xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-002
+    title: Kiểm thử hết hạn, phát lại, tranh chấp và sử dụng thử thách sai phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-003
+    title: Kiểm thử hạ cấp phương thức và đường vòng qua API hoặc giao diện khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-004
+    title: Kiểm thử đăng ký, thay đổi yếu tố và khôi phục quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-005
+    title: Kiểm thử trợ năng, độ trễ và gián đoạn nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-006
+    title: Triển khai thí điểm, mở rộng bắt buộc MFA và đánh giá hiệu quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-007
+    title: Ma trận kiểm thử theo phương thức, loại tài khoản và chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-008
+    title: Kiểm thử phát lại OTP và xác minh đồng thời trên cùng thử thách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-009
+    title: Kiểm thử ràng buộc sai tài khoản, phiên hoặc giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-010
+    title: Kiểm thử đường đăng ký, thay phương tiện và khôi phục bị chiếm dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-011
+    title: Kiểm tra amr, acr, tính mới và mức bảo đảm khi xác thực qua SSO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-012
+    title: Mô phỏng MFA fatigue, mất thiết bị và sự cố nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-013
+    title: Kiểm chứng log, thông báo và dữ liệu nhạy cảm không bị lộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-rollout-014
+    title: Lộ trình chuyển từ phương thức yếu sang MFA chống lừa đảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

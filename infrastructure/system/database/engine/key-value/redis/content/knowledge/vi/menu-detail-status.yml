@@ -1,0 +1,3742 @@
+menu:
+- slug: redis-overview
+  title: Tổng quan Redis
+  childs:
+  - slug: redis-overview-001
+    title: Redis là gì và giải quyết những bài toán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-002
+    title: Mô hình khóa–giá trị và máy chủ cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-003
+    title: Vai trò bộ nhớ chính và lưu trữ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-004
+    title: Redis trong kiến trúc ứng dụng và hệ thống dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-005
+    title: Phân biệt cơ sở dữ liệu, bộ nhớ đệm và môi giới thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-006
+    title: So sánh Redis với Memcached và cơ sở dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-007
+    title: 'Thuật ngữ: instance, keyspace, client, shard và replica'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-008
+    title: Lộ trình học, kiến thức nền và môi trường thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-overview-009
+    title: Giới hạn sử dụng và những trường hợp nên chọn công nghệ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redis-architecture
+  title: Kiến trúc xử lý
+  childs:
+  - slug: redis-architecture-001
+    title: Tiến trình Redis, kết nối máy khách và vòng lặp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-002
+    title: Mô hình thực thi lệnh và ý nghĩa của xử lý tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-003
+    title: Tác vụ nền, luồng I/O và các công việc ngoài luồng lệnh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-004
+    title: Tính nguyên tử của một lệnh và giới hạn giữa nhiều lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-005
+    title: Lệnh chậm, lệnh chặn và ảnh hưởng tới các kết nối khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-006
+    title: Độ phức tạp lệnh và kích thước dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-007
+    title: Vai trò hệ điều hành, CPU, RAM và ổ đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-architecture-008
+    title: Phân biệt chế độ độc lập, Sentinel và Redis Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-and-configuration
+  title: Cài đặt và cấu hình
+  childs:
+  - slug: installation-and-configuration-001
+    title: Lựa chọn phiên bản, bản phân phối và điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-002
+    title: Cài đặt môi trường phát triển và chạy bằng Docker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-003
+    title: Khởi động redis-server và kiểm tra bằng redis-cli
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-004
+    title: Tệp redis.conf, tham số khởi động và thứ tự cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-005
+    title: Địa chỉ lắng nghe, cổng dịch vụ và protected mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-006
+    title: Thư mục dữ liệu, tệp nhật ký và quyền hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-007
+    title: Đọc và thay đổi cấu hình bằng CONFIG GET và CONFIG SET
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-008
+    title: Cấu hình thời gian chờ, TCP keepalive và giới hạn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-009
+    title: Nạp dữ liệu mẫu và đặt lại môi trường thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-010
+    title: Dừng, khởi động lại và xác minh cấu hình thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocols-and-connections
+  title: Giao thức và kết nối
+  childs:
+  - slug: protocols-and-connections-001
+    title: RESP2, RESP3 và cách biểu diễn yêu cầu–phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-002
+    title: Mở phiên làm việc với AUTH, HELLO và SELECT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-003
+    title: Lệnh, đối số, giá trị trả về và các nhóm lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-004
+    title: Phân biệt chuỗi rỗng, giá trị null và khóa không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-005
+    title: Mã hóa văn bản, dữ liệu nhị phân và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-006
+    title: Kết nối lâu dài, ghép nhiều yêu cầu và quản lý tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-007
+    title: Thời gian chờ kết nối, thời gian chờ lệnh và hủy yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-008
+    title: Kết nối lại, thử lại và nguy cơ thực thi lệnh nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocols-and-connections-009
+    title: Đọc mô tả lệnh bằng COMMAND và đối chiếu khả năng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-design
+  title: Thiết kế khóa
+  childs:
+  - slug: key-design-001
+    title: Quy ước đặt tên khóa và phân chia không gian tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-002
+    title: Thiết kế khóa theo thực thể, quan hệ và mẫu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-003
+    title: TYPE, EXISTS và kiểm tra vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-004
+    title: DEL, UNLINK và lựa chọn cách xóa dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-005
+    title: RENAME, RENAMENX và COPY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-006
+    title: Quét không gian khóa bằng SCAN và giới hạn của KEYS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-007
+    title: Cơ sở dữ liệu logic, SELECT và giới hạn trong Redis Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-008
+    title: Hash tag trong tên khóa và ảnh hưởng tới phân bố dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-009
+    title: Khóa quá lớn, khóa truy cập dày đặc và nguy cơ tập trung tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-design-010
+    title: Thiết kế phiên bản khóa và chuyển đổi lược đồ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-expiration
+  title: Thời hạn dữ liệu
+  childs:
+  - slug: data-expiration-001
+    title: TTL, PTTL và ý nghĩa các giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-002
+    title: EXPIRE, PEXPIRE, EXPIREAT và PEXPIREAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-003
+    title: SET với EX, PX, EXAT, PXAT và KEEPTTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-004
+    title: PERSIST và các thao tác làm thay đổi thời hạn khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-005
+    title: Điều kiện NX, XX, GT và LT khi đặt thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-006
+    title: Cơ chế hết hạn chủ động và hết hạn khi truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-007
+    title: Phân biệt hết hạn, thu hồi do thiếu bộ nhớ và xóa chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-008
+    title: Đồng hồ hệ thống, thời điểm tuyệt đối và kiểm thử thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-expiration-009
+    title: Rải thời hạn dữ liệu để tránh hết hạn đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strings-and-counters
+  title: Chuỗi và bộ đếm
+  childs:
+  - slug: strings-and-counters-001
+    title: Biểu diễn chuỗi, số và dữ liệu nhị phân bằng String
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-002
+    title: SET, GET và các tùy chọn ghi có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-003
+    title: MSET, MGET và truy cập nhiều khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-004
+    title: SET NX và SET XX trong khởi tạo hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-005
+    title: INCR, DECR, INCRBY và DECRBY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-006
+    title: INCRBYFLOAT, biểu diễn số và giới hạn độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-007
+    title: APPEND, STRLEN, GETRANGE và SETRANGE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-008
+    title: GETDEL, GETEX và cập nhật vòng đời khi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-009
+    title: Giới hạn kích thước, chi phí sao chép và lựa chọn cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strings-and-counters-010
+    title: Bài toán bộ đếm có thời hạn và cấp số thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash
+  title: Hash
+  childs:
+  - slug: hash-001
+    title: Mô hình trường–giá trị và biểu diễn một thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-002
+    title: HSET, HGET, HMGET và HGETALL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-003
+    title: HSETNX, HEXISTS, HDEL và HLEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-004
+    title: HKEYS, HVALS và HSCAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-005
+    title: HINCRBY và HINCRBYFLOAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-006
+    title: Phân biệt trường không tồn tại và khóa không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-007
+    title: Lựa chọn Hash, nhiều khóa String hoặc tài liệu JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-008
+    title: Mã hóa nội bộ, kích thước trường và chi phí bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-009
+    title: 'Thời hạn từng trường: kiểm tra hỗ trợ và phân biệt TTL của khóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-010
+    title: Cập nhật từng phần, phiên bản thực thể và thay đổi lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: list
+  title: List
+  childs:
+  - slug: list-001
+    title: Mô hình danh sách có thứ tự và truy cập hai đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-002
+    title: LPUSH, RPUSH, LPOP và RPOP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-003
+    title: LRANGE, LINDEX, LLEN và LSET
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-004
+    title: LINSERT, LREM và LTRIM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-005
+    title: BLPOP, BRPOP và kết nối dành cho lệnh chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-006
+    title: LMOVE và BLMOVE trong chuyển phần tử giữa danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-007
+    title: Danh sách giới hạn kích thước và lịch sử gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-008
+    title: Độ phức tạp truy cập theo vị trí và dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: list-009
+    title: Mất kết nối, khôi phục tác vụ và giới hạn hàng đợi dựa trên List
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: set
+  title: Set
+  childs:
+  - slug: set-001
+    title: Tập hợp không thứ tự và tính duy nhất của phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-002
+    title: SADD, SREM, SISMEMBER và SMISMEMBER
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-003
+    title: SMEMBERS, SCARD và SSCAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-004
+    title: SPOP, SRANDMEMBER và lựa chọn ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-005
+    title: SUNION, SINTER, SDIFF và các biến thể lưu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-006
+    title: SMOVE và thay đổi quan hệ thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-007
+    title: Biểu diễn quan hệ nhiều–nhiều bằng Set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-008
+    title: Kiểm tra trùng lặp, thẻ phân loại và quyền thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: set-009
+    title: Chi phí phép toán tập hợp và ràng buộc nhiều khóa trong Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sorted-set
+  title: Sorted Set
+  childs:
+  - slug: sorted-set-001
+    title: Phần tử duy nhất, điểm số và thứ tự sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-002
+    title: ZADD với điều kiện cập nhật và trả về số thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-003
+    title: ZSCORE, ZMSCORE, ZCARD và ZCOUNT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-004
+    title: ZRANGE theo thứ hạng, điểm số và thứ tự từ điển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-005
+    title: ZRANK, ZREVRANK và cách xác định vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-006
+    title: ZINCRBY và cập nhật điểm đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-007
+    title: ZREM và các lệnh xóa theo khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-008
+    title: ZPOPMIN, ZPOPMAX và các biến thể chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-009
+    title: ZUNION, ZINTER, ZDIFF và kết hợp tập có trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-010
+    title: Độ chính xác điểm số và quy tắc xử lý các phần tử đồng điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sorted-set-011
+    title: Bảng xếp hạng, lịch tác vụ và cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bitmaps-and-bitfields
+  title: Bitmap và Bitfield
+  childs:
+  - slug: bitmaps-and-bitfields-001
+    title: Bitmap trên String và cách chọn chỉ số bit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-002
+    title: SETBIT, GETBIT và BITCOUNT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-003
+    title: BITPOS và tìm vị trí bit thỏa điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-004
+    title: BITOP và kết hợp nhiều bitmap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-005
+    title: BITFIELD, độ rộng trường và số có dấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-006
+    title: Các chế độ tràn số của BITFIELD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-007
+    title: BITFIELD_RO và truy vấn trường bit chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-008
+    title: Theo dõi hoạt động, cờ tính năng và thống kê theo ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bitmaps-and-bitfields-009
+    title: Dung lượng theo miền chỉ số và rủi ro cấp phát lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hyper-log-log
+  title: HyperLogLog
+  childs:
+  - slug: hyper-log-log-001
+    title: Đếm gần đúng số phần tử khác nhau với HyperLogLog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hyper-log-log-002
+    title: PFADD, PFCOUNT và PFMERGE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hyper-log-log-003
+    title: Sai số, chi phí bộ nhớ và lựa chọn đếm chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: geospatial-data
+  title: Dữ liệu địa lý
+  childs:
+  - slug: geospatial-data-001
+    title: GEOADD và mô hình tọa độ địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-002
+    title: GEOPOS, GEODIST và GEOHASH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-003
+    title: GEOSEARCH và GEOSEARCHSTORE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-004
+    title: Đơn vị khoảng cách, giới hạn tọa độ và sắp xếp kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-005
+    title: Tìm đối tượng lân cận và kết hợp thuộc tính nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-006
+    title: Giới hạn truy vấn địa lý và khi cần hệ thống chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: streams
+  title: Streams
+  childs:
+  - slug: streams-001
+    title: Mô hình nhật ký sự kiện và cấu trúc Stream ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-002
+    title: XADD, XLEN và chính sách đặt ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-003
+    title: XRANGE, XREVRANGE và truy xuất lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-004
+    title: XREAD và đọc chặn từ một hay nhiều stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-005
+    title: XGROUP và vòng đời nhóm tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-006
+    title: XREADGROUP và phân phối thông điệp trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-007
+    title: XACK và danh sách thông điệp chờ xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-008
+    title: XPENDING, XCLAIM và XAUTOCLAIM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-009
+    title: XTRIM, XDEL và giới hạn lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-010
+    title: XINFO và quan sát stream, nhóm, máy khách tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-011
+    title: Thứ tự, thông điệp trùng lặp và ngữ nghĩa giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: streams-012
+    title: Khôi phục máy khách tiêu thụ, xử lý lỗi và thông điệp không xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: json
+  title: JSON
+  childs:
+  - slug: json-001
+    title: Kiểm tra khả năng JSON theo phiên bản và bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-002
+    title: Lựa chọn tài liệu JSON, Hash hoặc chuỗi JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-003
+    title: Đường dẫn JSONPath và lựa chọn phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-004
+    title: JSON.SET, JSON.GET và JSON.DEL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-005
+    title: Cập nhật chuỗi, số, mảng và đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-006
+    title: Đọc nhiều đường dẫn và xử lý kết quả không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-007
+    title: Chi phí cập nhật tài liệu lớn và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-008
+    title: Lược đồ ứng dụng, kiểm tra dữ liệu và chuyển đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: json-009
+    title: Kết hợp JSON với chỉ mục tìm kiếm khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-and-vector-data
+  title: Tìm kiếm và vector
+  childs:
+  - slug: search-and-vector-data-001
+    title: Kiểm tra khả năng tìm kiếm, vector và điều kiện triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-002
+    title: Thiết kế chỉ mục trên Hash hoặc JSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-003
+    title: FT.CREATE, tiền tố khóa và khai báo trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-004
+    title: Trường văn bản, TAG, NUMERIC và GEO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-005
+    title: FT.SEARCH, bộ lọc, sắp xếp và phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-006
+    title: FT.AGGREGATE và tổng hợp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-007
+    title: Ngôn ngữ truy vấn, dialect và ký tự cần thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-008
+    title: Phân tích văn bản, từ dừng và cấu hình theo ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-009
+    title: Kiểu dữ liệu vector, số chiều và phép đo khoảng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-010
+    title: Lựa chọn chỉ mục FLAT hoặc HNSW
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-011
+    title: Truy vấn lân cận gần nhất và kết hợp bộ lọc thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-and-vector-data-012
+    title: Vòng đời chỉ mục, chất lượng kết quả và chi phí bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-data-types
+  title: Dữ liệu chuyên biệt
+  childs:
+  - slug: specialized-data-types-001
+    title: Xác định khả năng tích hợp và phần mở rộng theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-002
+    title: 'Chuỗi thời gian: mẫu đo, nhãn và chính sách lưu giữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-003
+    title: TS.ADD, TS.RANGE và truy vấn theo khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-004
+    title: TS.MRANGE, gộp mẫu và tổng hợp theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-005
+    title: 'Bloom filter: kiểm tra thành viên và xác suất dương tính giả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-006
+    title: 'Cuckoo filter: quản lý thành viên và khả năng xóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-007
+    title: 'Count-Min Sketch: ước lượng tần suất xuất hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-008
+    title: 'Top-K: theo dõi các phần tử xuất hiện nhiều'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-009
+    title: 't-digest: ước lượng phân vị của luồng số liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-data-types-010
+    title: Đánh đổi sai số, dung lượng và lựa chọn cấu trúc phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-and-concurrency
+  title: Giao dịch và đồng thời
+  childs:
+  - slug: transactions-and-concurrency-001
+    title: MULTI, EXEC và hàng đợi lệnh giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-002
+    title: DISCARD và hủy giao dịch chưa thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-003
+    title: Lỗi trước EXEC và lỗi khi thực thi từng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-004
+    title: Giới hạn hoàn tác và ý nghĩa tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-005
+    title: WATCH, UNWATCH và kiểm soát đồng thời lạc quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-006
+    title: Xử lý xung đột, giới hạn thử lại và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-007
+    title: So sánh giao dịch, lệnh đơn, pipeline và mã chạy phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-008
+    title: Giới hạn nhiều khóa và hash slot trong Redis Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-009
+    title: Mất kết nối trước hoặc sau EXEC và kết quả không xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-and-concurrency-010
+    title: Thiết kế thao tác an toàn khi có yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lua-scripting-and-functions
+  title: Lua và Functions
+  childs:
+  - slug: lua-scripting-and-functions-001
+    title: Bài toán cần thực thi logic gần dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-002
+    title: EVAL, EVALSHA và bộ nhớ đệm script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-003
+    title: Khai báo KEYS, ARGV và truy cập khóa đúng quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-004
+    title: Kiểu dữ liệu trả về giữa Lua và RESP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-005
+    title: Đảm bảo tính nguyên tử và chi phí chặn máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-006
+    title: Giới hạn thời gian, lỗi script và SCRIPT KILL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-007
+    title: Nạp, gọi và quản lý thư viện bằng Redis Functions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-008
+    title: FUNCTION LOAD, FCALL và vòng đời thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-009
+    title: Nhân bản, lưu trữ và triển khai script hoặc function
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lua-scripting-and-functions-010
+    title: Thiết kế script an toàn trong Cluster và kiểm thử đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipelining-and-client-caching
+  title: Pipeline và cache máy khách
+  childs:
+  - slug: pipelining-and-client-caching-001
+    title: Độ trễ mạng và lý do sử dụng pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-002
+    title: Gom lệnh, thứ tự phản hồi và giới hạn tính nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-003
+    title: Chia lô theo số lệnh, kích thước và bộ nhớ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-004
+    title: Lỗi từng lệnh, ngắt kết nối và xử lý kết quả một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-005
+    title: Pipeline với giao dịch, lệnh chặn và Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-006
+    title: Lựa chọn pipeline, lệnh nhiều phần tử hoặc script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-007
+    title: Client-side caching và invalidation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-008
+    title: CLIENT TRACKING, thông báo đẩy và các chế độ theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipelining-and-client-caching-009
+    title: Cache cục bộ, kết nối lại và nguy cơ dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pubsub-and-notifications
+  title: Pub/Sub và thông báo
+  childs:
+  - slug: pubsub-and-notifications-001
+    title: PUBLISH, SUBSCRIBE và vòng đời đăng ký kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-002
+    title: PSUBSCRIBE và định tuyến bằng mẫu kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-003
+    title: Ngữ nghĩa giao nhận và giới hạn lưu trữ của Pub/Sub
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-004
+    title: Sharded Pub/Sub và điều kiện sử dụng trong Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-005
+    title: Quản lý kết nối đăng ký, mất kết nối và đăng ký lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-006
+    title: Thông báo keyspace, keyevent và cấu hình sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-007
+    title: Sự kiện hết hạn và giới hạn về thời điểm phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-008
+    title: So sánh Pub/Sub, Streams và hàng đợi tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pubsub-and-notifications-009
+    title: Thiết kế thông báo làm mới dữ liệu và đồng bộ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-persistence
+  title: Lưu trữ bền vững
+  childs:
+  - slug: data-persistence-001
+    title: Lựa chọn không lưu bền, RDB, AOF hoặc kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-002
+    title: Tạo ảnh chụp RDB với SAVE và BGSAVE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-003
+    title: Lịch tạo RDB và điều kiện lỗi ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-004
+    title: AOF, chính sách fsync và đánh đổi mất dữ liệu–độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-005
+    title: Viết lại AOF và quản lý các tệp liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-006
+    title: Fork, copy-on-write và nhu cầu bộ nhớ khi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-007
+    title: Thứ tự nạp dữ liệu khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-008
+    title: Phát hiện tệp hỏng và sử dụng công cụ kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-009
+    title: Độ bền dữ liệu khi tiến trình, hệ điều hành hoặc máy chủ gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-persistence-010
+    title: Đo thời gian khôi phục và chọn chính sách theo yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replication
+  title: Nhân bản
+  childs:
+  - slug: replication-001
+    title: Mô hình primary–replica và cấu hình REPLICAOF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-002
+    title: Đồng bộ đầy đủ, đồng bộ từng phần và replication backlog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-003
+    title: Replication offset, độ trễ nhân bản và kiểm tra trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-004
+    title: Nhân bản bất đồng bộ và cửa sổ có thể mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-005
+    title: Đọc từ replica và giới hạn nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-006
+    title: WAIT và giới hạn của xác nhận nhân bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-007
+    title: 'WAITAOF: điều kiện hỗ trợ và phạm vi xác nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-008
+    title: Quy định số replica tối thiểu trước khi chấp nhận ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-009
+    title: Đổi vai trò, khởi động lại và khôi phục kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-010
+    title: Dung lượng mạng, đầu ra máy khách và đồng bộ tập dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sentinel
+  title: Sentinel
+  childs:
+  - slug: sentinel-001
+    title: Vai trò Sentinel và kiến trúc khả dụng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-002
+    title: Giám sát primary, replica và các Sentinel khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-003
+    title: Quorum, đa số và điều kiện quyết định chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-004
+    title: Phân biệt nhận định lỗi chủ quan và khách quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-005
+    title: Lựa chọn replica và quá trình failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-006
+    title: Khám phá primary từ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-007
+    title: Tham số thời gian, giới hạn chuyển đổi và chống dao động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-008
+    title: Phân vùng mạng, split-brain và giới hạn đảm bảo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-009
+    title: Xác thực, TLS và cấu hình truy cập Sentinel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sentinel-010
+    title: Kiểm thử chuyển đổi, khôi phục và xác minh sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: redis-cluster
+  title: Redis Cluster
+  childs:
+  - slug: redis-cluster-001
+    title: Phân mảnh dữ liệu và mô hình hash slot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-002
+    title: CRC16, hash tag và thiết kế khóa cùng slot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-003
+    title: Primary, replica, cluster bus và trạng thái nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-004
+    title: Tạo cụm và kiểm tra phân bổ slot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-005
+    title: MOVED, ASK và hành vi định tuyến của máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-006
+    title: Ràng buộc lệnh nhiều khóa, giao dịch và script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-007
+    title: Thêm nút, phân phối lại slot và di chuyển dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-008
+    title: Failover, vùng lỗi và khả năng phục vụ khi mất nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-009
+    title: Đọc replica, READONLY và đánh đổi nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-010
+    title: Phát hiện slot thiếu, nút lỗi và trạng thái cụm không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: redis-cluster-011
+    title: Lập kế hoạch phân mảnh để tránh lệch tải và khóa nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-management-and-eviction
+  title: Bộ nhớ và thu hồi
+  childs:
+  - slug: memory-management-and-eviction-001
+    title: 'Các thành phần bộ nhớ: dữ liệu, cấu trúc và bộ đệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-002
+    title: MEMORY USAGE, MEMORY STATS và INFO MEMORY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-003
+    title: maxmemory và phần bộ nhớ ngoài ngân sách dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-004
+    title: Các chính sách noeviction, allkeys và volatile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-005
+    title: LRU, LFU, TTL và hành vi lựa chọn khóa thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-006
+    title: Chọn chính sách theo tỷ lệ truy cập và yêu cầu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-007
+    title: Mã hóa nội bộ và các ngưỡng chuyển đổi cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-008
+    title: Phân mảnh, allocator và active defragmentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-009
+    title: Lazy freeing, UNLINK và giải phóng đối tượng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-010
+    title: Dự phòng bộ nhớ cho nhân bản, lưu bền và tải tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-management-and-eviction-011
+    title: Phát hiện rò rỉ khóa và dự báo dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Đo độ trễ trung vị, p95, p99 và thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Thiết kế phép đo phản ánh tải nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: redis-benchmark và giới hạn của kết quả đo mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Chọn lệnh theo độ phức tạp và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tối ưu số lượt mạng bằng lệnh gộp và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Phát hiện big key, hot key và truy vấn quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: SLOWLOG, LATENCY và chẩn đoán điểm nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Tác động của lưu bền, fork, fsync và sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Ảnh hưởng CPU, mạng, swap và thiết lập hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Giới hạn kết nối, bộ đệm đầu ra và máy khách tiêu thụ chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-011
+    title: Đo lại sau thay đổi và tránh tối ưu theo chỉ số đơn lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-and-observability
+  title: Quan sát vận hành
+  childs:
+  - slug: monitoring-and-observability-001
+    title: INFO theo nhóm chỉ số và vai trò từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-002
+    title: ROLE, CLIENT LIST và kiểm tra kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-003
+    title: Nhật ký máy chủ, sự kiện khởi động và lỗi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-004
+    title: Hit rate, miss rate, expired keys và evicted keys
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-005
+    title: Lệnh mỗi giây, lưu lượng mạng và độ trễ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-006
+    title: Theo dõi lưu bền, nhân bản, Sentinel và Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-007
+    title: Xuất số liệu và xây dựng bảng giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-008
+    title: Ngưỡng cảnh báo, xu hướng tăng trưởng và ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-009
+    title: MONITOR, chi phí quan sát và hạn chế dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-observability-010
+    title: Đối chiếu số liệu máy khách, Redis và hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Mô hình đe dọa và giới hạn truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Protected mode, bind và tường lửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: 'ACL: người dùng, nhóm lệnh, mẫu khóa và mẫu kênh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: AUTH, tài khoản mặc định và nguyên tắc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: TLS cho máy khách, nhân bản và lưu lượng cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Quản lý mật khẩu, chứng thư và luân chuyển bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Bảo vệ CONFIG, MODULE, DEBUG và thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: ACL LOG, nhật ký bảo mật và xử lý từ chối truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Dữ liệu nhạy cảm trong bộ nhớ, bản sao và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Cập nhật phiên bản và kiểm tra cấu hình trước khi đưa vào vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-upgrades
+  title: Sao lưu và nâng cấp
+  childs:
+  - slug: backup-and-upgrades-001
+    title: Xác định RPO, RTO và phạm vi dữ liệu cần khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-002
+    title: Phân biệt replica với bản sao lưu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-003
+    title: Sao lưu RDB, AOF và cấu hình cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-004
+    title: Tính nhất quán của bản sao và quy trình sao chép an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-005
+    title: Mã hóa, lưu giữ và kiểm tra toàn vẹn bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-006
+    title: Diễn tập khôi phục trên môi trường tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-007
+    title: Đánh giá tương thích lệnh, định dạng và phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-008
+    title: Nâng cấp từng nút và kiểm tra hành vi máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-009
+    title: Di chuyển dữ liệu bằng DUMP, RESTORE hoặc MIGRATE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-upgrades-010
+    title: Đối soát dữ liệu, chuyển lưu lượng và kế hoạch quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Lựa chọn máy ảo, container hoặc dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Volume bền vững, quyền tệp và vòng đời container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Cấp phát CPU, RAM, ổ đĩa và ngân sách dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Triển khai Sentinel hoặc Cluster qua nhiều vùng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: 'Kubernetes: StatefulSet, Service và khám phá nút'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: NAT, địa chỉ công bố và kết nối cluster bus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Kiểm tra sẵn sàng, kiểm tra sống và dừng tiến trình an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Cấu hình ứng dụng khi primary hoặc topology thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-009
+    title: Giới hạn tài nguyên, kế hoạch mở rộng và kiểm thử sức tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-design
+  title: Thiết kế bộ nhớ đệm
+  childs:
+  - slug: cache-design-001
+    title: Chọn dữ liệu cần đệm và mục tiêu độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-002
+    title: Cache-aside và vòng đời đọc–ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-003
+    title: Read-through, write-through và write-behind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-004
+    title: TTL tuyệt đối, thời hạn trượt và làm mới trước hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-005
+    title: Vô hiệu hóa cache khi dữ liệu nguồn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-006
+    title: Cache stampede và phối hợp làm mới một khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-007
+    title: Cache penetration, negative caching và bộ lọc thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-008
+    title: Cache avalanche và rải thời hạn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-009
+    title: Stale-while-revalidate và phục vụ dữ liệu cũ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-010
+    title: Khóa nóng, cache nhiều tầng và client-side caching
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-design-011
+    title: Đo hiệu quả cache và chi phí lưu dữ liệu không được truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: data-consistency-001
+    title: Xác định nguồn dữ liệu chuẩn và vai trò Redis
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Tranh chấp đọc–ghi trong cache-aside
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Thứ tự cập nhật cơ sở dữ liệu và vô hiệu hóa cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Sự kiện thay đổi dữ liệu, outbox và cơ chế đồng bộ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Phiên bản dữ liệu và ngăn cập nhật cũ ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Tính lũy đẳng và khử yêu cầu trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Đảm bảo đọc sau ghi và giới hạn đọc replica
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Xử lý lỗi một phần giữa Redis và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Đối soát, xây lại cache và khôi phục sau mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-patterns
+  title: Mẫu ứng dụng
+  childs:
+  - slug: application-patterns-001
+    title: Lưu phiên đăng nhập, giỏ hàng và dữ liệu tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-002
+    title: Bộ đếm, thống kê hoạt động và xếp hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-003
+    title: Giới hạn tốc độ theo cửa sổ cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-004
+    title: Giới hạn tốc độ theo cửa sổ trượt và token bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-005
+    title: Tính nguyên tử, TTL và xử lý tranh chấp trong rate limiter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-006
+    title: Khóa phân tán với SET NX PX và mã chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-007
+    title: Gia hạn và giải phóng khóa bằng kiểm tra chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-008
+    title: Lease, fencing token và giới hạn an toàn khi tiến trình bị treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-009
+    title: 'Redlock: giả định, đánh đổi và điều kiện lựa chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-010
+    title: Lập lịch tác vụ, hàng đợi trì hoãn và giới hạn đúng giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-patterns-011
+    title: Phát hiện trực tuyến, heartbeat và giới hạn độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-processing
+  title: Xử lý thông điệp
+  childs:
+  - slug: message-processing-001
+    title: Chọn List, Pub/Sub hoặc Streams theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-002
+    title: Thiết kế khóa, nhóm tiêu thụ và phân vùng thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-003
+    title: Xác nhận sau xử lý và tránh mất thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-004
+    title: Xử lý ít nhất một lần và khử xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-005
+    title: Thử lại có giới hạn và thời gian chờ tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-006
+    title: Hàng đợi thông điệp lỗi và thao tác xử lý lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-007
+    title: Thứ tự xử lý, song song hóa và tranh chấp người tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-008
+    title: Áp lực ngược, tồn đọng và giới hạn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-009
+    title: Giám sát độ trễ xử lý và khôi phục sau khi máy khách chết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-processing-010
+    title: Đánh giá khi nên dùng hệ thống thông điệp chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-clients
+  title: Java và máy khách
+  childs:
+  - slug: java-clients-001
+    title: Lựa chọn Lettuce hoặc Jedis theo mô hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-002
+    title: Quản lý kết nối, vòng đời máy khách và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-003
+    title: Lệnh đồng bộ, bất đồng bộ và luồng phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-004
+    title: Codec, tuần tự hóa khóa–giá trị và tương thích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-005
+    title: Kết nối dùng chung, connection pool và lệnh chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-006
+    title: Cấu hình timeout, retry và xử lý kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-007
+    title: Pipeline, giao dịch và thực thi Lua từ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-008
+    title: Kết nối Sentinel, Cluster và tự phát hiện thay đổi topology
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-009
+    title: Tách kết nối đọc replica và kiểm soát dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-clients-010
+    title: Ghi nhận số liệu, tracing và đóng tài nguyên đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-data-redis
+  title: Spring Data Redis
+  childs:
+  - slug: spring-data-redis-001
+    title: Cấu hình kết nối trong Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-002
+    title: RedisConnectionFactory, Lettuce và Jedis
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-003
+    title: RedisTemplate, StringRedisTemplate và bộ tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-004
+    title: ValueOperations, HashOperations và các cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-005
+    title: ReactiveRedisTemplate và quy tắc không chặn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-006
+    title: Thực thi script, pipeline và giao dịch với SessionCallback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-007
+    title: Ranh giới giao dịch Redis và giao dịch cơ sở dữ liệu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-008
+    title: 'Spring Cache: Cacheable, CachePut và CacheEvict'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-009
+    title: TTL, tiền tố khóa và cấu hình RedisCacheManager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-010
+    title: Spring Session và chia sẻ phiên giữa nhiều ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-011
+    title: Redis Repository, chỉ mục và các giới hạn cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-redis-012
+    title: Kiểm tra cấu hình môi trường và lỗi tương thích tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Thiết kế dữ liệu mẫu, tên khóa và dọn dẹp sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử tích hợp với Redis thật và Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Phân biệt kiểm thử giả lập với hành vi máy chủ thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử TTL, đồng hồ và các điều kiện thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử cập nhật đồng thời và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử script, giao dịch và lỗi từng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Mô phỏng mất kết nối, timeout và phản hồi bị thất lạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử failover với replica, Sentinel và Cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử khôi phục từ RDB, AOF và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử sức tải, tăng dung lượng và hồi quy hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm tra ACL, TLS và quyền ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không kết nối được, xác thực lỗi và chứng thư không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: WRONGTYPE, lỗi đối số và dữ liệu tuần tự hóa sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: OOM, không có khóa đủ điều kiện thu hồi và tăng RAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Timeout, lệnh chặn, big key và hot key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: MISCONF và lỗi ghi RDB hoặc AOF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: READONLY sau failover và máy khách giữ primary cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: MOVED, ASK, CROSSSLOT và cấu hình Cluster sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Replication lag, đồng bộ lại kéo dài và backlog thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Cluster mất slot, mất đa số hoặc ngắt mạng giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Dữ liệu biến mất do TTL, eviction, ghi đè hoặc khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Tăng đột biến thông điệp chờ xác nhận trong Streams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Quy trình thu thập bằng chứng và phục hồi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài tập tổng hợp
+  childs:
+  - slug: hands-on-exercises-001
+    title: Xây bộ đếm theo ngày và kiểm chứng TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Thiết kế hồ sơ người dùng với Hash và phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Xây bảng xếp hạng theo mùa bằng Sorted Set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Theo dõi người dùng hoạt động bằng Bitmap và HyperLogLog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Tìm đối tượng gần nhất bằng chỉ mục địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Xây cache-aside có chống stampede và negative caching
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Xây rate limiter nguyên tử và đo dưới tải đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Xây hàng đợi Streams có xác nhận và xử lý lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Tích hợp Spring Boot với cache, metrics và kiểm thử Redis
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Diễn tập failover, khôi phục dữ liệu và đối soát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Đánh giá thiết kế theo độ trễ, độ bền, nhất quán và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

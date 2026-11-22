@@ -1,0 +1,346 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Giao dịch là gì và vì sao cơ sở dữ liệu cần xử lý đồng thời
+  - 'Các thuật ngữ nền tảng: phiên, kết nối, giao dịch và câu lệnh'
+  - Mối quan hệ giữa dữ liệu, bất biến nghiệp vụ và ranh giới giao dịch
+  - Tính đúng đắn và hiệu năng khi nhiều giao dịch cùng truy cập dữ liệu
+  - Phân biệt đồng thời, song song và giao dịch phân tán
+  - Vai trò của khóa, phiên bản dữ liệu và mức cô lập
+  - Lộ trình học từ giao dịch đơn lẻ đến thiết kế và kiểm chứng đồng thời
+  - Thiết lập môi trường thực nghiệm bằng hai phiên cơ sở dữ liệu độc lập
+- level1: ACID
+  level2:
+  - 'Tính nguyên tử: thành công toàn bộ hoặc hủy bỏ thay đổi'
+  - 'Tính nhất quán: bất biến dữ liệu và trách nhiệm của ứng dụng'
+  - 'Tính cô lập: quan sát dữ liệu khi giao dịch chạy đồng thời'
+  - 'Tính bền vững: ý nghĩa của xác nhận COMMIT'
+  - ACID liên hệ với ràng buộc, nhật ký và cơ chế phục hồi như thế nào
+  - Phân biệt tính nhất quán trong ACID với nhất quán giữa các bản sao
+  - Những điều ACID không tự bảo đảm cho quy tắc nghiệp vụ
+  - Phân tích ACID qua ví dụ chuyển tiền giữa hai tài khoản
+- level1: Vòng đời giao dịch
+  level2:
+  - Bắt đầu, thực thi, xác nhận và hủy giao dịch
+  - Autocommit và giao dịch tường minh
+  - Ranh giới giữa một câu lệnh và một giao dịch nhiều câu lệnh
+  - Trạng thái giao dịch sau lỗi câu lệnh hoặc lỗi kết nối
+  - SAVEPOINT và hủy bỏ một phần công việc
+  - Phân biệt SAVEPOINT với giao dịch lồng nhau thực sự
+  - Thiết lập đặc tính giao dịch theo kết nối, phiên và từng giao dịch
+  - Giao dịch chỉ đọc và giới hạn của cam kết không thay đổi dữ liệu
+  - Điều cần kiểm chứng khi DDL hoặc câu lệnh quản trị xuất hiện trong giao dịch
+  - Vòng đời khóa và tài nguyên trước, trong và sau COMMIT hoặc ROLLBACK
+- level1: Mô hình thực thi
+  level2:
+  - Biểu diễn lịch thực thi bằng thao tác đọc, ghi, COMMIT và ROLLBACK
+  - Thực thi tuần tự và thực thi đan xen giữa nhiều giao dịch
+  - Xung đột đọc–ghi, ghi–đọc và ghi–ghi
+  - Quan hệ phụ thuộc giữa các giao dịch trên cùng dữ liệu
+  - Đồ thị ưu tiên và kiểm tra khả tuần tự theo xung đột
+  - Phân biệt thứ tự bắt đầu, thứ tự hoàn tất và thứ tự tuần tự tương đương
+  - Lịch có thể phục hồi và nguy cơ hủy bỏ dây chuyền
+  - Lịch không đọc dữ liệu chưa xác nhận và lịch nghiêm ngặt
+  - Phân biệt khả tuần tự với khả tuần tự nghiêm ngặt (strict serializability)
+  - Giới hạn của việc suy luận tính đúng đắn chỉ từ thứ tự câu lệnh SQL
+- level1: Bất thường đồng thời
+  level2:
+  - 'Đọc bẩn (dirty read): đọc thay đổi chưa được xác nhận'
+  - 'Ghi bẩn (dirty write): ghi chồng lên thay đổi chưa được xác nhận'
+  - 'Đọc không lặp lại (non-repeatable read): cùng hàng nhưng khác giá trị'
+  - 'Bóng ma (phantom read): tập hàng thỏa điều kiện thay đổi'
+  - Mất cập nhật (lost update) trong chuỗi đọc–tính toán–ghi
+  - Đọc lệch (read skew) và trạng thái tổng hợp không nhất quán
+  - Ghi lệch (write skew) khi các giao dịch cập nhật những hàng khác nhau
+  - Đọc kết quả tổng hợp trong lúc các giao dịch chuyển dịch dữ liệu
+  - Tranh chấp kiểm tra rồi hành động (check-then-act)
+  - Đọc thấy hàng không tồn tại rồi cùng tạo mới
+  - Ảnh chụp dữ liệu cũ khác gì với đọc dữ liệu chưa xác nhận
+  - Lập lịch tối thiểu để phân biệt các bất thường dễ nhầm
+- level1: Mức cô lập
+  level2:
+  - Mục tiêu và cách diễn đạt bảo đảm của mức cô lập
+  - READ UNCOMMITTED và vấn đề dữ liệu chưa xác nhận
+  - READ COMMITTED và phạm vi nhất quán của từng lần đọc
+  - REPEATABLE READ và các khác biệt cần kiểm tra giữa hệ quản trị
+  - SERIALIZABLE và thực thi tương đương một thứ tự tuần tự
+  - Cô lập ảnh chụp (snapshot isolation) trong tương quan với các mức SQL
+  - Mức mặc định không thay thế việc đọc tài liệu của hệ quản trị đang dùng
+  - Đối chiếu mức cô lập theo bất thường và bất biến cần bảo vệ
+  - Thay đổi mức cô lập đúng thời điểm và đúng phạm vi
+  - Đánh đổi giữa chờ khóa, hủy giao dịch, độ mới dữ liệu và thông lượng
+  - Chọn mức cô lập từ yêu cầu nghiệp vụ thay vì tên mức
+- level1: Cơ chế khóa
+  level2:
+  - Khóa chia sẻ và khóa độc quyền
+  - Ma trận tương thích và hàng đợi cấp khóa
+  - 'Phạm vi khóa: hàng, trang, bảng và đối tượng cơ sở dữ liệu'
+  - Khóa ý định và phối hợp nhiều cấp độ khóa
+  - Chuyển đổi khóa và nguy cơ bế tắc khi nâng cấp
+  - Gộp khóa (lock escalation) và ảnh hưởng đến mức tranh chấp
+  - Khóa dữ liệu khác gì với latch bảo vệ cấu trúc nội bộ
+  - Khóa metadata và tác động đến DDL hoặc giao dịch dài
+  - Khóa do ràng buộc, chỉ mục và khóa ngoại phát sinh
+  - Phân biệt khóa giao dịch với khóa tư vấn (advisory lock)
+- level1: Khóa hai pha
+  level2:
+  - 'Giao thức khóa hai pha (2PL): giai đoạn lấy khóa và nhả khóa'
+  - Khả tuần tự theo xung đột của lịch tuân thủ 2PL
+  - Strict 2PL và thời điểm giải phóng khóa ghi
+  - Rigorous 2PL và việc giữ khóa đọc lẫn khóa ghi
+  - Khóa thận trọng trước khi thực thi và chi phí biết trước tập dữ liệu
+  - Quan hệ giữa 2PL, chờ khóa và bế tắc
+  - Vì sao khóa hàng không tự bảo vệ mọi điều kiện trên tập dữ liệu
+  - Giới hạn của 2PL khi giao dịch chứa thao tác ngoài cơ sở dữ liệu
+- level1: MVCC
+  level2:
+  - Điều khiển đồng thời đa phiên bản (MVCC) giải quyết vấn đề gì
+  - Phiên bản hàng, định danh giao dịch và thông tin khả kiến
+  - Ảnh chụp (snapshot) và quy tắc quyết định phiên bản được nhìn thấy
+  - Ảnh chụp theo câu lệnh và theo giao dịch
+  - Nhìn thấy thay đổi do chính giao dịch tạo ra
+  - Quan hệ giữa đọc bằng MVCC và đọc có khóa
+  - Xung đột giữa các giao dịch cùng ghi một hàng
+  - Phiên bản cũ, undo và nhu cầu giữ lịch sử dữ liệu
+  - Thu gom phiên bản cũ và tác động của giao dịch kéo dài
+  - Vì sao MVCC vẫn cần khóa và vẫn có thể gặp bế tắc
+  - Đọc ảnh chụp không đồng nghĩa với bảo vệ bất biến nhiều hàng
+- level1: Cô lập ảnh chụp
+  level2:
+  - Mô hình đọc trên ảnh chụp và xác nhận thay đổi
+  - Xung đột ghi–ghi và chính sách xử lý phụ thuộc hệ quản trị
+  - Những bất thường được ngăn chặn và những tình huống cần kiểm chứng
+  - Ghi lệch qua ví dụ lịch trực của hai nhân viên
+  - Tranh chấp trên điều kiện tổng hợp và hàng chưa tồn tại
+  - Phụ thuộc đọc–ghi và nguyên nhân ảnh chụp chưa đủ bảo đảm khả tuần tự
+  - Chuyển bất biến nhiều hàng thành điểm tranh chấp được bảo vệ
+  - Khi nào chọn khóa tường minh hoặc SERIALIZABLE thay cho ảnh chụp
+- level1: Kiểm soát khả tuần tự
+  level2:
+  - Phát hiện xung đột thay vì chặn trước mọi truy cập
+  - Các giai đoạn đọc, kiểm định và ghi trong kiểm soát đồng thời lạc quan
+  - Kiểm tra tập đọc và tập ghi khi xác nhận giao dịch
+  - Serializable Snapshot Isolation (SSI) và quan hệ phụ thuộc nguy hiểm
+  - Theo dõi điều kiện đọc và tập hàng có thể thay đổi
+  - Lỗi tuần tự hóa khác gì với vi phạm ràng buộc nghiệp vụ
+  - Giao dịch chỉ đọc dài và các lựa chọn bảo vệ ảnh chụp
+  - Chi phí lưu dấu đọc, phát hiện xung đột và thực thi lại
+  - Kiểm chứng bất biến khi chuyển sang cơ chế khả tuần tự
+- level1: Khóa chủ động
+  level2:
+  - Kiểm soát đồng thời bi quan và trường hợp nên dùng
+  - Đọc kèm khóa để bảo vệ chuỗi đọc–kiểm tra–cập nhật
+  - SELECT FOR UPDATE và các biến thể cần đối chiếu theo hệ quản trị
+  - Chọn hàng, thứ tự lấy khóa và phạm vi khóa thực tế
+  - Chờ khóa, NOWAIT và thời hạn chờ
+  - SKIP LOCKED cho phân phối công việc và giới hạn về kết quả đầy đủ
+  - Khóa tư vấn theo khóa nghiệp vụ và trách nhiệm giải phóng
+  - Khóa theo giao dịch khác gì với khóa theo phiên
+  - Giới hạn của khóa hàng khi hàng cần bảo vệ chưa tồn tại
+  - Tránh giữ khóa trong lúc chờ người dùng, mạng hoặc dịch vụ ngoài
+- level1: Khóa lạc quan
+  level2:
+  - Cơ chế so sánh phiên bản khi cập nhật dữ liệu
+  - Cột version và câu lệnh UPDATE có điều kiện
+  - Sử dụng số hàng bị tác động để phát hiện xung đột
+  - Tăng phiên bản và cập nhật dữ liệu trong cùng thao tác nguyên tử
+  - Giới hạn của dấu thời gian khi dùng thay số phiên bản
+  - Phân biệt phát hiện dữ liệu cũ với tự động giải quyết xung đột
+  - Xử lý xóa đồng thời và cập nhật sau khi đối tượng đã bị xóa
+  - Khóa lạc quan trên một hàng và bất biến nhiều hàng
+  - Vấn đề ABA khi trạng thái quay lại giá trị cũ
+  - Chọn khóa lạc quan hay bi quan theo mức tranh chấp
+- level1: Chỉ mục và khoảng khóa
+  level2:
+  - Điều kiện truy vấn và đường truy cập quyết định tập dữ liệu được chạm tới
+  - Khóa hàng hiện có và bảo vệ khoảng giá trị chưa có hàng
+  - 'Khóa khoảng, gap lock, next-key lock và predicate lock: phân biệt mục tiêu'
+  - Truy vấn bằng khóa duy nhất và điều kiện trên khoảng
+  - Chèn đồng thời vào khoảng đang được bảo vệ
+  - Chỉ mục phụ, tra cứu về hàng gốc và thứ tự lấy khóa
+  - Thiếu chỉ mục hoặc kế hoạch thực thi thay đổi làm tăng tranh chấp
+  - ORDER BY, LIMIT và phạm vi khóa cần kiểm chứng thực tế
+  - Tác động của kiểu dữ liệu, biểu thức và tính khả dụng của chỉ mục
+  - Thiết kế chỉ mục để giảm thời gian giữ khóa mà vẫn bảo vệ bất biến
+- level1: Ràng buộc dữ liệu
+  level2:
+  - Ưu tiên ràng buộc cơ sở dữ liệu cho bất biến có thể biểu diễn trực tiếp
+  - UNIQUE và tranh chấp chèn cùng khóa nghiệp vụ
+  - PRIMARY KEY, NOT NULL và CHECK trong thiết kế giao dịch
+  - Khóa ngoại khi hàng cha bị cập nhật hoặc xóa đồng thời
+  - Kiểm tra ràng buộc tức thời và ràng buộc trì hoãn
+  - Giới hạn của CHECK đối với bất biến liên quan nhiều hàng
+  - UPSERT nguyên tử và các điểm phụ thuộc cú pháp của hệ quản trị
+  - Phân biệt UPSERT với chuỗi SELECT rồi INSERT hoặc UPDATE
+  - Trigger và các truy cập dữ liệu bổ sung trong giao dịch
+  - Sequence, cột tự tăng và lý do không nên suy luận thứ tự COMMIT từ mã sinh
+  - Chuyển lỗi ràng buộc thành kết quả nghiệp vụ rõ ràng
+- level1: Bế tắc và chờ khóa
+  level2:
+  - Phân biệt chặn do khóa, bế tắc và giao dịch chạy chậm
+  - Đồ thị chờ và chu trình phụ thuộc giữa các giao dịch
+  - Bế tắc do lấy khóa theo thứ tự khác nhau
+  - Bế tắc do nâng cấp khóa hoặc tương tác chỉ mục
+  - Cơ chế phát hiện, chọn giao dịch nạn nhân và hủy bỏ
+  - Thứ tự lấy khóa nhất quán để giảm nguy cơ bế tắc
+  - Chia nhỏ lô xử lý và rút ngắn vùng giữ khóa
+  - Phân biệt thời hạn chờ khóa, thời hạn câu lệnh và thời hạn giao dịch
+  - Đói tài nguyên (starvation), livelock và tính công bằng
+  - Đọc bằng chứng bế tắc để xác định câu lệnh và tài nguyên liên quan
+- level1: Lỗi và thực thi lại
+  level2:
+  - Phân loại lỗi nghiệp vụ, lỗi ràng buộc và lỗi đồng thời tạm thời
+  - Nhận diện lỗi bế tắc hoặc tuần tự hóa bằng mã lỗi của hệ quản trị
+  - Vì sao thường phải thực thi lại toàn bộ giao dịch
+  - Tạo giao dịch mới và đọc lại dữ liệu trước mỗi lần thử
+  - Lùi thời gian theo cấp số nhân và thêm độ lệch ngẫu nhiên
+  - Giới hạn số lần thử và ngân sách thời gian tổng
+  - Bảo đảm kết quả không bị lặp khi thao tác được thực thi lại
+  - Mất kết nối khi COMMIT và trạng thái kết quả chưa xác định
+  - Hủy yêu cầu, hủy câu lệnh và xác minh giao dịch đã kết thúc
+  - Ghi nhận số lần thử, nguyên nhân thất bại và kết quả cuối
+  - Tránh bão thực thi lại khi nhiều yêu cầu tranh chấp cùng tài nguyên
+- level1: Bất biến nghiệp vụ
+  level2:
+  - Viết bất biến dữ liệu trước khi chọn cơ chế đồng thời
+  - 'Chuyển tiền: tổng số dư, thứ tự khóa và ranh giới giao dịch'
+  - Trừ tồn kho bằng UPDATE có điều kiện để tránh bán vượt số lượng
+  - Đặt chỗ có giới hạn và tranh chấp trên tài nguyên dùng chung
+  - Lịch trực và lựa chọn bảo vệ bất biến tồn tại ít nhất một người
+  - Tính duy nhất theo quy tắc nghiệp vụ và xử lý yêu cầu trùng
+  - Bộ đếm, số thứ tự và các điểm nóng ghi dữ liệu
+  - Trạng thái đơn hàng và chuyển trạng thái nguyên tử có điều kiện
+  - Bất biến trên quan hệ cha–con khi thêm hoặc xóa đồng thời
+  - So sánh khóa, kiểm tra phiên bản, ràng buộc và SERIALIZABLE cho cùng bài toán
+- level1: Hàng đợi và tính lũy đẳng
+  level2:
+  - Nhận công việc trong cơ sở dữ liệu mà không giao trùng đồng thời
+  - Chọn và đánh dấu công việc trong cùng giao dịch
+  - SKIP LOCKED, tính công bằng và nguy cơ công việc bị bỏ qua lâu
+  - Quyền xử lý có thời hạn (lease) và thu hồi công việc sau sự cố
+  - Fencing token để ngăn tiến trình cũ tiếp tục ghi kết quả
+  - Khóa lũy đẳng (idempotency key) và ràng buộc duy nhất
+  - Lưu kết quả xử lý để phản hồi lại yêu cầu trùng
+  - Phân biệt giao nhận ít nhất một lần với hiệu ứng nghiệp vụ không bị lặp
+  - Giới hạn của tuyên bố xử lý đúng một lần khi có hệ thống bên ngoài
+- level1: Tích hợp ứng dụng
+  level2:
+  - Đặt ranh giới giao dịch theo một đơn vị công việc nghiệp vụ
+  - Vòng đời kết nối và quyền sở hữu giao dịch trong ứng dụng
+  - Connection pool và nguy cơ rò trạng thái autocommit hoặc mức cô lập
+  - Ngữ cảnh giao dịch khi đổi luồng, chạy bất đồng bộ hoặc dùng luồng phản ứng
+  - Phân biệt giao dịch độc lập, tham gia giao dịch và SAVEPOINT
+  - 'ORM: flush, COMMIT và thời điểm câu lệnh SQL thực sự chạy'
+  - Bộ nhớ đối tượng của ORM và dữ liệu đã thay đổi ở giao dịch khác
+  - Khóa lạc quan của ORM và các cập nhật SQL bỏ qua kiểm tra phiên bản
+  - Thứ tự cập nhật hàng do ORM phát sinh và ảnh hưởng đến bế tắc
+  - Phân biệt timeout của ứng dụng với việc kết thúc giao dịch tại máy chủ
+  - Kiểm thử ranh giới giao dịch thay vì suy luận từ tên phương thức
+- level1: Tác động ngoài giao dịch
+  level2:
+  - Giới hạn nguyên tử khi kết hợp cơ sở dữ liệu với HTTP, email hoặc tệp
+  - Rủi ro gọi dịch vụ ngoài trước hoặc sau COMMIT
+  - Ghi sự kiện cùng dữ liệu nghiệp vụ bằng transactional outbox
+  - Chuyển sự kiện từ outbox và xử lý giao nhận lặp
+  - Inbox và nhận diện sự kiện đã xử lý ở phía tiêu thụ
+  - Bộ nhớ đệm và thời điểm cập nhật hoặc vô hiệu hóa sau COMMIT
+  - Khi nào cần giao dịch phân tán hoặc thao tác bù
+  - Phạm vi của giao dịch cục bộ khi đọc qua bản sao
+  - Phân biệt lỗi điều khiển đồng thời trong một cơ sở dữ liệu với lỗi phối hợp liên hệ thống
+- level1: Khác biệt hệ quản trị
+  level2:
+  - Lập ma trận bảo đảm theo phiên bản, storage engine và cấu hình thực tế
+  - 'PostgreSQL: MVCC, ảnh chụp và các mức cô lập'
+  - 'PostgreSQL: khóa hàng, khóa tư vấn và SERIALIZABLE với SSI'
+  - 'PostgreSQL: giao dịch kéo dài, VACUUM và phiên bản dữ liệu cũ'
+  - 'MySQL InnoDB: consistent read và locking read'
+  - 'MySQL InnoDB: record lock, gap lock và next-key lock'
+  - 'MySQL InnoDB: ảnh hưởng của mức cô lập, chỉ mục và autocommit'
+  - 'SQL Server: đọc có khóa, READ_COMMITTED_SNAPSHOT và SNAPSHOT'
+  - 'SQL Server: khóa cập nhật, gộp khóa và row versioning'
+  - 'Oracle: nhất quán khi đọc, undo và các lựa chọn cô lập'
+  - 'SQLite: chế độ journal, WAL và mô hình đồng thời giữa đọc với ghi'
+  - Đối chiếu DDL, SAVEPOINT và trạng thái giao dịch sau lỗi
+  - Đối chiếu cú pháp khóa, mã lỗi và yêu cầu thực thi lại
+  - Những giả định dễ hỏng khi chuyển ứng dụng sang hệ quản trị khác
+- level1: Thực nghiệm hai phiên
+  level2:
+  - Thiết kế dữ liệu mẫu, trạng thái ban đầu và kết quả mong đợi
+  - Điều khiển thứ tự thao tác của hai phiên bằng mốc đồng bộ
+  - Tái hiện đọc bẩn, đọc không lặp lại và bóng ma khi hệ quản trị cho phép
+  - Tái hiện mất cập nhật bằng chuỗi đọc–tính toán–ghi
+  - Tái hiện ghi lệch trên bất biến nhiều hàng
+  - Quan sát đọc ảnh chụp trong lúc phiên khác đang cập nhật
+  - Đối chiếu SELECT thường với SELECT kèm khóa
+  - Tạo bế tắc có kiểm soát bằng thứ tự khóa đảo ngược
+  - Thử cùng một lịch thực thi dưới các mức cô lập
+  - Kiểm chứng khóa trên hàng chưa tồn tại và điều kiện khoảng
+  - Kiểm chứng hành vi sau lỗi, SAVEPOINT và ROLLBACK
+  - Lưu lịch thực thi, cấu hình và bằng chứng dữ liệu để tái lập
+- level1: Kiểm thử đồng thời
+  level2:
+  - Chọn bất biến và tập tình huống cạnh tranh cần kiểm thử
+  - Dùng nhiều kết nối thật thay vì mô phỏng nhiều luồng trên một giao dịch
+  - Barrier và latch để đồng bộ kiểm thử thay vì dựa vào thời gian ngủ
+  - Kiểm thử kết quả cuối, kết quả từng yêu cầu và số giao dịch xác nhận
+  - Kiểm thử thực thi lại sau bế tắc hoặc lỗi tuần tự hóa
+  - Kiểm thử yêu cầu trùng và tính lũy đẳng
+  - Tiêm lỗi mất kết nối quanh thời điểm COMMIT
+  - Kiểm thử worker hết thời hạn xử lý và quay lại sau khi mất quyền
+  - Kiểm thử tải tranh chấp cao với dữ liệu có điểm nóng
+  - Giảm lịch thực thi lỗi thành ca kiểm thử tối thiểu
+  - Giới hạn của kiểm thử ngẫu nhiên và kiểm chứng theo một số lần chạy
+  - Ngăn kiểm thử không ổn định bằng timeout, dọn dữ liệu và ranh giới giao dịch rõ ràng
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Thu thập phiên, giao dịch đang mở và tuổi của giao dịch
+  - Xác định phiên giữ khóa và chuỗi phiên đang chờ
+  - Đọc đồ thị bế tắc và lịch sử giao dịch bị hủy
+  - Phân tích wait event, lock wait và thời gian thực thi câu lệnh
+  - Liên kết mã yêu cầu ứng dụng với kết nối và giao dịch cơ sở dữ liệu
+  - Theo dõi giao dịch không hoạt động nhưng vẫn đang mở
+  - Theo dõi phiên bản cũ, undo và áp lực thu gom dữ liệu
+  - Đo tỷ lệ bế tắc, lỗi tuần tự hóa và thực thi lại
+  - Phân biệt chờ khóa với thiếu kết nối, CPU hoặc I/O
+  - Thu thập kế hoạch thực thi và tham số liên quan đến tranh chấp
+  - Quy trình xử lý sự cố từ bằng chứng đến nguyên nhân và xác minh bản sửa
+- level1: Hiệu năng đồng thời
+  level2:
+  - Đo thông lượng, độ trễ và tỷ lệ giao dịch thành công
+  - Độ dài giao dịch và thời gian giữ khóa ảnh hưởng lẫn nhau
+  - Kích thước lô, tần suất COMMIT và thời gian chiếm tài nguyên
+  - Điểm nóng trên một hàng, một khóa duy nhất hoặc một khoảng chỉ mục
+  - Tăng số kết nối có thể làm tăng chờ và giảm thông lượng như thế nào
+  - Giới hạn mức đồng thời và tạo áp lực ngược (backpressure)
+  - Phân chia điểm tranh chấp và đánh đổi đối với bất biến nghiệp vụ
+  - Ảnh hưởng của giao dịch chỉ đọc kéo dài đến lưu giữ phiên bản
+  - Đánh giá chi phí giữa chặn trước, phát hiện xung đột và thực thi lại
+  - So sánh phương án bằng tải đại diện và cùng điều kiện đo
+  - Tránh tối ưu thông lượng bằng cách làm mất bảo đảm tính đúng đắn
+- level1: Mẫu sai thường gặp
+  level2:
+  - Đọc rồi cập nhật mà không bảo vệ dữ liệu đã đọc
+  - Kiểm tra không tồn tại rồi chèn nhưng thiếu ràng buộc duy nhất
+  - Cho rằng REPEATABLE READ có hành vi giống nhau trên mọi hệ quản trị
+  - Cho rằng snapshot isolation luôn bảo đảm khả tuần tự
+  - Dùng khóa trong bộ nhớ ứng dụng để bảo vệ nhiều tiến trình hoặc máy chủ
+  - Giữ giao dịch mở trong lúc gọi mạng hoặc chờ tương tác
+  - Thực thi lại một câu lệnh trong giao dịch đã lỗi
+  - Thực thi lại thao tác có tác động bên ngoài mà thiếu tính lũy đẳng
+  - Cho rằng rollback khôi phục mọi mã sinh và tác động ngoài cơ sở dữ liệu
+  - Dùng SKIP LOCKED cho truy vấn cần tập kết quả đầy đủ
+  - Bỏ qua khóa do chỉ mục, ràng buộc hoặc trigger tạo ra
+  - Kết luận không có lỗi đồng thời chỉ vì kiểm thử tải chưa gặp lỗi
+- level1: Bài tập tổng hợp
+  level2:
+  - Phân loại lịch thực thi và chỉ ra bất thường có thể xảy ra
+  - Chọn cơ chế bảo vệ cho từng bất biến từ đơn giản đến nhiều hàng
+  - Sửa lỗi mất cập nhật bằng cập nhật nguyên tử và kiểm tra phiên bản
+  - Thiết kế chuyển tiền có thứ tự khóa và khả năng thực thi lại
+  - Thiết kế đặt chỗ không vượt số lượng dưới tải cạnh tranh
+  - Sửa ghi lệch bằng khóa tường minh hoặc cơ chế khả tuần tự
+  - Xây dựng hàng đợi cơ sở dữ liệu có quyền xử lý và nhận diện yêu cầu trùng
+  - Tái hiện, chẩn đoán và khắc phục một bế tắc
+  - So sánh cùng bài toán trên hai hệ quản trị với cấu hình được ghi rõ
+  - Viết báo cáo bằng chứng về tính đúng đắn, hiệu năng và giới hạn
+  - Rà soát thiết kế giao dịch trước khi đưa vào vận hành

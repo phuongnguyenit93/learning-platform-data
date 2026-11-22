@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình ngữ cảnh
+  slug: context-model
+  index: 1
+- title: Phạm vi và vòng đời
+  slug: scope-lifecycle
+  index: 2
+- title: Quan hệ trace
+  slug: trace-relationships
+  index: 3
+- title: Traceparent
+  slug: traceparent
+  index: 4
+- title: Tracestate
+  slug: tracestate
+  index: 5
+- title: Baggage
+  slug: baggage
+  index: 6
+- title: Inject và extract
+  slug: inject-extract
+  index: 7
+- title: Luồng HTTP
+  slug: http-flows
+  index: 8
+- title: RPC và kết nối dài
+  slug: rpc-long-lived-connections
+  index: 9
+- title: ThreadLocal
+  slug: threadlocal
+  index: 10
+- title: Executor
+  slug: executors
+  index: 11
+- title: CompletableFuture
+  slug: completablefuture
+  index: 12
+- title: Luồng ảo
+  slug: virtual-threads
+  index: 13
+- title: OpenTelemetry Java
+  slug: opentelemetry-java
+  index: 14
+- title: MDC và logging
+  slug: mdc-logging
+  index: 15
+- title: Micrometer
+  slug: micrometer
+  index: 16
+- title: Reactor Context
+  slug: reactor-context
+  index: 17
+- title: Cầu nối reactive
+  slug: reactive-bridges
+  index: 18
+- title: Spring MVC
+  slug: spring-mvc
+  index: 19
+- title: Spring WebFlux
+  slug: spring-webflux
+  index: 20
+- title: Messaging
+  slug: messaging
+  index: 21
+- title: Tác vụ nền
+  slug: background-tasks
+  index: 22
+- title: Tương thích và lấy mẫu
+  slug: compatibility-sampling
+  index: 23
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 24
+- title: Hiệu năng và vòng đời
+  slug: performance-lifecycle
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Chẩn đoán
+  slug: troubleshooting
+  index: 27
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 28

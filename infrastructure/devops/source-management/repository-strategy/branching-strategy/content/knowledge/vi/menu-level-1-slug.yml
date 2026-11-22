@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng Git
+  slug: git-fundamentals
+  index: 1
+- title: Yêu cầu và ràng buộc
+  slug: requirements-and-constraints
+  index: 2
+- title: Vòng đời nhánh
+  slug: branch-lifecycle
+  index: 3
+- title: Cách hợp nhất
+  slug: merge-strategies
+  index: 4
+- title: GitHub flow
+  slug: github-flow
+  index: 5
+- title: Trunk-based development
+  slug: trunk-based-development
+  index: 6
+- title: Gitflow
+  slug: gitflow
+  index: 7
+- title: Các biến thể
+  slug: strategy-variants
+  index: 8
+- title: Lựa chọn chiến lược
+  slug: strategy-selection
+  index: 9
+- title: Phân rã thay đổi
+  slug: change-decomposition
+  index: 10
+- title: Pull request và thẩm định
+  slug: pull-request-review
+  index: 11
+- title: Đồng bộ nhánh
+  slug: branch-synchronization
+  index: 12
+- title: Xung đột tích hợp
+  slug: integration-conflicts
+  index: 13
+- title: CI và kiểm chứng
+  slug: ci-and-verification
+  index: 14
+- title: Bảo vệ nhánh
+  slug: branch-protection
+  index: 15
+- title: Phát hành và môi trường
+  slug: release-and-environments
+  index: 16
+- title: Hotfix và bảo trì
+  slug: hotfixes-and-maintenance
+  index: 17
+- title: Hoàn tác và phục hồi
+  slug: revert-and-recovery
+  index: 18
+- title: Nhóm và kho mã
+  slug: teams-and-repositories
+  index: 19
+- title: Vận hành quy trình
+  slug: workflow-operations
+  index: 20
+- title: Chuyển đổi chiến lược
+  slug: strategy-migration
+  index: 21
+- title: Tình huống Java
+  slug: java-scenario
+  index: 22
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 23
+- title: Thực hành
+  slug: practice
+  index: 24

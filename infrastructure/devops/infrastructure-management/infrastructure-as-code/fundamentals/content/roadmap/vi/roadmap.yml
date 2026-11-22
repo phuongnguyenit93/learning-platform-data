@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-iac
+  title: Tổng quan IaC
+  purpose: Hiểu lợi ích của việc quản lý hạ tầng bằng mã nguồn thay vì thao tác thủ công.
+  objectives:
+  - Giải thích IaC, tính lặp lại và khả năng kiểm soát phiên bản.
+  - Nhận diện các tài nguyên có thể quản lý bằng IaC.
+- id: cau-hinh-khai-bao
+  title: Cấu hình khai báo
+  purpose: Biết biểu diễn trạng thái mong muốn và phân biệt cách khai báo với kịch bản lệnh.
+  objectives:
+  - So sánh mô hình declarative và imperative.
+  - Giải thích vì sao chạy lại cấu hình không nên tạo thay đổi ngoài dự kiến.
+- id: tai-nguyen-phu-thuoc
+  title: Tài nguyên & phụ thuộc
+  purpose: Hiểu cách công cụ IaC xác định đối tượng quản lý và thứ tự triển khai.
+  objectives:
+  - Mô tả resource, thuộc tính và quan hệ phụ thuộc.
+  - Vẽ đồ thị phụ thuộc của một hạ tầng nhỏ.
+- id: vong-doi-trien-khai
+  title: Vòng đời triển khai
+  purpose: Thực hành quy trình thay đổi có kiểm tra trước khi tác động lên hạ tầng.
+  objectives:
+  - Đọc kế hoạch tạo, cập nhật, xóa hoặc thay thế tài nguyên.
+  - Mô tả bước kiểm tra, phê duyệt, áp dụng và thu hồi.
+- id: state-drift
+  title: State & Drift
+  purpose: Theo dõi sự khác biệt giữa cấu hình và tài nguyên thực tế một cách an toàn.
+  objectives:
+  - Giải thích state và mục đích phát hiện drift.
+  - Đề xuất cách đối chiếu và xử lý thay đổi ngoài quy trình.
+- id: tai-su-dung-moi-truong
+  title: Tái sử dụng & Môi trường
+  purpose: Giảm lặp cấu hình và quản lý khác biệt giữa các môi trường.
+  objectives:
+  - Dùng biến, module hoặc template để tái sử dụng định nghĩa.
+  - Phân tách cấu hình và dữ liệu của dev, staging, production.
+- id: bao-mat-quyen-truy-cap
+  title: Bảo mật & Quyền truy cập
+  purpose: Bảo vệ thông tin nhạy cảm và hạn chế tác động ngoài ý muốn khi tự động hóa.
+  objectives:
+  - Nhận diện secret có thể xuất hiện trong cấu hình, state hay plan.
+  - Áp dụng quyền tối thiểu và nơi lưu state an toàn.
+- id: git-ci-cd-cho-iac
+  title: Git & CI/CD cho IaC
+  purpose: Đưa thay đổi hạ tầng vào quy trình review, kiểm tra tự động và triển khai có kiểm soát.
+  objectives:
+  - Tạo luồng pull request với validate, plan và review.
+  - Đề xuất bước phê duyệt, áp dụng và kiểm tra drift định kỳ.

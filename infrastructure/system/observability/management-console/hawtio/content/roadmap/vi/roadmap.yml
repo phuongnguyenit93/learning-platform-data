@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-kien-truc-hawtio
+  title: Vai trò & kiến trúc Hawtio
+  purpose: Hiểu Hawtio quản lý ứng dụng Java qua giao diện web và dữ liệu JMX.
+  objectives:
+  - Nêu vai trò của Hawtio và các plugin.
+  - Phân biệt JMX, MBean và Jolokia.
+  - Mô tả luồng từ console đến JVM.
+- id: cai-dat-tich-hop
+  title: Cài đặt & tích hợp
+  purpose: Biết cách chạy Hawtio phù hợp với môi trường ứng dụng.
+  objectives:
+  - Khởi chạy Hawtio bằng CLI/JBang.
+  - Nêu cách tích hợp Spring Boot hoặc Quarkus.
+  - Xác định URL console và endpoint cần bật.
+- id: ket-noi-jvm
+  title: Kết nối JVM
+  purpose: Thiết lập và kiểm tra kết nối đến JVM cần quản lý.
+  objectives:
+  - Kết nối JVM cục bộ hoặc từ xa qua Jolokia.
+  - Kiểm tra endpoint, quyền truy cập và trạng thái kết nối.
+  - Nhận diện lỗi kết nối thường gặp.
+- id: kham-pha-jmx-mbeans
+  title: Khám phá JMX MBeans
+  purpose: Đọc và thao tác thông tin quản lý được ứng dụng công bố.
+  objectives:
+  - Duyệt domain, MBean và thuộc tính.
+  - Đọc giá trị và tạo biểu đồ theo dõi.
+  - Phân biệt thao tác đọc với lệnh thay đổi trạng thái.
+- id: quan-sat-runtime
+  title: Quan sát Runtime
+  purpose: Theo dõi trạng thái tiến trình Java ngay trên console.
+  objectives:
+  - Đọc thông tin luồng, bộ nhớ và chỉ số JVM.
+  - Nhận diện biến động bất thường từ biểu đồ.
+  - Liên hệ chỉ số với triệu chứng ứng dụng.
+- id: plugin-ung-dung
+  title: Plugin ứng dụng
+  purpose: Khai thác đúng tính năng theo công nghệ đang chạy.
+  objectives:
+  - Nhận diện plugin JMX, Logs và Spring Boot.
+  - Khám phá Camel hoặc Quartz khi có thành phần hỗ trợ.
+  - Giải thích vì sao một tab plugin có thể không xuất hiện.
+- id: cau-hinh-bao-mat
+  title: Cấu hình & bảo mật
+  purpose: Giới hạn phạm vi truy cập và cấu hình console an toàn.
+  objectives:
+  - Phân biệt cấu hình server với hawtconfig.json.
+  - Giới hạn MBean và remote host được phép kết nối.
+  - Kiểm tra xác thực, vai trò và HTTPS.
+- id: chan-doan-thuc-hanh
+  title: Chẩn đoán thực hành
+  purpose: Kết hợp thông tin Hawtio để khoanh vùng sự cố vận hành.
+  objectives:
+  - Chọn chỉ số và MBean theo triệu chứng.
+  - Đối chiếu Runtime, JMX và log khả dụng.
+  - Ghi nhận phát hiện trước và sau điều chỉnh.

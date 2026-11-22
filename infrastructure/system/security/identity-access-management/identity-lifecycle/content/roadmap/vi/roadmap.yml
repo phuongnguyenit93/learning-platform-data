@@ -1,0 +1,49 @@
+roadmap:
+- id: identity-lifecycle-jml
+  title: Identity Lifecycle & JML
+  purpose: Nắm các giai đoạn tạo, thay đổi và chấm dứt quyền truy cập của một danh tính.
+  objectives:
+  - '- Phân biệt Joiner, Mover, Leaver và trạng thái tài khoản.'
+  - '- Liệt kê sự kiện kích hoạt quy trình cấp hoặc thu hồi quyền.'
+- id: nguon-danh-tinh-owner
+  title: Nguồn danh tính & Owner
+  purpose: Đảm bảo mỗi danh tính có nguồn dữ liệu, người chịu trách nhiệm và thuộc tính đáng tin cậy.
+  objectives:
+  - '- Xác định nguồn HR/IdP, định danh duy nhất và thuộc tính chuẩn.'
+  - '- Gắn owner, phân loại employee, contractor và service identity.'
+- id: joiner-onboarding
+  title: 'Joiner: Onboarding'
+  purpose: Cấp tài khoản, phương thức đăng nhập và quyền ban đầu đúng nhu cầu công việc.
+  objectives:
+  - '- Thiết kế luồng tạo account từ yêu cầu hợp lệ.'
+  - '- Cấp nhóm/role tối thiểu và kích hoạt MFA khi phù hợp.'
+- id: mover-role-changes
+  title: 'Mover: Role Changes'
+  purpose: Cập nhật quyền khi chuyển nhóm hoặc nhiệm vụ mà không giữ lại đặc quyền cũ.
+  objectives:
+  - '- Xác định nhóm/role cần cấp thêm hoặc gỡ bỏ khi chuyển vị trí.'
+  - '- Tạo quy trình phê duyệt và kiểm tra quyền còn hiệu lực.'
+- id: provisioning-scim
+  title: Provisioning & SCIM
+  purpose: Tự động đồng bộ tài khoản đến ứng dụng đích và giảm sai lệch giữa các hệ thống.
+  objectives:
+  - '- Mô tả SCIM create, update, deactivate cho user/group.'
+  - '- Kiểm tra attribute mapping, lỗi đồng bộ và tái thử an toàn.'
+- id: access-review-expiry
+  title: Access Review & Expiry
+  purpose: Xác nhận định kỳ rằng người dùng vẫn cần quyền đang có và giới hạn quyền tạm thời.
+  objectives:
+  - '- Thiết kế access review với owner, reviewer và thời hạn.'
+  - '- Thu hồi quyền không được xác nhận hoặc đã hết hạn.'
+- id: leaver-offboarding
+  title: 'Leaver: Offboarding'
+  purpose: Ngăn truy cập trái phép ngay khi một danh tính kết thúc quan hệ công việc.
+  objectives:
+  - '- Vô hiệu hóa account và thu hồi session, token, credential phù hợp.'
+  - '- Gỡ quyền ở ứng dụng đích; phân biệt disable và delete.'
+- id: audit-reconciliation
+  title: Audit & Reconciliation
+  purpose: Giữ quy trình vòng đời có thể truy vết và phát hiện tài khoản hoặc quyền còn sót.
+  objectives:
+  - '- Đối soát HR/IdP với ứng dụng đích để tìm orphaned accounts.'
+  - '- Theo dõi log cấp/đổi/thu hồi quyền và thời gian xử lý.'

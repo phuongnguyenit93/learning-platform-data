@@ -1,0 +1,2713 @@
+menu:
+- slug: diagnostic-orientation
+  title: Định hướng chẩn đoán
+  childs:
+  - slug: diagnostic-orientation-001
+    title: Chẩn đoán hệ thống là gì và khác gì với giám sát hoặc sửa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-002
+    title: Quan hệ giữa khả năng quan sát, tín hiệu, triệu chứng và giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-003
+    title: Vai trò của metrics, logs, traces, profiles và bản chụp trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-004
+    title: Phân biệt phát hiện, khoanh vùng, xác định nguyên nhân và khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-005
+    title: 'Các lớp điều tra: nghiệp vụ, ứng dụng, JVM, hệ điều hành và hạ tầng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-006
+    title: Hiểu luồng yêu cầu và các phụ thuộc trước khi chọn công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-007
+    title: Lựa chọn bằng chứng theo câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-orientation-008
+    title: Trình tự học và các kỹ năng nền tảng cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: investigative-mindset
+  title: Tư duy điều tra
+  childs:
+  - slug: investigative-mindset-001
+    title: Phân biệt triệu chứng, nguyên nhân trực tiếp và yếu tố góp phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-002
+    title: Xây dựng giả thuyết có dự đoán và điều kiện bác bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-003
+    title: Phân biệt tương quan theo thời gian với quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-004
+    title: So sánh trạng thái bất thường với đường cơ sở bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-005
+    title: Chia nhỏ không gian điều tra theo thời gian, dịch vụ và nhóm yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-006
+    title: Tìm thay đổi gần thời điểm sự cố mà không mặc định thay đổi đó là nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-007
+    title: Tránh thiên kiến xác nhận, kết luận vội và suy diễn từ một mẫu đơn lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: investigative-mindset-008
+    title: Chọn bước kiểm tra tiếp theo theo giá trị thông tin và chi phí thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-workflow
+  title: Quy trình chẩn đoán
+  childs:
+  - slug: diagnostic-workflow-001
+    title: Tiếp nhận cảnh báo và xác minh vấn đề thực sự đang xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-002
+    title: Xác định phạm vi ảnh hưởng, mức độ nghiêm trọng và mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-003
+    title: Lập dòng thời gian gồm triệu chứng, thay đổi và hành động xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-004
+    title: Khoanh vùng theo từ ngoài vào trong hoặc lần theo một yêu cầu cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-005
+    title: Ưu tiên khôi phục khi tác động người dùng đang tiếp diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-006
+    title: Thu thập bằng chứng trước các thao tác có thể làm mất trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-007
+    title: Thực hiện một thay đổi có kiểm soát và đánh giá kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-workflow-008
+    title: Ghi lại điều đã biết, điều chưa biết và tiêu chí chuyển bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-readiness
+  title: Chuẩn bị quan sát
+  childs:
+  - slug: observability-readiness-001
+    title: Lập bản đồ dịch vụ, phụ thuộc, chủ sở hữu và đường đi của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-002
+    title: Thiết kế tín hiệu cho lưu lượng, lỗi, độ trễ và mức bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-003
+    title: Chuẩn bị thông tin phiên bản, môi trường, triển khai và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-004
+    title: Thiết kế log có cấu trúc và mã sự kiện phục vụ điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-005
+    title: Thiết lập liên kết log–trace–metric bằng ngữ cảnh nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-006
+    title: Chuẩn bị đường cơ sở, dashboard và truy vấn cho tình huống thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-007
+    title: Chuẩn bị công cụ, quyền truy cập và nơi lưu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-readiness-008
+    title: Kiểm tra khả năng chẩn đoán khi một phần hệ thống quan sát gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evidence-quality
+  title: Chất lượng bằng chứng
+  childs:
+  - slug: evidence-quality-001
+    title: Kiểm tra dấu thời gian, múi giờ và độ lệch đồng hồ giữa các nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-002
+    title: Phân biệt thời điểm phát sinh, thu thập và hiển thị dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-003
+    title: Nhận diện độ trễ nhập liệu, dữ liệu đến muộn và khoảng trống telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-004
+    title: Đánh giá ảnh hưởng của lấy mẫu, tổng hợp và chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-005
+    title: Phân biệt thiếu dữ liệu với giá trị bằng không hoặc hệ thống không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-006
+    title: Kiểm tra độ đầy đủ của ngữ cảnh, định danh và phạm vi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-007
+    title: Đối chiếu nhiều nguồn bằng chứng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-quality-008
+    title: Ghi nhận mức chắc chắn, giới hạn quan sát và giả thuyết còn bỏ ngỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-analysis
+  title: Phân tích metrics
+  childs:
+  - slug: metrics-analysis-001
+    title: Chọn metric theo triệu chứng và câu hỏi chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-002
+    title: Đọc counter, gauge, histogram và đơn vị đo đúng ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-003
+    title: Phân tích tốc độ biến thiên, counter reset và cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-004
+    title: So sánh trung bình với phân bố và các phân vị độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-005
+    title: Tránh cộng hoặc lấy trung bình các phân vị theo cách không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-006
+    title: Khoanh vùng theo phiên bản, vùng triển khai, instance và nhóm kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-007
+    title: Nhận diện điểm nóng bị che khuất bởi số liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-008
+    title: Áp dụng RED và USE để kiểm tra dịch vụ và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-009
+    title: Phân biệt biến động lưu lượng với suy giảm hiệu năng thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-analysis-010
+    title: Kiểm tra ảnh hưởng của cardinality, độ phân giải và cách thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-analysis
+  title: Phân tích logs
+  childs:
+  - slug: log-analysis-001
+    title: Tìm sự kiện liên quan bằng thời gian, dịch vụ và mã tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-002
+    title: Đọc stack trace, chuỗi nguyên nhân và vị trí lỗi đầu tiên có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-003
+    title: Phân biệt lỗi gốc với lỗi dây chuyền hoặc lỗi trong quá trình xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-004
+    title: Nhóm lỗi theo mẫu thông điệp và dấu vết ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-005
+    title: Đối chiếu log ứng dụng, access log và log hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-006
+    title: Phân tích log nhiều dòng, bản ghi trùng và các lần thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-007
+    title: Phát hiện ngữ cảnh bị thiếu hoặc MDC không được truyền qua tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-008
+    title: Tăng mức log có phạm vi, thời hạn và giới hạn lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-009
+    title: Tránh kết luận chỉ từ số lượng log ERROR hoặc việc không có stack trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-analysis
+  title: Phân tích traces
+  childs:
+  - slug: trace-analysis-001
+    title: Đọc quan hệ cha–con, span liên kết và đường đi của một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-002
+    title: Phân tích biểu đồ thác nước và chuỗi tác vụ quyết định thời gian hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-003
+    title: Phân biệt thời gian của span với thời gian tự xử lý khi có span con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-004
+    title: Nhận diện lời gọi nối tiếp, song song và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-005
+    title: Khoanh vùng dịch vụ chậm bằng thuộc tính, sự kiện và trạng thái span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-006
+    title: Điều tra lỗi khi ngữ cảnh trace bị mất qua HTTP, hàng đợi hoặc luồng bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-007
+    title: Nhận diện span thiếu, span mồ côi và giới hạn của lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-008
+    title: Đối chiếu trace bất thường với trace bình thường có cùng đặc điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-009
+    title: Liên kết trace với log, exemplar và thay đổi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-010
+    title: Tránh cộng thời gian span chồng lấn hoặc suy diễn thời gian mạng từ dấu thời gian chưa đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: profiling
+  title: Profiling
+  childs:
+  - slug: profiling-001
+    title: Profiling trả lời được câu hỏi nào mà log và metric chưa giải thích được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-002
+    title: Phân biệt lấy mẫu CPU, thời gian thực trôi qua, cấp phát bộ nhớ và tranh chấp khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-003
+    title: Đọc cây lời gọi, flame graph và mức độ đóng góp của một nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-004
+    title: Phân biệt thời gian bao gồm lời gọi con với thời gian riêng của hàm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-005
+    title: Chọn cửa sổ ghi nhận và tải đại diện cho triệu chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-006
+    title: So sánh profile trước và sau thay đổi hoặc giữa hai nhóm instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-007
+    title: Đánh giá sai lệch lấy mẫu và chi phí do công cụ tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: profiling-008
+    title: Đối chiếu điểm nóng trong profile với trace và số liệu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-tools
+  title: Công cụ JVM
+  childs:
+  - slug: jvm-tools-001
+    title: Chọn công cụ theo triệu chứng, loại JVM và phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-002
+    title: Xác định đúng tiến trình, thông tin JVM và tham số khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-003
+    title: Dùng jcmd và trợ giúp của từng lệnh để chọn dữ liệu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-004
+    title: Thu thập thread dump, heap histogram và heap dump theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-005
+    title: Ghi và phân tích Java Flight Recorder bằng JFR và JDK Mission Control
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-006
+    title: Phân tích bộ nhớ ngoài heap bằng Native Memory Tracking khi đã được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-007
+    title: Phân biệt snapshot, dữ liệu theo thời gian và thời điểm cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-008
+    title: Đánh giá quyền attach, giới hạn môi trường và tác động của từng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tools-009
+    title: Rà soát tệp hs_err, core dump và dữ liệu khi JVM thoát bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threads-and-synchronization
+  title: Luồng và đồng bộ
+  childs:
+  - slug: threads-and-synchronization-001
+    title: Đọc trạng thái RUNNABLE, BLOCKED, WAITING và TIMED_WAITING trong ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-002
+    title: Đối chiếu nhiều thread dump để phân biệt trạng thái nhất thời với kẹt kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-003
+    title: Xác định luồng dùng CPU cao và liên kết với stack trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-004
+    title: Nhận diện deadlock, tranh chấp khóa và thời gian giữ khóa dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-005
+    title: Phân biệt livelock, starvation và thiếu luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-006
+    title: Chẩn đoán tác vụ chờ điều kiện, chờ I/O hoặc chờ tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-007
+    title: Điều tra tác vụ bị treo do bỏ lỡ tín hiệu, chờ Future hoặc khóa lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-008
+    title: Chọn dữ liệu chẩn đoán cho virtual thread và kiểm tra giới hạn theo phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-synchronization-009
+    title: Phân biệt blocking, pinning và thiếu tài nguyên khi sử dụng virtual thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-diagnostics
+  title: Bộ nhớ
+  childs:
+  - slug: memory-diagnostics-001
+    title: Phân biệt heap, metaspace, bộ nhớ trực tiếp, ngăn xếp luồng và bộ nhớ native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-002
+    title: Đọc heap usage, committed memory và RSS theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-003
+    title: Phân biệt rò rỉ bộ nhớ với tốc độ cấp phát cao hoặc bộ nhớ tăng tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-004
+    title: So sánh histogram để tìm loại đối tượng tăng bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-005
+    title: Phân tích heap dump bằng cây chi phối và đường tham chiếu đến GC root
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-006
+    title: Đối chiếu shallow size, retained size và vòng đời đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-007
+    title: Điều tra cache không giới hạn, collection giữ tham chiếu và ThreadLocal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-008
+    title: Phân biệt các dạng OutOfMemoryError với việc tiến trình bị hệ điều hành kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-009
+    title: Kiểm tra direct buffer, class loader và giới hạn quan sát của dữ liệu native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: garbage-collection
+  title: Thu gom rác
+  childs:
+  - slug: garbage-collection-001
+    title: Đọc GC log và liên kết với metric bộ nhớ, CPU và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-002
+    title: Phân biệt thời gian tạm dừng, công việc đồng thời và tần suất thu gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-003
+    title: Đánh giá tốc độ cấp phát, mức sống sót và lượng bộ nhớ sau thu gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-004
+    title: Nhận diện chu kỳ thu gom dày, thu gom kéo dài và áp lực bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-005
+    title: Phân biệt giới hạn heap không phù hợp với việc đối tượng bị giữ quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-006
+    title: Đối chiếu sự kiện safepoint và thời gian ngừng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-007
+    title: Kiểm tra tác động của CPU quota và tải container đối với hoạt động GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collection-008
+    title: Chọn hướng khắc phục từ bằng chứng thay vì thay collector hoặc tăng heap tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cpu-analysis
+  title: CPU và tính toán
+  childs:
+  - slug: cpu-analysis-001
+    title: Phân biệt CPU của tiến trình, của từng luồng và của toàn máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-002
+    title: Đối chiếu CPU user, system, iowait và thời gian bị giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-003
+    title: Nhận diện vòng lặp bận, tính toán nặng và xử lý dữ liệu dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-004
+    title: Phân tích chi phí tuần tự hóa, nén, regex và ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-005
+    title: Đối chiếu CPU profile với thông lượng và phân bố độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-006
+    title: Phân biệt CPU do ứng dụng, GC, JIT hoặc tác nhân giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-007
+    title: Điều tra tải tăng khi retry, polling hoặc cache mất hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-analysis-008
+    title: Xác minh nút thắt CPU bằng thay đổi có kiểm soát và tải tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: latency-and-throughput
+  title: Độ trễ và thông lượng
+  childs:
+  - slug: latency-and-throughput-001
+    title: Phân biệt độ trễ ở phía người dùng, gateway và từng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-002
+    title: Tách thời gian xếp hàng, xử lý, truy cập phụ thuộc và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-003
+    title: Phân tích độ trễ đuôi và nhóm yêu cầu chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-004
+    title: Đối chiếu lưu lượng, số yêu cầu đồng thời và thời gian đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-005
+    title: Nhận diện điểm bão hòa và quan hệ giữa hàng chờ với độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-006
+    title: Phân biệt tác vụ chậm do CPU với chờ I/O hoặc chờ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-007
+    title: Điều tra timeout theo ngân sách thời gian của toàn chuỗi gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-008
+    title: Kiểm tra ảnh hưởng của warm-up, tải lạnh và phân phối yêu cầu không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-throughput-009
+    title: Tránh sai lệch đo độ trễ do cách tạo tải và bỏ sót thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-and-availability
+  title: Lỗi và tính sẵn sàng
+  childs:
+  - slug: errors-and-availability-001
+    title: Phân loại lỗi theo nghiệp vụ, ứng dụng, phụ thuộc và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-002
+    title: Chọn mẫu số đúng khi tính tỷ lệ lỗi và so sánh các khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-003
+    title: Phân biệt kết quả lỗi, timeout, hủy tác vụ và ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-004
+    title: Điều tra lỗi ngắt quãng theo nhóm người dùng, vùng hoặc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-005
+    title: Nhận diện lỗi bị che bởi retry, fallback hoặc phản hồi thành công không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-006
+    title: Phân biệt ứng dụng còn sống với thực sự sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-007
+    title: Đối chiếu health check với giao dịch tổng hợp và trải nghiệm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-and-availability-008
+    title: Kiểm tra tác động của restart, failover và thay đổi định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-pools
+  title: Nhóm tài nguyên
+  childs:
+  - slug: resource-pools-001
+    title: Đọc số tác vụ đang chạy, số tài nguyên đang dùng và độ dài hàng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-002
+    title: Chẩn đoán thread pool hết chỗ và tác vụ bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-003
+    title: Chẩn đoán connection pool cạn, thời gian mượn dài và kết nối không được trả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-004
+    title: Phân biệt tăng kích thước pool với khắc phục phụ thuộc chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-005
+    title: Điều tra giới hạn số kết nối HTTP và số file descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-006
+    title: Nhận diện giữ tài nguyên trong khi chờ tác vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-007
+    title: Đánh giá timeout, hàng đợi không giới hạn và áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-pools-008
+    title: Kiểm chứng cấu hình pool bằng tải, thời gian chờ và năng lực phía phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-and-reactive
+  title: Bất đồng bộ và reactive
+  childs:
+  - slug: async-and-reactive-001
+    title: Lần theo tác vụ qua executor, Future và CompletableFuture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-002
+    title: Chẩn đoán mất ngữ cảnh log hoặc trace khi chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-003
+    title: Phát hiện blocking trên event loop và scheduler không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-004
+    title: Phân tích luồng tín hiệu, lỗi và hủy trong pipeline reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-005
+    title: Điều tra backpressure, bộ đệm tăng và phía tiêu thụ chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-006
+    title: Phân biệt tác vụ chưa được thực thi với tác vụ đã chạy nhưng mất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-007
+    title: Nhận diện xử lý lặp, retry không giới hạn và tác vụ mồ côi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-and-reactive-008
+    title: Kết hợp trace, thread dump và profile khi stack trace không thể hiện toàn bộ chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-and-protocols
+  title: Mạng và giao thức
+  childs:
+  - slug: network-and-protocols-001
+    title: Khoanh vùng lỗi DNS, thiết lập kết nối, TLS và trao đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-002
+    title: Phân biệt lỗi phân giải tên, từ chối kết nối, timeout và reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-003
+    title: Đối chiếu thời gian kết nối, thời gian chờ phản hồi và thời gian đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-004
+    title: Kiểm tra proxy, load balancer và service discovery trong đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-005
+    title: Điều tra mất gói, truyền lại, giới hạn băng thông và kết nối bị giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-006
+    title: Rà soát tái sử dụng kết nối, keep-alive và cạn cổng tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-007
+    title: Chẩn đoán chứng chỉ, hostname, thời gian hệ thống và chuỗi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-008
+    title: Thu thập packet capture có phạm vi khi log và trace chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-and-protocols-009
+    title: Phân biệt lỗi mạng thực sự với hàng chờ hoặc ứng dụng phía nhận bị chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-diagnostics
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: database-diagnostics-001
+    title: Tách thời gian chờ connection pool khỏi thời gian thực thi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-002
+    title: Nhận diện truy vấn chậm bằng trace, thống kê và log có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-003
+    title: Đọc kế hoạch thực thi và so sánh số dòng dự kiến với thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-004
+    title: Phát hiện truy vấn N+1, truy vấn lặp và lượng dữ liệu trả về quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-005
+    title: Điều tra khóa, chờ khóa, deadlock và giao dịch kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-006
+    title: Đối chiếu CPU, I/O, cache và số kết nối ở máy chủ cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-007
+    title: Nhận diện thay đổi kế hoạch, phân bố dữ liệu và thống kê không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-008
+    title: Phân tích độ trễ bản sao, kết nối sai đích và lỗi chuyển đổi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-diagnostics-009
+    title: Xác minh tác động trước khi chạy công cụ phân tích có thực thi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-diagnostics
+  title: Cache
+  childs:
+  - slug: cache-diagnostics-001
+    title: Đối chiếu tỷ lệ hit, miss, thời gian truy cập và tải phía dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-diagnostics-002
+    title: Phân biệt cache lạnh với cache không có hiệu quả hoặc khóa cache thiết kế sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-diagnostics-003
+    title: Chẩn đoán dữ liệu cũ, TTL không phù hợp và mất hiệu lực không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-diagnostics-004
+    title: Nhận diện cache stampede và nhiều yêu cầu cùng tái tạo một giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-diagnostics-005
+    title: Phát hiện cache tăng không giới hạn, eviction dày và áp lực bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-diagnostics-006
+    title: Khoanh vùng khóa nóng, phân vùng lệch và instance chịu tải không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-diagnostics-007
+    title: Kiểm tra tác động dây chuyền khi cache chậm, mất kết nối hoặc bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: message-queues
+  title: Hàng đợi thông điệp
+  childs:
+  - slug: message-queues-001
+    title: Đối chiếu tốc độ phát, tốc độ xử lý, độ sâu hàng đợi và tuổi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-002
+    title: Phân biệt consumer lag với độ trễ xử lý của một thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-003
+    title: Khoanh vùng partition nóng và phân phối công việc không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-004
+    title: Điều tra retry lặp, thông điệp lỗi và dead-letter queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-005
+    title: Phát hiện xử lý trùng, mất xác nhận và commit vị trí không đúng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-006
+    title: Chẩn đoán consumer rebalance, kết nối gián đoạn và thiếu phía tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-007
+    title: Lần theo ngữ cảnh giữa producer, broker và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: message-queues-008
+    title: Kiểm tra giới hạn dung lượng, thời gian lưu và tác động khi backlog tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-system
+  title: Hệ điều hành
+  childs:
+  - slug: operating-system-001
+    title: Đối chiếu tải hệ thống, CPU, bộ nhớ và số tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-002
+    title: Phân biệt thiếu RAM, áp lực bộ nhớ, swap và tiến trình bị OOM killer kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-003
+    title: Phân tích độ trễ I/O, thông lượng đĩa và dung lượng còn trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-004
+    title: Điều tra đầy inode, đầy phân vùng và log tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-005
+    title: Kiểm tra file descriptor, socket và giới hạn tài nguyên tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-006
+    title: Phân biệt mức sử dụng tài nguyên của ứng dụng với tiến trình cùng máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-007
+    title: Đọc sự kiện hệ thống và mốc thời gian của các lần tiến trình bị kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-system-008
+    title: Chọn công cụ theo hệ điều hành và xác minh ngữ nghĩa từng chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: containers-and-kubernetes
+  title: Container và Kubernetes
+  childs:
+  - slug: containers-and-kubernetes-001
+    title: Đối chiếu trạng thái container, pod, node và các sự kiện điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-002
+    title: Phân biệt lỗi ứng dụng với OOMKilled, eviction và lỗi node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-003
+    title: Điều tra CPU throttling, memory limit và sự khác biệt giữa tài nguyên host với container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-004
+    title: Chẩn đoán restart liên tục và thu thập log của lần chạy trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-005
+    title: Kiểm tra startup probe, readiness probe và liveness probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-006
+    title: Điều tra Service, endpoint, DNS và chính sách mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-007
+    title: Phân tích triển khai cuốn chiếu, lệch phiên bản và pod chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-008
+    title: Rà soát volume, quyền tệp và giới hạn lưu trữ tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-009
+    title: Chọn cách điều tra khi image tối giản không có sẵn công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-and-kubernetes-010
+    title: Bảo toàn ngữ cảnh điều tra khi pod bị thay thế hoặc tự mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot
+  title: Spring Boot
+  childs:
+  - slug: spring-boot-001
+    title: Chọn dữ liệu Actuator theo câu hỏi chẩn đoán và quyền truy cập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-002
+    title: Đối chiếu health indicator với trạng thái phục vụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-003
+    title: Phân tích metrics và Micrometer Observation theo thành phần ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-004
+    title: Điều tra lỗi khởi động, bean, điều kiện tự cấu hình và phụ thuộc vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-005
+    title: Kiểm tra profile, thứ tự nguồn cấu hình và giá trị cấu hình hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-006
+    title: Đối chiếu request mapping, bộ lọc và chuỗi xử lý HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-007
+    title: Chẩn đoán HTTP server, connection pool và scheduler từ metric và thread dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-008
+    title: Thu thập thông tin từ loggers, threaddump, heapdump và startup khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-009
+    title: Phân biệt lỗi cấu hình endpoint chẩn đoán với lỗi của thành phần đang được kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems
+  title: Hệ phân tán
+  childs:
+  - slug: distributed-systems-001
+    title: Xác định phạm vi lỗi cục bộ, lỗi phụ thuộc và lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-002
+    title: Điều tra timeout không đồng bộ giữa client, gateway và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-003
+    title: Nhận diện retry storm, khuếch đại tải và cạn ngân sách thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-004
+    title: Phân tích circuit breaker, fallback và tác động che khuất lỗi gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-005
+    title: Chẩn đoán lỗi từng phần khi một số vùng hoặc instance vẫn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-006
+    title: Phân biệt độ trễ đồng bộ dữ liệu với lỗi mất hoặc ghi sai dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-007
+    title: Kiểm tra thứ tự sự kiện khi đồng hồ, hàng đợi và retry tạo diễn biến phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-008
+    title: Đối chiếu thay đổi service discovery, cân bằng tải và phiên bản giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: telemetry-pipeline
+  title: Pipeline telemetry
+  childs:
+  - slug: telemetry-pipeline-001
+    title: Lần theo dữ liệu từ instrumentation, SDK, agent, collector đến kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-002
+    title: Phân biệt không phát sinh dữ liệu với không thu thập hoặc không hiển thị được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-003
+    title: Kiểm tra endpoint, giao thức, cấu hình kết nối và chứng thực OTLP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-004
+    title: Đối chiếu số bản ghi nhận, xử lý, từ chối, xếp hàng và xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-005
+    title: Điều tra lỗi processor, cấu trúc dữ liệu và định tuyến sai pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-006
+    title: Phân tích sampling, filtering và giới hạn làm dữ liệu biến mất có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-007
+    title: Chẩn đoán exporter lỗi, retry, backpressure và hàng đợi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-008
+    title: Kiểm tra độ trễ nhập liệu, cửa sổ truy vấn và cấu hình nơi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-009
+    title: Dùng telemetry nội bộ và dữ liệu thử có kiểm soát để khoanh vùng Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-pipeline-010
+    title: Đánh giá tác động của chính hệ thống quan sát lên tài nguyên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-configuration
+  title: Triển khai và cấu hình
+  childs:
+  - slug: deployment-and-configuration-001
+    title: So sánh phiên bản ứng dụng, thư viện, JVM và cấu hình trước–sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-002
+    title: Đối chiếu thời điểm triển khai, thay đổi hạ tầng và thời điểm triệu chứng bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-003
+    title: Nhận diện lệch cấu hình giữa instance hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-004
+    title: Phân tích feature flag, biến môi trường và thay đổi bí mật truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-005
+    title: Điều tra lỗi chỉ xuất hiện sau warm-up, restart hoặc chạy lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-006
+    title: Phân biệt sai khác cấu hình với sai khác lưu lượng và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-007
+    title: Kiểm tra tương thích client–server và hợp đồng dữ liệu khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-configuration-008
+    title: Đánh giá rollback bằng bằng chứng khôi phục và rủi ro thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evidence-protection
+  title: Bảo vệ bằng chứng
+  childs:
+  - slug: evidence-protection-001
+    title: Xác định quyền tối thiểu để đọc telemetry và sử dụng công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-002
+    title: Rà soát dữ liệu nhạy cảm trong log, trace, heap dump và packet capture
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-003
+    title: Giới hạn phạm vi, thời lượng và dung lượng dữ liệu thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-004
+    title: Bảo vệ endpoint quản trị và kênh truy cập công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-005
+    title: Ghi nhận thời gian, phiên bản công cụ và thao tác đã thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-006
+    title: Lưu dấu kiểm tra toàn vẹn và quản lý bản sao của gói bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-007
+    title: Chia sẻ dữ liệu đã được kiểm soát theo đúng người nhận và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evidence-protection-008
+    title: Áp dụng thời gian lưu giữ và xử lý dữ liệu chẩn đoán sau khi kết thúc điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: Phân công điều phối, điều tra kỹ thuật và ghi nhận diễn biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: Ưu tiên hành động theo ảnh hưởng người dùng và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: Chọn giảm tải, vô hiệu hóa tính năng, chuyển hướng hoặc khôi phục phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: Phân biệt biện pháp giảm tác động với sửa nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: Ghi lại giả thuyết, thao tác và kết quả để tránh thử nghiệm lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: Giữ thông tin nhất quán khi nhiều nhóm cùng điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: Chuyển giao điều tra kèm dòng thời gian, bằng chứng và việc còn dang dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: Xác định tiêu chí dịch vụ đã ổn định và thời điểm kết thúc ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: root-cause-analysis
+  title: Nguyên nhân gốc rễ
+  childs:
+  - slug: root-cause-analysis-001
+    title: Dựng dòng thời gian có căn cứ từ nhiều nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-002
+    title: Phân biệt tác nhân kích hoạt với điều kiện nền và cơ chế lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-003
+    title: Vẽ chuỗi nhân quả và xác định yếu tố làm sự cố lan rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-004
+    title: Sử dụng câu hỏi vì sao và cây lỗi mà không ép mọi sự cố về một nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-005
+    title: Giải thích vì sao cơ chế phòng ngừa hoặc phát hiện chưa ngăn được sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-006
+    title: Phân biệt kết luận đã kiểm chứng với giả thuyết chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-007
+    title: Viết postmortem tập trung vào hệ thống và điều kiện vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-008
+    title: Chuyển kết luận thành hành động có người phụ trách và tiêu chí hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fix-verification
+  title: Kiểm chứng khắc phục
+  childs:
+  - slug: fix-verification-001
+    title: Tái hiện triệu chứng bằng kịch bản và dữ liệu được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-002
+    title: Chọn metric và bằng chứng chứng minh cơ chế lỗi đã được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-003
+    title: So sánh trước–sau với tải, dữ liệu và cấu hình tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-004
+    title: Kiểm tra khả năng chẩn đoán và hiệu năng ở các trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-005
+    title: Thử tải kéo dài để kiểm chứng rò rỉ hoặc suy giảm theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-006
+    title: Kiểm tra ảnh hưởng phụ lên lỗi, độ trễ, tài nguyên và tính đúng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-007
+    title: Dùng triển khai thử hoặc nhóm đối chứng để giảm sai lệch đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-008
+    title: Xác nhận cảnh báo và runbook phản ánh cách phát hiện, xử lý mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fix-verification-009
+    title: Theo dõi sau triển khai để phát hiện tái diễn và hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-diagnostics
+  title: Tự động hóa chẩn đoán
+  childs:
+  - slug: automated-diagnostics-001
+    title: Thiết kế runbook theo triệu chứng, câu hỏi và bằng chứng cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-002
+    title: Tạo gói chẩn đoán có cấu trúc gồm cấu hình, metric và dữ liệu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-003
+    title: Kích hoạt thu thập theo điều kiện với giới hạn tài nguyên và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-004
+    title: Kiểm soát tác động của tự động thread dump, profiling hoặc heap dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-005
+    title: Chuẩn hóa nhãn phiên bản, thời gian và môi trường cho bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-006
+    title: Kiểm tra truy vấn, dashboard và liên kết giữa tín hiệu trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-007
+    title: Diễn tập tình huống lỗi để đánh giá khả năng quan sát và quy trình điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-diagnostics-008
+    title: Đánh giá kết luận do công cụ gợi ý bằng dữ liệu có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenario-practice
+  title: Thực hành tình huống
+  childs:
+  - slug: scenario-practice-001
+    title: Điều tra API chậm do truy vấn N+1 bằng metric, log và trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-002
+    title: Chẩn đoán CPU cao do vòng lặp bận bằng thread dump và profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-003
+    title: Phân biệt rò rỉ heap với cấp phát cao bằng GC log và heap dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-004
+    title: Điều tra deadlock hoặc cạn thread pool qua nhiều bản chụp trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-005
+    title: Khoanh vùng timeout do connection pool, mạng hoặc dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-006
+    title: Tìm nguyên nhân mất trace qua tác vụ bất đồng bộ và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-007
+    title: Chẩn đoán pod restart do giới hạn bộ nhớ hoặc probe không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-008
+    title: Điều tra collector đầy hàng đợi khiến telemetry đến muộn hoặc bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-009
+    title: Phân tích retry storm và cache stampede trong hệ thống nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenario-practice-010
+    title: Hoàn thiện báo cáo nguyên nhân, bản sửa và bộ bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

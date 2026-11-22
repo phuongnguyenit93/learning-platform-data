@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc thực thi
+  slug: execution-architecture
+  index: 1
+- title: Cài đặt
+  slug: installation
+  index: 2
+- title: Tệp cấu hình
+  slug: configuration-files
+  index: 3
+- title: Cú pháp pipeline
+  slug: pipeline-syntax
+  index: 4
+- title: Event và metadata
+  slug: events-metadata
+  index: 5
+- title: Codec và ranh giới bản ghi
+  slug: codecs-record-boundaries
+  index: 6
+- title: Đọc tệp
+  slug: file-input
+  index: 7
+- title: Đầu vào mạng
+  slug: network-input
+  index: 8
+- title: Broker và Kafka
+  slug: brokers-kafka
+  index: 9
+- title: Nguồn dữ liệu bổ sung
+  slug: additional-data-sources
+  index: 10
+- title: Grok
+  slug: grok
+  index: 11
+- title: Dissect và dữ liệu có cấu trúc
+  slug: dissect-structured-data
+  index: 12
+- title: Biến đổi trường
+  slug: field-transformations
+  index: 13
+- title: Thời gian sự kiện
+  slug: event-time
+  index: 14
+- title: ECS và hợp đồng dữ liệu
+  slug: ecs-data-contracts
+  index: 15
+- title: Làm giàu dữ liệu
+  slug: data-enrichment
+  index: 16
+- title: Xử lý có trạng thái
+  slug: stateful-processing
+  index: 17
+- title: Điều kiện và định tuyến
+  slug: conditions-routing
+  index: 18
+- title: Logs ứng dụng Java
+  slug: java-application-logs
+  index: 19
+- title: Output phổ biến
+  slug: common-outputs
+  index: 20
+- title: Ghi Elasticsearch
+  slug: elasticsearch-output
+  index: 21
+- title: Index và data stream
+  slug: indices-data-streams
+  index: 22
+- title: Bảo đảm giao nhận
+  slug: delivery-guarantees
+  index: 23
+- title: Persistent Queue
+  slug: persistent-queues
+  index: 24
+- title: Dead Letter Queue
+  slug: dead-letter-queues
+  index: 25
+- title: Nhiều pipeline
+  slug: multiple-pipelines
+  index: 26
+- title: Tối ưu pipeline
+  slug: pipeline-optimization
+  index: 27
+- title: JVM và tài nguyên
+  slug: jvm-resources
+  index: 28
+- title: Bảo mật
+  slug: security
+  index: 29
+- title: Giám sát
+  slug: monitoring
+  index: 30
+- title: Kiểm thử pipeline
+  slug: pipeline-testing
+  index: 31
+- title: Triển khai
+  slug: deployment
+  index: 32
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 33
+- title: Plugin và nâng cấp
+  slug: plugins-upgrades
+  index: 34
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 35

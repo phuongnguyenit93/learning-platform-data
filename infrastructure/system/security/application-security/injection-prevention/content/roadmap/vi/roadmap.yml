@@ -1,0 +1,64 @@
+roadmap:
+- id: injection-trust-boundaries
+  title: Injection & Trust Boundaries
+  purpose: Hiểu khi dữ liệu không tin cậy bị diễn giải thành cú pháp lệnh hoặc truy vấn.
+  objectives:
+  - Phân biệt input, dữ liệu tin cậy và interpreter.
+  - Nhận diện source, sink và đường truyền dữ liệu.
+  - Nêu ví dụ SQL, NoSQL, OS command và XSS.
+- id: input-validation-allowlist
+  title: Input Validation & Allowlist
+  purpose: Giới hạn dữ liệu theo hợp đồng API để giảm bề mặt rủi ro trước khi xử lý.
+  objectives:
+  - Kiểm tra kiểu, độ dài, định dạng và quy tắc nghiệp vụ.
+  - Áp dụng allowlist cho field và giá trị điều khiển cú pháp.
+  - Giải thích vì sao validation không thay thế parameterization.
+- id: sql-orm-parameterization
+  title: SQL & ORM Parameterization
+  purpose: Tách cấu trúc SQL khỏi giá trị đầu vào để ngăn SQL injection.
+  objectives:
+  - Viết PreparedStatement hoặc truy vấn bind parameters.
+  - Tránh nối chuỗi đầu vào thành câu lệnh SQL hay JPQL.
+  - Dùng allowlist cho tên cột, bảng hoặc thứ tự sắp xếp.
+- id: nosql-query-safety
+  title: NoSQL Query Safety
+  purpose: Ngăn đầu vào tùy ý biến thành toán tử hoặc biểu thức truy vấn NoSQL.
+  objectives:
+  - Dựng filter bằng API của driver thay vì eval hoặc ghép chuỗi.
+  - Kiểm tra đầu vào là scalar đúng kiểu trước khi tạo filter.
+  - Từ chối operator hoặc field ngoài danh sách cho phép.
+- id: os-command-arguments
+  title: OS Command & Arguments
+  purpose: Tránh để dữ liệu đầu vào thay đổi chương trình hoặc đối số hệ điều hành.
+  objectives:
+  - Ưu tiên API thư viện thay vì gọi shell.
+  - Nếu cần ProcessBuilder, cố định executable và tách từng argument.
+  - Kiểm tra allowlist đối số và quyền thực thi tối thiểu.
+- id: ldap-xpath-injection
+  title: LDAP & XPath Injection
+  purpose: Dùng cơ chế escaping và cấu trúc truy vấn đúng từng interpreter.
+  objectives:
+  - Phân biệt escaping LDAP DN với LDAP search filter.
+  - Dùng encoder hoặc thư viện an toàn thay vì tự nối filter.
+  - Nhận biết rủi ro nối input vào XPath expression.
+- id: xss-output-encoding
+  title: XSS & Output Encoding
+  purpose: Ngăn dữ liệu người dùng bị trình duyệt hiểu thành HTML hoặc JavaScript.
+  objectives:
+  - Dùng API DOM an toàn và cơ chế auto-escaping.
+  - Chọn output encoding theo HTML, attribute, URL hoặc JS context.
+  - Dùng HTML sanitizer khi thực sự cần cho nhập rich text.
+- id: least-privilege-layered-defense
+  title: Least Privilege & Layered Defense
+  purpose: Hạn chế ảnh hưởng nếu vẫn tồn tại lỗi injection trong một lớp ứng dụng.
+  objectives:
+  - Cấp quyền DB và service account tối thiểu.
+  - Không dùng tài khoản quản trị cho thao tác của ứng dụng.
+  - Kết hợp parameterization, validation và kiểm soát quyền.
+- id: review-test-regression
+  title: Review, Test & Regression
+  purpose: Phát hiện lỗi sớm và bảo đảm bản sửa không tạo lại đường injection.
+  objectives:
+  - Dò đường input tới sink trong code review và SAST.
+  - Kiểm thử DAST trên ứng dụng thử nghiệm được cấp phép.
+  - Thêm test hồi quy cho trường hợp input bất thường và xem lại cảnh báo.

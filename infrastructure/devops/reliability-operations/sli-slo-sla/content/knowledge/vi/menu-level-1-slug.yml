@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Trải nghiệm người dùng
+  slug: user-experience
+  index: 1
+- title: Đặc tả SLI
+  slug: sli-specification
+  index: 2
+- title: SLI khả dụng
+  slug: availability-slis
+  index: 3
+- title: SLI độ trễ
+  slug: latency-slis
+  index: 4
+- title: SLI dữ liệu
+  slug: data-slis
+  index: 5
+- title: Luồng bất đồng bộ
+  slug: asynchronous-workflows
+  index: 6
+- title: Chất lượng phép đo
+  slug: measurement-quality
+  index: 7
+- title: Thu thập số liệu
+  slug: metrics-collection
+  index: 8
+- title: Cửa sổ đánh giá
+  slug: evaluation-windows
+  index: 9
+- title: Thiết kế SLO
+  slug: slo-design
+  index: 10
+- title: Ngân sách lỗi
+  slug: error-budgets
+  index: 11
+- title: Tốc độ tiêu hao
+  slug: burn-rates
+  index: 12
+- title: Chính sách ngân sách
+  slug: error-budget-policies
+  index: 13
+- title: Cảnh báo theo SLO
+  slug: slo-alerting
+  index: 14
+- title: Prometheus và PromQL
+  slug: prometheus-promql
+  index: 15
+- title: Tự động hóa SLO
+  slug: slo-automation
+  index: 16
+- title: Bảng điều khiển
+  slug: dashboards
+  index: 17
+- title: Thiết kế SLA
+  slug: sla-design
+  index: 18
+- title: Liên hệ SLO và SLA
+  slug: slo-sla-relationships
+  index: 19
+- title: Phụ thuộc dịch vụ
+  slug: service-dependencies
+  index: 20
+- title: Hệ thống phân tán
+  slug: distributed-systems
+  index: 21
+- title: Tải thấp và dữ liệu thiếu
+  slug: low-traffic-missing-data
+  index: 22
+- title: Vận hành và phát hành
+  slug: operations-releases
+  index: 23
+- title: Kiểm thử SLO
+  slug: slo-testing
+  index: 24
+- title: Triển khai trong tổ chức
+  slug: organization-wide-rollout
+  index: 25
+- title: Quản trị thay đổi
+  slug: change-management
+  index: 26
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 27
+- title: Thực hành có hướng dẫn
+  slug: guided-exercises
+  index: 28
+- title: Tình huống tổng hợp
+  slug: integrated-scenarios
+  index: 29

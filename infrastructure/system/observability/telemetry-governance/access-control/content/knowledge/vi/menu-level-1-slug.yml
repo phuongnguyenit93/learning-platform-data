@@ -1,0 +1,85 @@
+menu:
+- title: Nền tảng
+  slug: foundations
+  index: 0
+- title: Bề mặt truy cập
+  slug: access-surfaces
+  index: 1
+- title: Danh tính
+  slug: identities
+  index: 2
+- title: Xác thực
+  slug: authentication
+  index: 3
+- title: Mô hình phân quyền
+  slug: authorization-models
+  index: 4
+- title: Thiết kế chính sách
+  slug: policy-design
+  index: 5
+- title: Kiến trúc thực thi
+  slug: enforcement-architecture
+  index: 6
+- title: Phạm vi dữ liệu
+  slug: data-scope
+  index: 7
+- title: Cách ly tenant
+  slug: tenant-isolation
+  index: 8
+- title: Quyền tiếp nhận
+  slug: ingestion-permissions
+  index: 9
+- title: Collector và gateway
+  slug: collectors-gateways
+  index: 10
+- title: Quyền với log
+  slug: log-access
+  index: 11
+- title: Quyền với metric
+  slug: metric-access
+  index: 12
+- title: Trace và profile
+  slug: traces-profiles
+  index: 13
+- title: Truy vấn và xuất
+  slug: query-export
+  index: 14
+- title: Giao diện quan sát
+  slug: observability-interfaces
+  index: 15
+- title: Cảnh báo và chia sẻ
+  slug: alerts-sharing
+  index: 16
+- title: Danh tính máy
+  slug: machine-identities
+  index: 17
+- title: Truy cập đặc quyền
+  slug: privileged-access
+  index: 18
+- title: Mạng và lưu trữ
+  slug: networks-storage
+  index: 19
+- title: Chính sách bằng mã
+  slug: policy-as-code
+  index: 20
+- title: Vòng đời quyền
+  slug: permission-lifecycle
+  index: 21
+- title: Kiểm toán truy cập
+  slug: access-auditing
+  index: 22
+- title: Giám sát quyền
+  slug: access-monitoring
+  index: 23
+- title: Khả dụng và hiệu năng
+  slug: availability-performance
+  index: 24
+- title: Kiểm chứng
+  slug: verification
+  index: 25
+- title: Xử lý sự cố
+  slug: incident-handling
+  index: 26
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 27

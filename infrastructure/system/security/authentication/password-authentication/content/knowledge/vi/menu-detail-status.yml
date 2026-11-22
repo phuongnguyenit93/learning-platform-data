@@ -1,0 +1,2356 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Xác thực bằng mật khẩu là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Định danh, xác thực và phân quyền khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mật khẩu là yếu tố kiến thức và giới hạn chứng minh danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Thông tin đăng nhập, bộ kiểm chứng và phiên đã xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt mật khẩu với PIN, API key, access token và khóa mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vòng đời từ tạo mật khẩu đến thu hồi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vai trò của MFA, SSO, passkey và trình quản lý mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Mô hình hệ thống mẫu và lộ trình học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-model
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-model-001
+    title: 'Tài sản cần bảo vệ: tài khoản, mật khẩu, bộ kiểm chứng và luồng khôi phục'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-002
+    title: Tấn công trực tuyến và tấn công ngoại tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-003
+    title: Brute force, từ điển, password spraying và credential stuffing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-004
+    title: Tái sử dụng mật khẩu và chuỗi chiếm đoạt nhiều tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-005
+    title: Phishing, giả mạo giao diện đăng nhập và đánh cắp thông tin nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-006
+    title: Rò rỉ cơ sở dữ liệu, bản sao lưu, log và mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-007
+    title: Tấn công qua đăng ký, đổi mật khẩu và khôi phục tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-008
+    title: Ranh giới tin cậy giữa trình duyệt, dịch vụ xác thực và kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: account-identities
+  title: Định danh tài khoản
+  childs:
+  - slug: account-identities-001
+    title: Chọn username, email hoặc số điện thoại làm định danh đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-identities-002
+    title: Tách ID tài khoản ổn định khỏi thông tin liên hệ có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-identities-003
+    title: Chuẩn hóa định danh và xử lý chữ hoa–thường có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-identities-004
+    title: Tài khoản trùng, bí danh và tính duy nhất trong phạm vi tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-identities-005
+    title: Xác minh quyền kiểm soát email không đồng nghĩa xác minh danh tính thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-identities-006
+    title: Thay đổi email hoặc số điện thoại mà không tạo đường chiếm tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-identities-007
+    title: Tài khoản chưa kích hoạt, bị khóa, vô hiệu hóa và đã xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-experience
+  title: Trải nghiệm người dùng
+  childs:
+  - slug: user-experience-001
+    title: Thiết kế form đăng nhập, đăng ký và đổi mật khẩu dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-002
+    title: Hỗ trợ trình quản lý mật khẩu và mật khẩu được tạo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-003
+    title: Cho phép dán, autofill và nhập cụm mật khẩu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-004
+    title: Thuộc tính autocomplete cho username, current-password và new-password
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-005
+    title: Hiển thị hoặc ẩn mật khẩu và bảo vệ người dùng ở không gian công cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-006
+    title: Thông báo lỗi dễ hiểu nhưng hạn chế tiết lộ trạng thái tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-007
+    title: Khả năng tiếp cận với bàn phím, trình đọc màn hình và thiết bị di động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-008
+    title: Công cụ đo độ mạnh và giới hạn của phản hồi tại máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: password-policy
+  title: Chính sách mật khẩu
+  childs:
+  - slug: password-policy-001
+    title: Độ dài tối thiểu, độ dài tối đa và căn cứ lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-002
+    title: Độ dài, tính dễ đoán và entropy khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-003
+    title: Danh sách mật khẩu phổ biến, đã lộ và gắn với ngữ cảnh người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-004
+    title: Quy tắc thành phần ký tự và tác động đến hành vi chọn mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-005
+    title: Cụm mật khẩu và mật khẩu ngẫu nhiên do trình quản lý tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-006
+    title: Lịch sử mật khẩu và giới hạn ngăn tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-007
+    title: Thay đổi định kỳ so với thay đổi khi có dấu hiệu lộ lọt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-008
+    title: Chính sách riêng cho tài khoản đặc quyền và tài khoản khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-policy-009
+    title: Đồng bộ kiểm tra phía máy chủ với phản hồi phía giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: character-handling
+  title: Xử lý ký tự
+  childs:
+  - slug: character-handling-001
+    title: Chuỗi Unicode, điểm mã, ký tự hiển thị và số byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-002
+    title: Quyết định chuẩn hóa Unicode và giữ nhất quán toàn bộ vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-003
+    title: Khoảng trắng đầu–cuối và nguy cơ tự ý trim mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-004
+    title: Không đổi chữ hoa–thường hoặc biến đổi mật khẩu ngoài thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-005
+    title: Ký tự kết hợp, emoji và phương thức nhập liệu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-006
+    title: Giới hạn độ dài trước khi xử lý tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-007
+    title: Nguy cơ cắt ngắn, ký tự null và giới hạn của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: character-handling-008
+    title: Kiểm thử nhất quán giữa web, ứng dụng di động và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registration-flow
+  title: Luồng đăng ký
+  childs:
+  - slug: registration-flow-001
+    title: Tiếp nhận thông tin đăng ký qua kênh bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-002
+    title: Kiểm tra chính sách mật khẩu tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-003
+    title: Kiểm tra mật khẩu đã lộ mà không tiết lộ mật khẩu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-004
+    title: Băm và lưu bộ kiểm chứng trước khi kích hoạt tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-005
+    title: Xác minh thông tin liên hệ và token kích hoạt có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-006
+    title: Chống tạo tài khoản tự động và lạm dụng gửi email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-007
+    title: Xử lý đăng ký trùng, yêu cầu lặp lại và giao dịch bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: login-flow
+  title: Luồng đăng nhập
+  childs:
+  - slug: login-flow-001
+    title: Tiếp nhận định danh và mật khẩu mà không ghi lại giá trị nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-002
+    title: Tra cứu tài khoản và trạng thái được phép đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-003
+    title: Xác minh mật khẩu bằng thư viện phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-004
+    title: Áp dụng giới hạn tần suất trước và trong quá trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-005
+    title: Kết hợp kiểm tra MFA khi tài khoản hoặc ngữ cảnh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-006
+    title: Tạo phiên sau khi hoàn tất toàn bộ yêu cầu xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-007
+    title: Đổi định danh phiên và phòng chống session fixation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-008
+    title: Phản hồi lỗi thống nhất cho thông tin đăng nhập không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-flow-009
+    title: Xử lý nhiều yêu cầu đăng nhập đồng thời và yêu cầu bị phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-fundamentals
+  title: Nền tảng lưu trữ
+  childs:
+  - slug: storage-fundamentals-001
+    title: Vì sao không lưu mật khẩu dạng rõ hoặc mã hóa có thể giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-002
+    title: Hàm băm nhanh và hàm dẫn xuất khóa dành cho mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-003
+    title: Bộ kiểm chứng mật khẩu và dữ liệu cần lưu kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-004
+    title: Salt ngẫu nhiên riêng cho từng bản ghi mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-005
+    title: Chi phí thời gian, bộ nhớ và khả năng song song hóa tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-006
+    title: Tấn công từ điển, bảng tính trước và giới hạn bảo vệ của salt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-007
+    title: Salt không phải bí mật và không thay thế mật khẩu mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-008
+    title: Không dùng băm phía máy khách để thay thế bảo vệ phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-fundamentals-009
+    title: Tách mật khẩu người dùng khỏi các bí mật cần có khả năng giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hashing-algorithms
+  title: Thuật toán băm
+  childs:
+  - slug: hashing-algorithms-001
+    title: Argon2 và các biến thể trong bối cảnh lưu mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-002
+    title: Argon2id và các tham số bộ nhớ, số vòng, mức song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-003
+    title: scrypt và mô hình chi phí dựa trên bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-004
+    title: bcrypt, hệ số công việc và giới hạn đầu vào theo byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-005
+    title: PBKDF2, hàm PRF và số vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-006
+    title: So sánh khả năng triển khai, hiệu năng và ràng buộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-007
+    title: Định dạng lưu thuật toán, phiên bản và tham số trong chuỗi băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hashing-algorithms-008
+    title: Chọn thư viện được duy trì và tránh tự thiết kế thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-performance
+  title: Cấu hình và hiệu năng
+  childs:
+  - slug: configuration-performance-001
+    title: Xác định ngân sách độ trễ cho đăng nhập và thay mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-performance-002
+    title: Hiệu chỉnh chi phí băm trên hạ tầng triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-performance-003
+    title: Đo tải đồng thời thay vì chỉ đo một lần băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-performance-004
+    title: Giới hạn số tác vụ băm đồng thời và hàng chờ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-performance-005
+    title: Bảo vệ bộ nhớ và CPU trước yêu cầu đăng nhập gây cạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-performance-006
+    title: Đánh đổi chi phí phòng vệ, khả dụng và trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-performance-007
+    title: Lập kế hoạch tăng chi phí khi năng lực tính toán thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: salt-pepper
+  title: Salt và pepper
+  childs:
+  - slug: salt-pepper-001
+    title: Tạo salt bằng nguồn ngẫu nhiên mật mã và tránh tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-002
+    title: Lưu salt cùng bản ghi băm và kiểm tra định dạng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-003
+    title: Pepper là bí mật dùng bổ sung ngoài cơ sở dữ liệu mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-004
+    title: Tách pepper khỏi dữ liệu băm và giới hạn quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-005
+    title: Mẫu kết hợp pepper với hàm băm và các giả định bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-006
+    title: Kho bí mật, KMS hoặc HSM trong quản lý pepper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-007
+    title: Phiên bản pepper, xoay vòng và ảnh hưởng tới mật khẩu hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: salt-pepper-008
+    title: Ứng phó khi pepper bị lộ hoặc không còn truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: password-verification
+  title: Kiểm chứng mật khẩu
+  childs:
+  - slug: password-verification-001
+    title: Giải mã định dạng bộ kiểm chứng và chọn đúng thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-002
+    title: Kiểm tra bằng hàm verify của thư viện thay vì tự ghép quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-003
+    title: So sánh an toàn và giảm kênh rò rỉ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-004
+    title: Xử lý tài khoản không tồn tại mà không lộ qua chi phí kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-005
+    title: Từ chối dữ liệu băm hỏng, tham số bất hợp lý và thuật toán không hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-006
+    title: Giới hạn đầu vào để tránh chuỗi cực dài hoặc sai mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-007
+    title: Không so sánh chuỗi băm mới trực tiếp khi salt thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-verification-008
+    title: Giảm thời gian tồn tại của mật khẩu dạng rõ trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hash-upgrades
+  title: Nâng cấp dữ liệu băm
+  childs:
+  - slug: hash-upgrades-001
+    title: Nhận biết thuật toán cũ và tham số cần nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-002
+    title: Rehash sau lần đăng nhập thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-003
+    title: Di trú theo từng tài khoản mà không biết mật khẩu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-004
+    title: Buộc đặt lại mật khẩu khi không thể nâng cấp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-005
+    title: Xử lý tài khoản không đăng nhập trong thời gian dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-006
+    title: Tránh hạ cấp thuật toán khi nhiều phiên bản ứng dụng cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-007
+    title: Cập nhật bộ kiểm chứng nguyên tử và xử lý đăng nhập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hash-upgrades-008
+    title: Theo dõi tiến độ di trú và loại bỏ hỗ trợ định dạng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: account-enumeration-defense
+  title: Chống dò tài khoản
+  childs:
+  - slug: account-enumeration-defense-001
+    title: Dò tài khoản qua đăng nhập, đăng ký và quên mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-enumeration-defense-002
+    title: Rò rỉ qua mã trạng thái, thông điệp và cấu trúc phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-enumeration-defense-003
+    title: Rò rỉ qua thời gian xử lý và việc gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-enumeration-defense-004
+    title: Đồng nhất phản hồi bên ngoài nhưng giữ lý do nội bộ để vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-enumeration-defense-005
+    title: Cân bằng khả năng hỗ trợ người dùng với yêu cầu riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-enumeration-defense-006
+    title: Giới hạn tra cứu và xử lý định danh không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-enumeration-defense-007
+    title: Kiểm thử dò tài khoản trên mọi luồng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: login-attack-defense
+  title: Chống tấn công đăng nhập
+  childs:
+  - slug: login-attack-defense-001
+    title: Phát hiện brute force nhắm vào một tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-002
+    title: Nhận biết password spraying trải rộng nhiều tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-003
+    title: Nhận biết credential stuffing từ dữ liệu đã lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-004
+    title: Giới hạn theo tài khoản, địa chỉ mạng, thiết bị và tín hiệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-005
+    title: Trì hoãn tăng dần, khóa tạm thời và rủi ro gây từ chối dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-006
+    title: CAPTCHA hoặc thử thách bổ sung và giới hạn bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-007
+    title: Ngăn dùng luồng reset để vượt giới hạn đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-008
+    title: Xử lý mạng dùng chung, bot phân tán và địa chỉ IPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-attack-defense-009
+    title: Cảnh báo rủi ro và yêu cầu xác thực bổ sung theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: password-change
+  title: Đổi mật khẩu
+  childs:
+  - slug: password-change-001
+    title: Phân biệt đổi mật khẩu chủ động với khôi phục khi quên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-002
+    title: Yêu cầu mật khẩu hiện tại hoặc xác thực bổ sung phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-003
+    title: Kiểm tra chính sách và mật khẩu đã lộ cho giá trị mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-004
+    title: Ngăn CSRF và bảo vệ phiên thực hiện thao tác đổi mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-005
+    title: Cập nhật bộ kiểm chứng và phiên bản thông tin xác thực nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-006
+    title: Thu hồi hoặc duy trì phiên khác theo chính sách được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-007
+    title: Thông báo thay đổi mà không gửi mật khẩu qua email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-change-008
+    title: Xử lý thay đổi đồng thời, retry và lỗi giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: forgot-password
+  title: Quên mật khẩu
+  childs:
+  - slug: forgot-password-001
+    title: Thiết kế khôi phục như một phần của bề mặt xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-002
+    title: Phản hồi yêu cầu khôi phục mà không xác nhận tài khoản tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-003
+    title: Chọn kênh khôi phục và đánh giá rủi ro email hoặc số điện thoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-004
+    title: Giới hạn tần suất yêu cầu, gửi thông báo và thử token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-005
+    title: Xác minh token trước khi cho phép đặt mật khẩu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-006
+    title: Kiểm tra mật khẩu mới và vô hiệu hóa quyền khôi phục đã dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-007
+    title: Không dùng câu hỏi bảo mật làm bằng chứng mạnh duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-008
+    title: Chính sách phiên và yêu cầu xác thực sau khi reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forgot-password-009
+    title: Hỗ trợ khi người dùng mất cả mật khẩu và kênh khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recovery-tokens
+  title: Token khôi phục
+  childs:
+  - slug: recovery-tokens-001
+    title: Tạo token ngẫu nhiên đủ khó đoán bằng nguồn mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-002
+    title: Ràng buộc token với tài khoản, mục đích và lần yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-003
+    title: Thời hạn hiệu lực và quy tắc sử dụng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-004
+    title: Lưu bộ kiểm chứng token thay vì lưu giá trị token dạng rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-005
+    title: Xác minh và tiêu thụ token nguyên tử để chống dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-006
+    title: URL khôi phục, miền tin cậy và nguy cơ Host header poisoning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-007
+    title: Rò rỉ token qua Referer, lịch sử trình duyệt, log và công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-tokens-008
+    title: Token tự chứa so với token tra cứu và khả năng thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-reauthentication
+  title: Phiên và tái xác thực
+  childs:
+  - slug: sessions-reauthentication-001
+    title: Mật khẩu xác thực ban đầu và phiên duy trì trạng thái đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-002
+    title: Cookie phiên và cơ chế lưu thông tin đăng nhập lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-003
+    title: Tái xác thực trước thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-004
+    title: Chọn thời hạn hiệu lực của lần xác thực mật khẩu gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-005
+    title: Thu hồi phiên khi đổi mật khẩu, reset hoặc phát hiện chiếm tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-006
+    title: Đăng xuất một thiết bị và đăng xuất toàn bộ thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-007
+    title: Phiên bản thông tin xác thực để vô hiệu hóa trạng thái cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-reauthentication-008
+    title: 'Giới hạn phạm vi: quản lý phiên không thay thế kiểm chứng mật khẩu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mfa-recovery
+  title: MFA và khôi phục
+  childs:
+  - slug: mfa-recovery-001
+    title: Vì sao mật khẩu đúng chưa đủ khi tài khoản yêu cầu MFA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-recovery-002
+    title: Liên kết trạng thái đăng nhập mật khẩu với bước xác thực tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-recovery-003
+    title: Ngăn bỏ qua MFA qua API phụ, reset hoặc chế độ ghi nhớ thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-recovery-004
+    title: Yêu cầu xác thực bổ sung khi đổi mật khẩu hoặc thông tin khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-recovery-005
+    title: Mất mật khẩu, mất yếu tố MFA và bằng chứng khôi phục tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-recovery-006
+    title: Mã dự phòng và giới hạn của quy trình hỗ trợ thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-recovery-007
+    title: Phân biệt xác thực nhiều bước với các yếu tố độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transport-security
+  title: Bảo vệ đường truyền
+  childs:
+  - slug: transport-security-001
+    title: TLS cho đăng nhập, đăng ký, đổi mật khẩu và toàn bộ phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-security-002
+    title: Không truyền mật khẩu qua URL, query string hoặc liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-security-003
+    title: HTTP Basic và yêu cầu bảo vệ thông tin gửi lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-security-004
+    title: Proxy, load balancer và ranh giới tin cậy sau khi kết thúc TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-security-005
+    title: Ngăn chuyển hướng gửi thông tin đăng nhập sang miền không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-security-006
+    title: Chính sách bộ nhớ đệm cho phản hồi và trang nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-security-007
+    title: Ngăn ghi request body trong APM, trace và hệ thống trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-side-security
+  title: Phía máy khách
+  childs:
+  - slug: client-side-security-001
+    title: Giới hạn bảo vệ của JavaScript và kiểm tra đầu vào tại giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-security-002
+    title: XSS có thể đánh cắp mật khẩu trước khi gửi như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-security-003
+    title: Giảm script bên thứ ba trên trang đăng nhập và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-security-004
+    title: CSRF trong đăng nhập, đổi mật khẩu và thay đổi thông tin liên hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-security-005
+    title: Không lưu mật khẩu trong localStorage, URL hoặc trạng thái tồn tại lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-security-006
+    title: Xử lý thông tin nhạy cảm trong crash report và công cụ phát lại phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-security-007
+    title: Trình quản lý mật khẩu, phishing và giới hạn của bảo vệ theo nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: password-protocols
+  title: Giao thức mật khẩu
+  childs:
+  - slug: password-protocols-001
+    title: Phân biệt gửi mật khẩu trong kênh TLS với cơ chế challenge–response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-002
+    title: Replay và giới hạn của việc chỉ gửi một giá trị băm cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-003
+    title: SCRAM và bộ kiểm chứng phục vụ giao thức challenge–response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-004
+    title: PAKE và ý tưởng trao đổi khóa xác thực bằng mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-005
+    title: SRP và OPAQUE trong hệ sinh thái giao thức mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-006
+    title: Mô hình tin cậy và giới hạn chống đoán mật khẩu của từng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-007
+    title: Xác thực tập trung qua thư mục và ranh giới bảo vệ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-protocols-008
+    title: Không tự thiết kế giao thức hoặc ghép các bước mật mã tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems
+  title: Hệ thống phân tán
+  childs:
+  - slug: distributed-systems-001
+    title: Tập trung xác thực thay vì sao chép mật khẩu giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-002
+    title: Tính nhất quán khi đổi mật khẩu trên nhiều vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-003
+    title: Rate limit phân tán và nguy cơ vượt giới hạn qua nhiều máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-004
+    title: Cache trạng thái tài khoản và độ trễ vô hiệu hóa thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-005
+    title: Retry và tính idempotent trong đổi mật khẩu, kích hoạt và reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-006
+    title: Tác vụ gửi email và hàng đợi không chứa mật khẩu dạng rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-007
+    title: Xác thực ngoại tuyến và giới hạn thu hồi khi không có kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-operations
+  title: Lưu trữ và vận hành
+  childs:
+  - slug: storage-operations-001
+    title: Schema bản ghi thông tin xác thực và tách dữ liệu hồ sơ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-002
+    title: Quyền tối thiểu với bảng mật khẩu, kho bí mật và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-003
+    title: Mã hóa dữ liệu lưu trữ như một lớp bảo vệ bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-004
+    title: Ngăn bộ kiểm chứng xuất hiện trong API, báo cáo và dữ liệu phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-005
+    title: Quản lý bí mật kết nối và thông tin vận hành của dịch vụ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-006
+    title: Sao lưu, khôi phục và nguy cơ đưa bộ kiểm chứng cũ trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-007
+    title: Môi trường thử nghiệm không sử dụng mật khẩu thực của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-operations-008
+    title: Quản lý tài khoản mặc định, mật khẩu tạm thời và tài khoản đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-monitoring
+  title: Nhật ký và giám sát
+  childs:
+  - slug: logging-monitoring-001
+    title: Ghi sự kiện đăng nhập thành công, thất bại và lý do nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-monitoring-002
+    title: Theo dõi đổi mật khẩu, reset và thay đổi kênh khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-monitoring-003
+    title: Không ghi mật khẩu, token khôi phục hoặc toàn bộ bộ kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-monitoring-004
+    title: Liên kết sự kiện theo tài khoản và request mà vẫn bảo vệ riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-monitoring-005
+    title: Phát hiện tăng đột biến lỗi đăng nhập và chiến dịch rải mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-monitoring-006
+    title: Cảnh báo hoạt động bất thường sau đăng nhập thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-monitoring-007
+    title: Phân quyền xem nhật ký, thời hạn lưu và tính toàn vẹn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử chính sách với mật khẩu phổ biến, dài và đã lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử Unicode, khoảng trắng, ký tự null và giới hạn theo byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử salt riêng, định dạng băm và xác minh đúng–sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử nâng cấp thuật toán và cập nhật bộ kiểm chứng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử dò tài khoản qua nội dung và thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử rate limit, khóa tạm và tấn công gây cạn CPU hoặc bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử token reset hết hạn, dùng lại, rò rỉ và yêu cầu cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử MFA, thu hồi phiên và các đường bỏ qua xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm tra log, trace, backup và công cụ phân tích không lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: password-breach-response
+  title: Sự cố lộ mật khẩu
+  childs:
+  - slug: password-breach-response-001
+    title: Phân biệt lộ mật khẩu dạng rõ, bộ kiểm chứng và pepper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-002
+    title: Khoanh vùng tài khoản, thuật toán và dữ liệu bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-003
+    title: Ngăn truy cập trái phép và bảo toàn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-004
+    title: Buộc đặt lại mật khẩu theo mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-005
+    title: Thu hồi phiên, token khôi phục và thông tin xác thực liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-006
+    title: Xoay vòng pepper hoặc bí mật hệ thống khi có căn cứ bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-007
+    title: Thông báo người dùng với hướng dẫn chống tái sử dụng mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: password-breach-response-008
+    title: Khắc phục nguyên nhân gốc và bổ sung kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standards-governance
+  title: Tiêu chuẩn và quản trị
+  childs:
+  - slug: standards-governance-001
+    title: Tra cứu hướng dẫn mật khẩu hiện hành của NIST và OWASP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standards-governance-002
+    title: Phân biệt yêu cầu bắt buộc, khuyến nghị và lựa chọn theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standards-governance-003
+    title: Ghi lại căn cứ cho độ dài, blocklist và chi phí băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standards-governance-004
+    title: Quản lý thay đổi chính sách và tác động tới tài khoản hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standards-governance-005
+    title: Rà soát thư viện, thuật toán và tham số định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standards-governance-006
+    title: Vai trò của chủ sở hữu sản phẩm, đội bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standards-governance-007
+    title: Bằng chứng kiểm toán không chứa mật khẩu hoặc token nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-migration
+  title: Chuyển đổi phương thức
+  childs:
+  - slug: authentication-migration-001
+    title: Khi nào giữ mật khẩu và khi nào giảm phụ thuộc vào mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-migration-002
+    title: Kết hợp SSO mà không tạo liên kết tài khoản thiếu kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-migration-003
+    title: Thêm passkey như lựa chọn xác thực và đánh giá luồng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-migration-004
+    title: Rủi ro giữ mật khẩu làm đường khôi phục yếu hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-migration-005
+    title: Chuyển đổi từng nhóm người dùng và đo khả năng hoàn tất đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-migration-006
+    title: Xử lý tài khoản cũ, tài khoản đặc quyền và người dùng mất thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-migration-007
+    title: Thu hồi bộ kiểm chứng khi ngừng hỗ trợ mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Thiết kế luồng đăng ký–đăng nhập cho một ứng dụng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây chính sách mật khẩu và bộ kiểm thử đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Tích hợp băm, verify và rehash bằng thư viện có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Đo chi phí băm và mô phỏng tải đăng nhập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Thiết kế chống credential stuffing mà hạn chế khóa nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Xây luồng đổi mật khẩu, reset một lần và thu hồi phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Di trú bộ kiểm chứng cũ mà không lưu mật khẩu dạng rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Diễn tập sự cố rò rỉ dữ liệu và rà soát toàn bộ vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

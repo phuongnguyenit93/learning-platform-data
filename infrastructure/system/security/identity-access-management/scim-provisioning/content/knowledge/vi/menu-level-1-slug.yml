@@ -1,0 +1,82 @@
+menu:
+- title: 1. Tổng quan vòng đời danh tính
+  slug: identity-lifecycle-overview
+  index: 0
+- title: 2. Kiến trúc cấp phát
+  slug: provisioning-architecture
+  index: 1
+- title: 3. Nguồn dữ liệu và sở hữu
+  slug: data-sources-and-ownership
+  index: 2
+- title: 4. Nền tảng SCIM
+  slug: scim-foundations
+  index: 3
+- title: 5. Schema và thuộc tính
+  slug: schemas-and-attributes
+  index: 4
+- title: 6. Định danh và ánh xạ
+  slug: identity-mapping
+  index: 5
+- title: 7. Tài nguyên User
+  slug: user-resource
+  index: 6
+- title: 8. Tài nguyên Group
+  slug: group-resource
+  index: 7
+- title: 9. Khám phá năng lực
+  slug: capability-discovery
+  index: 8
+- title: 10. Tạo và đọc tài nguyên
+  slug: resource-creation-and-retrieval
+  index: 9
+- title: 11. Lọc và phân trang
+  slug: filtering-and-pagination
+  index: 10
+- title: 12. Thay thế và cập nhật
+  slug: replacement-and-patching
+  index: 11
+- title: 13. Đồng thời và phiên bản
+  slug: concurrency-and-versioning
+  index: 12
+- title: 14. Xử lý hàng loạt và lỗi
+  slug: bulk-operations-and-errors
+  index: 13
+- title: 15. Đồng bộ đáng tin cậy
+  slug: reliable-synchronization
+  index: 14
+- title: 16. Gia nhập tổ chức
+  slug: onboarding
+  index: 15
+- title: 17. Thay đổi vai trò
+  slug: role-changes
+  index: 16
+- title: 18. Rời tổ chức và thu hồi
+  slug: offboarding-and-revocation
+  index: 17
+- title: 19. Các vòng đời đặc thù
+  slug: specialized-lifecycles
+  index: 18
+- title: 20. Quyền và quản trị truy cập
+  slug: permissions-and-access-governance
+  index: 19
+- title: 21. Bảo mật SCIM API
+  slug: scim-api-security
+  index: 20
+- title: 22. Quyền riêng tư và dữ liệu
+  slug: privacy-and-data
+  index: 21
+- title: 23. Quan sát và kiểm toán
+  slug: observability-and-auditing
+  index: 22
+- title: 24. Khả dụng và phục hồi
+  slug: availability-and-recovery
+  index: 23
+- title: 25. Triển khai và chuyển đổi
+  slug: deployment-and-migration
+  index: 24
+- title: 26. Kiểm thử và tương thích
+  slug: testing-and-compatibility
+  index: 25
+- title: 27. Sai lầm và thực hành
+  slug: pitfalls-and-practice
+  index: 26

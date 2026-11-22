@@ -1,0 +1,7 @@
+# DevOps Delivery Automation Artifact Management Nexus — Quản lý artifact với Nexus Repository
+
+Sonatype Nexus Repository là công cụ quản lý kho artifact và package, phục vụ việc lưu trữ, phân phối và tái sử dụng đầu ra của quá trình build. Thay vì phụ thuộc hoàn toàn vào kho công khai hoặc truyền file thủ công giữa các môi trường, nhóm phát triển có thể dùng repository nội bộ cho thư viện Java, container image và nhiều định dạng khác. Ba kiểu repository thường gặp là *hosted* (lưu artifact được xuất bản), *proxy* (đại diện và cache kho nguồn) và *group* (gom nhiều kho sau một endpoint).
+
+Module dành cho người đã biết Git, Maven hoặc Gradle và các bước CI/CD cơ bản. Lộ trình bắt đầu từ mục đích của artifact repository, cấu hình repository và blob store, rồi thực hành với Maven releases/snapshots và Docker registry. Bạn cũng sẽ học nguyên tắc quản lý người dùng, role và privilege để chỉ cho phép những tác vụ thực sự cần thiết, nhất là tài khoản xuất bản artifact từ pipeline.
+
+Phần cuối tập trung vào việc đưa Nexus vào luồng build–test–publish–consume, kiểm tra khả năng lấy lại đúng phiên bản artifact, và quản trị vòng đời dữ liệu bằng cleanup policy cùng kế hoạch backup. Sau module, bạn có thể phác thảo kiến trúc repository đơn giản, giải thích đường đi của một artifact từ CI đến môi trường sử dụng và nhận diện các quyết định vận hành quan trọng.

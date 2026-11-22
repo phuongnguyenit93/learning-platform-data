@@ -1,0 +1,2650 @@
+menu:
+- slug: servlet-container-overview
+  title: Tổng quan Servlet container và hợp đồng Jakarta Servlet
+  childs:
+  - slug: servlet-container-overview-001
+    title: Servlet container là gì và giải quyết phần việc nào của ứng dụng Java web
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-002
+    title: Phân biệt web server, Servlet container, application server và reverse proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-003
+    title: Servlet API, đặc tả Jakarta Servlet và implementation của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-004
+    title: Ranh giới trách nhiệm giữa JVM, container, ứng dụng và thư viện web
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-005
+    title: Các thành phần Servlet, Filter, Listener, ServletContext và HttpSession
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-006
+    title: Tomcat, Jetty và container trong máy chủ Jakarta EE ở mức kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-007
+    title: Mô hình standalone, embedded và triển khai nhiều ứng dụng trong một JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-008
+    title: Từ javax.servlet sang jakarta.servlet và tác động đến tính tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-container-overview-009
+    title: Các kiến thức Java, HTTP và concurrency cần có trước khi thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-request-processing
+  title: HTTP và hành trình xử lý một request
+  childs:
+  - slug: http-request-processing-001
+    title: Cấu trúc HTTP request và response nhìn từ ứng dụng Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-002
+    title: Method, URI, header, body và status code trong trao đổi HTTP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-003
+    title: Kết nối TCP, HTTP keep-alive và vòng đời một request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-004
+    title: Luồng từ connector qua chọn web application đến Filter và Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-005
+    title: Chọn virtual host, context path và tài nguyên đích trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-006
+    title: Chuyển đổi dữ liệu mạng thành HttpServletRequest và HttpServletResponse
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-007
+    title: Phân biệt connection, request, worker thread và session
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-008
+    title: Các điểm có thể trả lỗi trước khi request đến mã ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-request-processing-009
+    title: Lần theo một request đồng bộ từ client đến lúc response hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: minimal-servlet-application
+  title: Thiết lập ứng dụng Jakarta Servlet tối thiểu
+  childs:
+  - slug: minimal-servlet-application-001
+    title: Chọn JDK, phiên bản Servlet API và container tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-002
+    title: Tạo dự án Maven hoặc Gradle với dependency Servlet API đúng phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-003
+    title: Cấu trúc WAR, WEB-INF/classes, WEB-INF/lib và tài nguyên công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-004
+    title: Vai trò của WEB-INF/web.xml và thư mục META-INF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-005
+    title: Viết HttpServlet đầu tiên với doGet và @WebServlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-006
+    title: Đóng gói, triển khai và gọi endpoint bằng trình duyệt hoặc curl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-007
+    title: Đọc log khởi động để xác nhận context và Servlet đã được đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-008
+    title: Chạy ứng dụng bằng container độc lập và bằng container nhúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: minimal-servlet-application-009
+    title: Vòng lặp sửa mã, build, redeploy và kiểm tra kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-configuration-and-bootstrap
+  title: Khai báo cấu hình và khởi tạo web application
+  childs:
+  - slug: application-configuration-and-bootstrap-001
+    title: Khai báo Servlet, Filter và Listener bằng annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-002
+    title: Khai báo servlet, servlet-mapping và init-param trong web.xml
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-003
+    title: Context parameter và init parameter của từng Servlet hoặc Filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-004
+    title: Ưu tiên và xung đột giữa deployment descriptor với annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-005
+    title: metadata-complete và ảnh hưởng đến quá trình quét annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-006
+    title: web-fragment.xml và cơ chế ghép cấu hình từ thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-007
+    title: ordering và absolute-ordering trong cấu hình web fragment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-008
+    title: ServletContainerInitializer, @HandlesTypes và điểm mở rộng khi khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-009
+    title: Đăng ký Servlet, Filter và Listener bằng API trong giai đoạn cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-configuration-and-bootstrap-010
+    title: Phát hiện cấu hình trùng, mapping xung đột và lỗi bootstrap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-url-mapping
+  title: Ánh xạ URL và lựa chọn Servlet đích
+  childs:
+  - slug: servlet-url-mapping-001
+    title: Context path, servlet path, path info và query string
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-002
+    title: Exact mapping cho một đường dẫn cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-003
+    title: Path-prefix mapping và cách xác định phần path info
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-004
+    title: Extension mapping cho nhóm tài nguyên theo đuôi đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-005
+    title: Default mapping / và empty-string mapping cho context root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-006
+    title: Thứ tự ưu tiên exact, longest path-prefix, extension và default
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-007
+    title: Phân biệt mapping / với /* qua các request cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-008
+    title: HttpServletMapping và kiểm tra mapping thực tế được chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-009
+    title: Default Servlet, welcome file và việc phục vụ tài nguyên tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-010
+    title: URI encoding, chuẩn hóa đường dẫn và giới hạn phụ thuộc container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-url-mapping-011
+    title: Phân biệt mapping của container với routing bên trong framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-lifecycle-and-http-methods
+  title: Vòng đời Servlet và điều phối HTTP method
+  childs:
+  - slug: servlet-lifecycle-and-http-methods-001
+    title: Servlet, GenericServlet và HttpServlet trong hệ thống kiểu của API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-002
+    title: Nạp lớp, tạo instance và quyền quản lý instance của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-003
+    title: Khởi tạo bằng init và truy cập cấu hình qua ServletConfig
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-004
+    title: Lazy initialization và load-on-startup
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-005
+    title: Luồng service đến doGet, doPost và các phương thức doXxx
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-006
+    title: HEAD, OPTIONS và hành vi HTTP method cần kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-007
+    title: ServletException, UnavailableException và lỗi trong quá trình khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-008
+    title: Quan hệ giữa instance Servlet và nhiều request đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-009
+    title: destroy, request đang xử lý và giới hạn khi tiến trình dừng đột ngột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-lifecycle-and-http-methods-010
+    title: Giải phóng tài nguyên do Servlet sở hữu khi ứng dụng dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-servlet-request
+  title: HttpServletRequest và dữ liệu đầu vào
+  childs:
+  - slug: http-servlet-request-001
+    title: Truy cập method, request URI, request URL và các thành phần đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-002
+    title: Đọc query parameter, giá trị lặp và parameter map
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-003
+    title: Phân biệt parameter, header, cookie và request attribute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-004
+    title: Đọc header đơn trị, đa trị và các trường hợp thiếu header
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-005
+    title: Phân biệt địa chỉ kết nối trực tiếp với địa chỉ client qua proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-006
+    title: Đọc scheme, host, port và thông tin kết nối bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-007
+    title: Character encoding và thời điểm phải cấu hình trước khi đọc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-008
+    title: Locale và danh sách ngôn ngữ được client chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-009
+    title: Request attribute làm phương tiện trao đổi trong cùng luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-request-010
+    title: Thời gian sử dụng request object và rủi ro giữ tham chiếu sau xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: request-body-and-file-upload
+  title: Đọc request body và xử lý tải tệp
+  childs:
+  - slug: request-body-and-file-upload-001
+    title: getInputStream và getReader cùng giới hạn khi sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-002
+    title: Form URL-encoded và thời điểm container phân tích parameter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-003
+    title: Body JSON, XML hoặc binary và trách nhiệm giải mã của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-004
+    title: Request body chỉ đọc một lần và thiết kế cơ chế đọc lại có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-005
+    title: Khai báo @MultipartConfig hoặc multipart-config
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-006
+    title: Đọc Part, lấy metadata và xử lý nhiều phần multipart
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-007
+    title: Giới hạn kích thước request, kích thước tệp và ngưỡng ghi xuống đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-008
+    title: Tên tệp do client gửi, đường dẫn lưu trữ và kiểm tra dữ liệu tải lên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: request-body-and-file-upload-009
+    title: Dọn tệp tạm và xử lý upload thất bại hoặc client ngắt kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-servlet-response
+  title: HttpServletResponse và thời điểm commit
+  childs:
+  - slug: http-servlet-response-001
+    title: Thiết lập status, content type và character encoding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-002
+    title: Ghi văn bản bằng writer và dữ liệu nhị phân bằng output stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-003
+    title: setHeader, addHeader và thời điểm header còn có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-004
+    title: Response buffer, flushBuffer và trạng thái isCommitted
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-005
+    title: reset, resetBuffer và giới hạn sau khi response đã commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-006
+    title: setStatus, sendError và sendRedirect trong các tình huống khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-007
+    title: Cookie trả về client và phạm vi hiệu lực của cookie
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-008
+    title: Content length, truyền streaming và trách nhiệm đóng response
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-009
+    title: Cache-Control, ETag, Last-Modified và conditional request ở mức ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-servlet-response-010
+    title: Lỗi khi ghi response, client hủy request và phản hồi bị cắt giữa chừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: internal-dispatch-and-error-handling
+  title: Dispatch nội bộ và cơ chế xử lý lỗi
+  childs:
+  - slug: internal-dispatch-and-error-handling-001
+    title: Lấy RequestDispatcher theo đường dẫn hoặc tên Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-002
+    title: forward và việc chuyển xử lý trong cùng request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-003
+    title: include và giới hạn thay đổi status hoặc header của tài nguyên được nhúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-004
+    title: Phân biệt forward, include và redirect từ góc nhìn client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-005
+    title: DispatcherType REQUEST, FORWARD, INCLUDE, ERROR và ASYNC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-006
+    title: Các request attribute mô tả đường dẫn gốc khi dispatch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-007
+    title: Ảnh hưởng của dispatch đến parameter và các thành phần đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-008
+    title: Khai báo error-page theo status code hoặc loại exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-009
+    title: Error dispatch, thuộc tính lỗi và phối hợp với Filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internal-dispatch-and-error-handling-010
+    title: Xử lý lỗi khi response đã commit và tránh vòng lặp trang lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-filters
+  title: Filter và chuỗi xử lý request response
+  childs:
+  - slug: servlet-filters-001
+    title: Filter đứng ở đâu trong pipeline của Servlet container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-002
+    title: Vòng đời init, doFilter và destroy của Filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-003
+    title: FilterConfig và cấu hình tham số khởi tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-004
+    title: Xây dựng chuỗi bằng FilterChain.doFilter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-005
+    title: Xử lý trước, sau và dừng chuỗi để trả response trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-006
+    title: Ánh xạ Filter theo URL pattern và servlet-name
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-007
+    title: Thứ tự Filter theo cấu hình và giới hạn khi dựa vào annotation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-008
+    title: Dispatcher type và nguyên nhân một Filter chạy nhiều lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-009
+    title: HttpServletRequestWrapper và HttpServletResponseWrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-010
+    title: Filter encoding, correlation ID và đo thời gian xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-filters-011
+    title: Tương tác giữa Filter, exception, asyncSupported và tài nguyên cần dọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-context-scopes-and-resources
+  title: ServletContext, phạm vi dữ liệu và tài nguyên dùng chung
+  childs:
+  - slug: servlet-context-scopes-and-resources-001
+    title: Một ServletContext cho mỗi web application và ranh giới truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-002
+    title: ServletContext attribute và vòng đời dữ liệu cấp ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-003
+    title: So sánh biến cục bộ, instance field, request, session và application scope
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-004
+    title: Truy cập resource bằng getResource và getResourceAsStream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-005
+    title: Giới hạn của getRealPath khi ứng dụng chạy từ WAR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-006
+    title: Thư mục tạm của web application và quản lý tệp phát sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-007
+    title: JNDI, DataSource và tài nguyên do môi trường triển khai cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-008
+    title: Phân biệt tài nguyên do container quản lý với tài nguyên ứng dụng tự tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-context-scopes-and-resources-009
+    title: Cô lập context, cross-context access và giới hạn tính di động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-listeners-and-lifecycle-events
+  title: Listener và sự kiện vòng đời ứng dụng
+  childs:
+  - slug: servlet-listeners-and-lifecycle-events-001
+    title: Đăng ký Listener bằng @WebListener, web.xml hoặc API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-002
+    title: ServletContextListener và khởi tạo hoặc dọn tài nguyên ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-003
+    title: ServletContextAttributeListener và thay đổi application attribute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-004
+    title: ServletRequestListener và vòng đời request trong ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-005
+    title: ServletRequestAttributeListener và theo dõi request attribute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-006
+    title: HttpSessionListener và thời điểm tạo hoặc hủy session
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-007
+    title: HttpSessionAttributeListener và HttpSessionBindingListener
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-008
+    title: HttpSessionIdListener và HttpSessionActivationListener trong các tình huống tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-listeners-and-lifecycle-events-009
+    title: Thứ tự callback, lỗi trong Listener và thread safety của mã lắng nghe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-session-management
+  title: HttpSession và quản lý trạng thái người dùng
+  childs:
+  - slug: http-session-management-001
+    title: Tính stateless của HTTP và nhu cầu lưu trạng thái qua nhiều request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-002
+    title: getSession, getSession(false) và tránh tạo session ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-003
+    title: Session ID, cookie JSESSIONID và quan hệ giữa client với session
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-004
+    title: Cookie tracking, URL rewriting và cấu hình tracking mode
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-005
+    title: SessionCookieConfig, path, domain, Secure và HttpOnly
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-006
+    title: setAttribute, removeAttribute và vòng đời dữ liệu trong session
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-007
+    title: isNew, thời điểm truy cập và timeout của session
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-008
+    title: invalidate và hành vi với tham chiếu session đã hết hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-009
+    title: changeSessionId và quản lý session qua đăng nhập hoặc đăng xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-010
+    title: Nhiều tab, nhiều request đồng thời và cập nhật session attribute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-011
+    title: Sticky session, replication và điều kiện của distributable application
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-session-management-012
+    title: Session trong bộ nhớ, lưu trữ bên ngoài và đánh đổi khi mở rộng nhiều instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: async-servlet-processing
+  title: Xử lý bất đồng bộ với AsyncContext
+  childs:
+  - slug: async-servlet-processing-001
+    title: Async Servlet giải phóng luồng xử lý request trong tình huống nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-002
+    title: Khai báo asyncSupported cho Servlet và toàn bộ Filter liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-003
+    title: Kiểm tra isAsyncSupported, isAsyncStarted và điều kiện gọi startAsync
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-004
+    title: AsyncContext và vòng đời request response sau khi service trả về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-005
+    title: startAsync với request response gốc hoặc wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-006
+    title: AsyncContext.start và phạm vi công việc thực thi bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-007
+    title: complete và thời điểm kết thúc response
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-008
+    title: dispatch, DispatcherType.ASYNC và việc quay lại chuỗi xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-009
+    title: AsyncListener với onComplete, onTimeout, onError và onStartAsync
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-010
+    title: Đăng ký lại Listener khi bắt đầu chu kỳ async mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-011
+    title: Timeout, lỗi nền và phối hợp kết thúc để tránh response bị treo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-012
+    title: Chuyển ngữ cảnh logging, bảo mật và tài nguyên qua ranh giới thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-servlet-processing-013
+    title: Race condition giữa ghi dữ liệu, timeout, dispatch và complete
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: non-blocking-io-and-streaming
+  title: I/O không chặn và kết nối kéo dài
+  childs:
+  - slug: non-blocking-io-and-streaming-001
+    title: Phân biệt Servlet async, I/O không chặn và mô hình reactive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-002
+    title: Điều kiện dùng ReadListener và WriteListener
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-003
+    title: ServletInputStream.isReady, isFinished và callback đọc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-004
+    title: ServletOutputStream.isReady và callback ghi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-005
+    title: Tôn trọng tín hiệu sẵn sàng và tránh vòng lặp chờ bận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-006
+    title: Quản lý buffer, tốc độ bên nhận và áp lực bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-007
+    title: Streaming response và Server-Sent Events trên nền Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-008
+    title: Phát hiện lỗi I/O, client disconnect và dọn tài nguyên liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-blocking-io-and-streaming-009
+    title: Giới hạn sử dụng request response đồng thời trong xử lý không chặn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: threads-concurrency-and-state
+  title: Thread, concurrency và quyền sở hữu trạng thái
+  childs:
+  - slug: threads-concurrency-and-state-001
+    title: Thread tiếp nhận kết nối, thread I/O và thread xử lý trong kiến trúc container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-002
+    title: Mô hình request đồng bộ gắn với worker thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-003
+    title: Tính đồng thời của Servlet, Filter và các đối tượng dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-004
+    title: Biến instance mutable và lỗi chia sẻ dữ liệu giữa người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-005
+    title: An toàn luồng cho application attribute và session attribute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-006
+    title: Phân biệt container quản lý attribute với tính an toàn của object được lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-007
+    title: Blocking I/O, gọi dịch vụ ngoài và cạn thread pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-008
+    title: Tạo thread hoặc executor trong ứng dụng và trách nhiệm quản lý vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-009
+    title: ThreadLocal, context class loader và dọn trạng thái khi thread được tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-010
+    title: Executor do môi trường quản lý và ranh giới của container Servlet độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threads-concurrency-and-state-011
+    title: Virtual thread, điều kiện hỗ trợ và các tài nguyên vẫn cần giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: web-application-class-loading
+  title: Class loading và cô lập web application
+  childs:
+  - slug: web-application-class-loading-001
+    title: Phân cấp class loader của JVM, container và từng web application
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-002
+    title: Nạp lớp từ WEB-INF/classes và WEB-INF/lib
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-003
+    title: Thư viện chung của container và ảnh hưởng đến nhiều ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-004
+    title: Delegation, quy tắc nạp Servlet API và khác biệt giữa implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-005
+    title: Dependency Servlet API ở phạm vi provided hoặc compileOnly
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-006
+    title: ClassNotFoundException, NoClassDefFoundError và NoSuchMethodError
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-007
+    title: ClassCastException khi cùng tên lớp được nạp bởi class loader khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-008
+    title: Thread context class loader và tìm resource hoặc service provider
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-009
+    title: Reload, redeploy và cơ chế giữ lại class loader cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: web-application-class-loading-010
+    title: Rò rỉ từ static field, ThreadLocal, thread nền và đăng ký tài nguyên toàn cục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-managed-security
+  title: Bảo mật do container quản lý
+  childs:
+  - slug: container-managed-security-001
+    title: Authentication, authorization và danh tính người gọi trong Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-002
+    title: Principal, getRemoteUser và isUserInRole
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-003
+    title: Khai báo security-role, security-constraint và login-config
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-004
+    title: URL pattern, HTTP method và kiểm soát truy cập tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-005
+    title: Khai báo @ServletSecurity và security constraint bằng ServletRegistration.Dynamic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-006
+    title: BASIC, FORM và CLIENT-CERT ở mức cơ chế và yêu cầu triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-007
+    title: authenticate, login và logout qua HttpServletRequest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-008
+    title: user-data-constraint và yêu cầu kênh truyền bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-009
+    title: Role mapping, identity store và phần cấu hình phụ thuộc container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-managed-security-010
+    title: Phạm vi áp dụng security constraint khi dispatch và tích hợp bảo mật framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-and-application-security
+  title: Bảo vệ ranh giới HTTP và dữ liệu ứng dụng
+  childs:
+  - slug: http-and-application-security-001
+    title: Ranh giới tin cậy giữa client, proxy, container và mã ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-002
+    title: Phân biệt kiểm tra HTTP của connector với validation nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-003
+    title: Session fixation và thuộc tính bảo vệ cookie theo môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-004
+    title: SameSite và cách cấu hình phù hợp với API hoặc container đang dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-005
+    title: CORS, preflight và vị trí xử lý trong Filter hoặc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-006
+    title: CSRF và sự khác nhau giữa xác thực với bảo vệ thao tác thay đổi trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-007
+    title: XSS, content type và trách nhiệm escape dữ liệu ở tầng hiển thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-008
+    title: Path traversal, truy cập WEB-INF và bảo vệ tài nguyên nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-009
+    title: Giới hạn header, parameter, body, multipart và request chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-and-application-security-010
+    title: Thông báo lỗi, log và tránh tiết lộ session ID hoặc dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-deployment-and-lifecycle
+  title: Đóng gói, triển khai và vận hành vòng đời ứng dụng
+  childs:
+  - slug: application-deployment-and-lifecycle-001
+    title: WAR đóng gói và exploded deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-002
+    title: Context root, tên artifact và cấu hình đường dẫn khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-003
+    title: Triển khai vào container độc lập và khởi chạy container nhúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-004
+    title: Tách cấu hình môi trường, thông tin bí mật và artifact ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-005
+    title: Chuỗi khởi động từ tạo context đến ứng dụng sẵn sàng phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-006
+    title: Startup failure, rollback triển khai và xác định trạng thái ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-007
+    title: Readiness, liveness và kiểm tra sức khỏe theo khả năng phục vụ thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-008
+    title: Reload, redeploy, restart và tác động đến session hoặc class loader
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-009
+    title: Graceful shutdown, ngừng nhận request và chờ request đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-010
+    title: Đóng executor, connection pool và tài nguyên do ứng dụng sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-deployment-and-lifecycle-011
+    title: Triển khai nhiều instance và ảnh hưởng của lưu trạng thái cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: connectors-proxies-and-protocols
+  title: Connector, reverse proxy và giao thức truyền tải
+  childs:
+  - slug: connectors-proxies-and-protocols-001
+    title: Connector và mối liên hệ với port, protocol và executor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-002
+    title: TLS termination tại container hoặc reverse proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-003
+    title: Forwarded, X-Forwarded-* và cấu hình proxy được tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-004
+    title: Scheme, host, port và tạo redirect hoặc URL đúng sau proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-005
+    title: Context path và prefix khi proxy thay đổi đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-006
+    title: HTTP keep-alive, connection timeout và request timeout ở các lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-007
+    title: HTTP/2 multiplexing và quan hệ với mô hình xử lý Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-008
+    title: Giới hạn connection, thread, backlog và khác biệt theo container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-009
+    title: Nâng cấp kết nối qua HttpUpgradeHandler và ranh giới với WebSocket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectors-proxies-and-protocols-010
+    title: Phân biệt Servlet async, SSE, WebSocket và reactive server khi chọn mô hình giao tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-observability
+  title: Logging, metrics và quan sát hoạt động container
+  childs:
+  - slug: container-observability-001
+    title: Phân biệt access log, container log và application log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-002
+    title: Trường thông tin cần có để lần theo request qua các lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-003
+    title: Correlation ID, trace context và truyền ngữ cảnh qua async dispatch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-004
+    title: Đo tổng thời gian request và thời gian xử lý trong Servlet hoặc Filter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-005
+    title: Theo dõi request rate, error rate và phân bố latency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-006
+    title: Theo dõi thread pool, connection, hàng đợi và request đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-007
+    title: Theo dõi số session, bộ nhớ session và async request chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-008
+    title: JMX hoặc giao diện quản trị tương đương của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-009
+    title: Thread dump, heap dump và dữ liệu chẩn đoán cần thu thập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-010
+    title: Giới hạn truy cập endpoint quản trị và bảo vệ dữ liệu trong log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-resource-limits
+  title: Hiệu năng và kiểm soát tài nguyên
+  childs:
+  - slug: performance-and-resource-limits-001
+    title: Phân biệt thời gian CPU, chờ I/O và chờ tài nguyên khi xử lý request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-002
+    title: Quan hệ giữa tải đồng thời, throughput và latency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-003
+    title: Giới hạn thread pool và connection pool trong toàn chuỗi xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-004
+    title: Timeout theo từng lớp và tránh công việc tiếp tục sau khi client bỏ cuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-005
+    title: Chi phí tạo session, lưu object lớn và replication
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-006
+    title: Buffer response, streaming, nén và cache tài nguyên tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-007
+    title: Chi phí annotation scanning, nạp thư viện và khởi động ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-008
+    title: Đánh đổi giữa xử lý đồng bộ, AsyncContext và I/O không chặn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-resource-limits-009
+    title: Thử tải theo kịch bản thực tế và đánh giá trước sau khi thay đổi cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: runtime-troubleshooting
+  title: Chẩn đoán lỗi theo từng lớp của runtime
+  childs:
+  - slug: runtime-troubleshooting-001
+    title: Ứng dụng không khởi động do port, dependency hoặc cấu hình sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-002
+    title: Context không triển khai được dù tiến trình container vẫn đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-003
+    title: 404 do sai context path, URL mapping hoặc tài nguyên không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-004
+    title: 405 do HTTP method chưa được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-005
+    title: 400, 413 hoặc 431 do dữ liệu không hợp lệ hoặc giới hạn request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-006
+    title: 401 và 403 từ container, Filter hoặc framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-007
+    title: 500 và cách truy ngược nguyên nhân qua error dispatch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-008
+    title: 502 hoặc 504 tại proxy khi kết nối hoặc xử lý phía ứng dụng gặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-009
+    title: Response đã commit, header không còn sửa được và redirect thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-010
+    title: Request treo vì cạn thread, khóa dùng chung hoặc thiếu async completion
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-011
+    title: Mất session do cookie, timeout, đổi instance hoặc triển khai lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-troubleshooting-012
+    title: Rò rỉ class loader và bộ nhớ tăng sau nhiều lần redeploy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-and-framework-boundaries
+  title: Ranh giới giữa Servlet container và framework web
+  childs:
+  - slug: container-and-framework-boundaries-001
+    title: Front Controller và cách framework tiếp nhận request qua một Servlet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-002
+    title: DispatcherServlet của Spring MVC trong chuỗi xử lý container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-003
+    title: Servlet URL mapping và handler mapping của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-004
+    title: Servlet Filter, framework interceptor và vị trí thực thi khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-005
+    title: Container Listener và lifecycle callback của dependency injection framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-006
+    title: Servlet async với cơ chế trả kết quả bất đồng bộ của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-007
+    title: Xử lý lỗi cấp container và exception handler cấp framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-008
+    title: Session của container, session abstraction và kho session bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-009
+    title: Servlet container độc lập với CDI, JAX-RS, JSP và dịch vụ Jakarta EE bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-framework-boundaries-010
+    title: Spring Boot embedded container và cách phân biệt cấu hình framework với container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: servlet-contract-and-deployment-testing
+  title: Kiểm thử hợp đồng Servlet và hành vi triển khai
+  childs:
+  - slug: servlet-contract-and-deployment-testing-001
+    title: Unit test logic Java tách khỏi HttpServletRequest và HttpServletResponse
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-002
+    title: Giới hạn của mock request response khi kiểm tra hành vi container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-003
+    title: Integration test bằng container thật hoặc container nhúng tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-004
+    title: Kiểm thử ma trận URL mapping và HTTP method
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-005
+    title: Kiểm thử thứ tự Filter và từng DispatcherType
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-006
+    title: Kiểm thử forward, include, redirect và error-page
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-007
+    title: Kiểm thử session bằng cookie jar và nhiều request đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-008
+    title: Kiểm thử async hoàn tất, timeout, error và client disconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-009
+    title: Kiểm thử encoding tiếng Việt, multipart và các giới hạn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-010
+    title: Kiểm thử security constraint và thông tin request sau reverse proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: servlet-contract-and-deployment-testing-011
+    title: Kiểm thử startup, shutdown và redeploy mà không rò rỉ tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice-and-self-assessment
+  title: Thực hành tổng hợp và tự đánh giá
+  childs:
+  - slug: integrated-practice-and-self-assessment-001
+    title: Xây dựng ứng dụng Servlet thuần với endpoint văn bản, JSON và tài nguyên tĩnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-002
+    title: Thực hành mapping exact, prefix, extension và default bằng cùng bộ request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-003
+    title: Ghi lại vòng đời Servlet, Filter, Listener và thứ tự callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-004
+    title: Tạo Filter correlation ID và theo dõi request qua forward hoặc error dispatch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-005
+    title: Xây dựng giỏ hàng dùng session và kiểm tra cập nhật đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-006
+    title: Tạo endpoint bất đồng bộ có complete, timeout và xử lý lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-007
+    title: Thực hành multipart upload có giới hạn và dọn tệp tạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-008
+    title: Tái hiện lỗi cạn thread bằng lời gọi chậm và đọc thread dump
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-009
+    title: Đặt ứng dụng sau reverse proxy rồi kiểm tra URL, redirect và cookie
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-010
+    title: So sánh cùng một request trên Servlet thuần và framework để xác định trách nhiệm từng lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-and-self-assessment-011
+    title: Lập sơ đồ runtime và checklist giải thích từ lúc nhận kết nối đến khi dọn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

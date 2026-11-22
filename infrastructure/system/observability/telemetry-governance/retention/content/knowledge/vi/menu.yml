@@ -1,0 +1,286 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Lưu giữ dữ liệu (retention) là gì trong hệ thống quan sát
+  - Vì sao dữ liệu quan sát cần thời hạn lưu giữ rõ ràng
+  - 'Các thành phần: dữ liệu, chính sách, đồng hồ, nơi lưu và tác vụ hết hạn'
+  - Phân biệt thời hạn lưu giữ với thời gian còn truy vấn được
+  - Phân biệt retention với sao lưu, lưu trữ dài hạn và khôi phục
+  - Quan hệ giữa lưu giữ, giảm thiểu thu thập và bảo vệ dữ liệu
+  - Cân bằng giá trị chẩn đoán, dung lượng và rủi ro giữ dữ liệu
+  - Lộ trình từ nhu cầu sử dụng đến kiểm chứng dữ liệu đã hết hạn
+- level1: Nhu cầu sử dụng
+  level2:
+  - Xác định khoảng thời gian cần tra cứu khi xử lý lỗi
+  - Tính đến độ trễ phát hiện sự cố và thời gian điều tra
+  - Phục vụ so sánh theo chu kỳ, mùa vụ và thay đổi phiên bản
+  - Phân biệt nhu cầu vận hành, phân tích xu hướng và kiểm toán
+  - Xác định yêu cầu lưu tối thiểu và giới hạn lưu tối đa
+  - Chuyển yêu cầu hợp đồng hoặc tổ chức thành đầu vào đã được xác nhận
+  - Xác định độ phân giải, tốc độ truy xuất và mức đầy đủ cần giữ
+  - Ghi rõ chủ sở hữu, mục đích sử dụng và tiêu chí đánh giá
+- level1: Danh mục dữ liệu
+  level2:
+  - Lập bản đồ nhật ký (logs), chỉ số (metrics), truy vết (traces) và hồ sơ hiệu năng (profiles)
+  - Phân biệt dữ liệu gốc, dữ liệu tổng hợp và dữ liệu suy ra
+  - Kiểm kê dữ liệu trong ứng dụng, agent, collector và backend
+  - Kiểm kê bản sao tại vùng, cụm, tài khoản và nhà cung cấp khác
+  - Nhận diện dữ liệu trong chỉ mục, bộ nhớ đệm và tệp tạm
+  - Kiểm kê snapshot, bản sao lưu, bản xuất và dữ liệu phục vụ hỗ trợ
+  - Phân nhóm theo dịch vụ, môi trường, tenant và mức nhạy cảm
+  - Lập quan hệ phụ thuộc giữa dữ liệu và các bảng điều khiển hoặc cảnh báo
+- level1: Thiết kế chính sách
+  level2:
+  - Xây dựng ma trận thời hạn theo loại dữ liệu và mục đích
+  - Chọn thời hạn riêng cho môi trường phát triển, kiểm thử và sản xuất
+  - Thiết kế giá trị mặc định cho dịch vụ và tenant mới
+  - Xác định phạm vi áp dụng theo nhãn, luồng, chỉ mục hoặc kho lưu
+  - Quy định thứ tự ưu tiên khi nhiều chính sách cùng khớp
+  - Phân biệt hết hạn theo tuổi dữ liệu với loại bỏ khi vượt dung lượng
+  - Đánh giá ý nghĩa của giá trị 0, bỏ trống và vô thời hạn theo từng hệ thống
+  - Quy định độ trễ xóa cho phép sau mốc hết hạn
+  - Xử lý dữ liệu thiếu nhãn, chưa phân loại hoặc không có chủ sở hữu
+  - Gắn phiên bản, ngày hiệu lực và trách nhiệm phê duyệt chính sách
+- level1: Mốc tính thời hạn
+  level2:
+  - Phân biệt thời điểm sự kiện, thu nhận, ghi lưu và tạo đối tượng
+  - Xác định mốc bắt đầu thời hạn của bản ghi, phân vùng và khối dữ liệu
+  - Xử lý UTC, múi giờ, đơn vị thời gian và phép làm tròn
+  - Ảnh hưởng của lệch đồng hồ và dấu thời gian ở tương lai
+  - Xử lý dữ liệu đến muộn, sai thứ tự và gửi lại
+  - Xử lý nhập bù dữ liệu lịch sử mà không tự đặt lại tuổi dữ liệu
+  - Đánh giá mốc thời gian khi rollover, compaction và sao chép
+  - Phân biệt thời điểm đủ điều kiện xóa với thời điểm xóa hoàn tất
+  - Giữ nguồn gốc thời gian khi phục hồi hoặc chuyển hệ thống
+- level1: Vòng đời và phân tầng
+  level2:
+  - Mô hình dữ liệu đang ghi, truy vấn thường xuyên, lưu lạnh và hết hạn
+  - Thiết kế tầng nóng, ấm, lạnh theo nhu cầu truy cập
+  - Phân biệt chuyển tầng lưu trữ với giảm thời hạn lưu giữ
+  - Phân biệt dữ liệu còn tồn tại với dữ liệu có thể tìm kiếm trực tiếp
+  - Chọn định dạng và mức nén cho từng giai đoạn
+  - Đánh giá thời gian phục hồi và chi phí truy xuất từ kho lưu dài hạn
+  - Thiết kế dữ liệu tổng hợp có thời hạn khác với dữ liệu gốc
+  - Giữ metadata cần thiết để đọc và diễn giải dữ liệu lịch sử
+  - Xác định điều kiện kết thúc vòng đời của từng bản sao
+- level1: Nhật ký
+  level2:
+  - Chọn thời hạn theo mục đích của log ứng dụng, access log và audit log
+  - Phân biệt giá trị chẩn đoán của nhật ký gỡ lỗi với sự kiện bảo mật
+  - Thiết kế thời hạn theo luồng nhật ký mà không dựa mù quáng vào mức log
+  - Ảnh hưởng của độ hạt tệp, chunk và chỉ mục đến thời điểm xóa
+  - Phân biệt xoay vòng tệp (log rotation) với chính sách xóa dữ liệu
+  - Quản lý tệp nén, nhật ký container và bản sao trên máy nguồn
+  - Giữ ngữ cảnh sự kiện khi một phần nhật ký đã hết hạn
+  - Kiểm chứng khả năng điều tra trên các khoảng thời gian còn lưu
+- level1: Chỉ số
+  level2:
+  - Phân biệt chu kỳ thu thập, độ phân giải và thời hạn lưu metrics
+  - Thiết kế thời hạn cho mẫu gốc và chuỗi do recording rule tạo
+  - Tổng hợp hoặc giảm độ phân giải (downsampling) tại hệ thống có hỗ trợ
+  - Lựa chọn hàm tổng hợp phù hợp cho counter, gauge và histogram
+  - Giới hạn khi suy ra phân vị hoặc cực trị từ dữ liệu đã tổng hợp
+  - Quan hệ giữa số lượng chuỗi thời gian, cardinality và dung lượng lưu
+  - Xử lý khoảng trống dữ liệu trong truy vấn và so sánh lịch sử
+  - Phân biệt retention cục bộ với retention của backend nhận remote write
+  - Quản lý exemplars và liên kết đến traces có thời hạn khác
+- level1: Truy vết và hồ sơ
+  level2:
+  - Chọn thời hạn theo nhu cầu điều tra giao dịch và phân tích hiệu năng
+  - Phân biệt tỷ lệ lấy mẫu traces với thời hạn lưu traces đã được nhận
+  - Ảnh hưởng của span đến muộn và trace chưa đầy đủ khi hết hạn
+  - Xác định độ hạt khối dữ liệu và thời điểm xóa một trace
+  - Phối hợp thời hạn của trace, log và mã định danh tương quan
+  - Tách vòng đời traces khỏi metrics được sinh từ spans
+  - Thiết kế thời hạn cho hồ sơ hiệu năng gốc và bản tổng hợp
+  - Quản lý ký hiệu gỡ lỗi và metadata cần để đọc hồ sơ lịch sử
+  - Đánh giá rủi ro khi hồ sơ hoặc dữ liệu chẩn đoán chứa thông tin nhạy cảm
+- level1: Lưu trữ và phân vùng
+  level2:
+  - Thiết kế phân vùng theo thời gian và phạm vi chính sách
+  - Lựa chọn độ hạt bản ghi, tệp, chunk, block và chỉ mục
+  - Xử lý đối tượng chứa dữ liệu có nhiều mốc hết hạn khác nhau
+  - Đánh đổi giữa phân vùng nhỏ, số lượng đối tượng và chi phí quản lý
+  - Quan hệ giữa compaction, tuổi dữ liệu và không gian tạm
+  - Giữ nhất quán giữa chỉ mục tra cứu và dữ liệu thực tế
+  - Xác định vai trò của nhãn, tiền tố đường dẫn và metadata đối tượng
+  - Phân biệt nén dữ liệu với rút ngắn thời hạn lưu
+  - Ngăn chính sách kho lưu bên dưới xóa dữ liệu trước backend
+- level1: Hàng đợi và bộ đệm
+  level2:
+  - Phân biệt bộ đệm chuyển tiếp với kho lưu telemetry dài hạn
+  - Quản lý dữ liệu trong hàng đợi exporter và tệp đệm trên đĩa
+  - Xác định thời hạn, dung lượng và hành vi khi hàng đợi đầy
+  - Xử lý dữ liệu tồn đọng khi backend mất kết nối kéo dài
+  - Kiểm soát dữ liệu gửi lại đã quá tuổi được phép lưu
+  - Quản lý hàng đợi thông điệp lỗi và các bản sao phục vụ thử lại
+  - Xác định ranh giới trách nhiệm của ứng dụng, collector và backend
+  - Kiểm chứng dữ liệu trên volume còn sót sau khi dừng dịch vụ
+- level1: Cơ chế hết hạn
+  level2:
+  - Thiết kế TTL theo khả năng của hệ thống lưu trữ
+  - Phân biệt ẩn logic, đánh dấu xóa và xóa dữ liệu vật lý
+  - Quét định kỳ, hàng đợi xóa và tiến trình dọn dẹp bất đồng bộ
+  - Xóa theo phân vùng hoặc khối so với xóa từng bản ghi
+  - Điều phối việc gỡ chỉ mục và xóa nội dung để không gây lỗi truy vấn
+  - Thiết kế thao tác xóa lặp lại an toàn và thử lại khi thất bại
+  - Kiểm soát tốc độ dọn dẹp, tải nền và độ trễ xóa
+  - Xử lý tác vụ bị gián đoạn, khóa điều phối và tiến trình chạy trùng
+  - Phân biệt thời điểm đủ điều kiện xóa với hạn chót phải hoàn tất xóa
+- level1: Xóa và kiểm chứng
+  level2:
+  - Lập kế hoạch xóa với phạm vi, thời gian và tập dữ liệu xác định
+  - Phân biệt xóa do hết hạn với yêu cầu xóa có chọn lọc
+  - Kiểm tra dữ liệu ở lớp truy vấn, chỉ mục và kho lưu gốc
+  - Xác minh các bản sao, phiên bản và bản xuất liên quan
+  - Giới hạn của kết quả truy vấn rỗng khi chứng minh việc xóa
+  - Lưu bằng chứng thực thi mà không giữ lại nội dung cần xóa
+  - Phân biệt xóa tại dịch vụ với bảo đảm xóa trên phương tiện lưu trữ
+  - Xác định tiêu chí hoàn thành, trường hợp chưa xong và phạm vi chưa thể xác minh
+- level1: Bản sao và khôi phục
+  level2:
+  - Phân biệt nhân bản để sẵn sàng cao với sao lưu để khôi phục
+  - Thiết kế thời hạn riêng cho snapshot và bản sao lưu
+  - Quản lý bản sao khác vùng, khác tài khoản và khác nhà cung cấp
+  - Xử lý bản sao tăng dần và phụ thuộc giữa các thế hệ sao lưu
+  - Giữ tính nhất quán giữa dữ liệu sao lưu và metadata chính sách
+  - Ngăn khôi phục làm xuất hiện lại dữ liệu đã hết hạn hoặc đã được yêu cầu xóa
+  - Áp dụng lại quy tắc hết hạn theo nguồn gốc dữ liệu sau phục hồi
+  - Kiểm chứng quy trình phục hồi và phạm vi dữ liệu thực sự còn giữ
+  - Quản lý bản xuất thủ công, dữ liệu hỗ trợ và bản sao trên máy cá nhân
+- level1: Ngoại lệ lưu giữ
+  level2:
+  - Phân biệt gia hạn vận hành với tạm giữ phục vụ điều tra (legal hold)
+  - Xác định phạm vi dữ liệu, lý do và người có thẩm quyền đặt ngoại lệ
+  - Thiết kế thời hạn rà soát cho ngoại lệ thay vì mặc định giữ vô hạn
+  - Phối hợp yêu cầu lưu tối thiểu, giới hạn lưu tối đa và lệnh tạm giữ
+  - Hiểu vai trò và giới hạn của lưu trữ bất biến (WORM)
+  - Ngăn tác vụ hết hạn xóa dữ liệu đang được giữ theo chính sách
+  - Gỡ ngoại lệ và tính lại điều kiện hết hạn từ mốc đã quy định
+  - Ghi dấu vết phê duyệt, thay đổi và kết thúc ngoại lệ
+- level1: Quyền và dữ liệu nhạy cảm
+  level2:
+  - Áp dụng phân loại dữ liệu để lựa chọn thời hạn tương ứng
+  - Phối hợp retention với che dữ liệu và giảm thiểu thu thập
+  - Phân tách quyền xem dữ liệu, sửa chính sách và thực thi xóa
+  - Hạn chế quyền rút ngắn thời hạn hoặc vô hiệu hóa dọn dẹp
+  - Quản lý khóa mã hóa có vòng đời tương thích với dữ liệu cần đọc
+  - Đánh giá giới hạn của hủy khóa khi vẫn còn bản sao hoặc khóa khác
+  - Giữ nhật ký quản trị chính sách mà không lưu dữ liệu nhạy cảm không cần thiết
+- level1: Prometheus
+  level2:
+  - Phạm vi retention của TSDB cục bộ và backend lưu trữ dài hạn
+  - Cấu hình thời hạn theo thời gian và giới hạn dung lượng đúng phiên bản
+  - Xác định điều kiện có hiệu lực khi cùng đặt giới hạn tuổi và dung lượng
+  - Hiểu vai trò của Head, WAL và các khối TSDB trong dung lượng thực tế
+  - Ảnh hưởng của ranh giới khối và compaction đến việc xóa dữ liệu cũ
+  - Dự trù không gian cho WAL, Head và compaction ngoài giới hạn khối
+  - Phân biệt hết hạn tự động với API xóa chuỗi và dọn tombstone
+  - Kiểm chứng dữ liệu còn truy vấn được và retention độc lập ở đích remote write
+- level1: Loki
+  level2:
+  - Xác minh phiên bản, kiểu chỉ mục và điều kiện hỗ trợ retention
+  - Vai trò của Compactor trong thực thi chính sách lưu giữ
+  - Thiết kế retention toàn cục, theo tenant và theo stream
+  - Xác định độ ưu tiên của selector và giá trị ghi đè
+  - Phân biệt gỡ tham chiếu chỉ mục với xóa chunk bất đồng bộ
+  - Quản lý bản ghi đánh dấu xóa và trạng thái cần giữ qua khởi động lại
+  - Phối hợp retention của Loki với vòng đời kho đối tượng
+  - Phân biệt giới hạn truy vấn lịch sử với dữ liệu thực sự bị xóa
+  - Đánh giá phạm vi tác động của thay đổi chính sách lên dữ liệu đã nhận
+- level1: Tempo
+  level2:
+  - Nhận diện kiến trúc và thành phần thực thi retention theo phiên bản
+  - Thiết kế thời hạn giữ block và giá trị ghi đè theo tenant
+  - Phân biệt giữ block còn hoạt động với giữ block đã được compact
+  - Ảnh hưởng của cập nhật danh sách block đến khả năng truy vấn
+  - Phối hợp metadata, block dữ liệu và chính sách kho đối tượng
+  - Tách thời hạn traces khỏi dữ liệu của metrics-generator
+  - Kiểm chứng trace hết hạn, span đến muộn và liên kết từ nguồn khác
+- level1: Elasticsearch
+  level2:
+  - Phân biệt ILM và data stream lifecycle theo mô hình triển khai
+  - Gắn chính sách với data stream, index template và chỉ mục phù hợp
+  - Thiết kế rollover theo tuổi, dung lượng và số lượng tài liệu
+  - Tính tuổi chuyển pha theo mốc rollover và cấu hình nguồn gốc thời gian
+  - Lựa chọn pha hot, warm, cold, frozen và delete theo nhu cầu
+  - Phân biệt chuyển tầng, searchable snapshot và xóa chỉ mục
+  - Quản lý vòng đời snapshot riêng với vòng đời chỉ mục
+  - Xử lý chính sách bị kẹt do thiếu quyền, lỗi pha hoặc điều kiện chưa đạt
+  - Kiểm chứng chính sách áp dụng cho chỉ mục mới và dữ liệu đã có
+- level1: Kho đối tượng
+  level2:
+  - Dùng S3 Lifecycle để phân biệt chuyển lớp lưu trữ và hết hạn đối tượng
+  - Chọn phạm vi bucket, tiền tố, nhãn và nhóm phiên bản cần xử lý
+  - Phân biệt xóa phiên bản hiện tại với tạo dấu xóa (delete marker)
+  - Quản lý vòng đời các phiên bản cũ và dấu xóa
+  - Xử lý tương tác giữa Object Lock, legal hold và quy tắc hết hạn
+  - Đánh giá độ trễ thực thi bất đồng bộ sau thời điểm đủ điều kiện
+  - Phối hợp nhân bản, lỗi nhân bản và dọn dẹp ở đích
+  - Kiểm tra inventory, metadata và sự kiện vòng đời để xác minh
+  - Tránh quy tắc bucket xóa sớm dữ liệu hoặc chỉ mục do backend quản lý
+- level1: Dung lượng và chi phí
+  level2:
+  - Ước lượng lượng dữ liệu phát sinh mỗi ngày theo từng tín hiệu
+  - Tính dung lượng theo tốc độ ghi, thời hạn và hệ số nén
+  - Bổ sung chi phí chỉ mục, metadata, bản sao và phiên bản đối tượng
+  - Xét dữ liệu tăng đột biến và không gian tạm cho compaction
+  - Mô hình hóa dung lượng cho nhiều tầng và nhiều độ phân giải
+  - Đánh giá chi phí truy vấn, phục hồi, thao tác lưu trữ và truyền dữ liệu
+  - Tính đến thời gian lưu tối thiểu tính phí của từng lớp lưu trữ
+  - So sánh lợi ích khi đổi thời hạn với giảm lượng dữ liệu thu thập
+  - Xác định ngân sách, hạn mức và mức dự phòng vận hành
+- level1: Quản lý thay đổi
+  level2:
+  - Lưu chính sách dưới dạng cấu hình có phiên bản và người sở hữu
+  - Kiểm tra cú pháp, đơn vị thời gian và phạm vi đối tượng trong CI/CD
+  - Xem trước dữ liệu chịu tác động trước khi rút ngắn thời hạn
+  - Phân biệt tác động lên dữ liệu cũ và dữ liệu mới theo từng backend
+  - Triển khai thử trên tenant hoặc tập dữ liệu tổng hợp có kiểm soát
+  - Đồng bộ cấu hình giữa backend, kho đối tượng và hệ thống sao lưu
+  - Đánh giá giới hạn quay lui khi dữ liệu đã bị xóa
+  - Di chuyển hệ thống mà vẫn giữ tuổi dữ liệu và chính sách tương ứng
+  - Rà soát độ lệch cấu hình, ngoại lệ và chính sách không còn được sử dụng
+- level1: Giám sát vận hành
+  level2:
+  - Theo dõi tuổi dữ liệu cũ nhất và phạm vi thời gian còn truy vấn được
+  - Đo độ trễ từ lúc đủ điều kiện xóa đến lúc xóa hoàn tất
+  - Theo dõi khối lượng tồn đọng và tốc độ xử lý của tác vụ dọn dẹp
+  - Phát hiện lỗi quyền truy cập, lỗi API và tiến trình ngừng chạy
+  - Giám sát dung lượng của dữ liệu gốc, chỉ mục, bản sao và phiên bản cũ
+  - Cảnh báo dấu hiệu mất dữ liệu trước thời hạn cam kết
+  - Giám sát chính sách có hiệu lực và độ lệch giữa các tenant
+  - Thiết kế bảng điều khiển và bằng chứng kiểm chứng định kỳ
+- level1: Kiểm thử
+  level2:
+  - Tạo tập telemetry tổng hợp với mốc thời gian và vòng đời đã biết
+  - Kiểm thử biên trước hạn, đúng hạn và sau hạn
+  - Kiểm thử đơn vị thời gian, làm tròn và lệch đồng hồ
+  - Kiểm thử dữ liệu đến muộn, gửi lại và nhập bù lịch sử
+  - Kiểm thử độ ưu tiên chính sách và ranh giới giữa các tenant
+  - Kiểm thử lỗi dọn dẹp, khởi động lại và thao tác lặp
+  - Kiểm thử đối tượng có phiên bản, bản sao và ngoại lệ tạm giữ
+  - Kiểm thử phục hồi không làm tái xuất hiện dữ liệu đã phải loại bỏ
+  - Đối chiếu kết quả truy vấn với kho lưu và chỉ mục thực tế
+  - Kiểm thử tải dọn dẹp trong khi hệ thống vẫn ghi và truy vấn
+  - Xác định tiêu chí đạt về thời hạn, độ trễ xóa và khả năng chẩn đoán
+- level1: Xử lý sự cố
+  level2:
+  - Điều tra dữ liệu biến mất sớm do giới hạn dung lượng hoặc sai chính sách
+  - Điều tra dữ liệu hết hạn vẫn tồn tại do dọn dẹp ngừng hoặc chậm
+  - Phân biệt lỗi truy vấn, dữ liệu chưa tới và dữ liệu đã bị xóa
+  - Xử lý kho đối tượng tăng dung lượng dù đã có quy tắc hết hạn
+  - Xử lý chỉ mục còn tham chiếu đến nội dung đã bị xóa
+  - Khoanh vùng phạm vi tác động khi nhầm đơn vị thời gian hoặc selector
+  - Ngăn sự cố lan rộng và ghi nhận phần dữ liệu không thể khôi phục
+  - Bổ sung kiểm thử hồi quy và cập nhật hướng dẫn vận hành sau sự cố
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng ma trận lưu giữ cho một hệ thống Spring Boot nhiều dịch vụ
+  - Thiết kế vòng đời logs, metrics và traces theo nhu cầu điều tra thực tế
+  - So sánh các phương án thời hạn bằng mô hình dung lượng và chi phí
+  - Cấu hình thử retention trên backend đã chọn bằng dữ liệu tổng hợp
+  - Kiểm chứng dữ liệu trước hạn còn dùng được và dữ liệu sau hạn được dọn
+  - Mô phỏng dọn dẹp bị gián đoạn rồi xác minh quá trình tiếp tục an toàn
+  - Diễn tập phục hồi bản sao lưu và áp dụng lại quy tắc hết hạn
+  - Hoàn thiện bảng kiểm chính sách, bằng chứng xóa và hướng dẫn vận hành

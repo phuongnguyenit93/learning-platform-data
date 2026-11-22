@@ -1,0 +1,7 @@
+# DevOps DevSecOps Container Security
+
+Container Security là tập hợp các biện pháp bảo vệ image, tiến trình, cấu hình runtime và workload chạy trên nền tảng container. Container dùng chung kernel với host nên việc đóng gói ứng dụng không tự động tạo ra ranh giới bảo mật tuyệt đối. Tư duy cốt lõi là giảm bề mặt tấn công, cấp quyền tối thiểu và kiểm soát rủi ro xuyên suốt vòng đời build, phân phối, triển khai và vận hành.
+
+Module dành cho người đã biết Docker, Linux cơ bản và cách triển khai ứng dụng bằng Kubernetes. Lộ trình bắt đầu từ mô hình rủi ro, xây dựng Dockerfile với base image tin cậy, kiểm tra CVE và SBOM, rồi siết quyền thực thi bằng non-root user, capabilities, read-only filesystem và seccomp. Phần tiếp theo tập trung vào secrets, giới hạn mạng và chính sách bảo mật Pod khi ứng dụng chạy trên Kubernetes.
+
+Hoàn thành module, bạn có thể rà soát một image và cấu hình container, nhận diện đặc quyền dư thừa, áp dụng một số biện pháp hardening thiết yếu và bổ sung kiểm tra bảo mật trước triển khai cùng giám sát trong runtime. Các thiết lập cần được thử trên môi trường an toàn để tránh làm gián đoạn ứng dụng; bảo mật container là quá trình đánh giá và cải tiến liên tục chứ không phải một lần quét lỗ hổng.

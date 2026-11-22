@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến thức nền
+  slug: foundations
+  index: 1
+- title: Các kiểu proxy
+  slug: proxy-types
+  index: 2
+- title: Luồng kết nối
+  slug: connection-flows
+  index: 3
+- title: Proxy HTTP
+  slug: http-proxies
+  index: 4
+- title: Đường hầm và SOCKS
+  slug: tunneling-socks
+  index: 5
+- title: Proxy TLS
+  slug: tls-proxies
+  index: 6
+- title: Định tuyến
+  slug: routing
+  index: 7
+- title: Thông tin nguồn
+  slug: source-address-information
+  index: 8
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 9
+- title: Quản lý kết nối
+  slug: connection-management
+  index: 10
+- title: Thời hạn và thử lại
+  slug: timeouts-retries
+  index: 11
+- title: Bộ đệm và truyền luồng
+  slug: buffering-streaming
+  index: 12
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 13
+- title: Giao thức ứng dụng
+  slug: application-protocols
+  index: 14
+- title: Kiểm soát truy cập
+  slug: access-control
+  index: 15
+- title: An toàn giao thức
+  slug: protocol-security
+  index: 16
+- title: Quan sát hệ thống
+  slug: observability
+  index: 17
+- title: Hiệu năng
+  slug: performance
+  index: 18
+- title: Tính sẵn sàng
+  slug: availability
+  index: 19
+- title: Triển khai
+  slug: deployment
+  index: 20
+- title: Chẩn đoán lỗi
+  slug: error-diagnostics
+  index: 21
+- title: Lựa chọn giải pháp
+  slug: solution-selection
+  index: 22
+- title: Thực hành
+  slug: hands-on-exercises
+  index: 23

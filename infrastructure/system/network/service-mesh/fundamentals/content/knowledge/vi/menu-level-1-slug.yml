@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng kết nối
+  slug: connectivity-foundations
+  index: 1
+- title: Phạm vi trách nhiệm
+  slug: responsibility-boundaries
+  index: 2
+- title: Kiến trúc
+  slug: architecture
+  index: 3
+- title: Mô hình triển khai
+  slug: deployment-models
+  index: 4
+- title: Luồng lưu lượng
+  slug: traffic-flows
+  index: 5
+- title: Khám phá dịch vụ
+  slug: service-discovery
+  index: 6
+- title: Giao thức
+  slug: protocols
+  index: 7
+- title: Định tuyến
+  slug: routing
+  index: 8
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 9
+- title: Độ tin cậy
+  slug: reliability
+  index: 10
+- title: Phối hợp ứng dụng
+  slug: application-coordination
+  index: 11
+- title: Danh tính và chứng chỉ
+  slug: identities-certificates
+  index: 12
+- title: mTLS
+  slug: mtls
+  index: 13
+- title: Phân quyền
+  slug: authorization
+  index: 14
+- title: Cổng và kết nối ngoài
+  slug: gateways-egress
+  index: 15
+- title: Kubernetes
+  slug: kubernetes
+  index: 16
+- title: Quan sát
+  slug: observability
+  index: 17
+- title: Nhiều cụm
+  slug: multi-cluster
+  index: 18
+- title: Hiệu năng
+  slug: performance
+  index: 19
+- title: Vận hành
+  slug: operations
+  index: 20
+- title: Cấu hình và chính sách
+  slug: configuration-policies
+  index: 21
+- title: Áp dụng từng bước
+  slug: incremental-adoption
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 24
+- title: Đánh giá lựa chọn
+  slug: technology-selection
+  index: 25
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 26

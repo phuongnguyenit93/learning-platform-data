@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình tin cậy
+  slug: trust-model
+  index: 1
+- title: SPIFFE ID
+  slug: spiffe-id
+  index: 2
+- title: X.509-SVID
+  slug: x509-svid
+  index: 3
+- title: JWT-SVID
+  slug: jwt-svid
+  index: 4
+- title: Trust bundle
+  slug: trust-bundle
+  index: 5
+- title: Kiến trúc SPIRE
+  slug: architecture-spire
+  index: 6
+- title: Môi trường thực hành
+  slug: lab-environment
+  index: 7
+- title: Node attestation
+  slug: node-attestation
+  index: 8
+- title: Workload attestation
+  slug: workload-attestation
+  index: 9
+- title: Đăng ký danh tính
+  slug: identity-registration
+  index: 10
+- title: Workload API
+  slug: workload-api
+  index: 11
+- title: Socket và đặc quyền
+  slug: sockets-privileges
+  index: 12
+- title: mTLS
+  slug: mtls
+  index: 13
+- title: Phân quyền
+  slug: authorization
+  index: 14
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 15
+- title: Proxy và service mesh
+  slug: proxy-service-mesh
+  index: 16
+- title: Kubernetes
+  slug: kubernetes
+  index: 17
+- title: Cloud và tại chỗ
+  slug: cloud-on-premises
+  index: 18
+- title: Federation
+  slug: federation
+  index: 19
+- title: Tích hợp liên kết
+  slug: federation-integration
+  index: 20
+- title: CA và khóa ký
+  slug: certificate-authorities-signing-keys
+  index: 21
+- title: Vòng đời SVID
+  slug: lifecycle-svid
+  index: 22
+- title: HA và mở rộng
+  slug: ha-scaling
+  index: 23
+- title: Triển khai an toàn
+  slug: secure-deployment
+  index: 24
+- title: Quan sát và kiểm toán
+  slug: monitoring-auditing
+  index: 25
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 26
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 27
+- title: Sự cố và phục hồi
+  slug: incident-recovery
+  index: 28
+- title: Nâng cấp và vận hành
+  slug: upgrades-operations
+  index: 29
+- title: Kiểm thử
+  slug: testing
+  index: 30
+- title: Thực hành
+  slug: hands-on-practice
+  index: 31

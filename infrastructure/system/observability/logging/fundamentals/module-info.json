@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "OBSERVABILITY_LOGGING_FUNDAMENTALS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hình thành kỹ năng thiết kế logging hữu ích cho ứng dụng và hệ thống, từ mức log, cấu trúc sự kiện, timestamp và ngữ cảnh thực thi đến thu thập, tìm kiếm, phân tích. Người học biết liên kết log với tín hiệu quan sát, giảm nhiễu, bảo vệ dữ liệu nhạy cảm và kiểm soát chi phí lưu giữ."
+  }
+}

@@ -1,0 +1,76 @@
+menu:
+  - title: "Tổng quan Git"
+    slug: git-overview
+    index: 0
+  - title: "Cài đặt và cấu hình"
+    slug: installation-and-configuration
+    index: 1
+  - title: "Khởi tạo repository"
+    slug: repository-initialization
+    index: 2
+  - title: "Mô hình dữ liệu"
+    slug: git-data-model
+    index: 3
+  - title: "Vùng làm việc"
+    slug: working-tree-and-staging
+    index: 4
+  - title: "Theo dõi tệp"
+    slug: file-tracking
+    index: 5
+  - title: "Tạo commit"
+    slug: creating-commits
+    index: 6
+  - title: "Đọc lịch sử"
+    slug: reading-history
+    index: 7
+  - title: "So sánh thay đổi"
+    slug: comparing-changes
+    index: 8
+  - title: "Quản lý nhánh"
+    slug: branch-management
+    index: 9
+  - title: "Gộp nhánh"
+    slug: merging-branches
+    index: 10
+  - title: "Xử lý xung đột"
+    slug: conflict-resolution
+    index: 11
+  - title: "Chỉnh sửa lịch sử"
+    slug: rewriting-history
+    index: 12
+  - title: "Hoàn tác và khôi phục"
+    slug: undo-and-recovery
+    index: 13
+  - title: "Lưu tạm công việc"
+    slug: stashing-changes
+    index: 14
+  - title: "Kết nối remote"
+    slug: remote-connections
+    index: 15
+  - title: "Đồng bộ remote"
+    slug: remote-synchronization
+    index: 16
+  - title: "Quy trình cộng tác"
+    slug: collaboration-workflows
+    index: 17
+  - title: "Pull request và review"
+    slug: pull-requests-and-code-review
+    index: 18
+  - title: "Bảo vệ repository"
+    slug: repository-protection
+    index: 19
+  - title: "Quản lý nội dung"
+    slug: repository-content-management
+    index: 20
+  - title: "Thẻ và phiên bản"
+    slug: tags-and-versioning
+    index: 21
+  - title: "Truy vết phát hành"
+    slug: release-traceability
+    index: 22
+  - title: "Chẩn đoán Git"
+    slug: git-troubleshooting
+    index: 23
+  - title: "Thực hành tổng hợp"
+    slug: integrated-practice
+    index: 24

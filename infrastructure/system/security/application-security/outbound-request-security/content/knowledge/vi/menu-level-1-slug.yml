@@ -1,0 +1,154 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overall-picture
+  index: 0
+- title: Mục tiêu bảo vệ
+  slug: protection-objectives
+  index: 1
+- title: Phạm vi và ngữ cảnh
+  slug: scope-context
+  index: 2
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 3
+- title: Bề mặt tấn công
+  slug: attack-surface
+  index: 4
+- title: SSRF
+  slug: ssrf
+  index: 5
+- title: Đường đi mạng
+  slug: network-paths
+  index: 6
+- title: URL
+  slug: url
+  index: 7
+- title: Phân tích URL
+  slug: url-parsing
+  index: 8
+- title: Scheme và port
+  slug: schemes-ports
+  index: 9
+- title: Hostname và IP
+  slug: hostnames-ips
+  index: 10
+- title: DNS
+  slug: dns
+  index: 11
+- title: Địa chỉ nội bộ
+  slug: internal-addresses
+  index: 12
+- title: Cloud metadata
+  slug: cloud-metadata
+  index: 13
+- title: Egress control
+  slug: egress-control
+  index: 14
+- title: Allowlist
+  slug: allowlist
+  index: 15
+- title: Denylist
+  slug: denylist
+  index: 16
+- title: Proxy và gateway
+  slug: proxies-gateways
+  index: 17
+- title: HTTP client
+  slug: http-client
+  index: 18
+- title: Connection
+  slug: connections
+  index: 19
+- title: TLS
+  slug: tls
+  index: 20
+- title: Certificate
+  slug: certificates
+  index: 21
+- title: Authentication
+  slug: authentication
+  index: 22
+- title: API key và secret
+  slug: api-keys-secrets
+  index: 23
+- title: OAuth và token
+  slug: oauth-tokens
+  index: 24
+- title: Request header
+  slug: request-headers
+  index: 25
+- title: Request method và body
+  slug: request-method-body
+  index: 26
+- title: Redirect
+  slug: redirects
+  index: 27
+- title: Response
+  slug: responses
+  index: 28
+- title: Content parsing
+  slug: content-parsing
+  index: 29
+- title: XML và external entity
+  slug: xml-external-entities
+  index: 30
+- title: JSON và object mapping
+  slug: json-object-mapping
+  index: 31
+- title: File và media
+  slug: files-media
+  index: 32
+- title: Timeout
+  slug: timeouts
+  index: 33
+- title: Retry
+  slug: retries
+  index: 34
+- title: Circuit breaker
+  slug: circuit-breakers
+  index: 35
+- title: Rate và concurrency
+  slug: rate-concurrency
+  index: 36
+- title: Data exfiltration
+  slug: data-exfiltration
+  index: 37
+- title: Secret leakage
+  slug: secret-leakage
+  index: 38
+- title: Kiểm tra đích đến
+  slug: destination-validation
+  index: 39
+- title: Observability
+  slug: observability
+  index: 40
+- title: Audit
+  slug: auditing
+  index: 41
+- title: Kiểm thử
+  slug: testing
+  index: 42
+- title: Kiểm thử tải
+  slug: load-testing
+  index: 43
+- title: Triển khai an toàn
+  slug: secure-deployment
+  index: 44
+- title: Vận hành
+  slug: operations
+  index: 45
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 46
+- title: Compliance
+  slug: compliance
+  index: 47
+- title: Kiến trúc
+  slug: architecture
+  index: 48
+- title: Case study
+  slug: case-studies
+  index: 49
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 50

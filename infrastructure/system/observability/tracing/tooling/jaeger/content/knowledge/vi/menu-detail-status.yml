@@ -1,0 +1,3130 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Jaeger là gì và giải quyết bài toán quan sát hệ thống phân tán như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của Jaeger trong luồng thu thập, xử lý, lưu trữ và phân tích trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt nền tảng truy vết Jaeger với OpenTelemetry API, SDK và Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Khi nào dùng trace để điều tra lỗi, độ trễ và quan hệ giữa dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa trace, log, metric và mã định danh dùng để đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Các khả năng chính: tìm kiếm, xem trace, phân tích phụ thuộc và giám sát dịch vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Giới hạn của dữ liệu truy vết khi thiếu mã theo dõi, bị lấy mẫu hoặc bị mất span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phạm vi Jaeger v2 và cách nhận diện tài liệu, cấu hình dành cho v1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình học từ môi trường cục bộ đến vận hành Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Chuẩn bị kiến thức nền về HTTP, container và truy vết phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-data
+  title: Dữ liệu truy vết
+  childs:
+  - slug: tracing-data-001
+    title: Trace, span, trace ID, span ID và quan hệ cha con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-002
+    title: Tên span, dịch vụ và thao tác trong tìm kiếm của Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-003
+    title: Thời điểm bắt đầu, thời lượng và khoảng thời gian của trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-004
+    title: Span kind và phân biệt phía gửi, nhận, xử lý nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-005
+    title: Thuộc tính có kiểu dữ liệu và cách dùng để mô tả một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-006
+    title: Tài nguyên (resource), instrumentation scope và nguồn phát sinh span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-007
+    title: Trạng thái span, sự kiện và thông tin ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-008
+    title: Span link và mô hình đồ thị ngoài quan hệ cha con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-009
+    title: Ánh xạ thuật ngữ OpenTelemetry với tag, log và reference trong định dạng Jaeger cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-010
+    title: Quy ước tên dịch vụ, môi trường, phiên bản và thuộc tính có ích cho điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-data-011
+    title: Trace không hoàn chỉnh, span mồ côi và dữ liệu đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jaeger-v2-architecture
+  title: Kiến trúc Jaeger v2
+  childs:
+  - slug: jaeger-v2-architecture-001
+    title: Một chương trình Jaeger với nhiều vai trò do cấu hình quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-002
+    title: Vai trò collector trong tiếp nhận và ghi dữ liệu truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-003
+    title: Vai trò query trong cung cấp giao diện và API đọc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-004
+    title: Vai trò ingester khi dữ liệu đi qua Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-005
+    title: Chế độ all-in-one và trường hợp sử dụng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-006
+    title: Nền tảng OpenTelemetry Collector bên trong Jaeger v2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-007
+    title: Receiver, processor, exporter, connector và extension liên hệ với nhau ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-008
+    title: Vai trò của jaeger_storage, jaeger_storage_exporter và jaeger_query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-009
+    title: Kiến trúc ghi trực tiếp vào kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-010
+    title: Kiến trúc collector–Kafka–ingester và các đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-011
+    title: Đặt OpenTelemetry Collector trước Jaeger theo mô hình sidecar, máy chủ hoặc gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-v2-architecture-012
+    title: Tách lưu lượng đọc, ghi và phạm vi ảnh hưởng khi thành phần lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-setup
+  title: Khởi chạy cục bộ
+  childs:
+  - slug: local-setup-001
+    title: Chọn bản phát hành và cố định phiên bản chương trình hoặc container image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-002
+    title: Chạy Jaeger all-in-one với kho dữ liệu trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-003
+    title: Cổng tiếp nhận OTLP, cổng giao diện và cổng quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-004
+    title: Ánh xạ cổng, mạng container và phân biệt localhost giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-005
+    title: Gửi trace thử nghiệm bằng ứng dụng mẫu hoặc công cụ sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-006
+    title: Khám phá luồng yêu cầu bằng ứng dụng HotROD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-007
+    title: Xác minh dữ liệu đi từ ứng dụng đến kết quả tìm kiếm trong Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-008
+    title: Chạy Jaeger và ứng dụng thử nghiệm bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-009
+    title: Gắn tệp cấu hình, volume và kiểm tra quyền đọc tệp trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-010
+    title: Khởi động lại và quan sát sự khác biệt giữa bộ nhớ tạm với lưu trữ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-setup-011
+    title: Thu thập phiên bản, cấu hình và dữ liệu mẫu để tái hiện kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration
+  title: Cấu hình
+  childs:
+  - slug: configuration-001
+    title: Cấu trúc YAML của Jaeger v2 theo mô hình OpenTelemetry Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-002
+    title: Khai báo thành phần và kích hoạt chúng trong service.pipelines hoặc service.extensions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-003
+    title: Định danh type/name và sử dụng nhiều cấu hình cho cùng loại thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-004
+    title: Khai báo kho dữ liệu và tham chiếu tên kho từ phía ghi, đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-005
+    title: Khai báo jaeger_query cho HTTP, gRPC và giao diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-006
+    title: Địa chỉ lắng nghe, endpoint và phạm vi truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-007
+    title: Nạp cấu hình bằng --config và ghi đè có kiểm soát bằng --set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-008
+    title: Tham chiếu biến môi trường trong YAML và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-009
+    title: Phân biệt biến môi trường của SDK với cách cấu hình Jaeger v1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-010
+    title: Tổ chức cấu hình theo môi trường và tách thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-011
+    title: Phát hiện khóa không được hỗ trợ, tham chiếu sai và thành phần chưa kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-012
+    title: Xác minh cấu hình với đúng phiên bản Jaeger trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-ingestion
+  title: Tiếp nhận dữ liệu
+  childs:
+  - slug: trace-ingestion-001
+    title: OTLP/gRPC và OTLP/HTTP trong việc gửi trace vào Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-002
+    title: Endpoint /v1/traces, định dạng Protobuf và JSON qua HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-003
+    title: Chọn giao thức, cổng, đường dẫn và kiểu nội dung khớp nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-004
+    title: Gửi trực tiếp từ SDK so với gửi qua OpenTelemetry Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-005
+    title: Thiết lập timeout, nén, kích thước lô và giới hạn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-006
+    title: Lỗi trả về từ receiver, cơ chế thử lại và ngân sách đệm ở phía gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-007
+    title: 'Giới hạn tín hiệu: gửi trace vào Jaeger và định tuyến log, metric đến kho phù hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-008
+    title: Tiếp nhận định dạng Zipkin trong môi trường cần tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-009
+    title: 'Định dạng Jaeger gRPC, Thrift và UDP cũ: phạm vi tương thích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-010
+    title: Kiểm chứng một trace ID qua từng chặng tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-011
+    title: Đánh giá dữ liệu không hợp lệ, span quá lớn và yêu cầu bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-integration
+  title: Tích hợp Java
+  childs:
+  - slug: java-integration-001
+    title: Lựa chọn OpenTelemetry Java agent, SDK hoặc tích hợp framework để gửi đến Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-002
+    title: Gắn Java agent và cấu hình xuất trace qua OTLP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-003
+    title: Đặt service.name và các thuộc tính tài nguyên cho ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-004
+    title: Chọn endpoint và giao thức OTLP phù hợp với Java agent hoặc SDK đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-005
+    title: Thiết lập OpenTelemetry Spring Boot starter trong trường hợp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-006
+    title: Micrometer Tracing bridge OpenTelemetry và vai trò của OTLP exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-007
+    title: Phân biệt cấu hình Spring Boot, cấu hình SDK và cấu hình Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-008
+    title: Kiểm tra trace HTTP, truy cập cơ sở dữ liệu và lời gọi dịch vụ từ ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-009
+    title: Bổ sung span nghiệp vụ có ý nghĩa bằng OpenTelemetry API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-010
+    title: Tránh span trùng khi kết hợp agent, thư viện và tích hợp framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-011
+    title: Ghi trace ID, span ID vào log rồi tra cứu trong Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-012
+    title: Xác minh kết thúc span và xuất dữ liệu khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-context
+  title: Ngữ cảnh truy vết
+  childs:
+  - slug: trace-context-001
+    title: Vì sao Jaeger chỉ ghép được luồng phân tán khi ngữ cảnh được truyền đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-002
+    title: W3C traceparent, tracestate và tính tương thích với hệ thống đang tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-003
+    title: Định dạng truyền ngữ cảnh Jaeger cũ và giai đoạn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-004
+    title: Truyền ngữ cảnh qua HTTP client, server và proxy trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-005
+    title: Giữ ngữ cảnh khi chuyển luồng, dùng executor hoặc xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-006
+    title: Đọc trace qua hàng đợi thông điệp bằng quan hệ cha con hoặc span link
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-007
+    title: Tác vụ nền, tác vụ tách rời và lựa chọn bắt đầu trace mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-008
+    title: Baggage, thuộc tính span và dữ liệu nào xuất hiện trong Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-009
+    title: Tránh rò ngữ cảnh hoặc gắn span vào sai yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-010
+    title: Đối chiếu cờ lấy mẫu giữa các dịch vụ trong cùng luồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-011
+    title: Chẩn đoán trace bị tách thành nhiều phần hoặc thiếu quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-pipelines
+  title: Xử lý pipeline
+  childs:
+  - slug: processing-pipelines-001
+    title: Thiết kế đường đi từ receiver đến kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-002
+    title: Thứ tự processor và ảnh hưởng đến dữ liệu được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-003
+    title: Gom lô bằng batch processor và đánh đổi với việc xác nhận ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-004
+    title: Memory limiter và cơ chế tạo áp lực ngược khi thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-005
+    title: Thêm, sửa, xóa thuộc tính bằng processor phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-006
+    title: Chuẩn hóa thuộc tính tài nguyên và bổ sung thông tin môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-007
+    title: Lọc span, sự kiện và nguy cơ làm đứt quan hệ trong trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-008
+    title: Loại bỏ thông tin nhạy cảm trước khi xuất đến kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-009
+    title: Chia dữ liệu sang nhiều pipeline và đích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-010
+    title: Dùng debug exporter để xác định dữ liệu thực tế đi qua pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-011
+    title: Kết nối pipeline trace với pipeline metric bằng connector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-pipelines-012
+    title: Đánh giá thành phần có sẵn và xây dựng bản phân phối tùy chỉnh bằng OCB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sampling
+  title: Lấy mẫu
+  childs:
+  - slug: sampling-001
+    title: Vị trí quyết định lấy mẫu và tác động đến dữ liệu quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-002
+    title: Lấy mẫu ở đầu trace (head sampling) tại OpenTelemetry SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-003
+    title: Lấy mẫu theo quan hệ cha con và bảo toàn quyết định xuyên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-004
+    title: Lấy mẫu xác suất và giới hạn số trace theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-005
+    title: Remote sampling và SDK có hỗ trợ giao thức Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-006
+    title: Cấu hình remote_sampling theo tệp và chính sách theo dịch vụ, thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-007
+    title: Lấy mẫu thích ứng (adaptive sampling) theo mục tiêu lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-008
+    title: Quan hệ giữa adaptive_sampling processor, kho chiến lược và remote_sampling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-009
+    title: Lấy mẫu sau khi thu thập (tail sampling) để ưu tiên trace lỗi hoặc chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-010
+    title: Định tuyến các span cùng trace về cùng nơi quyết định tail sampling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-011
+    title: Span đến muộn, thời gian chờ và giới hạn bộ nhớ khi lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-012
+    title: Phối hợp head sampling với tail sampling và các thiên lệch phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-013
+    title: Kiểm chứng chính sách bằng dữ liệu thử nghiệm thay vì chỉ nhìn số trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-search
+  title: Tìm kiếm trace
+  childs:
+  - slug: trace-search-001
+    title: Chọn dịch vụ và thao tác trong giao diện tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-002
+    title: Khoảng thời gian tương đối, tuyệt đối và múi giờ khi tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-003
+    title: Tìm theo ngưỡng thời lượng tối thiểu, tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-004
+    title: Tìm theo thuộc tính hoặc tag và kiểm tra khả năng lập chỉ mục của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-005
+    title: Tra cứu trực tiếp bằng trace ID từ log, cảnh báo hoặc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-006
+    title: Giới hạn số kết quả và phạm vi dữ liệu mà kết quả đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-007
+    title: Đọc danh sách, biểu đồ phân tán và phân bố thời lượng của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-008
+    title: Sắp xếp, thu hẹp tìm kiếm và lựa chọn trace đáng điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-009
+    title: Chia sẻ đường dẫn tìm kiếm có đủ điều kiện và ngữ cảnh thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-010
+    title: Phân biệt không có trace với dữ liệu chưa được ghi, chưa tìm thấy hoặc đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-search-011
+    title: Ảnh hưởng của sampling, retention và quyền truy cập đến kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-analysis
+  title: Phân tích trace
+  childs:
+  - slug: trace-analysis-001
+    title: Đọc dòng thời gian (timeline) và biểu đồ Gantt của các span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-002
+    title: Xem thuộc tính, sự kiện, trạng thái lỗi và thông tin tài nguyên của span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-003
+    title: Thu gọn, mở rộng, tìm và lọc span trong trace lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-004
+    title: Đối chiếu thời lượng toàn trace với thời lượng từng span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-005
+    title: Phân biệt lời gọi tuần tự, song song và các khoảng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-006
+    title: Phân tích đường găng (critical path) của độ trễ toàn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-007
+    title: Phân biệt thời gian bao hàm và thời gian riêng khi diễn giải chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-008
+    title: Quan sát trace bằng đồ thị, flame graph và bảng thống kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-009
+    title: Theo dõi span link và quan hệ ngoài cây cha con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-010
+    title: Độ lệch đồng hồ (clock skew), cảnh báo điều chỉnh và giới hạn suy luận thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-011
+    title: Nhận diện span lỗi, retry, timeout và chuỗi tác động lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-012
+    title: Đối chiếu các trace đại diện trước và sau thay đổi của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-013
+    title: Xem, xuất hoặc nạp dữ liệu JSON để phục vụ điều tra có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-014
+    title: Phân biệt bằng chứng trong trace với giả thuyết về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-dependencies
+  title: Quan hệ dịch vụ
+  childs:
+  - slug: service-dependencies-001
+    title: Sơ đồ System Architecture và ý nghĩa của cạnh phụ thuộc một bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-002
+    title: Deep Dependency Graph và quan hệ bắc cầu trong các trace được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-003
+    title: Chọn dịch vụ trung tâm và mức chi tiết theo dịch vụ hoặc thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-004
+    title: Vì sao hai cạnh A–B và B–C chưa chứng minh có một luồng A–B–C
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-005
+    title: Dữ liệu đầu vào cần có để tính liên kết phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-006
+    title: Tính đồ thị trong bộ nhớ so với công việc tổng hợp cho kho phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-007
+    title: Vai trò của các công cụ tổng hợp phụ thuộc và kiểm tra tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-008
+    title: Ảnh hưởng của cửa sổ thời gian, sampling và mã theo dõi chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-009
+    title: Phát hiện lời gọi vòng, phụ thuộc bất ngờ và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-010
+    title: Đối chiếu sơ đồ dịch vụ với trace cụ thể trước khi kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-monitoring
+  title: Giám sát dịch vụ
+  childs:
+  - slug: service-monitoring-001
+    title: Service Performance Monitoring (SPM) và mục đích của tab Monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-002
+    title: 'Chỉ số RED: lưu lượng yêu cầu, tỷ lệ lỗi và thời lượng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-003
+    title: Đọc phân vị độ trễ, chỉ số Impact và chọn thao tác cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-004
+    title: Chuyển từ một bất thường trên Monitor đến tập trace liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-005
+    title: Tạo metric trước bằng spanmetrics connector và kho tương thích PromQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-006
+    title: Tính RED trực tiếp từ Elasticsearch/OpenSearch khi cấu hình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-007
+    title: Cấu hình kho metric, tham chiếu trong query và bật mục Monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-008
+    title: Bucket thời lượng, đơn vị đo, tên metric và chuẩn hóa cấu hình liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-009
+    title: Số lượng chuỗi thời gian và kiểm soát độ đa dạng giá trị thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-010
+    title: Ảnh hưởng của sampling, loại span và quy ước trạng thái lỗi đến RED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-011
+    title: Phân biệt metric suy ra từ span với metric ứng dụng độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-monitoring-012
+    title: Chẩn đoán Monitor trống, thiếu thao tác hoặc truy vấn metric thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-model
+  title: Mô hình lưu trữ
+  childs:
+  - slug: storage-model-001
+    title: Vai trò kho trace chính, kho archive và kho metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-002
+    title: Tiêu chí chọn backend theo quy mô, tìm kiếm, chi phí và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-003
+    title: 'Kho trong bộ nhớ: giới hạn dung lượng và vòng đời dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-004
+    title: 'Badger: lưu trữ nhúng, volume và giới hạn triển khai một nút'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-005
+    title: OpenSearch và Elasticsearch cho lưu trữ phân tán cùng tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-006
+    title: Cassandra và các đặc điểm cần đánh giá khi dùng với Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-007
+    title: 'ClickHouse: trạng thái hỗ trợ thử nghiệm và yêu cầu xác minh theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-008
+    title: Mở rộng backend qua gRPC Remote Storage API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-009
+    title: Khả năng đọc, ghi, tìm kiếm và tổng hợp phụ thuộc khác nhau giữa backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-010
+    title: Retention, TTL và trách nhiệm quản lý vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-011
+    title: Chọn và lưu trace vào archive để phục vụ điều tra dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-model-012
+    title: Tách môi trường học tập, kiểm thử và sản xuất trong cấu hình lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opensearch-elasticsearch
+  title: OpenSearch và Elasticsearch
+  childs:
+  - slug: opensearch-elasticsearch-001
+    title: Kết nối Jaeger với cụm lưu trữ và xác minh phiên bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-002
+    title: Đặt tên, tiền tố chỉ mục và cách ly dữ liệu giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-003
+    title: Ánh xạ trường dữ liệu (mapping), template và các xung đột kiểu thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-004
+    title: Shard, replica và chi phí của nhiều chỉ mục nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-005
+    title: Chỉ mục theo thời gian, alias và chiến lược rollover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-006
+    title: Quản lý retention bằng công cụ Jaeger hoặc cơ chế vòng đời tương ứng backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-007
+    title: Phân biệt ILM của Elasticsearch với công cụ chính sách của OpenSearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-008
+    title: Ghi theo lô qua bulk API và giới hạn kích thước yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-009
+    title: Chế độ write_mode sync, async và ý nghĩa của phản hồi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-010
+    title: Độ bền dữ liệu khác với thời điểm dữ liệu có thể được tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-011
+    title: Xử lý span bị từ chối lặp lại và lựa chọn fail, drop hoặc dead-letter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-012
+    title: Lưu trữ archive, sao lưu và khôi phục chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opensearch-elasticsearch-013
+    title: Theo dõi sức khỏe cụm, lỗi ghi, độ trễ truy vấn và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kafka-buffering
+  title: Bộ đệm Kafka
+  childs:
+  - slug: kafka-buffering-001
+    title: Khi nào thêm Kafka giữa collector và kho trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-002
+    title: Cấu hình Kafka exporter ở collector và Kafka receiver ở ingester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-003
+    title: Chọn định dạng dữ liệu và bảo đảm bên ghi, bên đọc tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-004
+    title: Topic, partition, consumer group và khả năng chạy nhiều ingester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-005
+    title: Retention của Kafka và thời gian hấp thụ gián đoạn kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-006
+    title: Thời điểm đánh dấu, commit offset và bảo đảm giao ít nhất một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-007
+    title: Consumer lag và phân biệt chậm tiêu thụ với partition bị dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-008
+    title: Chính sách thử lại khi lưu trữ lỗi và ngăn span lỗi chặn toàn partition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-009
+    title: Gom lô, số partition và các giới hạn thông lượng ingester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-010
+    title: Phát lại dữ liệu, span trùng và tính lặp lại an toàn của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-011
+    title: Bảo vệ quyền produce, consume và truy cập consumer group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kafka-buffering-012
+    title: Phân biệt Kafka làm bộ đệm với kho dùng để phục vụ truy vấn trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-durability
+  title: Độ bền dữ liệu
+  childs:
+  - slug: data-durability-001
+    title: Xác định thế nào là span đã được tiếp nhận, đã xếp hàng và đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-002
+    title: Các điểm có thể mất dữ liệu từ SDK đến backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-003
+    title: Truyền lỗi ghi ngược qua toàn pipeline đến bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-004
+    title: Ảnh hưởng của batch processor đến việc xác nhận trước khi dữ liệu được ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-005
+    title: Exporter queue, wait_for_result và thời điểm trả phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-006
+    title: Gom lô tại exporter queue khi cần chờ kết quả ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-007
+    title: Áp lực ngược, giới hạn hàng đợi và lựa chọn chờ hoặc từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-008
+    title: Ngân sách thử lại phía gửi và phía ingester cho từng mô hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-009
+    title: Lỗi tạm thời, lỗi vĩnh viễn và cách xử lý tài liệu không thể lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-010
+    title: Pipeline dead-letter để giữ span bị từ chối ở cấu hình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-011
+    title: Dừng tiến trình, thoát có kiểm soát và dữ liệu còn nằm trong bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-012
+    title: Thử nghiệm kho dữ liệu gián đoạn và đối chiếu trace đã gửi, đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-013
+    title: Đánh đổi giữa độ bền, độ trễ, thông lượng và chi phí tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-api
+  title: API truy vấn
+  childs:
+  - slug: query-api-001
+    title: Phân biệt API ghi, API đọc, remote sampling và remote storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-002
+    title: API QueryService v3 qua gRPC và mô hình dữ liệu dựa trên OTLP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-003
+    title: API JSON/HTTP v3 và hợp đồng OpenAPI theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-004
+    title: Lấy trace theo ID và tìm trace bằng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-005
+    title: Tra cứu dịch vụ, thao tác và thông tin phụ thuộc qua giao diện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-006
+    title: Phân biệt API stable, internal và deprecated
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-007
+    title: Rủi ro phụ thuộc trực tiếp vào endpoint JSON nội bộ của giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-008
+    title: Đơn vị thời gian, mã định danh, giới hạn kết quả và xử lý dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-009
+    title: Xác thực, TLS, timeout và lỗi khi gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-api-010
+    title: Tạo công cụ điều tra tự động chỉ đọc bằng API có hợp đồng ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: customization-integrations
+  title: Tùy biến và tích hợp
+  childs:
+  - slug: customization-integrations-001
+    title: Cấu hình UI bằng tệp riêng và tham chiếu trong jaeger_query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-002
+    title: Tùy chỉnh điều hướng, liên kết và các tùy chọn hiển thị trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-003
+    title: Liên kết từ span đến log, dashboard và công cụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-004
+    title: Mẫu liên kết dựa trên trace ID, thuộc tính và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-005
+    title: Tích hợp Jaeger với Grafana và điều hướng giữa metric, log, trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-006
+    title: Nhúng trang tìm kiếm hoặc trace bằng embedded mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-007
+    title: Reverse proxy, tiền tố đường dẫn ngoài và base_path mà Jaeger nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-008
+    title: Chia sẻ đường dẫn trace ổn định qua proxy hoặc ingress
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-009
+    title: Quản lý tùy chọn xem JSON, tải trace và hiển thị đường găng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: customization-integrations-010
+    title: Kiểm tra khả năng truy cập dữ liệu khi mở liên kết từ hệ thống khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-deployment
+  title: Triển khai Kubernetes
+  childs:
+  - slug: kubernetes-deployment-001
+    title: Chọn mô hình all-in-one hoặc tách collector, query và ingester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-002
+    title: Triển khai Jaeger v2 bằng Helm chart phù hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-003
+    title: Quản lý Jaeger v2 bằng OpenTelemetry Operator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-004
+    title: Phân biệt tài nguyên triển khai v2 với Jaeger Operator dành cho hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-005
+    title: Đưa cấu hình vào ConfigMap và thông tin bí mật vào Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-006
+    title: Service, DNS, ingress và định tuyến riêng cho OTLP cùng query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-007
+    title: Startup probe, readiness probe và liveness probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-008
+    title: Giới hạn CPU, bộ nhớ và nguy cơ OOM hoặc giới hạn thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-009
+    title: Persistent volume cho thành phần lưu trữ cục bộ khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-010
+    title: NetworkPolicy, danh tính workload và quyền truy cập backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-011
+    title: Nhân bản, phân bố pod và cập nhật cuốn chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-012
+    title: Kiểm chứng luồng trace xuyên pod và cấu hình môi trường sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-isolation
+  title: Bảo mật và cách ly
+  childs:
+  - slug: security-isolation-001
+    title: Xác định dữ liệu nhạy cảm có thể nằm trong thuộc tính, sự kiện và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-002
+    title: Giảm dữ liệu thu thập và che thông tin nhạy cảm trước khi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-003
+    title: TLS và mTLS giữa ứng dụng, collector, query và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-004
+    title: Xác thực cho giao diện, API HTTP và API gRPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-005
+    title: Dùng reverse proxy hoặc cổng xác thực và ngăn truy cập đi vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-006
+    title: Chuyển tiếp bearer token, danh tính và giới hạn tin cậy của header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-007
+    title: Quản lý chứng thư, khóa, mật khẩu và vòng đời thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-008
+    title: Cách ly dữ liệu nhiều nhóm bằng cấu hình tenancy và khả năng của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-009
+    title: Phân biệt chọn tenant với xác minh quyền truy cập tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-010
+    title: Quyền đọc trace, quyền ghi trace và quyền quản trị kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-011
+    title: Hạn chế truy cập endpoint quản trị, debug, profiling và AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-isolation-012
+    title: Retention, archive, sao lưu và yêu cầu bảo vệ dữ liệu xuyên vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jaeger-monitoring
+  title: Giám sát Jaeger
+  childs:
+  - slug: jaeger-monitoring-001
+    title: Phân biệt giám sát sức khỏe Jaeger với SPM của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-002
+    title: Cấu hình telemetry nội bộ cho metric, log và trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-003
+    title: Theo dõi span được receiver nhận, từ chối và được exporter gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-004
+    title: Lỗi xuất dữ liệu, độ đầy hàng đợi và dấu hiệu mất span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-005
+    title: Độ trễ, lưu lượng, lỗi truy vấn và trải nghiệm mở trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-006
+    title: CPU, bộ nhớ, garbage collection và goroutine của tiến trình Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-007
+    title: Sức khỏe kho dữ liệu, dung lượng, độ trễ ghi và chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-008
+    title: Consumer lag và sức khỏe Kafka khi có tầng đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-009
+    title: Tự truy vết query service và kiểm soát chi phí telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-010
+    title: Tách endpoint metric nội bộ với metric sinh ra từ spanmetrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-011
+    title: Health check và khác biệt giữa tiến trình sống với khả năng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jaeger-monitoring-012
+    title: Dashboard, cảnh báo và ngưỡng gắn với triệu chứng ảnh hưởng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-scaling
+  title: Hiệu năng và mở rộng
+  childs:
+  - slug: performance-scaling-001
+    title: Ước lượng số span mỗi giây, kích thước span và dung lượng theo retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-002
+    title: Đánh giá tổng chi phí lấy mẫu, truyền dữ liệu, xử lý và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-003
+    title: Mở rộng collector và query độc lập theo tải đọc, ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-004
+    title: Cân bằng tải, kết nối gRPC dài và phân bố yêu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-005
+    title: Điều chỉnh kích thước lô, mức độ ghi đồng thời và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-006
+    title: Giảm thuộc tính dư thừa, giá trị quá lớn và tên thao tác có độ đa dạng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-007
+    title: Giới hạn bộ nhớ khi xử lý trace lớn hoặc tail sampling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-008
+    title: Tối ưu tìm kiếm bằng thời gian, điều kiện lọc và số lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-009
+    title: Đánh giá chi phí dựng trace lớn trên query service và trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-010
+    title: Thiết kế kiểm thử tải có dữ liệu đại diện cùng tỷ lệ lỗi, span đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-011
+    title: Nhận diện nút thắt ở collector, Kafka, storage hoặc query
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-012
+    title: Đánh đổi thông lượng với độ bền và khả năng điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-upgrades
+  title: Vận hành và nâng cấp
+  childs:
+  - slug: operations-upgrades-001
+    title: Quản lý cấu hình, phiên bản và thay đổi qua quy trình có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-002
+    title: Đọc release notes và kiểm tra tương thích giữa Jaeger với backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-003
+    title: Sao lưu cấu hình, thông tin phụ thuộc và dữ liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-004
+    title: Chính sách retention, dọn dữ liệu và theo dõi tăng trưởng dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-005
+    title: Giới hạn của archive so với một bản sao lưu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-006
+    title: Lập kế hoạch nâng cấp query, ingester và collector theo yêu cầu tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-007
+    title: Thay đổi schema kho dữ liệu, chỉ mục và các bước chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-008
+    title: Triển khai thử, kiểm chứng trace đầu cuối và điều kiện quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-009
+    title: Thay backend hoặc môi trường và xác minh khả năng đọc dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-010
+    title: Diễn tập sự cố backend, mất kết nối và phục hồi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-upgrades-011
+    title: Lập quy trình xử lý sự cố, trách nhiệm vận hành và bằng chứng cần lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-from-v1
+  title: Chuyển đổi từ v1
+  childs:
+  - slug: migration-from-v1-001
+    title: Kiểm kê Jaeger client, giao thức xuất và cấu hình đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-002
+    title: Chuyển mã truy vết từ Jaeger client hoặc OpenTracing sang OpenTelemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-003
+    title: Thay exporter Jaeger cũ bằng OTLP khi thư viện yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-004
+    title: Đối chiếu chương trình đa vai trò v2 với các binary, image v1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-005
+    title: Chuyển cờ dòng lệnh và biến môi trường v1 sang YAML v2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-006
+    title: Thay Jaeger agent cũ bằng mô hình thu thập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-007
+    title: Kiểm tra remote sampling, truyền ngữ cảnh và tính liên tục của trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-008
+    title: Xác minh tương thích dữ liệu lưu trữ và API đọc mà công cụ đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-009
+    title: Chuyển triển khai Kubernetes từ cấu hình operator cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-from-v1-010
+    title: Chạy kiểm thử tương đương, quan sát dữ liệu thiếu và chuẩn bị quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Khoanh vùng theo chuỗi SDK–mạng–receiver–pipeline–storage–query–UI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Không có dịch vụ hoặc trace: xác minh đã phát sinh yêu cầu được đo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Sai cổng, sai giao thức OTLP, sai đường dẫn và lỗi kiểu nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Không kết nối được do localhost, DNS, TLS, proxy hoặc NetworkPolicy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Trace bị thiếu do sampling, lọc dữ liệu hoặc hết ngân sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Trace bị chia cắt do mất ngữ cảnh hoặc cấu hình propagator khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Span không được lưu do mapping, giới hạn tài liệu hoặc backend quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Dữ liệu đã ghi nhưng chưa tìm được do refresh, thời gian, chỉ mục hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Query chậm, trace quá lớn và giao diện thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Clock skew, span đến muộn và hiển thị thời gian bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Monitor trống hoặc đồ thị phụ thuộc thiếu dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Kafka lag tăng, partition ngừng tiến và span lỗi lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Dùng metric, log, debug exporter và dữ liệu sinh thử để tìm chặng hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-014
+    title: Lập báo cáo sự cố kèm phiên bản, cấu hình đã che bí mật và trace ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ai-mcp
+  title: AI và MCP
+  childs:
+  - slug: ai-mcp-001
+    title: Vai trò tùy chọn của MCP server và AI Assistant trong phân tích trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-002
+    title: Điều kiện phiên bản và cấu hình bật các bề mặt AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-003
+    title: Kết nối MCP client với công cụ đọc dữ liệu truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-004
+    title: Quy trình thu hẹp từ tìm trace đến sơ đồ, đường găng và span nghi vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-005
+    title: AI Assistant theo mô hình tự cung cấp agent và nhà cung cấp mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-006
+    title: Vai trò của AG-UI, ACP và cổng trung gian của Jaeger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-007
+    title: Bổ sung hướng dẫn phân tích riêng cho hệ thống bằng custom skills
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-008
+    title: Xác thực, TLS, quyền truy cập và nguy cơ lộ dữ liệu trace cho agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-mcp-009
+    title: Đối chiếu kết luận của AI với span và bằng chứng có thể kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Dựng Jaeger v2 và quan sát trace đầu tiên từ ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Theo dõi một yêu cầu qua nhiều dịch vụ có lời gọi HTTP và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Bổ sung span nghiệp vụ và tìm trace bằng thuộc tính có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: Tái hiện truy vấn chậm, lời gọi lặp và tác vụ chạy song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: Điều tra lỗi dây chuyền bằng trace, log và metric liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Làm đứt ngữ cảnh có chủ đích rồi chứng minh cách sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: So sánh chính sách head sampling, remote sampling và tail sampling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Chuyển kho trong bộ nhớ sang backend bền vững và kiểm tra sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Dựng SPM rồi đi từ chỉ số bất thường đến trace cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Thử nghiệm backend gián đoạn để đánh giá queue, retry và dữ liệu bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-011
+    title: Dựng tầng Kafka và xác minh xử lý lại khi ingester dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-012
+    title: Triển khai có TLS, xác thực và phạm vi truy cập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-013
+    title: Kiểm thử tải, lập kế hoạch dung lượng và kiểm tra nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-014
+    title: Hoàn thiện hồ sơ điều tra gồm giả thuyết, trace ID, bằng chứng và kết quả xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

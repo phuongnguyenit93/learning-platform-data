@@ -1,0 +1,103 @@
+menu:
+  - title: "Tổng quan"
+    slug: overview
+    index: 0
+  - title: "Nguyên lý closed-world"
+    slug: closed-world-assumption
+    index: 1
+  - title: "Công cụ và môi trường"
+    slug: toolchain-and-environment
+    index: 2
+  - title: "Quy trình biên dịch"
+    slug: compilation-workflow
+    index: 3
+  - title: "Tích hợp dự án"
+    slug: project-integration
+    index: 4
+  - title: "Phân tích khả đạt"
+    slug: reachability-analysis
+    index: 5
+  - title: "Metadata tương thích"
+    slug: reachability-metadata
+    index: 6
+  - title: "Reflection"
+    slug: reflection
+    index: 7
+  - title: "Proxy và gọi động"
+    slug: proxies-and-dynamic-invocation
+    index: 8
+  - title: "Tài nguyên và dịch vụ"
+    slug: resources-and-service-loading
+    index: 9
+  - title: "JNI và mã native"
+    slug: jni-and-native-interop
+    index: 10
+  - title: "Tuần tự hóa dữ liệu"
+    slug: data-serialization
+    index: 11
+  - title: "Khởi tạo lớp"
+    slug: class-initialization
+    index: 12
+  - title: "Trạng thái và cấu hình"
+    slug: state-and-configuration
+    index: 13
+  - title: "Thư viện và framework"
+    slug: libraries-and-frameworks
+    index: 14
+  - title: "Cơ chế mở rộng"
+    slug: build-time-extensions
+    index: 15
+  - title: "Mô hình thực thi"
+    slug: execution-model
+    index: 16
+  - title: "Bộ nhớ và GC"
+    slug: memory-and-garbage-collection
+    index: 17
+  - title: "Mạng và bảo mật"
+    slug: networking-and-security
+    index: 18
+  - title: "Thu thập metadata"
+    slug: metadata-collection
+    index: 19
+  - title: "Kiểm thử tương thích"
+    slug: compatibility-testing
+    index: 20
+  - title: "Chẩn đoán build"
+    slug: build-diagnostics
+    index: 21
+  - title: "Gỡ lỗi runtime"
+    slug: runtime-debugging
+    index: 22
+  - title: "Quan sát và profiling"
+    slug: observability-and-profiling
+    index: 23
+  - title: "Đánh giá hiệu năng"
+    slug: performance-benchmarking
+    index: 24
+  - title: "Tối ưu executable"
+    slug: executable-optimization
+    index: 25
+  - title: "Tối ưu quá trình build"
+    slug: build-optimization
+    index: 26
+  - title: "Liên kết và nền tảng"
+    slug: linking-and-platforms
+    index: 27
+  - title: "Container và triển khai"
+    slug: containers-and-deployment
+    index: 28
+  - title: "CI/CD và chuỗi cung ứng"
+    slug: ci-cd-and-supply-chain
+    index: 29
+  - title: "Vận hành production"
+    slug: production-operations
+    index: 30
+  - title: "Di chuyển từ JVM"
+    slug: jvm-migration
+    index: 31
+  - title: "Thiết kế và đánh đổi"
+    slug: design-trade-offs
+    index: 32
+  - title: "Thực hành tổng hợp"
+    slug: hands-on-labs
+    index: 33

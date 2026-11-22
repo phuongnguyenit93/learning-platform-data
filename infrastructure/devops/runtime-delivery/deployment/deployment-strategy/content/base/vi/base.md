@@ -1,0 +1,7 @@
+# DevOps Runtime Delivery Deployment Deployment Strategy
+
+**Deployment strategy** là cách tổ chức thay thế phiên bản ứng dụng đang chạy bằng phiên bản mới nhằm cân bằng tốc độ phát hành, tính sẵn sàng và mức độ rủi ro. Từ **Recreate** và **Rolling Update** đến **Blue-Green** hoặc **Canary**, mỗi chiến lược khác nhau ở cách cung cấp tài nguyên, chuyển lưu lượng, quan sát lỗi và quay lại bản ổn định. Không có một phương án tối ưu cho mọi dịch vụ; lựa chọn còn phụ thuộc quy mô, yêu cầu downtime, khả năng tự động hóa và ngân sách vận hành.
+
+Module dành cho người đã biết CI/CD cơ bản, container và khái niệm triển khai ứng dụng trên Kubernetes hoặc nền tảng cloud. Bạn sẽ xác định tiêu chí chọn chiến lược, thực hành rolling update với `maxSurge`/`maxUnavailable`, hiểu cách chuyển lưu lượng trong blue-green, triển khai canary theo tỷ lệ tăng dần và phân biệt phát hành phiên bản với bật tính năng bằng feature flags. Sau đó, bạn xây quality gates dựa trên readiness, lỗi, độ trễ và SLO; xem xét tương thích API/schema khi chạy song song hai phiên bản; cuối cùng là kiểm thử các kịch bản rollback.
+
+Sau tám mốc, bạn có thể so sánh ưu nhược điểm của từng chiến lược, đề xuất phương án phù hợp cho một dịch vụ cụ thể và đưa ra kế hoạch phát hành có quan sát, điều kiện dừng và đường lui rõ ràng. Rollback mã ứng dụng không đồng nghĩa dữ liệu được tự động phục hồi: migration không tương thích, sự kiện đã xử lý và trạng thái phiên cần được tính đến trước mỗi đợt phát hành.

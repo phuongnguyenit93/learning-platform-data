@@ -1,0 +1,397 @@
+menu:
+- level1: Tổng quan Docker Compose
+  level2:
+  - Docker Compose là gì và giải quyết bài toán ứng dụng nhiều container như thế nào
+  - Phân biệt Docker Engine, Docker CLI, Dockerfile và Docker Compose
+  - Mối liên hệ giữa project, service, container, image, network và volume
+  - Hiểu cấu hình khai báo và cách Compose đưa ứng dụng về trạng thái mong muốn
+  - Phân biệt chạy nhiều lệnh docker run với quản lý một ứng dụng bằng Compose
+  - Nhận diện phạm vi phát triển, kiểm thử và triển khai trên một máy chủ
+  - Phân biệt Docker Compose với Docker Swarm và Kubernetes
+  - Điều kiện tiên quyết và lộ trình thực hành Compose
+- level1: Cài đặt và môi trường
+  level2:
+  - Chuẩn bị Docker Engine hoặc Docker Desktop và kiểm tra daemon
+  - Cài đặt Compose CLI plugin và kiểm tra bằng docker compose version
+  - Phân biệt lệnh docker compose với docker-compose trong tài liệu cũ
+  - Kiểm tra quyền truy cập Docker và danh tính người thực thi
+  - Xác định Docker context và máy chủ đang nhận lệnh
+  - Chuẩn bị thư mục dự án, trình soạn thảo YAML và công cụ dòng lệnh
+  - Kiểm tra cổng, bộ nhớ, dung lượng đĩa và kết nối tới registry
+  - Xác minh tính năng được hỗ trợ theo phiên bản Compose và nền tảng
+- level1: Ứng dụng Compose đầu tiên
+  level2:
+  - Tạo compose.yaml cho một dịch vụ đơn giản
+  - Chạy ứng dụng bằng docker compose up và chế độ tách terminal
+  - Quan sát container, network và tài nguyên do Compose tạo
+  - Kiểm tra dịch vụ bằng ps, logs và yêu cầu truy cập thực tế
+  - Thay đổi cấu hình rồi chạy up để đối chiếu hành vi cập nhật
+  - Thêm dịch vụ thứ hai và kết nối bằng tên service
+  - Dừng ứng dụng và phân biệt giữ lại container với gỡ bỏ tài nguyên
+  - Dọn môi trường thực hành mà vẫn bảo toàn dữ liệu cần giữ
+- level1: Cấu trúc Compose YAML
+  level2:
+  - Đọc cấu trúc Compose Specification và các phần khai báo cấp cao
+  - Vai trò của services, networks, volumes, configs và secrets
+  - Phân biệt tên service với thuộc tính cấu hình bên trong service
+  - Sử dụng chuỗi, số, boolean, list và mapping đúng kiểu YAML
+  - Hiểu ảnh hưởng của thụt dòng, dấu nháy và ký tự đặc biệt
+  - Phân biệt cú pháp ngắn với cú pháp đầy đủ của cùng thuộc tính
+  - Sử dụng YAML anchor, alias và extension field x-* để giảm lặp
+  - Phân biệt trường version trong tệp cũ với khả năng thực thi của Compose CLI
+  - Kiểm tra và xem mô hình cấu hình hiệu lực bằng docker compose config
+  - Đọc lỗi schema và xử lý trường cấu hình không được hỗ trợ
+- level1: Project và định danh
+  level2:
+  - Hiểu project là ranh giới nhóm tài nguyên của một lần chạy ứng dụng
+  - Xác định tên project từ -p, COMPOSE_PROJECT_NAME, name và thư mục
+  - Phân biệt thư mục làm việc, project directory và vị trí tệp Compose
+  - Chọn tệp bằng -f và quản lý COMPOSE_FILE có kiểm soát
+  - Nhận diện tên container, network và volume được Compose sinh
+  - Sử dụng labels để truy vết tài nguyên thuộc project
+  - Chạy nhiều bản sao cùng ứng dụng mà không trùng project
+  - Đánh giá tác động của tên tài nguyên cố định tới khả năng cô lập
+  - Nhận diện orphan container khi cấu hình service thay đổi
+- level1: Khai báo service
+  level2:
+  - Chọn image hoặc build làm nguồn tạo container
+  - Cấu hình command và entrypoint rồi đối chiếu với mặc định của image
+  - Phân biệt lệnh dạng danh sách với lệnh cần shell xử lý
+  - Thiết lập working_dir, user và init theo nhu cầu tiến trình
+  - Phân biệt container_name, hostname và tên service
+  - Thiết lập labels, stdin_open và tty đúng mục đích
+  - Quản lý thiết bị, capabilities và tùy chọn đặc quyền khi thật sự cần
+  - Phân biệt tài nguyên được khai báo với hành vi ứng dụng bên trong container
+  - Đọc cấu hình hiệu lực để phát hiện mặc định bị ghi đè ngoài ý muốn
+- level1: Vòng đời và lệnh CLI
+  level2:
+  - Phân biệt up, create và start trong vòng đời ứng dụng
+  - Phân biệt stop, restart, down và rm theo tài nguyên bị tác động
+  - Hiểu khi nào up tái tạo container do cấu hình hoặc image thay đổi
+  - Sử dụng tùy chọn build, no-deps và force-recreate đúng tình huống
+  - Phân biệt run tạo container dùng một lần với exec chạy trong container đang có
+  - Kiểm soát cổng và dọn container dùng một lần với run --service-ports cùng --rm
+  - Hiểu lệnh chạy riêng một service và phạm vi dependency đi kèm
+  - Quản lý exit code của tiến trình, service và lệnh Compose
+  - Theo dõi container kết thúc bằng wait và phân biệt với chờ trạng thái sẵn sàng
+  - Đánh giá ảnh hưởng của remove-orphans trước khi dọn container
+  - Kiểm tra phạm vi project trước mọi thao tác dừng hoặc xóa
+- level1: Xây dựng image
+  level2:
+  - Khai báo build context và đường dẫn Dockerfile
+  - Phân biệt đường dẫn Dockerfile với phạm vi tệp được gửi vào build
+  - Truyền build args và phân biệt với biến môi trường lúc chạy
+  - Chọn target trong Dockerfile nhiều giai đoạn
+  - Kết hợp build với image và hiểu tên image đầu ra
+  - Thiết lập chính sách build hoặc pull theo mục đích sử dụng
+  - Sử dụng cache để tăng tốc và nhận diện khi cần build lại
+  - Truyền build secrets hoặc SSH theo khả năng hỗ trợ
+  - Tránh đưa bí mật vào ARG, lớp image và build context
+  - Kiểm tra nền tảng build và khả năng tái hiện giữa máy phát triển với CI
+- level1: Image và registry
+  level2:
+  - Lựa chọn image theo tag hoặc digest và kiểm soát tính bất biến
+  - Phân biệt tên image cục bộ với địa chỉ image trong registry
+  - Kéo image bằng pull và đọc chính sách pull của service
+  - Đăng nhập registry mà không đưa thông tin xác thực vào Compose YAML
+  - Gắn tên image cho bản build để phục vụ push và chia sẻ
+  - Đẩy image bằng Compose trong phạm vi service có cấu hình phù hợp
+  - Xử lý image không tồn tại, quyền truy cập bị từ chối và lỗi mạng
+  - Quản lý image cache cục bộ và dọn image có chủ đích
+  - Phân biệt cập nhật tag từ registry với container đang chạy phiên bản cũ
+- level1: Nội suy cấu hình
+  level2:
+  - Hiểu nội suy biến xảy ra khi Compose đọc mô hình cấu hình
+  - Sử dụng biến từ shell, .env và --env-file cho nội suy
+  - Đối chiếu thứ tự ưu tiên của nguồn biến dùng để nội suy
+  - Khai báo giá trị mặc định và yêu cầu biến bắt buộc
+  - Phân biệt biến không được đặt với biến có giá trị rỗng
+  - Sử dụng $$ để trì hoãn nội suy cho tiến trình bên trong container
+  - Xử lý dấu nháy, ký tự đặc biệt và đường dẫn trong giá trị biến
+  - Kiểm tra mô hình đã nội suy bằng docker compose config
+  - Tránh hiểu nhầm .env tự động đưa mọi biến vào container
+  - Ngăn lộ giá trị nhạy cảm khi in cấu hình hoặc ghi log
+- level1: Biến môi trường container
+  level2:
+  - Khai báo environment bằng mapping hoặc danh sách
+  - Truyền biến qua env_file và phân biệt với .env dùng cho nội suy
+  - Đối chiếu ưu tiên giữa tùy chọn CLI, environment, env_file và ENV của image
+  - Kết hợp nhiều env_file và kiểm tra thứ tự ghi đè
+  - Xử lý giá trị rỗng, biến bị bỏ qua và giá trị cần giữ nguyên ký tự
+  - Phân biệt cấu hình lúc build với cấu hình lúc container chạy
+  - Kiểm tra biến thực tế trong container mà không làm lộ bí mật
+  - Quản lý tệp mẫu .env.example và dữ liệu riêng của từng môi trường
+  - Nhận diện thay đổi biến cần tái tạo container thay vì chỉ restart
+- level1: Mạng và phân giải tên
+  level2:
+  - Hiểu default network và cơ chế kết nối giữa các service
+  - Sử dụng tên service để truy cập thay cho địa chỉ IP thay đổi
+  - Phân biệt localhost trong container với host và container khác
+  - Khai báo nhiều network để phân chia các nhóm dịch vụ
+  - Đặt network alias và hiểu phạm vi phân giải tên
+  - Kết nối tới external network có sẵn
+  - Sử dụng internal network và kiểm tra phạm vi kết nối thực tế
+  - Đánh giá network_mode và giới hạn theo nền tảng
+  - Truy cập dịch vụ trên host bằng cơ chế phù hợp với môi trường chạy
+  - Kiểm tra DNS, tuyến đường và kết nối khi service không giao tiếp được
+  - Tránh cố định địa chỉ IP khi tên dịch vụ đã đáp ứng yêu cầu
+- level1: Cổng và truy cập
+  level2:
+  - Phân biệt cổng ứng dụng trong container với cổng công bố trên host
+  - Khai báo ports bằng cú pháp ngắn và cú pháp đầy đủ
+  - Giới hạn địa chỉ bind trên host theo phạm vi truy cập cần thiết
+  - Phân biệt expose với ports và cơ chế kết nối nội bộ
+  - Hiểu vì sao expose không thay thế tường lửa hoặc phân tách mạng
+  - Xử lý cổng host bị trùng khi chạy nhiều project hoặc nhiều replica
+  - Kiểm tra cổng được gán bằng docker compose port
+  - Phân biệt ứng dụng bind 127.0.0.1 với 0.0.0.0 bên trong container
+  - Đặt reverse proxy phía trước nhiều service khi cần một điểm truy cập
+  - Kiểm tra khả năng truy cập từ host, container khác và máy bên ngoài
+- level1: Volume và dữ liệu
+  level2:
+  - Phân biệt dữ liệu trong lớp ghi container với dữ liệu lưu bền vững
+  - Khai báo named volume và gắn vào đúng đường dẫn dữ liệu
+  - Phân biệt named volume, anonymous volume và external volume
+  - Hiểu tên volume theo project và ảnh hưởng của thay đổi tên project
+  - Kiểm tra quyền sở hữu, UID, GID và quyền ghi của tiến trình
+  - Đánh giá nội dung ban đầu khi gắn volume vào đường dẫn trong image
+  - Đọc thông tin volume và xác minh dữ liệu sau khi container được tái tạo
+  - Phân biệt down thông thường với down --volumes
+  - Hiểu vòng đời external volume và trách nhiệm dọn dẹp của người quản trị
+  - Tránh coi việc dữ liệu còn tồn tại là bằng chứng đã có bản sao lưu
+- level1: Bind mount và tmpfs
+  level2:
+  - Phân biệt bind mount với volume do Docker quản lý
+  - Gắn mã nguồn hoặc tệp cấu hình từ host vào container
+  - Hiểu đường dẫn tương đối, đường dẫn tuyệt đối và thư mục gốc để phân giải
+  - Phân biệt gắn một tệp với gắn cả thư mục
+  - Nhận diện nội dung image bị che khuất khi mount đè lên đường dẫn
+  - Sử dụng chế độ chỉ đọc cho dữ liệu không cần sửa từ container
+  - Xử lý khác biệt quyền tệp và hiệu năng chia sẻ thư mục giữa các nền tảng
+  - Sử dụng tmpfs cho dữ liệu tạm thời theo khả năng hỗ trợ
+  - Nhận diện rủi ro tạo nhầm thư mục host hoặc ghi dữ liệu ngoài ý muốn
+- level1: Configs và secrets
+  level2:
+  - Phân biệt cấu hình thông thường với dữ liệu bí mật
+  - Khai báo configs và cấp cho từng service cần đọc
+  - Khai báo secrets từ nguồn được hỗ trợ và cấp quyền theo service
+  - Đọc bí mật từ tệp trong container thay cho nhúng trực tiếp vào YAML
+  - Kiểm tra đường dẫn đích, quyền truy cập và hỗ trợ UID hoặc GID thực tế
+  - Phân biệt secrets của Compose với kho bí mật có mã hóa và luân chuyển tập trung
+  - Ngăn lưu tệp bí mật trong Git, image hoặc artifact chia sẻ
+  - Xác định thay đổi cần tái tạo container hoặc nạp lại cấu hình
+  - Thiết kế cách thay thế bí mật và thu hồi giá trị cũ
+  - Xử lý thiếu tệp cấu hình hoặc bí mật trước khi khởi động ứng dụng
+- level1: Phụ thuộc và thứ tự chạy
+  level2:
+  - Hiểu depends_on mô tả quan hệ giữa các service
+  - Phân biệt container đã chạy với dịch vụ đã sẵn sàng
+  - Sử dụng điều kiện service_started và hiểu giới hạn
+  - Kết hợp healthcheck với điều kiện service_healthy
+  - Dùng service_completed_successfully cho công việc khởi tạo một lần
+  - Phân biệt depends_on.restart với restart policy của container
+  - Hiểu thứ tự dừng và tác động của dependency khi thao tác từng service
+  - Tránh vòng phụ thuộc và giả định thứ tự chỉ dựa vào vị trí trong YAML
+  - Thiết kế retry trong ứng dụng khi dependency mất kết nối sau khi đã khởi động
+  - Nhận diện giới hạn của depends_on trong bảo đảm hệ thống luôn sẵn sàng
+- level1: Sức khỏe và khởi động lại
+  level2:
+  - Khai báo healthcheck bằng lệnh phù hợp với image
+  - Phân biệt CMD với CMD-SHELL trong kiểm tra sức khỏe
+  - Thiết lập interval, timeout, retries và thời gian khởi động
+  - Phân biệt tiến trình còn chạy với chức năng ứng dụng đang hoạt động
+  - Kiểm tra trạng thái healthy, unhealthy và lịch sử kiểm tra
+  - Sử dụng up --wait theo khả năng của Compose CLI
+  - Phân biệt healthcheck thất bại với điều kiện tự khởi động lại container
+  - Chọn restart policy theo yêu cầu và hiểu tác động khi dừng thủ công
+  - Nhận diện vòng lặp khởi động lại và điều tra nguyên nhân trước khi tăng retry
+  - Thiết kế kiểm tra tránh gây tải lớn hoặc làm lộ thông tin nhạy cảm
+- level1: Tiến trình và dừng an toàn
+  level2:
+  - Hiểu vai trò PID 1 và cách tiến trình nhận tín hiệu trong container
+  - Phối hợp entrypoint, command và ứng dụng để chuyển tiếp tín hiệu đúng
+  - Sử dụng init khi cần xử lý tiến trình con phù hợp
+  - Cấu hình stop_signal và stop_grace_period
+  - Ngừng nhận yêu cầu mới trước khi kết thúc tiến trình
+  - Hoàn tất giao dịch hoặc tác vụ đang chạy trong thời gian cho phép
+  - Phân biệt dừng có kiểm soát với bị cưỡng chế kết thúc
+  - Kiểm tra exit code và lý do container thoát
+  - Thực hành stop, restart và down mà không làm hỏng dữ liệu
+- level1: Ghép và tái sử dụng cấu hình
+  level2:
+  - Kết hợp nhiều tệp Compose bằng -f theo thứ tự xác định
+  - Hiểu tệp mặc định và tệp override được nạp khi không chỉ định -f
+  - Phân biệt quy tắc ghép mapping, danh sách và giá trị đơn
+  - Kiểm tra đường dẫn tương đối khi ghép nhiều tệp
+  - Sử dụng extension field và YAML anchor cho phần cấu hình lặp
+  - Phân biệt merge của YAML với merge của mô hình Compose
+  - Tái sử dụng service bằng extends và kiểm tra tài nguyên liên quan
+  - Sử dụng include để tổ chức nhiều mô hình theo khả năng hỗ trợ
+  - Nhận diện cổng, volume hoặc biến môi trường bị giữ lại ngoài dự kiến
+  - Đọc cấu hình cuối cùng để xác minh kết quả thay vì suy luận từng tệp riêng lẻ
+- level1: Profiles và dịch vụ tùy chọn
+  level2:
+  - Hiểu profile dùng để chọn nhóm service cần kích hoạt
+  - Khai báo profiles cho công cụ quản trị, kiểm thử và chẩn đoán
+  - Kích hoạt profile qua CLI hoặc COMPOSE_PROFILES
+  - Phân biệt service không gắn profile với service tùy chọn
+  - Hiểu hành vi khi gọi trực tiếp một service có profile
+  - Kiểm tra quan hệ phụ thuộc giữa các service thuộc nhiều profile
+  - Tránh xem profile là cơ chế phân quyền hoặc cô lập bảo mật
+  - Thiết kế bộ profile phát triển, kiểm thử và vận hành dễ sử dụng
+  - Xác minh các tổ hợp profile không tạo cấu hình thiếu dependency
+- level1: Quy trình phát triển
+  level2:
+  - Kết hợp mã nguồn trên host với runtime trong container
+  - Phân biệt bind mount, đồng bộ tệp và build lại image
+  - Sử dụng Compose Watch theo khả năng của phiên bản
+  - Thiết kế hành động đồng bộ, khởi động lại hoặc build lại khi tệp thay đổi
+  - Loại trừ thư mục phụ thuộc, tệp sinh và dữ liệu nhạy cảm khỏi theo dõi
+  - Tránh xung đột giữa thư mục phụ thuộc trên host với môi trường container
+  - Gắn cổng gỡ lỗi và giới hạn phạm vi truy cập
+  - Dùng exec, run và cp phục vụ công việc phát triển hằng ngày
+  - Tổ chức lệnh khởi động, kiểm tra và dọn môi trường cho thành viên mới
+  - Đánh giá hiệu năng vòng lặp sửa mã và khả năng tái hiện trên máy khác
+- level1: Cơ sở dữ liệu và khởi tạo
+  level2:
+  - Khai báo dịch vụ cơ sở dữ liệu với image và volume phù hợp
+  - Truyền thông tin kết nối cho ứng dụng qua tên service và cổng nội bộ
+  - Phân biệt cơ sở dữ liệu khởi động xong với đã sẵn sàng nhận truy vấn
+  - Hiểu điều kiện chạy script khởi tạo phụ thuộc từng image
+  - Tách migration thành công việc một lần khi phù hợp
+  - Phối hợp migration thành công trước khi khởi động ứng dụng
+  - Quản lý dữ liệu mẫu và tránh nạp lặp gây trùng dữ liệu
+  - Thay đổi tài khoản hoặc cấu hình mà không nhầm với tái khởi tạo dữ liệu
+  - Đánh giá nâng cấp image cơ sở dữ liệu và tương thích dữ liệu đang có
+  - Sao lưu trước thay đổi và kiểm chứng khả năng khôi phục
+- level1: Ứng dụng nhiều tầng
+  level2:
+  - Mô hình hóa frontend, API, cơ sở dữ liệu, cache và hàng đợi
+  - Phân chia network cho dịch vụ công khai và dịch vụ nội bộ
+  - Phân biệt địa chỉ API mà trình duyệt truy cập với địa chỉ dùng giữa container
+  - Đặt reverse proxy để định tuyến và phục vụ nhiều thành phần
+  - Truyền cấu hình kết nối giữa ứng dụng với cache hoặc message broker
+  - Tổ chức worker và tác vụ định kỳ tách khỏi dịch vụ nhận HTTP
+  - Phối hợp healthcheck, dependency và retry cho toàn bộ luồng
+  - Quản lý dữ liệu lưu bền vững riêng theo từng thành phần
+  - Kiểm chứng luồng nghiệp vụ đi qua nhiều service thay vì chỉ kiểm tra container
+- level1: Kiểm thử và CI
+  level2:
+  - Tạo môi trường integration test bằng Compose
+  - Tách cấu hình kiểm thử khỏi môi trường phát triển cá nhân
+  - Dùng project name riêng cho mỗi lần chạy CI
+  - Chờ dịch vụ sẵn sàng trước khi thực hiện kiểm thử
+  - Chạy test bằng service chuyên dụng hoặc container dùng một lần
+  - Kết hợp abort-on-container-exit và exit-code-from đúng mục đích
+  - Thu thập logs, kết quả kiểm thử và thông tin container khi thất bại
+  - Quản lý image cache cùng thông tin xác thực registry trong CI
+  - Dọn tài nguyên cả khi kiểm thử lỗi hoặc job bị hủy
+  - Ngăn kiểm thử truy cập nhầm dữ liệu hoặc dịch vụ của môi trường thật
+- level1: Quy mô và tài nguyên
+  level2:
+  - Tăng số container của một service bằng --scale
+  - Hiểu giới hạn scale khi khai báo container_name cố định
+  - Xử lý cổng host cố định khi có nhiều replica
+  - Thiết kế điểm cân bằng tải thay vì giả định Compose tự cung cấp mọi cơ chế
+  - Đánh giá khả năng chia sẻ volume và xung đột khi nhiều replica cùng ghi
+  - Giới hạn CPU, bộ nhớ và số tiến trình theo khả năng triển khai
+  - Phân biệt cấu hình resource của service với phần deploy được hỗ trợ
+  - Nhận diện container bị thiếu bộ nhớ hoặc bị OOM kill
+  - Kiểm tra tổng tài nguyên của toàn project trên một host
+  - Phân biệt scale thủ công với autoscaling và tự phục hồi đa máy
+- level1: Bảo mật ứng dụng Compose
+  level2:
+  - Chạy tiến trình bằng người dùng phù hợp và hạn chế quyền root
+  - Sử dụng filesystem chỉ đọc và vùng ghi tạm khi ứng dụng cho phép
+  - Giảm capabilities và tránh privileged nếu không có lý do cụ thể
+  - Đánh giá rủi ro gắn Docker socket hoặc thư mục nhạy cảm của host
+  - Giới hạn cổng công bố và cô lập các nhóm dịch vụ bằng network
+  - Quản lý bí mật ngoài mã nguồn và kiểm soát quyền đọc tệp
+  - Chọn nguồn image đáng tin cậy và kiểm tra cập nhật bảo mật
+  - Kiểm soát quyền truy cập Docker daemon và thông tin đăng nhập registry
+  - Tránh đưa công cụ gỡ lỗi hoặc giao diện quản trị ra mạng ngoài
+  - Rà soát cấu hình hiệu lực trước khi dùng ở môi trường quan trọng
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Đọc trạng thái service bằng ps, ls và thông tin container liên quan
+  - Theo dõi logs theo service, thời gian và số dòng cần thiết
+  - Sử dụng events và thông tin tiến trình để phân tích vòng đời container
+  - Đọc cấu hình hiệu lực và kiểm tra biến môi trường phục vụ điều tra
+  - Chẩn đoán lỗi YAML, nội suy biến và đường dẫn tệp
+  - Xử lý lỗi cổng bị chiếm, bind sai địa chỉ và không phân giải được tên
+  - Điều tra volume không có dữ liệu hoặc ứng dụng bị từ chối quyền ghi
+  - Xử lý service khởi động trước dependency hoặc healthcheck luôn thất bại
+  - Điều tra crash loop, exit code và container bị thiếu bộ nhớ
+  - Phân biệt lỗi Compose, lỗi Docker Engine, lỗi image và lỗi ứng dụng
+  - Thiết kế logging có luân chuyển để tránh đầy đĩa host
+- level1: Quản lý nhiều môi trường
+  level2:
+  - Tách cấu hình dùng chung với phần thay đổi theo môi trường
+  - Kết hợp tệp override, biến đầu vào và profile đúng vai trò
+  - Quản lý project name, cổng và dữ liệu để tránh chồng lấn
+  - Dùng image đã kiểm chứng thay vì build lại không kiểm soát ở mỗi môi trường
+  - Phân phối cấu hình và bí mật riêng theo môi trường
+  - Kiểm tra cấu hình hiệu lực trước khi chạy trên host đích
+  - Quản lý Docker context từ xa và xác minh máy nhận lệnh
+  - Nhận diện bind mount phụ thuộc filesystem của máy chạy Docker daemon
+  - Ngăn cấu hình phát triển như debug hoặc mount mã nguồn đi vào môi trường thật
+  - Lưu hướng dẫn sử dụng và hợp đồng biến cấu hình cho từng môi trường
+- level1: Triển khai trên một host
+  level2:
+  - Đánh giá điều kiện sử dụng Compose cho dịch vụ trên một máy chủ
+  - Chuẩn bị host, runtime, registry và quyền thực thi
+  - Thiết lập reverse proxy, TLS và điểm truy cập quản trị phù hợp
+  - Quản lý khởi động lại sau sự cố tiến trình hoặc máy chủ
+  - Cập nhật image cùng cấu hình và hiểu container nào có thể bị tái tạo
+  - Chuẩn bị cửa sổ bảo trì và không mặc định up bảo đảm không gián đoạn
+  - Giữ phiên bản image cũ cùng cấu hình tương thích để quay lui
+  - Tổ chức backup, giám sát, luân chuyển log và kiểm tra dung lượng
+  - Nhận diện điểm lỗi duy nhất và giới hạn tự phục hồi đa máy
+  - Xác định khi nào cần chuyển sang nền tảng điều phối khác
+- level1: Sao lưu và phục hồi
+  level2:
+  - Kiểm kê dữ liệu cần giữ trong volume, bind mount và dịch vụ bên ngoài
+  - Phân biệt sao lưu tệp với sao lưu nhất quán của cơ sở dữ liệu
+  - Thiết lập thời điểm, phạm vi và quyền truy cập bản sao lưu
+  - Sao lưu cấu hình cần thiết mà không sao chép bí mật thiếu kiểm soát
+  - Khôi phục dữ liệu vào môi trường cô lập để kiểm chứng
+  - Đối chiếu phiên bản image với định dạng dữ liệu được khôi phục
+  - Xử lý xóa nhầm volume, đổi tên project hoặc mount sai đường dẫn
+  - Phân biệt quay lui image với khôi phục dữ liệu sau migration
+  - Diễn tập phục hồi toàn bộ ứng dụng và xác nhận luồng nghiệp vụ
+- level1: Khác biệt nền tảng
+  level2:
+  - Phân biệt chạy trên Linux với Docker Desktop trên Windows hoặc macOS
+  - Xử lý đường dẫn, ký tự phân cách và cú pháp shell theo hệ điều hành
+  - Đánh giá quyền tệp, UID, GID và chia sẻ thư mục host
+  - Nhận diện ảnh hưởng của WSL và filesystem tới hiệu năng bind mount
+  - Kiểm tra kết nối tới host và hỗ trợ chế độ mạng theo nền tảng
+  - Phân biệt kiến trúc amd64 với arm64 khi chọn hoặc build image
+  - Đánh giá thiết bị, GPU và tính năng phụ thuộc hệ điều hành
+  - Đồng bộ phiên bản Compose trong nhóm và kiểm tra tệp cấu hình dùng chung
+  - Đọc giới hạn hỗ trợ thay vì giả định mọi thuộc tính hoạt động giống nhau
+- level1: Bảo trì và nâng cấp
+  level2:
+  - Quản lý compose.yaml, tệp mẫu và tài liệu vận hành trong Git
+  - Cố định hoặc kiểm soát phiên bản image để tái hiện môi trường
+  - Nâng cấp Compose CLI và kiểm tra thay đổi tính năng trước khi áp dụng
+  - Rà soát cấu hình cũ khi chuyển từ docker-compose sang docker compose
+  - Kiểm tra kết quả merge và các trường không còn phù hợp
+  - Dọn orphan container, image, network và volume theo phạm vi xác minh
+  - Phân biệt dọn một project với lệnh prune ảnh hưởng toàn Docker host
+  - Rà soát hạn mức dữ liệu, log, cache build và dung lượng định kỳ
+  - Cập nhật sổ tay vận hành, chủ sở hữu và quy trình bàn giao ứng dụng
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng ứng dụng API và cơ sở dữ liệu với network cùng named volume
+  - Thêm cache, message broker và worker để kiểm chứng luồng nhiều service
+  - Thiết lập healthcheck cùng migration một lần trước khi ứng dụng chạy
+  - Tách cấu hình phát triển, kiểm thử và triển khai trên host
+  - Thiết lập vòng lặp phát triển với bind mount hoặc Compose Watch
+  - Chạy integration test trong CI và trả đúng exit code của bộ kiểm thử
+  - Chạy hai project độc lập và chứng minh không trùng cổng hoặc dữ liệu
+  - Tăng replica của API và kiểm tra định tuyến cùng giới hạn tài nguyên
+  - Mô phỏng lỗi DNS, cổng, quyền tệp và dependency chưa sẵn sàng
+  - Cập nhật image, kiểm tra dữ liệu và diễn tập quay lui có kiểm soát
+  - Sao lưu rồi phục hồi cơ sở dữ liệu vào project mới
+  - Rà soát bảo mật, dọn tài nguyên thử nghiệm và bàn giao hướng dẫn vận hành

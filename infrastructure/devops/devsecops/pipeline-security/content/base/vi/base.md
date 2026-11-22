@@ -1,0 +1,7 @@
+# DevOps DevSecOps Pipeline Security
+
+Pipeline Security là việc bảo vệ toàn bộ quy trình CI/CD, từ thay đổi mã nguồn, chạy build/test đến phát hành và triển khai phần mềm. Pipeline thường có quyền truy cập repository, credential, artifact registry và môi trường chạy ứng dụng nên có thể trở thành mắt xích rủi ro cao nếu workflow, runner hoặc dependency bị chiếm quyền. Module này tập trung vào các biện pháp bảo vệ chính pipeline, thay vì chỉ tìm lỗi bảo mật trong mã ứng dụng.
+
+Người học nên biết Git, quy trình CI/CD cơ bản và cách ứng dụng Java được build, kiểm thử và deploy. Lộ trình bắt đầu bằng nhận diện mối đe dọa, bảo vệ branch và định nghĩa workflow, cô lập runner, quản lý token/secret bằng least privilege và OIDC. Tiếp theo là kiểm soát action/dependency, tích hợp security gates, xác minh chữ ký/provenance của artifact và bảo vệ bước deploy bằng approval, logging và audit.
+
+Hoàn thành module, bạn có thể rà soát một pipeline để nhận diện đặc quyền quá mức, đường đi của secret và nguy cơ thực thi mã không tin cậy; đề xuất cấu hình an toàn, đưa kiểm tra bảo mật vào build và xác minh nguồn gốc bản phát hành trước khi triển khai. Các cơ chế triển khai cụ thể cần đối chiếu với GitHub Actions, GitLab CI/CD hoặc nền tảng CI/CD đang sử dụng.

@@ -1,0 +1,64 @@
+roadmap:
+- id: azure-regions
+  title: Azure & Regions
+  purpose: Làm quen Azure và cách chọn nơi triển khai workload phù hợp.
+  objectives:
+  - Phân biệt IaaS, PaaS và dịch vụ managed.
+  - Giải thích region và availability zone.
+  - Xác định region theo độ trễ và lưu trú dữ liệu.
+- id: subscription-arm
+  title: Subscription & ARM
+  purpose: Hiểu cách Azure tổ chức, triển khai và quản trị tài nguyên.
+  objectives:
+  - Phân biệt management group, subscription và resource group.
+  - Sử dụng Azure Portal để tìm và tạo resource.
+  - Áp dụng tag và nhóm tài nguyên theo vòng đời.
+- id: microsoft-entra-rbac
+  title: Microsoft Entra & RBAC
+  purpose: Thiết lập quyền truy cập tài nguyên theo nguyên tắc tối thiểu.
+  objectives:
+  - Phân biệt Microsoft Entra ID và Azure RBAC.
+  - Gán role tại phạm vi phù hợp.
+  - Giải thích managed identity khi ứng dụng gọi dịch vụ.
+- id: compute-vm-app-functions
+  title: 'Compute: VM, App & Functions'
+  purpose: Chọn mô hình chạy ứng dụng phù hợp mức kiểm soát và vận hành.
+  objectives:
+  - Tạo VM mẫu và nhận diện trách nhiệm vá OS.
+  - So sánh VM với App Service và Azure Functions.
+  - Chọn compute theo workload và chi phí.
+- id: vnet-ket-noi
+  title: VNet & Kết nối
+  purpose: Hiểu cách cô lập mạng và điều khiển luồng truy cập Azure.
+  objectives:
+  - Tạo VNet và subnet cho các thành phần.
+  - Dùng NSG để giới hạn kết nối.
+  - Phân biệt public endpoint và truy cập riêng.
+- id: storage-azure-sql
+  title: Storage & Azure SQL
+  purpose: Chọn dịch vụ lưu dữ liệu theo dạng dữ liệu và yêu cầu độ bền.
+  objectives:
+  - Phân biệt Blob, Files và managed disks.
+  - Nhận diện Azure SQL Database dạng PaaS.
+  - Chọn redundancy và kiểm soát quyền dữ liệu.
+- id: azure-cli-bicep
+  title: Azure CLI & Bicep
+  purpose: Triển khai tài nguyên có thể lặp lại và quản lý cấu hình bằng mã.
+  objectives:
+  - Thực hành lệnh Azure CLI cơ bản.
+  - Mô tả resource, param và output trong Bicep.
+  - Triển khai một resource group và storage account mẫu.
+- id: monitor-reliability
+  title: Monitor & Reliability
+  purpose: Theo dõi hoạt động và chuẩn bị ứng phó sự cố dịch vụ.
+  objectives:
+  - Xem Azure Monitor metrics, logs và alerts.
+  - Thiết lập cảnh báo cho một tài nguyên.
+  - Giải thích availability zone, backup và phục hồi.
+- id: security-policy-cost
+  title: Security, Policy & Cost
+  purpose: Vận hành Azure an toàn và tránh chi phí không kiểm soát.
+  objectives:
+  - Áp dụng mô hình shared responsibility.
+  - Kiểm tra Azure Policy, tags và quyền truy cập.
+  - Đặt budget/alert và dọn tài nguyên thử nghiệm.

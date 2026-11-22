@@ -1,0 +1,3 @@
+menuLevel1: Độ tin cậy và phục hồi
+menuLevel2: Retry với exponential backoff, jitter và giới hạn số lần
+status: WRITTEN

@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_SECURITY_DESIGN_SECURITY_REQUIREMENTS"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Chuyển mục tiêu an toàn thông tin và mô hình đe dọa thành yêu cầu bảo mật cụ thể, đo được và có thể kiểm chứng. Học đặc tả xác thực, phân quyền, dữ liệu, logging và phục hồi; liên kết yêu cầu với rủi ro, kiến trúc và tiêu chí kiểm thử trong vòng đời phát triển."
+  }
+}

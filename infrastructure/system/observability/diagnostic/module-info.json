@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "OBSERVABILITY_DIAGNOSTIC"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Rèn tư duy chẩn đoán sự cố dựa trên bằng chứng từ metrics, logs, traces và profiling thay vì suy đoán từ từng cảnh báo. Thực hành khoanh vùng vấn đề về JVM, CPU, bộ nhớ, mạng, cơ sở dữ liệu và Kubernetes, xác định nguyên nhân gốc rồi kiểm chứng hiệu quả khắc phục."
+  }
+}

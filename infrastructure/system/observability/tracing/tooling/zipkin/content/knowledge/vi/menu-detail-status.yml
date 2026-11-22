@@ -1,0 +1,2488 @@
+menu:
+- slug: zipkin-overview
+  title: Tổng quan Zipkin
+  childs:
+  - slug: zipkin-overview-001
+    title: Zipkin là gì và giúp trả lời câu hỏi nào về một yêu cầu phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-002
+    title: 'Trace, span và ngữ cảnh truy vết: các khái niệm trước khi dùng công cụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-003
+    title: Vì sao nhật ký riêng từng dịch vụ chưa đủ để lần theo một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-004
+    title: Vai trò của Zipkin bên cạnh hệ thống nhật ký và số liệu đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-005
+    title: Phân biệt Zipkin Server, thư viện tạo span và giao thức truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-006
+    title: Hành trình một yêu cầu qua nhiều dịch vụ và cách Zipkin biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-007
+    title: Khả năng, giới hạn và phạm vi sử dụng Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-overview-008
+    title: Kiến thức nền và thứ tự học từ chạy thử đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-architecture
+  title: Kiến trúc hệ thống
+  childs:
+  - slug: system-architecture-001
+    title: Luồng dữ liệu từ ứng dụng đến bộ thu, kho lưu trữ, API và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-002
+    title: Thành phần đo đạc tạo span; reporter gửi span đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-003
+    title: Truyền định danh trong yêu cầu khác gửi dữ liệu span ngoài luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-004
+    title: Vai trò của collector trong giải mã, kiểm tra và chuyển span tới kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-005
+    title: Đường ghi span khác đường tìm kiếm và đọc trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-006
+    title: Độ trễ thu nhận, lập chỉ mục và khả năng xuất hiện muộn trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-007
+    title: Ranh giới lỗi giữa ứng dụng nghiệp vụ và hệ thống tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-architecture-008
+    title: Zipkin là dịch vụ độc lập và giới hạn của cách nhúng server vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-configuration
+  title: Cài đặt và cấu hình
+  childs:
+  - slug: installation-configuration-001
+    title: Chọn phiên bản Zipkin, yêu cầu Java và tài liệu cấu hình tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-002
+    title: Chạy Zipkin bằng Docker với cổng dịch vụ được ánh xạ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-003
+    title: Chạy bản JAR độc lập và kiểm tra tiến trình khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-004
+    title: So sánh bản đầy đủ với Zipkin Slim theo thành phần được đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-005
+    title: Truy cập giao diện, kiểm tra /health và nhận diện phiên bản qua /info
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-006
+    title: Cấu hình bằng biến môi trường, tham số chạy và tệp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-007
+    title: Địa chỉ localhost trong máy chủ, container và mạng Docker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-008
+    title: Dùng Docker Compose cho môi trường học có Zipkin và dịch vụ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-configuration-009
+    title: Ghim phiên bản image, tách cấu hình môi trường và lưu cách tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-trace
+  title: Trace đầu tiên
+  childs:
+  - slug: first-trace-001
+    title: Chuẩn bị hai dịch vụ có một lời gọi HTTP liên tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-002
+    title: Đặt tên dịch vụ và cấu hình địa chỉ nhận span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-003
+    title: Tạo yêu cầu mẫu rồi chờ span được gửi khỏi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-004
+    title: Tìm trace vừa tạo bằng dịch vụ và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-005
+    title: Mở trace để nhận diện span gốc, span con và lời gọi từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-006
+    title: Đối chiếu trace ID giữa đầu vào, nhật ký và giao diện Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-007
+    title: Chủ động tạo độ trễ hoặc lỗi để thấy dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-trace-008
+    title: Đọc JSON span mẫu và nối từng trường với kết quả hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: span-model
+  title: Mô hình span
+  childs:
+  - slug: span-model-001
+    title: 'traceId, id và parentId: định danh và quan hệ cha–con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-002
+    title: Trace ID 64 bit, 128 bit và quy tắc biểu diễn hexadecimal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-003
+    title: Tên span, thời điểm bắt đầu và thời lượng thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-004
+    title: Đơn vị microsecond của timestamp, duration và khác biệt với tham số truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-005
+    title: Các loại span CLIENT, SERVER, PRODUCER và CONSUMER
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-006
+    title: localEndpoint, remoteEndpoint và cách nhận diện hai đầu giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-007
+    title: Tags biểu diễn thuộc tính; annotations đánh dấu sự kiện theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-008
+    title: Span nội bộ, span gốc và trường hợp chưa nhận được span cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-009
+    title: Shared span và mô hình hai span riêng cho phía gọi, phía nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-010
+    title: Trường debug, shared và tương thích dữ liệu Zipkin v2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-model-011
+    title: 'Vòng đời span: tạo, đưa vào ngữ cảnh, kết thúc và báo cáo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-propagation
+  title: Lan truyền ngữ cảnh
+  childs:
+  - slug: context-propagation-001
+    title: Ngữ cảnh truy vết gồm gì và vì sao phải truyền qua ranh giới dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-002
+    title: 'Inject và extract: ghi, đọc ngữ cảnh tại phía gửi và phía nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-003
+    title: 'B3 nhiều header: X-B3-TraceId, X-B3-SpanId và thông tin liên quan'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-004
+    title: B3 một header b3 và quy tắc ưu tiên khi có nhiều dạng mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-005
+    title: Trạng thái lấy mẫu chưa quyết định, chấp nhận, từ chối và debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-006
+    title: Quan hệ giữa định danh được truyền và cấu trúc span được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-007
+    title: B3 khác W3C Trace Context; vai trò của bộ truyền ngữ cảnh tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-008
+    title: Ngữ cảnh tracing khác dữ liệu baggage và thuộc tính nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-009
+    title: Proxy, gateway và thư viện HTTP có thể làm mất header như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-010
+    title: Kiểm tra định danh đi qua nhiều dịch vụ mà không tạo trace mới ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-sampling
+  title: Lấy mẫu trace
+  childs:
+  - slug: trace-sampling-001
+    title: Vì sao lấy mẫu và những thông tin có thể bị bỏ lỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-002
+    title: Lấy mẫu tại đầu yêu cầu và duy trì quyết định qua các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-003
+    title: Lấy mẫu theo xác suất và giới hạn số lượng theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-004
+    title: Lấy mẫu tại tracer khác cấu hình lấy mẫu ở collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-005
+    title: Quyết định không lấy mẫu vẫn có thể đi cùng ngữ cảnh được truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-006
+    title: Debug sampling và cách giới hạn quyền buộc ghi trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-007
+    title: Giới hạn của lấy mẫu đầu vào khi muốn giữ mọi yêu cầu chậm hoặc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-008
+    title: Lấy mẫu sau khi thu thập cần thành phần xử lý phù hợp ngoài Zipkin thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-009
+    title: Chọn tỷ lệ theo môi trường, lưu lượng và chi phí lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-010
+    title: Không suy ra tỷ lệ lỗi hoặc phân vị toàn hệ thống từ tập trace được chọn tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: brave-integration
+  title: Tích hợp Brave
+  childs:
+  - slug: brave-integration-001
+    title: Vai trò của Tracing, Tracer và cấu hình tên dịch vụ trong Brave
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-002
+    title: Tạo span mới, span con và nối với ngữ cảnh nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-003
+    title: Đặt span hiện tại bằng scope và khôi phục ngữ cảnh sau xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-004
+    title: Phân biệt kết thúc scope với kết thúc vòng đời span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-005
+    title: Gắn thẻ, đánh dấu sự kiện và ghi nhận lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-006
+    title: Chọn thư viện instrumentation sẵn có trước khi tự bọc lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-007
+    title: Kết nối AsyncZipkinSpanHandler với sender gửi tới Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-008
+    title: Đóng thành phần tracing và gửi nốt dữ liệu khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: brave-integration-009
+    title: Tránh span trùng khi cùng thao tác đã được đo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-micrometer
+  title: Spring Boot và Micrometer
+  childs:
+  - slug: spring-boot-micrometer-001
+    title: Quan hệ giữa Observation, Micrometer Tracing, Brave và Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-002
+    title: Chọn dependency và bridge theo dòng phiên bản Spring Boot đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-003
+    title: Tích hợp Brave với Actuator và Zipkin reporter trong Spring Boot 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-004
+    title: Cấu hình tên ứng dụng, địa chỉ nhận span và xác suất lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-005
+    title: Đọc cấu hình tracing hiệu lực thay vì giả định các giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-006
+    title: Tạo observation hoặc span thủ công cho thao tác nghiệp vụ cần theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-007
+    title: Trace ID và span ID trong MDC để liên kết nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-008
+    title: Dùng HTTP client từ builder được tự cấu hình để giữ instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-009
+    title: Ngăn xung đột khi dùng đồng thời agent, bridge và thư viện đo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-micrometer-010
+    title: Phân biệt hướng dẫn Spring Cloud Sleuth cũ với Micrometer Tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synchronous-communication
+  title: Giao tiếp đồng bộ
+  childs:
+  - slug: synchronous-communication-001
+    title: Theo dõi lời gọi HTTP đi vào và đi ra giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-002
+    title: Chọn tên span theo tuyến xử lý thay vì URL chứa định danh động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-003
+    title: Phản ánh mã phản hồi, ngoại lệ và lỗi mạng bằng metadata phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-004
+    title: 'Theo dõi retry: phân biệt lần thử với toàn bộ thao tác nghiệp vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-005
+    title: Quan sát timeout và khoảng thời gian chờ dịch vụ phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-006
+    title: Đo truy vấn cơ sở dữ liệu bằng instrumentation có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-007
+    title: Nhận diện thời gian chờ kết nối khác thời gian thực thi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-008
+    title: Tránh ghi toàn bộ câu SQL, tham số hoặc nội dung yêu cầu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synchronous-communication-009
+    title: Gateway, proxy và dịch vụ chưa được đo tạo khoảng trống trong trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-messaging
+  title: Bất đồng bộ và thông điệp
+  childs:
+  - slug: async-messaging-001
+    title: Truyền ngữ cảnh khi chuyển tác vụ sang executor hoặc nhóm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-002
+    title: Vì sao ThreadLocal không tự theo công việc qua mọi ranh giới bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-003
+    title: Khôi phục và đóng scope đúng cách để tránh ngữ cảnh bị dùng nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-004
+    title: Theo dõi chuỗi reactive mà không giả định một yêu cầu luôn ở một luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-005
+    title: Đưa ngữ cảnh vào header thông điệp và lấy lại ở bên tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-006
+    title: Span PRODUCER, CONSUMER và thời gian chờ trong hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-007
+    title: Retry, gửi lại và tiêu thụ theo lô ảnh hưởng cấu trúc trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-008
+    title: Xử lý fan-out, fan-in và nhiều nguồn cha khi ánh xạ sang mô hình Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-009
+    title: Tác vụ chạy theo lịch và lựa chọn tạo trace gốc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-messaging-010
+    title: Hoàn tất span theo vòng đời công việc thay vì lúc gửi tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry-integration
+  title: Tích hợp OpenTelemetry
+  childs:
+  - slug: opentelemetry-integration-001
+    title: Phân biệt OTLP, định dạng Zipkin v2 và bộ xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-002
+    title: 'Các đường tích hợp: gửi Zipkin v2, qua OpenTelemetry Collector hoặc module OTLP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-003
+    title: Tình trạng ngừng phát triển Zipkin exporter của OpenTelemetry SDK và hướng chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-004
+    title: Cấu hình Collector nhận OTLP và xuất trace tới Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-005
+    title: 'zipkin-otel: điều kiện dùng module, giao thức hỗ trợ và trạng thái thử nghiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-006
+    title: Xác minh image, module và endpoint trước khi gửi OTLP trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-007
+    title: Ánh xạ resource, attributes, events và status sang dữ liệu Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-008
+    title: Giới hạn biểu diễn span links và dữ liệu đa tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-009
+    title: Bảo toàn trace ID và ngữ cảnh khi các dịch vụ dùng thư viện tracing khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-integration-010
+    title: Kiểm chứng tương thích phiên bản thay vì suy từ việc cùng dùng OpenTelemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: naming-tagging
+  title: Đặt tên và gắn thẻ
+  childs:
+  - slug: naming-tagging-001
+    title: Quy ước tên dịch vụ ổn định giữa các phiên bản và bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-002
+    title: Tên span mô tả thao tác với số lượng giá trị khác nhau có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-003
+    title: Chọn tags để tìm trace theo môi trường, tuyến xử lý và loại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-004
+    title: Phân biệt tên dịch vụ với địa chỉ instance và thuộc tính triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-005
+    title: Giữ khóa và ý nghĩa metadata nhất quán giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-006
+    title: Giới hạn số lượng, kích thước tags và annotations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-007
+    title: Loại bỏ mật khẩu, token và thông tin cá nhân trước khi xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-tagging-008
+    title: Tự hoàn thành khóa, giá trị tag và giới hạn cấu hình tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: span-export-ingestion
+  title: Gửi và thu nhận span
+  childs:
+  - slug: span-export-ingestion-001
+    title: Gửi span theo lô để giảm chi phí kết nối và mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-002
+    title: Hàng đợi reporter, chu kỳ gửi và giới hạn bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-003
+    title: POST /api/v2/spans với JSON hoặc Protobuf đúng Content-Type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-004
+    title: Thời hạn kết nối, thời hạn gửi và tác động khi Zipkin không phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-005
+    title: Xử lý lỗi gửi, chính sách thử lại và nguy cơ span bị mất hoặc trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-006
+    title: Phản hồi chấp nhận dữ liệu chưa bảo đảm trace đã xuất hiện khi tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-007
+    title: Lựa chọn HTTP hoặc transport qua hệ thống thông điệp theo bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-008
+    title: Kafka, RabbitMQ và vai trò bộ đệm giữa ứng dụng với collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-009
+    title: Theo dõi span bị bỏ do hàng đợi đầy, dữ liệu lỗi hoặc kho lưu trữ hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-export-ingestion-010
+    title: Gửi nốt dữ liệu khi dừng và giới hạn bảo đảm khi tiến trình bị tắt đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ui-search
+  title: Tìm kiếm trên giao diện
+  childs:
+  - slug: ui-search-001
+    title: Chọn dịch vụ, tên span và cửa sổ thời gian cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-002
+    title: Lọc trace bằng tags và annotations trong khả năng truy vấn của Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-003
+    title: Lọc theo thời lượng tối thiểu, tối đa và giới hạn số kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-004
+    title: Tìm trực tiếp bằng trace ID khi đã có định danh trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-005
+    title: Đọc danh sách kết quả theo thời lượng, dịch vụ và thông tin lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-006
+    title: Mở chi tiết span để xem endpoints, tags và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-007
+    title: Điều chỉnh vùng thời gian để quan sát chuỗi span dài hoặc nhiều nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-008
+    title: Chia sẻ liên kết trace và giới hạn khi dữ liệu đã hết hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ui-search-009
+    title: Phân biệt không có dữ liệu với bộ lọc, cửa sổ thời gian hoặc danh sách gợi ý chưa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-analysis
+  title: Phân tích trace
+  childs:
+  - slug: trace-analysis-001
+    title: Đọc quan hệ cha–con cùng thời điểm bắt đầu và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-002
+    title: Phân biệt lời gọi tuần tự, song song và các nhánh tách ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-003
+    title: Tìm chuỗi công việc quyết định thời gian đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-004
+    title: Thời lượng span cha không bằng tổng thời lượng mọi span con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-005
+    title: Ước lượng thời gian tự xử lý khi các span con có thể chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-006
+    title: Phân biệt xử lý phía gọi, phía nhận, độ trễ mạng và thời gian chưa được đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-007
+    title: Lần theo lỗi gốc thay vì chỉ nhìn span ngoài cùng bị báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-008
+    title: Nhận diện retry lặp lại, gọi quá nhiều dịch vụ và mẫu truy vấn N+1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-009
+    title: Đồng hồ lệch, timestamp bất thường và giới hạn của việc hiệu chỉnh hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-010
+    title: Trace thiếu, span đến muộn và giới hạn suy luận từ ảnh chụp chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-analysis-011
+    title: Đối chiếu trace chậm với trace bình thường trước khi kết luận nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zipkin-api
+  title: API Zipkin
+  childs:
+  - slug: zipkin-api-001
+    title: Phân biệt API thu nhận span với API truy vấn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-002
+    title: GET /api/v2/services để lấy tên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-003
+    title: GET /api/v2/spans với serviceName để lấy tên span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-004
+    title: GET /api/v2/traces và các tham số tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-005
+    title: 'annotationQuery: điều kiện tag, annotation và phép kết hợp được hỗ trợ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-006
+    title: GET /api/v2/trace/{traceId} để lấy một trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-007
+    title: GET /api/v2/dependencies để lấy quan hệ phụ thuộc trong khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-008
+    title: API tự hoàn thành tags và cấu hình cho phép tự hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-009
+    title: Quy đổi endTs, lookback và duration đúng đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-010
+    title: Giới hạn kết quả, truy vấn không khớp và lỗi HTTP cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zipkin-api-011
+    title: Dùng curl hoặc HTTP client để lưu trace JSON phục vụ điều tra và kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-options
+  title: Lựa chọn lưu trữ
+  childs:
+  - slug: storage-options-001
+    title: Bộ nhớ tạm phù hợp chạy thử và giới hạn khi tiến trình khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-002
+    title: Kho lưu trữ bền vững và ảnh hưởng tới tìm kiếm, dung lượng, vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-003
+    title: Chọn backend theo lưu lượng span, thời hạn lưu và năng lực quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-004
+    title: STORAGE_TYPE và cách xác nhận backend thực tế đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-005
+    title: Mô hình ghi span, chỉ mục truy vấn và dữ liệu đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-006
+    title: Chính sách lưu giữ khác bản sao dự phòng và khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-007
+    title: Tính nhất quán khi đọc, span đến muộn và thời gian lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-options-008
+    title: Khả năng hỗ trợ backend phụ thuộc phiên bản Zipkin và bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: elasticsearch-opensearch
+  title: Elasticsearch và OpenSearch
+  childs:
+  - slug: elasticsearch-opensearch-001
+    title: Chọn phiên bản Elasticsearch hoặc OpenSearch tương thích với Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-002
+    title: Kết nối backend bằng ES_HOSTS và cấu hình thông tin xác thực phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-003
+    title: Tổ chức chỉ mục theo thời gian và tiền tố để tách dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-004
+    title: Quyền tạo chỉ mục, index template và lỗi ánh xạ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-005
+    title: Số shard, replica và đánh đổi giữa ghi dữ liệu với truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-006
+    title: Xây chính sách xóa chỉ mục theo thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-007
+    title: Giới hạn thời gian, kết nối và truy vấn khi backend chịu tải cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-008
+    title: Đánh giá dung lượng theo span, chỉ mục và số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-opensearch-009
+    title: Sao lưu, khôi phục và kiểm tra dữ liệu sau khi backend được phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cassandra-mysql
+  title: Cassandra và MySQL
+  childs:
+  - slug: cassandra-mysql-001
+    title: Đặc điểm backend Cassandra và yêu cầu tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-002
+    title: Keyspace, schema và cấu hình kết nối Cassandra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-003
+    title: TTL, chiến lược lưu giữ và tác động của dữ liệu hết hạn trong Cassandra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-004
+    title: Kiểm tra khả năng truy vấn và việc tổng hợp phụ thuộc khi dùng Cassandra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-005
+    title: Nhận diện MySQL storage dạng legacy trong tài liệu Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-006
+    title: Điều kiện cân nhắc MySQL và giới hạn của backend kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-007
+    title: Khởi tạo schema, cấu hình kết nối và quyền truy cập cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cassandra-mysql-008
+    title: Chọn backend bằng nhu cầu thực tế thay vì coi các lựa chọn tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-graphs
+  title: Đồ thị phụ thuộc
+  childs:
+  - slug: dependency-graphs-001
+    title: Đồ thị dịch vụ trả lời câu hỏi gì khác một trace riêng lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-002
+    title: Cách quan hệ CLIENT–SERVER và PRODUCER–CONSUMER tạo liên kết dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-003
+    title: Vai trò tên dịch vụ và remoteEndpoint trong nhận diện bên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-004
+    title: Phân biệt dữ liệu span với các liên kết đã được tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-005
+    title: zipkin-dependencies và công việc tổng hợp cho backend cần xử lý riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-006
+    title: Chọn ngày xử lý theo UTC và khoảng thời gian truy vấn tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-007
+    title: Lập lịch, chạy lại và kiểm chứng kết quả tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-008
+    title: Vì sao tìm được trace nhưng đồ thị vẫn trống hoặc thiếu liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-009
+    title: Giới hạn của đồ thị khi lấy mẫu, thiếu instrumentation hoặc thiếu span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-deployment
+  title: Triển khai thực tế
+  childs:
+  - slug: production-deployment-001
+    title: Tách cấu hình môi trường học, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-002
+    title: Đóng gói Zipkin với backend bên ngoài và cấu hình được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-003
+    title: Triển khai container hoặc Kubernetes với tài nguyên được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-004
+    title: Kiểm tra sẵn sàng, kiểm tra sống và phụ thuộc vào kho lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-005
+    title: Cân bằng tải nhiều instance Zipkin dùng chung backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-006
+    title: Định tuyến API nhận span, API truy vấn và giao diện qua reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-007
+    title: Cấu hình địa chỉ truy cập bên ngoài, đường dẫn và CORS phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-008
+    title: Dừng có kiểm soát khi cập nhật hoặc thay thế instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-009
+    title: Quản lý cấu hình, thông tin xác thực và phương án phục hồi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-safety
+  title: An toàn dữ liệu
+  childs:
+  - slug: data-safety-001
+    title: Nhận diện thông tin nhạy cảm có thể xuất hiện trong tags, sự kiện và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-002
+    title: Lọc hoặc che dữ liệu ngay tại instrumentation trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-003
+    title: Bảo vệ kết nối ứng dụng–collector và Zipkin–kho lưu trữ bằng TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-004
+    title: Kiểm soát truy cập giao diện, API tìm kiếm và API nhận span ở lớp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-005
+    title: Phân biệt xác thực người dùng với giới hạn nguồn được phép gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-006
+    title: Giới hạn kích thước yêu cầu, tốc độ gửi và khả năng lạm dụng debug sampling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-007
+    title: Không xem tags hoặc tiền tố tên dịch vụ là ranh giới cách ly người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-008
+    title: Tách môi trường, phân quyền backend và xác định thời hạn lưu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-safety-009
+    title: Ngăn truy cập công khai ngoài ý muốn tới endpoint quản trị và chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-scaling
+  title: Giám sát và mở rộng
+  childs:
+  - slug: monitoring-scaling-001
+    title: Dùng /health, /metrics và /prometheus để theo dõi Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-002
+    title: Đo số thông điệp, span nhận được, span lỗi và span bị bỏ theo transport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-003
+    title: Theo dõi reporter tại ứng dụng để phát hiện mất dữ liệu trước collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-004
+    title: Quan sát độ trễ ghi, độ trễ truy vấn và lỗi của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-005
+    title: Ước lượng lưu lượng từ số yêu cầu, tỷ lệ lấy mẫu và số span mỗi trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-006
+    title: Giới hạn heap, bộ đệm và kích thước lô theo tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-007
+    title: Mở rộng collector khác mở rộng khả năng lưu trữ và tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-008
+    title: Giới hạn truy vấn tốn kém bằng cửa sổ thời gian và số kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-009
+    title: Phân tích sức ép lên backend trước khi tăng số instance Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-scaling-010
+    title: Đặt cảnh báo về mất span và dữ liệu đến trễ theo mục tiêu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không thấy trace: kiểm tra instrumentation, sampling, reporter và collector theo thứ tự'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Sai endpoint hoặc giao thức: phân biệt /api/v2/spans với đường nhận OTLP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Ứng dụng trong container gọi localhost sai ngữ cảnh mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'Trace bị tách: thiếu header hoặc cấu hình propagation không tương thích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Span mất liên kết khi đổi luồng, dùng reactive hoặc chuyển qua thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Span trùng do đo tự động và đo thủ công chồng lên nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Span không xuất hiện vì chưa kết thúc hoặc chưa được gửi khỏi hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Trace ID có trong nhật ký nhưng trace không được lấy mẫu hoặc đã hết hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Dữ liệu đã được nhận nhưng truy vấn sai thời gian, tên dịch vụ hoặc đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi backend, quyền tạo chỉ mục, schema và giới hạn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Đồ thị phụ thuộc trống do thiếu tổng hợp hoặc thiếu metadata phía từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Kiểm tra dữ liệu thô, log và số liệu đo trước khi thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-tests
+  title: Kiểm thử tracing
+  childs:
+  - slug: tracing-tests-001
+    title: Kiểm thử span được tạo đúng tên, loại và quan hệ cha–con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-002
+    title: Kiểm thử propagation qua HTTP và ranh giới bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-003
+    title: Xác nhận lỗi, tags và annotations phản ánh đúng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-004
+    title: Giữ dữ liệu kiểm thử tách khỏi tên dịch vụ và kho lưu trữ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-005
+    title: Kiểm thử tích hợp với Zipkin thật và truy vấn bằng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-006
+    title: Chờ có điều kiện khi xác minh dữ liệu gửi bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-007
+    title: Giả lập collector hoặc backend ngừng hoạt động để đánh giá tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-008
+    title: Kiểm thử dừng ứng dụng có gửi nốt dữ liệu trong thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-009
+    title: Đo chi phí instrumentation, reporter và tỷ lệ lấy mẫu dưới tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-010
+    title: Xác minh không có dữ liệu nhạy cảm trong span được xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-migration
+  title: Nâng cấp và chuyển đổi
+  childs:
+  - slug: upgrades-migration-001
+    title: Lập ma trận phiên bản giữa Zipkin, reporter, tracer và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-002
+    title: Đọc thay đổi cấu hình, định dạng và phạm vi hỗ trợ trước khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-003
+    title: Tách dữ liệu Zipkin v1 kế thừa khỏi thiết kế dựa trên Zipkin v2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-004
+    title: Chuyển từ Spring Cloud Sleuth sang Micrometer Tracing theo phiên bản Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-005
+    title: Chuyển Zipkin exporter của OpenTelemetry SDK sang đường OTLP hoặc Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-006
+    title: Thử đổi B3 với W3C Trace Context mà không làm đứt trace giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-007
+    title: Đánh giá dữ liệu bị biến đổi hoặc mất khi đổi tracer và mô hình span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-008
+    title: Chạy kiểm chứng song song, so sánh dữ liệu và chuẩn bị cách quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-009
+    title: Nâng cấp kho lưu trữ khác chuyển dữ liệu lịch sử giữa hai backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Dựng hai dịch vụ Spring Boot gửi trace tới Zipkin bằng Brave
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Bổ sung lời gọi cơ sở dữ liệu và lần theo yêu cầu từ đầu đến cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thêm độ trễ có kiểm soát để tìm nút thắt trên dòng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Tạo lỗi phía sau, retry và timeout rồi đối chiếu từng span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Làm mất header B3 có chủ đích và khôi phục tính liên tục của trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Chuyển tác vụ sang executor rồi sửa lỗi mất ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Theo dõi đường đi thông điệp từ bên gửi đến bên tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: So sánh các tỷ lệ lấy mẫu bằng số span thực nhận và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Gửi OTLP qua Collector hoặc module phù hợp rồi kiểm chứng dữ liệu trong Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Chuyển từ bộ nhớ tạm sang backend bền vững và kiểm tra sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Tạo đồ thị phụ thuộc bằng công việc tổng hợp và đối chiếu trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Ngắt backend, quan sát span bị mất và đánh giá khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Viết quy trình điều tra một yêu cầu chậm dựa trên trace, log và số liệu đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,455 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - OAuth 2.0 là gì và bài toán ủy quyền truy cập
+  - OpenID Connect là gì và lớp xác thực bổ sung trên OAuth
+  - Vì sao không chia sẻ mật khẩu người dùng với ứng dụng bên thứ ba
+  - Đăng nhập liên kết, SSO và truy cập API khác nhau thế nào
+  - OAuth không tự định nghĩa cách người dùng đăng nhập
+  - OAuth 2.0, OIDC, JWT và SAML trong cùng bức tranh
+  - Những vấn đề giao thức giải quyết và phần ứng dụng vẫn phải chịu trách nhiệm
+  - Thuật ngữ và lộ trình học từ luồng cơ bản đến bảo mật nâng cao
+- level1: Vai trò và ranh giới
+  level2:
+  - Resource owner và tài nguyên được bảo vệ
+  - Client và ứng dụng yêu cầu quyền truy cập
+  - Authorization server và resource server
+  - OpenID Provider và Relying Party trong OIDC
+  - User agent, trình duyệt và kênh giao tiếp phía sau
+  - Người dùng, ứng dụng và tài khoản dịch vụ
+  - Ranh giới tin cậy giữa client, provider và API
+  - Luồng chuyển hướng khác với lời gọi server-to-server
+  - Xác thực người dùng khác xác thực client
+  - Phân biệt bằng chứng danh tính, quyền được cấp và phiên ứng dụng
+- level1: Client và đăng ký
+  level2:
+  - Public client và confidential client theo khả năng giữ bí mật
+  - Web server, SPA, native app và workload tự động
+  - Client ID khác client secret
+  - Đăng ký redirect URI và post-logout redirect URI
+  - Grant type, response type và phương thức xác thực client
+  - Đăng ký tĩnh và dynamic client registration
+  - Quyền quản trị cấu hình client và vòng đời đăng ký
+  - Tách client giữa môi trường và loại ứng dụng
+  - Xoay credential client và xử lý khi bị lộ
+  - Giới hạn của việc nhúng client secret trong ứng dụng phân phối cho người dùng
+- level1: Endpoint và metadata
+  level2:
+  - Authorization endpoint, token endpoint và resource endpoint
+  - UserInfo, revocation, introspection và end-session endpoint
+  - Authorization server metadata và OIDC discovery
+  - Issuer và việc ràng buộc cấu hình với provider tin cậy
+  - JWKS URI và khóa xác minh
+  - 'Các khả năng được công bố: grant, response, scope và auth method'
+  - TLS, hostname và kiểm tra chứng thư
+  - Không tin discovery hoặc endpoint tùy ý do đầu vào không tin cậy chỉ định
+  - Cache metadata, thay đổi cấu hình và lỗi provider
+  - Khác biệt giữa chuẩn công khai với hành vi riêng của nhà cung cấp
+- level1: Token và mã
+  level2:
+  - Authorization code và đặc tính ngắn hạn, dùng một lần
+  - Access token và quyền truy cập resource server
+  - Refresh token và khả năng nhận access token mới
+  - ID token và bằng chứng xác thực dành cho client
+  - Bearer token và sender-constrained token
+  - Opaque token và token tự chứa như JWT
+  - Audience, scope, issuer, subject và thời hạn
+  - Không dùng ID token thay access token để gọi API
+  - Không suy đoán định dạng access token khi client không có hợp đồng
+  - Vòng đời và nơi tồn tại của từng loại dữ liệu nhạy cảm
+- level1: Scope và tài nguyên
+  level2:
+  - Scope là yêu cầu quyền và không phải toàn bộ mô hình phân quyền
+  - Quyền yêu cầu khác quyền thực sự được cấp
+  - Scope openid, profile, email và offline_access
+  - Resource indicator và xác định API đích
+  - Audience khác scope
+  - Consent, chính sách tổ chức và quyền quản trị cấp trước
+  - Quyền tối thiểu theo tính năng ứng dụng
+  - Incremental authorization theo khả năng hỗ trợ
+  - Không dùng một token cho mọi API hoặc mọi môi trường
+  - Xử lý thiếu scope và quyền thay đổi theo thời gian
+- level1: Authorization Code
+  level2:
+  - Luồng đầy đủ từ yêu cầu ủy quyền đến gọi API
+  - Chuẩn bị response_type=code, client_id, redirect_uri và scope
+  - Lưu trạng thái giao dịch trước khi chuyển hướng
+  - Đăng nhập và đồng ý tại authorization server
+  - Nhận callback chứa code hoặc lỗi
+  - Đổi code tại token endpoint
+  - Ràng buộc code với client, redirect URI và PKCE
+  - Xử lý code hết hạn, code đã dùng và yêu cầu lặp
+  - Không để code lộ qua log, URL chuyển tiếp hoặc lịch sử
+  - Phân biệt hoàn tất giao thức với tạo phiên ứng dụng
+- level1: PKCE, state và nonce
+  level2:
+  - PKCE và bài toán chặn đánh cắp authorization code
+  - Code verifier, code challenge và phương thức S256
+  - Sinh ngẫu nhiên, độ dài và biểu diễn base64url đúng chuẩn
+  - Ràng buộc verifier với đúng giao dịch
+  - State và tương quan yêu cầu-callback
+  - Nonce trong OIDC và ràng buộc ID token với yêu cầu
+  - Vì sao state, nonce và PKCE có vai trò khác nhau
+  - Thời hạn, sử dụng một lần và dọn giao dịch
+  - Nhiều tab, nhiều yêu cầu đăng nhập đồng thời
+  - Không lưu thông tin nhạy cảm trực tiếp trong state
+  - Kiểm thử callback không mong đợi và giao dịch bị tráo
+- level1: Redirect và callback
+  level2:
+  - Đăng ký và so khớp redirect URI theo quy tắc áp dụng
+  - Open redirect và nguy cơ làm lộ code hoặc token
+  - Query, fragment và form_post theo response mode
+  - Xử lý callback lỗi mà không làm lộ dữ liệu
+  - Kiểm tra issuer và phòng chống authorization server mix-up
+  - Ràng buộc callback với giao dịch và phiên trình duyệt
+  - URL quay về ứng dụng và kiểm tra allowlist
+  - Proxy ngược, host header và URL công khai
+  - Loopback redirect và ngoại lệ dành cho native app
+  - Chống ghi code vào analytics, referrer và access log
+- level1: Luồng OIDC
+  level2:
+  - Authorization Code Flow với scope openid
+  - ID token được cấp tại token endpoint
+  - Yêu cầu nonce và kiểm tra theo luồng sử dụng
+  - Response type, response mode và lựa chọn theo mô hình client
+  - Hybrid Flow và cách nhận biết trong hệ thống hiện có
+  - Implicit Flow trong OIDC và các rủi ro cần hiểu
+  - Yêu cầu claims và thuộc tính xác thực
+  - Prompt, max_age và yêu cầu xác thực lại
+  - Lỗi tương tác bắt buộc khi không thể đăng nhập im lặng
+  - Trình tự xác minh ID token trước khi tạo phiên
+- level1: Xác minh ID token
+  level2:
+  - Chọn cấu hình issuer tin cậy trước khi kiểm tra token
+  - Kiểm tra chữ ký và thuật toán được cho phép
+  - Kiểm tra iss, aud và azp theo điều kiện của OIDC
+  - Kiểm tra exp, iat và các ràng buộc thời gian
+  - Kiểm tra nonce gắn với giao dịch
+  - Auth_time, max_age và thời điểm xác thực
+  - Acr và amr theo hợp đồng của provider
+  - At_hash và c_hash khi luồng hoặc profile yêu cầu
+  - Khóa ký, key ID và luân chuyển JWKS
+  - Token sai loại và nguy cơ dùng nhầm JWT
+  - Không coi giải mã payload là xác minh hợp lệ
+- level1: Claim và danh tính
+  level2:
+  - Sub là định danh chủ thể trong phạm vi issuer
+  - Dùng cặp issuer-subject để liên kết tài khoản
+  - Public subject và pairwise subject
+  - Email, email_verified và giới hạn dùng email làm khóa tài khoản
+  - Claim profile khác quyền truy cập nghiệp vụ
+  - Claim tùy chỉnh và hợp đồng dữ liệu
+  - Thông tin xác thực mạnh khác thông tin hồ sơ
+  - Đổi tên, đổi email và xóa tài khoản tại provider
+  - Account linking và xác minh quyền sở hữu tài khoản
+  - Không tự động hợp nhất tài khoản chỉ vì email trùng
+  - Giảm claim được thu thập theo nguyên tắc tối thiểu
+- level1: UserInfo và consent
+  level2:
+  - UserInfo endpoint và access token phù hợp
+  - Đối chiếu sub giữa UserInfo và ID token
+  - Claim được trả về theo scope và chính sách provider
+  - UserInfo response ký hoặc mã hóa khi được hỗ trợ
+  - Consent screen và ý nghĩa quyền người dùng đồng ý
+  - Consent theo phiên, theo client và theo tổ chức
+  - Offline access và điều kiện cấp refresh token
+  - Quyền người dùng rút lại và ảnh hưởng tới ứng dụng
+  - Thông tin hồ sơ thay đổi và chiến lược cập nhật
+  - Không dùng UserInfo để thay thế kiểm tra quyền tại API
+- level1: Đăng nhập và phiên
+  level2:
+  - Phiên đăng nhập tại provider và phiên tại ứng dụng
+  - Cookie phiên khác access token và ID token
+  - Tạo, xoay và hủy session ID sau đăng nhập
+  - SSO qua phiên provider và giới hạn trình duyệt
+  - Prompt=login, prompt=none và yêu cầu tương tác
+  - Step-up authentication và mức xác thực
+  - Max_age, auth_time và chính sách xác thực lại
+  - Session fixation, login CSRF và liên kết giao dịch
+  - Phiên nhiều thiết bị và quản lý đăng xuất
+  - Không kéo dài phiên ứng dụng chỉ vì còn token cũ
+- level1: Xác thực client
+  level2:
+  - Client authentication tại token endpoint
+  - Client secret basic và client secret post
+  - Private_key_jwt và client assertion
+  - Mtls client authentication khi được hỗ trợ
+  - Audience, thời hạn và chống phát lại client assertion
+  - Client công khai sử dụng PKCE khác client bí mật
+  - Quản lý khóa, JWKS và xoay credential
+  - Phân biệt client authentication với xác thực người dùng
+  - Chọn phương thức theo khả năng bảo vệ credential
+  - Giám sát lỗi và thu hồi credential client bị lộ
+- level1: Machine-to-machine
+  level2:
+  - Client Credentials Grant và chủ thể không phải người dùng
+  - Scope và quyền của ứng dụng tại API
+  - Xác thực client và nhận access token
+  - Không suy diễn danh tính người dùng từ token ứng dụng
+  - App permission khác delegated permission
+  - Cache và làm mới access token theo thời hạn
+  - Giới hạn dùng client credentials trong ứng dụng công khai
+  - Thay secret dài hạn bằng danh tính workload khi hạ tầng hỗ trợ
+  - Ràng buộc audience và tài nguyên cho từng dịch vụ
+  - Quản lý quyền và vòng đời tài khoản ứng dụng
+- level1: Thiết bị và CLI
+  level2:
+  - Device Authorization Grant và trường hợp thiết bị hạn chế nhập liệu
+  - Device code, user code và verification URI
+  - Người dùng hoàn tất ủy quyền trên thiết bị khác
+  - Polling interval và xử lý authorization_pending
+  - Slow_down, access_denied và expired_token
+  - Ràng buộc phiên thiết bị với yêu cầu cấp quyền
+  - Nguy cơ phishing qua user code và màn hình xác nhận
+  - CLI có trình duyệt và lựa chọn Authorization Code với PKCE
+  - Giữ credential tại máy người dùng theo cơ chế an toàn
+  - Đăng xuất và xóa credential cục bộ
+- level1: Refresh token
+  level2:
+  - Điều kiện cấp và mục đích refresh token
+  - Refresh Token Grant và phạm vi quyền được giữ lại
+  - TTL tuyệt đối, thời hạn không hoạt động và chính sách provider
+  - Refresh token rotation và token family
+  - Phát hiện tái sử dụng và giới hạn theo triển khai
+  - Refresh token gắn với client hoặc khóa người gửi
+  - Nhiều yêu cầu làm mới đồng thời và xử lý race
+  - Ghi token mới nguyên tử và tránh mất trạng thái
+  - Invalid_grant và yêu cầu người dùng đăng nhập lại
+  - Không gửi refresh token tới resource server
+  - Thu hồi, consent bị rút và tác động tới phiên ứng dụng
+- level1: Resource server
+  level2:
+  - Nhận access token qua Authorization header
+  - Kiểm tra token theo hợp đồng của authorization server
+  - Xác định audience và API được phép nhận token
+  - Introspection cho token khi kiến trúc yêu cầu
+  - JWT validation tại API khi dùng token tự chứa
+  - Scope, chủ thể và loại token ứng dụng/người dùng
+  - 401, 403 và WWW-Authenticate
+  - Không chấp nhận token chỉ vì chữ ký hợp lệ
+  - Không chuyển token tới dịch vụ khác ngoài audience
+  - Tách xác thực token khỏi phân quyền nghiệp vụ
+- level1: JWT và JWKS
+  level2:
+  - Header, payload, signature và biểu diễn base64url
+  - JWS khác JWE và mục đích của mã hóa token
+  - Allowlist thuật toán và tránh algorithm confusion
+  - Kid, nguồn khóa và xử lý khóa không biết
+  - Cache JWKS và luân chuyển khóa ký
+  - Không lấy jku, x5u hoặc URL khóa tùy ý từ token
+  - Kiểm tra issuer, audience, thời hạn và kiểu token
+  - Clock skew và giới hạn chấp nhận
+  - Profile access token JWT và claim theo hợp đồng
+  - Giới hạn thu hồi tức thời khi API xác minh ngoại tuyến
+  - Không tự thiết kế cơ chế ký hoặc parser token
+- level1: Phân quyền API
+  level2:
+  - Scope không thay thế kiểm tra quyền sở hữu tài nguyên
+  - Role, permission và claim trong mô hình nghiệp vụ
+  - Object-level authorization và tenant boundary
+  - Quyền ủy quyền bởi người dùng và quyền riêng của ứng dụng
+  - Ràng buộc hành động, tài nguyên và bối cảnh truy cập
+  - Quyền thay đổi trong khi token còn hiệu lực
+  - Ngăn confused deputy khi gọi dịch vụ phía sau
+  - Không dùng dữ liệu claim không được xác minh làm quyết định quyền
+  - Kiểm tra quyền theo từng yêu cầu nhạy cảm
+  - Kiểm thử xác thực thành công nhưng truy cập vẫn phải bị từ chối
+- level1: Thu hồi token
+  level2:
+  - Token revocation endpoint và xác thực client
+  - Thu hồi refresh token và access token theo khả năng provider
+  - Token introspection và trạng thái active
+  - Cache introspection và độ trễ hiệu lực thu hồi
+  - Token JWT đã cấp và giới hạn kiểm tra ngoại tuyến
+  - Thu hồi theo phiên, grant hoặc token family
+  - Vô hiệu hóa tài khoản, client hoặc quyền tài nguyên
+  - Xử lý khi token bị lộ
+  - Phân biệt revoke token, logout và xóa phiên cục bộ
+  - Kiểm chứng quyền đã mất tại resource server
+- level1: Đăng xuất OIDC
+  level2:
+  - Đăng xuất ứng dụng và đăng xuất provider
+  - RP-Initiated Logout và end-session endpoint
+  - Id_token_hint, state và post-logout redirect URI
+  - Front-Channel Logout và giới hạn trình duyệt
+  - Back-Channel Logout và xác minh logout token
+  - Sid, sub và ánh xạ phiên cần hủy theo profile
+  - Session management và khả năng hỗ trợ của provider
+  - Logout nhiều ứng dụng và rủi ro không đồng bộ
+  - Vì sao logout không mặc nhiên thu hồi mọi access token
+  - Xử lý retry, sự kiện lặp và phiên đã bị hủy
+- level1: Ứng dụng trình duyệt
+  level2:
+  - SPA trực tiếp và mô hình Backend for Frontend
+  - Authorization Code với PKCE cho public client
+  - Token trong bộ nhớ, cookie và web storage theo mô hình đe dọa
+  - XSS và giới hạn của mọi cơ chế lưu token phía trình duyệt
+  - Cookie HttpOnly, Secure và SameSite
+  - CSRF khi dùng cookie và tương quan giao dịch OAuth
+  - CORS khác kiểm soát ủy quyền và khác CSRF
+  - Giới hạn third-party cookie và đăng nhập im lặng
+  - Refresh token trong trình duyệt và chính sách bảo vệ
+  - Không nhúng secret hoặc token vào mã frontend
+  - Giới hạn tin cậy giữa trình duyệt, BFF và API
+- level1: Ứng dụng di động
+  level2:
+  - Native app là public client
+  - Trình duyệt hệ thống thay cho embedded webview
+  - PKCE và giữ trạng thái giao dịch trên thiết bị
+  - App-claimed HTTPS redirect, custom URI scheme và loopback
+  - Nguy cơ ứng dụng khác chiếm callback
+  - Kiểm tra liên kết ứng dụng với tên miền
+  - Lưu credential bằng kho bảo mật của hệ điều hành
+  - Deep link, khởi động lại ứng dụng và khôi phục giao dịch
+  - Thiết bị bị chiếm quyền và giới hạn bảo vệ token
+  - Đăng xuất, xóa dữ liệu và đổi tài khoản
+- level1: Bảo vệ yêu cầu
+  level2:
+  - Pushed Authorization Requests và đẩy yêu cầu qua kênh sau
+  - JWT-Secured Authorization Request và request object
+  - JWT-Secured Authorization Response Mode
+  - Authorization response issuer và phòng chống mix-up
+  - Resource Indicators và ràng buộc API đích
+  - Rich Authorization Requests và quyền có cấu trúc
+  - Request URI, thời hạn và chống phát lại
+  - Điều kiện hỗ trợ và cách kết hợp các extension
+  - FAPI và lựa chọn profile theo yêu cầu bảo mật
+  - Không giả định extension làm mất nhu cầu kiểm tra cơ bản
+- level1: Token Exchange
+  level2:
+  - OAuth 2.0 Token Exchange theo RFC 8693
+  - Subject token, actor token và requested token type
+  - Delegation khác impersonation
+  - Audience, resource và scope khi trao đổi
+  - Giới hạn quyền qua từng tầng dịch vụ
+  - On-behalf-of theo hợp đồng của nhà cung cấp
+  - Liên kết danh tính workload và token exchange
+  - Giữ dấu vết người dùng, ứng dụng và tác nhân trung gian
+  - Không chuyển bearer token tùy tiện qua nhiều API
+  - Phân biệt trao đổi token với đăng nhập, account linking và cấp phiên
+- level1: Ràng buộc người gửi
+  level2:
+  - Bearer token và nguy cơ người giữ token sử dụng lại
+  - Mutual TLS và certificate-bound access token
+  - DPoP và proof gắn với khóa client
+  - Confirmation claim và kiểm tra khóa gắn với token
+  - Phương thức, URI, thời gian và chống phát lại DPoP proof
+  - DPoP nonce khi server yêu cầu
+  - Ràng buộc refresh token theo cơ chế hỗ trợ
+  - Quản lý khóa client và mất khóa
+  - Proxy TLS termination và ảnh hưởng tới mTLS
+  - Giới hạn khi client hoặc khóa riêng đã bị chiếm quyền
+- level1: Chuẩn và hệ cũ
+  level2:
+  - OAuth 2.0 core và các extension
+  - OAuth 2.0 Security Best Current Practice
+  - OAuth 2.1 và theo dõi trạng thái chuẩn áp dụng
+  - Implicit Grant trong hệ thống cũ và kế hoạch thay thế
+  - Resource Owner Password Credentials và rủi ro chia sẻ mật khẩu
+  - Vì sao không dùng luồng cũ làm lựa chọn mặc định cho thiết kế mới
+  - Khác biệt grant type với response type
+  - Profile của provider và các điểm cần kiểm tra tương thích
+  - Lập ma trận hỗ trợ trước tích hợp
+  - Chuyển đổi hệ cũ mà không làm rộng quyền hoặc lộ token
+- level1: Mô hình đe dọa
+  level2:
+  - Code interception, code injection và tráo giao dịch
+  - Login CSRF và session fixation
+  - Authorization server mix-up
+  - Redirect URI lỏng lẻo và open redirect
+  - Token leakage qua URL, log, referrer và browser storage
+  - XSS, CSRF và chiếm quyền client
+  - Audience confusion và token substitution
+  - Phishing qua consent hoặc device authorization
+  - Replay token và client assertion
+  - Chiếm JWKS, discovery hoặc cấu hình issuer
+  - Client đặc quyền bị lộ và leo thang qua token exchange
+- level1: Riêng tư và tài khoản
+  level2:
+  - Tối thiểu hóa scope và claim nhận diện cá nhân
+  - Pairwise subject và hạn chế theo dõi chéo client
+  - Consent minh bạch và mục đích sử dụng dữ liệu
+  - Lưu giữ, cập nhật và xóa dữ liệu hồ sơ
+  - Account linking, account recovery và xác minh chủ sở hữu
+  - Tài khoản provider bị xóa hoặc chuyển chủ
+  - Email tái sử dụng và nguy cơ chiếm tài khoản
+  - Không ghi token hoặc dữ liệu nhạy cảm vào telemetry
+  - Phân quyền truy cập dữ liệu nhận dạng trong vận hành
+  - Ranh giới trách nhiệm giữa provider và ứng dụng
+- level1: Nhiều tenant
+  level2:
+  - Một issuer hay nhiều issuer cho hệ thống nhiều tenant
+  - Allowlist issuer và lựa chọn tenant tin cậy
+  - Ràng buộc tenant trong token với tài nguyên yêu cầu
+  - Định danh người dùng bằng issuer-subject
+  - Policy riêng cho người dùng khách và tài khoản tổ chức
+  - Client registration và credential theo tenant
+  - Không tin tenant từ URL hoặc header khi chưa xác minh
+  - Chuyển tenant và đổi tài khoản có kiểm soát
+  - Ngăn truy cập chéo tenant khi token vẫn hợp lệ
+  - Kiểm thử danh tính giống nhau từ các issuer khác nhau
+- level1: Thiết kế tích hợp
+  level2:
+  - Chọn flow theo loại client và chủ thể truy cập
+  - Lập bảng endpoint, issuer, audience, scope và redirect
+  - Chọn thư viện giao thức và cấu hình xác minh
+  - Tách adapter giao thức khỏi tài khoản và quyền nghiệp vụ
+  - Thiết kế session và nơi lưu credential
+  - Chính sách TTL, refresh, logout và thu hồi
+  - Quản lý lỗi giao thức và trải nghiệm người dùng
+  - Ràng buộc cấu hình theo từng môi trường
+  - Kiểm tra threat model trước khi đưa vào sử dụng
+  - Tài liệu hóa hợp đồng token và trách nhiệm các bên
+- level1: Vận hành
+  level2:
+  - Quản lý client, secret và khóa ký
+  - Xoay JWKS và giữ thời gian chồng lấp phù hợp
+  - Đồng bộ thời gian, TLS, DNS và kết nối mạng
+  - Timeout, retry và tránh gửi lại thao tác không phù hợp
+  - Quota, rate limit và khả dụng provider
+  - Cache metadata, JWKS và introspection
+  - Giám sát lỗi đăng nhập, đổi code và refresh
+  - Truy vết bằng correlation ID thay cho token
+  - Ứng phó lộ token, secret hoặc khóa ký
+  - Diễn tập provider gián đoạn và chuyển đổi cấu hình
+- level1: Chẩn đoán
+  level2:
+  - Invalid_request, unauthorized_client và unsupported_grant_type
+  - Invalid_client và lỗi phương thức xác thực client
+  - Invalid_grant do code, PKCE, refresh hoặc thời gian
+  - Redirect_uri_mismatch và URL qua proxy
+  - State hoặc nonce không khớp
+  - Chữ ký, issuer, audience hoặc key ID sai
+  - Login_required, consent_required và interaction_required
+  - Token hợp lệ nhưng API trả 401 hoặc 403
+  - Refresh đồng thời và token family bị vô hiệu
+  - Logout không hủy hết phiên hoặc quyền API
+  - Thu thập thông tin lỗi mà không sao chép token thật
+- level1: Kiểm thử
+  level2:
+  - Đường đi đầy đủ Authorization Code với PKCE
+  - Callback thiếu hoặc sai state, nonce, issuer
+  - Code đã dùng, hết hạn hoặc đổi bằng verifier sai
+  - Token đúng chữ ký nhưng sai audience hoặc sai loại
+  - JWKS luân chuyển, khóa không biết và cache cũ
+  - Access token và refresh token hết hạn hoặc bị thu hồi
+  - Đăng nhập đồng thời nhiều tab và nhiều thiết bị
+  - CSRF, XSS, open redirect và callback không mong đợi
+  - Phân quyền API theo scope, đối tượng và tenant
+  - Logout cục bộ, provider và back-channel
+  - Kiểm thử gián đoạn provider, timeout và rate limit
+  - Kiểm tra log, artifact và browser storage theo thiết kế
+- level1: Thực hành
+  level2:
+  - Vẽ luồng OAuth và OIDC cho một ứng dụng mẫu
+  - Đăng ký client và cấu hình redirect URI chính xác
+  - Thực hiện Authorization Code với PKCE
+  - Xác minh ID token và liên kết tài khoản bằng issuer-subject
+  - Gọi UserInfo và đối chiếu subject
+  - Bảo vệ API bằng access token đúng audience và scope
+  - Thực hiện Client Credentials cho tác vụ máy-máy
+  - Thử Device Authorization cho ứng dụng dòng lệnh
+  - Luân chuyển refresh token và xử lý yêu cầu đồng thời
+  - Thực hành logout và kiểm chứng giới hạn thu hồi
+  - Mô phỏng token sai issuer, audience hoặc nonce trong môi trường cô lập
+  - Hoàn thiện bảng quyền, threat model và runbook tích hợp

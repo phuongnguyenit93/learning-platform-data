@@ -1,0 +1,657 @@
+menu:
+- level1: Tổng quan IAM lifecycle
+  level2:
+  - IAM là gì
+  - Identity lifecycle là gì
+  - Bài toán IAM giải quyết
+  - Identity và account
+  - Authentication và authorization
+  - Joiner mover leaver
+  - Nguồn sự thật về identity
+  - Vòng đời quyền truy cập
+  - Rủi ro IAM
+  - Thuật ngữ cốt lõi
+- level1: Mục tiêu IAM
+  level2:
+  - Đúng người
+  - Đúng quyền
+  - Đúng tài nguyên
+  - Đúng thời điểm
+  - Đúng ngữ cảnh
+  - Nguyên tắc quyền tối thiểu
+  - Accountability
+  - Khả năng truy vết
+  - Trải nghiệm người dùng
+  - Đánh đổi bảo mật và tiện dụng
+- level1: Mô hình identity
+  level2:
+  - Human identity
+  - Định danh máy
+  - Định danh dịch vụ
+  - Định danh workload
+  - Định danh thiết bị
+  - Organization identity
+  - External identity
+  - Federated identity
+  - Digital identity
+  - Identity relationship
+- level1: Chủ thể và vai trò
+  level2:
+  - Identity subject
+  - User
+  - Employee
+  - Contractor
+  - Partner
+  - Administrator
+  - Application
+  - Service account
+  - Device account
+  - Identity owner
+- level1: Nguồn dữ liệu nhân sự
+  level2:
+  - HR system
+  - Employee record
+  - Employment status
+  - Department
+  - Manager
+  - Job title
+  - Location
+  - Start date
+  - End date
+  - Độ tin cậy dữ liệu HR
+- level1: Identity proofing
+  level2:
+  - Identity proofing là gì
+  - Thu thập thuộc tính
+  - Xác minh danh tính
+  - Mức độ assurance
+  - Tài liệu định danh
+  - Xác minh từ xa
+  - Xác minh trực tiếp
+  - Identity evidence
+  - Xử lý thất bại proofing
+  - Rà soát proofing
+- level1: Identity enrollment
+  level2:
+  - Đăng ký identity
+  - Tạo username
+  - Gán employee identifier
+  - Gán thuộc tính chuẩn
+  - Gán organization
+  - Gán manager
+  - Đăng ký thiết bị
+  - Đăng ký phương thức MFA
+  - Thông báo enrollment
+  - Kiểm tra dữ liệu enrollment
+- level1: Joiner lifecycle
+  level2:
+  - Joiner là gì
+  - Sự kiện bắt đầu việc
+  - Tạo identity mới
+  - Tạo account
+  - Gán quyền ban đầu
+  - Gán nhóm mặc định
+  - Cấp thiết bị
+  - Cấp credential
+  - Ngày kích hoạt
+  - Xác minh hoàn tất joiner
+- level1: Mover lifecycle
+  level2:
+  - Mover là gì
+  - Thay đổi phòng ban
+  - Thay đổi vai trò
+  - Thay đổi manager
+  - Thay đổi địa điểm
+  - Thay đổi mức quyền
+  - Thu hồi quyền cũ
+  - Cấp quyền mới
+  - Lưu lịch sử thay đổi
+  - Xác minh hoàn tất mover
+- level1: Leaver lifecycle
+  level2:
+  - Leaver là gì
+  - Sự kiện nghỉ việc
+  - Khóa account
+  - Thu hồi session
+  - Thu hồi token
+  - Thu hồi nhóm
+  - Thu hồi quyền đặc biệt
+  - Thu hồi thiết bị
+  - Lưu giữ dữ liệu cần thiết
+  - Xác minh hoàn tất leaver
+- level1: Account provisioning
+  level2:
+  - Provisioning là gì
+  - Tạo account tự động
+  - Tạo account thủ công
+  - Provisioning theo role
+  - Provisioning theo group
+  - Provisioning nhiều hệ thống
+  - Provisioning có phê duyệt
+  - Provisioning thất bại
+  - Retry provisioning
+  - Đối soát account
+- level1: Account deprovisioning
+  level2:
+  - Deprovisioning là gì
+  - Vô hiệu account
+  - Xóa account
+  - Disable account
+  - Thu hồi license
+  - Thu hồi group membership
+  - Thu hồi API credential
+  - Khắc phục account không còn owner
+  - Deprovisioning thất bại
+  - Xác minh deprovisioning
+- level1: Account reconciliation
+  level2:
+  - Reconciliation là gì
+  - So sánh identity source
+  - So sánh account đích
+  - Phát hiện account thừa
+  - Phát hiện account thiếu
+  - Phát hiện thuộc tính lệch
+  - Phát hiện quyền lệch
+  - Sửa lệch tự động
+  - Sửa lệch thủ công
+  - Báo cáo reconciliation
+- level1: Authentication
+  level2:
+  - Authentication là gì
+  - Credential
+  - Authenticator
+  - Authentication factor
+  - Authentication flow
+  - Authentication assurance
+  - Authentication failure
+  - Account lockout
+  - Step-up authentication
+  - Kiểm thử authentication
+- level1: Mật khẩu
+  level2:
+  - Password lifecycle
+  - Password policy
+  - Tạo mật khẩu
+  - Đổi mật khẩu
+  - Quên mật khẩu
+  - Reset mật khẩu
+  - Password storage
+  - Password reuse
+  - Password spraying
+  - Kiểm tra chính sách mật khẩu
+- level1: MFA
+  level2:
+  - MFA là gì
+  - Knowledge factor
+  - Possession factor
+  - Inherence factor
+  - TOTP
+  - Push authentication
+  - Security key
+  - MFA enrollment
+  - MFA recovery
+  - MFA fatigue
+- level1: Federation
+  level2:
+  - Identity federation
+  - Trust relationship
+  - Identity provider
+  - Service provider
+  - SAML federation
+  - OIDC federation
+  - Federation metadata
+  - Federation mapping
+  - Federation logout
+  - Xử lý federation failure
+- level1: SSO
+  level2:
+  - Single Sign-On
+  - SSO session
+  - SSO entry point
+  - SSO giữa ứng dụng
+  - SSO và MFA
+  - SSO timeout
+  - SSO logout
+  - SSO error
+  - SSO cho partner
+  - Kiểm thử SSO
+- level1: OAuth và OIDC
+  level2:
+  - OAuth2 trong IAM
+  - OpenID Connect
+  - Authorization server
+  - Client
+  - Resource server
+  - ID token
+  - Access token
+  - Refresh token
+  - Scope
+  - OIDC discovery
+- level1: Directory service
+  level2:
+  - Directory là gì
+  - User directory
+  - Group directory
+  - LDAP
+  - Active Directory
+  - Directory schema
+  - Directory replication
+  - Directory availability
+  - Directory query
+  - Directory backup
+- level1: SCIM provisioning
+  level2:
+  - SCIM là gì
+  - SCIM user
+  - SCIM group
+  - Create operation
+  - Update operation
+  - Patch operation
+  - Deactivate operation
+  - SCIM filter
+  - SCIM error
+  - Kiểm thử SCIM
+- level1: Authorization
+  level2:
+  - Authorization là gì
+  - Policy decision
+  - Policy enforcement
+  - Subject
+  - Resource
+  - Action
+  - Context
+  - Permit và deny
+  - Authorization failure
+  - Kiểm thử authorization
+- level1: RBAC
+  level2:
+  - RBAC là gì
+  - Role
+  - Permission
+  - Role assignment
+  - Role hierarchy
+  - Static role
+  - Dynamic role
+  - Role mining
+  - Role explosion
+  - Rà soát RBAC
+- level1: ABAC
+  level2:
+  - ABAC là gì
+  - Subject attribute
+  - Resource attribute
+  - Action attribute
+  - Environment attribute
+  - Policy condition
+  - Attribute source
+  - Attribute freshness
+  - ABAC decision
+  - Rà soát ABAC
+- level1: PBAC
+  level2:
+  - PBAC là gì
+  - Policy là gì
+  - Policy language
+  - Policy repository
+  - Policy decision point
+  - Policy enforcement point
+  - Policy conflict
+  - Policy version
+  - Policy testing
+  - Policy deployment
+- level1: Least privilege
+  level2:
+  - Least privilege là gì
+  - Quyền tối thiểu
+  - Quyền theo nhiệm vụ
+  - Quyền theo thời gian
+  - Quyền theo ngữ cảnh
+  - Temporary access
+  - Just-in-time access
+  - Just-enough access
+  - Phát hiện quyền thừa
+  - Đo mức tối thiểu
+- level1: Privileged access
+  level2:
+  - Privileged access là gì
+  - Privileged account
+  - PAM
+  - Admin role
+  - Vault credential
+  - Session recording
+  - Command control
+  - Break-glass privilege
+  - Privileged review
+  - Giảm quyền đặc biệt
+- level1: Access request
+  level2:
+  - Access request là gì
+  - Yêu cầu quyền
+  - Chọn tài nguyên
+  - Chọn vai trò
+  - Lý do yêu cầu
+  - Thời hạn quyền
+  - Risk của yêu cầu
+  - Trạng thái yêu cầu
+  - Hủy yêu cầu
+  - Theo dõi request
+- level1: Approval workflow
+  level2:
+  - Approval là gì
+  - Approver
+  - Manager approval
+  - Resource owner approval
+  - Security approval
+  - Multi-level approval
+  - Separation of duties
+  - Approval timeout
+  - Từ chối yêu cầu
+  - Bằng chứng approval
+- level1: Access review
+  level2:
+  - Access review là gì
+  - Review theo user
+  - Review theo role
+  - Review theo group
+  - Review theo application
+  - Review theo resource
+  - Reviewer assignment
+  - Review deadline
+  - Review decision
+  - Báo cáo access review
+- level1: Access recertification
+  level2:
+  - Recertification là gì
+  - Chu kỳ recertification
+  - Attestation
+  - Xác nhận giữ quyền
+  - Thu hồi quyền
+  - Escalation quá hạn
+  - Reviewer thay thế
+  - Bằng chứng recertification
+  - Đo tỷ lệ hoàn tất
+  - Cải tiến recertification
+- level1: Segregation of duties
+  level2:
+  - Quy tắc phân tách trách nhiệm
+  - Xung đột quyền
+  - Toxic combination
+  - Quy tắc SoD
+  - Phát hiện vi phạm
+  - Ngoại lệ SoD
+  - Biện pháp bù trừ
+  - Phê duyệt ngoại lệ
+  - Theo dõi vi phạm
+  - Kiểm thử SoD
+- level1: Emergency access
+  level2:
+  - Emergency access là gì
+  - Break-glass account
+  - Điều kiện kích hoạt
+  - Thời hạn khẩn cấp
+  - Phê duyệt sau sự kiện
+  - Giám sát phiên khẩn cấp
+  - Ghi log đầy đủ
+  - Thu hồi sau sử dụng
+  - Rà soát break-glass
+  - Kiểm thử khẩn cấp
+- level1: Service identity
+  level2:
+  - Service identity là gì
+  - Tài khoản dịch vụ chuyên biệt
+  - Application identity
+  - Workload identity
+  - Gán quyền cho service
+  - Credential của service
+  - Service-to-service auth
+  - Thu hồi service identity
+  - Kiểm kê service identity
+- level1: Machine identity
+  level2:
+  - Machine identity là gì
+  - Device registration
+  - Device certificate
+  - Machine credential
+  - Certificate enrollment
+  - Certificate renewal
+  - Certificate revocation
+  - Device trust
+  - Thiết bị mất kiểm soát
+  - Kiểm kê machine identity
+- level1: Non-human account
+  level2:
+  - Non-human account là gì
+  - Robot account
+  - Batch account
+  - Integration account
+  - Owner của account
+  - Mục đích sử dụng
+  - Interactive login
+  - Credential rotation
+  - Review non-human account
+  - Xóa account không dùng
+- level1: Session management
+  level2:
+  - Session là gì
+  - Session creation
+  - Session timeout
+  - Idle timeout
+  - Absolute timeout
+  - Session renewal
+  - Session revocation
+  - Concurrent session
+  - Session fixation
+  - Kiểm thử session
+- level1: Token và credential
+  level2:
+  - Access token lifecycle
+  - Refresh token lifecycle
+  - API key
+  - Client secret
+  - Credential vault
+  - Token expiration
+  - Token revocation
+  - Credential exposure
+  - Token rotation
+  - Kiểm kê credential
+- level1: Identity logging
+  level2:
+  - Identity event
+  - Authentication log
+  - Authorization log
+  - Provisioning log
+  - Deprovisioning log
+  - Access change log
+  - Admin action log
+  - Log correlation
+  - Log retention
+  - Log integrity
+- level1: Identity audit
+  level2:
+  - Audit IAM là gì
+  - Audit scope
+  - Audit evidence
+  - Account inventory evidence
+  - Access review evidence
+  - Approval evidence
+  - Provisioning evidence
+  - Revocation evidence
+  - Audit finding
+  - Theo dõi audit finding
+- level1: Risk-based access
+  level2:
+  - Risk-based access là gì
+  - Risk signal
+  - Device signal
+  - Location signal
+  - Behavior signal
+  - Impossible travel
+  - Adaptive authentication
+  - Step-up decision
+  - Risk threshold
+  - Đánh giá quyết định risk
+- level1: Identity monitoring
+  level2:
+  - Giám sát identity
+  - Account anomaly
+  - Privilege anomaly
+  - Login anomaly
+  - Dormant account
+  - Failed login spike
+  - Credential abuse
+  - Alert triage
+  - Identity detection
+  - Báo cáo monitoring
+- level1: Cloud IAM
+  level2:
+  - Cloud identity
+  - Cloud account
+  - Cloud role
+  - Cloud policy
+  - Federated cloud access
+  - Workload role
+  - Temporary cloud credential
+  - Cloud access review
+  - Cloud privilege escalation
+  - Cloud IAM logging
+- level1: Zero Trust IAM
+  level2:
+  - Zero Trust và identity
+  - Verify explicitly
+  - Least privilege access
+  - Assume breach
+  - Continuous authentication
+  - Device posture
+  - Workload posture
+  - Thực thi chính sách liên tục
+  - Micro-segmentation
+  - Đo lường Zero Trust IAM
+- level1: Third-party identity
+  level2:
+  - External user
+  - Partner identity
+  - Vendor identity
+  - B2B federation
+  - Guest account
+  - Sponsor
+  - Partner access scope
+  - Partner offboarding
+  - Partner review
+  - Third-party audit
+- level1: Privacy và identity
+  level2:
+  - Identity data
+  - Minimize identity attributes
+  - Sensitive identity data
+  - Purpose limitation
+  - Retention identity
+  - Identity data subject
+  - Privacy access request
+  - Ẩn danh định danh
+  - Privacy incident
+  - Rà soát privacy IAM
+- level1: IAM resilience
+  level2:
+  - Availability của IAM
+  - Identity provider outage
+  - Directory outage
+  - Fallback authentication
+  - Cache identity data
+  - Break-glass vận hành
+  - Backup IAM
+  - Disaster recovery IAM
+  - Recovery test
+  - RTO và RPO IAM
+- level1: IAM testing
+  level2:
+  - Kiểm thử identity lifecycle
+  - Kiểm thử joiner
+  - Kiểm thử mover
+  - Kiểm thử leaver
+  - Kiểm thử provisioning
+  - Kiểm thử deprovisioning
+  - Test authentication policy
+  - Test authorization policy
+  - Kiểm thử access review
+  - Kiểm thử khôi phục
+- level1: IAM operations
+  level2:
+  - IAM runbook
+  - Xử lý account lockout
+  - Xử lý provisioning failure
+  - Xử lý identity provider lỗi
+  - Xử lý quyền thừa
+  - Xử lý credential bị lộ
+  - Khắc phục account mồ côi
+  - Xử lý access khẩn cấp
+  - On-call IAM
+  - Rà soát sau sự cố
+- level1: IAM metrics
+  level2:
+  - Số lượng identity
+  - Tỷ lệ account hợp lệ
+  - Tỷ lệ provisioning đúng hạn
+  - Tỷ lệ deprovisioning đúng hạn
+  - Tỷ lệ access review
+  - Số quyền thừa
+  - Số account mồ côi
+  - Thời gian cấp quyền
+  - Thời gian thu hồi quyền
+  - Xu hướng rủi ro IAM
+- level1: IAM migration
+  level2:
+  - Di trú identity source
+  - Di trú directory
+  - Di trú identity provider
+  - Di trú application
+  - Mapping thuộc tính
+  - Mapping nhóm và role
+  - Dual run
+  - Đối soát sau di trú
+  - Rollback di trú
+  - Kết thúc hệ thống cũ
+- level1: Anti-pattern IAM
+  level2:
+  - Tài khoản dùng chung
+  - Quyền cấp vĩnh viễn
+  - Không có owner
+  - Không thu hồi khi nghỉ việc
+  - Không review quyền
+  - Dùng admin cho mọi việc
+  - Credential lưu trong mã nguồn
+  - Provisioning không có audit
+  - Federation không kiểm soát
+  - Không có nguồn identity chuẩn
+- level1: Thiết kế chương trình IAM
+  level2:
+  - Xác định identity source
+  - Xác định account scope
+  - Xác định role model
+  - Xác định policy model
+  - Xác định lifecycle event
+  - Xác định approval
+  - Xác định review
+  - Xác định audit
+  - Xác định metric
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Khởi tạo identity
+  - Provision identity
+  - Tự động provision account
+  - Thiết kế RBAC
+  - Thêm MFA
+  - Thiết lập SSO
+  - Tạo access request
+  - Chạy access review
+  - Thu hồi khi leaver
+  - Thêm audit và monitoring
+  - Viết runbook IAM
+- level1: Tổng kết IAM lifecycle
+  level2:
+  - Bản đồ identity lifecycle
+  - Luồng joiner mover leaver
+  - Luồng cấp và thu hồi quyền
+  - Checklist authentication
+  - Checklist authorization
+  - Bước học tiếp theo

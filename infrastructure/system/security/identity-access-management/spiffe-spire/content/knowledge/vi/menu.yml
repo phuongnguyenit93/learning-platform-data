@@ -1,0 +1,390 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bài toán danh tính cho dịch vụ, container và workload ngắn hạn
+  - SPIFFE là gì và vai trò của chuẩn danh tính workload
+  - SPIRE là gì và quan hệ với các đặc tả SPIFFE
+  - Giới hạn của địa chỉ IP, tên máy và bí mật tĩnh làm danh tính
+  - Danh tính mật mã và xác minh môi trường thực thi
+  - Xác thực workload khác xác thực người dùng
+  - SPIFFE/SPIRE trong kiến trúc Zero Trust
+  - Những vấn đề SPIFFE/SPIRE giải quyết và giới hạn trách nhiệm
+  - Bản đồ thuật ngữ và lộ trình học từ nguyên lý đến vận hành
+- level1: Mô hình tin cậy
+  level2:
+  - Workload, node, agent và máy chủ cấp danh tính
+  - Trust domain và ranh giới quản trị danh tính
+  - SPIFFE ID, SVID và trust bundle
+  - Attestation và bằng chứng danh tính từ môi trường chạy
+  - Quan hệ giữa danh tính logic và phiên thực thi workload
+  - Bên phát hành danh tính và bên xác minh
+  - Xác thực khác phân quyền tài nguyên
+  - Bootstrap trust và điểm tin cậy ban đầu
+  - Ranh giới giữa an toàn mật mã với an toàn máy chủ
+- level1: SPIFFE ID
+  level2:
+  - Cấu trúc URI spiffe://trust-domain/path
+  - Quy tắc cú pháp và các thành phần không được phép
+  - Ý nghĩa trust domain và đường dẫn định danh
+  - Tên miền trong SPIFFE ID khác địa chỉ mạng của workload
+  - Thiết kế định danh theo dịch vụ, môi trường và tenant
+  - Định danh ổn định so với thuộc tính triển khai thay đổi
+  - Nguy cơ dùng định danh quá rộng hoặc quá chi tiết
+  - Đổi tên, tái sử dụng tên và vòng đời danh tính
+  - Kiểm tra, chuẩn hóa và so sánh SPIFFE ID an toàn
+- level1: X.509-SVID
+  level2:
+  - X.509-SVID và vai trò của chứng thư ngắn hạn
+  - SPIFFE ID trong URI Subject Alternative Name
+  - Khóa riêng, chuỗi chứng thư và trust anchor
+  - Profile chứng thư và các ràng buộc cần xác minh
+  - Phân biệt SVID của workload với chứng thư máy chủ thông thường
+  - Một workload nhận nhiều SVID trong điều kiện nào
+  - TTL, cấp lại và luân chuyển SVID
+  - Phân biệt xác minh chuỗi chứng thư với chấp nhận danh tính
+  - Giới hạn khi khóa riêng hoặc tiến trình workload bị lộ
+- level1: JWT-SVID
+  level2:
+  - JWT-SVID và các trường hợp sử dụng
+  - Subject, audience, thời hạn và các claim theo profile
+  - Chữ ký, key ID và khóa xác minh JWT
+  - Yêu cầu audience tại thời điểm xin JWT-SVID
+  - Xác minh JWT-SVID đúng trust domain và mục đích
+  - Khác biệt giữa JWT-SVID với access token và OIDC ID token
+  - Bearer token, sao chép token và nguy cơ phát lại
+  - Cấp token mới và giới hạn của cơ chế thu hồi
+  - Lựa chọn JWT-SVID hay X.509-SVID
+- level1: Trust bundle
+  level2:
+  - Trust bundle chứa vật liệu xác minh nào
+  - Bundle X.509 và khóa xác minh JWT
+  - Định dạng bundle SPIFFE và biểu diễn liên quan
+  - Bundle của trust domain cục bộ và trust domain liên kết
+  - Phân phối bundle tới agent và workload
+  - Thêm, thay thế và loại bỏ trust anchor
+  - Khoảng chồng lấp khi xoay vòng CA hoặc khóa JWT
+  - Bảo vệ tính toàn vẹn của nguồn bundle
+  - Xử lý bundle cũ, bundle thiếu và lỗi cập nhật
+- level1: Kiến trúc SPIRE
+  level2:
+  - SPIRE Server, SPIRE Agent và client workload
+  - Luồng node attestation và cấp danh tính cho agent
+  - Luồng workload attestation và lựa chọn registration entry
+  - Cấp SVID và chuyển vật liệu tin cậy tới workload
+  - Datastore và dữ liệu quản trị danh tính
+  - Key manager, CA và các điểm mở rộng được hỗ trợ
+  - Plugin phía server và plugin phía agent
+  - API quản trị khác Workload API
+  - Luồng khởi động, hoạt động bình thường và khởi động lại
+- level1: Môi trường thực hành
+  level2:
+  - Chọn phiên bản SPIRE và kiểm tra ma trận hỗ trợ
+  - Chuẩn bị máy chủ, agent và workload thử nghiệm
+  - Cấu trúc tệp cấu hình và thư mục dữ liệu
+  - Quyền hệ điều hành cho tiến trình SPIRE
+  - Chạy server và agent trong môi trường cô lập
+  - Quan sát trạng thái và nhật ký khởi động
+  - Tạo dữ liệu thử và tránh dùng vật liệu sản xuất
+  - Phân biệt cấu hình học tập với cấu hình triển khai thật
+  - Quản lý binary, checksum và nguồn phân phối
+- level1: Node attestation
+  level2:
+  - Mục đích xác minh node trước khi tin agent
+  - Bằng chứng từ hạ tầng khác dữ liệu agent tự khai
+  - Join token và giới hạn trong bootstrap thủ công
+  - Attestation dựa trên danh tính máy ảo cloud
+  - Attestation Kubernetes theo cơ chế được hỗ trợ
+  - Cơ chế dựa trên phần cứng hoặc chứng thư khi có hỗ trợ
+  - Cấu hình attestor tương ứng phía server và agent
+  - Ràng buộc tài khoản, project, cluster hoặc miền hạ tầng
+  - Định danh agent và vòng đời chứng thư agent
+  - Tái attestation, thay node và xử lý agent mất trạng thái
+  - Rủi ro khi bằng chứng hoặc cơ chế attestation quá rộng
+- level1: Workload attestation
+  level2:
+  - Cách agent xác định tiến trình gọi Workload API
+  - PID, UID, GID và thông tin tiến trình
+  - Selector từ Unix, container và Kubernetes
+  - Thuộc tính đáng tin cậy và thuộc tính workload có thể tác động
+  - Namespace, cgroup và ranh giới container
+  - Quy tắc so khớp selector với đăng ký danh tính
+  - Parent ID và quan hệ cấp phát từ agent
+  - Tiến trình con, thay người dùng và ảnh hưởng đến danh tính
+  - Rủi ro selector yếu hoặc dùng chung tài khoản hệ điều hành
+  - Phân biệt node attestation với workload attestation
+  - Kiểm chứng selector thực tế trước khi cấp quyền
+- level1: Đăng ký danh tính
+  level2:
+  - Registration entry và các trường cấu hình
+  - SPIFFE ID, parent ID và selector
+  - TTL SVID và thời hạn của entry
+  - Tạo, xem, cập nhật và xóa entry bằng API/CLI
+  - Một entry cho nhiều phiên workload
+  - Nhiều entry khớp một workload và cách quản lý
+  - Quản trị entry theo dịch vụ và môi trường
+  - Alias và cơ chế liên kết danh tính theo khả năng hỗ trợ
+  - Kiểm soát ai được tạo entry hoặc sửa selector
+  - Xóa entry khác với vô hiệu hóa SVID đã cấp
+  - Quản lý đăng ký bằng cấu hình được rà soát và có phiên bản
+- level1: Workload API
+  level2:
+  - Vai trò của Workload Endpoint
+  - gRPC và socket cục bộ theo nền tảng hỗ trợ
+  - Cơ chế attestation tại endpoint thay cho bí mật đăng nhập ứng dụng
+  - Nhận X.509-SVID, khóa riêng và bundle
+  - Nhận JWT-SVID cho audience được yêu cầu
+  - Nhận bundle và xác minh JWT qua API phù hợp
+  - Streaming update và thông báo khi vật liệu danh tính thay đổi
+  - Nhiều danh tính và lựa chọn SVID phù hợp
+  - Reconnect, retry và xử lý endpoint không khả dụng
+  - Ranh giới tin cậy giữa agent và tiến trình gọi API
+  - Không xuất vật liệu khóa ra tệp ngoài nhu cầu được kiểm soát
+- level1: Socket và đặc quyền
+  level2:
+  - Quyền truy cập Workload API socket
+  - Unix domain socket và đặc quyền tiến trình
+  - Mount socket vào container theo phạm vi tối thiểu
+  - Nguy cơ chia sẻ socket giữa các tenant không tin cậy
+  - Symlink, thay thế socket và bảo vệ đường dẫn
+  - SELinux, AppArmor và kiểm soát truy cập bổ sung
+  - Quyền root, chiếm node và giới hạn cô lập
+  - Bảo vệ socket quản trị server và agent
+  - Tách quyền vận hành khỏi quyền cấp danh tính
+  - Kiểm tra quyền truy cập từ workload không đủ điều kiện
+- level1: mTLS
+  level2:
+  - mTLS và xác thực hai chiều giữa các workload
+  - Sử dụng X.509-SVID cho kết nối client và server
+  - Xác minh chuỗi chứng thư và trust bundle tương ứng
+  - Trích xuất SPIFFE ID từ URI SAN theo profile
+  - Cho phép đúng danh tính đối tác sau khi TLS thành công
+  - SPIFFE ID khác DNS name và lựa chọn cơ chế xác minh
+  - Nguy cơ chỉ kiểm tra CA mà không kiểm tra danh tính
+  - Xoay SVID mà không khởi động lại dịch vụ
+  - Kết nối tồn tại lâu và việc thay đổi quyền
+  - Phân biệt TLS termination ở proxy với xác thực xuyên suốt
+- level1: Phân quyền
+  level2:
+  - SPIFFE cung cấp danh tính, hệ thống ứng dụng quyết định quyền
+  - Policy theo SPIFFE ID và quan hệ dịch vụ
+  - Allowlist tối thiểu thay vì cho phép cả trust domain
+  - Kết hợp danh tính với tài nguyên, hành động và bối cảnh
+  - RBAC, ABAC và policy engine khi cần
+  - Quyền tại proxy và quyền trong ứng dụng
+  - Tránh suy diễn quyền chỉ từ cấu trúc đường dẫn ID
+  - Quản lý thay đổi policy khi dịch vụ đổi tên hoặc môi trường
+  - Giới hạn tenant và ngăn truy cập chéo môi trường
+  - Kiểm thử xác thực thành công nhưng phân quyền bị từ chối
+- level1: Tích hợp ứng dụng
+  level2:
+  - Client library và mức hỗ trợ theo hệ sinh thái
+  - Nhận danh tính trực tiếp từ Workload API
+  - Tích hợp TLS context với thư viện giao thức
+  - Theo dõi cập nhật SVID, khóa và bundle
+  - Lựa chọn danh tính khi có nhiều SVID
+  - Bảo vệ khóa riêng và giảm bản sao trong bộ nhớ
+  - Gọi HTTP, gRPC hoặc giao thức khác qua mTLS
+  - JWT-SVID cho API hỗ trợ token
+  - Xử lý lỗi danh tính khi khởi động và khi đang chạy
+  - Tránh cache chứng thư hoặc bundle cố định trong suốt vòng đời ứng dụng
+- level1: Proxy và service mesh
+  level2:
+  - Proxy nhận danh tính thay cho ứng dụng
+  - Envoy SDS và luồng cấp vật liệu TLS
+  - SVID, validation context và kiểm tra URI SAN
+  - Liên kết danh tính proxy với workload được đại diện
+  - TLS termination và ranh giới tin cậy ứng dụng-proxy
+  - Sidecar, proxy dùng chung và mô hình nhiều tenant
+  - Tích hợp service mesh hỗ trợ SPIFFE
+  - Phân biệt danh tính mesh với danh tính do SPIRE cấp
+  - Giữ chính sách xác thực và phân quyền nhất quán
+  - Chẩn đoán handshake và cập nhật secret tại proxy
+- level1: Kubernetes
+  level2:
+  - Kiến trúc SPIRE Server và Agent trên Kubernetes
+  - DaemonSet, StatefulSet và lưu trữ bền vững theo thiết kế
+  - Node attestation dựa trên Kubernetes
+  - Workload attestor và selector Pod, namespace, service account
+  - RBAC cần thiết cho thành phần SPIRE
+  - SPIFFE CSI Driver và phân phối Workload API socket
+  - SPIRE Controller Manager và đăng ký danh tính bằng CRD
+  - Quản lý tài nguyên SPIFFE ID và federation theo CRD hỗ trợ
+  - Namespace Kubernetes khác trust domain SPIFFE
+  - Quyền tạo Pod, chọn service account và rủi ro nhận nhầm danh tính
+  - Node churn, Pod restart và vòng đời danh tính
+  - NetworkPolicy, Pod Security và tách môi trường
+- level1: Cloud và tại chỗ
+  level2:
+  - Triển khai agent trên máy ảo cloud
+  - Chọn node attestor theo môi trường được hỗ trợ
+  - Bare metal và bootstrap danh tính node
+  - Workload truyền thống ngoài container
+  - Kết nối giữa máy chủ tại chỗ và SPIRE Server
+  - Hạn chế metadata service và bằng chứng danh tính cloud
+  - Đa tài khoản, đa project và đa môi trường
+  - Hệ điều hành, runtime và giới hạn hỗ trợ thực tế
+  - Thiết kế danh tính thống nhất mà không làm rộng ranh giới tin cậy
+  - Thay đổi hạ tầng không làm thay đổi tùy tiện danh tính logic
+- level1: Federation
+  level2:
+  - Liên kết trust domain và bài toán giao tiếp xuyên miền
+  - Trao đổi bundle khác với chuyển quyền quản trị
+  - Bundle endpoint và cơ chế xác thực endpoint
+  - Các profile bootstrap và yêu cầu tin cậy ban đầu
+  - Thiết lập, cập nhật và loại bỏ quan hệ federation
+  - Cấu hình registration entry cho các trust domain liên quan
+  - Xác minh danh tính từ trust domain bên ngoài
+  - Không suy diễn quyền hoặc quan hệ tin cậy bắc cầu
+  - Xoay CA, thay endpoint và xử lý bundle không cập nhật
+  - Gián đoạn federation và giới hạn dùng vật liệu đã cache
+  - Kiểm thử từ chối trust domain hoặc SPIFFE ID không được phép
+- level1: Tích hợp liên kết
+  level2:
+  - SPIFFE federation khác workload identity federation của cloud
+  - JWT-SVID và điều kiện trao đổi với hệ thống đích
+  - Kiểm tra profile claim, issuer và audience thay vì giả định tương thích
+  - SPIRE OIDC Discovery Provider trong tích hợp được hỗ trợ
+  - Trao đổi danh tính SPIFFE qua identity broker
+  - Vault và hệ thống quản lý bí mật nhận danh tính workload
+  - Liên kết tới IAM role hoặc tài khoản dịch vụ cloud
+  - Ánh xạ SPIFFE ID sang principal và giữ dấu vết nguồn
+  - Giới hạn quyền của broker và chuỗi impersonation
+  - Tránh biến federation thành nơi phát sinh bí mật dài hạn mới
+- level1: CA và khóa ký
+  level2:
+  - CA nội bộ của SPIRE và chuỗi cấp phát
+  - Root CA, intermediate CA và thời hạn chứng thư
+  - Upstream authority và tích hợp PKI bên ngoài
+  - Key manager và lựa chọn nơi giữ khóa
+  - KMS hoặc HSM theo khả năng hỗ trợ của plugin
+  - Khóa ký X.509 khác khóa ký JWT
+  - Xoay khóa và phân phối trust anchor trước khi chuyển
+  - Khoảng chồng lấp và loại bỏ CA cũ
+  - Bảo vệ dữ liệu khóa, quyền quản trị và bản sao lưu
+  - Ứng phó khi khóa CA hoặc khóa ký JWT bị lộ
+- level1: Vòng đời SVID
+  level2:
+  - Cấp SVID đầu tiên và điều kiện workload được nhận
+  - TTL SVID, TTL entry và thời hạn chứng thư CA
+  - Cấp lại tự động và cập nhật tại workload
+  - Thời gian chồng lấp giữa vật liệu cũ và mới
+  - Xóa entry hoặc cấm agent và ảnh hưởng tới lần cấp tiếp
+  - Giới hạn thu hồi SVID đã cấp theo cơ chế sử dụng
+  - Phân biệt chứng thư hết hạn với kết nối đã thiết lập
+  - Ngừng workload và xử lý khóa còn trong bộ nhớ
+  - Đồng bộ đồng hồ và các lỗi chưa có hiệu lực hoặc hết hạn
+  - Chọn TTL cân bằng giữa phạm vi ảnh hưởng và khả dụng
+- level1: HA và mở rộng
+  level2:
+  - Nhiều SPIRE Server và thiết kế khả dụng
+  - Datastore dùng chung theo topology được hỗ trợ
+  - Quản lý vật liệu CA và khóa trong triển khai nhiều server
+  - Load balancer, endpoint agent và chuyển đổi server
+  - Quy mô agent, workload và tốc độ cấp SVID
+  - Cache tại agent và giới hạn khi server gián đoạn
+  - Nested SPIRE và phân cấp hạ tầng theo khả năng hỗ trợ
+  - Tách cluster, khu vực và trust domain
+  - Quản lý connection, retry và áp lực khi khởi động hàng loạt
+  - Kiểm thử mất server, mất datastore và phân vùng mạng
+- level1: Triển khai an toàn
+  level2:
+  - Tách môi trường thử nghiệm và sản xuất
+  - Quyền hệ điều hành tối thiểu và bảo vệ cấu hình
+  - Xác thực endpoint server và bootstrap bundle
+  - Quản lý plugin, phiên bản và nguồn binary
+  - Bảo vệ API quản trị và quy trình thay đổi registration
+  - Giới hạn mạng giữa server, agent và hạ tầng ngoài
+  - Quản lý selector như một phần của chính sách bảo mật
+  - Không dùng join token hoặc đăng ký quá rộng làm giải pháp lâu dài
+  - Quyền truy cập datastore, khóa CA và snapshot
+  - Danh sách kiểm tra trước khi đưa vào sử dụng
+- level1: Quan sát và kiểm toán
+  level2:
+  - Nhật ký server, agent và lỗi tại workload
+  - Metrics về attestation, cấp SVID và làm mới
+  - Theo dõi thời hạn SVID, CA và bundle
+  - Quan sát số agent, registration entry và workload
+  - Liên kết SPIFFE ID với node, Pod hoặc tiến trình
+  - Ghi nhận thay đổi entry, federation và cấu hình tin cậy
+  - Cảnh báo attestation thất bại hoặc selector bất thường
+  - Phát hiện workload nhận danh tính không đúng thiết kế
+  - Không ghi khóa riêng, JWT-SVID hoặc bằng chứng nhạy cảm
+  - Giới hạn log mặc định và tích hợp hệ thống kiểm toán
+- level1: Chẩn đoán
+  level2:
+  - Phân biệt lỗi node attestation với workload attestation
+  - Agent không kết nối server hoặc không tin chuỗi chứng thư
+  - Selector không khớp và registration entry sai parent
+  - Workload không truy cập được socket
+  - Workload nhận thiếu hoặc nhận nhiều danh tính
+  - mTLS lỗi do bundle, URI SAN hoặc policy đối tác
+  - JWT-SVID sai audience, hết hạn hoặc không có khóa xác minh
+  - SVID không làm mới và workload giữ TLS context cũ
+  - Federation lỗi endpoint hoặc bundle không cập nhật
+  - Datastore, plugin, DNS, mạng và đồng hồ
+  - Thu thập bằng chứng lỗi không làm lộ vật liệu danh tính
+- level1: Mô hình đe dọa
+  level2:
+  - Tài sản, đối thủ và ranh giới tin cậy
+  - Chiếm workload và sử dụng SVID trong thời gian còn hiệu lực
+  - Chiếm agent, node hoặc tài khoản đặc quyền
+  - Selector có thể giả mạo và đăng ký danh tính quá rộng
+  - Lạm quyền API quản trị hoặc controller đăng ký
+  - Lộ khóa CA, khóa JWT và dữ liệu sao lưu
+  - Thay thế socket, bundle hoặc endpoint bootstrap
+  - Federation với miền không được kiểm soát đầy đủ
+  - Nghe lén, sửa luồng và phát lại JWT-SVID
+  - Chuỗi cung ứng plugin, image và client library
+  - Giảm phạm vi ảnh hưởng bằng tách trust domain và quyền tối thiểu
+- level1: Sự cố và phục hồi
+  level2:
+  - Cách ly workload hoặc node bị chiếm quyền
+  - Ngừng cấp danh tính cho agent hoặc entry liên quan
+  - Chặn SPIFFE ID tại tầng phân quyền
+  - Đánh giá SVID đã cấp và kết nối đang tồn tại
+  - Xoay khóa CA hoặc khóa JWT sau sự cố
+  - Cập nhật bundle và loại bỏ vật liệu tin cậy bị lộ
+  - Sao lưu datastore, cấu hình và vật liệu cần thiết
+  - Phục hồi server và tái thiết lập agent có kiểm soát
+  - Kiểm tra danh tính, policy và federation sau phục hồi
+  - Diễn tập mất khóa, mất dữ liệu và mất toàn bộ server
+- level1: Nâng cấp và vận hành
+  level2:
+  - Ma trận tương thích server, agent, plugin và client
+  - Đọc thay đổi đặc tả và release note trước nâng cấp
+  - Sao lưu và kiểm thử phục hồi trước thay đổi
+  - Nâng cấp cuốn chiếu theo lộ trình được hỗ trợ
+  - Giới hạn rollback khi cấu trúc dữ liệu đã thay đổi
+  - Quản lý cấu hình, registration và federation dưới dạng mã
+  - Rà soát danh tính không còn chủ sở hữu
+  - Quản lý thay đổi selector khi ứng dụng chuyển môi trường
+  - Runbook khởi động lại, mất kết nối và lỗi làm mới
+  - Định kỳ kiểm tra quyền quản trị và ranh giới tin cậy
+- level1: Kiểm thử
+  level2:
+  - Đường đi đầy đủ từ attestation đến mTLS
+  - Node hợp lệ, node giả mạo và bằng chứng hết hạn
+  - Workload đúng selector và workload gần giống nhưng không hợp lệ
+  - Đúng chứng thư nhưng sai SPIFFE ID
+  - JWT đúng chữ ký nhưng sai audience hoặc trust domain
+  - Đổi SVID và bundle khi ứng dụng đang chạy
+  - Xoay CA với thời gian chồng lấp
+  - Mất server, agent restart và workload restart
+  - Xóa entry, chặn quyền và đo giới hạn thu hồi thực tế
+  - Federation hợp lệ và trust domain không được phép
+  - Kiểm thử tải, đồng thời và gián đoạn hạ tầng
+  - Kiểm tra log, tệp và snapshot không làm lộ khóa
+- level1: Thực hành
+  level2:
+  - Dựng một SPIRE Server và một Agent trong môi trường thử
+  - Bootstrap agent và quan sát node attestation
+  - Tạo entry theo selector cho hai workload khác nhau
+  - Lấy X.509-SVID và kiểm tra SPIFFE ID trong URI SAN
+  - Thiết lập mTLS và chỉ cho phép đúng workload đối tác
+  - Nhận JWT-SVID với audience riêng và kiểm thử từ chối
+  - Quan sát cấp lại SVID không khởi động lại ứng dụng
+  - Triển khai Workload API socket cho workload Kubernetes
+  - Thử đăng ký tự động bằng controller trong phạm vi giới hạn
+  - Liên kết hai trust domain và áp dụng phân quyền chéo miền
+  - Diễn tập chiếm workload giả định, chặn quyền và phục hồi
+  - Hoàn thiện sơ đồ, bảng selector, mô hình đe dọa và runbook

@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Địa chỉ và cổng
+  slug: addresses-ports
+  index: 1
+- title: Dữ liệu và MTU
+  slug: data-mtu
+  index: 2
+- title: Phần đầu TCP
+  slug: tcp-header
+  index: 3
+- title: Thiết lập TCP
+  slug: tcp-handshake
+  index: 4
+- title: Đóng kết nối TCP
+  slug: tcp-connection-close
+  index: 5
+- title: Trạng thái TCP
+  slug: tcp-states
+  index: 6
+- title: Thứ tự và xác nhận
+  slug: sequencing-acknowledgments
+  index: 7
+- title: Phục hồi mất gói
+  slug: packet-loss-recovery
+  index: 8
+- title: Điều khiển luồng
+  slug: flow-control
+  index: 9
+- title: Điều khiển tắc nghẽn
+  slug: congestion-control
+  index: 10
+- title: Bộ định thời TCP
+  slug: tcp-timers
+  index: 11
+- title: Tùy chọn TCP
+  slug: tcp-options
+  index: 12
+- title: Hành vi luồng TCP
+  slug: tcp-stream-behavior
+  index: 13
+- title: Phần đầu UDP
+  slug: udp-header
+  index: 14
+- title: Hoạt động UDP
+  slug: udp-operation
+  index: 15
+- title: Độ tin cậy trên UDP
+  slug: udp-reliability
+  index: 16
+- title: Chọn TCP hay UDP
+  slug: tcp-vs-udp
+  index: 17
+- title: Mô hình socket
+  slug: socket-model
+  index: 18
+- title: Lập trình TCP
+  slug: tcp-programming
+  index: 19
+- title: Lập trình UDP
+  slug: udp-programming
+  index: 20
+- title: Đồng thời và I/O
+  slug: concurrency-io
+  index: 21
+- title: Hiệu năng
+  slug: performance
+  index: 22
+- title: NAT và middlebox
+  slug: nat-middleboxes
+  index: 23
+- title: Bảo mật
+  slug: security
+  index: 24
+- title: Quan sát lưu lượng
+  slug: traffic-observability
+  index: 25
+- title: Công cụ chẩn đoán
+  slug: diagnostics-tools
+  index: 26
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 27
+- title: Kiểm thử truyền tải
+  slug: transport-testing
+  index: 28
+- title: Bài thực hành
+  slug: hands-on-labs
+  index: 29
+- title: Thiết kế và vận hành
+  slug: design-operations
+  index: 30

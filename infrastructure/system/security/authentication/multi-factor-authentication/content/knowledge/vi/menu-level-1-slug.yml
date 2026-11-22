@@ -1,0 +1,46 @@
+menu:
+- title: Nền tảng xác thực đa yếu tố
+  slug: mfa-fundamentals
+  index: 0
+- title: Tính độc lập và mức bảo đảm xác thực
+  slug: factor-independence-and-assurance
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 2
+- title: Mã dùng một lần
+  slug: one-time-passwords
+  index: 3
+- title: Xác thực qua kênh liên lạc
+  slug: communication-channel-authentication
+  index: 4
+- title: FIDO2, passkey và sinh trắc học
+  slug: fido2-passkeys-and-biometrics
+  index: 5
+- title: Lựa chọn phương thức và chính sách
+  slug: method-selection-and-policy
+  index: 6
+- title: Đăng ký và vòng đời yếu tố
+  slug: factor-enrollment-and-lifecycle
+  index: 7
+- title: Thiết kế luồng xác thực an toàn
+  slug: secure-authentication-flows
+  index: 8
+- title: Phiên xác thực và liên kết định danh
+  slug: authentication-sessions-and-federation
+  index: 9
+- title: Tích hợp hệ thống định danh
+  slug: identity-system-integration
+  index: 10
+- title: Khôi phục quyền truy cập
+  slug: account-recovery
+  index: 11
+- title: Trải nghiệm và khả năng tiếp cận
+  slug: user-experience-and-accessibility
+  index: 12
+- title: Vận hành và ứng phó sự cố
+  slug: operations-and-incident-response
+  index: 13
+- title: Kiểm thử và triển khai
+  slug: testing-and-rollout
+  index: 14

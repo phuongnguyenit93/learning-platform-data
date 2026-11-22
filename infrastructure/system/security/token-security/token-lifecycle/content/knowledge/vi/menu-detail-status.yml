@@ -1,0 +1,3016 @@
+menu:
+- slug: token-lifecycle-overview
+  title: Tổng quan vòng đời
+  childs:
+  - slug: token-lifecycle-overview-001
+    title: Token là gì và vai trò trong việc trao đổi bằng chứng hoặc quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-002
+    title: Vòng đời từ yêu cầu, cấp phát, sử dụng đến chấm dứt hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-003
+    title: Các bên phát hành, giữ token, xác minh và quản lý trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-004
+    title: Phân biệt vòng đời token với vòng đời tài khoản và phiên đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-005
+    title: Phân biệt xác thực, phân quyền và tính còn hiệu lực của token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-006
+    title: Giá trị token khác với bản ghi quản lý token phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-007
+    title: Mối quan hệ giữa token, danh tính, ứng dụng và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-008
+    title: Đánh đổi giữa bảo mật, trải nghiệm và tính sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-lifecycle-overview-009
+    title: Bản đồ các quyết định cần có trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-types
+  title: Các loại token
+  childs:
+  - slug: token-types-001
+    title: Access token và phạm vi truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-002
+    title: Refresh token và quyền xin token truy cập mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-003
+    title: ID token và bằng chứng của sự kiện xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-004
+    title: Session token và định danh phiên phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-005
+    title: Token xác minh email, khôi phục tài khoản và lời mời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-006
+    title: Token dùng một lần và token được phép sử dụng nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-007
+    title: Opaque token, token tự chứa và token tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-008
+    title: Bearer token và token ràng buộc với bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-009
+    title: Token cho người dùng, ứng dụng, workload và thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-010
+    title: Token trong liên kết ký sẵn và quyền truy cập tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-types-011
+    title: Phân biệt token truy cập với API key, mật khẩu và khóa ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: model-threat
+  title: Mô hình đe dọa
+  childs:
+  - slug: model-threat-001
+    title: Đánh cắp token và sử dụng quyền của chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-002
+    title: Giả mạo, sửa đổi và đoán giá trị token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-003
+    title: Phát lại token hợp lệ sau khi bị sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-004
+    title: Lạm dụng token sai tài nguyên, sai ứng dụng hoặc sai tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-005
+    title: Chiếm đoạt refresh token và duy trì truy cập dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-006
+    title: Lộ token qua URL, nhật ký, trình duyệt hoặc pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-007
+    title: Trạng thái thu hồi chậm đồng bộ giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-008
+    title: Lỗi đồng thời trong làm mới, xoay vòng và dùng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-009
+    title: Quyền tài khoản thay đổi khi token vẫn còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: model-threat-010
+    title: Ranh giới tin cậy và hậu quả khi issuer hoặc kho trạng thái bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-and-data
+  title: Trạng thái và dữ liệu
+  childs:
+  - slug: state-and-data-001
+    title: Thiết kế các trạng thái được yêu cầu, đang hoạt động và đã chấm dứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-002
+    title: Phân biệt hết hạn, thu hồi, đã sử dụng và bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-003
+    title: Chuyển trạng thái hợp lệ và điều kiện thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-004
+    title: Định danh token, phiên, thiết bị và họ refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-005
+    title: Chủ thể, ứng dụng, audience, scope và tenant liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-006
+    title: Thời điểm phát hành, kích hoạt, sử dụng gần nhất và hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-007
+    title: Lý do thu hồi và lịch sử thay thế token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-008
+    title: Token cha, token con và quan hệ cấp phát tiếp nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-009
+    title: Dữ liệu nhạy cảm cần tránh lưu trong bản ghi quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-and-data-010
+    title: Lưu đồ trạng thái và các bất biến bảo mật của vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-policies
+  title: Chính sách token
+  childs:
+  - slug: token-policies-001
+    title: Chọn loại token theo mục đích và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-002
+    title: Xác định nguồn cấp phát cùng các bên được phép yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-003
+    title: Quy định audience, scope và ranh giới tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-004
+    title: Thời hạn token, thời hạn phiên và giới hạn làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-005
+    title: Quy định số token, phiên hoặc thiết bị đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-006
+    title: Điều kiện yêu cầu xác thực lại hoặc xác thực tăng cường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-007
+    title: Chính sách thu hồi khi đăng xuất, đổi quyền hoặc có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-008
+    title: Yêu cầu chống phát lại theo từng loại token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-009
+    title: Chính sách lưu trữ, truyền tải và che giấu token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-policies-010
+    title: Phiên bản hợp đồng và trách nhiệm của bên phát hành, bên xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-generation
+  title: Sinh token
+  childs:
+  - slug: token-generation-001
+    title: Nguồn ngẫu nhiên mật mã và entropy của opaque token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-002
+    title: Độ dài token và khả năng chống dò đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-003
+    title: Mã hóa biểu diễn không thay thế cho độ ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-004
+    title: Ngăn token chứa định danh hoặc dữ liệu dễ dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-005
+    title: Định danh token và phân biệt với bí mật dùng để xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-006
+    title: Ký hoặc mã hóa token tự chứa theo hợp đồng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-007
+    title: Tạo claims từ nguồn dữ liệu tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-008
+    title: Không dùng thời gian, số tăng dần hoặc UUID bất kỳ như bảo đảm bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-009
+    title: Kiểm soát va chạm và bảo đảm định danh phù hợp phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-generation-010
+    title: Tránh tự thiết kế định dạng hoặc thuật toán mật mã không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-issuance
+  title: Cấp phát token
+  childs:
+  - slug: token-issuance-001
+    title: Xác thực và ủy quyền yêu cầu trước khi cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-002
+    title: Cấp phát sau đăng nhập, ủy quyền hoặc xác thực workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-003
+    title: Ràng buộc token với ứng dụng và chủ thể phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-004
+    title: Giới hạn quyền theo yêu cầu và chính sách hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-005
+    title: Xác định thời hạn tại thời điểm cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-006
+    title: Tạo bản ghi trạng thái và trả token theo một giao dịch nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-007
+    title: Ngăn cấp phát trùng khi yêu cầu được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-008
+    title: Giới hạn tần suất và phát hiện hoạt động cấp phát bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-009
+    title: Quy tắc khi cấp token mới có thay thế token cũ hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-010
+    title: Lưu bằng chứng cấp phát mà không ghi toàn bộ bí mật token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-issuance-011
+    title: Xử lý cấp phát thất bại hoặc phản hồi bị mất trên đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-distribution
+  title: Phân phối token
+  childs:
+  - slug: token-distribution-001
+    title: Trả token qua kênh được xác thực và mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-002
+    title: Authorization header và hợp đồng truyền bearer token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-003
+    title: Cookie và cơ chế trình duyệt tự động gửi token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-004
+    title: Rủi ro token xuất hiện trong URL, query string và fragment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-005
+    title: Cache-Control và tránh lưu phản hồi chứa token ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-006
+    title: Redirect, deep link và callback khi trao token cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-007
+    title: Liên kết email chứa token xác minh hoặc khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-008
+    title: Proxy, CDN và công cụ quan sát có thể nhìn thấy token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-009
+    title: Ngăn nhầm lẫn token giữa nhiều tài khoản hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-distribution-010
+    title: Kiểm tra nơi nhận trước khi chuyển tiếp token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-storage
+  title: Lưu trữ token
+  childs:
+  - slug: token-storage-001
+    title: Lưu token phía máy khách khác với lưu trạng thái phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-002
+    title: LocalStorage, sessionStorage và rủi ro từ mã độc trong trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-003
+    title: Token trong bộ nhớ và giới hạn bảo vệ trước XSS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-004
+    title: Cookie HttpOnly, Secure, SameSite và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-005
+    title: Kho bảo mật của hệ điều hành cho ứng dụng di động và máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-006
+    title: Lưu token của dịch vụ trong bộ nhớ hoặc kho bí mật được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-007
+    title: Băm opaque token khi máy chủ chỉ cần đối chiếu giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-008
+    title: Trường hợp cần mã hóa token để có thể sử dụng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-009
+    title: Tách quyền đọc trạng thái token khỏi quyền đọc bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-010
+    title: Bản sao lưu, bản chụp máy và dữ liệu chẩn đoán có chứa token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-storage-011
+    title: Xóa hoặc thay thế token cũ trong mọi vị trí lưu trữ liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-validation-and-use
+  title: Xác minh và sử dụng
+  childs:
+  - slug: token-validation-and-use-001
+    title: Luồng từ nhận token đến chấp nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-002
+    title: Phân tích định dạng và giới hạn kích thước đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-003
+    title: Tra cứu opaque token hoặc xác minh mật mã với token tự chứa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-004
+    title: Kiểm tra issuer, audience, loại token và ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-005
+    title: Kiểm tra thời hạn cùng trạng thái thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-006
+    title: Ràng buộc token với ứng dụng, thiết bị hoặc khóa khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-007
+    title: Chỉ dùng thông tin token sau khi hoàn tất kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-008
+    title: Đánh giá quyền truy cập tại tài nguyên đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-009
+    title: Giới hạn của lần kiểm tra đã thành công trong quá khứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-010
+    title: Từ chối an toàn khi không đủ bằng chứng xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-011
+    title: Thông báo token không hợp lệ khác với thiếu quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-validation-and-use-012
+    title: Không dùng ID token hoặc refresh token thay access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-expiration
+  title: Thời hạn hiệu lực
+  childs:
+  - slug: token-expiration-001
+    title: Thời hạn tuyệt đối và thời hạn không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-002
+    title: Thời hạn trượt và giới hạn kéo dài tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-003
+    title: Token ngắn hạn và token dài hạn trong từng mô hình rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-004
+    title: Thời điểm bắt đầu hiệu lực và các trường hợp token chưa dùng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-005
+    title: Thời điểm hết hạn và xử lý đúng ranh giới thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-006
+    title: Đồng hồ UTC, sai lệch đồng hồ và khoảng dung sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-007
+    title: Quan hệ giữa thời hạn access token, refresh token và phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-008
+    title: Tuổi tối đa của xác thực và yêu cầu đăng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-009
+    title: Token hết hạn trong khi đang có yêu cầu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-010
+    title: Tác vụ dài hạn và tránh dựa vào token đã hết hạn cho hành động mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-expiration-011
+    title: Ảnh hưởng của bộ nhớ đệm đến hiệu lực thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-renewal
+  title: Làm mới token
+  childs:
+  - slug: token-renewal-001
+    title: Làm mới access token khác với kéo dài token hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-002
+    title: Điều kiện chấp nhận refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-003
+    title: Xác thực ứng dụng khi hồ sơ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-004
+    title: Kiểm tra phiên, tài khoản và quyền trước cấp phát mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-005
+    title: Giới hạn scope khi làm mới và ngăn tự mở rộng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-006
+    title: Thời hạn cố định và thời hạn trượt của refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-007
+    title: Giới hạn tổng thời gian duy trì phiên qua nhiều lần làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-008
+    title: Làm mới chủ động trước hạn và làm mới sau lỗi xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-009
+    title: Thời điểm cần xác thực lại thay vì tiếp tục làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-010
+    title: Xử lý refresh token không hợp lệ, hết hạn hoặc đã thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-renewal-011
+    title: Không lặp vô hạn yêu cầu làm mới khi phiên không thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: refresh-token-rotation
+  title: Xoay refresh token
+  childs:
+  - slug: refresh-token-rotation-001
+    title: Refresh token rotation và token thay thế qua từng lần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-002
+    title: Họ token và liên kết giữa các thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-003
+    title: Vô hiệu hóa refresh token cũ khi phát hành token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-004
+    title: Phát hiện refresh token đã dùng bị sử dụng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-005
+    title: Phân biệt tấn công sử dụng lại với retry hoặc yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-006
+    title: Chính sách vô hiệu hóa một token, một nhánh hoặc cả họ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-007
+    title: Khoảng dung sai khi xoay vòng và tác động đến chống phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-008
+    title: Phản hồi làm mới bị mất sau khi máy chủ đã đổi token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-009
+    title: Xử lý nhiều tab, nhiều tiến trình và nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-010
+    title: Tính nguyên tử của cập nhật token cũ và token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: refresh-token-rotation-011
+    title: Quan sát sự kiện xoay vòng mà không để lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-and-consistency
+  title: Đồng thời và nhất quán
+  childs:
+  - slug: concurrency-and-consistency-001
+    title: Race condition giữa hai yêu cầu làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-002
+    title: Khóa hoặc compare-and-swap theo phiên hay họ token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-003
+    title: Single-flight khi nhiều yêu cầu cùng cần token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-004
+    title: Idempotency và giới hạn khi tái sử dụng kết quả cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-005
+    title: Dùng một lần bằng thao tác kiểm tra và đánh dấu nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-006
+    title: Thu hồi đồng thời với xác minh hoặc cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-007
+    title: Độ trễ đồng bộ và cửa sổ chấp nhận token đã bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-008
+    title: Nhất quán giữa cơ sở dữ liệu, bộ nhớ đệm và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-009
+    title: Chống ghi đè token mới bằng phản hồi đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-010
+    title: Xử lý timeout khi không biết giao dịch đã hoàn thành hay chưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-and-consistency-011
+    title: Thiết kế thử nghiệm các xen kẽ có thể phá vỡ bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: token-revocation
+  title: Thu hồi token
+  childs:
+  - slug: token-revocation-001
+    title: Thu hồi là gì và khác với xóa token phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-002
+    title: Các tác nhân được phép yêu cầu thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-003
+    title: Thu hồi một token, một phiên, một thiết bị hoặc toàn bộ tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-004
+    title: Danh sách token bị thu hồi và thời hạn lưu bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-005
+    title: Danh sách token đang hoạt động và kiểm tra trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-006
+    title: Phiên bản phiên hoặc tài khoản để vô hiệu hóa hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-007
+    title: Thu hồi refresh token và ảnh hưởng lên token đã cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-008
+    title: Thu hồi access token tự chứa trước khi hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-009
+    title: Token introspection và quyết định chấp nhận theo trạng thái hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-010
+    title: Truyền sự kiện thu hồi và xác định độ trễ bảo mật chấp nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-011
+    title: Phân quyền, giới hạn tần suất và tính lặp lại an toàn của API thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: token-revocation-012
+    title: Lý do thu hồi và bằng chứng phục vụ kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logout-and-sessions
+  title: Đăng xuất và phiên
+  childs:
+  - slug: logout-and-sessions-001
+    title: Đăng xuất cục bộ và chấm dứt phiên phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-002
+    title: Xóa token trên thiết bị và giới hạn của thao tác này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-003
+    title: Đăng xuất thiết bị hiện tại hoặc mọi thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-004
+    title: Phiên đăng nhập, refresh token và access token liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-005
+    title: Phiên của ứng dụng khác với phiên tại nhà cung cấp danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-006
+    title: Đăng xuất liên kết và độ trễ truyền thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-007
+    title: Cookie, token trong bộ nhớ và dữ liệu lưu lâu dài cần dọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-008
+    title: Tránh yêu cầu đang chạy ghi lại token sau khi đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-009
+    title: Đăng xuất khi mất mạng và khả năng thu hồi về sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-and-sessions-010
+    title: Thông báo rõ khi phiên hết hiệu lực và yêu cầu đăng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: single-use-tokens
+  title: Token dùng một lần
+  childs:
+  - slug: single-use-tokens-001
+    title: Token xác minh email và ràng buộc với địa chỉ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-002
+    title: Token khôi phục tài khoản và thời hạn theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-003
+    title: Token lời mời, kích hoạt và hành động nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-004
+    title: Ràng buộc token với chủ thể, mục đích và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-005
+    title: Đánh dấu đã sử dụng trong cùng giao dịch với hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-006
+    title: Gửi lại liên kết và chính sách vô hiệu hóa token cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-007
+    title: Quét liên kết tự động và tránh thực hiện hành động ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-008
+    title: Chống dò đoán bằng giới hạn tần suất và theo dõi bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-009
+    title: Ngăn tiết lộ tài khoản có tồn tại qua quy trình cấp token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-010
+    title: Không tự mở phiên đặc quyền ngoài phạm vi token được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-use-tokens-011
+    title: Trạng thái và trải nghiệm khi liên kết đã dùng hoặc hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replay-prevention
+  title: Chống phát lại
+  childs:
+  - slug: replay-prevention-001
+    title: Phân biệt token bị sửa với token hợp lệ bị dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-002
+    title: Giới hạn của bearer token khi bí mật đã bị sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-003
+    title: Thời hạn ngắn và giới hạn quyền để giảm hậu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-004
+    title: Nonce, mã token và kho theo dõi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-005
+    title: Ràng buộc token với một yêu cầu hoặc một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-006
+    title: Token ràng buộc với bên gửi và bằng chứng giữ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-007
+    title: DPoP và mTLS trong các hồ sơ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-008
+    title: Giới hạn của ràng buộc theo IP hoặc dấu vết thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-009
+    title: Xử lý token ràng buộc khóa khi khóa thiết bị bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replay-prevention-010
+    title: Chọn cơ chế phù hợp thay vì coi mọi access token là dùng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-changes
+  title: Thay đổi danh tính
+  childs:
+  - slug: identity-changes-001
+    title: Khóa hoặc vô hiệu hóa tài khoản khi token vẫn còn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-002
+    title: Đổi mật khẩu và chính sách chấm dứt phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-003
+    title: Thêm, xóa hoặc khôi phục yếu tố xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-004
+    title: Thay đổi email, chủ sở hữu hoặc thuộc tính định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-005
+    title: Thay đổi role, permission và scope đã cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-006
+    title: Chuyển tenant, tổ chức hoặc quan hệ thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-007
+    title: Thu hồi đồng ý của người dùng hoặc quyền của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-008
+    title: Xóa tài khoản và xử lý token hoặc dữ liệu còn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-009
+    title: Yêu cầu xác thực tăng cường khi nâng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-changes-010
+    title: Không mặc nhiên coi claims cũ là trạng thái tài khoản hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oauth-oidc
+  title: OAuth và OIDC
+  childs:
+  - slug: oauth-oidc-001
+    title: Vai trò authorization server, client và resource server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-002
+    title: Authorization code và giới hạn vòng đời của mã đổi token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-003
+    title: Access token, refresh token, ID token và nơi được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-004
+    title: PKCE và liên kết mã cấp quyền với ứng dụng khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-005
+    title: Scope, audience và đồng ý của người dùng trong vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-006
+    title: Token endpoint và xử lý lỗi cấp phát hoặc làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-007
+    title: Revocation endpoint và giới hạn của việc xác nhận thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-008
+    title: Introspection endpoint và bảo vệ quyền tra cứu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-009
+    title: Refresh token trong public client và confidential client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-010
+    title: Client credentials và lý do không mặc nhiên cần refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-011
+    title: OIDC session, yêu cầu đăng nhập lại và sự kiện đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-012
+    title: Token exchange, delegation và ràng buộc token dành cho dịch vụ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oauth-oidc-013
+    title: Phân biệt quản lý token với triển khai toàn bộ giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-side-token-lifecycle
+  title: Vòng đời phía khách
+  childs:
+  - slug: client-side-token-lifecycle-001
+    title: Trình duyệt và lựa chọn nơi lưu token theo mô hình đe dọa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-002
+    title: Backend for Frontend và quản lý token tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-003
+    title: Ứng dụng di động cùng kho lưu trữ bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-004
+    title: Ứng dụng máy tính và nhiều tài khoản đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-005
+    title: Đồng bộ trạng thái token giữa các tab trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-006
+    title: Khởi động lại ứng dụng và khôi phục phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-007
+    title: XSS, CSRF và tác động đến vòng đời token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-008
+    title: Thiết bị mất, bị đánh cắp hoặc bị đặt lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-009
+    title: Ngắt mạng, chế độ ngủ và đồng hồ thiết bị sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-010
+    title: Xử lý 401, tránh vòng lặp làm mới và giữ nguyên yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-token-lifecycle-011
+    title: Không hiển thị hoặc sao chép token vào thông báo cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workload-tokens
+  title: Token cho workload
+  childs:
+  - slug: workload-tokens-001
+    title: Danh tính máy, service account và token của workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-002
+    title: Cấp token tạm thời thay cho bí mật truy cập dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-003
+    title: Workload federation và đổi bằng chứng ban đầu lấy token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-004
+    title: Token theo audience dành riêng cho dịch vụ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-005
+    title: Vòng đời token trong container, máy ảo và tác vụ ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-006
+    title: Làm mới nền và chuyển giao token mới không gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-007
+    title: Ngăn nhiều tiến trình đồng thời gây bão làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-008
+    title: Bootstrap, chấm dứt workload và thu hồi quyền cấp token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-009
+    title: Không nhúng token vào ảnh máy, cấu hình hoặc mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-010
+    title: Giới hạn token khi chuyển tiếp qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-tokens-011
+    title: Quản lý token cho tác vụ nền có thời gian xử lý dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jwt-opaque-token
+  title: JWT và opaque token
+  childs:
+  - slug: jwt-opaque-token-001
+    title: Xác minh cục bộ JWT và tra cứu trạng thái opaque token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-002
+    title: JWT có chữ ký không tự bảo đảm token còn được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-003
+    title: Claims thời gian, issuer, audience và mã định danh JWT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-004
+    title: Token tự chứa và độ trễ cập nhật quyền hoặc thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-005
+    title: Opaque token cùng kho trạng thái và chi phí tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-006
+    title: Phối hợp token tự chứa với introspection hoặc trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-007
+    title: Không dùng khả năng decode để quyết định token hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-008
+    title: Giới hạn kích thước và dữ liệu riêng tư trong payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-009
+    title: Chọn định dạng theo yêu cầu thu hồi, quy mô và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-opaque-token-010
+    title: Tách vòng đời token khỏi vòng đời khóa ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keys-and-issuers
+  title: Khóa và bên phát hành
+  childs:
+  - slug: keys-and-issuers-001
+    title: Xoay khóa ký khác với thay token của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-002
+    title: Gắn token với phiên bản khóa và cấu hình issuer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-003
+    title: Khoảng chuyển tiếp giữa khóa ký cũ và khóa ký mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-004
+    title: Bộ nhớ đệm khóa xác minh và token còn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-005
+    title: Thu hồi khóa bị lộ và phạm vi token chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-006
+    title: Tách khóa theo mục đích, môi trường hoặc miền tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-007
+    title: Đổi thuật toán và khả năng tương thích của bên xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-008
+    title: Thay issuer hoặc địa chỉ phát hiện cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-009
+    title: Di trú token giữa hệ thống cấp phát cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-and-issuers-010
+    title: Ngăn hệ thống tiếp tục cấp token từ khóa hoặc issuer đã ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-architecture
+  title: Kiến trúc phân tán
+  childs:
+  - slug: distributed-architecture-001
+    title: Nguồn sự thật cho trạng thái token và phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-002
+    title: Tách cấp phát, xác minh và quyết định phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-003
+    title: API gateway và kiểm tra token tại dịch vụ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-004
+    title: Kho trạng thái nhiều vùng cùng yêu cầu nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-005
+    title: Bộ nhớ đệm xác minh và cơ chế vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-006
+    title: Sự kiện thay đổi tài khoản, quyền hoặc trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-007
+    title: Giới hạn thời gian phản ứng từ sự kiện đến chặn truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-008
+    title: Xử lý kho trạng thái hoặc dịch vụ introspection không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-009
+    title: Đánh đổi fail-closed và tính sẵn sàng theo loại tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-010
+    title: Giới hạn tải và chống cạn tài nguyên trên endpoint token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-011
+    title: Phục hồi sau sự cố mà không làm token đã thu hồi hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cleanup-and-retention
+  title: Dọn dẹp và lưu giữ
+  childs:
+  - slug: cleanup-and-retention-001
+    title: Thời hạn giữ bản ghi token đã hết hạn hoặc đã thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-002
+    title: Giữ dấu vết token đã sử dụng đủ lâu để phát hiện tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-003
+    title: TTL cơ sở dữ liệu và độ trễ thực tế của việc dọn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-004
+    title: Không nhầm xóa bản ghi với cấp lại quyền sử dụng token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-005
+    title: Xóa token khỏi bộ nhớ đệm, hàng đợi và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-006
+    title: Bản sao lưu và nguy cơ phục hồi trạng thái cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-007
+    title: Giới hạn lưu lịch sử theo mục đích kiểm toán và riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-008
+    title: Ẩn danh hoặc giảm dữ liệu liên kết với chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-009
+    title: Ngừng ứng dụng, tenant hoặc issuer và dọn token liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cleanup-and-retention-010
+    title: Kiểm tra việc dọn dữ liệu không phá vỡ thu hồi hoặc chống phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-and-auditing
+  title: Giám sát và kiểm toán
+  childs:
+  - slug: monitoring-and-auditing-001
+    title: Sự kiện cấp phát, sử dụng, làm mới, xoay vòng và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-002
+    title: Mã tham chiếu hoặc dấu vân tay token thay cho bí mật đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-003
+    title: Chỉ số số lượng token, tuổi token và tỷ lệ hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-004
+    title: Theo dõi tỷ lệ lỗi làm mới và tái sử dụng refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-005
+    title: Phát hiện bất thường theo thiết bị, ứng dụng và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-006
+    title: Quan sát độ trễ thu hồi trên nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-007
+    title: Phân biệt lỗi người dùng, lỗi cấu hình và sự cố hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-008
+    title: Liên kết sự kiện theo phiên hoặc họ token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-009
+    title: Bảo vệ nhật ký khỏi truy cập và sửa đổi trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-010
+    title: Giới hạn dữ liệu cá nhân cùng quyền tra cứu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-011
+    title: Cảnh báo có chủ sở hữu và quy trình phản ứng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: Phân loại lộ access token, refresh token và khóa ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: Cô lập nguồn rò rỉ và ngăn tiếp tục cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: Xác định chủ thể, phiên, ứng dụng và tài nguyên bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: Thu hồi theo phạm vi phù hợp với bằng chứng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: Buộc xác thực lại hoặc xác thực tăng cường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: Xoay token, khóa và thông tin cấp phát bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: Xử lý token bị công khai trong kho mã hoặc nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: Bảo toàn bằng chứng mà không phát tán thêm token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-009
+    title: Xác minh các dịch vụ đã thực sự từ chối token bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-010
+    title: Thông báo và hỗ trợ khôi phục truy cập cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-011
+    title: Rà soát nguyên nhân và điều chỉnh chính sách vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-testing
+  title: Kiểm thử vòng đời
+  childs:
+  - slug: lifecycle-testing-001
+    title: Kiểm thử mọi chuyển trạng thái hợp lệ và không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-002
+    title: Token hợp lệ, sai định dạng, sai chữ ký hoặc không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-003
+    title: Token sai audience, issuer, ứng dụng, tenant hoặc mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-004
+    title: Ranh giới hết hạn, sai lệch đồng hồ và thời hạn không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-005
+    title: Làm mới khi tài khoản hoặc phiên đã bị vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-006
+    title: Xoay refresh token và phát hiện sử dụng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-007
+    title: Yêu cầu đồng thời, phản hồi đến muộn và mất phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-008
+    title: Token dùng một lần với nhiều yêu cầu cùng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-009
+    title: Thu hồi trong lúc bộ nhớ đệm hoặc nhiều vùng chưa đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-010
+    title: Đăng xuất khi đang làm mới hoặc có yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-011
+    title: Kho trạng thái, nguồn khóa và introspection bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-012
+    title: Phục hồi dữ liệu và kiểm tra token cũ không sống lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-013
+    title: Kiểm tra không lộ token qua log, URL, báo lỗi và công cụ quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-014
+    title: Kiểm thử tải endpoint cấp phát, làm mới và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-015
+    title: Kiểm tra quyền thay đổi được phản ánh theo thời gian chính sách yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercise
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercise-001
+    title: Vẽ vòng đời token cho ứng dụng có nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-002
+    title: Thiết kế hợp đồng access token và refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-003
+    title: Xây dựng mô hình dữ liệu phiên cùng họ refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-004
+    title: Mô phỏng xoay vòng có yêu cầu đồng thời và phản hồi bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-005
+    title: Thiết kế thu hồi một phiên, một thiết bị và toàn bộ tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-006
+    title: Xây dựng token khôi phục tài khoản dùng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-007
+    title: So sánh JWT với opaque token theo yêu cầu thu hồi tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-008
+    title: Thiết kế làm mới token cho workload không có người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-009
+    title: Diễn tập token bị đánh cắp và xác minh hiệu quả thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-010
+    title: Lập bộ chỉ số và cảnh báo cho lỗi vòng đời token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-011
+    title: Rà soát chính sách bằng mô hình đe dọa và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

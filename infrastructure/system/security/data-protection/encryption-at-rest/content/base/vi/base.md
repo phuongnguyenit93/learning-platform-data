@@ -1,0 +1,7 @@
+# Security Data Protection Encryption At Rest
+
+**Encryption at Rest** là biện pháp mã hóa dữ liệu khi đang được lưu trong ổ đĩa, cơ sở dữ liệu, object storage hoặc bản sao lưu nhằm hạn chế việc đọc trái phép nếu phương tiện lưu trữ hay dữ liệu thô bị lộ. Lựa chọn giải pháp phải dựa trên threat model và lớp cần bảo vệ: mã hóa toàn đĩa, mã hóa ở dịch vụ lưu trữ và mã hóa từng trường dữ liệu có phạm vi phòng vệ khác nhau. Mã hóa không thay thế kiểm soát truy cập, quản lý dữ liệu tối thiểu hoặc hashing một chiều cho mật khẩu.
+
+Lộ trình gồm **8 mốc**: xác định dữ liệu và rủi ro; chọn lớp mã hóa; dùng AES-GCM có xác thực; quản lý DEK/KEK và envelope encryption qua KMS; kiểm tra database, file và backup; quản lý vòng đời khóa; tích hợp Java và tính năng mã hóa cloud; cuối cùng là kiểm thử và khôi phục. Người học thực hành trên dữ liệu mẫu, quan sát kết quả khi ciphertext bị sửa, so sánh các lựa chọn lưu trữ và diễn tập khôi phục có kiểm soát.
+
+Học phần dành cho Java/backend developer, DevOps và security engineer đã biết dữ liệu nhị phân, cơ sở dữ liệu và các khái niệm bảo mật cơ bản. Sau khi hoàn thành, bạn có thể lựa chọn lớp bảo vệ dữ liệu phù hợp, tránh lỗi khóa và nonce thường gặp, thiết kế quyền truy cập khóa, bảo vệ bản sao lưu và xác minh rằng dữ liệu mã hóa vẫn khôi phục được khi cần thiết.

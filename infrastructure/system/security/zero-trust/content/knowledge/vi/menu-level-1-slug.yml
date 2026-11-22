@@ -1,0 +1,91 @@
+menu:
+- title: 1. Tổng quan Zero Trust
+  slug: zero-trust-overview
+  index: 0
+- title: 2. Bối cảnh và mô hình đe dọa
+  slug: threat-context-modeling
+  index: 1
+- title: 3. Phạm vi và tài nguyên
+  slug: scope-resources
+  index: 2
+- title: 4. Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 3
+- title: 5. Vòng đời truy cập
+  slug: access-lifecycle
+  index: 4
+- title: 6. Danh tính người dùng
+  slug: user-identities
+  index: 5
+- title: 7. Danh tính khối lượng công việc
+  slug: workload-identities
+  index: 6
+- title: 8. Độ tin cậy thiết bị
+  slug: device-trust
+  index: 7
+- title: 9. Chính sách cấp quyền
+  slug: access-policy
+  index: 8
+- title: 10. Ngữ cảnh và rủi ro
+  slug: context-risk
+  index: 9
+- title: 11. Phiên và thông tin xác thực
+  slug: sessions-credentials
+  index: 10
+- title: 12. Truy cập mạng
+  slug: network-access
+  index: 11
+- title: 13. Phân đoạn vi mô
+  slug: microsegmentation
+  index: 12
+- title: 14. Ứng dụng và API
+  slug: applications-apis
+  index: 13
+- title: 15. Bảo vệ dữ liệu
+  slug: data-protection
+  index: 14
+- title: 16. Nền tảng mật mã
+  slug: cryptography-foundations
+  index: 15
+- title: 17. Truy cập đặc quyền
+  slug: privileged-access
+  index: 16
+- title: 18. Đám mây và nền tảng
+  slug: cloud-platforms
+  index: 17
+- title: 19. Mô hình thực thi
+  slug: enforcement-models
+  index: 18
+- title: 20. Môi trường đặc thù
+  slug: specialized-environments
+  index: 19
+- title: 21. Kỹ thuật chính sách
+  slug: policy-engineering
+  index: 20
+- title: 22. Khả dụng và hiệu năng
+  slug: availability-performance
+  index: 21
+- title: 23. Quan sát và phát hiện
+  slug: monitoring-detection
+  index: 22
+- title: 24. Ứng phó và phục hồi
+  slug: incident-response-recovery
+  index: 23
+- title: 25. Quản trị và quyền riêng tư
+  slug: governance-privacy
+  index: 24
+- title: 26. Đo lường và mức trưởng thành
+  slug: maturity-measurement
+  index: 25
+- title: 27. Lộ trình chuyển đổi
+  slug: migration-roadmap
+  index: 26
+- title: 28. Sai lầm và đánh đổi
+  slug: common-tradeoffs
+  index: 27
+- title: 29. Tình huống kiến trúc
+  slug: architecture-scenarios
+  index: 28
+- title: 30. Thực hành và kiểm chứng
+  slug: hands-on-validation
+  index: 29

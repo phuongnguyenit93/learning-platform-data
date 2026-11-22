@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-serverless
+  title: Tổng quan Serverless
+  purpose: Hiểu mô hình vận hành không tự quản lý server và chọn bài toán phù hợp.
+  objectives:
+  - '- Phân biệt FaaS, dịch vụ managed và VM/container truyền thống.'
+  - '- Nhận diện lợi ích, giới hạn và mô hình trả phí theo sử dụng.'
+- id: function-runtime
+  title: Function & Runtime
+  purpose: Xây dựng đơn vị xử lý ngắn gọn chạy theo yêu cầu hoặc sự kiện.
+  objectives:
+  - '- Viết handler Java nhận input và trả output.'
+  - '- Xác định runtime, memory và timeout của function.'
+- id: http-event-triggers
+  title: HTTP & Event Triggers
+  purpose: Kết nối function với yêu cầu HTTP và sự kiện từ dịch vụ cloud.
+  objectives:
+  - '- Cấu hình HTTP endpoint hoặc API Gateway trigger.'
+  - '- Xử lý sự kiện queue, storage hoặc lịch chạy.'
+- id: state-data-access
+  title: State & Data Access
+  purpose: Giữ function dễ mở rộng và tránh lệ thuộc trạng thái cục bộ.
+  objectives:
+  - '- Phân biệt dữ liệu tạm và dữ liệu bền vững.'
+  - '- Truy cập database/object storage và tái sử dụng kết nối hợp lý.'
+- id: build-deploy
+  title: Build & Deploy
+  purpose: Đưa function lên môi trường cloud bằng quy trình có thể lặp lại.
+  objectives:
+  - '- Đóng gói dependency và cấu hình biến môi trường.'
+  - '- Deploy, cập nhật phiên bản và quản lý cấu hình bằng IaC.'
+- id: iam-secrets
+  title: IAM & Secrets
+  purpose: Bảo vệ quyền truy cập vào function và dịch vụ phụ thuộc.
+  objectives:
+  - '- Gán quyền tối thiểu cho execution identity.'
+  - '- Quản lý secret, cấu hình network và xác thực endpoint.'
+- id: reliability-scaling
+  title: Reliability & Scaling
+  purpose: Ứng phó lỗi và lưu lượng biến động mà không làm sai dữ liệu.
+  objectives:
+  - '- Thiết kế retry, idempotency và dead-letter handling.'
+  - '- Theo dõi concurrency, cold start và giới hạn thực thi.'
+- id: monitoring-cost
+  title: Monitoring & Cost
+  purpose: Theo dõi chất lượng vận hành và kiểm soát chi phí serverless.
+  objectives:
+  - '- Sử dụng logs, metrics và distributed tracing.'
+  - '- Ước lượng chi phí theo request, thời gian chạy và tài nguyên.'

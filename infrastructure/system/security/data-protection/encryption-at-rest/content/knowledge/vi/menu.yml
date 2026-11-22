@@ -1,0 +1,329 @@
+menu:
+- level1: Khái niệm mã hóa lưu trữ
+  level2:
+  - Dữ liệu ở trạng thái lưu trữ (data at rest) là gì
+  - Mã hóa bảo vệ bí mật dữ liệu như thế nào
+  - Phân biệt dữ liệu lưu trữ, dữ liệu truyền và dữ liệu đang xử lý
+  - Mã hóa không thay thế kiểm soát truy cập và quản lý khóa
+  - 'Mục tiêu bảo vệ: bí mật, toàn vẹn và khả dụng'
+- level1: Mô hình đe dọa
+  level2:
+  - Mất thiết bị, mất đĩa và truy cập vật lý trái phép
+  - Đọc trộm snapshot, backup, replica hoặc object storage
+  - SQL injection, path traversal và truy cập trực tiếp kho dữ liệu
+  - Tài khoản cloud, service identity hoặc quản trị viên bị lạm dụng
+  - Khóa bị lộ dù ciphertext vẫn còn được bảo vệ
+  - Giới hạn mối đe dọa mà encryption at rest có thể giảm
+- level1: Phạm vi dữ liệu
+  level2:
+  - Dữ liệu nghiệp vụ nhạy cảm và dữ liệu định danh cá nhân
+  - Bí mật, token, credential và dữ liệu xác thực
+  - Dữ liệu tài chính, y tế và dữ liệu cần tuân thủ
+  - Metadata, chỉ mục, tên file và thông tin phụ cũng có thể lộ
+  - Dữ liệu dẫn xuất, bản sao và dữ liệu tạm
+  - Xác định dữ liệu không cần lưu để giảm bề mặt bảo vệ
+- level1: Phân loại và giảm thiểu
+  level2:
+  - Phân loại mức độ nhạy cảm trước khi chọn lớp mã hóa
+  - Xác định trường nào cần mã hóa thay vì mã hóa mọi thứ máy móc
+  - Tokenization, masking và hashing khác mã hóa thế nào
+  - Giảm dữ liệu lưu trữ để giảm chi phí và rủi ro
+  - Gắn nhãn phân loại vào policy và key context
+  - Liên kết yêu cầu lưu giữ với yêu cầu mã hóa
+- level1: Lớp mã hóa
+  level2:
+  - Mã hóa toàn bộ thiết bị (full-disk encryption)
+  - Mã hóa volume, virtual disk và block storage
+  - Mã hóa filesystem, file và folder
+  - Mã hóa database, table, column và field
+  - Mã hóa object storage và message payload lưu trữ
+  - Mã hóa ở tầng ứng dụng so với tầng hạ tầng
+  - Chọn một lớp hay nhiều lớp theo threat model
+- level1: Chọn thuật toán
+  level2:
+  - Thuật toán đối xứng cho dữ liệu khối lượng lớn
+  - AEAD để kết hợp bí mật và xác thực toàn vẹn
+  - AES-GCM và yêu cầu quản lý nonce đúng cách
+  - ChaCha20-Poly1305 trong môi trường phù hợp
+  - Không tự thiết kế thuật toán hoặc chế độ mã hóa
+  - Đánh giá độ dài khóa, provider và vòng đời thuật toán
+  - Không dùng mã hóa thuận nghịch để lưu mật khẩu
+- level1: Mã hóa và toàn vẹn
+  level2:
+  - Ciphertext chỉ bí mật nhưng chưa chắc được xác thực
+  - Authentication tag phát hiện sửa đổi dữ liệu
+  - Associated data (AAD) ràng buộc ciphertext với ngữ cảnh
+  - Phân biệt MAC, hash và chữ ký số trong dữ liệu lưu trữ
+  - Xử lý tag sai mà không làm lộ thông tin nội bộ
+  - Kiểm tra toàn vẹn trước khi phân tích nội dung giải mã
+- level1: Quản lý nonce và IV
+  level2:
+  - Nonce hoặc IV phải phù hợp với chế độ mã hóa
+  - Không tái sử dụng nonce với cùng khóa trong AES-GCM
+  - Cách tạo, lưu và đọc nonce cùng ciphertext
+  - Phân biệt nonce công khai với key material bí mật
+  - Xử lý lỗi trùng nonce trong hệ thống phân tán
+  - Kiểm thử nonce khi retry, replay và chạy nhiều instance
+- level1: Mô hình khóa
+  level2:
+  - Data Encryption Key (DEK) và Key Encryption Key (KEK)
+  - Khóa gốc, khóa dẫn xuất và khóa phiên
+  - Tách khóa theo mục đích, tenant, môi trường và miền dữ liệu
+  - Khóa mã hóa dữ liệu khác khóa ký hoặc xác thực
+  - Domain separation để tránh dùng sai ngữ cảnh
+  - Xác định khóa nào được phép xuất và khóa nào phải giữ kín
+- level1: Envelope encryption
+  level2:
+  - Luồng sinh DEK và mã hóa payload
+  - Wrap DEK bằng KEK trong KMS hoặc HSM
+  - Lưu wrapped DEK cùng metadata nhưng tách KEK
+  - Unwrap DEK có kiểm soát trước khi giải mã
+  - Rewrap DEK khi thay KEK mà không đọc lại plaintext
+  - Ràng buộc tenant, bản ghi và phiên bản bằng AAD
+  - Giới hạn kích thước và hiệu năng của mỗi lần gọi KMS
+- level1: KMS và HSM
+  level2:
+  - Vai trò của KMS trong sinh, lưu và sử dụng KEK
+  - Khi nào cần HSM thay vì dịch vụ quản lý khóa thông thường
+  - Control plane và data plane của dịch vụ khóa
+  - Chính sách import, export và giữ khóa trong biên bảo vệ
+  - Dual control, quorum và thao tác quản trị nhạy cảm
+  - HA, multi-region và phụ thuộc nhà cung cấp
+  - Đánh giá khả năng di chuyển khi đổi KMS
+- level1: Phân phối khóa
+  level2:
+  - Cấp quyền cho ứng dụng dùng khóa mà không phát khóa rõ
+  - Xác thực service identity trước thao tác decrypt
+  - Kênh truyền wrapped DEK và key context
+  - Bootstrap trust cho môi trường mới
+  - Giới hạn thời gian và phạm vi khóa trong bộ nhớ
+  - Không lưu khóa trong repository, image hoặc cấu hình công khai
+- level1: Định dạng ciphertext
+  level2:
+  - Thiết kế envelope chứa phiên bản định dạng
+  - Lưu algorithm, key ID, key version và nonce
+  - Lưu authentication tag và dữ liệu phụ trợ cần thiết
+  - Phân biệt metadata công khai với metadata nhạy cảm
+  - Tương thích ngược giữa các phiên bản ứng dụng
+  - Từ chối ciphertext sai định dạng trước khi gọi KMS
+  - Chống nhầm khóa giữa các tenant và môi trường
+- level1: Mã hóa database
+  level2:
+  - Mã hóa toàn bộ database và giới hạn bảo vệ
+  - Transparent Data Encryption (TDE) hoạt động ra sao
+  - Mã hóa column hoặc field ở tầng ứng dụng
+  - Bảo vệ index, query parameter và dữ liệu tạm
+  - Tác động đến tìm kiếm, sắp xếp và unique constraint
+  - Mã hóa backup, transaction log và replication stream
+  - Kiểm tra quyền đọc trực tiếp storage ngoài database
+- level1: Mã hóa file
+  level2:
+  - Mã hóa file trước khi ghi vào filesystem
+  - Thiết kế header, chunk và authentication tag cho file lớn
+  - Mã hóa folder và giới hạn của file-level encryption
+  - Khóa file theo tenant, bản ghi hoặc phiên bản
+  - Xử lý rename, copy, append và partial update
+  - Xóa file cùng bản tạm và file giải mã trung gian
+  - Khôi phục file khi key version cũ đã nghỉ hưu
+- level1: Object storage
+  level2:
+  - Server-side encryption và client-side encryption
+  - Khóa mặc định, khóa theo object và khóa theo bucket
+  - Bảo vệ object version, metadata và object tag
+  - Snapshot, replication và cross-region copy
+  - Pre-signed URL không đồng nghĩa với dữ liệu đã mã hóa
+  - Kiểm tra policy khi object được copy sang vùng khác
+  - Đọc lại object sau xoay vòng khóa
+- level1: Block và volume storage
+  level2:
+  - Mã hóa volume, disk image và attached storage
+  - Khóa khi tạo volume so với khóa khi snapshot
+  - Mã hóa swap, page file và vùng tạm
+  - Thiết kế cho instance mới và instance đang chạy
+  - Khả năng bảo vệ khi tháo volume sang máy khác
+  - Quản lý key access trong autoscaling và failover
+  - Xác minh volume thực sự dùng khóa mong muốn
+- level1: Thiết bị và endpoint
+  level2:
+  - Full-disk encryption trên laptop và máy chủ
+  - Mã hóa thiết bị di động và removable media
+  - Khởi động an toàn, secure boot và khóa mở thiết bị
+  - Khôi phục khi mất thiết bị hoặc quên khóa
+  - Bảo vệ dữ liệu khi thiết bị ngủ, mất hoặc bị bán lại
+  - Quản lý escrow key phục hồi theo chính sách
+  - Xóa dữ liệu từ xa không thay thế thiết kế mã hóa
+- level1: Backup và snapshot
+  level2:
+  - Backup phải được mã hóa độc lập với dữ liệu nguồn
+  - Snapshot có thể chứa plaintext còn sót lại
+  - Tách quyền đọc backup khỏi quyền vận hành ứng dụng
+  - Retention, archive và restore trong vòng đời khóa
+  - Kiểm tra restore trong môi trường cô lập
+  - Xác định key version cần giữ cho backup cũ
+  - Không coi backup thành công là bằng chứng khôi phục được
+- level1: Replication và khôi phục
+  level2:
+  - Mã hóa dữ liệu khi replica sang vùng hoặc tài khoản khác
+  - Đồng bộ metadata khóa cùng dữ liệu một cách an toàn
+  - Failover khi KMS hoặc vùng chính không khả dụng
+  - RPO, RTO và tác động của việc mất khóa
+  - Kiểm tra quyền decrypt ở vùng dự phòng
+  - Tránh copy key material tùy tiện giữa môi trường
+  - Diễn tập khôi phục với dữ liệu thật đã được khử nhạy cảm
+- level1: Cache và dữ liệu tạm
+  level2:
+  - Cache ứng dụng có thể giữ plaintext ngoài database
+  - Mã hóa session, queue, local cache và temporary file
+  - Giới hạn thời gian tồn tại plaintext trong bộ nhớ
+  - Không ghi plaintext vào crash dump hoặc heap dump
+  - Dọn file tạm sau lỗi, retry và timeout
+  - Bảo vệ page cache, swap và thư mục staging
+  - Kiểm tra thư viện có tạo bản sao dữ liệu ngoài ý muốn
+- level1: Log và quan sát
+  level2:
+  - Không ghi plaintext nhạy cảm vào application log
+  - Không ghi key, DEK, nonce bí mật hoặc token giải mã
+  - Bảo vệ log, audit event và trace khi chứa metadata nhạy cảm
+  - Mask dữ liệu trước khi ghi metric hoặc dead-letter queue
+  - Kiểm tra exception message và debug dump
+  - Lưu mã tham chiếu thay vì payload cần bảo vệ
+  - Kiểm soát quyền truy cập hệ thống quan sát
+- level1: Phân tách tenant
+  level2:
+  - Khóa riêng theo tenant và lợi ích của cô lập dữ liệu
+  - Context tenant trong AAD và policy của KMS
+  - Ngăn ciphertext của tenant này giải mã bằng khóa tenant khác
+  - Xử lý tenant rời hệ thống và yêu cầu hủy dữ liệu
+  - Cân bằng số lượng khóa với khả năng vận hành
+  - Kiểm tra cross-tenant access trong mọi đường đọc
+  - Thiết kế phục hồi cho một tenant mà không mở rộng quyền
+- level1: Kiểm soát truy cập
+  level2:
+  - Least privilege cho thao tác encrypt, decrypt và rewrap
+  - Tách quyền quản trị khóa khỏi quyền đọc dữ liệu
+  - Tách quyền vận hành ứng dụng khỏi quyền restore backup
+  - Điều kiện truy cập theo resource, tenant, vùng và workload
+  - Quyền break-glass có phê duyệt và thời hạn
+  - Recertification định kỳ cho người và service identity
+  - Đóng quyền khi nhân sự hoặc dịch vụ rời hệ thống
+- level1: Hiệu năng và khả dụng
+  level2:
+  - Chi phí CPU, latency và throughput của mã hóa
+  - Chọn kích thước chunk và batch cho dữ liệu lớn
+  - Cache metadata và wrapped DEK an toàn
+  - Giới hạn quota, retry và circuit breaker khi gọi KMS
+  - Fail closed khi không thể xác minh hoặc giải mã
+  - Không hy sinh kiểm tra toàn vẹn để lấy throughput
+  - Đo hiệu năng theo kích thước payload và tải thực tế
+- level1: Xoay vòng khóa
+  level2:
+  - Xoay KEK bằng rewrap và xoay DEK bằng re-encryption
+  - Lịch xoay vòng theo thời gian, lượng dùng hoặc sự kiện
+  - Ghi key version vào từng ciphertext
+  - Dual-read, new-write trong giai đoạn chuyển tiếp
+  - Giữ khóa cũ cho backup và dữ liệu còn hợp lệ
+  - Kiểm tra độ phủ trước khi retire phiên bản cũ
+  - Job xoay vòng idempotent và chịu được chạy lặp
+- level1: Di chuyển dữ liệu
+  level2:
+  - Chuyển từ mã hóa tầng hạ tầng sang tầng ứng dụng
+  - Chuyển giữa algorithm, mode, provider hoặc KMS
+  - Re-encryption trực tiếp và re-encryption theo worker
+  - Xác minh checksum, tag và số lượng bản ghi sau di chuyển
+  - Xử lý dữ liệu chuyển dở, retry và rollback
+  - Đồng bộ ứng dụng trong thời gian dual-format
+  - Dọn ciphertext và khóa cũ sau nghiệm thu
+- level1: Xóa và hủy dữ liệu
+  level2:
+  - Xóa bản ghi không đồng nghĩa đã xóa mọi bản sao
+  - Crypto-shredding bằng hủy khóa bảo vệ dữ liệu
+  - Điều kiện để cryptographic erasure có ý nghĩa
+  - Xử lý backup, replica, cache và snapshot còn tồn tại
+  - Legal hold và yêu cầu lưu giữ trước khi hủy
+  - Bằng chứng xóa, thời điểm và phạm vi đã xử lý
+  - Phân biệt hủy dữ liệu với hủy khóa dùng chung
+- level1: Sự cố và lộ khóa
+  level2:
+  - Dấu hiệu ciphertext hoặc key access bị khai thác
+  - 'Containment: đình chỉ khóa và chặn thao tác mới'
+  - Đánh giá dữ liệu đã giải mã hoặc bị sao chép
+  - Tạo khóa thay thế và chuyển dữ liệu bị ảnh hưởng
+  - Bảo toàn log, audit và bằng chứng điều tra
+  - Thông báo theo yêu cầu pháp lý và chính sách nội bộ
+  - Post-incident review và cập nhật thiết kế
+- level1: Cloud và đa môi trường
+  level2:
+  - Khác biệt giữa local, test, staging và production
+  - Tách tài khoản, project, subscription và key ring
+  - Workload identity thay cho credential tĩnh
+  - Cross-account hoặc cross-project access có kiểm soát
+  - Quản lý region, sovereignty và residency của dữ liệu
+  - Không dùng khóa production cho dữ liệu phát triển
+  - Kiểm tra policy sau mỗi thay đổi hạ tầng
+- level1: Java thực hành
+  level2:
+  - JCA/JCE và lựa chọn provider được duy trì
+  - SecureRandom để tạo khóa và nonce
+  - SecretKey, Cipher và AEAD trong AES-GCM
+  - Định dạng lưu nonce, tag và ciphertext
+  - KeyStore, PKCS#12 và bảo vệ khóa cục bộ
+  - Giảm bản sao plaintext trong String, byte array và heap
+  - Tích hợp client KMS bằng abstraction có thể kiểm thử
+  - Không tự xây dựng primitive hoặc protocol mã hóa
+- level1: Kiểm thử bảo mật
+  level2:
+  - Unit test cho format, nonce và kiểm tra authentication tag
+  - Negative test khi ciphertext bị sửa hoặc sai key version
+  - Integration test với KMS, database và object storage
+  - Test restore backup và đọc dữ liệu sau failover
+  - Test xoay vòng trong khi nhiều instance đang đọc
+  - Test quyền sai, tenant sai và môi trường sai
+  - Kiểm tra không lộ plaintext trong log, metric và exception
+  - Property test cho serialize, deserialize và round-trip
+- level1: Giám sát và kiểm toán
+  level2:
+  - Ghi encrypt, decrypt, rewrap, rotate và destroy
+  - Ghi actor, key ID, resource, tenant, thời điểm và lý do
+  - Phát hiện decrypt tăng đột biến hoặc khác địa lý
+  - Cảnh báo khóa không có owner hoặc sắp hết hạn
+  - Đối chiếu inventory dữ liệu với inventory khóa
+  - Nhật ký bất biến và thời hạn lưu giữ phù hợp
+  - Bằng chứng kiểm toán không chứa dữ liệu nhạy cảm
+- level1: Quản trị và tuân thủ
+  level2:
+  - Chính sách mã hóa theo phân loại dữ liệu
+  - Tiêu chí chọn thuật toán và crypto module
+  - Quy trình phê duyệt ngoại lệ và thời hạn ngoại lệ
+  - Đánh giá nhà cung cấp KMS, HSM và cloud
+  - Mapping kiểm soát với bằng chứng kỹ thuật
+  - Rà soát quyền và key inventory định kỳ
+  - Kế hoạch chuyển đổi khi thuật toán không còn phù hợp
+- level1: Anti-pattern
+  level2:
+  - Hardcode key trong source, image hoặc file cấu hình
+  - Lưu key cạnh ciphertext trong cùng một trust boundary
+  - Dùng ECB, nonce lặp hoặc mode không có xác thực
+  - Mã hóa mật khẩu thay vì dùng password hashing
+  - Mã hóa nhưng log plaintext trước khi encrypt
+  - Chỉ bật TDE rồi bỏ qua backup, replica và export
+  - Xoay alias nhưng không thay key material
+  - Xóa khóa trước khi xác minh khả năng đọc dữ liệu
+  - Tự viết thuật toán, padding hoặc protocol mới
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Luồng từ request đến storage và KMS
+  - Ranh giới tin cậy giữa ứng dụng, dữ liệu và khóa
+  - Envelope encryption cho database và object storage
+  - Cô lập tenant và môi trường trên sơ đồ
+  - Luồng backup, restore, rotation và destruction
+  - Điểm kiểm tra audit, alert và policy enforcement
+  - Runbook vận hành thường ngày và khẩn cấp
+- level1: Checklist triển khai
+  level2:
+  - Checklist phân loại dữ liệu và threat model
+  - Checklist thuật toán, mode, nonce và định dạng
+  - Checklist DEK, KEK, KMS, quyền và metadata
+  - Checklist database, file, object, backup và replica
+  - Checklist rotation, migration, restore và rollback
+  - Checklist log, monitoring, incident và evidence
+  - Checklist xóa dữ liệu và hủy khóa đúng phạm vi

@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan JVM
+  slug: jvm-overview
+  index: 0
+- title: Kiến trúc lõi
+  slug: core-architecture
+  index: 1
+- title: Khởi động và cấu hình
+  slug: startup-configuration
+  index: 2
+- title: Vòng đời tiến trình
+  slug: process-lifecycle
+  index: 3
+- title: Class file và bytecode
+  slug: class-file-and-bytecode
+  index: 4
+- title: Khung thực thi
+  slug: execution-engine
+  index: 5
+- title: Nạp và liên kết lớp
+  slug: classloading-linking
+  index: 6
+- title: Khởi tạo lớp
+  slug: class-initialization
+  index: 7
+- title: Bộ nạp lớp
+  slug: classloaders
+  index: 8
+- title: Module và truy cập
+  slug: modules-access
+  index: 9
+- title: Vùng nhớ runtime
+  slug: runtime-memory
+  index: 10
+- title: Đối tượng và tham chiếu
+  slug: objects-references
+  index: 11
+- title: Cấp phát bộ nhớ
+  slug: memory-allocation
+  index: 12
+- title: Thông dịch và JIT
+  slug: interpretation-jit
+  index: 13
+- title: Tối ưu và hoàn nguyên
+  slug: optimization-deoptimization
+  index: 14
+- title: Luồng Java
+  slug: java-threads
+  index: 15
+- title: JMM và đồng bộ
+  slug: jmm-synchronization
+  index: 16
+- title: Luồng ảo
+  slug: virtual-threads
+  index: 17
+- title: Safepoint và handshake
+  slug: safepoint-and-handshake
+  index: 18
+- title: Nền tảng GC
+  slug: gc-fundamentals
+  index: 19
+- title: Các bộ thu gom
+  slug: garbage-collectors
+  index: 20
+- title: Heap và cấu hình GC
+  slug: heap-gc-configuration
+  index: 21
+- title: Bộ nhớ ngoài heap
+  slug: off-heap-memory
+  index: 22
+- title: JNI và mã native
+  slug: jni-native-code
+  index: 23
+- title: Vòng đời tài nguyên
+  slug: resource-lifecycle
+  index: 24
+- title: API runtime
+  slug: runtime-api
+  index: 25
+- title: Công cụ chẩn đoán
+  slug: diagnostic-tools
+  index: 26
+- title: JFR và hồ sơ thực thi
+  slug: jfr-profiling
+  index: 27
+- title: Phân tích rò rỉ nhớ
+  slug: memory-leak-analysis
+  index: 28
+- title: Phân tích luồng và CPU
+  slug: threads-cpu-profiling
+  index: 29
+- title: Lỗi và sự cố JVM
+  slug: jvm-errors-incidents
+  index: 30
+- title: JVM trong container
+  slug: jvm-containers
+  index: 31
+- title: Khởi động và phân phối
+  slug: startup-distribution
+  index: 32
+- title: Đo hiệu năng
+  slug: performance-measurement
+  index: 33
+- title: Tương thích và bảo mật
+  slug: compatibility-security
+  index: 34
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 35

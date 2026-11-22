@@ -1,0 +1,76 @@
+menu:
+- title: 1. Tổng quan RBAC
+  slug: rbac-overview
+  index: 0
+- title: 2. Thuật ngữ và mô hình
+  slug: terminology-and-models
+  index: 1
+- title: 3. Mô hình RBAC cốt lõi
+  slug: core-rbac-model
+  index: 2
+- title: 4. Các biến thể RBAC
+  slug: rbac-variants
+  index: 3
+- title: 5. Danh mục quyền
+  slug: permission-catalog
+  index: 4
+- title: 6. Thiết kế vai trò
+  slug: role-design
+  index: 5
+- title: 7. Phân cấp vai trò
+  slug: role-hierarchy
+  index: 6
+- title: 8. Phiên và kích hoạt vai trò
+  slug: sessions-and-role-activation
+  index: 7
+- title: 9. Phân tách nhiệm vụ
+  slug: separation-of-duties
+  index: 8
+- title: 10. Ràng buộc và phạm vi
+  slug: constraints-and-scopes
+  index: 9
+- title: 11. Quản trị RBAC
+  slug: rbac-administration
+  index: 10
+- title: 12. Vòng đời vai trò và quyền
+  slug: role-and-permission-lifecycle
+  index: 11
+- title: 13. Dữ liệu và lưu trữ
+  slug: data-model-and-storage
+  index: 12
+- title: 14. Quy trình quyết định quyền
+  slug: authorization-decision-process
+  index: 13
+- title: 15. Thực thi trong hệ thống
+  slug: system-enforcement
+  index: 14
+- title: 16. Danh tính ngoài và token
+  slug: external-identities-and-tokens
+  index: 15
+- title: 17. RBAC nhiều khách hàng
+  slug: multitenant-rbac
+  index: 16
+- title: 18. Danh tính máy và nền tảng
+  slug: machine-identities-and-platforms
+  index: 17
+- title: 19. Hiệu năng và nhất quán
+  slug: performance-and-consistency
+  index: 18
+- title: 20. Khai phá và tinh gọn vai trò
+  slug: role-mining-and-consolidation
+  index: 19
+- title: 21. Kiểm toán và giải thích
+  slug: auditing-and-explainability
+  index: 20
+- title: 22. RBAC và mô hình kết hợp
+  slug: rbac-and-hybrid-models
+  index: 21
+- title: 23. Triển khai và chuyển đổi
+  slug: deployment-and-migration
+  index: 22
+- title: 24. Sai lầm và rủi ro
+  slug: common-mistakes-and-risks
+  index: 23
+- title: 25. Kiểm thử và thực hành
+  slug: testing-and-hands-on-practice
+  index: 24

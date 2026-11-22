@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Security này là security chung , không chỉ bao gồm java , vì vậy các knowledge liên quan đến chỉ riêng java hay spring , đặc biệt là spring security hãy bỏ qua"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_AUTHORIZATION_POLICY_BASED_ACCESS_CONTROL"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Nghiên cứu kiểm soát truy cập dựa trên chính sách (PBAC): cấu trúc chính sách, ngữ nghĩa quyết định, dữ liệu ngữ cảnh và thực thi quyền trên tài nguyên. Thực hành thiết kế, kiểm thử, kiểm toán và triển khai bộ máy chính sách như OPA/Rego, Cedar hoặc XACML, kết hợp nguyên tắc quyền tối thiểu."
+  }
+}

@@ -1,0 +1,133 @@
+menu:
+- title: Khái niệm API key
+  slug: api-key-concepts
+  index: 0
+- title: Authentication và authorization
+  slug: authentication-authorization
+  index: 1
+- title: Loại API key
+  slug: api-key-types
+  index: 2
+- title: Chủ thể và consumer
+  slug: principals-consumers
+  index: 3
+- title: Vòng đời key
+  slug: key-lifecycle
+  index: 4
+- title: Cấp phát
+  slug: provisioning
+  index: 5
+- title: Sinh key
+  slug: key-generation
+  index: 6
+- title: Định dạng và nhận diện
+  slug: key-format-identification
+  index: 7
+- title: Truyền key
+  slug: key-transmission
+  index: 8
+- title: Header và scheme
+  slug: headers-schemes
+  index: 9
+- title: Lưu trữ client
+  slug: client-storage
+  index: 10
+- title: Lưu trữ server
+  slug: server-storage
+  index: 11
+- title: Scope
+  slug: scope
+  index: 12
+- title: Quota và rate limit
+  slug: quotas-rate-limits
+  index: 13
+- title: Enforce endpoint
+  slug: endpoint-enforcement
+  index: 14
+- title: Request validation
+  slug: request-validation
+  index: 15
+- title: Replay và request integrity
+  slug: replay-request-integrity
+  index: 16
+- title: HMAC signing
+  slug: hmac-signing
+  index: 17
+- title: TLS
+  slug: tls
+  index: 18
+- title: Rotation
+  slug: rotation
+  index: 19
+- title: Revocation
+  slug: revocation
+  index: 20
+- title: Expiration
+  slug: expiration
+  index: 21
+- title: Multi-key migration
+  slug: multi-key-migration
+  index: 22
+- title: Client SDK
+  slug: client-sdk
+  index: 23
+- title: Server validation
+  slug: server-validation
+  index: 24
+- title: Gateway
+  slug: gateway
+  index: 25
+- title: Microservices
+  slug: microservices
+  index: 26
+- title: Multi-tenant
+  slug: multi-tenant
+  index: 27
+- title: Third-party
+  slug: third-party
+  index: 28
+- title: Browser và mobile
+  slug: browsers-mobile
+  index: 29
+- title: CI/CD
+  slug: cicd
+  index: 30
+- title: Leakage prevention
+  slug: leakage-prevention
+  index: 31
+- title: Logging
+  slug: logging
+  index: 32
+- title: Monitoring
+  slug: monitoring
+  index: 33
+- title: Abuse prevention
+  slug: abuse-prevention
+  index: 34
+- title: Incident response
+  slug: incident-response
+  index: 35
+- title: Error handling
+  slug: error-handling
+  index: 36
+- title: Data protection
+  slug: data-protection
+  index: 37
+- title: Testing
+  slug: testing
+  index: 38
+- title: Governance
+  slug: governance
+  index: 39
+- title: Metrics
+  slug: metrics
+  index: 40
+- title: Architecture patterns
+  slug: architecture-patterns
+  index: 41
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 42
+- title: Checklist production
+  slug: production-checklist
+  index: 43

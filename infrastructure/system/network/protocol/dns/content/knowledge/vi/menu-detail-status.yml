@@ -1,0 +1,2626 @@
+menu:
+- slug: dns-overview
+  title: Tổng quan DNS
+  childs:
+  - slug: dns-overview-001
+    title: DNS là gì và vì sao mạng cần hệ thống phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-overview-002
+    title: Tên dễ nhớ, địa chỉ IP và sự tách biệt giữa tên với vị trí dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-overview-003
+    title: DNS trong hành trình truy cập một website hoặc gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-overview-004
+    title: DNS liên hệ thế nào với IP, TCP, UDP, HTTP và TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-overview-005
+    title: 'Các khái niệm cốt lõi: tên miền, zone, bản ghi và máy chủ DNS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-overview-006
+    title: Phân giải tên, công bố dữ liệu và khám phá dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-overview-007
+    title: Phạm vi của DNS và những vấn đề DNS không tự giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domains
+  title: Tên miền
+  childs:
+  - slug: domains-001
+    title: 'Cấu trúc phân cấp: tên gốc, tên miền cấp cao và các miền con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-002
+    title: Nhãn tên miền, dấu chấm và giới hạn độ dài tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-003
+    title: Tên đầy đủ FQDN, tên tương đối và dấu chấm cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-004
+    title: Phân biệt tên miền, tên máy, URL và địa chỉ thư điện tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-005
+    title: Tên miền quốc tế IDN, Unicode và Punycode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-006
+    title: Chữ hoa, chữ thường và cách biểu diễn ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-007
+    title: Tên đặc biệt, tên dành cho tài liệu và các ranh giới sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-008
+    title: Đăng ký tên miền, vòng đời sở hữu và thay đổi nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-architecture
+  title: Kiến trúc DNS
+  childs:
+  - slug: dns-architecture-001
+    title: Mô hình dữ liệu phân tán và quyền quản lý theo từng miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-architecture-002
+    title: Vai trò của bộ phân giải cục bộ, bộ phân giải đệ quy và máy chủ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-architecture-003
+    title: Máy chủ gốc, máy chủ tên miền cấp cao và chuỗi ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-architecture-004
+    title: 'Truy vấn đệ quy và truy vấn lặp: trách nhiệm của từng bên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-architecture-005
+    title: Nhà đăng ký, đơn vị quản lý tên miền cấp cao và nhà cung cấp DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-architecture-006
+    title: DNS công cộng, DNS riêng và các góc nhìn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-architecture-007
+    title: Địa chỉ anycast và cách phục vụ cùng một dịch vụ DNS ở nhiều nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resolution-flow
+  title: Luồng phân giải
+  childs:
+  - slug: resolution-flow-001
+    title: Luồng phân giải từ ứng dụng qua hệ điều hành đến máy chủ đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-002
+    title: Phân giải khi bộ nhớ đệm trống và khi đã có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-003
+    title: Lần theo chuỗi ủy quyền từ gốc đến máy chủ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-004
+    title: Phản hồi giới thiệu máy chủ tiếp theo và vai trò của bản ghi glue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-005
+    title: Theo chuỗi bí danh CNAME và phát hiện vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-006
+    title: Câu trả lời có thẩm quyền và câu trả lời từ bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-007
+    title: Tên không tồn tại, loại bản ghi không tồn tại và lỗi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resolution-flow-008
+    title: Phân giải đồng thời nhiều loại bản ghi và tác động đến thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-records
+  title: Bản ghi DNS
+  childs:
+  - slug: dns-records-001
+    title: 'Cấu trúc bản ghi: tên sở hữu, loại, lớp, TTL và dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-002
+    title: 'RRset: nhóm bản ghi cùng tên, loại và lớp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-003
+    title: 'Bản ghi A và AAAA: ánh xạ tên sang IPv4 và IPv6'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-004
+    title: 'Bản ghi CNAME: bí danh, chuỗi chuyển tiếp và giới hạn tại đỉnh zone'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-005
+    title: 'Bản ghi DNAME: chuyển hướng một nhánh không gian tên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-006
+    title: 'Bản ghi NS và SOA: máy chủ quản lý và thông tin zone'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-007
+    title: 'Bản ghi MX: máy chủ thư và mức ưu tiên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-008
+    title: 'Bản ghi TXT: dữ liệu văn bản, xác minh quyền sở hữu và giới hạn sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-009
+    title: 'Bản ghi SRV: dịch vụ, cổng, mức ưu tiên và trọng số'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-010
+    title: 'Bản ghi PTR: tên trong không gian phân giải ngược'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-011
+    title: 'Bản ghi CAA: chính sách cho phép cấp chứng thư'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-012
+    title: 'Bản ghi SVCB và HTTPS: mô tả điểm kết nối và tham số dịch vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-013
+    title: Bản ghi TLSA và mối liên hệ với DANE, DNSSEC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-records-014
+    title: 'Bản ghi wildcard: tổng hợp câu trả lời và các giới hạn khớp tên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zones-delegation
+  title: Zone và ủy quyền
+  childs:
+  - slug: zones-delegation-001
+    title: Phân biệt tên miền, zone, đỉnh zone và ranh giới ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-002
+    title: 'Tệp zone: chỉ thị $ORIGIN, $TTL và tên tương đối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-003
+    title: 'Bản ghi SOA: số thứ tự phiên bản và các mốc thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-004
+    title: 'Số thứ tự SOA: quy tắc tăng phiên bản và xử lý quay vòng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-005
+    title: Ủy quyền miền con bằng NS tại zone cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-006
+    title: 'Bản ghi NS tại cha và con: tính nhất quán của cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-007
+    title: Glue trong miền, ngoài miền và vòng phụ thuộc khi tìm máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-008
+    title: Máy chủ primary, secondary và mô hình hidden primary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-009
+    title: Ủy quyền sai, lame delegation và máy chủ được khai báo nhưng không phục vụ zone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zones-delegation-010
+    title: Di chuyển zone giữa nhà cung cấp mà vẫn duy trì chuỗi ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-packets
+  title: Gói tin DNS
+  childs:
+  - slug: dns-packets-001
+    title: 'Cấu trúc thông điệp: phần đầu, câu hỏi, câu trả lời, thẩm quyền và bổ sung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-002
+    title: Mã giao dịch, OPCODE và ghép cặp truy vấn với phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-003
+    title: Các cờ QR, AA, TC, RD, RA, AD và CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-004
+    title: Tên truy vấn, loại truy vấn và lớp truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-005
+    title: Các mã phản hồi NOERROR, NXDOMAIN, SERVFAIL, REFUSED và FORMERR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-006
+    title: Mã hóa tên miền trên đường truyền và cơ chế nén tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-007
+    title: Phân biệt dữ liệu trong phần Answer, Authority và Additional
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-008
+    title: EDNS(0), bản ghi OPT và quảng bá kích thước gói UDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-009
+    title: 'Các tùy chọn mở rộng: DNS Cookies, NSID và ECS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-010
+    title: Thông tin lỗi mở rộng EDE và cách diễn giải khi chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-packets-011
+    title: Gói tin sai định dạng, con trỏ nén lỗi và kiểm tra đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: udp-tcp
+  title: UDP và TCP
+  childs:
+  - slug: udp-tcp-001
+    title: Vì sao DNS sử dụng cả UDP và TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-002
+    title: Cổng dịch vụ và hướng trao đổi giữa máy khách với máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-003
+    title: Giới hạn kích thước phản hồi, cờ TC và chuyển sang TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-004
+    title: EDNS(0), MTU và rủi ro phân mảnh IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-005
+    title: Đóng khung thông điệp DNS khi truyền qua TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-006
+    title: Tái sử dụng kết nối TCP và nhiều truy vấn trên một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-007
+    title: Mất gói, thử lại, thời gian chờ và lựa chọn máy chủ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-008
+    title: Tường lửa, NAT và lỗi chỉ cho phép một trong hai giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: udp-tcp-009
+    title: Tác động của DNSSEC và câu trả lời lớn đến lựa chọn đường truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Bộ nhớ đệm
+  childs:
+  - slug: caching-001
+    title: Bộ nhớ đệm tại ứng dụng, trình duyệt, hệ điều hành và máy chủ đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: TTL của bản ghi và cách thời gian còn lại được giảm dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Lưu kết quả âm tính cho NXDOMAIN và NODATA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Ảnh hưởng của thay đổi TTL trước và sau một đợt chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Bộ nhớ đệm của CNAME, NS, glue và chuỗi ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Cơ chế nạp trước dữ liệu và phục vụ dữ liệu hết hạn khi được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Gộp truy vấn đồng thời để hạn chế tải lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Vì sao thay đổi DNS xuất hiện ở các nơi vào thời điểm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-009
+    title: Xóa bộ nhớ đệm đúng lớp và giới hạn của việc kiểm tra lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-010
+    title: Đánh đổi giữa tốc độ cập nhật, độ trễ và tải truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reverse-dns
+  title: DNS ngược
+  childs:
+  - slug: reverse-dns-001
+    title: 'Phân giải xuôi và phân giải ngược: mục đích và sự độc lập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-002
+    title: Không gian in-addr.arpa cho IPv4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-003
+    title: Không gian ip6.arpa và thứ tự đảo nhãn của IPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-004
+    title: Tạo bản ghi PTR và quản lý zone ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-005
+    title: Ủy quyền phân giải ngược cho dải địa chỉ nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-006
+    title: 'Ai kiểm soát PTR: chủ dải IP, nhà mạng và nhà cung cấp cloud'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-007
+    title: Đối chiếu phân giải xuôi với phân giải ngược và giới hạn xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reverse-dns-008
+    title: Ứng dụng của DNS ngược trong nhật ký, thư điện tử và chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recursive-resolvers
+  title: Bộ phân giải đệ quy
+  childs:
+  - slug: recursive-resolvers-001
+    title: Chọn máy chủ đệ quy và thiết lập danh sách máy chủ dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-002
+    title: Root hints và quá trình khởi động phân giải từ gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-003
+    title: Đệ quy đầy đủ, chuyển tiếp truy vấn và chuyển tiếp có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-004
+    title: Chính sách miền nội bộ và ranh giới chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-005
+    title: Kiểm tra phạm vi thẩm quyền của dữ liệu bổ sung để bảo vệ bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-006
+    title: Giới hạn truy vấn, độ sâu chuỗi và tài nguyên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-007
+    title: Kiểm tra DNSSEC tại máy chủ đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-008
+    title: QNAME minimization và giảm lộ tên truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-009
+    title: Triển khai bộ phân giải bằng Unbound và kiểm tra cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recursive-resolvers-010
+    title: Tránh vòng lặp chuyển tiếp và máy chủ đệ quy mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authoritative-servers
+  title: Máy chủ có thẩm quyền
+  childs:
+  - slug: authoritative-servers-001
+    title: Tách vai trò có thẩm quyền khỏi dịch vụ phân giải đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-002
+    title: Nạp zone, kiểm tra cú pháp và xác nhận dữ liệu trước khi phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-003
+    title: Triển khai zone bằng BIND và kiểm tra câu trả lời có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-004
+    title: Thiết lập primary và secondary ở các miền lỗi khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-005
+    title: Ẩn máy chủ primary và công bố các máy chủ phục vụ công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-006
+    title: Kiểm soát địa chỉ lắng nghe, quyền truy cập và khả năng đệ quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-007
+    title: Cập nhật zone, nạp lại cấu hình và hạn chế gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-008
+    title: Kiểm tra dữ liệu nhất quán trên tất cả máy chủ NS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authoritative-servers-009
+    title: Lựa chọn DNS tự quản hoặc dịch vụ DNS được quản lý theo yêu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: zone-transfers
+  title: Đồng bộ zone
+  childs:
+  - slug: zone-transfers-001
+    title: Truyền toàn bộ zone bằng AXFR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-002
+    title: Truyền phần thay đổi bằng IXFR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-003
+    title: Thông báo thay đổi bằng NOTIFY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-004
+    title: SOA refresh, retry, expire và trạng thái của secondary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-005
+    title: Xác thực trao đổi bằng TSIG và quản lý khóa chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-006
+    title: Giới hạn máy được phép truyền zone và gửi NOTIFY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-007
+    title: Chẩn đoán SOA không tăng, đồng bộ thất bại và zone hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: zone-transfers-008
+    title: Sao lưu dữ liệu zone và khôi phục máy chủ sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-dns
+  title: DNS động
+  childs:
+  - slug: dynamic-dns-001
+    title: Cập nhật động DNS UPDATE và khác biệt với sửa tệp zone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-dns-002
+    title: Quyền cập nhật theo tên, loại bản ghi và nguồn gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-dns-003
+    title: TSIG cho cập nhật động và bảo vệ thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-dns-004
+    title: Kết hợp DHCP với đăng ký tên và địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-dns-005
+    title: Xung đột giữa cập nhật tự động và thao tác thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-dns-006
+    title: Quản lý bản ghi hết hiệu lực và dọn dữ liệu theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-dns-007
+    title: Nhật ký cập nhật, khôi phục dữ liệu và kiểm tra thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dnssec-foundations
+  title: Nền tảng DNSSEC
+  childs:
+  - slug: dnssec-foundations-001
+    title: DNSSEC bảo vệ tính xác thực và toàn vẹn của dữ liệu DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-002
+    title: Giới hạn của DNSSEC đối với mã hóa, quyền riêng tư và độ sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-003
+    title: Bản ghi DNSKEY, RRSIG và xác minh chữ ký của RRset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-004
+    title: Bản ghi DS và chuỗi tin cậy từ zone cha đến zone con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-005
+    title: Điểm neo tin cậy và sự khởi đầu của quá trình xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-006
+    title: Chứng minh không tồn tại bằng NSEC và NSEC3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-007
+    title: Các trạng thái secure, insecure, bogus và indeterminate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-008
+    title: Cờ AD, CD, tùy chọn DO và vai trò của từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-foundations-009
+    title: Mối liên hệ giữa thời gian hệ thống, hiệu lực chữ ký và TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dnssec-operations
+  title: Vận hành DNSSEC
+  childs:
+  - slug: dnssec-operations-001
+    title: Vai trò của khóa ký zone và khóa ký tập khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-002
+    title: Ký zone và công bố dữ liệu DNSSEC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-003
+    title: Cập nhật DS tại zone cha và kiểm tra chuỗi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-004
+    title: Luân chuyển khóa và chồng lấp dữ liệu trong thời gian chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-005
+    title: Gia hạn chữ ký và giám sát thời điểm hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-006
+    title: Đổi nhà cung cấp DNS khi zone đã bật DNSSEC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-007
+    title: Xử lý DS sai, khóa thiếu và chữ ký hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-008
+    title: Phân tích SERVFAIL liên quan đến DNSSEC bằng chế độ kiểm tra phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-009
+    title: Khôi phục chuỗi tin cậy khi thay đổi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dnssec-operations-010
+    title: Tự động hóa vòng đời khóa và giới hạn quyền truy cập khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encrypted-dns
+  title: DNS mã hóa
+  childs:
+  - slug: encrypted-dns-001
+    title: Đường đi của truy vấn và các vị trí có thể quan sát dữ liệu DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-002
+    title: 'DNS over TLS: kênh TLS dành cho phân giải DNS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-003
+    title: 'DNS over HTTPS: phân giải DNS qua HTTPS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-004
+    title: 'DNS over QUIC: phân giải DNS trên nền QUIC'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-005
+    title: So sánh DoT, DoH và DoQ theo kết nối, độ trễ và quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-006
+    title: Khởi tạo kết nối đến bộ phân giải mã hóa khi vẫn cần phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-007
+    title: Xác minh danh tính máy chủ và cấu hình chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-008
+    title: Tương tác giữa DNS mã hóa, DNSSEC và độ tin cậy của bộ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-009
+    title: Chính sách trình duyệt, hệ điều hành và nguy cơ bỏ qua DNS nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-dns-010
+    title: 'Giới hạn quyền riêng tư: bộ phân giải, nhật ký và dữ liệu phía có thẩm quyền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-dns
+  title: DNS trên máy khách
+  childs:
+  - slug: client-dns-001
+    title: Thứ tự tra cứu tên qua tệp hosts và các nguồn phân giải của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-002
+    title: Cấu hình DNS trên Linux, resolv.conf và systemd-resolved
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-003
+    title: Cấu hình DNS trên Windows và kiểm tra máy chủ đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-004
+    title: Danh sách miền tìm kiếm, tên ngắn và số dấu chấm ndots
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-005
+    title: DNS do DHCP cung cấp và ảnh hưởng của nhiều giao diện mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-006
+    title: VPN, nhiều đường mạng và phân giải theo từng miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-007
+    title: Phân biệt DNS đơn hướng với mDNS và các cơ chế tìm tên cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-008
+    title: 'DNS trong trình duyệt: bộ nhớ đệm, bộ phân giải riêng và DNS bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-dns-009
+    title: Tác động của cấu hình máy khách đến hiện tượng cùng tên nhưng khác kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internal-dns
+  title: DNS nội bộ
+  childs:
+  - slug: internal-dns-001
+    title: Thiết kế không gian tên nội bộ và tránh xung đột với tên công cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-002
+    title: 'Split-horizon DNS: cùng tên nhưng dữ liệu khác theo góc nhìn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-003
+    title: Zone riêng, vùng truy cập và ranh giới mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-004
+    title: Chuyển tiếp có điều kiện giữa văn phòng, trung tâm dữ liệu và cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-005
+    title: Phân giải qua VPN và kết nối giữa nhiều mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-006
+    title: Tên nội bộ, chứng thư TLS và yêu cầu nhất quán danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-007
+    title: Rò rỉ truy vấn nội bộ ra DNS công cộng và biện pháp hạn chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-dns-008
+    title: Thay đổi cấu trúc tên nội bộ mà vẫn giữ khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-applications
+  title: DNS và ứng dụng
+  childs:
+  - slug: dns-applications-001
+    title: Phân giải tên trong thư viện hệ điều hành và vòng đời một yêu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-002
+    title: Phân giải A, AAAA và lựa chọn địa chỉ khi có cả IPv4 lẫn IPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-003
+    title: Happy Eyeballs và mối liên hệ giữa phân giải tên với thiết lập kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-004
+    title: Bộ nhớ đệm DNS của JVM và chính sách lưu kết quả thành công hoặc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-005
+    title: Phân giải tên bằng InetAddress trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-006
+    title: Bộ phân giải của thư viện HTTP và sự khác biệt với bộ phân giải mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-007
+    title: Nhóm kết nối HTTP và lý do kết nối cũ tiếp tục dùng địa chỉ trước đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-008
+    title: DNS, tên máy trong HTTP, SNI và xác minh chứng thư TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-009
+    title: Thiết kế thời gian chờ, thử lại và phục hồi khi phân giải thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-applications-010
+    title: Khám phá dịch vụ bằng SRV và giới hạn phụ thuộc vào DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-containers
+  title: Cloud và container
+  childs:
+  - slug: cloud-containers-001
+    title: Zone công cộng và zone riêng trong dịch vụ DNS được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-002
+    title: Liên kết zone riêng với mạng ảo và quyền truy cập phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-003
+    title: Điểm phân giải vào, điểm phân giải ra và mô hình mạng lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-004
+    title: Bản ghi Alias hoặc ANAME theo nhà cung cấp và khác biệt với CNAME chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-005
+    title: Tự động quản lý DNS bằng hạ tầng dưới dạng mã và kiểm soát thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-006
+    title: DNS bên trong container và ảnh hưởng của cấu hình mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-007
+    title: DNS cho Service, Pod và namespace trong Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-008
+    title: CoreDNS, chuyển tiếp truy vấn và bộ nhớ đệm trong cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-009
+    title: Headless Service, bản ghi SRV và khám phá các điểm phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-010
+    title: search, ndots và lưu lượng truy vấn dư thừa trong Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-011
+    title: Chẩn đoán DNS giữa Pod, Service và tên bên ngoài cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-containers-012
+    title: Tách trách nhiệm DNS khỏi proxy, cân bằng tải và service mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: email-dns
+  title: DNS và thư điện tử
+  childs:
+  - slug: email-dns-001
+    title: Luồng tìm máy chủ nhận thư bằng MX và phân giải địa chỉ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-002
+    title: Thứ tự ưu tiên MX và phương án dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-003
+    title: 'SPF: công bố nguồn gửi được phép và giới hạn khi tra cứu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-004
+    title: 'DKIM: công bố khóa công khai qua DNS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-005
+    title: 'DMARC: chính sách kiểm tra danh tính và địa chỉ nhận báo cáo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-006
+    title: PTR, tên máy gửi và đối chiếu phân giải xuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-007
+    title: Null MX và miền không tiếp nhận thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-008
+    title: Lỗi TXT, bản ghi trùng và thay đổi TTL khi chuyển hệ thống thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: email-dns-009
+    title: Phân biệt dữ liệu chính sách trong DNS với việc thực thi tại máy chủ thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-routing
+  title: Định tuyến bằng DNS
+  childs:
+  - slug: dns-routing-001
+    title: Nhiều địa chỉ trong một RRset và cơ chế luân phiên kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-002
+    title: Giới hạn của cân bằng tải bằng DNS so với cân bằng theo từng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-003
+    title: Phân phối theo trọng số, địa lý và độ trễ trong DNS được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-004
+    title: Kiểm tra sức khỏe, chuyển đổi dự phòng và độ trễ do bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-005
+    title: Ảnh hưởng của vị trí bộ phân giải và tùy chọn ECS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-006
+    title: CDN, chuỗi CNAME và lựa chọn điểm phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-007
+    title: Anycast ở tầng IP và chính sách trả lời ở tầng DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-008
+    title: Giữ phiên, kết nối dài và những yêu cầu DNS không bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-routing-009
+    title: Thiết kế chuyển dịch lưu lượng và quay lui thay đổi an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-security
+  title: Bảo mật DNS
+  childs:
+  - slug: dns-security-001
+    title: Bề mặt tấn công tại máy khách, bộ phân giải, máy chủ và tài khoản tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-002
+    title: Giả mạo phản hồi và đầu độc bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-003
+    title: Ngẫu nhiên hóa mã giao dịch, cổng nguồn và kiểm tra dữ liệu nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-004
+    title: Tấn công phản xạ, khuếch đại và rủi ro của bộ phân giải mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-005
+    title: Giới hạn tốc độ phản hồi và các biện pháp giảm lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-006
+    title: 'DNS tunneling: dấu hiệu nhận biết và hướng giám sát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-007
+    title: DNS rebinding và kiểm soát truy cập dịch vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-008
+    title: Chiếm quyền tên miền, thay đổi ủy quyền và bảo vệ tài khoản quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-009
+    title: Bản ghi treo, CNAME lỗi thời và nguy cơ chiếm tên miền con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-010
+    title: Chính sách chặn tên miền, RPZ và ảnh hưởng đến kết quả phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-011
+    title: Bảo vệ cập nhật động, truyền zone và khóa xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-security-012
+    title: Quản lý nhật ký truy vấn theo mục đích, quyền truy cập và thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-availability
+  title: Hiệu năng và độ sẵn sàng
+  childs:
+  - slug: performance-availability-001
+    title: Đo độ trễ từ bộ nhớ đệm, truy vấn đệ quy và kết nối mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-002
+    title: Tỷ lệ trúng bộ nhớ đệm, số truy vấn mỗi giây và tài nguyên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-003
+    title: Tác động của chuỗi CNAME dài và nhiều lớp ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-004
+    title: Câu trả lời lớn, phân mảnh và chi phí chuyển sang TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-005
+    title: Giới hạn đồng thời, bão truy vấn và phục hồi sau khi bộ nhớ đệm lạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-006
+    title: Phân tán máy chủ theo mạng, vị trí và miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-007
+    title: Phối hợp nhiều nhà cung cấp DNS và duy trì dữ liệu nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-008
+    title: Đánh giá TTL theo yêu cầu cập nhật và khả năng chịu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-009
+    title: Kiểm thử tải DNS trong môi trường được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-availability-010
+    title: Xác định mục tiêu độ trễ, tỷ lệ thành công và ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-observability
+  title: Công cụ và quan sát
+  childs:
+  - slug: tools-observability-001
+    title: 'dig: chọn máy chủ, loại bản ghi và đọc từng phần phản hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-002
+    title: 'dig +trace: lần theo ủy quyền và các giới hạn của phép kiểm tra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-003
+    title: dig với TCP, EDNS, DNSSEC và tùy chọn kiểm tra phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-004
+    title: 'nslookup, host và Resolve-DnsName: lựa chọn công cụ theo hệ điều hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-005
+    title: resolvectl và kiểm tra cấu hình bộ phân giải cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-006
+    title: delv và công cụ phân tích chuỗi tin cậy DNSSEC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-007
+    title: tcpdump, Wireshark và đối chiếu truy vấn với phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-008
+    title: Nhật ký truy vấn, nhật ký lỗi và dữ liệu dnstap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-009
+    title: Các chỉ số độ trễ, tỷ lệ NXDOMAIN, SERVFAIL và lỗi thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-010
+    title: Kiểm tra chủ động từ nhiều mạng và đối chiếu các máy chủ NS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-observability-011
+    title: Che dữ liệu nhạy cảm khi thu thập gói tin hoặc chia sẻ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-troubleshooting
+  title: Xử lý sự cố DNS
+  childs:
+  - slug: dns-troubleshooting-001
+    title: Quy trình khoanh vùng từ ứng dụng đến máy chủ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-002
+    title: Phân biệt NXDOMAIN, NODATA, SERVFAIL, REFUSED và hết thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-003
+    title: Cùng tên nhưng kết quả khác giữa máy, mạng hoặc bộ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-004
+    title: Tên công cộng phân giải được nhưng tên nội bộ thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-005
+    title: Máy chủ có thẩm quyền đúng nhưng bộ phân giải vẫn trả dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-006
+    title: Sai NS, thiếu glue, lame delegation và vòng lặp ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-007
+    title: CNAME vòng lặp, đích bí danh mất và wildcard không khớp như dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-008
+    title: UDP thành công nhưng TCP thất bại hoặc ngược lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-009
+    title: EDNS bị chặn, phản hồi lớn bị mất và lỗi phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-010
+    title: DNSSEC thất bại do DS, khóa, chữ ký hoặc đồng hồ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-011
+    title: IPv4 hoạt động nhưng IPv6 lỗi sau khi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-012
+    title: Ứng dụng Java giữ địa chỉ cũ dù truy vấn bằng dig đã đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-013
+    title: DNS trong container hoặc Kubernetes chậm do search, ndots và chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-troubleshooting-014
+    title: Lập bằng chứng, xác nhận nguyên nhân và kiểm tra sau khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-practice
+  title: Thực hành DNS
+  childs:
+  - slug: dns-practice-001
+    title: Dựng môi trường thử nghiệm với máy có thẩm quyền, bộ phân giải và máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-002
+    title: Tạo zone, công bố A, AAAA, CNAME, MX, TXT và kiểm tra RRset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-003
+    title: Ủy quyền miền con, cấu hình glue và lần theo chuỗi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-004
+    title: Thiết lập zone ngược và đối chiếu kết quả A, AAAA, PTR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-005
+    title: Đo TTL, bộ nhớ đệm âm tính và quá trình thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-006
+    title: Bắt gói để quan sát truy vấn lặp, cờ TC và chuyển sang TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-007
+    title: Cấu hình secondary, TSIG, NOTIFY và kiểm tra đồng bộ zone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-008
+    title: Ký zone DNSSEC, thiết lập tin cậy và tạo lỗi xác minh có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-009
+    title: Thiết lập DNS mã hóa và kiểm tra danh tính đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-010
+    title: Mô phỏng split-horizon DNS và chuyển tiếp có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-011
+    title: Thực nghiệm bộ nhớ đệm JVM và nhóm kết nối khi địa chỉ dịch vụ đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-012
+    title: Phân tích DNS trong Kubernetes và giảm truy vấn do tên ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-013
+    title: Mô phỏng mất máy chủ DNS, lỗi mạng và chuyển đổi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-practice-014
+    title: Viết báo cáo thực nghiệm bằng truy vấn, gói tin và kết quả có thể lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-design-operations
+  title: Thiết kế và vận hành
+  childs:
+  - slug: dns-design-operations-001
+    title: Chuyển yêu cầu ứng dụng thành yêu cầu không gian tên và phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-002
+    title: Chọn mô hình công cộng, nội bộ hoặc kết hợp theo ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-003
+    title: Lập danh mục zone, chủ sở hữu bản ghi và quyền thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-004
+    title: Quản lý cấu hình bằng phiên bản, kiểm tra tự động và rà soát trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-005
+    title: Lập kế hoạch chuyển tên miền, nhà cung cấp, NS và DNSSEC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-006
+    title: Chuẩn bị TTL, thứ tự thay đổi, tiêu chí xác nhận và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-007
+    title: Xây dựng hướng dẫn ứng phó sự cố và phân công trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-008
+    title: Kiểm tra định kỳ bản ghi lỗi thời, ủy quyền và ngày hết hạn tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-design-operations-009
+    title: Đánh giá kiến trúc bằng các tình huống lỗi và bằng chứng thực nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

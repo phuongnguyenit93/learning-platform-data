@@ -1,0 +1,409 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - ClickHouse là gì và giải quyết bài toán phân tích dữ liệu nào
+  - Tư duy OLAP và khác biệt giữa tải phân tích với giao dịch OLTP
+  - Lưu trữ theo cột và lợi ích khi quét, lọc, tổng hợp dữ liệu
+  - Mô hình dữ liệu bất biến theo phần và cập nhật qua xử lý nền
+  - Vai trò của ClickHouse trong kho dữ liệu và phân tích thời gian thực
+  - Khi nào nên dùng ClickHouse và khi nào nên chọn hệ quản trị khác
+  - 'Thuật ngữ cốt lõi: database, table, engine, part, granule, block'
+  - Lộ trình học từ một máy chủ đến cụm phân tích phân tán
+- level1: Khởi động
+  level2:
+  - Cài đặt ClickHouse và chuẩn bị môi trường thử nghiệm
+  - Chạy ClickHouse bằng Docker và lưu bền dữ liệu qua volume
+  - Kết nối bằng clickhouse-client, giao thức native và HTTP
+  - Tạo database, bảng đầu tiên và nạp bộ dữ liệu mẫu
+  - Thực hiện truy vấn lọc, nhóm và tổng hợp đầu tiên
+  - Cấu trúc cấu hình máy chủ, cấu hình người dùng và thư mục dữ liệu
+  - Phạm vi cấu hình máy chủ, người dùng, phiên và từng truy vấn
+  - Kiểm tra phiên bản, khả năng hỗ trợ tính năng và tài liệu tương ứng
+  - Tổ chức bộ dữ liệu và kịch bản thử nghiệm có thể chạy lại
+- level1: Kiến trúc
+  level2:
+  - Các thành phần của một máy chủ ClickHouse
+  - Luồng dữ liệu từ INSERT đến các phần dữ liệu trên đĩa
+  - Luồng xử lý SELECT từ phân tích SQL đến trả kết quả
+  - Xử lý theo khối và thực thi vector hóa
+  - Part, mark, granule và mối liên hệ với việc đọc dữ liệu
+  - Định dạng part Wide và Compact
+  - 'Luồng xử lý nền: merge, mutation, TTL và tải dữ liệu sao chép'
+  - Phân biệt metadata, dữ liệu bảng, bộ nhớ đệm và tệp tạm
+  - Ranh giới giữa một máy chủ, một shard và một replica
+- level1: Kiểu dữ liệu
+  level2:
+  - Chọn kiểu số nguyên và xử lý dấu, miền giá trị, tràn số
+  - Float và Decimal trong tính toán gần đúng và chính xác
+  - String, FixedString và chi phí lưu trữ chuỗi
+  - Bool và Enum trong mô hình dữ liệu nghiệp vụ
+  - Date, Date32, DateTime, DateTime64 và độ chính xác thời gian
+  - Múi giờ trong kiểu dữ liệu, phiên làm việc và biểu diễn kết quả
+  - Nullable và ảnh hưởng của NULL đến lưu trữ, lọc và tổng hợp
+  - LowCardinality và lựa chọn cột có tập giá trị lặp lại
+  - UUID, IPv4 và IPv6 trong dữ liệu sự kiện
+  - Array, Tuple, Map và Nested
+  - JSON và lựa chọn giữa cấu trúc động với cột tường minh
+  - Ép kiểu, suy luận kiểu và chuyển đổi dữ liệu đầu vào không hợp lệ
+- level1: Thiết kế bảng
+  level2:
+  - Từ yêu cầu truy vấn đến mô hình bảng phân tích
+  - Chọn độ hạt của một dòng và xác định ý nghĩa từng bản ghi
+  - Mô hình bảng sự kiện, bảng sự kiện tổng hợp và bảng chiều
+  - Phi chuẩn hóa dữ liệu và cân bằng với JOIN, Dictionary
+  - Thiết kế cột theo bộ lọc, phép nhóm và phép tổng hợp thường gặp
+  - DEFAULT, MATERIALIZED, ALIAS và giá trị tính toán của cột
+  - Ràng buộc CHECK và giới hạn kiểm tra tính hợp lệ dữ liệu
+  - CREATE TABLE, CREATE AS và quản lý cấu trúc bảng
+  - Thay đổi schema bằng ALTER và tác động đến dữ liệu hiện có
+  - Đánh giá thiết kế bằng bộ truy vấn đại diện trước khi mở rộng
+- level1: Khóa và phân vùng
+  level2:
+  - ORDER BY là khóa sắp xếp vật lý trong họ MergeTree
+  - PRIMARY KEY là chỉ mục thưa và không bảo đảm tính duy nhất
+  - Quan hệ giữa ORDER BY và PRIMARY KEY
+  - Chọn thứ tự cột khóa theo bộ lọc, số giá trị phân biệt và tính cục bộ
+  - PARTITION BY và mục tiêu quản lý vòng đời dữ liệu
+  - Phân vùng quá chi tiết, bùng nổ số partition và chi phí vận hành
+  - Thiết kế phân vùng thời gian cho dữ liệu sự kiện
+  - SAMPLE BY và điều kiện thiết kế bảng để lấy mẫu
+  - Đánh giá mức đọc dư khi khóa không phù hợp với truy vấn
+  - Thay đổi khóa, xây bảng mới và chuyển đổi dữ liệu an toàn
+- level1: MergeTree
+  level2:
+  - Cấu trúc bảng MergeTree và vòng đời của một part
+  - Quá trình merge nền và lựa chọn kích thước lô INSERT
+  - Chỉ mục thưa, index_granularity và granule thích nghi
+  - Tại sao INSERT nhỏ, thường xuyên tạo ra quá nhiều part
+  - MergeTree so với ReplacingMergeTree trong dữ liệu có phiên bản
+  - 'ReplacingMergeTree: cột phiên bản, xóa logic và giới hạn khử trùng lặp'
+  - SummingMergeTree và các điều kiện để tổng cộng dữ liệu đúng
+  - AggregatingMergeTree và lưu trạng thái tổng hợp
+  - CollapsingMergeTree, cột dấu và cân bằng các bản ghi trạng thái
+  - VersionedCollapsingMergeTree và cập nhật đến không theo thứ tự
+  - 'FINAL: ngữ nghĩa hợp nhất khi đọc và chi phí thực thi'
+  - Chọn engine theo ngữ nghĩa dữ liệu thay vì chỉ theo tốc độ
+- level1: Engine khác
+  level2:
+  - Phân loại table engine và phân biệt với database engine
+  - Memory, Log, TinyLog và StripeLog trong các tình huống phù hợp
+  - Null engine và luồng xử lý dữ liệu không lưu bảng nguồn
+  - Buffer engine và cân nhắc trước khi sử dụng
+  - Merge engine để truy vấn nhiều bảng tương thích
+  - File và URL engine trong trao đổi dữ liệu
+  - Kafka engine và ranh giới giữa hàng đợi với lưu trữ lâu dài
+  - S3 engine và quan hệ với table function s3
+  - Database engine Atomic và quản lý vòng đời metadata
+  - Tiêu chí lựa chọn engine cho thử nghiệm và môi trường vận hành
+- level1: Nhập dữ liệu
+  level2:
+  - INSERT VALUES, INSERT SELECT và nạp dữ liệu qua client
+  - CSV, TSV, JSONEachRow, Native và lựa chọn định dạng trao đổi
+  - Parquet và Arrow trong trao đổi dữ liệu phân tích
+  - Ánh xạ cột, giá trị mặc định và lỗi chuyển đổi kiểu khi nhập
+  - Kích thước lô, tần suất INSERT và số part phát sinh
+  - Nhập song song và kiểm soát áp lực lên tài nguyên máy chủ
+  - 'Asynchronous INSERT: bộ đệm, xác nhận và ranh giới độ bền'
+  - Retry INSERT, cửa sổ khử trùng lặp và thiết kế nhập có tính lặp an toàn
+  - Dữ liệu lỗi, dòng bị từ chối và cơ chế ghi nhận để xử lý lại
+  - Đối soát số dòng, tổng kiểm tra và tính đầy đủ sau khi nạp
+  - Nạp dữ liệu lịch sử mà vẫn duy trì luồng nhập trực tuyến
+- level1: Tích hợp dữ liệu
+  level2:
+  - Table function và cách truy vấn dữ liệu ngoài bảng nội bộ
+  - Đọc dữ liệu từ tệp, HTTP và kho đối tượng S3
+  - Trao đổi dữ liệu với MySQL, PostgreSQL và hệ thống nguồn
+  - Kafka, consumer group và luồng nạp qua Materialized View
+  - Thiết kế CDC cho sự kiện thêm, sửa và xóa
+  - Ánh xạ dữ liệu CDC vào mô hình có phiên bản trong ClickHouse
+  - Độ trễ nhập, dữ liệu trùng và xử lý sự kiện đến muộn
+  - Lựa chọn ETL, ELT và ranh giới biến đổi tại ClickHouse
+  - Quản lý schema nguồn thay đổi và kiểm soát lỗi tích hợp
+- level1: SQL nền tảng
+  level2:
+  - SELECT, FROM, WHERE, ORDER BY và LIMIT
+  - WITH, CTE và phạm vi tái sử dụng biểu thức
+  - Subquery và cách tổ chức truy vấn nhiều bước
+  - GROUP BY, HAVING và thứ tự xử lý logic
+  - DISTINCT và lựa chọn khóa xác định bản ghi phân biệt
+  - UNION ALL, UNION DISTINCT và sự tương thích kiểu dữ liệu
+  - Alias, phạm vi tên và các trường hợp gây nhầm lẫn
+  - NULL, giá trị mặc định và logic điều kiện
+  - Tham số hóa truy vấn và tránh ghép chuỗi SQL từ dữ liệu đầu vào
+  - Định dạng xuất kết quả và xử lý truy vấn từ dòng lệnh
+- level1: Hàm và biểu thức
+  level2:
+  - Toán tử số học, so sánh, logic và quy tắc chuyển kiểu
+  - if, multiIf, CASE và xử lý nhánh điều kiện
+  - Hàm chuỗi, tìm kiếm và thao tác văn bản UTF-8
+  - Biểu thức chính quy và chi phí xử lý chuỗi
+  - Hàm chuyển đổi kiểu, biến thể OrNull và OrZero
+  - Hàm băm trong phân nhóm, định tuyến và đối soát
+  - Lambda và hàm bậc cao trên Array
+  - Hàm xử lý UUID, địa chỉ IP và dữ liệu địa lý
+  - Tạo hàm SQL dùng lại và quản lý biểu thức dùng chung
+- level1: Tổng hợp dữ liệu
+  level2:
+  - count, sum, avg, min, max và cách chọn phép tổng hợp
+  - Đếm phân biệt chính xác và gần đúng với họ hàm uniq
+  - Phân vị, trung vị và lựa chọn độ chính xác của quantile
+  - argMin, argMax và lấy giá trị theo thời điểm hoặc thứ tự
+  - Tổng hợp có điều kiện với hậu tố If
+  - Trạng thái tổng hợp với State, Merge và SimpleAggregateFunction
+  - Tổng hợp mảng bằng groupArray và kiểm soát bộ nhớ
+  - GROUPING SETS, ROLLUP và CUBE
+  - Chọn khóa GROUP BY và xử lý số lượng nhóm rất lớn
+  - Sai số số thực, giá trị thiếu và kiểm tra độ đúng kết quả tổng hợp
+- level1: JOIN
+  level2:
+  - Vai trò của JOIN trong mô hình phân tích theo cột
+  - INNER, LEFT, RIGHT và FULL JOIN
+  - ALL, ANY, SEMI, ANTI và ý nghĩa số dòng kết quả
+  - ASOF JOIN cho dữ liệu có trục thời gian
+  - Khóa JOIN trùng, quan hệ nhiều-nhiều và hiện tượng nhân dòng
+  - NULL, giá trị mặc định và thiết lập join_use_nulls
+  - Hash join, parallel hash join, grace hash join và giới hạn bộ nhớ
+  - Full sorting merge join, partial merge join và dữ liệu đã sắp xếp
+  - Direct join và tra cứu từ Dictionary hoặc engine phù hợp
+  - Lựa chọn thuật toán, thứ tự bảng và giảm dữ liệu trước JOIN
+  - JOIN phân tán, GLOBAL JOIN và chi phí truyền dữ liệu
+- level1: Phân tích nâng cao
+  level2:
+  - Window function, PARTITION BY, ORDER BY và window frame
+  - row_number, rank, dense_rank và xếp hạng theo nhóm
+  - Lag, lead và so sánh bản ghi trước hoặc sau
+  - Tổng tích lũy, trung bình trượt và cửa sổ thời gian
+  - LIMIT BY và lựa chọn Top N cho từng nhóm
+  - WITH FILL, INTERPOLATE và hoàn thiện chuỗi dữ liệu thiếu
+  - Xây dựng báo cáo phễu và phân tích chuỗi sự kiện
+  - Phân tích retention và cohort từ dữ liệu hoạt động
+  - Tách các bước phân tích để kiểm tra tính đúng của truy vấn phức tạp
+- level1: Dữ liệu phức hợp
+  level2:
+  - Array và sự khác biệt giữa một dòng với nhiều phần tử
+  - ARRAY JOIN và ảnh hưởng đến số dòng, phép tổng hợp
+  - Tuple, Named Tuple và truy cập thành phần
+  - Map, tra cứu khóa và giới hạn khi dùng thay schema tường minh
+  - Nested và mối quan hệ giữa các mảng thành phần
+  - Trích xuất dữ liệu JSON từ String
+  - Kiểu JSON, đường dẫn và kiểm soát mức biến động của schema
+  - Lựa chọn thời điểm làm phẳng dữ liệu bán cấu trúc
+  - Đo chi phí phân tích JSON khi nhập so với khi truy vấn
+- level1: Thời gian và sự kiện
+  level2:
+  - Chuẩn hóa thời gian sự kiện, thời gian tiếp nhận và múi giờ
+  - Chuyển đổi thời gian, làm tròn và nhóm theo khoảng
+  - Ranh giới ngày, múi giờ địa phương và thay đổi giờ mùa hè
+  - DateTime64 và lựa chọn độ chính xác cho sự kiện
+  - Sự kiện đến muộn, đến sai thứ tự và hiệu chỉnh báo cáo
+  - Lấy mẫu dữ liệu chuỗi thời gian theo nhiều độ phân giải
+  - Phát hiện khoảng trống và nối dữ liệu theo thời gian
+  - Phân biệt thời gian lưu giữ dữ liệu với khoảng thời gian truy vấn
+- level1: Materialized View
+  level2:
+  - View thường và Materialized View trong ClickHouse
+  - Incremental Materialized View và mô hình kích hoạt theo khối INSERT
+  - Bảng đích TO và lựa chọn engine lưu kết quả
+  - Thiết kế tổng hợp tăng dần với AggregatingMergeTree
+  - Chọn khóa nhóm và xử lý trạng thái tổng hợp khi đọc
+  - JOIN trong Materialized View và giới hạn cập nhật dữ liệu chiều
+  - Dữ liệu nguồn UPDATE, DELETE và giới hạn phản ánh vào bảng đích
+  - Nạp bù dữ liệu lịch sử và tránh thiếu hoặc trùng kết quả
+  - Chuỗi Materialized View và truy vết phụ thuộc
+  - Refreshable Materialized View và tiêu chí lựa chọn theo khả năng phiên bản
+  - Đối soát bảng nguồn, bảng đích và phục hồi khi luồng xử lý lỗi
+- level1: Dictionary
+  level2:
+  - Dictionary là gì và vai trò trong tra cứu dữ liệu chiều
+  - Nguồn dữ liệu Dictionary và quản lý kết nối
+  - Lựa chọn layout theo miền khóa, kích thước và bộ nhớ
+  - dictGet, dictHas và xử lý khóa không tồn tại
+  - Khóa đơn, khóa tổ hợp và tra cứu theo khoảng
+  - LIFETIME, tải lại và mức độ mới của dữ liệu tra cứu
+  - Dictionary trong JOIN và so sánh với bảng chiều
+  - Theo dõi trạng thái, lỗi tải và chi phí bộ nhớ Dictionary
+- level1: Vòng đời dữ liệu
+  level2:
+  - ALTER UPDATE, ALTER DELETE và cơ chế mutation
+  - Lightweight DELETE và khác biệt với xóa vật lý ngay lập tức
+  - Mô hình cập nhật có phiên bản thay cho sửa từng dòng
+  - Theo dõi mutation, lỗi xử lý và tác động lên tài nguyên
+  - TTL xóa dữ liệu, di chuyển dữ liệu và tổng hợp theo thời hạn
+  - TTL và thời điểm thực thi phụ thuộc xử lý nền
+  - DROP, DETACH, ATTACH và REPLACE PARTITION
+  - Dữ liệu hết hạn, dữ liệu cần phục hồi và quy trình xóa có kiểm soát
+  - OPTIMIZE và lý do cần thận trọng với OPTIMIZE FINAL
+  - Thay đổi schema cùng lúc với luồng nhập và truy vấn đang chạy
+- level1: Chỉ mục và Projection
+  level2:
+  - Phân biệt chỉ mục thưa, data skipping index và Projection
+  - Điều kiện để data skipping index có khả năng bỏ qua granule
+  - Minmax index cho dữ liệu có tính cục bộ
+  - Set index và lựa chọn cột có số giá trị phù hợp trong từng khối
+  - Bloom filter và các biến thể cho chuỗi, token
+  - Độ chọn lọc, số giá trị phân biệt và tương quan với thứ tự lưu trữ
+  - Tạo, materialize, kiểm tra và loại bỏ chỉ mục không hiệu quả
+  - Projection cho thứ tự sắp xếp hoặc kết quả tổng hợp thay thế
+  - Chi phí ghi, lưu trữ và bảo trì khi bổ sung Projection
+  - Xác nhận việc sử dụng chỉ mục, Projection bằng kế hoạch và số liệu đọc
+- level1: Thực thi truy vấn
+  level2:
+  - Phân tích cú pháp, phân tích ngữ nghĩa và lập kế hoạch truy vấn
+  - EXPLAIN SYNTAX, PLAN, PIPELINE và thông tin cần quan sát
+  - Predicate pushdown và loại bỏ dữ liệu càng sớm càng tốt
+  - PREWHERE và giảm lượng cột phải đọc
+  - Partition pruning, primary key pruning và data skipping
+  - Thực thi song song, luồng xử lý và giới hạn max_threads
+  - Tổng hợp cục bộ, hợp nhất trạng thái và xử lý hai cấp
+  - Sắp xếp, giới hạn Top N và sử dụng thứ tự lưu trữ
+  - Xử lý ngoài bộ nhớ và dữ liệu tạm trên đĩa
+  - Phân biệt tối ưu ở mức truy vấn với thay đổi thiết kế bảng
+- level1: Tối ưu truy vấn
+  level2:
+  - Xây dựng đường cơ sở theo độ trễ, số dòng đọc và số byte đọc
+  - Chọn đúng cột và tránh đọc dữ liệu không phục vụ kết quả
+  - Viết điều kiện thời gian, kiểu dữ liệu và biểu thức phù hợp với khóa
+  - Giảm số dòng và số cột trước JOIN, GROUP BY, ORDER BY
+  - Lựa chọn tổng hợp chính xác hoặc gần đúng theo yêu cầu nghiệp vụ
+  - Kiểm soát GROUP BY, DISTINCT và tập khóa có số lượng lớn
+  - Xử lý truy vấn chậm do FINAL và mô hình dữ liệu có phiên bản
+  - So sánh Materialized View, Projection và bảng tổng hợp riêng
+  - Query cache, điều kiện sử dụng và yêu cầu về độ mới dữ liệu
+  - Đo hiệu quả thay đổi trong điều kiện bộ nhớ đệm nóng và lạnh
+  - Kiểm tra kết quả tương đương trước khi chấp nhận tối ưu
+- level1: Tài nguyên và lưu trữ
+  level2:
+  - Lựa chọn CPU, RAM, ổ đĩa và mạng theo đặc điểm tải
+  - Compression codec và cân bằng dung lượng với chi phí giải nén
+  - Delta, DoubleDelta, Gorilla và lựa chọn theo kiểu, phân bố dữ liệu
+  - Storage policy, disk, volume và phân tầng dữ liệu
+  - Lưu dữ liệu trên object storage và vai trò bộ nhớ đệm cục bộ
+  - Mark cache, uncompressed cache và các lớp bộ nhớ đệm liên quan
+  - Giới hạn bộ nhớ, số truy vấn đồng thời và kiểm soát tải
+  - Cạnh tranh tài nguyên giữa nhập dữ liệu, merge và truy vấn
+  - Dự báo dung lượng, khoảng trống đĩa và tốc độ tăng dữ liệu
+  - Phân biệt nút thắt CPU, I/O, bộ nhớ và băng thông mạng
+- level1: Sao chép
+  level2:
+  - ReplicatedMergeTree và ranh giới sao chép ở cấp bảng
+  - ClickHouse Keeper và vai trò điều phối metadata
+  - Đường dẫn sao chép, tên replica và macros của cụm
+  - Luồng truyền part, replication queue và độ trễ sao chép
+  - Thiết kế nhiều replica và lựa chọn miền lỗi
+  - INSERT quorum và cân bằng độ sẵn sàng với xác nhận ghi
+  - Lựa chọn replica khi đọc và tác động của replica chậm
+  - Khử trùng lặp khi ghi lại và giới hạn của cửa sổ theo dõi
+  - Phục hồi replica lỗi, bổ sung replica và kiểm tra dữ liệu đồng bộ
+  - Giám sát Keeper, phiên kết nối và sự cố mất điều phối
+- level1: Phân mảnh
+  level2:
+  - Shard, replica và cách phân chia trách nhiệm lưu trữ
+  - Distributed engine và quan hệ với bảng dữ liệu cục bộ
+  - Chọn sharding key theo tải truy vấn và phân bố dữ liệu
+  - Ghi trực tiếp vào shard so với ghi qua Distributed table
+  - Hàng đợi ghi phân tán, xác nhận ghi và phát hiện lỗi
+  - Tổng hợp qua nhiều shard và hợp nhất kết quả tại nút điều phối
+  - Local JOIN, GLOBAL JOIN và tính đúng theo vị trí dữ liệu
+  - ON CLUSTER và thực thi DDL phân tán
+  - Thêm shard, tái phân phối dữ liệu và giới hạn cân bằng tự động
+  - Phát hiện shard lệch tải, truy vấn phân tán chậm và nút điều phối quá tải
+- level1: Độ đúng và độ bền
+  level2:
+  - Ý nghĩa xác nhận thành công của từng đường nhập dữ liệu
+  - Phạm vi nguyên tử, cách ly và giới hạn giao dịch cần kiểm chứng
+  - Tính nhất quán khi đọc một replica, nhiều replica và nhiều shard
+  - Thiết kế định danh sự kiện để phát hiện bản ghi trùng
+  - Mất kết nối sau khi ghi và xử lý kết quả xác nhận không rõ ràng
+  - Tính đúng khi dùng ReplacingMergeTree, FINAL và tổng hợp nhiều phiên bản
+  - Dữ liệu đến muộn, xóa logic và đối soát trạng thái cuối
+  - Phân biệt khả năng chịu lỗi, sao chép và sao lưu
+  - Xây dựng kiểm tra bất biến dữ liệu cho báo cáo nghiệp vụ
+- level1: Bảo mật
+  level2:
+  - Quản lý user, role và phân quyền theo nguyên tắc tối thiểu
+  - GRANT, REVOKE và quyền ở phạm vi database, bảng, cột
+  - Row policy và giới hạn truy cập dữ liệu theo dòng
+  - Settings profile, quota và giới hạn tài nguyên theo người dùng
+  - Xác thực, quản lý mật khẩu và cấu hình truy cập mạng
+  - TLS cho kết nối client và kết nối giữa các thành phần
+  - Quản lý thông tin xác thực cho nguồn dữ liệu ngoài
+  - Theo dõi hoạt động truy vấn và kiểm soát dữ liệu nhạy cảm trong log
+  - Thiết kế phân tách dữ liệu, quyền và tài nguyên cho nhiều bên sử dụng
+- level1: Quan sát hệ thống
+  level2:
+  - Hệ thống bảng system và cách khai thác metadata vận hành
+  - system.query_log, query_id và phân tích truy vấn chậm
+  - system.processes và quản lý truy vấn đang chạy
+  - system.parts, system.part_log và theo dõi số part, kích thước, merge
+  - system.merges, system.mutations và tiến trình xử lý nền
+  - system.replicas, system.replication_queue và sức khỏe sao chép
+  - system.distribution_queue và sự cố ghi phân tán
+  - system.metrics, system.events, asynchronous_metrics và ProfileEvents
+  - Thiết kế dashboard cho nhập dữ liệu, truy vấn, lưu trữ và Keeper
+  - Cảnh báo theo triệu chứng, ngưỡng và mục tiêu chất lượng dịch vụ
+- level1: Sao lưu và phục hồi
+  level2:
+  - Xác định RPO, RTO và phạm vi dữ liệu cần bảo vệ
+  - BACKUP, RESTORE và lựa chọn đích lưu trữ theo môi trường
+  - Sao lưu đầy đủ, tăng dần và quản lý phụ thuộc bản sao
+  - Sao lưu metadata, cấu hình và thông tin cần tái tạo cụm
+  - Khôi phục bảng, database và kiểm tra tương thích schema
+  - Phục hồi sau mất node, mất ổ đĩa hoặc thao tác xóa nhầm
+  - Kiểm tra số dòng, kết quả truy vấn và tính đầy đủ sau phục hồi
+  - Diễn tập khôi phục định kỳ và ghi nhận thời gian thực tế
+- level1: Triển khai và nâng cấp
+  level2:
+  - Lựa chọn triển khai một node, cụm tự quản hoặc dịch vụ quản lý
+  - ClickHouse Cloud và ranh giới khác biệt cần kiểm chứng với tự quản
+  - Thiết kế môi trường phát triển, kiểm thử và vận hành
+  - Lưu cấu hình có phiên bản và phân tách thông tin bí mật
+  - Triển khai bằng container, Kubernetes và quản lý lưu trữ bền
+  - Health check, readiness và dừng tiến trình có kiểm soát
+  - Lập kế hoạch nâng cấp, đọc thay đổi phiên bản và kiểm tra tương thích
+  - Nâng cấp luân phiên, xác nhận sức khỏe cụm và kế hoạch phục hồi
+  - Di chuyển dữ liệu giữa môi trường và đối soát trước chuyển đổi
+- level1: Ứng dụng Java
+  level2:
+  - Lựa chọn Java client và JDBC driver phù hợp với môi trường
+  - Cấu hình kết nối, TLS, timeout và vòng đời client
+  - Ánh xạ kiểu Java với Decimal, DateTime64, Nullable và Array
+  - Tham số hóa truy vấn và đọc kết quả theo luồng
+  - Batch INSERT, định dạng dữ liệu và kiểm soát kích thước lô
+  - Retry có giới hạn, định danh thao tác và tránh nhập trùng
+  - Tích hợp Spring Boot và quản lý cấu hình, thông tin xác thực
+  - Thiết kế API phân tích với phân trang, giới hạn thời gian và hủy truy vấn
+  - Kiểm thử tích hợp bằng ClickHouse thực và bộ dữ liệu xác định
+  - Truyền query_id từ ứng dụng để truy vết lỗi và hiệu năng
+- level1: Kiểm thử và đo tải
+  level2:
+  - Thiết kế bộ dữ liệu đại diện cho phân bố và độ lệch thực tế
+  - Kiểm thử tính đúng của lọc, JOIN, tổng hợp và cửa sổ
+  - Kiểm thử dữ liệu trùng, NULL, múi giờ và sự kiện đến muộn
+  - Đo tải nhập, tải truy vấn và tải hỗn hợp
+  - clickhouse-benchmark và tổ chức kịch bản đo có thể lặp lại
+  - Độ trễ p50, p95, p99, thông lượng và tỷ lệ lỗi
+  - So sánh thiết kế khóa, codec, chỉ mục và Materialized View
+  - Kiểm thử lỗi mạng, replica chậm, cạn dung lượng và giới hạn bộ nhớ
+  - Đặt tiêu chí chấp nhận và phát hiện suy giảm qua các lần thay đổi
+- level1: Xử lý sự cố
+  level2:
+  - 'Too many parts: tìm nguyên nhân và giảm tốc độ sinh part'
+  - Truy vấn vượt giới hạn bộ nhớ và cách đọc dấu vết lỗi
+  - INSERT chậm, hàng đợi tích lũy và áp lực từ xử lý nền
+  - Merge hoặc mutation kéo dài và tài nguyên bị tranh chấp
+  - Replica chỉ đọc, Keeper mất kết nối và hàng đợi sao chép bị kẹt
+  - Distributed INSERT không đến bảng cục bộ và cách đối soát
+  - Kết quả thiếu hoặc trùng do hiểu sai JOIN, FINAL, Materialized View
+  - Đĩa gần đầy, part lỗi và quy trình bảo toàn khả năng phục hồi
+  - Quy trình chẩn đoán từ triệu chứng đến bằng chứng, thay đổi và kiểm chứng
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng hệ phân tích sự kiện truy cập từ dữ liệu thô đến dashboard
+  - Thiết kế kho số liệu đơn hàng với dữ liệu có phiên bản và xóa logic
+  - Nạp sự kiện Kafka, tổng hợp tăng dần và xử lý dữ liệu đến muộn
+  - Phân tích log ứng dụng với dữ liệu bán cấu trúc và TTL
+  - Phân tích chuỗi thời gian với nhiều độ phân giải và dữ liệu thiếu
+  - Tối ưu một truy vấn chậm qua khóa, chỉ mục, Projection và Materialized View
+  - Vận hành cụm nhiều shard, nhiều replica và diễn tập lỗi node
+  - Hoàn thiện ứng dụng Java truy vấn ClickHouse cùng kiểm thử và truy vết
+  - Đánh giá thiết kế bằng độ đúng, độ trễ, chi phí và khả năng phục hồi

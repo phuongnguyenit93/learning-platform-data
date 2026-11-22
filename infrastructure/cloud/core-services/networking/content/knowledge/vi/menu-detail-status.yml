@@ -1,0 +1,2644 @@
+menu:
+- slug: cloud-networking-overview
+  title: Tổng quan mạng đám mây
+  childs:
+  - slug: cloud-networking-overview-001
+    title: Vai trò của networking trong hạ tầng đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-002
+    title: Control plane, data plane và luồng lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-003
+    title: Underlay, overlay và mạng ảo hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-004
+    title: Phạm vi mạng theo vùng và vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-005
+    title: Mô hình trách nhiệm chia sẻ về kết nối mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-006
+    title: Đường đi của lưu lượng north-south và east-west
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-007
+    title: Thành phần mạng tương đương trên AWS, Azure và Google Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-overview-008
+    title: Thu thập yêu cầu về kết nối, độ trễ và khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: protocols-and-connection-flows
+  title: Giao thức và luồng kết nối
+  childs:
+  - slug: protocols-and-connection-flows-001
+    title: Mô hình TCP/IP và các lớp xử lý gói tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-002
+    title: Ethernet, ARP và Neighbor Discovery trong môi trường ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-003
+    title: ICMP và vai trò trong chẩn đoán kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-004
+    title: 'TCP: bắt tay, trạng thái kết nối và truyền lại'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-005
+    title: UDP, QUIC và lựa chọn giao thức truyền tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-006
+    title: Cổng, socket và định danh luồng bằng 5-tuple
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-007
+    title: Đóng gói, phân mảnh và giới hạn MTU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: protocols-and-connection-flows-008
+    title: Theo dõi một yêu cầu từ máy khách đến dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ipv4-addressing-and-cidr-planning
+  title: Địa chỉ IPv4 và thiết kế CIDR
+  childs:
+  - slug: ipv4-addressing-and-cidr-planning-001
+    title: Địa chỉ IPv4 công khai, riêng và các dải dùng đặc biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-002
+    title: Subnet mask, CIDR và phép chia mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-003
+    title: Tính dải địa chỉ, địa chỉ dùng được và phần dành riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-004
+    title: Chọn kích thước mạng theo nhu cầu tăng trưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-005
+    title: Chia dải địa chỉ theo môi trường, vùng và đơn vị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-006
+    title: Phát hiện và xử lý CIDR chồng lấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-007
+    title: Tổng hợp tuyến và ảnh hưởng của thiết kế địa chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv4-addressing-and-cidr-planning-008
+    title: Thực hành lập sơ đồ địa chỉ cho nhiều mạng cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ipv6-and-dual-stack-networking
+  title: IPv6 và mạng dual-stack
+  childs:
+  - slug: ipv6-and-dual-stack-networking-001
+    title: Cấu trúc địa chỉ IPv6 và cách biểu diễn prefix
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-002
+    title: Địa chỉ global unicast, link-local và unique local
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-003
+    title: Cấp phát địa chỉ IPv6 và khác biệt giữa các nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-004
+    title: Thiết kế subnet IPv6 và phân bổ prefix
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-005
+    title: Định tuyến và kiểm soát truy cập IPv6
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-006
+    title: Vận hành dual-stack và lựa chọn giao thức tại máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-007
+    title: DNS64, NAT64 và kết nối tới dịch vụ chỉ có IPv4
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-008
+    title: Egress-only gateway và kiểm soát kết nối đi ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipv6-and-dual-stack-networking-009
+    title: Kiểm tra các đường kết nối có thể bỏ sót khi bật IPv6
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-networks-and-subnet-segmentation
+  title: Mạng ảo và phân đoạn subnet
+  childs:
+  - slug: virtual-networks-and-subnet-segmentation-001
+    title: VPC, VNet và ranh giới cô lập mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-002
+    title: Subnet theo vùng hoặc vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-003
+    title: Phân biệt subnet công khai, riêng và cô lập bằng đường kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-004
+    title: Tách lớp ứng dụng, dữ liệu và quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-005
+    title: Giao diện mạng ảo, địa chỉ phụ và nhiều NIC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-006
+    title: Địa chỉ công khai tạm thời và địa chỉ dành trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-007
+    title: Địa chỉ do nền tảng dành riêng và giới hạn cấp phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-008
+    title: Mạng mặc định, mạng tùy chỉnh và lựa chọn sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networks-and-subnet-segmentation-009
+    title: Thiết kế subnet cho khả năng mở rộng và tính sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-routing
+  title: Định tuyến trong cloud
+  childs:
+  - slug: cloud-routing-001
+    title: Bảng định tuyến, route và next hop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-002
+    title: Longest prefix match và cách chọn tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-003
+    title: Tuyến hệ thống, tuyến tùy chỉnh và tuyến truyền bá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-004
+    title: Liên kết bảng định tuyến với subnet hoặc gateway
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-005
+    title: Tuyến mặc định và đường đi đến mạng ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-006
+    title: Định tuyến đối xứng và bất đối xứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-007
+    title: Blackhole route, vòng lặp và tuyến không còn hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-008
+    title: Policy-based routing và định tuyến theo nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-routing-009
+    title: Đường đi hiệu dụng qua nhiều thiết bị trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bgp-and-route-exchange
+  title: BGP và trao đổi tuyến
+  childs:
+  - slug: bgp-and-route-exchange-001
+    title: BGP, ASN và vai trò trong kết nối cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-002
+    title: Thiết lập phiên BGP và quan hệ láng giềng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-003
+    title: Quảng bá, học và lọc prefix
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-004
+    title: Thuộc tính BGP và điều khiển lựa chọn đường đi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-005
+    title: Tổng hợp tuyến và giới hạn số lượng route
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-006
+    title: ECMP và phân phối lưu lượng trên nhiều đường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-007
+    title: Hội tụ tuyến và phát hiện lỗi kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bgp-and-route-exchange-008
+    title: Ngăn route leak và quảng bá tuyến ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: internet-connectivity-and-nat
+  title: Kết nối Internet và NAT
+  childs:
+  - slug: internet-connectivity-and-nat-001
+    title: Internet gateway và điều kiện truy cập Internet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-002
+    title: Đường vào dịch vụ bằng địa chỉ IP công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-003
+    title: SNAT, DNAT và port forwarding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-004
+    title: NAT gateway và NAT instance hoặc network appliance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-005
+    title: Thiết kế egress cho subnet riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-006
+    title: Port exhaustion, bảng trạng thái và giới hạn NAT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-007
+    title: High availability cho đường truy cập Internet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-008
+    title: Tập trung egress và duy trì địa chỉ IP nguồn ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: internet-connectivity-and-nat-009
+    title: Kiểm soát truy cập Internet bằng proxy và danh sách đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-access-control
+  title: Kiểm soát truy cập mạng
+  childs:
+  - slug: network-access-control-001
+    title: Phân vùng tin cậy và nguyên tắc đặc quyền tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-002
+    title: Security group, network security group và tường lửa phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-003
+    title: Quy tắc stateful và stateless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-004
+    title: Network ACL và lọc lưu lượng tại ranh giới subnet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-005
+    title: Quy tắc ingress, egress và chiều lưu lượng phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-006
+    title: Cổng động của máy khách và tác động tới ACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-007
+    title: Tham chiếu nhóm, nhãn và định danh tài nguyên trong quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-008
+    title: Tường lửa trên máy chủ và thứ tự các lớp kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-access-control-009
+    title: Rà soát quy tắc mở rộng, quy tắc thừa và truy cập ngoài dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-appliances-and-inspection
+  title: Thiết bị mạng và kiểm tra lưu lượng
+  childs:
+  - slug: network-appliances-and-inspection-001
+    title: Tường lửa mạng được quản lý và thiết bị tự vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-002
+    title: IDS, IPS và lựa chọn điểm kiểm tra lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-003
+    title: Service insertion và chuỗi xử lý qua nhiều thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-004
+    title: Điều hướng lưu lượng qua thiết bị kiểm tra tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-005
+    title: Giữ đường đi đối xứng qua tường lửa stateful
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-006
+    title: Forward proxy, explicit proxy và transparent proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-007
+    title: TLS inspection và tác động tới kết nối ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-008
+    title: Fail-open, fail-closed và thiết kế dự phòng thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-appliances-and-inspection-009
+    title: Phân biệt bảo vệ DDoS ở lớp mạng và lớp ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: private-service-connectivity
+  title: Truy cập riêng tới dịch vụ
+  childs:
+  - slug: private-service-connectivity-001
+    title: Private endpoint và mục tiêu giảm bề mặt công khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-002
+    title: Endpoint qua định tuyến và endpoint qua giao diện mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-003
+    title: Đường đi tới dịch vụ cloud qua kết nối riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-004
+    title: DNS và phân giải tên cho private endpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-005
+    title: Phân biệt kiểm soát ở endpoint, tường lửa và dịch vụ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-006
+    title: Công bố dịch vụ nội bộ cho mạng hoặc tài khoản khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-007
+    title: Truy cập private endpoint từ mạng tại chỗ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-008
+    title: Tắt đường truy cập công khai và xác minh đường riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-service-connectivity-009
+    title: Giới hạn về vùng, địa chỉ nguồn và tính bắc cầu của kết nối riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-network-interconnection
+  title: Kết nối giữa các mạng cloud
+  childs:
+  - slug: cloud-network-interconnection-001
+    title: VPC peering, VNet peering và các trường hợp sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-002
+    title: Điều kiện địa chỉ và tuyến cho kết nối peering
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-003
+    title: Tính không bắc cầu và giới hạn của peering
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-004
+    title: Peering giữa các tài khoản, dự án và vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-005
+    title: Shared VPC, mạng dùng chung và phân tách quyền quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-006
+    title: Transit gateway, cloud router và trung tâm kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-007
+    title: Mô hình hub-and-spoke và full mesh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-008
+    title: Phân đoạn tuyến theo môi trường và miền kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-network-interconnection-009
+    title: Kiểm soát lưu lượng liên vùng và lựa chọn đường đi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-vpn-connectivity
+  title: VPN cho kết nối cloud
+  childs:
+  - slug: cloud-vpn-connectivity-001
+    title: Site-to-site VPN và remote-access VPN
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-002
+    title: IPsec, IKE và quá trình thiết lập tunnel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-003
+    title: VPN theo policy và VPN theo route
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-004
+    title: Định tuyến tĩnh và BGP qua VPN
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-005
+    title: NAT traversal và địa chỉ ngang hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-006
+    title: Thiết kế tunnel dự phòng và nhiều thiết bị đầu cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-007
+    title: MTU, MSS và overhead của IPsec
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-008
+    title: Xác thực, khóa chia sẻ và thay đổi thông tin tunnel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-vpn-connectivity-009
+    title: Giám sát và xử lý lỗi VPN không truyền được lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dedicated-and-hybrid-connectivity
+  title: Kết nối chuyên dụng và hybrid
+  childs:
+  - slug: dedicated-and-hybrid-connectivity-001
+    title: Đường truyền chuyên dụng, đối tác kết nối và điểm hiện diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-002
+    title: Các mô hình AWS Direct Connect, Azure ExpressRoute và Cloud Interconnect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-003
+    title: Kết nối vật lý, virtual interface và phiên định tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-004
+    title: Thiết kế cặp đường truyền độc lập và đường dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-005
+    title: Kết hợp kết nối chuyên dụng với VPN dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-006
+    title: Phân biệt kết nối riêng và mã hóa lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-007
+    title: Quảng bá dải mạng cloud và mạng tại chỗ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-008
+    title: Tránh chồng lấn địa chỉ khi mở rộng từ trung tâm dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dedicated-and-hybrid-connectivity-009
+    title: Lựa chọn đường truyền theo băng thông, độ trễ và mức sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multicloud-and-wide-area-networking
+  title: Kết nối multicloud và mạng diện rộng
+  childs:
+  - slug: multicloud-and-wide-area-networking-001
+    title: Các nhu cầu kết nối giữa nhiều nhà cung cấp cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-002
+    title: Kết nối multicloud qua Internet, VPN hoặc mạng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-003
+    title: Thiết kế transit qua trung tâm dữ liệu hoặc điểm kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-004
+    title: SD-WAN và tích hợp chi nhánh với mạng cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-005
+    title: Kiểm soát đường đi và tránh vòng lặp giữa các miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-006
+    title: Kết nối mạng chồng lấn bằng NAT hoặc công bố dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-007
+    title: Phân giải tên giữa các cloud và mạng chi nhánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-and-wide-area-networking-008
+    title: Đánh giá lỗi lan truyền và phụ thuộc nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dns-and-name-resolution
+  title: DNS và phân giải tên
+  childs:
+  - slug: dns-and-name-resolution-001
+    title: Bản ghi A, AAAA, CNAME, MX, TXT và SRV
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-002
+    title: Authoritative DNS, recursive resolver và chuỗi phân giải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-003
+    title: Public zone, private zone và split-horizon DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-004
+    title: Liên kết private zone với nhiều mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-005
+    title: Conditional forwarding và phân giải DNS hybrid
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-006
+    title: TTL, cache và negative caching
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-007
+    title: Ủy quyền zone và tổ chức tên miền nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-008
+    title: DNSSEC, DNS qua giao thức mã hóa và phạm vi bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-name-resolution-009
+    title: Kiểm soát truy vấn DNS và phát hiện đường phân giải sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dns-traffic-management
+  title: Quản lý lưu lượng bằng DNS
+  childs:
+  - slug: dns-traffic-management-001
+    title: DNS round-robin và giới hạn của cân bằng tải bằng DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-002
+    title: Định tuyến theo trọng số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-003
+    title: Định tuyến theo địa lý và độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-004
+    title: Health check và cơ chế failover bằng DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-005
+    title: Ảnh hưởng của bộ đệm tới chuyển đổi vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-006
+    title: Thiết kế tên miền cho dịch vụ đa vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-007
+    title: Chuyển đổi endpoint và giảm rủi ro khi đổi bản ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-traffic-management-008
+    title: Kiểm tra hành vi phân giải từ nhiều vị trí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transport-layer-load-balancing
+  title: Cân bằng tải lớp truyền tải
+  childs:
+  - slug: transport-layer-load-balancing-001
+    title: Cân bằng tải lớp 4 và các loại lưu lượng phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-002
+    title: Load balancer công khai và nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-003
+    title: Listener, backend pool và target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-004
+    title: Health check TCP, HTTP và điều kiện loại backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-005
+    title: Phân phối kết nối, hashing và session affinity
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-006
+    title: Địa chỉ IP nguồn, SNAT và Proxy Protocol
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-007
+    title: Idle timeout, kết nối dài và connection draining
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-008
+    title: Cân bằng tải giữa các vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transport-layer-load-balancing-009
+    title: Thiết kế khả năng mở rộng và xử lý backend mất kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-layer-load-balancing
+  title: Cân bằng tải lớp ứng dụng
+  childs:
+  - slug: application-layer-load-balancing-001
+    title: Reverse proxy và cân bằng tải HTTP/HTTPS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-002
+    title: Định tuyến theo hostname, đường dẫn và header
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-003
+    title: TLS termination, passthrough và mã hóa lại tới backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-004
+    title: SNI, chứng chỉ và xác thực TLS hai chiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-005
+    title: HTTP/2, gRPC và WebSocket qua bộ cân bằng tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-006
+    title: Header chuyển tiếp và xác định đúng địa chỉ máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-007
+    title: Sticky session và tác động tới phân phối lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-008
+    title: Timeout, retry và giới hạn kích thước yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-009
+    title: WAF, rate limiting và bảo vệ endpoint ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-layer-load-balancing-010
+    title: Triển khai canary và blue-green bằng phân phối lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: edge-connectivity-and-cdn
+  title: Kết nối biên và CDN
+  childs:
+  - slug: edge-connectivity-and-cdn-001
+    title: Edge location, CDN và luồng truy cập qua điểm biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-002
+    title: Origin công khai, origin riêng và kiểm soát truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-003
+    title: Cache key, TTL và quy tắc cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-004
+    title: Cache invalidation và thay đổi nội dung tại origin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-005
+    title: Anycast và bộ tăng tốc kết nối toàn cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-006
+    title: TLS tại điểm biên và kết nối bảo mật về origin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-007
+    title: Bảo vệ origin khỏi truy cập trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: edge-connectivity-and-cdn-008
+    title: Tách lỗi tại edge, cache và đường kết nối tới origin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-and-kubernetes-networking
+  title: Mạng cho container và Kubernetes
+  childs:
+  - slug: container-and-kubernetes-networking-001
+    title: Container network namespace và giao diện mạng ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-002
+    title: CNI và mô hình mạng cho pod
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-003
+    title: Mạng overlay và mạng định tuyến trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-004
+    title: Địa chỉ pod, service CIDR và nguy cơ cạn IP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-005
+    title: Kết nối pod-to-pod và pod-to-service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-006
+    title: Service, ingress và gateway trong đường truy cập ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-007
+    title: Tích hợp load balancer của cloud với cụm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-008
+    title: NetworkPolicy và phân đoạn lưu lượng giữa workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-009
+    title: Egress của pod và truy cập dịch vụ ngoài cụm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-networking-010
+    title: Giới hạn trách nhiệm giữa mạng cloud và mạng trong cụm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workload-connectivity
+  title: Kết nối cho các loại workload
+  childs:
+  - slug: workload-connectivity-001
+    title: Kết nối mạng cho máy ảo nhiều giao diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-002
+    title: Dịch vụ serverless gắn vào mạng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-003
+    title: Nhu cầu cấp IP và giới hạn kết nối của workload co giãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-004
+    title: Đường mạng tới dịch vụ dữ liệu và lưu trữ được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-005
+    title: Service discovery và cân bằng tải phía máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-006
+    title: Service mesh trong đường truyền east-west
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-007
+    title: Kết nối thời gian thực và phiên tồn tại lâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-connectivity-008
+    title: Luồng quản trị qua bastion, VPN và dịch vụ truy cập riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-latency-and-performance
+  title: Độ trễ và hiệu năng mạng
+  childs:
+  - slug: network-latency-and-performance-001
+    title: Độ trễ, jitter, mất gói và các yếu tố ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-002
+    title: Bandwidth, throughput và giới hạn theo tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-003
+    title: Bandwidth-delay product và cửa sổ TCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-004
+    title: Connection pooling, keep-alive và tái sử dụng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-005
+    title: MTU, jumbo frame và Path MTU Discovery
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-006
+    title: MSS clamping và chẩn đoán lỗi do phân mảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-007
+    title: Giới hạn số kết nối, packet rate và bảng theo dõi trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-008
+    title: Đo hiệu năng giữa các vùng và giữa cloud với mạng tại chỗ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-latency-and-performance-009
+    title: Đặt workload theo dữ liệu đo và đặc tính lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-availability-and-recovery
+  title: Tính sẵn sàng và phục hồi mạng
+  childs:
+  - slug: network-availability-and-recovery-001
+    title: Miền lỗi của subnet, gateway và đường truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-002
+    title: Loại bỏ điểm lỗi đơn trong đường kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-003
+    title: Thiết kế mạng qua nhiều vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-004
+    title: Kiến trúc mạng đa vùng active-active và active-passive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-005
+    title: Kết hợp failover ở lớp route, load balancer và DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-006
+    title: Ảnh hưởng của trạng thái kết nối khi chuyển đường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-007
+    title: Phân tách mạng để hạn chế phạm vi sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-008
+    title: Diễn tập mất vùng, mất gateway và mất đường hybrid
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-availability-and-recovery-009
+    title: Xác minh đường mạng phục vụ khôi phục sau thảm họa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-monitoring-and-observability
+  title: Giám sát và quan sát lưu lượng
+  childs:
+  - slug: network-monitoring-and-observability-001
+    title: Chỉ số mạng cần theo dõi theo từng lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-002
+    title: Flow log và cách đọc 5-tuple, action, byte và packet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-003
+    title: Log của load balancer, DNS, NAT và firewall
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-004
+    title: Traffic mirroring và thu thập gói tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-005
+    title: Kết hợp metric, log và thông tin topo để điều tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-006
+    title: Kiểm tra tổng hợp và giám sát khả năng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-007
+    title: Cảnh báo cạn địa chỉ, cạn cổng và tăng lỗi kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-008
+    title: Xây dựng bản đồ phụ thuộc từ luồng lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-monitoring-and-observability-009
+    title: Lấy mẫu, lưu giữ và che thông tin nhạy cảm trong dữ liệu mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-diagnostic-tools
+  title: Công cụ chẩn đoán mạng
+  childs:
+  - slug: network-diagnostic-tools-001
+    title: Đọc cấu hình giao diện, địa chỉ và bảng route
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-002
+    title: Dùng ping và traceroute với các giới hạn trên cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-003
+    title: Dùng dig và nslookup để kiểm tra DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-004
+    title: Dùng curl và công cụ TLS để kiểm tra endpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-005
+    title: Dùng netcat và công cụ tương đương để kiểm tra cổng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-006
+    title: Dùng ss hoặc netstat để phân tích socket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-007
+    title: Dùng tcpdump và Wireshark để đọc phiên kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-008
+    title: Dùng công cụ kiểm tra reachability của nền tảng cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-diagnostic-tools-009
+    title: Đo thông lượng bằng iperf và thiết kế phép đo có ý nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: connectivity-troubleshooting
+  title: Quy trình xử lý sự cố kết nối
+  childs:
+  - slug: connectivity-troubleshooting-001
+    title: Khoanh vùng sự cố từ triệu chứng và ma trận kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-002
+    title: Phân biệt lỗi DNS, route, firewall và ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-003
+    title: Xử lý dịch vụ không truy cập được từ Internet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-004
+    title: Xử lý workload riêng không kết nối ra ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-005
+    title: Xử lý peering hoặc transit không truyền lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-006
+    title: Xử lý lỗi kết nối hybrid một chiều hoặc chập chờn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-007
+    title: Xử lý timeout, reset và lỗi health check
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-008
+    title: Xử lý kết nối TLS lỗi sau proxy hoặc cân bằng tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-009
+    title: Xử lý IPv6 hoạt động khác IPv4
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: connectivity-troubleshooting-010
+    title: Xây dựng runbook, lưu bằng chứng và xác nhận khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ipam-and-network-resource-management
+  title: Quản lý địa chỉ và tài nguyên mạng
+  childs:
+  - slug: ipam-and-network-resource-management-001
+    title: IPAM và nguồn dữ liệu chuẩn cho không gian địa chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-002
+    title: Cấp phát CIDR theo cấu trúc tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-003
+    title: Theo dõi subnet sử dụng và dự báo cạn địa chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-004
+    title: Quản lý địa chỉ IP công khai và dải nguồn đối tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-005
+    title: Quota về route, endpoint, giao diện và quy tắc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-006
+    title: Quy ước tên, nhãn và thông tin chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-007
+    title: Quản lý vòng đời kết nối và thu hồi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ipam-and-network-resource-management-008
+    title: Xử lý tài nguyên mạng bị phụ thuộc khi thay đổi hoặc xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-automation-and-change-management
+  title: Tự động hóa và thay đổi cấu hình mạng
+  childs:
+  - slug: network-automation-and-change-management-001
+    title: Mô hình hóa mạng bằng Infrastructure as Code
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-002
+    title: Quản lý tham số địa chỉ, subnet và bảng route
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-003
+    title: Tách cấu hình theo môi trường và quyền sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-004
+    title: Phát hiện cấu hình lệch và thay đổi ngoài quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-005
+    title: Kiểm tra tĩnh về CIDR, tuyến và quy tắc truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-006
+    title: Lập kế hoạch thay đổi và đánh giá phạm vi ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-007
+    title: Thực hiện thay đổi theo giai đoạn và chuẩn bị rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-008
+    title: Xác minh kết nối trước và sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-automation-and-change-management-009
+    title: Kiểm soát quyền thay đổi mạng và ghi nhận lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-transfer-cost-optimization
+  title: Chi phí truyền dữ liệu và tối ưu
+  childs:
+  - slug: data-transfer-cost-optimization-001
+    title: Các chiều tính phí ingress, egress và xử lý lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-002
+    title: Chi phí truyền dữ liệu liên vùng sẵn sàng và liên vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-003
+    title: Chi phí NAT, load balancer, endpoint và transit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-004
+    title: Chi phí kết nối hybrid và đường truyền chuyên dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-005
+    title: Vẽ đường đi để xác định các điểm phát sinh phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-006
+    title: So sánh egress tập trung và egress phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-007
+    title: Tối ưu vị trí workload, cache và đường truy cập dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-008
+    title: Phân bổ chi phí mạng theo nhóm và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-transfer-cost-optimization-009
+    title: Đánh giá chi phí cùng hiệu năng, bảo mật và tính sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-architecture-design
+  title: Thiết kế kiến trúc mạng
+  childs:
+  - slug: network-architecture-design-001
+    title: Chuyển yêu cầu nghiệp vụ thành yêu cầu kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-002
+    title: Lập ma trận nguồn, đích, cổng và chiều truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-003
+    title: Thiết kế mạng cho ứng dụng ba lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-004
+    title: Thiết kế mạng dùng chung cho nhiều nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-005
+    title: Thiết kế hub-and-spoke có kiểm tra lưu lượng tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-006
+    title: Thiết kế ứng dụng private với điểm vào được kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-007
+    title: Thiết kế mạng cho doanh nghiệp hybrid nhiều vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-008
+    title: Thiết kế kết nối đa vùng và multicloud theo miền lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-architecture-design-009
+    title: Đánh giá kiến trúc bằng sơ đồ, giả định và kịch bản sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-labs-and-assessment
+  title: Thực hành tích hợp và đánh giá
+  childs:
+  - slug: integrated-labs-and-assessment-001
+    title: Dựng mạng ảo dual-stack với các subnet tách biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-002
+    title: Thiết lập tuyến Internet và NAT cho workload riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-003
+    title: Cấu hình kiểm soát mạng theo ma trận kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-004
+    title: Công bố ứng dụng qua cân bằng tải và tên miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-005
+    title: Kết nối riêng tới dịch vụ cloud và kiểm tra DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-006
+    title: Liên kết hai mạng qua peering rồi mở rộng bằng transit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-007
+    title: Mô phỏng mạng tại chỗ và thiết lập VPN dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-008
+    title: Thu thập flow log và giải bài tập kết nối bị chặn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-009
+    title: Thử chuyển đổi đường truyền và đo thời gian phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-labs-and-assessment-010
+    title: Hoàn thiện đồ án kiến trúc mạng kèm phép đo và dự toán chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

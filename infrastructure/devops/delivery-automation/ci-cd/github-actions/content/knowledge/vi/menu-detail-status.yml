@@ -1,0 +1,2602 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: GitHub Actions là gì và vai trò trong tự động hóa phát triển phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt tích hợp liên tục, bàn giao liên tục và triển khai liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa repository, sự kiện và quy trình tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Từ vựng cốt lõi: workflow, run, job, step, action và runner'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Luồng từ một commit đến kiểm tra, đóng gói và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt GitHub Actions với công cụ build và nền tảng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lợi ích, giới hạn và trách nhiệm khi đưa công việc vào CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học từ workflow đầu tiên đến quy trình bàn giao có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-model
+  title: Mô hình thực thi
+  childs:
+  - slug: execution-model-001
+    title: Workflow là định nghĩa quy trình và run là một lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-002
+    title: Job là đơn vị được phân lịch trên runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-003
+    title: Step là một bước lệnh hoặc một action trong job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-004
+    title: Quan hệ tuần tự giữa các step và khả năng chạy song song giữa các job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-005
+    title: Workspace, thư mục làm việc và phạm vi tồn tại của file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-006
+    title: Ranh giới môi trường giữa các job và các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-007
+    title: Vòng đời từ nhận sự kiện, phân lịch đến kết thúc hoặc hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-model-008
+    title: Phân biệt trạng thái đang chạy, kết quả cuối và lần chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-syntax
+  title: Cú pháp workflow
+  childs:
+  - slug: workflow-syntax-001
+    title: Tổ chức file YAML trong .github/workflows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-002
+    title: Cấu trúc name, run-name, on và jobs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-003
+    title: Định danh job và step để tham chiếu ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-004
+    title: Phân biệt run, uses và with trong một step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-005
+    title: Khai báo runs-on, needs, env và defaults
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-006
+    title: Thụt lề, kiểu dữ liệu, dấu nháy và khối lệnh nhiều dòng trong YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-007
+    title: Phân biệt lỗi cú pháp YAML với lỗi schema hoặc lỗi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-syntax-008
+    title: Chọn tên hiển thị và chú thích giúp người đọc hiểu mục đích workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trigger-events
+  title: Sự kiện kích hoạt
+  childs:
+  - slug: trigger-events-001
+    title: push và pull_request cho kiểm tra thay đổi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-002
+    title: workflow_dispatch cho thao tác chạy thủ công có tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-003
+    title: schedule, biểu thức cron và giới hạn độ chính xác của lịch chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-004
+    title: release và các hoạt động liên quan đến phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-005
+    title: repository_dispatch cho sự kiện do hệ thống ngoài gửi đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-006
+    title: workflow_run cho quy trình phụ thuộc kết quả workflow khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-007
+    title: workflow_call cho workflow được gọi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-008
+    title: merge_group và kiểm tra trong quy trình dùng hàng đợi hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-009
+    title: Bộ lọc branches, tags, paths và loại hoạt động của sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-010
+    title: Quan hệ giữa sự kiện, nhánh chứa workflow và phiên bản mã được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trigger-events-011
+    title: Tránh kích hoạt trùng hoặc bỏ sót lần chạy khi kết hợp nhiều sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branches-pull-requests
+  title: Nhánh và pull request
+  childs:
+  - slug: branches-pull-requests-001
+    title: Xác định mã cần kiểm tra trong push, pull request và trạng thái hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-002
+    title: Phân biệt nhánh nguồn, nhánh đích, ref và commit SHA của từng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-003
+    title: pull_request_target và ranh giới tin cậy khác với pull_request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-004
+    title: Pull request từ fork và điều kiện cấp quyền, secrets hoặc phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-005
+    title: Kết nối kết quả CI với required status checks
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-006
+    title: Tác động của bộ lọc đường dẫn và tên job đến kiểm tra bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-007
+    title: Ngăn quy trình kiểm tra mã chưa tin cậy dùng quyền phát hành hoặc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-pull-requests-008
+    title: Thiết kế luồng kiểm tra, hợp nhất và phát hành cho các nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runners
+  title: Runner
+  childs:
+  - slug: runners-001
+    title: Runner do GitHub cung cấp và runner tự quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-002
+    title: Lựa chọn hệ điều hành, kiến trúc và nhãn runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-003
+    title: Quan hệ giữa runner image, công cụ có sẵn và tính ổn định của môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-004
+    title: Vòng đời máy chạy và dữ liệu còn lại sau job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-005
+    title: Cài đặt, đăng ký, cập nhật và thu hồi runner tự quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-006
+    title: Runner group và phạm vi repository được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-007
+    title: Runner dùng ngắn hạn và yêu cầu dọn dẹp sau thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-008
+    title: Khả năng mở rộng, giới hạn tài nguyên và công việc chờ runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runners-009
+    title: Rủi ro chạy mã không tin cậy trên hạ tầng có quyền hoặc dữ liệu nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: steps-shells
+  title: Step và shell
+  childs:
+  - slug: steps-shells-001
+    title: Chọn shell cho Linux, macOS và Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-002
+    title: working-directory và đường dẫn file trên các hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-003
+    title: Mã thoát, lỗi lệnh và cách step được xác định thành công hoặc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-004
+    title: Chế độ xử lý lỗi và đường ống lệnh trong shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-005
+    title: Phân biệt nội suy expression với mở rộng biến của shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-006
+    title: Truyền tham số, trích dẫn và xử lý dữ liệu có khoảng trắng hoặc ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-007
+    title: Không phụ thuộc biến hoặc tiến trình shell tự tồn tại qua các step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: steps-shells-008
+    title: Thu dọn tài nguyên và giới hạn của lệnh nền trong môi trường CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: contexts-expressions
+  title: Context và expression
+  childs:
+  - slug: contexts-expressions-001
+    title: Vai trò github, runner, job, steps, needs, matrix, env, vars và secrets
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-002
+    title: Phân biệt thời điểm nền tảng đánh giá expression với lúc runner chạy lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-003
+    title: Cú pháp tham chiếu giá trị và phép toán trong expression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-004
+    title: Kiểu chuỗi, số, boolean, null và chuyển đổi kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-005
+    title: contains, startsWith, endsWith và format trong điều kiện workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-006
+    title: toJSON và fromJSON khi truyền cấu trúc hoặc khai báo matrix động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-007
+    title: hashFiles trong tính khóa và kiểm tra thay đổi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-008
+    title: Phạm vi context được phép dùng tại từng khóa cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: contexts-expressions-009
+    title: Không đưa dữ liệu nhạy cảm vào log khi kiểm tra giá trị context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-transfer
+  title: Truyền dữ liệu
+  childs:
+  - slug: data-transfer-001
+    title: Phân biệt biến môi trường, input, output và file artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-002
+    title: Phạm vi env ở mức workflow, job và step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-003
+    title: GITHUB_ENV để cung cấp biến cho các step tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-004
+    title: GITHUB_OUTPUT và định danh step khi xuất kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-005
+    title: Job outputs và truy cập dữ liệu từ job phụ thuộc qua needs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-006
+    title: GITHUB_PATH và việc bổ sung công cụ vào đường dẫn thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-007
+    title: Truyền chuỗi nhiều dòng và dữ liệu có cấu trúc an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-008
+    title: Kiểu boolean trong inputs và github.event.inputs khi chạy thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-009
+    title: Kiểm soát kích thước, dữ liệu nhạy cảm và giá trị vắng mặt khi truyền output
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-transfer-010
+    title: GITHUB_STEP_SUMMARY để viết báo cáo Markdown cho lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditions-dependencies
+  title: Điều kiện và phụ thuộc
+  childs:
+  - slug: conditions-dependencies-001
+    title: needs và đồ thị phụ thuộc giữa các job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-002
+    title: if ở mức job và step để lựa chọn nhánh xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-003
+    title: success, failure, cancelled và always trong điều kiện trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-004
+    title: Phân biệt job bị bỏ qua, job bị hủy và job thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-005
+    title: continue-on-error và tác động đến quyết định của bước sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-006
+    title: Phân biệt outcome và conclusion của step
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-007
+    title: Thiết kế job tổng hợp kết quả khi các nhánh có trạng thái khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-dependencies-008
+    title: Chọn điều kiện cho báo cáo, thông báo và dọn dẹp mà không che mất lỗi chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: matrix
+  title: Matrix
+  childs:
+  - slug: matrix-001
+    title: Nhân các cấu hình kiểm tra theo phiên bản công cụ hoặc hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-002
+    title: Các chiều matrix và khả năng kết hợp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-003
+    title: include và exclude để bổ sung hoặc loại bỏ tổ hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-004
+    title: fail-fast và ảnh hưởng của lỗi một nhánh đến các nhánh khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-005
+    title: max-parallel và giới hạn mức thực thi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-006
+    title: Matrix động từ output có cấu trúc của job trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-007
+    title: Đặt tên, artifact và output để tránh xung đột giữa các nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matrix-008
+    title: Cân bằng độ bao phủ kiểm tra với thời gian và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-dependencies
+  title: Công cụ và dependency
+  childs:
+  - slug: tools-dependencies-001
+    title: Checkout mã nguồn và lựa chọn độ sâu lịch sử cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-002
+    title: Lựa chọn ref rõ ràng khi lấy mã từ repository khác hoặc lần chạy khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-003
+    title: Thiết lập JDK, Node.js, Python hoặc công cụ theo nhu cầu dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-004
+    title: Dùng wrapper và lockfile để giảm khác biệt giữa máy phát triển với CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-005
+    title: Cố định đầu vào build và kiểm soát dependency tải từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-006
+    title: Xác thực với package registry mà không lưu thông tin bí mật trong repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-007
+    title: Phân biệt công cụ có sẵn trong runner image với công cụ do workflow cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-dependencies-008
+    title: Kiểm tra phiên bản và chẩn đoán lỗi môi trường trước khi chạy build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-checks
+  title: Kiểm tra chất lượng
+  childs:
+  - slug: quality-checks-001
+    title: Chạy lint, định dạng, phân tích tĩnh và kiểm tra kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-002
+    title: Tách kiểm thử đơn vị, tích hợp và đầu cuối theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-003
+    title: Chuẩn bị dữ liệu, dịch vụ phụ thuộc và trạng thái kiểm thử cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-004
+    title: Tạo báo cáo kết quả và coverage để phục vụ người đọc pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-005
+    title: Giữ log và bằng chứng khi kiểm thử thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-006
+    title: Phân biệt lỗi sản phẩm với kiểm thử không ổn định hoặc sự cố hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-007
+    title: Thiết kế cổng chất lượng trước đóng gói, phát hành và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-checks-008
+    title: Kiểm tra đầu ra build thay vì chỉ dựa vào mã thoát của lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifacts
+  title: Artifact
+  childs:
+  - slug: artifacts-001
+    title: Vai trò artifact trong bàn giao file giữa job và lưu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-002
+    title: Phân biệt artifact của lần chạy với release asset và package registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-003
+    title: Chọn nội dung upload và loại bỏ bí mật hoặc file không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-004
+    title: Đặt tên artifact theo module, nền tảng hoặc nhánh matrix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-005
+    title: Tải đúng artifact theo lần chạy và phạm vi truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-006
+    title: Xác minh nội dung và digest trước khi dùng cho bước bàn giao tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-007
+    title: Thời hạn lưu, dung lượng và cách tra cứu giới hạn đang áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-008
+    title: Liên kết artifact với commit, metadata build và kết quả kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-009
+    title: Build một lần và sử dụng lại đúng đầu ra đã được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifacts-010
+    title: GitHub artifact attestations và việc tạo, xác minh bằng chứng nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching
+  title: Cache
+  childs:
+  - slug: caching-001
+    title: Mục đích cache và khác biệt với artifact chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-002
+    title: Thiết kế cache key từ hệ điều hành, công cụ và dependency lockfile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-003
+    title: Khóa khôi phục dự phòng và rủi ro lấy dữ liệu không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-004
+    title: Phạm vi truy cập cache theo repository, nhánh và ngữ cảnh sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-005
+    title: Phân biệt cache hit, cache miss và cache khôi phục một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-006
+    title: Chọn cache dependency thay vì vô tình lưu dữ liệu bí mật hoặc trạng thái lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-007
+    title: Đo hiệu quả cache và kiểm soát dung lượng, thời hạn, thay đổi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-008
+    title: Không lấy cache làm nguồn duy nhất để khôi phục artifact phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: variables-secrets
+  title: Biến và secrets
+  childs:
+  - slug: variables-secrets-001
+    title: Phân biệt cấu hình không nhạy cảm với thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-002
+    title: Phạm vi biến và secrets ở mức tổ chức, repository và environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-003
+    title: Quan hệ ưu tiên cấu hình và cách tránh tên trùng gây nhầm lẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-004
+    title: Cấp secrets cho đúng job và đúng action cần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-005
+    title: Giới hạn của che giá trị trong log và nguy cơ lộ qua dữ liệu biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-006
+    title: Quản lý bí mật nhiều dòng hoặc file chứng thực mà không lưu dấu vết ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-007
+    title: Luân chuyển, thu hồi và kiểm tra quyền sử dụng secrets
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-008
+    title: Kiểm tra dữ liệu đầu vào trước khi dùng làm tên môi trường hoặc tham số triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: variables-secrets-009
+    title: Phân biệt quản lý secrets với việc tin cậy mã đang được thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tokens-permissions
+  title: Token và quyền
+  childs:
+  - slug: tokens-permissions-001
+    title: GITHUB_TOKEN và danh tính được cấp cho một lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-002
+    title: permissions ở mức workflow và job theo nguyên tắc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-003
+    title: Phân biệt quyền đọc nội dung, ghi nội dung, quản lý action và công bố package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-004
+    title: Quyền mặc định, chính sách tổ chức và cách khai báo yêu cầu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-005
+    title: Giới hạn truy cập repository khác và các nguồn ngoài phạm vi token hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-006
+    title: Khi cân nhắc GitHub App token hoặc personal access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-007
+    title: Thời hạn, phạm vi và chủ sở hữu khi quản lý token tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-008
+    title: Quy tắc kích hoạt workflow từ thao tác được thực hiện bằng GITHUB_TOKEN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-permissions-009
+    title: Không nhầm quyền của token với quyền người bấm chạy hoặc quyền hệ thống trên runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oidc
+  title: OIDC
+  childs:
+  - slug: oidc-001
+    title: Vấn đề của thông tin xác thực đám mây tồn tại dài hạn trong CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-002
+    title: OpenID Connect và trao đổi danh tính workflow lấy quyền truy cập ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-003
+    title: 'Vai trò của id-token: write trong việc yêu cầu token định danh OIDC'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-004
+    title: Phân biệt được cấp OIDC token với được cấp quyền thao tác tài nguyên đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-005
+    title: Ràng buộc chính sách tin cậy theo repository, ref, environment và audience
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-006
+    title: Giới hạn quyền đám mây cho đúng nhiệm vụ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oidc-007
+    title: Chẩn đoán lỗi khớp danh tính, chính sách tin cậy hoặc quyền tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-security
+  title: An toàn workflow
+  childs:
+  - slug: workflow-security-001
+    title: Xác định ranh giới tin cậy giữa sự kiện, mã nguồn, action và runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-002
+    title: Ngăn chèn lệnh khi dùng tiêu đề, nhánh hoặc nội dung pull request trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-003
+    title: Truyền dữ liệu chưa tin cậy qua biến thay vì ghép trực tiếp thành mã lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-004
+    title: Rủi ro checkout và thực thi mã từ pull request trong ngữ cảnh có quyền cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-005
+    title: Ranh giới quyền khi workflow_run nhận artifact hoặc dữ liệu từ workflow khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-006
+    title: Cố định action theo commit phù hợp và quản lý cập nhật dependency workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-007
+    title: Đánh giá action bên thứ ba và các quyền hoặc dữ liệu được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-008
+    title: Ngăn lạm dụng cache, artifact và output để đưa dữ liệu không tin cậy vào job đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-009
+    title: Bảo vệ thông tin xác thực checkout và kênh truy cập mạng của runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-security-010
+    title: Đánh giá rủi ro từ fork, mã đóng góp bên ngoài và runner tự quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: containers-services
+  title: Container và service
+  childs:
+  - slug: containers-services-001
+    title: Job chạy trực tiếp trên runner và job chạy trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-services-002
+    title: Chuẩn bị service container cho cơ sở dữ liệu hoặc dịch vụ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-services-003
+    title: Khác biệt địa chỉ kết nối khi job chạy trên runner hoặc bên trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-services-004
+    title: Kiểm tra dịch vụ sẵn sàng trước khi bắt đầu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-services-005
+    title: Truyền cấu hình, cổng và volume trong phạm vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-services-006
+    title: Xác thực khi lấy image riêng và kiểm soát nguồn image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-services-007
+    title: Giới hạn nền tảng, quyền thực thi và điều kiện hạ tầng khi dùng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reusable-workflows
+  title: Workflow tái sử dụng
+  childs:
+  - slug: reusable-workflows-001
+    title: workflow_call và thiết kế hợp đồng gọi workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-002
+    title: Khai báo input có kiểu và giá trị mặc định rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-003
+    title: Truyền secrets tường minh và đánh giá phạm vi của cơ chế kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-004
+    title: Trả output từ workflow được gọi cho workflow gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-005
+    title: Quyền token và ranh giới tin cậy khi gọi workflow khác repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-006
+    title: Gọi workflow bằng ref hoặc commit và quản lý phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-007
+    title: Tái sử dụng kết hợp matrix và kiểm soát dữ liệu đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-008
+    title: Giới hạn và độ phức tạp khi nhiều workflow gọi lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reusable-workflows-009
+    title: Tách phần dùng chung khỏi chính sách riêng của repository hoặc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-actions
+  title: Action tùy chỉnh
+  childs:
+  - slug: custom-actions-001
+    title: Phân biệt reusable workflow với custom action
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-002
+    title: Composite action để đóng gói chuỗi step dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-003
+    title: JavaScript action và quan hệ với runtime thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-004
+    title: Docker action và yêu cầu môi trường chạy tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-005
+    title: action.yml, input, output và metadata của action
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-006
+    title: Quản lý dependency, file phân phối và kiểm tra action trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-007
+    title: Thiết kế hợp đồng lỗi và log cho bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-008
+    title: Phiên bản action, tag tham chiếu và bảo toàn khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-actions-009
+    title: Chọn action cục bộ hoặc action dùng chung giữa nhiều repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments
+  title: Environment
+  childs:
+  - slug: environments-001
+    title: Environment là ranh giới quản lý cấu hình và kiểm soát triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-002
+    title: Environment secrets và quyền tiếp cận theo job triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-003
+    title: Cổng phê duyệt, thời gian chờ và các cơ chế bảo vệ được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-004
+    title: Giới hạn nhánh hoặc tag được phép triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-005
+    title: Liên kết environment với deployment và URL môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-006
+    title: Thiết kế môi trường thử nghiệm, staging và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-007
+    title: Xử lý phê duyệt hết hạn, bị từ chối hoặc workflow bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-008
+    title: Đối chiếu khả năng environment với gói dịch vụ và chính sách đang áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment
+  title: Triển khai
+  childs:
+  - slug: deployment-001
+    title: Tách kiểm tra mã, tạo artifact và triển khai thành các trách nhiệm rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-002
+    title: Triển khai đúng artifact và commit đã vượt qua các kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-003
+    title: Tách cấu hình môi trường khỏi nội dung build khi thiết kế cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-004
+    title: Xác thực nền tảng đích bằng danh tính và quyền phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-005
+    title: Kiểm tra trước triển khai và xác minh tình trạng sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-006
+    title: Phân biệt job triển khai thành công với sản phẩm thực tế hoạt động đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-007
+    title: Quay lui bằng artifact đã lưu và đánh giá tương thích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-008
+    title: Lựa chọn rolling, blue-green hoặc canary theo khả năng nền tảng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: releases-versioning
+  title: Release và phiên bản
+  childs:
+  - slug: releases-versioning-001
+    title: Liên kết tag, phiên bản phần mềm, commit và nội dung phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-002
+    title: Thiết kế luồng tạo release theo thao tác thủ công hoặc quy tắc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-003
+    title: Tạo ghi chú phát hành từ dữ liệu thay đổi được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-004
+    title: Công bố release asset và package với quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-005
+    title: Đảm bảo bản phát hành có đủ thành phần trước khi công bố hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-006
+    title: Quản lý checksum, bản kê thành phần phần mềm (SBOM) và bằng chứng nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-007
+    title: Chống phát hành trùng và xử lý lần chạy lại mà không ghi đè ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-008
+    title: Thu hồi bản lỗi và phát hành bản thay thế có thể truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-versioning-009
+    title: Build image, gắn tag và công bố lên GHCR hoặc registry được cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-cancellation
+  title: Đồng thời và hủy
+  childs:
+  - slug: concurrency-cancellation-001
+    title: concurrency group ở mức workflow và job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-002
+    title: Đặt khóa nhóm theo nhánh, môi trường, module hoặc tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-003
+    title: cancel-in-progress và trường hợp được phép hủy lần chạy cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-004
+    title: Thứ tự xử lý và giới hạn bảo đảm của concurrency group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-005
+    title: Phân biệt giới hạn đồng thời với chống lặp và xếp hàng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-006
+    title: timeout-minutes cho job hoặc step theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-007
+    title: Hệ quả của hủy giữa upload, cập nhật trạng thái hoặc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-cancellation-008
+    title: Thiết kế tác vụ có thể chạy lại an toàn và phục hồi sau khi bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monorepos-multirepos
+  title: Monorepo và liên kho
+  childs:
+  - slug: monorepos-multirepos-001
+    title: Xác định phần bị ảnh hưởng trong repository có nhiều module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monorepos-multirepos-002
+    title: Tạo matrix theo danh sách module cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monorepos-multirepos-003
+    title: Quản lý bộ lọc đường dẫn mà không làm mất kiểm tra bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monorepos-multirepos-004
+    title: Chia sẻ workflow giữa các repository có chủ sở hữu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monorepos-multirepos-005
+    title: Kết nối hai repository bằng repository_dispatch với dữ liệu có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monorepos-multirepos-006
+    title: Truyền commit, phiên bản và digest để chống tiêu thụ đầu ra sai nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monorepos-multirepos-007
+    title: Thiết kế quy trình liên kho có thể truy vết, chống gửi trùng và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debugging
+  title: Gỡ lỗi
+  childs:
+  - slug: debugging-001
+    title: Đọc đồ thị workflow và xác định job đầu tiên gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-002
+    title: Đọc log theo nhóm, step và mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-003
+    title: Tạo annotation và job summary để hiển thị thông tin hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-004
+    title: Bật chế độ debug có kiểm soát và tránh lộ secrets
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-005
+    title: Phân biệt lỗi kích hoạt, lỗi phân lịch, lỗi quyền và lỗi lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-006
+    title: Điều tra lỗi context rỗng, output thiếu hoặc điều kiện làm job bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-007
+    title: Chạy lại toàn bộ, job thất bại hoặc job cụ thể và đánh giá tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-008
+    title: Truy vết artifact, cache và ref của đúng lần chạy cần điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-009
+    title: Xác định trường hợp cần kiểm tra trạng thái dịch vụ GitHub hoặc nền tảng ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-performance
+  title: Chi phí và hiệu năng
+  childs:
+  - slug: cost-performance-001
+    title: Đo tổng thời gian pipeline, thời gian chờ và đường phụ thuộc dài nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-002
+    title: Tối ưu phạm vi checkout, cài dependency và khởi tạo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-003
+    title: Cân bằng chia job song song với chi phí chuẩn bị runner lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-004
+    title: Đo hiệu quả cache và tránh tối ưu dựa trên giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-005
+    title: Giới hạn matrix, thời gian chạy và mức tiêu thụ của tác vụ không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-006
+    title: Quản lý dung lượng artifact, cache và lưu lượng truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-007
+    title: Tra cứu hạn mức, cách tính chi phí và chính sách theo tài khoản thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-performance-008
+    title: Theo dõi xu hướng để phát hiện job chậm hoặc chạy trùng ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance
+  title: Quản trị
+  childs:
+  - slug: governance-001
+    title: Chuẩn hóa workflow dùng chung và xác định chủ sở hữu bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-002
+    title: Kiểm soát thay đổi file workflow bằng quy trình review phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-003
+    title: Chính sách action được phép dùng và nguồn workflow tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-004
+    title: Quản lý cập nhật action, runtime và runner image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-005
+    title: Phân tách quyền quản trị runner, secrets và quy trình production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-006
+    title: Giữ nhật ký thay đổi và bằng chứng phê duyệt khi cần kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-007
+    title: Đặt nguyên tắc xử lý ngoại lệ mà không biến workflow thành hệ thống khó vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-testing
+  title: Kiểm thử workflow
+  childs:
+  - slug: workflow-testing-001
+    title: Kiểm tra cú pháp, schema và lỗi tham chiếu trước khi chạy thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-testing-002
+    title: Kiểm thử script và action riêng khỏi hạ tầng workflow khi có thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-testing-003
+    title: Dùng nhánh hoặc môi trường thử nghiệm để kiểm chứng quyền và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-testing-004
+    title: Giới hạn của công cụ mô phỏng cục bộ so với runner thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-testing-005
+    title: Kiểm thử dữ liệu đầu vào có kiểu sai, thiếu hoặc chứa ký tự đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-testing-006
+    title: Kiểm thử lần chạy lại, hủy giữa chừng và hai lần chạy tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-testing-007
+    title: Kiểm thử đường thất bại và bảo đảm bước sau không công bố đầu ra chưa đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-labs
+  title: Thực hành
+  childs:
+  - slug: hands-on-labs-001
+    title: Tạo workflow kiểm tra một dự án nhỏ khi push và mở pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-002
+    title: Bổ sung matrix theo phiên bản công cụ và hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-003
+    title: Tách build, test và đóng gói bằng output và artifact rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-004
+    title: Tối ưu dependency cache và đo lại thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-005
+    title: Tạo service container cho một bài kiểm thử tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-006
+    title: Trích phần dùng chung thành composite action và reusable workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-007
+    title: Thiết lập phát hành thủ công có input, permissions và chống trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-008
+    title: Thiết kế luồng staging đến production có phê duyệt và kiểm tra sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-009
+    title: Mô phỏng input không tin cậy, timeout và hủy workflow để kiểm tra khả năng bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-010
+    title: Xây dựng quy trình liên kho truyền đúng commit và digest của artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-011
+    title: Viết hướng dẫn điều tra một pipeline lỗi dựa trên log và bằng chứng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-criteria
+  title: Tiêu chí thiết kế
+  childs:
+  - slug: design-criteria-001
+    title: Kiểm tra trigger có khớp mục tiêu và nguồn mã được phép thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-criteria-002
+    title: Giữ hợp đồng giữa job, workflow và artifact rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-criteria-003
+    title: Rà soát quyền, secrets và ranh giới tin cậy trước khi mở rộng tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-criteria-004
+    title: Đánh giá khả năng chạy lại, hủy và phục hồi tác vụ có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-criteria-005
+    title: Cân bằng tái sử dụng với khả năng đọc và chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-criteria-006
+    title: Kiểm tra bằng chứng kiểm thử và triển khai thay vì chỉ xem trạng thái xanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-criteria-007
+    title: Tổng hợp tiêu chí cho pipeline dễ bảo trì và các chủ đề cần học sâu thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

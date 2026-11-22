@@ -1,0 +1,388 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Máy chủ ứng dụng (application server) là gì và giải quyết bài toán nào
+  - Vai trò cung cấp môi trường thực thi và dịch vụ nền tảng cho ứng dụng
+  - 'Các khái niệm nền tảng: server, container, thành phần và tài nguyên'
+  - Quan hệ giữa mã ứng dụng, JVM, máy chủ ứng dụng và hệ điều hành
+  - Luồng minh họa từ yêu cầu người dùng đến nghiệp vụ và cơ sở dữ liệu
+  - Trách nhiệm của ứng dụng và trách nhiệm của máy chủ
+  - Lợi ích, chi phí và giới hạn của việc dùng máy chủ ứng dụng
+  - Lộ trình học và kiến thức cần chuẩn bị
+- level1: Phân biệt runtime
+  level2:
+  - Web server và nhiệm vụ xử lý HTTP hoặc nội dung tĩnh
+  - Servlet container và phạm vi quản lý ứng dụng web Java
+  - Máy chủ ứng dụng và tập dịch vụ doanh nghiệp được cung cấp
+  - Phân biệt máy chủ phần mềm, máy chủ vật lý và một tiến trình chạy
+  - Reverse proxy, API Gateway và vị trí trước máy chủ ứng dụng
+  - Runtime nhúng và máy chủ cài đặt độc lập
+  - Executable JAR, WAR và EAR trong các mô hình vận hành
+  - Tránh đồng nhất mọi ứng dụng Spring Boot hoặc servlet container với full application server
+- level1: Kiến trúc máy chủ
+  level2:
+  - Nhân máy chủ, hệ thống mô-đun và các dịch vụ mở rộng
+  - Tầng tiếp nhận kết nối và bộ xử lý giao thức
+  - Các container quản lý thành phần theo mô hình lập trình
+  - Bộ quản lý triển khai và kho ứng dụng
+  - Bộ quản lý giao dịch, dữ liệu, nhắn tin và bảo mật
+  - Hệ thống đặt tên và tra cứu tài nguyên JNDI
+  - Cấu hình, giao diện quản trị và mặt phẳng quản lý
+  - Thread pool, connection pool và tài nguyên được chia sẻ
+  - Ranh giới giữa cấu hình toàn máy chủ và cấu hình từng ứng dụng
+- level1: Nền tảng Jakarta EE
+  level2:
+  - Phân biệt đặc tả, API, bản triển khai và sản phẩm máy chủ
+  - Quan hệ lịch sử giữa J2EE, Java EE và Jakarta EE
+  - Vai trò của Servlet, REST và công nghệ web trong nền tảng
+  - CDI, Enterprise Beans và mô hình thành phần được quản lý
+  - Persistence, Transactions và tích hợp tài nguyên
+  - Messaging và xử lý thông điệp doanh nghiệp
+  - Phạm vi Full Platform, Web Profile hoặc Core Profile theo phiên bản
+  - Đọc yêu cầu chuẩn và xác minh tính năng thực tế của sản phẩm
+- level1: Tương thích nền tảng
+  level2:
+  - Ma trận giữa phiên bản Java, nền tảng Jakarta EE và máy chủ
+  - Ý nghĩa của chứng nhận tương thích và giới hạn suy luận từ chứng nhận
+  - Chuyển đổi namespace javax và jakarta theo từng API
+  - Không đồng nhất mọi package javax với API cần đổi tên
+  - Tương thích thư viện ứng dụng với API do máy chủ cung cấp
+  - Phân biệt dùng API chuẩn với dùng phần mở rộng riêng của nhà cung cấp
+  - Khác biệt về tính di động của mã, cấu hình và dữ liệu vận hành
+  - Chính sách hỗ trợ phiên bản và kiểm chứng trước khi nâng cấp
+- level1: Miền quản trị
+  level2:
+  - Phân biệt bản cài, cấu hình, tiến trình và thể hiện máy chủ
+  - Chạy một máy chủ độc lập hoặc quản lý nhiều máy chủ tập trung
+  - Khái niệm domain, cell hoặc nhóm máy chủ tùy sản phẩm
+  - Vai trò của bộ điều khiển quản trị và máy chủ phục vụ ứng dụng
+  - Cấu hình dùng chung và cấu hình riêng từng thể hiện
+  - Phân bố ứng dụng trên một hoặc nhiều JVM
+  - Phạm vi lỗi khi nhiều ứng dụng chia sẻ cùng tiến trình
+  - Thiết kế môi trường phát triển, kiểm thử và production
+- level1: Gói triển khai
+  level2:
+  - Cấu trúc WAR và thành phần ứng dụng web
+  - EJB JAR và phạm vi thành phần đóng gói
+  - EAR như đơn vị gom các mô-đun ứng dụng doanh nghiệp
+  - Thư viện dùng chung trong ứng dụng và thư viện toàn máy chủ
+  - Deployment descriptor chuẩn và cấu hình riêng của sản phẩm
+  - Annotation, descriptor và cách xác định cấu hình hiệu lực
+  - API provided và nguy cơ đóng gói trùng thư viện nền tảng
+  - Context root, tên ứng dụng và định danh mô-đun
+  - Triển khai gói nén hoặc thư mục đã giải nén
+  - Kiểm tra nội dung và phụ thuộc trước khi triển khai
+- level1: Nạp lớp và cô lập
+  level2:
+  - Cây ClassLoader và quyền sở hữu lớp trong máy chủ
+  - Phân biệt lớp nền tảng, lớp máy chủ và lớp ứng dụng
+  - Quy tắc ủy quyền và cơ chế nạp lớp riêng của sản phẩm
+  - Cô lập giữa ứng dụng và chia sẻ thư viện có chủ đích
+  - Định danh kiểu khi cùng tên lớp được nạp nhiều lần
+  - Xung đột phiên bản và lỗi liên kết thư viện
+  - Tra cứu tài nguyên và ServiceLoader trong môi trường container
+  - Thread context ClassLoader và mã tích hợp thư viện
+  - Rò rỉ ClassLoader do luồng, cache hoặc tham chiếu còn giữ
+  - Giới hạn cô lập trong cùng JVM so với tách tiến trình
+- level1: Vòng đời ứng dụng
+  level2:
+  - Các bước tiếp nhận, phân tích và xác thực gói triển khai
+  - Phân giải phụ thuộc và dựng môi trường thành phần
+  - Khởi tạo thành phần và liên kết tài nguyên
+  - Ứng dụng được triển khai thành công và ứng dụng sẵn sàng phục vụ
+  - Thứ tự khởi tạo và quản lý phụ thuộc giữa các mô-đun
+  - Undeploy, redeploy và ảnh hưởng đến yêu cầu đang xử lý
+  - Thu hồi tài nguyên khi dừng ứng dụng
+  - Xử lý triển khai thất bại một phần và khôi phục trạng thái
+  - Hot deployment và giới hạn khi dùng trong production
+- level1: Luồng yêu cầu web
+  level2:
+  - Từ socket, connector và listener đến ứng dụng đích
+  - Virtual host, context root và ánh xạ đường dẫn
+  - Filter, interceptor và chuỗi xử lý yêu cầu
+  - Phạm vi request, session và application
+  - Điều phối đến servlet, tài nguyên REST hoặc thành phần nghiệp vụ
+  - Xác thực, phân quyền và ngữ cảnh giao dịch trên đường đi
+  - Xử lý đồng bộ, bất đồng bộ và quyền sở hữu luồng
+  - Giới hạn kích thước, timeout và xử lý lỗi giao thức
+  - Kết thúc phản hồi và giải phóng tài nguyên gắn với yêu cầu
+- level1: Thành phần được quản lý
+  level2:
+  - Khác biệt giữa đối tượng do ứng dụng tạo và thành phần do container quản lý
+  - CDI và cơ chế tìm, chọn, tiêm phụ thuộc
+  - Scope, ngữ cảnh sống và vòng đời bean
+  - Producer, disposer và tích hợp tài nguyên bên ngoài
+  - Interceptor, decorator và các hành vi cắt ngang
+  - Sự kiện CDI và phạm vi sử dụng bên trong ứng dụng
+  - Callback khởi tạo, hủy và quản lý tài nguyên
+  - Proxy, tham chiếu bean và hành vi khi gọi phương thức
+  - Lỗi không tìm thấy bean, nhiều ứng viên hoặc scope không phù hợp
+- level1: Enterprise Beans
+  level2:
+  - Vai trò của Enterprise Beans trong mô hình ứng dụng doanh nghiệp
+  - Stateless, stateful và singleton session bean
+  - Message-driven bean trong xử lý thông điệp
+  - Giao diện local, remote và đánh đổi của lời gọi từ xa
+  - Quản lý vòng đời, pooling và trạng thái thành phần
+  - Ngữ nghĩa đồng thời và truy cập singleton
+  - Giao dịch, bảo mật, lời gọi bất đồng bộ và timer theo khả năng hỗ trợ
+  - Điều kiện sử dụng Enterprise Beans hoặc mô hình thành phần khác
+- level1: Truy cập dữ liệu
+  level2:
+  - Vai trò Jakarta Persistence và ORM trong máy chủ ứng dụng
+  - Persistence unit và cấu hình nguồn dữ liệu
+  - EntityManager do container quản lý hoặc do ứng dụng tạo
+  - Persistence context gắn giao dịch và persistence context mở rộng
+  - Quan hệ giữa EntityManager, transaction và connection
+  - Lazy loading, detached entity và ranh giới sử dụng dữ liệu
+  - Truy cập đồng thời và vòng đời đối tượng persistence
+  - Migration lược đồ và trách nhiệm giữa ứng dụng với vận hành
+  - Quan sát truy vấn và phát hiện vấn đề truy cập dữ liệu
+- level1: Kết nối tài nguyên
+  level2:
+  - Cấu hình DataSource và công bố tài nguyên qua JNDI
+  - Resource injection và tra cứu tài nguyên từ ứng dụng
+  - Connection pool và các trạng thái của kết nối
+  - Giới hạn pool, thời gian chờ và cấp phát kết nối
+  - Kiểm tra kết nối, loại bỏ kết nối hỏng và phục hồi
+  - Rò rỉ kết nối và phát hiện tài nguyên không được hoàn trả
+  - Driver JDBC, thông tin xác thực và thư viện của máy chủ
+  - Jakarta Connectors (JCA) và tích hợp hệ thống doanh nghiệp
+  - Phân biệt tài nguyên cục bộ, dùng chung và tham gia giao dịch
+- level1: Giao dịch
+  level2:
+  - Jakarta Transactions và vai trò bộ quản lý giao dịch
+  - Ranh giới giao dịch trong lời gọi thành phần
+  - Giao dịch do container quản lý và do thành phần tự quản lý
+  - Thuộc tính truyền giao dịch và ảnh hưởng khi gọi lồng nhau
+  - Rollback, timeout và cách xử lý ngoại lệ
+  - Phân biệt giao dịch một tài nguyên với giao dịch XA
+  - Two-phase commit và phối hợp cơ sở dữ liệu với messaging
+  - Nhật ký giao dịch, định danh nút và phục hồi sau lỗi
+  - Heuristic outcome và kết quả chưa xác định khi có sự cố
+  - Giới hạn giao dịch phân tán và lựa chọn bù trừ hoặc Outbox
+- level1: Nhắn tin
+  level2:
+  - Jakarta Messaging và vai trò broker hoặc messaging provider
+  - Queue, topic và mô hình gửi nhận
+  - Connection factory, destination và khai báo tài nguyên
+  - Message-driven bean và vòng đời tiếp nhận thông điệp
+  - Xác nhận, giao dịch và thời điểm hoàn tất xử lý
+  - Gửi lại, thông điệp lỗi và hàng đợi xử lý thất bại
+  - Độ bền thông điệp, đăng ký bền vững và phạm vi bảo đảm
+  - Xử lý lặp an toàn và giới hạn về thứ tự
+  - Giám sát tốc độ xử lý, backlog và áp lực ngược
+- level1: Bảo mật ứng dụng
+  level2:
+  - Phân biệt xác thực, phân quyền và kiểm toán
+  - Miền danh tính, kho người dùng và ánh xạ nhóm quyền
+  - Vai trò logic trong ứng dụng và vai trò cấu hình trên máy chủ
+  - Bảo mật khai báo và kiểm tra quyền bằng mã
+  - Truyền danh tính giữa tầng web và thành phần nghiệp vụ
+  - Tích hợp cơ chế đăng nhập hoặc nhà cung cấp danh tính bên ngoài
+  - SSO, token và vòng đời phiên xác thực theo khả năng sản phẩm
+  - Bảo vệ giao tiếp bằng TLS và quản lý chứng chỉ
+  - Phân quyền tài nguyên dữ liệu và messaging
+  - Ngăn rò rỉ thông tin nhạy cảm trong lỗi và nhật ký
+- level1: Tác vụ và luồng
+  level2:
+  - Quyền sở hữu luồng giữa container và mã ứng dụng
+  - ManagedExecutorService và tác vụ được runtime quản lý
+  - Tác vụ theo lịch và managed scheduled executor
+  - Timer service và phân biệt lịch chạy với công việc phân tán
+  - Truyền ngữ cảnh bảo mật, nạp lớp và thông tin ứng dụng
+  - Không suy diễn rằng giao dịch tự truyền sang mọi tác vụ bất đồng bộ
+  - Giới hạn hàng đợi, số luồng và xử lý từ chối tác vụ
+  - Điều kiện hỗ trợ virtual thread và giới hạn tích hợp theo runtime
+  - Hủy tác vụ và thu hồi tài nguyên khi undeploy
+- level1: Session và trạng thái
+  level2:
+  - Trạng thái trong bộ nhớ, trạng thái phiên và trạng thái bền vững
+  - HTTP session và phạm vi tồn tại trong một máy chủ
+  - Sticky session và lý do cần định tuyến nhất quán
+  - Sao chép session và các yêu cầu đối với dữ liệu phiên
+  - Kho session ngoài và đánh đổi về độ trễ, nhất quán
+  - Stateful bean, passivation và activation theo mô hình hỗ trợ
+  - Ảnh hưởng của redeploy hoặc đổi phiên bản đến dữ liệu phiên
+  - Giới hạn mất dữ liệu khi một nút ngừng đột ngột
+  - Thiết kế giảm trạng thái cục bộ để thuận lợi nhân bản
+- level1: Cụm và cân bằng tải
+  level2:
+  - Phân biệt cụm quản trị với cụm phục vụ và tính sẵn sàng cao
+  - Nhiều thể hiện máy chủ và phân bố trên nhiều JVM hoặc máy
+  - Khám phá thành viên và giao tiếp giữa các nút
+  - Cân bằng tải HTTP và điều kiện đánh dấu nút khỏe mạnh
+  - Định tuyến phiên và chuyển yêu cầu khi nút lỗi
+  - Định tuyến lời gọi remote hoặc messaging theo khả năng sản phẩm
+  - Tránh nhiều nút cùng thực hiện một tác vụ duy nhất
+  - Phân hoạch mạng, split-brain và giới hạn bảo đảm của cụm
+  - Kiểm chứng failover bằng lỗi thực tế thay vì chỉ kiểm tra cấu hình
+- level1: Cấu hình máy chủ
+  level2:
+  - Tách cấu hình máy chủ, ứng dụng và môi trường
+  - Tệp cấu hình, CLI, giao diện web và API quản trị
+  - Thuộc tính, biến môi trường và xác định giá trị hiệu lực
+  - Cấu hình listener, cổng, virtual host và context root
+  - Khai báo tài nguyên dữ liệu, messaging và bảo mật
+  - Thay đổi có hiệu lực ngay hoặc cần reload, restart
+  - Quản lý cấu hình theo phiên bản và phát hiện sai lệch
+  - Bảo vệ bí mật và cấp quyền đọc cấu hình
+  - Sao lưu cấu hình và kiểm tra khả năng dựng lại máy chủ
+  - Phân biệt thiết lập dùng chung với ghi đè từng thể hiện
+- level1: Triển khai production
+  level2:
+  - Quy trình kiểm tra, triển khai và xác nhận ứng dụng
+  - Triển khai qua công cụ quản trị hoặc pipeline tự động
+  - Rolling update, blue-green và chuyển lưu lượng
+  - Phiên bản cũ và mới cùng chạy trong giai đoạn chuyển tiếp
+  - Draining yêu cầu, session và tác vụ nền trước khi dừng
+  - Phối hợp migration dữ liệu với cập nhật ứng dụng
+  - Quay lui ứng dụng và giới hạn khi dữ liệu đã thay đổi
+  - Quản lý nhiều ứng dụng chung máy chủ và lịch bảo trì
+  - Tránh triển khai thủ công làm lệch trạng thái giữa các nút
+- level1: Quan sát hệ thống
+  level2:
+  - Nhật ký máy chủ, nhật ký ứng dụng và phân loại lỗi
+  - Category, mức log, luân chuyển và thời hạn lưu
+  - Chỉ số JVM, thread pool, connection pool và hàng đợi
+  - JMX và các giao diện quan sát do sản phẩm cung cấp
+  - Đo trạng thái triển khai và mức sẵn sàng của ứng dụng
+  - Theo dõi giao dịch, truy vấn và xử lý thông điệp
+  - Liên kết yêu cầu và dấu vết qua các thành phần
+  - Thu thập thread dump, heap dump và dữ liệu JFR
+  - Bảo vệ kênh quan sát và dữ liệu chẩn đoán
+- level1: Hiệu năng và dung lượng
+  level2:
+  - Xác định lưu lượng, độ trễ và mục tiêu phục vụ
+  - Ngân sách CPU, heap, metaspace và bộ nhớ native
+  - Điều chỉnh thread pool theo đặc điểm công việc
+  - Phối hợp connection pool với giới hạn của cơ sở dữ liệu
+  - Giới hạn kết nối HTTP, hàng đợi và yêu cầu đồng thời
+  - Pooling thành phần và chi phí lưu trạng thái phiên
+  - Tác động của class loading, quét triển khai và khởi tạo
+  - Đo tải hỗn hợp khi nhiều ứng dụng dùng chung JVM
+  - Kiểm chứng thay đổi bằng kiểm thử tải và số đo
+- level1: Phục hồi sự cố
+  level2:
+  - Phân biệt lỗi ứng dụng, lỗi tài nguyên và lỗi toàn tiến trình
+  - Giới hạn phạm vi ảnh hưởng khi dùng chung JVM
+  - Khôi phục kết nối cơ sở dữ liệu hoặc broker sau gián đoạn
+  - Phục hồi giao dịch chưa hoàn tất sau khi máy chủ dừng
+  - Chính sách restart và tránh lặp khởi động khi cấu hình sai
+  - Sao lưu cấu hình, dữ liệu cần thiết và nhật ký phục hồi
+  - Kiểm tra tính nhất quán sau failover hoặc phục hồi
+  - Diễn tập dừng nút, mất mạng và khôi phục có kiểm soát
+- level1: Bảo vệ máy chủ
+  level2:
+  - Tách cổng quản trị khỏi đường truy cập ứng dụng
+  - Xác thực quản trị viên và phân quyền thao tác
+  - Bật những subsystem và giao thức thực sự cần
+  - Chạy máy chủ với tài khoản hệ điều hành ít quyền
+  - Quyền tệp cấu hình, thư viện, gói triển khai và thư mục tạm
+  - Kiểm soát tải lên ứng dụng và xác minh nguồn artifact
+  - Cập nhật Java, máy chủ và các thành phần đi kèm
+  - Không xem ClassLoader là ranh giới bảo mật đầy đủ giữa mã không đáng tin
+  - Ghi dấu thay đổi quản trị và quy trình xử lý thông tin xác thực bị lộ
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử nghiệp vụ độc lập với máy chủ khi phù hợp
+  - Kiểm thử thành phần cần dịch vụ của container
+  - Kiểm thử trong container và kiểm thử qua giao diện bên ngoài
+  - Tạo môi trường máy chủ tạm thời có cấu hình tái lập
+  - Kiểm thử JNDI, DataSource và persistence unit
+  - Kiểm thử truyền giao dịch và hành vi rollback
+  - Kiểm thử phân quyền và truyền danh tính
+  - Kiểm thử messaging, gửi lại và xử lý trùng
+  - Kiểm thử redeploy, dừng có kiểm soát và failover
+  - Ma trận tương thích Java, máy chủ và gói ứng dụng
+- level1: Chẩn đoán lỗi
+  level2:
+  - Ứng dụng không deploy được và cách đọc chuỗi nguyên nhân
+  - Thiếu API, trùng thư viện hoặc xung đột phiên bản
+  - ClassNotFoundException, NoClassDefFoundError và LinkageError
+  - JNDI lookup thất bại hoặc tài nguyên chưa được liên kết
+  - Không tìm thấy bean hoặc nhiều ứng viên tiêm phụ thuộc
+  - Connection pool cạn và kết nối bị rò rỉ
+  - Transaction timeout, deadlock và rollback ngoài dự kiến
+  - Lỗi xác thực, ánh xạ vai trò hoặc quyền truy cập tài nguyên
+  - Messaging bị kẹt, gửi lại liên tục hoặc backlog tăng
+  - Luồng bị chặn, CPU cao và yêu cầu không hoàn tất
+  - Metaspace tăng sau redeploy và rò rỉ ClassLoader
+  - Tái hiện lỗi theo phiên bản, cấu hình và gói triển khai thực tế
+- level1: Container và đám mây
+  level2:
+  - Đóng gói máy chủ và ứng dụng trong container image
+  - Phân phối cấu hình hoặc dựng runtime theo nhu cầu
+  - Tách dữ liệu thay đổi khỏi hệ thống tệp image
+  - Chạy không đặc quyền và cấp bí mật khi khởi động
+  - Startup, readiness, liveness và vòng đời container
+  - Phối hợp giới hạn CPU, bộ nhớ với cấu hình JVM và pool
+  - Giữ đủ thời gian draining khi bộ điều phối dừng nút
+  - Đánh giá cụm nội bộ máy chủ bên cạnh điều phối hạ tầng
+  - Trách nhiệm giữa máy chủ ứng dụng, nền tảng container và dịch vụ quản lý
+- level1: Spring và máy chủ
+  level2:
+  - Ứng dụng Spring trên máy chủ ngoài và ứng dụng có runtime nhúng
+  - Đóng gói Spring Boot thành WAR khi chọn mô hình phù hợp
+  - Phân chia quyền quản lý bean giữa Spring và container Jakarta EE
+  - Sử dụng DataSource JNDI do máy chủ quản lý
+  - Lựa chọn transaction manager và tránh cấu hình giao dịch chồng chéo
+  - Phối hợp security, logging và thư viện nền tảng
+  - Phân biệt chức năng được ứng dụng tự mang theo với chức năng do máy chủ cấp
+  - Kiểm tra tương thích namespace, Java và Servlet API
+  - Tiêu chí chọn máy chủ ngoài hoặc executable JAR cho từng bối cảnh
+- level1: Hệ sinh thái sản phẩm
+  level2:
+  - WildFly và JBoss EAP trong hệ sinh thái máy chủ Java
+  - GlassFish và Payara trong triển khai nền tảng doanh nghiệp Java
+  - Open Liberty và WebSphere Liberty trong các mô hình runtime
+  - Oracle WebLogic Server và môi trường tích hợp doanh nghiệp
+  - WebSphere Application Server truyền thống và những yếu tố cần khảo sát
+  - Đặt Tomcat và Jetty đúng phạm vi servlet container
+  - So sánh sản phẩm theo profile, tính năng, công cụ quản trị và mô hình vận hành
+  - Xác minh phiên bản, chứng nhận và chính sách hỗ trợ từ tài liệu sản phẩm
+- level1: Nâng cấp và chuyển đổi
+  level2:
+  - Lập bản đồ API, thư viện và tài nguyên mà ứng dụng đang dùng
+  - Nâng phiên bản Java cùng ma trận tương thích máy chủ
+  - Chuyển Java EE sang Jakarta EE và xử lý namespace
+  - Di chuyển descriptor, JNDI name và cấu hình riêng của nhà cung cấp
+  - Thay đổi hành vi nạp lớp, bảo mật và persistence
+  - Chuyển giữa các sản phẩm và đánh giá mức độ phụ thuộc công nghệ riêng
+  - Từ nhiều ứng dụng chung máy chủ sang runtime riêng từng ứng dụng
+  - Kiểm tra dữ liệu phiên, giao dịch và thông điệp trong giai đoạn chuyển tiếp
+  - Kế hoạch thử nghiệm, chuyển lưu lượng và quay lui
+- level1: Tự động hóa vận hành
+  level2:
+  - Provision máy chủ từ cấu hình được quản lý phiên bản
+  - Xây image hoặc bản phân phối bất biến
+  - Quản lý tài nguyên bằng CLI hoặc API tự động hóa
+  - Kiểm tra cấu hình và gói triển khai trong pipeline
+  - Promote cùng artifact qua các môi trường
+  - Phát hiện thay đổi thủ công và sai lệch giữa các nút
+  - Tự động xác nhận sức khỏe sau triển khai
+  - Lưu bằng chứng phiên bản, cấu hình và kết quả vận hành
+- level1: Lựa chọn kiến trúc
+  level2:
+  - Máy chủ dùng chung và runtime riêng từng ứng dụng
+  - Tập trung quản trị và quyền tự chủ của nhóm phát triển
+  - Chi phí tài nguyên, giấy phép, hỗ trợ và vận hành
+  - Mức độ phụ thuộc API chuẩn và công nghệ riêng
+  - Máy chủ ứng dụng trong hệ thống đơn thể và vi dịch vụ
+  - Đánh giá nhu cầu CDI, EJB, JTA, JMS thay vì mặc định cần toàn bộ
+  - Giới hạn phức tạp và yêu cầu kỹ năng của đội ngũ
+  - Lập quyết định theo khả năng đo, kiểm thử và duy trì dài hạn
+- level1: Bài tập và tình huống
+  level2:
+  - Vẽ sơ đồ từ yêu cầu HTTP đến thành phần nghiệp vụ và cơ sở dữ liệu
+  - Đóng gói và triển khai WAR với cấu hình môi trường riêng
+  - Triển khai EAR nhiều mô-đun và kiểm tra khả năng dùng chung thư viện
+  - Cấu hình DataSource JNDI và sử dụng trong persistence unit
+  - Kiểm chứng giao dịch commit, rollback và timeout
+  - Kết hợp cơ sở dữ liệu với messaging và phân tích tình huống lỗi
+  - Thiết kế vai trò bảo mật và kiểm tra quyền qua các tầng
+  - Tái hiện xung đột thư viện rồi sửa ranh giới nạp lớp
+  - Triển khai hai nút, kiểm tra session và hành vi khi một nút dừng
+  - Chẩn đoán rò rỉ kết nối hoặc ClassLoader từ bằng chứng runtime
+  - So sánh WAR trên máy chủ ngoài với ứng dụng có runtime nhúng
+  - Danh sách kiểm tra triển khai, bảo mật, phục hồi và vận hành

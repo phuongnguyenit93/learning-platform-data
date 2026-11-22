@@ -1,0 +1,286 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Quản lý lưu lượng mạng là gì và vì sao cần kiểm soát luồng dữ liệu
+  - Phân biệt gói tin, luồng kết nối, yêu cầu và phiên làm việc
+  - Mục tiêu về độ trễ, thông lượng, độ sẵn sàng và chi phí
+  - Phân biệt quản lý lưu lượng, định tuyến mạng và kiểm soát truy cập
+  - Vai trò của điều tiết băng thông, QoS, cân bằng tải và định tuyến ứng dụng
+  - Lưu lượng vào ra hệ thống và lưu lượng giữa các dịch vụ
+  - Luồng xử lý từ phân loại đến lựa chọn đích và thực thi chính sách
+  - Lộ trình học và cách đọc sơ đồ quản lý lưu lượng
+- level1: Đặc tính lưu lượng
+  level2:
+  - Băng thông đường truyền, thông lượng và tốc độ dữ liệu hữu ích
+  - Đơn vị bit, byte, gói tin, kết nối và yêu cầu mỗi giây
+  - Độ trễ truyền, xử lý, xếp hàng và thời gian khứ hồi
+  - Jitter, mất gói, truyền lại và ảnh hưởng lên ứng dụng
+  - Lưu lượng đều, tăng đột biến và biến động theo thời gian
+  - Tải nhạy độ trễ, tải truyền khối lượng lớn và tải thời gian thực
+  - Kích thước yêu cầu, thời gian xử lý và chi phí mỗi yêu cầu
+  - Luồng ngắn, luồng dài và phân bố kích thước không đồng đều
+  - Phân biệt tải được gửi đến, tải được chấp nhận và tải xử lý thành công
+  - Phân vị độ trễ và giới hạn của số trung bình
+- level1: Phân loại lưu lượng
+  level2:
+  - Nhận diện luồng bằng địa chỉ, cổng và giao thức
+  - Phân loại theo giao diện, mạng nguồn, mạng đích và hướng truyền
+  - Phân loại theo dịch vụ, tuyến API và loại thao tác
+  - Phân loại theo khách hàng, danh tính và gói sử dụng
+  - Đặc điểm có thể quan sát tại lớp mạng và lớp ứng dụng
+  - Metadata từ proxy và giới hạn tin cậy của header do bên gửi cung cấp
+  - Giới hạn nhận diện nội dung khi dữ liệu được mã hóa
+  - Phân biệt phân loại có trạng thái và không lưu trạng thái
+  - Quy tắc mặc định, độ ưu tiên và xung đột giữa bộ phân loại
+  - Đánh dấu phân lớp tại ranh giới tin cậy
+- level1: Kiến trúc chính sách
+  level2:
+  - Mặt phẳng điều khiển và mặt phẳng dữ liệu
+  - Điểm thực thi tại máy chủ, thiết bị mạng, proxy và gateway
+  - Điều khiển từ phía máy khách và từ phía hạ tầng
+  - Chính sách tập trung và thực thi phân tán
+  - Mô hình đo lường, ra quyết định, thực thi và phản hồi
+  - Phạm vi chính sách theo kết nối, dịch vụ, tuyến và khách hàng
+  - Phối hợp nhiều tầng và tránh giới hạn hoặc thử lại chồng chéo
+  - Trạng thái cục bộ, trạng thái dùng chung và tính nhất quán
+  - Quyền sở hữu cấu hình và ranh giới thay đổi chính sách
+- level1: Chất lượng dịch vụ
+  level2:
+  - QoS và yêu cầu ưu tiên giữa các lớp lưu lượng
+  - Mô hình best effort và dịch vụ phân biệt
+  - DSCP, đánh dấu gói tin và hành vi xử lý tại từng chặng
+  - Phân biệt nhãn ưu tiên với bảo đảm chất lượng toàn tuyến
+  - Ranh giới tin cậy, giữ nguyên và đánh dấu lại lưu lượng
+  - Dành băng thông tối thiểu và giới hạn băng thông tối đa
+  - Chính sách ưu tiên cho dữ liệu thời gian thực và lưu lượng điều khiển
+  - Khả năng tương thích QoS giữa các miền mạng
+  - Đo kết quả QoS khi nhiều lớp cùng tranh chấp tài nguyên
+- level1: Điều tiết băng thông
+  level2:
+  - Traffic profile và cách xác định lưu lượng trong hoặc ngoài ngưỡng
+  - Meter, marker, shaper và dropper trong chuỗi điều tiết
+  - Phân biệt shaping bằng trì hoãn với policing bằng loại bỏ hoặc đánh dấu lại
+  - 'Token bucket: tốc độ nạp, dung lượng và lượng vượt ngưỡng ngắn hạn'
+  - Leaky bucket và ý nghĩa phụ thuộc vào cách triển khai
+  - Tốc độ trung bình, tốc độ đỉnh và kích thước burst
+  - Điều tiết chiều vào, chiều ra và vị trí nghẽn thực tế
+  - Dung lượng bộ đệm và độ trễ phát sinh do shaping
+  - Chia sẻ băng thông theo lớp và phân cấp chính sách
+  - Ảnh hưởng của policing đến TCP, UDP và ứng dụng
+- level1: Hàng đợi và lập lịch
+  level2:
+  - Vai trò của hàng đợi khi tốc độ đầu vào vượt tốc độ phục vụ
+  - Độ dài hàng đợi, thời gian chờ và giới hạn bộ nhớ
+  - FIFO và hiện tượng chặn các phần tử phía sau
+  - Hàng đợi ưu tiên và nguy cơ lớp ưu tiên thấp không được phục vụ
+  - Lập lịch luân phiên và luân phiên có trọng số
+  - Chia sẻ công bằng theo luồng và theo khách hàng
+  - Deficit Round Robin và xử lý gói tin có kích thước khác nhau
+  - Phân cấp lớp lưu lượng và phân phối phần băng thông còn dư
+  - Lựa chọn vị trí xếp hàng trong mạng và trong proxy
+  - Đánh đổi giữa công bằng, thông lượng và độ trễ
+- level1: Tắc nghẽn và AQM
+  level2:
+  - Phân biệt thiếu băng thông, tắc nghẽn và quá tải ứng dụng
+  - Bufferbloat và độ trễ tăng do hàng đợi quá dài
+  - Loại bỏ khi đầy hàng đợi và hạn chế của tail drop
+  - Quản lý hàng đợi chủ động (AQM)
+  - RED, CoDel và các tín hiệu dùng để quyết định quản lý hàng đợi
+  - FQ-CoDel và phối hợp công bằng theo luồng với kiểm soát độ trễ
+  - ECN và báo hiệu tắc nghẽn khi các đầu cuối hỗ trợ
+  - Quan hệ giữa AQM và điều khiển tắc nghẽn ở tầng vận chuyển
+  - Giới hạn của tăng bộ đệm khi tốc độ phục vụ không thay đổi
+- level1: Giới hạn đầu vào
+  level2:
+  - Giới hạn tốc độ, hạn ngạch và giới hạn số tác vụ đồng thời
+  - Fixed window và rủi ro tăng đột biến tại ranh giới cửa sổ
+  - Sliding window log và sliding window counter
+  - Token bucket cho yêu cầu ứng dụng và kiểm soát burst
+  - Giới hạn theo IP, danh tính, tuyến và khóa nghiệp vụ
+  - Giới hạn cục bộ so với giới hạn dùng chung toàn hệ thống
+  - Độ chính xác, độ trễ và chi phí đồng bộ của bộ đếm phân tán
+  - Giới hạn theo chi phí yêu cầu thay vì chỉ theo số yêu cầu
+  - Xử lý khi kho trạng thái hoặc dịch vụ hạn ngạch không khả dụng
+  - Phản hồi từ chối, thời điểm thử lại và hành vi của máy khách
+  - Tiếp nhận có điều kiện và chủ động giảm tải khi gần bão hòa
+- level1: Cân bằng tải
+  level2:
+  - Cân bằng tải lớp 4 và lớp 7
+  - Cân bằng phía máy khách, phía máy chủ và qua proxy
+  - Round robin, weighted round robin và lựa chọn ngẫu nhiên
+  - Least connections, least requests và khác biệt về đơn vị đo tải
+  - Chọn theo độ trễ hoặc mức sử dụng tài nguyên
+  - Power of two choices và giảm chi phí lựa chọn đích
+  - Băm theo khóa và consistent hashing
+  - Session affinity, tính ổn định đích và rủi ro lệch tải
+  - Trọng số máy chủ và năng lực xử lý không đồng nhất
+  - Khởi động chậm có kiểm soát khi thêm máy chủ mới
+  - Khác biệt giữa phân phối kết nối và phân phối từng yêu cầu
+  - Tác động của NAT và kết nối dùng lại lên độ đồng đều của tải
+- level1: Sức khỏe đích nhận
+  level2:
+  - Service discovery và danh sách đích có thể nhận lưu lượng
+  - Kiểm tra sức khỏe chủ động và quan sát lỗi thụ động
+  - Phân biệt tiến trình còn sống với khả năng phục vụ yêu cầu
+  - Ngưỡng lỗi, ngưỡng phục hồi và khoảng kiểm tra
+  - Phát hiện đích có hành vi bất thường và tạm loại khỏi tập cân bằng tải
+  - DNS cache, thời gian hội tụ và đích đã bị loại bỏ
+  - Flapping và nguy cơ liên tục đưa đích ra vào hệ thống
+  - Trường hợp không còn đích khỏe và lựa chọn hành vi có kiểm soát
+  - Đưa đích trở lại với lưu lượng tăng dần
+- level1: Định tuyến ứng dụng
+  level2:
+  - Định tuyến theo hostname, đường dẫn, phương thức và header
+  - Định tuyến theo phiên bản dịch vụ và nhóm đích
+  - Điều kiện so khớp chính xác, tiền tố và biểu thức mẫu
+  - Thứ tự quy tắc, độ ưu tiên và tuyến mặc định
+  - Định tuyến theo danh tính hoặc nhóm người dùng đã được xác thực
+  - Chia lưu lượng theo trọng số giữa các nhóm đích
+  - Phân biệt thay đổi tuyến, chuyển hướng và viết lại URL
+  - Định tuyến HTTP, gRPC, TCP và UDP theo khả năng tầng thực thi
+  - SNI, TLS termination và giới hạn định tuyến khi TLS đi xuyên qua
+  - Vòng lặp định tuyến và đường đi vượt qua điểm kiểm soát
+  - Kiểm tra đích cuối thực tế thay vì chỉ đọc cấu hình mong muốn
+- level1: Kết nối và giao thức
+  level2:
+  - Vòng đời kết nối và chi phí thiết lập TCP hoặc TLS
+  - Keep-alive, tái sử dụng kết nối và connection pooling
+  - Giới hạn kết nối vào, kết nối ra và yêu cầu đang xử lý
+  - HTTP/2 multiplexing và cân bằng giữa kết nối với luồng
+  - HTTP/3, QUIC và các yêu cầu nhận diện kết nối tương ứng
+  - Kết nối dài hạn của WebSocket và gRPC streaming
+  - UDP, trạng thái giả lập luồng và thời gian hết hạn
+  - Giới hạn cổng tạm, file descriptor và bảng theo dõi kết nối
+  - Idle timeout, connection lifetime và vòng đời pool
+  - Ngừng nhận kết nối mới và xử lý hết kết nối đang hoạt động
+- level1: Timeout và deadline
+  level2:
+  - Phân biệt connection timeout, request timeout và idle timeout
+  - Deadline toàn tuyến và ngân sách thời gian cho từng chặng
+  - Thời gian xếp hàng có nằm trong giới hạn chờ hay không
+  - Timeout cho từng lần thử và timeout của toàn bộ yêu cầu
+  - Lan truyền deadline qua chuỗi dịch vụ
+  - Hủy yêu cầu và nguy cơ phía đích vẫn tiếp tục xử lý
+  - Timeout cho luồng dài hạn và dữ liệu truyền không liên tục
+  - Lựa chọn ngưỡng dựa trên phân bố độ trễ và mục tiêu dịch vụ
+  - Phối hợp timeout giữa máy khách, gateway, proxy và backend
+- level1: Thử lại và ngắt mạch
+  level2:
+  - Lỗi tạm thời, lỗi vĩnh viễn và điều kiện cho phép thử lại
+  - Tính lũy đẳng và nguy cơ lặp tác dụng phụ nghiệp vụ
+  - Exponential backoff, jitter và giới hạn số lần thử
+  - Ngân sách thử lại và nguy cơ khuếch đại tải qua nhiều tầng
+  - Chuyển lần thử sang đích khác và giới hạn khả năng phục hồi
+  - Hedging, hủy yêu cầu dư thừa và chi phí tài nguyên
+  - Ngắt mạch theo trạng thái và ngắt mạch theo ngưỡng tài nguyên
+  - Giới hạn kết nối, yêu cầu chờ và số lần thử lại đồng thời
+  - Phân biệt circuit breaking với loại đích lỗi khỏi bộ cân bằng tải
+  - Thăm dò phục hồi và đưa lưu lượng trở lại có kiểm soát
+  - Phối hợp ngắt mạch, timeout và giới hạn đầu vào
+- level1: Chuyển đổi lưu lượng
+  level2:
+  - Triển khai blue-green và chuyển đích phục vụ
+  - Canary theo trọng số và canary theo nhóm người dùng
+  - Độ ổn định nhóm thử nghiệm và ảnh hưởng của session affinity
+  - Tỷ lệ cấu hình so với tỷ lệ yêu cầu thực tế được quan sát
+  - Nhân bản lưu lượng thử nghiệm và giới hạn của traffic mirroring
+  - Nguy cơ ghi dữ liệu hoặc phát sinh tác dụng phụ tại đích được nhân bản
+  - So sánh độ trễ, lỗi và hành vi giữa phiên bản cũ với mới
+  - Tăng lưu lượng từng bước với điều kiện dừng xác định
+  - Quay lui tuyến và xử lý kết nối còn gắn với phiên bản cũ
+  - Điều phối chuyển tuyến với thay đổi schema và trạng thái ứng dụng
+- level1: Khả dụng và khôi phục
+  level2:
+  - Điểm lỗi đơn trong bộ cân bằng tải và tầng thực thi chính sách
+  - Dự phòng chủ động, dự phòng chờ và cách phát hiện lỗi
+  - Chuyển đích trong cùng vùng và chuyển sang vùng dự phòng
+  - Năng lực vùng dự phòng và nguy cơ quá tải sau failover
+  - Tách nhóm tài nguyên để giới hạn phạm vi ảnh hưởng
+  - Giảm chất lượng dịch vụ có kiểm soát khi thiếu năng lực
+  - Phân biệt fallback với trả kết quả thành công giả tạo
+  - Khôi phục sau sự cố mà không tạo đợt tăng tải đồng thời
+  - Xử lý lưu lượng trong quá trình nâng cấp và thay thế nút
+- level1: Đa vùng và khách hàng
+  level2:
+  - Cân bằng tải toàn cục và cân bằng trong từng vùng
+  - Định tuyến theo vị trí gần và đánh đổi độ trễ với năng lực
+  - Định tuyến dựa trên DNS và giới hạn của bộ nhớ đệm
+  - Phân phối theo vùng sẵn sàng và chi phí truyền chéo vùng
+  - Ràng buộc vị trí xử lý và dữ liệu có trạng thái
+  - Cô lập hạn ngạch, hàng đợi và tài nguyên giữa khách hàng
+  - Khách hàng gây tải lớn và chính sách chia sẻ công bằng
+  - Ưu tiên tác vụ quan trọng trong hệ thống dùng chung
+  - Phân tách lưu lượng tương tác với lưu lượng xử lý nền
+  - Điều phối chính sách khi một yêu cầu đi qua nhiều miền quản lý
+- level1: Bảo vệ lưu lượng
+  level2:
+  - Phân biệt điều tiết tải hợp lệ với chống lạm dụng và tấn công
+  - Giới hạn lưu lượng tại biên trước khi tiêu tốn tài nguyên đắt
+  - Xác thực danh tính trước khi áp dụng hạn ngạch theo người dùng
+  - Giả mạo địa chỉ hoặc header và ảnh hưởng đến khóa giới hạn
+  - Giới hạn kích thước header, nội dung và số luồng đồng thời
+  - Kết nối chậm, yêu cầu kéo dài và chiếm giữ tài nguyên
+  - Kiểm soát lưu lượng đi ra và đích được phép truy cập
+  - Bảo vệ dữ liệu nhạy cảm khi nhân bản hoặc ghi nhận lưu lượng
+  - Ngăn đường kết nối trực tiếp vượt qua chính sách chung
+- level1: Năng lực và chi phí
+  level2:
+  - Ước lượng lưu lượng từ số người dùng, tần suất và kích thước dữ liệu
+  - Định luật Little trong phạm vi hệ thống ổn định
+  - Quan hệ giữa mức sử dụng tài nguyên và độ trễ khi gần bão hòa
+  - Tìm điểm nghẽn tại mạng, proxy, hàng đợi và backend
+  - CPU, bộ nhớ, băng thông và chi phí xử lý TLS
+  - Mở rộng tự động theo tín hiệu tải và độ trễ phản ứng
+  - Năng lực dự phòng cho burst, failover và triển khai phiên bản mới
+  - Giới hạn chi phí egress và truyền dữ liệu giữa các vùng
+  - Tối ưu bằng nén hoặc cache và tác động lên độ trễ cùng tính đúng đắn
+  - Đánh giá lợi ích tối ưu bằng dữ liệu đo dưới tải đại diện
+- level1: Quan sát lưu lượng
+  level2:
+  - Đo đầu vào, yêu cầu được chấp nhận, bị từ chối và hoàn tất
+  - Thông lượng, độ trễ, lỗi và mức bão hòa theo từng tầng
+  - Số kết nối, yêu cầu đang xử lý và chiều dài hàng đợi
+  - Bộ đếm gói bị loại, dấu ECN và dữ liệu truyền lại
+  - Phân phối tải thực tế theo đích, vùng và phiên bản
+  - Theo dõi quyết định định tuyến, giới hạn và ngắt mạch
+  - Truy vết yêu cầu qua gateway, proxy và backend
+  - SLI, SLO và ngân sách lỗi cho từng lớp lưu lượng
+  - Giới hạn cardinality và bảo vệ dữ liệu trong telemetry
+  - Cảnh báo triệu chứng người dùng và đối chiếu nguyên nhân hạ tầng
+- level1: Cấu hình và triển khai
+  level2:
+  - Mô hình cấu hình khai báo và nguồn chính sách được quản lý
+  - Kiểm tra schema, tham chiếu đích và mâu thuẫn quy tắc
+  - Phân biệt cấu hình mong muốn, đã phân phối và có hiệu lực
+  - Phân phối cấu hình nhất quán đến nhiều điểm thực thi
+  - Thay đổi cấu hình động và thay đổi cần khởi động lại
+  - Chạy đối chiếu quyết định trước khi bật thực thi
+  - Triển khai từng phần và giới hạn phạm vi ảnh hưởng
+  - Quay lui chính sách, phiên bản cấu hình và kiểm chứng sau quay lui
+  - Phân quyền thay đổi, nhật ký phê duyệt và xử lý ngoại lệ
+- level1: Kiểm thử và sự cố
+  level2:
+  - Thiết lập mạng hoặc cụm dịch vụ thực hành có thể cô lập
+  - Bộ dữ liệu kiểm thử cho phân loại, định tuyến và chính sách mặc định
+  - Kiểm thử shaping, policing và mức ưu tiên khi có tranh chấp
+  - Kiểm thử giới hạn tốc độ tại ranh giới cửa sổ và khi tăng đột biến
+  - Kiểm thử công bằng giữa nhiều nguồn và nhiều khách hàng
+  - Kiểm thử cân bằng tải với đích có năng lực khác nhau
+  - Mô phỏng độ trễ, mất gói, lỗi kết nối và backend chậm
+  - Kiểm thử retry, ngắt mạch và failover dưới tải
+  - Kiểm thử chuyển tuyến khi có kết nối hoặc luồng dài hạn
+  - Đo tải vòng mở, vòng kín và tránh bỏ sót độ trễ khi hệ thống quá tải
+  - Chẩn đoán lệch tải, hàng đợi tăng và vòng lặp thử lại
+  - Runbook kiểm tra đường đi, chính sách có hiệu lực và khả năng phục hồi
+- level1: Thiết kế thực hành
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành lớp lưu lượng và mục tiêu chất lượng
+  - Lập bản đồ điểm nghẽn, điểm thực thi và miền lỗi
+  - Thiết kế QoS cho lưu lượng tương tác, thời gian thực và truyền khối lượng lớn
+  - Thực hành điều tiết băng thông và hàng đợi với Linux tc trong mạng cô lập
+  - Thiết kế hạn ngạch và giới hạn đồng thời cho API nhiều khách hàng
+  - Thiết kế cân bằng tải kèm kiểm tra sức khỏe và ngừng phục vụ có kiểm soát
+  - Thiết kế timeout, retry và circuit breaking theo ngân sách toàn tuyến
+  - Thiết kế canary có chỉ số đánh giá và điều kiện quay lui
+  - Thiết kế phân phối đa vùng có xét năng lực dự phòng và chi phí
+  - Đánh giá giải pháp theo bằng chứng kiểm thử, SLO và khả năng vận hành

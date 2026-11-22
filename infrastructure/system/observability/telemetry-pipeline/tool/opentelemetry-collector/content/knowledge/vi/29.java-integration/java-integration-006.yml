@@ -1,0 +1,3 @@
+menuLevel1: Tích hợp Java
+menuLevel2: Đưa logs Java có trace ID và span ID qua OTLP hoặc filelog
+status: ''

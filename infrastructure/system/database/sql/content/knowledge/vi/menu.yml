@@ -1,0 +1,456 @@
+menu:
+- level1: Tổng quan SQL
+  level2:
+  - SQL là gì, giải quyết vấn đề nào và được dùng ở đâu
+  - Cơ sở dữ liệu, hệ quản trị, bảng, hàng và cột
+  - Khóa, quan hệ và cách liên kết dữ liệu giữa các bảng
+  - Tư duy tập hợp và cách mô tả kết quả bằng SQL
+  - SQL khai báo và sự khác biệt với xử lý tuần tự từng hàng
+  - Vai trò của DDL, DML, truy vấn, điều khiển giao dịch và phân quyền
+  - Chuẩn SQL, phương ngữ và tính khả chuyển của câu lệnh
+  - Lộ trình từ truy vấn cơ bản đến xử lý dữ liệu nâng cao
+  - Phạm vi SQL và mối liên hệ với thiết kế dữ liệu, hiệu năng, vận hành
+- level1: Môi trường thực hành
+  level2:
+  - Chọn hệ quản trị thực hành và ghi nhận phiên bản
+  - Kết nối bằng công cụ dòng lệnh và công cụ đồ họa
+  - Database, catalog, schema và không gian đặt tên
+  - Chuẩn bị bộ dữ liệu khách hàng, sản phẩm, đơn hàng và chi tiết đơn hàng
+  - Tạo, nạp và đặt lại dữ liệu mẫu có thể tái lập
+  - Thực thi một câu lệnh, nhiều câu lệnh và tệp SQL
+  - Phân biệt lệnh SQL với lệnh riêng của công cụ khách
+  - Đọc kết quả dạng bảng, số hàng ảnh hưởng và thông báo lỗi
+  - Thiết lập múi giờ, mã hóa và chế độ tự động xác nhận giao dịch
+- level1: Cú pháp và ngữ nghĩa
+  level2:
+  - Từ khóa, định danh, giá trị hằng và biểu thức
+  - Quy tắc đặt tên, viết hoa và định danh có dấu phân cách
+  - Chuỗi ký tự, dấu nháy đơn và ký tự thoát
+  - Chú thích, dấu kết thúc câu lệnh và định dạng SQL
+  - Tên đầy đủ của đối tượng và cách xác định phạm vi tên
+  - Bí danh bảng, bí danh cột và thời điểm có thể sử dụng
+  - Độ ưu tiên toán tử, dấu ngoặc và biểu thức lồng nhau
+  - Thứ tự xử lý logic của SELECT và sự khác biệt với kế hoạch thực thi
+  - Tập hợp nhiều phần tử trùng, DISTINCT và ngữ nghĩa bản sao
+  - Phân biệt lỗi cú pháp, lỗi kiểu, lỗi ràng buộc và lỗi logic
+- level1: Kiểu dữ liệu
+  level2:
+  - Chọn kiểu dữ liệu theo ý nghĩa, miền giá trị và độ chính xác
+  - Số nguyên, số thập phân chính xác và số dấu phẩy động
+  - Độ chính xác, số chữ số thập phân, làm tròn và tràn số
+  - Chuỗi độ dài cố định, chuỗi biến đổi và văn bản dài
+  - Unicode, bộ ký tự và quy tắc đối chiếu chuỗi
+  - Ngày, giờ, dấu thời gian và khoảng thời gian
+  - Giá trị có múi giờ và không có múi giờ
+  - Kiểu Boolean và cách biểu diễn tương đương theo hệ quản trị
+  - Dữ liệu nhị phân, UUID và định danh đặc thù
+  - Kiểu JSON, mảng và kiểu mở rộng theo hệ quản trị
+  - Ép kiểu tường minh, chuyển đổi ngầm và lựa chọn CAST
+  - So sánh khác kiểu và lỗi dữ liệu không thể chuyển đổi
+- level1: NULL và logic
+  level2:
+  - NULL biểu thị gì và khác gì với số 0 hoặc chuỗi rỗng
+  - Logic ba giá trị TRUE, FALSE và UNKNOWN
+  - So sánh với NULL bằng IS NULL và IS NOT NULL
+  - AND, OR, NOT khi biểu thức có UNKNOWN
+  - Ảnh hưởng của NULL tới WHERE, JOIN và CHECK
+  - NULL trong phép tính, nối chuỗi và hàm xử lý dữ liệu
+  - COALESCE để chọn giá trị khác NULL
+  - NULLIF để chuẩn hóa giá trị và xử lý mẫu số bằng 0
+  - So sánh an toàn với NULL và tính khả chuyển
+  - NULL trong DISTINCT, GROUP BY, ORDER BY và ràng buộc UNIQUE
+  - Các trường hợp đặc biệt của NULL trong IN và NOT IN
+- level1: Bảng và lược đồ
+  level2:
+  - CREATE SCHEMA, CREATE TABLE và tổ chức đối tượng
+  - Khai báo cột, kiểu dữ liệu và giá trị mặc định
+  - Tạo bảng từ truy vấn và giới hạn sao chép cấu trúc
+  - Identity, sequence và cơ chế sinh khóa theo hệ quản trị
+  - Cột sinh từ biểu thức và giới hạn theo phương ngữ
+  - ALTER TABLE để thêm, đổi và xóa cột
+  - Thay đổi kiểu, giá trị mặc định và khả năng nhận NULL
+  - Đổi tên bảng, cột và ràng buộc
+  - Bảng tạm và phạm vi tồn tại theo kết nối hoặc giao dịch
+  - DROP, TRUNCATE và ranh giới với DELETE
+  - Tra cứu bảng, cột và ràng buộc bằng INFORMATION_SCHEMA
+  - Phụ thuộc đối tượng và tác động của thay đổi lược đồ
+- level1: Khóa và ràng buộc
+  level2:
+  - Khóa ứng viên, khóa chính, khóa thay thế và khóa ghép
+  - PRIMARY KEY và yêu cầu định danh duy nhất
+  - UNIQUE và các khác biệt khi dữ liệu có NULL
+  - NOT NULL và kiểm soát dữ liệu bắt buộc
+  - CHECK cho miền giá trị và quan hệ giữa các cột
+  - FOREIGN KEY và tính toàn vẹn tham chiếu
+  - ON DELETE, ON UPDATE và lựa chọn hành động tham chiếu
+  - Khóa ngoại tự tham chiếu và quan hệ phân cấp
+  - Ràng buộc nhiều cột và thứ tự cột trong khóa tham chiếu
+  - Ràng buộc kiểm tra tức thời hoặc trì hoãn theo hệ quản trị
+  - Đặt tên, thêm, xóa và kiểm tra lỗi vi phạm ràng buộc
+  - Phân biệt ràng buộc dữ liệu với chỉ mục hỗ trợ
+- level1: Truy vấn cơ bản
+  level2:
+  - Cấu trúc SELECT, FROM và tập kết quả
+  - Chọn từng cột, đặt bí danh và tránh phụ thuộc SELECT *
+  - Tạo cột kết quả bằng hằng và biểu thức
+  - Truy vấn không đọc bảng và giới hạn theo phương ngữ
+  - Lọc hàng bằng WHERE
+  - Loại bản sao bằng DISTINCT và xác định mức chi tiết của kết quả
+  - Tham chiếu bảng qua tên schema và bí danh
+  - Kết hợp truy vấn với bảng dẫn xuất
+  - Hiển thị nhãn cột và định dạng kết quả ở lớp phù hợp
+  - Đọc và kiểm chứng truy vấn từng bước bằng dữ liệu mẫu
+- level1: Điều kiện lọc
+  level2:
+  - Toán tử so sánh bằng, khác và thứ tự
+  - Kết hợp điều kiện với AND, OR, NOT và dấu ngoặc
+  - BETWEEN, biên bao gồm và khoảng nửa mở
+  - IN, NOT IN và danh sách giá trị
+  - LIKE với ký tự đại diện và ESCAPE
+  - So sánh chuỗi theo hoa thường, dấu và quy tắc đối chiếu
+  - Lọc dữ liệu ngày giờ bằng khoảng thời gian
+  - Lọc cột có NULL theo yêu cầu nghiệp vụ
+  - Điều kiện trên nhiều cột và phép so sánh hàng theo phương ngữ
+  - Tránh điều kiện mâu thuẫn, dư thừa và sai ưu tiên
+  - Kiểm tra điều kiện ở các giá trị biên và dữ liệu bất thường
+- level1: Sắp xếp và phân trang
+  level2:
+  - ORDER BY với một cột và nhiều cột
+  - ASC, DESC và sắp xếp theo biểu thức
+  - Sắp xếp bằng CASE theo thứ tự nghiệp vụ
+  - Vị trí NULL và NULLS FIRST hoặc NULLS LAST theo phương ngữ
+  - Bổ sung khóa phân xử để kết quả có thứ tự xác định
+  - LIMIT, OFFSET, FETCH FIRST và TOP theo hệ quản trị
+  - Phân trang theo độ lệch và giới hạn khi dữ liệu thay đổi
+  - Phân trang theo khóa với điều kiện tiếp nối
+  - Lấy các hàng đầu và xử lý trường hợp đồng hạng
+  - Thứ tự trong truy vấn con, truy vấn ngoài và kết quả cuối cùng
+- level1: Biểu thức và hàm
+  level2:
+  - Biểu thức số học và ảnh hưởng của kiểu dữ liệu
+  - Chia số nguyên, chia thập phân và phép chia lấy dư
+  - ABS, ROUND, CEILING, FLOOR và hàm số thông dụng
+  - CONCAT, phép nối chuỗi và hành vi khi gặp NULL
+  - SUBSTRING, TRIM, REPLACE và chuẩn hóa văn bản
+  - UPPER, LOWER, độ dài ký tự và độ dài byte
+  - Tìm vị trí, tách chuỗi và xử lý biểu thức chính quy theo phương ngữ
+  - CURRENT_DATE, CURRENT_TIMESTAMP và thời điểm đánh giá
+  - Trích xuất thành phần ngày giờ bằng EXTRACT hoặc hàm tương đương
+  - Cộng trừ ngày giờ, khoảng thời gian và chênh lệch thời gian
+  - Chuyển múi giờ, cắt mốc thời gian và định dạng ngày giờ
+  - CAST và chuyển đổi an toàn theo khả năng hệ quản trị
+  - Biểu thức có tính xác định và hàm phụ thuộc thời điểm
+- level1: Rẽ nhánh trong SQL
+  level2:
+  - CASE dạng đơn giản và CASE theo điều kiện
+  - Thứ tự nhánh, ELSE và kết quả khi không có nhánh phù hợp
+  - Kiểu kết quả chung của các nhánh CASE
+  - Phân loại dữ liệu và ánh xạ mã thành nhãn
+  - Tạo cột cờ từ điều kiện nghiệp vụ
+  - CASE kết hợp NULLIF và COALESCE
+  - CASE trong lọc, sắp xếp và tổng hợp
+  - Giới hạn khi dùng CASE để tránh lỗi đánh giá biểu thức
+- level1: Tổng hợp dữ liệu
+  level2:
+  - Phân biệt mức chi tiết từng hàng và mức chi tiết từng nhóm
+  - COUNT(*), COUNT(cột) và COUNT(DISTINCT biểu thức)
+  - SUM, AVG, MIN, MAX và cách xử lý NULL
+  - GROUP BY một cột, nhiều cột và biểu thức
+  - Quy tắc chọn cột khi có GROUP BY
+  - WHERE và HAVING ở hai giai đoạn lọc
+  - Tổng hợp có điều kiện bằng CASE và FILTER theo phương ngữ
+  - Đếm thực thể sau JOIN và phòng tránh nhân đôi số liệu
+  - Kết quả khi đầu vào rỗng hoặc toàn NULL
+  - ROLLUP cho tổng phụ theo cấp
+  - CUBE và GROUPING SETS cho nhiều tổ hợp nhóm
+  - GROUPING để phân biệt NULL dữ liệu với NULL của tổng phụ
+  - Tổng hợp chuỗi, mảng hoặc JSON theo hệ quản trị
+- level1: Kết nối bảng
+  level2:
+  - Quan hệ một-một, một-nhiều, nhiều-nhiều và lực lượng kết quả
+  - INNER JOIN và điều kiện ghép bằng khóa
+  - LEFT JOIN, RIGHT JOIN và giữ lại hàng không khớp
+  - FULL OUTER JOIN và cách thay thế khi hệ quản trị không hỗ trợ
+  - CROSS JOIN và tích Descartes có chủ đích
+  - SELF JOIN cho quan hệ trong cùng bảng
+  - Ghép nhiều bảng và xác định đường liên kết
+  - JOIN theo nhiều cột và điều kiện ngoài phép bằng
+  - Phân biệt điều kiện ON với điều kiện WHERE trong OUTER JOIN
+  - USING, NATURAL JOIN và rủi ro khi lược đồ thay đổi
+  - JOIN với NULL, khóa trùng và dữ liệu thiếu tham chiếu
+  - Kiểm tra bội số hàng và tránh cộng lặp số liệu
+  - Mô hình bán kết nối và phản kết nối bằng EXISTS
+  - LATERAL hoặc APPLY cho truy vấn phụ thuộc từng hàng
+- level1: Truy vấn con
+  level2:
+  - Truy vấn con vô hướng và yêu cầu tối đa một hàng
+  - Truy vấn con nhiều hàng với IN
+  - EXISTS và NOT EXISTS cho kiểm tra tồn tại
+  - ANY, SOME và ALL trong phép so sánh
+  - Truy vấn con tương quan và phạm vi tham chiếu
+  - Bảng dẫn xuất trong FROM và tên cột đầu ra
+  - Truy vấn con trong SELECT, WHERE và HAVING
+  - Chọn giữa JOIN, truy vấn con và CTE theo mục đích
+  - Bẫy NOT IN khi truy vấn con trả về NULL
+  - Tìm hàng lớn nhất mỗi nhóm và xử lý đồng hạng
+  - Diễn đạt yêu cầu mọi phần tử bằng NOT EXISTS lồng nhau
+  - Kiểm chứng truy vấn con với đầu vào rỗng, nhiều hàng và bản sao
+- level1: Phép toán tập hợp
+  level2:
+  - Điều kiện tương thích số cột và kiểu dữ liệu
+  - UNION và UNION ALL trong hợp nhất kết quả
+  - INTERSECT để tìm phần giao
+  - EXCEPT và biến thể MINUS theo phương ngữ
+  - Ngữ nghĩa bản sao với biến thể ALL khi được hỗ trợ
+  - NULL trong so sánh hàng của phép toán tập hợp
+  - Tên cột, ép kiểu và thứ tự kết quả sau hợp nhất
+  - Độ ưu tiên phép toán và cách dùng dấu ngoặc
+  - Đối chiếu hai tập dữ liệu để tìm hàng thêm, thiếu hoặc thay đổi
+- level1: CTE
+  level2:
+  - WITH và cách đặt tên kết quả trung gian
+  - Khai báo tên cột và phạm vi sử dụng CTE
+  - Nhiều CTE liên tiếp và quan hệ phụ thuộc
+  - Tách truy vấn phức tạp thành các bước có ý nghĩa
+  - Tái sử dụng kết quả trung gian trong cùng câu lệnh
+  - Phân biệt CTE, bảng dẫn xuất, view và bảng tạm
+  - Nội tuyến, vật chất hóa và giới hạn suy luận từ cú pháp WITH
+  - CTE kết hợp truy vấn tổng hợp và hàm cửa sổ
+  - CTE trong câu lệnh thay đổi dữ liệu theo phương ngữ
+- level1: Truy vấn đệ quy
+  level2:
+  - WITH RECURSIVE hoặc cú pháp tương đương theo hệ quản trị
+  - Nhánh khởi đầu, nhánh đệ quy và điều kiện dừng
+  - Duyệt cây cha-con và tính độ sâu
+  - Tạo đường dẫn phân cấp và truy vấn tổ tiên, hậu duệ
+  - Tính lũy kế theo quan hệ đệ quy và cấu trúc thành phần
+  - Sinh dãy số hoặc lịch ngày khi phù hợp
+  - Phát hiện chu trình và tránh lặp vô hạn
+  - Giới hạn độ sâu, kiểu cột và kích thước kết quả
+  - Thứ tự duyệt và sắp xếp kết quả đệ quy
+  - Kiểm thử cây rỗng, nhiều gốc, nút mồ côi và dữ liệu có vòng
+- level1: Hàm cửa sổ
+  level2:
+  - Phân biệt hàm cửa sổ với GROUP BY và truy vấn con
+  - Cấu trúc OVER, PARTITION BY và ORDER BY
+  - ROW_NUMBER, RANK, DENSE_RANK và cách xử lý đồng hạng
+  - NTILE, PERCENT_RANK và CUME_DIST
+  - LAG và LEAD để so sánh các hàng
+  - FIRST_VALUE, LAST_VALUE và NTH_VALUE theo hệ quản trị
+  - SUM, AVG, COUNT trên cửa sổ
+  - ROWS, RANGE và GROUPS theo khả năng hỗ trợ
+  - Biên cửa sổ, khung mặc định và ảnh hưởng của hàng đồng hạng
+  - Khung tích lũy, khung trượt và loại trừ hàng theo phương ngữ
+  - Đặt tên cửa sổ bằng WINDOW khi được hỗ trợ
+  - Lọc kết quả hàm cửa sổ bằng truy vấn ngoài hoặc QUALIFY
+  - Lấy các hàng đầu mỗi nhóm với thứ tự xác định
+- level1: Mẫu truy vấn
+  level2:
+  - Khử trùng lặp và chọn một hàng đại diện có quy tắc
+  - Tìm bản ghi mới nhất của từng đối tượng
+  - Tổng lũy kế, trung bình trượt và tỷ lệ đóng góp
+  - So sánh kỳ hiện tại với kỳ trước
+  - Tìm khoảng trống và các dãy giá trị liên tiếp
+  - Ghép các sự kiện thành phiên theo khoảng thời gian
+  - Truy vấn khoảng thời gian giao nhau và khoảng hiệu lực
+  - Bù ngày thiếu bằng bảng lịch và kết nối ngoài
+  - Đếm tích lũy số đối tượng duy nhất theo thời gian
+  - Chuyển hàng thành cột bằng tổng hợp có điều kiện
+  - PIVOT, UNPIVOT và cách thay thế theo phương ngữ
+  - Phân tích nhóm khách hàng và tỷ lệ quay lại
+  - Phát hiện dữ liệu thiếu, trùng và bất thường bằng SQL
+- level1: Thêm dữ liệu
+  level2:
+  - INSERT với danh sách cột và một hàng dữ liệu
+  - INSERT nhiều hàng và giới hạn cú pháp theo hệ quản trị
+  - Giá trị mặc định, NULL và cột sinh tự động khi thêm hàng
+  - INSERT INTO SELECT và ánh xạ cột nguồn, đích
+  - Tạo dữ liệu liên quan và lấy khóa vừa sinh
+  - RETURNING, OUTPUT hoặc cơ chế tương đương theo phương ngữ
+  - Nạp dữ liệu qua bảng trung gian trước khi xác nhận
+  - Xử lý lỗi ràng buộc và tính nguyên tử của câu lệnh
+  - Nạp lặp có kiểm soát bằng khóa nghiệp vụ và ràng buộc duy nhất
+  - Nhập dữ liệu hàng loạt, mã hóa và định dạng theo công cụ hệ quản trị
+- level1: Cập nhật và xóa
+  level2:
+  - UPDATE với điều kiện lọc và biểu thức tính giá trị mới
+  - Cập nhật nhiều cột và quy tắc đánh giá theo hệ quản trị
+  - UPDATE từ truy vấn con hoặc bảng khác
+  - Quan hệ nguồn nhiều hàng và nguy cơ cập nhật không xác định
+  - DELETE có điều kiện và kiểm tra hàng bị ảnh hưởng
+  - DELETE với EXISTS hoặc phép JOIN theo phương ngữ
+  - Xóa theo quan hệ phụ thuộc và tác động của khóa ngoại
+  - RETURNING hoặc OUTPUT để kiểm tra dữ liệu thay đổi
+  - Xem trước tập hàng mục tiêu bằng SELECT tương ứng
+  - Cập nhật hoặc xóa theo lô với thứ tự và điều kiện tiếp nối
+  - Xóa mềm, khôi phục và điều kiện truy vấn dữ liệu còn hiệu lực
+  - Ngăn thao tác nhầm toàn bảng và kiểm chứng sau thay đổi
+- level1: Upsert và MERGE
+  level2:
+  - Bài toán đồng bộ khi bản ghi có thể đã tồn tại
+  - Khóa xác định xung đột và vai trò của UNIQUE
+  - INSERT ON CONFLICT của PostgreSQL
+  - INSERT ON DUPLICATE KEY UPDATE của MySQL
+  - MERGE và các nhánh xử lý theo phương ngữ
+  - Phân biệt thêm mới, cập nhật và bỏ qua dữ liệu
+  - Nguồn có khóa trùng và yêu cầu chọn một bản ghi đại diện
+  - Cạnh tranh đồng thời và rủi ro của kiểm tra rồi ghi
+  - Phân biệt xử lý xung đột với bỏ qua mọi lỗi
+  - Đồng bộ lặp an toàn và đối chiếu kết quả nguồn, đích
+- level1: Giao dịch SQL
+  level2:
+  - Ranh giới giao dịch và ý nghĩa nguyên tử của nhóm thay đổi
+  - BEGIN hoặc START TRANSACTION, COMMIT và ROLLBACK
+  - Autocommit và quyền sở hữu giao dịch của công cụ hoặc ứng dụng
+  - SAVEPOINT, ROLLBACK TO và RELEASE SAVEPOINT
+  - Hành vi sau lỗi và khả năng tiếp tục giao dịch theo hệ quản trị
+  - DDL, TRUNCATE và khác biệt về implicit commit
+  - Thiết lập mức cô lập và chế độ chỉ đọc
+  - Nhận diện đọc bẩn, đọc không lặp lại và hàng ảo
+  - SELECT FOR UPDATE và khóa hàng theo phương ngữ
+  - NOWAIT, SKIP LOCKED và ngữ nghĩa tập kết quả
+  - Cập nhật có điều kiện theo phiên bản để tránh ghi đè
+  - Nhận diện deadlock, lỗi tuần tự hóa và ranh giới thử lại
+  - Thực hành chuyển tiền với kiểm tra bất biến và rollback
+  - Giới hạn của giao dịch trong một kết nối và hướng học chuyên sâu
+- level1: View và bảng trung gian
+  level2:
+  - CREATE VIEW và vai trò đóng gói truy vấn
+  - Đặt tên cột, thay đổi định nghĩa và phụ thuộc của view
+  - View lồng nhau và khả năng truy vết logic
+  - Điều kiện cập nhật qua view theo hệ quản trị
+  - WITH CHECK OPTION và giới hạn dữ liệu được ghi
+  - Quyền truy cập qua view và ngữ cảnh thực thi
+  - Materialized view và khác biệt với view thông thường
+  - Làm mới dữ liệu, độ trễ và yêu cầu theo hệ quản trị
+  - Bảng tạm, bảng trung gian và kết quả vật chất hóa
+  - Chọn CTE, view hay bảng tạm theo phạm vi tái sử dụng
+- level1: Chỉ mục và kế hoạch
+  level2:
+  - Chỉ mục hỗ trợ truy vấn như thế nào ở mức SQL
+  - CREATE INDEX, DROP INDEX và chỉ mục nhiều cột
+  - Thứ tự cột trong chỉ mục và mẫu điều kiện lọc
+  - Chỉ mục duy nhất, chỉ mục biểu thức và chỉ mục có điều kiện theo hệ quản trị
+  - Đọc kế hoạch bằng EXPLAIN và công cụ tương đương
+  - Phân biệt kế hoạch ước lượng với kế hoạch có thực thi
+  - Nhận biết quét bảng, truy cập chỉ mục, JOIN và sắp xếp
+  - Điều kiện thuận lợi cho chỉ mục và chuyển đổi ngầm trên cột
+  - Ảnh hưởng của SELECT *, DISTINCT và sắp xếp không cần thiết
+  - Bội số hàng, ước lượng số hàng và nguyên nhân kết quả trung gian lớn
+  - Đối chiếu tính tương đương của kết quả trước khi tối ưu
+  - Ranh giới giữa viết SQL hiệu quả và quản trị hiệu năng chuyên sâu
+- level1: Thủ tục và hàm
+  level2:
+  - Phân biệt hàm SQL, hàm thủ tục và stored procedure
+  - Khối lệnh, biến cục bộ và phép gán theo phương ngữ
+  - Tham số đầu vào, đầu ra và kiểu trả về
+  - IF, CASE, vòng lặp và điều kiện kết thúc
+  - SELECT INTO biến và xử lý số hàng không phù hợp
+  - Trả giá trị đơn, bảng dữ liệu hoặc nhiều tập kết quả
+  - Xử lý ngoại lệ và phát sinh lỗi có ý nghĩa
+  - Quyền gọi, chủ thể thực thi và phạm vi truy cập đối tượng
+  - Hàm có tác dụng phụ, tính xác định và giới hạn sử dụng
+  - Ranh giới giao dịch trong thủ tục theo hệ quản trị
+  - 'Cursor: khai báo, mở, đọc, đóng và giải phóng'
+  - Thay xử lý từng hàng bằng phép toán tập hợp khi phù hợp
+  - Tạo, sửa, xóa và kiểm thử routine theo phương ngữ
+- level1: Trigger
+  level2:
+  - Bài toán phù hợp với trigger và chi phí logic ngầm
+  - Trigger theo hàng và theo câu lệnh
+  - BEFORE, AFTER và INSTEAD OF theo hệ quản trị
+  - Tham chiếu dữ liệu cũ, mới và tập hàng bị ảnh hưởng
+  - Xử lý một câu lệnh thay đổi nhiều hàng
+  - Thứ tự thực thi, đệ quy và trigger dây chuyền
+  - Ghi lịch sử thay đổi và giới hạn của nhật ký bằng trigger
+  - Phát sinh lỗi, rollback và tương tác với ràng buộc
+  - Khi nào dùng DEFAULT, CHECK hoặc FOREIGN KEY thay trigger
+  - Tạo, vô hiệu hóa, xóa và kiểm thử trigger theo hệ quản trị
+- level1: Dữ liệu mở rộng
+  level2:
+  - Lựa chọn giữa cột quan hệ và dữ liệu bán cấu trúc
+  - Lưu trữ JSON và kiểm tra tính hợp lệ
+  - Truy xuất đường dẫn JSON và phân biệt thiếu khóa với JSON null
+  - Trích xuất giá trị JSON theo kiểu dữ liệu
+  - Bung mảng JSON thành các hàng theo phương ngữ
+  - Tạo đối tượng, mảng JSON và tổng hợp dữ liệu quan hệ
+  - Cập nhật một phần tài liệu JSON theo hệ quản trị
+  - Kiểu mảng, phép truy cập phần tử và chuyển mảng thành hàng
+  - 'XML: truy vấn đường dẫn và ánh xạ thành bảng theo khả năng hỗ trợ'
+  - Tìm kiếm toàn văn và khác biệt với LIKE
+  - Dữ liệu không gian và nhóm hàm truy vấn theo phần mở rộng
+  - Giới hạn tính khả chuyển của kiểu và hàm mở rộng
+- level1: Quyền và SQL an toàn
+  level2:
+  - Người dùng, vai trò và nguyên tắc cấp quyền tối thiểu
+  - GRANT, REVOKE và phạm vi quyền trên đối tượng
+  - Quyền sở hữu, quyền cấp lại và kế thừa vai trò theo hệ quản trị
+  - Phân tách quyền đọc, ghi, thay đổi cấu trúc và thực thi routine
+  - SQL injection và nguyên nhân từ ghép chuỗi dữ liệu
+  - Truy vấn tham số hóa và prepared statement
+  - 'Vị trí không thể bind tham số: tên bảng, cột và hướng sắp xếp'
+  - Danh sách cho phép khi xây dựng SQL động
+  - Ký tự đại diện LIKE và ý nghĩa khác với bảo vệ SQL injection
+  - SQL động trong routine và cơ chế thực thi theo phương ngữ
+  - Chính sách bảo vệ hàng, cột và view theo khả năng hỗ trợ
+  - Che dữ liệu trong kết quả thực hành và thông báo lỗi
+- level1: SQL trong ứng dụng
+  level2:
+  - Phân chia trách nhiệm giữa câu lệnh SQL và mã ứng dụng
+  - Bind tham số đúng kiểu và xử lý giá trị NULL
+  - Ánh xạ cột kết quả, bí danh và kiểu dữ liệu ứng dụng
+  - Ánh xạ số thập phân, ngày giờ, UUID và dữ liệu lớn
+  - Quản lý kết nối, statement và tập kết quả
+  - Giao dịch qua nhiều câu lệnh trên cùng kết nối
+  - Lấy khóa sinh tự động và số hàng ảnh hưởng
+  - Thực thi theo lô và xử lý lỗi từng phần
+  - Tập kết quả lớn, kích thước lấy dữ liệu và giới hạn tài nguyên
+  - Nhận diện truy vấn N+1 và lựa chọn truy vấn theo tập hợp
+  - Timeout, hủy truy vấn và phân loại lỗi có thể thử lại
+  - Tách lỗi dữ liệu, lỗi ràng buộc, lỗi kết nối và lỗi đồng thời
+- level1: SQL đa hệ quản trị
+  level2:
+  - Phân biệt chuẩn SQL, phần mở rộng và mức hỗ trợ theo phiên bản
+  - Quy tắc định danh, dấu phân cách và chữ hoa thường
+  - LIMIT, FETCH FIRST, TOP và cách phân trang
+  - Identity, sequence và lấy định danh vừa sinh
+  - Khác biệt kiểu Boolean, UUID, chuỗi rỗng và NULL
+  - Hàm chuỗi, toán tử nối và quy tắc đối chiếu
+  - Ngày giờ, múi giờ và phép tính khoảng thời gian
+  - UPSERT, MERGE, RETURNING và OUTPUT
+  - UPDATE JOIN, DELETE JOIN và cú pháp thay thế
+  - CTE đệ quy, hàm cửa sổ và các mệnh đề mở rộng
+  - Giao dịch DDL, bảng tạm và hành vi sau lỗi
+  - Cú pháp routine, trigger và xử lý ngoại lệ
+  - Ma trận đối chiếu PostgreSQL, MySQL, SQL Server, Oracle và SQLite
+  - Xây dựng lớp SQL dùng chung và kiểm thử từng phương ngữ
+- level1: Kiểm thử và gỡ lỗi
+  level2:
+  - Xác định tập kết quả mong đợi và mức chi tiết từng hàng
+  - Thiết kế dữ liệu kiểm thử nhỏ nhưng phân biệt được lỗi
+  - Bao phủ bảng rỗng, một hàng, nhiều hàng và bản sao
+  - Bao phủ NULL, chuỗi rỗng, số âm và giá trị biên
+  - Kiểm thử Unicode, quy tắc đối chiếu và định danh có dấu
+  - Kiểm thử mốc ngày, đổi ngày, múi giờ và biên khoảng thời gian
+  - Đối chiếu số hàng trước và sau mỗi JOIN
+  - So sánh kết quả có xét bản sao và thứ tự khi cần
+  - Kiểm tra bất biến trước và sau INSERT, UPDATE, DELETE
+  - Kiểm thử giao dịch bằng nhiều kết nối có thứ tự thực thi
+  - Đọc SQLSTATE, mã lỗi và thông báo theo hệ quản trị
+  - Thu nhỏ câu lệnh lỗi và kiểm chứng từng CTE hoặc truy vấn con
+  - Kiểm thử hồi quy truy vấn và dữ liệu đầu ra sau thay đổi lược đồ
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng lược đồ bán hàng với khóa và ràng buộc
+  - Nạp dữ liệu mẫu có NULL, bản sao và quan hệ thiếu
+  - Tra cứu đơn hàng với lọc, sắp xếp và phân trang ổn định
+  - Báo cáo doanh thu không cộng lặp chi tiết đơn hàng
+  - Phân tích khách hàng chưa mua và sản phẩm chưa bán
+  - Xếp hạng sản phẩm, tính lũy kế và so sánh theo tháng
+  - Truy vấn cây danh mục và kiểm soát chu trình
+  - Đồng bộ dữ liệu nhập bằng bảng trung gian và upsert
+  - Thực hiện chuyển tiền hoặc đặt hàng trong một giao dịch
+  - Cung cấp dữ liệu báo cáo qua view và phân quyền tối thiểu
+  - Gọi truy vấn tham số hóa từ ứng dụng và kiểm thử đầu vào
+  - Đối chiếu cùng bài toán trên hai hệ quản trị
+  - Tài liệu hóa giả định, câu lệnh, kết quả mong đợi và giới hạn

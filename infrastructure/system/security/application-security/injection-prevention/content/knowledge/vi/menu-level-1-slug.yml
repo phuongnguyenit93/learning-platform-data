@@ -1,0 +1,139 @@
+menu:
+- title: Khái niệm injection
+  slug: injection-overview
+  index: 0
+- title: Trust boundary
+  slug: trust-boundary
+  index: 1
+- title: Nguồn dữ liệu không tin cậy
+  slug: untrusted-data-sources
+  index: 2
+- title: Input validation
+  slug: input-validation
+  index: 3
+- title: Canonicalization
+  slug: canonicalization
+  index: 4
+- title: Safe API
+  slug: safe-api
+  index: 5
+- title: Nguyên tắc phòng thủ
+  slug: defense-principles
+  index: 6
+- title: SQL injection
+  slug: sql-injection
+  index: 7
+- title: SQL cấu trúc động
+  slug: dynamic-sql-structure
+  index: 8
+- title: ORM và HQL
+  slug: orm-and-hql
+  index: 9
+- title: Stored procedure
+  slug: stored-procedure
+  index: 10
+- title: NoSQL injection
+  slug: no-sql-injection
+  index: 11
+- title: LDAP injection
+  slug: ldap-injection
+  index: 12
+- title: XPath và XQuery
+  slug: xpath-and-xquery
+  index: 13
+- title: OS command injection
+  slug: os-command-injection
+  index: 14
+- title: Argument injection
+  slug: argument-injection
+  index: 15
+- title: Code injection
+  slug: code-injection
+  index: 16
+- title: Template injection
+  slug: template-injection
+  index: 17
+- title: Expression injection
+  slug: expression-injection
+  index: 18
+- title: XSS và HTML injection
+  slug: xss-and-html-injection
+  index: 19
+- title: JavaScript và DOM
+  slug: javascript-and-dom
+  index: 20
+- title: CSS và URL
+  slug: css-and-urls
+  index: 21
+- title: XML và XXE
+  slug: xml-and-xxe
+  index: 22
+- title: Header và CRLF
+  slug: headers-and-crlf
+  index: 23
+- title: Log và CSV injection
+  slug: log-and-csv-injection
+  index: 24
+- title: Regex và ReDoS
+  slug: regex-and-redos
+  index: 25
+- title: File và path
+  slug: files-and-paths
+  index: 26
+- title: Deserialization
+  slug: deserialization
+  index: 27
+- title: GraphQL
+  slug: graph-ql
+  index: 28
+- title: API và JSON
+  slug: apis-and-json
+  index: 29
+- title: Database layer
+  slug: database-layer
+  index: 30
+- title: Output encoding
+  slug: output-encoding
+  index: 31
+- title: Input và output relationship
+  slug: input-output-interactions
+  index: 32
+- title: Error handling
+  slug: error-handling
+  index: 33
+- title: Monitoring
+  slug: monitoring
+  index: 34
+- title: Testing
+  slug: testing
+  index: 35
+- title: Fuzzing
+  slug: fuzzing
+  index: 36
+- title: Code review
+  slug: code-review
+  index: 37
+- title: Framework operations
+  slug: framework-operations
+  index: 38
+- title: Architecture
+  slug: architecture
+  index: 39
+- title: LLM prompt injection
+  slug: llm-prompt-injection
+  index: 40
+- title: DevSecOps
+  slug: dev-sec-ops
+  index: 41
+- title: Incident response
+  slug: incident-response
+  index: 42
+- title: Performance và DoS
+  slug: performance-and-dos
+  index: 43
+- title: Anti-pattern
+  slug: injection-antipatterns
+  index: 44
+- title: Checklist production
+  slug: production-checklist
+  index: 45

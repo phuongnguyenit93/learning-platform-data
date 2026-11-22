@@ -1,0 +1,100 @@
+menu:
+  - title: "Nền tảng quản lý tài nguyên runtime"
+    slug: runtime-resource-management-foundations
+    index: 0
+  - title: "Đo tải và lập ngân sách tài nguyên"
+    slug: resource-measurement-and-budgeting
+    index: 1
+  - title: "Ownership và vòng đời tài nguyên"
+    slug: resource-ownership-and-lifecycle
+    index: 2
+  - title: "Thu hồi tài nguyên bằng API Java"
+    slug: java-resource-cleanup-apis
+    index: 3
+  - title: "Quản lý CPU và chi phí tính toán"
+    slug: cpu-management-and-computation-costs
+    index: 4
+  - title: "Chẩn đoán CPU và tranh chấp"
+    slug: cpu-diagnostics-and-contention
+    index: 5
+  - title: "Quản lý heap và cấp phát đối tượng"
+    slug: heap-management-and-object-allocation
+    index: 6
+  - title: "Garbage collector và ngân sách bộ nhớ"
+    slug: garbage-collection-and-memory-budgets
+    index: 7
+  - title: "Bộ nhớ off-heap và tài nguyên native"
+    slug: off-heap-memory-and-native-resources
+    index: 8
+  - title: "Phát hiện và phân tích rò rỉ bộ nhớ"
+    slug: memory-leak-detection-and-analysis
+    index: 9
+  - title: "Platform thread và ngân sách thread"
+    slug: platform-threads-and-thread-budgets
+    index: 10
+  - title: "Executor và hàng đợi tác vụ"
+    slug: executors-and-task-queues
+    index: 11
+  - title: "Virtual thread và giới hạn tài nguyên đi kèm"
+    slug: virtual-threads-and-resource-limits
+    index: 12
+  - title: "Đồng bộ hóa và tiến triển của tác vụ"
+    slug: synchronization-and-task-progress
+    index: 13
+  - title: "Hủy tác vụ và ownership bất đồng bộ"
+    slug: async-task-cancellation-and-ownership
+    index: 14
+  - title: "File descriptor và I/O tệp"
+    slug: file-descriptors-and-file-io
+    index: 15
+  - title: "Dung lượng đĩa, tệp tạm và tệp ánh xạ bộ nhớ"
+    slug: disk-space-temp-files-memory-mapping
+    index: 16
+  - title: "Socket và tài nguyên kết nối mạng"
+    slug: sockets-and-network-connections
+    index: 17
+  - title: "HTTP client và vòng đời request-response"
+    slug: http-client-request-response-lifecycle
+    index: 18
+  - title: "JDBC và connection pool cơ sở dữ liệu"
+    slug: jdbc-and-database-connection-pools
+    index: 19
+  - title: "Pool tài nguyên ngoài JDBC"
+    slug: non-jdbc-resource-pools
+    index: 20
+  - title: "Bộ đệm, streaming và reference counting"
+    slug: buffers-streaming-and-reference-counting
+    index: 21
+  - title: "Cache và dữ liệu giữ lâu trong bộ nhớ"
+    slug: caches-and-long-lived-data
+    index: 22
+  - title: "Hàng đợi và tác vụ đang chờ"
+    slug: queues-and-pending-tasks
+    index: 23
+  - title: "Timeout, deadline và retry budget"
+    slug: timeouts-deadlines-and-retry-budgets
+    index: 24
+  - title: "Giới hạn tải và backpressure"
+    slug: load-limits-and-backpressure
+    index: 25
+  - title: "Cô lập tài nguyên và khả năng chịu lỗi"
+    slug: resource-isolation-and-fault-tolerance
+    index: 26
+  - title: "JVM trong hệ điều hành và container"
+    slug: jvm-operating-system-and-containers
+    index: 27
+  - title: "Quan sát tài nguyên và cảnh báo"
+    slug: resource-observability-and-alerting
+    index: 28
+  - title: "Điều tra sự cố cạn tài nguyên"
+    slug: resource-exhaustion-investigation
+    index: 29
+  - title: "Khởi động, graceful shutdown và khôi phục"
+    slug: startup-graceful-shutdown-and-recovery
+    index: 30
+  - title: "Kiểm thử tải và xác minh ngân sách"
+    slug: load-testing-and-budget-validation
+    index: 31
+  - title: "Bài thực hành tổng hợp quản lý tài nguyên"
+    slug: resource-management-practical-labs
+    index: 32

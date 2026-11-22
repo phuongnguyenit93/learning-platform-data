@@ -1,0 +1,49 @@
+roadmap:
+- id: netty-non-blocking-i-o
+  title: Netty & Non-blocking I/O
+  purpose: Hiểu vai trò của Netty trong xây dựng client/server mạng bất đồng bộ, hướng sự kiện.
+  objectives:
+  - Phân biệt blocking I/O với non-blocking I/O.
+  - Mô tả luồng socket event và callback trong Netty.
+- id: bootstrap-transport
+  title: Bootstrap & Transport
+  purpose: Khởi tạo client/server và cấu hình transport phù hợp môi trường chạy.
+  objectives:
+  - Dùng ServerBootstrap và Bootstrap để bind/connect.
+  - Nhận biết NIO event loop group và TCP channel.
+- id: channel-eventloop-lifecycle
+  title: Channel, EventLoop & Lifecycle
+  purpose: Nắm vòng đời kết nối và cách Netty điều phối sự kiện trên thread.
+  objectives:
+  - Giải thích Channel, ChannelFuture và EventLoop.
+  - Xử lý connect, read, write, close và graceful shutdown.
+- id: channelpipeline-handlers
+  title: ChannelPipeline & Handlers
+  purpose: Chia xử lý giao thức thành các handler có thể ghép nối và tái sử dụng.
+  objectives:
+  - Cấu hình inbound/outbound ChannelHandler.
+  - Theo dõi event propagation, thứ tự handler và exceptionCaught.
+- id: bytebuf-memory
+  title: ByteBuf & Memory
+  purpose: Quản lý dữ liệu mạng hiệu quả và tránh lỗi vòng đời bộ nhớ.
+  objectives:
+  - Đọc/ghi ByteBuf, allocator, slice và composite buffer.
+  - Thực hành retain/release và phát hiện memory leak.
+- id: codec-protocol
+  title: Codec & Protocol
+  purpose: Tách framing, encode/decode và logic nghiệp vụ theo giao thức.
+  objectives:
+  - Dùng decoder/encoder và delimiter hoặc length-field framing.
+  - Xây pipeline xử lý một giao thức TCP đơn giản.
+- id: concurrency-reliability
+  title: Concurrency & Reliability
+  purpose: Tránh chặn I/O thread và xử lý lỗi kết nối một cách an toàn.
+  objectives:
+  - Đưa tác vụ blocking sang executor phù hợp.
+  - Xử lý timeout, reconnect, backpressure ở tầng ứng dụng và giới hạn tài nguyên.
+- id: testing-troubleshooting
+  title: Testing & Troubleshooting
+  purpose: Kiểm chứng giao tiếp và chẩn đoán sự cố trong ứng dụng Netty.
+  objectives:
+  - Test handler/pipeline với EmbeddedChannel.
+  - Bật leak detection, kiểm tra exception và quan sát event loop.

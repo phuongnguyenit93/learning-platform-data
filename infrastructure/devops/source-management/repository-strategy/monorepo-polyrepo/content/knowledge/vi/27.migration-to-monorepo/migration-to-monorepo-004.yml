@@ -1,0 +1,3 @@
+menuLevel1: Hợp nhất vào monorepo
+menuLevel2: Chuyển dependency nội bộ sang cấu trúc workspace mà vẫn giữ hợp đồng phát hành cần thiết
+status: ""

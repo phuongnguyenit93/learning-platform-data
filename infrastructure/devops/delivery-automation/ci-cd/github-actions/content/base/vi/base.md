@@ -1,0 +1,7 @@
+# DevOps Delivery Automation CI/CD GitHub Actions
+
+GitHub Actions là nền tảng tự động hóa tích hợp trong GitHub, cho phép định nghĩa quy trình CI/CD bằng tệp YAML trong repository. Một workflow được kích hoạt bởi sự kiện như push, pull request hoặc thao tác thủ công, sau đó thực thi các job và step trên runner. Module này tập trung vào cách xây dựng pipeline rõ ràng, có thể lặp lại và phù hợp với dự án Java, từ kiểm tra mã đến đóng gói và triển khai.
+
+Người học nên biết Git, GitHub, Java và Maven cơ bản. Lộ trình bắt đầu bằng các thành phần GitHub Actions, cú pháp workflow và trigger; tiếp đến là runners, phụ thuộc giữa các job, sử dụng action có sẵn, matrix và reusable workflow. Phần thực hành xây dựng CI để compile, test và tạo artifact Java, tận dụng cache đúng cách, sau đó tổ chức CD theo môi trường với cơ chế phê duyệt và kiểm soát concurrency.
+
+Hoàn thành module, bạn có thể tạo workflow chạy khi có pull request, xác định nguyên nhân build thất bại, lưu artifact phục vụ phát hành và thiết lập bước triển khai an toàn. Khi vận hành thực tế, cần giới hạn quyền GITHUB_TOKEN, tránh lộ secret, cân nhắc OIDC cho xác thực cloud và kiểm tra chính sách bảo vệ deployment environment phù hợp với loại repository và gói GitHub đang dùng.

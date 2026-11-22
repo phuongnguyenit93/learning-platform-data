@@ -1,0 +1,49 @@
+roadmap:
+- id: github-git
+  title: GitHub & Git
+  purpose: Hiểu vai trò của GitHub trong quản lý mã nguồn và cộng tác nhóm.
+  objectives:
+  - Phân biệt Git với nền tảng GitHub.
+  - Giải thích repository, organization và collaborator.
+- id: repository-setup
+  title: Repository Setup
+  purpose: Chuẩn bị kho mã nguồn rõ quy ước để các thành viên cùng sử dụng.
+  objectives:
+  - Tạo repository với README và .gitignore phù hợp.
+  - Clone repo và push commit đầu tiên.
+- id: branch-fork-workflow
+  title: Branch & Fork Workflow
+  purpose: Cô lập thay đổi và phối hợp song song mà không sửa trực tiếp nhánh chính.
+  objectives:
+  - Tạo feature branch, commit và push code.
+  - Phân biệt branch trong repository với fork.
+- id: pull-request-review
+  title: Pull Request & Review
+  purpose: Đưa thay đổi qua thảo luận và kiểm tra trước khi merge.
+  objectives:
+  - Tạo PR có mô tả và liên kết Issue.
+  - Review diff, comment, approve hoặc request changes.
+- id: branch-rules-codeowners
+  title: Branch Rules & CODEOWNERS
+  purpose: Bảo vệ nhánh quan trọng bằng quy tắc review và kiểm thử.
+  objectives:
+  - Cấu hình required reviews và status checks.
+  - Định nghĩa CODEOWNERS cho các vùng mã nguồn.
+- id: issues-projects
+  title: Issues & Projects
+  purpose: Theo dõi công việc và liên kết mã nguồn với yêu cầu cần giải quyết.
+  objectives:
+  - Tạo Issue, label, assignee và milestone.
+  - Tổ chức Project board và liên kết Issue–PR.
+- id: roles-security
+  title: Roles & Security
+  purpose: Giới hạn quyền theo vai trò và bảo vệ thông tin truy cập.
+  objectives:
+  - Phân biệt Read, Triage, Write, Maintain và Admin.
+  - Quản lý teams, bật 2FA và tránh lộ secrets.
+- id: github-actions-ci
+  title: GitHub Actions & CI
+  purpose: Tự động xác minh chất lượng mã khi có commit hoặc pull request.
+  objectives:
+  - Tạo workflow YAML chạy build/test khi mở PR.
+  - Đọc kết quả Checks và chặn merge nếu kiểm thử lỗi.

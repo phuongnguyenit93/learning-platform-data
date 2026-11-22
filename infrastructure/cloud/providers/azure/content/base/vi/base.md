@@ -1,0 +1,7 @@
+# Cloud Providers Azure
+
+Microsoft Azure là nền tảng điện toán đám mây cung cấp dịch vụ hạ tầng, nền tảng ứng dụng, mạng, lưu trữ, cơ sở dữ liệu và công cụ vận hành. Hiểu Azure không chỉ là biết tên sản phẩm: người học cần nắm mô hình tổ chức tài nguyên, vùng triển khai, cách kiểm soát danh tính và phân biệt phần việc do Microsoft quản lý với trách nhiệm của người sử dụng dịch vụ.
+
+Module này dành cho lập trình viên backend, DevOps hoặc người mới tiếp cận Azure đã có kiến thức cloud cơ bản. Lộ trình bắt đầu từ region, subscription và Azure Resource Manager; sau đó thực hành Microsoft Entra ID, Azure RBAC, lựa chọn Virtual Machines, App Service hoặc Functions, thiết lập VNet và chọn giải pháp lưu trữ hoặc Azure SQL Database. Các bước tiếp theo giới thiệu Azure CLI, Bicep, Azure Monitor, độ tin cậy, chính sách bảo mật và quản lý chi phí.
+
+Hãy thử triển khai một ứng dụng mẫu vào resource group riêng, chọn vùng phù hợp, giới hạn quyền truy cập, bổ sung giám sát và đặt cảnh báo ngân sách. Khi kết thúc bài thực hành, kiểm tra tài nguyên còn hoạt động rồi xóa môi trường thử nghiệm để tránh phát sinh phí. Sau module, bạn có thể mô tả cấu trúc Azure và lựa chọn nhóm dịch vụ phù hợp cho một workload cơ bản.

@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Đặc tính lưu lượng
+  slug: traffic-characteristics
+  index: 1
+- title: Phân loại lưu lượng
+  slug: traffic-classification
+  index: 2
+- title: Kiến trúc chính sách
+  slug: policy-architecture
+  index: 3
+- title: Chất lượng dịch vụ
+  slug: quality-of-service
+  index: 4
+- title: Điều tiết băng thông
+  slug: bandwidth-shaping
+  index: 5
+- title: Hàng đợi và lập lịch
+  slug: queueing-and-scheduling
+  index: 6
+- title: Tắc nghẽn và AQM
+  slug: congestion-and-aqm
+  index: 7
+- title: Giới hạn đầu vào
+  slug: ingress-limits
+  index: 8
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 9
+- title: Sức khỏe đích nhận
+  slug: backend-health
+  index: 10
+- title: Định tuyến ứng dụng
+  slug: application-routing
+  index: 11
+- title: Kết nối và giao thức
+  slug: connections-and-protocols
+  index: 12
+- title: Timeout và deadline
+  slug: timeouts-and-deadlines
+  index: 13
+- title: Thử lại và ngắt mạch
+  slug: retries-and-circuit-breakers
+  index: 14
+- title: Chuyển đổi lưu lượng
+  slug: traffic-shifting
+  index: 15
+- title: Khả dụng và khôi phục
+  slug: availability-and-recovery
+  index: 16
+- title: Đa vùng và khách hàng
+  slug: multi-region-and-tenants
+  index: 17
+- title: Bảo vệ lưu lượng
+  slug: traffic-protection
+  index: 18
+- title: Năng lực và chi phí
+  slug: capacity-and-cost
+  index: 19
+- title: Quan sát lưu lượng
+  slug: traffic-observability
+  index: 20
+- title: Cấu hình và triển khai
+  slug: configuration-and-deployment
+  index: 21
+- title: Kiểm thử và sự cố
+  slug: testing-and-troubleshooting
+  index: 22
+- title: Thiết kế thực hành
+  slug: hands-on-design
+  index: 23

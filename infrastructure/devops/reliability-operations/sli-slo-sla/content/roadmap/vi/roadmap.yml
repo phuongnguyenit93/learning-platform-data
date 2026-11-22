@@ -1,0 +1,55 @@
+roadmap:
+- id: phan-biet-sli-slo-sla
+  title: Phân biệt SLI, SLO, SLA
+  purpose: Nắm vai trò của chỉ số đo lường, mục tiêu chất lượng và cam kết dịch vụ.
+  objectives:
+  - Giải thích SLI là phép đo, SLO là mục tiêu trên phép đo.
+  - Phân biệt SLA có điều khoản/hệ quả với SLO nội bộ.
+- id: goc-nhin-nguoi-dung
+  title: Góc nhìn người dùng
+  purpose: Chọn hành trình và tính năng quan trọng để đo độ tin cậy có ý nghĩa.
+  objectives:
+  - Liệt kê hành trình người dùng cần được bảo vệ.
+  - Chọn các tín hiệu ảnh hưởng trực tiếp đến trải nghiệm.
+- id: dinh-nghia-sli
+  title: Định nghĩa SLI
+  purpose: Chuẩn hóa cách đo tỷ lệ yêu cầu tốt, độ trễ và mức độ sẵn sàng.
+  objectives:
+  - Xác định good/total events, phạm vi và nguồn dữ liệu.
+  - Viết công thức SLI availability hoặc latency cho API.
+- id: thiet-lap-slo
+  title: Thiết lập SLO
+  purpose: Đưa ra mục tiêu độ tin cậy cùng cửa sổ đánh giá có thể kiểm chứng.
+  objectives:
+  - Đặt ngưỡng SLO và cửa sổ rolling hoặc calendar.
+  - Giải thích tại sao không mặc định chọn mục tiêu 100%.
+- id: thu-thap-dashboard
+  title: Thu thập & Dashboard
+  purpose: Đo SLI nhất quán để theo dõi tỷ lệ đạt SLO trong thực tế.
+  objectives:
+  - Xây metric/log hoặc kiểm tra tổng số và số yêu cầu tốt.
+  - Hiển thị SLI, SLO và mức tuân thủ trên dashboard.
+- id: tinh-error-budget
+  title: Tính Error Budget
+  purpose: Quy đổi ngưỡng SLO thành phần lỗi được phép để cân bằng rủi ro và tốc độ thay đổi.
+  objectives:
+  - Tính ngân sách lỗi bằng (1 − SLO) × số sự kiện đủ điều kiện.
+  - Ước lượng error budget còn lại sau các lỗi thực tế.
+- id: burn-rate-canh-bao
+  title: Burn Rate & Cảnh báo
+  purpose: Phát hiện tốc độ tiêu hao ngân sách lỗi bất thường trước khi vượt SLO.
+  objectives:
+  - Tính burn rate từ tỷ lệ lỗi thực tế so với mức cho phép.
+  - Đề xuất cảnh báo nhiều cửa sổ và phân cấp khẩn cấp.
+- id: sla-cam-ket
+  title: SLA & Cam kết
+  purpose: Kết nối mục tiêu kỹ thuật với kỳ vọng, báo cáo và nghĩa vụ đối với khách hàng.
+  objectives:
+  - Phân biệt SLO vận hành và SLA có hậu quả khi vi phạm.
+  - Mô tả phạm vi, cách đo và ngoại lệ trong một SLA mẫu.
+- id: chinh-sach-ra-soat
+  title: Chính sách & Rà soát
+  purpose: Dùng kết quả SLO và ngân sách lỗi để ưu tiên cải thiện độ tin cậy.
+  objectives:
+  - Xây quy tắc giảm rủi ro phát hành khi budget cạn.
+  - Rà soát mục tiêu, báo cáo vi phạm và điều chỉnh dựa trên dữ liệu.

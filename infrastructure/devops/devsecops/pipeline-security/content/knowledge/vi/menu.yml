@@ -1,0 +1,337 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bảo mật pipeline CI/CD là gì và vì sao cần bảo vệ riêng
+  - Vai trò của pipeline trong chuỗi cung ứng phần mềm
+  - Phân biệt bảo mật pipeline với quét bảo mật ứng dụng
+  - 'Các tài sản cần bảo vệ: mã nguồn, bí mật, máy chạy và artifact'
+  - Tính bí mật, tính toàn vẹn và tính sẵn sàng trong chuỗi thực thi
+  - Từ thay đổi mã nguồn đến quyền tác động vào môi trường sản xuất
+  - Nguyên tắc quyền tối thiểu và giảm phạm vi ảnh hưởng
+  - Phòng vệ nhiều lớp và giới hạn của một công cụ kiểm tra đơn lẻ
+  - Trình tự học từ mô hình đe dọa đến kiểm chứng biện pháp bảo vệ
+- level1: Ranh giới tin cậy
+  level2:
+  - 'Các thành phần: kho mã, bộ điều phối, máy chạy và hệ thống đích'
+  - Luồng dữ liệu và luồng cấp quyền qua các giai đoạn
+  - Phân biệt người đề xuất, người phê duyệt và danh tính thực thi
+  - Mã nguồn tin cậy và mã nguồn chưa được thẩm định
+  - Job không đặc quyền và job được phép công bố hoặc triển khai
+  - Đầu vào từ nhánh, fork, yêu cầu hợp nhất và hệ thống ngoài
+  - Ranh giới giữa tổ chức, dự án, kho mã và môi trường
+  - Thay đổi mức tin cậy khi chuyển artifact hoặc thông tin giữa các job
+  - Quyền bắc cầu khi một job gọi thành phần có đặc quyền cao hơn
+  - Lập sơ đồ ai có thể đọc, ghi và kích hoạt từng thành phần
+- level1: Mô hình đe dọa
+  level2:
+  - Xác định mục tiêu bảo vệ và giả định về bên có khả năng gây hại
+  - Liệt kê điểm tiếp nhận đầu vào và nơi thực thi mã
+  - Nguy cơ sửa tệp pipeline để thay đổi hành vi hoặc lấy quyền
+  - Nguy cơ chèn lệnh qua metadata, tham số và nội dung kho mã
+  - Nguy cơ chiếm bí mật từ mã được thực thi trong job
+  - Nguy cơ giả mạo, thay thế hoặc sửa gói phần mềm
+  - Nguy cơ đầu độc cache và dữ liệu dùng lại giữa các lần chạy
+  - Nguy cơ máy chạy bị chiếm quyền và tồn lưu qua nhiều công việc
+  - Lạm dụng tài nguyên, vòng kích hoạt và gây gián đoạn pipeline
+  - Ưu tiên biện pháp theo tác động, khả năng xảy ra và phạm vi phơi nhiễm
+- level1: Bảo vệ kho mã
+  level2:
+  - Quyền truy cập kho mã và trách nhiệm quản trị
+  - Bảo vệ nhánh, tag và điểm bắt đầu luồng phát hành
+  - Yêu cầu xem xét thay đổi đối với tệp pipeline và script thực thi
+  - Chủ sở hữu mã cho cấu hình, thư viện dùng chung và chính sách
+  - Điều kiện kiểm tra bắt buộc và nhận diện đúng nguồn gửi trạng thái
+  - Phê duyệt gắn với nội dung hiện tại thay vì phiên bản đã thay đổi
+  - Ngăn một người tự đề xuất, tự duyệt và tự cấp quyền nhạy cảm
+  - Giới hạn tài khoản máy, khóa truy cập và tích hợp cài vào kho mã
+  - Theo dõi thay đổi cài đặt có thể làm mất hiệu lực biện pháp bảo vệ
+- level1: Cấu hình pipeline
+  level2:
+  - Xem tệp pipeline như mã có thể thay đổi quyền và luồng thực thi
+  - Tách cấu hình công khai khỏi thông tin xác thực và dữ liệu nhạy cảm
+  - Khai báo rõ quyền, máy chạy, môi trường và nguồn đầu vào
+  - Giữ logic thực thi dễ xem xét và tránh sinh lệnh quá động
+  - Script trong kho mã chịu cùng ranh giới tin cậy với nguồn được checkout
+  - Quản lý phiên bản template và pipeline dùng chung
+  - Kiểm tra cấu hình, thay đổi quyền và thay đổi điều kiện chạy
+  - Nhận diện đường vòng qua job tùy chọn, bước luôn chạy và xử lý lỗi
+  - Giới hạn công việc hậu xử lý có thể truy cập bí mật hoặc artifact
+  - Ngăn việc bỏ qua lỗi kiểm tra nhưng vẫn trả trạng thái thành công
+- level1: Đầu vào và sự kiện
+  level2:
+  - Phân loại sự kiện push, pull request, tag, lịch chạy và kích hoạt thủ công
+  - Nội dung nào được thực thi và danh tính nào được cấp theo từng sự kiện
+  - Phân biệt nhánh chứa cấu hình pipeline với nhánh mã được checkout
+  - Không nâng mức tin cậy chỉ vì yêu cầu đến từ người có tài khoản
+  - Kiểm tra nguồn webhook, chữ ký, thời hạn và chống gửi lại khi phù hợp
+  - Giới hạn kiểu, độ dài và tập giá trị của tham số đầu vào
+  - Đưa dữ liệu vào biến thay vì ghép trực tiếp thành mã lệnh
+  - Quoting, phân cách đối số và nguy cơ coi dữ liệu là tùy chọn lệnh
+  - Xử lý tên nhánh, đường dẫn và metadata như đầu vào không tin cậy
+  - Chống chèn đường dẫn khi đọc, ghi hoặc giải nén tệp
+  - Giới hạn quyền của luồng kiểm thử đóng góp từ fork
+  - Kiểm tra điều kiện kích hoạt để tránh chạy sai môi trường hoặc sai tham chiếu
+- level1: Danh tính và quyền
+  level2:
+  - Phân biệt danh tính người dùng, danh tính job và tài khoản dịch vụ
+  - Phạm vi token theo tổ chức, kho mã, công việc và môi trường
+  - Quyền đọc mã, ghi mã, công bố gói và triển khai là các quyền khác nhau
+  - Mặc định tối thiểu và chỉ nâng quyền tại job có nhu cầu
+  - Thời hạn thông tin xác thực và khả năng thu hồi
+  - Giới hạn quyền được kế thừa khi gọi pipeline hoặc dịch vụ khác
+  - Tách danh tính kiểm tra với danh tính công bố
+  - Tránh dùng chung tài khoản đặc quyền cho nhiều đội hoặc môi trường
+  - Xem xét quyền của tích hợp, ứng dụng và khóa triển khai
+  - Truy vết hành động đến đúng lần chạy thay vì chỉ một tài khoản dùng chung
+  - Rà soát quyền dư thừa và quyền còn sót sau khi thay đổi nhiệm vụ
+- level1: Liên kết danh tính
+  level2:
+  - OIDC và ý tưởng đổi danh tính job lấy thông tin xác thực ngắn hạn
+  - Phân biệt token nhận dạng với quyền thao tác trên hệ thống đích
+  - Vai trò của issuer, audience, subject và các claim liên quan
+  - Giới hạn quan hệ tin cậy theo tổ chức, kho mã và môi trường
+  - Kiểm tra nhánh, tag và ngữ cảnh thực thi khi ánh xạ quyền
+  - Vì sao token ngắn hạn vẫn nguy hiểm nếu chính sách tin cậy quá rộng
+  - Giới hạn job được yêu cầu token và dịch vụ được chấp nhận token
+  - Ánh xạ danh tính sang vai trò có quyền tối thiểu
+  - Ngăn dùng danh tính của luồng không tin cậy để nhận quyền đặc biệt
+  - Theo dõi hoạt động đổi token mà không ghi lộ nội dung token
+  - Kiểm thử các trường hợp bị từ chối trước khi cho phép triển khai
+- level1: Quản lý bí mật
+  level2:
+  - Phân loại bí mật theo chủ sở hữu, mục đích và môi trường
+  - Lưu bí mật trong hệ thống được phân quyền và có nhật ký truy cập
+  - Chỉ cấp bí mật cho bước hoặc job thật sự cần
+  - Giữ bí mật ngoài Git, ảnh máy chạy và gói kết quả
+  - Rủi ro khi bí mật xuất hiện trong biến môi trường, tệp và đối số lệnh
+  - Che giá trị trong log và giới hạn đối với dữ liệu biến đổi hoặc bị chia nhỏ
+  - Truyền bí mật qua kênh phù hợp mà không lưu vào đầu ra job
+  - Cấp và xóa tệp bí mật tạm trong môi trường thực thi
+  - Luân chuyển, hết hạn và thu hồi thông tin xác thực
+  - Phân biệt bí mật cố định với thông tin xác thực được cấp theo lần chạy
+  - Quy trình xử lý bí mật đã lộ trước khi làm sạch bản sao và lịch sử
+- level1: Bảo vệ máy chạy
+  level2:
+  - Máy chạy được quản lý và máy chạy tự quản có trách nhiệm bảo vệ khác nhau
+  - Máy chạy tạm thời và máy chạy dùng lại qua nhiều job
+  - Tách nhóm máy chạy theo mức tin cậy và mức đặc quyền
+  - Đăng ký máy chạy, bảo vệ token đăng ký và kiểm soát máy giả mạo
+  - Cập nhật hệ điều hành, công cụ và tác nhân thực thi
+  - Giảm phần mềm cài sẵn và quyền của tài khoản chạy job
+  - Không dùng máy sản xuất như môi trường dựng cho mã chưa tin cậy
+  - Giới hạn tài nguyên và ngăn công việc chiếm dụng kéo dài
+  - Dọn dữ liệu và thu hồi danh tính sau mỗi lần chạy
+  - Giám sát thay đổi bất thường, kết nối ngoài và tiến trình còn sót
+  - Thay thế máy chạy bị nghi ngờ thay vì chỉ dọn thư mục công việc
+- level1: Cách ly thực thi
+  level2:
+  - Cách ly bằng tiến trình, container và máy ảo có giới hạn khác nhau
+  - Ranh giới giữa job, máy chạy và máy chủ vật lý
+  - Giảm quyền root, capabilities và truy cập thiết bị
+  - Rủi ro của chế độ privileged và gắn Docker socket máy chủ
+  - Giới hạn đường dẫn gắn ngoài và quyền truy cập hệ thống tệp
+  - Tách mạng kiểm thử khỏi hệ thống quản trị và môi trường sản xuất
+  - Kiểm soát kết nối ra ngoài theo nhu cầu bản dựng
+  - Ngăn công việc tiếp cận metadata hoặc thông tin xác thực của máy chủ
+  - Dịch vụ phụ trợ trong job và phạm vi chia sẻ dữ liệu
+  - Giới hạn của sandbox khi vẫn cấp bí mật hoặc quyền ghi rộng
+- level1: Thành phần bên thứ ba
+  level2:
+  - Action, plugin, template và thư viện dùng chung là mã được thực thi
+  - Đánh giá chủ sở hữu, nguồn phát hành và phạm vi quyền cần cấp
+  - Ghim tham chiếu bất biến thay vì chỉ dựa vào tên phiên bản có thể đổi
+  - Kiểm tra nội dung thay đổi khi nâng cấp thành phần
+  - Phụ thuộc bắc cầu và script mà thành phần tải thêm
+  - Đối chiếu nguồn, chữ ký hoặc bằng chứng phát hành khi có
+  - Danh sách thành phần được phép dùng và cơ chế ngoại lệ
+  - Đánh giá rủi ro trước khi chạy thành phần ngoài trong job có bí mật
+  - Quản lý thành phần ngừng duy trì hoặc bị nghi chiếm quyền
+  - Thử nghiệm cập nhật ở phạm vi giới hạn trước khi dùng rộng rãi
+- level1: Phụ thuộc bản dựng
+  level2:
+  - Nguồn tải phụ thuộc là một phần ranh giới tin cậy
+  - Khóa phiên bản và xác minh toàn vẹn gói tải về
+  - Phụ thuộc trực tiếp, phụ thuộc bắc cầu và nội dung chỉ dùng khi dựng
+  - Ưu tiên nguồn rõ ràng để giảm nhầm gói nội bộ với gói công khai
+  - Nhận diện gói có tên dễ nhầm hoặc nhà xuất bản không phù hợp
+  - Script cài đặt và tác dụng phụ khi lấy phụ thuộc
+  - Quản lý repository mirror, proxy và kho gói nội bộ
+  - Bảo vệ cấu hình nguồn gói khỏi bị sửa ngoài dự kiến
+  - Kiểm tra giấy phép và lỗ hổng theo chính sách của tổ chức
+  - Cập nhật phụ thuộc có kiểm chứng và kế hoạch xử lý khẩn cấp
+- level1: Bản dựng có kiểm chứng
+  level2:
+  - Liên kết đầu vào mã nguồn với cấu hình, công cụ và kết quả dựng
+  - Kiểm tra tham chiếu checkout và tránh dựng nhầm nguồn
+  - Ghim công cụ, image nền và đầu vào có thể thay đổi
+  - Phân biệt bản dựng có thể truy vết với bản dựng tái lập
+  - Giới hạn phụ thuộc vào mạng, thời gian và trạng thái máy chạy
+  - Tách môi trường tạo gói khỏi môi trường có quyền công bố
+  - Chạy kiểm thử mà không cho mã kiểm thử sửa đầu ra đã được xác nhận
+  - Xác minh gói sau bước xử lý cuối thay vì chỉ trước khi đóng gói
+  - Tạo một gói được kiểm tra rồi chuyển cùng gói qua các môi trường
+  - Ghi lại nguồn đầu vào và danh tính hệ thống dựng
+- level1: Cache và vùng làm việc
+  level2:
+  - Phân biệt cache có thể bỏ với artifact phải được xác minh
+  - Khóa cache theo nội dung đầu vào và phạm vi tin cậy
+  - Tách quyền ghi cache của mã đóng góp với luồng công bố
+  - Giới hạn dữ liệu khôi phục vào vùng làm việc của job đặc quyền
+  - Kiểm tra đường dẫn và liên kết khi giải nén dữ liệu dùng lại
+  - Ngăn bí mật, cấu hình xác thực và tệp tạm đi vào cache
+  - Không dùng việc cache trúng như bằng chứng kết quả đã được kiểm tra
+  - Dọn workspace và tránh thực thi tệp còn sót từ công việc trước
+  - Vô hiệu hóa cache khi nghi bị sửa hoặc chứa thành phần có hại
+  - Đánh đổi hiệu năng với mức cách ly và khả năng kiểm chứng
+- level1: Artifact và registry
+  level2:
+  - Định danh artifact bằng nội dung thay vì chỉ tên tệp hoặc tag
+  - Liên kết artifact với commit, lần chạy và môi trường tạo ra
+  - Phân quyền tải lên, tải xuống, thay thế và xóa gói
+  - Tách vùng lưu kết quả thử nghiệm khỏi vùng phát hành tin cậy
+  - Xác minh nội dung khi tải artifact giữa các giai đoạn
+  - Ngăn thay thế artifact sau khi đã được phê duyệt
+  - Promotion giữ nguyên danh tính gói thay vì dựng lại tùy môi trường
+  - Giới hạn dữ liệu nhạy cảm trong báo cáo và gói kết quả
+  - Lưu giữ phiên bản phục vụ điều tra và phục hồi
+  - Đối chiếu gói công bố với gói thực sự được triển khai
+- level1: Chữ ký và nguồn gốc
+  level2:
+  - Phân biệt mã băm, chữ ký và bằng chứng nguồn gốc bản dựng
+  - Tính toàn vẹn khác với sự an toàn của nội dung phần mềm
+  - Bảo vệ khóa ký hoặc danh tính được phép yêu cầu ký
+  - Chỉ ký sau khi kiểm tra đúng artifact và đúng điều kiện
+  - 'Nội dung bằng chứng nguồn gốc: đầu vào, hệ thống dựng và đầu ra'
+  - Gắn chữ ký và bằng chứng với digest của gói
+  - Xác minh danh tính bên ký, nguồn tin cậy và điều kiện chấp nhận
+  - Phân biệt tự khai báo metadata với bằng chứng được xác thực
+  - SBOM mô tả thành phần nhưng không tự chứng minh gói đáng tin cậy
+  - Kiểm tra chữ ký tại điểm công bố và điểm triển khai
+  - Xử lý khóa bị lộ, bằng chứng thiếu hoặc nguồn gốc không khớp
+- level1: Kiểm tra bảo mật
+  level2:
+  - Phân bố kiểm tra theo giai đoạn và mức quyền của job
+  - Quét bí mật trong thay đổi mã và dữ liệu đưa vào bản dựng
+  - Phân tích mã tĩnh (SAST) và giới hạn của kết quả
+  - Phân tích thành phần phụ thuộc (SCA) và dữ liệu lỗ hổng
+  - Kiểm tra cấu hình hạ tầng, container và môi trường triển khai
+  - Kiểm thử động (DAST) trên môi trường được phép kiểm tra
+  - Kiểm tra cấu hình pipeline và mẫu cấp quyền không phù hợp
+  - Bảo vệ thông tin xác thực dùng cho công cụ quét
+  - Xem báo cáo và tệp đầu ra của công cụ như dữ liệu cần kiểm tra
+  - Phân biệt không phát hiện vấn đề với công cụ không chạy thành công
+  - Cập nhật công cụ và dữ liệu kiểm tra có quản lý nguồn
+  - Giới hạn của việc chỉ thêm nhiều công cụ mà thiếu quyết định xử lý
+- level1: Cổng kiểm soát
+  level2:
+  - Điều kiện tiếp tục, tạm dừng hoặc chặn pipeline
+  - Xây dựng chính sách theo loại thay đổi và mức ảnh hưởng
+  - Ưu tiên phát hiện theo mức nghiêm trọng, khả năng khai thác và ngữ cảnh
+  - Phân biệt phát hiện mới với tồn đọng đã có
+  - Xử lý dương tính giả bằng bằng chứng và người chịu trách nhiệm
+  - Giới hạn thời gian ngoại lệ và điều kiện kiểm tra lại
+  - Phân biệt fail-open, fail-closed và cách xử lý khi công cụ lỗi
+  - Chặn việc dùng dữ liệu kiểm tra cũ cho một artifact mới
+  - Bảo vệ nguồn cấu hình chính sách và quyền sửa ngưỡng
+  - Tránh cho người tạo thay đổi tự bỏ qua kiểm soát quan trọng
+  - Lưu lý do quyết định và bằng chứng liên quan đến đúng lần chạy
+- level1: Triển khai đặc quyền
+  level2:
+  - Tách luồng kiểm thử với luồng được phép tác động môi trường thật
+  - Giới hạn danh tính triển khai theo môi trường và tài nguyên
+  - Phê duyệt gắn với đúng gói, cấu hình và phạm vi thay đổi
+  - Kiểm tra lại khi nguồn đầu vào đổi sau thời điểm phê duyệt
+  - Chỉ nhận artifact từ nguồn và lần chạy đã được xác minh
+  - Tránh dựng hoặc chạy mã chưa tin cậy trong job có quyền sản xuất
+  - Cấp bí mật triển khai ngay lúc cần và thu hồi sau khi dùng
+  - Tuần tự hóa thay đổi và tránh một bản triển khai cũ ghi đè bản mới
+  - Kiểm soát bước thay đổi dữ liệu, quyền và cấu hình bảo mật
+  - Xác minh trạng thái sau triển khai và lưu dấu vết hành động
+  - Chuẩn bị cơ chế dừng khẩn cấp mà không tạo đường vòng thường trực
+- level1: Bàn giao giữa pipeline
+  level2:
+  - Ranh giới tin cậy khi gọi pipeline dùng chung hoặc pipeline ở kho khác
+  - Xác minh bên gọi, bên nhận và tham chiếu nguồn được phép
+  - Giới hạn tham số chuyển tiếp và quyền được kế thừa
+  - Kiểm tra sự kiện hoàn tất không đồng nghĩa tin toàn bộ đầu ra
+  - Liên kết artifact với lần chạy nguồn thay vì chọn theo tên gần nhất
+  - Phân biệt metadata do người dùng nhập với thông tin nền tảng xác nhận
+  - Ngăn pipeline đặc quyền trở thành bên thực hiện thay yêu cầu không tin cậy
+  - Bảo vệ token kích hoạt giữa hệ thống và giới hạn phạm vi tác động
+  - Xử lý gửi lại, chạy trùng và điều kiện đầu vào đã thay đổi
+  - Truy vết chuỗi thực thi xuyên kho mã và xuyên nền tảng
+- level1: Nhật ký và bằng chứng
+  level2:
+  - Thông tin tối thiểu về người kích hoạt, nguồn mã, quyền và kết quả
+  - Liên kết log, artifact, báo cáo và gói triển khai với cùng lần chạy
+  - Tập trung nhật ký và bảo vệ khỏi sửa hoặc xóa ngoài thẩm quyền
+  - Giới hạn truy cập báo cáo có mã nguồn, đường dẫn hoặc thông tin nội bộ
+  - Lọc và che dữ liệu nhạy cảm trước khi lưu hoặc chuyển tiếp
+  - Thời gian lưu giữ phù hợp với điều tra và yêu cầu tổ chức
+  - Theo dõi thay đổi quyền, bí mật, máy chạy và cấu hình pipeline
+  - Cảnh báo hành vi bất thường thay vì chỉ báo mọi lần chạy thất bại
+  - Giữ bằng chứng từ công việc thất bại, bị hủy hoặc vượt thời gian
+  - Giới hạn của log khi máy chạy hoặc nguồn ghi log đã bị kiểm soát
+- level1: Ứng phó sự cố
+  level2:
+  - Nhận diện dấu hiệu pipeline, máy chạy hoặc gói phần mềm bị can thiệp
+  - Phân công người điều phối và xác định phạm vi ảnh hưởng ban đầu
+  - Tạm dừng công bố hoặc triển khai mà vẫn bảo toàn bằng chứng
+  - Thu hồi bí mật, token và quan hệ tin cậy bị ảnh hưởng
+  - Cách ly máy chạy và giữ dữ liệu phục vụ điều tra
+  - Xác định commit, lần chạy, cache và artifact có liên quan
+  - Đánh dấu hoặc cách ly gói không còn đủ căn cứ tin cậy
+  - Tái dựng từ nguồn và môi trường sạch đã được xác minh
+  - Kiểm tra hệ thống đã nhận hoặc đã triển khai gói bị ảnh hưởng
+  - Điều kiện khôi phục pipeline và xác nhận kiểm soát đã hoạt động
+  - Rút kinh nghiệm và cập nhật mô hình đe dọa sau sự cố
+- level1: Chính sách và quản trị
+  level2:
+  - Phân định trách nhiệm giữa đội phát triển, nền tảng, vận hành và bảo mật
+  - Thiết lập mức bảo vệ tối thiểu cho các nhóm pipeline
+  - Quản lý chính sách dưới dạng mã và quyền thay đổi chính sách
+  - Tách nhiệm vụ khi đề xuất, duyệt và áp dụng cấu hình nhạy cảm
+  - Quản lý ngoại lệ có lý do, thời hạn và chủ sở hữu
+  - Kiểm kê pipeline, tài khoản máy, tích hợp và máy chạy
+  - Quy trình tiếp nhận, đổi quyền và gỡ bỏ thành phần
+  - Rà soát quyền truy cập và cấu hình định kỳ
+  - Tài liệu điều tra, khôi phục và bàn giao cho người trực
+  - Chứng minh kiểm soát bằng bằng chứng thực thi thay vì chỉ tài liệu thiết kế
+- level1: Kiểm chứng kiểm soát
+  level2:
+  - Kiểm thử ranh giới tin cậy bằng môi trường thử nghiệm tách biệt
+  - Chọn trường hợp phải được cho phép và trường hợp phải bị từ chối
+  - Xác minh mã từ fork không đọc được bí mật hoặc nhận quyền công bố
+  - Kiểm tra dữ liệu metadata được xử lý như dữ liệu, không thành lệnh
+  - Xác minh danh tính sai kho, sai môi trường hoặc sai đối tượng nhận bị từ chối
+  - Thử artifact sai digest, thiếu nguồn gốc hoặc bị thay sau phê duyệt
+  - Kiểm tra cache từ luồng không tin cậy không đi vào công việc đặc quyền
+  - Xác minh công cụ lỗi hoặc không tạo báo cáo không bị coi là quét đạt
+  - Kiểm tra ngoại lệ hết hạn và thay đổi đầu vào làm mất hiệu lực phê duyệt
+  - Lưu kết quả thử nghiệm và chạy lại khi cấu hình bảo vệ thay đổi
+- level1: Hiệu quả và cải tiến
+  level2:
+  - Đo phạm vi pipeline đã có kiểm soát thay vì chỉ đếm công cụ
+  - Theo dõi thời gian xử lý phát hiện và thu hồi quyền dư thừa
+  - Đánh giá tỷ lệ cảnh báo hữu ích và chi phí của dương tính giả
+  - Cân bằng tốc độ phản hồi với kiểm tra sâu theo mức rủi ro
+  - Ưu tiên sửa nguyên nhân gốc thay vì tăng bước phê duyệt thủ công
+  - Triển khai chính sách mới theo giai đoạn và theo dõi tác động
+  - Phát hiện đường vòng xuất hiện sau khi áp dụng biện pháp quá khó dùng
+  - Cập nhật tài liệu, bài kiểm chứng và hướng dẫn cho đội phát triển
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ luồng dữ liệu, danh tính và ranh giới tin cậy của một pipeline mẫu
+  - Phân loại tài sản và lập mô hình đe dọa cho từng giai đoạn
+  - Tách kiểm thử đóng góp bên ngoài khỏi luồng công bố đặc quyền
+  - Giảm quyền job và đối chiếu khả năng đọc, ghi thực tế
+  - Thiết kế cấp thông tin xác thực ngắn hạn theo nguồn và môi trường
+  - Kiểm tra đầu vào bằng dữ liệu vô hại có ký tự đặc biệt
+  - Chuyển bí mật ra khỏi mã, log và gói kết quả
+  - Thiết kế máy chạy tạm thời và thử nghiệm cách ly vùng làm việc
+  - Ghim thành phần bên thứ ba và kiểm tra thay đổi khi nâng cấp
+  - Tạo luồng dựng, xác minh digest và chuyển nguyên gói qua các giai đoạn
+  - Thiết kế cổng kiểm soát có xử lý công cụ lỗi và ngoại lệ hết hạn
+  - Mô phỏng artifact sai nguồn hoặc thay đổi sau phê duyệt để kiểm tra việc chặn
+  - Diễn tập lộ thông tin xác thực và phục hồi từ môi trường sạch
+  - Lập báo cáo bằng chứng, quyền còn dư và kế hoạch cải tiến

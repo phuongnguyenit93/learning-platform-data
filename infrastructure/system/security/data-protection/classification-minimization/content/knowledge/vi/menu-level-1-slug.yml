@@ -1,0 +1,136 @@
+menu:
+- title: Khái niệm phân loại
+  slug: data-classification-basics
+  index: 0
+- title: Khái niệm tối giản
+  slug: data-minimization-basics
+  index: 1
+- title: Mối liên hệ
+  slug: classification-minimization-links
+  index: 2
+- title: Inventory dữ liệu
+  slug: data-inventory
+  index: 3
+- title: Data map
+  slug: data-map
+  index: 4
+- title: Mục đích xử lý
+  slug: processing-purposes
+  index: 5
+- title: Cơ sở và trách nhiệm
+  slug: legal-basis-accountability
+  index: 6
+- title: Phân loại mức độ
+  slug: classification-levels
+  index: 7
+- title: Tác động bảo mật
+  slug: security-impact
+  index: 8
+- title: Nhóm dữ liệu
+  slug: data-categories
+  index: 9
+- title: Dữ liệu phi cấu trúc
+  slug: unstructured-data
+  index: 10
+- title: Label
+  slug: data-labeling
+  index: 11
+- title: Phân loại tự động
+  slug: automated-classification
+  index: 12
+- title: Phân loại thủ công
+  slug: manual-classification
+  index: 13
+- title: Kiểm soát theo label
+  slug: label-based-controls
+  index: 14
+- title: Data minimization thu thập
+  slug: collection-minimization
+  index: 15
+- title: Minimization lưu trữ
+  slug: storage-minimization
+  index: 16
+- title: Minimization truy cập
+  slug: access-minimization
+  index: 17
+- title: Minimization xử lý
+  slug: processing-minimization
+  index: 18
+- title: Minimization chia sẻ
+  slug: sharing-minimization
+  index: 19
+- title: Privacy by design
+  slug: privacy-by-design
+  index: 20
+- title: Accuracy và chất lượng
+  slug: data-accuracy-quality
+  index: 21
+- title: Retention liên kết
+  slug: retention-policy-alignment
+  index: 22
+- title: Access control
+  slug: access-control
+  index: 23
+- title: Encryption
+  slug: encryption
+  index: 24
+- title: Masking và redaction
+  slug: masking-redaction
+  index: 25
+- title: DLP
+  slug: dlp
+  index: 26
+- title: Data loss prevention
+  slug: data-loss-prevention
+  index: 27
+- title: Data lifecycle
+  slug: data-lifecycle
+  index: 28
+- title: Data deletion
+  slug: data-deletion
+  index: 29
+- title: Backup và bản sao
+  slug: backups-and-copies
+  index: 30
+- title: Logging và telemetry
+  slug: logging-telemetry
+  index: 31
+- title: Analytics và AI
+  slug: analytics-ai
+  index: 32
+- title: Cloud và SaaS
+  slug: cloud-saas
+  index: 33
+- title: Database
+  slug: database-controls
+  index: 34
+- title: API và message
+  slug: apis-messaging
+  index: 35
+- title: Development và testing
+  slug: development-testing
+  index: 36
+- title: Third-party
+  slug: third-party-data
+  index: 37
+- title: Monitoring
+  slug: monitoring
+  index: 38
+- title: Testing
+  slug: testing
+  index: 39
+- title: Metrics
+  slug: metrics
+  index: 40
+- title: Governance
+  slug: governance
+  index: 41
+- title: Migration
+  slug: migration
+  index: 42
+- title: Anti-pattern
+  slug: anti-patterns
+  index: 43
+- title: Checklist production
+  slug: production-checklist
+  index: 44

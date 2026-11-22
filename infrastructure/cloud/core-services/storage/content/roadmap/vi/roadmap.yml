@@ -1,0 +1,57 @@
+roadmap:
+- id: nhu-cau-mo-hinh-luu-tru
+  title: Nhu cầu & mô hình lưu trữ
+  purpose: Hiểu yêu cầu dữ liệu để chọn dịch vụ lưu trữ đám mây phù hợp thay vì chỉ dựa vào dung lượng.
+  objectives:
+  - Phân biệt object, block và file storage.
+  - Xác định latency, throughput, IOPS và kiểu truy cập.
+  - Đánh giá durability, availability, mở rộng và chi phí.
+- id: object-storage
+  title: Object Storage
+  purpose: Lưu và truy xuất dữ liệu phi cấu trúc qua bucket, object key và API.
+  objectives:
+  - Tạo bucket và quản lý object cùng metadata.
+  - Thực hành tải lên, tải xuống và truy xuất qua API/CLI.
+  - 'Nhận diện trường hợp phù hợp: ảnh, log, backup và dữ liệu tĩnh.'
+- id: block-storage
+  title: Block Storage
+  purpose: Cung cấp volume cho máy ảo hoặc workload cần đọc ghi ngẫu nhiên độ trễ thấp.
+  objectives:
+  - Tạo, gắn và định dạng volume cho một VM.
+  - Phân biệt dung lượng, IOPS, throughput và giới hạn gắn đĩa.
+  - Giải thích tình huống database hoặc hệ điều hành cần block storage.
+- id: file-storage
+  title: File Storage
+  purpose: Dùng file share có cấu trúc thư mục cho ứng dụng cần truy cập tệp theo đường dẫn.
+  objectives:
+  - Phân biệt SMB và NFS ở mức khái niệm.
+  - Tạo file share và thử mount từ ứng dụng/VM.
+  - Đánh giá quyền truy cập và chia sẻ dữ liệu giữa nhiều máy.
+- id: quyen-truy-cap-ma-hoa
+  title: Quyền truy cập & mã hóa
+  purpose: Bảo vệ dữ liệu lưu trữ trước rò rỉ, truy cập ngoài ý muốn và lộ thông tin xác thực.
+  objectives:
+  - Áp dụng IAM và nguyên tắc quyền tối thiểu cho bucket/share.
+  - Chặn public access không chủ đích và kiểm soát đường truyền.
+  - Phân biệt mã hóa khi lưu, khi truyền và quản lý khóa.
+- id: do-ben-phuc-hoi-du-lieu
+  title: Độ bền & phục hồi dữ liệu
+  purpose: Thiết kế biện pháp chống mất dữ liệu và khôi phục khi xóa nhầm hoặc gặp sự cố.
+  objectives:
+  - Phân biệt durability, availability và redundancy.
+  - Thử versioning, snapshot hoặc backup phù hợp loại storage.
+  - Đánh giá replication đa vùng, RPO/RTO và thử phục hồi.
+- id: storage-class-vong-doi
+  title: Storage Class & vòng đời
+  purpose: Tối ưu chi phí theo tần suất truy cập và thời gian lưu giữ dữ liệu.
+  objectives:
+  - So sánh lớp thường truy cập, ít truy cập và lưu trữ lạnh.
+  - Thiết lập lifecycle chuyển lớp hoặc xóa dữ liệu theo chính sách.
+  - Tính chi phí lưu trữ, request, truy xuất và truyền dữ liệu.
+- id: hieu-nang-van-hanh
+  title: Hiệu năng & vận hành
+  purpose: Kiểm chứng dịch vụ lưu trữ đáp ứng tải thực tế và quan sát lỗi, dung lượng, chi phí.
+  objectives:
+  - Đo độ trễ, throughput, IOPS hoặc tỷ lệ lỗi theo workload.
+  - Theo dõi quota, dung lượng, audit log và cảnh báo.
+  - Thực hành lựa chọn object/block/file cho một tình huống cụ thể.

@@ -1,0 +1,406 @@
+menu:
+- level1: Tổng quan kiến trúc
+  level2:
+  - Kiến trúc đám mây là gì và những quyết định kiến trúc cần giải quyết
+  - Vai trò kiến trúc sư và sự phối hợp với phát triển, bảo mật, vận hành
+  - Phân biệt kiến trúc nghiệp vụ, ứng dụng, dữ liệu và hạ tầng
+  - Mối quan hệ giữa kiến trúc hệ thống, nền tảng đám mây và dịch vụ được quản lý
+  - Đọc một kiến trúc tham chiếu từ yêu cầu đến luồng xử lý
+  - Lộ trình thiết kế và đánh giá kiến trúc đám mây
+- level1: Yêu cầu kiến trúc
+  level2:
+  - Xác định mục tiêu nghiệp vụ, bên liên quan và phạm vi hệ thống
+  - Phân tích hành trình người dùng và các luồng nghiệp vụ trọng yếu
+  - Thu thập yêu cầu chức năng và yêu cầu chất lượng
+  - Ước lượng người dùng, lưu lượng, dung lượng dữ liệu và tốc độ tăng trưởng
+  - Xác định ràng buộc về ngân sách, nhân lực, công nghệ và thời gian
+  - Phân loại dữ liệu, vị trí lưu trữ và yêu cầu tuân thủ
+  - Chuyển yêu cầu thành kịch bản chất lượng có tiêu chí đo lường
+  - Ưu tiên yêu cầu và xử lý xung đột giữa các bên liên quan
+- level1: Nguyên lý thiết kế
+  level2:
+  - Thiết kế theo trách nhiệm chia sẻ giữa khách hàng và nhà cung cấp
+  - Thiết kế cho lỗi, thay đổi và nhu cầu tăng trưởng
+  - Giảm phụ thuộc chặt và tăng tính gắn kết trong từng thành phần
+  - Ưu tiên tự động hóa, khả năng tái tạo và hạ tầng bất biến
+  - Quản lý trạng thái và lựa chọn thành phần không lưu trạng thái
+  - Thiết kế theo khả năng phục hồi thay vì giả định hạ tầng luôn hoạt động
+  - Đánh đổi giữa độ tin cậy, bảo mật, hiệu năng, chi phí và vận hành
+  - Đánh giá ràng buộc nhà cung cấp và mức độ di chuyển thực sự cần thiết
+  - Đơn giản hóa kiến trúc và kiểm soát độ phức tạp phát sinh
+- level1: Mô hình triển khai
+  level2:
+  - Lựa chọn IaaS, PaaS, SaaS và dịch vụ được quản lý theo trách nhiệm vận hành
+  - 'Đám mây công cộng, riêng và lai: điều kiện lựa chọn'
+  - Một vùng, nhiều vùng sẵn sàng và nhiều khu vực địa lý
+  - Kiến trúc tại biên và phân chia xử lý giữa biên với đám mây
+  - 'Một nhà cung cấp và nhiều nhà cung cấp: lợi ích, giới hạn và chi phí'
+  - Triển khai riêng cho khách hàng và triển khai dùng chung
+  - Phân biệt tính sẵn sàng, phân bố địa lý và chủ quyền dữ liệu
+- level1: Tổ chức tài nguyên
+  level2:
+  - Thiết kế landing zone và các năng lực nền tảng tối thiểu
+  - Phân cấp tổ chức, tài khoản, subscription và project
+  - Tách môi trường phát triển, kiểm thử, thử nghiệm và sản xuất
+  - Tách tài nguyên theo sản phẩm, nhóm sở hữu và mức độ nhạy cảm
+  - Quy hoạch định danh tài nguyên, nhãn và quyền sở hữu
+  - Tài khoản dùng chung cho bảo mật, kết nối và ghi nhật ký
+  - Áp dụng giới hạn dịch vụ, ngân sách và chính sách tổ chức
+  - Quy trình cấp phát, tiếp nhận và thu hồi môi trường
+- level1: Mô hình ứng dụng
+  level2:
+  - Kiến trúc nguyên khối có mô đun và điều kiện phù hợp
+  - Kiến trúc phân lớp, N tầng và giới hạn của việc tách tầng
+  - Kiến trúc hướng dịch vụ và kiến trúc vi dịch vụ
+  - Thiết kế theo miền nghiệp vụ và ranh giới bounded context
+  - Quyền sở hữu dữ liệu và hợp đồng giữa các dịch vụ
+  - Kiến trúc lục giác và cách cô lập phụ thuộc nền tảng
+  - Phân chia thành phần theo khả năng mở rộng và chu kỳ thay đổi
+  - Nhận diện nguyên khối phân tán và tách dịch vụ quá sớm
+- level1: Sơ đồ và quyết định
+  level2:
+  - 'Mô hình C4: bối cảnh, container và thành phần'
+  - Sơ đồ triển khai và ánh xạ thành phần lên tài nguyên đám mây
+  - Sơ đồ luồng dữ liệu, luồng yêu cầu và ranh giới tin cậy
+  - Sơ đồ trình tự cho luồng thành công, lỗi và phục hồi
+  - 'Ghi quyết định kiến trúc bằng ADR: bối cảnh, lựa chọn và hệ quả'
+  - Mô tả hợp đồng API, sự kiện và quyền sở hữu thành phần
+  - Quản lý giả định, rủi ro và nợ kiến trúc
+  - Giữ tài liệu và sơ đồ đồng bộ với hệ thống triển khai
+- level1: Kiến trúc mạng
+  level2:
+  - Quy hoạch không gian địa chỉ và tránh chồng lấn mạng
+  - Thiết kế VPC hoặc VNet, subnet và ranh giới cách ly
+  - Tách luồng bắc–nam và đông–tây trong hệ thống
+  - Hub-and-spoke, mạng tập trung và mạng phân tán
+  - Định tuyến, kết nối ngang hàng và transit trong hệ thống nhiều mạng
+  - Thiết kế DNS công cộng, DNS nội bộ và phân giải tên lai
+  - Private endpoint, dịch vụ nội bộ và kiểm soát đường ra
+  - Kết nối trung tâm dữ liệu qua VPN và đường truyền riêng
+  - Kiểm soát lưu lượng, nhật ký mạng và xử lý sự cố kết nối
+- level1: Điểm vào hệ thống
+  level2:
+  - Thiết kế tên miền, chứng chỉ và chấm dứt kết nối TLS
+  - Cân bằng tải lớp vận chuyển và lớp ứng dụng
+  - Định tuyến theo máy chủ, đường dẫn, vị trí và độ trễ
+  - CDN, bộ nhớ đệm tại biên và phân phối tài nguyên tĩnh
+  - 'API Gateway: xác thực, định tuyến, hạn mức và chuyển đổi giao thức'
+  - Phòng vệ DDoS, WAF và giới hạn tác động tại điểm vào
+  - Health check, loại bỏ đích lỗi và điều phối lưu lượng dự phòng
+  - Thiết kế truy cập quản trị và truy cập dịch vụ nội bộ
+- level1: Kiến trúc tính toán
+  level2:
+  - Lựa chọn máy ảo, container, serverless và nền tảng ứng dụng
+  - Chọn kích thước tài nguyên theo CPU, bộ nhớ, I/O và đặc tính tải
+  - Thiết kế nhóm máy ảo và ảnh máy chuẩn hóa
+  - Vòng đời tiến trình, trạng thái phiên và lưu trữ tạm thời
+  - Thiết kế xử lý nền, tác vụ định kỳ và công việc theo lô
+  - Sử dụng tài nguyên có thể bị thu hồi cho tải chịu gián đoạn
+  - Đặt giới hạn tài nguyên và kiểm soát nhiễu giữa các tải
+  - Lập kế hoạch dung lượng và dự phòng tài nguyên
+- level1: Kiến trúc container
+  level2:
+  - Phân vai cụm, node, workload và dịch vụ trong nền tảng container
+  - Lựa chọn nền tảng container được quản lý và Kubernetes
+  - Thiết kế ranh giới cụm, namespace và môi trường
+  - Lập lịch, phân bố workload và chống tập trung vào một miền lỗi
+  - Service discovery, ingress và kết nối dịch vụ nội bộ
+  - Quản lý cấu hình, bí mật và định danh của workload
+  - Thiết kế workload có trạng thái và lưu trữ bền vững
+  - 'Service mesh: điều kiện sử dụng, lợi ích và chi phí vận hành'
+  - Nâng cấp nền tảng, thay thế node và khả năng di chuyển workload
+- level1: Kiến trúc serverless
+  level2:
+  - Phân chia hàm, sự kiện kích hoạt và đơn vị triển khai
+  - Thiết kế hàm không lưu trạng thái và quản lý phụ thuộc
+  - Độ trễ khởi động, giới hạn thực thi và giới hạn đồng thời
+  - Điều phối quy trình bằng dịch vụ workflow
+  - Thiết kế API đồng bộ và xử lý sự kiện bất đồng bộ
+  - Retry, hàng đợi lỗi và xử lý sự kiện trùng lặp
+  - Quản lý kết nối cơ sở dữ liệu trong tải serverless
+  - Đánh giá chi phí, khả năng quan sát và ràng buộc nền tảng
+- level1: Kiến trúc API
+  level2:
+  - Thiết kế hợp đồng API và lựa chọn REST, gRPC hoặc GraphQL
+  - Giao tiếp đồng bộ, bất đồng bộ và lựa chọn theo luồng nghiệp vụ
+  - Phiên bản API và khả năng tương thích khi thay đổi
+  - Timeout, deadline và lan truyền hủy yêu cầu
+  - Giới hạn tốc độ, hạn ngạch và phân bổ công bằng
+  - Idempotency key và xử lý yêu cầu lặp
+  - API tổng hợp, Backend for Frontend và giảm số lần gọi
+  - Xác thực dịch vụ, phân quyền và bảo vệ API công khai
+  - Kiểm thử hợp đồng và quản lý vòng đời API
+- level1: Kiến trúc sự kiện
+  level2:
+  - Phân biệt lệnh, sự kiện và thông báo
+  - Hàng đợi, publish–subscribe, event bus và luồng sự kiện
+  - Thiết kế chủ đề, partition và khóa phân vùng
+  - Ngữ nghĩa giao nhận, trùng lặp và giới hạn của exactly-once
+  - Thứ tự sự kiện, thời gian sự kiện và sự kiện đến muộn
+  - Hợp đồng sự kiện, schema và tương thích khi tiến hóa
+  - Nhóm tiêu thụ, checkpoint và phát lại sự kiện
+  - Backpressure, vùng đệm và kiểm soát tốc độ tiêu thụ
+  - Dead-letter queue và quy trình xử lý sự kiện lỗi
+- level1: Tính nhất quán
+  level2:
+  - Nhất quán mạnh, nhất quán cuối cùng và yêu cầu nghiệp vụ
+  - CAP và hành vi hệ thống khi xảy ra phân hoạch mạng
+  - Giao dịch cục bộ và giới hạn giao dịch phân tán
+  - Saga với điều phối tập trung và phối hợp qua sự kiện
+  - Transactional outbox, inbox và đồng bộ bằng CDC
+  - Thao tác bù, xung đột cập nhật và khóa lạc quan
+  - Đồng hồ, thứ tự nhân quả và giới hạn đồng bộ thời gian
+  - CQRS và tách mô hình đọc khỏi mô hình ghi
+  - 'Event sourcing: phát lại, snapshot và điều kiện áp dụng'
+- level1: Kiến trúc lưu trữ
+  level2:
+  - Chọn lưu trữ đối tượng, khối và tệp theo kiểu truy cập
+  - Thiết kế namespace, khóa đối tượng và phân vùng dữ liệu
+  - Độ bền dữ liệu, mức sẵn sàng và phạm vi sao chép
+  - Phân tầng dữ liệu, vòng đời và chính sách lưu giữ
+  - Tải lên dung lượng lớn, tải tiếp và truy cập có thời hạn
+  - Phiên bản đối tượng, tính bất biến và chống xóa nhầm
+  - Mã hóa lưu trữ và kiểm soát truy cập dữ liệu
+  - Ảnh hưởng của độ trễ, băng thông và phí truyền dữ liệu
+- level1: Kiến trúc cơ sở dữ liệu
+  level2:
+  - Lựa chọn quan hệ, key–value, tài liệu, đồ thị và chuỗi thời gian
+  - Chọn dịch vụ được quản lý và xác định trách nhiệm còn lại
+  - Thiết kế lược đồ, khóa truy cập và chỉ mục theo mẫu truy vấn
+  - Phân vùng, sharding và xử lý điểm nóng
+  - Sao chép, read replica và định tuyến đọc ghi
+  - Mở rộng kết nối và sử dụng connection pool hoặc proxy
+  - Nâng cấp lược đồ tương thích với triển khai liên tục
+  - Thiết kế đa khu vực và đánh đổi độ trễ với tính nhất quán
+  - Tách kho tìm kiếm khỏi cơ sở dữ liệu nghiệp vụ
+  - Di chuyển dữ liệu, đối soát và xác minh toàn vẹn
+- level1: Bộ nhớ đệm
+  level2:
+  - Xác định dữ liệu phù hợp và mục tiêu của bộ nhớ đệm
+  - Cache-aside, read-through, write-through và write-behind
+  - TTL, vô hiệu hóa và yêu cầu về độ mới dữ liệu
+  - Thiết kế khóa, phân vùng và phân bố tải bộ nhớ đệm
+  - Cache stampede, hot key và biện pháp giảm tải
+  - Cache penetration, dữ liệu không tồn tại và negative caching
+  - 'Đồng bộ nhiều tầng đệm: trình duyệt, CDN, ứng dụng và dữ liệu'
+  - Xử lý khi bộ nhớ đệm lỗi và tránh phụ thuộc sẵn sàng ngược
+- level1: Nền tảng dữ liệu
+  level2:
+  - Tách xử lý giao dịch khỏi phân tích dữ liệu
+  - Luồng thu nhận theo lô, CDC và luồng thời gian thực
+  - Data lake, data warehouse và lakehouse
+  - Phân tầng dữ liệu thô, dữ liệu chuẩn hóa và dữ liệu phục vụ
+  - Orchestration pipeline, phụ thuộc và khả năng chạy lại
+  - Chất lượng dữ liệu, danh mục, nguồn gốc và quyền sở hữu
+  - Phục vụ phân tích, báo cáo và truy vấn liên miền
+  - Quản lý dữ liệu nhạy cảm và vòng đời dữ liệu phân tích
+  - Đánh giá kiến trúc phục vụ mô hình máy học và suy luận
+- level1: Kiến trúc đa khách hàng
+  level2:
+  - Lựa chọn silo, pool và mô hình kết hợp cho nhiều tenant
+  - Thiết kế định danh tenant và truyền ngữ cảnh xuyên hệ thống
+  - Cách ly dữ liệu theo hàng, schema, cơ sở dữ liệu hoặc tài khoản
+  - Phân quyền và ngăn truy cập chéo giữa các tenant
+  - Ngăn noisy neighbor bằng hạn mức và phân bổ tài nguyên
+  - Tiếp nhận, cấu hình, di chuyển và xóa tenant
+  - Tùy biến theo tenant và quản lý phiên bản sản phẩm
+  - Đo mức sử dụng, chi phí và chất lượng dịch vụ theo tenant
+- level1: Mở rộng hệ thống
+  level2:
+  - Mở rộng dọc, ngang và các giới hạn kiến trúc
+  - Chọn tín hiệu autoscaling theo lưu lượng, độ trễ và độ dài hàng đợi
+  - Độ trễ mở rộng, dung lượng tối thiểu và khoảng ổn định
+  - Phân phối tải, skew và xử lý điểm nghẽn
+  - Phân vùng theo nghiệp vụ, khách hàng hoặc địa lý
+  - Mẫu cell-based và deployment stamp để giới hạn quy mô mỗi đơn vị
+  - Kiểm soát tải vào, load shedding và suy giảm có kiểm soát
+  - Tính dung lượng dự phòng khi mất một miền lỗi
+- level1: Độ tin cậy
+  level2:
+  - Xác định SLI, SLO, SLA và ngân sách lỗi
+  - Thiết kế miền lỗi và giới hạn bán kính ảnh hưởng
+  - Triển khai đa vùng sẵn sàng và tránh phụ thuộc dùng chung
+  - Bulkhead, circuit breaker và cô lập lỗi dây chuyền
+  - Retry có backoff, jitter và ngân sách thử lại
+  - Timeout nhiều tầng và kiểm soát retry storm
+  - Thiết kế health check, tự phục hồi và graceful shutdown
+  - Đường dự phòng, chế độ suy giảm và phụ thuộc không trọng yếu
+  - Phân tích độ sẵn sàng đầu cuối theo chuỗi phụ thuộc
+- level1: Phục hồi thảm họa
+  level2:
+  - Phân tích tác động nghiệp vụ và lựa chọn RTO, RPO
+  - Phân biệt sao lưu, sẵn sàng cao và phục hồi thảm họa
+  - Chiến lược backup–restore, pilot light, warm standby và active–active
+  - Sao lưu dữ liệu, cấu hình, khóa và phụ thuộc cần phục hồi
+  - Bảo vệ bản sao lưu trước xóa nhầm và mã độc
+  - Thiết kế chuyển vùng, định tuyến và điều phối khôi phục
+  - Phục hồi dữ liệu, xử lý phân kỳ và ngăn split-brain
+  - Failback sau sự cố và khôi phục trạng thái vận hành bình thường
+  - Diễn tập phục hồi và kiểm chứng RTO, RPO thực tế
+- level1: Kiến trúc bảo mật
+  level2:
+  - Mô hình đe dọa theo tài sản, luồng dữ liệu và ranh giới tin cậy
+  - Zero Trust và phòng vệ nhiều lớp
+  - Liên kết danh tính, SSO và quyền truy cập tối thiểu
+  - Định danh workload và truy cập ngắn hạn không dùng khóa tĩnh
+  - Phân đoạn mạng và kiểm soát giao tiếp giữa dịch vụ
+  - Quản lý bí mật, chứng chỉ, khóa mã hóa và luân chuyển
+  - Mã hóa khi truyền, khi lưu và quản lý quyền giải mã
+  - Chuỗi cung ứng phần mềm, ảnh container và nguồn triển khai đáng tin
+  - Ghi nhật ký kiểm toán, phát hiện và ứng phó sự cố
+  - Truy cập khẩn cấp và giới hạn quyền quản trị
+- level1: Quản trị và tuân thủ
+  level2:
+  - Chuyển yêu cầu tuân thủ thành kiểm soát kiến trúc
+  - Chủ quyền, vị trí và chuyển dữ liệu xuyên biên giới
+  - Chính sách lưu giữ, xóa dữ liệu và quyền riêng tư
+  - Policy as code và guardrail ở cấp tổ chức
+  - Phân tách nhiệm vụ và phê duyệt thay đổi nhạy cảm
+  - Quản lý cấu hình, phát hiện drift và tài nguyên ngoài chuẩn
+  - Thu thập bằng chứng kiểm toán và truy vết thay đổi
+  - Quản lý ngoại lệ, thời hạn khắc phục và chấp nhận rủi ro
+- level1: Khả năng quan sát
+  level2:
+  - Thiết kế log, metric, trace và sự kiện vận hành
+  - Correlation ID và truyền ngữ cảnh qua API, hàng đợi
+  - Đo chỉ số nghiệp vụ cùng chỉ số hạ tầng và ứng dụng
+  - Thiết kế telemetry cho luồng phân tán và bất đồng bộ
+  - Chính sách lấy mẫu, cardinality và chi phí dữ liệu quan sát
+  - Dashboard theo hành trình người dùng và mục tiêu dịch vụ
+  - Cảnh báo theo triệu chứng và tốc độ tiêu thụ ngân sách lỗi
+  - Che dữ liệu nhạy cảm trong log và phân quyền truy cập
+  - Quan sát xuyên tài khoản, khu vực và môi trường lai
+- level1: Vận hành hệ thống
+  level2:
+  - Phân định quyền sở hữu dịch vụ và mô hình trực vận hành
+  - Thiết kế runbook và quy trình xử lý sự cố
+  - Quản lý cấu hình động và thay đổi cấu hình an toàn
+  - Bảo trì, vá lỗi và vòng đời tài nguyên nền tảng
+  - Quản lý hạn ngạch dịch vụ và kế hoạch tăng dung lượng
+  - Tự động hóa thao tác lặp và giảm gánh nặng vận hành
+  - Phân tích sự cố, hành động phòng ngừa và theo dõi khắc phục
+  - Quản lý chứng chỉ, tên miền và các phụ thuộc có thời hạn
+- level1: Hạ tầng dưới dạng mã
+  level2:
+  - Khai báo hạ tầng và thiết kế cấu trúc mã nguồn
+  - Phân chia module tái sử dụng và phạm vi sở hữu
+  - Quản lý state, khóa đồng thời và phục hồi state
+  - Tách biến môi trường khỏi bí mật và cấu hình nhạy cảm
+  - Quy trình plan, review, apply và quản lý thay đổi
+  - Kiểm tra chính sách, bảo mật và chi phí trước khi cấp phát
+  - Phát hiện drift và tiếp nhận tài nguyên đã tồn tại
+  - Thiết kế hạ tầng bất biến và thay thế tài nguyên an toàn
+  - Khởi tạo môi trường có thể tái tạo và thu hồi tài nguyên
+- level1: Phân phối phần mềm
+  level2:
+  - Thiết kế pipeline CI/CD và ranh giới tin cậy khi triển khai
+  - Build một lần và chuyển cùng artifact qua các môi trường
+  - Rolling update, blue–green và canary
+  - Feature flag, triển khai tối và kiểm soát phát hành
+  - Thay đổi cơ sở dữ liệu theo expand–contract
+  - Rollback ứng dụng, roll-forward dữ liệu và giới hạn phục hồi
+  - Kiểm chứng sau triển khai và tự động dừng phát hành lỗi
+  - Tách chu kỳ triển khai của các dịch vụ phụ thuộc
+  - GitOps và đồng bộ trạng thái mong muốn với môi trường
+- level1: Hiệu năng
+  level2:
+  - Xây dựng ngân sách độ trễ cho luồng đầu cuối
+  - Thông lượng, mức đồng thời, độ trễ và quan hệ hàng đợi
+  - Độ trễ đuôi và ảnh hưởng của chuỗi gọi phân tán
+  - Tối ưu vị trí xử lý, dữ liệu và khoảng cách địa lý
+  - 'Tối ưu giao tiếp: giảm số lần gọi, batching và nén'
+  - Đo điểm nghẽn CPU, bộ nhớ, mạng và lưu trữ
+  - Thiết kế thử nghiệm tải thường, tải đỉnh và tải kéo dài
+  - So sánh hiệu năng với chi phí và mục tiêu chất lượng
+- level1: Chi phí và bền vững
+  level2:
+  - Mô hình hóa TCO và chi phí theo đơn vị nghiệp vụ
+  - Chi phí tài nguyên, yêu cầu, lưu trữ, bản sao và truyền dữ liệu
+  - Phân bổ chi phí theo sản phẩm, môi trường và tenant
+  - Rightsizing, lịch bật tắt và tự động thu hồi tài nguyên
+  - Đánh đổi tài nguyên cam kết, theo nhu cầu và có thể bị thu hồi
+  - So sánh chi phí dịch vụ được quản lý với chi phí tự vận hành
+  - Dự toán nhiều phương án kiến trúc và phân tích độ nhạy
+  - Ngân sách, phát hiện bất thường và vòng phản hồi FinOps
+  - Tối ưu mức sử dụng tài nguyên và tác động môi trường
+- level1: Kiến trúc toàn cầu
+  level2:
+  - Định tuyến toàn cầu theo vị trí, độ trễ và tình trạng dịch vụ
+  - Thiết kế active–passive và active–active nhiều khu vực
+  - Phân bố quyền ghi và quyền sở hữu dữ liệu theo khu vực
+  - Sao chép xuyên khu vực và độ trễ đồng bộ
+  - Quản lý phiên, danh tính và trải nghiệm khi chuyển khu vực
+  - Phân vùng theo địa lý và yêu cầu lưu trú dữ liệu
+  - Phát hành theo khu vực và giới hạn lỗi lan rộng
+  - Đánh giá phụ thuộc toàn cầu có thể trở thành điểm lỗi chung
+- level1: Đám mây lai và đa đám mây
+  level2:
+  - Xác định lý do nghiệp vụ trước khi chọn mô hình lai hoặc đa đám mây
+  - Thiết kế kết nối, DNS và định tuyến giữa các môi trường
+  - Liên kết danh tính và quản lý chính sách xuyên nền tảng
+  - Phân chia workload theo phụ thuộc, dữ liệu và độ trễ
+  - Đồng bộ dữ liệu và vận hành khi kết nối bị gián đoạn
+  - Chuẩn hóa hợp đồng ứng dụng và các phần cần khả năng di chuyển
+  - Giới hạn của lớp trừu tượng chung giữa nhiều nhà cung cấp
+  - Quan sát, vận hành và ứng phó sự cố xuyên nền tảng
+  - Chiến lược thoát nhà cung cấp và kiểm chứng khả năng di chuyển
+- level1: Di chuyển và hiện đại hóa
+  level2:
+  - Khảo sát danh mục ứng dụng và lập bản đồ phụ thuộc
+  - Đánh giá mức sẵn sàng, rủi ro và phương án di chuyển
+  - Retain, retire, relocate, rehost, replatform, repurchase và refactor
+  - Phân chia đợt di chuyển theo phụ thuộc và giá trị nghiệp vụ
+  - Strangler Fig, anti-corruption layer và chuyển đổi từng phần
+  - Đồng bộ dữ liệu trong giai đoạn chạy song song
+  - Thiết kế cutover, đối soát và phương án quay lại
+  - Kiểm chứng sau di chuyển và tối ưu kiến trúc mới
+  - Thu hồi hệ thống cũ và xử lý dữ liệu còn lại
+- level1: Mẫu kiến trúc tham chiếu
+  level2:
+  - Website tĩnh và nội dung phân phối qua CDN
+  - Ứng dụng web nhiều tầng với dịch vụ và cơ sở dữ liệu được quản lý
+  - Cổng API cho ứng dụng web và thiết bị di động
+  - Xử lý tệp tải lên theo sự kiện
+  - Hệ thống đơn hàng với saga và transactional outbox
+  - Xử lý luồng dữ liệu và phân tích gần thời gian thực
+  - Nền tảng SaaS đa tenant có cách ly dữ liệu và hạn mức
+  - Tác vụ theo lô quy mô lớn và xử lý song song
+  - Thu thập dữ liệu IoT kết hợp xử lý tại biên
+  - Phục vụ mô hình máy học và truy xuất dữ liệu cho ứng dụng AI
+  - Đối chiếu dịch vụ tương đương giữa AWS, Azure và Google Cloud
+- level1: Phản mẫu kiến trúc
+  level2:
+  - Lift-and-shift mà không xem lại mạng, vận hành và chi phí
+  - Tách vi dịch vụ khi chưa rõ ranh giới nghiệp vụ
+  - Chuỗi gọi đồng bộ dài và phụ thuộc vòng
+  - Nhiều dịch vụ cùng ghi một cơ sở dữ liệu không có quyền sở hữu rõ ràng
+  - Retry không giới hạn, timeout thiếu nhất quán và lỗi dây chuyền
+  - Sử dụng đa khu vực khi chưa giải quyết quyền ghi và xung đột dữ liệu
+  - Coi bản sao dữ liệu là bản sao lưu và bỏ qua diễn tập phục hồi
+  - Cấp quyền rộng, dùng bí mật tĩnh và điểm truy cập công khai ngoài ý muốn
+  - Lạm dụng đa đám mây, service mesh và lớp trừu tượng
+  - Thiết kế vượt nhu cầu và thiếu người chịu trách nhiệm vận hành
+- level1: Đánh giá kiến trúc
+  level2:
+  - Xây dựng checklist theo các thuộc tính chất lượng
+  - Rà soát yêu cầu, giả định và phương án thay thế
+  - Phân tích điểm lỗi đơn, miền lỗi và luồng lỗi
+  - Proof of concept để kiểm chứng giả định rủi ro cao
+  - Kiểm thử tải, soak test và kiểm tra giới hạn mở rộng
+  - Kiểm thử lỗi, chaos engineering và game day
+  - Kiểm chứng bảo mật, phân quyền và ranh giới tenant
+  - Kiểm thử phục hồi dữ liệu và chuyển khu vực
+  - Đánh giá chi phí thực tế, khả năng vận hành và rủi ro còn lại
+  - Chốt tiêu chí chấp nhận và kế hoạch cải tiến
+- level1: Thực hành thiết kế
+  level2:
+  - 'Thiết kế từ đầu: yêu cầu, giả định, phương án và quyết định'
+  - Xây dựng sơ đồ bối cảnh, triển khai và luồng dữ liệu
+  - Thiết kế ứng dụng web từ một khu vực đến nhiều vùng sẵn sàng
+  - Bổ sung xử lý bất đồng bộ và kiểm soát tải đột biến
+  - Chuyển hệ thống đơn tenant thành SaaS đa tenant
+  - Lập phương án phục hồi và diễn tập tình huống mất khu vực
+  - So sánh ba phương án theo độ tin cậy, hiệu năng, chi phí và vận hành
+  - Xây dựng kế hoạch di chuyển một hệ thống đang hoạt động
+  - Hoàn thiện hồ sơ kiến trúc, ADR và bằng chứng kiểm chứng
+  - Bảo vệ phương án và điều chỉnh khi yêu cầu nghiệp vụ thay đổi

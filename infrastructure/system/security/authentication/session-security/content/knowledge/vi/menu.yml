@@ -1,0 +1,413 @@
+menu:
+- level1: Tổng quan phiên
+  level2:
+  - Phiên làm việc (session) là gì trong một ứng dụng có trạng thái
+  - Vì sao giao thức HTTP cần cơ chế duy trì phiên
+  - Quan hệ giữa danh tính, xác thực, phiên và phân quyền
+  - Phân biệt phiên ứng dụng, kết nối mạng và phiên đăng nhập hệ điều hành
+  - Mã định danh phiên, bí mật phiên và bản ghi trạng thái phiên
+  - Phân biệt phiên ẩn danh và phiên đã xác thực
+  - Phiên trình duyệt khác vòng đời cookie như thế nào
+  - Phạm vi bảo vệ của Session Security trong toàn bộ hệ thống
+  - 'Mô hình xuyên suốt: đăng nhập, sử dụng, nâng quyền và đăng xuất'
+  - Lộ trình từ cơ chế phiên đến kiểm thử và vận hành an toàn
+- level1: Mô hình đe dọa
+  level2:
+  - 'Tài sản cần bảo vệ: bí mật phiên, trạng thái và quyền truy cập'
+  - Ranh giới tin cậy giữa trình duyệt, cổng mạng, ứng dụng và kho phiên
+  - Kẻ tấn công từ xa, mã độc trên thiết bị và người dùng chung máy
+  - Chiếm phiên (session hijacking) và phát lại bí mật phiên
+  - Cố định phiên (session fixation) trước khi nạn nhân đăng nhập
+  - Đoán mã phiên, dò tìm phiên hợp lệ và tạo phiên hàng loạt
+  - Đánh cắp qua XSS, nhật ký, URL và kênh truyền
+  - Giả mạo yêu cầu (CSRF) dựa trên thông tin phiên gửi tự động
+  - Phiên bị bỏ quên, quyền đã cũ và thu hồi không đầy đủ
+  - Đánh đổi giữa trải nghiệm sử dụng, độ sẵn sàng và thời gian phơi nhiễm
+- level1: Các kiến trúc phiên
+  level2:
+  - Phiên lưu tại máy chủ với mã tham chiếu không mang ý nghĩa
+  - Trạng thái phiên mang trong cookie có ký hoặc mã hóa
+  - Phân biệt bảo vệ tính toàn vẹn và bảo vệ tính bí mật
+  - Phiên có trạng thái và thông tin xác thực dạng token tự chứa
+  - Giới hạn của khái niệm không trạng thái khi cần thu hồi
+  - Cookie là cơ chế truyền tải, không tự quyết định kiến trúc phiên
+  - Mô hình ứng dụng trung gian cho trình duyệt (BFF)
+  - Đặt ranh giới giữa phiên ứng dụng và access token, refresh token
+  - So sánh chi phí lưu trữ, kích thước, thu hồi và khả năng mở rộng
+  - Chọn kiến trúc theo rủi ro và yêu cầu nghiệp vụ
+- level1: Thiết kế mã phiên
+  level2:
+  - Tính ngẫu nhiên mật mã và độ khó đoán của mã phiên
+  - Entropy, độ dài và không gian tìm kiếm của mã định danh
+  - Tránh mã tuần tự, dữ liệu cá nhân và cấu trúc có thể dự đoán
+  - Tách định danh phiên công khai khỏi bí mật dùng để xác thực phiên
+  - Định dạng mã hóa biểu diễn và kiểm tra cú pháp đầu vào
+  - Sinh bí mật bằng nguồn ngẫu nhiên an toàn
+  - Tránh va chạm và xử lý khi tạo mã trùng
+  - Không đưa thông tin quyền hoặc dữ liệu nhạy cảm vào mã tham chiếu
+  - Lưu giá trị dẫn xuất của bí mật khi phù hợp và hệ quả tra cứu
+  - Chọn cơ chế phiên chuẩn thay vì tự thiết kế thuật toán mật mã
+- level1: Mô hình trạng thái
+  level2:
+  - 'Sơ đồ trạng thái: khởi tạo, ẩn danh, đã xác thực, nâng quyền, hết hạn, thu hồi'
+  - Liên kết phiên với tài khoản và miền bảo mật
+  - Thời điểm tạo, xác thực gần nhất, hoạt động gần nhất và hết hạn
+  - Mức bảo đảm xác thực và phạm vi quyền của phiên
+  - Phiên bản tài khoản, phiên bản quyền và dấu mốc thu hồi
+  - Siêu dữ liệu thiết bị phục vụ hiển thị và phát hiện rủi ro
+  - Tách dữ liệu nghiệp vụ khỏi dữ liệu bảo mật của phiên
+  - Giới hạn kích thước và kiểu dữ liệu được lưu trong phiên
+  - Tính nguyên tử của chuyển trạng thái và điều kiện bất biến
+  - Không cho dữ liệu phía gọi tự quyết định trạng thái xác thực
+- level1: Truyền tải phiên
+  level2:
+  - Cookie, header và các cách truyền thông tin phiên
+  - Nguy cơ truyền mã phiên qua URL, query string và fragment
+  - Không chấp nhận đồng thời nhiều kênh mã phiên ngoài thiết kế
+  - Bảo vệ HTTPS xuyên suốt vòng đời phiên
+  - HSTS và giới hạn khi lần truy cập đầu chưa được bảo vệ
+  - TLS kết thúc tại proxy và ranh giới tin cậy với ứng dụng
+  - Ngăn rò rỉ qua Referer, chuyển hướng và liên kết ra ngoài
+  - Không ghi Cookie, Set-Cookie hoặc bí mật phiên vào nhật ký
+  - Kiểm soát phản hồi cache tại trình duyệt, CDN và proxy dùng chung
+  - Không đồng nhất kết nối TLS mới với phiên người dùng mới
+- level1: Cookie phiên
+  level2:
+  - Luồng Set-Cookie và Cookie trong yêu cầu, phản hồi HTTP
+  - Thuộc tính Secure và điều kiện gửi qua kênh bảo mật
+  - Thuộc tính HttpOnly và giới hạn trước hành động do XSS thực hiện
+  - SameSite=Strict, Lax, None và ngữ cảnh gửi cookie
+  - Phân biệt cùng nguồn (same-origin) và cùng site (same-site)
+  - Domain, cookie host-only và phạm vi tên miền con
+  - Path và giới hạn của Path như một ranh giới bảo mật
+  - Max-Age, Expires và cookie không có thời hạn lưu bền
+  - Tiền tố __Host- và __Secure- cùng điều kiện được trình duyệt chấp nhận
+  - Cookie Partitioned và giới hạn trong ngữ cảnh nhúng
+  - Cookie trùng tên, khác Domain/Path và cách xử lý mơ hồ
+  - Xóa cookie với đúng tên và phạm vi đã tạo
+- level1: Lưu trữ phía khách
+  level2:
+  - Cookie HttpOnly so với lưu bí mật trong bộ nhớ ứng dụng
+  - Rủi ro lưu bí mật phiên trong localStorage và sessionStorage
+  - Rủi ro từ tiện ích trình duyệt, XSS và mã bên thứ ba
+  - Dữ liệu đăng nhập trong IndexedDB, cache ứng dụng và service worker
+  - Không lưu trạng thái xác thực đáng tin cậy chỉ ở giao diện
+  - Khôi phục trình duyệt và vì sao đóng cửa sổ không bảo đảm kết thúc phiên
+  - Dữ liệu nhạy cảm trên máy dùng chung và chế độ riêng tư
+  - Giới hạn của việc xóa dữ liệu phía khách khi bí mật đã bị sao chép
+  - Chính sách giảm thiểu dữ liệu lưu cục bộ
+  - Phân biệt mã phiên bí mật và định danh thiết bị phục vụ trải nghiệm
+- level1: Tạo phiên và đăng nhập
+  level2:
+  - Khởi tạo phiên ẩn danh theo nhu cầu thay vì mọi yêu cầu
+  - Giới hạn tạo phiên để tránh cạn tài nguyên
+  - Chế độ quản lý phiên nghiêm ngặt với mã chưa từng được cấp
+  - Không kế thừa tùy tiện mã phiên do phía gọi cung cấp
+  - Đổi mã phiên khi chuyển từ ẩn danh sang đã xác thực
+  - Liên kết kết quả xác thực với đúng luồng đăng nhập
+  - Chống login CSRF và nhầm tài khoản sau đăng nhập
+  - Chuyển dữ liệu giỏ hàng hoặc lựa chọn ẩn danh theo danh sách cho phép
+  - Chỉ cấp trạng thái xác thực đầy đủ sau khi hoàn tất các yếu tố cần thiết
+  - Xử lý đăng nhập thất bại, thử lại và luồng bị hủy
+  - Chuyển hướng sau đăng nhập và kiểm tra đích quay lại
+- level1: Vòng đời và thời hạn
+  level2:
+  - Thời hạn bất hoạt (idle timeout) và cách xác định hoạt động hợp lệ
+  - Thời hạn tuyệt đối (absolute timeout) của phiên
+  - Thời hạn xác thực lại tổng thể và mốc tính lại sau tái xác thực
+  - Phân biệt thời hạn đổi mã phiên và thời hạn phiên
+  - Thực thi hết hạn tại máy chủ thay vì chỉ dùng bộ đếm giao diện
+  - TTL trong kho dữ liệu khác kiểm tra hết hạn ở mỗi yêu cầu
+  - Heartbeat và nguy cơ giữ phiên sống vô thời hạn
+  - Yêu cầu nền, polling và chính sách cập nhật thời gian hoạt động
+  - Sai lệch đồng hồ và cách chọn nguồn thời gian
+  - Thiết kế thời hạn theo độ nhạy cảm và bối cảnh sử dụng
+  - Cảnh báo sắp hết hạn, lưu nháp và quay lại sau xác thực
+  - Tránh gia hạn phiên chỉ vì trình duyệt gửi cookie liên tục
+- level1: Đổi mã phiên
+  level2:
+  - Đổi mã sau đăng nhập, thay đổi quyền và sự kiện nhạy cảm
+  - Đổi mã định kỳ và mục tiêu giới hạn thời gian sử dụng bí mật
+  - Phân biệt đổi mã phiên, gia hạn thời hạn và tạo phiên mới
+  - Hủy hiệu lực mã cũ và quy tắc chấp nhận mã mới
+  - Cập nhật mã và bản ghi phiên theo thao tác nguyên tử
+  - Yêu cầu đồng thời trong lúc đổi mã
+  - Nhiều tab nhận phản hồi Set-Cookie theo thứ tự khác nhau
+  - Khoảng chuyển tiếp có giới hạn và rủi ro giữ mã cũ hợp lệ
+  - Chống tái sử dụng mã đã thu hồi sau khi đổi
+  - Kiểm thử điều kiện tranh chấp giữa người dùng và kẻ giữ mã cũ
+- level1: Xác thực lại và nâng quyền
+  level2:
+  - Khi nào cần xác thực lại thay vì chỉ có phiên đang hoạt động
+  - Xác thực gần đây cho đổi mật khẩu, thanh toán và quản lý yếu tố
+  - Xác thực bổ sung (step-up) theo độ nhạy cảm của thao tác
+  - Gắn kết quả xác thực bổ sung với hành động và thời hạn cụ thể
+  - Đổi mã khi nâng quyền và khi hạ quyền
+  - Phiên quản trị tách biệt và giới hạn phạm vi đặc quyền
+  - Phân biệt tái xác thực và tự động phục hồi phiên bằng SSO
+  - Tín hiệu rủi ro yêu cầu xác thực lại hoặc chấm dứt phiên
+  - Ngăn bỏ qua bước xác thực bổ sung qua API hay luồng thay thế
+  - Giảm gián đoạn người dùng mà vẫn giữ giới hạn bảo mật
+- level1: Phân quyền trong phiên
+  level2:
+  - Phiên hợp lệ không đồng nghĩa được phép truy cập mọi tài nguyên
+  - Kiểm tra quyền ở từng yêu cầu và từng đối tượng
+  - Vai trò hoặc quyền lưu trong phiên có thể trở nên lỗi thời
+  - Tải lại quyền, đánh dấu phiên bản và vô hiệu hóa dữ liệu quyền
+  - Khóa tài khoản, đổi nhóm và thay đổi trạng thái tổ chức
+  - Chuyển tổ chức hoặc chuyển ngữ cảnh tài khoản an toàn
+  - Giới hạn phiên hỗ trợ viên đại diện người dùng và lưu vết danh tính thật
+  - Phân biệt quyền tài khoản với mức xác thực của phiên
+  - Thu hồi quyền trong lúc giao dịch hoặc tác vụ đang chạy
+  - Bảo vệ thao tác hàng loạt và tác vụ nền gắn với phiên
+- level1: Đăng xuất và thu hồi
+  level2:
+  - Đăng xuất phải hủy hiệu lực tại máy chủ
+  - Xóa cookie và vì sao xóa phía khách chưa đủ
+  - 'Phạm vi đăng xuất: phiên hiện tại, thiết bị hiện tại hoặc mọi phiên'
+  - Thu hồi theo mã phiên, tài khoản và dấu mốc thời gian
+  - Thay mật khẩu, đặt lại mật khẩu và chính sách phiên còn lại
+  - Khôi phục tài khoản, thay MFA và thu hồi phiên rủi ro
+  - Thu hồi ngay so với độ trễ lan truyền trong hệ thống phân tán
+  - Xử lý yêu cầu đang xử lý khi phiên bị thu hồi
+  - Tính lặp an toàn của thao tác đăng xuất
+  - Bảo vệ điểm đăng xuất trước yêu cầu giả mạo
+  - Không khôi phục phiên đã hủy từ cache hoặc bản sao dữ liệu cũ
+- level1: Ghi nhớ đăng nhập
+  level2:
+  - Phân biệt phiên đang hoạt động và cơ chế ghi nhớ đăng nhập
+  - Cookie dài hạn không tự tạo thành thiết kế ghi nhớ an toàn
+  - Bí mật phục hồi phiên riêng và giới hạn quyền của nó
+  - Đổi bí mật sau sử dụng và phát hiện tái sử dụng
+  - Thời hạn tuyệt đối, thời hạn bất hoạt và thu hồi trên từng thiết bị
+  - Không lưu mật khẩu hoặc bí mật tương đương mật khẩu ở trình duyệt
+  - Yêu cầu xác thực lại trước thao tác nhạy cảm sau tự đăng nhập
+  - Thu hồi khi đổi mật khẩu, mất thiết bị hoặc phát hiện xâm nhập
+  - Quản lý thiết bị được tin cậy và giới hạn của nhãn tin cậy
+  - Trải nghiệm trên máy công cộng và lựa chọn không ghi nhớ
+- level1: Nhiều thiết bị và tab
+  level2:
+  - Quản lý một tài khoản có nhiều phiên độc lập
+  - Giới hạn số phiên và chính sách xử lý khi vượt giới hạn
+  - Danh sách thiết bị, thời gian hoạt động và chức năng tự thu hồi
+  - Nhiều tab chia sẻ cookie nhưng có trạng thái giao diện khác nhau
+  - Đồng bộ đăng xuất giữa các tab và giới hạn độ tin cậy
+  - Chuyển tài khoản trong một trình duyệt
+  - Tránh nhầm dữ liệu sau đăng xuất rồi đăng nhập tài khoản khác
+  - Quy tắc cho tài khoản dùng chung và khả năng giải trình
+  - Nhận diện thiết bị ở mức hỗ trợ, không coi là chứng minh danh tính
+  - Quyền riêng tư khi lưu lịch sử thiết bị và địa chỉ mạng
+- level1: CSRF và phiên
+  level2:
+  - Cơ chế trình duyệt tự gửi cookie và nguyên nhân phát sinh CSRF
+  - Thao tác thay đổi trạng thái không đặt trong yêu cầu GET
+  - Mẫu synchronizer token và liên kết token với phiên
+  - Mẫu signed double-submit cookie và ràng buộc chống giả mạo
+  - SameSite hỗ trợ phòng vệ nhưng không thay thế mọi kiểm soát CSRF
+  - Kiểm tra Origin, Referer và trường hợp thiếu thông tin
+  - Fetch Metadata như lớp phòng vệ bổ sung
+  - CORS khác cơ chế bảo vệ CSRF
+  - CSRF trên đăng nhập, đăng xuất và thay đổi thông tin tài khoản
+  - Đổi mã phiên và vòng đời CSRF token
+  - Kiểm thử yêu cầu từ site khác, tên miền con và luồng chuyển hướng
+- level1: XSS và rò rỉ phiên
+  level2:
+  - XSS đánh cắp bí mật và thực hiện hành động trong phiên
+  - HttpOnly hạn chế đọc cookie nhưng không chặn mọi tác động XSS
+  - Mã hóa đầu ra, làm sạch HTML và giới hạn chèn mã
+  - Chính sách CSP và các lớp giảm thiểu bổ sung
+  - Kiểm soát script bên thứ ba và chuỗi cung ứng giao diện
+  - Ngăn bí mật xuất hiện trong HTML, thông báo lỗi và công cụ phân tích
+  - Che dữ liệu phiên trong log, trace và báo cáo lỗi
+  - Ảnh chụp, bản ghi mạng và báo cáo hỗ trợ chứa thông tin xác thực
+  - Giảm rò rỉ qua Referrer, lịch sử và bộ nhớ đệm
+  - Giới hạn bảo vệ khi thiết bị đầu cuối đã bị kiểm soát
+- level1: Cố định và chiếm phiên
+  level2:
+  - Đường đưa mã phiên do kẻ tấn công chọn vào trình duyệt
+  - Chống cố định bằng đổi mã và không chấp nhận mã chưa cấp
+  - Đánh cắp cookie từ kênh không bảo mật và tên miền con
+  - Cookie tossing, cookie shadowing và phân tích cookie trùng tên
+  - Nguy cơ chia sẻ Domain quá rộng
+  - Phát lại bí mật phiên sau khi sao chép sang môi trường khác
+  - Giới hạn của ràng buộc cứng theo IP hoặc User-Agent
+  - Proxy đánh cắp phiên sau xác thực và giới hạn của MFA thông thường
+  - Giảm cửa sổ khai thác bằng thời hạn, đổi mã và thu hồi
+  - Phòng vệ nhiều lớp thay vì phụ thuộc một thuộc tính cookie
+- level1: Kho phiên phía máy chủ
+  level2:
+  - Chọn bộ nhớ tiến trình, kho khóa–giá trị hoặc cơ sở dữ liệu
+  - Lược đồ bản ghi phiên và chỉ mục tra cứu theo tài khoản
+  - Bảo vệ bí mật truy cập và quyền tối thiểu của ứng dụng
+  - Mã hóa khi truyền, khi lưu và giới hạn của từng lớp
+  - Không lưu đối tượng thực thi tùy ý hoặc dữ liệu giải tuần tự không an toàn
+  - Giới hạn kích thước phiên, số phiên và thời gian lưu
+  - TTL, dọn phiên hết hạn và kiểm tra hợp lệ trước sử dụng
+  - Sao lưu, khôi phục và nguy cơ làm sống lại phiên bị thu hồi
+  - Xử lý kho phiên lỗi theo chính sách an toàn
+  - Giám sát dung lượng, tỷ lệ truy cập và độ trễ
+  - Tách phiên của môi trường phát triển, kiểm thử và sản xuất
+- level1: Phiên phân tán
+  level2:
+  - Cân bằng tải và giới hạn của bám phiên (sticky session)
+  - Kho phiên dùng chung so với sao chép trạng thái giữa các nút
+  - Tính nhất quán khi tạo, sửa, đổi mã và hủy phiên
+  - Tranh chấp cập nhật thời gian hoạt động và dữ liệu phiên
+  - Phiên bản bản ghi, khóa lạc quan và cập nhật nguyên tử
+  - Bộ nhớ đệm cục bộ và độ trễ thu hồi
+  - Nhiều vùng địa lý, độ trễ đồng bộ và xung đột ghi
+  - Chuyển vùng khi lỗi và giới hạn chấp nhận dữ liệu cũ
+  - Phát sự kiện thu hồi, xử lý trùng và mất sự kiện
+  - Khởi động lại, mở rộng tự động và triển khai liên tục
+  - Kiểm thử sự cố phân vùng mạng và sự nhất quán sau phục hồi
+- level1: SPA và giao tiếp API
+  level2:
+  - Chọn cách giữ phiên khi giao diện và API cùng nguồn
+  - 'Giao diện khác nguồn: credentials, CORS và thuộc tính cookie'
+  - Tránh cấu hình cho phép nguồn tùy ý kèm thông tin xác thực
+  - BFF giữ bí mật phía máy chủ và phiên cookie với trình duyệt
+  - Phân biệt lỗi chưa xác thực và thiếu quyền trong phản hồi API
+  - Xử lý hết hạn phiên giữa lúc gửi biểu mẫu hoặc tải dữ liệu
+  - Tránh vòng lặp chuyển hướng đăng nhập giữa nhiều yêu cầu song song
+  - Service worker, cache và dữ liệu còn lại sau đổi tài khoản
+  - Luồng nhúng iframe và tác động của chính sách cookie bên thứ ba
+  - Kiểm thử trình duyệt, chuyển hướng và cấu hình tên miền thực tế
+- level1: SSO và phiên liên kết
+  level2:
+  - Phiên tại nhà cung cấp danh tính (IdP) và phiên ứng dụng (RP)
+  - Thời hạn phiên IdP khác thời hạn phiên cục bộ
+  - Đăng nhập qua OIDC hoặc SAML và việc tạo phiên ứng dụng
+  - Ràng buộc state, nonce và giao dịch đăng nhập theo giao thức
+  - Ngữ cảnh SameSite trong callback và luồng đăng nhập liên kết
+  - Đăng xuất cục bộ, đăng xuất tại IdP và đăng xuất liên ứng dụng
+  - RP-Initiated Logout và kiểm tra đích chuyển hướng
+  - Front-channel logout và giới hạn phụ thuộc trình duyệt
+  - Back-channel logout và liên kết sự kiện với đúng phiên
+  - Xác minh thông báo đăng xuất, chống phát lại và tính lặp an toàn
+  - Yêu cầu xác thực gần đây và tránh nhầm tự động SSO với tái xác thực
+  - Xử lý thông báo thu hồi chậm hoặc không đến được
+- level1: Phiên và token
+  level2:
+  - Phân biệt mã phiên với access token, ID token và refresh token
+  - Phiên cookie phía trình duyệt và token gọi dịch vụ phía sau
+  - Tuổi thọ phiên không tự bằng tuổi thọ access token
+  - Lưu trữ, đổi và thu hồi token gắn với phiên
+  - Logout cục bộ không tự thu hồi mọi token đã phát hành
+  - Token tự chứa và nhu cầu trạng thái thu hồi bên ngoài
+  - Giới hạn lộ thông tin khi lưu toàn bộ trạng thái trong token
+  - Luân chuyển khóa ký khác luân chuyển bí mật từng phiên
+  - Ràng buộc token với bên sử dụng và giới hạn phạm vi bài học phiên
+  - Thiết kế ranh giới trách nhiệm giữa quản lý phiên và quản lý token
+- level1: Ứng dụng và kết nối dài
+  level2:
+  - Phiên trong ứng dụng di động và vòng đời ứng dụng nền
+  - Lưu bí mật bằng kho bảo mật của hệ điều hành khi phù hợp
+  - Không nhúng bí mật lâu dài dùng chung trong ứng dụng phân phối
+  - 'WebSocket: xác thực khi bắt tay và kiểm soát Origin'
+  - Phân quyền cho từng thông điệp hoặc hành động trên kết nối
+  - Hết hạn hoặc thu hồi phiên trong khi WebSocket còn mở
+  - SSE, polling dài và tái kết nối khi phiên thay đổi
+  - Không đưa bí mật phiên vào URL kết nối hoặc nhật ký
+  - Đồng bộ trạng thái đăng xuất khi thiết bị mất kết nối
+  - 'Tác vụ dài: phân biệt thời gian xử lý và quyền tiếp tục thực hiện'
+- level1: Trải nghiệm an toàn
+  level2:
+  - Hiển thị trạng thái phiên và thời điểm cần đăng nhập lại
+  - Cảnh báo hết hạn có khả năng tiếp cận với mọi người dùng
+  - Lưu nháp mà không giữ dữ liệu nhạy cảm quá lâu
+  - Quay lại thao tác sau xác thực mà không phát lại giao dịch nguy hiểm
+  - Đăng xuất rõ ràng và quản lý phiên đang hoạt động
+  - Máy dùng chung, màn hình khóa và xác thực lại
+  - Trang nhạy cảm sau nút Back, lịch sử và BFCache
+  - Cache-Control, Clear-Site-Data và giới hạn hỗ trợ trình duyệt
+  - Không dựa vào beforeunload hoặc đóng tab để thu hồi phiên
+  - Thông báo phiên bị thu hồi mà không tiết lộ thông tin nội bộ
+- level1: Quan sát và phát hiện
+  level2:
+  - Ghi nhận sự kiện tạo, xác thực, đổi mã, hết hạn và hủy phiên
+  - Mã tương quan không cho phép tái sử dụng để đăng nhập
+  - Không lưu bí mật phiên nguyên văn trong nhật ký
+  - Phát hiện dùng một phiên tại ngữ cảnh bất thường
+  - Đánh giá thay đổi IP, thiết bị và vị trí như tín hiệu rủi ro
+  - Tín hiệu phiên bị dò đoán, cố định hoặc phát lại
+  - Chỉ số phiên hoạt động, đổi mã lỗi, thu hồi chậm và lỗi kho phiên
+  - Cảnh báo theo rủi ro và tránh phản ứng quá mức với mạng di động hoặc VPN
+  - Quyền truy cập nhật ký, thời hạn lưu và giảm thiểu dữ liệu cá nhân
+  - Đối soát sự kiện phiên với hành động nhạy cảm
+- level1: Ứng phó sự cố
+  level2:
+  - Xác định phạm vi khi một bí mật phiên bị lộ
+  - Thu hồi phiên riêng lẻ, theo tài khoản hoặc toàn hệ thống
+  - Phân biệt lộ mã phiên, lộ kho phiên và lộ khóa ký cookie
+  - Luân chuyển khóa bảo vệ trạng thái phiên và kế hoạch tương thích
+  - Chặn tạm đường rò rỉ trước khi phát hành lại phiên
+  - Bảo toàn bằng chứng mà không nhân bản thêm bí mật
+  - Thông báo người dùng và hỗ trợ xác thực lại theo quy trình
+  - Kiểm tra token, phiên SSO và thiết bị ghi nhớ liên quan
+  - Khôi phục kho dữ liệu mà không làm sống lại phiên đã hủy
+  - Rà soát nguyên nhân gốc và kiểm chứng biện pháp khắc phục
+- level1: Kiểm thử bảo mật
+  level2:
+  - Lập ma trận kiểm thử theo trạng thái và sự kiện vòng đời phiên
+  - Kiểm tra độ ngẫu nhiên và cấu trúc mã phiên
+  - Kiểm tra thuộc tính cookie và phạm vi tên miền
+  - Kiểm tra đổi mã sau đăng nhập, nâng quyền và hạ quyền
+  - Kiểm tra cố định phiên với mã tự chọn và mã từng được cấp
+  - Kiểm tra timeout bằng yêu cầu trực tiếp thay vì chỉ quan sát giao diện
+  - Kiểm tra mã cũ sau đăng xuất, hết hạn và thu hồi
+  - Kiểm tra CSRF, XSS và đường rò rỉ bí mật trong phạm vi được phép
+  - Kiểm tra nhiều tab, nhiều thiết bị và đổi tài khoản
+  - Kiểm tra tranh chấp đổi mã, yêu cầu đang chạy và phát lại
+  - Kiểm tra SSO, logout liên ứng dụng và chính sách trình duyệt
+  - Kiểm tra khôi phục dữ liệu, lỗi kho phiên và phân vùng mạng
+  - Tự động hóa hồi quy bằng dữ liệu tổng hợp và môi trường kiểm thử
+- level1: Vận hành và thay đổi
+  level2:
+  - Cấu hình mặc định an toàn và tách theo môi trường
+  - Kiểm tra proxy, TLS, tên miền và cookie trong triển khai thực tế
+  - Triển khai thay đổi thời hạn mà không vô tình kéo dài phiên cũ
+  - Di chuyển kho phiên và chuyển đổi lược đồ bản ghi
+  - Luân chuyển khóa, duy trì tương thích và giới hạn cửa sổ chấp nhận
+  - Canary, giám sát sau phát hành và điều kiện quay lui
+  - Giới hạn số phiên, dung lượng kho và khả năng chống quá tải
+  - Quản lý truy cập vận hành vào dữ liệu phiên
+  - Mục tiêu độ trễ xác thực phiên và thời gian thu hồi
+  - Dọn dữ liệu, sao lưu và diễn tập phục hồi định kỳ
+- level1: Chẩn đoán lỗi
+  level2:
+  - 'Cookie không được tạo: chính sách trình duyệt và thuộc tính không hợp lệ'
+  - 'Cookie không được gửi: Domain, Path, Secure, SameSite và credentials'
+  - Đăng nhập thành công rồi mất phiên khi qua nút xử lý khác
+  - Vòng lặp đăng nhập do callback, thời gian hoặc cookie bị chặn
+  - Phiên không hết hạn do hoạt động nền hoặc kiểm tra chỉ ở phía khách
+  - Đăng xuất xong vẫn truy cập được do cache hoặc thu hồi chưa lan truyền
+  - Nhiều tab ghi đè mã phiên mới bằng phản hồi cũ
+  - Sai quyền sau đổi vai trò hoặc chuyển tài khoản
+  - Phiên bị mất hàng loạt sau triển khai hoặc thay khóa
+  - WebSocket vẫn hoạt động sau khi phiên bị hủy
+  - Quy trình truy vết từ trình duyệt đến kho phiên mà không lộ bí mật
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế phiên cho ứng dụng có người dùng thường và quản trị viên
+  - Mô tả sơ đồ trạng thái và các bất biến bảo mật
+  - Định nghĩa bản ghi phiên, thời hạn và chính sách thu hồi
+  - Thiết kế cookie an toàn theo mô hình tên miền cụ thể
+  - Xây luồng đăng nhập có đổi mã và chuyển dữ liệu ẩn danh có kiểm soát
+  - Bổ sung xác thực lại trước thao tác nhạy cảm
+  - Xây chức năng xem thiết bị và thu hồi phiên
+  - Bổ sung CSRF và kiểm tra rò rỉ bí mật
+  - Mô phỏng nhiều tab, yêu cầu đồng thời và đổi mã phiên
+  - Mô phỏng kho phiên lỗi, thu hồi chậm và phục hồi dữ liệu
+  - Thực hành tích hợp SSO với phiên cục bộ và đăng xuất
+  - Đánh giá bằng ma trận kiểm thử và bằng chứng vòng đời phiên
+  - Viết hướng dẫn vận hành và kịch bản xử lý phiên bị đánh cắp
+- level1: Tra cứu và ôn tập
+  level2:
+  - Bảng thuật ngữ session, cookie, session secret và các loại token
+  - Bảng đối chiếu idle timeout, absolute timeout và renewal timeout
+  - Mẫu sơ đồ vòng đời và đặc tả trạng thái phiên
+  - Danh sách rà soát cookie, vận chuyển và lưu trữ
+  - Danh sách rà soát đăng nhập, đổi mã, đăng xuất và thu hồi
+  - Câu hỏi phân tích rủi ro và lựa chọn kiến trúc phiên
+  - Bài tập điều tra phiên còn hiệu lực sau khi đáng lẽ phải bị hủy
+  - Định hướng đọc OWASP, NIST và đặc tả trình duyệt, giao thức

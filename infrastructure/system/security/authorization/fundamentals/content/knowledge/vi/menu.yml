@@ -1,0 +1,582 @@
+menu:
+- level1: Authorization là gì
+  level2:
+  - Authorization là gì (bổ sung 2)
+  - Authentication khác authorization thế nào
+  - Authorization so với access control
+  - Authorization so với permission
+  - Authorization so với entitlement
+  - Ai được phép làm gì
+  - Resource cần bảo vệ
+  - Action cần kiểm soát
+  - Policy quyết định ra sao
+  - Authorization trong vòng đời request
+- level1: Mô hình nền tảng
+  level2:
+  - Subject
+  - Principal
+  - Resource
+  - Action
+  - Environment
+  - Policy
+  - Decision
+  - Permit
+  - Deny
+  - Obligation
+  - Advice
+- level1: Subject và principal
+  level2:
+  - User principal
+  - Service principal
+  - Workload identity
+  - Anonymous subject
+  - Authenticated subject
+  - Impersonated subject
+  - Delegated subject
+  - Group principal
+  - Tenant principal
+  - Principal attributes
+- level1: Resource (bổ sung 2)
+  level2:
+  - Resource là gì
+  - Resource identifier
+  - Resource hierarchy
+  - Resource ownership
+  - Resource sensitivity
+  - Resource state
+  - Resource relationship
+  - Resource collection
+  - Virtual resource
+  - Derived resource
+- level1: Action (bổ sung 2)
+  level2:
+  - Read action
+  - Create action
+  - Update action
+  - Delete action
+  - Execute action
+  - Approve action
+  - Export action
+  - Share action
+  - Admin action
+  - Action grouping
+- level1: Policy decision
+  level2:
+  - Permit decision
+  - Deny decision
+  - Not applicable
+  - Indeterminate
+  - Policy conflict
+  - Default decision
+  - Decision reason
+  - Decision obligations
+  - Decision advice
+  - Decision cache
+- level1: PEP PDP PAP PIP
+  level2:
+  - Policy Enforcement Point
+  - Policy Decision Point
+  - Policy Administration Point
+  - Policy Information Point
+  - PEP và PDP separation
+  - PDP lấy attribute từ PIP
+  - PAP quản lý policy
+  - Trust boundary giữa PEP và PDP
+  - Failure giữa PEP và PDP
+  - AuthZEN và policy API
+- level1: Least privilege
+  level2:
+  - Minimum necessary permission
+  - Horizontal least privilege
+  - Vertical least privilege
+  - Least privilege cho user
+  - Least privilege cho service
+  - Least privilege cho API
+  - Least privilege cho database
+  - Least privilege theo action
+  - Review privilege creep
+  - Thu hồi quyền dư
+- level1: Deny by default
+  level2:
+  - Default deny
+  - Explicit allow
+  - Không phụ thuộc default framework
+  - Deny khi policy không match
+  - Deny khi thiếu attribute
+  - Deny khi policy lỗi
+  - Deny khi context không tin cậy
+  - Deny cho resource mới
+  - Deny cho action mới
+  - Kiểm thử fail-closed
+- level1: Fail-safe
+  level2:
+  - Fail closed
+  - Fail safely khi exception
+  - Không để lỗi thành permit
+  - Xử lý timeout của PDP
+  - Xử lý PDP unavailable
+  - Fallback policy
+  - Fallback không mở rộng quyền
+  - Response an toàn khi bị deny
+  - Giữ trạng thái nhất quán
+  - Kiểm thử đường lỗi
+- level1: Authorization lifecycle
+  level2:
+  - Thiết kế yêu cầu
+  - Định nghĩa policy
+  - Provision permission
+  - Thực thi policy
+  - Theo dõi quyết định
+  - Review permission
+  - Thu hồi permission
+  - Thay đổi policy
+  - Xóa policy cũ
+  - Lưu bằng chứng
+- level1: Request lifecycle
+  level2:
+  - Nhận request
+  - Xác định principal
+  - Xác định resource
+  - Xác định action
+  - Thu thập context
+  - Đánh giá policy
+  - Enforce decision
+  - Ghi audit
+  - Trả response
+  - Theo dõi sau request
+- level1: RBAC nền tảng
+  level2:
+  - Role là gì
+  - Permission gắn với role
+  - User gắn với role
+  - Role hierarchy
+  - Composite role
+  - Role assignment
+  - Role activation
+  - Role conflict
+  - Role review
+  - Role explosion
+- level1: Permission model
+  level2:
+  - Permission theo action
+  - Permission theo resource
+  - Permission theo scope
+  - Permission theo API
+  - Permission theo màn hình
+  - Permission theo data field
+  - Permission theo operation
+  - Permission bundle
+  - Permission naming
+  - Permission catalog
+- level1: ABAC nền tảng
+  level2:
+  - Attribute-based authorization
+  - Subject attribute
+  - Resource attribute
+  - Action attribute
+  - Environment attribute
+  - Policy condition
+  - Attribute source
+  - Attribute freshness
+  - Attribute trust
+  - ABAC so với RBAC
+- level1: Context-aware access
+  level2:
+  - Thời gian truy cập
+  - Địa điểm truy cập
+  - Thiết bị truy cập
+  - Network zone
+  - Risk score
+  - MFA state
+  - Device posture
+  - Session assurance
+  - Transaction context
+  - Context thay đổi giữa session
+- level1: Object-level
+  level2:
+  - Object-level authorization
+  - Kiểm tra object ownership
+  - Kiểm tra object tenant
+  - Kiểm tra object state
+  - Object ID do client gửi
+  - IDOR và BOLA
+  - Object collection filtering
+  - Nested resource authorization
+  - Object access qua search
+  - Object access qua export
+- level1: Function-level
+  level2:
+  - Function-level authorization
+  - Admin endpoint
+  - Sensitive operation
+  - Role cần cho function
+  - HTTP method và function
+  - Hidden endpoint
+  - Batch function
+  - Background function
+  - Function mapping
+  - Kiểm thử function bypass
+- level1: Field-level
+  level2:
+  - Field-level authorization
+  - Read field permission
+  - Write field permission
+  - Sensitive field
+  - Response field filtering
+  - Request field filtering
+  - Mass assignment
+  - Property-level authorization
+  - Field policy
+  - Kiểm thử field bypass
+- level1: Relationship-based
+  level2:
+  - Relationship-based access
+  - Owner relationship
+  - Member relationship
+  - Manager relationship
+  - Delegated relationship
+  - Resource collaborator
+  - Parent-child relationship
+  - Team relationship
+  - Relationship change
+  - Kiểm tra relationship server-side
+- level1: Tenant isolation
+  level2:
+  - Tenant identifier
+  - Tenant context
+  - Tenant-aware policy
+  - Cross-tenant request
+  - Tenant data query
+  - Tenant admin
+  - Platform admin
+  - Tenant switching
+  - Tenant boundary test
+  - Tenant isolation audit
+- level1: Ownership
+  level2:
+  - Resource owner
+  - Owner transfer
+  - Shared ownership
+  - Ownership approval
+  - Ownership inheritance
+  - Ownership revoke
+  - Orphan resource
+  - Owner change audit
+  - Owner versus administrator
+  - Kiểm tra ownership
+- level1: Separation of duties
+  level2:
+  - Static separation of duties
+  - Dynamic separation of duties
+  - Conflicting role
+  - Maker-checker
+  - Two-person rule
+  - Approval và execution tách nhau
+  - Admin và auditor tách nhau
+  - Policy conflict detection
+  - SOD exception
+  - Audit SOD violation
+- level1: Delegation
+  level2:
+  - Delegated authorization
+  - Delegation scope
+  - Delegation duration
+  - Delegator identity
+  - Delegate identity
+  - Delegation chain
+  - Revoking delegation
+  - Delegation audit
+  - Không ủy quyền vượt quyền
+  - Kiểm tra nested delegation
+- level1: Impersonation
+  level2:
+  - Impersonation là gì
+  - Support impersonation
+  - Admin impersonation
+  - User consent
+  - Impersonation banner
+  - Giới hạn thời gian
+  - Giới hạn hành động
+  - Audit actor và subject
+  - Không ẩn danh impersonation
+  - Kết thúc impersonation
+- level1: Server-side enforcement
+  level2:
+  - Không tin client-side check
+  - Enforce tại server
+  - Enforce tại gateway
+  - Enforce tại service
+  - Enforce tại data layer
+  - Không dựa vào UI ẩn nút
+  - Không dựa vào URL khó đoán
+  - Không dựa vào ID ngẫu nhiên
+  - Centralize enforcement
+  - Kiểm tra mọi entry point
+- level1: API authorization
+  level2:
+  - API endpoint policy
+  - API scope
+  - API resource server
+  - Bearer token context
+  - Object-level API check
+  - Function-level API check
+  - Property-level API check
+  - Pagination authorization
+  - Bulk endpoint authorization
+  - GraphQL field authorization
+  - API error response
+- level1: Web authorization
+  level2:
+  - Route authorization
+  - Controller authorization
+  - Method authorization
+  - View authorization
+  - Static resource authorization
+  - Form action authorization
+  - CSRF liên quan authorization
+  - WebSocket authorization
+  - SSE authorization
+  - Server-side template policy
+- level1: Message và event
+  level2:
+  - Message producer identity
+  - Message consumer identity
+  - Topic authorization
+  - Queue authorization
+  - Event subscription
+  - Command authorization
+  - Message tenant context
+  - Replay authorization
+  - Dead-letter access
+  - Event handler authorization
+- level1: Microservices
+  level2:
+  - Service-to-service authorization
+  - Propagate caller identity
+  - Service identity
+  - Audience restriction
+  - Downstream authorization
+  - Gateway không thay service check
+  - Central policy service
+  - Local policy decision
+  - Distributed policy consistency
+  - Service mesh authorization
+- level1: Data access
+  level2:
+  - Database role
+  - Row-level security
+  - Column-level security
+  - Query authorization
+  - Repository authorization
+  - Service authorization
+  - Data export authorization
+  - Search result authorization
+  - Report authorization
+  - Cache data authorization
+- level1: High-risk action
+  level2:
+  - Sensitive transaction
+  - Step-up authorization
+  - Reauthentication
+  - Transaction amount
+  - Transaction target
+  - Confirmation binding
+  - Anti-tampering
+  - Approval token
+  - Replay prevention
+  - Audit high-risk action
+- level1: Error handling
+  level2:
+  - 401 so với 403
+  - Không tiết lộ resource tồn tại
+  - Consistent deny response
+  - Authorization exception
+  - Central error handler
+  - Không để stack trace lộ policy
+  - Không retry thành permit
+  - Audit denied request
+  - User message an toàn
+  - Security alert cho deny bất thường
+- level1: Logging
+  level2:
+  - Log permit decision
+  - Log deny decision
+  - Log actor
+  - Log resource
+  - Log action
+  - Log policy version
+  - Log reason
+  - Correlation ID
+  - Không log secret
+  - Centralized authorization log
+- level1: Audit
+  level2:
+  - Audit permission change
+  - Audit role assignment
+  - Audit role removal
+  - Audit policy change
+  - Audit admin action
+  - Audit failed authorization
+  - Audit break-glass
+  - Audit delegation
+  - Audit review
+  - Bảo vệ audit record
+- level1: Caching
+  level2:
+  - Authorization decision cache
+  - Cache key đầy đủ context
+  - Cache TTL
+  - Invalidate khi role đổi
+  - Invalidate khi resource đổi
+  - Không cache quyết định nhạy cảm quá lâu
+  - Cache tenant boundary
+  - Cache PDP response
+  - Cache stampede
+  - Kiểm thử stale permission
+- level1: Session và token
+  level2:
+  - Session authorization context
+  - Token claims
+  - Token scope
+  - Token audience
+  - Token expiry
+  - Token revocation
+  - Session privilege change
+  - Logout và invalidate
+  - Refresh token authorization
+  - Không tin claim chưa xác minh
+- level1: Policy management
+  level2:
+  - Policy as code
+  - Policy repository
+  - Policy version
+  - Policy review
+  - Policy approval
+  - Policy deployment
+  - Policy rollback
+  - Policy testing
+  - Policy conflict (bổ sung 2)
+  - Policy documentation
+- level1: Policy language
+  level2:
+  - Rule và condition
+  - Effect permit deny
+  - Subject matcher
+  - Resource matcher
+  - Action matcher
+  - Context matcher
+  - Combining algorithm
+  - Priority rule
+  - Obligation (bổ sung 2)
+  - Policy explanation
+- level1: Authorization testing
+  level2:
+  - Unit test policy
+  - Integration test endpoint
+  - Negative authorization test
+  - Role matrix test
+  - Object ownership test
+  - Tenant isolation test
+  - Field filtering test
+  - Privilege escalation test
+  - Regression test
+  - Penetration test
+- level1: Threat modeling
+  level2:
+  - Trust boundary
+  - Abuse case
+  - Privilege escalation path
+  - Horizontal escalation
+  - Vertical escalation
+  - Authorization bypass
+  - IDOR threat
+  - Confused deputy
+  - Policy manipulation
+  - Threat model review
+- level1: Common flaws
+  level2:
+  - Missing authorization check
+  - Check chỉ ở UI
+  - Check chỉ ở gateway
+  - IDOR
+  - BOLA
+  - BFLA
+  - Mass assignment (bổ sung 2)
+  - Overbroad role
+  - Privilege creep
+  - Inconsistent endpoint policy
+  - Deny lỗi thành permit
+- level1: Performance
+  level2:
+  - PDP latency
+  - Policy evaluation cost
+  - Attribute lookup cost
+  - Local decision cache
+  - Batch authorization
+  - List filtering cost
+  - Large policy set
+  - Policy indexing
+  - Timeout budget
+  - Performance không làm yếu policy
+- level1: Availability
+  level2:
+  - Authorization service HA
+  - Policy cache khi outage
+  - Fail-closed trade-off
+  - Emergency access
+  - Break-glass authorization
+  - Dependency isolation
+  - Policy distribution
+  - Version consistency
+  - Recovery sau outage
+  - Availability test
+- level1: Cloud và infrastructure
+  level2:
+  - Cloud IAM authorization
+  - Resource policy
+  - Identity policy
+  - Security group policy
+  - Kubernetes RBAC
+  - Service mesh policy
+  - Object storage policy
+  - Database cloud policy
+  - Infrastructure as code policy
+  - Cloud audit authorization
+- level1: CI/CD
+  level2:
+  - Pipeline permission
+  - Deployment authorization
+  - Environment approval
+  - Production promotion
+  - Branch protection
+  - Artifact access
+  - Runner identity
+  - Secret access policy
+  - Policy test trong CI
+  - Không dùng admin token chung
+- level1: Governance
+  level2:
+  - Authorization policy owner
+  - Permission owner
+  - Resource owner (bổ sung 2)
+  - Access review
+  - Risk acceptance
+  - Exception approval
+  - Separation of duties (bổ sung 2)
+  - Documentation obligation
+  - Regulatory evidence
+  - Training developer
+- level1: Checklist production
+  level2:
+  - Đã định nghĩa subject resource action
+  - Đã áp least privilege
+  - Đã bật deny-by-default
+  - Đã enforce server-side
+  - Đã kiểm tra object-level
+  - Đã kiểm tra function-level
+  - Đã kiểm tra field-level
+  - Đã có tenant isolation
+  - Đã log quyết định
+  - Đã có audit review
+  - Đã có test âm tính
+  - Đã có runbook lỗi PDP

@@ -1,0 +1,49 @@
+roadmap:
+- id: trust-boundary-data-flow
+  title: Trust Boundary & Data Flow
+  purpose: Nhận diện dữ liệu không tin cậy và các điểm chuyển giao giữa nguồn nhận, xử lý và nơi xuất.
+  objectives:
+  - '- Liệt kê input từ HTTP, file, message và API bên ngoài.'
+  - '- Vẽ luồng input → xử lý → output kèm trust boundary.'
+- id: input-contract-allowlist
+  title: Input Contract & Allowlist
+  purpose: Định nghĩa rõ dữ liệu hợp lệ trước khi ứng dụng chấp nhận request.
+  objectives:
+  - '- Thiết kế quy tắc kiểu, độ dài, dải giá trị và trường bắt buộc.'
+  - '- Ưu tiên allowlist; phân biệt validation với escaping.'
+- id: parsing-canonicalization
+  title: Parsing & Canonicalization
+  purpose: Tránh sai lệch do cách diễn giải dữ liệu và hạn chế rủi ro từ payload phức tạp.
+  objectives:
+  - '- Kiểm tra Content-Type, cấu trúc JSON và giới hạn độ sâu/kích thước.'
+  - '- Xử lý Unicode, decode và canonicalization nhất quán.'
+- id: server-side-validation
+  title: Server-side Validation
+  purpose: Thực thi ràng buộc ngay tại server dù client đã kiểm tra đầu vào.
+  objectives:
+  - '- Dùng Jakarta Bean Validation và @Valid cho request DTO.'
+  - '- Thử trường thiếu, sai kiểu, quá dài và nested data bất hợp lệ.'
+- id: output-encoding-safe-sinks
+  title: Output Encoding & Safe Sinks
+  purpose: Giữ nội dung không tin cậy ở dạng dữ liệu thay vì để trình duyệt thực thi như mã.
+  objectives:
+  - '- Phân biệt encoding cho HTML, attribute, URL và JavaScript.'
+  - '- Ưu tiên textContent, template escaping và API DOM an toàn.'
+- id: html-sanitization-csp
+  title: HTML Sanitization & CSP
+  purpose: Xử lý nội dung HTML do người dùng cung cấp và bổ sung phòng vệ cho trình duyệt.
+  objectives:
+  - '- Phân biệt encode văn bản với sanitize rich HTML.'
+  - '- Áp dụng sanitizer phù hợp và giải thích vai trò hỗ trợ của CSP.'
+- id: safe-api-responses-headers
+  title: Safe API Responses & Headers
+  purpose: Trả dữ liệu theo đúng định dạng, không để lộ trường nhạy cảm hoặc nội dung bị diễn giải sai.
+  objectives:
+  - '- Chọn response DTO tối thiểu, Content-Type và nosniff.'
+  - '- Thiết lập cache policy phù hợp với response nhạy cảm.'
+- id: errors-logs-security-tests
+  title: Errors, Logs & Security Tests
+  purpose: Tránh lộ thông tin khi thất bại và xác minh dữ liệu không phá vỡ các ngữ cảnh đầu ra.
+  objectives:
+  - '- Trả lỗi nhất quán, không lộ stack trace hay secret.'
+  - '- Test payload bất thường và chặn log injection hoặc lộ token.'

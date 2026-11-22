@@ -1,0 +1,3 @@
+menuLevel1: EndpointSlice
+menuLevel2: Kiểm tra độ trễ từ thay đổi readiness đến client hoặc data plane
+status: ''

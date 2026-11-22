@@ -1,0 +1,57 @@
+roadmap:
+- id: quan-ly-phien-ban-ma-nguon
+  title: Quản lý phiên bản mã nguồn
+  purpose: Hiểu giá trị của hệ thống kiểm soát phiên bản và truy vết thay đổi trong vòng đời phát triển.
+  objectives:
+  - Phân biệt source code, repository và version control.
+  - Giải thích VCS tập trung và phân tán ở mức cơ bản.
+  - Nêu lợi ích của lịch sử, cộng tác và khả năng phục hồi.
+- id: repository-cau-truc-du-an
+  title: Repository & cấu trúc dự án
+  purpose: Thiết lập nơi lưu mã có tổ chức để nhóm dễ tìm hiểu, sử dụng và bảo trì.
+  objectives:
+  - Khởi tạo hoặc clone repository Git.
+  - Tổ chức README, tài liệu và tệp cấu hình nguồn.
+  - Dùng .gitignore loại trừ build output và tệp cục bộ.
+- id: commit-lich-su-thay-doi
+  title: Commit & lịch sử thay đổi
+  purpose: Ghi các thay đổi có ý nghĩa để kiểm tra, truy vết và hoàn tác dễ dàng.
+  objectives:
+  - Phân biệt working tree, staging area và commit.
+  - Dùng status, diff, add, commit và log đúng mục đích.
+  - Viết commit message rõ phạm vi và lý do thay đổi.
+- id: branch-hop-nhat-ma
+  title: Branch & hợp nhất mã
+  purpose: Phát triển song song mà vẫn quản lý các xung đột và lịch sử tích hợp.
+  objectives:
+  - Tạo nhánh cho thay đổi nhỏ và chuyển đổi nhánh.
+  - Thực hiện merge và xử lý merge conflict.
+  - Phân biệt merge, rebase và nguy cơ sửa lịch sử đã chia sẻ.
+- id: remote-cong-tac-nhom
+  title: Remote & cộng tác nhóm
+  purpose: Đồng bộ công việc giữa máy cá nhân và kho chung trên nền tảng cộng tác.
+  objectives:
+  - Cấu hình remote và phân biệt fetch, pull, push.
+  - Đồng bộ nhánh trước khi gửi thay đổi.
+  - Thực hành quy trình làm việc với main và feature branch.
+- id: pull-request-kiem-soat-chat-luong
+  title: Pull Request & kiểm soát chất lượng
+  purpose: Đưa review và các điều kiện hợp nhất vào quy trình thay đổi mã nguồn.
+  objectives:
+  - Mở pull request với diff và mô tả rõ ràng.
+  - Phân công reviewer, xử lý nhận xét và cập nhật nhánh.
+  - Thiết lập required reviews và status checks cho nhánh chính.
+- id: quyen-ve-sinh-repository
+  title: Quyền & vệ sinh repository
+  purpose: Bảo vệ mã nguồn, credential và nhánh quan trọng khỏi truy cập hay thao tác sai.
+  objectives:
+  - Phân quyền đọc/ghi theo nguyên tắc ít đặc quyền.
+  - Bảo vệ nhánh và hạn chế force push ngoài ý muốn.
+  - Tránh commit secret; biết cách thu hồi credential bị lộ.
+- id: tag-ci-truy-xuat-ban-phat-hanh
+  title: Tag, CI & truy xuất bản phát hành
+  purpose: Liên kết một phiên bản mã rõ ràng với kiểm thử tự động và đầu ra phát hành.
+  objectives:
+  - Đánh dấu release bằng tag và commit ID.
+  - Kích hoạt build/test CI khi push hoặc tạo pull request.
+  - Truy vết kết quả kiểm thử, artifact và version về commit nguồn.

@@ -1,0 +1,7 @@
+# DevOps Delivery Automation Artifact Management Fundamentals
+
+**Artifact management** là việc tổ chức, lưu trữ, phân phối và quản trị các đầu ra của quá trình build như JAR, package, container image và các tệp metadata liên quan. Thay vì build lại tại từng môi trường, quy trình delivery đáng tin cậy lưu một artifact đã được kiểm tra, xác định rõ phiên bản và nội dung, rồi dùng chính artifact đó để kiểm thử và triển khai. Kho artifact hoặc container registry đóng vai trò điểm phân phối và truy vết giữa nhóm phát triển, CI/CD và hệ thống vận hành.
+
+Module phù hợp với người đã biết Git, build tool cơ bản và quy trình CI/CD. Người học sẽ bắt đầu từ vòng đời artifact, cách đặt phiên bản và xác minh checksum/digest, sau đó làm quen với repository/registry, metadata và quy trình publish/consume. Các mốc tiếp theo tập trung vào staging, promotion, kiểm soát quyền truy cập, chữ ký số, SBOM và provenance, kết thúc bằng chính sách lưu giữ, cleanup, giám sát và khả năng triển khai lại một phiên bản cũ.
+
+Sau tám mốc, bạn có thể thiết kế một luồng từ build đến release có nguồn gốc rõ ràng, không phụ thuộc vào việc build lại ở production, đồng thời quản lý bảo mật và dung lượng kho artifact ở mức nền tảng. Hãy nhớ rằng tag có thể bị gán lại, còn checksum/digest nhận diện nội dung cụ thể; việc khóa release, promotion và retention cần tuân theo khả năng thực tế của công cụ repository mà tổ chức sử dụng.

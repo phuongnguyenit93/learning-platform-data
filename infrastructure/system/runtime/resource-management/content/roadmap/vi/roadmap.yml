@@ -1,0 +1,57 @@
+roadmap:
+- id: vong-doi-tai-nguyen
+  title: Vòng đời tài nguyên
+  purpose: Nắm cách runtime cấp phát, sử dụng và thu hồi tài nguyên.
+  objectives:
+  - Phân biệt CPU, RAM, luồng và I/O.
+  - Mô tả vòng đời cấp phát – sử dụng – giải phóng.
+  - Nhận diện tài nguyên hữu hạn.
+- id: cpu-lich-chay
+  title: CPU & lịch chạy
+  purpose: Kiểm soát CPU và mức xử lý đồng thời để tránh nghẽn.
+  objectives:
+  - Phân biệt tác vụ CPU-bound và I/O-bound.
+  - Đọc mức dùng CPU và tải xử lý.
+  - Chọn mức đồng thời phù hợp.
+- id: bo-nho-runtime
+  title: Bộ nhớ runtime
+  purpose: Hiểu các vùng nhớ và phát hiện nguy cơ vượt giới hạn.
+  objectives:
+  - Phân biệt heap, stack và native memory.
+  - Đọc used, committed và max.
+  - Nhận diện OOM và dấu hiệu rò rỉ bộ nhớ.
+- id: thread-executor
+  title: Thread & executor
+  purpose: Điều phối công việc bằng luồng và hàng đợi có giới hạn.
+  objectives:
+  - Phân biệt thread, executor và queue.
+  - Chọn số luồng và độ dài hàng đợi.
+  - Xử lý quá tải và shutdown.
+- id: i-o-descriptor
+  title: I/O & descriptor
+  purpose: Tránh cạn file handle, socket và thời gian chờ I/O.
+  objectives:
+  - Nhận diện file descriptor và socket.
+  - Đặt timeout phù hợp cho I/O.
+  - Đóng stream và kết nối đúng lúc.
+- id: connection-pool
+  title: Connection pool
+  purpose: Tái sử dụng kết nối hiệu quả và ngăn cạn pool.
+  objectives:
+  - Mô tả vòng đời kết nối trong pool.
+  - Chọn pool size và idle timeout.
+  - Phát hiện rò rỉ hoặc chờ kết nối quá lâu.
+- id: quota-gioi-han
+  title: Quota & giới hạn
+  purpose: Giữ tiến trình trong giới hạn tài nguyên của môi trường chạy.
+  objectives:
+  - Giải thích giới hạn CPU và bộ nhớ.
+  - Phân biệt throttling và OOM kill.
+  - Đề xuất giới hạn theo tải thực tế.
+- id: giam-sat-toi-uu
+  title: Giám sát & tối ưu
+  purpose: Đo tài nguyên trước khi điều chỉnh và xác minh hiệu quả.
+  objectives:
+  - Theo dõi CPU, RAM, thread và I/O.
+  - Dùng heap/thread dump khi cần chẩn đoán.
+  - Đánh giá trước và sau khi tinh chỉnh.

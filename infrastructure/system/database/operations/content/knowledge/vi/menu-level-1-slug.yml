@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan vận hành
+  slug: operations-overview
+  index: 0
+- title: Môi trường vận hành
+  slug: operating-environments
+  index: 1
+- title: Triển khai hệ thống
+  slug: system-deployment
+  index: 2
+- title: Quản lý cấu hình
+  slug: configuration-management
+  index: 3
+- title: Lưu trữ dữ liệu
+  slug: data-storage
+  index: 4
+- title: Mạng và kết nối
+  slug: networking-connections
+  index: 5
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 6
+- title: Tài khoản và quyền
+  slug: accounts-permissions
+  index: 7
+- title: Bảo mật dữ liệu
+  slug: data-security
+  index: 8
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 9
+- title: Cảnh báo và trực ca
+  slug: alerting-on-call
+  index: 10
+- title: Sao lưu dữ liệu
+  slug: data-backup
+  index: 11
+- title: Khôi phục dữ liệu
+  slug: data-recovery
+  index: 12
+- title: Sẵn sàng cao
+  slug: high-availability
+  index: 13
+- title: Vận hành bản sao
+  slug: replica-operations
+  index: 14
+- title: Bảo trì dữ liệu
+  slug: data-maintenance
+  index: 15
+- title: Chẩn đoán hiệu năng
+  slug: performance-diagnostics
+  index: 16
+- title: Dung lượng và chi phí
+  slug: capacity-cost
+  index: 17
+- title: Thay đổi an toàn
+  slug: safe-changes
+  index: 18
+- title: Di chuyển dữ liệu
+  slug: data-migration
+  index: 19
+- title: Nâng cấp và vá lỗi
+  slug: upgrades-patching
+  index: 20
+- title: Tự động hóa vận hành
+  slug: operations-automation
+  index: 21
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 22
+- title: Kịch bản sự cố
+  slug: incident-scenarios
+  index: 23
+- title: Khôi phục thảm họa
+  slug: disaster-recovery
+  index: 24
+- title: Dịch vụ đám mây
+  slug: cloud-services
+  index: 25
+- title: Đặc thù hệ quản trị
+  slug: database-specifics
+  index: 26
+- title: Quản trị dữ liệu
+  slug: data-governance
+  index: 27
+- title: Ngừng vận hành
+  slug: decommissioning
+  index: 28
+- title: Thực hành vận hành
+  slug: operations-practice
+  index: 29

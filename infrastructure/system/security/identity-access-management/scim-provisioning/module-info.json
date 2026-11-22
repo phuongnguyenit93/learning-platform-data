@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Security này là security chung , không chỉ bao gồm java , vì vậy các knowledge liên quan đến chỉ riêng java hay spring , đặc biệt là spring security hãy bỏ qua"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_IDENTITY_ACCESS_MANAGEMENT_SCIM_PROVISIONING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hiểu chuẩn SCIM trong tự động cấp phát, cập nhật và thu hồi tài khoản cùng nhóm giữa hệ thống danh tính và ứng dụng đích. Nội dung bao quát schema, User/Group API, ánh xạ định danh, đồng bộ khi nhân sự vào–chuyển–rời tổ chức, bảo mật và kiểm toán, không phụ thuộc ngôn ngữ lập trình."
+  }
+}

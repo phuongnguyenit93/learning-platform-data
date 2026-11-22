@@ -1,0 +1,7 @@
+# Operating System Users And Permissions
+
+Linux quản lý quyền truy cập thông qua danh tính người dùng, nhóm và các chính sách xác thực/phân quyền của hệ thống. Mỗi user được gắn UID, mỗi group có GID; quyền trên tệp và thư mục được đánh giá dựa trên chủ sở hữu, nhóm và các đối tượng còn lại. Các tệp như `/etc/passwd`, `/etc/shadow` và `/etc/group` lưu thông tin tài khoản, trong khi PAM cung cấp cơ chế kết hợp các module xác thực. Hiểu rõ các lớp này giúp quản trị hệ thống có thể cấp quyền đúng người, giới hạn truy cập và điều tra lỗi một cách có căn cứ.
+
+Roadmap một cấp gồm tám mốc: tìm hiểu UID và cơ sở dữ liệu tài khoản; tổ chức nhóm và membership; quản lý vòng đời account. Người học tiếp tục thực hành owner/group/mode qua `chmod`, `chown`, `umask`, sau đó sử dụng POSIX ACL khi quyền rwx cơ bản chưa đủ. Các mốc cuối tập trung vào xác thực qua PAM, cấp quyền quản trị bằng `sudo` theo nguyên tắc least privilege, và kiểm toán hoặc khắc phục sự cố permission denied. Cần phân biệt rõ xác thực danh tính với quyết định cho phép thao tác: đăng nhập thành công không có nghĩa người dùng được truy cập mọi tài nguyên.
+
+Module phù hợp với người học Linux, system administrator hoặc developer cần triển khai ứng dụng trên máy chủ Linux. Sau khi hoàn thành, bạn có thể tạo và quản lý tài khoản/nhóm, đọc và thay đổi quyền tệp an toàn, cấu hình ACL và sudo ở mức cơ bản, giải thích luồng PAM, đồng thời điều tra nguyên nhân từ chối truy cập mà không khắc phục bằng cách cấp quyền quá rộng.

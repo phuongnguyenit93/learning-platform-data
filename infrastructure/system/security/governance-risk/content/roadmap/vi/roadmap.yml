@@ -1,0 +1,55 @@
+roadmap:
+- id: boi-canh-trach-nhiem
+  title: Bối cảnh & Trách nhiệm
+  purpose: Xác định mục tiêu bảo vệ, phạm vi và vai trò ra quyết định về rủi ro bảo mật.
+  objectives:
+  - Khoanh vùng hệ thống, quy trình và bên liên quan.
+  - Phân công risk owner và người phê duyệt xử lý rủi ro.
+- id: khau-vi-tieu-chi-rui-ro
+  title: Khẩu vị & Tiêu chí rủi ro
+  purpose: Thiết lập mức rủi ro chấp nhận được để đánh giá nhất quán với mục tiêu kinh doanh.
+  objectives:
+  - Phân biệt risk appetite với risk tolerance.
+  - Định nghĩa thang likelihood, impact và ngưỡng ưu tiên.
+- id: tai-san-muc-do-quan-trong
+  title: Tài sản & Mức độ quan trọng
+  purpose: Hiểu giá trị của hệ thống và dữ liệu trước khi xác định rủi ro cần ưu tiên.
+  objectives:
+  - Lập danh mục tài sản và chủ sở hữu quan trọng.
+  - Đánh giá ảnh hưởng đến bảo mật, toàn vẹn và sẵn sàng.
+- id: de-doa-diem-yeu
+  title: Đe dọa & Điểm yếu
+  purpose: Nhận diện những tình huống có thể gây thiệt hại thay vì chỉ liệt kê lỗ hổng.
+  objectives:
+  - Xây kịch bản threat–vulnerability–consequence.
+  - Liên hệ các mối đe dọa với tài sản và quy trình thực tế.
+- id: phan-tich-xep-hang
+  title: Phân tích & Xếp hạng
+  purpose: Ước lượng mức rủi ro để so sánh và ra quyết định có cơ sở.
+  objectives:
+  - Đánh giá likelihood và impact cho từng kịch bản.
+  - Phân biệt inherent risk với residual risk sau kiểm soát.
+- id: risk-register
+  title: Risk Register
+  purpose: Ghi nhận rủi ro theo cấu trúc để theo dõi trách nhiệm và quyết định.
+  objectives:
+  - Tạo mục risk register gồm mô tả, mức độ và owner.
+  - Ghi bằng chứng, trạng thái, hạn xử lý và quyết định chấp nhận.
+- id: xu-ly-kiem-soat
+  title: Xử lý & Kiểm soát
+  purpose: Chọn phương án giảm thiểu rủi ro phù hợp với chi phí và khả năng thực thi.
+  objectives:
+  - Phân biệt tránh, giảm, chuyển giao và chấp nhận rủi ro.
+  - Chọn security controls và đánh giá rủi ro còn lại.
+- id: rui-ro-ben-thu-ba
+  title: Rủi ro bên thứ ba
+  purpose: Đưa phụ thuộc nhà cung cấp và chuỗi cung ứng vào quản trị rủi ro bảo mật.
+  objectives:
+  - Đánh giá dữ liệu, quyền truy cập và mức phụ thuộc nhà cung cấp.
+  - Xác định điều khoản bảo mật, bằng chứng và lịch rà soát.
+- id: giam-sat-bao-cao
+  title: Giám sát & Báo cáo
+  purpose: Duy trì khả năng phát hiện biến động và kiểm tra hiệu quả xử lý rủi ro.
+  objectives:
+  - Định nghĩa chỉ báo KRI và lịch cập nhật risk register.
+  - Báo cáo rủi ro ưu tiên, tồn đọng và mức rủi ro còn lại.

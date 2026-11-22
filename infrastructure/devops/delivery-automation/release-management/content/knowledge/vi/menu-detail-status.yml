@@ -1,0 +1,2197 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Quản lý phát hành là gì và tạo giá trị cho người dùng như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt xây dựng, triển khai và phát hành tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quan hệ giữa quản lý phát hành, CI/CD và quản lý thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt phiên bản mã nguồn, phiên bản gói và phiên bản đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Thuật ngữ ứng viên phát hành, chuyển môi trường, quay lui và triển khai bản sửa mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Những thành phần của một bản phát hành có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi module và lộ trình theo dõi một bản phát hành xuyên suốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-lifecycle
+  title: Vòng đời phát hành
+  childs:
+  - slug: release-lifecycle-001
+    title: Từ yêu cầu thay đổi đến ứng viên phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-002
+    title: Từ ứng viên đạt điều kiện đến triển khai môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-003
+    title: Từ triển khai thành công đến xác nhận người dùng có thể sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-004
+    title: Mô tả trạng thái chờ, đang chạy, bị chặn, hủy và hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-005
+    title: Xác định điều kiện vào và ra của từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-006
+    title: Phân biệt một lần chạy pipeline với một bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-007
+    title: Giữ bằng chứng và kết quả xuyên suốt vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: roles-and-responsibilities
+  title: Vai trò và trách nhiệm
+  childs:
+  - slug: roles-and-responsibilities-001
+    title: Xác định người chịu trách nhiệm cho kết quả phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-002
+    title: Phân chia trách nhiệm giữa phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-003
+    title: Làm rõ vai trò của chủ sản phẩm và nhóm hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-004
+    title: Xác định ai được chuẩn bị, phê duyệt, thực hiện và xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-005
+    title: Thiết lập người thay thế và đường liên hệ khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-006
+    title: Quy định quyền dừng hoặc hủy bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: roles-and-responsibilities-007
+    title: Tránh trách nhiệm bỏ trống khi công việc đi qua nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-policies
+  title: Chính sách phát hành
+  childs:
+  - slug: release-policies-001
+    title: Chọn phát hành theo lịch hay theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-002
+    title: Phân loại thay đổi theo phạm vi và mức độ rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-003
+    title: Thiết kế điều kiện kiểm soát tương xứng với loại thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-004
+    title: Quy định khung thời gian phát hành và giai đoạn hạn chế thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-005
+    title: Xác định tiêu chí sẵn sàng và tiêu chí dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-006
+    title: Quy định cách xử lý ngoại lệ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-007
+    title: Quản lý thời gian hỗ trợ và kết thúc hỗ trợ phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-policies-008
+    title: Giữ chính sách rõ ràng mà không tạo thủ tục vượt nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-scope
+  title: Phạm vi thay đổi
+  childs:
+  - slug: change-scope-001
+    title: Liệt kê tính năng, sửa lỗi và thay đổi kỹ thuật sẽ phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-scope-002
+    title: Liên kết yêu cầu với pull request, commit và gói đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-scope-003
+    title: Phát hiện thay đổi ngoài dự kiến trong phạm vi bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-scope-004
+    title: Xác định phụ thuộc bắt buộc giữa các thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-scope-005
+    title: Phân biệt hoàn tất phát triển với đủ điều kiện phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-scope-006
+    title: Xử lý thay đổi bị rút khỏi ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-scope-007
+    title: Chốt phạm vi và kiểm soát thay đổi sau thời điểm chốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-planning
+  title: Lập kế hoạch
+  childs:
+  - slug: release-planning-001
+    title: Xác định mục tiêu, thời điểm và đối tượng nhận bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-002
+    title: Đánh giá thời gian triển khai, xác minh và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-003
+    title: Kiểm tra năng lực hạ tầng và khả năng trực hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-004
+    title: Lập thứ tự các bước có phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-005
+    title: Chuẩn bị điều kiện tiên quyết và người thực hiện từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-006
+    title: Lập kế hoạch cho tình huống thất bại hoặc quá thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-007
+    title: Quy định mốc quyết định tiếp tục hay dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-planning-008
+    title: Diễn tập kế hoạch trước các thay đổi có ảnh hưởng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-control-and-versioning
+  title: Mã nguồn và phiên bản
+  childs:
+  - slug: source-control-and-versioning-001
+    title: Liên kết nhánh phát triển với chiến lược chuẩn bị bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-002
+    title: Dùng tag và commit để xác định chính xác nguồn được xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-003
+    title: Chọn quy ước phiên bản phù hợp loại sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-004
+    title: Phân biệt phiên bản ổn định, thử nghiệm và ứng viên phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-005
+    title: Quản lý phiên bản khi nhiều dòng sản phẩm còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-006
+    title: Kiểm soát thay đổi trên nhánh bảo trì và nhánh phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-007
+    title: Ngăn tag hoặc phiên bản bị dùng lại cho nội dung khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-control-and-versioning-008
+    title: Đối chiếu phiên bản công bố với phiên bản chứa trong gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-candidates
+  title: Ứng viên phát hành
+  childs:
+  - slug: release-candidates-001
+    title: Tạo ứng viên từ nguồn và phụ thuộc đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-candidates-002
+    title: Xác định một ứng viên bằng phiên bản, commit và mã băm gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-candidates-003
+    title: Gắn cấu hình xây dựng cùng bằng chứng kiểm thử vào ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-candidates-004
+    title: Chuyển cùng một gói đã kiểm chứng qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-candidates-005
+    title: Phân biệt thay cấu hình môi trường với xây dựng lại gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-candidates-006
+    title: Tạo ứng viên mới khi nội dung đầu ra thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-candidates-007
+    title: Quy định thời hạn sử dụng và điều kiện loại bỏ ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-packages
+  title: Gói phát hành
+  childs:
+  - slug: release-packages-001
+    title: Xác định thành phần cần có trong một gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-002
+    title: Tổ chức JAR, container image, tài nguyên tĩnh và tệp triển khai khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-003
+    title: Lập manifest liên kết phiên bản của các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-004
+    title: Lưu checksum và định danh bất biến của từng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-005
+    title: Quản lý gói trong kho có kiểm soát quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-006
+    title: Giữ đủ gói và cấu hình cần thiết cho khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-007
+    title: Quy định lưu giữ và dọn dẹp mà không làm mất khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-packages-008
+    title: Phân biệt gói đã tải lên với gói đã sẵn sàng cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates
+  title: Điều kiện chất lượng
+  childs:
+  - slug: quality-gates-001
+    title: Xác định bộ kiểm tra bắt buộc cho từng loại phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-002
+    title: Đối chiếu kiểm thử đơn vị, tích hợp và kiểm thử chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-003
+    title: Xác minh khả năng khởi động và kiểm tra khói của ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-004
+    title: Đánh giá hiệu năng và giới hạn tài nguyên khi thay đổi có liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-005
+    title: Kiểm tra hồi quy ở các luồng nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-006
+    title: Xử lý kiểm thử không ổn định và kết quả thiếu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-007
+    title: Ngăn sử dụng kết quả kiểm tra của một gói khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-008
+    title: Lưu kết quả kiểm tra để quyết định phát hành có thể được đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-risks
+  title: Rủi ro phát hành
+  childs:
+  - slug: release-risks-001
+    title: Ước lượng phạm vi ảnh hưởng và nhóm người dùng có thể bị tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-risks-002
+    title: Đánh giá khả năng phát hiện lỗi và thời gian khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-risks-003
+    title: Nhận diện thay đổi khó đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-risks-004
+    title: Phân tích nguy cơ do phụ thuộc, dữ liệu và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-risks-005
+    title: Chọn biện pháp giảm rủi ro theo từng thay đổi cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-risks-006
+    title: Xác định dấu hiệu phải dừng trước khi bắt đầu triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-risks-007
+    title: Cập nhật đánh giá khi phạm vi hoặc điều kiện thực tế thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifact-provenance
+  title: Nguồn gốc gói
+  childs:
+  - slug: artifact-provenance-001
+    title: Truy vết gói đầu ra về mã nguồn và quá trình xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-provenance-002
+    title: Kiểm tra tính toàn vẹn bằng mã băm và chữ ký khi được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-provenance-003
+    title: Phân biệt xác minh chữ ký với đánh giá mức tin cậy của bên ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-provenance-004
+    title: Quản lý thông tin thành phần phần mềm bằng SBOM khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-provenance-005
+    title: Đối chiếu kết quả kiểm tra phụ thuộc với đúng ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-provenance-006
+    title: Bảo vệ danh tính và quyền của hệ thống xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-provenance-007
+    title: Ngăn gói không xác định nguồn được đưa vào luồng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments-and-configuration
+  title: Môi trường và cấu hình
+  childs:
+  - slug: environments-and-configuration-001
+    title: Xác định vai trò của môi trường thử nghiệm, tiền sản xuất và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-002
+    title: Nhận diện khác biệt môi trường có thể làm sai kết quả kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-003
+    title: Tách cấu hình triển khai khỏi nội dung gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-004
+    title: Quản lý cấu hình theo phiên bản và kiểm tra thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-005
+    title: Cấp bí mật theo đúng môi trường và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-006
+    title: Kiểm tra cấu hình bắt buộc trước khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-007
+    title: Phát hiện sai lệch giữa cấu hình dự kiến và cấu hình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-configuration-008
+    title: Lưu bằng chứng triển khai mà không làm lộ thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility
+  title: Tương thích
+  childs:
+  - slug: compatibility-001
+    title: Xác định hợp đồng cần giữ với bên sử dụng và dịch vụ liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-002
+    title: Đánh giá tương thích API, định dạng dữ liệu và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-003
+    title: Thiết kế giai đoạn phiên bản cũ và mới cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-004
+    title: Kiểm tra tương thích ngược và tương thích xuôi theo từng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-005
+    title: Quản lý thay đổi phá vỡ tương thích và thông báo chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-006
+    title: Xác định thứ tự cập nhật bên cung cấp và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-007
+    title: Lập kế hoạch ngừng hỗ trợ hợp đồng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-008
+    title: Đối chiếu ma trận phiên bản được phép cùng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-changes
+  title: Thay đổi dữ liệu
+  childs:
+  - slug: data-changes-001
+    title: Liên kết phiên bản ứng dụng với phiên bản lược đồ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-002
+    title: Phân biệt thay đổi có thể đảo với thay đổi mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-003
+    title: Thiết kế thay đổi theo các bước mở rộng, chuyển đổi và thu gọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-004
+    title: Giữ ứng dụng cũ và mới tương thích trong thời gian chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-005
+    title: Chuẩn bị sao lưu và kiểm tra khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-006
+    title: Diễn tập migration với khối lượng dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-007
+    title: Quản lý thời gian khóa, thời gian chạy và nguy cơ gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-008
+    title: Kiểm tra việc bổ sung dữ liệu nền và đối chiếu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-009
+    title: Xác định cách khôi phục khi mã đã quay lui nhưng dữ liệu đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-strategies
+  title: Chiến lược triển khai
+  childs:
+  - slug: deployment-strategies-001
+    title: Đánh giá triển khai thay thế toàn bộ theo thời gian gián đoạn cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-002
+    title: Triển khai cuốn chiếu và theo dõi phiên bản cũ mới cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-003
+    title: Triển khai hai môi trường song song và chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-004
+    title: Triển khai canary cho một phần lưu lượng hoặc nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-005
+    title: Mở rộng dần phạm vi theo các điều kiện đã định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-006
+    title: Chọn chiến lược theo kiến trúc, chi phí và khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-007
+    title: Quản lý phiên làm việc và yêu cầu đang xử lý khi chuyển phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-strategies-008
+    title: Phân biệt triển khai thử với gửi lưu lượng thực tới phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: feature-flags
+  title: Bật tắt tính năng
+  childs:
+  - slug: feature-flags-001
+    title: Tách thời điểm triển khai mã khỏi thời điểm mở tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-002
+    title: Thiết kế cờ tính năng và giá trị mặc định an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-003
+    title: Chọn nhóm người dùng hoặc tỷ lệ nhận tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-004
+    title: Phân biệt cờ phát hành, cờ vận hành và cấu hình sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-005
+    title: Kiểm tra các tổ hợp cờ cần được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-006
+    title: Xử lý lỗi khi dịch vụ cấu hình cờ không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-007
+    title: Xác định chủ sở hữu, thời hạn và kế hoạch xóa cờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-008
+    title: Phân biệt tắt tính năng với quay lui phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automation
+  title: Tự động hóa
+  childs:
+  - slug: automation-001
+    title: Biểu diễn các giai đoạn phát hành thành pipeline có trạng thái rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-002
+    title: Truyền định danh ứng viên bất biến giữa các công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-003
+    title: Tự động kiểm tra điều kiện tiên quyết và dừng khi không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-004
+    title: Làm cho thao tác có thể chạy lại mà không tạo tác dụng phụ trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-005
+    title: Phân biệt thử lại một bước với bắt đầu một bản phát hành mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-006
+    title: Quản lý thời gian chờ, kết quả không rõ và bước bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-007
+    title: Thu thập bằng chứng từ pipeline vào hồ sơ bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automation-008
+    title: Kiểm thử chính quy trình tự động hóa trước khi dùng cho sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-orchestration
+  title: Điều phối phát hành
+  childs:
+  - slug: release-orchestration-001
+    title: Ngăn hai lần triển khai cùng sửa một môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-orchestration-002
+    title: Phân biệt khóa theo ứng dụng, môi trường và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-orchestration-003
+    title: Xử lý ứng viên cũ hoàn tất sau ứng viên mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-orchestration-004
+    title: Quản lý hủy pipeline khi công việc triển khai đã bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-orchestration-005
+    title: Phát hiện trạng thái thực khi pipeline mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-orchestration-006
+    title: Ngăn thao tác công bố bị lặp khi công việc được chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-orchestration-007
+    title: Đồng bộ kết quả giữa hệ thống triển khai và hồ sơ phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: approvals-and-permissions
+  title: Phê duyệt và quyền
+  childs:
+  - slug: approvals-and-permissions-001
+    title: Xác định thay đổi nào cần phê duyệt theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-and-permissions-002
+    title: Trình bày ứng viên, bằng chứng và rủi ro để người duyệt quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-and-permissions-003
+    title: Ràng buộc phê duyệt với đúng gói và phạm vi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-and-permissions-004
+    title: Quy định khi nào phê duyệt hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-and-permissions-005
+    title: Áp dụng quyền tối thiểu cho tài khoản và hệ thống phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-and-permissions-006
+    title: Tách trách nhiệm khi mức rủi ro hoặc yêu cầu tổ chức cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-and-permissions-007
+    title: Quản lý quyền khẩn cấp có thời hạn và dấu vết sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-execution
+  title: Thực hiện phát hành
+  childs:
+  - slug: release-execution-001
+    title: Đọc checklist và xác nhận điều kiện trước khi bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-002
+    title: Đối chiếu gói, môi trường, cấu hình và phiên bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-003
+    title: Thực hiện các bước theo thứ tự đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-004
+    title: Theo dõi tiến độ cùng trạng thái thực của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-005
+    title: Kiểm soát thay đổi phát sinh trong thời gian triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-006
+    title: Dừng an toàn khi điều kiện thực tế khác kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-007
+    title: Ghi nhận người thực hiện, thời điểm và kết quả từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-execution-008
+    title: Phân biệt hoàn tất công việc triển khai với hoàn tất phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: post-deployment-verification
+  title: Xác minh sau triển khai
+  childs:
+  - slug: post-deployment-verification-001
+    title: Kiểm tra phiên bản thực sự được phục vụ tại môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-002
+    title: Kiểm tra sức khỏe, mức sẵn sàng và luồng nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-003
+    title: Đối chiếu lỗi, độ trễ và lưu lượng trước sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-004
+    title: Theo dõi chỉ dấu nghiệp vụ để phát hiện lỗi không làm ứng dụng ngừng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-005
+    title: Kiểm tra cấu hình cờ và nhóm người dùng thực sự nhận tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-006
+    title: Xác định khoảng quan sát trước khi mở rộng hoặc kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-007
+    title: Dùng ngưỡng dừng đã định để quyết định tiếp tục hay khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-deployment-verification-008
+    title: Lưu kết quả xác minh và xác nhận tình trạng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recovery
+  title: Khôi phục
+  childs:
+  - slug: recovery-001
+    title: Phân biệt quay lui phiên bản, triển khai bản sửa mới và hành động bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-002
+    title: Xác định điều kiện kích hoạt kế hoạch khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-003
+    title: Đối chiếu khả năng tương thích trước khi dùng lại phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-004
+    title: Khôi phục gói cùng cấu hình liên quan theo phạm vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-005
+    title: Xử lý dữ liệu hoặc tác dụng phụ không thể tự đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-006
+    title: Giảm phạm vi ảnh hưởng bằng cờ tính năng hoặc chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-007
+    title: Xác minh dịch vụ và nghiệp vụ sau khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-008
+    title: Ghi lại trạng thái cuối để lần chạy tiếp theo không dựa vào giả định cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-009
+    title: Diễn tập và đo thời gian khôi phục thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: emergency-hotfixes
+  title: Bản vá khẩn cấp
+  childs:
+  - slug: emergency-hotfixes-001
+    title: Xác định tiêu chí để dùng luồng phát hành khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-002
+    title: Tạo bản vá từ đúng phiên bản cần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-003
+    title: Giữ bộ kiểm tra tối thiểu phù hợp với phạm vi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-004
+    title: Tổ chức phê duyệt và quyền thực hiện theo chính sách khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-005
+    title: Đưa bản vá qua các môi trường cần thiết mà vẫn truy vết được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-006
+    title: Hợp nhất thay đổi trở lại các nhánh còn được duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-007
+    title: Xác minh và tổng kết sau khi dịch vụ ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: emergency-hotfixes-008
+    title: Ngăn luồng khẩn cấp trở thành cách bỏ qua kiểm soát thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-component-releases
+  title: Nhiều thành phần
+  childs:
+  - slug: multi-component-releases-001
+    title: Lập manifest phát hành cho backend, frontend và cấu hình liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-002
+    title: Chọn phát hành độc lập hay phối hợp theo mức phụ thuộc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-003
+    title: Xác định thứ tự triển khai các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-004
+    title: Kiểm tra tổ hợp phiên bản trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-005
+    title: Quản lý tình huống chỉ một phần thành phần triển khai thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-006
+    title: Khôi phục theo phạm vi nhỏ nhất vẫn giữ đúng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-007
+    title: Tránh buộc mọi dịch vụ cùng một phiên bản khi không có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-component-releases-008
+    title: Phân biệt phát hành dịch vụ đang chạy với phân phối thư viện hoặc sản phẩm cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-notes
+  title: Ghi chú phát hành
+  childs:
+  - slug: release-notes-001
+    title: Viết ghi chú theo thay đổi có ý nghĩa với người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-002
+    title: Phân loại tính năng, sửa lỗi, thay đổi phá vỡ tương thích và việc ngừng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-003
+    title: Liên kết thay đổi với yêu cầu và hướng dẫn liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-004
+    title: Phân biệt ghi chú cho người dùng với nhật ký kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-005
+    title: Viết hướng dẫn nâng cấp và điều kiện cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-006
+    title: Nêu rõ vấn đề đã biết và cách xử lý tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-007
+    title: Tự động tổng hợp dữ liệu nhưng vẫn kiểm tra nội dung trước khi công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-notes-008
+    title: Giữ ghi chú gắn với đúng phiên bản và gói đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communications
+  title: Truyền thông
+  childs:
+  - slug: communications-001
+    title: Xác định nhóm cần được thông báo trước, trong và sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-002
+    title: Chuẩn bị nội dung về thời gian, ảnh hưởng và thao tác người dùng cần làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-003
+    title: Thống nhất kênh cập nhật tình trạng và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-004
+    title: Thông báo trì hoãn, hủy hoặc khôi phục theo tình trạng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-005
+    title: Cung cấp thông tin cần thiết cho nhóm hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-006
+    title: Đóng thông báo bằng kết quả xác minh và vấn đề còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-and-improvement
+  title: Hồ sơ và cải tiến
+  childs:
+  - slug: documentation-and-improvement-001
+    title: Tổ chức hồ sơ liên kết phạm vi, ứng viên, phê duyệt và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-002
+    title: Truy vết từ phiên bản đang chạy về nguồn và bằng chứng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-003
+    title: Đo thời gian chờ, thời gian thực hiện và tần suất phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-004
+    title: Theo dõi bản phát hành gây lỗi và thời gian phục hồi theo định nghĩa thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-005
+    title: Phân biệt tương quan chỉ số với nguyên nhân của sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-006
+    title: Tổng kết bản phát hành và chuyển phát hiện thành hành động cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-007
+    title: Cập nhật checklist và tự động hóa từ lỗi đã quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-improvement-008
+    title: Kiểm tra hiệu quả cải tiến bằng các bản phát hành tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-pitfalls
+  title: Lỗi thường gặp
+  childs:
+  - slug: common-pitfalls-001
+    title: Xây dựng lại gói cho từng môi trường rồi coi là cùng ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-002
+    title: Dùng nhãn latest hoặc tag thay đổi được làm định danh duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-003
+    title: Công bố thành công chỉ dựa vào trạng thái pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-004
+    title: Quay lui mã mà bỏ qua thay đổi dữ liệu hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-005
+    title: Phê duyệt một ứng viên nhưng triển khai một gói khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-006
+    title: Chạy lại công việc làm công bố hoặc migration bị thực hiện trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-007
+    title: Để nhiều pipeline ghi đè phiên bản trên cùng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-008
+    title: Không giữ gói cũ hoặc không thử kế hoạch khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-pitfalls-009
+    title: Quên dọn cờ tính năng và duy trì nhánh bảo trì cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Lập kế hoạch phát hành một ứng dụng Java với phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Tạo ứng viên có phiên bản, mã băm và manifest truy vết được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Thiết kế pipeline chuyển cùng gói qua môi trường thử nghiệm và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Xây dựng điều kiện chất lượng cùng hồ sơ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Diễn tập thay đổi dữ liệu tương thích với hai phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Mô phỏng triển khai từng phần và quyết định mở rộng hoặc dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Tách việc mở tính năng khỏi việc triển khai bằng cờ có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Xử lý lần chạy gián đoạn mà không tạo tác dụng phụ trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Diễn tập khôi phục và luồng bản vá khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Hoàn thiện ghi chú, checklist và báo cáo sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

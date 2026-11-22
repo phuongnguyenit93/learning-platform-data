@@ -1,0 +1,513 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Nền tảng bảo mật là gì
+  - Vai trò của platform security
+  - Khác biệt giữa application và platform security
+  - Quan hệ giữa nền tảng và workload
+  - Đầu ra của một nền tảng an toàn
+  - Platform security trong vòng đời hệ thống
+  - Những rủi ro nền tảng thường gặp
+  - Lộ trình học từ host đến cloud
+- level1: Mục tiêu nền tảng
+  level2:
+  - Bảo vệ tính bí mật của nền tảng
+  - Bảo vệ tính toàn vẹn của nền tảng
+  - Bảo đảm tính sẵn sàng
+  - Giới hạn phạm vi ảnh hưởng sự cố
+  - Kiểm soát quyền truy cập quản trị
+  - Bảo vệ dữ liệu vận hành
+  - Hỗ trợ kiểm toán và truy vết
+  - Cân bằng bảo mật với hiệu năng
+- level1: Phạm vi nền tảng
+  level2:
+  - Xác định thành phần thuộc nền tảng
+  - Host và hệ điều hành
+  - Network và service discovery
+  - Runtime và orchestration
+  - Cloud control plane
+  - Build và deployment platform
+  - Monitoring và management plane
+  - Thành phần bên ngoài phạm vi
+- level1: Tài sản nền tảng
+  level2:
+  - Máy chủ và máy ảo
+  - Operating system image
+  - Kernel và module
+  - Identity và credential
+  - Secret và encryption key
+  - Network rule và policy
+  - Container image và artifact
+  - Log, audit và backup
+- level1: Mô hình đe dọa
+  level2:
+  - Threat actor trên nền tảng
+  - Compromised host
+  - Malicious administrator
+  - Stolen credential
+  - Supply chain compromise
+  - Misconfiguration và exposure
+  - Lateral movement
+  - Denial of service
+- level1: Ranh giới tin cậy
+  level2:
+  - User và management plane
+  - Workload và host
+  - Container và kernel
+  - Tenant và tenant
+  - VPC và Internet
+  - Control plane và data plane
+  - CI system và production
+  - Cloud account và tổ chức
+- level1: Nguyên tắc nền tảng
+  level2:
+  - Least privilege
+  - Secure by default
+  - Defense in depth
+  - Fail secure
+  - Isolation và segmentation
+  - Zero trust cho nền tảng
+  - Immutable infrastructure
+  - Assume breach
+- level1: Hệ điều hành
+  level2:
+  - Vai trò của operating system
+  - Linux và Windows security boundary
+  - User space và kernel space
+  - OS installation và baseline
+  - System service và daemon
+  - OS update và package
+  - OS profile cho workload
+  - Kiểm tra trạng thái bảo mật
+- level1: Kernel và system call
+  level2:
+  - Kernel là boundary bảo mật
+  - System call và quyền thực thi
+  - Kernel module và driver
+  - Kernel parameter
+  - Namespace và cgroup
+  - Kernel exploit
+  - Giới hạn quyền với capability
+  - Giám sát hành vi kernel
+- level1: Process và service
+  level2:
+  - Process identity và ownership
+  - Service account
+  - Process isolation
+  - Process tree và parent-child
+  - Daemon và background service
+  - Inter-process communication
+  - Process injection
+  - Giới hạn tài nguyên process
+- level1: Memory và execution
+  level2:
+  - Memory permission
+  - Executable và writable memory
+  - Address space isolation
+  - Stack và heap protection
+  - Code injection
+  - Return-oriented programming
+  - Sandbox execution
+  - Runtime policy cho process
+- level1: Filesystem và storage
+  level2:
+  - Filesystem permission
+  - Ownership và access mode
+  - Mount option
+  - Temporary file và symbolic link
+  - Sensitive file và credential
+  - Disk encryption
+  - Storage snapshot
+  - Secure deletion
+- level1: Danh tính nền tảng
+  level2:
+  - Platform identity là gì
+  - Human identity và machine identity
+  - Local account và directory account
+  - Service identity
+  - Workload identity
+  - Device identity
+  - Federated identity
+  - Vòng đời danh tính
+- level1: Quyền đặc quyền
+  level2:
+  - Root và administrator
+  - Privileged group
+  - Privilege separation
+  - Just-in-time privilege
+  - Break-glass account
+  - Delegated administration
+  - Privilege escalation
+  - Rà soát quyền định kỳ
+- level1: Xác thực nền tảng
+  level2:
+  - Password policy
+  - Multi-factor authentication
+  - Certificate authentication
+  - SSH và remote login
+  - Console và out-of-band access
+  - Token và session quản trị
+  - Account lockout
+  - Đảm bảo nguồn xác thực
+- level1: Mạng nền tảng
+  level2:
+  - Network security boundary
+  - TCP, UDP và port exposure
+  - IP addressing và route
+  - DNS và service discovery
+  - Proxy và egress
+  - Firewall host
+  - Firewall network
+  - Network flow evidence
+- level1: Phân đoạn mạng
+  level2:
+  - Network segmentation
+  - Microsegmentation
+  - Public và private subnet
+  - Management network
+  - Workload network
+  - East-west traffic
+  - North-south traffic
+  - Kiểm chứng rule phân đoạn
+- level1: TLS và PKI
+  level2:
+  - TLS bảo vệ kênh truyền
+  - Certificate lifecycle
+  - Private key protection
+  - Certificate authority
+  - Mutual TLS
+  - Certificate rotation
+  - Hostname verification
+  - Xử lý chứng thư hết hạn
+- level1: Endpoint và truy cập từ xa
+  level2:
+  - Endpoint security baseline
+  - Remote administration
+  - SSH key management
+  - Remote desktop
+  - VPN và private access
+  - Endpoint posture
+  - Thiết bị không được quản lý
+  - Thu hồi quyền truy cập từ xa
+- level1: Secret và khóa
+  level2:
+  - Secret trong nền tảng
+  - Key management service
+  - Secret storage
+  - Key rotation
+  - Envelope encryption
+  - Hardware-backed key
+  - Secret injection
+  - Phát hiện secret bị lộ
+- level1: Cấu hình nền tảng
+  level2:
+  - Configuration baseline
+  - Configuration drift
+  - Environment variable
+  - System parameter
+  - Network policy
+  - Cloud policy
+  - Configuration versioning
+  - Kiểm tra cấu hình trước triển khai
+- level1: Hardening
+  level2:
+  - Hardening là gì
+  - OS hardening
+  - Network hardening
+  - Database hardening
+  - Container hardening
+  - Cloud resource hardening
+  - Disable service không cần thiết
+  - Đánh giá hardening baseline
+- level1: Vá lỗi và lỗ hổng
+  level2:
+  - Vulnerability management
+  - Patch theo mức độ rủi ro
+  - Emergency patch
+  - Kernel và OS patch
+  - Dependency patch
+  - Virtual image patch
+  - Exception và compensating control
+  - Xác nhận sau khi vá
+- level1: Container
+  level2:
+  - Container security boundary
+  - Image và container khác nhau
+  - Container user
+  - Rootless container
+  - Capability và privilege
+  - Filesystem read-only
+  - Container network
+  - Container runtime policy
+- level1: Container image
+  level2:
+  - Base image
+  - Image provenance
+  - Image signing
+  - Image scanning
+  - Layer và dữ liệu nhạy cảm
+  - Registry access
+  - Image lifecycle
+  - Chặn image không đạt chuẩn
+- level1: Kubernetes
+  level2:
+  - Kubernetes control plane
+  - Node và workload boundary
+  - Namespace isolation
+  - Kubernetes service account
+  - Role-based access control
+  - Pod security
+  - Kubernetes network policy
+  - Secret trong Kubernetes
+- level1: Kubernetes vận hành
+  level2:
+  - Admission control
+  - Resource quota
+  - Security context
+  - Node hardening
+  - API server access
+  - Etcd protection
+  - Cluster upgrade
+  - Audit log Kubernetes
+- level1: Ảo hóa
+  level2:
+  - Hypervisor và guest boundary
+  - Virtual machine image
+  - VM isolation
+  - Virtual network
+  - Snapshot và clone
+  - Guest agent
+  - Escape khỏi máy ảo
+  - Quản trị hypervisor
+- level1: Cloud platform
+  level2:
+  - Cloud shared responsibility
+  - Cloud account structure
+  - Organization và folder
+  - Region và availability zone
+  - Cloud control plane security
+  - Resource hierarchy
+  - Cloud service identity
+  - Cloud security baseline
+- level1: IAM cloud
+  level2:
+  - Principal và resource
+  - Policy evaluation
+  - Role và permission
+  - Cross-account access
+  - Temporary credential
+  - Service control policy
+  - Permission boundary
+  - Access review
+- level1: Object storage
+  level2:
+  - Bucket và object boundary
+  - Public access prevention
+  - Object policy
+  - Encryption at rest
+  - Versioning và retention
+  - Signed URL
+  - Replication
+  - Data access logging
+- level1: Database platform
+  level2:
+  - Database service boundary
+  - Database administrator
+  - Connection security
+  - Database credential
+  - Encryption và key management
+  - Backup database
+  - Audit database
+  - Database network isolation
+- level1: Messaging platform
+  level2:
+  - Message broker boundary
+  - Producer và consumer identity
+  - Topic và queue permission
+  - Message encryption
+  - Dead letter queue
+  - Replay và duplicate message
+  - Retention và purge
+  - Audit truy cập message
+- level1: API gateway
+  level2:
+  - Gateway security boundary
+  - Route và upstream
+  - Authentication tại gateway
+  - Authorization tại gateway
+  - Rate limit
+  - Request size limit
+  - Header và metadata
+  - Gateway log và secret
+- level1: Load balancer
+  level2:
+  - Load balancer role
+  - Listener và target
+  - TLS termination
+  - Health check
+  - Source address trust
+  - Header forwarding
+  - Admin interface
+  - Chống lạm dụng tài nguyên
+- level1: CI/CD platform
+  level2:
+  - CI runner security
+  - Build identity
+  - Pipeline permission
+  - Pull request trigger
+  - Secret trong pipeline
+  - Artifact repository
+  - Deployment approval
+  - Audit pipeline
+- level1: Infrastructure as code
+  level2:
+  - IaC security
+  - State file protection
+  - Module và provider
+  - Plan review
+  - Secret trong IaC
+  - Drift detection
+  - Policy as code
+  - Phê duyệt thay đổi hạ tầng
+- level1: Chuỗi cung ứng
+  level2:
+  - Software supply chain
+  - Dependency source
+  - Package integrity
+  - Dependency confusion
+  - Build reproducibility
+  - Artifact provenance
+  - Code signing
+  - SBOM và attestation
+- level1: Runtime protection
+  level2:
+  - Runtime security
+  - Behavior baseline
+  - System call monitoring
+  - File integrity monitoring
+  - Process anomaly
+  - Container runtime detection
+  - Policy enforcement
+  - Containment workload
+- level1: Log và audit
+  level2:
+  - Security log
+  - Audit event
+  - Centralized logging
+  - Log integrity
+  - Log access control
+  - Sensitive data trong log
+  - Retention và archival
+  - Evidence từ audit trail
+- level1: Giám sát và phát hiện
+  level2:
+  - Security monitoring
+  - Metric bảo mật
+  - Alert và severity
+  - Detection rule
+  - Baseline và anomaly
+  - False positive
+  - Correlation event
+  - Coverage của detection
+- level1: Ứng phó sự cố
+  level2:
+  - Incident response platform
+  - Phát hiện và phân loại
+  - Containment host
+  - Thu thập bằng chứng
+  - Credential revocation
+  - Eradication và rebuild
+  - Khôi phục dịch vụ
+  - Lessons learned
+- level1: Backup và phục hồi
+  level2:
+  - Backup security
+  - Backup identity
+  - Immutable backup
+  - Backup encryption
+  - Restore authorization
+  - Restore testing
+  - Recovery point objective
+  - Backup compromise
+- level1: Khả dụng và phục hồi
+  level2:
+  - Availability threat
+  - Redundancy
+  - Failover
+  - Disaster recovery
+  - Capacity protection
+  - Resource exhaustion
+  - Denial-of-service control
+  - Chaos và resilience test
+- level1: Bảo vệ dữ liệu
+  level2:
+  - Data classification
+  - Data in use
+  - Data in transit
+  - Data at rest
+  - Data residency
+  - Data retention
+  - Data masking
+  - Data exfiltration
+- level1: Quản trị và tuân thủ
+  level2:
+  - Platform security governance
+  - Security policy
+  - Control owner
+  - Risk exception
+  - Evidence collection
+  - Audit readiness
+  - Regulatory requirement
+  - Đánh giá hiệu lực control
+- level1: Phân phối nền tảng
+  level2:
+  - Platform team và ownership
+  - Golden image
+  - Golden path
+  - Self-service có kiểm soát
+  - Standard module
+  - Change management
+  - Release platform
+  - Quản lý nền tảng dùng chung
+- level1: Kiểm thử nền tảng
+  level2:
+  - Platform security test
+  - Configuration test
+  - Access control test
+  - Network exposure test
+  - Image và artifact test
+  - Penetration test
+  - Runtime validation
+  - Kiểm thử sau thay đổi
+- level1: Vận hành an toàn
+  level2:
+  - Secure platform operations
+  - Runbook quản trị
+  - On-call và escalation
+  - Quản lý tài khoản khẩn cấp
+  - Maintenance window
+  - Access review vận hành
+  - Operational evidence
+  - Đo lường security posture
+- level1: Case study
+  level2:
+  - Nền tảng máy chủ Linux
+  - Nền tảng máy chủ Windows
+  - Nền tảng container
+  - Cụm Kubernetes
+  - Nền tảng cloud đa tài khoản
+  - Pipeline CI/CD
+  - Database và storage platform
+  - Nền tảng hybrid
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập inventory tài sản nền tảng
+  - Vẽ trust boundary
+  - Đặt baseline cấu hình
+  - Thiết kế identity và quyền
+  - Phân đoạn network
+  - Bảo vệ secret và key
+  - Kiểm tra image và pipeline
+  - Thiết lập log và detection
+  - Kiểm thử phục hồi sự cố
+  - Hoàn thiện hồ sơ platform security

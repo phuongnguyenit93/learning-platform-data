@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 2
+- title: Bảo vệ kho mã
+  slug: source-code-protection
+  index: 3
+- title: Cấu hình pipeline
+  slug: pipeline-configuration
+  index: 4
+- title: Đầu vào và sự kiện
+  slug: inputs-triggers
+  index: 5
+- title: Danh tính và quyền
+  slug: identity-access
+  index: 6
+- title: Liên kết danh tính
+  slug: identity-federation
+  index: 7
+- title: Quản lý bí mật
+  slug: secrets-management
+  index: 8
+- title: Bảo vệ máy chạy
+  slug: runner-hardening
+  index: 9
+- title: Cách ly thực thi
+  slug: execution-isolation
+  index: 10
+- title: Thành phần bên thứ ba
+  slug: third-party-components
+  index: 11
+- title: Phụ thuộc bản dựng
+  slug: build-dependencies
+  index: 12
+- title: Bản dựng có kiểm chứng
+  slug: verifiable-builds
+  index: 13
+- title: Cache và vùng làm việc
+  slug: caches-workspaces
+  index: 14
+- title: Artifact và registry
+  slug: artifacts-registries
+  index: 15
+- title: Chữ ký và nguồn gốc
+  slug: signatures-provenance
+  index: 16
+- title: Kiểm tra bảo mật
+  slug: security-scanning
+  index: 17
+- title: Cổng kiểm soát
+  slug: security-gates
+  index: 18
+- title: Triển khai đặc quyền
+  slug: privileged-deployments
+  index: 19
+- title: Bàn giao giữa pipeline
+  slug: pipeline-handoffs
+  index: 20
+- title: Nhật ký và bằng chứng
+  slug: logs-evidence
+  index: 21
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 22
+- title: Chính sách và quản trị
+  slug: policies-governance
+  index: 23
+- title: Kiểm chứng kiểm soát
+  slug: control-verification
+  index: 24
+- title: Hiệu quả và cải tiến
+  slug: effectiveness-improvement
+  index: 25
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 26

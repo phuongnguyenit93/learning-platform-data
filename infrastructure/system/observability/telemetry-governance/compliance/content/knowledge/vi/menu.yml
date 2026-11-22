@@ -1,0 +1,349 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Tuân thủ trong quản trị telemetry là gì và vì sao cần thiết
+  - Quan hệ giữa khả năng quan sát, an toàn thông tin và bảo vệ dữ liệu
+  - Logs, metrics, traces và profiles trong phạm vi tuân thủ
+  - Telemetry phục vụ vận hành và telemetry dùng làm bằng chứng kiểm toán
+  - Phân biệt nghĩa vụ pháp lý, tiêu chuẩn, cam kết hợp đồng và chính sách nội bộ
+  - Từ yêu cầu đến kiểm soát, phép kiểm tra và bằng chứng
+  - Giới hạn của công cụ kỹ thuật và chứng nhận nhà cung cấp khi đánh giá tuân thủ
+  - Thuật ngữ và lộ trình học từ xác định phạm vi đến kiểm toán
+- level1: Phạm vi áp dụng
+  level2:
+  - Xác định tổ chức, sản phẩm, hệ thống và luồng telemetry cần đánh giá
+  - Xác định quốc gia, đối tượng dữ liệu và bối cảnh xử lý liên quan
+  - Đánh giá phạm vi áp dụng theo ngành, khách hàng và hợp đồng
+  - Phân biệt môi trường production, thử nghiệm, phát triển và hỗ trợ
+  - Xác định vai trò xử lý dữ liệu trong từng quan hệ dịch vụ
+  - Đặt ranh giới giữa ứng dụng, pipeline, backend và công cụ phụ trợ
+  - Quản lý hệ thống thuê ngoài, tích hợp bên thứ ba và trách nhiệm chia sẻ
+  - Ghi nhận giả định, trường hợp loại trừ và căn cứ xác nhận phạm vi
+  - Rà soát lại phạm vi khi thêm signal, nhà cung cấp hoặc vùng triển khai
+- level1: GDPR và telemetry
+  level2:
+  - Đánh giá điều kiện áp dụng GDPR cho hoạt động xử lý telemetry
+  - Nhận diện dữ liệu cá nhân trong định danh, địa chỉ IP và metadata
+  - Liên hệ các nguyên tắc GDPR với vòng đời dữ liệu quan sát
+  - Lựa chọn cơ sở xử lý phù hợp với từng mục đích thu thập
+  - Bảo vệ dữ liệu ngay từ thiết kế và cấu hình mặc định
+  - Hồ sơ hoạt động xử lý và đánh giá tác động khi thuộc diện áp dụng
+  - Quyền của chủ thể dữ liệu và các giới hạn hoặc ngoại lệ liên quan
+  - Nghĩa vụ khi dùng bên xử lý, chuyển dữ liệu và xử lý vi phạm
+  - Tra cứu văn bản, hướng dẫn có hiệu lực và ghi rõ ngày đối chiếu
+- level1: Pháp luật Việt Nam
+  level2:
+  - Định vị Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 trong quản trị telemetry
+  - Tra cứu Nghị định 356/2025/NĐ-CP và văn bản hướng dẫn liên quan
+  - Xác định dữ liệu cá nhân cơ bản, nhạy cảm và chủ thể trong dữ liệu quan sát
+  - Đối chiếu vai trò, mục đích và điều kiện xử lý theo bối cảnh cụ thể
+  - Đánh giá yêu cầu thông báo, sự đồng ý và trường hợp xử lý theo căn cứ khác
+  - Xác định hồ sơ đánh giá tác động và nghĩa vụ liên quan khi áp dụng
+  - Đối chiếu yêu cầu chuyển dữ liệu ra nước ngoài và bên nhận dữ liệu
+  - Xác định quy trình thực hiện quyền và xử lý vi phạm theo văn bản hiện hành
+  - Theo dõi hiệu lực, sửa đổi và quy định chuyển tiếp khi xây tài liệu
+- level1: Yêu cầu theo ngành
+  level2:
+  - Xác định khi nào dữ liệu thanh toán đưa hệ thống telemetry vào phạm vi PCI DSS
+  - Đối chiếu PCI DSS Requirement 10 với nhật ký, giám sát và kiểm tra truy cập
+  - Nhận diện dữ liệu thẻ và dữ liệu xác thực cần ngăn xuất hiện trong telemetry
+  - Phân biệt dữ liệu sức khỏe với ePHI thuộc phạm vi HIPAA
+  - Đánh giá vai trò covered entity và business associate trước khi áp dụng HIPAA
+  - Liên hệ HIPAA Security Rule với kiểm soát truy cập, ghi nhận và xem xét hoạt động
+  - Phân biệt thời hạn lưu hồ sơ tuân thủ với thời hạn lưu từng loại log
+  - Rà soát yêu cầu chuyên ngành, khách hàng và hợp đồng đối với bằng chứng
+  - Ghi nhận phiên bản tiêu chuẩn, phạm vi và căn cứ của từng yêu cầu ngành
+- level1: Tiêu chuẩn và báo cáo
+  level2:
+  - 'ISO/IEC 27001: xác định phạm vi hệ thống quản lý an toàn thông tin'
+  - Liên hệ kiểm soát ghi log, giám sát và bảo vệ bằng chứng với hệ thống quản lý
+  - 'ISO/IEC 27701: quản lý quyền riêng tư và trách nhiệm xử lý dữ liệu cá nhân'
+  - SOC 2 và Trust Services Criteria trong đánh giá dịch vụ quan sát
+  - Đọc phạm vi hệ thống, kỳ đánh giá, ngoại lệ và phần trách nhiệm của khách hàng
+  - 'NIST SP 800-53: nhóm kiểm soát kiểm toán, trách nhiệm giải trình và quyền riêng tư'
+  - Phân biệt chứng nhận hệ thống quản lý, báo cáo kiểm chứng và nghĩa vụ pháp lý
+  - Ánh xạ nhiều bộ yêu cầu vào một tập kiểm soát có căn cứ
+  - Phân biệt bản đã công bố, bản sửa đổi có hiệu lực và dự thảo đang lấy ý kiến
+- level1: Vai trò và trách nhiệm
+  level2:
+  - Phân công trách nhiệm giữa pháp chế, bảo vệ dữ liệu, bảo mật và vận hành
+  - Vai trò của nhóm phát triển, SRE và chủ sở hữu nền tảng quan sát
+  - Xác định người sở hữu dữ liệu, kiểm soát, bằng chứng và quyết định ngoại lệ
+  - Phân biệt data controller, processor và subprocessor trong quan hệ thuộc GDPR
+  - Lập ma trận trách nhiệm và tuyến phê duyệt thay đổi telemetry
+  - Tách người quản trị nền tảng khỏi người đánh giá bằng chứng khi cần
+  - Quản lý trách nhiệm của nhà thầu, nhân sự hỗ trợ và nhóm trực sự cố
+  - Đào tạo theo vai trò và lưu bằng chứng nhận biết chính sách
+- level1: Kiểm kê dữ liệu
+  level2:
+  - Lập danh mục nguồn telemetry, signal, trường dữ liệu và nơi lưu trữ
+  - Vẽ luồng từ ứng dụng qua agent, collector, broker đến backend
+  - Nhận diện dữ liệu cá nhân, bí mật, dữ liệu nhạy cảm và định danh gián tiếp
+  - Phát hiện dữ liệu trong URL, query string, header, payload và stack trace
+  - Đánh giá nhãn metrics, thuộc tính span, baggage và nội dung log
+  - Kiểm kê bản sao trong hàng đợi, cache, chỉ mục, bản sao lưu và tệp xuất
+  - Bao phủ ảnh chụp màn hình, dashboard chia sẻ, cảnh báo và phiếu hỗ trợ
+  - Nhận diện rủi ro tái định danh khi kết hợp nhiều nguồn telemetry
+  - Quản lý danh mục bằng schema, nhãn phân loại và người chịu trách nhiệm
+- level1: Mục đích xử lý
+  level2:
+  - Xác định mục đích vận hành, bảo mật, kiểm toán và hỗ trợ cho từng loại dữ liệu
+  - Gắn trường dữ liệu với nhu cầu sử dụng và căn cứ xử lý đã được xác nhận
+  - Phân biệt tính cần thiết với sự thuận tiện khi thu thập dữ liệu
+  - Đánh giá việc tái sử dụng telemetry cho phân tích hành vi hoặc sản phẩm
+  - Kiểm soát telemetry có thể phản ánh hoạt động nhân viên và người dùng
+  - Xác định khi nào cần thông báo, ghi nhận đồng ý hoặc cơ chế quản lý lựa chọn
+  - Rà soát lợi ích, quyền của cá nhân và rủi ro theo căn cứ xử lý liên quan
+  - Ngăn mở rộng mục đích thông qua truy vấn, xuất dữ liệu hoặc tích hợp mới
+  - Lưu dấu quyết định về mục đích và rà soát khi hoàn cảnh thay đổi
+- level1: Ma trận tuân thủ
+  level2:
+  - Xây sổ đăng ký nghĩa vụ với nguồn, phiên bản, hiệu lực và phạm vi
+  - Tách yêu cầu thành mục tiêu kiểm soát có thể kiểm tra
+  - Ánh xạ yêu cầu với thành phần ứng dụng, pipeline, backend và quy trình
+  - Ghi người phụ trách, tần suất, phép kiểm tra và bằng chứng cần thu
+  - Phân biệt kiểm soát phòng ngừa, phát hiện và khắc phục
+  - Đánh giá yêu cầu áp dụng, không áp dụng và phần cần xác minh thêm
+  - Xử lý nhiều yêu cầu cùng áp dụng mà không tự chọn một quy tắc chung
+  - Liên kết kiểm soát dùng chung với nhiều yêu cầu nhưng giữ căn cứ riêng
+  - Theo dõi khoảng trống từ yêu cầu đến bằng chứng và hành động khắc phục
+- level1: Đánh giá rủi ro
+  level2:
+  - Xác định rủi ro đối với cá nhân, tổ chức và tính tin cậy của bằng chứng
+  - Mô hình hóa nguy cơ rò rỉ, sửa đổi, mất hoặc thu thập quá mức telemetry
+  - Đánh giá khả năng xảy ra, mức ảnh hưởng và phạm vi dữ liệu liên quan
+  - Xác định trường hợp cần đánh giá tác động bảo vệ dữ liệu theo nghĩa vụ áp dụng
+  - Rà soát tự động thu thập, session replay và giám sát hành vi diện rộng
+  - Đánh giá rủi ro của truy cập hỗ trợ, tích hợp AI và công cụ phân tích bên ngoài
+  - Chọn biện pháp xử lý và xác định rủi ro còn lại sau kiểm soát
+  - Lưu phê duyệt, điều kiện chấp nhận và mốc đánh giá lại
+  - Cập nhật đánh giá khi thay đổi schema, mục đích, nhà cung cấp hoặc khu vực
+- level1: Thu thập tại nguồn
+  level2:
+  - Chuyển mục đích đã duyệt thành hợp đồng trường dữ liệu được phép phát
+  - Thiết lập danh sách thuộc tính được phép và giá trị mặc định an toàn
+  - Kiểm soát request body, response body, header và tham số truy vấn
+  - Ngăn mật khẩu, token, khóa riêng và chuỗi kết nối đi vào telemetry
+  - Chọn định danh thay thế và đánh giá khả năng liên kết ngược
+  - Phân biệt ẩn danh, thay định danh, băm và mã hóa khi đánh giá dữ liệu
+  - Kiểm soát tự gắn instrumentation, chế độ debug và thay đổi mức ghi log
+  - Đánh giá ảnh hưởng của lấy mẫu hoặc bỏ sự kiện đối với yêu cầu ghi nhận
+  - Kiểm chứng dữ liệu thực phát thay vì chỉ dựa vào cấu hình dự kiến
+- level1: Kiểm soát pipeline
+  level2:
+  - Đặt điểm thực thi chính sách tại SDK, collector, broker và backend
+  - Chọn lọc bỏ, che giá trị hoặc xóa trường theo chính sách dữ liệu
+  - Xác định thứ tự làm sạch trước khi chuyển tiếp hoặc lưu đệm
+  - Xử lý thuộc tính mới, trường không nhận diện được và lỗi biến đổi
+  - Đánh giá lựa chọn dừng gửi hoặc tiếp tục khi kiểm soát không thực thi được
+  - Áp dụng chính sách nhất quán cho logs, metrics và traces
+  - Định tuyến theo mức phân loại, tenant và vùng đã được phép
+  - Kiểm soát nhánh debug, nhánh gửi nhiều đích và đường truyền dự phòng
+  - Quản lý phiên bản quy tắc và chứng minh dữ liệu đầu ra đã được xử lý
+- level1: Quyền truy cập
+  level2:
+  - Chuyển nguyên tắc đặc quyền tối thiểu thành vai trò truy vấn và quản trị
+  - Tách quyền đọc dữ liệu, sửa pipeline, xuất dữ liệu và thay đổi thời hạn lưu
+  - Ràng buộc truy cập theo tenant, môi trường, vùng và mức nhạy cảm
+  - Kiểm soát tài khoản dịch vụ, API key và danh tính công việc tự động
+  - Áp dụng xác thực phù hợp cho người dùng, dịch vụ và truy cập đặc quyền
+  - Cấp quyền có thời hạn và ghi nhận truy cập khẩn cấp
+  - Rà soát, thu hồi quyền và xử lý tài khoản của nhân sự rời tổ chức
+  - Quản lý quyền đối với dashboard chia sẻ, liên kết công khai và tệp xuất
+  - Thu bằng chứng phê duyệt quyền và hoạt động truy cập dữ liệu
+- level1: Bảo vệ dữ liệu
+  level2:
+  - Xác định yêu cầu bảo mật, toàn vẹn và sẵn sàng theo từng tập telemetry
+  - Bảo vệ dữ liệu trên đường truyền giữa các thành phần
+  - Bảo vệ dữ liệu lưu trên backend, broker, hàng đợi và thiết bị
+  - Quản lý khóa, bí mật và chứng thư tách khỏi nội dung telemetry
+  - Phân vùng mạng và giới hạn endpoint nhận hoặc xuất dữ liệu
+  - Đánh giá bản sao lưu, khôi phục và đường truy cập quản trị
+  - Bảo vệ dữ liệu khi chuyển sang môi trường thử nghiệm hoặc hỗ trợ
+  - Xác định bằng chứng cho cấu hình bảo vệ và phép kiểm tra hiệu lực
+  - Đánh giá giới hạn của mã hóa khi người dùng hoặc nhà cung cấp có quyền giải mã
+- level1: Dữ liệu xuyên biên giới
+  level2:
+  - Phân biệt vị trí lưu trữ, nơi xử lý và việc chuyển dữ liệu xuyên biên giới
+  - Lập bản đồ vùng nhận, vùng dự phòng và truy cập hỗ trợ từ nước ngoài
+  - Xác định khi nào một luồng telemetry thuộc nghĩa vụ chuyển dữ liệu
+  - Đánh giá cơ chế chuyển phù hợp theo từng hệ thống pháp luật áp dụng
+  - Đối chiếu SCC và đánh giá tác động chuyển dữ liệu khi thuộc trường hợp liên quan
+  - Đối chiếu yêu cầu hồ sơ và biện pháp bảo vệ theo pháp luật Việt Nam khi áp dụng
+  - Kiểm soát replication, failover, CDN, cảnh báo và tích hợp làm dữ liệu đổi vùng
+  - Kiểm tra giới hạn định tuyến và vùng dữ liệu bằng cấu hình lẫn phép thử
+  - Lưu phê duyệt, căn cứ và bằng chứng rà soát luồng chuyển dữ liệu
+- level1: Nhà cung cấp
+  level2:
+  - Đánh giá nhà cung cấp nền tảng quan sát theo dữ liệu và dịch vụ thực dùng
+  - Xác định phạm vi trách nhiệm chia sẻ giữa khách hàng và nhà cung cấp
+  - Rà soát thỏa thuận xử lý dữ liệu, bên xử lý phụ và điều kiện hỗ trợ
+  - Xác định khi nào cần thỏa thuận business associate trong bối cảnh HIPAA
+  - Đọc phạm vi, thời kỳ và ngoại lệ trong báo cáo đánh giá của nhà cung cấp
+  - Đối chiếu cam kết về vị trí dữ liệu, lưu giữ, xóa và thông báo sự cố
+  - Kiểm soát plugin, webhook, công cụ AI và tích hợp xuất telemetry
+  - Đánh giá quyền truy cập của nhân sự hỗ trợ và bên vận hành thuê ngoài
+  - Lập kế hoạch rời dịch vụ, xuất dữ liệu và xác nhận xử lý bản sao còn lại
+- level1: Lưu giữ và xóa
+  level2:
+  - Lập lịch lưu giữ theo mục đích, loại dữ liệu và nghĩa vụ được xác nhận
+  - Phân biệt thời gian có thể truy vấn với thời gian còn tồn tại trên hệ thống
+  - Đối chiếu thời hạn tối thiểu, giới hạn tối đa và yêu cầu hợp đồng
+  - Giải quyết xung đột thời hạn bằng quyết định có căn cứ và phê duyệt
+  - Áp dụng xóa cho chỉ mục, cache, hàng đợi, bản sao và tệp xuất
+  - Xử lý bản sao lưu, dữ liệu lưu trữ lạnh và dữ liệu phục hồi sau xóa
+  - Quản lý tạm dừng xóa để bảo toàn chứng cứ theo yêu cầu hợp lệ
+  - Đánh giá giới hạn của lưu trữ bất biến khi có nghĩa vụ xóa dữ liệu
+  - Xác minh xóa thực tế và lưu bằng chứng hoàn thành không chứa dữ liệu thừa
+  - Rà soát dữ liệu hết hạn, tác vụ thất bại và ngoại lệ lưu giữ
+- level1: Quyền chủ thể dữ liệu
+  level2:
+  - Xác định các quyền áp dụng đối với từng hoạt động xử lý telemetry
+  - Tiếp nhận, xác minh danh tính và phân loại yêu cầu theo quy trình
+  - Tìm dữ liệu liên quan mà không mở rộng thu thập định danh ngoài nhu cầu
+  - Xử lý yêu cầu khi dữ liệu không đủ khả năng liên kết với một cá nhân
+  - Thực hiện truy cập hoặc cung cấp bản sao trong phạm vi được xác định
+  - Đánh giá yêu cầu chỉnh sửa, xóa, hạn chế hoặc phản đối xử lý
+  - Đối chiếu quyền của người yêu cầu với bảo vệ bên khác và nghĩa vụ giữ chứng cứ
+  - Phối hợp nhà cung cấp và bên xử lý phụ để thực hiện yêu cầu
+  - Theo dõi thời hạn, ngoại lệ, quyết định và bằng chứng phản hồi
+  - Kiểm thử quy trình trên dữ liệu giả và các bản sao liên quan
+- level1: Nhật ký kiểm toán
+  level2:
+  - Xác định hoạt động cần ghi để đáp ứng mục tiêu kiểm soát đã chọn
+  - Thiết kế trường thể hiện ai thực hiện, việc gì, đối tượng nào và kết quả
+  - Ghi nhận xác thực, thay đổi quyền, truy vấn và xuất dữ liệu
+  - Ghi nhận thay đổi cấu hình, chính sách lưu giữ và quy tắc làm sạch
+  - Đồng bộ thời gian và bảo toàn ngữ cảnh liên kết sự kiện
+  - Phân biệt log vận hành được lấy mẫu với sự kiện kiểm toán cần bảo toàn
+  - Kiểm soát sửa, xóa và quyền truy cập vào chính nhật ký kiểm toán
+  - Phát hiện việc ghi nhận bị dừng, mất kết nối hoặc thiếu sự kiện
+  - Chống giả mạo nội dung log và ghi nhận dữ liệu không tin cậy
+  - Xem xét nhật ký theo tần suất và trách nhiệm đã xác định
+- level1: Chất lượng bằng chứng
+  level2:
+  - Xác định thế nào là bằng chứng đầy đủ, chính xác và phù hợp với mục tiêu
+  - Đánh giá độ bao phủ nguồn phát và khoảng thời gian cần chứng minh
+  - Phát hiện mất dữ liệu, sự kiện trùng, sai thứ tự và độ trễ
+  - Đối chiếu số liệu giữa nguồn, pipeline, backend và bản trích xuất
+  - Đánh giá tác động của lấy mẫu, tổng hợp và xóa thuộc tính lên bằng chứng
+  - Giữ nguồn gốc dữ liệu và phiên bản quy tắc đã tác động
+  - Kiểm tra dấu thời gian, định danh sự kiện và khả năng truy ngược
+  - Xử lý khoảng trống bằng chứng mà không suy diễn thành kết quả đạt
+  - Phân biệt ảnh chụp cấu hình với bằng chứng kiểm soát đã vận hành
+- level1: Bảo quản bằng chứng
+  level2:
+  - Lập danh mục bằng chứng gắn với yêu cầu, kiểm soát và kỳ đánh giá
+  - Thu cấu hình, báo cáo quyền, kết quả kiểm tra và nhật ký phê duyệt
+  - Ghi nguồn, thời điểm, người thu và cách tạo từng bằng chứng
+  - Kiểm tra toàn vẹn bằng hàm băm, chữ ký hoặc cơ chế phù hợp
+  - Đánh giá giới hạn của hàm băm khi thiếu nguồn tin cậy và bảo vệ truy cập
+  - Quản lý chuỗi bàn giao chứng cứ khi điều tra hoặc chuyển cho kiểm toán
+  - Lưu bằng chứng theo phiên bản và bảo vệ khỏi thay đổi trái phép
+  - Làm sạch dữ liệu nhạy cảm trước khi chia sẻ hồ sơ kiểm toán
+  - Quản lý thời hạn lưu, quyền xem và việc tiêu hủy bộ bằng chứng
+  - Tái tạo kết quả từ truy vấn, tập dữ liệu và cấu hình đã ghi nhận
+- level1: Kiểm thử kiểm soát
+  level2:
+  - Phân biệt kiểm tra thiết kế với kiểm tra hiệu quả vận hành của kiểm soát
+  - Tạo dữ liệu giả và giá trị đánh dấu để kiểm tra rò rỉ thông tin
+  - Kiểm thử lọc, che dữ liệu và thuộc tính chưa được phân loại
+  - Kiểm thử truy cập trái phép, vượt tenant và xuất dữ liệu
+  - Kiểm thử định tuyến vùng, đường dự phòng và truy cập hỗ trợ
+  - Kiểm thử thời hạn lưu, xóa, giữ chứng cứ và khôi phục bản sao lưu
+  - Thử lỗi pipeline để kiểm tra lựa chọn tiếp tục hoặc dừng xử lý
+  - Kiểm tra sự kiện kiểm toán, tính liên tục và cảnh báo thiếu bằng chứng
+  - Định nghĩa tiêu chí đạt, phạm vi kiểm thử và kết quả cần lưu
+  - Quản lý phát hiện, sửa lỗi và kiểm thử lại độc lập khi phù hợp
+- level1: Tuân thủ trong CI/CD
+  level2:
+  - Quản lý schema telemetry và quy tắc chính sách cùng phiên bản ứng dụng
+  - Rà soát thay đổi instrumentation, thuộc tính và mức ghi log trước phát hành
+  - Kiểm tra cấu hình pipeline và chính sách dữ liệu trong CI
+  - Quét bí mật và trường nhạy cảm trong mã, cấu hình hoặc dữ liệu kiểm thử
+  - Áp dụng quy tắc tự động có thể kiểm tra được cho cấu hình triển khai
+  - Yêu cầu phê duyệt khi thêm đích xuất, đổi vùng hoặc tăng thời hạn lưu
+  - Liên kết bản phát hành với cấu hình và bộ kiểm thử kiểm soát
+  - Phát hiện cấu hình thực tế sai khác với cấu hình đã phê duyệt
+  - Hoàn nguyên thay đổi và xác minh kiểm soát sau triển khai
+- level1: Giám sát liên tục
+  level2:
+  - Thiết kế chỉ số theo dõi hiệu quả kiểm soát và rủi ro tuân thủ
+  - Phát hiện dữ liệu nhạy cảm xuất hiện trở lại sau thay đổi ứng dụng
+  - Theo dõi schema mới, nguồn chưa đăng ký và đích xuất ngoài danh mục
+  - Cảnh báo truy cập đặc quyền, xuất dữ liệu lớn và thay đổi chính sách
+  - Giám sát tác vụ xóa thất bại, dữ liệu quá hạn và chứng thư hết hạn
+  - Theo dõi khoảng trống nhật ký và sự cố thu thập bằng chứng
+  - Phân biệt mức bao phủ kiểm soát với tỷ lệ công cụ báo đạt
+  - Tối thiểu hóa dữ liệu và quyền truy cập của chính công cụ kiểm tra
+  - Phân công xử lý cảnh báo, lưu kết quả và đánh giá sai báo động
+- level1: Ứng phó sự cố
+  level2:
+  - Nhận diện sự cố an toàn thông tin, lộ dữ liệu và vi phạm chính sách
+  - Phân loại dữ liệu, số đối tượng và các hệ thống bị ảnh hưởng
+  - Ngăn chặn luồng rò rỉ mà vẫn bảo toàn chứng cứ cần thiết
+  - Thu hồi quyền, xoay bí mật và giới hạn dữ liệu đã bị phát tán
+  - Phối hợp SRE, bảo mật, pháp chế, bảo vệ dữ liệu và nhà cung cấp
+  - Xác định nghĩa vụ, thời hạn và người phê duyệt thông báo theo trường hợp
+  - Lập dòng thời gian và chuỗi bằng chứng về phát hiện, xử lý và khôi phục
+  - Kiểm chứng xử lý dữ liệu nhạy cảm tại backend, bản sao và nơi tích hợp
+  - Phân tích nguyên nhân, khắc phục kiểm soát và theo dõi tái diễn
+  - Diễn tập sự cố rò rỉ telemetry và đánh giá thời gian đáp ứng
+- level1: Chuẩn bị kiểm toán
+  level2:
+  - Xác định mục tiêu, phạm vi, kỳ đánh giá và bên thực hiện kiểm toán
+  - Tổ chức hồ sơ theo yêu cầu, kiểm soát và nguồn bằng chứng
+  - Mô tả kiến trúc, trách nhiệm và các ranh giới xử lý dữ liệu
+  - Chuẩn bị phép kiểm tra mẫu và cách chứng minh tính đại diện
+  - Trình bày hiệu quả vận hành xuyên suốt kỳ thay vì một thời điểm
+  - Kiểm tra phạm vi kiểm soát kế thừa từ nền tảng hoặc nhà cung cấp
+  - Đối chiếu phát hiện với bằng chứng và xác nhận dữ liệu còn thiếu
+  - Quản lý quyền truy cập, chia sẻ và thu hồi hồ sơ kiểm toán
+  - Lưu kết luận, điểm chưa đáp ứng và kế hoạch hành động đã được thống nhất
+- level1: Ngoại lệ và khắc phục
+  level2:
+  - Phân biệt khoảng trống kiểm soát, yêu cầu không áp dụng và ngoại lệ được duyệt
+  - Lập hồ sơ ngoại lệ với lý do, phạm vi, rủi ro và thời hạn
+  - Đánh giá kiểm soát thay thế hoặc bù đắp theo bộ yêu cầu liên quan
+  - Xác định thẩm quyền chấp nhận rủi ro và giới hạn quyết định nội bộ
+  - Ưu tiên khắc phục theo tác động dữ liệu và nghĩa vụ bị ảnh hưởng
+  - Quản lý người thực hiện, hạn xử lý và bằng chứng sửa lỗi
+  - Kiểm thử lại trước khi đóng phát hiện hoặc kết thúc ngoại lệ
+  - Theo dõi ngoại lệ hết hạn, tái diễn và thay đổi phạm vi
+  - Báo cáo trạng thái có căn cứ và tránh kết luận tuân thủ vượt bằng chứng
+- level1: Java và Spring Boot
+  level2:
+  - Định nghĩa sự kiện kiểm toán có cấu trúc cho dịch vụ Java
+  - Kiểm soát dữ liệu do Java Agent, SDK và thư viện logging phát ra
+  - Rà soát MDC, baggage, thuộc tính span và nhãn metrics
+  - Ngăn lộ dữ liệu qua exception, SQL, request body và HTTP client
+  - Tách quyền truy cập log vận hành với sự kiện kiểm toán của ứng dụng
+  - Ghi nhận hành động và thay đổi phân quyền trong ứng dụng Spring Security
+  - Kiểm soát truy cập Actuator và dữ liệu chẩn đoán ứng dụng
+  - Xử lý lỗi khi phát sự kiện kiểm toán theo yêu cầu đã xác nhận
+  - Kiểm thử xuyên ứng dụng, OpenTelemetry Collector và backend bằng dữ liệu giả
+  - Liên kết phiên bản mã, cấu hình telemetry và bằng chứng kiểm thử
+- level1: Vận hành và cập nhật
+  level2:
+  - Thiết lập lịch rà soát danh mục dữ liệu, quyền và nghĩa vụ tuân thủ
+  - Theo dõi thay đổi pháp luật, tiêu chuẩn và hợp đồng từ nguồn chính thức
+  - Đánh giá tác động của phiên bản SDK, collector hoặc backend mới
+  - Rà soát tính phù hợp của báo cáo và chứng nhận nhà cung cấp theo thời gian
+  - Quản lý thay đổi nhân sự, trách nhiệm và năng lực thực hiện kiểm soát
+  - Đánh giá chi phí bằng chứng, dung lượng và tự động hóa quy trình
+  - Theo dõi phát hiện lặp lại và đo hiệu quả của biện pháp khắc phục
+  - Tổ chức rà soát quản lý và phê duyệt cải tiến chương trình
+  - Cập nhật tài liệu, đào tạo và bộ kiểm thử sau mỗi thay đổi quan trọng
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập bản đồ dữ liệu telemetry cho hệ thống Java nhiều dịch vụ
+  - Xây ma trận yêu cầu và kiểm soát từ một bộ nghĩa vụ đã xác định
+  - Thiết kế pipeline tối thiểu hóa dữ liệu và chứng minh đầu ra
+  - Kiểm tra cách ly tenant, quyền truy vấn và xuất dữ liệu
+  - Đánh giá nền tảng quan sát thuê ngoài và luồng chuyển dữ liệu
+  - Diễn tập xóa dữ liệu có xét bản sao lưu và yêu cầu giữ chứng cứ
+  - Xử lý yêu cầu của chủ thể dữ liệu bằng dữ liệu giả
+  - Mô phỏng rò rỉ token hoặc dữ liệu cá nhân trong logs và traces
+  - Tạo bộ bằng chứng kiểm toán có nguồn gốc, tính toàn vẹn và quyền truy cập
+  - Phát hiện sai khác cấu hình rồi theo dõi khắc phục đến kiểm thử lại
+  - Đánh giá phương án tổng thể và ghi rõ giới hạn của kết luận

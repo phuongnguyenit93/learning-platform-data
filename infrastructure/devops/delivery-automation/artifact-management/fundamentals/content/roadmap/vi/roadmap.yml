@@ -1,0 +1,57 @@
+roadmap:
+- id: artifact-vong-doi
+  title: Artifact & vòng đời
+  purpose: Hiểu artifact là đầu ra được đóng gói và cách nó đi từ build đến môi trường sử dụng.
+  objectives:
+  - Phân biệt source code, build artifact và deployment artifact.
+  - Nhận diện JAR, package, container image và metadata kèm theo.
+  - Mô tả chu trình build → lưu trữ → kiểm thử → phát hành.
+- id: dinh-danh-phien-ban
+  title: Định danh & phiên bản
+  purpose: Gắn mỗi artifact với phiên bản và nội dung xác định để truy vết và triển khai nhất quán.
+  objectives:
+  - Đọc tọa độ Maven và tên/tag của container image.
+  - Phân biệt snapshot, release và quy tắc bất biến của bản phát hành.
+  - So sánh tag có thể thay đổi với checksum hoặc image digest.
+- id: repository-registry
+  title: Repository & registry
+  purpose: Tổ chức nơi lưu trữ artifact để chia sẻ nội bộ, cache phụ thuộc và kiểm soát nguồn tải.
+  objectives:
+  - Phân biệt local, remote, hosted, proxy và group repository.
+  - Chọn package repository hay OCI registry theo loại artifact.
+  - Xác định quyền đọc/ghi và đường dẫn truy cập phù hợp.
+- id: dong-goi-metadata
+  title: Đóng gói & metadata
+  purpose: Tạo artifact có đủ dữ liệu nhận diện nguồn gốc và phụ thuộc để người khác sử dụng được.
+  objectives:
+  - Đóng gói ứng dụng bằng build tool và kiểm tra nội dung đầu ra.
+  - Ghi version, commit, build ID và checksum/digest.
+  - Phân biệt package metadata, manifest và SBOM.
+- id: publish-consume-trong-ci
+  title: Publish & consume trong CI
+  purpose: Tự động đẩy và lấy artifact từ kho lưu trữ bằng quyền truy cập có kiểm soát.
+  objectives:
+  - Thiết kế bước build, publish và download trong pipeline.
+  - Cấu hình credential bằng secret hoặc token có phạm vi tối thiểu.
+  - Kiểm tra lỗi xác thực, artifact không tồn tại và checksum sai.
+- id: staging-promotion
+  title: Staging & promotion
+  purpose: Đưa chính artifact đã kiểm thử qua các môi trường mà không tạo lại bản build khác.
+  objectives:
+  - Tách kho hoặc trạng thái cho snapshot, candidate và release.
+  - Thực hiện quality gate trước khi promote sang phát hành.
+  - Giải thích vì sao nên triển khai cùng digest giữa các môi trường.
+- id: toan-ven-provenance
+  title: Toàn vẹn & provenance
+  purpose: Bảo vệ chuỗi cung ứng bằng bằng chứng nguồn gốc, chữ ký và kiểm tra nội dung.
+  objectives:
+  - Đối chiếu checksum/digest khi tải và triển khai.
+  - Mô tả ký/xác minh artifact bằng công cụ như Cosign.
+  - Gắn SBOM, provenance và kết quả kiểm tra lỗ hổng khi phù hợp.
+- id: luu-giu-van-hanh
+  title: Lưu giữ & vận hành
+  purpose: Giữ kho artifact an toàn, dễ truy vết và không tăng dung lượng vô kiểm soát.
+  objectives:
+  - Đặt retention/cleanup cho snapshot và artifact không còn sử dụng.
+  - Bảo vệ release đang triển khai, log truy cập và lịch sử phát hành.
+  - Thử khôi phục bản phát hành cũ bằng version/digest đã lưu.

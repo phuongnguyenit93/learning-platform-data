@@ -1,0 +1,53 @@
+roadmap:
+- id: mo-hinh-keycloak
+  title: Mô hình Keycloak
+  purpose: Định vị Keycloak trong hệ thống quản lý danh tính và đăng nhập tập trung.
+  objectives:
+  - Nhận diện realm, người dùng, client và nhà cung cấp danh tính.
+  - Khởi chạy môi trường thử và tạo realm đầu tiên.
+- id: nguoi-dung-va-quyen
+  title: Người dùng và quyền
+  purpose: Tổ chức người dùng, nhóm và vai trò theo phạm vi truy cập.
+  objectives:
+  - Quản lý người dùng, nhóm, realm role và client role.
+  - Phân biệt quyền quản trị Keycloak và quyền trong ứng dụng.
+- id: client-va-giao-thuc
+  title: Client và giao thức
+  purpose: Kết nối ứng dụng hoặc dịch vụ theo đúng mô hình tin cậy.
+  objectives:
+  - Chọn OIDC hoặc SAML theo ứng dụng tích hợp.
+  - Cấu hình client, URI chuyển hướng và xác thực client.
+  - Áp dụng Authorization Code với PKCE cho đăng nhập OIDC.
+- id: dang-nhap-va-mfa
+  title: Đăng nhập và MFA
+  purpose: Xây dựng luồng xác thực phù hợp với mức bảo vệ cần thiết.
+  objectives:
+  - Cấu hình luồng đăng nhập và các hành động bắt buộc.
+  - Áp dụng MFA, chính sách mật khẩu và khôi phục tài khoản.
+- id: token-va-cap-quyen
+  title: Token và cấp quyền
+  purpose: Kiểm soát dữ liệu và quyền mà ứng dụng nhận được.
+  objectives:
+  - Cấu hình client scope và protocol mapper cho claims.
+  - Kiểm chứng audience, vai trò và xác minh token tại tài nguyên.
+  - Phân biệt luồng người dùng với Client Credentials.
+- id: lien-ket-nguon-danh-tinh
+  title: Liên kết nguồn danh tính
+  purpose: Tích hợp danh tính bên ngoài và thư mục người dùng.
+  objectives:
+  - Phân biệt identity brokering và user federation.
+  - Kết nối nhà cung cấp danh tính hoặc LDAP/AD và kiểm soát liên kết tài khoản.
+- id: phien-va-dang-xuat
+  title: Phiên và đăng xuất
+  purpose: Quản lý trạng thái đăng nhập và giới hạn hiệu lực truy cập.
+  objectives:
+  - Phân biệt phiên SSO, phiên client và thời hạn token.
+  - Kiểm thử làm mới token, hết phiên và đăng xuất.
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Đưa cấu hình vào môi trường thật và duy trì khả năng phục hồi.
+  objectives:
+  - Kiểm thử đăng nhập, phân quyền, MFA và đăng xuất.
+  - Cấu hình TLS, proxy và cơ sở dữ liệu cho môi trường thật.
+  - Theo dõi sự kiện; kiểm chứng sao lưu và khôi phục.
+  - Lập kế hoạch nâng cấp và xoay khóa.

@@ -1,0 +1,145 @@
+menu:
+- title: Tổng quan cryptography
+  slug: cryptography-overview
+  index: 0
+- title: Mục tiêu bảo mật
+  slug: security-objectives
+  index: 1
+- title: Threat model cryptography
+  slug: cryptography-threat-model
+  index: 2
+- title: Random và secure random
+  slug: random-vs-secure-random
+  index: 3
+- title: Entropy
+  slug: entropy
+  index: 4
+- title: CSPRNG
+  slug: csprng
+  index: 5
+- title: SecureRandom trong Java
+  slug: java-securerandom
+  index: 6
+- title: SecureRandom algorithm
+  slug: secure-random-algorithm
+  index: 7
+- title: Seed và reseeding
+  slug: seeding-reseeding
+  index: 8
+- title: JCA và JCE
+  slug: jca-va-jce
+  index: 9
+- title: Provider
+  slug: provider
+  index: 10
+- title: Key và secret
+  slug: keys-secrets
+  index: 11
+- title: Key generation
+  slug: key-generation
+  index: 12
+- title: Symmetric cryptography
+  slug: symmetric-cryptography
+  index: 13
+- title: AEAD
+  slug: aead
+  index: 14
+- title: IV và nonce
+  slug: ivs-nonces
+  index: 15
+- title: Padding và mode
+  slug: padding-cipher-modes
+  index: 16
+- title: Hash function
+  slug: hash-function
+  index: 17
+- title: Password hashing
+  slug: password-hashing
+  index: 18
+- title: HMAC
+  slug: hmac
+  index: 19
+- title: Digital signature
+  slug: digital-signature
+  index: 20
+- title: RSA
+  slug: rsa
+  index: 21
+- title: Elliptic curve
+  slug: elliptic-curve
+  index: 22
+- title: Key exchange
+  slug: key-exchange
+  index: 23
+- title: Key derivation
+  slug: key-derivation
+  index: 24
+- title: Encoding và serialization
+  slug: encoding-serialization
+  index: 25
+- title: Certificate
+  slug: certificate
+  index: 26
+- title: PKI
+  slug: pki
+  index: 27
+- title: TLS
+  slug: tls
+  index: 28
+- title: Keystore và truststore
+  slug: keystores-truststores
+  index: 29
+- title: Key lifecycle
+  slug: key-lifecycle
+  index: 30
+- title: Key rotation
+  slug: key-rotation
+  index: 31
+- title: Key management
+  slug: key-management
+  index: 32
+- title: Token và identifier
+  slug: tokens-identifiers
+  index: 33
+- title: Random trong ứng dụng
+  slug: application-randomness
+  index: 34
+- title: Crypto-agility
+  slug: crypto-agility
+  index: 35
+- title: Secure coding crypto
+  slug: secure-coding-crypto
+  index: 36
+- title: Side-channel
+  slug: side-channel
+  index: 37
+- title: Cryptographic testing
+  slug: cryptographic-testing
+  index: 38
+- title: Compliance cryptography
+  slug: cryptography-compliance
+  index: 39
+- title: Performance crypto
+  slug: cryptography-performance
+  index: 40
+- title: Crypto observability
+  slug: crypto-observability
+  index: 41
+- title: Crypto incident response
+  slug: crypto-incident-response
+  index: 42
+- title: Crypto migration
+  slug: crypto-migration
+  index: 43
+- title: Anti-pattern cryptography
+  slug: anti-pattern-cryptography
+  index: 44
+- title: Thiết kế crypto system
+  slug: cryptosystem-design
+  index: 45
+- title: Dự án thực hành
+  slug: practice-project
+  index: 46
+- title: Tổng kết cryptography
+  slug: cryptography-summary
+  index: 47

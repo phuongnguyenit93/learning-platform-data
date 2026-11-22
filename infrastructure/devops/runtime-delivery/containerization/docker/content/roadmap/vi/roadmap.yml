@@ -1,0 +1,57 @@
+roadmap:
+- id: kien-truc-docker
+  title: Kiến trúc Docker
+  purpose: Hiểu cách Docker Engine quản lý image và container để triển khai ứng dụng nhất quán.
+  objectives:
+  - Phân biệt image, container, registry và daemon
+  - Kiểm tra Docker CLI bằng version và info
+  - Giải thích vòng đời container cơ bản
+- id: chay-quan-ly-container
+  title: Chạy & quản lý Container
+  purpose: Thao tác với container trên máy phát triển và quan sát trạng thái thực thi.
+  objectives:
+  - Thực hành pull và docker run một image
+  - Dùng ps, exec và logs kiểm tra ứng dụng
+  - Thực hiện stop, start và rm an toàn
+- id: dockerfile-image-build
+  title: Dockerfile & Image Build
+  purpose: Đóng gói ứng dụng bằng Dockerfile có thể tái lập và dễ bảo trì.
+  objectives:
+  - Viết FROM, WORKDIR, COPY, RUN và CMD
+  - Build image cho một ứng dụng Java mẫu
+  - Giải thích image layer và build context
+- id: multi-stage-cache
+  title: Multi-stage & Cache
+  purpose: Tối ưu image để giảm dung lượng, thời gian build và thành phần không cần thiết.
+  objectives:
+  - Tạo Dockerfile build và runtime nhiều stage
+  - Thêm .dockerignore, sắp xếp bước tận dụng cache
+  - So sánh dung lượng image trước và sau
+- id: networking-ports
+  title: Networking & Ports
+  purpose: Kết nối container với nhau và công bố dịch vụ có kiểm soát.
+  objectives:
+  - Tạo user-defined bridge network
+  - Dùng -p ánh xạ cổng host tới container
+  - Kiểm tra DNS tên container cùng network
+- id: volumes-du-lieu
+  title: Volumes & Dữ liệu
+  purpose: Tách dữ liệu cần lưu giữ khỏi vòng đời của container.
+  objectives:
+  - Tạo và mount Docker named volume
+  - So sánh volume với bind mount
+  - Xóa container rồi xác minh dữ liệu còn tồn tại
+- id: security-resource-limits
+  title: Security & Resource Limits
+  purpose: Giảm quyền không cần thiết và giới hạn tác động lên tài nguyên máy chủ.
+  objectives:
+  - Chạy ứng dụng bằng USER không phải root
+  - Giới hạn CPU và memory của container
+  - Tránh lưu secrets trong image và Dockerfile
+- id: debug-distribution
+  title: Debug & Distribution
+  purpose: Kiểm tra trạng thái dịch vụ và phát hành image có phiên bản đến registry.
+  objectives:
+  - Dùng inspect, logs và stats tìm lỗi
+  - Thử healthcheck và restart policy phù hợp
+  - Tag, push và pull image từ registry

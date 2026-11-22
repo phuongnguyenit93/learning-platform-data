@@ -1,0 +1,49 @@
+roadmap:
+- id: vai-tro-filtering
+  title: Vai trò Filtering
+  purpose: Hiểu vì sao cần loại bỏ có chọn lọc telemetry trước khi sử dụng hoặc xuất dữ liệu.
+  objectives:
+  - Nêu mục đích giảm rò rỉ dữ liệu và nhiễu quan sát.
+  - Phân biệt lọc bỏ với masking/redaction.
+- id: pham-vi-du-lieu
+  title: Phạm vi dữ liệu
+  purpose: Xác định đúng đối tượng và trường thông tin dùng để ra quyết định lọc.
+  objectives:
+  - Nhận diện log record, span và metric/datapoint.
+  - Chọn thuộc tính, mức độ và nguồn cần kiểm tra.
+- id: chinh-sach-giu-bo
+  title: Chính sách giữ/bỏ
+  purpose: Đặt tiêu chí lọc theo nhu cầu quan sát và yêu cầu bảo vệ dữ liệu.
+  objectives:
+  - Xác định trường hợp cần loại bỏ telemetry.
+  - Chỉ rõ tín hiệu quan trọng phải được giữ lại.
+- id: dieu-kien-ottl
+  title: Điều kiện OTTL
+  purpose: Biểu diễn chính sách thành điều kiện lọc rõ ràng, có thể kiểm chứng.
+  objectives:
+  - Kết hợp điều kiện theo tên, thuộc tính hoặc mức độ.
+  - Giải thích khi điều kiện khớp thì dữ liệu bị bỏ.
+- id: vi-tri-pipeline
+  title: Vị trí pipeline
+  purpose: Hiểu tác động của thứ tự xử lý đối với dữ liệu được chuyển tiếp.
+  objectives:
+  - Mô tả luồng receiver → processor → exporter.
+  - Chọn vị trí lọc phù hợp trước nơi nhận dữ liệu.
+- id: cau-hinh-collector
+  title: Cấu hình Collector
+  purpose: Áp dụng được quy tắc lọc trên các pipeline telemetry thực tế.
+  objectives:
+  - Gắn filter processor vào pipeline phù hợp.
+  - Nhận biết cấu hình error_mode và lỗi điều kiện.
+- id: kiem-thu-quy-tac
+  title: Kiểm thử quy tắc
+  purpose: Ngăn loại bỏ nhầm dữ liệu hữu ích hoặc bỏ sót dữ liệu cần chặn.
+  objectives:
+  - Thử mẫu dữ liệu phải giữ và phải bỏ.
+  - Kiểm tra mất log/span quan trọng, trace thiếu liên kết.
+- id: giam-sat-thay-doi
+  title: Giám sát thay đổi
+  purpose: Duy trì tính đúng đắn của bộ lọc khi nguồn telemetry và yêu cầu thay đổi.
+  objectives:
+  - Theo dõi số log, span và datapoint bị lọc.
+  - Rà soát, điều chỉnh hoặc hoàn tác quy tắc bất thường.

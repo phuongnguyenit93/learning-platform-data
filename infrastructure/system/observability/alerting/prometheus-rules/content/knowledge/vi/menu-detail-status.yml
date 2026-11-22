@@ -1,0 +1,2317 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Quy tắc Prometheus là gì và vì sao cần tự động đánh giá metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của recording rule và alerting rule trong hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Từ chuỗi thời gian đến điều kiện, trạng thái cảnh báo và thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt một rule, một nhóm rule và một thực thể cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Ranh giới trách nhiệm giữa Prometheus, Alertmanager và bảng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Cảnh báo triệu chứng ảnh hưởng người dùng và tín hiệu phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức đầu vào và thứ tự học từ rule đầu tiên đến vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Chuẩn bị Prometheus, promtool, nguồn metric và Alertmanager cho phòng thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-002
+    title: Cố định phiên bản công cụ và xác minh tính năng rule được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-003
+    title: Tổ chức prometheus.yml, thư mục rule và dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-004
+    title: Khai báo rule_files và kiểm tra đường dẫn trong môi trường container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-005
+    title: Tạo metric có nhãn ổn định để mô phỏng trạng thái bình thường và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-006
+    title: Thực hiện vòng lặp sửa rule, kiểm tra, nạp lại và quan sát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-environment-007
+    title: Xây dựng kịch bản lỗi có thể lặp lại mà không phụ thuộc hệ thống thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metric-contracts
+  title: Hợp đồng metric
+  childs:
+  - slug: metric-contracts-001
+    title: Đọc tên metric, đơn vị và ý nghĩa nghiệp vụ trước khi đặt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-002
+    title: Chọn counter, gauge hoặc histogram theo loại điều kiện cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-003
+    title: Phân biệt tổng số sự kiện, tốc độ sự kiện và tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-004
+    title: Xác định tập nhãn dịch vụ, môi trường, cụm và đối tượng cần cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-005
+    title: Phân biệt metric bằng không, metric chưa xuất hiện và metric ngừng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-006
+    title: Ảnh hưởng của lần khởi động lại, thay phiên bản và thay nhãn đến rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-007
+    title: Kiểm soát số tổ hợp nhãn và tránh nhãn chứa dữ liệu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-contracts-008
+    title: Xác minh tên và nhãn metric thực tế từ exporter hoặc Micrometer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: promql-for-alerts
+  title: PromQL cho cảnh báo
+  childs:
+  - slug: promql-for-alerts-001
+    title: Chọn chuỗi bằng tên metric, bộ lọc nhãn và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-002
+    title: Phân biệt giá trị vô hướng, vector tức thời và vector khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-003
+    title: Viết expr trả về đúng các chuỗi cần trở thành cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-004
+    title: So sánh có lọc và bẫy dùng bool khiến giá trị 0 vẫn còn trong vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-005
+    title: Dùng rate và increase cho counter, xử lý sự kiện đặt lại bộ đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-006
+    title: Chọn rate hay irate theo độ ổn định cần có của tín hiệu cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-007
+    title: Dùng min_over_time, max_over_time và avg_over_time cho gauge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-008
+    title: Phân biệt điều kiện trên giá trị hiện tại với điều kiện trên cả cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-009
+    title: Xử lý phép chia cho 0, NaN và giá trị vô hạn khi tạo điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: promql-for-alerts-010
+    title: Kiểm tra biểu thức tại nhiều thời điểm trước khi đưa vào rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: series-aggregation-and-joins
+  title: Gom và ghép chuỗi
+  childs:
+  - slug: series-aggregation-and-joins-001
+    title: Chọn mức cảnh báo theo instance, dịch vụ, cụm hoặc toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-002
+    title: Gom chuỗi bằng by và without, bảo toàn nhãn cần cho xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-003
+    title: Tính tốc độ trước khi cộng counter của nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-004
+    title: Cộng tử số và mẫu số trước khi tính tỷ lệ của nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-005
+    title: Kiểm soát ghép vector bằng on và ignoring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-006
+    title: Dùng group_left hoặc group_right khi quan hệ nhãn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-007
+    title: Phát hiện lỗi ghép nhiều với nhiều và nhãn kết quả không duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-008
+    title: Kết hợp điều kiện bằng and, or và unless theo ngữ nghĩa tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: series-aggregation-and-joins-009
+    title: Kiểm tra tác động của phép gom và phép ghép đến định danh cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-files-and-groups
+  title: Tệp và nhóm rule
+  childs:
+  - slug: rule-files-and-groups-001
+    title: Cấu trúc YAML groups, name, rules và cách chia tệp theo phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-002
+    title: Phân biệt trường record với alert trong từng phần tử rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-003
+    title: Viết expr nhiều dòng và kiểm soát thụt lề, dấu nháy trong YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-004
+    title: Đặt tên nhóm duy nhất trong tệp và tổ chức nhóm theo trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-005
+    title: Chọn interval của nhóm so với evaluation_interval toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-006
+    title: Dùng labels của nhóm và xác định ưu tiên khi rule ghi đè nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-007
+    title: Dùng query_offset và đối chiếu khả năng hỗ trợ của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-008
+    title: Đặt limit cho số chuỗi hoặc cảnh báo và xử lý khi vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-files-and-groups-009
+    title: Thứ tự đánh giá trong nhóm và giới hạn phụ thuộc giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recording-rules
+  title: Recording rule
+  childs:
+  - slug: recording-rules-001
+    title: Khi nào cần ghi trước kết quả thay vì lặp lại biểu thức trong cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-002
+    title: Cấu trúc record, expr và labels của recording rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-003
+    title: Đặt tên kết quả theo quy ước level:metric:operations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-004
+    title: Thiết kế chuỗi kết quả với đơn vị, cửa sổ và mức gom rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-005
+    title: Tách các phép tính tốc độ, tỷ lệ và độ trễ dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-006
+    title: Đặt rule phụ thuộc trong nhóm theo thứ tự đánh giá phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-007
+    title: Đánh đổi giữa chi phí truy vấn, độ trễ kết quả và dung lượng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-008
+    title: Ảnh hưởng của đổi tên hoặc xóa recording rule đến rule sử dụng nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recording-rules-009
+    title: Kiểm tra tính tương đương giữa biểu thức gốc và chuỗi đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerting-rules
+  title: Alerting rule
+  childs:
+  - slug: alerting-rules-001
+    title: Cấu trúc alert, expr, for, keep_firing_for, labels và annotations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-002
+    title: Đặt tên cảnh báo thể hiện rõ tình trạng cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-003
+    title: Chuyển điều kiện nghiệp vụ thành biểu thức có ngưỡng và đơn vị đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-004
+    title: Tạo một cảnh báo cho mỗi tập nhãn mà biểu thức trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-005
+    title: Phân biệt nhãn dùng để định danh với chú thích dùng để giải thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-006
+    title: Chọn thời gian for theo mức độ kéo dài của sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-007
+    title: Dùng keep_firing_for để giữ cảnh báo sau khi điều kiện ngừng thỏa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-rules-008
+    title: Đọc một rule hoàn chỉnh từ biểu thức đến thông tin xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-lifecycle
+  title: Vòng đời cảnh báo
+  childs:
+  - slug: alert-lifecycle-001
+    title: Diễn giải các trạng thái inactive, pending và firing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-002
+    title: Theo dõi dòng thời gian khi điều kiện lần đầu xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-003
+    title: Điều kiện liên tục qua các lần đánh giá và thời điểm đủ for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-004
+    title: Điều gì xảy ra khi điều kiện mất trước khi đủ for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-005
+    title: Kết thúc firing khi điều kiện hết và khi keep_firing_for hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-006
+    title: Ảnh hưởng của đổi nhãn đến việc tạo thực thể cảnh báo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-007
+    title: Phân biệt cảnh báo đang hoạt động với thông báo đã được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-008
+    title: Quan sát trạng thái bằng giao diện và chuỗi ALERTS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-009
+    title: Kiểm tra hành vi trạng thái khi nạp lại rule hoặc khởi động lại Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evaluation-intervals
+  title: Thời gian đánh giá
+  childs:
+  - slug: evaluation-intervals-001
+    title: Phối hợp scrape_interval, evaluation_interval và interval của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-002
+    title: Chọn cửa sổ rate theo mật độ mẫu và độ ổn định cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-003
+    title: Tính độ trễ phát hiện từ thu thập, cửa sổ truy vấn và thời gian for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-004
+    title: Phân biệt cửa sổ truy vấn với thời gian chờ for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-005
+    title: Ảnh hưởng của thời gian nhìn lại và mẫu hết hiệu lực đến truy vấn tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-006
+    title: Dùng query_offset để xử lý dữ liệu đến chậm và đánh giá độ trễ bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-007
+    title: Phân biệt query_offset của nhóm với offset và bộ sửa đổi @ trong PromQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-008
+    title: Ảnh hưởng của lệch đồng hồ và mốc thời gian metric đến cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-intervals-009
+    title: Đánh giá hệ quả khi nhóm chạy quá lâu hoặc bỏ lỡ một lượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: labels-and-identities
+  title: Nhãn và định danh
+  childs:
+  - slug: labels-and-identities-001
+    title: Tập nhãn nào tạo nên định danh của một thực thể cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-002
+    title: Thiết kế alertname, severity, team, service và environment nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-003
+    title: Giữ nhãn phục vụ xác định đối tượng và định tuyến thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-004
+    title: Ưu tiên nhãn từ biểu thức, nhóm và từng rule khi có trùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-005
+    title: Vai trò của external_labels khi gửi cảnh báo ra ngoài Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-006
+    title: Phân biệt nhãn cục bộ với nhãn bên ngoài trong truy vấn và mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-007
+    title: Vì sao giá trị thay đổi theo mỗi lần đánh giá nên đặt trong annotations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-008
+    title: Ngăn bùng nổ số cảnh báo do request ID, URL động hoặc nhãn thiếu ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: labels-and-identities-009
+    title: Kiểm tra xung đột khi nhiều chuỗi bị ghi đè thành cùng tập nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: annotations-and-templates
+  title: Chú thích và mẫu
+  childs:
+  - slug: annotations-and-templates-001
+    title: Viết summary và description nêu vấn đề, đối tượng và tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-002
+    title: Chèn nhãn và giá trị bằng $labels, $value và $externalLabels
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-003
+    title: Định dạng số, tỷ lệ, dung lượng và thời gian cho người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-004
+    title: Thêm liên kết bảng điều khiển và tài liệu xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-005
+    title: Viết hướng dẫn xác minh nguyên nhân và hành động đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-006
+    title: Xử lý nhãn thiếu, dấu nháy và ký tự đặc biệt trong YAML cùng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-007
+    title: Giới hạn truy vấn bổ sung trong mẫu để tránh tăng chi phí đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-008
+    title: Phân biệt mẫu rule Prometheus với mẫu thông báo Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: annotations-and-templates-009
+    title: Kiểm thử nội dung mẫu với nhiều tập nhãn và giá trị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-design
+  title: Thiết kế tín hiệu
+  childs:
+  - slug: signal-design-001
+    title: Xác định tác động, người chịu trách nhiệm và hành động trước khi viết rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-002
+    title: Chọn cảnh báo triệu chứng, cảnh báo nguyên nhân hoặc cảnh báo dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-003
+    title: Phân cấp mức nghiêm trọng theo tác động và thời gian cần phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-004
+    title: Chọn ngưỡng từ mục tiêu dịch vụ và số liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-005
+    title: Kết hợp tỷ lệ lỗi với lượng yêu cầu tối thiểu để giảm nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-006
+    title: Phân biệt dao động quanh ngưỡng với sự cố kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-007
+    title: Điều chỉnh cửa sổ, for và keep_firing_for theo đánh đổi phát hiện và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-008
+    title: Xác định trường hợp cần gọi trực ngay, tạo công việc hoặc chỉ theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-design-009
+    title: Đánh giá cảnh báo sai, sự cố bị bỏ sót và tính khả thi của hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: missing-data-handling
+  title: Mất và thiếu dữ liệu
+  childs:
+  - slug: missing-data-handling-001
+    title: Phân biệt target không truy cập được với target biến mất khỏi khám phá dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-002
+    title: Viết cảnh báo up == 0 và nhận diện giới hạn của điều kiện này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-003
+    title: Dùng absent cho một tập chuỗi được kỳ vọng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-004
+    title: Dùng absent_over_time để phát hiện không có mẫu trong một khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-005
+    title: Phát hiện thiếu từng đối tượng bằng tập đối tượng kỳ vọng và unless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-006
+    title: Kiểm tra độ mới của dữ liệu bằng mốc thời gian và metric lần thành công cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-007
+    title: Phân biệt dịch vụ không có lưu lượng với hệ thống thu thập bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-008
+    title: Tránh mặc định mọi dữ liệu thiếu thành 0 bằng or vector(0)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-009
+    title: Thiết kế điều kiện cho tác vụ định kỳ và khoảng nghỉ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-data-handling-010
+    title: Kiểm tra phục hồi sau gián đoạn mà không tạo thông báo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-and-infra-alerts
+  title: Tài nguyên và hạ tầng
+  childs:
+  - slug: resource-and-infra-alerts-001
+    title: Thiết kế cảnh báo CPU theo mức sử dụng, thời gian kéo dài và phạm vi máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-002
+    title: Phân biệt bộ nhớ còn khả dụng với bộ nhớ trống khi đặt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-003
+    title: Kết hợp dung lượng đĩa, inode và loại hệ thống tệp cần theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-004
+    title: Dùng predict_linear cho dự báo hết dung lượng và nhận diện giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-005
+    title: Đánh giá độ trễ I/O, hàng đợi và nghẽn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-006
+    title: Chọn tín hiệu mất kết nối, lỗi hoặc suy giảm mạng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-007
+    title: Phát hiện thiếu bản sao sẵn sàng theo mức ảnh hưởng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-and-infra-alerts-008
+    title: Kiểm soát cảnh báo trùng khi một máy hoặc thành phần nền tảng gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-and-app-alerts
+  title: Dịch vụ và ứng dụng
+  childs:
+  - slug: service-and-app-alerts-001
+    title: Viết rule theo lưu lượng, tỷ lệ lỗi, độ trễ và mức bão hòa dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-002
+    title: Xác định lỗi HTTP cần tính theo hợp đồng phục vụ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-003
+    title: Tránh để tuyến có lưu lượng lớn che khuất lỗi của chức năng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-004
+    title: Theo dõi hàng đợi, tốc độ xử lý và tuổi công việc chưa hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-005
+    title: Phát hiện tác vụ định kỳ không hoàn thành thành công đúng hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-006
+    title: Thiết kế cảnh báo kết nối cơ sở dữ liệu và nhóm kết nối cạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-007
+    title: Chọn tín hiệu JVM về heap, GC và luồng gắn với ảnh hưởng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-008
+    title: Ánh xạ metric Spring Boot và Micrometer sang rule theo tên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-and-app-alerts-009
+    title: Kết hợp kiểm tra từ bên ngoài với metric nội bộ để xác minh khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: latency-and-histograms
+  title: Độ trễ và histogram
+  childs:
+  - slug: latency-and-histograms-001
+    title: Chọn tỷ lệ yêu cầu chậm hay phân vị theo mục tiêu cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-002
+    title: Tính phân vị từ classic histogram bằng histogram_quantile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-003
+    title: Bảo toàn nhãn le và mức gom phù hợp khi cộng classic histogram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-004
+    title: Vì sao không cộng hoặc lấy trung bình các phân vị của nhiều instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-005
+    title: Tính tỷ lệ vượt ngưỡng độ trễ từ các bucket phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-006
+    title: Đánh giá ảnh hưởng của ranh giới bucket đến độ chính xác cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-007
+    title: Xử lý dịch vụ ít yêu cầu, không có quan sát hoặc mẫu quá thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-008
+    title: Viết biểu thức cho native histogram và kiểm tra phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-and-histograms-009
+    title: Kiểm thử thay đổi kiểu histogram và tránh trộn dữ liệu không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slos-and-error-budgets
+  title: SLO và ngân sách lỗi
+  childs:
+  - slug: slos-and-error-budgets-001
+    title: Chuyển mục tiêu độ tin cậy thành SLI và ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-002
+    title: Định nghĩa sự kiện tốt, sự kiện xấu và tổng sự kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-003
+    title: Tính tỷ lệ lỗi và tốc độ tiêu hao ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-004
+    title: Vì sao chỉ so tỷ lệ lỗi ngắn hạn với ngưỡng SLO có thể gây nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-005
+    title: Thiết kế cảnh báo tiêu hao nhanh và tiêu hao chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-006
+    title: Kết hợp nhiều cửa sổ thời gian để cân bằng phát hiện và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-007
+    title: Suy ra ngưỡng từ ngân sách được phép tiêu hao và thời hạn phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-008
+    title: Tổ chức recording rule dùng chung cho các cửa sổ SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-009
+    title: Xử lý lưu lượng thấp, thiếu dữ liệu và mẫu số bằng 0
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-and-error-budgets-010
+    title: Kiểm thử sự cố ngắn, sự cố kéo dài và sự cố đã phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alertmanager-integration
+  title: Kết nối Alertmanager
+  childs:
+  - slug: alertmanager-integration-001
+    title: Khai báo đích Alertmanager để gửi cảnh báo từ Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-002
+    title: Xác định bộ nhãn bàn giao cho định tuyến, gom nhóm và khử trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-003
+    title: Phân biệt for với group_wait, group_interval và repeat_interval
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-004
+    title: Phân biệt điều kiện hết firing với thời điểm gửi thông báo phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-005
+    title: Vai trò của silence và inhibition khi rule vẫn tiếp tục đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-006
+    title: Chuẩn hóa nhãn khi nhiều bản sao Prometheus gửi cùng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-007
+    title: Dùng alert_relabel_configs có kiểm soát trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-008
+    title: Xác minh cảnh báo đã firing, đã gửi và đã được nhận ở từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alertmanager-integration-009
+    title: Thử đường truyền bằng đầu nhận cục bộ và một cảnh báo kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: syntax-validation
+  title: Kiểm tra cú pháp
+  childs:
+  - slug: syntax-validation-001
+    title: Dùng promtool check rules để kiểm tra các tệp rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-validation-002
+    title: Dùng promtool check config để kiểm tra cấu hình nạp rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-validation-003
+    title: Phân loại lỗi YAML, lỗi PromQL và lỗi cấu trúc rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-validation-004
+    title: Phân biệt vượt kiểm tra cú pháp với tính đúng của điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-validation-005
+    title: Kiểm tra tên, nhãn bắt buộc, đơn vị và chú thích theo quy ước nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-validation-006
+    title: Đối chiếu phiên bản promtool với Prometheus chạy thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: syntax-validation-007
+    title: Kiểm tra khả năng tương thích khi thêm trường hoặc tính năng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-testing
+  title: Kiểm thử rule
+  childs:
+  - slug: rule-testing-001
+    title: Cấu trúc tệp kiểm thử promtool và cách liên kết rule_files
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-002
+    title: Khai báo input_series cùng nhãn và chuỗi giá trị theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-003
+    title: Mô phỏng mẫu bị thiếu bằng _ và mẫu hết hiệu lực bằng stale
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-004
+    title: Phối hợp evaluation_interval, interval dữ liệu và eval_time
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-005
+    title: Dùng alert_rule_test để xác nhận tập cảnh báo cùng nhãn và chú thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-006
+    title: Dùng promql_expr_test để kiểm tra recording rule và biểu thức trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-007
+    title: Kiểm tra trước, tại và sau ranh giới thời gian for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-008
+    title: Kiểm tra hết điều kiện và khoảng giữ firing của keep_firing_for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-009
+    title: Kiểm thử đặt lại counter, lưu lượng thấp, mất dữ liệu và đổi nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-010
+    title: Khai báo thứ tự nhóm khi kiểm thử các rule có quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-testing-011
+    title: Kiểm thử mẫu, nhãn bên ngoài và trường hợp không được có cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-deployment
+  title: Triển khai an toàn
+  childs:
+  - slug: safe-deployment-001
+    title: Đưa kiểm tra cú pháp và kiểm thử rule vào quy trình tích hợp liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-002
+    title: Rà soát biểu thức, tập nhãn và tác động trước khi chấp nhận thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-003
+    title: Đóng gói và phân phối tệp rule theo từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-004
+    title: Chọn nạp lại bằng SIGHUP hoặc API /-/reload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-005
+    title: Bảo vệ API vòng đời khi bật --web.enable-lifecycle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-006
+    title: Xác nhận nạp lại thành công và rule mới thực sự xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-007
+    title: Xử lý tệp lỗi khi nạp lại và xác minh cấu hình nào còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-008
+    title: Triển khai thử trong phạm vi nhỏ và chuẩn bị quay về bản rule trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-deployment-009
+    title: Đánh giá tác động của đổi tên, đổi nhãn hoặc xóa cảnh báo đang firing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes
+  title: Kubernetes
+  childs:
+  - slug: kubernetes-001
+    title: Vai trò của tài nguyên PrometheusRule trong Prometheus Operator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-002
+    title: Ánh xạ spec.groups sang nhóm recording rule và alerting rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-003
+    title: Phân biệt nhãn metadata của tài nguyên với nhãn cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-004
+    title: Chọn tài nguyên qua ruleSelector và ruleNamespaceSelector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-005
+    title: Phân biệt tài nguyên đã được tạo với rule đã được Prometheus nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-006
+    title: Kiểm tra lỗi xác thực, sự kiện và nhật ký Operator khi rule không xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-007
+    title: Đối chiếu phiên bản CRD, Operator và Prometheus trước khi dùng trường mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-008
+    title: Quản lý rule qua Helm hoặc GitOps và kiểm tra YAML sau khi kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-009
+    title: Thử triển khai, cập nhật và quay lui PrometheusRule trong cụm thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-scale
+  title: Hiệu năng và quy mô
+  childs:
+  - slug: performance-and-scale-001
+    title: Ước lượng chi phí từ số chuỗi đầu vào, cửa sổ và độ phức tạp biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-002
+    title: Giới hạn phạm vi chọn chuỗi và tránh truy vấn quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-003
+    title: Dùng recording rule để giảm công việc lặp lại của nhiều cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-004
+    title: Kiểm soát số chuỗi đầu ra và số thực thể cảnh báo mỗi rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-005
+    title: Chia nhóm theo chu kỳ và phụ thuộc để tránh lượt đánh giá kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-006
+    title: Đánh giá chi phí ghép vector, truy vấn con và cửa sổ dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-007
+    title: Đo thời gian chạy và phát hiện nhóm bỏ lỡ lịch đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-008
+    title: Phân biệt rule đánh giá trên dữ liệu cục bộ với hệ thống Ruler phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-009
+    title: Kiểm tra tác động hiệu năng trước khi mở rộng bộ rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: self-monitoring
+  title: Tự giám sát
+  childs:
+  - slug: self-monitoring-001
+    title: Giám sát Prometheus và đường truyền cảnh báo bằng hệ thống độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-002
+    title: Phát hiện lỗi đánh giá qua prometheus_rule_evaluation_failures_total
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-003
+    title: Theo dõi thời gian đánh giá và các lượt nhóm bị bỏ lỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-004
+    title: Theo dõi kết quả nạp lại cấu hình và thời điểm nạp thành công cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-005
+    title: Phát hiện lỗi gửi cảnh báo và tình trạng không còn Alertmanager khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-006
+    title: Thiết kế cảnh báo kiểm tra liên tục và cơ chế phát hiện mất tín hiệu bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-007
+    title: Dùng /api/v1/rules và /api/v1/alerts để kiểm tra trạng thái thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-monitoring-008
+    title: Xây dựng bảng theo dõi sức khỏe bộ rule và cảnh báo đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Rule không xuất hiện dù tệp hoặc tài nguyên đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Biểu thức có kết quả nhưng cảnh báo chưa chuyển sang firing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Cảnh báo pending liên tục do điều kiện chập chờn hoặc nhãn thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Cảnh báo firing ngoài dự kiến do bool, phép gom hoặc đơn vị sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Không có cảnh báo vì ghép nhãn sai, mất dữ liệu hoặc thiếu chuỗi đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi nhiều với nhiều, trùng tập nhãn hoặc vượt limit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Cảnh báo biến mất hoặc phục hồi giả khi nguồn dữ liệu gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Truy vấn thủ công khác kết quả rule do thời điểm, offset hoặc nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Prometheus đã firing nhưng người trực không nhận được thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lần theo chuỗi bằng chứng từ metric đến rule và Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rule-governance
+  title: Quản trị rule
+  childs:
+  - slug: rule-governance-001
+    title: Xác định chủ sở hữu, phạm vi dịch vụ và người duyệt từng nhóm rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-002
+    title: Chuẩn hóa cách đặt tên, mức nghiêm trọng và bộ nhãn bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-003
+    title: Quản lý ngưỡng theo môi trường và tránh sao chép rule mất kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-004
+    title: Rà soát rule cộng đồng theo metric, phiên bản và điều kiện hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-005
+    title: Giữ tài liệu xử lý sự cố và liên kết bảng điều khiển còn sử dụng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-006
+    title: Loại bỏ bí mật và dữ liệu nhạy cảm khỏi nhãn, chú thích và liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-007
+    title: Đo mức hữu ích, tần suất gây nhiễu và số cảnh báo không có hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rule-governance-008
+    title: Cập nhật hoặc ngừng dùng rule sau thay đổi kiến trúc và sự cố thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: Tạo recording rule và cảnh báo mất kết nối target từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Xây dựng cảnh báo tỷ lệ lỗi HTTP có điều kiện lưu lượng tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Xây dựng cảnh báo độ trễ dịch vụ từ histogram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Phát hiện thiếu metric của từng đối tượng trong danh sách kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Thiết kế rule cho tác vụ định kỳ và thời điểm thành công cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Xây dựng bộ cảnh báo SLO với nhiều cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Tạo bộ kiểm thử tái hiện dao động, mất mẫu và đổi nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Triển khai thử, nạp lại và quay lui bộ rule có lỗi được cài sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Xác minh đường đi từ sự cố mô phỏng đến trạng thái và đầu nhận cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Rà soát bộ rule hoàn chỉnh bằng tiêu chí đúng, ổn định và có thể xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

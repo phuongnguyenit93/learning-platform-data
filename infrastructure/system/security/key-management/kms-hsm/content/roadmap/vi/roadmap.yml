@@ -1,0 +1,50 @@
+roadmap:
+- id: vai-tro-kms-va-hsm
+  title: Vai trò KMS và HSM
+  purpose: Hiểu cách quản lý khóa và bảo vệ thao tác mật mã.
+  objectives:
+  - Phân biệt dịch vụ quản lý khóa KMS và mô-đun phần cứng HSM.
+  - Xác định ranh giới bảo vệ và phần trách nhiệm của ứng dụng.
+- id: khoa-va-mo-hinh-bao-ve
+  title: Khóa và mô hình bảo vệ
+  purpose: Chọn loại khóa và cách bảo vệ theo nhu cầu.
+  objectives:
+  - Chọn khóa đối xứng hoặc bất đối xứng theo tác vụ.
+  - Phân tích nơi tạo, nơi sử dụng và khả năng xuất khóa.
+- id: ma-hoa-phong-bi
+  title: Mã hóa phong bì
+  purpose: Tách mã hóa dữ liệu khỏi bảo vệ khóa mã hóa.
+  objectives:
+  - Phân biệt khóa dữ liệu (DEK) và khóa bọc khóa (KEK).
+  - Mô tả bọc/mở DEK và mã hóa/giải mã dữ liệu.
+- id: quyen-su-dung-khoa
+  title: Quyền sử dụng khóa
+  purpose: Giới hạn ai được quản lý hoặc thực hiện tác vụ với khóa.
+  objectives:
+  - Thiết kế quyền tối thiểu và tách quản trị khỏi sử dụng khóa.
+  - Kiểm soát danh tính gọi, điều kiện truy cập và thao tác nhạy cảm.
+- id: tich-hop-kms-hsm
+  title: Tích hợp KMS/HSM
+  purpose: Sử dụng khả năng mật mã qua giao diện phù hợp.
+  objectives:
+  - Gọi API KMS hoặc giao diện HSM để mã hóa, giải mã hoặc ký.
+  - Xử lý từ chối quyền, giới hạn gọi và lỗi dịch vụ.
+- id: vong-doi-khoa
+  title: Vòng đời khóa
+  purpose: Quản lý thay đổi khóa mà không làm mất khả năng đọc dữ liệu.
+  objectives:
+  - Mô tả tạo, nhập, phiên bản, vô hiệu hóa và hủy khóa.
+  - Phân biệt xoay khóa, bọc lại khóa và mã hóa lại dữ liệu.
+- id: san-sang-va-phuc-hoi
+  title: Sẵn sàng và phục hồi
+  purpose: Duy trì dịch vụ khi hạ tầng khóa gặp sự cố.
+  objectives:
+  - Đánh giá độ trễ, dự phòng và phạm vi ảnh hưởng khi gián đoạn.
+  - Lập và kiểm chứng phương án sao lưu, phục hồi phù hợp với hệ thống.
+- id: kiem-toan-va-ung-pho
+  title: Kiểm toán và ứng phó
+  purpose: Truy vết việc dùng khóa và xử lý dấu hiệu xâm phạm.
+  objectives:
+  - Kiểm thử quyền, chuyển phiên bản và giải mã dữ liệu cũ.
+  - Theo dõi thao tác nhạy cảm mà không ghi lộ khóa.
+  - Lập quy trình ứng phó lộ khóa và kiểm soát hủy khóa.

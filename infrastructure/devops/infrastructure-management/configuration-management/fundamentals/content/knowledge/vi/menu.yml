@@ -1,0 +1,311 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Quản lý cấu hình là gì và giải quyết vấn đề nào trong vận hành hạ tầng
+  - Từ cấu hình thủ công đến tự động hóa có kiểm soát
+  - 'Bản đồ khái niệm: tài nguyên, nút đích, cấu hình, chính sách và lần thực thi'
+  - 'Vòng đời cấu hình: khai báo → kiểm tra → áp dụng → xác minh → theo dõi'
+  - Phân biệt quản lý cấu hình hạ tầng, cấu hình ứng dụng và quản lý mã nguồn
+  - Mối liên hệ với cấp phát hạ tầng, triển khai ứng dụng và quản lý môi trường
+  - Vai trò của tiêu chuẩn cấu hình, phiên bản và bằng chứng thực thi
+  - Kiến thức hệ điều hành, mạng, Git và quyền truy cập cần chuẩn bị
+- level1: Mô hình trạng thái
+  level2:
+  - Phân biệt trạng thái mong muốn, trạng thái hiện tại và trạng thái quan sát được
+  - Mô tả tài nguyên bằng thuộc tính và điều kiện cần đáp ứng
+  - So sánh trạng thái để xác định thao tác cần thực hiện
+  - 'Hiểu giới hạn của dữ liệu quan sát: độ mới, độ đầy đủ và quyền đọc'
+  - Hội tụ cấu hình và các điều kiện để hệ thống tiến về trạng thái mong muốn
+  - Tính lũy đẳng và ý nghĩa của việc thực thi lặp lại
+  - Phân biệt lũy đẳng, xác định, tái lập và không gây tác dụng phụ
+  - Nhận diện thao tác luôn thay đổi, không hội tụ hoặc phụ thuộc thời điểm
+  - Xác minh trạng thái sau thực thi thay vì chỉ dựa vào mã thoát thành công
+- level1: Phạm vi quản lý
+  level2:
+  - Xác định tài nguyên thuộc quyền quản lý và tài nguyên chỉ được tham chiếu
+  - Phân biệt trạng thái khai báo với toàn bộ trạng thái của một máy chủ
+  - 'Chọn mức chi tiết quản lý: tệp, gói, dịch vụ, tài khoản và chính sách'
+  - Thiết lập ranh giới giữa hệ điều hành, nền tảng chạy và ứng dụng
+  - Phân định trách nhiệm giữa nhóm hạ tầng, phát triển và bảo mật
+  - Quy định tài nguyên dùng chung để tránh nhiều bên cùng sửa
+  - Xác định nguồn có thẩm quyền cho từng loại dữ liệu cấu hình
+  - Nhận diện dữ liệu nghiệp vụ và dữ liệu người dùng không được tùy tiện ghi đè
+- level1: Kiến trúc thực thi
+  level2:
+  - Phân biệt mô hình đẩy cấu hình và mô hình nút đích tự kéo cấu hình
+  - So sánh kiến trúc có agent và không có agent
+  - Vai trò của máy điều khiển, nút đích và kho định nghĩa cấu hình
+  - Phân biệt lần thực thi theo yêu cầu và đối soát theo chu kỳ
+  - Đánh giá kết nối mạng, độ trễ, tường lửa và hướng truy cập
+  - Xử lý nút ngoại tuyến, kết nối gián đoạn và kết quả chưa xác định
+  - Tách kênh phân phối cấu hình, kênh xác thực và kênh báo cáo
+  - Đánh giá điểm lỗi tập trung, khả năng mở rộng và quyền lực của máy điều khiển
+- level1: Cách khai báo
+  level2:
+  - Phân biệt mô tả mệnh lệnh và mô tả trạng thái khai báo
+  - So sánh script thao tác với tài nguyên có cơ chế kiểm tra trạng thái
+  - Thiết kế điều kiện chỉ thực thi khi cần thay đổi
+  - Phân biệt khai báo trạng thái, chạy lệnh một lần và điều phối quy trình
+  - Biểu diễn trạng thái có mặt, vắng mặt, bật, tắt và đang chạy
+  - Quản lý thứ tự thực thi bằng quan hệ phụ thuộc có ý nghĩa
+  - Giới hạn của lệnh tùy ý đối với lũy đẳng và báo cáo thay đổi
+  - Chọn cách biểu diễn phù hợp với tài nguyên và khả năng công cụ
+- level1: Danh mục nút đích
+  level2:
+  - Inventory là gì và khác gì với danh sách máy chủ hoặc CMDB
+  - Định danh nút bằng tên, địa chỉ và thuộc tính ổn định
+  - Phân nhóm nút theo môi trường, vai trò, vị trí và quyền sở hữu
+  - Phân biệt inventory tĩnh, inventory động và dữ liệu khám phá
+  - Đồng bộ inventory với nguồn hạ tầng và xử lý dữ liệu lỗi thời
+  - Thiết kế quy tắc chọn nút để tránh áp dụng nhầm phạm vi
+  - Xử lý nút mới tạo, đổi địa chỉ, bị thay thế hoặc ngừng sử dụng
+  - Kiểm tra danh sách đích thực tế trước khi áp dụng thay đổi
+- level1: Khám phá hệ thống
+  level2:
+  - Thu thập thông tin hệ điều hành, kiến trúc, mạng và phần cứng
+  - Phân biệt dữ liệu cấu hình đầu vào với thông tin thu thập từ nút đích (facts)
+  - Đánh giá độ tin cậy và quyền truy cập của dữ liệu khám phá
+  - Sử dụng facts để chọn cấu hình tương thích với từng loại nút
+  - Quản lý thời hạn làm mới và bộ nhớ đệm của facts
+  - Xử lý thiếu dữ liệu, khác biệt tên thuộc tính và giá trị không hợp lệ
+  - Giảm chi phí thu thập thông tin trên hệ thống nhiều nút
+  - Tránh thu thập hoặc ghi log dữ liệu nhạy cảm ngoài nhu cầu
+- level1: Dữ liệu cấu hình
+  level2:
+  - Tách dữ liệu cấu hình khỏi logic thực thi
+  - 'Chọn định dạng cấu hình: YAML, JSON, tệp thuộc tính và biến môi trường'
+  - Kiểm soát kiểu dữ liệu, chuỗi rỗng, giá trị null và giá trị mặc định
+  - Thiết kế lớp cấu hình chung, theo nhóm, theo môi trường và theo nút
+  - Quy định rõ thứ tự ưu tiên và cách hợp nhất cấu hình
+  - Phân biệt ghi đè giá trị, hợp nhất bản đồ và thay thế danh sách
+  - Kiểm tra dữ liệu bằng schema và ràng buộc nghiệp vụ
+  - Quản lý giá trị tính toán và tránh cấu hình phụ thuộc ngầm
+  - Truy vết nguồn tạo ra giá trị cấu hình hiệu lực
+  - Thiết kế thay đổi schema và tương thích với dữ liệu cấu hình cũ
+- level1: Khuôn mẫu
+  level2:
+  - Tạo tệp cấu hình từ template và dữ liệu đầu vào
+  - Sử dụng biến, điều kiện và vòng lặp có giới hạn
+  - Kiểm soát dấu nháy, ký tự thoát, khoảng trắng và dòng xuống hàng
+  - Phân biệt kiểm tra template với kiểm tra cú pháp tệp đã sinh
+  - Thiết kế template ổn định để tránh thay đổi giả trong diff
+  - Xử lý biến thiếu và tránh âm thầm sinh cấu hình không hợp lệ
+  - Đánh giá rủi ro chèn dữ liệu vào shell, lệnh và tệp cấu hình
+  - Giảm logic trong template để giữ khả năng đọc và kiểm thử
+  - Bảo vệ tệp render và bản diff khi có thông tin nhạy cảm
+- level1: Tệp và thư mục
+  level2:
+  - Quản lý sự tồn tại và cấu trúc thư mục trên nút đích
+  - Thiết lập chủ sở hữu, nhóm và quyền truy cập tệp
+  - Chọn quản lý toàn bộ tệp hoặc chỉ một phần nội dung
+  - Phân biệt sao chép tệp, sinh từ template và chỉnh sửa theo mẫu
+  - Kiểm tra checksum, mã hóa văn bản và dấu kết thúc dòng
+  - Áp dụng thay đổi tệp theo cách nguyên tử khi hệ thống hỗ trợ
+  - Xử lý liên kết tượng trưng và đường dẫn phụ thuộc môi trường
+  - Sao lưu trước thay đổi và bảo vệ quyền của bản sao
+  - Ngăn xóa nhầm tệp không thuộc phạm vi quản lý
+- level1: Gói phần mềm
+  level2:
+  - Quản lý gói cần cài đặt, giữ lại hoặc gỡ bỏ
+  - Chọn phiên bản cụ thể và hiểu rủi ro của trạng thái luôn mới nhất
+  - Quản lý nguồn gói, kho nội bộ và độ tin cậy của nguồn tải
+  - Kiểm tra chữ ký hoặc checksum khi phân phối phần mềm
+  - Xử lý phụ thuộc và khác biệt trình quản lý gói giữa các hệ điều hành
+  - Đánh giá tác động của cập nhật gói đến dịch vụ và yêu cầu khởi động lại
+  - Quản lý khóa phiên bản, bản vá và cửa sổ bảo trì
+  - Phân biệt cài gói hệ thống với triển khai một phiên bản ứng dụng
+  - Xử lý lỗi khóa trình quản lý gói, kho tạm lỗi hoặc phiên bản không còn tồn tại
+- level1: Dịch vụ
+  level2:
+  - Phân biệt cài đặt dịch vụ, bật lúc khởi động và trạng thái đang chạy
+  - Thiết lập điều kiện tiên quyết trước khi khởi động dịch vụ
+  - Chọn reload, restart hoặc không tác động khi cấu hình thay đổi
+  - Kích hoạt thao tác theo thay đổi thực tế thay vì chạy lại vô điều kiện
+  - Gom thông báo thay đổi để tránh khởi động lại lặp nhiều lần
+  - Kiểm tra cú pháp cấu hình trước khi reload hoặc restart
+  - Phân biệt tiến trình đang chạy với dịch vụ sẵn sàng phục vụ
+  - Quản lý tác vụ định kỳ và tránh lịch chạy trùng lặp
+  - Điều phối khởi động lại hệ điều hành và xác nhận nút đã hoạt động trở lại
+- level1: Nền tảng hệ thống
+  level2:
+  - Quản lý tài khoản, nhóm và quyền sở hữu tài nguyên hệ thống
+  - Thiết lập quyền nâng đặc quyền theo nguyên tắc tối thiểu
+  - Quản lý SSH và kiểm tra đường truy cập trước khi siết chính sách
+  - Cấu hình hostname, phân giải tên và các phụ thuộc mạng cần thiết
+  - Quản lý tường lửa mà vẫn giữ kênh điều khiển và khôi phục
+  - Thiết lập thời gian, múi giờ và đồng bộ đồng hồ hệ thống
+  - Quản lý chứng chỉ, chuỗi tin cậy và quyền truy cập khóa riêng
+  - Quản lý tham số hệ điều hành và phân biệt hiệu lực tức thời với sau khởi động
+  - Chuẩn hóa cấu hình nền và ghi nhận khác biệt giữa các hệ điều hành
+- level1: Phụ thuộc và thứ tự
+  level2:
+  - Biểu diễn quan hệ phụ thuộc giữa gói, tệp, tài khoản và dịch vụ
+  - Phân biệt thứ tự khai báo với thứ tự thực thi do công cụ bảo đảm
+  - Phát hiện phụ thuộc vòng và tác động của thứ tự không rõ ràng
+  - Thiết kế điều kiện kiểm tra trước khi thực hiện thao tác
+  - Quản lý handler, thông báo và hành động chỉ chạy khi có thay đổi
+  - Phân biệt điều kiện cục bộ trên nút với phối hợp giữa nhiều nút
+  - Giới hạn bảo đảm giao dịch khi nhiều tài nguyên cùng thay đổi
+  - Xử lý thất bại từng phần mà không giả định mọi thay đổi đều được hoàn tác
+- level1: Tổ chức và tái sử dụng
+  level2:
+  - Chia cấu hình thành đơn vị theo trách nhiệm và vòng đời thay đổi
+  - Thiết kế vai trò hoặc mô-đun có đầu vào và đầu ra rõ ràng
+  - Tách cấu hình nền chung khỏi cấu hình dành riêng cho ứng dụng
+  - Xây dựng giao diện dữ liệu và giá trị mặc định cho thành phần dùng chung
+  - Quản lý phụ thuộc giữa các đơn vị cấu hình
+  - Tránh sao chép, trừu tượng hóa quá sớm và ràng buộc ngầm giữa thành phần
+  - Đặt quy ước tên, thư mục và tài liệu sử dụng
+  - Phiên bản hóa thành phần dùng chung và kiểm soát tương thích
+  - Quản lý nguồn, độ tin cậy và cập nhật của thành phần bên thứ ba
+- level1: Môi trường và biến thể
+  level2:
+  - Tách cấu hình phát triển, kiểm thử và sản xuất theo ranh giới rõ ràng
+  - Tái sử dụng cùng logic với dữ liệu môi trường khác nhau
+  - Quản lý khác biệt hệ điều hành, vùng triển khai và nhóm ứng dụng
+  - Tránh điều kiện chồng chéo làm cấu hình khó dự đoán
+  - Xác định ngoại lệ có lý do, chủ sở hữu và thời hạn rà soát
+  - Thăng cấp cùng phiên bản cấu hình qua các môi trường
+  - Kiểm tra cấu hình hiệu lực và danh sách nút trước khi thay môi trường
+  - Phân biệt tương đồng cấu hình với sao chép nguyên dữ liệu sản xuất
+  - Kiểm soát chênh lệch môi trường mà không xóa bỏ khác biệt có chủ đích
+- level1: Bí mật và truy cập
+  level2:
+  - Phân biệt bí mật, dữ liệu nhạy cảm và cấu hình có thể công khai
+  - Chọn nguồn lưu giữ bí mật và giới hạn quyền truy xuất
+  - Cấp thông tin xác thực cho công cụ và nút đích theo phạm vi tối thiểu
+  - Phân biệt mã hóa khi lưu trữ, khi truyền và quyền đọc lúc sử dụng
+  - Đưa bí mật vào cấu hình mà không lưu vào Git hoặc artifact không bảo vệ
+  - Che dữ liệu trong log, diff, báo cáo lỗi và chế độ xem trước
+  - Xoay vòng bí mật và phối hợp thay đổi giữa bên cấp và bên sử dụng
+  - Kiểm soát tệp tạm, bản sao lưu và dữ liệu cache có chứa bí mật
+  - Thu hồi quyền và xử lý sự cố thông tin xác thực bị lộ
+  - Kiểm tra nguy cơ cấu hình trở thành đường thực thi mã trên nhiều nút
+- level1: Quản lý phiên bản
+  level2:
+  - Lưu định nghĩa cấu hình, template và dữ liệu công khai trong Git
+  - Phân biệt phiên bản cấu hình, phiên bản công cụ và phiên bản gói phụ thuộc
+  - Review thay đổi bằng diff và xác định phạm vi ảnh hưởng
+  - Gắn thay đổi với yêu cầu, sự cố hoặc quyết định vận hành
+  - Ghim phiên bản phụ thuộc và duy trì thông tin đầu vào cần tái lập
+  - Đánh dấu bản cấu hình đã kiểm tra và thăng cấp bằng phiên bản xác định
+  - Truy vết nút đích đang sử dụng phiên bản cấu hình nào
+  - Quản lý sửa khẩn cấp và đưa thay đổi trở lại nguồn chính thức
+  - Phân biệt quay lại phiên bản khai báo với khôi phục trạng thái hệ thống
+- level1: Kiểm thử cấu hình
+  level2:
+  - Kiểm tra định dạng, cú pháp và quy ước bằng công cụ tĩnh
+  - Kiểm tra schema dữ liệu và các tổ hợp biến đầu vào
+  - Kiểm thử logic chọn tài nguyên và kết quả render template
+  - Kiểm thử tích hợp trong môi trường tạm hoặc máy ảo phù hợp
+  - Kiểm thử hội tụ từ trạng thái sạch và từ trạng thái đã thay đổi
+  - Kiểm tra lũy đẳng bằng lần chạy tiếp theo với đầu vào được kiểm soát
+  - Kiểm thử trạng thái dịch vụ, quyền tệp và hành vi sau áp dụng
+  - Phân biệt check mode, dry run, diff và tác động thực tế
+  - Đánh giá giới hạn mô phỏng đối với lệnh tùy ý, mạng và bí mật
+  - Kiểm thử lỗi, mất kết nối và khả năng khôi phục sau thất bại từng phần
+  - Xây dựng ma trận kiểm thử cho hệ điều hành và phiên bản được hỗ trợ
+- level1: Thực thi an toàn
+  level2:
+  - Xác nhận phạm vi đích, danh tính thực thi và quyền cần thiết
+  - Kiểm tra điều kiện tiên quyết, kết nối và khả năng phục hồi trước khi chạy
+  - Xem trước thay đổi và nhận diện thao tác phá hủy hoặc gây gián đoạn
+  - Áp dụng thử trên nhóm nhỏ trước khi mở rộng phạm vi
+  - Chia đợt thực thi và giới hạn số nút thay đổi đồng thời
+  - Đặt thời gian chờ, điều kiện dừng và chính sách thử lại có giới hạn
+  - Tránh hai lần chạy đồng thời tranh chấp cùng tài nguyên
+  - Phân biệt lỗi tạm thời với lỗi cấu hình không thể chữa bằng thử lại
+  - Xử lý nút không liên lạc được và xác minh trước khi thực thi tiếp
+  - Lưu kết quả theo từng nút và nhận diện trạng thái thành công một phần
+- level1: Sửa đổi và khôi phục
+  level2:
+  - Đánh giá mức độ rủi ro và phạm vi ảnh hưởng của thay đổi cấu hình
+  - Chọn cửa sổ bảo trì và phối hợp với người vận hành dịch vụ
+  - Xác định bản sao lưu, điểm phục hồi và tiêu chí quay lại
+  - Thay đổi tương thích từng bước khi cấu hình ảnh hưởng nhiều thành phần
+  - Khôi phục tệp cấu hình và phiên bản gói trong giới hạn được hỗ trợ
+  - Nhận diện tác động không thể đảo ngược bằng việc chạy cấu hình cũ
+  - Phân biệt rollback, roll-forward và sửa chữa trạng thái sau lỗi
+  - Giữ đường truy cập khẩn cấp khi thay đổi mạng hoặc xác thực
+  - Xác minh dịch vụ và tính nhất quán dữ liệu sau khôi phục
+  - Ghi nhận kết quả diễn tập khôi phục để điều chỉnh quy trình
+- level1: Sai lệch cấu hình
+  level2:
+  - Nhận diện configuration drift và nguyên nhân phát sinh
+  - Phân biệt sai lệch ngoài ý muốn với ngoại lệ đã được phê duyệt
+  - Phát hiện thay đổi thủ công, cập nhật tự động và tác động của công cụ khác
+  - So sánh theo trạng thái chuẩn với theo checksum hoặc văn bản
+  - Giảm cảnh báo giả do giá trị động, thứ tự nội dung và dữ liệu sinh tự động
+  - Chọn chỉ cảnh báo, yêu cầu phê duyệt hoặc tự động sửa sai lệch
+  - Đặt tần suất đối soát phù hợp với rủi ro và tải hệ thống
+  - Xử lý cấu hình bị hai bộ điều khiển liên tục ghi đè lẫn nhau
+  - Đưa chỉnh sửa khẩn cấp hợp lệ trở lại nguồn cấu hình
+  - Xác minh hội tụ sau sửa và theo dõi sai lệch tái diễn
+- level1: Quan sát và kiểm toán
+  level2:
+  - 'Đọc kết quả theo tài nguyên và nút: không đổi, đã đổi, bỏ qua hoặc thất bại'
+  - Phân biệt báo cáo thay đổi với bằng chứng tài nguyên đã đạt trạng thái đúng
+  - Ghi lại phiên bản cấu hình, đầu vào, người thực thi và thời điểm
+  - Theo dõi thời gian chạy, tỷ lệ lỗi, phạm vi thay đổi và nút chưa hội tụ
+  - Liên kết log thực thi với cảnh báo dịch vụ và yêu cầu thay đổi
+  - Xây dựng tiêu chuẩn cấu hình bảo mật và kiểm tra tuân thủ có phạm vi
+  - Quản lý ngoại lệ chính sách bằng phê duyệt, lý do và thời hạn
+  - Bảo vệ tính toàn vẹn, quyền đọc và thời hạn lưu giữ bằng chứng
+  - Trình bày báo cáo mà không làm lộ bí mật hoặc dữ liệu hệ thống nhạy cảm
+- level1: Mô hình hạ tầng
+  level2:
+  - Phân biệt cấu hình tại chỗ với thay máy hoặc image theo mô hình bất biến
+  - Chọn thời điểm cấu hình khi tạo image, khi khởi động và trong quá trình vận hành
+  - Phân chia trách nhiệm giữa công cụ cấp phát IaC và công cụ quản lý cấu hình
+  - Thiết kế bàn giao danh sách đích và dữ liệu sau bước cấp phát
+  - Nhận diện cấu hình đóng gói trong container và cấu hình cấp từ bên ngoài
+  - Phân biệt quản lý máy chủ với quản lý tài nguyên trong hệ điều phối
+  - Liên hệ GitOps với nguồn khai báo, đối soát và quyền thay đổi
+  - Tránh để nhiều công cụ cùng sở hữu một thuộc tính tài nguyên
+  - Chọn mô hình kết hợp phù hợp với khả năng tái tạo và đặc điểm dịch vụ
+- level1: Tích hợp quy trình
+  level2:
+  - Tổ chức luồng đề xuất → review → kiểm thử → phê duyệt → áp dụng
+  - Đưa kiểm tra cấu hình vào CI trước khi cho phép triển khai
+  - Tách tác vụ kiểm tra không đặc quyền với tác vụ áp dụng có quyền truy cập
+  - Quản lý runner hoặc máy điều khiển như một thành phần có quyền nhạy cảm
+  - Truyền phiên bản cấu hình và dữ liệu môi trường vào quy trình tự động
+  - Lưu artifact kiểm thử và báo cáo mà không đóng gói bí mật
+  - Thiết lập cổng phê duyệt cho thay đổi có rủi ro
+  - Truy vết lần thực thi tự động đến commit và phạm vi đích
+  - Xử lý chạy lại quy trình mà không lặp tác dụng phụ nguy hiểm
+- level1: Lựa chọn công cụ
+  level2:
+  - Xây dựng tiêu chí từ quy mô nút, hệ điều hành và mô hình kết nối
+  - So sánh Ansible, Puppet, Chef và Salt ở mức mô hình quản lý cấu hình
+  - Đánh giá mức khai báo, khả năng lũy đẳng và cơ chế kiểm tra trạng thái
+  - So sánh khả năng tái sử dụng, quản lý dữ liệu và báo cáo thực thi
+  - Đánh giá quyền truy cập, quản lý bí mật và yêu cầu vận hành công cụ
+  - Kiểm tra tương thích, hệ sinh thái thành phần và chi phí duy trì
+  - Thử nghiệm bằng cùng một bài toán và bộ tiêu chí xác minh
+  - Xác định ranh giới giữa kiến thức nền tảng và hướng dẫn chuyên sâu từng công cụ
+- level1: Xử lý sự cố
+  level2:
+  - 'Không kết nối được nút: kiểm tra định danh, mạng và thông tin xác thực'
+  - 'Thiếu quyền: phân biệt quyền đăng nhập, nâng đặc quyền và quyền tài nguyên'
+  - Cấu hình sai do biến bị ghi đè, sai kiểu hoặc facts không còn mới
+  - Lần chạy nào cũng báo thay đổi dù trạng thái mong muốn không đổi
+  - Thứ tự phụ thuộc sai khiến tệp, gói hoặc dịch vụ thực thi không đúng
+  - Template render hợp lệ nhưng dịch vụ từ chối cấu hình
+  - Thay đổi thành công trên một số nút và thất bại trên các nút còn lại
+  - Khác biệt phiên bản gói, hệ điều hành hoặc công cụ gây kết quả không đồng nhất
+  - Thay đổi thủ công hoặc bộ điều khiển khác làm sai lệch liên tục
+  - 'Thực thi bị ngắt giữa chừng: xác định trạng thái thực trước khi chạy lại'
+  - Thu thập bằng chứng tối thiểu và giữ bí mật trong quá trình chẩn đoán
+- level1: Thực hành
+  level2:
+  - Thiết kế trạng thái chuẩn cho một nhóm máy chủ cung cấp cùng dịch vụ
+  - Lập inventory, ranh giới sở hữu và dữ liệu cấu hình theo nhóm
+  - Quản lý tài khoản, gói, tệp cấu hình và dịch vụ bằng khai báo rõ ràng
+  - Render cấu hình từ template và kiểm tra dữ liệu đầu vào
+  - Thiết kế lần chạy đầu hội tụ và lần chạy sau không đổi với cùng đầu vào
+  - Tạo sai lệch có kiểm soát rồi so sánh cảnh báo với tự động sửa
+  - Đưa kiểm thử, review và áp dụng theo đợt vào quy trình thay đổi
+  - Diễn tập lỗi giữa chừng, thử lại có kiểm soát và khôi phục dịch vụ
+  - Luân chuyển bí mật và xác minh không rò rỉ qua log hoặc artifact
+  - Đối chiếu kết quả cuối với trạng thái mong muốn và lưu bằng chứng theo từng nút

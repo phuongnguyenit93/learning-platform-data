@@ -1,0 +1,3487 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Elasticsearch là gì và bài toán tìm kiếm mà nó giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của Elasticsearch trong Elastic Stack và hệ thống ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Tìm kiếm toàn văn, đối sánh chính xác và phân tích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Document, field, index, shard, replica, node và cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mối liên hệ giữa Elasticsearch, Apache Lucene và chỉ mục đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Tìm kiếm gần thời gian thực và giới hạn nhất quán cần hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: So sánh Elasticsearch với cơ sở dữ liệu quan hệ và công cụ tìm kiếm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Khi nên dùng Elasticsearch và khi cần giữ dữ liệu gốc ở hệ thống khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình từ lập chỉ mục tài liệu đến vận hành hệ thống tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment
+  title: Môi trường
+  childs:
+  - slug: environment-001
+    title: Lựa chọn triển khai tự quản lý, Elastic Cloud và Serverless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-002
+    title: Đối chiếu phiên bản, giấy phép và phạm vi tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-003
+    title: Khởi chạy môi trường học tập bằng Docker và lưu trữ dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-004
+    title: Thiết lập môi trường nhiều node để thực nghiệm phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-005
+    title: Cấu hình elasticsearch.yml, biến môi trường và keystore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-006
+    title: Kết nối HTTPS, chứng chỉ CA và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-007
+    title: Sử dụng Kibana Dev Tools và curl để gửi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-008
+    title: Kiểm tra phiên bản, trạng thái cluster và dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rest-api
+  title: REST API
+  childs:
+  - slug: rest-api-001
+    title: Cấu trúc endpoint, HTTP method, query parameter và JSON body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-002
+    title: Quy ước đặt tên index, document ID và đường dẫn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-003
+    title: Đọc phản hồi thành công, mã HTTP và cấu trúc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-004
+    title: Điều khiển phản hồi bằng pretty, human và filter_path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-005
+    title: Timeout phía máy khách, timeout phía máy chủ và kết quả một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-006
+    title: Định dạng NDJSON trong Bulk API và Multi Search API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-007
+    title: Phân biệt API quản trị, API tìm kiếm và CAT API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rest-api-008
+    title: Tổ chức tập lệnh gọi API có thể chạy lại và dọn dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-architecture
+  title: Kiến trúc phân tán
+  childs:
+  - slug: distributed-architecture-001
+    title: Vai trò master-eligible, data, ingest và coordinating của node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-002
+    title: Cluster state, lựa chọn master và điều kiện hình thành cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-003
+    title: Primary shard và replica shard trong phân phối dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-004
+    title: Định tuyến document bằng _id, _routing và lựa chọn shard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-005
+    title: Đường đi của yêu cầu ghi từ coordinating node đến primary và replica
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-006
+    title: Hai pha query và fetch trong tìm kiếm phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-007
+    title: Tác động của số shard, số replica và phân bố dữ liệu đến hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-008
+    title: Ranh giới truy vấn một index, nhiều index và nhiều cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-architecture-009
+    title: Phân biệt khả năng chịu lỗi, khả năng mở rộng và độ trễ tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lucene-storage
+  title: Lucene và lưu trữ
+  childs:
+  - slug: lucene-storage-001
+    title: Chỉ mục đảo, term dictionary, posting list và vị trí token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-002
+    title: Segment bất biến và vòng đời tài liệu bên trong Lucene
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-003
+    title: Indexing buffer, translog và cơ chế khôi phục dữ liệu ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-004
+    title: Refresh, flush và commit khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-005
+    title: Segment merge, tài liệu đánh dấu xóa và dung lượng đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-006
+    title: Doc values, stored fields và vai trò của _source
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-007
+    title: BKD tree trong trường số và dữ liệu không gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-008
+    title: Filesystem cache, bộ nhớ JVM và chi phí truy cập đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lucene-storage-009
+    title: Quan sát ảnh hưởng của refresh và merge bằng thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexes-aliases
+  title: Index và alias
+  childs:
+  - slug: indexes-aliases-001
+    title: Tạo index với settings và mappings tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-002
+    title: Thiết lập number_of_shards, number_of_replicas và refresh_interval
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-003
+    title: Phân biệt settings tĩnh và settings có thể cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-004
+    title: Alias đọc, alias ghi, is_write_index và chuyển alias nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-005
+    title: 'Alias có bộ lọc và routing: phạm vi sử dụng và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-006
+    title: Component template, composable index template và độ ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-007
+    title: Kiểm tra cấu hình template bằng API mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-008
+    title: Đóng, mở, xóa index và biện pháp tránh thao tác nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexes-aliases-009
+    title: Quy ước tên index theo miền dữ liệu, môi trường và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-mappings
+  title: Mapping cơ bản
+  childs:
+  - slug: basic-mappings-001
+    title: Mapping là gì và vì sao cần xác định kiểu dữ liệu trước khi nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-002
+    title: Dynamic mapping, explicit mapping và chế độ strict
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-003
+    title: 'Kiểu text và keyword: phân tích từ so với giá trị nguyên vẹn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-004
+    title: Kiểu số, scaled_float và lựa chọn độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-005
+    title: Kiểu date, date_nanos, định dạng thời gian và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-006
+    title: Kiểu boolean, IP, binary và các trường chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-007
+    title: Multi-fields và quan hệ giữa trường chính với trường phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-008
+    title: Tham số index, doc_values, store, null_value và ignore_above
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-009
+    title: Phân biệt trường không tồn tại, giá trị null, mảng rỗng và chuỗi rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-mappings-010
+    title: Giới hạn thay đổi mapping và khi nào phải tạo index mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-modeling
+  title: Mô hình tài liệu
+  childs:
+  - slug: document-modeling-001
+    title: Thiết kế document theo mẫu truy vấn và đơn vị cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-002
+    title: 'Mảng giá trị và object: cách Elasticsearch biểu diễn dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-003
+    title: Nested và lỗi ghép chéo điều kiện giữa các phần tử object
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-004
+    title: Join field, quan hệ cha-con và chi phí truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-005
+    title: Phi chuẩn hóa dữ liệu và đánh đổi giữa đọc với cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-006
+    title: Flattened và kiểm soát dữ liệu có khóa không cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-007
+    title: Mapping explosion, giới hạn field và dynamic template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-008
+    title: Thiết kế mô hình nhiều khách hàng với index chung hoặc tách riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-009
+    title: Routing theo miền dữ liệu và nguy cơ phân bố lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-modeling-010
+    title: Tiến hóa mô hình tài liệu mà vẫn duy trì khả năng tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: text-analysis
+  title: Phân tích văn bản
+  childs:
+  - slug: text-analysis-001
+    title: Analyzer gồm character filter, tokenizer và token filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-002
+    title: Phân tích lúc lập chỉ mục và lúc tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-003
+    title: Dùng _analyze để quan sát token, vị trí và offset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-004
+    title: Các analyzer dựng sẵn và tiêu chí lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-005
+    title: Tạo custom analyzer và cấu hình search_analyzer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-006
+    title: Chuẩn hóa keyword bằng normalizer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-007
+    title: Lowercase, asciifolding, stop word và stemming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-008
+    title: N-gram, edge n-gram và đánh đổi kích thước chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-009
+    title: Synonym, synonym_graph và quản lý tập từ đồng nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: text-analysis-010
+    title: Kiểm tra tương thích analyzer trước khi thay đổi và reindex
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-language
+  title: Ngôn ngữ tìm kiếm
+  childs:
+  - slug: search-language-001
+    title: 'Thách thức của tiếng Việt: dấu, tách từ và từ ghép'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-002
+    title: Thiết kế tìm kiếm có dấu, không dấu và bảo toàn văn bản gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-003
+    title: Lựa chọn analyzer hoặc plugin tiếng Việt theo phiên bản và giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-004
+    title: ICU analysis trong chuẩn hóa Unicode và xử lý đa ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-005
+    title: Tách trường theo ngôn ngữ và lựa chọn analyzer tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-006
+    title: Từ đồng nghĩa theo miền nghiệp vụ và nguy cơ mở rộng quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-007
+    title: Giữ nguyên mã sản phẩm, địa chỉ email và chuỗi định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-language-008
+    title: Thiết kế bộ kiểm thử token hóa cho tiếng Việt và dữ liệu hỗn hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: document-operations
+  title: Thao tác document
+  childs:
+  - slug: document-operations-001
+    title: 'Index API và Create API: tạo mới so với ghi đè theo _id'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-002
+    title: Lấy tài liệu bằng Get API và nhiều tài liệu bằng Multi Get API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-003
+    title: Cập nhật từng phần, doc_as_upsert và scripted upsert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-004
+    title: Thay thế toàn bộ tài liệu và xử lý trường bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-005
+    title: Xóa document và ý nghĩa phản hồi khi tài liệu không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-006
+    title: _seq_no, _primary_term và kiểm soát cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-007
+    title: External versioning trong đồng bộ từ hệ thống dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-008
+    title: Refresh mặc định, refresh=true và refresh=wait_for
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-009
+    title: Phân biệt khả năng đọc thấy qua Get API và Search API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: document-operations-010
+    title: Xử lý xung đột, timeout và yêu cầu được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bulk-operations
+  title: Thao tác hàng loạt
+  childs:
+  - slug: bulk-operations-001
+    title: Bulk API với các thao tác index, create, update và delete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-002
+    title: Xây dựng NDJSON hợp lệ và đọc lỗi của từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-003
+    title: Chọn kích thước batch theo số tài liệu và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-004
+    title: Retry có chọn lọc, exponential backoff và tính lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-005
+    title: 'Update By Query và Delete By Query: phạm vi, xung đột và chi phí'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-006
+    title: Reindex sang index mới với mapping hoặc analyzer mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-007
+    title: Reindex từ cluster khác và điều kiện truy cập an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-008
+    title: Slicing, throttling và theo dõi tác vụ chạy bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bulk-operations-009
+    title: Kiểm tra kết quả trước khi chuyển alias hoặc xóa dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exact-match-queries
+  title: Truy vấn chính xác
+  childs:
+  - slug: exact-match-queries-001
+    title: Cấu trúc Search API và Query DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-002
+    title: Query context, filter context và tác động đến _score
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-003
+    title: Match All, Match None và truy vấn tồn tại trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-004
+    title: Term, Terms và Terms Set trên dữ liệu nguyên vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-005
+    title: Range trên số và thời gian với date math và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-006
+    title: IDs query và tra cứu tập document đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-007
+    title: Prefix, Wildcard, Regexp và chi phí mở rộng term
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-008
+    title: Fuzzy query, khoảng cách chỉnh sửa và giới hạn ứng viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exact-match-queries-009
+    title: Kiểm tra truy vấn bằng Validate API và tập dữ liệu đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: full-text-search
+  title: Tìm kiếm toàn văn
+  childs:
+  - slug: full-text-search-001
+    title: Match query, operator và minimum_should_match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-002
+    title: Match Phrase, slop và thứ tự từ trong câu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-003
+    title: Match Phrase Prefix và tìm kiếm khi người dùng đang nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-004
+    title: Multi Match với best_fields, most_fields và cross_fields
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-005
+    title: Combined Fields và ý nghĩa tìm kiếm trên nhiều trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-006
+    title: Query String, Simple Query String và xử lý cú pháp người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-007
+    title: Chọn analyzer cho truy vấn và phát hiện lệch token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-008
+    title: Kết hợp tiếng Việt, từ đồng nghĩa và lỗi chính tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: full-text-search-009
+    title: Thiết kế truy vấn nhiều trường cho tìm kiếm sản phẩm hoặc bài viết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compound-queries
+  title: Truy vấn kết hợp
+  childs:
+  - slug: compound-queries-001
+    title: Bool query với must, filter, should và must_not
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-002
+    title: Lồng Bool query và diễn giải minimum_should_match
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-003
+    title: Dis Max và tie_breaker khi kết hợp nhiều nguồn điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-004
+    title: Constant Score và tách điều kiện lọc khỏi xếp hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-005
+    title: Nested query, score_mode và inner_hits
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-006
+    title: Has Child, Has Parent và truy vấn quan hệ cha-con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-007
+    title: Span query và Intervals query cho quan hệ vị trí từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-008
+    title: Named queries và xác định điều kiện đã khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compound-queries-009
+    title: Giới hạn độ phức tạp và ngăn truy vấn tốn tài nguyên từ đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scoring-ranking
+  title: Điểm và xếp hạng
+  childs:
+  - slug: scoring-ranking-001
+    title: BM25, tần suất từ, độ hiếm và chuẩn hóa độ dài trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-002
+    title: Boost theo trường, truy vấn và tiêu chí nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-003
+    title: Function Score với trọng số, field_value_factor và decay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-004
+    title: Script Score và kiểm soát chi phí tính điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-005
+    title: Rank Feature và tín hiệu tĩnh phục vụ xếp hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-006
+    title: Rescore một tập ứng viên và đánh đổi độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-007
+    title: Explain API và diễn giải vì sao tài liệu đứng trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-008
+    title: Ảnh hưởng của thống kê theo shard và dfs_query_then_fetch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-009
+    title: Đánh giá precision, recall, MRR và NDCG trên tập truy vấn có nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scoring-ranking-010
+    title: Ranking Evaluation API và quy trình điều chỉnh chất lượng tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-results-pagination
+  title: Kết quả và phân trang
+  childs:
+  - slug: search-results-pagination-001
+    title: Đọc hits, total, _score, took và thông tin shard thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-002
+    title: _source filtering, fields, docvalue_fields và stored_fields
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-003
+    title: Sắp xếp nhiều trường, missing value và thứ tự ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-004
+    title: Highlight và giới hạn khi làm nổi bật kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-005
+    title: From/size và chi phí phân trang sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-006
+    title: Search After kết hợp Point In Time để phân trang nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-007
+    title: Scroll cho xử lý dữ liệu hàng loạt và tiêu chí lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-008
+    title: Field collapsing và gom các kết quả cùng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-009
+    title: Track total hits, timeout và kiểm soát chi phí phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-results-pagination-010
+    title: Multi Search, hủy yêu cầu và xử lý kết quả một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-aggregations
+  title: Aggregation cơ bản
+  childs:
+  - slug: basic-aggregations-001
+    title: Cây aggregation, bucket, metric và phạm vi dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-002
+    title: Min, max, sum, avg, value_count và stats
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-003
+    title: Cardinality, độ chính xác xấp xỉ và precision_threshold
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-004
+    title: Percentiles, percentile_ranks và diễn giải phân bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-005
+    title: Terms aggregation, size, shard_size và sai số đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-006
+    title: Range, date_range, histogram và date_histogram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-007
+    title: Calendar interval, fixed interval, múi giờ và giờ mùa hè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-008
+    title: Filter, Filters, Global và Missing aggregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-009
+    title: Sub-aggregation và xây dựng thống kê theo nhiều chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-aggregations-010
+    title: Post Filter và phân biệt bộ lọc kết quả với bộ lọc aggregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-aggregations
+  title: Aggregation nâng cao
+  childs:
+  - slug: advanced-aggregations-001
+    title: Composite aggregation và phân trang tập bucket bằng after_key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-002
+    title: Nested và Reverse Nested aggregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-003
+    title: 'Pipeline aggregation: derivative, cumulative_sum và moving_fn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-004
+    title: Bucket Script, Bucket Selector và Bucket Sort
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-005
+    title: Top Hits, Top Metrics và lấy đại diện cho từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-006
+    title: Significant Terms và phát hiện giá trị nổi bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-007
+    title: Sampler và kiểm soát chi phí phân tích trên dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-008
+    title: Giới hạn bucket, bộ nhớ và lỗi circuit breaker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-009
+    title: Thiết kế bộ lọc nhiều chiều cho trang tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-aggregations-010
+    title: Kiểm chứng số liệu aggregation trước dữ liệu thiếu hoặc lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: geospatial-data
+  title: Dữ liệu địa lý
+  childs:
+  - slug: geospatial-data-001
+    title: Mapping geo_point và geo_shape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-002
+    title: Biểu diễn tọa độ, GeoJSON và thứ tự kinh độ-vĩ độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-003
+    title: Tìm kiếm theo khoảng cách và vùng giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-004
+    title: Quan hệ hình học intersects, within, contains và disjoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-005
+    title: Sắp xếp theo khoảng cách địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-006
+    title: Geo Distance, Geo Bounds và Geo Centroid aggregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-007
+    title: Geo Tile Grid, Geo Hash Grid và mức chi tiết bản đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: geospatial-data-008
+    title: Kiểm tra dữ liệu không hợp lệ và chi phí truy vấn không gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-suggestions
+  title: Gợi ý tìm kiếm
+  childs:
+  - slug: search-suggestions-001
+    title: Phân biệt autocomplete, sửa lỗi chính tả và gợi ý truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-002
+    title: Completion suggester và cấu trúc dữ liệu phục vụ gợi ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-003
+    title: Context suggester theo danh mục và vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-004
+    title: Term suggester và Phrase suggester
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-005
+    title: Search-as-you-type field và truy vấn bool_prefix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-006
+    title: So sánh completion, edge n-gram và search_as_you_type
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-007
+    title: Kết hợp trọng số, bộ lọc nghiệp vụ và loại bỏ gợi ý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-suggestions-008
+    title: Đánh giá độ trễ và chất lượng gợi ý với tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vector-semantic-search
+  title: Vector và ngữ nghĩa
+  childs:
+  - slug: vector-semantic-search-001
+    title: Phân biệt tìm kiếm từ khóa, tìm kiếm vector và tìm kiếm ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-002
+    title: Embedding, mô hình suy luận và tính tương thích của vector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-003
+    title: Dense Vector, số chiều và lựa chọn độ tương đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-004
+    title: Tìm kiếm kNN gần đúng với HNSW và tìm kiếm chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-005
+    title: K, num_candidates, bộ lọc và đánh đổi recall với độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-006
+    title: Sparse Vector, Semantic Text và điều kiện sử dụng theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-007
+    title: Chia đoạn tài liệu, lưu nguồn và chiến lược cập nhật embedding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-008
+    title: Kết hợp tìm kiếm từ khóa với vector bằng truy vấn lai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-009
+    title: Reciprocal Rank Fusion và kiểm tra điều kiện phiên bản hoặc giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-010
+    title: Đánh giá truy hồi cho RAG và phân quyền tài liệu trước khi trả kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vector-semantic-search-011
+    title: Chi phí bộ nhớ, lượng tử hóa và đo hiệu quả trên dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scripting-runtime-fields
+  title: Script và trường tính toán
+  childs:
+  - slug: scripting-runtime-fields-001
+    title: Ngôn ngữ Painless và các ngữ cảnh thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-002
+    title: Inline script, stored script và truyền tham số an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-003
+    title: Đọc doc values, xử lý giá trị thiếu và kiểu dữ liệu trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-004
+    title: Runtime field và khác biệt với trường được lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-005
+    title: Khai báo runtime_mappings cho từng yêu cầu tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-006
+    title: Cân nhắc tính toán lúc ingest, lúc truy vấn hoặc trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-007
+    title: Script compilation cache, giới hạn thực thi và bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scripting-runtime-fields-008
+    title: Kiểm thử script trước khi dùng trong cập nhật hoặc xếp hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ingest-pipeline
+  title: Ingest pipeline
+  childs:
+  - slug: ingest-pipeline-001
+    title: Cấu trúc pipeline, processor và thứ tự thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-002
+    title: Set, Rename, Remove, Convert và Date processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-003
+    title: Grok, Dissect, Split và xử lý dữ liệu dạng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-004
+    title: Foreach, Script và điều kiện if trong processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-005
+    title: Enrich processor và ghép thông tin từ dữ liệu tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-006
+    title: On_failure, ignore_failure và quản lý tài liệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-007
+    title: Default pipeline, final pipeline và gọi pipeline khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-008
+    title: Simulate API và kiểm thử pipeline bằng dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-009
+    title: Phiên bản pipeline, cập nhật an toàn và theo dõi hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipeline-010
+    title: Vai trò Elastic Agent, Beats, Logstash và ứng dụng khi đưa dữ liệu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: index-lifecycle
+  title: Vòng đời dữ liệu
+  childs:
+  - slug: index-lifecycle-001
+    title: Data stream, backing index, @timestamp và dữ liệu append-only
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-002
+    title: Rollover theo kích thước, tuổi và số lượng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-003
+    title: Index Lifecycle Management với các pha hot, warm, cold, frozen và delete
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-004
+    title: Data tier, tier preference và phân bổ dữ liệu theo nhu cầu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-005
+    title: Data Stream Lifecycle và phạm vi áp dụng theo kiểu triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-006
+    title: Shrink, Split, Clone và các điều kiện thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-007
+    title: Force merge trên index ít thay đổi và rủi ro khi dùng sai thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-008
+    title: Retention, downsampling và dữ liệu chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-009
+    title: Searchable snapshot và điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-lifecycle-010
+    title: Giám sát, giải thích lỗi và phục hồi chính sách vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: correctness
+  title: Tính đúng đắn
+  childs:
+  - slug: correctness-001
+    title: Nhất quán của ghi, đọc theo _id và tìm kiếm gần thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-002
+    title: Wait for active shards và giới hạn bảo đảm của yêu cầu ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-003
+    title: Translog durability, acknowledgement và kịch bản mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-004
+    title: Optimistic concurrency control và xử lý lost update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-005
+    title: Retry sau timeout khi chưa biết yêu cầu đã thành công hay chưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-006
+    title: Tính lũy đẳng của thao tác nạp, cập nhật và xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-007
+    title: Replica promotion, primary term và phục hồi khi node hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-008
+    title: Checkpoint, lịch sử thao tác và đồng bộ shard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correctness-009
+    title: Giới hạn giao dịch nhiều document và cách phối hợp với dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cluster-administration
+  title: Quản trị cluster
+  childs:
+  - slug: cluster-administration-001
+    title: Discovery, bootstrap lần đầu và cluster.initial_master_nodes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-002
+    title: Quorum, voting configuration và an toàn khi thay đổi master node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-003
+    title: Cluster health green, yellow, red và ý nghĩa thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-004
+    title: Shard allocation, relocation và rebalance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-005
+    title: Allocation Awareness và phân bổ replica theo vùng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-006
+    title: Disk watermark, flood-stage block và quản lý dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-007
+    title: Allocation Explain API và chẩn đoán unassigned shard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-008
+    title: Thêm node, loại node và kế hoạch bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-009
+    title: Rolling restart, full-cluster restart và kiểm tra sau khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-administration-010
+    title: Phân tách vai trò node theo tải ingest, search và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-optimization
+  title: Tối ưu tìm kiếm
+  childs:
+  - slug: search-optimization-001
+    title: Xác định SLO, độ trễ p95/p99 và tải tìm kiếm thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-002
+    title: Query cache, shard request cache và filesystem cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-003
+    title: Profile API và đọc chi phí các thành phần truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-004
+    title: Tối ưu filter, số field tìm kiếm và truy vấn wildcard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-005
+    title: Doc values, fielddata và nguyên nhân tốn heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-006
+    title: Giới hạn phân trang sâu, số bucket và số lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-007
+    title: Index sorting, routing và thu hẹp tập shard cần truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-008
+    title: Ảnh hưởng của shard fan-out, segment và dữ liệu phân bố lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-009
+    title: Tối ưu phản hồi, nén HTTP và thời gian truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-optimization-010
+    title: Đo lại chất lượng xếp hạng sau mỗi thay đổi hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexing-storage-optimization
+  title: Tối ưu ghi và dung lượng
+  childs:
+  - slug: indexing-storage-optimization-001
+    title: Đo tốc độ ingest, thời gian phản hồi và tỷ lệ bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-002
+    title: Điều chỉnh bulk size, số luồng ghi và cơ chế backpressure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-003
+    title: Refresh interval, replica và đánh đổi khi nạp dữ liệu ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-004
+    title: Indexing buffer, merge pressure và tốc độ thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-005
+    title: Thiết kế shard size và tránh quá nhiều shard nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-006
+    title: Lựa chọn field cần index, doc values và lưu _source
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-007
+    title: Ước lượng dung lượng index, replica, snapshot và tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-008
+    title: JVM heap, garbage collection và bộ nhớ ngoài heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-009
+    title: Thread pool, indexing pressure và lỗi 429
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-storage-optimization-010
+    title: Thử tải bằng Elasticsearch Rally và lập kế hoạch năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: TLS cho HTTP và giao tiếp giữa các node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Xác thực bằng tài khoản, API key và service account
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Role, privilege và nguyên tắc cấp quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Phân quyền theo cluster, index, document và field
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Quản lý secret bằng keystore và cơ chế của môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Giới hạn mạng, proxy và bảo vệ endpoint quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Bảo vệ đầu vào truy vấn và giới hạn yêu cầu tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Audit logging và truy vết truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Che dữ liệu nhạy cảm, retention và yêu cầu tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Kiểm tra tính năng bảo mật theo phiên bản, giấy phép và loại triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-recovery
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-recovery-001
+    title: Snapshot khác với sao chép thư mục dữ liệu như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-002
+    title: Đăng ký và kiểm tra snapshot repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-003
+    title: Tạo snapshot, chọn index và theo dõi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-004
+    title: Snapshot Lifecycle Management và chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-005
+    title: Khôi phục index với tên mới hoặc cấu hình phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-006
+    title: Khôi phục cluster state, feature state và thành phần hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-007
+    title: Ma trận tương thích snapshot giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-008
+    title: Diễn tập phục hồi với mục tiêu RPO và RTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-009
+    title: Bảo vệ repository, quyền truy cập và xử lý snapshot thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-cluster-availability
+  title: Sẵn sàng và liên cluster
+  childs:
+  - slug: cross-cluster-availability-001
+    title: Thiết kế replica theo vùng lỗi và tránh điểm lỗi đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-002
+    title: Cross-cluster search và cấu hình remote cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-003
+    title: Cross-cluster replication, leader và follower
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-004
+    title: Độ trễ sao chép, chuyển vùng và quy trình khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-005
+    title: Khác biệt giữa replication và backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-006
+    title: Timeout, giới hạn thử lại và circuit breaker ở phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-007
+    title: Giảm chức năng tìm kiếm khi cluster gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-cluster-availability-008
+    title: Ràng buộc bảo mật, phiên bản và giấy phép khi liên kết cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-troubleshooting
+  title: Quan sát và xử lý lỗi
+  childs:
+  - slug: observability-troubleshooting-001
+    title: Cluster Stats, Nodes Stats, Index Stats và các chỉ số thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-002
+    title: Hot Threads, pending tasks và tác vụ đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-003
+    title: Search slow log, indexing slow log và nhật ký hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-004
+    title: Giám sát heap, GC, CPU, đĩa, shard và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-005
+    title: Chẩn đoán mapper_parsing_exception và dữ liệu sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-006
+    title: Chẩn đoán query_shard_exception và kết quả tìm kiếm không như mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-007
+    title: Xử lý circuit_breaking_exception, rejected execution và lỗi 429
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-008
+    title: Xử lý read-only index, disk watermark và shard chưa được gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-009
+    title: Phân biệt lỗi xác thực, phân quyền, chứng chỉ và kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-010
+    title: Runbook sự cố, bằng chứng chẩn đoán và cảnh báo có thể hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-query-analytics
+  title: Truy vấn và phân tích mở rộng
+  childs:
+  - slug: advanced-query-analytics-001
+    title: Elasticsearch SQL và cách tiếp cận dữ liệu theo bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-002
+    title: SQL API, phân trang bằng cursor và giới hạn biểu diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-003
+    title: ES|QL, pipeline xử lý và các lệnh nguồn-lọc-tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-004
+    title: Đối chiếu Query DSL, SQL và ES|QL theo bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-005
+    title: EQL cho chuỗi sự kiện và điều kiện sử dụng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-006
+    title: Transform dạng pivot hoặc latest để tạo dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-007
+    title: Continuous transform, checkpoint và độ trễ cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-query-analytics-008
+    title: Kiểm tra phiên bản, giấy phép và giới hạn của từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-api-client
+  title: Java API Client
+  childs:
+  - slug: java-api-client-001
+    title: Chọn Java API Client và đối chiếu tương thích với Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-002
+    title: Thiết lập transport, HTTPS, CA, API key và vòng đời kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-003
+    title: Ánh xạ JSON bằng Jackson hoặc JSON-B và kiểu document
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-004
+    title: Fluent builder, kiểu request/response và kiểm tra lỗi biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-005
+    title: Tạo index, mapping và alias từ ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-006
+    title: CRUD, optimistic concurrency và xử lý ElasticsearchException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-007
+    title: Xây Query DSL có kiểu và truy vấn có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-008
+    title: Đọc hits, aggregation, highlight và kết quả phân trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-009
+    title: BulkIngester, lỗi từng phần tử và kiểm soát backpressure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-010
+    title: API bất đồng bộ, CompletableFuture và quản lý timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-api-client-011
+    title: Logging, metric, retry và đóng tài nguyên khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-data-elasticsearch
+  title: Spring Data Elasticsearch
+  childs:
+  - slug: spring-data-elasticsearch-001
+    title: Vai trò Spring Data Elasticsearch và ma trận tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-002
+    title: Cấu hình Spring Boot, chứng chỉ, xác thực và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-003
+    title: Ánh xạ entity bằng @Document, @Field và bộ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-004
+    title: Repository, derived query và giới hạn suy diễn truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-005
+    title: ElasticsearchOperations và NativeQuery cho truy vấn chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-006
+    title: SearchHit, SearchPage, aggregation và metadata kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-007
+    title: Quản lý index, mapping và quyền sở hữu schema trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-008
+    title: Tích hợp optimistic locking và xử lý xung đột cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-009
+    title: ReactiveElasticsearchClient và giới hạn khi sử dụng luồng phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-data-elasticsearch-010
+    title: Kiểm thử tích hợp Spring với Elasticsearch qua Testcontainers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-synchronization
+  title: Đồng bộ dữ liệu
+  childs:
+  - slug: data-synchronization-001
+    title: Elasticsearch như mô hình đọc và vai trò của nguồn dữ liệu gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-002
+    title: Rủi ro dual write giữa cơ sở dữ liệu nghiệp vụ và Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-003
+    title: Transactional outbox, CDC và luồng sự kiện cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-004
+    title: Thiết kế document ID ổn định và xử lý sự kiện trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-005
+    title: Thứ tự sự kiện, external version và cập nhật đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-006
+    title: Đồng bộ thao tác xóa, tombstone và retention của sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-007
+    title: Backfill dữ liệu ban đầu song song với luồng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-008
+    title: Đối soát số lượng, phiên bản và nội dung giữa hai hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-009
+    title: Dead-letter queue, chạy lại sự kiện và phục hồi đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-synchronization-010
+    title: Reindex với alias và xử lý thay đổi trong thời gian chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Xây dữ liệu mẫu đại diện cho văn bản, thời gian và trường thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử analyzer, normalizer và tập từ đồng nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử CRUD, mapping, pipeline và optimistic concurrency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử truy vấn với bộ kết quả kỳ vọng và các trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử điểm xếp hạng bằng dữ liệu có nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử aggregation gần đúng và sai số cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử tích hợp bằng Testcontainers và chờ dữ liệu có thể tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử tải, soak test và dữ liệu phân bố lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử lỗi node, timeout, retry và phục hồi snapshot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Đặt tiêu chí chấp nhận cho tính đúng đắn, chất lượng và hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-migration
+  title: Nâng cấp và di chuyển
+  childs:
+  - slug: upgrades-migration-001
+    title: Đọc release notes, breaking changes và deprecation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-002
+    title: Kiểm kê tương thích client, plugin, Kibana và tính năng đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-003
+    title: Sao lưu và diễn tập nâng cấp trên dữ liệu đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-004
+    title: Lựa chọn rolling upgrade hoặc chuyển sang cluster mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-005
+    title: Reindex dữ liệu không tương thích với phiên bản đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-006
+    title: Kiểm tra API tương thích và kế hoạch chuyển đổi máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-007
+    title: Xác minh dữ liệu, truy vấn, bảo mật và hiệu năng sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-008
+    title: Kế hoạch phục hồi khi không thể hạ phiên bản trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-009
+    title: Di chuyển môi trường tự quản lý sang dịch vụ quản lý và đánh giá giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-lab
+  title: Bài thực hành tổng hợp
+  childs:
+  - slug: integrated-lab-001
+    title: Xây tìm kiếm sản phẩm với tiếng Việt, bộ lọc và aggregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-002
+    title: Xây tìm kiếm bài viết với highlight, gợi ý và phân trang ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-003
+    title: Thiết kế index cho nhật ký với ingest pipeline và data stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-004
+    title: Đồng bộ dữ liệu PostgreSQL sang Elasticsearch bằng outbox hoặc CDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-005
+    title: Xây tìm kiếm lai từ khóa-vector và đánh giá bộ truy vấn có nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-006
+    title: Di chuyển mapping sang index mới bằng reindex và alias
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-007
+    title: Mô phỏng node hỏng, shard chưa được gán và phục hồi snapshot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-008
+    title: Đo tải tìm kiếm và ingest để chọn cấu hình shard phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-lab-009
+    title: Hoàn thiện dịch vụ tìm kiếm Java/Spring với bảo mật và quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

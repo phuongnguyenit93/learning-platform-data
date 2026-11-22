@@ -1,0 +1,94 @@
+menu:
+- title: Nền tảng hiệu năng
+  slug: performance-foundations
+  index: 0
+- title: Chỉ số và mục tiêu
+  slug: metrics-goals
+  index: 1
+- title: Khối lượng công việc
+  slug: workload-characteristics
+  index: 2
+- title: Phương pháp đo
+  slug: measurement-methods
+  index: 3
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 4
+- title: Kế hoạch thực thi
+  slug: execution-plans
+  index: 5
+- title: Bộ tối ưu truy vấn
+  slug: query-optimizer
+  index: 6
+- title: Thống kê và ước lượng
+  slug: statistics-estimates
+  index: 7
+- title: Cơ chế truy cập
+  slug: access-paths
+  index: 8
+- title: Thiết kế chỉ mục
+  slug: index-design
+  index: 9
+- title: Chỉ mục chuyên biệt
+  slug: specialized-indexes
+  index: 10
+- title: Điều kiện và biểu thức
+  slug: predicates-expressions
+  index: 11
+- title: Phép nối
+  slug: joins
+  index: 12
+- title: Sắp xếp và tổng hợp
+  slug: sort-aggregation
+  index: 13
+- title: Mẫu truy vấn
+  slug: query-patterns
+  index: 14
+- title: Phân trang và tìm kiếm
+  slug: pagination-search
+  index: 15
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 16
+- title: Phân vùng dữ liệu
+  slug: data-partitioning
+  index: 17
+- title: Giao dịch và tranh chấp
+  slug: transaction-contention
+  index: 18
+- title: Đường ghi dữ liệu
+  slug: write-path
+  index: 19
+- title: Bộ nhớ và bộ đệm
+  slug: memory-cache
+  index: 20
+- title: Lưu trữ và tài nguyên
+  slug: storage-resources
+  index: 21
+- title: Kết nối và mạng
+  slug: connectivity-network
+  index: 22
+- title: Ứng dụng Java
+  slug: java-applications
+  index: 23
+- title: Bảo trì dữ liệu
+  slug: data-maintenance
+  index: 24
+- title: Tải phân tích
+  slug: analytical-workloads
+  index: 25
+- title: Mở rộng hệ thống
+  slug: system-scaling
+  index: 26
+- title: Kiểm thử hiệu năng
+  slug: performance-testing
+  index: 27
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 28
+- title: Vận hành hiệu năng
+  slug: performance-operations
+  index: 29
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 30

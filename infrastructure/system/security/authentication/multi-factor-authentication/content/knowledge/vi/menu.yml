@@ -1,0 +1,193 @@
+menu:
+- level1: Nền tảng xác thực đa yếu tố
+  level2:
+  - MFA là gì và giải quyết vấn đề nào?
+  - Phân biệt định danh, xác thực và phân quyền
+  - Phân biệt MFA, 2FA và xác minh hai bước
+  - Yếu tố kiến thức, sở hữu và sinh trắc học
+  - MFA, xác thực không mật khẩu và giới hạn bảo vệ
+  - Vì sao mật khẩu bị lộ, bị dùng lại và bị dò khiến cần có MFA
+  - Phân biệt yếu tố xác thực, phương tiện xác thực và thông tin xác thực
+  - Các thành phần và luồng xác thực từ ứng dụng đến bộ xác minh MFA
+  - Quan hệ giữa MFA, IAM, SSO và vòng đời tài khoản
+- level1: Tính độc lập và mức bảo đảm xác thực
+  level2:
+  - Tính độc lập của các yếu tố và những lỗi đếm yếu tố
+  - Lựa chọn mức bảo đảm xác thực theo mô hình đe dọa
+  - Mật khẩu cộng PIN không tạo thành hai yếu tố độc lập
+  - Chứng minh sở hữu thiết bị và nguy cơ sao chép bí mật dùng chung
+  - Phân biệt chạm thiết bị, hiện diện người dùng và xác minh người dùng
+  - 'Sinh trắc học để kích hoạt phương tiện: ranh giới và dữ liệu nhạy cảm'
+  - Giới hạn thử sinh trắc học, chống giả mạo và phương án thay thế
+  - Địa chỉ IP, vị trí và mức tin cậy thiết bị là tín hiệu rủi ro, không phải yếu tố
+  - Mức bảo đảm xác thực AAL và cách đối chiếu yêu cầu bảo mật
+  - Phương tiện đa yếu tố và việc kết hợp nhiều phương tiện độc lập
+  - Lựa chọn phương thức theo bảo đảm, tính khả dụng và khả năng tiếp cận
+- level1: Mô hình đe dọa
+  level2:
+  - Tài sản và bề mặt tấn công trong vòng đời MFA
+  - Dò mật khẩu, credential stuffing và vai trò của MFA
+  - Lừa đảo, chuyển tiếp xác thực và tấn công xen giữa AiTM
+  - SIM swap, chuyển số và chiếm đoạt kênh liên lạc
+  - Mã độc trên thiết bị và việc mất tính độc lập giữa các yếu tố
+  - Phát lại, đánh cắp phiên và các đường vòng bỏ qua MFA
+  - Tấn công đường đăng ký, thay đổi phương tiện và khôi phục tài khoản
+  - Đánh cắp cookie hoặc token phiên sau khi người dùng hoàn thành MFA
+  - Lạm dụng yêu cầu phê duyệt giả để chiếm quyền khi nạn nhân đang trực tuyến
+- level1: Mã dùng một lần
+  level2:
+  - Cơ chế OTP và giới hạn của mã dùng một lần
+  - 'HOTP: bộ đếm và đồng bộ trạng thái'
+  - 'TOTP: thời gian, độ lệch đồng hồ và cửa sổ chấp nhận'
+  - Ứng dụng tạo mã và thiết bị OTP phần cứng
+  - Khởi tạo bí mật OTP và phân phối mã QR an toàn
+  - Bảo vệ, lưu trữ và thay thế bí mật OTP
+  - Giới hạn số lần thử và ngăn tái sử dụng mã OTP
+  - Phân biệt OTP sinh trên thiết bị với mã được gửi qua kênh khác
+  - HOTP sử dụng HMAC, bộ đếm và thuật toán rút gọn động
+  - Tiêu thụ OTP một lần bằng thao tác nguyên tử khi có xác minh đồng thời
+  - Đồng bộ lại HOTP, thay đổi thiết bị và xử lý lộ bí mật OTP
+  - Giới hạn chống lừa đảo của OTP do người dùng nhập
+- level1: Xác thực qua kênh liên lạc
+  level2:
+  - 'OTP qua SMS và cuộc gọi: cách hoạt động và rủi ro'
+  - Xác minh qua email và điều kiện để xem là yếu tố độc lập
+  - Phê duyệt qua thông báo đẩy và ràng buộc thiết bị
+  - MFA fatigue, đối chiếu số và ngữ cảnh yêu cầu phê duyệt
+  - Xác thực ngoài băng và tính độc lập thực tế của các kênh
+  - Độ trễ, thất lạc thông điệp và phụ thuộc nhà cung cấp
+  - Phân biệt kênh chính, kênh ngoài băng và cách ràng buộc yêu cầu xác thực
+  - Hiển thị tài khoản, thao tác và thiết bị yêu cầu khi phê duyệt qua push
+  - Thời hạn, gửi lại, số lần thử và giới hạn tần suất trên kênh ngoài băng
+  - Lựa chọn phương thức dự phòng khi SMS, email hoặc push không khả dụng
+- level1: FIDO2, passkey và sinh trắc học
+  level2:
+  - Xác thực bằng khóa công khai và bằng chứng sở hữu khóa
+  - Vai trò của FIDO2, WebAuthn và CTAP
+  - Challenge, origin và RP ID trong khả năng chống lừa đảo
+  - Khóa bảo mật phần cứng và bộ xác thực nền tảng
+  - Passkey đồng bộ và passkey gắn với thiết bị
+  - Hiện diện người dùng, xác minh người dùng và điều kiện đáp ứng MFA
+  - Sinh trắc học, PIN cục bộ, attestation và ranh giới tin cậy
+  - Thẻ thông minh và chứng thư kết hợp PIN trong xác thực đa yếu tố
+  - Phân biệt chống phát lại, chống lừa đảo và bảo vệ thiết bị bị đánh cắp
+  - Vòng đời khóa bảo mật, thu hồi khóa khi mất thiết bị và ranh giới passkey đồng bộ
+- level1: Lựa chọn phương thức và chính sách
+  level2:
+  - So sánh phương thức theo khả năng chống tấn công và chi phí sử dụng
+  - Yêu cầu MFA cho tài khoản đặc quyền và thao tác nhạy cảm
+  - 'Xác thực thích ứng: tín hiệu rủi ro không đồng nghĩa với yếu tố xác thực'
+  - Chính sách ngoại lệ, phương thức dự phòng và nguy cơ hạ cấp bảo vệ
+  - Ranh giới áp dụng MFA cho người dùng và danh tính máy
+  - Chính sách yêu cầu phương thức chống lừa đảo cho nhóm rủi ro cao
+  - Xác thực tăng cường khi thay đổi thông tin hoặc thực hiện giao dịch nhạy cảm
+  - Ngoại lệ chính sách có chủ sở hữu, thời hạn và biện pháp bù đắp
+  - Phương án khi nhà cung cấp MFA không khả dụng mà không mở đường vòng mặc định
+  - Phương thức dự phòng và nguy cơ làm hạ mức bảo đảm đã yêu cầu
+- level1: Đăng ký và vòng đời yếu tố
+  level2:
+  - Khởi tạo MFA và xác minh danh tính trước khi đăng ký
+  - Ràng buộc đăng ký yếu tố với tài khoản và phiên hợp lệ
+  - Chứng minh quyền kiểm soát yếu tố trước khi kích hoạt
+  - Đăng ký nhiều yếu tố và chuẩn bị phương thức dự phòng
+  - Thêm, thay thế và gỡ bỏ yếu tố với yêu cầu xác thực phù hợp
+  - Quản lý thiết bị, thu hồi yếu tố và xử lý đăng ký không còn sử dụng
+  - Đăng ký thêm phương tiện từ phiên đã đạt mức xác thực phù hợp
+  - Gắn giao dịch đăng ký với tài khoản, phương tiện và mục đích cụ thể
+  - Bảo vệ mã QR, bí mật OTP và thông tin đăng ký khỏi log và hỗ trợ
+  - Thông báo độc lập khi có phương tiện mới hoặc thay đổi trái phép
+  - Danh mục phương tiện, nhãn nhận diện và lịch sử thay đổi
+  - Chuyển ứng dụng OTP, đổi số điện thoại và thay thiết bị
+  - Luân chuyển bí mật, khóa và thông tin đăng ký khi nghi ngờ lộ
+  - Ngăn dùng lại phương tiện đã thu hồi và kiểm soát phiên đang hoạt động
+  - Xác thực lại khi thêm, thay hoặc xóa phương tiện nhạy cảm
+- level1: Thiết kế luồng xác thực an toàn
+  level2:
+  - Trạng thái chưa xác thực, xác thực một phần và hoàn tất MFA
+  - Ràng buộc thử thách với tài khoản, phiên và mục đích xác thực
+  - Thời hạn, tính dùng một lần và xử lý thử thách đồng thời
+  - Giới hạn tần suất, khóa tạm thời và chống lạm dụng luồng MFA
+  - Điều kiện cấp phiên và token sau khi hoàn tất MFA
+  - Phân biệt xác thực đăng nhập và xác nhận nội dung giao dịch
+  - Gắn thử thách với phương tiện, tài khoản, phiên, mục đích và giao dịch
+  - Tiêu thụ thử thách một lần và chống tranh chấp xác minh đồng thời
+  - Gửi lại mã, chuyển phương thức và xử lý nhiều giao dịch song song
+  - Kiểm tra phản hồi push bất đồng bộ để tránh gắn nhầm giao dịch
+  - Phản hồi lỗi an toàn, tránh tiết lộ tài khoản và nguyên nhân nội bộ
+  - Giới hạn thử theo tài khoản, phương tiện và nguồn yêu cầu
+  - Chỉ cấp quyền đầy đủ sau khi xác minh được bằng chứng MFA hợp lệ
+- level1: Phiên xác thực và liên kết định danh
+  level2:
+  - Xác thực tăng cường, thời gian hiệu lực và ghi nhớ thiết bị
+  - SSO, phiên liên kết và yêu cầu xác thực lại giữa các ứng dụng
+  - Ghi nhận thời điểm, phương thức và mức bảo đảm xác thực trong phiên
+  - Đổi định danh phiên sau khi hoàn thành MFA hoặc nâng mức xác thực
+  - Giới hạn thời gian xác thực tăng cường và yêu cầu xác thực lại
+  - Phân biệt phiên ứng dụng, phiên IdP và phiên trong hệ thống liên kết
+  - Diễn giải amr, acr và SAML AuthnContext theo hợp đồng tin cậy
+  - Kiểm tra tính mới của kết quả xác thực do IdP chuyển đến ứng dụng
+  - Ngăn API, đăng nhập cũ và đường thay thế bỏ qua yêu cầu MFA
+  - 'Ghi nhớ trình duyệt: điều kiện ràng buộc, thời hạn và thu hồi'
+  - Phân biệt đăng xuất, thu hồi phiên và vô hiệu hóa phương tiện
+- level1: Tích hợp hệ thống định danh
+  level2:
+  - Đặt MFA tại nhà cung cấp danh tính hay tại ứng dụng
+  - Truyền và kiểm tra ngữ cảnh xác thực qua OIDC và SAML
+  - Bảo đảm MFA trên web, ứng dụng di động, API và luồng cũ
+  - MFA cho VPN, cổng truy cập và hệ thống dùng RADIUS
+  - Ranh giới tin cậy và ngăn truy cập trực tiếp để bỏ qua MFA
+  - Chọn nơi thực hiện xác thực tăng cường giữa ứng dụng và IdP
+  - Kiểm tra claim và ánh xạ mức bảo đảm khi hệ thống liên kết trả kết quả MFA
+  - Tích hợp MFA cho ứng dụng cũ không hỗ trợ giao thức xác thực hiện đại
+- level1: Khôi phục quyền truy cập
+  level2:
+  - 'Mã khôi phục dùng một lần: tạo, lưu trữ và xác minh an toàn'
+  - Khôi phục khi mất điện thoại, khóa bảo mật hoặc toàn bộ yếu tố
+  - Đặt lại MFA qua bộ phận hỗ trợ và bằng chứng xác minh danh tính
+  - Chống thao túng nhân viên hỗ trợ và lạm dụng quy trình khôi phục
+  - Tài khoản truy cập khẩn cấp và kiểm soát việc sử dụng
+  - Thông báo khôi phục, thu hồi yếu tố cũ và vô hiệu hóa phiên liên quan
+  - Khôi phục là một đường xác thực cần duy trì mức bảo đảm phù hợp
+  - Phương tiện dự phòng độc lập và nguy cơ khôi phục qua kênh đã bị chiếm
+  - Giới hạn câu hỏi bảo mật, email và SMS khi khôi phục MFA
+  - Thời gian chờ, thông báo độc lập và khả năng ngăn thay đổi trái phép
+  - Ghi vết, giới hạn tần suất và chống lạm dụng gây khóa tài khoản
+- level1: Trải nghiệm và khả năng tiếp cận
+  level2:
+  - Hướng dẫn đăng ký và giúp người dùng hiểu yêu cầu xác thực
+  - Thiết kế MFA cho người dùng có nhu cầu trợ năng
+  - Phương án cho người không có điện thoại thông minh hoặc kết nối mạng
+  - Thông báo lỗi và hỗ trợ người dùng mà không làm lộ thông tin nhạy cảm
+  - Cân bằng ma sát sử dụng, quyền riêng tư và mức bảo vệ
+  - Hành trình đổi phương thức, hết hạn mã và mất kết nối khi đang xác thực
+  - Hiển thị ngữ cảnh yêu cầu để người dùng nhận ra phê duyệt giả
+  - Quyền riêng tư khi thu thập tín hiệu thiết bị và dữ liệu sinh trắc học
+- level1: Vận hành và ứng phó sự cố
+  level2:
+  - Chỉ số đăng ký, thành công, thất bại và khôi phục MFA
+  - Nhật ký kiểm toán và bảo vệ dữ liệu xác thực trong log
+  - Phát hiện đăng ký bất thường, yêu cầu dồn dập và thay đổi yếu tố đáng ngờ
+  - Tính sẵn sàng, dự phòng và xử lý gián đoạn dịch vụ MFA
+  - Ứng phó lộ bí mật, mất thiết bị và thu hồi yếu tố hàng loạt
+  - Đánh giá nhà cung cấp, sao lưu và bảo vệ dữ liệu vòng đời MFA
+  - 'Sự kiện cần ghi vết: đăng nhập, đăng ký, thu hồi, khôi phục và ngoại lệ'
+  - Quản lý bí mật, khóa và quyền truy cập của dịch vụ MFA
+  - Giám sát đồng hồ, hàng đợi thông báo và phụ thuộc nhà mạng
+  - Ứng phó sự cố diện rộng và truy cập khẩn cấp có kiểm soát
+  - Rà soát chính sách, lưu giữ dữ liệu, thời hạn ngoại lệ và đào tạo hỗ trợ
+- level1: Kiểm thử và triển khai
+  level2:
+  - Ma trận kiểm thử luồng hợp lệ, thất bại và các trạng thái xác thực
+  - Kiểm thử hết hạn, phát lại, tranh chấp và sử dụng thử thách sai phiên
+  - Kiểm thử hạ cấp phương thức và đường vòng qua API hoặc giao diện khác
+  - Kiểm thử đăng ký, thay đổi yếu tố và khôi phục quyền truy cập
+  - Kiểm thử trợ năng, độ trễ và gián đoạn nhà cung cấp
+  - Triển khai thí điểm, mở rộng bắt buộc MFA và đánh giá hiệu quả
+  - Ma trận kiểm thử theo phương thức, loại tài khoản và chính sách
+  - Kiểm thử phát lại OTP và xác minh đồng thời trên cùng thử thách
+  - Kiểm thử ràng buộc sai tài khoản, phiên hoặc giao dịch
+  - Kiểm thử đường đăng ký, thay phương tiện và khôi phục bị chiếm dụng
+  - Kiểm tra amr, acr, tính mới và mức bảo đảm khi xác thực qua SSO
+  - Mô phỏng MFA fatigue, mất thiết bị và sự cố nhà cung cấp
+  - Kiểm chứng log, thông báo và dữ liệu nhạy cảm không bị lộ
+  - Lộ trình chuyển từ phương thức yếu sang MFA chống lừa đảo

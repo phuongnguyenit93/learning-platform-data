@@ -1,0 +1,64 @@
+roadmap:
+- id: jdbc-ket-noi-db
+  title: JDBC & Kết nối DB
+  purpose: Hiểu một kết nối JDBC là phiên làm việc với database và có chi phí tài nguyên.
+  objectives:
+  - Giải thích JDBC driver, URL và thông tin xác thực.
+  - Phân biệt kết nối vật lý với phiên sử dụng trong ứng dụng.
+  - Thực hiện truy vấn thử qua JDBC.
+- id: drivermanager-datasource
+  title: DriverManager & DataSource
+  purpose: Chọn cách cấp phát kết nối phù hợp với ứng dụng Java.
+  objectives:
+  - Kết nối thử bằng DriverManager.getConnection().
+  - Đọc interface DataSource và gọi getConnection().
+  - Giải thích vì sao DataSource dễ cấu hình và tích hợp pool.
+- id: vong-doi-connection
+  title: Vòng đời Connection
+  purpose: Quản lý mượn, sử dụng và đóng connection an toàn.
+  objectives:
+  - Dùng try-with-resources với Connection và Statement.
+  - Phân biệt close() khi dùng pool với đóng kết nối vật lý.
+  - Tránh giữ connection lâu hoặc dùng đồng thời trên nhiều thread.
+- id: connection-pool-co-ban
+  title: Connection Pool Cơ bản
+  purpose: Hiểu cơ chế tái sử dụng kết nối để giảm chi phí mở phiên mới.
+  objectives:
+  - Vẽ luồng request → pool → DB → trả connection.
+  - Phân biệt idle, active và pending connections.
+  - Giải thích pool exhaustion khi không còn connection sẵn.
+- id: pool-size-dong-thoi
+  title: Pool Size & Đồng thời
+  purpose: Cân bằng lưu lượng truy cập với giới hạn kết nối của database.
+  objectives:
+  - Đọc giới hạn số connection từ phía DB.
+  - Ước tính tổng connection của nhiều instance ứng dụng.
+  - Nhận diện tác hại của pool quá nhỏ hoặc quá lớn.
+- id: timeout-phuc-hoi-loi
+  title: Timeout & Phục hồi lỗi
+  purpose: Phân biệt các giai đoạn có thể chờ và xử lý lỗi kết nối hợp lý.
+  objectives:
+  - Phân biệt connect, pool acquire và SQL query timeout.
+  - Nhận diện kết nối lỗi sau network hoặc DB restart.
+  - Thiết kế retry có giới hạn và chỉ lặp thao tác an toàn.
+- id: transaction-isolation
+  title: Transaction & Isolation
+  purpose: Duy trì tính nhất quán khi nhiều câu lệnh dùng chung một connection.
+  objectives:
+  - Phân biệt auto-commit với transaction tường minh.
+  - Thực hành commit và rollback khi xảy ra lỗi.
+  - Giải thích mức isolation và thời gian giữ lock.
+- id: monitoring-leak
+  title: Monitoring & Leak
+  purpose: Phát hiện nghẽn, rò rỉ và giao dịch kéo dài bằng số liệu.
+  objectives:
+  - Theo dõi active, idle, pending và thời gian chờ connection.
+  - Nhận biết dấu hiệu connection leak hoặc query chậm.
+  - Thiết lập cảnh báo khi pool thường xuyên cạn.
+- id: thuc-hanh-load-test
+  title: Thực hành & Load Test
+  purpose: Kiểm chứng việc quản lý connection qua ứng dụng Java có tải đồng thời.
+  objectives:
+  - Tạo ứng dụng mẫu dùng DataSource và pool nhỏ.
+  - Thử trả thiếu connection rồi sửa bằng try-with-resources.
+  - So sánh latency, throughput và số connection dưới tải.

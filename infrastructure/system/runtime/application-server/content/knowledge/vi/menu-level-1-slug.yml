@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phân biệt runtime
+  slug: runtime-comparison
+  index: 1
+- title: Kiến trúc máy chủ
+  slug: server-architecture
+  index: 2
+- title: Nền tảng Jakarta EE
+  slug: jakarta-ee-platform
+  index: 3
+- title: Tương thích nền tảng
+  slug: platform-compatibility
+  index: 4
+- title: Miền quản trị
+  slug: admin-domains
+  index: 5
+- title: Gói triển khai
+  slug: deployment-packages
+  index: 6
+- title: Nạp lớp và cô lập
+  slug: classloading-isolation
+  index: 7
+- title: Vòng đời ứng dụng
+  slug: application-lifecycle
+  index: 8
+- title: Luồng yêu cầu web
+  slug: web-request-flow
+  index: 9
+- title: Thành phần được quản lý
+  slug: managed-components
+  index: 10
+- title: Enterprise Beans
+  slug: enterprise-beans
+  index: 11
+- title: Truy cập dữ liệu
+  slug: data-access
+  index: 12
+- title: Kết nối tài nguyên
+  slug: resource-connections
+  index: 13
+- title: Giao dịch
+  slug: transactions
+  index: 14
+- title: Nhắn tin
+  slug: messaging
+  index: 15
+- title: Bảo mật ứng dụng
+  slug: application-security
+  index: 16
+- title: Tác vụ và luồng
+  slug: tasks-threading
+  index: 17
+- title: Session và trạng thái
+  slug: sessions-state
+  index: 18
+- title: Cụm và cân bằng tải
+  slug: clusters-load-balancing
+  index: 19
+- title: Cấu hình máy chủ
+  slug: server-configuration
+  index: 20
+- title: Triển khai production
+  slug: production-deployment
+  index: 21
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 22
+- title: Hiệu năng và dung lượng
+  slug: performance-capacity
+  index: 23
+- title: Phục hồi sự cố
+  slug: incident-recovery
+  index: 24
+- title: Bảo vệ máy chủ
+  slug: server-hardening
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 27
+- title: Container và đám mây
+  slug: containers-cloud
+  index: 28
+- title: Spring và máy chủ
+  slug: spring-integration
+  index: 29
+- title: Hệ sinh thái sản phẩm
+  slug: application-server-products
+  index: 30
+- title: Nâng cấp và chuyển đổi
+  slug: upgrades-migration
+  index: 31
+- title: Tự động hóa vận hành
+  slug: operations-automation
+  index: 32
+- title: Lựa chọn kiến trúc
+  slug: architecture-selection
+  index: 33
+- title: Bài tập và tình huống
+  slug: practical-scenarios
+  index: 34

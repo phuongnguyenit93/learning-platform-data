@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: linkerd-overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Nền tảng Kubernetes
+  slug: kubernetes-foundations
+  index: 2
+- title: Chuẩn bị
+  slug: prerequisites
+  index: 3
+- title: Cài đặt
+  slug: installation
+  index: 4
+- title: Đưa ứng dụng vào mesh
+  slug: mesh-onboarding
+  index: 5
+- title: Chuyển hướng mạng
+  slug: traffic-redirection
+  index: 6
+- title: Giao thức
+  slug: protocols
+  index: 7
+- title: Khám phá và cân bằng tải
+  slug: discovery-load-balancing
+  index: 8
+- title: Gateway API
+  slug: gateway-api
+  index: 9
+- title: Định tuyến
+  slug: routing
+  index: 10
+- title: Triển khai tiến dần
+  slug: progressive-rollouts
+  index: 11
+- title: Timeout và retry
+  slug: timeouts-retries
+  index: 12
+- title: Ngắt mạch
+  slug: circuit-breaking
+  index: 13
+- title: Giới hạn tốc độ
+  slug: rate-limiting
+  index: 14
+- title: Danh tính và mTLS
+  slug: identity-mtls
+  index: 15
+- title: Quản lý chứng chỉ
+  slug: certificate-management
+  index: 16
+- title: Phân quyền
+  slug: authorization
+  index: 17
+- title: Ingress
+  slug: ingress
+  index: 18
+- title: Egress
+  slug: egress
+  index: 19
+- title: Metric và dashboard
+  slug: metrics-dashboards
+  index: 20
+- title: Log và trace
+  slug: logs-traces
+  index: 21
+- title: Nhiều cụm
+  slug: multi-cluster
+  index: 22
+- title: Ngoài Kubernetes
+  slug: non-kubernetes-workloads
+  index: 23
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 24
+- title: Vận hành
+  slug: operations
+  index: 25
+- title: HA và hiệu năng
+  slug: ha-performance
+  index: 26
+- title: Nâng cấp
+  slug: upgrades
+  index: 27
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 28
+- title: Kiểm chứng
+  slug: verification
+  index: 29
+- title: Bài thực hành
+  slug: hands-on-practice
+  index: 30

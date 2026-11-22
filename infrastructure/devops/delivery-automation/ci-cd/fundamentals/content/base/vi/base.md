@@ -1,0 +1,7 @@
+# DevOps Delivery Automation CI/CD Fundamentals
+
+CI/CD là tập hợp các thực hành tự động hóa giúp thay đổi mã nguồn được tích hợp, kiểm chứng và đưa đến môi trường sử dụng một cách nhất quán. *Continuous integration* (CI) nhấn mạnh việc hợp nhất thay đổi nhỏ và nhận phản hồi sớm từ build/test; *continuous delivery* giữ phần mềm ở trạng thái có thể phát hành, còn *continuous deployment* đưa các thay đổi đạt điều kiện lên production tự động. Module dành cho người học đã có kiến thức Git, một công cụ build và cách chạy kiểm thử cơ bản.
+
+Lộ trình bắt đầu với khái niệm CI/CD, sự kiện Git kích hoạt pipeline, rồi tổ chức cấu hình *Pipeline as Code* thành jobs, stages và runners. Tiếp đó bạn xây dựng các bước build, test, quality/security gates và đóng gói artifacts có thể truy vết về commit. Phần triển khai giải thích môi trường staging/production, bước phê duyệt, kiểm tra sức khỏe và rollback; phần cuối sử dụng kết quả pipeline và chỉ số DORA để tìm điểm nghẽn.
+
+Sau khi học, bạn có thể phác thảo pipeline CI/CD cho một ứng dụng Java, phân biệt lỗi build, test và deploy, kiểm tra phiên bản artifact đi qua mỗi môi trường và đề xuất cách phát hành an toàn hơn. Tư duy xuyên suốt là tự động hóa những bước có thể kiểm chứng, bảo vệ secrets/quyền truy cập, và luôn có cách phát hiện cũng như phục hồi khi thay đổi gây sự cố.

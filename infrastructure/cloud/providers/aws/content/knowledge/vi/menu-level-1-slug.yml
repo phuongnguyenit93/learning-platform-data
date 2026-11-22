@@ -1,0 +1,133 @@
+menu:
+  - title: "Tổng quan AWS"
+    slug: aws-overview
+    index: 0
+  - title: "Tài khoản và Organizations"
+    slug: accounts-and-organizations
+    index: 1
+  - title: "IAM và phân quyền"
+    slug: iam-and-permissions
+    index: 2
+  - title: "Mạng VPC"
+    slug: vpc-networking
+    index: 3
+  - title: "Kết nối mạng nâng cao"
+    slug: advanced-network-connectivity
+    index: 4
+  - title: "Máy chủ EC2"
+    slug: ec2-instances
+    index: 5
+  - title: "Lưu trữ block và file"
+    slug: block-and-file-storage
+    index: 6
+  - title: "Lưu trữ đối tượng S3"
+    slug: s3-object-storage
+    index: 7
+  - title: "Cân bằng tải và mở rộng"
+    slug: load-balancing-and-scaling
+    index: 8
+  - title: "DNS và phân phối nội dung"
+    slug: dns-and-content-delivery
+    index: 9
+  - title: "Container với ECS"
+    slug: ecs-containers
+    index: 10
+  - title: "Kubernetes với EKS"
+    slug: eks-kubernetes
+    index: 11
+  - title: "Nền tảng ứng dụng quản lý"
+    slug: managed-application-platforms
+    index: 12
+  - title: "Điện toán Lambda"
+    slug: lambda-compute
+    index: 13
+  - title: "API Gateway và AppSync"
+    slug: api-gateway-and-appsync
+    index: 14
+  - title: "Danh tính ứng dụng với Cognito"
+    slug: cognito-application-identity
+    index: 15
+  - title: "Hàng đợi và thông báo"
+    slug: queues-and-notifications
+    index: 16
+  - title: "Sự kiện và điều phối"
+    slug: events-and-orchestration
+    index: 17
+  - title: "Cơ sở dữ liệu RDS và Aurora"
+    slug: rds-and-aurora-databases
+    index: 18
+  - title: "DynamoDB"
+    slug: dynamodb
+    index: 19
+  - title: "Cache và dữ liệu chuyên dụng"
+    slug: caching-and-specialized-databases
+    index: 20
+  - title: "AWS SDK cho Java"
+    slug: aws-sdk-for-java
+    index: 21
+  - title: "Ứng dụng Java và Spring Boot"
+    slug: java-and-spring-boot-applications
+    index: 22
+  - title: "Hạ tầng dưới dạng mã"
+    slug: infrastructure-as-code
+    index: 23
+  - title: "CI/CD trên AWS"
+    slug: cicd-pipelines
+    index: 24
+  - title: "Quan sát với CloudWatch"
+    slug: cloudwatch-observability
+    index: 25
+  - title: "Kiểm toán và tuân thủ"
+    slug: auditing-and-compliance
+    index: 26
+  - title: "Vận hành với Systems Manager"
+    slug: systems-manager-operations
+    index: 27
+  - title: "Mã hóa, secret và chứng chỉ"
+    slug: encryption-secrets-and-certificates
+    index: 28
+  - title: "Bảo vệ mạng và ứng dụng"
+    slug: network-and-application-security
+    index: 29
+  - title: "Giám sát an ninh và ứng phó"
+    slug: security-monitoring-and-response
+    index: 30
+  - title: "Sao lưu và khôi phục thảm họa"
+    slug: backup-and-disaster-recovery
+    index: 31
+  - title: "Thiết kế kiến trúc AWS"
+    slug: architecture-design
+    index: 32
+  - title: "Chi phí và FinOps"
+    slug: costs-and-finops
+    index: 33
+  - title: "Di chuyển và hạ tầng hybrid"
+    slug: migration-and-hybrid-infrastructure
+    index: 34
+  - title: "Dữ liệu streaming"
+    slug: data-streaming
+    index: 35
+  - title: "Data lake và tích hợp dữ liệu"
+    slug: data-lakes-and-data-integration
+    index: 36
+  - title: "Phân tích và tìm kiếm"
+    slug: analytics-and-search
+    index: 37
+  - title: "AI và machine learning"
+    slug: ai-and-machine-learning
+    index: 38
+  - title: "IoT và điện toán biên"
+    slug: iot-and-edge-computing
+    index: 39
+  - title: "Batch và tính toán hiệu năng cao"
+    slug: batch-and-high-performance-computing
+    index: 40
+  - title: "Kiểm thử và xử lý sự cố"
+    slug: testing-and-troubleshooting
+    index: 41
+  - title: "Bài thực hành nền tảng"
+    slug: foundational-hands-on-labs
+    index: 42
+  - title: "Dự án tổng hợp AWS"
+    slug: capstone-projects
+    index: 43

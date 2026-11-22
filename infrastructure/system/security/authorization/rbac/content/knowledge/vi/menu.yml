@@ -1,0 +1,288 @@
+menu:
+- level1: 1. Tổng quan RBAC
+  level2:
+  - 1.1. Kiểm soát truy cập theo vai trò (RBAC) là gì
+  - 1.2. Vấn đề của việc gán từng quyền trực tiếp cho từng người
+  - 1.3. Người dùng, vai trò, quyền, tài nguyên và thao tác
+  - 1.4. Vai trò làm cầu nối giữa nhu cầu nghiệp vụ và quyền kỹ thuật
+  - 1.5. Phân biệt xác thực với cấp quyền theo vai trò
+  - 1.6. Nguyên tắc quyền tối thiểu và mặc định từ chối
+  - 1.7. Lợi ích, phạm vi áp dụng và giới hạn của RBAC
+  - 1.8. Lộ trình từ mô hình cốt lõi đến thiết kế, thực thi và quản trị
+- level1: 2. Thuật ngữ và mô hình
+  level2:
+  - 2.1. Chủ thể con người, tài khoản dịch vụ và danh tính ứng dụng
+  - 2.2. Quyền như sự kết hợp của thao tác với đối tượng được bảo vệ
+  - 2.3. Gán người dùng vào vai trò và gán quyền cho vai trò
+  - 2.4. Vai trò được gán, vai trò được phép kích hoạt và vai trò đang hoạt động
+  - 2.5. Phiên làm việc trong mô hình RBAC và phiên đăng nhập ứng dụng
+  - 2.6. Quyền hiệu lực và các nguồn hình thành quyền
+  - 2.7. Phân biệt vai trò với nhóm, chức danh và đơn vị tổ chức
+  - 2.8. Vai trò nghiệp vụ, vai trò kỹ thuật và vai trò quản trị
+  - 2.9. Phân biệt phạm vi tài nguyên với bản thân tên vai trò
+- level1: 3. Mô hình RBAC cốt lõi
+  level2:
+  - 3.1. Các tập người dùng, vai trò, quyền, thao tác và đối tượng
+  - 3.2. Quan hệ gán người dùng–vai trò và vai trò–quyền
+  - 3.3. Quan hệ giữa người dùng, phiên và vai trò kích hoạt
+  - 3.4. Điều kiện một yêu cầu được phép trong mô hình cơ bản
+  - 3.5. Hợp quyền khi một người dùng có nhiều vai trò
+  - 3.6. Tách quyền được gán khỏi quyền có hiệu lực trong một phiên
+  - 3.7. Các thao tác quản trị tối thiểu đối với người dùng, vai trò và quyền
+  - 3.8. Biểu diễn mô hình bằng ma trận và đồ thị
+  - 3.9. Phân biệt mô hình RBAC chuẩn với các chính sách mở rộng của sản phẩm
+- level1: 4. Các biến thể RBAC
+  level2:
+  - 4.1. RBAC cơ bản và phạm vi của mô hình RBAC0
+  - 4.2. RBAC phân cấp và quan hệ với mô hình RBAC1
+  - 4.3. RBAC có ràng buộc và quan hệ với mô hình RBAC2
+  - 4.4. Kết hợp phân cấp với ràng buộc trong RBAC3
+  - 4.5. Core RBAC, Hierarchical RBAC và các thành phần ràng buộc
+  - 4.6. Ràng buộc cấu trúc, gán quyền và kích hoạt vai trò
+  - 4.7. Phân biệt tính năng mô hình với lựa chọn triển khai thực tế
+  - 4.8. Tiêu chí chọn mức mô hình theo nhu cầu quản trị
+  - 4.9. Tránh gắn nhãn RBAC cho hệ thống chỉ kiểm tra chuỗi tên vai trò
+- level1: 5. Danh mục quyền
+  level2:
+  - 5.1. Khám phá tài nguyên và hành động từ luồng nghiệp vụ
+  - 5.2. Quyền ở mức ứng dụng, chức năng, đối tượng và dữ liệu
+  - 5.3. Chọn độ hạt quyền đủ dùng nhưng vẫn kiểm soát được
+  - 5.4. Quy tắc đặt tên và định danh ổn định cho quyền
+  - 5.5. Phân biệt quyền đọc, tạo, sửa, xóa, xuất và phê duyệt
+  - 5.6. Quyền nhạy cảm, quyền đặc biệt và quyền quản trị
+  - 5.7. Quan hệ phụ thuộc giữa quyền và rủi ro gộp quá nhiều hành động
+  - 5.8. Chủ sở hữu, mô tả mục đích và bằng chứng sử dụng quyền
+  - 5.9. Quản lý phiên bản, đổi tên và ngừng quyền không còn dùng
+- level1: 6. Thiết kế vai trò
+  level2:
+  - 6.1. Phân tích từ nhiệm vụ nghiệp vụ xuống vai trò và quyền
+  - 6.2. Phân tích từ dữ liệu quyền hiện hữu lên nhóm vai trò
+  - 6.3. Kết hợp cách tiếp cận từ trên xuống và từ dưới lên
+  - 6.4. Vai trò theo chức năng công việc thay vì sao chép cơ cấu tổ chức
+  - 6.5. Vai trò nghiệp vụ kết hợp nhiều vai trò kỹ thuật
+  - 6.6. Tiêu chí một vai trò có mục đích rõ và đủ ổn định
+  - 6.7. Quyền tối thiểu và tránh gói quyền thuận tiện nhưng quá rộng
+  - 6.8. Vai trò mặc định, vai trò tùy chọn và vai trò đặc quyền
+  - 6.9. Đặt tên, mô tả, chủ sở hữu và tiêu chí được gán
+  - 6.10. Đánh giá thiết kế bằng tình huống thực tế thay vì số lượng vai trò
+- level1: 7. Phân cấp vai trò
+  level2:
+  - 7.1. Vai trò cấp cao, vai trò cấp thấp và chiều kế thừa quyền
+  - 7.2. Phân cấp dạng cây và đồ thị có nhiều cha
+  - 7.3. Vai trò được gán trực tiếp và vai trò được suy ra qua kế thừa
+  - 7.4. Tính bắc cầu và xác định tập quyền hiệu lực
+  - 7.5. Ngăn chu trình, quan hệ thừa và đường kế thừa khó kiểm soát
+  - 7.6. Phân biệt phân cấp vai trò với cấp bậc quản lý nhân sự
+  - 7.7. Phân biệt kế thừa vai trò với kế thừa theo cây tài nguyên
+  - 7.8. Ảnh hưởng khi sửa quyền của vai trò được nhiều vai trò khác kế thừa
+  - 7.9. Kiểm tra xung đột ràng buộc do quyền kế thừa
+  - 7.10. Giới hạn độ sâu và khả năng giải thích chuỗi quyền
+- level1: 8. Phiên và kích hoạt vai trò
+  level2:
+  - 8.1. Chọn tập vai trò cần dùng khi bắt đầu phiên
+  - 8.2. Đổi vai trò đang hoạt động trong khi phiên còn tồn tại
+  - 8.3. Giảm quyền trong tác vụ thông thường và nâng quyền theo nhu cầu
+  - 8.4. Xác thực tăng cường trước khi kích hoạt vai trò nhạy cảm
+  - 8.5. Giới hạn thời gian kích hoạt và thời điểm hết hiệu lực
+  - 8.6. Quan hệ giữa phiên RBAC, phiên ứng dụng và token
+  - 8.7. Ngăn kích hoạt vai trò không nằm trong quyền được gán
+  - 8.8. Xử lý nhiều phiên, nhiều thiết bị và nhiều ứng dụng
+  - 8.9. Thu hồi vai trò trong khi phiên đang sử dụng
+  - 8.10. Ghi nhận vai trò thực sự dùng để quyết định một thao tác
+- level1: 9. Phân tách nhiệm vụ
+  level2:
+  - 9.1. Mục tiêu ngăn một người tự hoàn thành chuỗi hành động nhạy cảm
+  - 9.2. Phân tách nhiệm vụ tĩnh (SSD) ở thời điểm gán vai trò
+  - 9.3. Phân tách nhiệm vụ động (DSD) ở thời điểm kích hoạt vai trò
+  - 9.4. Tập vai trò loại trừ và giới hạn số vai trò được kết hợp
+  - 9.5. Ràng buộc trên vai trò trực tiếp và vai trò kế thừa
+  - 9.6. Tách ràng buộc kích hoạt vai trò khỏi quy tắc người tạo không duyệt cùng giao dịch
+  - 9.7. Kiểm soát giao dịch cần lịch sử hành động ngoài trạng thái phiên
+  - 9.8. Nhiều người phê duyệt, quyền khẩn cấp và ngoại lệ có kiểm soát
+  - 9.9. Kiểm chứng xung đột trên nhiều phiên và nhiều đường truy cập
+  - 9.10. Đánh đổi giữa kiểm soát gian lận với khả năng vận hành
+- level1: 10. Ràng buộc và phạm vi
+  level2:
+  - 10.1. Điều kiện tiên quyết để được gán một vai trò
+  - 10.2. Giới hạn số người giữ vai trò hoặc số vai trò của một người
+  - 10.3. Vai trò có hiệu lực theo thời gian và khoảng chuyển giao
+  - 10.4. Vai trò gắn với dự án, chi nhánh hoặc tập tài nguyên
+  - 10.5. Phân biệt gán vai trò toàn cục với gán vai trò có phạm vi
+  - 10.6. Điều kiện theo sở hữu, trạng thái tài nguyên và mức rủi ro
+  - 10.7. Xác định ràng buộc thuộc RBAC hay cần mô hình chính sách bổ sung
+  - 10.8. Đánh giá điều kiện trước khi gán và trước khi thực hiện thao tác
+  - 10.9. Quản lý ngoại lệ với lý do, người phê duyệt và thời hạn
+- level1: 11. Quản trị RBAC
+  level2:
+  - 11.1. Phân tách người thiết kế vai trò, người phê duyệt và người cấp quyền
+  - 11.2. Quyền tạo, sửa, xóa và quản trị quan hệ vai trò
+  - 11.3. Quyền gán người dùng khác với quyền sử dụng vai trò
+  - 11.4. Phạm vi quản trị được ủy quyền theo đơn vị hoặc tài nguyên
+  - 11.5. Ngăn người quản trị tự gán hoặc tự mở rộng quyền
+  - 11.6. Kiểm soát quyền thay đổi hệ phân cấp và ràng buộc
+  - 11.7. Ủy quyền có giới hạn và thu hồi quyền quản trị
+  - 11.8. Quyền quản trị gốc và truy cập khẩn cấp
+  - 11.9. Phê duyệt thay đổi cùng đánh giá tác động trước khi áp dụng
+  - 11.10. Nhật ký quản trị và trách nhiệm giải trình
+- level1: 12. Vòng đời vai trò và quyền
+  level2:
+  - 12.1. Đề xuất, phê duyệt, công bố và đưa vai trò vào sử dụng
+  - 12.2. Gán vai trò theo vị trí, yêu cầu hoặc nhiệm vụ được giao
+  - 12.3. Thay đổi quyền của vai trò và thông báo bên chịu ảnh hưởng
+  - 12.4. Chuyển công việc, đổi nhóm và thu hồi vai trò cũ
+  - 12.5. Quyền tạm thời cùng thời hạn tự kết thúc
+  - 12.6. Rà soát định kỳ theo chủ sở hữu vai trò
+  - 12.7. Ngừng vai trò, chuyển người dùng và dọn quan hệ phụ thuộc
+  - 12.8. Xử lý người dùng rời tổ chức và tài khoản dịch vụ ngừng hoạt động
+  - 12.9. Lưu lịch sử để tái dựng quyền tại một thời điểm
+- level1: 13. Dữ liệu và lưu trữ
+  level2:
+  - 13.1. Mô hình User, Role, Permission và các bảng quan hệ
+  - 13.2. Gán vai trò kèm phạm vi, thời hạn, nguồn và người phê duyệt
+  - 13.3. Lưu quan hệ phân cấp cùng các ràng buộc
+  - 13.4. Khóa duy nhất và tính toàn vẹn tham chiếu
+  - 13.5. Biểu diễn nhóm hoặc danh tính ngoài hệ thống khi ánh xạ vào vai trò
+  - 13.6. Truy vấn quyền trực tiếp và quyền kế thừa
+  - 13.7. Chiến lược tính trước hoặc tính khi có yêu cầu
+  - 13.8. Phiên bản dữ liệu quyền, lịch sử và nhật ký thay đổi
+  - 13.9. Xóa mềm, ngừng sử dụng và tránh tái dùng định danh gây nhầm
+  - 13.10. Bảo vệ dữ liệu RBAC khỏi ghi trái phép và lệch cấu hình
+- level1: 14. Quy trình quyết định quyền
+  level2:
+  - 14.1. Xác định chủ thể và ngữ cảnh từ nguồn đáng tin cậy
+  - 14.2. Xác định tài nguyên, hành động và phạm vi cần kiểm tra
+  - 14.3. Tìm vai trò được gán, đang hoạt động và còn hiệu lực
+  - 14.4. Tính quyền qua gán trực tiếp cùng phân cấp
+  - 14.5. Áp dụng ràng buộc, phạm vi và chính sách bổ sung
+  - 14.6. Phân biệt hợp quyền trong RBAC với quy tắc deny mở rộng
+  - 14.7. Giải quyết xung đột theo ngữ nghĩa đã được định nghĩa rõ
+  - 14.8. Từ chối khi không xác định được quyền hoặc dữ liệu không hợp lệ
+  - 14.9. Trả quyết định cùng bằng chứng đủ để giải thích
+  - 14.10. Kiểm soát thay đổi quyền giữa lúc kiểm tra và thực hiện
+- level1: 15. Thực thi trong hệ thống
+  level2:
+  - 15.1. Điểm quyết định chính sách và điểm thực thi
+  - 15.2. Thực thi ở giao diện, API, dịch vụ và tầng dữ liệu
+  - 15.3. Giao diện chỉ phản ánh quyền, không thay thế kiểm tra phía máy chủ
+  - 15.4. Kiểm soát mọi đường truy cập đến cùng một chức năng
+  - 15.5. Quyền chức năng và kiểm tra tài nguyên thuộc phạm vi được phép
+  - 15.6. Truy cập hàng loạt, xuất dữ liệu và tác vụ bất đồng bộ
+  - 15.7. Luồng gọi nhiều dịch vụ và phân biệt vai trò của người dùng với dịch vụ
+  - 15.8. Tác vụ nền chạy theo quyền hiện tại hay quyền tại thời điểm giao
+  - 15.9. Ngăn bỏ qua kiểm soát qua endpoint quản trị hoặc đường nội bộ
+  - 15.10. Thiết kế thông báo lỗi không tiết lộ tài nguyên không được phép
+- level1: 16. Danh tính ngoài và token
+  level2:
+  - 16.1. Ánh xạ nhóm hoặc vai trò từ IdP vào vai trò cục bộ
+  - 16.2. Xác minh nguồn, đối tượng nhận và mục đích token trước khi dùng claim
+  - 16.3. Không coi mọi chuỗi role do phía khách gửi là quyền hợp lệ
+  - 16.4. Phân biệt nhóm tổ chức với vai trò nghiệp vụ của ứng dụng
+  - 16.5. Giới hạn dữ liệu vai trò trong token và quyền được tính phía máy chủ
+  - 16.6. Quyền lỗi thời khi người dùng đã bị đổi hoặc thu hồi vai trò
+  - 16.7. Thời hạn token, thu hồi phiên và cơ chế cập nhật quyền
+  - 16.8. Nhầm miền tin cậy, nhầm ứng dụng và trùng tên vai trò
+  - 16.9. Đối soát quyền giữa nguồn danh tính với hệ thống cục bộ
+- level1: 17. RBAC nhiều khách hàng
+  level2:
+  - 17.1. Định danh khách hàng và ranh giới cách ly quyền
+  - 17.2. Vai trò toàn nền tảng, vai trò trong khách hàng và vai trò tài nguyên
+  - 17.3. Người dùng thuộc nhiều tổ chức với quyền khác nhau
+  - 17.4. Ràng buộc mọi phép gán vai trò vào đúng phạm vi
+  - 17.5. Vai trò tùy chỉnh do quản trị viên khách hàng tạo
+  - 17.6. Ngăn quản trị viên khách hàng cấp quyền vượt giới hạn được giao
+  - 17.7. Trùng tên vai trò nhưng khác định danh hoặc ý nghĩa
+  - 17.8. Chuyển ngữ cảnh khách hàng và kiểm tra quyền ở mỗi yêu cầu
+  - 17.9. Kiểm thử truy cập chéo khách hàng qua quyền trực tiếp và quyền kế thừa
+  - 17.10. Ngừng khách hàng, xóa phạm vi và thu hồi mọi quan hệ liên quan
+- level1: 18. Danh tính máy và nền tảng
+  level2:
+  - 18.1. Vai trò cho tài khoản dịch vụ và khối lượng công việc
+  - 18.2. Phân biệt quyền triển khai với quyền ứng dụng khi chạy
+  - 18.3. Vai trò của tác vụ CI/CD và công cụ tự động hóa
+  - 18.4. Quyền máy trong cơ sở dữ liệu, nền tảng điều phối và đám mây
+  - 18.5. Ngữ nghĩa vai trò khác nhau giữa các nền tảng
+  - 18.6. Vai trò tạm thời và thông tin xác thực có thời hạn
+  - 18.7. Ngăn mượn danh tính dịch vụ để vượt quyền người dùng
+  - 18.8. Chủ sở hữu và vòng đời vai trò của danh tính không phải con người
+  - 18.9. Đối soát quyền thực tế thay vì chỉ so tên vai trò
+- level1: 19. Hiệu năng và nhất quán
+  level2:
+  - 19.1. Tính quyền theo yêu cầu so với tính trước
+  - 19.2. Bộ nhớ đệm theo người dùng, vai trò và phạm vi
+  - 19.3. Vô hiệu hóa bộ nhớ đệm khi đổi quyền, phân cấp hoặc ràng buộc
+  - 19.4. Phiên bản quyền và cửa sổ chậm thu hồi
+  - 19.5. Nhất quán giữa nhiều bản sao dịch vụ và nhiều kho dữ liệu
+  - 19.6. Thay đổi đồng thời và tránh mất cập nhật quan hệ quyền
+  - 19.7. Truy vấn phân cấp lớn và giới hạn chi phí đánh giá
+  - 19.8. Đánh giá quyền hàng loạt mà vẫn giữ đúng phạm vi tài nguyên
+  - 19.9. Hành vi khi kho quyền hoặc bộ quyết định không sẵn sàng
+  - 19.10. Đo độ trễ quyết định cùng tác động của lỗi và tải cao
+- level1: 20. Khai phá và tinh gọn vai trò
+  level2:
+  - 20.1. Thu thập quyền thực tế và dữ liệu sử dụng để đánh giá
+  - 20.2. Khai phá vai trò từ mẫu quyền hiện hữu
+  - 20.3. Phân biệt phổ biến với hợp lệ khi dữ liệu cũ có quyền thừa
+  - 20.4. Phát hiện vai trò trùng, gần trùng và không còn sử dụng
+  - 20.5. Phát hiện vai trò quá rộng hoặc người dùng có quá nhiều vai trò
+  - 20.6. Giảm bùng nổ vai trò bằng phạm vi và mô hình kết hợp
+  - 20.7. Đánh giá vai trò bằng nhiệm vụ nghiệp vụ và ý kiến chủ sở hữu
+  - 20.8. Hợp nhất hoặc tách vai trò với kế hoạch chuyển đổi
+  - 20.9. Đo giảm quyền thừa mà vẫn đáp ứng công việc hợp lệ
+- level1: 21. Kiểm toán và giải thích
+  level2:
+  - 21.1. Ai có thể làm gì trên tài nguyên nào và vì sao
+  - 21.2. Truy vết chuỗi gán người dùng, vai trò, phân cấp và quyền
+  - 21.3. Tái dựng quyền hiệu lực tại thời điểm sự kiện
+  - 21.4. Ghi nhận tạo vai trò, sửa quyền, gán, kích hoạt và thu hồi
+  - 21.5. Phát hiện thay đổi đặc quyền, ngoại lệ và xung đột phân tách nhiệm vụ
+  - 21.6. Rà soát người sở hữu cùng người giữ vai trò
+  - 21.7. Phân biệt có quyền với đã thực sự dùng quyền
+  - 21.8. Bảo vệ nhật ký và giới hạn dữ liệu danh tính được lưu
+  - 21.9. Chỉ số quyền thừa, quyền tạm thời quá hạn và độ trễ thu hồi
+- level1: 22. RBAC và mô hình kết hợp
+  level2:
+  - 22.1. So sánh RBAC với ACL và cấp quyền trực tiếp
+  - 22.2. Khi thuộc tính tài nguyên hoặc ngữ cảnh vượt khả năng vai trò thuần túy
+  - 22.3. Kết hợp RBAC với ABAC cho điều kiện và phạm vi
+  - 22.4. Kết hợp RBAC với quan hệ sở hữu hoặc chia sẻ theo ReBAC
+  - 22.5. Vai trò trong chính sách truy cập thích ứng và Zero Trust
+  - 22.6. Phân biệt vai trò với scope hoặc capability
+  - 22.7. Giữ một nguồn ngữ nghĩa rõ cho từng lớp quyết định
+  - 22.8. Giải quyết xung đột và giải thích quyền trong mô hình kết hợp
+  - 22.9. Chọn mức phức tạp phù hợp thay vì tạo vai trò cho mọi điều kiện
+- level1: 23. Triển khai và chuyển đổi
+  level2:
+  - 23.1. Kiểm kê quyền hiện tại và các đường thực thi
+  - 23.2. Xây dựng danh mục quyền cùng ma trận vai trò
+  - 23.3. Đối chiếu dữ liệu cũ và đánh giá tác động từng nhóm người dùng
+  - 23.4. Chạy mô phỏng hoặc so sánh quyết định trước khi siết quyền
+  - 23.5. Triển khai theo chức năng, khách hàng hoặc nhóm vai trò
+  - 23.6. Chuyển từ quyền trực tiếp sang vai trò mà không bỏ sót ngoại lệ
+  - 23.7. Phê duyệt cấu hình và kiểm soát thay đổi như mã nguồn
+  - 23.8. Phương án quay lui không khôi phục quyền đã bị thu hồi hợp lệ
+  - 23.9. Đào tạo chủ vai trò, quản trị viên và đội hỗ trợ
+  - 23.10. Tiêu chí nghiệm thu về đúng quyền, khả dụng và khả năng kiểm toán
+- level1: 24. Sai lầm và rủi ro
+  level2:
+  - 24.1. Kiểm tra tên vai trò rải rác thay vì định nghĩa quyền nhất quán
+  - 24.2. Vai trò quản trị toàn năng và quyền mặc định quá rộng
+  - 24.3. Sao chép chức danh tổ chức thành vai trò kỹ thuật máy móc
+  - 24.4. Gộp vai trò với phạm vi làm bùng nổ số lượng vai trò
+  - 24.5. Bỏ sót quyền kế thừa khi đánh giá xung đột
+  - 24.6. Tin cậy claim vai trò chưa xác minh hoặc vai trò do trình duyệt gửi
+  - 24.7. Thu hồi gán vai trò nhưng giữ quyền trong token hoặc bộ nhớ đệm quá lâu
+  - 24.8. Chỉ bảo vệ chức năng mà không kiểm tra đối tượng và khách hàng
+  - 24.9. Cho người quản trị tự mở rộng quyền thông qua sửa vai trò
+  - 24.10. Đo tính hoàn chỉnh bằng số vai trò thay vì hành vi truy cập thực tế
+- level1: 25. Kiểm thử và thực hành
+  level2:
+  - 25.1. Thiết kế ma trận người dùng–vai trò–quyền cho hệ thống mẫu
+  - 25.2. Kiểm thử cho phép và từ chối đối với từng hành động nhạy cảm
+  - 25.3. Kiểm thử nhiều vai trò, vai trò rỗng và người dùng không có vai trò
+  - 25.4. Kiểm thử phân cấp nhiều cha, chu trình và quyền được suy ra
+  - 25.5. Kiểm thử SSD, DSD và quy tắc giao dịch không tự phê duyệt
+  - 25.6. Kiểm thử thời hạn, phạm vi, khách hàng và ủy quyền quản trị
+  - 25.7. Kiểm thử đổi vai trò trong phiên và độ trễ vô hiệu hóa bộ nhớ đệm
+  - 25.8. Mô phỏng thay đổi đồng thời và kho quyền không khả dụng
+  - 25.9. Đối chiếu quyền đã thiết kế với hành vi API và tầng dữ liệu
+  - 25.10. Hoàn thiện hồ sơ vai trò, bằng chứng kiểm thử và quy trình rà soát

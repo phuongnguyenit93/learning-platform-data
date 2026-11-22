@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phiên làm việc
+  slug: shell-sessions
+  index: 1
+- title: Thực thi lệnh
+  slug: command-execution
+  index: 2
+- title: Đường dẫn
+  slug: paths
+  index: 3
+- title: Biến và phạm vi
+  slug: variables-and-scope
+  index: 4
+- title: Biến môi trường
+  slug: environment-variables
+  index: 5
+- title: PATH và tìm lệnh
+  slug: path-command-lookup
+  index: 6
+- title: Trích dẫn và ký tự
+  slug: quoting-and-escaping
+  index: 7
+- title: Mở rộng biểu thức
+  slug: expression-expansion
+  index: 8
+- title: Tham số và đối số
+  slug: parameters-and-arguments
+  index: 9
+- title: Luồng và chuyển hướng
+  slug: streams-and-redirection
+  index: 10
+- title: Pipeline và ghép lệnh
+  slug: pipelines-and-command-chaining
+  index: 11
+- title: Xử lý dữ liệu
+  slug: data-processing
+  index: 12
+- title: Mã thoát và lỗi
+  slug: exit-codes-and-errors
+  index: 13
+- title: Cấu trúc script
+  slug: script-structure
+  index: 14
+- title: Điều kiện và vòng lặp
+  slug: conditions-and-loops
+  index: 15
+- title: Hàm và thư viện
+  slug: functions-and-libraries
+  index: 16
+- title: Tiến trình và tác vụ
+  slug: processes-and-jobs
+  index: 17
+- title: Tín hiệu và dọn dẹp
+  slug: signals-and-cleanup
+  index: 18
+- title: Tương tác terminal
+  slug: terminal-interaction
+  index: 19
+- title: Cấu hình khởi động
+  slug: startup-configuration
+  index: 20
+- title: Môi trường Windows
+  slug: windows-environment
+  index: 21
+- title: PowerShell
+  slug: powershell
+  index: 22
+- title: CMD và batch
+  slug: cmd-and-batch
+  index: 23
+- title: Ngôn ngữ và mã hóa
+  slug: localization-and-encoding
+  index: 24
+- title: Quyền và danh tính
+  slug: permissions-and-identity
+  index: 25
+- title: Môi trường công cụ
+  slug: tool-environments
+  index: 26
+- title: Gọi từ ứng dụng
+  slug: application-invocation
+  index: 27
+- title: Tự động hóa
+  slug: automation
+  index: 28
+- title: Môi trường từ xa
+  slug: remote-environments
+  index: 29
+- title: Tính di động
+  slug: portability
+  index: 30
+- title: Bảo mật
+  slug: security
+  index: 31
+- title: Chẩn đoán
+  slug: troubleshooting
+  index: 32
+- title: Kiểm thử
+  slug: testing
+  index: 33
+- title: Thực hành
+  slug: hands-on-exercises
+  index: 34
+- title: Đánh giá script
+  slug: script-review
+  index: 35

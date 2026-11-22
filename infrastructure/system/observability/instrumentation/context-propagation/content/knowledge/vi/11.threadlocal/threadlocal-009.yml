@@ -1,0 +1,3 @@
+menuLevel1: ThreadLocal
+menuLevel2: Dữ liệu dùng chung có thể thay đổi và lỗi cạnh tranh
+status: ''

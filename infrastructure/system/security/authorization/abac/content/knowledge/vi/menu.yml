@@ -1,0 +1,324 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - ABAC là gì và bài toán phân quyền theo thuộc tính
+  - Phân biệt xác thực, phân quyền và đánh giá chính sách
+  - Vì sao quyền tĩnh khó đáp ứng ngữ cảnh thay đổi
+  - Chủ thể, tài nguyên, hành động và môi trường
+  - Thuộc tính và chính sách khác nhau như thế nào
+  - So sánh ABAC với ACL, RBAC, ReBAC và PBAC
+  - Lợi ích, chi phí và trường hợp không cần dùng ABAC
+  - Ví dụ xuyên suốt và lộ trình học
+- level1: Mô hình quyết định
+  level2:
+  - 'Mô hình yêu cầu: chủ thể–hành động–tài nguyên–ngữ cảnh'
+  - Quyết định cho phép, từ chối và kết quả đánh giá mở rộng
+  - Mặc định từ chối và nguyên tắc đặc quyền tối thiểu
+  - Phân biệt có thuộc tính với thỏa điều kiện chính sách
+  - Phạm vi áp dụng và điều kiện của một quy tắc
+  - Quyền truy cập là hàm của dữ liệu và chính sách tại một thời điểm
+  - Tách quyết định quyền khỏi thao tác nghiệp vụ
+  - Bất biến bảo mật và ranh giới tin cậy của hệ thống
+- level1: Thiết kế thuộc tính
+  level2:
+  - Đặt tên, không gian tên và định nghĩa ý nghĩa thuộc tính
+  - 'Kiểu dữ liệu: chuỗi, số, thời gian, boolean và định danh'
+  - Thuộc tính đơn trị, đa trị và tập giá trị
+  - Phân biệt không có thuộc tính, giá trị null và tập rỗng
+  - Giá trị chuẩn hóa, chữ hoa–thường và định dạng thời gian
+  - Thuộc tính gốc, thuộc tính dẫn xuất và quan hệ phụ thuộc
+  - Độ nhạy cảm, nguồn gốc và mức độ tin cậy của thuộc tính
+  - Schema, từ điển thuộc tính và chủ sở hữu dữ liệu
+  - Phiên bản thuộc tính và khả năng tương thích chính sách
+- level1: Thuộc tính chủ thể
+  level2:
+  - Danh tính ổn định, trạng thái tài khoản và loại chủ thể
+  - Phòng ban, chức danh, nhóm và tư cách thành viên
+  - Vai trò và quyền được cấp như dữ liệu đầu vào cho ABAC
+  - Mức độ xác thực, độ tin cậy thiết bị và phiên truy cập
+  - Quan hệ lao động, chứng nhận và điều kiện đủ tư cách
+  - Người dùng, service account và danh tính workload
+  - Người gọi trực tiếp và người dùng được đại diện
+  - Giới hạn tin cậy của claims trong token và dữ liệu phía máy khách
+- level1: Thuộc tính tài nguyên
+  level2:
+  - Định danh, loại tài nguyên và phạm vi tổ chức
+  - Chủ sở hữu, đơn vị quản lý và người chịu trách nhiệm
+  - Phân loại dữ liệu, độ nhạy cảm và nhãn bảo mật
+  - Trạng thái nghiệp vụ và giai đoạn vòng đời tài nguyên
+  - Khu vực lưu trữ, vùng địa lý và phạm vi sử dụng
+  - Tài nguyên cha–con và thuộc tính kế thừa
+  - Thuộc tính được dẫn xuất từ nội dung hoặc quan hệ
+  - Ngăn người dùng tự sửa nhãn để mở rộng quyền
+- level1: Hành động và ngữ cảnh
+  level2:
+  - Xây dựng danh mục hành động theo nghiệp vụ
+  - Ánh xạ thao tác kỹ thuật với quyền xem, sửa, chia sẻ và phê duyệt
+  - Thời điểm truy cập, múi giờ và khoảng thời gian hiệu lực
+  - Địa chỉ mạng, vị trí và giới hạn tin cậy của tín hiệu mạng
+  - Thiết bị, kênh truy cập và môi trường thực thi
+  - Mức độ rủi ro và điều kiện xác thực bổ sung
+  - Mục đích sử dụng dữ liệu và ngữ cảnh giao dịch
+  - Ngăn máy khách giả mạo thuộc tính môi trường
+- level1: Nguồn thuộc tính
+  level2:
+  - Nguồn dữ liệu có thẩm quyền và nguồn dữ liệu tham khảo
+  - Lấy thuộc tính từ IdP, thư mục, cơ sở dữ liệu và hệ thống nghiệp vụ
+  - Thuộc tính được gửi kèm yêu cầu và thuộc tính được truy vấn bổ sung
+  - Thu thập thuộc tính theo mô hình push, pull và kết hợp
+  - Xác thực nguồn phát hành và bảo vệ toàn vẹn khi truyền
+  - Giải quyết nhiều nguồn cung cấp cùng một thuộc tính
+  - Phân biệt dữ liệu không tồn tại với nguồn dữ liệu bị lỗi
+  - Hợp đồng độ mới, độ tin cậy và độ sẵn sàng của nguồn
+- level1: Vòng đời thuộc tính
+  level2:
+  - Cấp phát thuộc tính khi tạo tài khoản hoặc tài nguyên
+  - Cập nhật theo sự kiện nghiệp vụ và thay đổi tổ chức
+  - Thu hồi, hết hạn và xóa thuộc tính không còn hợp lệ
+  - Người dùng chuyển nhóm, nghỉ việc hoặc bị khóa tài khoản
+  - Thay đổi nhãn tài nguyên và tác động đến quyền đang có
+  - Đồng bộ dữ liệu, đối soát và xử lý sai lệch nguồn
+  - Dấu thời gian, phiên bản và bằng chứng nguồn gốc dữ liệu
+  - Rà soát thuộc tính mồ côi, không được dùng hoặc có ý nghĩa trùng nhau
+- level1: Biểu thức chính sách
+  level2:
+  - Biểu diễn quy tắc bằng điều kiện trên thuộc tính
+  - So sánh bằng, khác, lớn hơn và quan hệ thứ tự
+  - Kết hợp AND, OR, NOT và quy tắc ưu tiên toán tử
+  - Kiểm tra thành viên, giao tập, tập con và phép lượng hóa
+  - Điều kiện ngày giờ, khoảng giá trị và mẫu chuỗi
+  - So sánh thuộc tính chủ thể với thuộc tính tài nguyên
+  - Chuyển kiểu dữ liệu và nguy cơ so sánh sai ý nghĩa
+  - Hàm hỗ trợ, thuộc tính dẫn xuất và giới hạn tác dụng phụ
+  - Viết điều kiện dễ đọc, dễ kiểm thử và tránh phủ định phức tạp
+- level1: Ngữ nghĩa đánh giá
+  level2:
+  - Tìm chính sách phù hợp với loại yêu cầu và tài nguyên
+  - Thứ tự đánh giá và điều kiện dừng sớm
+  - Hành vi khi thiếu thuộc tính hoặc thuộc tính sai kiểu
+  - Phân biệt không áp dụng, từ chối rõ ràng và lỗi đánh giá
+  - Chuyển kết quả quyết định thành hành vi thực thi an toàn
+  - Nghĩa vụ bắt buộc và hành vi khi không thực hiện được
+  - Thông tin tư vấn và yêu cầu bổ sung đi kèm quyết định
+  - Không trộn ngữ nghĩa của các ngôn ngữ và bộ máy chính sách
+- level1: Kết hợp chính sách
+  level2:
+  - Nhiều quy tắc cùng áp dụng cho một yêu cầu
+  - 'Ưu tiên từ chối và ưu tiên cho phép: tác động bảo mật'
+  - Kết hợp theo thứ tự và nguy cơ phụ thuộc vị trí quy tắc
+  - Chính sách nền, chính sách cục bộ và ngoại lệ có giới hạn
+  - Điều kiện đồng thời giữa chính sách tổ chức và tài nguyên
+  - Xử lý xung đột và chính sách chồng lấn
+  - Kiểm tra quyền hiệu lực sau khi kết hợp nhiều nguồn
+- level1: Kiến trúc ABAC
+  level2:
+  - 'PEP: điểm chặn và thực thi quyết định quyền'
+  - 'PDP: nơi đánh giá chính sách và trả quyết định'
+  - 'PAP: quản trị, phê duyệt và phát hành chính sách'
+  - 'PIP: cung cấp thuộc tính phục vụ đánh giá'
+  - Kho chính sách và kho thuộc tính có trách nhiệm khác nhau
+  - Luồng xử lý một yêu cầu từ tiếp nhận đến thực thi
+  - Hợp đồng yêu cầu–phản hồi giữa PEP và PDP
+  - Tách mặt phẳng quản trị khỏi mặt phẳng quyết định
+- level1: Triển khai và thực thi
+  level2:
+  - Kiểm tra tại API Gateway, dịch vụ và tầng truy cập dữ liệu
+  - PDP tập trung, PDP nhúng, sidecar và mô hình kết hợp
+  - Thư viện nội bộ và rủi ro thiếu nhất quán giữa ứng dụng
+  - Kiểm tra mọi đường truy cập, kể cả endpoint phụ và API cũ
+  - Thực thi nghĩa vụ che dữ liệu, ghi dấu vết và giới hạn phạm vi
+  - Truy cập đồng bộ, tác vụ nền và luồng sự kiện
+  - Dịch vụ gọi thay người dùng và chống nhầm lẫn quyền hạn
+  - Subscription và kết nối kéo dài khi quyền thay đổi
+  - Giới hạn của việc chỉ ẩn nút hoặc kiểm tra tại giao diện
+- level1: Bảo vệ dữ liệu
+  level2:
+  - Phân quyền cấp đối tượng và điều kiện lọc bản ghi
+  - Phân quyền cấp trường và che giấu dữ liệu nhạy cảm
+  - Lọc trước truy vấn so với lọc sau khi tải dữ liệu
+  - Phân trang, tìm kiếm và thống kê trong phạm vi được phép
+  - Ánh xạ chính sách sang bộ lọc truy vấn và giới hạn biểu đạt
+  - Quyền tạo, cập nhật và chuyển trạng thái tài nguyên
+  - Batch, xuất dữ liệu và quyền trên từng phần tử
+  - Chỉ mục tìm kiếm, báo cáo và các bản sao dữ liệu dẫn xuất
+- level1: Cách ly tenant
+  level2:
+  - Tenant là thuộc tính và ranh giới cách ly bắt buộc
+  - Ràng buộc tenant của chủ thể, tài nguyên và yêu cầu
+  - Người dùng thuộc nhiều tenant và chuyển ngữ cảnh an toàn
+  - Không tin tenant_id do máy khách tự khai báo
+  - Chính sách nền không được bị ngoại lệ cục bộ vô hiệu hóa
+  - Chia sẻ xuyên tenant và quản trị toàn hệ thống có kiểm soát
+  - Cách ly tenant trong cache, nhật ký và phân phối chính sách
+- level1: Mô hình kết hợp
+  level2:
+  - RBAC xác định quyền nền và ABAC bổ sung điều kiện
+  - Vai trò theo phạm vi tài nguyên thay vì chỉ vai trò toàn cục
+  - Kết hợp ACL với điều kiện động theo ngữ cảnh
+  - Quan hệ sở hữu, thành viên và cộng tác trong ABAC
+  - 'ABAC và ReBAC: thuộc tính dẫn xuất từ quan hệ'
+  - Ánh xạ nhãn phân loại và yêu cầu kiểm soát bắt buộc
+  - Chọn ranh giới mô hình để tránh chính sách quá phức tạp
+- level1: Ủy quyền và đồng thuận
+  level2:
+  - Quyền của người đại diện và quyền của người được đại diện
+  - Giới hạn ủy quyền theo tài nguyên, hành động và thời hạn
+  - Ngăn người ủy quyền cấp quyền vượt quyền hiện có
+  - Đồng thuận của người dùng như một điều kiện có phạm vi
+  - Thay đổi mục đích sử dụng và hiệu lực đồng thuận
+  - Thu hồi ủy quyền, chia sẻ và quyền sử dụng tạm thời
+  - Phân biệt quyết định truy cập với quản lý vòng đời đồng thuận
+- level1: XACML
+  level2:
+  - Vai trò của XACML trong biểu diễn và trao đổi chính sách
+  - Request Context và các nhóm thuộc tính
+  - Rule, Policy, PolicySet và Target
+  - AttributeDesignator, AttributeSelector và tập giá trị
+  - Condition, kiểu dữ liệu và các hàm đánh giá
+  - Permit, Deny, NotApplicable và Indeterminate
+  - Các thuật toán kết hợp quy tắc và chính sách
+  - Obligation và Advice trong quá trình thực thi
+  - Profile, khả năng tương tác và giới hạn cần kiểm chứng
+- level1: Ngôn ngữ chính sách
+  level2:
+  - Phân biệt mô hình ABAC với ngôn ngữ và bộ máy thực thi
+  - Biểu diễn chính sách bằng dữ liệu cấu hình và bằng DSL
+  - Rego và mô hình đầu vào–dữ liệu–kết quả quyết định
+  - Cedar và mô hình principal–action–resource–context
+  - Schema, kiểm tra kiểu và giới hạn biểu đạt của ngôn ngữ
+  - Ngôn ngữ nhúng so với bộ máy đánh giá độc lập
+  - Quy ước kết quả, xử lý lỗi và hợp đồng của từng bộ máy
+  - Tiêu chí đánh giá tính dễ hiểu, kiểm thử và khả năng vận hành
+- level1: Thiết kế chính sách
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành bảng quyết định
+  - Bắt đầu từ bất biến và các tình huống phải từ chối
+  - Chia chính sách theo miền nghiệp vụ và loại tài nguyên
+  - Tái sử dụng quy tắc chung mà không che giấu ý nghĩa
+  - Giữ chính sách ngắn, có tên rõ và nguồn yêu cầu truy vết được
+  - Quản lý ngoại lệ, thời hạn ngoại lệ và chủ sở hữu phê duyệt
+  - Tài liệu hóa giả định, phụ thuộc thuộc tính và tình huống biên
+- level1: Phân phối chính sách
+  level2:
+  - Quản lý chính sách như mã nguồn có phiên bản
+  - Rà soát, phê duyệt và phân tách quyền chỉnh sửa–phát hành
+  - Đóng gói chính sách, schema và dữ liệu tham chiếu đồng bộ
+  - Xác thực nguồn, chữ ký và toàn vẹn gói chính sách
+  - Triển khai theo giai đoạn và theo dõi phiên bản tại từng PDP
+  - Cập nhật nguyên tử, rollback và bản chính sách tốt gần nhất
+  - Ngăn lệch phiên bản giữa chính sách, thuộc tính và ứng dụng
+- level1: Nhất quán và cache
+  level2:
+  - Độ mới của thuộc tính và độ mới của quyết định quyền
+  - Khóa cache bao gồm mọi đầu vào ảnh hưởng đến quyết định
+  - Thời hạn cache và sự kiện vô hiệu hóa
+  - Thu hồi quyền khi cache, replica hoặc token còn dữ liệu cũ
+  - Đồng bộ chính sách và thuộc tính trong hệ thống phân tán
+  - TOCTOU giữa thời điểm đánh giá và thao tác tài nguyên
+  - Tái kiểm tra quyền trong giao dịch và tác vụ kéo dài
+  - Phân biệt cache chính sách, cache thuộc tính và cache quyết định
+- level1: Hiệu năng
+  level2:
+  - Ngân sách độ trễ và chi phí trên đường truy cập
+  - Chọn chính sách ứng viên trước khi đánh giá điều kiện
+  - Tránh truy vấn thuộc tính lặp lại và vấn đề N+1
+  - Đánh giá theo lô cho danh sách và thao tác hàng loạt
+  - Tiền xử lý, biên dịch và đánh giá từng phần
+  - Giới hạn độ phức tạp biểu thức, đồ thị và dữ liệu đầu vào
+  - Benchmark với phân bố yêu cầu và dữ liệu gần thực tế
+- level1: Lỗi và khả dụng
+  level2:
+  - Timeout và lỗi khi gọi PDP hoặc nguồn thuộc tính
+  - Từ chối an toàn khi không xác định được quyền
+  - Phân biệt lỗi hệ thống với yêu cầu bị chính sách từ chối
+  - Dự phòng PDP và lựa chọn chính sách hợp lệ gần nhất
+  - Retry, circuit breaker và giới hạn tải
+  - Chế độ suy giảm có phạm vi rõ ràng và không tự mở quyền
+  - Mục tiêu độ trễ, độ sẵn sàng và độ trễ thu hồi quyền
+- level1: Bảo mật hệ thống ABAC
+  level2:
+  - Mô hình đe dọa cho PEP, PDP, PAP và PIP
+  - Giả mạo hoặc sửa thuộc tính để nâng quyền
+  - Bỏ qua PEP và các đường truy cập dữ liệu trực tiếp
+  - Chèn dữ liệu vào biểu thức và thực thi chính sách không đáng tin cậy
+  - Đầu vào gây cạn tài nguyên bộ máy đánh giá
+  - Chiếm quyền quản trị, thay chính sách và phát hành trái phép
+  - Bảo vệ giao tiếp, xác thực dịch vụ và giới hạn quyền vận hành
+  - Quyền khẩn cấp có phê duyệt, thời hạn và dấu vết
+- level1: Riêng tư và quản trị
+  level2:
+  - Thu thập tối thiểu thuộc tính cần cho quyết định
+  - Phân loại thuộc tính nhạy cảm và hạn chế người được xem
+  - Không ghi giá trị nhạy cảm đầy đủ trong log và thông báo lỗi
+  - Mục đích sử dụng, thời hạn lưu giữ và vòng đời dữ liệu
+  - Nguy cơ suy đoán thông tin từ quyết định cho phép hoặc từ chối
+  - Phân công chủ sở hữu thuộc tính, chính sách và điểm thực thi
+  - Rà soát định kỳ phạm vi quyền và chất lượng dữ liệu
+- level1: Chiến lược kiểm thử
+  level2:
+  - Ma trận chủ thể–tài nguyên–hành động–ngữ cảnh
+  - Ca cho phép, ca từ chối và ca không có chính sách phù hợp
+  - Thuộc tính thiếu, sai kiểu, hết hạn và nguồn dữ liệu bị lỗi
+  - Biên thời gian, múi giờ và thời điểm chuyển trạng thái
+  - Chính sách xung đột, ngoại lệ và thuật toán kết hợp
+  - Kiểm thử cách ly tenant và thay đổi thuộc tính để nâng quyền
+  - Kiểm thử tích hợp PEP–PDP–PIP và thực thi nghĩa vụ
+  - Kiểm thử cache lạc hậu, thu hồi quyền và cập nhật đồng thời
+  - Kiểm thử hiệu năng, quá tải và lỗi thành phần
+- level1: Phân tích chính sách
+  level2:
+  - Kiểm tra schema, cú pháp và kiểu trước khi phát hành
+  - Phát hiện quy tắc không thể đạt, dư thừa và chồng lấn
+  - Property-based testing cho bất biến bảo mật
+  - Mutation testing để phát hiện điều kiện bị bỏ sót
+  - So sánh quyết định giữa phiên bản cũ và mới
+  - 'Phân tích tác động: ai được thêm quyền và ai bị mất quyền'
+  - Phân biệt bằng chứng kiểm thử với mức bảo đảm của kiểm chứng hình thức
+- level1: Nhật ký và giải thích
+  level2:
+  - Ghi yêu cầu, kết quả và lý do quyết định ở mức phù hợp
+  - Truy vết phiên bản chính sách và nguồn thuộc tính đã dùng
+  - Giải thích quy tắc nào cho phép hoặc từ chối yêu cầu
+  - Phản hồi cho người dùng mà không tiết lộ chính sách nhạy cảm
+  - Liên kết dấu vết giữa PEP, PDP, PIP và thao tác nghiệp vụ
+  - Chỉ số độ trễ, tỷ lệ lỗi và biến động quyết định
+  - Phát hiện thay đổi quyền bất thường sau một lần phát hành
+  - Bảo vệ toàn vẹn, quyền truy cập và thời hạn lưu nhật ký
+- level1: Vận hành và sự cố
+  level2:
+  - Kiểm kê phiên bản chính sách, PDP và điểm thực thi đang chạy
+  - Phát hiện thuộc tính lỗi thời và nguồn dữ liệu sai lệch
+  - Phân tích lỗi cấp quyền quá rộng và lỗi từ chối sai
+  - Khoanh vùng theo chính sách, tenant, chủ thể và tài nguyên
+  - Rollback chính sách và vô hiệu hóa cache liên quan
+  - Bảo toàn bằng chứng và tái hiện quyết định lịch sử
+  - Bổ sung ca hồi quy và sửa quy trình quản trị sau sự cố
+- level1: Di trú sang ABAC
+  level2:
+  - Kiểm kê quyền hiện hữu và quy tắc nằm rải rác trong ứng dụng
+  - Xây từ điển thuộc tính và xác định nguồn có thẩm quyền
+  - Chọn miền nghiệp vụ thí điểm và bất biến cần bảo vệ
+  - Ánh xạ ACL hoặc RBAC hiện tại sang chính sách có kiểm soát
+  - Chạy shadow evaluation và phân tích chênh lệch quyết định
+  - Chuyển dần điểm thực thi, theo dõi tác động và rollback
+  - Loại bỏ quy tắc cũ sau khi xác minh đường truy cập mới
+- level1: Tình huống thiết kế
+  level2:
+  - 'Nhân sự: phòng ban, cấp quản lý và hồ sơ nhạy cảm'
+  - 'Y tế: quan hệ chăm sóc, mục đích sử dụng và truy cập khẩn cấp'
+  - 'Tài chính: hạn mức, trạng thái giao dịch và tách nhiệm vụ'
+  - 'SaaS nhiều tenant: gói dịch vụ, thành viên và tài nguyên dùng chung'
+  - 'Kho tài liệu: nhãn phân loại, chủ sở hữu và quyền chia sẻ'
+  - 'Workload: danh tính dịch vụ, môi trường và loại dữ liệu'
+  - 'Truy cập từ xa: thiết bị, thời gian và mức độ rủi ro'
+  - Phân tích khi nên kết hợp ABAC với RBAC hoặc ReBAC
+- level1: Thực hành
+  level2:
+  - Thiết kế miền dữ liệu và ma trận quyền cho một hệ thống tài liệu
+  - Xây schema thuộc tính và bộ dữ liệu kiểm thử
+  - Viết chính sách cho phép, từ chối và ngoại lệ có thời hạn
+  - Thiết kế hợp đồng quyết định và vị trí đặt PEP
+  - Tích hợp nguồn thuộc tính và xử lý dữ liệu thiếu hoặc lỗi thời
+  - Mô phỏng thu hồi quyền, cache lạc hậu và thay đổi nhãn tài nguyên
+  - Kiểm thử hồi quy và so sánh tác động khi đổi phiên bản chính sách
+  - Rà soát thiết kế từ yêu cầu nghiệp vụ đến bằng chứng kiểm thử

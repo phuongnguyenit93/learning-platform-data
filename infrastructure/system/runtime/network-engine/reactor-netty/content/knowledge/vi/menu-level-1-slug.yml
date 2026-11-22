@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng I/O
+  slug: io-fundamentals
+  index: 1
+- title: Reactive Streams
+  slug: reactive-streams
+  index: 2
+- title: Phụ thuộc và phiên bản
+  slug: dependencies-and-versions
+  index: 3
+- title: Kiến trúc runtime
+  slug: runtime-architecture
+  index: 4
+- title: Event loop và luồng
+  slug: event-loops-and-threads
+  index: 5
+- title: Khởi tạo và vòng đời
+  slug: startup-and-lifecycle
+  index: 6
+- title: Inbound và outbound
+  slug: inbound-and-outbound
+  index: 7
+- title: ByteBuf và bộ nhớ
+  slug: bytebuf-and-memory
+  index: 8
+- title: Pipeline và framing
+  slug: pipeline-and-framing
+  index: 9
+- title: TCP Server
+  slug: tcp-server
+  index: 10
+- title: TCP Client
+  slug: tcp-client
+  index: 11
+- title: HTTP Server
+  slug: http-server
+  index: 12
+- title: HTTP Client
+  slug: http-client
+  index: 13
+- title: Nội dung HTTP
+  slug: http-content
+  index: 14
+- title: Connection pool
+  slug: connection-pool
+  index: 15
+- title: Thời hạn và hủy
+  slug: timeouts-and-cancellation
+  index: 16
+- title: Lỗi và thử lại
+  slug: errors-and-retries
+  index: 17
+- title: TLS và bảo mật
+  slug: tls-and-security
+  index: 18
+- title: DNS, proxy và địa chỉ
+  slug: dns-proxies-and-addresses
+  index: 19
+- title: HTTP/2
+  slug: http2
+  index: 20
+- title: HTTP/3 và QUIC
+  slug: http3-and-quic
+  index: 21
+- title: WebSocket
+  slug: web-socket
+  index: 22
+- title: UDP
+  slug: udp
+  index: 23
+- title: Backpressure và tải
+  slug: backpressure-and-load
+  index: 24
+- title: Metrics và tracing
+  slug: metrics-and-tracing
+  index: 25
+- title: Log và chẩn đoán
+  slug: logging-and-diagnostics
+  index: 26
+- title: Tích hợp Spring
+  slug: spring-integration
+  index: 27
+- title: Kiểm thử
+  slug: testing
+  index: 28
+- title: Hiệu năng
+  slug: performance
+  index: 29
+- title: Vận hành tài nguyên
+  slug: resource-operations
+  index: 30
+- title: Sai lầm thường gặp
+  slug: common-pitfalls
+  index: 31
+- title: Thực hành
+  slug: hands-on-exercises
+  index: 32
+- title: Đánh giá thiết kế
+  slug: design-review
+  index: 33

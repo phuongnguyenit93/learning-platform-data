@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan JWT
+  slug: jwt-overview
+  index: 0
+- title: Nền tảng tin cậy
+  slug: trust-fundamentals
+  index: 1
+- title: Cấu trúc JWT
+  slug: jwt-structure
+  index: 2
+- title: JOSE và biểu diễn
+  slug: jose-representations
+  index: 3
+- title: Header JOSE
+  slug: jose-headers
+  index: 4
+- title: Thiết kế claims
+  slug: claims-design
+  index: 5
+- title: Claims tiêu chuẩn
+  slug: standard-claims
+  index: 6
+- title: Hợp đồng token
+  slug: token-contracts
+  index: 7
+- title: Thuật toán chữ ký
+  slug: signature-algorithms
+  index: 8
+- title: Mã hóa JWE
+  slug: jwe-encryption
+  index: 9
+- title: JWT lồng nhau
+  slug: nested-jwts
+  index: 10
+- title: Khóa và JWKS
+  slug: keys-and-jwks
+  index: 11
+- title: Cấp phát token
+  slug: token-issuance
+  index: 12
+- title: Xác minh token
+  slug: token-validation
+  index: 13
+- title: JWT và phân quyền
+  slug: jwt-authorization
+  index: 14
+- title: OAuth và OIDC
+  slug: oauth-oidc
+  index: 15
+- title: Lưu trữ và truyền
+  slug: token-storage-and-transport
+  index: 16
+- title: Vòng đời token
+  slug: token-lifecycle
+  index: 17
+- title: Chống phát lại
+  slug: replay-prevention
+  index: 18
+- title: Ranh giới dịch vụ
+  slug: service-boundaries
+  index: 19
+- title: Tấn công JWT
+  slug: jwt-attacks
+  index: 20
+- title: Dữ liệu và riêng tư
+  slug: data-and-privacy
+  index: 21
+- title: Tích hợp thư viện
+  slug: library-integration
+  index: 22
+- title: Kiểm thử bảo mật
+  slug: security-testing
+  index: 23
+- title: Hiệu năng và vận hành
+  slug: performance-and-operations
+  index: 24
+- title: Liên thông và di trú
+  slug: interoperability-and-migration
+  index: 25
+- title: Thực hành tổng hợp
+  slug: hands-on-exercise
+  index: 26

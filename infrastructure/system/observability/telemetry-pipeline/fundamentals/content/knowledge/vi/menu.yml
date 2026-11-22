@@ -1,0 +1,253 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Telemetry là gì và vì sao cần một pipeline riêng
+  - Vai trò của pipeline giữa ứng dụng và hệ thống phân tích
+  - Phân biệt tạo dữ liệu, vận chuyển dữ liệu và lưu trữ dữ liệu
+  - Các thành phần nguồn, bộ thu, bộ xử lý và đích nhận
+  - Vòng đời một bản ghi telemetry từ lúc phát sinh đến lúc truy vấn
+  - Phân biệt pipeline telemetry với ETL, luồng sự kiện nghiệp vụ và hệ thống cảnh báo
+  - Các yêu cầu chức năng và ràng buộc vận hành của pipeline
+  - Lộ trình học và cách đọc sơ đồ pipeline
+- level1: Tín hiệu telemetry
+  level2:
+  - 'Logs: bản ghi sự kiện và thông điệp chẩn đoán'
+  - 'Metrics: chuỗi thời gian, phép đo và các loại đại lượng'
+  - 'Traces: trace, span và quan hệ nhân quả giữa các thao tác'
+  - 'Events và profiles: vai trò và yêu cầu thu thập riêng'
+  - Phân biệt một bản ghi, một lô dữ liệu và một chuỗi thời gian
+  - Thuộc tính của tín hiệu, tài nguyên và phạm vi đo đạc
+  - Nhãn, chiều dữ liệu và số tổ hợp giá trị (cardinality)
+  - Thời điểm sự kiện, thời điểm quan sát và độ chính xác đồng hồ
+  - Phân biệt dữ liệu nguồn, dữ liệu đã xử lý và dữ liệu tổng hợp
+  - Mối quan hệ giữa loại tín hiệu và cách thiết kế pipeline
+- level1: Hợp đồng dữ liệu
+  level2:
+  - Mô hình dữ liệu chuẩn và ranh giới với định dạng truyền tải
+  - Cấu trúc trường, kiểu dữ liệu, giá trị thiếu và giá trị rỗng
+  - Định danh dịch vụ, phiên bản, môi trường và thực thể phát sinh dữ liệu
+  - Quy ước tên, đơn vị đo và ý nghĩa của thuộc tính
+  - Ngữ nghĩa tích lũy và chênh lệch của metrics
+  - Cấu trúc histogram và yêu cầu tương thích khi chuyển đổi
+  - Định danh trace, span, sự kiện và quy tắc biểu diễn
+  - Phiên bản schema và khả năng tương thích khi thay đổi
+  - Rủi ro mất ngữ nghĩa khi chuyển đổi giữa các mô hình dữ liệu
+- level1: Thu thập dữ liệu
+  level2:
+  - Đo đạc trong ứng dụng và thu thập ngoài ứng dụng
+  - Vai trò của SDK, agent và collector
+  - Mô hình đẩy (push), mô hình kéo (pull) và cách lựa chọn
+  - Thu thập logs từ tệp, luồng chuẩn và hệ thống ghi nhật ký
+  - Điểm đọc, xoay vòng tệp và nguy cơ đọc thiếu hoặc đọc trùng logs
+  - Thu thập metrics qua scrape và qua bộ xuất dữ liệu
+  - Chu kỳ thu thập, thời gian chờ và nguy cơ bỏ lỡ phép đo
+  - Thu thập traces và giới hạn của pipeline đối với dữ liệu chưa được tạo
+  - Thu thập dữ liệu từ máy chủ, container và nền tảng điều phối
+  - Phát hiện nguồn dữ liệu và xử lý nguồn có vòng đời ngắn
+  - Tác động của hoạt động thu thập lên ứng dụng nguồn
+- level1: Mô hình triển khai
+  level2:
+  - Agent tại nguồn, sidecar và bộ thu dùng chung trên mỗi nút
+  - Gateway tập trung và điểm tập hợp dữ liệu
+  - Kết hợp agent với gateway theo nhiều tầng
+  - Pipeline trực tiếp và pipeline có tầng trung gian lưu bền
+  - Phân vùng pipeline theo tín hiệu, môi trường và khu vực
+  - Triển khai tại chỗ, trên đám mây và trong môi trường kết hợp
+  - Ranh giới mạng, vùng tin cậy và vị trí đặt bộ xử lý
+  - Tránh đường thu thập trùng và vòng lặp xuất nhập dữ liệu
+  - Đánh đổi giữa đơn giản, độ trễ, chi phí và khả năng chịu lỗi
+- level1: Truyền tải dữ liệu
+  level2:
+  - Phân biệt giao thức tiếp nhận, giao thức nội bộ và giao thức xuất dữ liệu
+  - OTLP và vai trò của giao thức telemetry dùng chung
+  - HTTP và gRPC trong kết nối truyền dữ liệu
+  - Định dạng văn bản, JSON và mã hóa nhị phân
+  - Đóng gói lô, nén dữ liệu và giới hạn kích thước thông điệp
+  - Kết nối dài hạn, tái sử dụng kết nối và chi phí thiết lập
+  - Timeout, keepalive và phát hiện kết nối không còn hoạt động
+  - Giới hạn băng thông, proxy và các điểm trung gian mạng
+  - Đàm phán tương thích và kiểm tra phản hồi của đích nhận
+- level1: Xử lý dữ liệu
+  level2:
+  - Chuỗi xử lý và ý nghĩa của thứ tự các bước
+  - Phân tích cú pháp logs có cấu trúc và không có cấu trúc
+  - Ghép nhiều dòng thành một bản ghi và giới hạn bộ nhớ
+  - Chuẩn hóa tên trường, kiểu dữ liệu, đơn vị và thời gian
+  - Bổ sung metadata từ tài nguyên và môi trường triển khai
+  - Tra cứu dữ liệu bổ sung và tác động của phụ thuộc bên ngoài
+  - Biến đổi thuộc tính và tránh ghi đè thông tin nguồn ngoài ý muốn
+  - Lọc dữ liệu tại nguồn và trong các tầng pipeline
+  - Tổng hợp dữ liệu theo cửa sổ thời gian và chiều dữ liệu
+  - 'Chuyển đổi tín hiệu: tạo metrics từ logs hoặc spans'
+  - Xử lý bản ghi không hợp lệ và tách luồng dữ liệu lỗi
+- level1: Tương quan dữ liệu
+  level2:
+  - Vai trò của tương quan logs, metrics và traces
+  - Truyền ngữ cảnh và ranh giới giữa ứng dụng với collector
+  - Trace ID, span ID và liên kết logs với thao tác phân tán
+  - Nhận diện cùng một dịch vụ và tài nguyên giữa các tín hiệu
+  - Exemplar và khả năng liên kết từ metrics đến trace
+  - Ngữ cảnh qua hàng đợi, tác vụ nền và lời gọi bất đồng bộ
+  - Baggage, thuộc tính nghiệp vụ và giới hạn lan truyền thông tin
+  - Ảnh hưởng của mất ngữ cảnh, lệch đồng hồ và lấy mẫu
+  - Kiểm tra tương quan mà không tạo liên kết sai
+- level1: Định tuyến dữ liệu
+  level2:
+  - Định tuyến theo tín hiệu, thuộc tính và môi trường
+  - Chia một luồng đến nhiều đích nhận
+  - Gom nhiều nguồn và chuẩn hóa trước khi xuất dữ liệu
+  - Nhân bản dữ liệu và phân biệt với chia tải giữa các đích
+  - Tách luồng ưu tiên cao và luồng có thể giảm chất lượng
+  - Định tuyến theo khách hàng và ranh giới dữ liệu
+  - Cân bằng tải theo bản ghi, kết nối và khóa định tuyến
+  - Giữ các spans cùng trace ở đúng điểm xử lý
+  - Đích dự phòng, chuyển vùng và nguy cơ gửi trùng
+- level1: Lấy mẫu dữ liệu
+  level2:
+  - Mục tiêu của lấy mẫu và đánh đổi với khả năng điều tra
+  - Phân biệt lấy mẫu, lọc bỏ và tổng hợp dữ liệu
+  - Lấy mẫu traces tại đầu luồng (head sampling)
+  - Lấy mẫu traces sau khi quan sát dữ liệu (tail sampling)
+  - Lấy mẫu theo xác suất, tỷ lệ cố định và thuộc tính
+  - Lấy mẫu nhất quán theo định danh trace
+  - Ưu tiên traces lỗi, chậm và các tình huống cần giữ lại
+  - Cửa sổ chờ, spans đến muộn và trace chưa đầy đủ
+  - Giới hạn bộ nhớ và phân phối tải khi lấy mẫu cuối luồng
+  - Độ lệch thống kê và cách diễn giải số liệu sau lấy mẫu
+- level1: Điều tiết luồng
+  level2:
+  - Tốc độ đầu vào, tốc độ xử lý và tốc độ đầu ra
+  - Áp lực ngược (backpressure) và cách lan truyền giữa các tầng
+  - Giới hạn tốc độ và hạn ngạch theo nguồn hoặc khách hàng
+  - Từ chối nhận dữ liệu và chủ động loại bớt dữ liệu khi quá tải
+  - Ưu tiên dữ liệu và tránh một nguồn chiếm hết năng lực
+  - Gom lô theo kích thước và thời gian chờ
+  - Cân bằng thông lượng với độ trễ của từng lô
+  - Giới hạn dữ liệu đang xử lý và số yêu cầu đồng thời
+  - Điều khiển bộ nhớ để tránh dừng tiến trình do quá tải
+- level1: Bộ đệm và lưu bền
+  level2:
+  - Bộ đệm trong bộ nhớ và hàng đợi lưu trên đĩa
+  - Hàng đợi có giới hạn và chính sách khi đầy
+  - Thời gian đích nhận gián đoạn và cách tính dung lượng đệm
+  - Tốc độ tích lũy dữ liệu và thời gian xử lý hết tồn đọng
+  - Nhật ký ghi trước (WAL) và khôi phục dữ liệu sau khởi động lại
+  - Điểm xác nhận, điểm đọc và quyền sở hữu dữ liệu trong hàng đợi
+  - Broker làm tầng tách rời bên phát và bên nhận
+  - Phân vùng, khóa phân vùng và thứ tự trong hàng đợi
+  - Tuổi dữ liệu trong bộ đệm và chính sách hết hạn
+  - Giới hạn của lưu bền trước lỗi đĩa, mất nút và mất vùng
+- level1: Ngữ nghĩa giao nhận
+  level2:
+  - Giao nhận tối đa một lần, ít nhất một lần và đúng một lần
+  - Phân biệt nhận yêu cầu, chấp nhận dữ liệu và lưu bền dữ liệu
+  - Mất phản hồi sau khi gửi thành công và trạng thái kết quả chưa rõ
+  - Phân biệt lỗi tạm thời, lỗi vĩnh viễn và lỗi do dữ liệu
+  - Thử lại với thời gian chờ tăng dần và độ lệch ngẫu nhiên
+  - Giới hạn số lần thử lại, tổng thời gian thử lại và tuổi dữ liệu
+  - Phản hồi thành công một phần và xử lý phần bị từ chối
+  - Tính lũy đẳng, định danh bản ghi và loại dữ liệu trùng
+  - Thứ tự giao nhận, xử lý song song và bản ghi đến muộn
+  - Phạm vi bảo đảm của từng chặng và bảo đảm toàn tuyến
+- level1: Khả năng chịu lỗi
+  level2:
+  - Xác định miền lỗi và loại bỏ điểm lỗi đơn
+  - Nhiều bản sao, kiểm tra sức khỏe và chuyển hướng lưu lượng
+  - Tách tài nguyên để giới hạn phạm vi ảnh hưởng của sự cố
+  - Ngắt mạch khi đích nhận lỗi và khôi phục kết nối có kiểm soát
+  - Đích chậm, đích ngừng hoạt động và lỗi mạng từng phần
+  - Xử lý điểm nghẽn tại một phân vùng hoặc một nhóm dữ liệu
+  - Suy giảm có kiểm soát và thứ tự ưu tiên khi thiếu tài nguyên
+  - Dừng tiến trình đúng cách và đẩy hết dữ liệu đang chờ
+  - Giới hạn khôi phục dữ liệu khi lỗi vượt quá năng lực dự phòng
+- level1: Bảo mật pipeline
+  level2:
+  - Mô hình đe dọa và các ranh giới tin cậy
+  - Mã hóa khi truyền và xác minh danh tính đích nhận
+  - Xác thực nguồn gửi bằng chứng thư, token hoặc khóa truy cập
+  - Phân quyền tiếp nhận, xử lý và xuất dữ liệu
+  - Quản lý bí mật, luân chuyển khóa và gia hạn chứng thư
+  - Phân đoạn mạng và giới hạn cổng tiếp nhận telemetry
+  - Dữ liệu đầu vào không đáng tin và giới hạn tài nguyên phân tích cú pháp
+  - Nguy cơ lộ dữ liệu qua lỗi, debug logs và luồng dữ liệu cách ly
+  - Kiểm soát truy cập dữ liệu đang đệm và dữ liệu phát lại
+- level1: Quản trị dữ liệu
+  level2:
+  - Trách nhiệm của bên phát, chủ pipeline và chủ hệ thống đích
+  - Phân loại dữ liệu nhạy cảm trước khi thu thập
+  - Thu thập tối thiểu và lựa chọn vị trí loại bỏ dữ liệu không cần thiết
+  - Vai trò của lọc, che giá trị và loại bỏ thông tin nhạy cảm
+  - Ngân sách thuộc tính, cardinality và hạn ngạch theo khách hàng
+  - Thời hạn giữ dữ liệu tại bộ đệm và tại hệ thống đích
+  - Vị trí lưu chuyển dữ liệu và ràng buộc theo khu vực
+  - Truy vết cấu hình, quyết định xử lý và trách nhiệm kiểm toán
+- level1: Chất lượng dữ liệu
+  level2:
+  - Độ đầy đủ, độ chính xác, tính nhất quán và độ mới
+  - Phân biệt thiếu dữ liệu tại nguồn với mất dữ liệu trong pipeline
+  - Kiểm tra schema, kiểu dữ liệu, trường bắt buộc và đơn vị
+  - Phát hiện dấu thời gian bất thường và đồng hồ sai lệch
+  - Chuỗi thời gian trùng, reset bộ đếm và ngữ nghĩa phép đo
+  - Trace đứt đoạn, spans mồ côi và quan hệ cha con không hợp lệ
+  - Metadata không nhất quán và bùng nổ số lượng giá trị thuộc tính
+  - Đo mức sai lệch do lấy mẫu, lọc và tổng hợp
+  - Quản lý dữ liệu bị cách ly và điều kiện đưa trở lại pipeline
+- level1: Hiệu năng và chi phí
+  level2:
+  - Ước lượng lưu lượng từ số nguồn và tốc độ phát sinh dữ liệu
+  - Phân biệt số bản ghi, số byte và số chuỗi thời gian
+  - Tính chi phí CPU, bộ nhớ, đĩa và băng thông theo từng tầng
+  - Ngân sách độ trễ và các thành phần gây chờ
+  - Độ lớn lô, mức nén và chi phí xử lý
+  - Khả năng xử lý song song và giới hạn do thứ tự dữ liệu
+  - Mở rộng dọc, mở rộng ngang và phân phối lại tải
+  - Dung lượng dự phòng cho tăng đột biến và xử lý tồn đọng
+  - Tối ưu chi phí truyền mạng, lưu trữ và dữ liệu giá trị thấp
+  - Đo hiệu năng theo tải thực tế và tránh kết luận từ số trung bình
+- level1: Giám sát pipeline
+  level2:
+  - Các chỉ số đầu vào, đầu ra, từ chối và loại bỏ dữ liệu
+  - Đo chiều dài hàng đợi, tuổi dữ liệu và mức sử dụng bộ đệm
+  - Thông lượng, độ trễ xử lý và độ trễ toàn tuyến
+  - Theo dõi lỗi xuất dữ liệu, thử lại và thành công một phần
+  - Quan sát CPU, bộ nhớ, dung lượng đĩa và kết nối mạng
+  - Thiết lập SLI và SLO cho việc giao nhận telemetry
+  - Dữ liệu kiểm chứng định kỳ và phát hiện pipeline im lặng
+  - Dashboard và cảnh báo theo triệu chứng cùng nguyên nhân
+  - Tách kênh giám sát pipeline để giảm điểm mù khi pipeline lỗi
+  - Đối soát đầu vào và đầu ra có xét lấy mẫu, lọc và biến đổi
+- level1: Cấu hình và thay đổi
+  level2:
+  - Tách cấu hình nguồn thu, xử lý, định tuyến và xuất dữ liệu
+  - Quản lý cấu hình theo môi trường và tái sử dụng có kiểm soát
+  - Kiểm tra cấu hình trước khi triển khai
+  - Thay đổi schema và phối hợp phiên bản giữa các tầng
+  - Nạp lại cấu hình và thay đổi cần khởi động tiến trình
+  - Triển khai từng phần, chạy đối chiếu và tránh đếm dữ liệu hai lần
+  - Nâng cấp khi có hàng đợi lưu bền và dữ liệu đang xử lý
+  - Quay lui cấu hình và giới hạn khôi phục dữ liệu đã biến đổi
+  - Kiểm soát thay đổi quy tắc lấy mẫu, định tuyến và bảo mật
+- level1: Kiểm thử và sự cố
+  level2:
+  - Bộ dữ liệu kiểm thử đại diện cho từng tín hiệu
+  - Kiểm thử phân tích cú pháp, biến đổi và thứ tự xử lý
+  - Kiểm thử hợp đồng giữa nguồn, pipeline và đích nhận
+  - Kiểm thử toàn tuyến với dữ liệu có định danh đối soát
+  - Kiểm thử tải ổn định, tăng đột biến và chạy dài hạn
+  - Mô phỏng mất mạng, đích chậm, lỗi chứng thư và đầy đĩa
+  - Kiểm thử khởi động lại, phục hồi hàng đợi và dừng tiến trình
+  - Chẩn đoán mất dữ liệu, dữ liệu trùng và dữ liệu đến chậm
+  - Phát lại dữ liệu cách ly với kiểm soát lũy đẳng và giới hạn tải
+  - Runbook sự cố và cách kiểm chứng pipeline đã phục hồi
+- level1: Thiết kế thực hành
+  level2:
+  - Chuyển yêu cầu quan sát thành yêu cầu thu thập và giao nhận
+  - Lập bản đồ nguồn, tín hiệu, đích nhận và chủ sở hữu
+  - Xác định hợp đồng dữ liệu và các ranh giới tin cậy
+  - Chọn mô hình triển khai theo tải, độ trễ và ngân sách mất dữ liệu
+  - Thiết kế pipeline cho một ứng dụng và một đích nhận
+  - Mở rộng đến nhiều dịch vụ, nhiều tín hiệu và nhiều đích
+  - Thiết kế pipeline nhiều khách hàng với cô lập tài nguyên
+  - Lựa chọn vai trò công cụ theo năng lực thay vì theo tên sản phẩm
+  - Đối chiếu thiết kế khi mất đích nhận hoặc mất một tầng thu thập
+  - Đánh giá thiết kế bằng hợp đồng dữ liệu, SLO và bằng chứng kiểm thử

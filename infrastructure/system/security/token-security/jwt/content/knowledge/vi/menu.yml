@@ -1,0 +1,343 @@
+menu:
+- level1: Tổng quan JWT
+  level2:
+  - JWT là gì và bài toán biểu diễn thông tin giữa các bên
+  - Vai trò của bên phát hành, bên giữ token và bên xác minh
+  - Luồng tin cậy từ cấp phát đến sử dụng và hết hiệu lực
+  - JWT là định dạng dữ liệu, không phải giao thức xác thực
+  - Phân biệt JWT, token truy cập, token làm mới và phiên đăng nhập
+  - Phân biệt JWT với token tham chiếu và mã định danh phiên
+  - Tính tự chứa và giới hạn của mô hình không lưu trạng thái
+  - Khi nên và không nên sử dụng JWT
+  - Bản đồ JWT, JOSE, khóa, claims và các hồ sơ ứng dụng
+- level1: Nền tảng tin cậy
+  level2:
+  - Phân biệt xác thực danh tính, phân quyền và toàn vẹn dữ liệu
+  - Chữ ký số, mã xác thực thông điệp và mã hóa bảo vệ những gì
+  - Ranh giới tin cậy giữa trình duyệt, ứng dụng và dịch vụ
+  - Token mang quyền truy cập và rủi ro khi bị chiếm đoạt
+  - Khóa đối xứng và cặp khóa bất đối xứng
+  - Nguồn danh tính, bên phát hành đáng tin cậy và đối tượng nhận
+  - Mô hình đe dọa trước khi chọn loại JWT
+  - 'Những điều JWT không tự bảo đảm: bí mật, thu hồi và chống phát lại'
+- level1: Cấu trúc JWT
+  level2:
+  - Ba thành phần header, payload và signature của JWT dạng JWS Compact
+  - Năm thành phần của JWT dạng JWE Compact
+  - JSON và mã hóa UTF-8 của header cùng tập claims
+  - Base64url, ký tự phân cách và sự khác biệt với Base64 thông thường
+  - Giải mã để xem dữ liệu và xác minh để thiết lập tin cậy
+  - Dữ liệu được ký và ý nghĩa của chuỗi byte gốc
+  - Ảnh hưởng của khoảng trắng, thứ tự thuộc tính và cách tuần tự hóa
+  - Kiểu dữ liệu JSON, giá trị null và thuộc tính bị thiếu
+  - Nhận diện token thiếu phần, thừa phần hoặc sai định dạng
+  - JWT không bảo vệ bí mật của payload chỉ bằng Base64url
+- level1: JOSE và biểu diễn
+  level2:
+  - Quan hệ giữa JWT, JWS, JWE, JWK và JWA
+  - JWS Compact Serialization và phạm vi sử dụng với JWT
+  - 'JWS JSON Serialization: dạng tổng quát và dạng rút gọn'
+  - JWE Compact Serialization và JWE JSON Serialization
+  - Header được bảo vệ và header không được bảo vệ trong JOSE
+  - Nhiều chữ ký hoặc nhiều bên nhận trong biểu diễn JSON
+  - JWT có chữ ký, JWT được mã hóa và Unsecured JWT
+  - Phạm vi chấp nhận biểu diễn theo hợp đồng của từng ứng dụng
+  - Các tùy chọn JOSE không thể mặc nhiên áp dụng cho JWT
+- level1: Header JOSE
+  level2:
+  - alg và danh sách thuật toán do bên xác minh cho phép
+  - typ và phân biệt các loại JWT theo mục đích sử dụng
+  - cty và nhận diện nội dung JWT lồng nhau
+  - kid và định danh khóa trong tập khóa đã tin cậy
+  - crit và xử lý tham số header quan trọng chưa được hỗ trợ
+  - jku và rủi ro tải tập khóa từ địa chỉ không tin cậy
+  - jwk và rủi ro tin vào khóa nhúng do bên gửi cung cấp
+  - x5c, x5u và quan hệ giữa chứng thư với quyết định tin cậy
+  - x5t và dấu vân tay chứng thư khi hồ sơ ứng dụng có sử dụng
+  - Giới hạn độ dài, kiểu dữ liệu và các tham số header được chấp nhận
+- level1: Thiết kế claims
+  level2:
+  - Claim là gì và quan hệ giữa claims với nghiệp vụ
+  - Registered claims, public claims và private claims
+  - Không gian tên và phòng tránh xung đột tên claim
+  - Thiết kế lược đồ claims và kiểm tra kiểu dữ liệu
+  - Chọn thông tin cần chứa và thông tin cần tra cứu bên ngoài
+  - Claims bắt buộc theo hợp đồng và claims chỉ mang tính bổ sung
+  - Ngăn bên yêu cầu tự gán claims đặc quyền
+  - Phiên bản lược đồ claims và tương thích với bên sử dụng
+  - Giới hạn kích thước và độ phức tạp của payload
+  - Xử lý claim trùng tên, tên khác hoa thường và dữ liệu mơ hồ
+- level1: Claims tiêu chuẩn
+  level2:
+  - 'iss: xác định và đối chiếu chính xác bên phát hành'
+  - 'sub: chủ thể và phạm vi duy nhất trong ngữ cảnh bên phát hành'
+  - 'aud: đối tượng nhận và dạng chuỗi hoặc mảng chuỗi'
+  - 'exp: thời điểm hết hạn và ranh giới chấp nhận token'
+  - 'nbf: thời điểm token bắt đầu có hiệu lực'
+  - 'iat: thời điểm phát hành và chính sách tuổi tối đa'
+  - 'NumericDate: giây tính từ Unix Epoch và lỗi nhầm mili giây'
+  - Đồng hồ UTC, sai lệch thời gian và khoảng dung sai
+  - 'jti: mã token và điều kiện để dùng chống phát lại hoặc thu hồi'
+  - Quan hệ và kiểm tra tính hợp lệ giữa các mốc thời gian
+  - Phân biệt claim chuẩn của JWT với claim riêng của từng giao thức
+- level1: Hợp đồng token
+  level2:
+  - Xác định mục đích và bên được quyền sử dụng token
+  - Danh sách bên phát hành, đối tượng nhận và loại token hợp lệ
+  - Ràng buộc thuật toán, khóa và kiểu JWT được chấp nhận
+  - Claims bắt buộc, kiểu dữ liệu và giới hạn giá trị
+  - Thời hạn, độ mới và chính sách sai lệch đồng hồ
+  - Quy tắc từ chối claims hoặc tham số không được hỗ trợ
+  - Quy tắc xác minh riêng cho từng mục đích sử dụng
+  - Phân biệt người dùng, ứng dụng và danh tính máy trong claims
+  - Tài liệu hóa hợp đồng giữa bên phát hành và các bên xác minh
+- level1: Thuật toán chữ ký
+  level2:
+  - HMAC và nhóm thuật toán HS256, HS384, HS512
+  - RSA PKCS#1 v1.5 và nhóm thuật toán RS256, RS384, RS512
+  - RSA-PSS và nhóm thuật toán PS256, PS384, PS512
+  - ECDSA và nhóm thuật toán ES256, ES384, ES512
+  - EdDSA và kiểm tra khả năng hỗ trợ của hồ sơ, thư viện và hệ thống
+  - Lựa chọn thuật toán theo mô hình phân phối và bảo vệ khóa
+  - Entropy của khóa HMAC và nguy cơ dùng mật khẩu làm khóa
+  - Kích thước khóa, đường cong và ràng buộc tương thích thuật toán
+  - Định dạng chữ ký ECDSA trong JOSE và lỗi chuyển đổi giữa hệ thống
+  - Chống nhầm lẫn giữa khóa đối xứng và khóa bất đối xứng
+  - alg=none và chính sách từ chối token không được bảo vệ trong luồng xác thực
+  - Phân biệt chữ ký hợp lệ với token hợp lệ theo ngữ cảnh
+- level1: Mã hóa JWE
+  level2:
+  - Khi nào payload JWT cần được bảo vệ bí mật
+  - Phân biệt alg quản lý khóa với enc mã hóa nội dung
+  - Khóa mã hóa nội dung và cơ chế bảo vệ khóa đó
+  - Mã hóa xác thực và kiểm tra tính toàn vẹn của JWE
+  - IV, nonce và authentication tag trong quy trình mã hóa
+  - Phân phối khóa cho một hoặc nhiều bên nhận
+  - Ràng buộc thuật toán mã hóa được phép và khả năng liên thông
+  - Không chấp nhận cơ chế mã hóa yếu hoặc không phù hợp hồ sơ
+  - Nén dữ liệu trước mã hóa và rủi ro rò rỉ qua độ dài
+  - Giới hạn bảo mật của JWE đối với metadata và bên nhận
+  - Trả lỗi giải mã an toàn và tránh tiết lộ chi tiết xử lý
+- level1: JWT lồng nhau
+  level2:
+  - Nested JWT là gì và những trường hợp cần kết hợp ký với mã hóa
+  - Ký rồi mã hóa và thứ tự kiểm tra tương ứng
+  - Mã hóa rồi ký và ý nghĩa khác biệt đối với các bên tham gia
+  - Vai trò của cty khi chứa một JWT bên trong
+  - Xác minh từng lớp bằng hợp đồng và khóa tương ứng
+  - Phân biệt bên ký, bên mã hóa và bên nhận
+  - Giới hạn số lớp lồng nhau và kích thước token
+  - Ngăn bỏ qua lớp bảo vệ hoặc nhầm nội dung bên trong
+- level1: Khóa và JWKS
+  level2:
+  - Vòng đời khóa từ sinh, phân phối đến ngừng sử dụng
+  - JWK và các thuộc tính kty, kid, use, key_ops, alg
+  - Tham số khóa công khai, khóa riêng và khóa đối xứng trong JWK
+  - JWKS và cách chọn đúng khóa để xác minh
+  - Nguồn JWKS đáng tin cậy và ràng buộc với bên phát hành
+  - Bảo vệ khóa ký bằng kho bí mật, KMS hoặc HSM
+  - Tách khóa theo môi trường, bên phát hành và mục đích token
+  - Xoay vòng khóa với khoảng chuyển tiếp giữa khóa cũ và khóa mới
+  - Bộ nhớ đệm JWKS, thời gian sống và xử lý kid chưa biết
+  - Giới hạn tần suất tải lại khóa và chống bão yêu cầu
+  - Xử lý mất kết nối nguồn khóa và tránh chấp nhận token khi không đủ bằng chứng
+  - Thu hồi khóa bị lộ và đánh giá các token chịu ảnh hưởng
+- level1: Cấp phát token
+  level2:
+  - Điều kiện xác thực trước khi phát hành JWT
+  - Thu thập claims từ các nguồn dữ liệu được tin cậy
+  - Chọn issuer, audience và subject đúng ngữ cảnh
+  - Thiết lập thời hạn phù hợp mức rủi ro
+  - Sinh jti bằng nguồn ngẫu nhiên phù hợp khi cần định danh token
+  - Chọn khóa ký và gắn kid theo quy tắc quản lý khóa
+  - Kiểm tra lược đồ claims trước khi ký
+  - Tránh phát hành token có quyền hoặc phạm vi vượt yêu cầu
+  - Giới hạn tần suất cấp phát và ghi nhận sự kiện an toàn
+  - Phân biệt tái phát hành, làm mới và đổi token
+- level1: Xác minh token
+  level2:
+  - Luồng xác minh từ dữ liệu đầu vào đến kết quả tin cậy
+  - Giới hạn kích thước và phân tích cú pháp an toàn
+  - Đọc header chưa tin cậy chỉ để áp dụng quy tắc chọn khóa có kiểm soát
+  - Chọn cấu hình xác minh từ ngữ cảnh tin cậy
+  - Kiểm tra thuật toán, loại khóa và nguồn khóa
+  - Xác minh chữ ký hoặc giải mã xác thực bằng thư viện phù hợp
+  - Kiểm tra typ và ngăn dùng nhầm loại token
+  - Kiểm tra iss, aud, sub và các claims bắt buộc
+  - Kiểm tra exp, nbf, iat theo chính sách thời gian
+  - Kiểm tra jti, trạng thái thu hồi hoặc ràng buộc bổ sung khi có
+  - Chỉ sử dụng claims sau khi hoàn tất toàn bộ kiểm tra
+  - Từ chối an toàn khi cấu hình thiếu, khóa lỗi hoặc kiểm tra thất bại
+  - Thiết kế thông báo lỗi cho bên gọi và nhật ký nội bộ
+  - Phân biệt thao tác decode với verify trong API thư viện
+- level1: JWT và phân quyền
+  level2:
+  - Claims danh tính và quyết định cho phép truy cập tài nguyên
+  - Biểu diễn scope, role và permission theo hợp đồng ứng dụng
+  - Giới hạn của quyền được chụp tại thời điểm cấp phát
+  - Kiểm tra quyền tại tài nguyên thay vì chỉ kiểm tra có JWT
+  - Ràng buộc quyền với audience, tenant và tài nguyên đích
+  - Kiểm tra quyền sở hữu đối tượng và tránh truy cập chéo người dùng
+  - Giới hạn tin cậy đối với claims do dịch vụ trung gian chuyển tiếp
+  - Phối hợp claims trong token với dữ liệu phân quyền cập nhật
+  - Thay đổi quyền khẩn cấp và chiến lược vô hiệu hóa token
+- level1: OAuth và OIDC
+  level2:
+  - Vai trò của JWT trong OAuth 2.0 và OpenID Connect
+  - Phân biệt access token, ID token và refresh token
+  - Vì sao access token không bắt buộc phải là JWT
+  - Vì sao ID token không dùng thay access token tại API
+  - Hồ sơ JWT access token và hợp đồng của máy chủ tài nguyên
+  - Claims và quy tắc xác minh riêng của ID token
+  - nonce, auth_time, acr, amr trong ngữ cảnh OIDC
+  - at_hash và c_hash khi luồng giao thức yêu cầu
+  - Discovery, issuer metadata và địa chỉ JWKS đáng tin cậy
+  - JWT assertion trong xác thực ứng dụng và cấp quyền
+  - Token exchange và tránh chuyển tiếp token sai đối tượng nhận
+  - Ranh giới giữa xác minh JWT và thực thi đầy đủ giao thức
+- level1: Lưu trữ và truyền
+  level2:
+  - Bearer token qua Authorization header trên kết nối HTTPS
+  - Vì sao không đặt JWT vào URL, query string hoặc địa chỉ chia sẻ
+  - Rủi ro lưu token trong localStorage và sessionStorage
+  - Token trong bộ nhớ và giới hạn trước mã độc chạy trong ứng dụng
+  - Cookie HttpOnly, Secure, SameSite và phạm vi Domain, Path
+  - Chống CSRF khi trình duyệt tự động gửi cookie
+  - XSS và những giới hạn của từng phương án lưu trữ token
+  - CORS và sự khác biệt với cơ chế xác thực token
+  - Ứng dụng di động, ứng dụng máy tính và kho lưu trữ bảo mật của hệ điều hành
+  - Proxy, lịch sử trình duyệt, referrer và các điểm làm lộ token
+  - Giới hạn kích thước header, cookie và hành vi của hạ tầng trung gian
+  - Phối hợp JWT với mô hình Backend for Frontend
+- level1: Vòng đời token
+  level2:
+  - Chọn thời hạn dựa trên rủi ro và yêu cầu trải nghiệm
+  - Token truy cập ngắn hạn và cơ chế làm mới riêng
+  - Refresh token không mặc nhiên là JWT
+  - Xoay vòng refresh token và phát hiện sử dụng lại
+  - Đăng xuất trên thiết bị và ý nghĩa đối với JWT đã phát hành
+  - Danh sách thu hồi theo jti và thời hạn lưu trạng thái
+  - Phiên bản phiên hoặc người dùng để vô hiệu hóa một nhóm token
+  - Thu hồi theo khóa ký và phạm vi ảnh hưởng
+  - Thay đổi mật khẩu, khóa tài khoản hoặc đổi quyền khi token còn hạn
+  - Phối hợp kiểm tra trạng thái tập trung với JWT tự chứa
+  - Xử lý yêu cầu đồng thời trong quá trình làm mới
+  - Quy trình ứng phó khi token truy cập hoặc refresh token bị lộ
+- level1: Chống phát lại
+  level2:
+  - Vì sao chữ ký hợp lệ không ngăn token bị sử dụng lại
+  - Phân biệt chống giả mạo, chống đánh cắp và chống phát lại
+  - jti kết hợp kho trạng thái dùng một lần
+  - Nonce, thời hạn ngắn và ràng buộc với ngữ cảnh yêu cầu
+  - Giới hạn của ràng buộc theo IP hoặc dấu vết thiết bị
+  - Token ràng buộc với bên gửi và ý nghĩa của proof of possession
+  - Claims cnf và quan hệ với khóa của bên giữ token
+  - DPoP và mTLS trong các hồ sơ hỗ trợ ràng buộc token
+  - Phân biệt JWT dùng một lần với token truy cập được phép tái sử dụng
+  - Đánh đổi giữa chống phát lại, trạng thái và tính sẵn sàng
+- level1: Ranh giới dịch vụ
+  level2:
+  - JWT tại API gateway và tại dịch vụ xử lý tài nguyên
+  - Xác minh ở biên và kiểm tra lại tại từng ranh giới tin cậy
+  - Chuyển tiếp token gốc và đổi sang token dành riêng cho dịch vụ đích
+  - Audience riêng cho từng API và ngăn token bị dùng chéo
+  - Tách danh tính người dùng khỏi danh tính dịch vụ
+  - Ủy quyền qua nhiều dịch vụ và bảo toàn ngữ cảnh chủ thể
+  - Claims tenant và ngăn rò rỉ quyền giữa các tổ chức
+  - Nhiều bên phát hành và ánh xạ cấu hình theo danh sách tin cậy
+  - Độ trễ cập nhật khóa, quyền và trạng thái thu hồi giữa các vùng
+  - JWT trong tác vụ nền, hàng đợi và yêu cầu xử lý kéo dài
+- level1: Tấn công JWT
+  level2:
+  - Giả mạo alg=none và bỏ qua xác minh chữ ký
+  - Algorithm confusion giữa HMAC và RSA
+  - Khóa HMAC yếu và thử đoán khóa ngoại tuyến
+  - Thao túng kid để truy cập tệp, truy vấn hoặc chọn nhầm khóa
+  - jku, x5u và tấn công SSRF hoặc thay thế nguồn khóa
+  - Khóa JWK nhúng không tin cậy và giả mạo bên phát hành
+  - Nhầm issuer, audience hoặc loại token giữa các luồng
+  - Cross-JWT confusion và thay token của ngữ cảnh khác
+  - Claims trùng tên, kiểu dữ liệu bất thường và khác biệt giữa bộ phân tích
+  - Bỏ qua exp, nbf hoặc xử lý sai đơn vị thời gian
+  - Đánh cắp token, phát lại và lạm dụng token chưa hết hạn
+  - Payload quá lớn, lồng sâu và làm cạn tài nguyên xác minh
+  - Rò rỉ dữ liệu qua lỗi, nhật ký, nén hoặc công cụ xem token
+  - Nhầm lẫn giữa xác thực thành công và quyền truy cập đối tượng
+- level1: Dữ liệu và riêng tư
+  level2:
+  - Payload JWT có chữ ký vẫn đọc được bởi người giữ token
+  - Nguyên tắc tối thiểu hóa dữ liệu nhận dạng cá nhân trong claims
+  - Không chứa mật khẩu, bí mật ứng dụng hoặc khóa riêng trong token
+  - Định danh ổn định, định danh theo cặp và khả năng liên kết người dùng
+  - Claims nhạy cảm và lựa chọn mã hóa hoặc tra cứu phía máy chủ
+  - Hạn chế thời gian tồn tại của dữ liệu đã đóng gói vào JWT
+  - Tránh sao chép token vào nhật ký, công cụ phân tích và báo cáo lỗi
+  - Che giấu token khi gỡ lỗi và sử dụng dữ liệu mẫu
+  - Quyền truy cập vào token và dữ liệu giải mã trong nội bộ hệ thống
+- level1: Tích hợp thư viện
+  level2:
+  - Tiêu chí chọn thư viện JOSE được duy trì và có kiểm thử bảo mật
+  - Kiểm tra thuật toán, biểu diễn và hồ sơ thư viện hỗ trợ
+  - Cấu hình danh sách thuật toán và claims bắt buộc một cách tường minh
+  - Tách cấu hình bên phát hành khỏi cấu hình bên xác minh
+  - Tách quy trình phát hành, xác minh và quyết định phân quyền
+  - Chuẩn hóa kết quả xác minh và kiểu lỗi trong ứng dụng
+  - Ngăn sử dụng API decode như bằng chứng xác thực
+  - Không tự viết thuật toán mật mã hoặc bộ xác minh chữ ký
+  - Quản lý phiên bản phụ thuộc và xử lý thông báo lỗ hổng
+  - Ví dụ tích hợp trung lập ngôn ngữ bằng luồng xử lý và mã giả
+- level1: Kiểm thử bảo mật
+  level2:
+  - Vector chuẩn và kiểm tra liên thông với bộ triển khai độc lập
+  - Token hợp lệ theo từng thuật toán và từng hồ sơ được hỗ trợ
+  - Thay header, payload hoặc chữ ký và xác minh kết quả từ chối
+  - Token thiếu phần, Base64url sai và JSON không hợp lệ
+  - Thuật toán ngoài danh sách, loại khóa sai và chữ ký sai
+  - iss, aud, typ hoặc claims bắt buộc bị thiếu và không khớp
+  - exp, nbf, iat tại ranh giới thời gian và khi đồng hồ lệch
+  - Claims trùng tên, sai kiểu và dữ liệu có độ sâu bất thường
+  - kid không biết, JWKS lỗi và thay đổi khóa trong lúc có yêu cầu
+  - Xoay vòng khóa, thu hồi token và sự cố lộ khóa
+  - Token bị dùng chéo dịch vụ, tenant hoặc mục đích
+  - Yêu cầu làm mới đồng thời và phát hiện refresh token bị tái sử dụng
+  - Kiểm tra chống phát lại khi hợp đồng yêu cầu dùng một lần
+  - Fuzzing, kiểm thử lỗi và bảo đảm thất bại theo hướng từ chối
+  - Kiểm tra không lộ token trong nhật ký và phản hồi lỗi
+- level1: Hiệu năng và vận hành
+  level2:
+  - Chi phí xác minh HMAC, RSA, ECDSA và EdDSA theo tải thực tế
+  - Kích thước token và tác động lên băng thông cùng giới hạn hạ tầng
+  - Bộ nhớ đệm khóa công khai và độ mới của JWKS
+  - Giới hạn độ dài, tốc độ yêu cầu và số lần thử xác minh
+  - Bộ nhớ đệm kết quả xác minh và ràng buộc thời hạn, thu hồi
+  - Đồng bộ đồng hồ và giám sát sai lệch giữa các hệ thống
+  - Chỉ số lỗi chữ ký, hết hạn, sai audience và không tìm thấy khóa
+  - Quan sát sự kiện bằng mã tham chiếu an toàn thay vì token đầy đủ
+  - Cảnh báo bất thường về kid, issuer và tỷ lệ lỗi
+  - Diễn tập xoay khóa, lộ khóa và gián đoạn nguồn JWKS
+  - Cân bằng bảo mật, độ trễ và tính sẵn sàng của quy trình xác minh
+- level1: Liên thông và di trú
+  level2:
+  - Ma trận thuật toán và kiểu khóa giữa các hệ thống
+  - Khác biệt về NumericDate, kiểu JSON và xử lý giá trị thiếu
+  - Biểu diễn khóa PEM, DER, JWK và lỗi chuyển đổi
+  - Tương thích chữ ký ECDSA giữa JOSE và API mật mã
+  - Thay đổi lược đồ claims bằng phiên bản và khoảng chuyển tiếp
+  - Di trú thuật toán hoặc khóa mà không mở rộng danh sách tin cậy tùy tiện
+  - Thay issuer, audience hoặc loại token với các bên sử dụng đang hoạt động
+  - Di trú giữa token tham chiếu và JWT theo yêu cầu thu hồi
+  - Đọc tiêu chuẩn JWT, bộ JOSE, hướng dẫn thực hành và hồ sơ giao thức
+- level1: Thực hành tổng hợp
+  level2:
+  - Quan sát một JWT mẫu và phân biệt nội dung đọc được với nội dung đã xác minh
+  - Xây dựng hợp đồng JWT cho một API có một bên phát hành
+  - Thiết kế cấp phát và xác minh với cặp khóa bất đối xứng
+  - Thực nghiệm thay đổi claims và phát hiện chữ ký không hợp lệ
+  - Mô phỏng lỗi audience, issuer, loại token và thời gian hiệu lực
+  - Thiết kế JWKS cùng quy trình xoay vòng khóa
+  - So sánh JWT ký với JWT mã hóa và JWT lồng nhau
+  - Thiết kế đăng xuất, làm mới và thu hồi theo kịch bản rủi ro
+  - Mô phỏng token bị đánh cắp và lựa chọn biện pháp giảm thiểu
+  - Thiết kế nhiều API hoặc nhiều tenant với ranh giới tin cậy rõ ràng
+  - Rà soát một cấu hình JWT bằng hợp đồng, mô hình đe dọa và bộ kiểm thử
+  - Đánh giá lựa chọn JWT trước yêu cầu thay đổi quyền tức thời

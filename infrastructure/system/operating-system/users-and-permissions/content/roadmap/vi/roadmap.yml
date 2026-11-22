@@ -1,0 +1,57 @@
+roadmap:
+- id: users-uids-account-files
+  title: Users, UIDs & Account Files
+  purpose: Hiểu danh tính người dùng Linux được biểu diễn bằng UID và các tệp tài khoản hệ thống.
+  objectives:
+  - Phân biệt username với UID và tài khoản hệ thống
+  - Đọc cấu trúc /etc/passwd và /etc/shadow
+  - Tra cứu danh tính bằng id, whoami và getent
+- id: groups-membership
+  title: Groups & Membership
+  purpose: Dùng nhóm để cấp quyền theo vai trò và quản lý thành viên mà không phải cấu hình từng người riêng lẻ.
+  objectives:
+  - Phân biệt primary group và supplementary groups
+  - Đọc /etc/group và /etc/gshadow
+  - Thực hành groupadd, usermod -aG và groups
+- id: account-lifecycle
+  title: Account Lifecycle
+  purpose: Tạo, sửa, khóa và ngừng sử dụng tài khoản theo vòng đời vận hành có kiểm soát.
+  objectives:
+  - Dùng useradd, usermod, userdel và passwd
+  - Thiết lập home directory, shell và account expiry
+  - Kiểm tra trạng thái bằng chage và passwd -S
+- id: file-ownership-mode
+  title: File Ownership & Mode
+  purpose: Kiểm soát truy cập tệp và thư mục bằng owner, group cùng các bit read, write, execute.
+  objectives:
+  - Đọc quyền rwx theo owner/group/other
+  - Thực hành chown, chgrp, chmod và umask
+  - Giải thích setuid, setgid và sticky bit
+- id: acl-default-permissions
+  title: ACL & Default Permissions
+  purpose: Cấp quyền chi tiết cho cá nhân hoặc nhóm bổ sung khi mô hình owner/group/other chưa đủ.
+  objectives:
+  - Đọc ACL với getfacl và sửa bằng setfacl
+  - Phân biệt access ACL với default ACL
+  - Giải thích ACL mask và quyền hiệu lực
+- id: authentication-pam
+  title: Authentication & PAM
+  purpose: Hiểu cách Linux xác minh danh tính qua password database và chuỗi module PAM có thể cấu hình.
+  objectives:
+  - Phân biệt authentication với authorization
+  - Giải thích vai trò PAM và pam_unix
+  - Nhận diện cấu hình login và password policy
+- id: sudo-least-privilege
+  title: sudo & Least Privilege
+  purpose: Cấp quyền quản trị theo nhu cầu công việc, giới hạn command và lưu dấu hoạt động có đặc quyền.
+  objectives:
+  - Đọc user/group rule trong sudoers
+  - Dùng visudo và nguyên tắc cấp quyền tối thiểu
+  - Kiểm tra sudo -l và log thực thi lệnh
+- id: audit-permission-troubleshooting
+  title: Audit & Permission Troubleshooting
+  purpose: Điều tra lỗi truy cập và rà soát cấu hình để giảm quyền dư thừa, tránh mở rộng quyền ngoài ý muốn.
+  objectives:
+  - Chẩn đoán permission denied bằng id, namei và getfacl
+  - Kiểm tra file owner, group, ACL và sudo policy
+  - Rà soát tài khoản không dùng và quyền còn tồn tại

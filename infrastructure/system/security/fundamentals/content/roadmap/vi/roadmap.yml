@@ -1,0 +1,50 @@
+roadmap:
+- id: muc-tieu-bao-mat
+  title: Mục tiêu bảo mật
+  purpose: Hiểu cần bảo vệ điều gì và vì sao.
+  objectives:
+  - Giải thích tính bí mật, toàn vẹn và sẵn sàng (CIA).
+  - Nhận diện tài sản cần bảo vệ và tác động khi bị xâm phạm.
+- id: rui-ro-va-moi-de-doa
+  title: Rủi ro và mối đe dọa
+  purpose: Ưu tiên biện pháp theo rủi ro thực tế.
+  objectives:
+  - Phân biệt mối đe dọa, lỗ hổng, khả năng xảy ra và tác động.
+  - Lập mô hình luồng dữ liệu và ranh giới tin cậy.
+- id: thiet-ke-an-toan
+  title: Thiết kế an toàn
+  purpose: Đưa bảo mật vào quyết định thiết kế từ đầu.
+  objectives:
+  - Áp dụng quyền tối thiểu và mặc định từ chối.
+  - Giải thích phòng vệ nhiều lớp và giảm bề mặt tấn công.
+- id: danh-tinh-va-truy-cap
+  title: Danh tính và truy cập
+  purpose: Kiểm soát ai được làm gì với tài nguyên.
+  objectives:
+  - Phân biệt định danh, xác thực và phân quyền.
+  - Liên hệ thông tin xác thực, phiên đăng nhập và quyền truy cập.
+- id: mat-ma-va-du-lieu
+  title: Mật mã và dữ liệu
+  purpose: Chọn đúng công cụ bảo vệ dữ liệu.
+  objectives:
+  - Phân biệt mã hóa, băm, MAC và chữ ký số.
+  - Giải thích vai trò của khóa và quản lý bí mật.
+  - Bảo vệ dữ liệu khi lưu trữ và truyền tải.
+- id: he-thong-va-ung-dung
+  title: Hệ thống và ứng dụng
+  purpose: Nhận diện điểm yếu trên các lớp của hệ thống.
+  objectives:
+  - Nhận diện rủi ro mạng, cấu hình, đầu vào và phụ thuộc.
+  - Chọn biện pháp gia cố hệ thống và phòng chống lừa đảo.
+- id: kiem-thu-va-lo-hong
+  title: Kiểm thử và lỗ hổng
+  purpose: Kiểm chứng biện pháp bảo vệ và xử lý điểm yếu.
+  objectives:
+  - Phân biệt rà soát thiết kế, quét lỗ hổng và kiểm thử bảo mật.
+  - Ưu tiên khắc phục và kiểm tra lại sau sửa lỗi.
+- id: giam-sat-va-ung-pho
+  title: Giám sát và ứng phó
+  purpose: Phát hiện sự cố và khôi phục hoạt động có kiểm soát.
+  objectives:
+  - Nhận diện dấu hiệu bất thường qua nhật ký và cảnh báo.
+  - Mô tả phát hiện, cô lập, xử lý, khôi phục và rút kinh nghiệm.

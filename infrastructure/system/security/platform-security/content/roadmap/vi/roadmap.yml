@@ -1,0 +1,49 @@
+roadmap:
+- id: pham-vi-rui-ro-nen-tang
+  title: Phạm vi & Rủi ro Nền tảng
+  purpose: Xác định tài sản, bề mặt tấn công và trách nhiệm bảo vệ trong hệ thống hạ tầng.
+  objectives:
+  - '- Kiểm kê host, cloud resource, cluster và service quan trọng.'
+  - '- Vẽ trust boundary và ưu tiên các rủi ro chính.'
+- id: identity-iam-rbac
+  title: Identity, IAM & RBAC
+  purpose: Kiểm soát ai hoặc workload nào có quyền thao tác trên nền tảng.
+  objectives:
+  - '- Phân biệt human identity, service identity và privileged access.'
+  - '- Thiết kế least privilege, MFA và role binding tối thiểu.'
+- id: hardening-patch-management
+  title: Hardening & Patch Management
+  purpose: Giảm cấu hình mặc định nguy hiểm và hạn chế thời gian tồn tại lỗ hổng đã biết.
+  objectives:
+  - '- Áp dụng security baseline cho OS, host và control plane.'
+  - '- Lập quy trình kiểm tra phiên bản, vá lỗi và phát hiện drift.'
+- id: network-segmentation
+  title: Network Segmentation
+  purpose: Hạn chế đường truy cập không cần thiết giữa Internet, ứng dụng và hạ tầng.
+  objectives:
+  - '- Thiết kế inbound/outbound rule theo deny-by-default.'
+  - '- Thử NetworkPolicy hoặc firewall rule theo luồng nghiệp vụ.'
+- id: secrets-data-protection
+  title: Secrets & Data Protection
+  purpose: Giữ thông tin nhạy cảm khỏi mã nguồn và bảo vệ dữ liệu trên đường truyền, nơi lưu trữ.
+  objectives:
+  - '- Quản lý secret với phân quyền, rotation và audit trail.'
+  - '- Phân biệt TLS in transit, encryption at rest và key management.'
+- id: container-runtime-security
+  title: Container & Runtime Security
+  purpose: Bảo vệ image, host và workload trong môi trường container hoặc Kubernetes.
+  objectives:
+  - '- Kiểm tra image nguồn gốc rõ ràng và các lỗ hổng đã biết.'
+  - '- Áp dụng non-root, Pod Security Standards và resource isolation.'
+- id: policy-secure-delivery
+  title: Policy & Secure Delivery
+  purpose: Đưa yêu cầu an toàn vào quy trình cấu hình, xét duyệt và triển khai nền tảng.
+  objectives:
+  - '- Kiểm tra IaC/container configuration trước khi release.'
+  - '- Thực thi policy-as-code, review thay đổi và kiểm tra ngoại lệ.'
+- id: monitoring-incident-response
+  title: Monitoring & Incident Response
+  purpose: Phát hiện sai lệch, theo dõi rủi ro tồn đọng và chuẩn bị ứng phó sự cố nền tảng.
+  objectives:
+  - '- Thu thập audit log, cảnh báo hành vi bất thường và kiểm tra quyền.'
+  - '- Thực hành runbook cô lập, khôi phục và rà soát sau sự cố.'

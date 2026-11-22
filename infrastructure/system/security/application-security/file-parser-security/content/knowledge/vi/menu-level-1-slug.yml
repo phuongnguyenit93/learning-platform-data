@@ -1,0 +1,130 @@
+menu:
+- title: Định hướng Parser Security
+  slug: parser-security-overview
+  index: 0
+- title: Bề mặt tấn công
+  slug: attack-surface
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 2
+- title: Định dạng và cấu trúc file
+  slug: file-formats-structure
+  index: 3
+- title: Biên giới tin cậy
+  slug: trust-boundaries
+  index: 4
+- title: Tiếp nhận file
+  slug: file-ingestion
+  index: 5
+- title: Nhận diện loại file
+  slug: file-type-detection
+  index: 6
+- title: Tên file và đường dẫn
+  slug: file-names-paths
+  index: 7
+- title: Kiểm soát upload
+  slug: upload-controls
+  index: 8
+- title: Giới hạn tài nguyên
+  slug: resource-limits
+  index: 9
+- title: Từ chối dịch vụ qua parser
+  slug: parser-denial-of-service
+  index: 10
+- title: Archive security
+  slug: archive-security
+  index: 11
+- title: Compression bomb
+  slug: compression-bombs
+  index: 12
+- title: XML parser security
+  slug: xml-parser-security
+  index: 13
+- title: JSON parser security
+  slug: json-parser-security
+  index: 14
+- title: YAML parser security
+  slug: yaml-parser-security
+  index: 15
+- title: CSV và bảng dữ liệu
+  slug: csv-tabular-formats
+  index: 16
+- title: Office và tài liệu
+  slug: office-documents
+  index: 17
+- title: Ảnh và media
+  slug: image-media-formats
+  index: 18
+- title: PDF và định dạng phức tạp
+  slug: pdf-complex-formats
+  index: 19
+- title: Serialization và deserialization
+  slug: serialization-deserialization
+  index: 20
+- title: Schema validation
+  slug: schema-validation
+  index: 21
+- title: Canonicalization
+  slug: canonicalization
+  index: 22
+- title: Encoding và Unicode
+  slug: encoding-unicode
+  index: 23
+- title: Parser differential
+  slug: parser-differentials
+  index: 24
+- title: SSRF từ nội dung file
+  slug: file-based-ssrf
+  index: 25
+- title: File tạm và lưu trữ
+  slug: temp-files-storage
+  index: 26
+- title: Cô lập parser
+  slug: parser-isolation
+  index: 27
+- title: Content disarm
+  slug: content-disarm
+  index: 28
+- title: Quét malware
+  slug: malware-scanning
+  index: 29
+- title: Xử lý sau khi parse
+  slug: post-parse-processing
+  index: 30
+- title: Logging và error handling
+  slug: logging-error-handling
+  index: 31
+- title: Java parser security
+  slug: java-parser-security
+  index: 32
+- title: Thư viện Java phổ biến
+  slug: common-java-libraries
+  index: 33
+- title: Quản lý dependency
+  slug: dependency-management
+  index: 34
+- title: Kiểm thử parser
+  slug: parser-testing
+  index: 35
+- title: Fuzzing và corpus
+  slug: fuzzing-test-corpus
+  index: 36
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 37
+- title: Giám sát vận hành
+  slug: operational-monitoring
+  index: 38
+- title: Phản ứng sự cố
+  slug: incident-response
+  index: 39
+- title: Tình huống thực hành
+  slug: hands-on-scenarios
+  index: 40
+- title: Checklist File Parser Security
+  slug: security-checklist
+  index: 41
+- title: Tổng kết và lộ trình áp dụng
+  slug: adoption-roadmap
+  index: 42

@@ -1,0 +1,586 @@
+menu:
+- level1: Tổng quan HMAC request auth
+  level2:
+  - HMAC request authentication là gì
+  - Bài toán xác thực request
+  - Client ký request
+  - Server xác minh request
+  - Mô hình khóa dùng chung
+  - Chữ ký request
+  - Message integrity
+  - Client authenticity
+  - Giới hạn mô hình HMAC
+  - Thuật ngữ cốt lõi
+- level1: Mô hình đe dọa
+  level2:
+  - Kẻ tấn công nghe lén
+  - Kẻ tấn công sửa request
+  - Kẻ tấn công phát lại
+  - Kẻ tấn công đoán secret
+  - Kẻ tấn công giả client
+  - Secret bị lộ
+  - Proxy không tin cậy
+  - Clock bị sai
+  - Replay store bị lỗi
+  - Giả định trust boundary
+- level1: Mô hình client server
+  level2:
+  - Client identity
+  - Server identity
+  - Credential pair
+  - Key identifier của client
+  - Shared secret
+  - Request sender
+  - Request receiver
+  - Authentication boundary
+  - Authorization sau authentication
+  - Luồng xử lý tổng thể
+- level1: HMAC
+  level2:
+  - HMAC là gì
+  - Hash function
+  - Secret key
+  - Message input
+  - MAC output
+  - HMAC và hash
+  - HMAC và encryption
+  - HMAC và digital signature
+  - Độ dài tag
+  - Chọn HMAC algorithm
+- level1: JCA Mac API
+  level2:
+  - javax.crypto.Mac
+  - Mac.getInstance
+  - Mac.init
+  - Mac.update
+  - Mac.doFinal
+  - Mac.reset
+  - SecretKeySpec
+  - InvalidKeyException
+  - NoSuchAlgorithmException
+  - Quản lý Mac instance
+- level1: Hash algorithm
+  level2:
+  - HMAC-SHA256
+  - HMAC-SHA384
+  - HMAC-SHA512
+  - HMAC-SHA3
+  - Algorithm strength
+  - Algorithm deprecation
+  - Provider support
+  - Algorithm name
+  - Crypto policy
+  - Kiểm thử algorithm
+- level1: Request signature
+  level2:
+  - Signature là gì
+  - Signature input
+  - Signature output
+  - Signature encoding
+  - Signature prefix
+  - Signature length
+  - Signature version
+  - Signature metadata
+  - Signature transport
+  - Kiểm tra signature format
+- level1: Request components
+  level2:
+  - Phương thức HTTP
+  - Request target
+  - Path
+  - Query string
+  - Headers
+  - Body
+  - Dấu thời gian
+  - Số dùng một lần
+  - Mã nhận diện khóa
+  - Thành phần bắt buộc
+- level1: Canonical request
+  level2:
+  - Canonical request là gì
+  - Mục tiêu canonicalization
+  - Canonical method
+  - Canonical path
+  - Canonical query
+  - Canonical headers
+  - Canonical body
+  - Canonical timestamp
+  - Canonical format version
+  - Kiểm tra chuỗi canonical
+- level1: HTTP method
+  level2:
+  - GET request
+  - POST request
+  - PUT request
+  - PATCH request
+  - DELETE request
+  - HEAD request
+  - OPTIONS request
+  - Method viết hoa
+  - Method không hỗ trợ
+  - Method trong signature
+- level1: URL và path
+  level2:
+  - URL parsing
+  - Path normalization
+  - Path encoding
+  - Path parameter
+  - Trailing slash
+  - Dot segment
+  - Double slash
+  - Percent encoding
+  - Unicode path
+  - Tránh path ambiguity
+- level1: Query canonicalization
+  level2:
+  - Query parameter
+  - Sắp xếp parameter
+  - Encode key
+  - Encode value
+  - Parameter lặp
+  - Parameter rỗng
+  - Dấu phân cách
+  - Query không có giá trị
+  - Query injection
+  - Kiểm thử canonical query
+- level1: Header canonicalization
+  level2:
+  - Header name lowercase
+  - Trim whitespace
+  - Collapse whitespace
+  - Header order
+  - Header lặp
+  - Signed header list
+  - Host header
+  - Content-Type header
+  - Header không được ký
+  - Kiểm thử canonical headers
+- level1: Body canonicalization
+  level2:
+  - Body bytes
+  - Content hash
+  - Empty body
+  - JSON body
+  - Form body
+  - Binary body
+  - Content encoding
+  - Body streaming
+  - Body bị thay đổi
+  - Kiểm thử canonical body
+- level1: Encoding chữ ký
+  level2:
+  - Base64 signature
+  - Base64url
+  - Hex signature
+  - Padding Base64
+  - Character encoding
+  - UTF-8
+  - Binary to text
+  - Decode signature
+  - Lỗi encoding
+  - Chọn format signature
+- level1: Ký request
+  level2:
+  - Tạo canonical request
+  - Khởi tạo Mac
+  - Tính HMAC
+  - Encode kết quả
+  - Tạo authorization header
+  - Thêm timestamp
+  - Thêm nonce
+  - Gửi request
+  - Ký lại khi retry
+  - Kiểm tra client signing
+- level1: Xác minh request
+  level2:
+  - Đọc authentication header
+  - Đọc key identifier
+  - Tải shared secret
+  - Tạo canonical server
+  - Tính expected signature
+  - So sánh signature
+  - Kiểm tra timestamp
+  - Kiểm tra nonce
+  - Tạo authentication result
+  - Từ chối request sai
+- level1: Constant-time comparison
+  level2:
+  - Timing attack
+  - So sánh constant-time
+  - MessageDigest.isEqual
+  - Không dùng equals tùy tiện
+  - So sánh cùng độ dài
+  - Xử lý signature null
+  - Timing trong error
+  - Kiểm thử thời gian
+  - Giới hạn đo timing
+  - Code review comparison
+- level1: Timestamp
+  level2:
+  - Timestamp request
+  - Đơn vị thời gian
+  - UTC
+  - Timestamp format
+  - Timestamp freshness
+  - Clock skew
+  - Cửa sổ thời gian
+  - Request tương lai
+  - Request quá cũ
+  - Kiểm thử timestamp
+- level1: Nonce
+  level2:
+  - Nonce là gì
+  - Nonce uniqueness
+  - Nonce randomness
+  - Nonce length
+  - Nonce store
+  - Nonce expiration
+  - Nonce trùng lặp
+  - Nonce theo client
+  - Nonce phân tán
+  - Kiểm thử nonce
+- level1: Replay protection
+  level2:
+  - Replay attack
+  - Dấu hiệu replay
+  - Timestamp chống replay
+  - Nonce chống replay
+  - Replay cache
+  - Replay database
+  - Atomic check and insert
+  - Replay trong cluster
+  - Replay khi retry
+  - Điều tra replay
+- level1: Idempotency
+  level2:
+  - Idempotency là gì
+  - Request identifier
+  - Idempotency key
+  - Retry an toàn
+  - POST và retry
+  - Response cache
+  - Duplicate request
+  - Idempotency store
+  - Idempotency theo client
+  - Kiểm thử idempotency
+- level1: Authorization header
+  level2:
+  - Thiết kế authorization scheme
+  - Key identifier field
+  - Signature field
+  - Signed headers field
+  - Timestamp field
+  - Nonce field
+  - Version field
+  - Header parsing
+  - Header injection
+  - Tài liệu header
+- level1: Key identifier
+  level2:
+  - Key ID là gì
+  - Mapping key với client
+  - Key ID format
+  - Unknown key ID
+  - Key ID rotation
+  - Key ID trong audit
+  - Key ID và tenant
+  - Không nhúng secret vào key ID
+  - Lookup key an toàn
+  - Kiểm thử key lookup
+- level1: Secret management
+  level2:
+  - Lưu shared secret
+  - Vault secret
+  - Secret encryption
+  - Secret access policy
+  - Secret injection
+  - Secret rotation
+  - Secret backup
+  - Secret recovery
+  - Không ghi secret ra log
+  - Audit secret access
+- level1: Credential lifecycle
+  level2:
+  - Tạo credential
+  - Kích hoạt credential
+  - Credential metadata
+  - Credential expiration
+  - Credential rotation
+  - Credential suspension
+  - Credential revocation
+  - Credential compromise
+  - Credential deletion
+  - Theo dõi trạng thái credential
+- level1: Key rotation
+  level2:
+  - Vì sao cần rotation
+  - Key version
+  - Active key
+  - Previous key
+  - Dual verification
+  - Client rollout
+  - Grace period
+  - Rollback rotation
+  - Rotation khẩn cấp
+  - Kiểm thử rotation
+- level1: Multi-client
+  level2:
+  - Nhiều client
+  - Secret riêng từng client
+  - Key ID riêng từng client
+  - Chính sách theo client
+  - Rate limit theo client
+  - Rotation theo client
+  - Thu hồi từng client
+  - Client chưa đăng ký
+  - Client disabled
+  - Kiểm kê client
+- level1: Multi-tenant
+  level2:
+  - Tenant trong authentication
+  - Secret theo tenant
+  - Key ID theo tenant
+  - Canonical tenant context
+  - Tenant isolation
+  - Tenant rotation
+  - Tenant revocation
+  - Tenant routing
+  - Tránh nhầm tenant
+  - Kiểm thử tenant
+- level1: Spring Security
+  level2:
+  - HMAC trong Spring Security
+  - SecurityFilterChain
+  - Authentication filter
+  - Authentication manager
+  - SecurityContext
+  - Authenticated principal
+  - GrantedAuthority
+  - Request matcher
+  - Exception translation
+  - Luồng Spring Security
+- level1: Custom authentication filter
+  level2:
+  - Khi nào cần custom filter
+  - Đọc request body
+  - Đọc authorization header
+  - Tạo authentication token
+  - Đặt SecurityContext
+  - Tiếp tục filter chain
+  - Từ chối request
+  - Đảm bảo filter order
+  - Xử lý exception
+  - Kiểm thử custom filter
+- level1: Spring MVC integration
+  level2:
+  - HMAC với Spring MVC
+  - OncePerRequestFilter
+  - HttpServletRequest
+  - ContentCachingRequestWrapper
+  - Controller authentication
+  - Request body trong MVC
+  - Error response MVC
+  - MockMvc testing
+  - Interceptor và filter
+  - Cấu hình MVC
+- level1: Spring WebFlux integration
+  level2:
+  - HMAC với WebFlux
+  - WebFilter
+  - ServerWebExchange
+  - Reactive request body
+  - Body caching reactive
+  - Reactive SecurityContext
+  - Reactive authentication
+  - WebTestClient
+  - Backpressure request body
+  - MVC và WebFlux khác nhau
+- level1: Gateway và proxy
+  level2:
+  - HMAC tại API gateway
+  - HMAC tại service
+  - Gateway ký lại request
+  - Proxy giữ nguyên path
+  - Proxy giữ nguyên header
+  - Forwarded header
+  - Hop-by-hop header
+  - TLS termination
+  - Trust gateway
+  - Kiểm thử qua proxy
+- level1: Error semantics
+  level2:
+  - 401 Unauthorized
+  - 403 Forbidden
+  - Thiếu authorization header
+  - Sai key ID
+  - Sai signature
+  - Timestamp không hợp lệ
+  - Nonce đã dùng
+  - Body không khớp
+  - Error response nhất quán
+  - Không lộ chi tiết secret
+- level1: Security logging
+  level2:
+  - Log authentication event
+  - Log key ID
+  - Log client ID
+  - Log request ID
+  - Không ghi secret
+  - Không log secret
+  - Log reason tổng quát
+  - Audit rotation
+  - Audit revocation
+  - Log correlation
+- level1: Monitoring
+  level2:
+  - Metric request hợp lệ
+  - Metric request bị từ chối
+  - Metric sai signature
+  - Metric replay
+  - Metric timestamp failure
+  - Metric key lookup
+  - Metric latency HMAC
+  - Alert authentication spike
+  - Dashboard client
+  - Theo dõi health
+- level1: Performance
+  level2:
+  - Chi phí HMAC
+  - Chi phí canonicalization
+  - Chi phí đọc body
+  - Chi phí key lookup
+  - Cache key metadata
+  - Reuse Mac an toàn
+  - Connection handling
+  - Throughput verification
+  - Load test
+  - Tối ưu đường đi request
+- level1: Testing HMAC
+  level2:
+  - Known signature test
+  - Wrong secret test
+  - Wrong key ID test
+  - Changed method test
+  - Changed path test
+  - Changed query test
+  - Changed header test
+  - Changed body test
+  - Expired timestamp test
+  - Replay test
+- level1: Contract testing
+  level2:
+  - Signature contract
+  - Canonicalization contract
+  - Header contract
+  - Error contract
+  - Version contract
+  - Client fixture
+  - Server fixture
+  - Cross-language fixture
+  - Compatibility test
+  - Contract regression
+- level1: Security testing
+  level2:
+  - Fuzz header parser
+  - Fuzz query parser
+  - Fuzz canonicalization
+  - Timing test
+  - Replay attack test
+  - Secret leakage test
+  - Path ambiguity test
+  - Unicode test
+  - Load abuse test
+  - Penetration test
+- level1: Algorithm agility
+  level2:
+  - Version algorithm
+  - Algorithm allowlist
+  - Ngừng thuật toán cũ
+  - Client capability
+  - Server capability
+  - Dual algorithm period
+  - Algorithm negotiation
+  - Migration signature
+  - Rollback algorithm
+  - Kiểm thử tương thích
+- level1: Incident response
+  level2:
+  - Secret compromise
+  - Client compromise
+  - Replay incident
+  - Signature bypass
+  - Thu hồi key khẩn cấp
+  - Rotate toàn bộ secret
+  - Chặn client
+  - Điều tra security log
+  - Thông báo sự cố
+  - Bài học sau sự cố
+- level1: Operations
+  level2:
+  - HMAC runbook
+  - Đăng ký client
+  - Cấp secret
+  - Rotate secret
+  - Thu hồi client
+  - Xử lý key lookup failure
+  - Xử lý clock drift
+  - Xử lý replay spike
+  - Backup key metadata
+  - Kiểm tra sau triển khai
+- level1: Migration
+  level2:
+  - Di trú scheme cũ
+  - Di trú canonical format
+  - Di trú header
+  - Xác minh song song
+  - Dual signing
+  - Triển khai client theo giai đoạn
+  - Đối soát request
+  - Rollback migration
+  - Ngừng scheme cũ
+  - Kiểm thử migration
+- level1: Anti-pattern HMAC
+  level2:
+  - Dùng secret chung mọi client
+  - Ký không bao phủ path
+  - Ký không bao phủ body
+  - Ký query không canonical
+  - So sánh signature bằng equals
+  - Không chống replay
+  - Log signature
+  - Hard-code secret
+  - Không rotate key
+  - Trộn authentication và authorization
+- level1: Thiết kế HMAC system
+  level2:
+  - Xác định threat model
+  - Chọn thành phần request
+  - Chọn canonical format
+  - Chọn thuật toán MAC
+  - Chọn encoding
+  - Chọn replay window
+  - Chọn nonce store
+  - Chọn key lifecycle
+  - Chọn error semantics
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Thiết kế signature scheme
+  - Viết client signer
+  - Viết server verifier
+  - Canonicalize HTTP request
+  - Thêm timestamp và nonce
+  - Thêm replay protection
+  - Tích hợp Spring Security
+  - Thêm key rotation
+  - Viết contract test
+  - Thêm monitoring
+  - Viết runbook vận hành
+- level1: Tổng kết HMAC authentication
+  level2:
+  - Bản đồ khái niệm
+  - Luồng ký và xác minh
+  - Checklist canonicalization
+  - Checklist key security
+  - Checklist replay protection
+  - Bước học tiếp theo

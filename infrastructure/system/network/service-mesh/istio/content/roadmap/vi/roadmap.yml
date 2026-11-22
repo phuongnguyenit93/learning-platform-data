@@ -1,0 +1,56 @@
+roadmap:
+- id: istio-service-mesh
+  title: Istio & Service Mesh
+  purpose: Hiểu vì sao service mesh quản lý giao tiếp giữa các dịch vụ mà không cần rải logic mạng vào từng ứng dụng.
+  objectives:
+  - Mô tả các khả năng traffic, bảo mật và telemetry của Istio.
+  - Phân biệt service mesh với API gateway và thư viện ứng dụng.
+- id: kien-truc-istio
+  title: Kiến trúc Istio
+  purpose: Nắm vai trò control plane và data plane để chọn mô hình triển khai phù hợp.
+  objectives:
+  - Giải thích istiod và proxy trong data plane.
+  - So sánh sidecar Envoy với ambient ztunnel và waypoint.
+  - Nhận biết tính năng L7 cần waypoint trong ambient.
+- id: cai-dat-ket-nap
+  title: Cài đặt & Kết nạp
+  purpose: Đưa workload Kubernetes vào mesh và xác nhận trạng thái kết nối cơ bản.
+  objectives:
+  - Cài Istio bằng phương án phù hợp môi trường thử nghiệm.
+  - Bật mesh cho namespace hoặc workload theo mode đã chọn.
+  - Xác minh proxy hoặc ztunnel tham gia mesh.
+- id: dinh-tuyen-dich-vu
+  title: Định tuyến dịch vụ
+  purpose: Điều khiển cách yêu cầu được chuyển đến phiên bản dịch vụ mà không sửa logic ứng dụng.
+  objectives:
+  - Thiết lập routing theo đường dẫn, header hoặc trọng số.
+  - Giải thích Gateway API và các API routing của Istio.
+  - Kiểm tra kết quả phân phối lưu lượng.
+- id: do-ben-luu-luong
+  title: Độ bền lưu lượng
+  purpose: Kiểm soát tác động của lỗi và thay đổi phiên bản khi giao tiếp giữa các dịch vụ.
+  objectives:
+  - Cấu hình timeout, retry và circuit breaking phù hợp.
+  - Thử fault injection để quan sát hành vi ứng dụng.
+  - Đánh giá rủi ro retry gây tải hoặc thao tác lặp.
+- id: ingress-egress
+  title: Ingress & Egress
+  purpose: Quản lý lưu lượng vào và ra khỏi mesh bằng cấu hình rõ ràng.
+  objectives:
+  - Mở dịch vụ qua ingress gateway và kiểm tra route.
+  - Xác định cách truy cập dịch vụ ngoài mesh.
+  - Phân biệt inbound, outbound và east-west traffic.
+- id: mtls-phan-quyen
+  title: mTLS & Phân quyền
+  purpose: Áp dụng danh tính workload và chính sách truy cập để giảm giao tiếp không được phép.
+  objectives:
+  - Kiểm tra mTLS, PeerAuthentication và chế độ STRICT.
+  - Viết AuthorizationPolicy cho đúng nguồn và dịch vụ đích.
+  - Kiểm thử yêu cầu được cho phép và bị từ chối.
+- id: quan-sat-chan-doan
+  title: Quan sát & Chẩn đoán
+  purpose: Dùng dữ liệu proxy và công cụ Istio để kiểm chứng và xử lý sự cố mesh.
+  objectives:
+  - Đọc metrics, access logs và distributed traces.
+  - Chạy istioctl analyze, proxy-status hoặc kiểm tra proxy config.
+  - Khoanh vùng lỗi 403/503, route sai và thiếu telemetry.

@@ -1,0 +1,7 @@
+# Security Security Design Threat Modeling
+
+Threat Modeling (mô hình hóa mối đe dọa) là quá trình có hệ thống để xác định điều gì có thể xảy ra với một thiết kế phần mềm, đánh giá mức độ rủi ro và lựa chọn biện pháp bảo vệ phù hợp. Hoạt động này nên diễn ra sớm trong vòng đời phát triển và được lặp lại khi kiến trúc thay đổi. Thay vì chỉ săn tìm lỗ hổng đã tồn tại, threat modeling giúp nhóm chủ động thảo luận về tài sản cần bảo vệ, luồng dữ liệu, các ranh giới tin cậy và hành vi của tác nhân tấn công.
+
+Module dành cho người đã biết khái niệm client–server, HTTP, cơ sở dữ liệu và kiến trúc ứng dụng cơ bản. Lộ trình bắt đầu bằng việc xác định phạm vi, tài sản và sơ đồ luồng dữ liệu (DFD), sau đó đánh dấu entry point cùng trust boundary. Tiếp theo, người học phân tích từng thành phần bằng STRIDE, mô tả misuse case và attack path, ưu tiên rủi ro dựa trên likelihood/impact, rồi đề xuất mitigation và yêu cầu kiểm thử cho các security controls.
+
+Sau khi hoàn thành, bạn có thể lập một threat model đơn giản cho ứng dụng mẫu với DFD, danh sách threat có lý do, mức ưu tiên, biện pháp kiểm soát, người phụ trách và bằng chứng xác minh. Threat model là tài liệu sống: cần review và cập nhật khi thêm tính năng, thay đổi luồng dữ liệu hoặc điều chỉnh kiến trúc; công cụ chỉ hỗ trợ quá trình phân tích, không thay thế trao đổi giữa các bên liên quan.

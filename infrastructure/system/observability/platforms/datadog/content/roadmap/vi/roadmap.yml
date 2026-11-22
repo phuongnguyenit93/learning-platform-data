@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-datadog
+  title: Tổng quan Datadog
+  purpose: Hiểu vai trò của Datadog như một nền tảng quan sát tập trung.
+  objectives:
+  - Nhận diện các nhóm tính năng chính.
+  - Chọn màn hình để theo dõi một vấn đề.
+- id: agent-tich-hop
+  title: Agent & tích hợp
+  purpose: Biết cách kết nối hạ tầng, dịch vụ và nguồn dữ liệu vào Datadog.
+  objectives:
+  - Mô tả luồng Agent gửi dữ liệu.
+  - Xác định integration phù hợp với một hệ thống.
+- id: metrics-tags
+  title: Metrics & tags
+  purpose: Đọc và phân tích sức khỏe hạ tầng, ứng dụng qua chỉ số và nhãn.
+  objectives:
+  - Tìm metric trong Metrics Explorer.
+  - Lọc và nhóm dữ liệu theo tags.
+- id: logs-explorer
+  title: Logs Explorer
+  purpose: Dùng log để tra cứu sự kiện và đối chiếu lỗi trong hệ thống.
+  objectives:
+  - Tìm log theo thời gian, service và status.
+  - Nhận biết vai trò của log pipeline và facets.
+- id: apm-traces
+  title: APM & traces
+  purpose: Theo dõi luồng yêu cầu để phát hiện dịch vụ chậm và vị trí lỗi.
+  objectives:
+  - Đọc latency, throughput và error rate.
+  - Phân tích một trace và các spans.
+- id: rum-synthetics
+  title: RUM & Synthetics
+  purpose: Đánh giá trải nghiệm thực và chủ động kiểm tra hành trình người dùng.
+  objectives:
+  - Phân biệt dữ liệu RUM và Synthetic test.
+  - Chọn kiểm tra API hoặc trình duyệt phù hợp.
+- id: dashboards-monitors
+  title: Dashboards & monitors
+  purpose: Trình bày tín hiệu trọng yếu và phát hiện bất thường có thể xử lý.
+  objectives:
+  - Tạo dashboard theo một câu hỏi vận hành.
+  - Xác định ngưỡng cảnh báo và nơi nhận thông báo.
+- id: dieu-tra-tong-hop
+  title: Điều tra tổng hợp
+  purpose: Kết hợp dữ liệu từ nhiều màn hình để tìm nguyên nhân và đề xuất cải tiến.
+  objectives:
+  - Lần theo một sự cố qua metrics, logs, traces.
+  - Đề xuất điều chỉnh cảnh báo và thu thập dữ liệu.

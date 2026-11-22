@@ -1,0 +1,326 @@
+menu:
+- level1: Nền tảng tracing
+  level2:
+  - Truy vết phân tán (distributed tracing) là gì và giải quyết vấn đề nào
+  - Hành trình của một yêu cầu qua nhiều dịch vụ
+  - Vai trò của tracing trong khả năng quan sát (observability)
+  - Phân biệt truy vết, nhật ký (logs), số đo (metrics) và đo hiệu năng chi tiết (profiling)
+  - Từ một thao tác người dùng đến các công việc bên trong hệ thống
+  - Khả năng nhìn thấy đường đi, thời gian và kết quả của công việc
+  - Khi nào tracing hữu ích và khi nào cần kết hợp tín hiệu khác
+  - 'Giới hạn của trace: dữ liệu quan sát không tự chứng minh nguyên nhân gốc'
+- level1: Mô hình trace
+  level2:
+  - 'Trace: tập hợp các span liên quan đến một luồng công việc'
+  - 'Span: đơn vị biểu diễn một thao tác có thời điểm bắt đầu và kết thúc'
+  - Mã trace (trace ID) và mã span (span ID)
+  - Span gốc, span cha và span con
+  - Quan hệ cha–con và quan hệ nhân quả
+  - Cây span và các quan hệ bổ sung bằng liên kết span (span links)
+  - Một trace qua nhiều tiến trình, máy chủ và vùng triển khai
+  - Nhiều trace thuộc cùng một hành trình nghiệp vụ
+  - Phân biệt trace ID, mã yêu cầu và mã giao dịch nghiệp vụ
+  - Giới hạn suy luận từ thứ tự xuất hiện của các span
+- level1: Vòng đời span
+  level2:
+  - Xác định ranh giới bắt đầu và kết thúc của một thao tác
+  - Tạo span, kích hoạt span và kết thúc span
+  - Span hiện tại (current span) và phạm vi đang hoạt động (scope)
+  - Phân biệt thời gian tồn tại của span với phạm vi kích hoạt ngữ cảnh
+  - Khôi phục span trước đó khi thoát khỏi phạm vi lồng nhau
+  - Kết thúc span khi thành công, thất bại hoặc bị hủy
+  - Kết thúc span bất đồng bộ tại thời điểm công việc thực sự hoàn tất
+  - Span không kết thúc, kết thúc hai lần và ghi dữ liệu sau khi kết thúc
+  - Quyền sở hữu vòng đời span giữa thư viện và mã ứng dụng
+- level1: Dữ liệu trong span
+  level2:
+  - Tên span và ý nghĩa của thao tác được mô tả
+  - Thời điểm bắt đầu, kết thúc và khoảng thời gian thực thi
+  - 'Thuộc tính (attributes): khóa, giá trị và kiểu dữ liệu'
+  - Sự kiện trong span (span events) và mốc diễn tiến quan trọng
+  - 'Liên kết span: ngữ cảnh được liên kết và thông tin đi kèm'
+  - 'Loại span (span kind): INTERNAL, SERVER, CLIENT, PRODUCER và CONSUMER'
+  - 'Trạng thái span (span status): UNSET, OK và ERROR'
+  - Thông tin ngoại lệ và quan hệ với trạng thái lỗi
+  - Tài nguyên (resource) mô tả nguồn phát sinh dữ liệu
+  - Phạm vi thư viện đo lường (instrumentation scope)
+  - Phân biệt dữ liệu nhận dạng thao tác và dữ liệu phục vụ chẩn đoán
+- level1: Ngữ cảnh truy vết
+  level2:
+  - Ngữ cảnh span (span context) và thông tin tối thiểu để liên kết
+  - Ngữ cảnh đang hoạt động trong một tiến trình
+  - Ngữ cảnh cục bộ và ngữ cảnh nhận từ tiến trình khác
+  - Cờ truy vết (trace flags) và thông tin trạng thái truyền kèm
+  - Ngữ cảnh hợp lệ, không hợp lệ và bị thiếu
+  - Tạo span con từ ngữ cảnh nhận vào
+  - Khởi tạo trace mới và chủ động thiết lập ranh giới trace
+  - Dữ liệu truyền kèm (baggage) và mục đích sử dụng
+  - Phân biệt baggage, thuộc tính span và thông tin tài nguyên
+  - Giới hạn thời gian sống và phạm vi sử dụng ngữ cảnh
+- level1: Truyền ngữ cảnh
+  level2:
+  - Lan truyền ngữ cảnh (context propagation) qua ranh giới hệ thống
+  - Vật mang ngữ cảnh (carrier), chèn dữ liệu (inject) và trích xuất (extract)
+  - Vai trò của bộ truyền ngữ cảnh (propagator)
+  - 'W3C Trace Context: vai trò của traceparent và tracestate'
+  - Truyền baggage và giới hạn dữ liệu được chia sẻ
+  - Ngữ cảnh qua HTTP headers, siêu dữ liệu RPC và thuộc tính thông điệp
+  - Khi proxy hoặc cổng giao tiếp làm mất thông tin truy vết
+  - Tương thích định dạng truyền và ảnh hưởng của cấu hình không đồng nhất
+  - Xử lý ngữ cảnh thiếu, sai định dạng hoặc không đáng tin
+  - Ranh giới tin cậy giữa phía khách, dịch vụ nội bộ và đối tác
+  - Truyền ngữ cảnh khi mã chạy được đo lường tự động hoặc thủ công
+- level1: Luồng bất đồng bộ
+  level2:
+  - Vì sao quan hệ luồng thực thi không tương đương quan hệ span
+  - Chụp ngữ cảnh trước khi chuyển công việc sang luồng khác
+  - Khôi phục và giải phóng ngữ cảnh trong công việc bất đồng bộ
+  - Phân biệt thời gian chờ lập lịch với thời gian thực thi
+  - Tách một công việc thành nhiều nhánh song song (fan-out)
+  - Gom kết quả nhiều nhánh (fan-in) và mô tả quan hệ liên kết
+  - Callback, chuỗi xử lý và ranh giới hoàn tất công việc
+  - Tác vụ tách rời và quyết định dùng trace cũ hay trace mới
+  - Hủy công việc, hết thời gian chờ và công việc vẫn tiếp tục chạy
+  - Nguy cơ rò rỉ ngữ cảnh giữa các công việc dùng chung luồng
+- level1: Thông điệp và tác vụ
+  level2:
+  - Truy vết từ bên gửi qua môi giới đến bên xử lý thông điệp
+  - Phân biệt tạo thông điệp, gửi, nhận và xử lý
+  - Quan hệ giữa độ trễ hàng đợi và thời gian xử lý
+  - Truyền ngữ cảnh qua metadata của thông điệp
+  - Một thông điệp, nhiều bên nhận và quan hệ nhân quả
+  - 'Nhận hoặc xử lý theo lô: nhiều nguồn và liên kết span'
+  - Gửi lại, xử lý lại và phân biệt các lần thử
+  - Thông điệp lỗi, hàng đợi cách ly và luồng phục hồi
+  - Tác vụ định kỳ, công việc nền và lựa chọn span gốc
+  - Liên kết các trace khi công việc kéo dài qua nhiều giai đoạn
+- level1: Gắn đo lường
+  level2:
+  - Gắn đo lường (instrumentation) ở thư viện, ứng dụng và hạ tầng
+  - Đo lường tự động và đo lường thủ công
+  - Lựa chọn ranh giới span theo câu hỏi cần trả lời
+  - Span giao tiếp kỹ thuật và span nghiệp vụ
+  - Bổ sung ngữ cảnh vào span đang có thay vì tạo span trùng
+  - Tạo span cho thao tác quan trọng chưa được thư viện ghi nhận
+  - Xác định ai tạo span, ai kích hoạt và ai kết thúc
+  - Tránh tạo span cho mọi hàm hoặc mọi vòng lặp
+  - Kiểm soát ảnh hưởng của đo lường tới hành vi ứng dụng
+  - Phân biệt API gắn đo lường, SDK xử lý và đích xuất dữ liệu
+- level1: Quy ước ngữ nghĩa
+  level2:
+  - Vai trò của quy ước ngữ nghĩa (semantic conventions)
+  - Đặt tên span theo mẫu thao tác ổn định
+  - Phân biệt đường dẫn thực tế và mẫu tuyến HTTP
+  - Lựa chọn thuộc tính có giá trị chẩn đoán
+  - Số loại giá trị thuộc tính (cardinality) và nguy cơ tăng không giới hạn
+  - Nhận dạng dịch vụ, phiên bản và môi trường triển khai
+  - Phân biệt dịch vụ, phiên bản chạy và máy chủ
+  - Thuộc tính tài nguyên, thuộc tính span và phạm vi áp dụng
+  - Chuẩn hóa tên đơn vị, mã lỗi và định danh nghiệp vụ
+  - Phân biệt dữ liệu do nguồn phát cung cấp và dữ liệu hệ lưu trữ suy ra
+  - Quản lý tương thích khi thay đổi quy ước thuộc tính
+- level1: Thu thập và xuất
+  level2:
+  - Luồng dữ liệu từ ứng dụng đến hệ thống truy vấn trace
+  - Bộ ghi nhận span và vai trò xử lý trong SDK
+  - Bộ xử lý span (span processor) và bộ xuất dữ liệu (exporter)
+  - Gửi đồng bộ, gom lô và xử lý ở luồng nền
+  - Vai trò của collector trong thu nhận, xử lý và chuyển tiếp
+  - Mô hình triển khai collector gần ứng dụng và tại cổng tập trung
+  - Giao thức xuất dữ liệu và phân biệt với giao thức truyền ngữ cảnh
+  - Hàng đợi, thử lại và phản ứng khi đích nhận bị chậm
+  - Điểm có thể mất dữ liệu trong luồng thu thập
+  - Đẩy nốt dữ liệu (flush) và dừng ứng dụng có kiểm soát
+  - Giám sát sức khỏe của chính luồng thu thập trace
+- level1: Lấy mẫu trace
+  level2:
+  - 'Lấy mẫu (sampling): mục đích và thông tin phải đánh đổi'
+  - Phân biệt không tạo bản ghi, ghi nhận span và xuất span
+  - Lấy mẫu ở đầu luồng (head sampling)
+  - Quyết định lấy mẫu theo ngữ cảnh cha (parent-based sampling)
+  - Lấy mẫu theo tỷ lệ và tính nhất quán trong một trace
+  - Lấy mẫu sau khi thu thập (tail sampling)
+  - Chính sách ưu tiên trace lỗi, chậm hoặc thuộc luồng quan trọng
+  - Thời gian chờ quyết định và giới hạn bộ nhớ khi lấy mẫu cuối luồng
+  - Trace đến muộn, thiếu span và khó khăn khi quyết định lấy mẫu
+  - Ảnh hưởng của lấy mẫu nhiều tầng trong ứng dụng và collector
+  - Thiên lệch mẫu và giới hạn suy luận tần suất lỗi hoặc phân bố độ trễ
+  - Chọn chính sách theo lưu lượng, mục đích điều tra và ngân sách
+- level1: Lưu trữ và tra cứu
+  level2:
+  - Đơn vị lưu trữ trace và tập hợp các span liên quan
+  - Độ trễ tiếp nhận dữ liệu và tính sẵn sàng khi tra cứu
+  - Tra cứu theo trace ID
+  - Tìm trace theo dịch vụ, thao tác, thời gian và kết quả
+  - Lọc theo thuộc tính, thời lượng và sự kiện
+  - Phạm vi thời gian truy vấn và sai lệch do chọn sai khoảng
+  - Chỉ mục, trường có thể tìm kiếm và chi phí lập chỉ mục
+  - Thời hạn lưu giữ và khác biệt giữa các lớp dữ liệu
+  - Phân trang, giới hạn kết quả và thiên lệch khi chỉ xem một số trace
+  - Quyền truy cập trace và chia tách dữ liệu theo đội hoặc khách hàng
+- level1: Đọc và hiểu trace
+  level2:
+  - Cách đọc biểu đồ thời gian dạng thác nước (waterfall)
+  - Trục thời gian, độ dài span và quan hệ lồng nhau
+  - Nhận diện dịch vụ, loại span và ranh giới giao tiếp
+  - Phân biệt thực thi tuần tự, song song và chờ đợi
+  - Đọc sự kiện, thuộc tính, liên kết và thông tin lỗi
+  - Phân biệt span tổng hợp với span được nguồn đo lường tạo ra
+  - Span bị thiếu, span mồ côi và trace chưa đầy đủ
+  - Ảnh hưởng của lệch đồng hồ tới vị trí hiển thị các span
+  - Phân biệt thời gian thực tế quan sát được và phần thời gian chưa rõ
+  - Đối chiếu trace với hành trình yêu cầu dự kiến
+- level1: Phân tích độ trễ
+  level2:
+  - Từ thời gian đầu cuối đến các giai đoạn đóng góp
+  - Thời gian bao gồm span con và thời gian riêng của span
+  - Vì sao không thể cộng toàn bộ thời lượng span thành thời gian yêu cầu
+  - Đường găng (critical path) khi có nhiều nhánh song song
+  - Phân biệt thời gian xử lý, chờ hàng đợi và chờ phụ thuộc
+  - Tách thời gian phía khách, phía máy chủ và phần giao tiếp chưa quan sát
+  - Phát hiện chuỗi gọi tuần tự không cần thiết và mẫu truy vấn N+1
+  - So sánh trace nhanh và chậm của cùng một thao tác
+  - Ảnh hưởng của thử lại, hết thời gian chờ và thao tác dự phòng
+  - Độ trễ đuôi (tail latency) và giới hạn của một trace đơn lẻ
+  - Từ dấu hiệu trong trace đến giả thuyết cần kiểm chứng
+- level1: Phân tích lỗi
+  level2:
+  - Phân biệt lỗi kỹ thuật, kết quả nghiệp vụ và lỗi người dùng
+  - Trạng thái span, mã phản hồi và ngoại lệ là các tín hiệu khác nhau
+  - Ghi nhận ngoại lệ không đồng nghĩa tự xác lập trạng thái lỗi
+  - Lỗi được bắt, được chuyển đổi hoặc được phục hồi
+  - Xác định nơi lỗi xuất hiện và nơi lỗi biểu lộ
+  - Theo dõi lỗi lan truyền qua nhiều dịch vụ
+  - Phân biệt lỗi ban đầu và lỗi phát sinh do thử lại hoặc hết thời gian
+  - Từ chối yêu cầu, hủy công việc và ngắt kết nối
+  - Khi một span lỗi nhưng yêu cầu đầu cuối vẫn thành công
+  - Kết hợp trace với bằng chứng khác trước khi kết luận nguyên nhân
+- level1: Liên kết tín hiệu
+  level2:
+  - Tương quan nhật ký với trace ID và span ID
+  - Đưa ngữ cảnh truy vết vào nhật ký và giới hạn khi không có span hoạt động
+  - Từ một dòng nhật ký mở trace và từ trace tìm nhật ký liên quan
+  - Số đo tổng hợp và trace của từng lần thực thi
+  - Mẫu liên kết (exemplar) giữa số đo và trace
+  - Vì sao không dùng trace ID làm nhãn của chuỗi số đo
+  - Sơ đồ phụ thuộc dịch vụ suy ra từ các span
+  - Phân biệt sơ đồ quan sát được và kiến trúc đầy đủ của hệ thống
+  - Từ cảnh báo đến tập trace liên quan
+  - Ảnh hưởng của lấy mẫu tới số đo và sơ đồ suy ra từ trace
+- level1: Tracing giao tiếp
+  level2:
+  - Span phía gọi và span phía nhận trong HTTP hoặc RPC
+  - Quan hệ thời gian giữa CLIENT span và SERVER span
+  - Đi qua proxy, cổng API và bộ cân bằng tải
+  - Lời gọi lồng nhau và chuỗi phụ thuộc nhiều tầng
+  - Thử lại từng lần và thao tác logic tổng thể
+  - Kết nối lại, chuyển hướng và yêu cầu dự phòng
+  - Luồng phản hồi kéo dài và giao tiếp dạng streaming
+  - Ranh giới khi phụ thuộc bên ngoài không hỗ trợ truyền ngữ cảnh
+  - Truy vết từ trình duyệt hoặc thiết bị tới dịch vụ phía máy chủ
+- level1: Tracing truy cập dữ liệu
+  level2:
+  - Span cho truy vấn cơ sở dữ liệu và thao tác lưu trữ
+  - Phân biệt chờ lấy kết nối với thực thi truy vấn
+  - Ranh giới giao dịch và các thao tác dữ liệu liên quan
+  - Thao tác theo lô và cách giữ ngữ nghĩa span rõ ràng
+  - Truy cập bộ nhớ đệm và đường đi khi không tìm thấy dữ liệu
+  - Truy vết lời gọi đến hệ tìm kiếm và kho đối tượng
+  - Phân biệt thời gian phía thư viện với thời gian thực thi tại máy chủ
+  - Chuỗi truy vấn lặp và chi phí tích lũy trong một yêu cầu
+  - Che dữ liệu nhạy cảm trong câu lệnh và tham số truy vấn
+- level1: Tracing trên JVM
+  level2:
+  - Mô hình ngữ cảnh gắn với luồng và giới hạn của ThreadLocal
+  - Luồng tái sử dụng và yêu cầu dọn dẹp ngữ cảnh
+  - Executor, thread pool và truyền ngữ cảnh cho tác vụ
+  - CompletableFuture và chuỗi xử lý bất đồng bộ
+  - Luồng ảo (virtual threads) và ranh giới công việc cần truy vết
+  - Luồng xử lý Servlet và vòng đời yêu cầu đồng bộ hoặc bất đồng bộ
+  - Luồng xử lý phản ứng (reactive) và ngữ cảnh theo chuỗi xử lý
+  - Phân biệt lúc dựng chuỗi xử lý, lúc đăng ký và lúc tín hiệu hoàn tất
+  - Đo lường thư viện HTTP, JDBC và thư viện thông điệp
+  - Phối hợp agent, thư viện tích hợp và đo lường thủ công
+  - Kiểm tra không làm thay đổi kết quả, ngoại lệ hoặc cách hủy công việc
+- level1: Kiểm thử tracing
+  level2:
+  - Tiêu chí chấp nhận cho dữ liệu truy vết của một luồng công việc
+  - Kiểm tra cấu trúc cha–con và danh tính trace/span
+  - Kiểm tra thời điểm kết thúc và số span được tạo
+  - Kiểm tra tên, thuộc tính, loại span và trạng thái
+  - Kiểm tra chèn và trích xuất ngữ cảnh qua ranh giới dịch vụ
+  - Kiểm tra bất đồng bộ, song song và tái sử dụng luồng
+  - Kiểm tra lỗi, thử lại, hủy công việc và hết thời gian
+  - Kiểm tra chính sách lấy mẫu và trace không được lưu
+  - Kiểm tra toàn luồng từ nguồn đo lường đến tra cứu trace
+  - Kiểm tra không rò rỉ dữ liệu nhạy cảm hoặc ngữ cảnh giữa yêu cầu
+  - Đối chiếu hành vi ứng dụng trước và sau khi bật đo lường
+- level1: Chất lượng dữ liệu
+  level2:
+  - Trace bị đứt tại một ranh giới giao tiếp
+  - Trace bị tách do không dùng ngữ cảnh nhận vào
+  - Quan hệ cha–con sai và span gắn nhầm yêu cầu
+  - Span trùng do nhiều lớp đo lường cùng một thao tác
+  - Span chưa kết thúc và span mất khi tiến trình dừng
+  - Thiếu dữ liệu do lấy mẫu, bộ đệm đầy hoặc lỗi xuất
+  - Trace đã được gửi nhưng chưa thể tìm thấy
+  - Sai tên dịch vụ, thiếu tài nguyên và thuộc tính không nhất quán
+  - Thời lượng bất thường do đồng hồ hoặc chọn sai vòng đời
+  - Quy trình khoanh vùng lỗi tại nguồn, truyền, xử lý và lưu trữ
+  - Chỉ số theo dõi span nhận, xuất, lỗi và bị loại bỏ
+- level1: Hiệu năng và chi phí
+  level2:
+  - Chi phí CPU, bộ nhớ và cấp phát khi tạo span
+  - Chi phí mạng, bộ đệm và xuất dữ liệu
+  - Tác động của số span trên mỗi yêu cầu
+  - Tác động của số thuộc tính, sự kiện và liên kết trong span
+  - Giới hạn kích thước giá trị và khối lượng dữ liệu truy vết
+  - Áp lực ngược (backpressure) và lựa chọn khi luồng xuất bị quá tải
+  - Cân bằng lấy mẫu, độ chi tiết và thời gian lưu giữ
+  - Tối ưu trường được lập chỉ mục theo nhu cầu điều tra
+  - Đo ảnh hưởng thực tế bằng kiểm thử tải có và không có tracing
+  - Phân bổ ngân sách quan sát theo dịch vụ và luồng nghiệp vụ
+- level1: Bảo mật và riêng tư
+  level2:
+  - Nhận diện bí mật và dữ liệu cá nhân có thể đi vào trace
+  - Giới hạn dữ liệu ở URL, headers, payload và ngoại lệ
+  - Rủi ro khi đưa thông tin nhạy cảm vào baggage
+  - Lọc, che hoặc loại bỏ dữ liệu ngay tại nguồn
+  - Xác thực và mã hóa đường truyền dữ liệu truy vết
+  - Phân quyền tra cứu, xuất dữ liệu và quản trị cấu hình
+  - Cô lập dữ liệu giữa môi trường, đội và khách hàng
+  - Ngữ cảnh từ bên ngoài và nguy cơ giả mạo thông tin liên kết
+  - Giới hạn kích thước ngữ cảnh và phòng tránh lạm dụng tài nguyên
+  - Chính sách lưu giữ, xóa và kiểm toán truy cập dữ liệu
+- level1: Quản trị tracing
+  level2:
+  - Xác định mục tiêu truy vết và phạm vi triển khai
+  - Ưu tiên hành trình quan trọng và phụ thuộc cần quan sát
+  - Phân công sở hữu đo lường, collector và hệ lưu trữ
+  - Chuẩn dùng chung cho tên dịch vụ, thuộc tính và dữ liệu được phép ghi
+  - Quản lý cấu hình theo môi trường và phiên bản ứng dụng
+  - Triển khai từng phần, kiểm tra kết quả và quay lui
+  - Tương thích khi nâng cấp agent, SDK hoặc thư viện tích hợp
+  - Tài liệu hóa ranh giới chưa được đo lường và giới hạn lấy mẫu
+  - Rà soát giá trị điều tra, chất lượng dữ liệu và chi phí định kỳ
+- level1: Hệ sinh thái tracing
+  level2:
+  - Chuẩn dữ liệu, giao thức và hệ lưu trữ là các lớp khác nhau
+  - Vai trò của OpenTelemetry trong gắn đo lường và chuyển dữ liệu
+  - Vai trò của Micrometer Tracing trong ứng dụng Java
+  - Vai trò của Jaeger, Zipkin và Tempo trong lưu trữ hoặc tra cứu
+  - Phân biệt giao diện xem trace với khả năng thu thập của hệ thống
+  - Khả năng tương tác và giới hạn khi chuyển giữa các công cụ
+  - Ranh giới kiến thức nền tảng và cấu hình triển khai từng công cụ
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ mô hình trace cho một yêu cầu qua nhiều dịch vụ
+  - Thiết kế span và thuộc tính cho một luồng nghiệp vụ
+  - Kiểm chứng truyền ngữ cảnh qua HTTP và tác vụ bất đồng bộ
+  - Thiết kế quan hệ span cho thông điệp, lô và nhiều lần xử lý
+  - Đọc trace để tìm đường găng và phần thời gian chưa quan sát
+  - Phân tích lỗi phụ thuộc có thử lại và cơ chế dự phòng
+  - Khoanh vùng trace bị đứt hoặc thiếu dữ liệu
+  - Đánh giá tác động của chính sách lấy mẫu tới điều tra
+  - Tương quan một cảnh báo với số đo, nhật ký và trace
+  - Rà soát một thiết kế tracing theo chất lượng, bảo mật và chi phí

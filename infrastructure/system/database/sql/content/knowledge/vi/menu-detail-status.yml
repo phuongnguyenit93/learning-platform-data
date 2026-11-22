@@ -1,0 +1,3586 @@
+menu:
+- slug: sql-overview
+  title: Tổng quan SQL
+  childs:
+  - slug: sql-overview-001
+    title: SQL là gì, giải quyết vấn đề nào và được dùng ở đâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-002
+    title: Cơ sở dữ liệu, hệ quản trị, bảng, hàng và cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-003
+    title: Khóa, quan hệ và cách liên kết dữ liệu giữa các bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-004
+    title: Tư duy tập hợp và cách mô tả kết quả bằng SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-005
+    title: SQL khai báo và sự khác biệt với xử lý tuần tự từng hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-006
+    title: Vai trò của DDL, DML, truy vấn, điều khiển giao dịch và phân quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-007
+    title: Chuẩn SQL, phương ngữ và tính khả chuyển của câu lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-008
+    title: Lộ trình từ truy vấn cơ bản đến xử lý dữ liệu nâng cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-overview-009
+    title: Phạm vi SQL và mối liên hệ với thiết kế dữ liệu, hiệu năng, vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Chọn hệ quản trị thực hành và ghi nhận phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-002
+    title: Kết nối bằng công cụ dòng lệnh và công cụ đồ họa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-003
+    title: Database, catalog, schema và không gian đặt tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-004
+    title: Chuẩn bị bộ dữ liệu khách hàng, sản phẩm, đơn hàng và chi tiết đơn hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-005
+    title: Tạo, nạp và đặt lại dữ liệu mẫu có thể tái lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-006
+    title: Thực thi một câu lệnh, nhiều câu lệnh và tệp SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-007
+    title: Phân biệt lệnh SQL với lệnh riêng của công cụ khách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-008
+    title: Đọc kết quả dạng bảng, số hàng ảnh hưởng và thông báo lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-009
+    title: Thiết lập múi giờ, mã hóa và chế độ tự động xác nhận giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: syntax-and-semantics
+  title: Cú pháp và ngữ nghĩa
+  childs:
+  - slug: syntax-and-semantics-001
+    title: Từ khóa, định danh, giá trị hằng và biểu thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-002
+    title: Quy tắc đặt tên, viết hoa và định danh có dấu phân cách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-003
+    title: Chuỗi ký tự, dấu nháy đơn và ký tự thoát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-004
+    title: Chú thích, dấu kết thúc câu lệnh và định dạng SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-005
+    title: Tên đầy đủ của đối tượng và cách xác định phạm vi tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-006
+    title: Bí danh bảng, bí danh cột và thời điểm có thể sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-007
+    title: Độ ưu tiên toán tử, dấu ngoặc và biểu thức lồng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-008
+    title: Thứ tự xử lý logic của SELECT và sự khác biệt với kế hoạch thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-009
+    title: Tập hợp nhiều phần tử trùng, DISTINCT và ngữ nghĩa bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: syntax-and-semantics-010
+    title: Phân biệt lỗi cú pháp, lỗi kiểu, lỗi ràng buộc và lỗi logic
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Chọn kiểu dữ liệu theo ý nghĩa, miền giá trị và độ chính xác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-002
+    title: Số nguyên, số thập phân chính xác và số dấu phẩy động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-003
+    title: Độ chính xác, số chữ số thập phân, làm tròn và tràn số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-004
+    title: Chuỗi độ dài cố định, chuỗi biến đổi và văn bản dài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-005
+    title: Unicode, bộ ký tự và quy tắc đối chiếu chuỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-006
+    title: Ngày, giờ, dấu thời gian và khoảng thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-007
+    title: Giá trị có múi giờ và không có múi giờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-008
+    title: Kiểu Boolean và cách biểu diễn tương đương theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-009
+    title: Dữ liệu nhị phân, UUID và định danh đặc thù
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-010
+    title: Kiểu JSON, mảng và kiểu mở rộng theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-011
+    title: Ép kiểu tường minh, chuyển đổi ngầm và lựa chọn CAST
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-012
+    title: So sánh khác kiểu và lỗi dữ liệu không thể chuyển đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: null-and-logic
+  title: NULL và logic
+  childs:
+  - slug: null-and-logic-001
+    title: NULL biểu thị gì và khác gì với số 0 hoặc chuỗi rỗng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-002
+    title: Logic ba giá trị TRUE, FALSE và UNKNOWN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-003
+    title: So sánh với NULL bằng IS NULL và IS NOT NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-004
+    title: AND, OR, NOT khi biểu thức có UNKNOWN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-005
+    title: Ảnh hưởng của NULL tới WHERE, JOIN và CHECK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-006
+    title: NULL trong phép tính, nối chuỗi và hàm xử lý dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-007
+    title: COALESCE để chọn giá trị khác NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-008
+    title: NULLIF để chuẩn hóa giá trị và xử lý mẫu số bằng 0
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-009
+    title: So sánh an toàn với NULL và tính khả chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-010
+    title: NULL trong DISTINCT, GROUP BY, ORDER BY và ràng buộc UNIQUE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: null-and-logic-011
+    title: Các trường hợp đặc biệt của NULL trong IN và NOT IN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tables-and-schemas
+  title: Bảng và lược đồ
+  childs:
+  - slug: tables-and-schemas-001
+    title: CREATE SCHEMA, CREATE TABLE và tổ chức đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-002
+    title: Khai báo cột, kiểu dữ liệu và giá trị mặc định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-003
+    title: Tạo bảng từ truy vấn và giới hạn sao chép cấu trúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-004
+    title: Identity, sequence và cơ chế sinh khóa theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-005
+    title: Cột sinh từ biểu thức và giới hạn theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-006
+    title: ALTER TABLE để thêm, đổi và xóa cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-007
+    title: Thay đổi kiểu, giá trị mặc định và khả năng nhận NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-008
+    title: Đổi tên bảng, cột và ràng buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-009
+    title: Bảng tạm và phạm vi tồn tại theo kết nối hoặc giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-010
+    title: DROP, TRUNCATE và ranh giới với DELETE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-011
+    title: Tra cứu bảng, cột và ràng buộc bằng INFORMATION_SCHEMA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-schemas-012
+    title: Phụ thuộc đối tượng và tác động của thay đổi lược đồ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: keys-and-constraints
+  title: Khóa và ràng buộc
+  childs:
+  - slug: keys-and-constraints-001
+    title: Khóa ứng viên, khóa chính, khóa thay thế và khóa ghép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-002
+    title: PRIMARY KEY và yêu cầu định danh duy nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-003
+    title: UNIQUE và các khác biệt khi dữ liệu có NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-004
+    title: NOT NULL và kiểm soát dữ liệu bắt buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-005
+    title: CHECK cho miền giá trị và quan hệ giữa các cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-006
+    title: FOREIGN KEY và tính toàn vẹn tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-007
+    title: ON DELETE, ON UPDATE và lựa chọn hành động tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-008
+    title: Khóa ngoại tự tham chiếu và quan hệ phân cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-009
+    title: Ràng buộc nhiều cột và thứ tự cột trong khóa tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-010
+    title: Ràng buộc kiểm tra tức thời hoặc trì hoãn theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-011
+    title: Đặt tên, thêm, xóa và kiểm tra lỗi vi phạm ràng buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-constraints-012
+    title: Phân biệt ràng buộc dữ liệu với chỉ mục hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: basic-queries
+  title: Truy vấn cơ bản
+  childs:
+  - slug: basic-queries-001
+    title: Cấu trúc SELECT, FROM và tập kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-002
+    title: Chọn từng cột, đặt bí danh và tránh phụ thuộc SELECT *
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-003
+    title: Tạo cột kết quả bằng hằng và biểu thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-004
+    title: Truy vấn không đọc bảng và giới hạn theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-005
+    title: Lọc hàng bằng WHERE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-006
+    title: Loại bản sao bằng DISTINCT và xác định mức chi tiết của kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-007
+    title: Tham chiếu bảng qua tên schema và bí danh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-008
+    title: Kết hợp truy vấn với bảng dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-009
+    title: Hiển thị nhãn cột và định dạng kết quả ở lớp phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: basic-queries-010
+    title: Đọc và kiểm chứng truy vấn từng bước bằng dữ liệu mẫu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: filter-conditions
+  title: Điều kiện lọc
+  childs:
+  - slug: filter-conditions-001
+    title: Toán tử so sánh bằng, khác và thứ tự
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-002
+    title: Kết hợp điều kiện với AND, OR, NOT và dấu ngoặc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-003
+    title: BETWEEN, biên bao gồm và khoảng nửa mở
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-004
+    title: IN, NOT IN và danh sách giá trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-005
+    title: LIKE với ký tự đại diện và ESCAPE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-006
+    title: So sánh chuỗi theo hoa thường, dấu và quy tắc đối chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-007
+    title: Lọc dữ liệu ngày giờ bằng khoảng thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-008
+    title: Lọc cột có NULL theo yêu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-009
+    title: Điều kiện trên nhiều cột và phép so sánh hàng theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-010
+    title: Tránh điều kiện mâu thuẫn, dư thừa và sai ưu tiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: filter-conditions-011
+    title: Kiểm tra điều kiện ở các giá trị biên và dữ liệu bất thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sorting-and-pagination
+  title: Sắp xếp và phân trang
+  childs:
+  - slug: sorting-and-pagination-001
+    title: ORDER BY với một cột và nhiều cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-002
+    title: ASC, DESC và sắp xếp theo biểu thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-003
+    title: Sắp xếp bằng CASE theo thứ tự nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-004
+    title: Vị trí NULL và NULLS FIRST hoặc NULLS LAST theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-005
+    title: Bổ sung khóa phân xử để kết quả có thứ tự xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-006
+    title: LIMIT, OFFSET, FETCH FIRST và TOP theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-007
+    title: Phân trang theo độ lệch và giới hạn khi dữ liệu thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-008
+    title: Phân trang theo khóa với điều kiện tiếp nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-009
+    title: Lấy các hàng đầu và xử lý trường hợp đồng hạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sorting-and-pagination-010
+    title: Thứ tự trong truy vấn con, truy vấn ngoài và kết quả cuối cùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: expressions-and-functions
+  title: Biểu thức và hàm
+  childs:
+  - slug: expressions-and-functions-001
+    title: Biểu thức số học và ảnh hưởng của kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-002
+    title: Chia số nguyên, chia thập phân và phép chia lấy dư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-003
+    title: ABS, ROUND, CEILING, FLOOR và hàm số thông dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-004
+    title: CONCAT, phép nối chuỗi và hành vi khi gặp NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-005
+    title: SUBSTRING, TRIM, REPLACE và chuẩn hóa văn bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-006
+    title: UPPER, LOWER, độ dài ký tự và độ dài byte
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-007
+    title: Tìm vị trí, tách chuỗi và xử lý biểu thức chính quy theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-008
+    title: CURRENT_DATE, CURRENT_TIMESTAMP và thời điểm đánh giá
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-009
+    title: Trích xuất thành phần ngày giờ bằng EXTRACT hoặc hàm tương đương
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-010
+    title: Cộng trừ ngày giờ, khoảng thời gian và chênh lệch thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-011
+    title: Chuyển múi giờ, cắt mốc thời gian và định dạng ngày giờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-012
+    title: CAST và chuyển đổi an toàn theo khả năng hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: expressions-and-functions-013
+    title: Biểu thức có tính xác định và hàm phụ thuộc thời điểm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: conditional-expressions
+  title: Rẽ nhánh trong SQL
+  childs:
+  - slug: conditional-expressions-001
+    title: CASE dạng đơn giản và CASE theo điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-002
+    title: Thứ tự nhánh, ELSE và kết quả khi không có nhánh phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-003
+    title: Kiểu kết quả chung của các nhánh CASE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-004
+    title: Phân loại dữ liệu và ánh xạ mã thành nhãn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-005
+    title: Tạo cột cờ từ điều kiện nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-006
+    title: CASE kết hợp NULLIF và COALESCE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-007
+    title: CASE trong lọc, sắp xếp và tổng hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conditional-expressions-008
+    title: Giới hạn khi dùng CASE để tránh lỗi đánh giá biểu thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregation
+  title: Tổng hợp dữ liệu
+  childs:
+  - slug: aggregation-001
+    title: Phân biệt mức chi tiết từng hàng và mức chi tiết từng nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-002
+    title: COUNT(*), COUNT(cột) và COUNT(DISTINCT biểu thức)
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-003
+    title: SUM, AVG, MIN, MAX và cách xử lý NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-004
+    title: GROUP BY một cột, nhiều cột và biểu thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-005
+    title: Quy tắc chọn cột khi có GROUP BY
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-006
+    title: WHERE và HAVING ở hai giai đoạn lọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-007
+    title: Tổng hợp có điều kiện bằng CASE và FILTER theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-008
+    title: Đếm thực thể sau JOIN và phòng tránh nhân đôi số liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-009
+    title: Kết quả khi đầu vào rỗng hoặc toàn NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-010
+    title: ROLLUP cho tổng phụ theo cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-011
+    title: CUBE và GROUPING SETS cho nhiều tổ hợp nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-012
+    title: GROUPING để phân biệt NULL dữ liệu với NULL của tổng phụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-013
+    title: Tổng hợp chuỗi, mảng hoặc JSON theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: joins
+  title: Kết nối bảng
+  childs:
+  - slug: joins-001
+    title: Quan hệ một-một, một-nhiều, nhiều-nhiều và lực lượng kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-002
+    title: INNER JOIN và điều kiện ghép bằng khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-003
+    title: LEFT JOIN, RIGHT JOIN và giữ lại hàng không khớp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-004
+    title: FULL OUTER JOIN và cách thay thế khi hệ quản trị không hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-005
+    title: CROSS JOIN và tích Descartes có chủ đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-006
+    title: SELF JOIN cho quan hệ trong cùng bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-007
+    title: Ghép nhiều bảng và xác định đường liên kết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-008
+    title: JOIN theo nhiều cột và điều kiện ngoài phép bằng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-009
+    title: Phân biệt điều kiện ON với điều kiện WHERE trong OUTER JOIN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-010
+    title: USING, NATURAL JOIN và rủi ro khi lược đồ thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-011
+    title: JOIN với NULL, khóa trùng và dữ liệu thiếu tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-012
+    title: Kiểm tra bội số hàng và tránh cộng lặp số liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-013
+    title: Mô hình bán kết nối và phản kết nối bằng EXISTS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-014
+    title: LATERAL hoặc APPLY cho truy vấn phụ thuộc từng hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: subqueries
+  title: Truy vấn con
+  childs:
+  - slug: subqueries-001
+    title: Truy vấn con vô hướng và yêu cầu tối đa một hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-002
+    title: Truy vấn con nhiều hàng với IN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-003
+    title: EXISTS và NOT EXISTS cho kiểm tra tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-004
+    title: ANY, SOME và ALL trong phép so sánh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-005
+    title: Truy vấn con tương quan và phạm vi tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-006
+    title: Bảng dẫn xuất trong FROM và tên cột đầu ra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-007
+    title: Truy vấn con trong SELECT, WHERE và HAVING
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-008
+    title: Chọn giữa JOIN, truy vấn con và CTE theo mục đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-009
+    title: Bẫy NOT IN khi truy vấn con trả về NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-010
+    title: Tìm hàng lớn nhất mỗi nhóm và xử lý đồng hạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-011
+    title: Diễn đạt yêu cầu mọi phần tử bằng NOT EXISTS lồng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: subqueries-012
+    title: Kiểm chứng truy vấn con với đầu vào rỗng, nhiều hàng và bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: set-operations
+  title: Phép toán tập hợp
+  childs:
+  - slug: set-operations-001
+    title: Điều kiện tương thích số cột và kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-002
+    title: UNION và UNION ALL trong hợp nhất kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-003
+    title: INTERSECT để tìm phần giao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-004
+    title: EXCEPT và biến thể MINUS theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-005
+    title: Ngữ nghĩa bản sao với biến thể ALL khi được hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-006
+    title: NULL trong so sánh hàng của phép toán tập hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-007
+    title: Tên cột, ép kiểu và thứ tự kết quả sau hợp nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-008
+    title: Độ ưu tiên phép toán và cách dùng dấu ngoặc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: set-operations-009
+    title: Đối chiếu hai tập dữ liệu để tìm hàng thêm, thiếu hoặc thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cte
+  title: CTE
+  childs:
+  - slug: cte-001
+    title: WITH và cách đặt tên kết quả trung gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-002
+    title: Khai báo tên cột và phạm vi sử dụng CTE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-003
+    title: Nhiều CTE liên tiếp và quan hệ phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-004
+    title: Tách truy vấn phức tạp thành các bước có ý nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-005
+    title: Tái sử dụng kết quả trung gian trong cùng câu lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-006
+    title: Phân biệt CTE, bảng dẫn xuất, view và bảng tạm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-007
+    title: Nội tuyến, vật chất hóa và giới hạn suy luận từ cú pháp WITH
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-008
+    title: CTE kết hợp truy vấn tổng hợp và hàm cửa sổ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cte-009
+    title: CTE trong câu lệnh thay đổi dữ liệu theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: recursive-queries
+  title: Truy vấn đệ quy
+  childs:
+  - slug: recursive-queries-001
+    title: WITH RECURSIVE hoặc cú pháp tương đương theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-002
+    title: Nhánh khởi đầu, nhánh đệ quy và điều kiện dừng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-003
+    title: Duyệt cây cha-con và tính độ sâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-004
+    title: Tạo đường dẫn phân cấp và truy vấn tổ tiên, hậu duệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-005
+    title: Tính lũy kế theo quan hệ đệ quy và cấu trúc thành phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-006
+    title: Sinh dãy số hoặc lịch ngày khi phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-007
+    title: Phát hiện chu trình và tránh lặp vô hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-008
+    title: Giới hạn độ sâu, kiểu cột và kích thước kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-009
+    title: Thứ tự duyệt và sắp xếp kết quả đệ quy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: recursive-queries-010
+    title: Kiểm thử cây rỗng, nhiều gốc, nút mồ côi và dữ liệu có vòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: window-functions
+  title: Hàm cửa sổ
+  childs:
+  - slug: window-functions-001
+    title: Phân biệt hàm cửa sổ với GROUP BY và truy vấn con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-002
+    title: Cấu trúc OVER, PARTITION BY và ORDER BY
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-003
+    title: ROW_NUMBER, RANK, DENSE_RANK và cách xử lý đồng hạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-004
+    title: NTILE, PERCENT_RANK và CUME_DIST
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-005
+    title: LAG và LEAD để so sánh các hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-006
+    title: FIRST_VALUE, LAST_VALUE và NTH_VALUE theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-007
+    title: SUM, AVG, COUNT trên cửa sổ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-008
+    title: ROWS, RANGE và GROUPS theo khả năng hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-009
+    title: Biên cửa sổ, khung mặc định và ảnh hưởng của hàng đồng hạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-010
+    title: Khung tích lũy, khung trượt và loại trừ hàng theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-011
+    title: Đặt tên cửa sổ bằng WINDOW khi được hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-012
+    title: Lọc kết quả hàm cửa sổ bằng truy vấn ngoài hoặc QUALIFY
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: window-functions-013
+    title: Lấy các hàng đầu mỗi nhóm với thứ tự xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: query-patterns
+  title: Mẫu truy vấn
+  childs:
+  - slug: query-patterns-001
+    title: Khử trùng lặp và chọn một hàng đại diện có quy tắc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-002
+    title: Tìm bản ghi mới nhất của từng đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-003
+    title: Tổng lũy kế, trung bình trượt và tỷ lệ đóng góp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-004
+    title: So sánh kỳ hiện tại với kỳ trước
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-005
+    title: Tìm khoảng trống và các dãy giá trị liên tiếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-006
+    title: Ghép các sự kiện thành phiên theo khoảng thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-007
+    title: Truy vấn khoảng thời gian giao nhau và khoảng hiệu lực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-008
+    title: Bù ngày thiếu bằng bảng lịch và kết nối ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-009
+    title: Đếm tích lũy số đối tượng duy nhất theo thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-010
+    title: Chuyển hàng thành cột bằng tổng hợp có điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-011
+    title: PIVOT, UNPIVOT và cách thay thế theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-012
+    title: Phân tích nhóm khách hàng và tỷ lệ quay lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-patterns-013
+    title: Phát hiện dữ liệu thiếu, trùng và bất thường bằng SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: inserting-data
+  title: Thêm dữ liệu
+  childs:
+  - slug: inserting-data-001
+    title: INSERT với danh sách cột và một hàng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-002
+    title: INSERT nhiều hàng và giới hạn cú pháp theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-003
+    title: Giá trị mặc định, NULL và cột sinh tự động khi thêm hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-004
+    title: INSERT INTO SELECT và ánh xạ cột nguồn, đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-005
+    title: Tạo dữ liệu liên quan và lấy khóa vừa sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-006
+    title: RETURNING, OUTPUT hoặc cơ chế tương đương theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-007
+    title: Nạp dữ liệu qua bảng trung gian trước khi xác nhận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-008
+    title: Xử lý lỗi ràng buộc và tính nguyên tử của câu lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-009
+    title: Nạp lặp có kiểm soát bằng khóa nghiệp vụ và ràng buộc duy nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: inserting-data-010
+    title: Nhập dữ liệu hàng loạt, mã hóa và định dạng theo công cụ hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: updates-and-deletes
+  title: Cập nhật và xóa
+  childs:
+  - slug: updates-and-deletes-001
+    title: UPDATE với điều kiện lọc và biểu thức tính giá trị mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-002
+    title: Cập nhật nhiều cột và quy tắc đánh giá theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-003
+    title: UPDATE từ truy vấn con hoặc bảng khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-004
+    title: Quan hệ nguồn nhiều hàng và nguy cơ cập nhật không xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-005
+    title: DELETE có điều kiện và kiểm tra hàng bị ảnh hưởng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-006
+    title: DELETE với EXISTS hoặc phép JOIN theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-007
+    title: Xóa theo quan hệ phụ thuộc và tác động của khóa ngoại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-008
+    title: RETURNING hoặc OUTPUT để kiểm tra dữ liệu thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-009
+    title: Xem trước tập hàng mục tiêu bằng SELECT tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-010
+    title: Cập nhật hoặc xóa theo lô với thứ tự và điều kiện tiếp nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-011
+    title: Xóa mềm, khôi phục và điều kiện truy vấn dữ liệu còn hiệu lực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: updates-and-deletes-012
+    title: Ngăn thao tác nhầm toàn bảng và kiểm chứng sau thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: upsert-and-merge
+  title: Upsert và MERGE
+  childs:
+  - slug: upsert-and-merge-001
+    title: Bài toán đồng bộ khi bản ghi có thể đã tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-002
+    title: Khóa xác định xung đột và vai trò của UNIQUE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-003
+    title: INSERT ON CONFLICT của PostgreSQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-004
+    title: INSERT ON DUPLICATE KEY UPDATE của MySQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-005
+    title: MERGE và các nhánh xử lý theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-006
+    title: Phân biệt thêm mới, cập nhật và bỏ qua dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-007
+    title: Nguồn có khóa trùng và yêu cầu chọn một bản ghi đại diện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-008
+    title: Cạnh tranh đồng thời và rủi ro của kiểm tra rồi ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-009
+    title: Phân biệt xử lý xung đột với bỏ qua mọi lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: upsert-and-merge-010
+    title: Đồng bộ lặp an toàn và đối chiếu kết quả nguồn, đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions
+  title: Giao dịch SQL
+  childs:
+  - slug: transactions-001
+    title: Ranh giới giao dịch và ý nghĩa nguyên tử của nhóm thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-002
+    title: BEGIN hoặc START TRANSACTION, COMMIT và ROLLBACK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-003
+    title: Autocommit và quyền sở hữu giao dịch của công cụ hoặc ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-004
+    title: SAVEPOINT, ROLLBACK TO và RELEASE SAVEPOINT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-005
+    title: Hành vi sau lỗi và khả năng tiếp tục giao dịch theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-006
+    title: DDL, TRUNCATE và khác biệt về implicit commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-007
+    title: Thiết lập mức cô lập và chế độ chỉ đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-008
+    title: Nhận diện đọc bẩn, đọc không lặp lại và hàng ảo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-009
+    title: SELECT FOR UPDATE và khóa hàng theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-010
+    title: NOWAIT, SKIP LOCKED và ngữ nghĩa tập kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-011
+    title: Cập nhật có điều kiện theo phiên bản để tránh ghi đè
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-012
+    title: Nhận diện deadlock, lỗi tuần tự hóa và ranh giới thử lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-013
+    title: Thực hành chuyển tiền với kiểm tra bất biến và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-014
+    title: Giới hạn của giao dịch trong một kết nối và hướng học chuyên sâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: views-and-temp-tables
+  title: View và bảng trung gian
+  childs:
+  - slug: views-and-temp-tables-001
+    title: CREATE VIEW và vai trò đóng gói truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-002
+    title: Đặt tên cột, thay đổi định nghĩa và phụ thuộc của view
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-003
+    title: View lồng nhau và khả năng truy vết logic
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-004
+    title: Điều kiện cập nhật qua view theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-005
+    title: WITH CHECK OPTION và giới hạn dữ liệu được ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-006
+    title: Quyền truy cập qua view và ngữ cảnh thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-007
+    title: Materialized view và khác biệt với view thông thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-008
+    title: Làm mới dữ liệu, độ trễ và yêu cầu theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-009
+    title: Bảng tạm, bảng trung gian và kết quả vật chất hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: views-and-temp-tables-010
+    title: Chọn CTE, view hay bảng tạm theo phạm vi tái sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: indexes-and-query-plans
+  title: Chỉ mục và kế hoạch
+  childs:
+  - slug: indexes-and-query-plans-001
+    title: Chỉ mục hỗ trợ truy vấn như thế nào ở mức SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-002
+    title: CREATE INDEX, DROP INDEX và chỉ mục nhiều cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-003
+    title: Thứ tự cột trong chỉ mục và mẫu điều kiện lọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-004
+    title: Chỉ mục duy nhất, chỉ mục biểu thức và chỉ mục có điều kiện theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-005
+    title: Đọc kế hoạch bằng EXPLAIN và công cụ tương đương
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-006
+    title: Phân biệt kế hoạch ước lượng với kế hoạch có thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-007
+    title: Nhận biết quét bảng, truy cập chỉ mục, JOIN và sắp xếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-008
+    title: Điều kiện thuận lợi cho chỉ mục và chuyển đổi ngầm trên cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-009
+    title: Ảnh hưởng của SELECT *, DISTINCT và sắp xếp không cần thiết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-010
+    title: Bội số hàng, ước lượng số hàng và nguyên nhân kết quả trung gian lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-011
+    title: Đối chiếu tính tương đương của kết quả trước khi tối ưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-query-plans-012
+    title: Ranh giới giữa viết SQL hiệu quả và quản trị hiệu năng chuyên sâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: procedures-and-functions
+  title: Thủ tục và hàm
+  childs:
+  - slug: procedures-and-functions-001
+    title: Phân biệt hàm SQL, hàm thủ tục và stored procedure
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-002
+    title: Khối lệnh, biến cục bộ và phép gán theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-003
+    title: Tham số đầu vào, đầu ra và kiểu trả về
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-004
+    title: IF, CASE, vòng lặp và điều kiện kết thúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-005
+    title: SELECT INTO biến và xử lý số hàng không phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-006
+    title: Trả giá trị đơn, bảng dữ liệu hoặc nhiều tập kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-007
+    title: Xử lý ngoại lệ và phát sinh lỗi có ý nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-008
+    title: Quyền gọi, chủ thể thực thi và phạm vi truy cập đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-009
+    title: Hàm có tác dụng phụ, tính xác định và giới hạn sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-010
+    title: Ranh giới giao dịch trong thủ tục theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-011
+    title: 'Cursor: khai báo, mở, đọc, đóng và giải phóng'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-012
+    title: Thay xử lý từng hàng bằng phép toán tập hợp khi phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-functions-013
+    title: Tạo, sửa, xóa và kiểm thử routine theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: triggers
+  title: Trigger
+  childs:
+  - slug: triggers-001
+    title: Bài toán phù hợp với trigger và chi phí logic ngầm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-002
+    title: Trigger theo hàng và theo câu lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-003
+    title: BEFORE, AFTER và INSTEAD OF theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-004
+    title: Tham chiếu dữ liệu cũ, mới và tập hàng bị ảnh hưởng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-005
+    title: Xử lý một câu lệnh thay đổi nhiều hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-006
+    title: Thứ tự thực thi, đệ quy và trigger dây chuyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-007
+    title: Ghi lịch sử thay đổi và giới hạn của nhật ký bằng trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-008
+    title: Phát sinh lỗi, rollback và tương tác với ràng buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-009
+    title: Khi nào dùng DEFAULT, CHECK hoặc FOREIGN KEY thay trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: triggers-010
+    title: Tạo, vô hiệu hóa, xóa và kiểm thử trigger theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extended-data-types
+  title: Dữ liệu mở rộng
+  childs:
+  - slug: extended-data-types-001
+    title: Lựa chọn giữa cột quan hệ và dữ liệu bán cấu trúc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-002
+    title: Lưu trữ JSON và kiểm tra tính hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-003
+    title: Truy xuất đường dẫn JSON và phân biệt thiếu khóa với JSON null
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-004
+    title: Trích xuất giá trị JSON theo kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-005
+    title: Bung mảng JSON thành các hàng theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-006
+    title: Tạo đối tượng, mảng JSON và tổng hợp dữ liệu quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-007
+    title: Cập nhật một phần tài liệu JSON theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-008
+    title: Kiểu mảng, phép truy cập phần tử và chuyển mảng thành hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-009
+    title: 'XML: truy vấn đường dẫn và ánh xạ thành bảng theo khả năng hỗ trợ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-010
+    title: Tìm kiếm toàn văn và khác biệt với LIKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-011
+    title: Dữ liệu không gian và nhóm hàm truy vấn theo phần mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-data-types-012
+    title: Giới hạn tính khả chuyển của kiểu và hàm mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: permissions-and-sql-security
+  title: Quyền và SQL an toàn
+  childs:
+  - slug: permissions-and-sql-security-001
+    title: Người dùng, vai trò và nguyên tắc cấp quyền tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-002
+    title: GRANT, REVOKE và phạm vi quyền trên đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-003
+    title: Quyền sở hữu, quyền cấp lại và kế thừa vai trò theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-004
+    title: Phân tách quyền đọc, ghi, thay đổi cấu trúc và thực thi routine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-005
+    title: SQL injection và nguyên nhân từ ghép chuỗi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-006
+    title: Truy vấn tham số hóa và prepared statement
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-007
+    title: 'Vị trí không thể bind tham số: tên bảng, cột và hướng sắp xếp'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-008
+    title: Danh sách cho phép khi xây dựng SQL động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-009
+    title: Ký tự đại diện LIKE và ý nghĩa khác với bảo vệ SQL injection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-010
+    title: SQL động trong routine và cơ chế thực thi theo phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-011
+    title: Chính sách bảo vệ hàng, cột và view theo khả năng hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: permissions-and-sql-security-012
+    title: Che dữ liệu trong kết quả thực hành và thông báo lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sql-in-applications
+  title: SQL trong ứng dụng
+  childs:
+  - slug: sql-in-applications-001
+    title: Phân chia trách nhiệm giữa câu lệnh SQL và mã ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-002
+    title: Bind tham số đúng kiểu và xử lý giá trị NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-003
+    title: Ánh xạ cột kết quả, bí danh và kiểu dữ liệu ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-004
+    title: Ánh xạ số thập phân, ngày giờ, UUID và dữ liệu lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-005
+    title: Quản lý kết nối, statement và tập kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-006
+    title: Giao dịch qua nhiều câu lệnh trên cùng kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-007
+    title: Lấy khóa sinh tự động và số hàng ảnh hưởng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-008
+    title: Thực thi theo lô và xử lý lỗi từng phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-009
+    title: Tập kết quả lớn, kích thước lấy dữ liệu và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-010
+    title: Nhận diện truy vấn N+1 và lựa chọn truy vấn theo tập hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-011
+    title: Timeout, hủy truy vấn và phân loại lỗi có thể thử lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-in-applications-012
+    title: Tách lỗi dữ liệu, lỗi ràng buộc, lỗi kết nối và lỗi đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cross-database-sql
+  title: SQL đa hệ quản trị
+  childs:
+  - slug: cross-database-sql-001
+    title: Phân biệt chuẩn SQL, phần mở rộng và mức hỗ trợ theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-002
+    title: Quy tắc định danh, dấu phân cách và chữ hoa thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-003
+    title: LIMIT, FETCH FIRST, TOP và cách phân trang
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-004
+    title: Identity, sequence và lấy định danh vừa sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-005
+    title: Khác biệt kiểu Boolean, UUID, chuỗi rỗng và NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-006
+    title: Hàm chuỗi, toán tử nối và quy tắc đối chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-007
+    title: Ngày giờ, múi giờ và phép tính khoảng thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-008
+    title: UPSERT, MERGE, RETURNING và OUTPUT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-009
+    title: UPDATE JOIN, DELETE JOIN và cú pháp thay thế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-010
+    title: CTE đệ quy, hàm cửa sổ và các mệnh đề mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-011
+    title: Giao dịch DDL, bảng tạm và hành vi sau lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-012
+    title: Cú pháp routine, trigger và xử lý ngoại lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-013
+    title: Ma trận đối chiếu PostgreSQL, MySQL, SQL Server, Oracle và SQLite
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cross-database-sql-014
+    title: Xây dựng lớp SQL dùng chung và kiểm thử từng phương ngữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-and-debugging
+  title: Kiểm thử và gỡ lỗi
+  childs:
+  - slug: testing-and-debugging-001
+    title: Xác định tập kết quả mong đợi và mức chi tiết từng hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-002
+    title: Thiết kế dữ liệu kiểm thử nhỏ nhưng phân biệt được lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-003
+    title: Bao phủ bảng rỗng, một hàng, nhiều hàng và bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-004
+    title: Bao phủ NULL, chuỗi rỗng, số âm và giá trị biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-005
+    title: Kiểm thử Unicode, quy tắc đối chiếu và định danh có dấu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-006
+    title: Kiểm thử mốc ngày, đổi ngày, múi giờ và biên khoảng thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-007
+    title: Đối chiếu số hàng trước và sau mỗi JOIN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-008
+    title: So sánh kết quả có xét bản sao và thứ tự khi cần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-009
+    title: Kiểm tra bất biến trước và sau INSERT, UPDATE, DELETE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-010
+    title: Kiểm thử giao dịch bằng nhiều kết nối có thứ tự thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-011
+    title: Đọc SQLSTATE, mã lỗi và thông báo theo hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-012
+    title: Thu nhỏ câu lệnh lỗi và kiểm chứng từng CTE hoặc truy vấn con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-and-debugging-013
+    title: Kiểm thử hồi quy truy vấn và dữ liệu đầu ra sau thay đổi lược đồ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng lược đồ bán hàng với khóa và ràng buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-002
+    title: Nạp dữ liệu mẫu có NULL, bản sao và quan hệ thiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-003
+    title: Tra cứu đơn hàng với lọc, sắp xếp và phân trang ổn định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-004
+    title: Báo cáo doanh thu không cộng lặp chi tiết đơn hàng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-005
+    title: Phân tích khách hàng chưa mua và sản phẩm chưa bán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-006
+    title: Xếp hạng sản phẩm, tính lũy kế và so sánh theo tháng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-007
+    title: Truy vấn cây danh mục và kiểm soát chu trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-008
+    title: Đồng bộ dữ liệu nhập bằng bảng trung gian và upsert
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-009
+    title: Thực hiện chuyển tiền hoặc đặt hàng trong một giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-010
+    title: Cung cấp dữ liệu báo cáo qua view và phân quyền tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-011
+    title: Gọi truy vấn tham số hóa từ ứng dụng và kiểm thử đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-012
+    title: Đối chiếu cùng bài toán trên hai hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-project-013
+    title: Tài liệu hóa giả định, câu lệnh, kết quả mong đợi và giới hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

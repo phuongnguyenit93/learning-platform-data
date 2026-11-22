@@ -1,0 +1,3 @@
+menuLevel1: Ủy quyền sudo
+menuLevel2: Liệt kê quyền sudo bằng sudo -l và kiểm thử bằng tài khoản được ủy quyền
+status: ""

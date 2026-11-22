@@ -1,0 +1,7 @@
+# Cloud Core Services Compute
+
+*Cloud compute* là nhóm dịch vụ cung cấp năng lực xử lý cho ứng dụng mà không cần tự sở hữu và vận hành máy chủ vật lý. Các lựa chọn chính bao gồm máy ảo (VM), nền tảng chạy container và môi trường serverless cho hàm, dịch vụ hoặc tác vụ. Mỗi lựa chọn khác nhau về quyền kiểm soát hệ điều hành, cách mở rộng, trách nhiệm vận hành và chi phí. Module này dành cho người đã biết Java, Linux, HTTP và kiến thức mạng cơ bản; ví dụ triển khai có thể áp dụng trên AWS, Azure hoặc Google Cloud với tên dịch vụ tương đương.
+
+Lộ trình bắt đầu bằng cách so sánh mô hình compute, chọn cấu hình VM theo CPU/RAM, dùng machine image và cơ chế khởi tạo để chạy một ứng dụng Java. Người học tiếp tục cấu hình mạng và quyền truy cập an toàn, tìm hiểu đóng gói container và triển khai có nhiều replica. Các mốc tiếp theo giải thích scale up/scale out, load balancing, health checks, khả dụng theo zone và trường hợp nên dùng serverless hoặc batch processing. Phần cuối hướng dẫn đo hiệu năng và kiểm soát ngân sách bằng monitoring, alerting và right-sizing.
+
+Sau khi hoàn thành, bạn có thể lựa chọn dịch vụ compute phù hợp với một workload nhỏ, triển khai thử ứng dụng, giải thích đường truy cập và cơ chế mở rộng, đồng thời quan sát lỗi hay nghẽn tài nguyên. Hãy phân biệt **dịch vụ được quản lý** với **ứng dụng không cần quản lý**: ngay cả serverless cũng yêu cầu cấu hình quyền, dữ liệu, giám sát và giới hạn sử dụng. Khi thực hành trên cloud thật, cần kiểm tra quota, giá theo vùng và xóa tài nguyên không còn dùng để tránh phát sinh phí.

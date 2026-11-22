@@ -1,0 +1,435 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Istio là gì và giải quyết vấn đề giao tiếp giữa các dịch vụ nào
+  - Service mesh trong kiến trúc microservices
+  - Phân biệt service mesh, API gateway, ingress controller và thư viện ứng dụng
+  - Lưu lượng bên trong hệ thống và lưu lượng qua biên mạng
+  - 'Ba nhóm năng lực: quản lý lưu lượng, bảo mật và quan sát'
+  - 'Thuật ngữ nền tảng: workload, service, proxy, control plane và data plane'
+  - Quan hệ giữa Istio, Kubernetes, Envoy và Gateway API
+  - So sánh sidecar mode và ambient mode
+  - Điều kiện lựa chọn Istio và chi phí vận hành cần đánh giá
+  - Lộ trình học từ mạng Kubernetes đến vận hành mesh
+- level1: Kiến trúc và luồng mạng
+  level2:
+  - Vai trò của istiod trong khám phá dịch vụ và phân phối cấu hình
+  - Envoy sidecar, ztunnel, waypoint và gateway
+  - Luồng yêu cầu khi ứng dụng chưa tham gia mesh
+  - Luồng outbound và inbound qua sidecar
+  - Luồng kết nối qua ztunnel trong ambient
+  - Luồng yêu cầu qua waypoint tại phía đích
+  - xDS và quá trình đồng bộ cấu hình đến proxy
+  - Listener, route, cluster và endpoint trong Envoy
+  - Phân biệt cấu hình mong muốn và cấu hình proxy thực nhận
+  - Ảnh hưởng khi control plane hoặc data plane gặp sự cố
+- level1: Môi trường và cài đặt
+  level2:
+  - Kiến thức nền về Pod, Service, EndpointSlice và DNS Kubernetes
+  - Chọn phiên bản Istio và Kubernetes tương thích
+  - Chuẩn bị cluster thực hành bằng kind, minikube hoặc nền tảng phù hợp
+  - Kiểm tra CNI, quyền cài CRD và yêu cầu nền tảng
+  - Cài đặt istioctl và quản lý kubeconfig context
+  - Cài CRD Gateway API theo kênh và phiên bản được hỗ trợ
+  - Cài Istio bằng istioctl và lựa chọn profile
+  - Cài Istio bằng Helm theo từng component
+  - Phân biệt IstioOperator làm đầu vào istioctl và Helm values
+  - Xác minh istiod, CNI, ztunnel và gateway sau cài đặt
+- level1: Mesh đầu tiên
+  level2:
+  - Triển khai Bookinfo hoặc ứng dụng nhiều dịch vụ tối giản
+  - Thiết lập namespace, ServiceAccount và nhãn ứng dụng
+  - Đưa workload vào ambient hoặc bật sidecar injection
+  - Gửi yêu cầu nội bộ trước và sau khi tham gia mesh
+  - Đưa một dịch vụ ra ngoài qua ingress gateway
+  - Bổ sung waypoint khi cần xử lý HTTP trong ambient
+  - Quan sát yêu cầu bằng metrics, access logs và Kiali
+  - Kiểm chứng danh tính workload và kết nối mTLS
+  - Phân biệt cài mesh thành công với ứng dụng hoạt động đúng
+- level1: Cấu hình và API
+  level2:
+  - Các nhóm API networking, security, telemetry và extensions
+  - Metadata, namespace, selector và phạm vi tài nguyên
+  - Phân biệt Gateway của Istio và Gateway của Kubernetes Gateway API
+  - VirtualService, DestinationRule và mô hình API Istio
+  - GatewayClass, Gateway, HTTPRoute và mô hình Gateway API
+  - parentRefs, backendRefs và targetRefs
+  - Điều kiện tham chiếu xuyên namespace và ReferenceGrant
+  - MeshConfig, ProxyConfig và cấu hình theo workload
+  - Kiểm tra status, conditions và cấu hình không có hiệu lực
+  - Mức ổn định API và giới hạn theo mode, phiên bản, implementation
+- level1: Sidecar mode
+  level2:
+  - Injection tự động qua webhook và injection thủ công
+  - Nhãn namespace, nhãn revision và xử lý nhãn xung đột
+  - Vai trò istio-proxy và proxy agent trong Pod
+  - Chuyển hướng traffic bằng init container hoặc Istio CNI
+  - Inbound, outbound và các cổng dành riêng cho proxy
+  - Readiness, startup probe và cơ chế ghi lại health probe
+  - Thứ tự khởi động ứng dụng và proxy
+  - Graceful shutdown, drain và kết nối đang mở
+  - Job, CronJob, init container và vòng đời sidecar
+  - Phạm vi IP, cổng bị loại trừ và hậu quả khi traffic đi ngoài proxy
+- level1: Ambient mode
+  level2:
+  - Lớp bảo vệ L4 và lớp xử lý L7 trong ambient
+  - Vai trò của Istio CNI node agent
+  - ztunnel chạy theo node và danh tính của nhiều workload
+  - HBONE và đường hầm HTTP CONNECT được bảo vệ bằng mTLS
+  - Đưa namespace hoặc workload vào ambient bằng nhãn
+  - Theo dõi luồng cùng node và khác node
+  - Phân biệt service traffic, workload traffic và traffic ngoài mesh
+  - Khả năng quan sát và áp dụng chính sách khi chỉ có ztunnel
+  - Quan hệ giữa ambient và Kubernetes NetworkPolicy
+  - Kiểm tra tương tác với sidecar và giới hạn theo phiên bản
+- level1: Waypoint
+  level2:
+  - Khi nào ứng dụng cần waypoint để có tính năng L7
+  - Triển khai waypoint bằng GatewayClass istio-waypoint
+  - Sử dụng istioctl waypoint và xác minh tài nguyên được tạo
+  - Gắn waypoint cho namespace, Service hoặc workload
+  - Phân biệt waypoint-for service, workload và all
+  - Tính ưu tiên khi nhiều nhãn chọn waypoint cùng tồn tại
+  - HTTPRoute và chính sách gắn vào waypoint hoặc Service
+  - Bảo đảm traffic phải đi qua waypoint bằng chính sách tại ztunnel
+  - Đường ingress đến waypoint và các điều kiện bật riêng
+  - Chia sẻ, mở rộng và phân tách waypoint theo ranh giới vận hành
+- level1: Khám phá và giao thức
+  level2:
+  - Service registry của Istio và dữ liệu từ Kubernetes
+  - Service name, FQDN, namespace và phân giải tên ngắn
+  - Địa chỉ Service, Pod IP và headless service
+  - Khai báo giao thức qua tên cổng và appProtocol
+  - Nhận diện HTTP, HTTP/2, gRPC và TCP
+  - Giới hạn với server-first protocol và giao thức không phải TCP
+  - Phân biệt TLS ứng dụng, HTTPS và mTLS của mesh
+  - DNS capture, DNS proxying và cấp địa chỉ cho dịch vụ ngoài
+  - Đăng ký nguồn bên ngoài bằng ServiceEntry
+  - Giới hạn khả kiến ServiceEntry trong sidecar và ambient
+- level1: Định tuyến HTTP
+  level2:
+  - Chọn HTTPRoute hoặc VirtualService theo chế độ và tính năng
+  - Định tuyến theo hostname, URI, method, header và query parameter
+  - Exact, prefix, regex và thứ tự khớp quy tắc
+  - Điều kiện AND, OR và quy tắc mặc định
+  - backendRefs và phân phối trọng số trong Gateway API
+  - Subsets theo nhãn phiên bản trong DestinationRule
+  - Quan hệ giữa VirtualService destination và DestinationRule
+  - Rewrite, redirect và chỉnh sửa request/response headers
+  - Định tuyến gRPC và HTTP/2 đến đúng backend
+  - Định tuyến TCP hoặc TLS theo cổng, SNI và khả năng API
+  - VirtualService trong ambient ở mức Alpha và giới hạn trộn với Gateway API
+  - Kiểm chứng route bằng traffic thực và cấu hình proxy
+- level1: Cân bằng tải
+  level2:
+  - Phân biệt cân bằng tải theo kết nối và theo yêu cầu
+  - Endpoint Kubernetes và nhóm backend của mesh
+  - Round robin, least request và lựa chọn theo tải
+  - Consistent hashing, ring hash và Maglev
+  - Session affinity và điều kiện phù hợp với ứng dụng có trạng thái
+  - Cấu hình trafficPolicy theo dịch vụ, subset và cổng
+  - Locality theo region, zone và subzone
+  - Phân phối trọng số theo locality
+  - Failover giữa locality và quan hệ với outlier detection
+  - Ảnh hưởng của connection pool, HTTP/2 và kết nối dài
+- level1: Ingress
+  level2:
+  - Ranh giới giữa load balancer bên ngoài và ingress gateway
+  - Triển khai gateway tự động bằng Gateway API
+  - Triển khai gateway bằng Helm và quản lý vòng đời riêng
+  - Gateway listeners, hostname và allowedRoutes
+  - Gắn HTTPRoute vào gateway và kiểm tra Accepted, Programmed, ResolvedRefs
+  - Cấu hình ingress bằng Istio Gateway và VirtualService
+  - Service type LoadBalancer, NodePort và cách truy cập trong môi trường local
+  - Phân tách gateway public, private và theo nhóm dịch vụ
+  - Địa chỉ IP nguồn, X-Forwarded-For và proxy đứng trước gateway
+  - Phân biệt gateway ở biên và waypoint phục vụ traffic nội bộ
+- level1: TLS tại gateway
+  level2:
+  - Phân biệt TLS termination, passthrough và TLS origination
+  - Cấu hình HTTPS listener và chứng chỉ từ Kubernetes Secret
+  - certificateRefs và credentialName theo từng hệ API
+  - SNI, hostname và chuỗi chứng chỉ tin cậy
+  - Chuyển HTTP sang HTTPS
+  - mTLS giữa client bên ngoài và ingress gateway
+  - TLS từ gateway đến backend và kiểm tra chứng chỉ upstream
+  - Phân biệt mã hóa lớp ứng dụng và mTLS trong mesh
+  - Luân chuyển chứng chỉ và kiểm chứng không làm gián đoạn dịch vụ
+  - Chẩn đoán TLS sai host, sai Secret, sai trust hoặc mã hóa lặp
+- level1: Egress
+  level2:
+  - Luồng truy cập dịch vụ bên ngoài mesh
+  - Khai báo host, port, resolution và endpoint bằng ServiceEntry
+  - Phân biệt ALLOW_ANY và REGISTRY_ONLY trong sidecar
+  - Giới hạn của REGISTRY_ONLY như một cơ chế kiểm soát cấu hình
+  - Egress gateway và định tuyến lưu lượng ra ngoài
+  - Kết hợp gateway với NetworkPolicy để thực thi đường ra
+  - TLS origination đến dịch vụ ngoài và xác minh SNI, SAN
+  - Dịch vụ ngoài dùng DNS động hoặc wildcard theo khả năng phiên bản
+  - Egress trong ambient và yêu cầu waypoint, gateway tương ứng
+  - Theo dõi danh tính, log và đích đến của traffic egress
+- level1: Timeout và retry
+  level2:
+  - Phân biệt connection timeout, request timeout và idle timeout
+  - Ngân sách thời gian cho chuỗi gọi nhiều dịch vụ
+  - Cấu hình timeout trên route và tác động đến ứng dụng
+  - Retry attempts, per-try timeout và điều kiện retry
+  - Retry HTTP, gRPC và giới hạn với tác vụ không idempotent
+  - Tương tác giữa retry tại proxy và retry trong ứng dụng
+  - Nguy cơ tăng tải dây chuyền khi dịch vụ lỗi
+  - Kết nối dài, streaming và deadline của gRPC
+  - Kiểm chứng timeout/retry bằng lỗi và độ trễ có kiểm soát
+- level1: Circuit breaking
+  level2:
+  - Connection pool và giới hạn kết nối TCP
+  - Giới hạn request đang chờ và request đồng thời
+  - Keepalive, vòng đời kết nối và giới hạn request trên kết nối
+  - Phân biệt circuit breaking tại proxy và circuit breaker trong ứng dụng
+  - Outlier detection và loại endpoint lỗi khỏi nhóm phục vụ
+  - Ngưỡng lỗi, chu kỳ đánh giá, thời gian loại và tỷ lệ loại
+  - Phân biệt lỗi kết nối với lỗi phản hồi ứng dụng
+  - Kết hợp outlier detection với locality failover
+  - Giới hạn của ngưỡng theo từng proxy và từng upstream
+  - Đánh giá phục hồi khi endpoint khỏe trở lại
+- level1: Triển khai phiên bản
+  level2:
+  - Tách phiên bản workload khỏi quy tắc phân phối traffic
+  - Chia traffic theo trọng số để triển khai canary
+  - Định tuyến người dùng thử nghiệm theo header hoặc cookie
+  - A/B testing và yêu cầu nhất quán giữa các lần gọi
+  - Blue-green và điều kiện chuyển lưu lượng
+  - Quan sát tỷ lệ lỗi, độ trễ và tài nguyên trước khi tăng trọng số
+  - Rollback route và xử lý phiên bản đã ghi dữ liệu
+  - Kết hợp Argo Rollouts hoặc công cụ triển khai tiến dần
+  - Phân biệt trọng số route và số replica ứng dụng
+- level1: Thử nghiệm lỗi
+  level2:
+  - Mục tiêu và phạm vi của fault injection
+  - Tạo độ trễ có điều kiện theo route
+  - Tạo HTTP abort và chọn tỷ lệ ảnh hưởng
+  - Phân biệt lỗi do proxy tạo và lỗi thực từ backend
+  - Giới hạn kết hợp fault injection với timeout, retry và từng hệ API
+  - Traffic mirroring và tỷ lệ gửi bản sao
+  - Đặc điểm phản hồi, headers và tác dụng phụ của request được mirror
+  - Dùng dữ liệu thử nghiệm và cô lập đích nhận bản sao
+  - Đo mức ảnh hưởng, dừng thử nghiệm và xác minh phục hồi
+- level1: Danh tính và chứng chỉ
+  level2:
+  - Workload identity và Kubernetes ServiceAccount
+  - SPIFFE identity, trust domain và phạm vi tin cậy
+  - Phân biệt danh tính workload với danh tính người dùng
+  - CA tích hợp, root CA và intermediate CA
+  - Quy trình yêu cầu, cấp và phân phối chứng chỉ workload
+  - SDS, proxy agent và cách chứng chỉ đến data plane
+  - Thời hạn, luân chuyển và kiểm tra chuỗi chứng chỉ
+  - Tích hợp CA ngoài theo cơ chế được hỗ trợ
+  - Quản lý root trust và kế hoạch đổi trust domain
+  - Bảo vệ quyền ServiceAccount, private key và kênh control plane
+- level1: mTLS trong mesh
+  level2:
+  - Xác thực hai chiều và mã hóa kết nối giữa workload
+  - Auto mTLS và điều kiện nâng kết nối lên mTLS
+  - PeerAuthentication và chính sách ở mesh, namespace, workload
+  - PERMISSIVE, STRICT và kế thừa chính sách trong sidecar
+  - DestinationRule TLS settings và hành vi phía client
+  - Phân biệt TLS SIMPLE, MUTUAL, ISTIO_MUTUAL và DISABLE
+  - mTLS trong ambient và giới hạn áp dụng PeerAuthentication
+  - Giao tiếp giữa workload trong mesh và ngoài mesh
+  - Chuyển dần sang yêu cầu mTLS mà vẫn kiểm chứng tương thích
+  - Xác minh mTLS bằng telemetry, chứng chỉ và kết nối thử
+- level1: JWT và xác thực yêu cầu
+  level2:
+  - Phân biệt peer authentication và request authentication
+  - RequestAuthentication, issuer, audience và JWKS
+  - Vị trí JWT trong header, cookie hoặc query theo hỗ trợ
+  - Trường hợp token hợp lệ, token lỗi và request không có token
+  - Phối hợp RequestAuthentication với AuthorizationPolicy để bắt buộc JWT
+  - requestPrincipal, claims và danh tính được xác minh
+  - Nhiều issuer, luân chuyển khóa và lỗi truy cập JWKS
+  - Gắn chính sách JWT đúng gateway hoặc waypoint bằng targetRefs
+  - Giới hạn xác thực JWT so với đăng nhập, OAuth2 và nghiệp vụ ứng dụng
+- level1: Phân quyền
+  level2:
+  - AuthorizationPolicy và mô hình from, to, when
+  - Chính sách theo mesh, namespace, workload và targetRefs
+  - Phân biệt CUSTOM, DENY, ALLOW và AUDIT
+  - Thứ tự đánh giá và cách kết hợp nhiều chính sách
+  - Mặc định từ chối và khai báo quyền cần thiết
+  - Phân quyền theo ServiceAccount, namespace và danh tính workload
+  - Phân quyền HTTP theo method, path, host và thuộc tính JWT
+  - Phân quyền TCP và xử lý thuộc tính HTTP không tồn tại
+  - Chính sách L4 tại ztunnel và chính sách L7 tại waypoint
+  - Ảnh hưởng của selector sai và traffic không đi qua điểm thực thi
+  - Kiểm thử quyền được phép, bị từ chối và trường hợp thiếu dữ liệu
+  - Dry-run, audit và giới hạn hỗ trợ theo component, phiên bản
+- level1: Chính sách mở rộng
+  level2:
+  - External authorization với action CUSTOM
+  - Khai báo extension provider HTTP hoặc gRPC
+  - Tích hợp dịch vụ ext_authz hoặc bộ máy chính sách ngoài
+  - Timeout, lỗi dịch vụ xác thực và hành vi khi không có quyết định
+  - Phân biệt rate limit cục bộ và rate limit toàn hệ thống
+  - Thiết kế descriptor, quota và phản hồi HTTP 429
+  - Triển khai rate limit tại gateway hoặc proxy có hỗ trợ
+  - Đánh giá chi phí và điểm phụ thuộc của chính sách ngoài
+- level1: Mở rộng proxy
+  level2:
+  - Khi nào API chuẩn chưa đáp ứng yêu cầu xử lý traffic
+  - Phạm vi và rủi ro tương thích của EnvoyFilter
+  - Giới hạn hỗ trợ EnvoyFilter trên waypoint
+  - WasmPlugin, nguồn module và kiểm soát phiên bản
+  - TrafficExtension và Lua theo mức hỗ trợ hiện hành
+  - Gắn extension đúng workload, gateway hoặc waypoint
+  - Thứ tự xử lý filter và tương tác với bảo mật, telemetry
+  - Kiểm thử lỗi plugin, hiệu năng và quy trình gỡ thay đổi
+- level1: Metrics và topology
+  level2:
+  - Phân biệt metrics của ứng dụng, proxy và control plane
+  - Request rate, error rate, duration và TCP metrics
+  - Nhãn source, destination, reporter và canonical service
+  - Khác biệt telemetry L4 ở ztunnel và L7 ở waypoint
+  - Telemetry API và extensionProviders
+  - Tùy chỉnh chiều dữ liệu và kiểm soát cardinality
+  - Thu thập metrics bằng Prometheus và bảo vệ endpoint scrape
+  - Dashboard Grafana cho dịch vụ, gateway và control plane
+  - Kiali, service graph và giới hạn suy luận từ traffic thực
+  - Thiết kế cảnh báo kết nối, tỷ lệ lỗi, độ trễ và sức khỏe mesh
+- level1: Access logs
+  level2:
+  - Phân biệt log ứng dụng, access log proxy và log control plane
+  - Bật access logging bằng Telemetry API
+  - Log HTTP, TCP và log kết nối của ztunnel
+  - Định dạng văn bản, JSON và trường cần ghi nhận
+  - Response code, response flags và response code details
+  - Lọc access log bằng biểu thức phù hợp với giao thức
+  - Gửi access log đến OpenTelemetry Collector
+  - Liên kết log với trace ID, route và workload identity
+  - Che dữ liệu nhạy cảm và điều chỉnh volume log
+- level1: Distributed tracing
+  level2:
+  - Vai trò proxy trong tạo span và quan sát lời gọi mạng
+  - Trách nhiệm của ứng dụng khi truyền trace context
+  - W3C Trace Context, B3 và tính tương thích propagation
+  - Khai báo tracing provider bằng MeshConfig
+  - Cấu hình provider, sampling và custom tags bằng Telemetry API
+  - Xuất OTLP đến Collector hoặc backend tương thích
+  - Liên kết spans của ingress, sidecar, waypoint và ứng dụng
+  - Phân biệt thời gian mạng, thời gian proxy và xử lý nghiệp vụ
+  - Điều tra trace đứt đoạn, span trùng và sampling không nhất quán
+- level1: Java và Spring Boot
+  level2:
+  - Đưa ứng dụng Spring MVC hoặc WebFlux vào mesh
+  - Khai báo Service port, giao thức và canonical service
+  - Phối hợp Actuator health probes với sidecar hoặc ambient
+  - Quan sát REST, gRPC và HTTP client giữa các dịch vụ Java
+  - Truyền context qua Micrometer Tracing hoặc OpenTelemetry
+  - Phối hợp timeout, retry của HTTP client với Istio
+  - Phối hợp Resilience4j với circuit breaking và retry tại proxy
+  - Giao tiếp JDBC, Redis, Kafka và giới hạn quan sát ở L4
+  - TLS trong ứng dụng và lớp mTLS do mesh cung cấp
+  - Kiểm tra graceful shutdown, connection pool và request đang xử lý
+- level1: Mô hình triển khai
+  level2:
+  - Single cluster, multicluster và ranh giới một mesh
+  - Single network, multi-network và khả năng định tuyến Pod IP
+  - Primary, remote và external control plane
+  - Tách control plane, gateway và namespace ứng dụng
+  - Phân tách tenant, đội vận hành và quyền cấu hình
+  - High availability cho istiod, gateway và waypoint
+  - NetworkPolicy, firewall và các kết nối hạ tầng bắt buộc
+  - Đánh đổi giữa mức cô lập, khả năng phục hồi và chi phí
+- level1: Multicluster
+  level2:
+  - Chuẩn bị network, DNS, API server access và trust chung
+  - Mesh ID, cluster name và network identity
+  - Multi-primary và primary-remote trong sidecar
+  - East-west gateway và kết nối giữa các mạng
+  - Khám phá endpoint và quyền truy cập cluster từ xa
+  - Định danh cùng service qua nhiều cluster
+  - Locality load balancing và failover giữa cluster
+  - Ambient multi-primary, multi-network và trạng thái hỗ trợ
+  - Giới hạn waypoint, service visibility và tương tác sidecar trong ambient multicluster
+  - Kiểm chứng khi mất cluster, mất gateway hoặc mất liên kết mạng
+- level1: Máy ảo và hệ thống cũ
+  level2:
+  - Khi nào cần đưa workload ngoài Kubernetes vào mesh
+  - Giới hạn hỗ trợ máy ảo theo data plane mode
+  - WorkloadGroup, WorkloadEntry và ServiceEntry
+  - Bootstrap proxy, trust, token và kết nối đến istiod
+  - Đăng ký workload, health check và thông tin endpoint
+  - DNS và định tuyến giữa VM với Kubernetes
+  - Danh tính và mTLS cho ứng dụng trên VM
+  - Vận hành vòng đời proxy, chứng chỉ và workload không còn tồn tại
+- level1: Quản lý cấu hình
+  level2:
+  - Tổ chức manifest theo mesh, namespace và đội sở hữu
+  - Phân quyền tạo route, gateway và chính sách bảo mật
+  - Quy ước tên, labels và kiểm soát tham chiếu xuyên namespace
+  - Phân biệt giá trị Helm, cấu hình cài đặt và CRD runtime
+  - Quản lý cấu hình bằng GitOps, Helm hoặc Kustomize
+  - Kiểm tra schema và istioctl analyze trong CI
+  - Kiểm thử route, chính sách và dữ liệu telemetry bằng traffic mẫu
+  - Phát hiện quy tắc xung đột, không thể khớp và tài nguyên không được dùng
+  - Đánh giá thay đổi theo canary và lưu kế hoạch rollback
+  - Phân biệt thu hẹp khả kiến cấu hình với thực thi ranh giới bảo mật
+- level1: Hiệu năng và quy mô
+  level2:
+  - Đo latency, throughput, CPU và memory trước khi thêm mesh
+  - Chi phí của sidecar theo Pod, ztunnel theo node và waypoint dùng chung
+  - Đo ảnh hưởng mTLS, HTTP/2, connection reuse và xử lý L7
+  - Quy mô service registry, endpoint và cấu hình xDS
+  - Thu hẹp cấu hình sidecar bằng Sidecar resource và exportTo
+  - Giới hạn namespace được khám phá bằng discoverySelectors
+  - ServiceEntry visibility và phạm vi tương ứng trong ambient
+  - Điều chỉnh tài nguyên, replica và autoscaling cho các component
+  - Tối ưu metrics, tracing, access logs và cardinality
+  - Kiểm thử tải, kết nối dài và giới hạn của benchmark tổng quát
+- level1: Nâng cấp và phục hồi
+  level2:
+  - Đọc release notes, phiên bản hỗ trợ và compatibility settings
+  - Kiểm tra tương thích bằng istioctl x precheck
+  - Phân biệt revision, revision tag và namespace enrollment
+  - Canary control plane và chuyển nhóm workload trong sidecar
+  - Nâng cấp sidecar và gateway theo revision
+  - Thứ tự nâng CRD, istiod, CNI, ztunnel và waypoint trong ambient
+  - Tác động theo node khi nâng cấp ztunnel
+  - Bảo vệ kết nối dài bằng kế hoạch drain và nâng cấp node
+  - Kiểm chứng traffic, bảo mật và telemetry sau nâng cấp
+  - Rollback và điều kiện gỡ revision không còn được sử dụng
+- level1: Chuyển đổi sang ambient
+  level2:
+  - Kiểm kê sidecar, VirtualService, DestinationRule và chính sách hiện có
+  - Đối chiếu tính năng đang dùng với khả năng ambient của phiên bản đích
+  - Bổ sung CNI, ztunnel và waypoint cần thiết
+  - Chuyển route sang Gateway API khi phù hợp
+  - Chuyển selector sang targetRefs cho chính sách tại waypoint
+  - Kiểm thử ranh giới L4, L7 và đường traffic phải qua waypoint
+  - Chuyển nhóm workload nhỏ và xử lý nhãn injection, ambient
+  - Kiểm chứng giao tiếp sidecar, ambient và workload ngoài mesh
+  - So sánh telemetry, hiệu năng và khả năng rollback
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quy trình lần theo DNS, Service, endpoint, proxy và ứng dụng
+  - Kiểm tra installation, injection và CNI bằng log, events
+  - Dùng istioctl analyze và proxy-status
+  - Dùng proxy-config để đọc listener, route, cluster, endpoint và secret
+  - Dùng ztunnel-config để đọc workload, service, policy và certificate
+  - Điều tra waypoint không nhận traffic hoặc route không được gắn
+  - Điều tra HTTP 404, 503, timeout và Envoy response flags
+  - Điều tra lỗi mTLS, trust domain, hết hạn chứng chỉ và JWKS
+  - Điều tra AuthorizationPolicy từ chối hoặc áp dụng sai phạm vi
+  - Điều tra DNS capture, headless service và server-first protocol
+  - Điều tra egress, multicluster và kết nối ngoài mesh
+  - Thu thập config dump, debug log và dữ liệu hỗ trợ có chọn lọc
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng hệ Spring Boot nhiều dịch vụ và chọn data plane mode
+  - Cấu hình ingress HTTPS và route theo hostname, path
+  - Triển khai canary theo trọng số và đo kết quả
+  - Áp dụng mTLS cùng phân quyền theo ServiceAccount
+  - Bắt buộc JWT cho API và kiểm thử các trường hợp bị từ chối
+  - Đưa dịch vụ ngoài qua egress có kiểm soát
+  - Thử nghiệm timeout, retry, outlier detection và phục hồi
+  - Liên kết Prometheus, Grafana, Kiali và tracing backend
+  - Diễn tập nâng cấp hoặc chuyển sidecar sang ambient
+  - Hoàn thiện cấu hình GitOps, kiểm tra CI và sổ tay vận hành

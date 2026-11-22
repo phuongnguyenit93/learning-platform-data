@@ -1,0 +1,57 @@
+roadmap:
+- id: secops-pham-vi
+  title: SecOps & Phạm vi
+  purpose: Hiểu mục tiêu, trách nhiệm và luồng phối hợp giữa giám sát an ninh, vận hành và ứng phó sự cố.
+  objectives:
+  - Mô tả quy trình Identify–Protect–Detect–Respond–Recover
+  - Phân biệt vai trò SOC, IT Ops và incident responder
+  - Vẽ luồng tiếp nhận, phân loại và chuyển cấp cảnh báo
+- id: tai-san-baseline
+  title: Tài sản & Baseline
+  purpose: Biết điều gì cần bảo vệ và nhận diện sai lệch cấu hình làm tăng rủi ro.
+  objectives:
+  - Lập danh mục host, tài khoản và dịch vụ trọng yếu
+  - Xác định chủ sở hữu và mức độ ưu tiên tài sản
+  - So sánh cấu hình hiện tại với baseline bảo mật
+- id: logging-telemetry
+  title: Logging & Telemetry
+  purpose: Thu thập tín hiệu đủ tin cậy để phát hiện và điều tra hành vi bất thường.
+  objectives:
+  - Chọn log từ identity, endpoint, network và ứng dụng
+  - Chuẩn hóa timestamp, nguồn và mã định danh sự kiện
+  - Kiểm tra masking secrets, quyền truy cập và retention
+- id: detection-siem
+  title: Detection & SIEM
+  purpose: Biến sự kiện thô thành cảnh báo có ngữ cảnh và giảm nhiễu vận hành.
+  objectives:
+  - Ánh xạ một hành vi đáng ngờ với MITRE ATT&CK
+  - Viết quy tắc phát hiện từ log đăng nhập thất bại
+  - Thử dữ liệu giả lập để đánh giá false positive
+- id: triage-dieu-tra
+  title: Triage & Điều tra
+  purpose: Ưu tiên sự kiện cần xử lý và tìm bằng chứng trước khi đưa ra kết luận.
+  objectives:
+  - Phân loại cảnh báo theo tác động và độ tin cậy
+  - Tương quan user, IP, host và thời gian sự kiện
+  - Ghi ticket kèm timeline và bằng chứng kiểm chứng được
+- id: vulnerability-patch
+  title: Vulnerability & Patch
+  purpose: Giảm bề mặt tấn công bằng quản lý lỗ hổng, cấu hình và bản vá theo rủi ro.
+  objectives:
+  - Đọc kết quả quét và xác minh tài sản bị ảnh hưởng
+  - Ưu tiên xử lý theo khai thác thực tế và mức phơi nhiễm
+  - Thử bản vá rồi kiểm tra lại lỗ hổng
+- id: incident-response
+  title: Incident Response
+  purpose: Phối hợp ngăn chặn, loại bỏ nguyên nhân và khôi phục an toàn khi có sự cố.
+  objectives:
+  - Soạn playbook cho tài khoản bị chiếm quyền
+  - Diễn tập containment và bảo toàn chứng cứ
+  - Xác minh phục hồi và viết báo cáo sau sự cố
+- id: hunting-cai-tien
+  title: Hunting & Cải tiến
+  purpose: Chủ động kiểm tra giả thuyết đe dọa và liên tục nâng chất lượng SecOps.
+  objectives:
+  - Tạo giả thuyết hunting dựa trên dấu hiệu hoặc ATT&CK
+  - Đo thời gian phát hiện và xử lý một kịch bản
+  - Cập nhật detection rule, runbook từ bài học

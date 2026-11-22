@@ -1,0 +1,5419 @@
+menu:
+- slug: google-cloud-overview
+  title: Tổng quan Google Cloud
+  childs:
+  - slug: google-cloud-overview-001
+    title: Google Cloud trong hệ sinh thái điện toán đám mây
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-002
+    title: Các nhóm dịch vụ và mô hình trách nhiệm chia sẻ trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-003
+    title: Lựa chọn IaaS, PaaS, serverless và dịch vụ được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-004
+    title: Cách đọc tài liệu, kiến trúc tham chiếu và danh mục dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-005
+    title: Cloud Adoption Framework và quá trình áp dụng Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-006
+    title: Google Cloud Well-Architected Framework
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-007
+    title: SLA, giai đoạn phát hành và vòng đời dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-008
+    title: Tư duy chọn dịch vụ GCP theo yêu cầu hệ thống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-overview-009
+    title: Lộ trình học GCP dành cho lập trình viên Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-hierarchy-and-locations
+  title: Hệ thống tài nguyên và vị trí
+  childs:
+  - slug: resource-hierarchy-and-locations-001
+    title: Organization, folder, project và Resource Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-002
+    title: Project ID, project number và quy tắc định danh tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-003
+    title: Resource hierarchy và sự kế thừa cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-004
+    title: Region, zone và phạm vi tài nguyên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-005
+    title: Lựa chọn vị trí theo độ trễ, khả dụng và lưu trú dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-006
+    title: Thiết kế project cho môi trường và nhóm phát triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-007
+    title: Labels, tags và quản lý vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-008
+    title: Service Usage và bật API trong project
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-009
+    title: Quotas, giới hạn hệ thống và yêu cầu tăng hạn mức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-hierarchy-and-locations-010
+    title: Thực hành tạo project học tập và dọn tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tools-and-development-environment
+  title: Công cụ và môi trường GCP
+  childs:
+  - slug: tools-and-development-environment-001
+    title: Làm quen Google Cloud Console và Cloud Shell
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-002
+    title: Cài đặt và cấu hình Google Cloud CLI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-003
+    title: Quản lý gcloud configurations theo tài khoản và môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-004
+    title: Chọn project, region và zone mặc định cho gcloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-005
+    title: Truy vấn, lọc và định dạng kết quả gcloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-006
+    title: Gọi Google Cloud REST API và khám phá API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-007
+    title: Cloud Client Libraries và lựa chọn SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-008
+    title: Application Default Credentials trong môi trường phát triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-009
+    title: Cloud Workstations và môi trường phát triển được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-development-environment-010
+    title: Thực hành tự động hóa thao tác quản trị bằng gcloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: billing-and-budgets
+  title: Thanh toán và ngân sách
+  childs:
+  - slug: billing-and-budgets-001
+    title: Cloud Billing account và liên kết project
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-002
+    title: Phân quyền quản lý thanh toán và đối soát chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-003
+    title: Đọc bảng giá, SKU và đơn vị tính phí của GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-004
+    title: Ước tính kiến trúc bằng Google Cloud Pricing Calculator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-005
+    title: Thiết lập budgets và cảnh báo chi tiêu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-006
+    title: Phân biệt cảnh báo ngân sách với cơ chế giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-007
+    title: Cloud Billing reports và phân tích Cost table
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-008
+    title: Xuất dữ liệu thanh toán sang BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-009
+    title: Phân bổ chi phí theo project, nhãn và đơn vị sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-010
+    title: Chi phí truyền dữ liệu giữa zone, region và Internet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: billing-and-budgets-011
+    title: Quản lý credits, tài nguyên thử nghiệm và chi phí phát sinh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: iam-and-authentication
+  title: IAM và xác thực
+  childs:
+  - slug: iam-and-authentication-001
+    title: Principals, IAM policy và resource trong GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-002
+    title: Basic roles, predefined roles và custom roles
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-003
+    title: Quyền hiệu lực và kế thừa IAM policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-004
+    title: Thiết kế quyền tối thiểu và tách nhiệm vụ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-005
+    title: IAM Conditions và cấp quyền có điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-006
+    title: IAM deny policies và giới hạn quyền truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-007
+    title: Service accounts và vòng đời danh tính ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-008
+    title: Service account impersonation và thông tin xác thực ngắn hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-009
+    title: Workload Identity Federation cho hệ thống bên ngoài GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-010
+    title: Workforce Identity Federation cho người dùng tổ chức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-011
+    title: OAuth 2.0, access token và ID token khi gọi dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-012
+    title: Kiểm soát và thay thế service account keys
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-013
+    title: Policy Troubleshooter và phân tích lỗi cấp quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: iam-and-authentication-014
+    title: Thực hành phân quyền theo môi trường và workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: organization-governance
+  title: Quản trị tổ chức
+  childs:
+  - slug: organization-governance-001
+    title: Thiết kế landing zone với organization và folder
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-002
+    title: Organization Policy và các ràng buộc tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-003
+    title: Tổ chức project factory và quy trình cấp phát project
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-004
+    title: Cloud Identity và quản lý danh tính tổ chức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-005
+    title: Áp dụng tags cho IAM Conditions và chính sách tổ chức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-006
+    title: Cloud Asset Inventory và kiểm kê cấu hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-007
+    title: Policy Analyzer và rà soát quyền trên tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-008
+    title: Privileged Access Manager và cấp quyền có thời hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-009
+    title: Essential Contacts, kênh hỗ trợ và đầu mối vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: organization-governance-010
+    title: Thực hành thiết lập guardrails cho môi trường phát triển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vpc-and-routing
+  title: VPC và định tuyến
+  childs:
+  - slug: vpc-and-routing-001
+    title: Kiến trúc VPC toàn cục và subnet theo region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-002
+    title: Custom mode VPC và quy hoạch địa chỉ IP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-003
+    title: Primary IP ranges, secondary ranges và alias IP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-004
+    title: Địa chỉ IPv4, IPv6, IP nội bộ và IP bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-005
+    title: Routes, thứ tự chọn tuyến và đường đi gói tin
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-006
+    title: VPC Network Peering và giới hạn truyền tuyến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-007
+    title: Shared VPC và phân tách host project với service project
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-008
+    title: Private Google Access và truy cập Google APIs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-009
+    title: Private Service Connect cho dịch vụ và API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-010
+    title: Private services access và kết nối dịch vụ được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-011
+    title: Cloud NAT và kết nối đi ra cho tài nguyên riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-012
+    title: VPC Flow Logs và quan sát lưu lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-and-routing-013
+    title: Thực hành xây dựng VPC riêng cho ứng dụng nhiều tầng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dns-and-hybrid-connectivity
+  title: DNS và kết nối hybrid
+  childs:
+  - slug: dns-and-hybrid-connectivity-001
+    title: Cloud DNS public zones và quản lý bản ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-002
+    title: Cloud DNS private zones và phân giải nội bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-003
+    title: DNS forwarding, peering và phân giải DNS hybrid
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-004
+    title: DNSSEC và bảo vệ tính toàn vẹn DNS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-005
+    title: Cloud Router và trao đổi tuyến bằng BGP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-006
+    title: HA VPN và thiết kế kết nối dự phòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-007
+    title: Dedicated Interconnect và Partner Interconnect
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-008
+    title: Network Connectivity Center và tổ chức mạng hub-and-spoke
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-009
+    title: Chọn VPN hoặc Interconnect theo yêu cầu kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-010
+    title: MTU, phân mảnh và băng thông trên kết nối hybrid
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-011
+    title: Thực hành nối mạng tại chỗ với VPC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-and-hybrid-connectivity-012
+    title: Chẩn đoán lỗi DNS, BGP và tunnel VPN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-balancing-and-content-delivery
+  title: Cân bằng tải và phân phối nội dung
+  childs:
+  - slug: load-balancing-and-content-delivery-001
+    title: Danh mục Cloud Load Balancing và tiêu chí lựa chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-002
+    title: Application Load Balancer bên ngoài và bên trong
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-003
+    title: Proxy Network Load Balancer và passthrough Network Load Balancer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-004
+    title: Frontend, backend service và health check
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-005
+    title: URL maps và định tuyến theo host, path
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-006
+    title: Network endpoint groups cho VM, GKE và serverless
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-007
+    title: Certificate Manager và quản lý chứng chỉ TLS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-008
+    title: Cloud CDN, cache keys và cache invalidation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-009
+    title: Signed URLs, signed cookies và bảo vệ nội dung phân phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-010
+    title: Cloud Armor kết hợp load balancer tại biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-011
+    title: Cloud DNS routing policies và điều hướng lưu lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-balancing-and-content-delivery-012
+    title: Thực hành công bố ứng dụng HTTPS có CDN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-security-and-access
+  title: Bảo mật và truy cập mạng
+  childs:
+  - slug: network-security-and-access-001
+    title: VPC firewall rules và xử lý ưu tiên luật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-002
+    title: Hierarchical firewall policies và network firewall policies
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-003
+    title: Firewall logging và rà soát lưu lượng bị chặn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-004
+    title: Cloud NGFW và kiểm soát lưu lượng nâng cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-005
+    title: Cloud IDS và phát hiện xâm nhập mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-006
+    title: Identity-Aware Proxy cho ứng dụng và TCP forwarding
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-007
+    title: OS Login và kiểm soát truy cập SSH
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-008
+    title: Cloud Armor WAF, rate limiting và phòng vệ DDoS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-009
+    title: Secure Web Proxy và kiểm soát truy cập web đi ra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-010
+    title: Access Context Manager và truy cập theo ngữ cảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-011
+    title: VPC Service Controls và xây dựng service perimeter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-security-and-access-012
+    title: Thực hành bảo vệ workload không có IP công khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-engine
+  title: Compute Engine
+  childs:
+  - slug: compute-engine-001
+    title: Kiến trúc Compute Engine và vòng đời VM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-002
+    title: Machine families, machine types và cấu hình máy tùy chỉnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-003
+    title: Lựa chọn CPU architecture cho workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-004
+    title: Images, custom images và machine images
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-005
+    title: Tạo VM với boot disk và network interface
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-006
+    title: Metadata server và startup scripts
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-007
+    title: Gắn service account và kiểm soát quyền của VM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-008
+    title: Shielded VM và Confidential VM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-009
+    title: Spot VMs và xử lý gián đoạn workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-010
+    title: Sole-tenant nodes và yêu cầu cô lập máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-011
+    title: Reservation và chiến lược bảo đảm năng lực VM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-012
+    title: Live migration, maintenance policy và lịch bảo trì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-013
+    title: Suspend, resume, stop và xóa VM an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-engine-014
+    title: Thực hành triển khai dịch vụ Java trên Compute Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: instance-groups-and-autoscaling
+  title: Nhóm máy ảo và tự động mở rộng
+  childs:
+  - slug: instance-groups-and-autoscaling-001
+    title: Instance templates và cấu hình triển khai bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-002
+    title: Managed instance groups theo zone và region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-003
+    title: Autoscaling theo CPU, tải cân bằng và custom metrics
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-004
+    title: Autohealing và thiết kế health checks cho MIG
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-005
+    title: Rolling updates, canary và khôi phục phiên bản VM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-006
+    title: Stateful managed instance groups
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-007
+    title: Phân bố VM, capacity và khả năng chịu lỗi theo zone
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-008
+    title: Kết hợp MIG với Cloud Load Balancing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: instance-groups-and-autoscaling-009
+    title: Thực hành mở rộng ứng dụng Java theo tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: block-and-file-storage
+  title: Lưu trữ khối và tệp
+  childs:
+  - slug: block-and-file-storage-001
+    title: Lựa chọn block storage, file storage và object storage trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-002
+    title: Persistent Disk và các lựa chọn hiệu năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-003
+    title: Hyperdisk và cấu hình IOPS, throughput
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-004
+    title: Local SSD và quản lý dữ liệu tạm thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-005
+    title: Zonal disks, regional disks và nhu cầu nhân bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-006
+    title: Gắn đĩa, mở rộng dung lượng và quản lý filesystem
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-007
+    title: Snapshots, instant snapshots và lịch chụp đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-008
+    title: Filestore và chia sẻ tệp qua NFS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-009
+    title: Google Cloud NetApp Volumes và nhu cầu tệp doanh nghiệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-010
+    title: Thực hành đo hiệu năng và phục hồi dữ liệu đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-storage
+  title: Cloud Storage
+  childs:
+  - slug: cloud-storage-001
+    title: Buckets, objects và namespace của Cloud Storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-002
+    title: Chọn bucket location và storage class
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-003
+    title: Autoclass và object lifecycle management
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-004
+    title: IAM, uniform bucket-level access và public access prevention
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-005
+    title: Signed URLs và signed policy documents
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-006
+    title: Object versioning, soft delete và phục hồi đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-007
+    title: Retention policies, Bucket Lock và object holds
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-008
+    title: Mã hóa đối tượng và lựa chọn khóa cho bucket
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-009
+    title: Consistency, generation và preconditions khi cập nhật object
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-010
+    title: Resumable uploads, compose và xử lý tệp lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-011
+    title: Cloud Storage notifications và sự kiện đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-012
+    title: Cloud Storage FUSE và giới hạn khi dùng như filesystem
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-013
+    title: Logging, metrics và kiểm toán truy cập bucket
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-014
+    title: Thực hành kho tệp riêng tư cho ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: containers-and-artifact-registry
+  title: Container và Artifact Registry
+  childs:
+  - slug: containers-and-artifact-registry-001
+    title: Tổ chức container workloads trong hệ sinh thái GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-002
+    title: Artifact Registry repositories và định dạng artifact
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-003
+    title: Đẩy, kéo và phân quyền truy cập container images
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-004
+    title: Lưu Maven artifacts cho dự án Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-005
+    title: Remote repositories và virtual repositories
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-006
+    title: Container image scanning và xử lý lỗ hổng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-007
+    title: Image tags, digests và chính sách bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-008
+    title: Cleanup policies và vòng đời artifact
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-009
+    title: Tối ưu image Java bằng multi-stage build và buildpacks
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-artifact-registry-010
+    title: Thực hành phát hành image dùng chung cho GKE và Cloud Run
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: gke-fundamentals
+  title: GKE cơ bản
+  childs:
+  - slug: gke-fundamentals-001
+    title: Kiến trúc Google Kubernetes Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-002
+    title: Lựa chọn GKE Standard và GKE Autopilot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-003
+    title: Zonal clusters, regional clusters và thiết kế khả dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-004
+    title: Node pools, machine types và cấu hình node
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-005
+    title: VPC-native clusters và quy hoạch IP cho Pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-006
+    title: Private clusters và bảo vệ truy cập control plane
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-007
+    title: Cấu hình kubectl, IAM và Kubernetes RBAC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-008
+    title: Triển khai Deployment, Service và ConfigMap trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-009
+    title: Quản lý Secrets và danh tính workload trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-010
+    title: Ingress, Gateway API và công bố dịch vụ GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-011
+    title: PersistentVolume, CSI drivers và lưu trữ cho Pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-012
+    title: Requests, limits và lập lịch workload trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: gke-fundamentals-013
+    title: Thực hành triển khai Spring Boot trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: advanced-gke-operations
+  title: GKE nâng cao và vận hành
+  childs:
+  - slug: advanced-gke-operations-001
+    title: Workload Identity Federation for GKE và quyền truy cập dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-002
+    title: Horizontal Pod Autoscaling và Vertical Pod Autoscaling trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-003
+    title: Cluster autoscaler và node auto-provisioning
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-004
+    title: Network policies và phân đoạn lưu lượng Pod
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-005
+    title: GKE Dataplane V2 và quan sát kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-006
+    title: Cloud Service Mesh và bảo mật giao tiếp giữa dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-007
+    title: Release channels, maintenance windows và nâng cấp cluster
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-008
+    title: PodDisruptionBudget và chiến lược gián đoạn có kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-009
+    title: GKE fleet và quản trị nhiều cluster
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-010
+    title: Config Sync và Policy Controller
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-011
+    title: Binary Authorization và chính sách cho workload GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-012
+    title: Backup for GKE và khôi phục ứng dụng có trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-013
+    title: Thu thập logs, metrics và traces cho GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-014
+    title: Tối ưu tài nguyên và chi phí cluster GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-gke-operations-015
+    title: Thực hành xử lý Pod pending, crash loop và lỗi networking
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-run
+  title: Cloud Run
+  childs:
+  - slug: cloud-run-001
+    title: Cloud Run services, jobs và mô hình thực thi container
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-002
+    title: Container runtime contract và yêu cầu ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-003
+    title: Triển khai từ source code và từ container image
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-004
+    title: Revisions, traffic splitting và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-005
+    title: Concurrency, autoscaling và số instance tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-006
+    title: CPU, memory và lựa chọn cơ chế tính phí Cloud Run
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-007
+    title: Request timeout, startup probe và graceful shutdown
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-008
+    title: Service identity và xác thực giữa các Cloud Run services
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-009
+    title: Ingress, custom domains và kết hợp load balancer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-010
+    title: Direct VPC egress và Serverless VPC Access
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-011
+    title: Kết nối Cloud Run với Cloud SQL và dịch vụ riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-012
+    title: Secrets, environment variables và gắn volume
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-013
+    title: Thực thi tác vụ nền bằng Cloud Run jobs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-014
+    title: Giảm cold start cho ứng dụng Java trên Cloud Run
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-015
+    title: Thực hành phát hành Spring Boot theo canary trên Cloud Run
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-run-functions-and-eventarc
+  title: Cloud Run functions và Eventarc
+  childs:
+  - slug: cloud-run-functions-and-eventarc-001
+    title: Cloud Run functions và mô hình hàm được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-002
+    title: Lựa chọn functions, Cloud Run service hoặc Cloud Run job
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-003
+    title: HTTP functions và event-driven functions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-004
+    title: Functions Framework và vòng đời hàm Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-005
+    title: Eventarc triggers, event providers và CloudEvents
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-006
+    title: Kích hoạt hàm từ Cloud Storage và Pub/Sub
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-007
+    title: Xác thực, service identity và quyền của event trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-008
+    title: Retries, duplicate delivery và thiết kế hàm idempotent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-009
+    title: Cấu hình mạng, secrets và tài nguyên cho functions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-run-functions-and-eventarc-010
+    title: Thực hành xử lý tệp tải lên bằng hàm Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: app-engine
+  title: App Engine
+  childs:
+  - slug: app-engine-001
+    title: App Engine application, services và versions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-002
+    title: Lựa chọn App Engine Standard và Flexible
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-003
+    title: Java runtime và cấu hình app.yaml
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-004
+    title: Scaling, instance classes và quản lý lưu lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-005
+    title: Version deployment, traffic migration và rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-006
+    title: Kết nối dữ liệu và sử dụng service account trong App Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-007
+    title: Custom domains, HTTPS và bảo vệ ứng dụng App Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-008
+    title: Logs, chẩn đoán và kiểm soát chi phí App Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: app-engine-009
+    title: Đánh giá chuyển ứng dụng App Engine sang Cloud Run
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-gateway-and-apigee
+  title: API Gateway và Apigee
+  childs:
+  - slug: api-gateway-and-apigee-001
+    title: Lựa chọn API Gateway, Cloud Endpoints và Apigee
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-002
+    title: Thiết kế hợp đồng OpenAPI cho API trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-003
+    title: API Gateway configs, deployments và backends
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-004
+    title: Xác thực JWT và kiểm soát API keys
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-005
+    title: Gọi Cloud Run backend được bảo vệ qua API Gateway
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-006
+    title: Apigee organizations, environments và API proxies
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-007
+    title: Apigee policies cho xác thực và quản lý lưu lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-008
+    title: API products, developer apps và vòng đời consumer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-009
+    title: Apigee analytics và quan sát hoạt động API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-010
+    title: Apigee hybrid và yêu cầu triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-011
+    title: Versioning, deprecation và quản trị danh mục API
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-gateway-and-apigee-012
+    title: Thực hành bảo vệ và công bố API Java trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pubsub-and-messaging
+  title: Pub/Sub và thông điệp
+  childs:
+  - slug: pubsub-and-messaging-001
+    title: Pub/Sub topics, subscriptions và mô hình phân phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-002
+    title: Pull, push và export subscriptions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-003
+    title: Acknowledgment deadlines và xử lý redelivery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-004
+    title: At-least-once, exactly-once và phạm vi bảo đảm xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-005
+    title: Ordering keys và thứ tự thông điệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-006
+    title: Retry policies, dead-letter topics và poison messages
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-007
+    title: Snapshots, seek và phát lại thông điệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-008
+    title: Message retention và quản lý backlog
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-009
+    title: Schemas, message validation và thay đổi định dạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-010
+    title: Flow control, batching và tối ưu publisher, subscriber
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-011
+    title: IAM, mã hóa và message storage policies
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-012
+    title: Managed Service for Apache Kafka và tiêu chí lựa chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pubsub-and-messaging-013
+    title: Thực hành publisher, subscriber Java có xử lý trùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: orchestration-and-integration
+  title: Điều phối và tích hợp ứng dụng
+  childs:
+  - slug: orchestration-and-integration-001
+    title: Workflows và điều phối dịch vụ Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-002
+    title: Workflow steps, expressions và quản lý dữ liệu thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-003
+    title: Workflows connectors, HTTP calls và xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-004
+    title: Retries, error handling và compensation trong Workflows
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-005
+    title: Cloud Tasks và quản lý hàng đợi tác vụ HTTP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-006
+    title: Rate limits, lịch chạy và retries cho Cloud Tasks
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-007
+    title: Cloud Scheduler và thực thi tác vụ theo lịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-008
+    title: Lựa chọn Pub/Sub, Cloud Tasks, Scheduler hoặc Workflows
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-009
+    title: Application Integration và kết nối hệ thống doanh nghiệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-010
+    title: Thiết kế saga và xử lý lỗi từng phần trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: orchestration-and-integration-011
+    title: Thực hành quy trình xử lý đơn hàng có điều phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-sql-and-alloydb
+  title: Cloud SQL và AlloyDB
+  childs:
+  - slug: cloud-sql-and-alloydb-001
+    title: Lựa chọn Cloud SQL, AlloyDB và cơ sở dữ liệu tự quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-002
+    title: Cloud SQL cho PostgreSQL, MySQL và SQL Server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-003
+    title: Cloud SQL instance sizing, storage và cấu hình cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-004
+    title: Cloud SQL high availability và cơ chế failover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-005
+    title: Read replicas và mở rộng nhu cầu đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-006
+    title: Private IP, Private Service Connect và kết nối Cloud SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-007
+    title: Cloud SQL Auth Proxy và language connectors
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-008
+    title: IAM database authentication và quản lý người dùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-009
+    title: Connection pooling và giới hạn kết nối ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-010
+    title: Backups, point-in-time recovery và phục hồi Cloud SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-011
+    title: Maintenance, nâng cấp phiên bản và thay đổi schema
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-012
+    title: Query Insights và phân tích hiệu năng truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-013
+    title: AlloyDB clusters, primary instances và read pools
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-sql-and-alloydb-014
+    title: Thực hành ứng dụng Spring Data JPA với Cloud SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spanner
+  title: Spanner
+  childs:
+  - slug: spanner-001
+    title: Spanner và lựa chọn cơ sở dữ liệu quan hệ phân tán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-002
+    title: Instance configurations và bố trí dữ liệu theo vị trí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-003
+    title: Nodes, processing units và quản lý năng lực Spanner
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-004
+    title: Thiết kế schema và lựa chọn primary keys
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-005
+    title: GoogleSQL và PostgreSQL interface trong Spanner
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-006
+    title: Transactions, consistency và mô hình thời gian Spanner
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-007
+    title: Indexes, query plans và tránh hotspot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-008
+    title: Sessions, connection management và Java Spanner client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-009
+    title: Change streams và tích hợp luồng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-010
+    title: Backups, point-in-time recovery và bảo vệ dữ liệu Spanner
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spanner-011
+    title: Thực hành thiết kế sổ giao dịch trên Spanner
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: firestore-and-firebase
+  title: Firestore và Firebase
+  childs:
+  - slug: firestore-and-firebase-001
+    title: Firestore database modes và tiêu chí lựa chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-002
+    title: Documents, collections và mô hình hóa dữ liệu Firestore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-003
+    title: Queries, indexes và giới hạn truy vấn Firestore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-004
+    title: Transactions, batched writes và cạnh tranh cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-005
+    title: Realtime listeners và đồng bộ dữ liệu ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-006
+    title: Security Rules, IAM và ranh giới client, server
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-007
+    title: Thiết kế Firestore tránh hotspot và chi phí đọc ngoài dự kiến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-008
+    title: TTL policies, export, import và phục hồi Firestore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-009
+    title: Firebase projects và quan hệ với Google Cloud projects
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-010
+    title: Firebase Authentication và Identity Platform
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-011
+    title: Firebase Hosting, Cloud Storage for Firebase và backend GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: firestore-and-firebase-012
+    title: Thực hành backend Java dùng Firestore và Firebase Admin SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bigtable-and-memorystore
+  title: Bigtable và Memorystore
+  childs:
+  - slug: bigtable-and-memorystore-001
+    title: Bigtable và mô hình wide-column cho dữ liệu quy mô lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-002
+    title: Bigtable instances, clusters và app profiles
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-003
+    title: Thiết kế row keys, column families và tránh hotspot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-004
+    title: Garbage collection, timestamp và vòng đời cell
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-005
+    title: Replication, consistency và định tuyến truy cập Bigtable
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-006
+    title: Bigtable Java client và tương thích HBase
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-007
+    title: Theo dõi hiệu năng Bigtable bằng Key Visualizer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-008
+    title: Memorystore và các lựa chọn công cụ bộ nhớ đệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-009
+    title: Networking, xác thực và khả dụng cho Memorystore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-010
+    title: Cache-aside, TTL, eviction và phòng cache stampede
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigtable-and-memorystore-011
+    title: Thực hành bộ nhớ đệm cho API Spring Boot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bigquery
+  title: BigQuery
+  childs:
+  - slug: bigquery-001
+    title: Kiến trúc BigQuery và tách biệt storage với compute
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-002
+    title: Projects, datasets, tables và vị trí dữ liệu BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-003
+    title: Load jobs, external tables và lựa chọn nạp dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-004
+    title: BigQuery Storage Write API và dữ liệu streaming
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-005
+    title: GoogleSQL, nested fields và repeated fields
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-006
+    title: Partitioning, clustering và pruning dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-007
+    title: Query plans và phân tích chi phí truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-008
+    title: On-demand analysis, reservations và slots
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-009
+    title: Materialized views, BI Engine và tăng tốc truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-010
+    title: IAM, authorized views và kiểm soát truy cập dataset
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-011
+    title: Row-level security, column-level security và data masking
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-012
+    title: Time travel, table snapshots và phục hồi dữ liệu BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-013
+    title: BigQuery ML và suy luận gần dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-014
+    title: BigQuery Java client và thực thi jobs từ ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bigquery-015
+    title: Thực hành kho dữ liệu và dashboard phân tích chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-pipelines-and-processing
+  title: Pipeline và xử lý dữ liệu
+  childs:
+  - slug: data-pipelines-and-processing-001
+    title: Thiết kế batch pipelines và streaming pipelines trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-002
+    title: Apache Beam và mô hình lập trình Dataflow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-003
+    title: Windows, watermarks, triggers và late data trong Dataflow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-004
+    title: Triển khai Dataflow pipeline bằng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-005
+    title: Dataflow templates, Flex Templates và tham số hóa jobs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-006
+    title: Dataflow autoscaling, shuffle và xử lý lỗi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-007
+    title: Dataproc clusters và vận hành Spark, Hadoop
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-008
+    title: Serverless for Apache Spark và chạy Spark theo nhu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-009
+    title: Lựa chọn Dataflow, Dataproc hoặc BigQuery cho biến đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-010
+    title: Cloud Composer và điều phối DAG bằng Airflow
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-011
+    title: Cloud Data Fusion và xây dựng luồng tích hợp dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-012
+    title: Datastream và change data capture từ cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-013
+    title: BigQuery Data Transfer Service và nạp dữ liệu theo lịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-pipelines-and-processing-014
+    title: Thực hành pipeline Pub/Sub, Dataflow và BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-governance-and-analytics
+  title: Quản trị và khai thác dữ liệu
+  childs:
+  - slug: data-governance-and-analytics-001
+    title: Thiết kế data lake, data warehouse và lakehouse trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-002
+    title: BigLake và truy cập dữ liệu ngoài BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-003
+    title: Dataplex và quản trị tài sản dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-004
+    title: Catalog, metadata và khám phá dữ liệu trong Dataplex
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-005
+    title: Data lineage và truy vết nguồn gốc dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-006
+    title: Data quality rules và kiểm tra chất lượng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-007
+    title: Dataform và quản lý biến đổi SQL trong BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-008
+    title: BigQuery sharing và chia sẻ dữ liệu có quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-009
+    title: Looker, Looker Studio và lớp khai thác dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-analytics-010
+    title: Thực hành tổ chức miền dữ liệu và phân quyền phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vertex-ai-and-machine-learning
+  title: Vertex AI và học máy
+  childs:
+  - slug: vertex-ai-and-machine-learning-001
+    title: Vertex AI và vòng đời hệ thống học máy trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-002
+    title: Quản lý datasets và chuẩn bị dữ liệu huấn luyện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-003
+    title: AutoML và custom training trên Vertex AI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-004
+    title: Training jobs, custom containers và tài nguyên tăng tốc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-005
+    title: Hyperparameter tuning và quản lý thí nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-006
+    title: Vertex AI Pipelines và tự động hóa quy trình ML
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-007
+    title: Model Registry và quản lý phiên bản mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-008
+    title: Online endpoints, batch prediction và lựa chọn triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-009
+    title: Vertex AI Feature Store và phục vụ đặc trưng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-010
+    title: Model monitoring và theo dõi chất lượng dự đoán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-011
+    title: IAM, mạng riêng và bảo vệ dữ liệu ML
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-012
+    title: MLOps với Artifact Registry và CI/CD trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vertex-ai-and-machine-learning-013
+    title: Thực hành gọi Vertex AI prediction từ Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: generative-ai
+  title: AI tạo sinh trên Google Cloud
+  childs:
+  - slug: generative-ai-001
+    title: Vertex AI Model Garden và lựa chọn mô hình nền tảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-002
+    title: Gemini trên Vertex AI và các phương thức gọi mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-003
+    title: Thiết kế prompt, system instructions và structured output
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-004
+    title: Function calling và kết nối mô hình với dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-005
+    title: Embeddings và thiết kế truy xuất ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-006
+    title: Vertex AI Vector Search và xây dựng chỉ mục vector
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-007
+    title: RAG với dữ liệu doanh nghiệp trên Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-008
+    title: Grounding, trích dẫn và đánh giá chất lượng câu trả lời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-009
+    title: Vertex AI Agent Engine và vòng đời ứng dụng agent
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-010
+    title: Document AI, Vision AI và Speech APIs cho dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-011
+    title: Kiểm soát dữ liệu nhạy cảm, quota và chi phí suy luận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: generative-ai-012
+    title: Thực hành trợ lý Java dùng Gemini và kho tài liệu riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: encryption-keys-and-secrets
+  title: Khóa mã hóa và bí mật
+  childs:
+  - slug: encryption-keys-and-secrets-001
+    title: Mã hóa mặc định và lựa chọn quản lý khóa trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-002
+    title: Cloud KMS key rings, keys và key versions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-003
+    title: CMEK và tích hợp khóa do khách hàng quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-004
+    title: Cloud HSM và Cloud External Key Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-005
+    title: Phân tách quyền quản trị khóa với quyền sử dụng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-006
+    title: Key rotation, disable, destroy và khôi phục key versions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-007
+    title: Cloud KMS envelope encryption cho ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-008
+    title: Secret Manager secrets, versions và access policies
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-009
+    title: Luân chuyển bí mật và phân phối cấu hình nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-010
+    title: Tích hợp Secret Manager với Cloud Run và GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-011
+    title: Cloud KMS audit logs và theo dõi sử dụng khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-keys-and-secrets-012
+    title: Thực hành loại bỏ khóa và mật khẩu khỏi mã nguồn Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-and-compliance
+  title: Bảo mật và tuân thủ
+  childs:
+  - slug: security-and-compliance-001
+    title: Thiết kế phòng vệ nhiều lớp cho tài nguyên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-002
+    title: Security Command Center và tập trung phát hiện rủi ro
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-003
+    title: Security Health Analytics và cấu hình sai trên cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-004
+    title: Event Threat Detection và phát hiện hành vi bất thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-005
+    title: Sensitive Data Protection và nhận diện dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-006
+    title: De-identification, masking và tokenization dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-007
+    title: Assured Workloads và kiểm soát theo yêu cầu tuân thủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-008
+    title: Access Transparency và Access Approval
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-009
+    title: Thiết kế ranh giới tin cậy giữa các project và môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-010
+    title: Thiết kế quyền truy cập quản trị khẩn cấp trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-011
+    title: Thu thập bằng chứng kiểm toán và lưu giữ nhật ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-012
+    title: Ứng phó sự cố bảo mật và bảo toàn chứng cứ trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-and-compliance-013
+    title: Thực hành rà soát cấu hình bảo mật một project
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-observability
+  title: Cloud Observability
+  childs:
+  - slug: cloud-observability-001
+    title: Cloud Observability và thiết kế telemetry cho workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-002
+    title: Cloud Logging, log entries và structured logging
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-003
+    title: Logs Explorer và ngôn ngữ truy vấn nhật ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-004
+    title: Log Router, sinks, log buckets và retention
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-005
+    title: Log Analytics và phân tích nhật ký
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-006
+    title: Cloud Audit Logs và lựa chọn loại nhật ký kiểm toán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-007
+    title: Cloud Monitoring metrics, resource labels và dashboards
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-008
+    title: Alerting policies, notification channels và uptime checks
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-009
+    title: Log-based metrics và custom metrics
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-010
+    title: Ops Agent cho Compute Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-011
+    title: Managed Service for Prometheus trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-012
+    title: Cloud Trace và distributed tracing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-013
+    title: Cloud Profiler và phân tích ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-014
+    title: Error Reporting và tổng hợp lỗi ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-observability-015
+    title: Thực hành liên kết logs, metrics và traces bằng OpenTelemetry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sre-and-reliability
+  title: SRE và độ tin cậy
+  childs:
+  - slug: sre-and-reliability-001
+    title: Áp dụng phương pháp SRE cho dịch vụ trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-002
+    title: Xác định SLI và SLO bằng Cloud Monitoring
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-003
+    title: Error budgets và quyết định tốc độ phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-004
+    title: Burn-rate alerting và giảm cảnh báo nhiễu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-005
+    title: Thiết kế health checks, readiness và liveness theo nền tảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-006
+    title: Timeout, retries, backoff và circuit breaker khi gọi GCP APIs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-007
+    title: Capacity planning và quản lý quota cho tải cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-008
+    title: Thiết kế chịu lỗi theo zone và region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-009
+    title: Runbooks, trực vận hành và quy trình quản lý sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-010
+    title: Postmortem và cải thiện độ tin cậy sau sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-011
+    title: Thử nghiệm lỗi và kiểm chứng khả năng phục hồi trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sre-and-reliability-012
+    title: Thực hành xây dashboard SLO cho API Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-as-code-with-terraform
+  title: Hạ tầng bằng mã với Terraform
+  childs:
+  - slug: infrastructure-as-code-with-terraform-001
+    title: Terraform và Google Cloud provider
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-002
+    title: Xác thực Terraform bằng danh tính ngắn hạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-003
+    title: Khai báo project, API và IAM bằng Terraform
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-004
+    title: Terraform state trên Cloud Storage và kiểm soát truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-005
+    title: Thiết kế modules Terraform tái sử dụng cho GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-006
+    title: Tách môi trường, tham số hóa và quản lý phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-007
+    title: Quản lý VPC, Compute Engine và Cloud Run bằng Terraform
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-008
+    title: Quản lý GKE và dữ liệu nhạy cảm trong state
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-009
+    title: Import tài nguyên GCP đang tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-010
+    title: Phát hiện drift và xử lý thay đổi ngoài Terraform
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-011
+    title: Plan review, policy checks và bảo vệ thao tác hủy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-012
+    title: Infrastructure Manager và thực thi Terraform được quản lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-with-terraform-013
+    title: Thực hành triển khai landing zone tối giản bằng mã
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cicd-and-software-supply-chain
+  title: CI/CD và chuỗi cung ứng
+  childs:
+  - slug: cicd-and-software-supply-chain-001
+    title: Thiết kế pipeline ứng dụng và hạ tầng trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-002
+    title: Cloud Build configs, build steps và substitutions
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-003
+    title: Repository connections và Cloud Build triggers
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-004
+    title: Cloud Build service accounts và quyền tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-005
+    title: Private pools và truy cập tài nguyên mạng riêng khi build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-006
+    title: Cache, artifact và tối ưu thời gian build Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-007
+    title: Secret Manager trong pipeline Cloud Build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-008
+    title: Cloud Deploy delivery pipelines, targets và releases
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-009
+    title: Promotions, approvals và rollout qua nhiều môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-010
+    title: Skaffold và cấu hình triển khai cho Cloud Deploy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-011
+    title: Triển khai tự động lên Cloud Run và GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-012
+    title: Artifact Analysis, SBOM và provenance của bản build
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-013
+    title: Binary Authorization và attestation trong chuỗi phát hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cicd-and-software-supply-chain-014
+    title: Thực hành CI/CD ứng dụng Spring Boot với kiểm chứng artifact
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-and-spring
+  title: Java và Spring trên GCP
+  childs:
+  - slug: java-and-spring-001
+    title: Lựa chọn JDK, runtime và nền tảng triển khai Java trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-002
+    title: Google Cloud libraries BOM và quản lý phụ thuộc Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-003
+    title: Xác thực Java bằng ADC trong máy cá nhân và runtime GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-004
+    title: Phạm vi quyền, impersonation và token trong Java client
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-005
+    title: Quản lý vòng đời clients, channels và thread pools
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-006
+    title: Timeouts, retries, pagination và long-running operations
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-007
+    title: Đồng bộ, bất đồng bộ và streaming với Google Cloud Java clients
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-008
+    title: Spring Framework on Google Cloud và cấu hình ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-009
+    title: Tích hợp Spring Boot với Pub/Sub qua messaging adapters
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-010
+    title: JDBC, R2DBC và Cloud SQL Java Connector
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-011
+    title: Đọc bí mật và cấu hình Spring từ Secret Manager
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-012
+    title: Truy cập Cloud Storage bằng Java NIO và SDK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-013
+    title: Structured logging, trace context và OpenTelemetry cho Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-014
+    title: JVM memory, garbage collection và giới hạn container
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-015
+    title: GraalVM native image và đánh giá startup trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-016
+    title: Graceful shutdown và xử lý tín hiệu kết thúc container
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-and-spring-017
+    title: Thực hành chuẩn hóa cấu hình Java qua nhiều môi trường GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-testing
+  title: Kiểm thử ứng dụng GCP
+  childs:
+  - slug: application-testing-001
+    title: Chiến lược unit, integration và end-to-end cho dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-002
+    title: Tách lớp truy cập Google Cloud để kiểm thử ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-003
+    title: Emulators cho Pub/Sub, Firestore, Bigtable và Spanner
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-004
+    title: Firebase Local Emulator Suite và kiểm thử Security Rules
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-005
+    title: Kiểm thử Cloud Run functions bằng Functions Framework
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-006
+    title: Testcontainers cho thành phần dữ liệu phụ trợ của ứng dụng GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-007
+    title: Kiểm thử tích hợp trên project GCP dùng riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-008
+    title: Test fixtures, dữ liệu thử và dọn tài nguyên tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-009
+    title: Kiểm thử IAM, service identity và truy cập mạng riêng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-010
+    title: Load testing cho Cloud Run, GKE và ứng dụng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-testing-011
+    title: Thực hành pipeline kiểm thử có kiểm soát quota và chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-migration
+  title: Di chuyển lên Google Cloud
+  childs:
+  - slug: cloud-migration-001
+    title: Khảo sát hệ thống nguồn và lập danh mục phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-002
+    title: Migration Center và đánh giá khả năng di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-003
+    title: Lựa chọn rehost, replatform và refactor theo dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-004
+    title: Lập migration waves, tiêu chí nghiệm thu và kế hoạch cutover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-005
+    title: Migrate to Virtual Machines và di chuyển VM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-006
+    title: Database Migration Service và đồng bộ cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-007
+    title: Chuyển đổi schema, SQL dialect và tính tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-008
+    title: Storage Transfer Service và di chuyển dữ liệu đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-009
+    title: Transfer Appliance và bài toán dữ liệu khối lượng lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-010
+    title: Di chuyển ứng dụng Java sang container trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-011
+    title: Đối soát dữ liệu, kiểm thử tải và kế hoạch rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-012
+    title: Thực hành di chuyển ứng dụng ba tầng lên Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hybrid-and-multicloud-infrastructure
+  title: Hạ tầng lai và đa đám mây
+  childs:
+  - slug: hybrid-and-multicloud-infrastructure-001
+    title: Mô hình hybrid cloud và multicloud với Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-002
+    title: Thiết kế kết nối, DNS và định tuyến xuyên môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-003
+    title: Liên kết danh tính doanh nghiệp với workload trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-004
+    title: Connect Gateway và truy cập cluster qua fleet
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-005
+    title: Attached clusters và quản trị Kubernetes bên ngoài GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-006
+    title: Google Distributed Cloud và nhu cầu triển khai tại chỗ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-007
+    title: Cloud Service Mesh trong kiến trúc nhiều môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-008
+    title: Quản lý chính sách và cấu hình Kubernetes xuyên cluster
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-009
+    title: Luồng dữ liệu, độ trễ và chi phí egress giữa các cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-infrastructure-010
+    title: Thực hành thiết kế tích hợp on-premises với dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-design
+  title: Thiết kế kiến trúc GCP
+  childs:
+  - slug: architecture-design-001
+    title: Chuyển yêu cầu phi chức năng thành lựa chọn dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-002
+    title: So sánh Compute Engine, GKE, Cloud Run và App Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-003
+    title: Kiến trúc ứng dụng web ba tầng trên Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-004
+    title: Kiến trúc microservices và service-to-service authentication
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-005
+    title: Kiến trúc event-driven với Pub/Sub và Eventarc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-006
+    title: CQRS và event sourcing với các dịch vụ dữ liệu GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-007
+    title: Lựa chọn Cloud SQL, AlloyDB, Spanner, Firestore hoặc Bigtable
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-008
+    title: Thiết kế đa người thuê và cô lập dữ liệu trên GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-009
+    title: Kiến trúc data platform kết hợp BigQuery và Cloud Storage
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-010
+    title: Thiết kế hệ thống AI có truy xuất dữ liệu doanh nghiệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-011
+    title: Thiết kế đa region và kiểm soát tính nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-012
+    title: Đánh giá trade-offs về bảo mật, độ tin cậy và chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-design-013
+    title: Thực hành viết và rà soát quyết định kiến trúc GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-finops
+  title: Hiệu năng và FinOps
+  childs:
+  - slug: performance-and-finops-001
+    title: Thiết lập quy trình FinOps cho nhóm sử dụng Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-002
+    title: Rightsizing VM và loại bỏ tài nguyên nhàn rỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-003
+    title: Committed use discounts và sustained use discounts
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-004
+    title: Đánh giá Spot VMs, reservations và cam kết sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-005
+    title: Tối ưu autoscaling giữa Cloud Run, GKE và Compute Engine
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-006
+    title: Tối ưu Cloud Storage classes, lifecycle và phí truy xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-007
+    title: Tối ưu Cloud SQL, AlloyDB và Spanner theo tải thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-008
+    title: Kiểm soát bytes scanned và slot utilization của BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-009
+    title: Giảm chi phí logs, metrics và dữ liệu quan sát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-010
+    title: Tối ưu đường đi mạng và chi phí truyền dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-011
+    title: Recommender và đánh giá đề xuất tối ưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-012
+    title: Unit economics, showback và chargeback trên dữ liệu billing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-finops-013
+    title: Carbon Footprint và đánh giá tác động môi trường của workload
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-disaster-recovery
+  title: Sao lưu và phục hồi thảm họa
+  childs:
+  - slug: backup-and-disaster-recovery-001
+    title: Xác định RPO, RTO và phân hạng workload GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-002
+    title: Lựa chọn backup, replication và high availability
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-003
+    title: Backup and DR Service và tổ chức kế hoạch bảo vệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-004
+    title: Backup vaults và bảo vệ bản sao lưu khỏi xóa trái phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-005
+    title: Chiến lược sao lưu xuyên project và phân tách quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-006
+    title: Thiết kế phục hồi VM, đĩa và dữ liệu tệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-007
+    title: Chiến lược phục hồi cơ sở dữ liệu theo từng dịch vụ GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-008
+    title: Khôi phục ứng dụng GKE cùng cấu hình và dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-009
+    title: Failover, failback và chuyển lưu lượng giữa các region
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-010
+    title: Khôi phục sau xóa nhầm, khóa bị vô hiệu hóa và mã độc tống tiền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-011
+    title: Kiểm chứng bản sao lưu và diễn tập phục hồi định kỳ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-disaster-recovery-012
+    title: Thực hành kế hoạch DR cho ứng dụng Java nhiều tầng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: specialized-infrastructure
+  title: Hạ tầng chuyên biệt
+  childs:
+  - slug: specialized-infrastructure-001
+    title: GPU trên Compute Engine và lựa chọn cấu hình tăng tốc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-002
+    title: Cloud TPU và yêu cầu workload học máy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-003
+    title: Quota, capacity và lập lịch tài nguyên tăng tốc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-004
+    title: Google Cloud Batch cho tác vụ hàng loạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-005
+    title: Thiết kế HPC với Compute Engine và mạng hiệu năng cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-006
+    title: Slurm và tổ chức hàng đợi HPC trên Google Cloud
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-007
+    title: Parallelstore và dữ liệu cho tính toán hiệu năng cao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-008
+    title: Google Cloud VMware Engine và mô hình vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-009
+    title: SAP trên Google Cloud và yêu cầu hạ tầng doanh nghiệp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-infrastructure-010
+    title: Thực hành chạy batch job Java trên tài nguyên co giãn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-projects
+  title: Dự án thực hành GCP
+  childs:
+  - slug: hands-on-projects-001
+    title: Dự án landing zone với IAM, VPC và ngân sách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-002
+    title: Dự án website tĩnh có Cloud Storage, HTTPS và CDN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-003
+    title: Dự án REST API Spring Boot trên Cloud Run và Cloud SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-004
+    title: Dự án hệ thống microservices Java trên GKE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-005
+    title: Dự án xử lý ảnh theo sự kiện Cloud Storage và Eventarc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-006
+    title: Dự án hàng đợi tác vụ và thông báo với Pub/Sub, Cloud Tasks
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-007
+    title: Dự án workflow xử lý đơn hàng có retries và compensation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-008
+    title: Dự án ứng dụng realtime dùng Firestore và Firebase
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-009
+    title: Dự án thu thập sự kiện bằng Pub/Sub, Dataflow và BigQuery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-010
+    title: Dự án trợ lý tài liệu dùng Java và Vertex AI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-011
+    title: Dự án CI/CD có kiểm soát artifact và tự động triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-012
+    title: Dự án dashboard SLO và cảnh báo cho hệ thống Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-013
+    title: Dự án diễn tập failover và khôi phục dữ liệu GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-projects-014
+    title: Dự án tổng hợp từ thiết kế kiến trúc đến bàn giao vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-troubleshooting
+  title: Vận hành và xử lý sự cố
+  childs:
+  - slug: operations-and-troubleshooting-001
+    title: Kiểm tra production readiness cho workload GCP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-002
+    title: Phân biệt lỗi xác thực, thiếu quyền và API chưa bật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-003
+    title: Xử lý quota exceeded, resource exhausted và thiếu capacity
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-004
+    title: Chẩn đoán kết nối bằng Connectivity Tests và Network Intelligence Center
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-005
+    title: Tìm nguyên nhân lỗi firewall, NAT và truy cập Google APIs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-006
+    title: Xử lý lỗi chứng chỉ, DNS và health check của load balancer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-007
+    title: Chẩn đoán Cloud Run timeout, cold start và thiếu bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-008
+    title: Xử lý GKE node pressure, lỗi image pull và thiếu IP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-009
+    title: Chẩn đoán Cloud SQL connection exhaustion và truy vấn chậm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-010
+    title: Xử lý Pub/Sub backlog và thông điệp bị phân phối lặp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-011
+    title: Điều tra Cloud Storage access denied và dữ liệu bị xóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-012
+    title: Phát hiện tăng chi phí bất thường từ billing và audit logs
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-013
+    title: Theo dõi Service Health và làm việc với Google Cloud Support
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-014
+    title: Quản lý thay đổi API, runtime và thông báo ngừng hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-015
+    title: Bàn giao runbooks, kiểm kê và dọn tài nguyên sau thực hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

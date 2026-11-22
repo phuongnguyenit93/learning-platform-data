@@ -1,0 +1,3 @@
+menuLevel1: ThreadLocal
+menuLevel2: Một luồng xử lý nhiều yêu cầu và nguy cơ giữ lại dữ liệu cũ
+status: ''

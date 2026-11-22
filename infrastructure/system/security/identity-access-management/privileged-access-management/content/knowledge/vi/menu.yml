@@ -1,0 +1,599 @@
+menu:
+- level1: Khái niệm PAM
+  level2:
+  - Privileged Access Management là gì
+  - Vì sao tài khoản đặc quyền có rủi ro cao
+  - PAM so với IAM thông thường
+  - Mục tiêu giảm blast radius
+  - Account privilege và privileged function
+  - Least privilege trong PAM
+  - Just-in-time access
+  - Just-enough access
+  - Accountability của thao tác admin
+  - PAM trong Zero Trust
+- level1: Danh tính đặc quyền
+  level2:
+  - Human privileged identity
+  - Workload privileged identity
+  - Emergency privileged identity
+  - Break-glass identity
+  - Root và superuser identity
+  - Database administrator identity
+  - Network administrator identity
+  - Cloud administrator identity
+  - Security administrator identity
+  - Tách danh tính thường và đặc quyền
+- level1: Tài khoản đặc quyền
+  level2:
+  - Inventory privileged account
+  - Named admin account
+  - Shared admin account
+  - Built-in administrator account
+  - Local privileged account
+  - Domain privileged account
+  - Cloud privileged account
+  - Temporary privileged account
+  - Dormant privileged account
+  - Tài khoản theo tier hệ thống
+- level1: Least privilege
+  level2:
+  - Quyền tối thiểu theo nhiệm vụ
+  - Tách quyền đọc và ghi
+  - Tách quyền cấu hình và vận hành
+  - Tách quyền quản trị và audit
+  - Deny mặc định
+  - Permission theo resource
+  - Permission theo action
+  - Permission theo thời gian
+  - Permission theo thiết bị
+  - Review và loại bỏ quyền dư
+- level1: JIT và JEA
+  level2:
+  - Provision quyền ngay trước tác vụ
+  - Thu hồi quyền sau tác vụ
+  - TTL của quyền đặc biệt
+  - Just-enough command
+  - Giới hạn lệnh được phép
+  - Giới hạn phạm vi tài nguyên
+  - Session-specific privilege
+  - Approval trước khi cấp JIT
+  - Gia hạn JIT có kiểm soát
+  - Đo mức giảm standing privilege
+- level1: Discovery
+  level2:
+  - Phát hiện tài khoản đặc quyền
+  - Phát hiện quyền ẩn
+  - Phát hiện nested group
+  - Phát hiện local admin
+  - Phát hiện cloud role mạnh
+  - Phát hiện service account mạnh
+  - Phát hiện credential dùng chung
+  - Phát hiện quyền kế thừa
+  - Phát hiện tài khoản không owner
+  - Đối soát quyền với directory
+- level1: Inventory và ownership
+  level2:
+  - Owner của privileged account
+  - Business purpose
+  - System scope
+  - Associated asset
+  - Associated group
+  - Associated credential
+  - Allowed use case
+  - Approval owner
+  - Review frequency
+  - Ngày tạo và ngày hết hạn
+- level1: Governance
+  level2:
+  - PAM policy
+  - Privileged account standard
+  - Access approval policy
+  - Emergency access policy
+  - Session monitoring policy
+  - Command logging policy
+  - Password rotation policy
+  - Exception policy
+  - Separation of duties
+  - RACI cho PAM
+- level1: Kiến trúc PAM
+  level2:
+  - PAM vault
+  - Credential broker
+  - Session proxy
+  - Policy engine
+  - Approval service
+  - Audit service
+  - Discovery connector
+  - Directory integration
+  - High availability của PAM
+  - Tách control plane và data plane
+- level1: Onboarding
+  level2:
+  - Onboard account vào vault
+  - Onboard target system
+  - Onboard database
+  - Onboard network device
+  - Onboard cloud account
+  - Onboard service account
+  - Onboard SSH key
+  - Onboard API credential
+  - Kiểm tra kết nối sau onboarding
+  - Rollback onboarding lỗi
+- level1: Vault
+  level2:
+  - Vault folder và namespace
+  - Tách môi trường trong vault
+  - Tách tenant trong vault
+  - Vault encryption at rest
+  - Vault key hierarchy
+  - Vault access policy
+  - Vault administrator separation
+  - Vault versioning
+  - Vault backup
+  - Vault audit trail
+- level1: Credential management
+  level2:
+  - Credential checkout
+  - Credential injection
+  - Credential checkout không hiển thị plaintext
+  - Credential masking
+  - Credential release sau approval
+  - Credential ownership
+  - Credential dependency
+  - Credential validation
+  - Credential reconciliation
+  - Xử lý credential không hợp lệ
+- level1: Password rotation
+  level2:
+  - Rotation theo lịch
+  - Rotation khi nghi bị lộ
+  - Rotation database password
+  - Rotation local administrator
+  - Rotation domain administrator
+  - Rotation network device password
+  - Rotation cloud key
+  - Dual account rotation
+  - Kiểm thử password mới
+  - Rollback sau rotation thất bại
+- level1: Session management
+  level2:
+  - Privileged session broker
+  - Session recording
+  - Session metadata
+  - Session timeout
+  - Idle timeout
+  - Concurrent session control
+  - Session termination
+  - Session approval state
+  - Session reconnect
+  - Session evidence retention
+- level1: Remote access
+  level2:
+  - Remote admin access
+  - Bastion host
+  - Jump server
+  - VPN privileged access
+  - RDP control
+  - SSH proxy
+  - Web console proxy
+  - Remote vendor access
+  - Remote access time window
+  - Network path restriction
+- level1: Approval workflow
+  level2:
+  - Yêu cầu truy cập đặc quyền
+  - Business justification
+  - Risk-based approval
+  - Manager approval
+  - System owner approval
+  - Security approval
+  - Multi-person approval
+  - Auto-approval có điều kiện
+  - Reject và lý do
+  - Audit quyết định phê duyệt
+- level1: MFA
+  level2:
+  - MFA cho PAM portal
+  - MFA cho privileged session
+  - Phishing-resistant MFA
+  - Hardware security key
+  - Step-up authentication
+  - Reauthentication theo rủi ro
+  - MFA cho break-glass
+  - MFA của vendor
+  - MFA recovery
+  - Theo dõi MFA bypass
+- level1: Authentication
+  level2:
+  - Directory authentication
+  - Federated authentication
+  - Certificate authentication
+  - SSH key authentication
+  - Cloud workload authentication
+  - Device-bound authentication
+  - Passwordless admin authentication
+  - Authentication context
+  - Authentication failure
+  - Khóa identity khi bất thường
+- level1: Authorization
+  level2:
+  - RBAC cho PAM
+  - ABAC cho PAM
+  - Role hierarchy
+  - Entitlement theo resource
+  - Entitlement theo action
+  - Policy condition theo thời gian
+  - Policy condition theo location
+  - Policy condition theo device posture
+  - Policy conflict
+  - Policy simulation
+- level1: Admin workstation
+  level2:
+  - Privileged Access Workstation
+  - Tách máy admin khỏi máy thường
+  - Hardening admin workstation
+  - MFA trên admin workstation
+  - EDR trên admin workstation
+  - Không duyệt email trên PAW
+  - Clipboard control
+  - Screen capture control
+  - Local storage control
+  - Kiểm tra health trước session
+- level1: Tiering
+  level2:
+  - Tier 0 identity
+  - Tier 1 server identity
+  - Tier 2 workstation identity
+  - Tách domain admin khỏi server admin
+  - Tách cloud control plane
+  - Tách security tool admin
+  - Tách account management admin
+  - Tách audit admin
+  - Không dùng identity tier cao ở tier thấp
+  - Kiểm tra đường đi leo thang
+- level1: Break-glass
+  level2:
+  - Break-glass account
+  - Điều kiện kích hoạt
+  - Phê duyệt khẩn cấp
+  - Credential lưu trữ thứ cấp
+  - Dual control
+  - Theo dõi sử dụng
+  - Session recording break-glass
+  - Thông báo sau sử dụng
+  - Rotate sau sử dụng
+  - Diễn tập break-glass
+- level1: Service account
+  level2:
+  - Service account inventory
+  - Owner của service account
+  - Không dùng account người cho service
+  - Static service credential
+  - Dynamic service credential
+  - Managed identity
+  - Workload identity
+  - Service account permission
+  - Service account interactive login
+  - Rotate service credential
+  - Giám sát atypical usage
+- level1: Application privilege
+  level2:
+  - Application admin role
+  - API administrative scope
+  - Privileged function
+  - Admin endpoint
+  - Dangerous operation
+  - Impersonation permission
+  - Deploy permission
+  - Configuration write permission
+  - Key management permission
+  - Log management permission
+- level1: Cloud PAM
+  level2:
+  - Cloud root account
+  - Cloud organization administrator
+  - Cloud IAM role
+  - Assume-role workflow
+  - Cloud JIT permission
+  - Cloud break-glass
+  - Cloud console session
+  - Cloud API session
+  - Cloud permission boundary
+  - Cloud activity audit
+  - Multi-account privilege
+- level1: Kubernetes PAM
+  level2:
+  - Cluster-admin role
+  - Namespace admin role
+  - Kubernetes RBAC
+  - Service account token
+  - Kubernetes exec session
+  - Admission approval
+  - Break-glass cluster access
+  - Audit Kubernetes privileged verb
+  - Pod security context
+  - Rotate cluster credential
+- level1: Database PAM
+  level2:
+  - Database superuser
+  - Schema owner
+  - DDL privilege
+  - DML privilege
+  - Backup administrator
+  - Database console proxy
+  - SQL command recording
+  - Database credential rotation
+  - Temporary database role
+  - Database break-glass
+  - Review query privilege
+- level1: Network PAM
+  level2:
+  - Network device admin
+  - Firewall administrator
+  - Router administrator
+  - Switch administrator
+  - Network configuration proxy
+  - Command allowlist
+  - Command recording
+  - Configuration backup access
+  - Emergency network access
+  - Dual approval for firewall change
+- level1: Endpoint PAM
+  level2:
+  - Local admin removal
+  - Application elevation
+  - Privilege elevation request
+  - Endpoint elevation policy
+  - Elevation by publisher
+  - Elevation by hash
+  - Elevation by ticket
+  - Temporary admin token
+  - UAC policy
+  - Endpoint admin session
+  - Revoke local admin
+- level1: Windows PAM
+  level2:
+  - Domain Admin separation
+  - Enterprise Admin control
+  - Protected Users
+  - LAPS và local admin password
+  - PowerShell transcription
+  - PowerShell constrained language
+  - Windows event audit
+  - Remote PowerShell control
+  - RDP privileged session
+  - Group Policy admin control
+- level1: Linux PAM
+  level2:
+  - sudo policy
+  - sudoers review
+  - Root login restriction
+  - SSH key vaulting
+  - SSH certificate
+  - Command audit
+  - Shell session recording
+  - PAM Linux module
+  - Privilege escalation detection
+  - Temporary root access
+- level1: SSH và key
+  level2:
+  - SSH key inventory
+  - Private key protection
+  - SSH certificate authority
+  - Key passphrase
+  - Key rotation
+  - Known hosts control
+  - SSH bastion
+  - Agent forwarding risk
+  - Authorized keys review
+  - SSH session recording
+- level1: API và automation
+  level2:
+  - PAM API authentication
+  - PAM API authorization
+  - Automation identity
+  - Machine-to-machine access
+  - Ephemeral API token
+  - Webhook approval
+  - Rate limit PAM API
+  - Idempotent provisioning
+  - Automation audit
+  - Rotate integration credential
+- level1: Secrets integration
+  level2:
+  - PAM và secrets manager
+  - PAM vault với KMS
+  - PAM với HSM
+  - Secret injection
+  - Secret lease
+  - Secret rotation event
+  - Credential broker integration
+  - Vault-to-application boundary
+  - Không ghi secret vào ticket
+  - Xử lý secret manager outage
+- level1: Audit logging
+  level2:
+  - Log đăng nhập đặc quyền
+  - Log cấp quyền
+  - Log thu hồi quyền
+  - Log checkout credential
+  - Log privileged command
+  - Log session start stop
+  - Log policy change
+  - Log break-glass
+  - Log admin của PAM
+  - Không cho subject sửa audit log
+- level1: Command analytics
+  level2:
+  - Full-text privileged command
+  - Command allowlist (bổ sung 2)
+  - Command denylist
+  - Dangerous command detection
+  - Pattern matching
+  - Heuristic analysis
+  - Command context
+  - User và asset correlation
+  - Phát hiện command ngoài giờ
+  - Phát hiện command bất thường
+- level1: Monitoring
+  level2:
+  - Privileged access dashboard
+  - Session activity monitoring
+  - Atypical account usage
+  - Atypical location
+  - Atypical time
+  - Failed approval pattern
+  - Credential checkout anomaly
+  - Mass privilege assignment
+  - PAM service health
+  - Alert đến SOC
+- level1: Threat detection
+  level2:
+  - Credential theft
+  - Pass-the-hash
+  - Pass-the-ticket
+  - Token theft
+  - Privilege escalation
+  - Lateral movement
+  - Abuse of service account
+  - Insider misuse
+  - PAM bypass attempt
+  - Tampering audit trail
+- level1: Incident response
+  level2:
+  - Khóa privileged account bị chiếm
+  - Terminate privileged session
+  - Revoke active token
+  - Rotate credential khẩn cấp
+  - Cô lập admin workstation
+  - Chặn đường remote access
+  - Bảo toàn session evidence
+  - Xác định lệnh đã chạy
+  - Xác định tài nguyên bị tác động
+  - Post-incident privilege review
+- level1: Backup và khôi phục
+  level2:
+  - PAM configuration backup
+  - Vault data backup
+  - Encryption key backup
+  - Immutable backup
+  - Offline recovery credential
+  - Restore test
+  - Recovery order
+  - PAM disaster recovery
+  - Credential consistency sau restore
+  - Audit backup access
+- level1: High availability
+  level2:
+  - PAM cluster
+  - Vault replication
+  - Session proxy failover
+  - Directory dependency
+  - KMS dependency
+  - Network dependency
+  - RTO của PAM
+  - RPO của PAM
+  - Degraded mode
+  - Kiểm thử failover
+- level1: Vendor access
+  level2:
+  - Vendor privileged account
+  - Vendor approval
+  - Vendor time-boxed access
+  - Vendor MFA
+  - Vendor session recording
+  - Vendor command restriction
+  - Vendor access review
+  - Vendor offboarding
+  - Third-party evidence
+  - Emergency vendor access
+- level1: DevOps và CI/CD
+  level2:
+  - Deploy privilege
+  - Production deployment approval
+  - Pipeline identity
+  - Short-lived deployment token
+  - PAM cho runner
+  - Secret retrieval trong pipeline
+  - Break-glass deployment
+  - Audit deployment action
+  - Tách build và release permission
+  - Không lưu admin key trong CI variable
+- level1: Compliance
+  level2:
+  - Evidence của privileged access
+  - Access review evidence
+  - Session recording retention
+  - Command audit evidence
+  - Separation of duties evidence
+  - Emergency access evidence
+  - Policy exception evidence
+  - Control testing
+  - Audit finding remediation
+  - Mapping control với risk
+- level1: Metrics
+  level2:
+  - Số privileged account
+  - Standing privilege count
+  - JIT adoption
+  - JEA command coverage
+  - MFA coverage
+  - Rotation compliance
+  - Access review completion
+  - Session recording coverage
+  - Time to revoke
+  - Unauthorized attempt count
+  - PAM availability
+- level1: Testing
+  level2:
+  - Test onboarding
+  - Test checkout
+  - Test rotation
+  - Test revocation
+  - Test approval workflow
+  - Test session termination
+  - Test command blocking
+  - Test break-glass
+  - Test vault restore
+  - Test failover
+  - Test PAM bypass
+- level1: Migration
+  level2:
+  - Inventory hệ thống cũ
+  - Migrate shared account
+  - Migrate local admin
+  - Migrate database credential
+  - Migrate SSH key
+  - Migrate cloud role
+  - Phân nhóm migration wave
+  - Dual-run control
+  - Validate access sau migration
+  - Decommission credential cũ
+- level1: Anti-pattern
+  level2:
+  - Dùng chung tài khoản admin
+  - Dùng root cho tác vụ thường
+  - Lưu password trong spreadsheet
+  - Standing privilege vô thời hạn
+  - Không có MFA cho PAM
+  - Không ghi session
+  - Không rotate credential
+  - Cho vendor quyền không giới hạn
+  - PAM admin tự audit chính mình
+  - Không kiểm thử break-glass
+  - Bỏ qua service account
+- level1: Checklist production
+  level2:
+  - Đã lập inventory privilege
+  - Đã tách account thường và admin
+  - Đã bật MFA
+  - Đã bật least privilege
+  - Đã có JIT hoặc JEA
+  - Đã vault credential
+  - Đã rotate tự động
+  - Đã ghi session và command
+  - Đã có break-glass
+  - Đã kiểm thử restore
+  - Đã kiểm thử failover
+  - Đã có alert SOC
+  - Đã hoàn tất access review

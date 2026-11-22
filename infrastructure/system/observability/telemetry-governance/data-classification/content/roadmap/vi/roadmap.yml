@@ -1,0 +1,43 @@
+roadmap:
+- id: nguon-du-lieu-telemetry
+  title: Nguồn dữ liệu Telemetry
+  purpose: Nhận diện dữ liệu cần phân loại trong logs, metrics và traces.
+  objectives:
+  - Chỉ ra body, attributes, labels và resource metadata.
+  - Khoanh vùng các trường cần đánh giá nhạy cảm.
+- id: tieu-chi-phan-loai
+  title: Tiêu chí Phân loại
+  purpose: Đánh giá mức bảo vệ dựa trên nội dung và tác động nếu dữ liệu bị lộ.
+  objectives:
+  - Xét khả năng nhận diện và thiệt hại khi lộ dữ liệu.
+  - Đánh giá nguồn, mục đích và ngữ cảnh sử dụng.
+- id: muc-do-nhay-cam
+  title: Mức độ Nhạy cảm
+  purpose: Áp dụng hệ mức phân loại nhất quán theo quy định của tổ chức.
+  objectives:
+  - 'Phân biệt các mức ví dụ: Public, Internal, Confidential, Restricted.'
+  - Xếp mức cho các mẫu telemetry.
+- id: pii-secrets
+  title: PII & Secrets
+  purpose: Phát hiện thông tin cá nhân và bí mật có thể xuất hiện trong telemetry.
+  objectives:
+  - Nhận diện email, số định danh, token và mật khẩu.
+  - Tìm thông tin nhạy cảm trong payload và attributes.
+- id: phan-loai-theo-truong
+  title: Phân loại theo trường
+  purpose: Gắn mức phân loại vào đúng đơn vị dữ liệu để áp dụng thống nhất.
+  objectives:
+  - Gán nhãn cho trường, sự kiện và nguồn phát sinh.
+  - Xác định người phụ trách và lý do gán nhãn.
+- id: chinh-sach-theo-nhan
+  title: Chính sách theo nhãn
+  purpose: Liên kết nhãn phân loại với yêu cầu bảo vệ dữ liệu trong pipeline.
+  objectives:
+  - Chọn yêu cầu lọc, che dữ liệu và giới hạn truy cập.
+  - Xác định mức lưu giữ và chia sẻ theo nhãn.
+- id: ra-soat-ngoai-le
+  title: Rà soát & Ngoại lệ
+  purpose: Giữ phân loại chính xác khi schema và nguồn telemetry thay đổi.
+  objectives:
+  - Đối chiếu mẫu logs, metrics, traces với nhãn.
+  - Xây dựng quy trình duyệt ngoại lệ và cập nhật nhãn.

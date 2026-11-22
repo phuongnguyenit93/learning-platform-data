@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_DATA_PROTECTION_CLASSIFICATION_MINIMIZATION"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Thiết kế chính sách phân loại và tối thiểu hóa dữ liệu từ kiểm kê, gắn nhãn nhạy cảm đến xác định mục đích sử dụng và phạm vi chia sẻ. Người học áp dụng masking, hạn chế thu thập, retention, xóa dữ liệu và bảo vệ log, bản sao, dữ liệu kiểm thử trong toàn bộ vòng đời."
+  }
+}

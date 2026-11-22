@@ -1,0 +1,345 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - GitHub Actions là gì và vai trò trong tự động hóa phát triển phần mềm
+  - Phân biệt tích hợp liên tục, bàn giao liên tục và triển khai liên tục
+  - Mối liên hệ giữa repository, sự kiện và quy trình tự động
+  - 'Từ vựng cốt lõi: workflow, run, job, step, action và runner'
+  - Luồng từ một commit đến kiểm tra, đóng gói và triển khai
+  - Phân biệt GitHub Actions với công cụ build và nền tảng triển khai
+  - Lợi ích, giới hạn và trách nhiệm khi đưa công việc vào CI/CD
+  - Lộ trình học từ workflow đầu tiên đến quy trình bàn giao có kiểm soát
+- level1: Mô hình thực thi
+  level2:
+  - Workflow là định nghĩa quy trình và run là một lần thực thi
+  - Job là đơn vị được phân lịch trên runner
+  - Step là một bước lệnh hoặc một action trong job
+  - Quan hệ tuần tự giữa các step và khả năng chạy song song giữa các job
+  - Workspace, thư mục làm việc và phạm vi tồn tại của file
+  - Ranh giới môi trường giữa các job và các lần chạy
+  - Vòng đời từ nhận sự kiện, phân lịch đến kết thúc hoặc hủy
+  - Phân biệt trạng thái đang chạy, kết quả cuối và lần chạy lại
+- level1: Cú pháp workflow
+  level2:
+  - Tổ chức file YAML trong .github/workflows
+  - Cấu trúc name, run-name, on và jobs
+  - Định danh job và step để tham chiếu ổn định
+  - Phân biệt run, uses và with trong một step
+  - Khai báo runs-on, needs, env và defaults
+  - Thụt lề, kiểu dữ liệu, dấu nháy và khối lệnh nhiều dòng trong YAML
+  - Phân biệt lỗi cú pháp YAML với lỗi schema hoặc lỗi thực thi
+  - Chọn tên hiển thị và chú thích giúp người đọc hiểu mục đích workflow
+- level1: Sự kiện kích hoạt
+  level2:
+  - push và pull_request cho kiểm tra thay đổi mã nguồn
+  - workflow_dispatch cho thao tác chạy thủ công có tham số
+  - schedule, biểu thức cron và giới hạn độ chính xác của lịch chạy
+  - release và các hoạt động liên quan đến phát hành
+  - repository_dispatch cho sự kiện do hệ thống ngoài gửi đến
+  - workflow_run cho quy trình phụ thuộc kết quả workflow khác
+  - workflow_call cho workflow được gọi lại
+  - merge_group và kiểm tra trong quy trình dùng hàng đợi hợp nhất
+  - Bộ lọc branches, tags, paths và loại hoạt động của sự kiện
+  - Quan hệ giữa sự kiện, nhánh chứa workflow và phiên bản mã được thực thi
+  - Tránh kích hoạt trùng hoặc bỏ sót lần chạy khi kết hợp nhiều sự kiện
+- level1: Nhánh và pull request
+  level2:
+  - Xác định mã cần kiểm tra trong push, pull request và trạng thái hợp nhất
+  - Phân biệt nhánh nguồn, nhánh đích, ref và commit SHA của từng sự kiện
+  - pull_request_target và ranh giới tin cậy khác với pull_request
+  - Pull request từ fork và điều kiện cấp quyền, secrets hoặc phê duyệt
+  - Kết nối kết quả CI với required status checks
+  - Tác động của bộ lọc đường dẫn và tên job đến kiểm tra bắt buộc
+  - Ngăn quy trình kiểm tra mã chưa tin cậy dùng quyền phát hành hoặc triển khai
+  - Thiết kế luồng kiểm tra, hợp nhất và phát hành cho các nhánh chính
+- level1: Runner
+  level2:
+  - Runner do GitHub cung cấp và runner tự quản lý
+  - Lựa chọn hệ điều hành, kiến trúc và nhãn runner
+  - Quan hệ giữa runner image, công cụ có sẵn và tính ổn định của môi trường
+  - Vòng đời máy chạy và dữ liệu còn lại sau job
+  - Cài đặt, đăng ký, cập nhật và thu hồi runner tự quản lý
+  - Runner group và phạm vi repository được phép sử dụng
+  - Runner dùng ngắn hạn và yêu cầu dọn dẹp sau thực thi
+  - Khả năng mở rộng, giới hạn tài nguyên và công việc chờ runner
+  - Rủi ro chạy mã không tin cậy trên hạ tầng có quyền hoặc dữ liệu nội bộ
+- level1: Step và shell
+  level2:
+  - Chọn shell cho Linux, macOS và Windows
+  - working-directory và đường dẫn file trên các hệ điều hành
+  - Mã thoát, lỗi lệnh và cách step được xác định thành công hoặc thất bại
+  - Chế độ xử lý lỗi và đường ống lệnh trong shell
+  - Phân biệt nội suy expression với mở rộng biến của shell
+  - Truyền tham số, trích dẫn và xử lý dữ liệu có khoảng trắng hoặc ký tự đặc biệt
+  - Không phụ thuộc biến hoặc tiến trình shell tự tồn tại qua các step
+  - Thu dọn tài nguyên và giới hạn của lệnh nền trong môi trường CI
+- level1: Context và expression
+  level2:
+  - Vai trò github, runner, job, steps, needs, matrix, env, vars và secrets
+  - Phân biệt thời điểm nền tảng đánh giá expression với lúc runner chạy lệnh
+  - Cú pháp tham chiếu giá trị và phép toán trong expression
+  - Kiểu chuỗi, số, boolean, null và chuyển đổi kiểu
+  - contains, startsWith, endsWith và format trong điều kiện workflow
+  - toJSON và fromJSON khi truyền cấu trúc hoặc khai báo matrix động
+  - hashFiles trong tính khóa và kiểm tra thay đổi đầu vào
+  - Phạm vi context được phép dùng tại từng khóa cấu hình
+  - Không đưa dữ liệu nhạy cảm vào log khi kiểm tra giá trị context
+- level1: Truyền dữ liệu
+  level2:
+  - Phân biệt biến môi trường, input, output và file artifact
+  - Phạm vi env ở mức workflow, job và step
+  - GITHUB_ENV để cung cấp biến cho các step tiếp theo
+  - GITHUB_OUTPUT và định danh step khi xuất kết quả
+  - Job outputs và truy cập dữ liệu từ job phụ thuộc qua needs
+  - GITHUB_PATH và việc bổ sung công cụ vào đường dẫn thực thi
+  - Truyền chuỗi nhiều dòng và dữ liệu có cấu trúc an toàn
+  - Kiểu boolean trong inputs và github.event.inputs khi chạy thủ công
+  - Kiểm soát kích thước, dữ liệu nhạy cảm và giá trị vắng mặt khi truyền output
+  - GITHUB_STEP_SUMMARY để viết báo cáo Markdown cho lần chạy
+- level1: Điều kiện và phụ thuộc
+  level2:
+  - needs và đồ thị phụ thuộc giữa các job
+  - if ở mức job và step để lựa chọn nhánh xử lý
+  - success, failure, cancelled và always trong điều kiện trạng thái
+  - Phân biệt job bị bỏ qua, job bị hủy và job thất bại
+  - continue-on-error và tác động đến quyết định của bước sau
+  - Phân biệt outcome và conclusion của step
+  - Thiết kế job tổng hợp kết quả khi các nhánh có trạng thái khác nhau
+  - Chọn điều kiện cho báo cáo, thông báo và dọn dẹp mà không che mất lỗi chính
+- level1: Matrix
+  level2:
+  - Nhân các cấu hình kiểm tra theo phiên bản công cụ hoặc hệ điều hành
+  - Các chiều matrix và khả năng kết hợp cấu hình
+  - include và exclude để bổ sung hoặc loại bỏ tổ hợp
+  - fail-fast và ảnh hưởng của lỗi một nhánh đến các nhánh khác
+  - max-parallel và giới hạn mức thực thi đồng thời
+  - Matrix động từ output có cấu trúc của job trước
+  - Đặt tên, artifact và output để tránh xung đột giữa các nhánh
+  - Cân bằng độ bao phủ kiểm tra với thời gian và tài nguyên
+- level1: Công cụ và dependency
+  level2:
+  - Checkout mã nguồn và lựa chọn độ sâu lịch sử cần thiết
+  - Lựa chọn ref rõ ràng khi lấy mã từ repository khác hoặc lần chạy khác
+  - Thiết lập JDK, Node.js, Python hoặc công cụ theo nhu cầu dự án
+  - Dùng wrapper và lockfile để giảm khác biệt giữa máy phát triển với CI
+  - Cố định đầu vào build và kiểm soát dependency tải từ bên ngoài
+  - Xác thực với package registry mà không lưu thông tin bí mật trong repository
+  - Phân biệt công cụ có sẵn trong runner image với công cụ do workflow cài đặt
+  - Kiểm tra phiên bản và chẩn đoán lỗi môi trường trước khi chạy build
+- level1: Kiểm tra chất lượng
+  level2:
+  - Chạy lint, định dạng, phân tích tĩnh và kiểm tra kiểu
+  - Tách kiểm thử đơn vị, tích hợp và đầu cuối theo mục đích
+  - Chuẩn bị dữ liệu, dịch vụ phụ thuộc và trạng thái kiểm thử cô lập
+  - Tạo báo cáo kết quả và coverage để phục vụ người đọc pull request
+  - Giữ log và bằng chứng khi kiểm thử thất bại
+  - Phân biệt lỗi sản phẩm với kiểm thử không ổn định hoặc sự cố hạ tầng
+  - Thiết kế cổng chất lượng trước đóng gói, phát hành và triển khai
+  - Kiểm tra đầu ra build thay vì chỉ dựa vào mã thoát của lệnh
+- level1: Artifact
+  level2:
+  - Vai trò artifact trong bàn giao file giữa job và lưu bằng chứng
+  - Phân biệt artifact của lần chạy với release asset và package registry
+  - Chọn nội dung upload và loại bỏ bí mật hoặc file không cần thiết
+  - Đặt tên artifact theo module, nền tảng hoặc nhánh matrix
+  - Tải đúng artifact theo lần chạy và phạm vi truy cập
+  - Xác minh nội dung và digest trước khi dùng cho bước bàn giao tiếp theo
+  - Thời hạn lưu, dung lượng và cách tra cứu giới hạn đang áp dụng
+  - Liên kết artifact với commit, metadata build và kết quả kiểm tra
+  - Build một lần và sử dụng lại đúng đầu ra đã được xác minh
+  - GitHub artifact attestations và việc tạo, xác minh bằng chứng nguồn gốc
+- level1: Cache
+  level2:
+  - Mục đích cache và khác biệt với artifact chính thức
+  - Thiết kế cache key từ hệ điều hành, công cụ và dependency lockfile
+  - Khóa khôi phục dự phòng và rủi ro lấy dữ liệu không còn phù hợp
+  - Phạm vi truy cập cache theo repository, nhánh và ngữ cảnh sự kiện
+  - Phân biệt cache hit, cache miss và cache khôi phục một phần
+  - Chọn cache dependency thay vì vô tình lưu dữ liệu bí mật hoặc trạng thái lỗi
+  - Đo hiệu quả cache và kiểm soát dung lượng, thời hạn, thay đổi khóa
+  - Không lấy cache làm nguồn duy nhất để khôi phục artifact phát hành
+- level1: Biến và secrets
+  level2:
+  - Phân biệt cấu hình không nhạy cảm với thông tin bí mật
+  - Phạm vi biến và secrets ở mức tổ chức, repository và environment
+  - Quan hệ ưu tiên cấu hình và cách tránh tên trùng gây nhầm lẫn
+  - Cấp secrets cho đúng job và đúng action cần sử dụng
+  - Giới hạn của che giá trị trong log và nguy cơ lộ qua dữ liệu biến đổi
+  - Quản lý bí mật nhiều dòng hoặc file chứng thực mà không lưu dấu vết ngoài ý muốn
+  - Luân chuyển, thu hồi và kiểm tra quyền sử dụng secrets
+  - Kiểm tra dữ liệu đầu vào trước khi dùng làm tên môi trường hoặc tham số triển khai
+  - Phân biệt quản lý secrets với việc tin cậy mã đang được thực thi
+- level1: Token và quyền
+  level2:
+  - GITHUB_TOKEN và danh tính được cấp cho một lần thực thi
+  - permissions ở mức workflow và job theo nguyên tắc quyền tối thiểu
+  - Phân biệt quyền đọc nội dung, ghi nội dung, quản lý action và công bố package
+  - Quyền mặc định, chính sách tổ chức và cách khai báo yêu cầu rõ ràng
+  - Giới hạn truy cập repository khác và các nguồn ngoài phạm vi token hiện tại
+  - Khi cân nhắc GitHub App token hoặc personal access token
+  - Thời hạn, phạm vi và chủ sở hữu khi quản lý token tự động
+  - Quy tắc kích hoạt workflow từ thao tác được thực hiện bằng GITHUB_TOKEN
+  - Không nhầm quyền của token với quyền người bấm chạy hoặc quyền hệ thống trên runner
+- level1: OIDC
+  level2:
+  - Vấn đề của thông tin xác thực đám mây tồn tại dài hạn trong CI/CD
+  - OpenID Connect và trao đổi danh tính workflow lấy quyền truy cập ngắn hạn
+  - 'Vai trò của id-token: write trong việc yêu cầu token định danh OIDC'
+  - Phân biệt được cấp OIDC token với được cấp quyền thao tác tài nguyên đám mây
+  - Ràng buộc chính sách tin cậy theo repository, ref, environment và audience
+  - Giới hạn quyền đám mây cho đúng nhiệm vụ triển khai
+  - Chẩn đoán lỗi khớp danh tính, chính sách tin cậy hoặc quyền tài nguyên
+- level1: An toàn workflow
+  level2:
+  - Xác định ranh giới tin cậy giữa sự kiện, mã nguồn, action và runner
+  - Ngăn chèn lệnh khi dùng tiêu đề, nhánh hoặc nội dung pull request trong script
+  - Truyền dữ liệu chưa tin cậy qua biến thay vì ghép trực tiếp thành mã lệnh
+  - Rủi ro checkout và thực thi mã từ pull request trong ngữ cảnh có quyền cao
+  - Ranh giới quyền khi workflow_run nhận artifact hoặc dữ liệu từ workflow khác
+  - Cố định action theo commit phù hợp và quản lý cập nhật dependency workflow
+  - Đánh giá action bên thứ ba và các quyền hoặc dữ liệu được chia sẻ
+  - Ngăn lạm dụng cache, artifact và output để đưa dữ liệu không tin cậy vào job đặc quyền
+  - Bảo vệ thông tin xác thực checkout và kênh truy cập mạng của runner
+  - Đánh giá rủi ro từ fork, mã đóng góp bên ngoài và runner tự quản lý
+- level1: Container và service
+  level2:
+  - Job chạy trực tiếp trên runner và job chạy trong container
+  - Chuẩn bị service container cho cơ sở dữ liệu hoặc dịch vụ kiểm thử
+  - Khác biệt địa chỉ kết nối khi job chạy trên runner hoặc bên trong container
+  - Kiểm tra dịch vụ sẵn sàng trước khi bắt đầu kiểm thử
+  - Truyền cấu hình, cổng và volume trong phạm vi cần thiết
+  - Xác thực khi lấy image riêng và kiểm soát nguồn image
+  - Giới hạn nền tảng, quyền thực thi và điều kiện hạ tầng khi dùng container
+- level1: Workflow tái sử dụng
+  level2:
+  - workflow_call và thiết kế hợp đồng gọi workflow
+  - Khai báo input có kiểu và giá trị mặc định rõ ràng
+  - Truyền secrets tường minh và đánh giá phạm vi của cơ chế kế thừa
+  - Trả output từ workflow được gọi cho workflow gọi
+  - Quyền token và ranh giới tin cậy khi gọi workflow khác repository
+  - Gọi workflow bằng ref hoặc commit và quản lý phiên bản
+  - Tái sử dụng kết hợp matrix và kiểm soát dữ liệu đầu ra
+  - Giới hạn và độ phức tạp khi nhiều workflow gọi lồng nhau
+  - Tách phần dùng chung khỏi chính sách riêng của repository hoặc môi trường
+- level1: Action tùy chỉnh
+  level2:
+  - Phân biệt reusable workflow với custom action
+  - Composite action để đóng gói chuỗi step dùng chung
+  - JavaScript action và quan hệ với runtime thực thi
+  - Docker action và yêu cầu môi trường chạy tương ứng
+  - action.yml, input, output và metadata của action
+  - Quản lý dependency, file phân phối và kiểm tra action trước khi phát hành
+  - Thiết kế hợp đồng lỗi và log cho bên sử dụng
+  - Phiên bản action, tag tham chiếu và bảo toàn khả năng truy vết
+  - Chọn action cục bộ hoặc action dùng chung giữa nhiều repository
+- level1: Environment
+  level2:
+  - Environment là ranh giới quản lý cấu hình và kiểm soát triển khai
+  - Environment secrets và quyền tiếp cận theo job triển khai
+  - Cổng phê duyệt, thời gian chờ và các cơ chế bảo vệ được hỗ trợ
+  - Giới hạn nhánh hoặc tag được phép triển khai
+  - Liên kết environment với deployment và URL môi trường
+  - Thiết kế môi trường thử nghiệm, staging và production
+  - Xử lý phê duyệt hết hạn, bị từ chối hoặc workflow bị hủy
+  - Đối chiếu khả năng environment với gói dịch vụ và chính sách đang áp dụng
+- level1: Triển khai
+  level2:
+  - Tách kiểm tra mã, tạo artifact và triển khai thành các trách nhiệm rõ ràng
+  - Triển khai đúng artifact và commit đã vượt qua các kiểm tra
+  - Tách cấu hình môi trường khỏi nội dung build khi thiết kế cho phép
+  - Xác thực nền tảng đích bằng danh tính và quyền phù hợp
+  - Kiểm tra trước triển khai và xác minh tình trạng sau triển khai
+  - Phân biệt job triển khai thành công với sản phẩm thực tế hoạt động đúng
+  - Quay lui bằng artifact đã lưu và đánh giá tương thích dữ liệu
+  - Lựa chọn rolling, blue-green hoặc canary theo khả năng nền tảng đích
+- level1: Release và phiên bản
+  level2:
+  - Liên kết tag, phiên bản phần mềm, commit và nội dung phát hành
+  - Thiết kế luồng tạo release theo thao tác thủ công hoặc quy tắc phiên bản
+  - Tạo ghi chú phát hành từ dữ liệu thay đổi được kiểm chứng
+  - Công bố release asset và package với quyền tối thiểu
+  - Đảm bảo bản phát hành có đủ thành phần trước khi công bố hoàn tất
+  - Quản lý checksum, bản kê thành phần phần mềm (SBOM) và bằng chứng nguồn gốc
+  - Chống phát hành trùng và xử lý lần chạy lại mà không ghi đè ngoài ý muốn
+  - Thu hồi bản lỗi và phát hành bản thay thế có thể truy vết
+  - Build image, gắn tag và công bố lên GHCR hoặc registry được cấp quyền
+- level1: Đồng thời và hủy
+  level2:
+  - concurrency group ở mức workflow và job
+  - Đặt khóa nhóm theo nhánh, môi trường, module hoặc tài nguyên dùng chung
+  - cancel-in-progress và trường hợp được phép hủy lần chạy cũ
+  - Thứ tự xử lý và giới hạn bảo đảm của concurrency group
+  - Phân biệt giới hạn đồng thời với chống lặp và xếp hàng nghiệp vụ
+  - timeout-minutes cho job hoặc step theo nhu cầu
+  - Hệ quả của hủy giữa upload, cập nhật trạng thái hoặc triển khai
+  - Thiết kế tác vụ có thể chạy lại an toàn và phục hồi sau khi bị gián đoạn
+- level1: Monorepo và liên kho
+  level2:
+  - Xác định phần bị ảnh hưởng trong repository có nhiều module
+  - Tạo matrix theo danh sách module cần kiểm tra
+  - Quản lý bộ lọc đường dẫn mà không làm mất kiểm tra bắt buộc
+  - Chia sẻ workflow giữa các repository có chủ sở hữu khác nhau
+  - Kết nối hai repository bằng repository_dispatch với dữ liệu có kiểm chứng
+  - Truyền commit, phiên bản và digest để chống tiêu thụ đầu ra sai nguồn
+  - Thiết kế quy trình liên kho có thể truy vết, chống gửi trùng và phục hồi
+- level1: Gỡ lỗi
+  level2:
+  - Đọc đồ thị workflow và xác định job đầu tiên gây lỗi
+  - Đọc log theo nhóm, step và mốc thời gian
+  - Tạo annotation và job summary để hiển thị thông tin hữu ích
+  - Bật chế độ debug có kiểm soát và tránh lộ secrets
+  - Phân biệt lỗi kích hoạt, lỗi phân lịch, lỗi quyền và lỗi lệnh
+  - Điều tra lỗi context rỗng, output thiếu hoặc điều kiện làm job bị bỏ qua
+  - Chạy lại toàn bộ, job thất bại hoặc job cụ thể và đánh giá tác dụng phụ
+  - Truy vết artifact, cache và ref của đúng lần chạy cần điều tra
+  - Xác định trường hợp cần kiểm tra trạng thái dịch vụ GitHub hoặc nền tảng ngoài
+- level1: Chi phí và hiệu năng
+  level2:
+  - Đo tổng thời gian pipeline, thời gian chờ và đường phụ thuộc dài nhất
+  - Tối ưu phạm vi checkout, cài dependency và khởi tạo môi trường
+  - Cân bằng chia job song song với chi phí chuẩn bị runner lặp lại
+  - Đo hiệu quả cache và tránh tối ưu dựa trên giả định
+  - Giới hạn matrix, thời gian chạy và mức tiêu thụ của tác vụ không cần thiết
+  - Quản lý dung lượng artifact, cache và lưu lượng truyền dữ liệu
+  - Tra cứu hạn mức, cách tính chi phí và chính sách theo tài khoản thực tế
+  - Theo dõi xu hướng để phát hiện job chậm hoặc chạy trùng ngoài ý muốn
+- level1: Quản trị
+  level2:
+  - Chuẩn hóa workflow dùng chung và xác định chủ sở hữu bảo trì
+  - Kiểm soát thay đổi file workflow bằng quy trình review phù hợp
+  - Chính sách action được phép dùng và nguồn workflow tái sử dụng
+  - Quản lý cập nhật action, runtime và runner image
+  - Phân tách quyền quản trị runner, secrets và quy trình production
+  - Giữ nhật ký thay đổi và bằng chứng phê duyệt khi cần kiểm toán
+  - Đặt nguyên tắc xử lý ngoại lệ mà không biến workflow thành hệ thống khó vận hành
+- level1: Kiểm thử workflow
+  level2:
+  - Kiểm tra cú pháp, schema và lỗi tham chiếu trước khi chạy thật
+  - Kiểm thử script và action riêng khỏi hạ tầng workflow khi có thể
+  - Dùng nhánh hoặc môi trường thử nghiệm để kiểm chứng quyền và sự kiện
+  - Giới hạn của công cụ mô phỏng cục bộ so với runner thực tế
+  - Kiểm thử dữ liệu đầu vào có kiểu sai, thiếu hoặc chứa ký tự đặc biệt
+  - Kiểm thử lần chạy lại, hủy giữa chừng và hai lần chạy tranh chấp
+  - Kiểm thử đường thất bại và bảo đảm bước sau không công bố đầu ra chưa đạt
+- level1: Thực hành
+  level2:
+  - Tạo workflow kiểm tra một dự án nhỏ khi push và mở pull request
+  - Bổ sung matrix theo phiên bản công cụ và hệ điều hành
+  - Tách build, test và đóng gói bằng output và artifact rõ ràng
+  - Tối ưu dependency cache và đo lại thời gian thực thi
+  - Tạo service container cho một bài kiểm thử tích hợp
+  - Trích phần dùng chung thành composite action và reusable workflow
+  - Thiết lập phát hành thủ công có input, permissions và chống trùng
+  - Thiết kế luồng staging đến production có phê duyệt và kiểm tra sau triển khai
+  - Mô phỏng input không tin cậy, timeout và hủy workflow để kiểm tra khả năng bảo vệ
+  - Xây dựng quy trình liên kho truyền đúng commit và digest của artifact
+  - Viết hướng dẫn điều tra một pipeline lỗi dựa trên log và bằng chứng thực tế
+- level1: Tiêu chí thiết kế
+  level2:
+  - Kiểm tra trigger có khớp mục tiêu và nguồn mã được phép thực thi
+  - Giữ hợp đồng giữa job, workflow và artifact rõ ràng
+  - Rà soát quyền, secrets và ranh giới tin cậy trước khi mở rộng tự động hóa
+  - Đánh giá khả năng chạy lại, hủy và phục hồi tác vụ có tác dụng phụ
+  - Cân bằng tái sử dụng với khả năng đọc và chẩn đoán
+  - Kiểm tra bằng chứng kiểm thử và triển khai thay vì chỉ xem trạng thái xanh
+  - Tổng hợp tiêu chí cho pipeline dễ bảo trì và các chủ đề cần học sâu thêm

@@ -1,0 +1,435 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Prometheus là gì và giải quyết bài toán giám sát nào
+  - Vai trò của số liệu đo trong khả năng quan sát hệ thống
+  - Phân biệt metric, log, trace và phạm vi sử dụng Prometheus
+  - Mô hình thu thập chủ động qua HTTP và các trường hợp nhận dữ liệu đẩy
+  - Hệ sinh thái Prometheus, exporter, Alertmanager và Grafana
+  - Khi nào Prometheus phù hợp và giới hạn đối với dữ liệu sự kiện hoặc thanh toán
+  - Kiến thức đầu vào và trình tự học từ thu thập đến vận hành
+- level1: Kiến trúc
+  level2:
+  - Luồng dữ liệu từ ứng dụng đến bộ thu thập, TSDB và truy vấn
+  - Vai trò của mục tiêu thu thập, job, instance và bộ khám phá dịch vụ
+  - Quan hệ giữa chu kỳ thu thập, đánh giá quy tắc và truy vấn
+  - Thu thập bằng thư viện ứng dụng và thu thập qua exporter
+  - Tách trách nhiệm giữa Prometheus Server, Alertmanager và dashboard
+  - Mỗi máy Prometheus tự quản dữ liệu cục bộ và tác động đến thiết kế dự phòng
+  - Phân biệt Server mode, Agent mode và hệ thống lưu trữ từ xa
+  - Theo dấu một phép đo từ lúc phát sinh đến khi hiển thị trên biểu đồ
+- level1: Mô hình dữ liệu
+  level2:
+  - Chuỗi thời gian được định danh bởi tên metric và tập nhãn
+  - Mẫu dữ liệu gồm thời điểm và giá trị đo
+  - Vai trò của nhãn đặc biệt __name__ và tên metric
+  - Thêm, bỏ hoặc đổi giá trị nhãn làm thay đổi danh tính chuỗi
+  - Phân biệt mẫu số thực với mẫu native histogram
+  - Giá trị NaN, dương vô cực và âm vô cực trong dữ liệu hoặc kết quả truy vấn
+  - Nhãn job và instance được hình thành trong quá trình thu thập
+  - Dữ liệu thưa, chuỗi chưa tồn tại và giá trị bằng không
+  - Chuỗi ngừng được cập nhật và cơ chế đánh dấu dữ liệu không còn hiện hành
+  - Quy tắc tên, Unicode và tương thích định dạng theo phiên bản
+- level1: Loại phép đo
+  level2:
+  - 'Counter: đại lượng tích lũy và việc đặt lại khi tiến trình khởi động'
+  - 'Gauge: đại lượng tăng giảm phản ánh trạng thái hiện tại'
+  - 'Histogram cổ điển: bucket tích lũy, tổng giá trị và số quan sát'
+  - 'Summary: phân vị tính tại ứng dụng, tổng giá trị và số quan sát'
+  - 'Native histogram: phân phối được biểu diễn trong một mẫu có cấu trúc'
+  - Chọn loại metric theo câu hỏi cần trả lời
+  - Phân biệt ngữ nghĩa counter hoặc gauge với kiểu dữ liệu trong PromQL
+  - Đánh đổi độ chính xác, chi phí và khả năng tổng hợp giữa histogram với summary
+  - Nhận biết dùng sai loại metric khi đo số yêu cầu, hàng đợi hoặc độ trễ
+- level1: Thiết kế metric
+  level2:
+  - Đặt tên có đơn vị cơ sở và hậu tố phù hợp với loại phép đo
+  - Chọn nhãn biểu diễn chiều phân tích có số giá trị được kiểm soát
+  - Ước tính số chuỗi từ các tổ hợp nhãn thực tế
+  - Nguy cơ dùng user_id, request_id hoặc URL chưa chuẩn hóa làm nhãn
+  - Phân biệt số chuỗi đang hoạt động với tốc độ tạo và mất chuỗi
+  - Chuẩn hóa nhãn dịch vụ, môi trường, vùng và chủ sở hữu
+  - Giữ tên và tập nhãn nhất quán giữa các phiên bản ứng dụng
+  - Khởi tạo chuỗi có giá trị không và xử lý trường hợp phép đo chưa phát sinh
+  - Tránh dữ liệu nhạy cảm trong nhãn và thông tin mô tả metric
+  - Đặt ngân sách số chuỗi và đánh giá chi phí trước khi thêm metric
+- level1: Cài đặt
+  level2:
+  - Lựa chọn phiên bản Prometheus và kiểm tra tính tương thích của công cụ đi kèm
+  - Chạy Prometheus bằng tệp thực thi và cấu hình khởi động tối thiểu
+  - Quản lý tiến trình bằng systemd và tài khoản dịch vụ
+  - Chạy bằng Docker với cấu hình và dữ liệu được gắn ngoài
+  - Dựng Docker Compose cho Prometheus, ứng dụng và exporter
+  - Phân biệt mạng máy chủ, mạng container và địa chỉ localhost
+  - Kiểm tra giao diện, trạng thái sẵn sàng và lần tự thu thập đầu tiên
+  - Tổ chức thư mục cấu hình, quy tắc và dữ liệu cho môi trường thử nghiệm
+- level1: Cấu hình
+  level2:
+  - Bố cục prometheus.yml và ý nghĩa của các khối cấu hình chính
+  - Phân biệt cờ khởi động với cấu hình có thể nạp lại
+  - Thiết lập global và ghi đè ở từng scrape job
+  - Quan hệ giữa scrape_interval, scrape_timeout và evaluation_interval
+  - Khai báo scrape_configs, rule_files và đích Alertmanager
+  - Phạm vi của external_labels khi giao tiếp với hệ thống bên ngoài
+  - Tệp xác thực, chứng chỉ và đường dẫn cấu hình phụ thuộc
+  - Kiểm tra cấu hình bằng promtool trước khi áp dụng
+  - Nạp lại bằng SIGHUP hoặc HTTP khi đã bật khả năng tương ứng
+  - Xác minh cấu hình đang có hiệu lực và hành vi khi cấu hình mới không hợp lệ
+- level1: Thu thập
+  level2:
+  - Vòng đời một lần scrape từ yêu cầu HTTP đến ghi mẫu
+  - Cấu hình địa chỉ, scheme, metrics_path và tham số truy vấn
+  - Định dạng Prometheus text, OpenMetrics và thương lượng nội dung
+  - Metadata HELP, TYPE và quy tắc định dạng dữ liệu xuất ra
+  - Nhãn do đích cung cấp, nhãn do Prometheus thêm và honor_labels
+  - Dấu thời gian từ đích thu thập và lựa chọn honor_timestamps
+  - Đọc up, scrape_duration_seconds và số mẫu của mỗi lần thu thập
+  - Giới hạn số mẫu, số nhãn, kích thước phản hồi và hành vi khi vượt giới hạn
+  - Thời gian chờ, lỗi HTTP, dữ liệu sai định dạng và lần scrape thất bại
+  - Thu thập từng instance và rủi ro khi đặt cân bằng tải trước endpoint metric
+  - Cấu hình thu thập native histogram theo phiên bản và khả năng của đích
+- level1: Khám phá dịch vụ
+  level2:
+  - Đích tĩnh và nhãn bổ sung trong static_configs
+  - Khám phá từ tệp và cập nhật danh sách đích mà không sửa cấu hình chính
+  - Khám phá bằng DNS và ảnh hưởng của địa chỉ hoặc bản ghi thay đổi
+  - Khám phá qua HTTP và hợp đồng dữ liệu danh sách đích
+  - Khám phá Kubernetes theo Pod, Service hoặc EndpointSlice
+  - Nhãn metadata từ cơ chế khám phá và thời điểm được sử dụng
+  - Lọc đích theo môi trường, namespace hoặc nhãn dịch vụ
+  - Phân biệt đích được khám phá, đích bị loại và đích đang được thu thập
+  - Chẩn đoán đích trùng lặp hoặc không xuất hiện sau thay đổi hạ tầng
+- level1: Tái gán nhãn
+  level2:
+  - Tái gán nhãn (relabeling) là gì và được áp dụng ở giai đoạn nào
+  - Phân biệt relabel_configs, metric_relabel_configs và write_relabel_configs
+  - source_labels, separator, regex, replacement và target_label
+  - Giữ hoặc loại đích bằng keep và drop
+  - Thay nhãn bằng replace và chuyển metadata thành nhãn lưu trữ
+  - labelmap, labelkeep và labeldrop trong quản lý tập nhãn
+  - hashmod để hỗ trợ chia đích cho các máy thu thập
+  - Nhãn nội bộ __address__, __scheme__, __metrics_path__ và __param_
+  - Khác biệt giữa lọc đích trước scrape và loại mẫu sau scrape
+  - Nguy cơ mất danh tính chuỗi khi bỏ nhãn và kiểm chứng bằng dữ liệu đối chứng
+- level1: Exporter
+  level2:
+  - Exporter là gì và khi nào cần thay vì gắn phép đo trực tiếp vào ứng dụng
+  - Node Exporter cho tài nguyên hệ điều hành và máy chủ
+  - cAdvisor cho tài nguyên container và giới hạn quan sát của môi trường chạy
+  - Blackbox Exporter để thăm dò khả năng truy cập từ bên ngoài
+  - Mẫu một exporter thăm dò nhiều đích và cách truyền tham số target
+  - JMX Exporter cho ứng dụng JVM chưa có endpoint Prometheus
+  - Exporter cho cơ sở dữ liệu hoặc hệ thống trung gian và quyền truy cập tối thiểu
+  - Textfile collector cho kết quả tác vụ cục bộ có thời điểm hoàn thành
+  - Pushgateway cho một số tác vụ ngắn hạn và trách nhiệm dọn dữ liệu đã kết thúc
+  - Đánh giá độ tin cậy, chi phí thu thập và ý nghĩa của metric do exporter cung cấp
+- level1: Java và Spring Boot
+  level2:
+  - Vai trò của thư viện Prometheus Java, Micrometer và Spring Boot Actuator
+  - Chọn registry tương thích với phiên bản Spring Boot và quản lý phụ thuộc bằng BOM
+  - Công bố endpoint /actuator/prometheus và kiểm soát khả năng truy cập
+  - Khai báo đích Prometheus cho từng instance ứng dụng Spring Boot
+  - Ánh xạ tên metric và tag từ Micrometer sang định dạng Prometheus
+  - Đọc metric JVM, bộ nhớ, GC, luồng và tiến trình
+  - Đọc metric HTTP, kết nối cơ sở dữ liệu và nhóm luồng ứng dụng
+  - Thêm counter, gauge và timer theo nhu cầu nghiệp vụ có phạm vi rõ ràng
+  - Chuẩn hóa nhãn URI và tránh số chuỗi tăng theo dữ liệu yêu cầu
+  - Công bố bucket độ trễ và kiểm tra dữ liệu histogram thực tế
+  - Đối chiếu số liệu ứng dụng với tải thử nghiệm và truy vấn PromQL
+- level1: PromQL cơ bản
+  level2:
+  - Cấu trúc biểu thức PromQL và cách đánh giá từng biểu thức con
+  - Kiểu scalar, string, instant vector và range vector
+  - Chọn metric theo tên và lọc chuỗi theo nhãn
+  - Toán tử matcher bằng, khác, khớp và không khớp biểu thức chính quy
+  - Kết hợp điều kiện nhãn và cách biểu diễn lựa chọn nhiều giá trị
+  - Nhãn thiếu, giá trị rỗng và điều kiện bộ chọn hợp lệ
+  - Toán tử số học giữa scalar với vector
+  - So sánh để lọc chuỗi và so sánh với từ khóa bool
+  - Thứ tự ưu tiên toán tử, dấu ngoặc và cách đọc biểu thức dài
+  - Phân biệt vector rỗng, giá trị không và kết quả NaN
+- level1: Thời gian truy vấn
+  level2:
+  - Phân biệt instant query và range query của HTTP API hoặc giao diện
+  - Phân biệt range query với bộ chọn range vector trong PromQL
+  - Khoảng thời gian, mốc đánh giá và quy tắc chọn mẫu ở biên cửa sổ
+  - step và các thời điểm đánh giá lặp lại của một range query
+  - Lookback và cách chọn mẫu gần nhất cho instant vector
+  - Dấu hiệu dữ liệu không còn hiện hành khi đích mất hoặc ngừng xuất metric
+  - Dùng offset và toán tử @ để xem hoặc so sánh dữ liệu ở thời điểm khác
+  - 'Subquery: cửa sổ bên ngoài, bước đánh giá bên trong và chi phí thực hiện'
+  - Quan hệ giữa chu kỳ scrape, cửa sổ hàm và độ phân giải biểu đồ
+  - Dữ liệu đến muộn, sai đồng hồ và khoảng trống ảnh hưởng đến kết quả
+- level1: Hàm PromQL
+  level2:
+  - rate để tính tốc độ tăng trung bình của counter và xử lý đặt lại
+  - irate và khác biệt với rate khi dữ liệu biến động nhanh
+  - increase và quan hệ với tốc độ theo giây trên một cửa sổ
+  - resets và changes để quan sát đặt lại hoặc thay đổi giá trị
+  - delta, idelta và deriv cho dữ liệu có ngữ nghĩa gauge
+  - Các hàm over_time để tổng hợp từng chuỗi theo thời gian
+  - absent và absent_over_time để phát hiện dữ liệu không tồn tại
+  - label_replace và label_join để biến đổi nhãn trong kết quả truy vấn
+  - timestamp, time và các hàm thời gian để đánh giá tuổi dữ liệu
+  - Các hàm giới hạn, làm tròn hoặc dự báo và điều kiện áp dụng
+  - Kiểm tra kiểu đầu vào, kết quả và cảnh báo khi trộn mẫu số với histogram
+- level1: Phép tổng hợp
+  level2:
+  - Tổng hợp nhiều chuỗi thành kết quả bằng sum, avg, min và max
+  - by và without quyết định tập nhãn của kết quả
+  - count, count_values và group để quan sát phân bố chuỗi
+  - topk, bottomk và giới hạn của thứ hạng thay đổi theo thời gian
+  - quantile trên các mẫu hiện thời và khác biệt với phân vị độ trễ
+  - Độ lệch chuẩn, phương sai và phạm vi sử dụng trong phân tích
+  - Tính rate trước khi tổng hợp các counter có thể đặt lại độc lập
+  - Tỷ lệ từ tổng tử số và mẫu số thay vì trung bình các tỷ lệ riêng
+  - Phân biệt tổng hợp theo chuỗi, theo thời gian và kết hợp cả hai
+- level1: Ghép vector
+  level2:
+  - Quy tắc ghép cặp mặc định giữa hai instant vector
+  - on và ignoring để xác định nhãn tham gia ghép
+  - Ghép một với một và yêu cầu duy nhất của khóa ghép
+  - group_left và group_right cho quan hệ nhiều với một hoặc một với nhiều
+  - Bổ sung nhãn từ metric thông tin vào kết quả tính toán
+  - Nguyên nhân lỗi many-to-many và cách kiểm tra tập nhãn trước khi ghép
+  - and, or và unless trong phép toán tập hợp
+  - Chuỗi không có bên ghép, mẫu số bằng không và kết quả bị mất
+  - Ảnh hưởng của toán tử đến tên metric và tập nhãn đầu ra
+  - Đọc phép ghép theo từng bước và phân biệt với phép nối bảng SQL
+- level1: Truy vấn phân phối
+  level2:
+  - Đọc _bucket, le, _count và _sum của histogram cổ điển
+  - Tính số quan sát và độ trễ trung bình trên một cửa sổ
+  - histogram_quantile để tính p50, p95 hoặc p99 từ bucket
+  - Giữ nhãn le khi tổng hợp histogram cổ điển giữa các instance
+  - Độ chính xác phân vị, lựa chọn bucket và dữ liệu ở đuôi phân phối
+  - Tính tỷ lệ yêu cầu nằm trong ngưỡng phục vụ từ histogram
+  - Giới hạn tổng hợp phân vị đã được summary tính sẵn
+  - Truy vấn native histogram bằng các hàm và toán tử tương thích
+  - Kiểm tra tương thích bucket, mẫu hỗn hợp và cảnh báo kết quả bị loại
+  - So sánh histogram cổ điển với native histogram trên cùng tải đo
+  - Liên kết exemplar với trace khi chuỗi công cụ có hỗ trợ
+- level1: Truy vấn vận hành
+  level2:
+  - Tính lưu lượng yêu cầu theo dịch vụ, tuyến và phương thức
+  - Tính tỷ lệ lỗi có xử lý dịch vụ không có lưu lượng
+  - Tính độ trễ và tỷ lệ đáp ứng ngưỡng theo từng nhóm người dùng phù hợp
+  - Phân tích mức sử dụng, bão hòa và lỗi của tài nguyên
+  - Tính mức sử dụng CPU từ thời gian tích lũy của hệ điều hành
+  - Phân tích bộ nhớ JVM, hoạt động GC và áp lực nhóm luồng
+  - Theo dõi hàng đợi, số kết nối và khả năng xử lý tồn đọng
+  - Xây dựng chỉ báo SLI về tính sẵn sàng hoặc độ trễ từ metric
+  - Đọc mức tiêu hao ngân sách lỗi và giới hạn suy luận từ số liệu đo
+  - Kiểm tra đơn vị, nhãn, cửa sổ và dữ liệu đối chứng của từng truy vấn
+- level1: Quy tắc ghi
+  level2:
+  - Quy tắc ghi (recording rule) là gì và khi nào cần tính trước
+  - Cấu trúc nhóm quy tắc và biểu thức tạo chuỗi dẫn xuất
+  - Quy ước tên chuỗi kết quả và giữ nhãn cần cho truy vấn phía sau
+  - Chu kỳ đánh giá, thứ tự quy tắc và phụ thuộc giữa kết quả
+  - Khác biệt giữa tính trước định kỳ với truy vấn trực tiếp dữ liệu gốc
+  - Chi phí thêm chuỗi lưu trữ và đánh đổi với chi phí truy vấn
+  - Kiểm tra quy tắc bằng promtool và xác minh kết quả trên dữ liệu mẫu
+  - Thay đổi quy tắc, khoảng trống lịch sử và kế hoạch chuyển truy vấn sử dụng
+- level1: Quy tắc cảnh báo
+  level2:
+  - Quan hệ giữa biểu thức PromQL, alerting rule và Alertmanager
+  - Cấu trúc alert, expr, for, labels và annotations
+  - Trạng thái inactive, pending, firing và điều kiện trở về bình thường
+  - for và keep_firing_for trong việc kiểm soát cảnh báo chập chờn
+  - Mỗi bộ nhãn kết quả tạo một trường hợp cảnh báo
+  - Đặt severity, team và liên kết hướng dẫn xử lý có thể hành động
+  - Viết annotations bằng dữ liệu nhãn hoặc giá trị của biểu thức
+  - Cảnh báo mất dữ liệu và khác biệt với cảnh báo vượt ngưỡng
+  - Cấu hình gửi tới Alertmanager và kiểm tra đường đi đầu cuối
+  - Ranh giới với định tuyến, gom nhóm hoặc tạm tắt do Alertmanager xử lý
+- level1: HTTP API
+  level2:
+  - Hợp đồng HTTP API v1 và cấu trúc phản hồi thành công hoặc lỗi
+  - Truy vấn tức thời qua /api/v1/query với thời điểm đánh giá
+  - Truy vấn theo khoảng qua /api/v1/query_range với start, end và step
+  - Đọc nhãn, giá trị nhãn và metadata của chuỗi
+  - Đọc trạng thái targets, service discovery, rules và alerts
+  - Đọc thông tin TSDB, cấu hình hiệu lực và phiên bản tiến trình
+  - Xử lý warnings, infos, giới hạn mẫu và thời gian chờ của truy vấn
+  - Gửi truy vấn có ký tự đặc biệt bằng GET hoặc POST đúng định dạng
+  - Kiểm tra /-/healthy, /-/ready và các API vòng đời cần bật riêng
+  - 'API quản trị snapshot hoặc xóa dữ liệu: điều kiện bật, phạm vi và hậu quả'
+- level1: Grafana
+  level2:
+  - Kết nối nguồn dữ liệu Prometheus và kiểm tra khả năng truy vấn
+  - Chọn truy vấn tức thời hoặc theo khoảng phù hợp với bảng và biểu đồ
+  - Cửa sổ rate, bước truy vấn và các biến thời gian của Grafana
+  - Biến dashboard theo dịch vụ, môi trường hoặc instance
+  - Chọn đơn vị, chú giải và cách biểu diễn dữ liệu thiếu
+  - Dashboard cho lưu lượng, lỗi, độ trễ và mức sử dụng tài nguyên
+  - Phân biệt cảnh báo được Grafana đánh giá với quy tắc do Prometheus đánh giá
+  - Kiểm chứng dữ liệu hiển thị bằng truy vấn gốc và cùng mốc thời gian
+- level1: TSDB
+  level2:
+  - TSDB cục bộ lưu mẫu, nhãn và chỉ mục như thế nào
+  - Head block, chunks, WAL và quá trình ghi mẫu mới
+  - Khôi phục WAL sau khi tiến trình khởi động lại
+  - Block trên đĩa, metadata và chỉ mục tra cứu chuỗi
+  - Nén block và công việc compaction chạy nền
+  - Giữ dữ liệu theo thời gian hoặc dung lượng và giới hạn của từng chính sách
+  - Tombstone và khác biệt giữa đánh dấu xóa với thu hồi dung lượng
+  - Dữ liệu sai thứ tự và cửa sổ nhận mẫu đến muộn khi được cấu hình
+  - Ước lượng dung lượng và phần dự phòng cho WAL hoặc compaction
+  - Snapshot, sao lưu và kiểm thử khôi phục dữ liệu
+  - Giới hạn ổ đĩa cục bộ, hệ tệp dùng chung và việc chạy nhiều tiến trình
+- level1: Hiệu năng
+  level2:
+  - Phân biệt tải thu thập, ghi dữ liệu, đánh giá quy tắc và truy vấn
+  - Số chuỗi đang hoạt động, số mẫu mỗi giây và mức tiêu thụ bộ nhớ
+  - Tốc độ thay đổi tập nhãn và chi phí tạo chuỗi mới
+  - Lựa chọn chu kỳ scrape theo độ cần thiết và ngân sách tài nguyên
+  - Giảm dữ liệu ở ứng dụng, lọc đích hoặc lọc mẫu đúng giai đoạn
+  - Chi phí truy vấn cửa sổ dài, matcher rộng và subquery lồng nhau
+  - Giới hạn thời gian, số mẫu và mức đồng thời của truy vấn
+  - Chọn recording rule để giảm tính toán lặp lại
+  - Đọc nhật ký truy vấn và đo trước sau khi tối ưu
+  - Lập kế hoạch CPU, RAM, IOPS, mạng và ngưỡng cần chia tải
+- level1: Lưu trữ từ xa
+  level2:
+  - Vai trò của remote_write và remote_read đối với TSDB cục bộ
+  - Cấu hình đích remote_write, external_labels và xác thực
+  - Luồng đọc WAL, hàng đợi, shard và gửi lô đến hệ thống nhận
+  - Lọc dữ liệu gửi bằng write_relabel_configs
+  - Điều chỉnh số shard, kích thước lô và dung lượng hàng đợi
+  - Gửi lại, áp lực ngược và giới hạn phục hồi khi bên nhận gián đoạn
+  - Theo dõi độ trễ, dữ liệu chờ và số mẫu gửi thất bại
+  - Tương thích giao thức Remote Write, native histogram và metadata
+  - Nhận remote write khi bật khả năng tương ứng và giới hạn sử dụng
+  - remote_read lấy dữ liệu mẫu và khác biệt với chuyển cả biểu thức PromQL đi xử lý
+  - Phân biệt remote_write với sao lưu đầy đủ hoặc đồng bộ hai máy Prometheus
+  - Đánh giá khả năng truy vấn, lưu giữ và khử trùng lặp của hệ thống nhận
+- level1: Chế độ Agent
+  level2:
+  - Agent mode là gì và trường hợp chỉ cần thu thập rồi chuyển dữ liệu
+  - Những thành phần giữ lại hoặc bị lược bỏ so với Server mode
+  - Chọn cờ khởi động theo phiên bản và kiểm tra chế độ đang chạy
+  - Cấu hình scrape, service discovery và remote_write trong Agent
+  - WAL đệm dữ liệu, thời gian lưu tạm và giới hạn khi mất kết nối kéo dài
+  - Theo dõi tài nguyên, dữ liệu chờ gửi và khả năng tiếp tục sau khởi động lại
+  - Chọn Server hoặc Agent theo nhu cầu truy vấn, quy tắc và vận hành tại chỗ
+- level1: Federation
+  level2:
+  - Federation là gì và kiểu dữ liệu được lấy từ máy Prometheus nguồn
+  - Endpoint /federate và tham số match[] để chọn chuỗi
+  - honor_labels và việc giữ danh tính dữ liệu của nguồn
+  - Federation phân cấp cho chỉ số tổng hợp liên vùng
+  - Federation giữa dịch vụ để bổ sung ngữ cảnh giám sát
+  - Chọn recording rule đầu ra nhằm giảm dữ liệu kéo lên tầng trên
+  - Giới hạn về lịch sử, chu kỳ thu thập và độ trễ qua nhiều tầng
+  - Phân biệt federation với remote_write, remote_read và sao chép TSDB
+- level1: HA và mở rộng
+  level2:
+  - Mục tiêu dự phòng thu thập và khả năng tiếp tục truy vấn khi mất máy
+  - Hai máy Prometheus thu thập độc lập cùng tập đích
+  - Nhãn nhận diện cụm, replica và phạm vi của external_labels
+  - Khử trùng lặp ở tầng truy vấn hoặc hệ thống nhận có hỗ trợ
+  - Ngăn cảnh báo trùng khi nhiều replica gửi tới Alertmanager
+  - Phân biệt nhân bản để dự phòng với chia đích để phân tải
+  - Chia đích theo job, vùng hoặc hashmod và hệ quả đối với truy vấn
+  - Thanos, Mimir hoặc hệ thống tương thích trong kiến trúc lưu trữ dài hạn
+  - Thiết kế miền lỗi, dữ liệu bị thiếu và khả năng truy vấn khi một thành phần hỏng
+  - Kiểm chứng failover và tránh coi TSDB cục bộ là cơ sở dữ liệu phân tán
+- level1: Kubernetes
+  level2:
+  - Mô hình triển khai Prometheus và dữ liệu bền vững trong Kubernetes
+  - Prometheus Operator và tài nguyên Prometheus
+  - ServiceMonitor, PodMonitor và quan hệ với nhãn chọn tài nguyên
+  - Namespace selector và phạm vi khám phá mục tiêu
+  - Cổng endpoint, đường dẫn metric và xác thực khi scrape workload
+  - RBAC cho khám phá dịch vụ và quyền đọc tài nguyên cần thiết
+  - PrometheusRule để quản lý quy tắc ghi hoặc cảnh báo
+  - Phân biệt metric kubelet, cAdvisor và kube-state-metrics
+  - Giới hạn tài nguyên, readiness, ổ dữ liệu và phân bố replica
+  - Đối chiếu cấu hình được Operator sinh ra khi đích hoặc quy tắc không xuất hiện
+- level1: OpenTelemetry
+  level2:
+  - Ranh giới giữa thu thập Prometheus và luồng metric OpenTelemetry
+  - Dùng Collector để công bố dữ liệu dạng Prometheus hoặc chuyển tiếp theo kiến trúc
+  - Khả năng nhận OTLP của Prometheus và cấu hình bật theo phiên bản
+  - Ánh xạ tên metric, đơn vị và thuộc tính tài nguyên thành nhãn
+  - Ngữ nghĩa cumulative hoặc delta và tính tương thích của đường chuyển đổi
+  - Ánh xạ histogram và kiểm tra khả năng hỗ trợ ở từng thành phần
+  - Tránh thu thập trùng khi cùng phép đo đi qua nhiều đường
+  - Kiểm chứng danh tính chuỗi, số liệu và exemplar sau khi liên thông
+- level1: Bảo mật
+  level2:
+  - Mô hình tin cậy của Prometheus và phạm vi người có thể truy vấn dữ liệu
+  - Bảo vệ giao diện và API bằng TLS, xác thực hoặc reverse proxy
+  - TLS và xác thực phía máy khách khi scrape đích
+  - Thông tin xác thực cho service discovery, remote_write và remote_read
+  - Quản lý tệp bí mật, chứng chỉ và luân chuyển thông tin xác thực
+  - Giới hạn mạng tới endpoint metric, exporter và điểm tiếp nhận dữ liệu
+  - Kiểm soát quyền thay đổi cấu hình, API quản trị và API vòng đời
+  - Ngăn lộ dữ liệu nhạy cảm qua nhãn, kết quả truy vấn hoặc nhật ký
+  - Giới hạn tài nguyên trước truy vấn tốn kém hoặc đích xuất quá nhiều mẫu
+  - Tách môi trường hoặc đối tượng sử dụng theo yêu cầu cách ly dữ liệu
+- level1: Giám sát nội bộ
+  level2:
+  - Thu thập metric của chính Prometheus và nhận biết phụ thuộc vòng
+  - Theo dõi thành công scrape, thời lượng và số mẫu thu thập
+  - Theo dõi Head series, tốc độ ghi mẫu và tài nguyên TSDB
+  - Theo dõi WAL, compaction và khả năng ghi ổ đĩa
+  - Theo dõi thời gian, lỗi và lần bỏ lỡ đánh giá quy tắc
+  - Theo dõi thời gian truy vấn, mức đồng thời và truy vấn bị hủy
+  - Theo dõi remote_write, dữ liệu chờ và độ trễ tới hệ thống nhận
+  - Theo dõi kết quả nạp cấu hình và phiên bản đang chạy
+  - Thiết kế dashboard sức khỏe cho hệ thống giám sát
+  - Kiểm tra chuỗi cảnh báo đầu cuối bằng tín hiệu và đường báo độc lập
+- level1: Kiểm thử
+  level2:
+  - Xây dựng dữ liệu đầu vào nhỏ với kết quả truy vấn có thể tính bằng tay
+  - Kiểm tra cấu hình và tệp quy tắc bằng promtool
+  - Kiểm tra định dạng metric và phát hiện nhãn hoặc loại dữ liệu không nhất quán
+  - Viết kiểm thử quy tắc bằng chuỗi đầu vào và thời điểm đánh giá xác định
+  - Kiểm thử biểu thức PromQL cùng nhãn và giá trị đầu ra kỳ vọng
+  - Kiểm thử counter đặt lại, mẫu thiếu và dữ liệu không còn hiện hành
+  - Kiểm thử ghép vector với khóa trùng hoặc bên ghép bị thiếu
+  - Kiểm thử histogram, mức sai số và kết quả giữa nhiều instance
+  - Kiểm thử cảnh báo qua các mốc pending, firing và hết điều kiện
+  - Kiểm thử tích hợp từ ứng dụng đến truy vấn, dashboard và Alertmanager
+  - Đưa kiểm tra vào CI và lưu bằng chứng phục vụ thay đổi cấu hình
+- level1: Xử lý sự cố
+  level2:
+  - Đích không xuất hiện do khám phá dịch vụ hoặc bị relabel loại bỏ
+  - Đích hiển thị DOWN do mạng, xác thực, đường dẫn hoặc thời gian chờ
+  - Metric không xuất hiện do chưa phát sinh, sai tên hoặc bị lọc sau scrape
+  - Lỗi định dạng, Content-Type và thương lượng giao thức khi thu thập
+  - Mẫu trùng thời điểm, sai thứ tự và xung đột nhãn giữa nhiều nguồn
+  - Truy vấn rỗng do cửa sổ thời gian, lookback hoặc nhãn không khớp
+  - Lỗi ghép vector, kết quả mất nhãn và sai tỷ lệ do tổng hợp không đúng
+  - Counter đặt lại, cửa sổ rate quá ngắn và đỉnh dữ liệu khó giải thích
+  - Bộ nhớ tăng mạnh do nhiều chuỗi hoặc tập nhãn thay đổi liên tục
+  - Ổ đĩa đầy, compaction chậm hoặc khởi động lại mất nhiều thời gian
+  - remote_write bị tồn đọng và phân biệt lỗi bên gửi với lỗi bên nhận
+  - Quy tắc không được nạp, đánh giá chậm hoặc không chuyển sang firing
+  - Dashboard khác kết quả truy vấn do mốc thời gian, bước hoặc phép biến đổi hiển thị
+- level1: Quản lý thay đổi
+  level2:
+  - Quản lý cấu hình, quy tắc và dashboard bằng Git
+  - Tách giá trị môi trường và thông tin bí mật khỏi nội dung dùng chung
+  - Đánh giá tác động khi đổi tên metric, nhãn hoặc chu kỳ thu thập
+  - Kiểm tra cấu hình, thử quy tắc và triển khai lần lượt có kiểm chứng
+  - Nạp lại cấu hình và xác minh trên từng máy hoặc replica
+  - Nâng cấp phiên bản và đối chiếu thay đổi về PromQL, định dạng hoặc cờ tính năng
+  - Chuyển đổi histogram hoặc thư viện ứng dụng theo lộ trình có dữ liệu đối chứng
+  - Sao lưu trước thay đổi lưu trữ và chuẩn bị phương án quay lui
+  - Kiểm tra sau triển khai bằng truy vấn chuẩn, đích thử nghiệm và hồ sơ vận hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng Prometheus, Spring Boot, Node Exporter, Grafana và Alertmanager bằng Compose
+  - Thu thập nhiều instance ứng dụng với nhãn dịch vụ và môi trường nhất quán
+  - Tạo tải để đo lưu lượng, tỷ lệ lỗi và phân phối độ trễ
+  - Viết bộ truy vấn từ selector đến tổng hợp và ghép thêm nhãn ngữ cảnh
+  - Thiết kế histogram và kiểm chứng tỷ lệ đáp ứng ngưỡng
+  - Tạo recording rule và cảnh báo có thể kiểm thử bằng promtool
+  - Mô phỏng mất đích, khởi động ứng dụng và dữ liệu bị thiếu
+  - Phát hiện rồi sửa thiết kế nhãn làm tăng số chuỗi
+  - Thử remote_write hoặc Agent với gián đoạn có kiểm soát
+  - Dựng hai replica và đối chiếu dữ liệu hoặc cảnh báo khi mất một máy
+  - Hoàn thiện dashboard, quy trình sao lưu và hồ sơ chẩn đoán hệ thống

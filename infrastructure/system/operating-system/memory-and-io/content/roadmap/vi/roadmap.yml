@@ -1,0 +1,49 @@
+roadmap:
+- id: memory-architecture
+  title: Memory Architecture
+  purpose: Hiểu cách hệ điều hành tổ chức bộ nhớ vật lý và cấp phát không gian địa chỉ cho tiến trình.
+  objectives:
+  - '- Phân biệt RAM, kernel space, user space và process address space.'
+  - '- Giải thích page, frame và vai trò của MMU.'
+- id: virtual-memory-paging
+  title: Virtual Memory & Paging
+  purpose: Nắm cách địa chỉ ảo được ánh xạ sang bộ nhớ vật lý và cách hệ thống xử lý page fault.
+  objectives:
+  - '- Mô tả page table, TLB, demand paging và page fault.'
+  - '- Phân biệt page replacement, working set và swap.'
+- id: mapping-protection
+  title: Mapping & Protection
+  purpose: Hiểu cách tiến trình chia sẻ hoặc ánh xạ vùng nhớ và cách hệ điều hành cô lập dữ liệu.
+  objectives:
+  - '- Thực hành mmap/munmap và shared memory ở mức cơ bản.'
+  - '- Giải thích read/write/execute permission và memory protection.'
+- id: allocation-reclaim
+  title: Allocation & Reclaim
+  purpose: Nhận diện cách kernel cấp phát, thu hồi và tái sử dụng bộ nhớ khi tải hệ thống thay đổi.
+  objectives:
+  - '- Phân biệt allocation, page cache, buffer cache và reclaim.'
+  - '- Giải thích swap, memory pressure và OOM behavior.'
+- id: i-o-subsystem-syscalls
+  title: I/O Subsystem & Syscalls
+  purpose: Theo dõi đường đi của một yêu cầu I/O giữa ứng dụng, kernel và thiết bị.
+  objectives:
+  - '- Phân biệt file descriptor, open/read/write/close và system call.'
+  - '- Mô tả user/kernel buffer, blocking và non-blocking I/O.'
+- id: file-i-o-buffering
+  title: File I/O & Buffering
+  purpose: Hiểu cách buffering, caching và đồng bộ dữ liệu ảnh hưởng tới độ trễ và độ bền dữ liệu.
+  objectives:
+  - '- So sánh buffered I/O, direct I/O và memory-mapped I/O.'
+  - '- Giải thích page cache, writeback, fsync và flush.'
+- id: device-async-i-o
+  title: Device & Async I/O
+  purpose: Nhận diện cơ chế kernel phối hợp CPU, bộ nhớ và thiết bị để xử lý I/O hiệu quả.
+  objectives:
+  - '- Mô tả interrupt, DMA, queue và completion.'
+  - '- Phân biệt synchronous I/O với asynchronous I/O; nhận diện io_uring.'
+- id: monitoring-troubleshooting
+  title: Monitoring & Troubleshooting
+  purpose: Dùng số liệu hệ thống để tìm nguyên nhân thiếu bộ nhớ hoặc nghẽn I/O.
+  objectives:
+  - '- Đọc free, /proc/meminfo, vmstat, iostat và process metrics.'
+  - '- Phân tích page fault, swap, OOM, I/O wait và latency.'

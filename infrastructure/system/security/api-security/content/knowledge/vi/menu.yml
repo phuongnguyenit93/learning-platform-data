@@ -1,0 +1,372 @@
+menu:
+- level1: Khái niệm API Security
+  level2:
+  - API là trust boundary giữa client, service và dữ liệu
+  - Bảo mật API bao gồm identity, authorization, input và output
+  - API security khác bảo mật giao diện người dùng ở điểm nào
+  - Tính stateless không loại bỏ trạng thái bảo mật
+  - Mọi endpoint, method và object đều là bề mặt tấn công
+  - Bảo vệ API xuyên suốt thiết kế, triển khai và vận hành
+- level1: Mô hình đe dọa API
+  level2:
+  - Attacker ẩn danh, user hợp lệ và client bị chiếm
+  - Tấn công qua object ID, field, function và workflow
+  - Credential, token, API key và session bị lộ
+  - Lạm dụng tài nguyên, quota và dependency tính phí
+  - Service nội bộ và third-party trở thành đường tấn công
+  - Đánh giá confidentiality, integrity, availability và business loss
+- level1: Vòng đời API
+  level2:
+  - Thiết kế contract và threat model trước implementation
+  - Phê duyệt security requirement cho endpoint mới
+  - Build, test và kiểm tra dependency
+  - Triển khai qua gateway, service mesh và runtime policy
+  - Theo dõi, version hóa và xử lý incident
+  - Ngừng API, thu hồi credential và dọn tài liệu
+- level1: HTTP và REST cơ bản
+  level2:
+  - Method, path, query, header và body
+  - GET, POST, PUT, PATCH và DELETE đúng ngữ nghĩa
+  - Idempotency và tác động khi retry
+  - Status code nhất quán với kết quả bảo mật
+  - Content-Type, Accept và content negotiation
+  - Cache, proxy và intermediary ảnh hưởng đến security
+  - Không xem REST convention là kiểm soát authorization
+- level1: API contract và schema
+  level2:
+  - OpenAPI hoặc schema là nguồn mô tả contract
+  - Validate request theo kiểu, bắt buộc và giới hạn
+  - Validate response để tránh lộ field ngoài contract
+  - Unknown field, polymorphic type và mass assignment
+  - Version hóa schema mà không phá client an toàn
+  - Reject payload quá lớn, sâu hoặc phức tạp
+  - Contract test giữa producer và consumer
+- level1: Xác thực API
+  level2:
+  - Authentication xác định client hoặc user là ai
+  - API key cho client identification và quota
+  - Bearer token và rủi ro khi token bị đánh cắp
+  - OAuth 2.0, OIDC và machine-to-machine
+  - mTLS và certificate authentication
+  - JWT signature, issuer, audience và expiry
+  - Không coi API key là đủ cho tài nguyên nhạy cảm
+- level1: Quản lý token
+  level2:
+  - Token lifetime, scope và audience
+  - Refresh token rotation và reuse detection
+  - Token storage ở browser, mobile và server
+  - Không đặt token trong URL hoặc log
+  - Key rotation và resolver public key
+  - Revocation, introspection và logout
+  - Chống algorithm confusion và token type confusion
+- level1: API key security
+  level2:
+  - Sinh key đủ entropy và nhận diện client
+  - Hash hoặc bảo vệ key khi lưu server-side
+  - Scope, quota và expiry cho từng key
+  - Không commit key vào source hoặc pipeline log
+  - Rotation với overlap và migration
+  - Revoke key khi vi phạm hoặc nghi ngờ lộ
+  - Không dùng API key thay cho user authorization
+- level1: Object authorization
+  level2:
+  - Broken Object Level Authorization (BOLA)
+  - Kiểm tra quyền trên từng object ID từ request
+  - Không suy luận quyền từ việc object tồn tại
+  - Tenant boundary và ownership
+  - ID tuần tự không phải cơ chế bảo mật
+  - Kiểm tra read, update, delete và action trên object
+  - Test truy cập object của user hoặc tenant khác
+- level1: Property authorization
+  level2:
+  - Broken Object Property Level Authorization
+  - Allowlist field được phép đọc và ghi
+  - Ẩn field nội bộ khỏi response serialization
+  - Chặn mass assignment và field overposting
+  - Phân quyền theo trạng thái và từng thuộc tính
+  - Không tin client bỏ qua field nhạy cảm
+  - Test low-privilege user với admin-only property
+- level1: Function authorization
+  level2:
+  - Broken Function Level Authorization
+  - Phân quyền method và endpoint quản trị
+  - Tách function của user, operator và administrator
+  - Không dùng URL khó đoán làm kiểm soát
+  - Kiểm tra cả horizontal và vertical escalation
+  - Authorization phải chạy server-side sau authentication
+  - Test method khác nhau trên cùng resource
+- level1: Service authorization
+  level2:
+  - Xác thực workload gọi API nội bộ
+  - Phân biệt service identity và end-user identity
+  - Service-to-service scope và audience
+  - mTLS, workload identity và policy binding
+  - Không tin request nội bộ chỉ vì đi qua network
+  - End-user-to-resource authorization vẫn cần kiểm tra
+  - Audit chain của service và user
+- level1: Tenant isolation
+  level2:
+  - Tenant ID lấy từ identity và policy đáng tin
+  - Không tin tenant ID chỉ từ body hoặc query
+  - Cô lập object, property, cache và event
+  - Cross-tenant access test cho mọi endpoint
+  - Quota, rate limit và log theo tenant
+  - Tenant migration không làm lộ dữ liệu
+  - Xóa tenant và thu hồi credential liên quan
+- level1: Business flow security
+  level2:
+  - Unrestricted Access to Sensitive Business Flows
+  - Xác định workflow tạo tác động tài chính hoặc danh tiếng
+  - Giới hạn automation trên purchase, transfer và publish
+  - Step-up authentication trước hành động nhạy cảm
+  - Idempotency và chống replay cho side effect
+  - Approval, separation of duties và four-eyes
+  - Không chỉ rate limit request mà phải bảo vệ logic flow
+- level1: Resource consumption
+  level2:
+  - Unrestricted Resource Consumption
+  - Giới hạn request body, page size và batch size
+  - Rate limit theo IP, identity, API key và tenant
+  - Giới hạn CPU, memory, connection và queue
+  - Chi phí email, SMS, storage và third-party API
+  - 429, Retry-After và backoff đúng cách
+  - Load test và cost guardrail cho endpoint đắt
+- level1: API abuse prevention
+  level2:
+  - Credential stuffing, scraping và enumeration
+  - Burst, distributed traffic và bot automation
+  - Risk signal, challenge và step-up
+  - Quota theo client plan và business rule
+  - Không block cả người dùng hợp lệ qua NAT
+  - Theo dõi abuse pattern theo thời gian
+  - Runbook containment mà không làm sập toàn dịch vụ
+- level1: Input validation API
+  level2:
+  - Allowlist method, path, parameter và enum
+  - Canonicalization trước khi kiểm tra policy
+  - Giới hạn string, number, array và nested object
+  - Reject unknown field khi contract yêu cầu
+  - Validate header, content type và encoding
+  - Không dùng regex đơn lẻ để chống injection
+  - Validation error không lộ implementation detail
+- level1: Output filtering API
+  level2:
+  - Response schema chỉ trả field được phép
+  - Không serialize entity domain trực tiếp ra API
+  - Mask secret, token, internal ID và debug data
+  - Khác biệt response theo role và field authorization
+  - Không lộ stack trace, SQL hoặc service topology
+  - Consistent error envelope
+  - Kiểm tra output khi object có trạng thái đặc biệt
+- level1: SSRF qua API
+  level2:
+  - API nhận URL hoặc địa chỉ đích từ người dùng
+  - Server-Side Request Forgery qua fetch, import hoặc preview
+  - Allowlist scheme, host, port và destination
+  - Chặn loopback, link-local và metadata service
+  - DNS rebinding và redirect chain
+  - Egress network policy và timeout
+  - Không tin kết quả resolve một lần duy nhất
+- level1: Unsafe consumption
+  level2:
+  - 'API10: Unsafe Consumption of APIs'
+  - Response third-party phải được validate như input
+  - Timeout, retry và circuit breaker cho dependency
+  - Chống confused deputy khi truyền credential
+  - Kiểm tra schema, signature và provenance
+  - Giới hạn redirect, response size và nested payload
+  - Theo dõi thay đổi contract của nhà cung cấp
+- level1: Security misconfiguration
+  level2:
+  - Default credential, debug mode và verbose error
+  - HTTP method hoặc endpoint không cần thiết
+  - CORS, TLS và security header
+  - Gateway và origin có policy không đồng nhất
+  - Admin endpoint bị public ngoài ý muốn
+  - Feature flag và environment config
+  - Configuration drift và kiểm tra tự động
+- level1: Inventory và discovery
+  level2:
+  - Improper Inventory Management
+  - Danh mục endpoint, version và owner
+  - Shadow API và undocumented route
+  - Deprecated API vẫn còn credential hoặc dữ liệu
+  - Phân biệt public, partner và internal API
+  - Gateway route phải khớp service contract
+  - Kiểm kê theo code, gateway, DNS và traffic
+- level1: Version và deprecation
+  level2:
+  - Version trong path, header hoặc media type
+  - Breaking change và backward compatibility
+  - Lịch deprecation và thông báo client
+  - Thu hồi version cũ đúng thời hạn
+  - Migration token, key và schema
+  - Không để version cũ bỏ qua control mới
+  - Đo traffic trước khi tắt endpoint
+- level1: Gateway và edge
+  level2:
+  - API gateway authenticate và rate limit
+  - WAF, bot control và request size limit
+  - Gateway không thay thế object authorization trong service
+  - Đồng bộ route, method và policy
+  - Preserve identity context qua proxy an toàn
+  - Không tin header do client tự gửi
+  - Failover không làm mất kiểm soát
+- level1: CORS và browser API
+  level2:
+  - Allowlist origin cụ thể
+  - Credentials không đi cùng wildcard origin
+  - Preflight method và header
+  - CSRF với cookie-based API
+  - CORS không thay thế authentication
+  - Không trả dữ liệu nhạy cảm cho origin tùy ý
+  - Kiểm thử behavior ở browser thật
+- level1: CORS không thay authorization
+  level2:
+  - Request từ server hoặc mobile không bị CORS giới hạn
+  - Authorization phải kiểm tra ở server
+  - Không dùng Origin như identity duy nhất
+  - Không cho client quyết định tenant bằng CORS
+  - Credential policy và access policy là hai lớp khác nhau
+  - Test gọi trực tiếp origin bỏ qua browser
+  - Rà soát endpoint nội bộ và job
+- level1: Webhook và callback
+  level2:
+  - Xác thực webhook bằng HMAC hoặc chữ ký
+  - Timestamp, nonce và replay protection
+  - Canonical request trước khi verify
+  - Allowlist provider và endpoint callback
+  - Idempotency cho event gửi lại
+  - Queue và retry không bypass verification
+  - Audit event hợp lệ, lỗi và bị từ chối
+- level1: Async và message API
+  level2:
+  - Authentication và authorization của producer
+  - Validate schema trước khi enqueue
+  - Poison message, retry storm và dead-letter queue
+  - Tenant context trong message
+  - Encryption, integrity và key rotation
+  - Ordering, replay và idempotent consumer
+  - Xóa message và log theo retention policy
+- level1: File và multipart API
+  level2:
+  - Giới hạn kích thước và số phần upload
+  - Content-Type và extension không đủ tin cậy
+  - Virus scan và content inspection
+  - Storage key tách khỏi filename người dùng
+  - Quyền đọc object sau khi upload
+  - Download response và Content-Disposition
+  - Xóa file tạm khi parser hoặc scan thất bại
+- level1: API error security
+  level2:
+  - Error code ổn định và message tối thiểu
+  - Không lộ stack trace, path, SQL hoặc secret
+  - Phân biệt 401, 403, 404 và 429 đúng ngữ nghĩa
+  - Không dùng 404 để tạo enumeration không chủ ý
+  - Correlation ID không chứa thông tin nhạy cảm
+  - Log server-side đủ chi tiết để điều tra
+  - Client không được dùng lỗi để bỏ qua kiểm soát
+- level1: API logging
+  level2:
+  - Ghi authentication và authorization decision
+  - Ghi endpoint, method, actor, object và tenant
+  - Ghi rate limit, validation và dependency failure
+  - Không ghi token, API key, password hoặc payload nhạy cảm
+  - Structured log và correlation ID
+  - Chống log injection từ input
+  - Retention và access control cho audit log
+- level1: Giám sát và cảnh báo
+  level2:
+  - Theo dõi latency, error rate và status code
+  - Phát hiện 401, 403, 404 và 429 bất thường
+  - Phát hiện truy cập object giữa tenant
+  - Theo dõi client vượt quota hoặc gọi endpoint đắt
+  - Cảnh báo schema drift và version cũ
+  - Tương quan edge, gateway và application telemetry
+  - Đánh giá false positive và alert fatigue
+- level1: Quản lý secret API
+  level2:
+  - Secret, token, key và certificate khác nhau thế nào
+  - Lưu secret trong vault hoặc secret manager
+  - Rotation, expiry và revoke
+  - Không truyền secret qua query hoặc log
+  - Scope secret theo service và environment
+  - Break-glass có phê duyệt và audit
+  - Quét secret trong source, image và artifact
+- level1: API lifecycle testing
+  level2:
+  - Unit và integration test cho authentication
+  - Authorization test theo role, object và tenant
+  - Contract, schema và negative test
+  - Rate limit, quota và resource exhaustion test
+  - SSRF, injection, parser và deserialization test
+  - Security regression trước release
+  - Fuzzing và property-based test cho payload
+- level1: API security assessment
+  level2:
+  - Inventory endpoint trước khi kiểm thử
+  - Test BOLA và broken property authorization
+  - Test broken function authorization
+  - Test excessive data exposure và mass assignment
+  - Test authentication, token và key rotation
+  - Test rate limiting theo IP và identity
+  - Test deprecated, shadow và internal endpoint
+  - Bằng chứng test tái lập được
+- level1: Java và Spring API
+  level2:
+  - Spring Security filter chain cho authentication
+  - Method security và authorization manager
+  - DTO thay vì expose entity trực tiếp
+  - Bean Validation và request size limit
+  - Jackson allowlist polymorphic type
+  - Global exception handler và error envelope
+  - Rate limiter, circuit breaker và timeout
+  - OpenAPI security scheme và contract test
+- level1: Deployment và runtime
+  level2:
+  - TLS termination, mTLS và identity forwarding
+  - API gateway, service mesh và network policy
+  - Secret injection không ghi vào log
+  - Container, pod và workload identity
+  - Autoscaling không bỏ qua quota
+  - Environment parity và configuration validation
+  - Canary, rollback và policy migration
+  - Kiểm tra origin không bị expose ngoài ý muốn
+- level1: Incident response API
+  level2:
+  - Containment khi token hoặc API key bị lộ
+  - Revoke credential và rotate signing key
+  - Chặn endpoint hoặc client theo phạm vi nhỏ nhất
+  - Bảo toàn request, audit và dependency evidence
+  - Đánh giá object, tenant và workflow bị ảnh hưởng
+  - Thông báo client và phối hợp provider
+  - Post-incident review và cập nhật control
+- level1: Anti-pattern
+  level2:
+  - Chỉ xác thực ở gateway rồi bỏ qua service
+  - Dùng ID tuần tự và không kiểm tra object authorization
+  - Serialize entity đầy đủ rồi che field ở client
+  - Tin API key là đủ cho tài nguyên nhạy cảm
+  - Rate limit chỉ theo IP
+  - Tin input nội bộ hoặc response third-party mặc định
+  - Không kiểm kê shadow API và version cũ
+  - Trả stack trace, token hoặc topology trong lỗi
+  - Dùng CORS làm authorization
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Client, gateway, identity provider và API service
+  - Authentication, authorization và policy decision point
+  - Object, property và function authorization trong service
+  - Schema validation, output filtering và error handling
+  - Rate limit, quota, audit và monitoring
+  - Dependency protection, SSRF defense và egress control
+  - Versioning, inventory và incident response
+- level1: Checklist triển khai
+  level2:
+  - Checklist inventory, owner, contract và version
+  - Checklist authentication, token, key và secret
+  - Checklist object, property, function và tenant authorization
+  - Checklist input, output, schema và error response
+  - Checklist rate limit, quota, SSRF và dependency
+  - Checklist logging, monitoring, testing và incident
+  - Checklist deprecation, revoke và audit evidence

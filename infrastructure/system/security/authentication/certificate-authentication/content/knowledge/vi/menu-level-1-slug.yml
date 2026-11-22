@@ -1,0 +1,52 @@
+menu:
+- title: Nền tảng xác thực bằng chứng chỉ
+  slug: authentication-fundamentals
+  index: 0
+- title: Cơ sở mật mã
+  slug: cryptographic-foundations
+  index: 1
+- title: Cấu trúc chứng chỉ X.509
+  slug: x509-certificate-structure
+  index: 2
+- title: PKI và mô hình tin cậy
+  slug: pki-and-trust-models
+  index: 3
+- title: Danh tính và chính sách cấp chứng chỉ
+  slug: identity-and-issuance-policy
+  index: 4
+- title: Cấp phát và vòng đời chứng chỉ
+  slug: certificate-issuance-and-lifecycle
+  index: 5
+- title: Bảo vệ khóa riêng
+  slug: private-key-protection
+  index: 6
+- title: Xác minh chứng chỉ
+  slug: certificate-validation
+  index: 7
+- title: Thu hồi và trạng thái chứng chỉ
+  slug: revocation-and-status-checking
+  index: 8
+- title: Xác thực trong TLS
+  slug: tls-certificate-authentication
+  index: 9
+- title: Triển khai mTLS
+  slug: mutual-tls-deployment
+  index: 10
+- title: Ánh xạ danh tính
+  slug: certificate-identity-mapping
+  index: 11
+- title: Phân quyền truy cập
+  slug: certificate-based-authorization
+  index: 12
+- title: Ứng dụng và kiến trúc triển khai
+  slug: applications-and-deployment
+  index: 13
+- title: Tấn công và biện pháp phòng vệ
+  slug: attacks-and-countermeasures
+  index: 14
+- title: Vận hành và xử lý sự cố
+  slug: operations-and-troubleshooting
+  index: 15
+- title: Thực hành và đánh giá thiết kế
+  slug: practice-and-design-assessment
+  index: 16

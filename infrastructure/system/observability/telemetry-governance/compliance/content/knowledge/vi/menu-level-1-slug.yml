@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phạm vi áp dụng
+  slug: applicability-scope
+  index: 1
+- title: GDPR và telemetry
+  slug: gdpr-telemetry
+  index: 2
+- title: Pháp luật Việt Nam
+  slug: vietnamese-law
+  index: 3
+- title: Yêu cầu theo ngành
+  slug: industry-requirements
+  index: 4
+- title: Tiêu chuẩn và báo cáo
+  slug: standards-reporting
+  index: 5
+- title: Vai trò và trách nhiệm
+  slug: roles-responsibilities
+  index: 6
+- title: Kiểm kê dữ liệu
+  slug: data-inventory
+  index: 7
+- title: Mục đích xử lý
+  slug: processing-purposes
+  index: 8
+- title: Ma trận tuân thủ
+  slug: compliance-matrix
+  index: 9
+- title: Đánh giá rủi ro
+  slug: risk-assessment
+  index: 10
+- title: Thu thập tại nguồn
+  slug: source-collection
+  index: 11
+- title: Kiểm soát pipeline
+  slug: pipeline-controls
+  index: 12
+- title: Quyền truy cập
+  slug: access-rights
+  index: 13
+- title: Bảo vệ dữ liệu
+  slug: data-protection
+  index: 14
+- title: Dữ liệu xuyên biên giới
+  slug: cross-border-data
+  index: 15
+- title: Nhà cung cấp
+  slug: vendors
+  index: 16
+- title: Lưu giữ và xóa
+  slug: retention-deletion
+  index: 17
+- title: Quyền chủ thể dữ liệu
+  slug: data-subject-rights
+  index: 18
+- title: Nhật ký kiểm toán
+  slug: audit-logs
+  index: 19
+- title: Chất lượng bằng chứng
+  slug: evidence-quality
+  index: 20
+- title: Bảo quản bằng chứng
+  slug: evidence-preservation
+  index: 21
+- title: Kiểm thử kiểm soát
+  slug: control-testing
+  index: 22
+- title: Tuân thủ trong CI/CD
+  slug: cicd-compliance
+  index: 23
+- title: Giám sát liên tục
+  slug: continuous-monitoring
+  index: 24
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 25
+- title: Chuẩn bị kiểm toán
+  slug: audit-preparation
+  index: 26
+- title: Ngoại lệ và khắc phục
+  slug: exceptions-remediation
+  index: 27
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 28
+- title: Vận hành và cập nhật
+  slug: operations-updates
+  index: 29
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 30

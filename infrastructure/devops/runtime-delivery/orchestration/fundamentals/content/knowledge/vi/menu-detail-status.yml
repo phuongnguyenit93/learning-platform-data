@@ -1,0 +1,2620 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Điều phối ứng dụng (orchestration) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Từ chạy container trên một máy đến vận hành ứng dụng trên nhiều máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: cụm, nút, workload, bản sao, bộ lập lịch và bộ điều khiển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vòng đời từ khai báo ứng dụng đến phục vụ và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt container runtime, điều phối container và điều phối quy trình công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối liên hệ giữa orchestration, containerization, deployment và quản lý hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Những việc nền tảng điều phối làm được và trách nhiệm còn thuộc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức Linux, mạng, container và hệ thống phân tán cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: orchestration-model
+  title: Mô hình điều phối
+  childs:
+  - slug: orchestration-model-001
+    title: Phân biệt trạng thái mong muốn, trạng thái quan sát được và trạng thái thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-002
+    title: Vai trò của vòng lặp đối soát trong duy trì ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-003
+    title: Phân biệt lập lịch, thực thi và kiểm soát vòng đời workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-004
+    title: Mô hình khai báo và mô hình điều khiển bằng chuỗi lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-005
+    title: Hội tụ, tính lũy đẳng và giới hạn bảo đảm của một lần thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-006
+    title: Phân biệt quản lý một tiến trình với quản lý một nhóm bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-007
+    title: Nhận diện độ trễ quan sát và tính nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-008
+    title: Phân định quyền sở hữu khi nhiều bộ điều khiển tác động cùng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: orchestration-model-009
+    title: 'Liên hệ điều phối với các bài toán phân tán: lỗi một phần và mất kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cluster-architecture
+  title: Kiến trúc cụm
+  childs:
+  - slug: cluster-architecture-001
+    title: Phân biệt mặt phẳng điều khiển và các nút thực thi workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-002
+    title: Vai trò của API, kho trạng thái, bộ lập lịch và bộ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-003
+    title: Vai trò của agent nút, container runtime và các thành phần mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-004
+    title: Luồng từ tiếp nhận khai báo đến phân công và chạy workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-005
+    title: Quản lý danh tính, đăng ký và thông tin sức khỏe của nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-006
+    title: Phân biệt trạng thái cụm với dữ liệu nghiệp vụ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-007
+    title: Đánh giá ảnh hưởng khi API, kho trạng thái hoặc nút điều khiển gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-008
+    title: Nhận diện nhu cầu đồng thuận và giới hạn khi mất quorum của hệ thống điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-architecture-009
+    title: Phân biệt cụm tự quản với dịch vụ điều phối được nhà cung cấp quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workload-declarations
+  title: Khai báo workload
+  childs:
+  - slug: workload-declarations-001
+    title: Biểu diễn danh tính, thuộc tính mong muốn và trạng thái báo cáo của tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-002
+    title: Chọn mô hình cho dịch vụ dài hạn, tác vụ hữu hạn và tác vụ theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-003
+    title: Phân biệt ứng dụng không trạng thái, có trạng thái và tác vụ theo nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-004
+    title: Khai báo image, lệnh khởi động, cấu hình và tài nguyên cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-005
+    title: Sử dụng nhãn và bộ chọn để liên kết các tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-006
+    title: Xác định phạm vi tài nguyên theo nhóm, dự án hoặc namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-007
+    title: Phân biệt cấu hình tường minh với giá trị mặc định của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-008
+    title: Kiểm tra schema và tính tương thích của khai báo trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-declarations-009
+    title: Truy vết phiên bản khai báo đến workload thực sự đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workload-lifecycle
+  title: Vòng đời workload
+  childs:
+  - slug: workload-lifecycle-001
+    title: Các giai đoạn chờ lập lịch, chuẩn bị môi trường, khởi động, chạy và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-002
+    title: Tải image và xử lý phụ thuộc vào registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-003
+    title: Thiết lập mạng, lưu trữ và cấu hình trước khi chạy tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-004
+    title: Phân biệt tiến trình chính và các thành phần hỗ trợ trong cùng đơn vị chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-005
+    title: Quản lý tác vụ khởi tạo trước khi ứng dụng chính hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-006
+    title: Đọc mã thoát và phân biệt kết thúc bình thường với lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-007
+    title: Thiết lập chính sách khởi động lại theo loại workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-008
+    title: Xử lý vòng lặp khởi động lỗi và thời gian chờ giữa các lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-009
+    title: Tiếp nhận tín hiệu dừng và kết thúc êm trong thời gian được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-lifecycle-010
+    title: Phân biệt khởi động lại tại chỗ với tạo bản sao thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scheduling
+  title: Lập lịch
+  childs:
+  - slug: scheduling-001
+    title: Chuyển nhu cầu của workload thành ràng buộc chọn nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-002
+    title: Phân biệt điều kiện bắt buộc với ưu tiên khi chọn vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-003
+    title: Lọc nút không phù hợp rồi đánh giá các vị trí còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-004
+    title: Áp dụng nhãn nút và ràng buộc phần cứng hoặc hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-005
+    title: Phân bố hoặc đặt gần workload theo quan hệ affinity và anti-affinity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-006
+    title: Giãn bản sao qua máy, vùng hoặc miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-007
+    title: Tôn trọng tài nguyên đã cam kết khi quyết định đặt workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-008
+    title: Phân biệt lập lịch thông thường với ưu tiên và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-009
+    title: Chẩn đoán workload chờ vì không có nút đáp ứng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduling-010
+    title: Phân biệt thay đổi quyết định lập lịch với cân bằng lại workload đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-management
+  title: Quản lý tài nguyên
+  childs:
+  - slug: resource-management-001
+    title: Phân biệt năng lực vật lý, tài nguyên khả dụng và phần dành cho hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-002
+    title: Khai báo nhu cầu CPU, bộ nhớ và lưu trữ tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-003
+    title: Phân biệt mức yêu cầu để lập lịch với giới hạn khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-004
+    title: Nhận diện CPU bị hạn chế và tiến trình bị dừng do thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-005
+    title: Đánh giá chia sẻ tài nguyên và rủi ro cam kết vượt năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-006
+    title: Quản lý tài nguyên chuyên dụng như GPU hoặc thiết bị tăng tốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-007
+    title: Hiểu tác động của áp lực bộ nhớ và đĩa đến việc giữ hoặc đẩy workload khỏi nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-008
+    title: Đặt mức dự phòng cho tải tăng và hoạt động cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-009
+    title: Điều chỉnh cấp phát dựa trên số liệu thay vì chỉ dựa trên ước lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-010
+    title: Đánh giá chi phí và hiệu năng khi chọn kích thước workload hoặc nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-discovery
+  title: Mạng và khám phá
+  childs:
+  - slug: networking-discovery-001
+    title: Phân biệt mạng nút, mạng workload và địa chỉ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-002
+    title: Định danh dịch vụ ổn định khi các bản sao thay đổi vị trí hoặc địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-003
+    title: Khám phá dịch vụ bằng DNS hoặc cơ chế đăng ký dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-004
+    title: Liên kết dịch vụ với tập bản sao bằng nhãn và bộ chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-005
+    title: Phân biệt địa chỉ logic của dịch vụ với địa chỉ đầu cuối đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-006
+    title: Luồng kết nối giữa các workload trên cùng nút và khác nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-007
+    title: Nhận diện vai trò của lớp mạng và giải pháp mạng bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-008
+    title: Đánh giá độ trễ, giới hạn kết nối và lỗi phân giải tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-discovery-009
+    title: Phân biệt khám phá dịch vụ, cân bằng tải và chính sách truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-routing
+  title: Định tuyến lưu lượng
+  childs:
+  - slug: traffic-routing-001
+    title: Phân biệt kết nối nội bộ với truy cập từ bên ngoài cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-002
+    title: Vai trò của cân bằng tải giữa các bản sao sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-003
+    title: Phân biệt định tuyến lớp vận chuyển và định tuyến HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-004
+    title: Ánh xạ tên miền, đường dẫn và cổng đến dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-005
+    title: Quản lý điểm kết thúc TLS và chuỗi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-006
+    title: Rút bản sao khỏi luồng nhận yêu cầu khi chưa sẵn sàng hoặc đang dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-007
+    title: Đánh giá phiên có trạng thái, kết nối dài và giới hạn thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-008
+    title: Phân định chức năng điều phối với API gateway và service mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage
+  title: Lưu trữ
+  childs:
+  - slug: storage-001
+    title: Phân biệt lớp ghi container, lưu trữ tạm và volume bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-002
+    title: Xác định dữ liệu cần tồn tại khi workload bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-003
+    title: Tách nhu cầu lưu trữ của ứng dụng khỏi cách cấp phát hạ tầng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-004
+    title: Phân biệt cấp phát tĩnh, cấp phát động và lớp dịch vụ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-005
+    title: Đánh giá chế độ truy cập, khả năng dùng chung và giới hạn gắn volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-006
+    title: Ảnh hưởng của vị trí dữ liệu đến quyết định lập lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-007
+    title: Quản lý gắn, tháo và chuyển volume khi workload đổi nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-008
+    title: Phân biệt xóa workload với xóa dữ liệu và chính sách giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-009
+    title: Đánh giá hiệu năng, dung lượng, sao lưu và khả năng phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stateful-applications
+  title: Ứng dụng có trạng thái
+  childs:
+  - slug: stateful-applications-001
+    title: Phân biệt trạng thái trong bộ nhớ, trên đĩa và trong dịch vụ dữ liệu ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-002
+    title: Quản lý danh tính ổn định cho các bản sao có vai trò riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-003
+    title: Liên kết từng bản sao với dữ liệu bền vững tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-004
+    title: Đánh giá thứ tự khởi động, dừng và thay thế của nhóm có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-005
+    title: Phân biệt nhân bản workload với nhân bản dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-006
+    title: Hiểu vai trò của leader, quorum và cơ chế bầu chọn ở cấp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-007
+    title: Đánh giá mở rộng, cập nhật và khôi phục cụm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-008
+    title: Phân định trách nhiệm của nền tảng với operator hoặc hệ thống quản trị dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stateful-applications-009
+    title: Nhận diện trường hợp nên dùng dịch vụ dữ liệu được quản lý bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-secrets
+  title: Cấu hình và bí mật
+  childs:
+  - slug: configuration-secrets-001
+    title: Tách image ứng dụng khỏi dữ liệu cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-002
+    title: Cấp cấu hình qua biến môi trường, tệp hoặc dịch vụ cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-003
+    title: Phân biệt cấu hình công khai, dữ liệu nhạy cảm và bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-004
+    title: Giới hạn quyền truy cập và phạm vi sử dụng bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-005
+    title: Phân biệt mã hóa bí mật với việc chỉ thay đổi cách biểu diễn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-006
+    title: Quản lý khóa, chứng chỉ và thông tin xác thực theo vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-007
+    title: Đánh giá khi nào cập nhật cấu hình cần reload hoặc tạo workload mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-008
+    title: Phối hợp xoay vòng bí mật giữa ứng dụng và hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-009
+    title: Tránh rò rỉ bí mật qua image, log, biến hiển thị và báo cáo chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-010
+    title: Truy vết phiên bản cấu hình đang được một workload sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identities-permissions
+  title: Danh tính và quyền
+  childs:
+  - slug: identities-permissions-001
+    title: Phân biệt danh tính người vận hành, hệ thống tự động và workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-002
+    title: Xác thực yêu cầu đến API của nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-003
+    title: Cấp quyền theo hành động, loại tài nguyên và phạm vi quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-004
+    title: Áp dụng đặc quyền tối thiểu cho triển khai, quan sát và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-005
+    title: Tách quyền sử dụng API khỏi quyền truy cập máy chủ hoặc tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-006
+    title: Quản lý danh tính ứng dụng khi gọi dịch vụ nền tảng và dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-007
+    title: Hạn chế cấp thông tin xác thực không cần thiết cho workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-008
+    title: Quản lý quyền khẩn cấp, thu hồi truy cập và bằng chứng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-permissions-009
+    title: Đánh giá tác động khi tài khoản triển khai hoặc danh tính workload bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: health-checks
+  title: Kiểm tra sức khỏe
+  childs:
+  - slug: health-checks-001
+    title: Phân biệt tiến trình đang chạy với ứng dụng sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-002
+    title: Vai trò của kiểm tra khởi động, sống còn và sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-003
+    title: Thiết kế endpoint kiểm tra phản ánh đúng trạng thái cần đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-004
+    title: Chọn chu kỳ, thời gian chờ và ngưỡng thất bại phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-005
+    title: Tránh khởi động lại ứng dụng chỉ vì phụ thuộc tạm thời gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-006
+    title: Loại bản sao chưa sẵn sàng khỏi luồng nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-007
+    title: Xử lý ứng dụng khởi động chậm hoặc cần làm nóng bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-008
+    title: Kết hợp kiểm tra kỹ thuật với kiểm chứng chức năng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-009
+    title: Chẩn đoán kiểm tra sức khỏe quá nhạy gây gián đoạn dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: self-healing
+  title: Tự phục hồi
+  childs:
+  - slug: self-healing-001
+    title: Nhận diện lỗi tiến trình, lỗi workload và lỗi nút thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-002
+    title: Phát hiện mất bản sao và tạo đối tượng thay thế để đạt trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-003
+    title: Phân biệt khởi động lại tiến trình, thay workload và chuyển sang nút khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-004
+    title: Xử lý nút mất kết nối khi chưa biết workload cũ còn chạy hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-005
+    title: Giới hạn tốc độ thử lại và tránh khuếch đại lỗi do khởi động đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-006
+    title: Phân biệt lỗi tạm thời với lỗi cấu hình cần con người sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-007
+    title: Thiết kế ứng dụng chịu được việc bị thay thế vào thời điểm bất kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-008
+    title: Tránh giả định tự phục hồi sẽ tự sửa lỗi logic hoặc phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-009
+    title: Xác minh năng lực cụm còn đủ để tạo bản sao thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-010
+    title: Theo dõi hệ thống đã hội tụ thực sự sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-healing-011
+    title: Đánh giá nguy cơ hai bản sao cùng ghi dữ liệu và cơ chế ngăn truy cập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability
+  title: Tính sẵn sàng
+  childs:
+  - slug: availability-001
+    title: Phân biệt độ sẵn sàng của ứng dụng và của mặt phẳng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-002
+    title: Phân bố bản sao qua các miền lỗi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-003
+    title: Xác định số bản sao cần thiết theo tải và mục tiêu sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-004
+    title: Đánh giá lỗi tương quan do dùng chung nút, vùng, mạng hoặc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-005
+    title: Giữ mức dự phòng khi bảo trì và khi một phần cụm ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-006
+    title: Phân biệt gián đoạn có kế hoạch với sự cố ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-007
+    title: Giới hạn gián đoạn đồng thời khi di chuyển hoặc cập nhật workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-008
+    title: Đánh giá phân vùng mạng và yêu cầu nhất quán của ứng dụng có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-009
+    title: Kiểm chứng mục tiêu sẵn sàng bằng thử nghiệm lỗi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scaling
+  title: Mở rộng
+  childs:
+  - slug: scaling-001
+    title: Phân biệt mở rộng ngang, mở rộng dọc và mở rộng số nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-002
+    title: Chọn chỉ số phản ánh nhu cầu thực tế của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-003
+    title: Phân biệt số bản sao mong muốn, đã được tạo và sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-004
+    title: Thiết lập giới hạn tối thiểu, tối đa và tốc độ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-005
+    title: Xử lý độ trễ khởi động và thời gian ổn định của vòng lặp mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-006
+    title: Tránh dao động tăng giảm liên tục do chỉ số biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-007
+    title: Phối hợp mở rộng workload với bổ sung hoặc thu hẹp năng lực nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-008
+    title: Đánh giá nút thắt ở cơ sở dữ liệu, hàng đợi hoặc dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-009
+    title: Giới hạn mở rộng đối với ứng dụng có trạng thái và tài nguyên chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scaling-010
+    title: Ngăn cấu hình số bản sao cố định xung đột với bộ điều khiển tự mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-updates
+  title: Cập nhật ứng dụng
+  childs:
+  - slug: application-updates-001
+    title: Sử dụng image và cấu hình có phiên bản xác định để cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-002
+    title: Phân biệt thay tiến trình tại chỗ với tạo workload từ phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-003
+    title: Hiểu rolling update, blue-green và canary ở mức mô hình điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-004
+    title: Quản lý số bản sao cũ và mới cùng tồn tại trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-005
+    title: Chuẩn bị tài nguyên dự phòng cho quá trình cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-006
+    title: Kết hợp điều kiện sẵn sàng với chuyển hướng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-007
+    title: Thiết kế kết thúc êm và xử lý yêu cầu đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-008
+    title: Theo dõi tiến độ, dừng cập nhật và nhận diện lỗi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-009
+    title: Đánh giá điều kiện quay lại phiên bản trước và giới hạn phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-updates-010
+    title: Phân định cơ chế điều phối với chiến lược phát hành chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: background-jobs
+  title: Tác vụ nền
+  childs:
+  - slug: background-jobs-001
+    title: Phân biệt dịch vụ dài hạn với công việc chạy đến khi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-002
+    title: Quản lý số lần thực thi song song và điều kiện hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-003
+    title: Xử lý thất bại, thử lại và giới hạn thời gian chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-004
+    title: Thiết kế công việc lũy đẳng khi một tác vụ có thể được thực thi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-005
+    title: Phân biệt lịch kích hoạt với bảo đảm công việc thực sự đã chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-006
+    title: Xử lý lịch bị lỡ, độ trễ và các lần chạy chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-007
+    title: Quản lý tác vụ cần xuất hiện trên từng nút thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-008
+    title: Lưu kết quả, log và chính sách dọn tài nguyên của tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-009
+    title: Đánh giá tác động tải của tác vụ nền đến dịch vụ đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-010
+    title: Giới hạn bảo đảm chạy đúng một lần và yêu cầu chống xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-dependencies
+  title: Phụ thuộc ứng dụng
+  childs:
+  - slug: application-dependencies-001
+    title: Phân biệt thứ tự tạo tài nguyên với phụ thuộc đã sẵn sàng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-002
+    title: Thiết kế khởi động khi cơ sở dữ liệu hoặc dịch vụ phụ thuộc chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-003
+    title: Giới hạn thời gian chờ, số lần thử và tốc độ gọi lại của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-004
+    title: Tránh phụ thuộc vòng làm các dịch vụ không thể sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-005
+    title: Điều phối tác vụ khởi tạo dữ liệu và migration có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-006
+    title: Giữ tương thích khi nhiều phiên bản ứng dụng cùng truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-007
+    title: Phân biệt phụ thuộc do nền tảng quản lý với hệ thống bên ngoài cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-dependencies-008
+    title: Kiểm tra tác động dây chuyền khi một dịch vụ dùng chung gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: isolation-security
+  title: Cô lập và bảo mật
+  childs:
+  - slug: isolation-security-001
+    title: Phân biệt cô lập tiến trình bằng container với ranh giới máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-002
+    title: Giảm quyền tiến trình và tránh chạy đặc quyền khi không cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-003
+    title: Giới hạn quyền truy cập filesystem, thiết bị và tài nguyên của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-004
+    title: Đánh giá rủi ro dùng mạng hoặc namespace của nút thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-005
+    title: Áp dụng chính sách lưu lượng giữa các nhóm workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-006
+    title: Bảo vệ đường truy cập từ bên ngoài đến dịch vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-007
+    title: Kiểm tra nguồn image, phiên bản, lỗ hổng và tính toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-008
+    title: Giảm bề mặt tấn công của workload và thành phần điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-009
+    title: Quản lý bản vá cho nút, runtime và nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: isolation-security-010
+    title: Xác định phạm vi ảnh hưởng khi một workload hoặc nút bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-team-policies
+  title: Chính sách đa nhóm
+  childs:
+  - slug: multi-team-policies-001
+    title: Tách tài nguyên theo đội ngũ, dự án và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-002
+    title: Phân biệt ranh giới tổ chức logic với mức cô lập bảo mật thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-003
+    title: Thiết lập quota, giới hạn mặc định và quy tắc sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-004
+    title: Ngăn một nhóm chiếm hết tài nguyên hoặc gây ảnh hưởng nhóm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-005
+    title: Áp dụng quy tắc tiếp nhận workload trước khi cho phép chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-006
+    title: Quy định nhãn, chủ sở hữu, ngân sách và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-007
+    title: Quản lý ngoại lệ chính sách có phê duyệt và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-008
+    title: Đánh giá khi nào cần tách namespace, tách cụm hoặc tách hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát
+  childs:
+  - slug: observability-001
+    title: Phân biệt log, chỉ số, dấu vết phân tán và sự kiện điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Liên kết tín hiệu theo ứng dụng, workload, nút và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Theo dõi tài nguyên yêu cầu, sử dụng thực tế và mức giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Quan sát độ trễ lập lịch, thời gian khởi động và số lần khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Theo dõi sức khỏe API, bộ điều khiển, nút, mạng và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Thu thập log tập trung để giữ bằng chứng khi workload bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Kết nối dấu vết yêu cầu qua nhiều bản sao và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Thiết lập cảnh báo dựa trên ảnh hưởng dịch vụ và mục tiêu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Tránh cảnh báo dư thừa và che khuất nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Bảo vệ dữ liệu nhạy cảm trong log, metric và thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cluster-operations
+  title: Vận hành cụm
+  childs:
+  - slug: cluster-operations-001
+    title: Thêm, rút và thay thế nút mà vẫn duy trì ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-002
+    title: Ngăn nhận workload mới trước khi bảo trì một nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-003
+    title: Di chuyển workload có kiểm soát và tôn trọng giới hạn gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-004
+    title: Chuẩn bị năng lực thay thế trước khi thu hẹp cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-005
+    title: Nâng cấp nền tảng, runtime và thành phần bổ sung theo ma trận tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-006
+    title: Sao lưu trạng thái điều khiển và phân biệt với sao lưu dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-007
+    title: Khôi phục mặt phẳng điều khiển và xác minh workload sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-008
+    title: Quản lý chứng chỉ, thông tin xác thực và cấu hình vận hành cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-009
+    title: Đánh giá tác động khi dịch vụ điều khiển không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-operations-010
+    title: Lập phương án xử lý cụm bị thiếu năng lực, mất nút hoặc gián đoạn mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-integration
+  title: Tích hợp quy trình
+  childs:
+  - slug: workflow-integration-001
+    title: Phân chia trách nhiệm giữa cấp phát hạ tầng và điều phối ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-002
+    title: Luồng CI tạo image, kiểm thử và xuất bản artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-003
+    title: Luồng CD đề xuất hoặc áp dụng phiên bản khai báo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-004
+    title: Vai trò của GitOps trong đối soát cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-005
+    title: Vai trò của Helm và công cụ đóng gói cấu hình ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-006
+    title: Tách quyền build, xuất bản artifact và thay đổi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-007
+    title: Truy vết commit nguồn, image, cấu hình và phiên bản đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-008
+    title: Kiểm soát nhiều hệ thống tự động cùng tác động vào một tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-009
+    title: Phân định nền tảng điều phối với công cụ quản lý cấu hình máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm tra cú pháp, schema và chính sách của khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử khởi động, sẵn sàng, dừng êm và hành vi khi bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử cấu hình mạng, khám phá dịch vụ và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử lưu trữ bền vững khi workload đổi nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử giới hạn tài nguyên và cách ứng dụng phản ứng khi thiếu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Thử nghiệm mất bản sao, mất nút và kết nối gián đoạn có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Đánh giá khả năng mở rộng và độ trễ ổn định khi tải tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử cập nhật, thất bại một phần và quay lại phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Đặt tiêu chí xác minh bằng trạng thái nền tảng và hành vi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-selection
+  title: Lựa chọn nền tảng
+  childs:
+  - slug: platform-selection-001
+    title: Xây dựng tiêu chí từ loại workload, quy mô và yêu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-002
+    title: So sánh Kubernetes, Docker Swarm và Nomad ở mức mô hình điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-003
+    title: Phân biệt nền tảng điều phối với dịch vụ container được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-004
+    title: Đánh giá khả năng mạng, lưu trữ, lập lịch và mở rộng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-005
+    title: Đánh giá quyền truy cập, cô lập nhóm và tích hợp hệ thống danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-006
+    title: So sánh mức độ tự quản, khả năng quan sát và yêu cầu đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-007
+    title: Kiểm tra tương thích ứng dụng và sự phụ thuộc vào thành phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-008
+    title: Đánh giá tổng chi phí, độ phức tạp và rủi ro phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-009
+    title: Phân định kiến thức chung với hướng dẫn chuyên sâu Kubernetes và Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-migration
+  title: Chuyển đổi ứng dụng
+  childs:
+  - slug: application-migration-001
+    title: Khảo sát cấu hình, dữ liệu và phụ thuộc trước khi đưa ứng dụng lên cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-002
+    title: Chuẩn hóa image, tín hiệu dừng và kiểm tra sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-003
+    title: Đưa trạng thái cần chia sẻ ra khỏi bản sao ứng dụng khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-004
+    title: Thiết lập nhu cầu tài nguyên từ số liệu và thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-005
+    title: Xác định ranh giới mạng, bí mật và quyền truy cập cần chuyển giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-006
+    title: Chọn ứng dụng thử nghiệm và phạm vi triển khai ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-007
+    title: Chuyển lưu lượng theo giai đoạn với tiêu chí dừng và phương án quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-migration-008
+    title: Đánh giá các ứng dụng chưa phù hợp với cơ chế điều phối đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: incident-troubleshooting-001
+    title: Workload không được lập lịch do thiếu tài nguyên hoặc ràng buộc không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-002
+    title: Không tải được image do đường dẫn, phiên bản, mạng hoặc quyền registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-003
+    title: Ứng dụng liên tục khởi động lại do lỗi tiến trình hoặc kiểm tra sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-004
+    title: Dịch vụ không có bản sao sẵn sàng hoặc chọn nhầm tập workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-005
+    title: Không kết nối được dịch vụ do DNS, tuyến mạng hoặc chính sách truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-006
+    title: Truy cập ngoài cụm thất bại do định tuyến, cổng hoặc chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-007
+    title: Không gắn được volume do quyền, vị trí dữ liệu hoặc giới hạn truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-008
+    title: Hiệu năng giảm do giới hạn CPU, thiếu bộ nhớ hoặc tranh chấp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-009
+    title: Tự mở rộng không hiệu quả do thiếu chỉ số hoặc thiếu năng lực nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-010
+    title: Cập nhật bị treo, workload không dừng được hoặc không đủ bản sao khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-troubleshooting-011
+    title: Phân tích theo lớp từ ứng dụng đến workload, nút và mặt phẳng điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Vẽ mô hình cụm và luồng từ khai báo đến workload chạy trên nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Thiết kế một dịch vụ nhiều bản sao với định danh truy cập ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Khai báo tài nguyên, cấu hình và bí mật theo phạm vi tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Kiểm tra lập lịch khi thay đổi nhu cầu tài nguyên và ràng buộc vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Thử sức khỏe, dừng êm và phân phối lại lưu lượng giữa các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Quan sát hệ thống tạo bản sao thay thế khi tiến trình hoặc nút gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Kiểm tra dữ liệu còn tồn tại sau khi workload bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Thử tăng tải và theo dõi mở rộng ứng dụng cùng năng lực cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Cập nhật phiên bản rồi diễn tập quay lại khi kiểm tra thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Thực hiện tác vụ hữu hạn có thử lại an toàn và lưu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Thu thập bằng chứng để đánh giá sẵn sàng, bảo mật và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

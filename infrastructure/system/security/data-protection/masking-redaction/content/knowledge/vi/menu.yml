@@ -1,0 +1,493 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Data masking là gì
+  - Data redaction là gì
+  - Vì sao cần giảm lộ dữ liệu
+  - Masking trong vòng đời dữ liệu
+  - Quan hệ giữa masking và bảo mật
+  - Quan hệ giữa masking và privacy
+  - Đầu ra của một giải pháp masking
+  - Giới hạn của masking và redaction
+- level1: Mục tiêu bảo vệ dữ liệu
+  level2:
+  - Bảo vệ tính bí mật
+  - Giảm dữ liệu nhìn thấy
+  - Giảm nguy cơ lạm dụng
+  - Giới hạn phạm vi rò rỉ
+  - Bảo vệ dữ liệu khi chia sẻ
+  - Hỗ trợ môi trường kiểm thử
+  - Giữ dữ liệu đủ dùng
+  - Đo lường hiệu quả bảo vệ
+- level1: Phạm vi và ngữ cảnh
+  level2:
+  - Xác định hệ thống cần bảo vệ
+  - Ngữ cảnh production
+  - Ngữ cảnh non-production
+  - Ngữ cảnh hỗ trợ vận hành
+  - Ngữ cảnh phân tích dữ liệu
+  - Ngữ cảnh báo cáo
+  - Ngữ cảnh tích hợp
+  - Dữ liệu nằm ngoài phạm vi
+- level1: Thuật ngữ cốt lõi
+  level2:
+  - Original value
+  - Masked value
+  - Redacted value
+  - Sensitive field
+  - Data subject
+  - Data consumer
+  - Data exposure
+  - Re-identification
+- level1: Phân loại dữ liệu
+  level2:
+  - Data classification
+  - Public data
+  - Internal data
+  - Confidential data
+  - Restricted data
+  - Personal data
+  - Sensitive personal data
+  - Critical business data
+- level1: Dữ liệu nhạy cảm
+  level2:
+  - Thông tin định danh
+  - Thông tin liên hệ
+  - Thông tin tài chính
+  - Thông tin thanh toán
+  - Thông tin sức khỏe
+  - Thông tin xác thực
+  - Thông tin vị trí
+  - Dữ liệu bí mật kinh doanh
+- level1: Masking và redaction
+  level2:
+  - Khác biệt giữa masking và redaction
+  - Che một phần giá trị
+  - Thay thế toàn bộ giá trị
+  - Xóa giá trị khỏi bản sao
+  - Ẩn trong giao diện
+  - Ẩn trong log
+  - Ẩn trong tài liệu
+  - Chọn kỹ thuật theo mục tiêu
+- level1: Anonymization và pseudonymization
+  level2:
+  - Anonymization là gì
+  - Pseudonymization là gì
+  - Ẩn danh và giả danh
+  - Khả năng đảo ngược
+  - Khả năng tái nhận diện
+  - Thông tin bổ trợ để tái nhận diện
+  - Đánh giá mức độ ẩn danh
+  - Giới hạn của pseudonymization
+- level1: Tokenization
+  level2:
+  - Tokenization là gì
+  - Token vault
+  - Token và giá trị gốc
+  - Tokenization có thể đảo ngược
+  - Tokenization trong thanh toán
+  - Tokenization trong API
+  - Token lifecycle
+  - So sánh tokenization và encryption
+- level1: Static masking
+  level2:
+  - Static data masking
+  - Tạo bản sao đã che
+  - Masking khi export
+  - Masking trong pipeline
+  - Masking một lần và định kỳ
+  - Quản lý bản sao masked
+  - Ưu điểm của static masking
+  - Giới hạn của static masking
+- level1: Dynamic masking
+  level2:
+  - Dynamic data masking
+  - Mask theo người dùng
+  - Mask theo vai trò
+  - Mask theo ngữ cảnh truy cập
+  - Mask tại query time
+  - Mask tại response time
+  - Ưu điểm của dynamic masking
+  - Giới hạn của dynamic masking
+- level1: Masking không đảo ngược
+  level2:
+  - Irreversible masking
+  - Hash một chiều
+  - Thay thế bằng giá trị giả
+  - Xóa phần nhạy cảm
+  - Không giữ secret đảo ngược
+  - Đánh giá nguy cơ đoán giá trị
+  - Phù hợp cho chia sẻ dữ liệu
+  - Ranh giới giữa ẩn danh và che
+- level1: Masking đảo ngược
+  level2:
+  - Reversible masking
+  - Điều kiện để khôi phục
+  - Quyền unmask
+  - Secret bảo vệ giá trị gốc
+  - Audit quyền khôi phục
+  - Giới hạn thời gian khôi phục
+  - Khôi phục có phê duyệt
+  - Rủi ro khi cơ chế bị lộ
+- level1: Format-preserving masking
+  level2:
+  - Nguyên tắc format preserving
+  - Giữ độ dài giá trị
+  - Giữ kiểu dữ liệu
+  - Giữ ký tự hợp lệ
+  - Mask số điện thoại
+  - Mask email
+  - Mask mã định danh
+  - Giới hạn của format preserving
+- level1: Deterministic masking
+  level2:
+  - Nguyên tắc deterministic
+  - Cùng đầu vào cùng đầu ra
+  - Liên kết bản ghi sau masking
+  - Masking ổn định giữa hệ thống
+  - Rủi ro suy ra quy luật
+  - Salt và secret
+  - Đánh đổi khả năng join
+  - Kiểm tra tính ổn định
+- level1: Random masking
+  level2:
+  - Nguyên tắc random
+  - Giá trị thay thế ngẫu nhiên
+  - Randomness quality
+  - Không giữ quan hệ đầu vào
+  - Phù hợp cho dữ liệu chia sẻ
+  - Seed và khả năng tái lập
+  - Rủi ro trùng giá trị
+  - Kiểm thử phân bố
+- level1: Generalization và suppression
+  level2:
+  - Generalization là gì
+  - Giảm độ chính xác
+  - Khoảng giá trị
+  - Rút gọn vị trí
+  - Suppression là gì
+  - Xóa ngoại lệ hiếm
+  - Đánh đổi tiện ích dữ liệu
+  - Nguy cơ suy luận từ nhóm nhỏ
+- level1: Field-level masking
+  level2:
+  - Mask theo field
+  - Mask theo column
+  - Mask theo thuộc tính
+  - Mask nhiều lớp
+  - Field phụ thuộc lẫn nhau
+  - Mask field bắt buộc
+  - Mask field tùy chọn
+  - Rà soát field bị bỏ sót
+- level1: Dữ liệu có cấu trúc
+  level2:
+  - Structured data
+  - Schema và kiểu dữ liệu
+  - Table và column
+  - Row và record
+  - Quan hệ parent-child
+  - Enum và code
+  - Date và timestamp
+  - Null và empty value
+- level1: Dữ liệu phi cấu trúc
+  level2:
+  - Unstructured data
+  - Văn bản tự do
+  - PDF và tài liệu
+  - Hình ảnh và OCR
+  - Audio và transcript
+  - Metadata của file
+  - Nhận diện dữ liệu trong văn bản
+  - Giới hạn khi redaction phi cấu trúc
+- level1: Database
+  level2:
+  - Masking trong database
+  - Masking khi đọc
+  - Che dữ liệu khi export
+  - View đã che dữ liệu
+  - Stored procedure
+  - Database function
+  - Column-level policy
+  - Database audit
+- level1: Query và báo cáo
+  level2:
+  - Masking trong query
+  - Masking trong report
+  - Aggregation và nhóm dữ liệu
+  - Filter làm lộ dữ liệu
+  - Sort và rank
+  - Join sau masking
+  - Export report
+  - Cache kết quả truy vấn
+- level1: API
+  level2:
+  - Masking trong API response
+  - Redaction trong request
+  - Field projection
+  - Role-based response
+  - Nested object
+  - Pagination và tổng số
+  - Error response
+  - API documentation
+- level1: Log và telemetry
+  level2:
+  - Masking trong application log
+  - Redaction trong error log
+  - Structured logging
+  - Trace và span
+  - Metric label
+  - Request header
+  - Correlation ID
+  - Log sink và downstream
+- level1: Giao diện người dùng
+  level2:
+  - Masking trên màn hình
+  - Hiển thị một phần giá trị
+  - Reveal on demand
+  - Quyền xem đầy đủ
+  - Clipboard và copy
+  - Download từ giao diện
+  - Screenshot và cache trình duyệt
+  - Accessibility của giá trị đã che
+- level1: Môi trường non-production
+  level2:
+  - Masking cho development
+  - Masking cho testing
+  - Masking cho staging
+  - Seed data đã che
+  - Refresh dữ liệu từ production
+  - Phân tách quyền môi trường
+  - Ngăn dữ liệu thật đi vào sandbox
+  - Kiểm tra dữ liệu sau refresh
+- level1: Phân tích và kiểm thử
+  level2:
+  - Masked data cho analytics
+  - Masked data cho QA
+  - Giữ phân bố dữ liệu
+  - Giữ tính đại diện
+  - Giữ edge case an toàn
+  - Giữ dữ liệu hợp lệ
+  - Tránh dữ liệu giả gây sai test
+  - Đánh giá utility dữ liệu
+- level1: Backup và archive
+  level2:
+  - Masking trong backup
+  - Redaction trong archive
+  - Backup production
+  - Backup non-production
+  - Restore vào môi trường khác
+  - Retention của bản sao
+  - Xóa bản backup chứa dữ liệu thật
+  - Kiểm kê dữ liệu trong archive
+- level1: Search và index
+  level2:
+  - Masking trong search
+  - Redaction trong kết quả tìm kiếm
+  - Index chứa dữ liệu nhạy cảm
+  - Autocomplete
+  - Search term trong log
+  - Full-text index
+  - Cache kết quả tìm kiếm
+  - Xóa index cũ
+- level1: Cross-system data flow
+  level2:
+  - Masking khi truyền hệ thống
+  - Masking tại nguồn
+  - Masking tại biên tích hợp
+  - Masking tại đích
+  - Data contract
+  - Đồng bộ giá trị đã che
+  - Luồng dữ liệu qua bên thứ ba
+  - Kiểm kê bản sao liên hệ thống
+- level1: Encryption và masking
+  level2:
+  - Khác biệt encryption và masking
+  - Khi nào dùng cả hai
+  - Encryption không thay thế masking
+  - Masking trước encryption
+  - Masking sau decryption
+  - Key access và unmask
+  - Defense in depth
+  - Đánh giá lớp bảo vệ
+- level1: Access và policy
+  level2:
+  - Masking policy
+  - Unmask policy
+  - Quyền xem dữ liệu gốc
+  - Quyền xem dữ liệu đã che
+  - Least privilege
+  - Segregation of duties
+  - Break-glass access
+  - Rà soát quyền định kỳ
+- level1: Data governance
+  level2:
+  - Data owner
+  - Data steward
+  - Data custodian
+  - Data classification policy
+  - Data lifecycle
+  - Data retention
+  - Data sharing
+  - Data inventory
+- level1: Privacy
+  level2:
+  - Privacy by design
+  - Data minimization
+  - Purpose limitation
+  - Lawful basis
+  - Data subject access
+  - Data subject request
+  - Re-identification risk
+  - Privacy impact assessment
+- level1: Compliance
+  level2:
+  - Yêu cầu pháp lý về dữ liệu
+  - Yêu cầu hợp đồng
+  - Compliance control
+  - Evidence của masking
+  - Audit việc unmask
+  - Data residency
+  - Cross-border transfer
+  - Xử lý vi phạm
+- level1: Quy tắc và thuật toán
+  level2:
+  - Masking rule
+  - Redaction rule
+  - Rule priority
+  - Rule exception
+  - Pattern matching
+  - Regular expression
+  - Dictionary detection
+  - Rule versioning
+- level1: Tính toàn vẹn tham chiếu
+  level2:
+  - Referential integrity
+  - Giữ quan hệ khóa
+  - Mask primary key
+  - Mask foreign key
+  - Deterministic liên bảng
+  - Parent-child consistency
+  - Composite key
+  - Kiểm tra sau masking
+- level1: Tính nhất quán
+  level2:
+  - Consistency giữa bản sao
+  - Consistency theo thời gian
+  - Consistency giữa field
+  - Mask giá trị phụ thuộc
+  - Đồng bộ quy tắc
+  - Version schema
+  - Idempotent masking
+  - Xử lý dữ liệu cập nhật
+- level1: Hiệu năng
+  level2:
+  - Chi phí xử lý masking
+  - Masking thời gian thực
+  - Masking theo batch
+  - Query overhead
+  - Cache masked value
+  - Scale-out masking
+  - Giới hạn tài nguyên
+  - Đo hiệu năng trước triển khai
+- level1: Kiến trúc giải pháp
+  level2:
+  - Masking tại ứng dụng
+  - Masking tại database
+  - Masking tại gateway
+  - Masking service
+  - Centralized policy
+  - Distributed enforcement
+  - Data plane và control plane
+  - Chọn điểm thực thi
+- level1: Triển khai ứng dụng
+  level2:
+  - Masking trong service
+  - Redaction trong exception
+  - DTO và response model
+  - Serializer và deserializer
+  - Logging interceptor
+  - Annotation và policy
+  - Test contract
+  - Tránh leak qua đường phụ
+- level1: Pipeline và automation
+  level2:
+  - Masking trong data pipeline
+  - Masking trong ETL
+  - Masking trong export job
+  - Masking trong CI/CD
+  - Review rule trong pull request
+  - Kiểm tra tự động dữ liệu
+  - Version artifact đã che
+  - Rollback thay đổi rule
+- level1: Kiểm thử
+  level2:
+  - Test masking rule
+  - Test redaction rule
+  - Test quyền unmask
+  - Test negative path
+  - Test dữ liệu biên
+  - Test format
+  - Test tính nhất quán
+  - Test hồi quy
+- level1: Xác minh bảo vệ
+  level2:
+  - Kiểm tra không còn giá trị gốc
+  - Quét dữ liệu sau masking
+  - Kiểm tra log và telemetry
+  - Kiểm tra backup
+  - Kiểm tra cache
+  - Kiểm tra file tạm
+  - Kiểm tra thông báo lỗi
+  - Đánh giá nguy cơ tái nhận diện
+- level1: Giám sát và audit
+  level2:
+  - Audit thao tác masking
+  - Audit lần unmask
+  - Audit thay đổi policy
+  - Log người truy cập
+  - Log lý do truy cập
+  - Giám sát thất bại masking
+  - Alert khi lộ dữ liệu
+  - Retention của audit trail
+- level1: Sự cố dữ liệu
+  level2:
+  - Phát hiện dữ liệu chưa che
+  - Containment khi lộ dữ liệu
+  - Thu hồi quyền unmask
+  - Rotate secret liên quan
+  - Đánh giá phạm vi ảnh hưởng
+  - Thông báo sự cố
+  - Khôi phục rule
+  - Lessons learned
+- level1: Vòng đời giải pháp
+  level2:
+  - Thiết kế giải pháp masking
+  - Triển khai rule
+  - Vận hành rule
+  - Rà soát rule
+  - Thay đổi schema
+  - Thay đổi phân loại dữ liệu
+  - Ngừng rule
+  - Xóa giải pháp an toàn
+- level1: Case study
+  level2:
+  - Masking database khách hàng
+  - Redaction trong application log
+  - Ẩn thông tin trên API
+  - Dữ liệu non-production
+  - Tokenization dữ liệu thanh toán
+  - Masking tài liệu phi cấu trúc
+  - Dynamic masking cho quản trị viên
+  - Xử lý sự cố lộ dữ liệu
+- level1: Thực hành tổng hợp
+  level2:
+  - Kiểm kê field nhạy cảm
+  - Phân loại mức độ bảo vệ
+  - Chọn masking hay redaction
+  - Thiết kế rule theo field
+  - Giữ khóa và quan hệ dữ liệu
+  - Áp dụng cho database và API
+  - Kiểm thử quyền unmask
+  - Quét tìm dữ liệu gốc
+  - Thiết lập audit và cảnh báo
+  - Hoàn thiện hồ sơ data protection

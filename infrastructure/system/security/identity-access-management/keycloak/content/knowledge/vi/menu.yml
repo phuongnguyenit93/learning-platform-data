@@ -1,0 +1,464 @@
+menu:
+- level1: Tổng quan Keycloak
+  level2:
+  - Keycloak là gì và các bài toán quản lý truy cập, danh tính
+  - Vai trò identity provider, authorization server và identity broker
+  - Đăng nhập một lần, xác thực và phân quyền trong hệ thống
+  - Những trách nhiệm thuộc Keycloak và trách nhiệm thuộc ứng dụng
+  - Luồng người dùng, trình duyệt, Keycloak và API tài nguyên
+  - Trường hợp nên và không nên tự vận hành Keycloak
+  - Các thành phần quản trị, tài khoản, giao thức và dữ liệu
+  - Bản đồ kiến thức từ realm, client đến vận hành sản xuất
+  - Chọn phiên bản và đọc trạng thái tính năng được hỗ trợ
+- level1: Mô hình khái niệm
+  level2:
+  - Realm và phạm vi quản lý danh tính
+  - User, credential và user profile
+  - Client, client authentication và service account
+  - Realm role, client role và group
+  - Client scope, protocol mapper và claims
+  - Authentication flow, execution và required action
+  - User session, client session và token
+  - Identity provider khác với user federation
+  - Resource, scope, permission và policy trong Authorization Services
+  - Phân biệt tên hiển thị với mã định danh kỹ thuật
+- level1: Kiến trúc hệ thống
+  level2:
+  - Keycloak server, cơ sở dữ liệu và lớp bộ nhớ đệm
+  - Admin Console, Account Console và các endpoint giao thức
+  - Luồng đăng nhập qua redirect và callback
+  - Luồng API nhận token và xác minh tại tài nguyên
+  - Luồng đăng nhập qua nhà cung cấp danh tính bên ngoài
+  - Phụ thuộc vào DNS, TLS, SMTP và thời gian hệ thống
+  - Ranh giới tin cậy giữa mạng công khai và quản trị
+  - Triển khai một máy, container và Kubernetes
+  - Phân biệt cấu hình lúc xây dựng với cấu hình lúc chạy
+  - Nguồn cấu hình và thứ tự ưu tiên cần kiểm tra
+- level1: Môi trường thực hành
+  level2:
+  - Chuẩn bị tên miền thử nghiệm, trình duyệt và công cụ HTTP
+  - Khởi tạo Keycloak trong container phục vụ học tập
+  - Tạo tài khoản quản trị ban đầu và bảo vệ thông tin đăng nhập
+  - Tạo realm thử nghiệm thay vì dùng realm quản trị cho ứng dụng
+  - Khởi tạo user và client tối thiểu
+  - Đăng nhập lần đầu và quan sát phiên
+  - Khám phá discovery document cùng các endpoint
+  - Phân biệt chế độ phát triển với cấu hình sản xuất
+  - Giữ cấu hình thực hành có thể tái tạo và không chứa bí mật
+  - Dọn môi trường và xử lý dữ liệu thử nghiệm
+- level1: Quản lý realm
+  level2:
+  - Vai trò master realm và realm dành cho ứng dụng
+  - Tạo, đổi cấu hình, vô hiệu hóa và xóa realm
+  - Realm theo môi trường, tổ chức hoặc miền tin cậy
+  - Thiết lập đăng nhập, ghi nhớ đăng nhập và xác minh email
+  - Cấu hình SMTP và kiểm tra gửi email
+  - Yêu cầu HTTPS và thiết lập bảo mật của realm
+  - Thiết lập ngôn ngữ, giao diện và thông tin hiển thị
+  - Khóa realm, chính sách thời gian và các cấu hình dùng chung
+  - Export, import realm và giới hạn của dữ liệu xuất
+  - Đánh giá ảnh hưởng trước khi đổi tên hoặc URL realm
+- level1: Người dùng và hồ sơ
+  level2:
+  - Tạo, tìm kiếm, cập nhật và vô hiệu hóa người dùng
+  - Username, email, subject và mã định danh bất biến
+  - User profile với thuộc tính được quản lý và không được quản lý
+  - Quyền đọc, quyền sửa và kiểm tra hợp lệ thuộc tính
+  - Thuộc tính chỉ quản trị viên được phép thay đổi
+  - Cấu hình mật khẩu ban đầu và mật khẩu tạm thời
+  - Required actions cho xác minh email hoặc cập nhật hồ sơ
+  - Vòng đời tài khoản từ đăng ký đến ngừng sử dụng
+  - Xóa người dùng và xử lý tác động lên phiên, liên kết và dữ liệu
+  - Impersonation cùng yêu cầu kiểm soát, truy vết
+  - Account Console và khả năng tự quản lý của người dùng
+- level1: Roles và groups
+  level2:
+  - Realm role khác với client role
+  - Tạo role và thiết kế tên theo trách nhiệm ứng dụng
+  - Composite role và quyền được tổng hợp
+  - Nhóm, nhóm con và thuộc tính nhóm
+  - Gán role trực tiếp hoặc thông qua group
+  - Default role, default group và rủi ro quyền mặc định rộng
+  - Role scope mapping và quyền có thể xuất hiện trong token
+  - Phân biệt người dùng có role với client được phép nhận role
+  - Full Scope Allowed và giới hạn phạm vi claims quyền
+  - Kiểm tra quyền hiệu lực của người dùng
+  - Tránh biến cấu trúc nhóm thành mô hình phân quyền khó kiểm soát
+- level1: Đăng ký client
+  level2:
+  - Client OIDC và client SAML
+  - Public client, confidential client và khả năng giữ bí mật
+  - Client ID, client secret và mã định danh nội bộ
+  - Đăng ký ứng dụng web, SPA, mobile và dịch vụ
+  - Redirect URI chính xác và nguy cơ wildcard rộng
+  - Web Origins, CORS và ranh giới với xác thực
+  - Root URL, Home URL và đường dẫn ứng dụng
+  - Bật đúng các khả năng và luồng ứng dụng cần
+  - Client authentication bằng bí mật, khóa hoặc chứng thư theo hồ sơ
+  - Quản lý client secret và thay thế an toàn
+  - Client registration tự động cùng quyền đăng ký
+  - Client Policies để áp dụng yêu cầu bảo mật nhất quán
+- level1: Scopes và mappers
+  level2:
+  - Client scope khác với role và scope tài nguyên
+  - Default client scope và optional client scope
+  - Liên kết client scope với client
+  - Protocol mapper chuyển thuộc tính thành claims
+  - Ánh xạ role, group và thuộc tính người dùng
+  - Kiểu dữ liệu, tên claim và vị trí xuất hiện
+  - Claims trong access token, ID token và userinfo
+  - Audience mapper và ràng buộc API nhận token
+  - Consent và cách trình bày thông tin được chia sẻ
+  - Evaluate client scopes để kiểm tra token dự kiến
+  - Giảm dữ liệu cá nhân và kích thước token
+  - Ngăn người dùng tự sửa thuộc tính dùng để cấp quyền
+- level1: Luồng OIDC
+  level2:
+  - Discovery và xác định issuer đáng tin cậy
+  - Authorization Code Flow cùng PKCE
+  - state, nonce và liên kết với phiên ứng dụng
+  - Đổi authorization code tại token endpoint
+  - Public client và confidential client trong từng luồng
+  - Device Authorization Grant và ngữ cảnh thiết bị hạn chế nhập liệu
+  - Client Credentials Flow cho giao tiếp máy với máy
+  - Direct Access Grants và các rủi ro khi ứng dụng nhận mật khẩu
+  - Implicit Flow và lý do cần đánh giá lại hệ thống cũ
+  - Userinfo và phân biệt với dữ liệu giải mã từ token
+  - Tham số yêu cầu xác thực lại, mức xác thực và gợi ý đăng nhập
+  - Lỗi giao thức thường gặp cùng cách truy vết yêu cầu
+- level1: Token và phiên
+  level2:
+  - Access token, ID token và refresh token
+  - SSO session khác với phiên của từng client
+  - Thời hạn không hoạt động và thời hạn tối đa
+  - Thời hạn token theo realm và cấu hình riêng client
+  - Remember Me và tác động đến thời gian phiên
+  - Làm mới access token và điều kiện chấp nhận refresh token
+  - Xoay refresh token, giới hạn tái sử dụng và lỗi đồng thời
+  - Offline access, offline token và trách nhiệm bảo vệ
+  - Quản trị các phiên đang hoạt động
+  - Thu hồi phiên khác với vô hiệu hóa ngay mọi JWT đã cấp
+  - Not-before policy và giới hạn khi tài nguyên xác minh cục bộ
+  - Thay đổi mật khẩu, quyền hoặc trạng thái tài khoản khi phiên còn tồn tại
+- level1: Đăng xuất
+  level2:
+  - Đăng xuất ứng dụng khác với đăng xuất tại Keycloak
+  - RP-Initiated Logout và điều kiện redirect sau đăng xuất
+  - Front-channel logout và phụ thuộc hành vi trình duyệt
+  - Back-channel logout và xác minh thông báo
+  - Đăng xuất một phiên hoặc tất cả phiên của người dùng
+  - Đăng xuất khi có nhà cung cấp danh tính trung gian
+  - Xóa token và cookie ở ứng dụng đúng thời điểm
+  - Yêu cầu đang chạy hoặc làm mới token sau thao tác đăng xuất
+  - Phiên ngoại tuyến và chính sách chấm dứt liên quan
+  - Kiểm tra từ nhiều ứng dụng và nhiều thiết bị
+- level1: Luồng xác thực
+  level2:
+  - Built-in flow và cách sao chép để tùy chỉnh
+  - Flow, subflow, execution và thứ tự thực hiện
+  - REQUIRED, ALTERNATIVE, CONDITIONAL và DISABLED
+  - Gắn flow cho browser, registration và reset credentials
+  - Điều kiện xác thực dựa trên người dùng hoặc ngữ cảnh
+  - Required action khác với bước xác thực
+  - Step-up authentication cùng ACR và mức xác thực
+  - Ràng buộc flow riêng cho client theo khả năng hỗ trợ
+  - Xử lý nhiều tab và trạng thái authentication session
+  - Ngăn cấu hình nhánh cho phép bỏ qua bước bắt buộc
+  - Kiểm thử đường thành công, đường thất bại và khôi phục
+- level1: Mật khẩu và MFA
+  level2:
+  - Password policy và kiểm soát mật khẩu yếu
+  - Brute-force detection cùng đánh đổi về khóa tài khoản
+  - TOTP, HOTP và chính sách OTP
+  - WebAuthn cho xác thực đa yếu tố hoặc không mật khẩu
+  - Passkeys và yêu cầu với trình duyệt, thiết bị
+  - RP ID, origin và ảnh hưởng của hostname đến WebAuthn
+  - Đăng ký, thay thế và xóa phương thức xác thực
+  - Recovery codes và bảo vệ đường khôi phục
+  - MFA có điều kiện và bước xác thực tăng cường
+  - Chính sách cho tài khoản quản trị và tài khoản nhạy cảm
+  - Ngăn khôi phục tài khoản làm giảm mức bảo đảm xác thực
+  - Xác thực bằng chứng thư máy khách hoặc Kerberos theo bối cảnh
+- level1: Đăng ký và khôi phục
+  level2:
+  - Cho phép tự đăng ký và điều kiện kiểm soát
+  - Xác minh email trước khi cho sử dụng đầy đủ
+  - Quên mật khẩu và gửi liên kết đặt lại
+  - Thời hạn action token và xử lý liên kết đã hết hiệu lực
+  - Thay đổi email và xác minh địa chỉ mới
+  - Điều khoản sử dụng và required actions phù hợp
+  - Chống dò tài khoản, thư rác và tự động hóa lạm dụng
+  - Bảo vệ SMTP credential cùng nội dung email
+  - Application-Initiated Actions và yêu cầu xác thực lại
+  - Kiểm thử khi email không tới hoặc nhà cung cấp thư lỗi
+  - Giới hạn dữ liệu cá nhân trong thông báo và URL
+- level1: Identity brokering
+  level2:
+  - Keycloak làm cầu nối với nhà cung cấp danh tính bên ngoài
+  - Nhà cung cấp OIDC, SAML và đăng nhập mạng xã hội
+  - Cấu hình metadata, endpoint, bí mật và khóa tin cậy
+  - First Broker Login Flow và tạo người dùng lần đầu
+  - Liên kết tài khoản sẵn có và ngăn chiếm tài khoản qua email
+  - Ánh xạ claims, thuộc tính và nhóm từ nhà cung cấp
+  - Post Login Flow và bước xác thực bổ sung
+  - Chọn nhà cung cấp theo ngữ cảnh hoặc gợi ý đăng nhập
+  - Lưu và truy cập token ngoài với quyền được giới hạn
+  - Đăng xuất liên kết cùng giới hạn của từng giao thức
+  - Xử lý đổi khóa, mất kết nối hoặc ngừng nhà cung cấp
+  - Giữ ranh giới giữa danh tính ngoài và quyền nội bộ
+- level1: User federation
+  level2:
+  - User federation khác với identity brokering
+  - Kết nối LDAP hoặc Active Directory
+  - Tài khoản kết nối thư mục và quyền tối thiểu
+  - TLS, chứng thư và nguồn thư mục được tin cậy
+  - Read-only, writable và unsynced theo mô hình tích hợp
+  - Import user cùng ánh xạ định danh và thuộc tính
+  - LDAP mappers cho tên, email, nhóm và role
+  - Đồng bộ đầy đủ, đồng bộ thay đổi và lịch thực hiện
+  - Cache dữ liệu người dùng và độ trễ phản ánh thay đổi
+  - Đổi mật khẩu, khóa tài khoản và xóa người dùng từ nguồn ngoài
+  - Xử lý trùng danh tính hoặc thay đổi định danh thư mục
+  - Kiểm tra khi LDAP chậm, lỗi hoặc không sẵn sàng
+- level1: Tích hợp SAML
+  level2:
+  - Keycloak làm Identity Provider hoặc làm broker SAML
+  - Entity ID, metadata và endpoint ACS
+  - AuthnRequest, Response và Assertion
+  - NameID cùng ánh xạ thuộc tính
+  - HTTP-Redirect, HTTP-POST và bindings được hỗ trợ
+  - Ký yêu cầu, ký phản hồi, ký assertion và cấu hình tin cậy
+  - Mã hóa assertion theo khả năng của đối tác
+  - Audience, Recipient, Destination và thời gian hiệu lực
+  - SP-initiated và IdP-initiated login
+  - Single Logout và giới hạn liên thông
+  - Xoay chứng thư SAML và khoảng chuyển tiếp
+  - Kiểm tra lỗi metadata, chữ ký hoặc sai thời gian
+- level1: Service accounts
+  level2:
+  - Service account gắn với client và danh tính máy
+  - Bật khả năng Client Credentials Flow
+  - Gán role cho service account theo quyền tối thiểu
+  - Client scope và role scope ảnh hưởng token máy với máy
+  - Audience của token dành cho dịch vụ đích
+  - Xác thực client bằng secret hoặc khóa theo cấu hình
+  - Quản lý token ngắn hạn và xử lý hết hạn
+  - Thay secret, vô hiệu hóa client và thu hồi khả năng cấp token
+  - Truy vết hoạt động service account
+  - Không dùng token máy với máy thay danh tính người dùng
+  - Giới hạn đặc quyền khi gọi Admin REST API
+- level1: Authorization Services
+  level2:
+  - Khi nào role trong token chưa đủ cho phân quyền chi tiết
+  - Resource server, resource, scope, permission và policy
+  - Phân biệt policy decision point với nơi thực thi quyết định
+  - Chính sách theo người dùng, role, nhóm, client hoặc thời gian
+  - Chính sách tổng hợp và chiến lược kết hợp kết quả
+  - Resource-based permission và scope-based permission
+  - Evaluate để kiểm tra chính sách theo danh tính, ngữ cảnh
+  - UMA, permission ticket và Requesting Party Token
+  - Protection API cùng quyền quản lý tài nguyên
+  - Giới hạn dữ liệu đầu vào được dùng khi đánh giá quyền
+  - Thực thi quyền tại API và tránh chỉ ẩn nút trên giao diện
+  - Quản lý cache cùng độ mới của quyết định phân quyền
+- level1: Tích hợp ứng dụng
+  level2:
+  - Chọn thư viện OIDC hoặc SAML phù hợp nền tảng
+  - Ứng dụng web phía máy chủ và phiên nội bộ
+  - SPA với Authorization Code cùng PKCE
+  - Ứng dụng di động và callback được bảo vệ
+  - Backend for Frontend cùng quản lý token tại máy chủ
+  - API xác minh chữ ký, issuer, audience và thời hạn
+  - Discovery, JWKS và xoay khóa xác minh
+  - Phân biệt ID token với access token tại API
+  - Refresh token, retry và tránh vòng lặp đăng nhập
+  - Reverse proxy hoặc API gateway trước ứng dụng
+  - Cookie, CORS, CSRF và lưu trữ token theo mô hình đe dọa
+  - Kiểm thử tích hợp bằng HTTP và ứng dụng mẫu trung lập ngôn ngữ
+- level1: Tổ chức và đa tenant
+  level2:
+  - Chọn nhiều realm hay nhiều tổ chức trong một realm
+  - Organizations và mô hình thành viên theo phiên bản hỗ trợ
+  - Tên miền tổ chức và định tuyến đăng nhập
+  - Nhà cung cấp danh tính gắn với tổ chức
+  - Lời mời, tiếp nhận và chấm dứt tư cách thành viên
+  - Claims tổ chức trong token và ràng buộc tài nguyên
+  - Người dùng thuộc nhiều tổ chức và ngữ cảnh đang hoạt động
+  - Giới hạn của group khi được dùng thay ranh giới tenant
+  - Ủy quyền quản trị và ngăn truy cập chéo tenant
+  - Di trú hoặc xóa tổ chức cùng dữ liệu liên quan
+  - Kiểm thử cô lập dữ liệu, quyền và phiên
+- level1: Quản trị và API
+  level2:
+  - Quản trị toàn hệ thống khác với quản trị một realm
+  - Admin roles và nguyên tắc quyền tối thiểu
+  - Ủy quyền quản trị theo người dùng, nhóm, client hoặc tài nguyên
+  - Fine-grained admin permissions và kiểm tra quyền hiệu lực
+  - Bảo vệ chức năng impersonation và quản lý role
+  - Admin REST API cùng token quản trị
+  - Admin CLI và tự động hóa tác vụ
+  - Phân trang, tìm kiếm và xử lý lỗi khi quản lý nhiều đối tượng
+  - Tính lặp lại an toàn trong tạo hoặc cập nhật cấu hình
+  - Dynamic client registration và quyền đăng ký
+  - Audit các thay đổi quản trị cùng người khởi tạo
+  - Tài khoản quản trị khẩn cấp và quy trình khôi phục
+- level1: Giao diện và ngôn ngữ
+  level2:
+  - Login theme, account theme, admin theme và email theme
+  - Lựa chọn tùy chỉnh tối thiểu thay vì sao chép toàn bộ giao diện
+  - Thông điệp bản địa hóa và lựa chọn ngôn ngữ
+  - Đồng nhất thương hiệu trên đăng nhập, email và Account Console
+  - Khả năng truy cập, bàn phím và thông báo lỗi rõ ràng
+  - CSS, tài nguyên tĩnh và bộ nhớ đệm giao diện
+  - Không đưa bí mật hoặc logic quyết định quyền vào theme
+  - Triển khai theme và kiểm tra sau nâng cấp
+  - Kiểm thử giao diện với MFA, khôi phục và identity broker
+- level1: Khóa và bí mật
+  level2:
+  - Realm signing keys và thuật toán token
+  - Trạng thái khóa chủ động, thụ động và vô hiệu hóa
+  - Xoay khóa với thời gian sống của token đã cấp
+  - JWKS và bộ nhớ đệm khóa ở ứng dụng
+  - Khóa bị lộ và đánh giá phạm vi token chịu ảnh hưởng
+  - Client secret rotation cùng khoảng chuyển tiếp
+  - Bí mật SMTP, LDAP và nhà cung cấp danh tính
+  - Nguồn cấu hình bí mật hoặc vault được hỗ trợ
+  - Bảo vệ bản sao lưu chứa khóa và thông tin xác thực
+  - Tách khóa, client và bí mật giữa các môi trường
+  - Không công khai realm export có dữ liệu nhạy cảm
+- level1: Bảo vệ sản xuất
+  level2:
+  - Hostname cố định và issuer nhất quán
+  - TLS đầu vào cùng TLS cho kết nối đi ra
+  - Reverse proxy, forwarded headers và nguồn proxy tin cậy
+  - Tách đường truy cập quản trị khỏi đường đăng nhập công khai
+  - Management interface, health và metrics trong mạng được bảo vệ
+  - Redirect URI, Web Origins và địa chỉ client được giới hạn
+  - Brute-force protection, giới hạn tải và chống tự động hóa lạm dụng
+  - CSRF, clickjacking, XSS và chính sách nội dung
+  - SSRF qua địa chỉ client hoặc nhà cung cấp bên ngoài
+  - Quyền thuộc tính người dùng và giới hạn tự gán đặc quyền
+  - Tắt khả năng hoặc luồng không dùng
+  - Quản lý cập nhật bảo mật cùng phụ thuộc hạ tầng
+- level1: Dữ liệu và cấu hình
+  level2:
+  - Chọn cơ sở dữ liệu theo cấu hình được hỗ trợ
+  - Tài khoản cơ sở dữ liệu và quyền vận hành
+  - Kết nối, pool, timeout và giới hạn tài nguyên
+  - TLS cùng bảo vệ mật khẩu kết nối
+  - Build options, runtime options và ảnh container được tối ưu
+  - Cấu hình bằng tệp, tham số hoặc biến môi trường
+  - Quản lý cấu hình theo môi trường và kiểm soát thay đổi
+  - Import, export cấu hình khác với sao lưu cơ sở dữ liệu
+  - Dữ liệu người dùng, phiên và yêu cầu riêng tư
+  - Không lưu bí mật trong kho cấu hình hoặc output CI/CD
+- level1: HA và hiệu năng
+  level2:
+  - Kiến trúc nhiều instance và cân bằng tải
+  - Khám phá thành viên cụm cùng truyền thông nội bộ
+  - Bộ nhớ đệm phân tán và tính nhất quán dữ liệu
+  - Dữ liệu phiên cùng hành vi khi một instance bị lỗi
+  - Triển khai một vùng, nhiều vùng sẵn sàng và nhiều cụm
+  - Độ trễ mạng cùng yêu cầu của kiến trúc được hỗ trợ
+  - Sticky session và đánh đổi trong định tuyến
+  - Khả năng mở rộng của cơ sở dữ liệu, LDAP và IdP bên ngoài
+  - Giới hạn thread, kết nối và bộ nhớ theo tải
+  - Kiểm thử tải đăng nhập, làm mới và quản trị
+  - Điều tiết tải, timeout và tránh lỗi dây chuyền
+  - Thiết lập SLO cho đăng nhập, cấp token và tính sẵn sàng
+- level1: Triển khai Kubernetes
+  level2:
+  - Ảnh container cùng quyền chạy tối thiểu
+  - Triển khai bằng manifest hoặc Keycloak Operator
+  - Secret, ConfigMap và nguồn thông tin xác thực
+  - Ingress, hostname, TLS và reverse proxy
+  - Readiness, liveness, startup probe và vòng đời Pod
+  - Resource requests, limits và kế hoạch số bản sao
+  - Kết nối cơ sở dữ liệu cùng mạng nội bộ cụm
+  - Network policy cho quản trị, cache và kết nối đi ra
+  - Import realm trong quy trình tự động
+  - Rolling update theo điều kiện tương thích được xác minh
+  - Quan sát rollout và khôi phục khi triển khai lỗi
+- level1: Sao lưu và nâng cấp
+  level2:
+  - Dữ liệu cần sao lưu ngoài realm export
+  - Cơ sở dữ liệu, khóa, cấu hình, theme và vật liệu bí mật
+  - RPO, RTO và kiểm thử khôi phục
+  - Chọn phiên bản đích cùng đọc hướng dẫn nâng cấp
+  - Thay đổi schema, cấu hình và hành vi giao thức
+  - Kiểm tra tính năng experimental, preview và deprecated
+  - Kiểm thử client, flow, mapper, federation và theme
+  - Điều kiện rolling update và khi cần cửa sổ bảo trì
+  - Giới hạn rollback sau thay đổi cơ sở dữ liệu
+  - Di trú hostname, realm hoặc hệ thống nhận dạng
+  - Xác minh đăng nhập và token sau khôi phục hoặc nâng cấp
+- level1: Quan sát và sự kiện
+  level2:
+  - User events và admin events
+  - Cấu hình loại sự kiện, lưu giữ và dữ liệu chi tiết
+  - Truy vết đăng nhập, lỗi xác thực và cấp token
+  - Nhật ký thay đổi role, client, khóa và cấu hình realm
+  - Metrics về tải, độ trễ, lỗi và phụ thuộc
+  - Health check khác với kiểm tra trải nghiệm đăng nhập hoàn chỉnh
+  - Tracing và tương quan yêu cầu qua ứng dụng
+  - Cảnh báo brute force, lỗi IdP và gia tăng lỗi refresh token
+  - Không ghi token, mật khẩu hoặc bí mật client
+  - Giới hạn dữ liệu cá nhân và quyền xem nhật ký
+  - Dashboard, người nhận cảnh báo và quy trình phản ứng
+- level1: Tính năng nâng cao
+  level2:
+  - Token exchange và giới hạn audience hoặc quyền
+  - Phân biệt triển khai token exchange tiêu chuẩn với cơ chế cũ
+  - DPoP và token ràng buộc bên gửi theo hồ sơ hỗ trợ
+  - JWT authorization grant và điều kiện thiết lập tin cậy
+  - SCIM cùng khả năng đồng bộ người dùng, nhóm theo phiên bản
+  - Workflows theo sự kiện và lịch với phạm vi quyền kiểm soát
+  - Verifiable credentials và ranh giới với token truy cập
+  - Tích hợp MCP hoặc giao thức mới theo tài liệu phiên bản
+  - Đánh giá trạng thái hỗ trợ trước khi bật tính năng tùy chọn
+  - Kiểm thử và giới hạn ảnh hưởng của tính năng mới
+- level1: Chẩn đoán và kiểm thử
+  level2:
+  - Invalid redirect URI, sai client hoặc sai client secret
+  - Issuer sai khi đặt sau reverse proxy
+  - Audience, scope hoặc role bị thiếu trong token
+  - Lỗi PKCE, state, nonce và authorization code
+  - Vòng lặp đăng nhập do cookie, hostname hoặc chính sách trình duyệt
+  - Refresh token không hợp lệ, phiên hết hạn hoặc yêu cầu đồng thời
+  - Lỗi liên kết tài khoản qua identity broker
+  - LDAP lỗi, đồng bộ chậm hoặc mapper không đúng
+  - SAML sai chữ ký, metadata, audience hoặc thời gian
+  - 401 khác với 403 và cách xác định nơi từ chối
+  - Kiểm thử luồng xác thực, MFA, khôi phục và đăng xuất
+  - Kiểm thử quyền tối thiểu cùng cô lập tenant
+  - Kiểm thử xoay khóa, mất instance và khôi phục dữ liệu
+  - Sử dụng công cụ HTTP cùng log đã che dữ liệu nhạy cảm
+- level1: Ứng phó sự cố
+  level2:
+  - Tài khoản quản trị bị chiếm và cô lập quyền truy cập
+  - Client secret, khóa ký hoặc token bị lộ
+  - Thu hồi phiên, vô hiệu hóa client và xoay vật liệu bí mật
+  - Đánh giá token còn được API chấp nhận sau thu hồi
+  - Identity provider hoặc LDAP bị xâm phạm
+  - Sai cấu hình mapper hoặc role gây cấp quyền quá mức
+  - Gián đoạn đăng nhập hoặc cấp token trên diện rộng
+  - Bảo toàn sự kiện, cấu hình và dấu vết thay đổi
+  - Khôi phục truy cập quản trị qua quy trình được kiểm soát
+  - Xác minh dịch vụ cùng chính sách sau khắc phục
+  - Rà soát nguyên nhân và bổ sung kiểm thử phòng ngừa
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng realm cho ứng dụng web và một API
+  - Thiết kế client scope, mapper và audience theo hợp đồng
+  - Triển khai Authorization Code cùng PKCE bằng client trung lập nền tảng
+  - Thiết kế role, group và kiểm tra quyền tối thiểu
+  - Bật MFA hoặc passkey cùng đường khôi phục an toàn
+  - Liên kết IdP ngoài và kiểm thử bảo vệ tài khoản sẵn có
+  - Tích hợp thư mục người dùng và kiểm tra đồng bộ
+  - Tạo service account cho giao tiếp máy với máy
+  - Thiết kế chính sách quyền trên tài nguyên mẫu
+  - Kiểm thử đăng xuất trên nhiều ứng dụng
+  - Diễn tập xoay khóa và kiểm tra JWT còn hạn
+  - Triển khai sau reverse proxy với TLS và giám sát
+  - Khôi phục bản sao lưu và kiểm tra nâng cấp trên môi trường thử
+  - Rà soát toàn bộ thiết kế bằng mô hình đe dọa và bằng chứng kiểm thử

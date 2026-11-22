@@ -1,0 +1,57 @@
+roadmap:
+- id: oci-container-registry
+  title: OCI & Container Registry
+  purpose: Hiểu registry là nơi lưu trữ và phân phối container image qua các chuẩn OCI.
+  objectives:
+  - Phân biệt image, layer, manifest và registry
+  - Giải thích repository, namespace và registry endpoint
+  - Nhận biết registry công khai, riêng tư và tự lưu trữ
+- id: tags-digest-version
+  title: Tags, Digest & Version
+  purpose: Định danh phiên bản image rõ ràng để tránh triển khai nhầm artifact.
+  objectives:
+  - Đặt tên image theo registry/repository:tag
+  - Phân biệt tag có thể đổi với digest bất biến
+  - Chọn chính sách tag theo release và commit
+- id: push-pull-phan-phoi
+  title: Push, Pull & Phân phối
+  purpose: Thực hành xuất bản và truy xuất image giữa máy phát triển, registry và nơi chạy.
+  objectives:
+  - Gắn tag rồi docker push image lên registry
+  - Dùng docker pull và chạy image đã xuất bản
+  - Kiểm tra manifest và image đa kiến trúc
+- id: xac-thuc-phan-quyen
+  title: Xác thực & Phân quyền
+  purpose: Bảo vệ registry và giới hạn quyền đọc, xuất bản, xóa artifact.
+  objectives:
+  - Đăng nhập bằng token hoặc credential an toàn
+  - Phân biệt quyền pull, push và quản trị
+  - Giải thích TLS và quyền truy cập image private
+- id: tich-hop-ci-cd
+  title: Tích hợp CI/CD
+  purpose: Tự động hóa publish image từ bản build đã được kiểm thử và truy vết nguồn.
+  objectives:
+  - Build và push image từ pipeline CI
+  - Gắn tag theo commit SHA hoặc phiên bản phát hành
+  - Lưu và truyền digest sang bước triển khai
+- id: bao-mat-chuoi-cung-ung
+  title: Bảo mật chuỗi cung ứng
+  purpose: Giảm rủi ro từ image không tin cậy và xác minh nguồn gốc artifact.
+  objectives:
+  - Quét lỗ hổng image trước khi phát hành
+  - Giải thích SBOM, provenance và chữ ký image
+  - Xác minh image theo digest và chính sách tin cậy
+- id: retention-lifecycle
+  title: Retention & Lifecycle
+  purpose: Kiểm soát dung lượng, chính sách giữ phiên bản và dọn image lỗi thời.
+  objectives:
+  - Xây dựng quy tắc giữ release và xóa tag cũ
+  - Nhận diện tag không còn dùng và artifact mồ côi
+  - Lập kế hoạch quota, storage và garbage collection
+- id: van-hanh-trien-khai
+  title: Vận hành & Triển khai
+  purpose: Đảm bảo image được phân phối ổn định và truy xuất đúng bản khi release hoặc rollback.
+  objectives:
+  - Triển khai bằng image digest đã chốt
+  - Chẩn đoán lỗi push/pull, quyền và giới hạn tốc độ
+  - Đánh giá backup, availability và monitoring registry

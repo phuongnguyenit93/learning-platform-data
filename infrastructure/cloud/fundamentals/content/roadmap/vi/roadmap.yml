@@ -1,0 +1,57 @@
+roadmap:
+- id: cloud-computing-la-gi
+  title: Cloud Computing là gì?
+  purpose: Nắm các đặc trưng cốt lõi của điện toán đám mây và giá trị so với hạ tầng tự vận hành.
+  objectives:
+  - Giải thích on-demand và self-service
+  - Phân biệt pooling, elasticity và measured service
+  - So sánh cloud với mô hình on-premises
+- id: iaas-paas-saas
+  title: IaaS, PaaS & SaaS
+  purpose: Biết chọn mức độ dịch vụ theo quyền kiểm soát, công sức vận hành và nhu cầu ứng dụng.
+  objectives:
+  - Phân biệt ba mô hình dịch vụ IaaS, PaaS, SaaS
+  - Đưa ví dụ workload phù hợp mỗi mô hình
+  - Nhận diện phần hạ tầng người dùng còn quản lý
+- id: mo-hinh-trien-khai-dia-ly
+  title: Mô hình triển khai & địa lý
+  purpose: Hiểu phạm vi triển khai và cách vị trí tài nguyên ảnh hưởng độ trễ, dữ liệu, tính sẵn sàng.
+  objectives:
+  - So sánh public, private và hybrid cloud
+  - Phân biệt region, availability zone và datacenter
+  - Chọn vị trí triển khai theo latency và yêu cầu dữ liệu
+- id: compute-storage-network
+  title: Compute, Storage & Network
+  purpose: Nhận biết các thành phần hạ tầng thiết yếu để phác họa một ứng dụng chạy trên cloud.
+  objectives:
+  - Chọn VM, container hoặc serverless theo bài toán
+  - Phân biệt object, block và file storage
+  - Mô tả VPC, subnet và kết nối internet
+- id: tai-nguyen-dich-vu-quan-ly
+  title: Tài nguyên & dịch vụ quản lý
+  purpose: Làm quen với cơ chế tạo và quản lý tài nguyên cùng vai trò của dịch vụ managed trong kiến trúc.
+  objectives:
+  - Tạo nhóm hoặc project để quản lý tài nguyên
+  - Phân biệt tự quản database với managed database
+  - Giải thích API, console và CLI khi cấp phát dịch vụ
+- id: iam-shared-responsibility
+  title: IAM & Shared Responsibility
+  purpose: Hiểu trách nhiệm bảo mật giữa nhà cung cấp với khách hàng và nguyên tắc phân quyền phù hợp.
+  objectives:
+  - Mô tả shared responsibility theo loại dịch vụ
+  - Phân biệt identity, role và permission
+  - Áp dụng least privilege và bảo vệ dữ liệu cơ bản
+- id: scalability-reliability
+  title: Scalability & Reliability
+  purpose: Thiết kế khả năng tăng tải và chịu lỗi ngay từ những quyết định hạ tầng cơ bản.
+  objectives:
+  - Phân biệt vertical và horizontal scaling
+  - Giải thích load balancing và autoscaling
+  - Nhận diện điểm lỗi đơn và lợi ích đa zone
+- id: monitoring-cloud-cost
+  title: Monitoring & Cloud Cost
+  purpose: Quan sát tình trạng hoạt động và chi tiêu để tránh sử dụng tài nguyên thiếu kiểm soát.
+  objectives:
+  - Theo dõi metrics, logs và cảnh báo cơ bản
+  - Phân biệt pay-as-you-go với chi phí cố định
+  - Tạo budget và rà soát tài nguyên không sử dụng

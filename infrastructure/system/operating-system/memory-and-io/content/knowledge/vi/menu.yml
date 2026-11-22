@@ -1,0 +1,468 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bộ nhớ và I/O là gì, vì sao hệ điều hành phải quản lý chúng
+  - Mối liên hệ giữa CPU, RAM, thiết bị lưu trữ và thiết bị ngoại vi
+  - Từ chương trình đến tiến trình, không gian địa chỉ và tài nguyên I/O
+  - Phân biệt bộ nhớ ảo, bộ nhớ vật lý, swap và lưu trữ lâu dài
+  - 'Bản đồ thuật ngữ: trang, khung trang, ánh xạ, bộ đệm và hàng đợi'
+  - Hành trình dữ liệu từ thiết bị vào bộ nhớ rồi đến ứng dụng
+  - Phân biệt cơ chế của hệ điều hành với chính sách của ứng dụng
+  - Phạm vi kiến thức chung và ví dụ triển khai trên Linux, Windows
+  - 'Điều kiện thực hành: kiến trúc máy, phiên bản nhân và quyền truy cập'
+  - Trình tự học từ mô hình khái niệm đến quan sát và chẩn đoán
+- level1: Nền tảng bộ nhớ
+  level2:
+  - 'Thứ bậc bộ nhớ: thanh ghi, cache CPU, RAM và thiết bị lưu trữ'
+  - Dung lượng, độ trễ và băng thông trong hệ thống bộ nhớ
+  - Đơn vị byte, KiB, MiB, GiB và cách đọc số liệu hệ thống
+  - Địa chỉ, con trỏ, độ rộng địa chỉ và giới hạn kiến trúc
+  - Bộ nhớ vật lý liên tục và các vùng địa chỉ dành cho phần cứng
+  - Căn chỉnh dữ liệu và ảnh hưởng đến truy cập bộ nhớ
+  - Phân biệt truy cập bộ nhớ với yêu cầu đọc ghi thiết bị
+  - Vai trò của MMU, bộ điều khiển bộ nhớ và hệ điều hành
+  - Tính khả biến của RAM và ý nghĩa đối với dữ liệu cần lưu bền
+  - Bộ nhớ dùng chung phần cứng và nhu cầu bảo vệ giữa các tiến trình
+- level1: Không gian địa chỉ
+  level2:
+  - Vì sao mỗi tiến trình cần một không gian địa chỉ ảo
+  - Ánh xạ địa chỉ ảo sang địa chỉ vật lý
+  - Dự trữ vùng địa chỉ và cấp phát trang vật lý theo nhu cầu
+  - Phân trang và phân đoạn trong mô hình quản lý địa chỉ
+  - Trang ảo, khung trang vật lý và độ lệch trong trang
+  - Vùng địa chỉ người dùng và vùng địa chỉ nhân
+  - Cùng một địa chỉ ảo trong hai tiến trình khác nhau
+  - Nhiều địa chỉ ảo cùng ánh xạ đến một trang vật lý
+  - 'Bộ nhớ ảo lớn hơn RAM: điều kiện và giới hạn thực tế'
+  - Lỗ trống, giới hạn không gian địa chỉ và lỗi cấp phát
+- level1: Bảng trang và TLB
+  level2:
+  - Cấu trúc bảng trang và lý do tổ chức nhiều cấp
+  - Phân rã địa chỉ thành chỉ số bảng trang và độ lệch
+  - Quá trình duyệt bảng trang của phần cứng
+  - 'Các thuộc tính trang: hiện diện, quyền truy cập, đã truy cập và đã sửa'
+  - Bộ đệm ánh xạ TLB và vai trò trong hiệu năng
+  - Phân biệt TLB miss, cache miss và page fault
+  - Chi phí bộ nhớ của bảng trang khi không gian địa chỉ lớn
+  - Thay đổi ánh xạ và vô hiệu hóa mục TLB
+  - TLB shootdown khi nhiều CPU cùng sử dụng một không gian địa chỉ
+  - ASID và PCID trong việc nhận diện không gian địa chỉ
+  - Quan hệ giữa kích thước trang, phạm vi bao phủ TLB và phân mảnh
+  - Ví dụ tính ánh xạ địa chỉ với một mô hình bảng trang đơn giản
+- level1: Bộ nhớ tiến trình
+  level2:
+  - Bố cục vùng mã, dữ liệu, BSS, heap, stack và vùng ánh xạ
+  - Bộ nhớ dùng chung giữa các luồng trong cùng tiến trình
+  - Ngăn xếp riêng của từng luồng và chi phí số lượng luồng
+  - Vùng nhớ vô danh và vùng nhớ được hậu thuẫn bởi tệp
+  - Vùng nhớ riêng và vùng nhớ chia sẻ
+  - Trạng thái vùng địa chỉ và các quyền đọc, ghi, thực thi
+  - Vòng đời ánh xạ khi khởi tạo, thay thế và kết thúc tiến trình
+  - Copy-on-write sau fork và thời điểm phát sinh bản sao
+  - Ảnh hưởng của nạp thư viện dùng chung đến số liệu bộ nhớ
+  - Đọc bản đồ bộ nhớ tiến trình qua /proc/<pid>/maps trên Linux
+  - Phân biệt vùng nhớ hợp lệ, vùng bảo vệ và truy cập vượt biên
+- level1: Lỗi trang
+  level2:
+  - Page fault là gì và vì sao không phải mọi lỗi trang đều là lỗi chương trình
+  - Cấp trang theo nhu cầu khi truy cập lần đầu
+  - Trang toàn số không và cấp phát khi ghi lần đầu
+  - Lỗi trang do copy-on-write
+  - Lỗi trang khi đọc tệp được ánh xạ
+  - Minor fault và major fault trong số liệu Linux
+  - Chuỗi xử lý lỗi trang từ CPU đến nhân rồi trở lại ứng dụng
+  - Phân biệt lỗi thiếu trang với lỗi vi phạm quyền truy cập
+  - SIGSEGV và SIGBUS trong các tình huống bộ nhớ thường gặp
+  - Chi phí chạm trang lần đầu và giai đoạn làm nóng ứng dụng
+  - Cấp phát trước, chạm trước và giới hạn của việc giảm lỗi trang
+- level1: Cấp phát trong nhân
+  level2:
+  - Tổ chức bộ nhớ vật lý theo node, zone và khung trang trên Linux
+  - Bộ cấp phát buddy và các khối trang theo bậc
+  - Phân mảnh nội và phân mảnh ngoại
+  - Bộ cấp phát slab và SLUB cho đối tượng trong nhân
+  - So sánh kmalloc, vmalloc và cấp phát theo trang ở mức khái niệm
+  - Liên tục trong không gian ảo và liên tục trong không gian vật lý
+  - Cờ cấp phát, ngữ cảnh được phép chờ và khả năng thu hồi
+  - Các ngưỡng trang trống và vùng dự trữ cho cấp phát
+  - Dồn trang bằng compaction và chi phí di chuyển trang
+  - Trang có thể di chuyển, không thể di chuyển và trang bị ghim
+  - Bộ nhớ nhân có thể thu hồi và bộ nhớ nhân không thể thu hồi
+- level1: Cấp phát ứng dụng
+  level2:
+  - Quan hệ giữa malloc, calloc, realloc, free và hệ điều hành
+  - Heap của bộ cấp phát và các ánh xạ brk, mmap trên Linux
+  - Vì sao cấp phát thành công chưa phản ánh lượng RAM thực dùng
+  - Vì sao free không luôn làm RSS giảm ngay
+  - Phân mảnh heap và lượng bộ nhớ giữ lại trong bộ cấp phát
+  - Arena, cache theo luồng và đánh đổi giữa tốc độ với dung lượng
+  - Cấp phát lớn, cấp phát nhỏ và chi phí đồng bộ
+  - Vòng đời sở hữu vùng nhớ và nguy cơ rò rỉ
+  - Truy cập sau giải phóng, giải phóng hai lần và truy cập vượt biên
+  - Phân biệt rò rỉ, giữ lại bộ nhớ hợp lệ và cache của bộ cấp phát
+  - Lựa chọn chiến lược tái sử dụng bộ đệm theo kích thước và vòng đời
+- level1: Ánh xạ bộ nhớ
+  level2:
+  - mmap là gì và khi nào ánh xạ tệp hữu ích
+  - Ánh xạ vô danh và ánh xạ tệp trên Linux
+  - MAP_PRIVATE, MAP_SHARED và hành vi khi ghi
+  - Căn chỉnh offset, độ dài ánh xạ và ranh giới trang
+  - Quyền truy cập qua PROT_READ, PROT_WRITE, PROT_EXEC
+  - Thay đổi quyền và giải phóng ánh xạ bằng mprotect, munmap
+  - Lỗi trang khi truy cập tệp được ánh xạ
+  - Quan hệ giữa mmap, page cache và dữ liệu bẩn
+  - msync và giới hạn của việc đồng bộ vùng ánh xạ
+  - Tệp bị thu ngắn hoặc thay đổi khi đang được ánh xạ
+  - madvise và gợi ý về cách sử dụng vùng nhớ
+  - mlock, munlock, giới hạn khóa trang và chi phí đối với hệ thống
+  - So sánh mmap với read, write theo kiểu truy cập và yêu cầu lỗi
+- level1: Bộ nhớ chia sẻ
+  level2:
+  - Vì sao chia sẻ trang có thể giảm sao chép giữa các tiến trình
+  - Bộ nhớ chia sẻ có tên, không tên và ánh xạ tệp dùng chung
+  - POSIX shared memory với shm_open và mmap trên Linux
+  - memfd_create và vùng nhớ chia sẻ có descriptor
+  - Vòng đời đối tượng chia sẻ, ánh xạ và thao tác đóng tài nguyên
+  - Nhất quán quan sát dữ liệu và nhu cầu đồng bộ
+  - Khóa, semaphore và thao tác nguyên tử trong phối hợp tiến trình
+  - Bố cục dữ liệu chia sẻ và vấn đề con trỏ khác không gian địa chỉ
+  - Đồng bộ quyền sở hữu và tránh ghi đè dữ liệu đang được đọc
+  - Phân biệt chia sẻ bộ nhớ, truyền thông điệp và sao chép dữ liệu
+  - Tác động của copy-on-write khi tiến trình cùng đọc rồi cùng ghi
+- level1: Bảo vệ bộ nhớ
+  level2:
+  - Cách ly tiến trình bằng không gian địa chỉ và quyền trên trang
+  - Phân biệt quyền của trang với quyền truy cập tệp
+  - Vùng chỉ đọc, vùng không thực thi và nguyên tắc W^X
+  - ASLR và ngẫu nhiên hóa vị trí vùng nhớ
+  - Trang bảo vệ và phát hiện truy cập vượt giới hạn stack
+  - Xóa dữ liệu trang trước khi cấp lại cho tiến trình khác
+  - Rủi ro dữ liệu nhạy cảm trong swap và core dump
+  - Giới hạn khóa trang và chính sách thu thập bản kết xuất
+  - Kiểm tra địa chỉ vùng người dùng khi nhân sao chép dữ liệu
+  - Phân biệt bảo vệ của hệ điều hành với an toàn bộ nhớ của ngôn ngữ
+- level1: Tính cục bộ
+  level2:
+  - Tính cục bộ theo thời gian và theo không gian
+  - Cache line và quan hệ với kiểu truy cập dữ liệu
+  - Truy cập tuần tự, truy cập ngẫu nhiên và bước nhảy địa chỉ
+  - Kích thước tập dữ liệu hoạt động và các tầng cache
+  - Cache hit, cache miss và chi phí chờ bộ nhớ
+  - Băng thông bộ nhớ và khả năng xử lý nhiều yêu cầu đồng thời
+  - Bộ nạp trước phần cứng và giới hạn theo kiểu truy cập
+  - False sharing khi các luồng cập nhật dữ liệu cùng cache line
+  - Nhất quán cache phần cứng và phân biệt với đồng bộ chương trình
+  - Phân biệt cache CPU, TLB, page cache và cache ứng dụng
+  - Ảnh hưởng của bố cục dữ liệu đến lượng trang được chạm
+- level1: NUMA và trang lớn
+  level2:
+  - Kiến trúc NUMA và độ trễ truy cập bộ nhớ cục bộ, từ xa
+  - Chính sách first-touch và vị trí cấp phát trang
+  - Liên hệ giữa gắn CPU, vị trí luồng và vị trí dữ liệu
+  - Chính sách bind, preferred, interleave trên Linux
+  - Quan sát phân bố bộ nhớ bằng numactl và numastat
+  - Cân bằng NUMA tự động và chi phí di chuyển trang
+  - Trang lớn giúp giảm áp lực TLB như thế nào
+  - Transparent Huge Pages và HugeTLB trên Linux
+  - Dự trữ trang lớn, tính sẵn có và phân mảnh
+  - Tách trang, ghép trang và chi phí độ trễ
+  - Đánh đổi giữa kích thước trang, mức dùng RAM và khả năng thu hồi
+  - Kiểm tra cấu hình thực tế trước khi đánh giá NUMA hoặc trang lớn
+- level1: Thu hồi bộ nhớ
+  level2:
+  - Tập trang hoạt động và nhu cầu giữ lại dữ liệu thường dùng
+  - Trang sạch, trang bẩn và điều kiện có thể thu hồi
+  - Chọn trang thay thế và mục tiêu cân bằng chi phí
+  - FIFO, LRU, Clock qua mô hình chuỗi truy cập trang
+  - Bất thường Belady và giới hạn của mô hình FIFO
+  - Xấp xỉ LRU trong hệ điều hành thực tế
+  - Danh sách hoạt động, không hoạt động và nhận diện trang được dùng lại
+  - Multi-Gen LRU trên Linux và điều kiện cấu hình hỗ trợ
+  - Thu hồi nền bằng kswapd và thu hồi trực tiếp khi cấp phát
+  - Quan hệ giữa thu hồi, ghi trả và swap
+  - Tranh chấp giữa bộ nhớ ứng dụng với page cache
+  - Thrashing khi hệ thống liên tục nạp và loại bỏ tập trang cần thiết
+- level1: Swap và OOM
+  level2:
+  - Swap là gì và khác với mở rộng dung lượng RAM như thế nào
+  - Swap partition, swap file và đường đi trang vô danh
+  - Swap-in, swap-out và chi phí đọc ghi phát sinh
+  - Swap sử dụng nhiều và hoạt động swap mạnh là hai tín hiệu khác nhau
+  - Swappiness và các yếu tố ảnh hưởng quyết định thu hồi trên Linux
+  - zram, zswap và đánh đổi giữa CPU, RAM, I/O
+  - Overcommit và mối liên hệ giữa cam kết với cấp phát thực tế
+  - Các chế độ overcommit và CommitLimit trên Linux
+  - Khi nào cấp phát trả lỗi, tiến trình bị kết thúc hoặc hệ thống OOM
+  - OOM toàn hệ thống và OOM trong cgroup
+  - oom_score, oom_score_adj và lựa chọn tiến trình trên Linux
+  - Phân biệt OOM killer trong nhân với dịch vụ userspace như systemd-oomd
+  - Điều tra sự kiện OOM bằng nhật ký và số liệu trước sự cố
+- level1: Page cache
+  level2:
+  - Vai trò của page cache trong đọc ghi tệp
+  - Đường đọc khi cache hit và khi cache miss
+  - Đọc trước bằng readahead và ảnh hưởng của truy cập tuần tự
+  - Ghi vào cache, đánh dấu trang bẩn và ghi trả nền
+  - Phân biệt page cache với cache metadata của hệ thống tệp
+  - Bộ nhớ đệm tệp và dữ liệu ánh xạ cùng chia sẻ trang
+  - Thu hồi trang sạch và xử lý trang bẩn dưới áp lực bộ nhớ
+  - Dirty ratio, dirty bytes và ngưỡng ghi trả trên Linux
+  - Giới hạn tốc độ ghi của ứng dụng khi trang bẩn tích tụ
+  - Vì sao RAM dùng làm cache vẫn có thể phục vụ cấp phát mới
+  - posix_fadvise và gợi ý kiểu truy cập tệp
+  - drop_caches trong thí nghiệm có kiểm soát và giới hạn của kết quả
+- level1: Giới hạn tài nguyên
+  level2:
+  - Phân biệt dung lượng máy, giới hạn tiến trình và giới hạn nhóm
+  - RLIMIT_AS, RLIMIT_DATA, RLIMIT_STACK và RLIMIT_MEMLOCK
+  - Giới hạn descriptor và RLIMIT_NOFILE trong ứng dụng I/O
+  - Mô hình phân cấp của cgroup v2 và giới hạn kế thừa
+  - Đọc memory.current, memory.stat và memory.events
+  - memory.low, memory.min, memory.high, memory.max và mục đích riêng
+  - Giới hạn swap bằng memory.swap.max
+  - Page cache và bộ nhớ nhân trong hạch toán cgroup
+  - PSI và thời gian tác vụ bị đình trệ vì bộ nhớ hoặc I/O
+  - io.stat, io.max, io.weight và điều kiện hỗ trợ
+  - Phân biệt hãm tốc độ, áp lực bộ nhớ và OOM trong container
+  - Ngân sách RAM cho ứng dụng, runtime, bộ đệm và phần dự phòng
+- level1: Nền tảng I/O
+  level2:
+  - I/O là gì và các thành phần tham gia một yêu cầu
+  - Thiết bị khối, thiết bị ký tự, tệp thường, pipe và socket
+  - Giao diện thống nhất của file descriptor và khác biệt ngữ nghĩa
+  - Từ lời gọi thư viện đến syscall, nhân và trình điều khiển
+  - Phân biệt đường điều khiển yêu cầu với đường truyền dữ liệu
+  - Thiết bị tốc độ thấp, tốc độ cao và vai trò của bộ đệm
+  - Độ trễ phục vụ, thời gian xếp hàng và thời gian hoàn tất
+  - Thông lượng, IOPS, kích thước yêu cầu và số yêu cầu đang xử lý
+  - Đọc ghi tuần tự và ngẫu nhiên theo đặc điểm tải
+  - Hoàn tất syscall, hoàn tất thiết bị và lưu bền dữ liệu
+- level1: API đọc ghi
+  level2:
+  - Mở, sử dụng và đóng descriptor qua open, read, write, close
+  - File descriptor, open file description và offset dùng chung trên Linux
+  - dup, fork và ảnh hưởng đến vị trí đọc ghi
+  - Đọc thiếu, ghi thiếu và vòng lặp xử lý đầy đủ dữ liệu
+  - EOF và phân biệt với lỗi đọc
+  - EINTR, EAGAIN và cách xử lý theo loại thao tác
+  - pread, pwrite và đọc ghi theo offset tường minh
+  - readv, writev và gom nhiều vùng dữ liệu
+  - lseek và giới hạn đối với các loại descriptor
+  - O_APPEND, ghi nối tiếp và giới hạn bảo đảm nguyên tử
+  - PIPE_BUF và tính nguyên tử khi nhiều bên cùng ghi pipe
+  - Vòng đời descriptor, rò rỉ tài nguyên và đóng trong chương trình nhiều luồng
+- level1: Bộ đệm I/O
+  level2:
+  - Phân biệt bộ đệm thư viện, bộ đệm ứng dụng và bộ đệm trong nhân
+  - Buffered I/O và đường đi qua page cache
+  - Direct I/O với O_DIRECT và các ràng buộc theo hệ thống tệp
+  - Căn chỉnh địa chỉ bộ đệm, kích thước và offset khi dùng direct I/O
+  - Phân biệt direct I/O, synchronous I/O và asynchronous I/O
+  - Vì sao bỏ qua page cache không đồng nghĩa dữ liệu đã lưu bền
+  - Ảnh hưởng khi kết hợp buffered I/O, direct I/O và mmap
+  - Kích thước bộ đệm, số syscall và đánh đổi độ trễ
+  - Gom lô yêu cầu và giới hạn lượng dữ liệu chờ
+  - Sao chép giữa vùng người dùng và vùng nhân
+  - sendfile, splice, copy_file_range và các cách giảm sao chép trên Linux
+  - Giới hạn của khái niệm zero-copy theo từng đường dữ liệu
+- level1: Thiết bị và DMA
+  level2:
+  - Vai trò của trình điều khiển trong vòng đời yêu cầu I/O
+  - Thanh ghi thiết bị và I/O ánh xạ bộ nhớ ở mức khái niệm
+  - Phân biệt MMIO với ánh xạ tệp của ứng dụng
+  - Thăm dò trạng thái và thông báo bằng ngắt
+  - DMA và truyền dữ liệu giữa thiết bị với bộ nhớ
+  - Địa chỉ CPU, địa chỉ vật lý và địa chỉ DMA
+  - IOMMU trong dịch địa chỉ và cách ly truy cập thiết bị
+  - Bộ đệm DMA nhất quán và ánh xạ DMA theo luồng
+  - Ghim trang và bảo đảm vòng đời vùng nhớ đang truyền dữ liệu
+  - Phân tán, gom dữ liệu bằng scatter-gather DMA
+  - Quan hệ giữa cache CPU, rào cản bộ nhớ và dữ liệu DMA
+  - Chi phí ngắt, gom ngắt và thăm dò khi tải cao
+- level1: I/O khối
+  level2:
+  - Đường đi yêu cầu từ hệ thống tệp đến tầng khối và thiết bị
+  - Sector logic, sector vật lý, block và căn chỉnh truy cập
+  - HDD, SSD, NVMe và đặc điểm ảnh hưởng đến I/O
+  - Cấu trúc bio và request ở mức tổng quan Linux
+  - Hàng đợi phần mềm và hàng đợi phần cứng trong blk-mq
+  - Gộp, chia nhỏ và sắp xếp yêu cầu đọc ghi
+  - Queue depth và khai thác song song của thiết bị
+  - Bộ lập lịch mq-deadline, BFQ, Kyber và none khi được hỗ trợ
+  - Đánh đổi giữa công bằng, thông lượng và độ trễ đuôi
+  - Bộ đệm ghi trong thiết bị và bảo vệ khi mất nguồn
+  - Discard, TRIM và ảnh hưởng đến hiệu năng SSD
+  - Quan sát khả năng thiết bị và cấu hình qua lsblk, sysfs
+- level1: Mô hình I/O
+  level2:
+  - Blocking I/O và trạng thái chờ của luồng
+  - Non-blocking I/O và ý nghĩa thao tác chưa thể tiến hành
+  - Synchronous I/O và asynchronous I/O theo cách hoàn tất
+  - Sự khác nhau giữa sẵn sàng xử lý và đã hoàn tất thao tác
+  - Vì sao non-blocking không tự động tạo I/O bất đồng bộ
+  - Phạm vi tác dụng của O_NONBLOCK theo loại descriptor
+  - Một luồng cho mỗi kết nối, nhóm luồng và vòng lặp sự kiện
+  - Tác vụ chặn trong vòng lặp sự kiện và hậu quả độ trễ
+  - Backpressure khi bên nhận hoặc thiết bị xử lý không kịp
+  - Giới hạn yêu cầu đang xử lý để kiểm soát RAM và hàng đợi
+  - Hủy thao tác, timeout và vòng đời tài nguyên liên quan
+- level1: Ghép kênh I/O
+  level2:
+  - Vì sao cần theo dõi nhiều descriptor trong một luồng
+  - select, tập descriptor và các giới hạn giao diện
+  - poll và chi phí quét danh sách descriptor
+  - 'epoll: đăng ký quan tâm và nhận danh sách sự kiện'
+  - Level-triggered và edge-triggered
+  - Đọc hoặc ghi đến EAGAIN khi xử lý edge-triggered
+  - EPOLLONESHOT và quản lý quyền xử lý giữa các luồng
+  - Sẵn sàng đọc, sẵn sàng ghi, lỗi và đóng kết nối
+  - Tránh vòng lặp bận khi luôn theo dõi khả năng ghi
+  - Phân biệt khả năng dùng epoll cho socket, pipe và tệp thường
+  - Kết hợp eventfd, timerfd, signalfd với vòng lặp sự kiện Linux
+  - kqueue và IOCP trong đối chiếu mô hình sự kiện giữa hệ điều hành
+- level1: I/O bất đồng bộ
+  level2:
+  - Vòng đời nộp yêu cầu, xử lý và nhận kết quả
+  - Phân biệt POSIX AIO, Linux native AIO và io_uring
+  - Hàng đợi nộp yêu cầu và hàng đợi hoàn tất của io_uring
+  - SQE, CQE và định danh yêu cầu để đối chiếu kết quả
+  - Nộp nhiều yêu cầu và thu nhiều kết quả theo lô
+  - Vòng đời bộ đệm, descriptor và dữ liệu gắn với yêu cầu
+  - Kết quả lỗi, hoàn tất một phần và thứ tự hoàn tất
+  - Liên kết yêu cầu, timeout và hủy yêu cầu
+  - Đăng ký bộ đệm, đăng ký tệp và chi phí giữ tài nguyên
+  - SQPOLL, IOPOLL và đánh đổi giữa CPU với độ trễ
+  - Phân biệt xử lý bất đồng bộ với công việc được chuyển sang luồng trợ giúp
+  - Kiểm tra hỗ trợ theo nhân, thiết bị và chính sách bảo mật
+  - Giới hạn số yêu cầu đang xử lý và kích thước hàng đợi hoàn tất
+- level1: Độ bền dữ liệu
+  level2:
+  - Phân biệt ghi thành công, quan sát được và tồn tại sau sự cố
+  - fflush và phạm vi đẩy dữ liệu của thư viện
+  - fsync, fdatasync và dữ liệu, metadata cần đồng bộ
+  - O_SYNC, O_DSYNC và hành vi ghi trên Linux
+  - sync, syncfs và phạm vi đồng bộ
+  - Đồng bộ tệp được ánh xạ qua msync
+  - Ghi tệp tạm, đồng bộ, đổi tên và đồng bộ thư mục trên Linux
+  - Quan hệ giữa nhật ký hệ thống tệp với độ bền dữ liệu ứng dụng
+  - Flush thiết bị, FUA và bộ đệm có bảo vệ mất nguồn
+  - Ghi rách, ranh giới nguyên tử và điều kiện bảo đảm
+  - Xử lý lỗi ghi trả xuất hiện ở thao tác đồng bộ hoặc thao tác sau
+  - Kiểm thử khôi phục sau sự cố theo mô hình lỗi xác định
+- level1: Đo bộ nhớ
+  level2:
+  - Phân biệt bộ nhớ ảo, bộ nhớ thường trú và bộ nhớ được cam kết
+  - RSS, PSS, USS và cách tính phần bộ nhớ chia sẻ
+  - Đọc MemFree, MemAvailable, Cached, Dirty, Writeback trong /proc/meminfo
+  - Đọc VmSize, VmRSS, VmSwap và giới hạn số liệu trong /proc/<pid>/status
+  - Phân tích ánh xạ chi tiết qua smaps và smaps_rollup
+  - free, top, ps, pmap và khác biệt cách tổng hợp
+  - vmstat và các chỉ số lỗi trang, swap, tiến trình chờ
+  - Quan sát slab bằng slabtop và /proc/slabinfo
+  - Kiểm tra phân mảnh vật lý bằng buddyinfo và pagetypeinfo
+  - Quan sát trang lớn, NUMA và bộ nhớ bị khóa
+  - Đo cache miss, TLB miss, page fault bằng perf khi phần cứng hỗ trợ
+  - Lấy mẫu theo thời gian và tránh cộng trùng bộ nhớ chia sẻ
+- level1: Đo I/O
+  level2:
+  - Phân biệt số byte ứng dụng yêu cầu với I/O thực đến thiết bị
+  - Đọc số liệu tiến trình từ /proc/<pid>/io
+  - Đọc số liệu thiết bị từ /proc/diskstats và sysfs
+  - 'iostat: thông lượng, IOPS, await và độ dài hàng đợi'
+  - Giới hạn diễn giải %util trên thiết bị có xử lý song song
+  - pidstat -d, iotop và điều kiện quyền truy cập
+  - strace để quan sát syscall, thời gian chờ và lỗi
+  - perf, eBPF, bpftrace để theo dõi sự kiện I/O khi có hỗ trợ
+  - Đo phân bố độ trễ và các phân vị p50, p95, p99
+  - Quan hệ giữa thông lượng, độ trễ và số yêu cầu theo định luật Little
+  - CPU iowait, tác vụ trạng thái D và giới hạn suy luận
+  - Đối chiếu số liệu ứng dụng, tiến trình, cgroup và thiết bị
+- level1: Chẩn đoán bộ nhớ
+  level2:
+  - Quy trình xác định triệu chứng, phạm vi và thời điểm tăng bộ nhớ
+  - RAM trống thấp nhưng MemAvailable còn cao
+  - RSS tăng vì chạm trang, cache ứng dụng hoặc rò rỉ
+  - Bộ cấp phát giữ RAM sau khi giải phóng dữ liệu
+  - Tiến trình có không gian ảo lớn nhưng RSS nhỏ
+  - Major fault tăng và độ trễ truy cập tăng đột biến
+  - Swap hoạt động mạnh, thu hồi trực tiếp và thrashing
+  - Cấp phát thất bại dù máy vẫn còn bộ nhớ trống
+  - Độ trễ do compaction, trang lớn hoặc truy cập NUMA từ xa
+  - Phân biệt lỗi SIGSEGV, SIGBUS, OOM và lỗi cấp phát của ứng dụng
+  - Container bị OOM khi máy chủ chưa hết RAM
+  - Lập giả thuyết và xác minh bằng nhiều nguồn số liệu độc lập
+- level1: Chẩn đoán I/O
+  level2:
+  - Quy trình lần theo đường dữ liệu từ ứng dụng đến thiết bị
+  - Ứng dụng đọc nhiều nhưng thiết bị đọc ít do cache hit
+  - Ghi nhanh lúc đầu rồi chậm khi trang bẩn đạt ngưỡng
+  - Độ trễ cao do hàng đợi, thiết bị hay thao tác đồng bộ
+  - Thông lượng thấp vì quá nhiều yêu cầu nhỏ hoặc syscall
+  - Độ trễ đuôi tăng khi trộn đọc, ghi và tải nền
+  - CPU cao do sao chép, xử lý sự kiện hoặc thăm dò
+  - Tắc nghẽn do descriptor, giới hạn cgroup hoặc thiếu bộ đệm
+  - Ứng dụng treo ở I/O và diễn giải trạng thái chờ trong nhân
+  - Vòng lặp sự kiện bận hoặc bỏ sót sự kiện
+  - Phân biệt ENOSPC, EDQUOT, EIO và lỗi quyền truy cập
+  - Phân biệt nghẽn I/O cục bộ với nghẽn trên lưu trữ mạng hoặc máy ảo
+- level1: Môi trường ảo hóa
+  level2:
+  - Phân biệt bộ nhớ ứng dụng, hệ điều hành khách và máy chủ
+  - Dịch địa chỉ hai tầng với EPT, NPT ở mức khái niệm
+  - Overcommit bộ nhớ trên máy chủ ảo hóa và giới hạn tài nguyên thực
+  - Ballooning và phối hợp thu hồi bộ nhớ giữa khách với máy chủ
+  - Swap trong máy khách, swap trên máy chủ và nguy cơ đình trệ
+  - Hợp nhất trang giống nhau bằng KSM và các đánh đổi
+  - NUMA, trang lớn và vị trí bộ nhớ của máy ảo
+  - Đường I/O qua thiết bị ảo, virtio và lưu trữ phía máy chủ
+  - Bộ đệm nhiều tầng trong máy khách, máy chủ và dịch vụ lưu trữ
+  - Đối chiếu số liệu khách, máy chủ và giới hạn lưu trữ dùng chung
+- level1: Đối chiếu Windows
+  level2:
+  - Bộ nhớ ảo, trạng thái reserve, commit và trang thường trú
+  - VirtualAlloc, VirtualFree và vòng đời vùng nhớ
+  - Working set, private bytes, commit charge và giới hạn cam kết
+  - Soft fault, hard fault và quan hệ với đọc dữ liệu từ lưu trữ
+  - Page file, danh sách standby và bộ nhớ đệm hệ thống
+  - Ánh xạ tệp qua CreateFileMapping và MapViewOfFile
+  - Bảo vệ vùng nhớ bằng VirtualProtect và trang bảo vệ
+  - I/O đồng bộ và overlapped I/O với ReadFile, WriteFile
+  - IOCP và mô hình thông báo hoàn tất
+  - Quản lý OVERLAPPED, bộ đệm và thao tác hủy I/O
+  - Bộ đệm tệp, FILE_FLAG_NO_BUFFERING và FILE_FLAG_WRITE_THROUGH
+  - FlushFileBuffers và yêu cầu lưu bền
+  - Quan sát bằng Task Manager, Resource Monitor, Performance Monitor, RAMMap
+  - Đối chiếu thuật ngữ Windows và Linux khi đọc báo cáo bộ nhớ, I/O
+- level1: Liên hệ Java
+  level2:
+  - Phân biệt Java heap với toàn bộ bộ nhớ của tiến trình JVM
+  - Metaspace, code cache, stack luồng và bộ nhớ native
+  - -Xmx và ngân sách RAM ngoài heap
+  - Cấp phát đối tượng, chạm trang và số liệu RSS
+  - ByteBuffer trực tiếp và vòng đời bộ nhớ ngoài heap
+  - MappedByteBuffer và ánh xạ tệp của hệ điều hành
+  - Bộ đệm Java, page cache và số liệu I/O thiết bị
+  - FileChannel và các cách giảm sao chép dữ liệu
+  - Selector và cơ chế ghép kênh của nền tảng
+  - AsynchronousFileChannel và giới hạn suy luận từ tên API
+  - FileChannel.force và yêu cầu lưu bền theo nền tảng
+  - Native Memory Tracking, /proc và đối chiếu số liệu JVM
+  - Phân biệt OutOfMemoryError của JVM với OOM kill của hệ điều hành
+  - Giới hạn container và khoảng dự phòng cho bộ nhớ native
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập bản đồ đường đi bộ nhớ và I/O cho một chương trình đọc ghi tệp
+  - Quan sát dự trữ vùng địa chỉ, cấp phát và chạm từng trang
+  - Đo copy-on-write trước và sau khi tiến trình ghi dữ liệu
+  - So sánh truy cập tuần tự, ngẫu nhiên và theo bước nhảy
+  - Đối chiếu read, mmap và direct I/O trên cùng dữ liệu
+  - So sánh blocking, non-blocking và xử lý bất đồng bộ
+  - Đo ảnh hưởng kích thước yêu cầu và queue depth bằng fio
+  - Tách phép đo cache nóng, cache lạnh và lượng dữ liệu lớn hơn RAM
+  - Giới hạn vùng thử nghiệm, dung lượng và tải để bảo vệ dữ liệu
+  - Tái hiện thu hồi, swap, OOM trong môi trường có giới hạn riêng
+  - Đo chi phí fsync và so sánh ghi từng lần với ghi theo lô
+  - Kiểm tra độ bền bằng quy trình gây sự cố và khôi phục có kiểm soát
+  - So sánh chỉ số ứng dụng Java với bộ nhớ và I/O của tiến trình
+  - Ghi nhận phiên bản hệ điều hành, phần cứng, cấu hình và sai số
+  - Thiết kế thay đổi từ giả thuyết, đo lại và quyết định giữ hay hoàn tác

@@ -1,0 +1,57 @@
+roadmap:
+- id: distributed-tracing-fundamentals
+  title: Distributed Tracing Fundamentals
+  purpose: Hiểu cách theo dõi một request xuyên qua nhiều service/process để tìm quan hệ nhân quả và điểm chậm.
+  objectives:
+  - Phân biệt trace, span và distributed trace
+  - Mô tả trace graph với root span và child spans
+  - So sánh tracing với metrics và logs
+- id: span-context-attributes
+  title: Span Context & Attributes
+  purpose: Đọc thông tin định danh và metadata của từng operation để diễn giải trace chính xác.
+  objectives:
+  - Phân biệt Trace ID, Span ID và Parent Span ID
+  - Nhận diện SpanKind, status, events và links
+  - Chọn attributes có ý nghĩa, tránh dữ liệu nhạy cảm
+- id: context-propagation
+  title: Context Propagation
+  purpose: Duy trì mối liên hệ giữa spans khi request đi qua service, thread hoặc message boundary.
+  objectives:
+  - Giải thích context propagation và parent-child relationship
+  - Truyền trace context qua HTTP headers và message metadata
+  - Nhận diện context bị mất hoặc tạo trace mới ngoài ý muốn
+- id: w3c-trace-context
+  title: W3C Trace Context
+  purpose: Áp dụng định dạng liên thông để nhiều tracing SDK hoặc vendor cùng tham gia một trace.
+  objectives:
+  - Đọc và tạo traceparent với trace ID, span ID, flags
+  - Hiểu vai trò tracestate và quy tắc forwarding
+  - Nhận diện trust boundary và rủi ro đưa PII vào trace headers
+- id: instrumentation-semantic-conventions
+  title: Instrumentation & Semantic Conventions
+  purpose: Tạo spans nhất quán quanh các thao tác quan trọng để trace có thể phân tích và so sánh.
+  objectives:
+  - Phân biệt manual với automatic instrumentation
+  - Đặt span name, kind và attributes theo ngữ cảnh nghiệp vụ
+  - Áp dụng semantic conventions cho HTTP, database và messaging
+- id: sampling-data-volume
+  title: Sampling & Data Volume
+  purpose: Kiểm soát chi phí thu thập trace mà vẫn giữ khả năng quan sát các request quan trọng.
+  objectives:
+  - Phân biệt head sampling và tail sampling
+  - Chọn sampling policy theo traffic và lỗi
+  - Đánh giá tác động đến trace completeness và chi phí lưu trữ
+- id: export-trace-pipeline
+  title: Export & Trace Pipeline
+  purpose: Đưa telemetry từ ứng dụng tới collector và backend theo pipeline có thể mở rộng.
+  objectives:
+  - Mô tả TracerProvider, SpanProcessor và exporter
+  - Giải thích vai trò OpenTelemetry Collector
+  - Cấu hình OTLP endpoint, transport và pipeline cơ bản
+- id: trace-analysis-troubleshooting
+  title: Trace Analysis & Troubleshooting
+  purpose: Dùng trace để xác định bottleneck, lỗi xuyên service và cải thiện độ tin cậy hệ thống.
+  objectives:
+  - Đọc waterfall, duration và critical path giữa các spans
+  - Khoanh vùng latency, failed span và missing parent
+  - Liên kết trace với logs/metrics qua trace ID và correlation

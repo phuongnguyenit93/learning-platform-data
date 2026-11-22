@@ -1,0 +1,7 @@
+# Operating System Memory And Io
+
+Operating System Memory and I/O giải thích cách hệ điều hành quản lý bộ nhớ và điều phối dữ liệu giữa ứng dụng, kernel và thiết bị. Phần memory tập trung vào không gian địa chỉ, virtual memory, paging, ánh xạ và bảo vệ vùng nhớ, cấp phát và thu hồi tài nguyên. Phần I/O theo dõi đường đi của yêu cầu từ system call qua kernel tới file hoặc thiết bị, bao gồm buffering, cache, đồng bộ và xử lý bất đồng bộ. Đây là nền tảng để hiểu hiệu năng, khả năng cô lập tiến trình và các lỗi tài nguyên thường gặp khi vận hành hệ thống.
+
+Module dành cho người đã biết sử dụng Linux hoặc một hệ điều hành hiện đại ở mức cơ bản, hiểu process, file và command line. Lộ trình bắt đầu từ kiến trúc bộ nhớ, virtual memory và page table; tiếp theo là memory mapping, protection, allocation, page cache, reclaim và swap. Nửa sau chuyển sang I/O subsystem, system calls, file buffering, device I/O và asynchronous operations. Các mốc cuối hướng dẫn đọc chỉ số hệ thống để phân tích memory pressure, page fault, OOM, I/O wait và latency.
+
+Sau khi hoàn thành, bạn có thể mô tả quá trình ánh xạ địa chỉ ảo, giải thích page fault và swap, phân biệt các kiểu I/O phổ biến, đồng thời sử dụng công cụ dòng lệnh để tìm dấu hiệu nghẽn bộ nhớ hoặc thiết bị. Các chi tiết triển khai có thể khác giữa Linux, Windows và từng phiên bản kernel; khi thực hành, hãy ghi rõ môi trường và đối chiếu hành vi quan sát được với tài liệu của hệ điều hành đang dùng.

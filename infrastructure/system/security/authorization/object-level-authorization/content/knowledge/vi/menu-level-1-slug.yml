@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 1
+- title: Định danh đối tượng
+  slug: object-identification
+  index: 2
+- title: Ngữ cảnh chủ thể
+  slug: subject-context
+  index: 3
+- title: Hành động và phạm vi
+  slug: actions-and-scopes
+  index: 4
+- title: Mô hình chính sách
+  slug: policy-model
+  index: 5
+- title: Quyền sở hữu
+  slug: ownership
+  index: 6
+- title: Vai trò và thuộc tính
+  slug: roles-and-attributes
+  index: 7
+- title: Quan hệ và kế thừa
+  slug: relationships-and-inheritance
+  index: 8
+- title: Chia sẻ và ủy quyền
+  slug: sharing-and-delegation
+  index: 9
+- title: Cách ly tenant
+  slug: tenant-isolation
+  index: 10
+- title: Kiến trúc kiểm soát
+  slug: enforcement-architecture
+  index: 11
+- title: Thiết kế API
+  slug: api-design
+  index: 12
+- title: Truy vấn tập dữ liệu
+  slug: dataset-queries
+  index: 13
+- title: Ghi và cập nhật
+  slug: writes-and-updates
+  index: 14
+- title: Quan hệ lồng nhau
+  slug: nested-relationships
+  index: 15
+- title: Thao tác hàng loạt
+  slug: bulk-operations
+  index: 16
+- title: GraphQL và RPC
+  slug: graphql-and-rpc
+  index: 17
+- title: Tác vụ bất đồng bộ
+  slug: asynchronous-jobs
+  index: 18
+- title: Tệp và kho đối tượng
+  slug: files-and-object-storage
+  index: 19
+- title: Dữ liệu và tìm kiếm
+  slug: data-and-search
+  index: 20
+- title: Vòng đời quyền
+  slug: permission-lifecycle
+  index: 21
+- title: Nhất quán và bộ nhớ đệm
+  slug: consistency-and-caching
+  index: 22
+- title: Hiệu năng và khả dụng
+  slug: performance-and-availability
+  index: 23
+- title: Kênh rò rỉ
+  slug: leakage-channels
+  index: 24
+- title: Quản trị đặc quyền
+  slug: privileged-access-management
+  index: 25
+- title: Chiến lược kiểm thử
+  slug: testing-strategy
+  index: 26
+- title: Kiểm chứng tự động
+  slug: automated-verification
+  index: 27
+- title: Nhật ký và giám sát
+  slug: audit-logs-and-monitoring
+  index: 28
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 29
+- title: Quy trình triển khai
+  slug: deployment-workflow
+  index: 30
+- title: Tình huống thực hành
+  slug: hands-on-scenarios
+  index: 31

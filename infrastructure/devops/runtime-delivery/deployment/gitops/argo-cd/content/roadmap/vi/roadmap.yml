@@ -1,0 +1,57 @@
+roadmap:
+- id: gitops-vong-lap-doi-soat
+  title: GitOps & vòng lặp đối soát
+  purpose: Hiểu vì sao Git là nguồn trạng thái mong muốn và Argo CD liên tục đối chiếu với Kubernetes.
+  objectives:
+  - Mô tả luồng commit → render manifests → compare → sync.
+  - Phân biệt desired state và live state.
+  - Giải thích trạng thái Synced/OutOfSync và drift.
+- id: cai-dat-thanh-phan
+  title: Cài đặt & thành phần
+  purpose: Triển khai Argo CD thử nghiệm và nhận diện vai trò của các thành phần điều khiển.
+  objectives:
+  - Cài đặt Argo CD trên cluster Kubernetes thử nghiệm.
+  - Truy cập UI/CLI với thông tin đăng nhập an toàn.
+  - Nêu vai trò API server, repo-server và application controller.
+- id: git-repo-manifest
+  title: Git repo & manifest
+  purpose: Chuẩn bị cấu hình triển khai có phiên bản để Argo CD đọc và dựng resource.
+  objectives:
+  - Tổ chức repo theo ứng dụng và môi trường.
+  - Chọn YAML thuần, Kustomize hoặc Helm chart.
+  - Kiểm tra targetRevision, path và biến thể cấu hình.
+- id: khai-bao-application
+  title: Khai báo Application
+  purpose: Định nghĩa rõ nguồn triển khai, đích Kubernetes và phạm vi quản lý của ứng dụng.
+  objectives:
+  - Tạo Application với source, destination và project.
+  - Phân biệt cluster đích với namespace đích.
+  - Quản lý Application dạng YAML trong Git.
+- id: sync-tu-phuc-hoi
+  title: Sync & tự phục hồi
+  purpose: Kiểm soát thời điểm áp dụng cấu hình và hệ quả của tự động đồng bộ.
+  objectives:
+  - Thực hiện diff và manual sync rồi quan sát kết quả.
+  - Cấu hình automated sync, selfHeal và prune phù hợp.
+  - Phân biệt trạng thái sync với health của tài nguyên.
+- id: project-bao-mat
+  title: Project & bảo mật
+  purpose: Giới hạn nguồn, đích và quyền thao tác để tránh triển khai sai hoặc vượt quyền.
+  objectives:
+  - Tạo AppProject giới hạn repo, cluster và namespace.
+  - Áp dụng RBAC theo vai trò và nguyên tắc ít quyền.
+  - Bảo vệ credential repo/cluster và tránh đưa secret thuần vào Git.
+- id: nhieu-app-thu-tu-trien-khai
+  title: Nhiều app & thứ tự triển khai
+  purpose: Quản lý nhiều môi trường và sắp xếp thứ tự áp dụng những tài nguyên phụ thuộc.
+  objectives:
+  - Dùng ApplicationSet để sinh Application theo template.
+  - Áp dụng sync waves và hooks khi cần thứ tự triển khai.
+  - Phân biệt ApplicationSet với một Application đơn.
+- id: giam-sat-phuc-hoi-release
+  title: Giám sát & phục hồi release
+  purpose: Phát hiện lỗi đồng bộ, truy vết thay đổi và phục hồi thông qua trạng thái khai báo.
+  objectives:
+  - Đọc resource tree, health, sync history và sự kiện.
+  - Xử lý OutOfSync, Degraded và lỗi render manifest.
+  - Thực hành revert commit Git rồi sync để phục hồi phiên bản.

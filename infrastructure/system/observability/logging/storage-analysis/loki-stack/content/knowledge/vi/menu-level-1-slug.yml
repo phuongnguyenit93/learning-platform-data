@@ -1,0 +1,91 @@
+menu:
+- title: Nền tảng Loki
+  slug: loki-foundations
+  index: 0
+- title: Kiến trúc Loki
+  slug: loki-architecture
+  index: 1
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 2
+- title: Thiết kế nhãn
+  slug: label-design
+  index: 3
+- title: Siêu dữ liệu
+  slug: metadata
+  index: 4
+- title: Khởi tạo môi trường
+  slug: environment-setup
+  index: 5
+- title: Thu thập với Alloy
+  slug: alloy-collection
+  index: 6
+- title: Xử lý đầu vào
+  slug: input-processing
+  index: 7
+- title: Nguồn nhật ký
+  slug: log-sources
+  index: 8
+- title: Nhật ký Java
+  slug: java-logs
+  index: 9
+- title: Nhật ký Kubernetes
+  slug: kubernetes-logs
+  index: 10
+- title: API và OpenTelemetry
+  slug: api-opentelemetry
+  index: 11
+- title: Lưu trữ và TSDB
+  slug: storage-tsdb
+  index: 12
+- title: Lưu giữ và xóa
+  slug: retention-deletion
+  index: 13
+- title: LogQL cơ bản
+  slug: logql-basics
+  index: 14
+- title: LogQL phân tích trường
+  slug: logql-field-parsing
+  index: 15
+- title: Số đo từ nhật ký
+  slug: log-derived-metrics
+  index: 16
+- title: LogQL nâng cao
+  slug: advanced-logql
+  index: 17
+- title: Khám phá với Grafana
+  slug: grafana-exploration
+  index: 18
+- title: Dashboard và liên kết
+  slug: dashboards-links
+  index: 19
+- title: Quy tắc và cảnh báo
+  slug: rules-alerts
+  index: 20
+- title: Bảo mật và tenant
+  slug: tenant-security
+  index: 21
+- title: Triển khai vận hành
+  slug: production-deployment
+  index: 22
+- title: Sẵn sàng và mở rộng
+  slug: availability-scaling
+  index: 23
+- title: Hiệu năng và chi phí
+  slug: performance-costs
+  index: 24
+- title: Giám sát Loki Stack
+  slug: loki-monitoring
+  index: 25
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 26
+- title: Kiểm thử và nghiệm thu
+  slug: testing-acceptance
+  index: 27
+- title: Nâng cấp và chuyển đổi
+  slug: upgrades-migration
+  index: 28
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 29

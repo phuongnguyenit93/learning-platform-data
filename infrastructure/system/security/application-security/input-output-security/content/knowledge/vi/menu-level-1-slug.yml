@@ -1,0 +1,130 @@
+menu:
+- title: Mô hình Input Output Security
+  slug: input-output-security-model
+  index: 0
+- title: Nguồn dữ liệu không tin cậy
+  slug: untrusted-inputs
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 2
+- title: Input validation
+  slug: input-validation
+  index: 3
+- title: Allowlist và blocklist
+  slug: allowlists-blocklists
+  index: 4
+- title: Kiểu và ràng buộc dữ liệu
+  slug: data-types-constraints
+  index: 5
+- title: Kích thước và tài nguyên
+  slug: size-resource-limits
+  index: 6
+- title: Canonicalization
+  slug: canonicalization
+  index: 7
+- title: Unicode và encoding
+  slug: unicode-encoding
+  index: 8
+- title: Output encoding
+  slug: output-encoding
+  index: 9
+- title: HTML context
+  slug: html-context
+  index: 10
+- title: JavaScript context
+  slug: javascript-context
+  index: 11
+- title: CSS context
+  slug: css-context
+  index: 12
+- title: URL context
+  slug: url-context
+  index: 13
+- title: JSON context
+  slug: json-context
+  index: 14
+- title: XML context
+  slug: xml-context
+  index: 15
+- title: Template engine
+  slug: template-engines
+  index: 16
+- title: HTML sanitization
+  slug: html-sanitization
+  index: 17
+- title: Cross-site scripting
+  slug: cross-site-scripting
+  index: 18
+- title: DOM security
+  slug: dom-security
+  index: 19
+- title: HTTP request security
+  slug: http-request-security
+  index: 20
+- title: HTTP response security
+  slug: http-response-security
+  index: 21
+- title: Header và cookie
+  slug: headers-cookies
+  index: 22
+- title: File và path input
+  slug: file-path-inputs
+  index: 23
+- title: HTML upload và rich content
+  slug: html-uploads-rich-content
+  index: 24
+- title: Dữ liệu API
+  slug: api-data
+  index: 25
+- title: Output cho database
+  slug: database-outputs
+  index: 26
+- title: Output cho shell và hệ điều hành
+  slug: shell-os-outputs
+  index: 27
+- title: Output cho log
+  slug: log-outputs
+  index: 28
+- title: Output cho message
+  slug: messaging-outputs
+  index: 29
+- title: Serialization và deserialization
+  slug: serialization-deserialization
+  index: 30
+- title: Error handling
+  slug: error-handling
+  index: 31
+- title: CORS và cross-origin output
+  slug: cors-cross-origin
+  index: 32
+- title: Content Security Policy
+  slug: content-security-policy
+  index: 33
+- title: Browser output security
+  slug: browser-output-security
+  index: 34
+- title: Java thực hành
+  slug: java-practice
+  index: 35
+- title: Kiểm thử input
+  slug: input-testing
+  index: 36
+- title: Kiểm thử output
+  slug: output-testing
+  index: 37
+- title: Giám sát và kiểm toán
+  slug: monitoring-auditing
+  index: 38
+- title: Quản trị và tuân thủ
+  slug: governance-compliance
+  index: 39
+- title: Anti-pattern
+  slug: antipatterns
+  index: 40
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 41
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 42

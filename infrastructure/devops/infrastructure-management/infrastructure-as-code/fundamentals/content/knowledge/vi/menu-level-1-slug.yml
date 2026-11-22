@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phạm vi IaC
+  slug: iac-scope
+  index: 1
+- title: Mô hình tài nguyên
+  slug: resource-model
+  index: 2
+- title: Cách mô tả hạ tầng
+  slug: infrastructure-description
+  index: 3
+- title: Lặp và hội tụ
+  slug: idempotency-and-convergence
+  index: 4
+- title: Hệ sinh thái công cụ
+  slug: tool-ecosystem
+  index: 5
+- title: Môi trường thực thi
+  slug: execution-environments
+  index: 6
+- title: Đầu vào và đầu ra
+  slug: inputs-and-outputs
+  index: 7
+- title: Đồ thị phụ thuộc
+  slug: dependency-graphs
+  index: 8
+- title: Tổ chức mã nguồn
+  slug: source-code-organization
+  index: 9
+- title: Tái sử dụng cấu hình
+  slug: reusable-configurations
+  index: 10
+- title: Tách biệt môi trường
+  slug: environment-isolation
+  index: 11
+- title: Trạng thái quản lý
+  slug: state-management
+  index: 12
+- title: Quy trình thay đổi
+  slug: change-workflow
+  index: 13
+- title: Vòng đời tài nguyên
+  slug: resource-lifecycle
+  index: 14
+- title: Sai lệch cấu hình
+  slug: configuration-drift
+  index: 15
+- title: Kiểm thử IaC
+  slug: iac-testing
+  index: 16
+- title: Bảo mật và bí mật
+  slug: security-and-secrets
+  index: 17
+- title: Chính sách kiểm soát
+  slug: policy-enforcement
+  index: 18
+- title: Tích hợp CI/CD
+  slug: cicd-integration
+  index: 19
+- title: Sự cố và phục hồi
+  slug: incidents-and-recovery
+  index: 20
+- title: Chi phí và quan sát
+  slug: cost-and-observability
+  index: 21
+- title: Hệ thống có sẵn
+  slug: existing-infrastructure
+  index: 22
+- title: Phối hợp và quản trị
+  slug: collaboration-and-governance
+  index: 23
+- title: Thực hành nền tảng
+  slug: foundational-practice
+  index: 24

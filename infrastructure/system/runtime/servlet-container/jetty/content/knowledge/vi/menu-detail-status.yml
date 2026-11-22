@@ -1,0 +1,2755 @@
+menu:
+- slug: jetty-overview
+  title: Tổng quan Jetty
+  childs:
+  - slug: jetty-overview-001
+    title: Eclipse Jetty là gì và vai trò trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-002
+    title: Máy chủ HTTP, Servlet Container và giới hạn so với máy chủ ứng dụng đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-003
+    title: Vì sao Jetty phù hợp với ứng dụng nhúng và dịch vụ web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-004
+    title: Phân biệt Jetty Core, môi trường Servlet và thư viện máy khách Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-005
+    title: Bức tranh tổng thể từ kết nối mạng đến mã xử lý ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-006
+    title: So sánh cách chạy độc lập và nhúng trong tiến trình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-007
+    title: 'Các thuật ngữ chính: Server, Connector, Handler, context và ứng dụng web'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jetty-overview-008
+    title: Kiến thức cần có và thứ tự học từ máy chủ tối thiểu đến vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-and-dependencies
+  title: Phiên bản và phụ thuộc
+  childs:
+  - slug: versions-and-dependencies-001
+    title: Đọc ma trận tương thích giữa Jetty, JDK, Servlet và Jakarta EE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-002
+    title: Phân biệt các dòng Jetty 9, 10, 11, 12.0 và 12.1 khi đọc tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-003
+    title: Phân biệt namespace javax.servlet với jakarta.servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-004
+    title: Các môi trường ee8, ee9, ee10, ee11 và phạm vi hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-005
+    title: Lựa chọn nhóm artifact và package phù hợp với môi trường ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-006
+    title: Đồng bộ phiên bản thư viện bằng Jetty BOM hoặc bộ quản lý của framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-007
+    title: Phân biệt Servlet API do container cung cấp với thư viện cần đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-008
+    title: Kiểm tra vòng đời hỗ trợ, bản vá và ghi chú phát hành trước khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-and-dependencies-009
+    title: Ngăn trộn ví dụ, API và cấu hình của nhiều dòng Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-architecture
+  title: Kiến trúc lõi
+  childs:
+  - slug: core-architecture-001
+    title: Server và đồ thị thành phần của một máy chủ Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-002
+    title: Connector, ConnectionFactory, Connection và EndPoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-003
+    title: Acceptor, selector và luồng thực thi mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-004
+    title: Cây Handler và cách chuyển giao yêu cầu giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-005
+    title: ContextHandler, ServletContextHandler và WebAppContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-006
+    title: QueuedThreadPool, Scheduler và ByteBufferPool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-007
+    title: Vai trò của Request, Response, Content và Callback trong Jetty Core
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-008
+    title: Ranh giới giữa lõi HTTP không phụ thuộc Servlet và lớp triển khai Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-009
+    title: Lần theo một yêu cầu qua connector, handler, servlet và phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-lifecycle
+  title: Vòng đời máy chủ
+  childs:
+  - slug: server-lifecycle-001
+    title: Mô hình LifeCycle và các trạng thái khởi động, chạy, dừng, thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-002
+    title: ContainerLifeCycle và quan hệ quản lý giữa các bean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-003
+    title: Sở hữu tài nguyên và phân biệt thành phần managed/unmanaged
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-004
+    title: Thứ tự cấu hình, khởi động và dừng các thành phần phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-005
+    title: Vai trò của Server.start(), join(), stop() và destroy()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-006
+    title: Xử lý khởi động thất bại và thu hồi tài nguyên đã cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-007
+    title: Dừng có kiểm soát và chờ các yêu cầu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-008
+    title: Shutdown hook và phối hợp vòng đời với tiến trình hoặc framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-lifecycle-009
+    title: Kiểm tra rò rỉ luồng, cổng và tài nguyên sau khi máy chủ dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: standalone-jetty
+  title: Jetty độc lập
+  childs:
+  - slug: standalone-jetty-001
+    title: Cài đặt bản phân phối và xác minh môi trường Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-002
+    title: Phân tách JETTY_HOME bất biến với JETTY_BASE chứa cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-003
+    title: Khởi tạo một JETTY_BASE tối thiểu và bật dịch vụ HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-004
+    title: Vai trò của start.jar và quá trình dựng lệnh khởi động JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-005
+    title: Cấu trúc start.d, etc, resources, lib, modules và webapps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-006
+    title: Kiểm tra module, classpath và cấu hình hiệu lực trước khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-007
+    title: Cấu hình địa chỉ lắng nghe, cổng, thư mục và thuộc tính môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-008
+    title: Chạy nhiều cấu hình Jetty từ cùng một bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: standalone-jetty-009
+    title: Phân biệt cài đặt phục vụ phát triển với cấu hình triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-and-configuration
+  title: Module và cấu hình
+  childs:
+  - slug: modules-and-configuration-001
+    title: Jetty module là gì và khác gì dependency Maven/Gradle hoặc module JPMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-002
+    title: Cấu trúc tệp .mod và quan hệ phụ thuộc giữa các module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-003
+    title: Bật module tạm thời và lưu cấu hình qua --add-modules
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-004
+    title: Tệp start.d/*.ini và cách truyền, ghi đè thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-005
+    title: Thứ tự ưu tiên giữa dòng lệnh, JETTY_BASE và JETTY_HOME
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-006
+    title: Jetty XML và cách tạo, tham chiếu, cấu hình các đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-007
+    title: Chọn module Servlet, triển khai và giao thức theo đúng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-008
+    title: Tạo module riêng trong JETTY_BASE mà không sửa bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-and-configuration-009
+    title: Quản lý thư viện ngoài, tài nguyên cấu hình và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: embedded-jetty
+  title: Jetty nhúng
+  childs:
+  - slug: embedded-jetty-001
+    title: Dựng máy chủ HTTP tối thiểu bằng Java và thư viện Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-002
+    title: Khởi tạo Server với thread pool và tài nguyên được sở hữu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-003
+    title: Tạo ServerConnector và lấy cổng thực tế khi dùng cổng động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-004
+    title: Lắp cây Handler bằng mã thay cho cơ chế start.jar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-005
+    title: Thêm context, servlet, filter và listener bằng API phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-006
+    title: Nhúng ứng dụng WAR bằng WebAppContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-007
+    title: Tách cấu hình khởi tạo Jetty khỏi logic nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-008
+    title: Đóng gói ứng dụng chạy độc lập và quản lý phụ thuộc runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: embedded-jetty-009
+    title: Phối hợp khởi động, kiểm tra sẵn sàng và dừng máy chủ nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connectors-and-http
+  title: Connector và HTTP
+  childs:
+  - slug: connectors-and-http-001
+    title: ServerConnector và ranh giới giữa socket với xử lý HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-002
+    title: Thiết kế chuỗi ConnectionFactory cho từng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-003
+    title: HttpConfiguration và cấu hình thuộc tính HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-004
+    title: Cấu hình HTTP/1.1 và quản lý kết nối kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-005
+    title: HTTP/2, ghép kênh và các giới hạn luồng đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-006
+    title: HTTP/3, QUIC và yêu cầu thư viện nền theo phiên bản, nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-007
+    title: ALPN và thương lượng giao thức trên kết nối TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-008
+    title: Cấu hình nhiều connector cho cổng công khai và cổng quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-009
+    title: Idle timeout, accept queue và giới hạn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectors-and-http-010
+    title: Tuân thủ HTTP, chuẩn hóa URI và xử lý yêu cầu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-and-proxies
+  title: TLS và proxy
+  childs:
+  - slug: tls-and-proxies-001
+    title: Cấu hình HTTPS bằng SslContextFactory.Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-002
+    title: Keystore, truststore, chuỗi chứng chỉ và tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-003
+    title: Lựa chọn phiên bản TLS, bộ mã và cơ chế nạp chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-004
+    title: Chứng thực TLS hai chiều khi ứng dụng cần xác minh máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-005
+    title: Phân biệt kết thúc TLS tại Jetty và tại reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-006
+    title: ForwardedRequestCustomizer và thông tin giao thức, địa chỉ gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-007
+    title: Xác định proxy tin cậy và ngăn giả mạo header chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-008
+    title: Scheme, host, cổng và ảnh hưởng tới redirect, cookie, URL tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-009
+    title: PROXY protocol và điều kiện sử dụng trên connector chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-proxies-010
+    title: Phối hợp timeout, kích thước yêu cầu và kết nối giữa proxy với Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: handler-tree
+  title: Cây Handler
+  childs:
+  - slug: handler-tree-001
+    title: Hợp đồng Handler.handle(Request, Response, Callback) trong Jetty 12
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-002
+    title: Ý nghĩa nhận xử lý và từ chối xử lý qua giá trị true/false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-003
+    title: Trách nhiệm hoàn tất Callback khi Handler nhận xử lý yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-004
+    title: Handler.Abstract và khai báo xử lý chặn hoặc không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-005
+    title: Handler.Wrapper và cách bao quanh yêu cầu, phản hồi, callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-006
+    title: Handler.Sequence và thứ tự chọn thành phần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-007
+    title: ContextHandlerCollection và định tuyến nhiều context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-008
+    title: PathMappingsHandler và phân phối yêu cầu theo đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-009
+    title: Thiết kế thứ tự cho ghi log, bảo mật, nén và xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-010
+    title: Cây Handler tĩnh, cây thay đổi khi chạy và tác động tới thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handler-tree-011
+    title: Xử lý không tìm thấy tài nguyên, lỗi và kết thúc yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: requests-and-responses
+  title: Yêu cầu và phản hồi
+  childs:
+  - slug: requests-and-responses-001
+    title: Đọc phương thức, HttpURI, header và địa chỉ kết nối trong Request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-002
+    title: Phân biệt đường dẫn context, đường dẫn ứng dụng và chuỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-003
+    title: Truy cập tham số, cookie, biểu mẫu và thuộc tính yêu cầu đúng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-004
+    title: Thiết lập trạng thái, header, cookie và nội dung phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-005
+    title: Thời điểm phản hồi được commit và giới hạn sửa đổi sau commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-006
+    title: Mã hóa ký tự, kiểu nội dung và biểu diễn dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-007
+    title: Chuyển hướng, phản hồi lỗi và yêu cầu HTTP có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-008
+    title: Theo dõi hoàn tất yêu cầu để giải phóng tài nguyên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-009
+    title: Xử lý máy khách ngắt kết nối hoặc phản hồi bị lỗi giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: requests-and-responses-010
+    title: Phân biệt Request/Response lõi Jetty với HttpServletRequest/HttpServletResponse
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: content-and-callbacks
+  title: Nội dung và callback
+  childs:
+  - slug: content-and-callbacks-001
+    title: Mô hình Content.Source, Content.Sink và Content.Chunk
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-002
+    title: Đọc nội dung theo từng phần thay cho nạp toàn bộ vào bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-003
+    title: Request.read(), Request.demand() và điều kiện gọi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-004
+    title: Phân biệt chưa có dữ liệu, phần dữ liệu cuối và phần dữ liệu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-005
+    title: Quyền sở hữu, giữ lại và release phần dữ liệu hoặc bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-006
+    title: Ghi phản hồi bất đồng bộ và chờ callback của lần ghi trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-007
+    title: Hoàn tất thành công hoặc thất bại đúng một lần trong chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-008
+    title: Áp lực ngược khi bên nhận hoặc xử lý dữ liệu chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-009
+    title: Phối hợp nhiều thao tác bất đồng bộ mà không quên hoàn tất yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: content-and-callbacks-010
+    title: Xử lý timeout, hủy và lỗi trong khi vẫn còn thao tác đọc/ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: servlet-container
+  title: Servlet Container
+  childs:
+  - slug: servlet-container-001
+    title: Vai trò của lớp môi trường Servlet trong Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-002
+    title: ServletContextHandler và lựa chọn tính năng phiên, bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-003
+    title: Đăng ký Servlet bằng ServletHolder và cấu hình ánh xạ URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-004
+    title: Đăng ký Filter và phạm vi áp dụng theo DispatcherType
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-005
+    title: Listener và các sự kiện vòng đời ứng dụng, yêu cầu, phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-006
+    title: Khởi tạo Servlet, load-on-startup và tham số cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-007
+    title: Ánh xạ mặc định, đường dẫn, phần mở rộng và thứ tự khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-008
+    title: Forward, include, error dispatch và ranh giới với redirect
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-009
+    title: Cấu hình bằng mã, web.xml, annotation và thứ tự kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-010
+    title: An toàn luồng khi nhiều yêu cầu dùng chung một Servlet hoặc Filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: servlet-container-011
+    title: Phân biệt phần Jetty chịu trách nhiệm với logic framework web phía trên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: war-deployment
+  title: WAR và triển khai
+  childs:
+  - slug: war-deployment-001
+    title: Cấu trúc WAR với WEB-INF/classes, WEB-INF/lib và web.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-002
+    title: WebAppContext và các bước chuẩn bị một ứng dụng web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-003
+    title: Context path, virtual host và nhiều ứng dụng trên một Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-004
+    title: Triển khai WAR đóng gói và ứng dụng dạng thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-005
+    title: Chọn module triển khai eeN-deploy theo môi trường Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-006
+    title: Cơ chế quét và triển khai ứng dụng theo dòng phiên bản Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-007
+    title: Jetty context XML, thuộc tính triển khai và cấu hình ngoài WAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-008
+    title: Thư mục tạm, giải nén WAR và quyền ghi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-009
+    title: Khởi động, dừng, triển khai lại và rủi ro khi thay tệp đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-deployment-010
+    title: Phân biệt khả năng triển khai nhiều môi trường với mức cô lập tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classloading-and-resources
+  title: Nạp lớp và tài nguyên
+  childs:
+  - slug: classloading-and-resources-001
+    title: WebAppClassLoader và quan hệ với bộ nạp lớp của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-002
+    title: WEB-INF/classes, WEB-INF/lib và quy tắc ưu tiên nạp lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-003
+    title: Protected classes và các lớp ứng dụng không được thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-004
+    title: Hidden classes và việc che giấu triển khai nội bộ của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-005
+    title: Phân biệt thư viện dùng chung với thư viện thuộc từng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-006
+    title: Nguyên nhân ClassNotFoundException, NoClassDefFoundError và LinkageError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-007
+    title: Annotation scanning, ServletContainerInitializer và phạm vi quét JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-008
+    title: Rò rỉ classloader khi triển khai lại do luồng hoặc bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-and-resources-009
+    title: Quyền sở hữu Resource và đóng tài nguyên khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threads-and-io
+  title: Luồng và I/O
+  childs:
+  - slug: threads-and-io-001
+    title: Vai trò acceptor, selector và tác vụ xử lý ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-002
+    title: QueuedThreadPool, minThreads, maxThreads và khả năng co giãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-003
+    title: Ngân sách luồng, leased threads và reserved threads
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-004
+    title: Hàng đợi tác vụ nội bộ và nguy cơ loại bỏ tác vụ cần cho tiến trình I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-005
+    title: AdaptiveExecutionStrategy và lựa chọn cách sản xuất, thực thi tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-006
+    title: InvocationType và cam kết BLOCKING/NON_BLOCKING của mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-007
+    title: Ảnh hưởng của cả cây Handler đến lựa chọn chế độ thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-008
+    title: Tránh chặn selector hoặc callback được khai báo không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-009
+    title: Tích hợp luồng ảo và các điều kiện theo phiên bản JDK, Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-010
+    title: Giới hạn tài nguyên ngoài CPU khi số tác vụ đồng thời tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-and-io-011
+    title: Phân biệt số kết nối, số luồng HTTP/2, số yêu cầu và số luồng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-servlets
+  title: Servlet bất đồng bộ
+  childs:
+  - slug: asynchronous-servlets-001
+    title: Phân biệt Servlet async với Handler Callback và API reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-002
+    title: Điều kiện bật asyncSupported trên Servlet và chuỗi Filter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-003
+    title: Khởi tạo AsyncContext và chuyển công việc ra khỏi luồng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-004
+    title: AsyncContext.start(), dispatch() và complete()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-005
+    title: AsyncListener cho hoàn tất, timeout, lỗi và chu kỳ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-006
+    title: Quản lý thời gian chờ và trường hợp công việc vẫn chạy sau timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-007
+    title: Vòng đời Request/Response khi yêu cầu chuyển giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-008
+    title: ServletInputStream, ServletOutputStream và xử lý I/O không chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-009
+    title: ReadListener, WriteListener và điều kiện sẵn sàng đọc/ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-servlets-010
+    title: Tránh hoàn tất lặp, ghi sau complete và rò rỉ yêu cầu bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-cookies
+  title: Phiên và cookie
+  childs:
+  - slug: sessions-and-cookies-001
+    title: SessionIdManager, SessionHandler và phạm vi quản lý phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-002
+    title: Phân biệt SessionCache với SessionDataStore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-003
+    title: Phiên chỉ trong bộ nhớ và giới hạn khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-004
+    title: Chọn lưu phiên bằng tệp, JDBC hoặc kho phân tán phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-005
+    title: Chính sách giữ, đẩy khỏi bộ nhớ đệm và ghi dữ liệu phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-006
+    title: Hết hạn phiên, HouseKeeper và quá trình thu hồi dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-007
+    title: Cookie phiên, path, domain, Secure, HttpOnly và SameSite
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-008
+    title: Thay định danh phiên sau đăng nhập và phòng tránh session fixation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-009
+    title: Worker name, bám phiên và chia sẻ dữ liệu giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-010
+    title: Cập nhật đồng thời và giới hạn nhất quán của phiên phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-cookies-011
+    title: Phân biệt hết hạn, vô hiệu hóa và đẩy phiên khỏi bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-resources
+  title: Tài nguyên web
+  childs:
+  - slug: web-resources-001
+    title: Phục vụ nội dung tĩnh bằng ResourceHandler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-002
+    title: Phục vụ tài nguyên trong ứng dụng Servlet bằng DefaultServlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-003
+    title: Resource base, tài nguyên classpath và đường dẫn trong WAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-004
+    title: Welcome file, directory listing và kiểm soát tài nguyên được công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-005
+    title: MIME type, bộ nhớ đệm HTTP, ETag và yêu cầu có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-006
+    title: Tải tệp, yêu cầu theo khoảng byte và nội dung kích thước lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-007
+    title: Nén nội dung và lựa chọn GzipHandler hoặc CompressionHandler theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-008
+    title: Bật JSP, JSTL hoặc Jakarta Tags theo môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-009
+    title: Biên dịch JSP, thư mục làm việc và lỗi phụ thuộc khi đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-resources-010
+    title: Liên kết tượng trưng, đường dẫn bất thường và quyền truy cập hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: websocket-and-sse
+  title: WebSocket và SSE
+  childs:
+  - slug: websocket-and-sse-001
+    title: Phân biệt API WebSocket riêng của Jetty với API Jakarta WebSocket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-002
+    title: Chọn thư viện, môi trường và cơ chế nâng cấp HTTP phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-003
+    title: Đăng ký endpoint trong máy chủ nhúng và ứng dụng Servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-004
+    title: Vòng đời mở kết nối, nhận dữ liệu, lỗi và đóng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-005
+    title: Thông điệp, frame, phân mảnh và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-006
+    title: Gửi bất đồng bộ, callback và quản lý khả năng tiếp nhận dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-007
+    title: Demand và áp lực ngược trong API WebSocket theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-008
+    title: Idle timeout, ping/pong và xử lý máy khách ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-009
+    title: Xây luồng Server-Sent Events bằng phản hồi truyền liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: websocket-and-sse-010
+    title: Phối hợp kết nối dài với proxy, cân bằng tải và dừng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Tích hợp framework web trên ranh giới Servlet Container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Spring Boot với Jetty và lựa chọn phụ thuộc theo phiên bản framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Thay container mặc định và loại bỏ phụ thuộc runtime xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Phân biệt cấu hình server.* với API tùy biến Jetty
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Tùy biến connector, Handler và vòng đời qua cơ chế framework hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Triển khai WAR lên Jetty ngoài và chạy ứng dụng đóng gói có Jetty nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: JNDI, DataSource và phạm vi tài nguyên do container hoặc ứng dụng sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Annotation, ServletContainerInitializer và quá trình tích hợp thư viện web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Phối hợp bộ lọc bảo mật, giao dịch và tác vụ nền mà không trộn trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Phân biệt tài nguyên phía máy chủ với Jetty HttpClient khi gọi dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Xác định bề mặt công khai của connector, context và tài nguyên quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Cơ chế xác thực và phân quyền do Jetty cung cấp theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Ràng buộc bảo mật URL, vai trò và yêu cầu kết nối bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: LoginService, kho danh tính và tích hợp cơ chế xác thực ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Lựa chọn bảo mật tại container hoặc framework và cách phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Cấu hình CORS và phân biệt với xác thực, phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Kiểm soát URI bất thường, truy cập vượt thư mục và tài nguyên nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Kiểm soát header, cookie và thông tin bị lộ trong phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Cấu hình chống lạm dụng bằng DoSHandler hoặc cơ chế tương ứng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Theo dõi cảnh báo bảo mật và kiểm chứng bản vá trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-limits
+  title: Giới hạn tài nguyên
+  childs:
+  - slug: resource-limits-001
+    title: Phân biệt ngân sách kết nối, yêu cầu, luồng và bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-002
+    title: Giới hạn kích thước header, biểu mẫu và dữ liệu tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-003
+    title: Giới hạn số tham số, multipart và dung lượng tệp tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-004
+    title: Idle timeout, timeout bất đồng bộ và thời hạn xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-005
+    title: QoSHandler và giới hạn yêu cầu tại tầng xử lý phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-006
+    title: Kiểm soát tốc độ, kết nối chậm và lưu lượng gây quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-007
+    title: Điều tiết tác vụ chặn bằng giới hạn tài nguyên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-008
+    title: ByteBufferPool, bộ nhớ trực tiếp và quyền sở hữu bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-009
+    title: Áp lực ngược khi đọc nội dung và ghi phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-010
+    title: Phối hợp giới hạn Jetty với pool cơ sở dữ liệu và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-011
+    title: Phản hồi khi quá tải và điều kiện phục hồi khả năng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Xác định loại tải, phân bố kích thước và tỷ lệ tác vụ chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Đo thông lượng cùng độ trễ trung vị, p95 và p99
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tối ưu thread pool dựa trên ngân sách luồng và điểm nghẽn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Đánh giá số acceptor, selector và cấu hình connector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Đo lợi ích tái sử dụng kết nối và ghép kênh HTTP/2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Chọn bộ đệm, truyền theo luồng và mức nén theo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Phân tích CPU, cấp phát bộ nhớ, GC và bộ nhớ ngoài heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-008
+    title: Đánh giá luồng ảo bằng tải thực thay cho suy đoán từ số luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-009
+    title: Tách giới hạn của Jetty khỏi giới hạn cơ sở dữ liệu, proxy và mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-010
+    title: Thiết kế thử nghiệm có khởi động ổn định và so sánh cấu hình công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-administration
+  title: Quan sát và quản trị
+  childs:
+  - slug: observability-and-administration-001
+    title: Phân biệt nhật ký nội bộ Jetty với nhật ký truy cập HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-002
+    title: Cấu hình RequestLog, CustomRequestLog và trường dữ liệu cần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-003
+    title: Liên kết mã yêu cầu, thông tin người dùng và truy vết ứng dụng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-004
+    title: Đo trạng thái HTTP, thời gian xử lý và lượng dữ liệu truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-005
+    title: StatisticsHandler và phạm vi số liệu theo cây xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-006
+    title: JMX, MBeanContainer và kiểm soát truy cập quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-007
+    title: Giám sát luồng, hàng đợi, kết nối, bộ đệm và phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-008
+    title: Dumpable, Server.dump() và đọc đồ thị thành phần đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-009
+    title: Phân biệt kiểm tra tiến trình sống, sẵn sàng và trải nghiệm thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-administration-010
+    title: Đặt cảnh báo gắn với độ trễ, lỗi và mức bão hòa tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử Handler lõi và ứng dụng Servlet theo đúng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: LocalConnector và kiểm thử HTTP không cần mở cổng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: HttpTester và phân tích yêu cầu, phản hồi trong kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Khởi động máy chủ trên cổng động và dọn tài nguyên sau kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử connector thực, TLS và HTTP/2 khi có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử mapping Servlet, thứ tự Filter và trang lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử callback, timeout và yêu cầu bất đồng bộ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử phiên, cookie và hành vi khi có nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử WebSocket, truyền dữ liệu theo luồng và máy khách ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử tải, tương thích phiên bản và cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Khởi động thất bại do cổng đã dùng, quyền truy cập hoặc cấu hình sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Ứng dụng trả 404 do context path, ánh xạ hoặc thứ tự Handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Lỗi 400, 413, 431 và các giới hạn cần đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Lỗi 500 và phân biệt nguyên nhân ứng dụng, container, cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Lỗi TLS, chứng chỉ, ALPN và giao thức không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Yêu cầu treo vì callback chưa hoàn tất hoặc AsyncContext bị bỏ quên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: StateTrackingHandler và theo dõi sai hợp đồng bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Cạn luồng, nghẽn hàng đợi và mã chặn sai vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Rò rỉ bộ đệm, file descriptor, phiên và classloader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Redirect sai, cookie mất hoặc địa chỉ gốc sai khi đứng sau proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Kết hợp thread dump, JFR, log và Server.dump() để khoanh vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-scaling
+  title: Vận hành và mở rộng
+  childs:
+  - slug: operations-and-scaling-001
+    title: Đóng gói runtime cùng cấu hình Jetty có thể tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-002
+    title: Chạy Jetty dưới trình quản lý dịch vụ hoặc môi trường container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-003
+    title: Đặt tài khoản, quyền tệp, thư mục tạm và giới hạn hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-004
+    title: Phân bổ CPU, heap, bộ nhớ trực tiếp và tài nguyên container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-005
+    title: Triển khai sau reverse proxy và cân bằng tải nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-006
+    title: Chọn chiến lược phiên và dữ liệu chia sẻ khi mở rộng ngang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-007
+    title: Rút nút khỏi luồng truy cập trước khi dừng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-008
+    title: Phối hợp thời gian dừng Jetty với thời hạn của nền tảng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-009
+    title: Quản lý cấu hình, chứng chỉ và bí mật ngoài gói ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-scaling-010
+    title: Quay lui, khôi phục và kiểm chứng sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-and-migration
+  title: Nâng cấp và di trú
+  childs:
+  - slug: upgrades-and-migration-001
+    title: Kiểm kê JDK, Servlet API, thư viện ứng dụng và dòng Jetty đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-002
+    title: Di trú javax.servlet sang jakarta.servlet theo môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-003
+    title: Di trú API Handler từ Jetty 11 sang hợp đồng bất đồng bộ Jetty 12
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-004
+    title: Chuyển artifact, package và module Servlet sang môi trường eeN phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-005
+    title: Đối chiếu thay đổi triển khai giữa Jetty 12.0 và Jetty 12.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-006
+    title: Rà soát cấu hình nén, WebSocket và callback khi đổi dòng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-007
+    title: Đánh giá thay đổi mặc định, API bị ngừng khuyến nghị và API bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-008
+    title: Chạy lại kiểm thử chức năng, bảo mật, tải và dừng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-and-migration-009
+    title: Lập kế hoạch chuyển đổi từng phần và điều kiện quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Dựng Jetty Core trả nội dung HTTP và quan sát cây Handler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Thêm context, Servlet, Filter và phiên vào máy chủ nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Triển khai cùng ứng dụng dưới dạng WAR trên Jetty độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Tạo JETTY_BASE riêng với module, connector và cấu hình hiệu lực rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Bật HTTPS, HTTP/2 và kiểm chứng thông tin khi qua reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Truyền tệp lớn với áp lực ngược và máy khách ngắt giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Thực nghiệm cạn luồng, callback bị quên và giới hạn tải phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Chạy hai nút Jetty để quan sát bám phiên và dữ liệu phiên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Đo một điểm nghẽn rồi kiểm chứng thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Đánh giá Jetty, Tomcat hoặc lựa chọn khác theo yêu cầu và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

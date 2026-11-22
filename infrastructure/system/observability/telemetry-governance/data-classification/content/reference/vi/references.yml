@@ -1,0 +1,13 @@
+references:
+  - title: "NIST SP 800-60 Vol. 1 Rev. 1 — Security Categorization"
+    url: "https://csrc.nist.gov/pubs/sp/800/60/v1/r1/final"
+    description: "Hướng dẫn phân nhóm loại thông tin và đánh giá tác động bảo mật."
+  - title: "NIST SP 800-122 — Protecting PII"
+    url: "https://csrc.nist.gov/pubs/sp/800/122/final"
+    description: "Nhận diện thông tin cá nhân và đánh giá nhu cầu bảo vệ theo ngữ cảnh."
+  - title: "OWASP — Logging Cheat Sheet"
+    url: "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+    description: "Những dữ liệu nhạy cảm cần loại bỏ hoặc bảo vệ khi ghi log."
+  - title: "OpenTelemetry — Logs Data Model"
+    url: "https://opentelemetry.io/docs/specs/otel/logs/data-model/"
+    description: "Mô hình các trường và attributes của bản ghi log để phân loại dữ liệu."

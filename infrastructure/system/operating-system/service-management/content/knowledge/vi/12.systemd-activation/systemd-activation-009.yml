@@ -1,0 +1,3 @@
+menuLevel1: Kích hoạt systemd
+menuLevel2: Transient unit và chạy tác vụ có quản lý bằng systemd-run
+status: ""

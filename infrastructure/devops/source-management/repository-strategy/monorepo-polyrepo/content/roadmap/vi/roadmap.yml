@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-repository
+  title: Mô hình Repository
+  purpose: Phân biệt cách quản lý nhiều dự án trong một repository và trong các repository độc lập.
+  objectives:
+  - Giải thích monorepo và polyrepo
+  - Phân biệt monorepo với monolith
+  - Vẽ hai cách bố trí cho một hệ thống mẫu
+- id: tieu-chi-lua-chon
+  title: Tiêu chí lựa chọn
+  purpose: Đánh giá chiến lược repository theo cách phối hợp, quyền truy cập và chi phí vận hành.
+  objectives:
+  - So sánh nhu cầu chia sẻ mã giữa các nhóm
+  - Đánh giá thay đổi đồng bộ và quyền tách biệt
+  - Chọn mô hình cho một tình huống cụ thể
+- id: cau-truc-ranh-gioi
+  title: Cấu trúc & Ranh giới
+  purpose: Tổ chức mã theo ứng dụng, thư viện hoặc domain và tránh phụ thuộc tùy tiện.
+  objectives:
+  - Đề xuất cấu trúc apps và libs/packages
+  - Xác định public API của module dùng chung
+  - Vẽ dependency graph và ranh giới module
+- id: shared-code-versions
+  title: Shared Code & Versions
+  purpose: Quản lý mã dùng chung và hợp đồng phiên bản giữa các dự án.
+  objectives:
+  - So sánh import nội bộ với package đã publish
+  - Thiết kế Semantic Versioning cho thư viện
+  - Mô phỏng nâng cấp dependency giữa hai dự án
+- id: ownership-access
+  title: Ownership & Access
+  purpose: Quy định trách nhiệm review và phạm vi quyền trên mã nguồn.
+  objectives:
+  - Tạo quy tắc CODEOWNERS theo thư mục
+  - Phân biệt quyền ở repo và ở module
+  - Thử một pull request cần owner phê duyệt
+- id: ci-theo-pham-vi-thay-doi
+  title: CI theo phạm vi thay đổi
+  purpose: Tránh chạy toàn bộ build và test khi chỉ một phần hệ thống bị ảnh hưởng.
+  objectives:
+  - Thiết lập path filters cho CI
+  - Chạy affected build/test theo dependency graph
+  - Đánh giá cache và thời gian pipeline
+- id: release-phoi-hop
+  title: Release & Phối hợp
+  purpose: Đảm bảo triển khai độc lập khi cần và quản lý các thay đổi xuyên dự án.
+  objectives:
+  - Phân biệt commit chung với release chung
+  - Thiết kế phiên bản artifact theo ứng dụng
+  - Lập quy trình thay đổi API nhiều consumer
+- id: chuyen-doi-quan-tri
+  title: Chuyển đổi & Quản trị
+  purpose: Lập kế hoạch chuyển mô hình repository và kiểm chứng hiệu quả sau thay đổi.
+  objectives:
+  - Liệt kê bước tách hoặc hợp nhất repository
+  - Kiểm tra lịch sử, CI, quyền và dependencies
+  - Đo lead time, thời gian build và lỗi tích hợp

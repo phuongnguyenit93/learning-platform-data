@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phạm vi dữ liệu
+  slug: data-scope
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 2
+- title: Chính sách che dữ liệu
+  slug: masking-policies
+  index: 3
+- title: Kỹ thuật che
+  slug: masking-techniques
+  index: 4
+- title: Nhận diện dữ liệu
+  slug: data-identification
+  index: 5
+- title: Quy tắc biến đổi
+  slug: transformation-rules
+  index: 6
+- title: Dữ liệu có cấu trúc
+  slug: structured-data
+  index: 7
+- title: Dữ liệu văn bản
+  slug: text-data
+  index: 8
+- title: Nhật ký ứng dụng
+  slug: application-logs
+  index: 9
+- title: Truy vết phân tán
+  slug: distributed-tracing
+  index: 10
+- title: Chỉ số đo lường
+  slug: metrics
+  index: 11
+- title: Giao thức và tích hợp
+  slug: protocols-integration
+  index: 12
+- title: Vị trí xử lý
+  slug: processing-locations
+  index: 13
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 14
+- title: OpenTelemetry Collector
+  slug: otel-collector
+  index: 15
+- title: Tương quan và định danh
+  slug: correlation-identifiers
+  index: 16
+- title: Hiệu năng và độ tin cậy
+  slug: performance-reliability
+  index: 17
+- title: Kiểm thử
+  slug: testing
+  index: 18
+- title: Triển khai thay đổi
+  slug: change-deployment
+  index: 19
+- title: Giám sát và ứng phó
+  slug: monitoring-response
+  index: 20
+- title: Quản trị vận hành
+  slug: operational-governance
+  index: 21
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 22
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 23

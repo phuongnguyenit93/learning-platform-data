@@ -1,0 +1,3475 @@
+menu:
+- slug: runtime-resource-management-foundations
+  title: Nền tảng quản lý tài nguyên runtime
+  childs:
+  - slug: runtime-resource-management-foundations-001
+    title: Tài nguyên hữu hạn và mô hình ứng dụng dùng chung tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-002
+    title: Phân biệt tài nguyên JVM, tiến trình, hệ điều hành và container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-003
+    title: CPU-bound, memory-bound và I/O-bound trong luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-004
+    title: Thông lượng, độ trễ, mức sử dụng và mức bão hòa tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-005
+    title: Tài nguyên theo request, theo tác vụ và theo vòng đời ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-006
+    title: Chi phí cấp phát, giữ lại, tái sử dụng và thu hồi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-007
+    title: Nghẽn tài nguyên, rò rỉ, cạn kiệt và suy giảm dây chuyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-008
+    title: Bản đồ phụ thuộc giữa thread, bộ nhớ, file, socket và pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-resource-management-foundations-009
+    title: Thiết lập môi trường thực hành và ghi nhận phiên bản JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-measurement-and-budgeting
+  title: Đo tải và lập ngân sách tài nguyên
+  childs:
+  - slug: resource-measurement-and-budgeting-001
+    title: Xác định đơn vị công việc và mô hình tải của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-002
+    title: Đo tài nguyên tiêu thụ cho mỗi request và tác vụ nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-003
+    title: Phân biệt tải ổn định, tải đột biến và tải kéo dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-004
+    title: Ngân sách CPU, heap, native memory và số thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-005
+    title: Ngân sách file descriptor, socket, connection và bộ đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-006
+    title: Quan hệ giữa concurrency, thông lượng và thời gian phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-007
+    title: Áp dụng định luật Little khi ước lượng số tác vụ đang xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-008
+    title: Dự phòng tài nguyên và biên an toàn cho tải cực đại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-009
+    title: Phân bổ ngân sách giữa các thành phần trong cùng tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-measurement-and-budgeting-010
+    title: Thiết lập baseline và tiêu chí chấp nhận trước khi tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-ownership-and-lifecycle
+  title: Ownership và vòng đời tài nguyên
+  childs:
+  - slug: resource-ownership-and-lifecycle-001
+    title: Xác định thành phần cấp phát, sử dụng và chịu trách nhiệm thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-002
+    title: Phân biệt tài nguyên sở hữu riêng và tài nguyên mượn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-003
+    title: Chuyển giao ownership qua API và qua ranh giới bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-004
+    title: Phạm vi sống của tài nguyên và nguyên tắc thu hồi theo phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-005
+    title: Thu hồi theo thứ tự ngược với thứ tự cấp phát phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-006
+    title: Rollback tài nguyên khi khởi tạo chỉ thành công một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-007
+    title: Giải phóng trên đường thành công, lỗi, timeout và hủy tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-008
+    title: Thiết kế close có thể gọi lặp và ngăn sử dụng sau khi đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-009
+    title: Tránh double close và đóng nhầm tài nguyên dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-ownership-and-lifecycle-010
+    title: Viết hợp đồng ownership và tiêu chí review API tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-resource-cleanup-apis
+  title: Thu hồi tài nguyên bằng API Java
+  childs:
+  - slug: java-resource-cleanup-apis-001
+    title: Closeable, AutoCloseable và hợp đồng đóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-002
+    title: Quản lý nhiều tài nguyên bằng try-with-resources
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-003
+    title: Thứ tự đóng và suppressed exceptions khi xảy ra nhiều lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-004
+    title: finally và xử lý lỗi thu hồi không che mất lỗi gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-005
+    title: Quản lý wrapper và tài nguyên gốc trong chuỗi stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-006
+    title: Đóng Stream có giữ tài nguyên như Files.lines và Files.walk
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-007
+    title: Thiết kế lớp quản lý tài nguyên có trạng thái vòng đời rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-008
+    title: Giới hạn của garbage collection đối với tài nguyên bên ngoài heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-009
+    title: Cleaner, reference queue và giới hạn của cơ chế dọn dẹp dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-resource-cleanup-apis-010
+    title: Kiểm chứng đường đóng tài nguyên khi ném exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cpu-management-and-computation-costs
+  title: Quản lý CPU và chi phí tính toán
+  childs:
+  - slug: cpu-management-and-computation-costs-001
+    title: Nhân CPU, logical processor và khả năng xử lý thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-002
+    title: Giới hạn song song cho công việc CPU-bound
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-003
+    title: Chi phí tính toán của parse, serialize, nén và mã hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-004
+    title: Busy waiting, polling và vòng lặp không có điểm dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-005
+    title: Giảm công việc lặp lại bằng batching và tái sử dụng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-006
+    title: Chi phí cấp phát bộ nhớ và GC đối với ngân sách CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-007
+    title: Chi phí context switch khi số thread vượt nhu cầu xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-008
+    title: Chia nhỏ tác vụ dài và bảo đảm cơ hội xử lý công bằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-009
+    title: Warm-up, JIT compilation và ảnh hưởng đến phép đo CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-management-and-computation-costs-010
+    title: Nhận diện giới hạn mở rộng khi tăng số thread hoặc số lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cpu-diagnostics-and-contention
+  title: Chẩn đoán CPU và tranh chấp
+  childs:
+  - slug: cpu-diagnostics-and-contention-001
+    title: Phân biệt CPU của tiến trình, của thread và của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-002
+    title: Đọc trạng thái RUNNABLE, BLOCKED, WAITING và TIMED_WAITING
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-003
+    title: Lấy nhiều thread dump để nhận diện thread tiêu thụ CPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-004
+    title: Thu thập mẫu CPU bằng JFR và công cụ profiler phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-005
+    title: Đọc call tree, hot path và flame graph
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-006
+    title: Phân biệt thời gian chạy CPU với thời gian chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-007
+    title: Nhận diện lock contention, spin và retry loop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-008
+    title: Đánh giá false sharing và tranh chấp dữ liệu trong tác vụ song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-009
+    title: Đối chiếu kết quả profiling với tải và mục tiêu độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cpu-diagnostics-and-contention-010
+    title: Kiểm chứng hiệu quả tối ưu bằng phép đo trước và sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: heap-management-and-object-allocation
+  title: Quản lý heap và cấp phát đối tượng
+  childs:
+  - slug: heap-management-and-object-allocation-001
+    title: Heap capacity, heap used, committed memory và live set
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-002
+    title: Phân biệt tốc độ cấp phát với lượng dữ liệu còn sống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-003
+    title: Vòng đời đối tượng ngắn hạn và dữ liệu giữ lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-004
+    title: Xác định kích thước đồ thị đối tượng và retained size
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-005
+    title: Ảnh hưởng của collection, boxing và chuỗi đến dung lượng heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-006
+    title: Giới hạn kích thước request, payload và kết quả truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-007
+    title: Xử lý theo trang, theo lô và streaming để giảm working set
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-008
+    title: Quản lý vòng đời dữ liệu theo request và theo phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-009
+    title: Tránh giữ tham chiếu qua static field, listener và callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-010
+    title: Giới hạn bộ nhớ của tác vụ chạy đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: heap-management-and-object-allocation-011
+    title: Đánh giá tối ưu cấp phát trước khi áp dụng object pooling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: garbage-collection-and-memory-budgets
+  title: Garbage collector và ngân sách bộ nhớ
+  childs:
+  - slug: garbage-collection-and-memory-budgets-001
+    title: Vai trò của GC trong thu hồi đối tượng không còn được tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-002
+    title: Lựa chọn collector theo JDK, tải và mục tiêu vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-003
+    title: Đọc GC log để theo dõi pause, tần suất và lượng thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-004
+    title: Quan hệ giữa allocation rate, live set và tần suất GC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-005
+    title: Đặt Xms, Xmx và dự phòng bộ nhớ ngoài heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-006
+    title: Đánh đổi giữa throughput, độ trễ và dung lượng heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-007
+    title: Nhận diện áp lực promotion và đối tượng có kích thước lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-008
+    title: Phân biệt GC pressure, memory leak và heap quá nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-009
+    title: Giới hạn của System.gc và các biện pháp ép thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-010
+    title: Đánh giá SoftReference và WeakReference theo nhu cầu quản lý bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: garbage-collection-and-memory-budgets-011
+    title: Kiểm chứng thay đổi cấu hình GC bằng tải đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: off-heap-memory-and-native-resources
+  title: Bộ nhớ off-heap và tài nguyên native
+  childs:
+  - slug: off-heap-memory-and-native-resources-001
+    title: Phân biệt heap, direct memory, metaspace, code cache và thread stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-002
+    title: ByteBuffer.allocate và ByteBuffer.allocateDirect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-003
+    title: Vòng đời direct buffer và thời điểm bộ nhớ native được thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-004
+    title: Đặt giới hạn và theo dõi áp lực direct memory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-005
+    title: Chi phí JNI và thư viện native trong ngân sách tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-006
+    title: Foreign Function and Memory API theo phiên bản JDK sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-007
+    title: Arena, phạm vi sống và ownership của MemorySegment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-008
+    title: Quyền truy cập bộ nhớ theo thread và an toàn khi đóng phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-009
+    title: Rủi ro dùng bộ nhớ sau khi giải phóng và giải phóng hai lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-010
+    title: Memory-mapped file và tác động đến bộ nhớ tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-011
+    title: Đối chiếu heap used, RSS, virtual memory và page cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: off-heap-memory-and-native-resources-012
+    title: Đo footprint native trước khi mở rộng concurrency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: memory-leak-detection-and-analysis
+  title: Phát hiện và phân tích rò rỉ bộ nhớ
+  childs:
+  - slug: memory-leak-detection-and-analysis-001
+    title: Phân biệt rò rỉ heap với dữ liệu tăng theo tải hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-002
+    title: Thu thập class histogram và so sánh qua các thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-003
+    title: Chuẩn bị heap dump và dự phòng dung lượng lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-004
+    title: Đọc dominator tree, GC roots và chuỗi giữ tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-005
+    title: Phân tích rò rỉ từ cache, map và hàng đợi không giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-006
+    title: Phân tích ThreadLocal, listener và callback không được tháo bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-007
+    title: Classloader leak khi nạp lại thành phần hoặc triển khai ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-008
+    title: Sử dụng Native Memory Tracking và giới hạn phạm vi theo dõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-009
+    title: Phân biệt tăng bộ nhớ native với tăng heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-010
+    title: Đọc triệu chứng OutOfMemoryError theo vùng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-leak-detection-and-analysis-011
+    title: Xác minh bản sửa bằng kiểm thử kéo dài và xu hướng sau GC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: platform-threads-and-thread-budgets
+  title: Platform thread và ngân sách thread
+  childs:
+  - slug: platform-threads-and-thread-budgets-001
+    title: Vòng đời platform thread và ánh xạ sang thread hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-002
+    title: Chi phí stack và tài nguyên native cho mỗi thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-003
+    title: Đặt giới hạn thread theo CPU, bộ nhớ và kiểu công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-004
+    title: Thread daemon, thread không daemon và kết thúc tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-005
+    title: ThreadFactory, tên thread và nhận diện thành phần sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-006
+    title: Quản lý UncaughtExceptionHandler trong tác vụ nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-007
+    title: ThreadLocal và việc dọn dẹp trong môi trường tái sử dụng thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-008
+    title: Context classloader và dữ liệu ngữ cảnh giữ theo thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-009
+    title: Nhận diện thread leak và lỗi không tạo được native thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: platform-threads-and-thread-budgets-010
+    title: Theo dõi số thread, trạng thái thread và mức tăng qua thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: executors-and-task-queues
+  title: Executor và hàng đợi tác vụ
+  childs:
+  - slug: executors-and-task-queues-001
+    title: Chọn executor theo tải CPU-bound và tải chờ I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-002
+    title: ThreadPoolExecutor và quan hệ giữa core size, max size và queue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-003
+    title: Giới hạn dung lượng hàng đợi và thời gian chờ nhận tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-004
+    title: Rủi ro tích tụ tác vụ trong executor có hàng đợi không giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-005
+    title: RejectedExecutionHandler và chính sách phản hồi khi quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-006
+    title: Caller-runs và tác động đến thread gửi tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-007
+    title: Tránh deadlock khi tác vụ trong pool chờ tác vụ cùng pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-008
+    title: ScheduledExecutorService và vòng đời tác vụ định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-009
+    title: Tác vụ định kỳ chạy chậm, ném lỗi và chồng lấn lịch thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-010
+    title: Xóa tác vụ đã hủy khỏi hàng đợi theo chính sách executor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-011
+    title: ForkJoinPool, parallel stream và cạnh tranh trên common pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executors-and-task-queues-012
+    title: Đo active thread, queue depth, task age và rejection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-threads-and-resource-limits
+  title: Virtual thread và giới hạn tài nguyên đi kèm
+  childs:
+  - slug: virtual-threads-and-resource-limits-001
+    title: Vòng đời virtual thread và điều kiện hỗ trợ của JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-002
+    title: Phân biệt virtual thread, carrier thread và platform thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-003
+    title: Lựa chọn tác vụ phù hợp với mô hình nhiều hoạt động chờ I/O
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-004
+    title: Giới hạn số tác vụ đồng thời dù chi phí thread giảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-005
+    title: Semaphore và admission control trước tài nguyên khan hiếm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-006
+    title: Pinning và khác biệt hành vi theo phiên bản JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-007
+    title: Tương tác với native call, thư viện blocking và driver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-008
+    title: ThreadLocal và chi phí dữ liệu theo số lượng virtual thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-009
+    title: Tránh chuyển object pool theo thread sang số lượng thread rất lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-010
+    title: Quan sát virtual thread bằng công cụ tương thích với JDK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-threads-and-resource-limits-011
+    title: Đánh giá tải trên database, socket và heap khi tăng concurrency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: synchronization-and-task-progress
+  title: Đồng bộ hóa và tiến triển của tác vụ
+  childs:
+  - slug: synchronization-and-task-progress-001
+    title: Phạm vi lock và thời gian giữ tài nguyên dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-002
+    title: Tránh giữ lock trong khi gọi mạng hoặc thực hiện I/O chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-003
+    title: Thứ tự lấy nhiều lock và phòng tránh deadlock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-004
+    title: tryLock có timeout và phản ứng khi không lấy được lock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-005
+    title: Livelock, starvation và chính sách công bằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-006
+    title: Semaphore và quy tắc trả permit trên mọi đường thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-007
+    title: Giới hạn concurrency bằng permit theo tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-008
+    title: Atomic operation, concurrent collection và chi phí contention
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-009
+    title: Tránh chờ vòng tròn giữa lock, queue và connection pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: synchronization-and-task-progress-010
+    title: Phân tích deadlock bằng thread dump và đồ thị phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: async-task-cancellation-and-ownership
+  title: Hủy tác vụ và ownership bất đồng bộ
+  childs:
+  - slug: async-task-cancellation-and-ownership-001
+    title: Interrupt và hợp đồng hủy hợp tác trong Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-002
+    title: Bảo toàn trạng thái interrupt khi xử lý InterruptedException
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-003
+    title: Future.cancel và điều kiện tác vụ thực sự dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-004
+    title: Timeout của Future hoặc CompletableFuture và vòng đời công việc nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-005
+    title: Đóng I/O để hỗ trợ dừng tác vụ đang chờ khi API cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-006
+    title: Chuyển giao và thu hồi tài nguyên qua callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-007
+    title: Quản lý executor được dùng trong chuỗi CompletableFuture
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-008
+    title: Hủy các tác vụ con và chờ thu hồi khi tác vụ cha kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-009
+    title: Quản lý phạm vi tác vụ đồng thời theo API của JDK sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-010
+    title: Ngăn callback đến muộn sử dụng tài nguyên đã được đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: async-task-cancellation-and-ownership-011
+    title: Xử lý đồng thời giữa hoàn thành, timeout và yêu cầu hủy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: file-descriptors-and-file-io
+  title: File descriptor và I/O tệp
+  childs:
+  - slug: file-descriptors-and-file-io-001
+    title: File descriptor, handle và giới hạn mở tệp của tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-002
+    title: Ownership của InputStream, OutputStream, Reader và Writer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-003
+    title: Đóng FileChannel và tài nguyên mở qua Files
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-004
+    title: Quản lý DirectoryStream, Files.list và Files.walk
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-005
+    title: Xử lý mở tệp thất bại hoặc thao tác đọc ghi chỉ hoàn tất một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-006
+    title: Đọc ghi theo khối và giới hạn kích thước bộ đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-007
+    title: File lock và thời gian giữ quyền truy cập tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-008
+    title: Ranh giới giữa flush, close và yêu cầu bền vững dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-009
+    title: Quản lý nhiều tệp đang mở khi xử lý theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-010
+    title: Nhận diện lỗi too many open files và truy tìm nguồn giữ descriptor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-descriptors-and-file-io-011
+    title: Kiểm thử đóng tệp trên đường lỗi và hủy tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: disk-space-temp-files-memory-mapping
+  title: Dung lượng đĩa, tệp tạm và tệp ánh xạ bộ nhớ
+  childs:
+  - slug: disk-space-temp-files-memory-mapping-001
+    title: Ngân sách dung lượng, inode và tốc độ I/O của đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-002
+    title: Vòng đời tệp tạm và thư mục làm việc theo tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-003
+    title: Dọn tệp khi thất bại, hủy tác vụ và khởi động lại ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-004
+    title: Giới hạn dung lượng upload, download và dữ liệu trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-005
+    title: Spill-to-disk khi dữ liệu vượt ngân sách heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-006
+    title: Đặt quota và áp lực ngược cho vùng spool trên đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-007
+    title: Giới hạn của deleteOnExit đối với dịch vụ chạy dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-008
+    title: Vòng đời MappedByteBuffer và ràng buộc giải phóng mapping
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-009
+    title: Hành vi xóa hoặc thay thế tệp đang mở theo hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-010
+    title: Kiểm soát dung lượng log, heap dump và bản ghi chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: disk-space-temp-files-memory-mapping-011
+    title: Xử lý hết đĩa và I/O chậm mà vẫn thu hồi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sockets-and-network-connections
+  title: Socket và tài nguyên kết nối mạng
+  childs:
+  - slug: sockets-and-network-connections-001
+    title: Vòng đời socket từ mở kết nối đến đóng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-002
+    title: Ownership của socket, input stream và output stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-003
+    title: Connect timeout, read timeout và idle timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-004
+    title: Half-close, EOF và khác biệt giữa kết thúc đọc với đóng toàn bộ socket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-005
+    title: Giới hạn kết nối đang mở và hàng đợi chấp nhận kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-006
+    title: File descriptor, ephemeral port và trạng thái TCP TIME_WAIT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-007
+    title: Keepalive và phát hiện kết nối không còn sử dụng được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-008
+    title: Đọc ghi không đầy đủ và quản lý trạng thái buffer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-009
+    title: Selector, SelectionKey và thu hồi channel trong NIO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-010
+    title: Giới hạn số byte đang chờ gửi cho client chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-011
+    title: Nhận diện socket leak và kết nối giữ lâu bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sockets-and-network-connections-012
+    title: Tác động của DNS và TLS handshake đến thời gian và tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: http-client-request-response-lifecycle
+  title: HTTP client và vòng đời request-response
+  childs:
+  - slug: http-client-request-response-lifecycle-001
+    title: Chia sẻ HTTP client theo vòng đời ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-002
+    title: Quản lý kết nối dùng lại và chi phí tạo client liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-003
+    title: Ngân sách kết nối tổng, theo host và theo đích downstream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-004
+    title: Đóng hoặc tiêu thụ response body theo hợp đồng của thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-005
+    title: Streaming request-response và giới hạn dữ liệu giữ trong bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-006
+    title: Phân biệt timeout lấy connection, kết nối, đọc và toàn request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-007
+    title: Hủy HTTP request và theo dõi tài nguyên còn hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-008
+    title: Redirect, retry và giới hạn số lần thực hiện mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-009
+    title: HTTP/2 stream concurrency và ngân sách trên một connection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-010
+    title: Client chậm, response lớn và áp lực lên buffer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: http-client-request-response-lifecycle-011
+    title: Quản lý executor, event loop và shutdown của HTTP client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jdbc-and-database-connection-pools
+  title: JDBC và connection pool cơ sở dữ liệu
+  childs:
+  - slug: jdbc-and-database-connection-pools-001
+    title: Ownership của DataSource, Connection, Statement và ResultSet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-002
+    title: Đóng Connection logic và trả connection về pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-003
+    title: Định cỡ pool theo năng lực database và thời gian giữ connection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-004
+    title: Giới hạn thời gian chờ lấy connection và số người chờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-005
+    title: Tách connection acquisition timeout, query timeout và transaction timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-006
+    title: Giảm thời gian giữ connection trong transaction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-007
+    title: Commit, rollback và thu hồi khi phát sinh exception
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-008
+    title: Đóng ResultSet và Statement khi truy vấn theo luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-009
+    title: Fetch size, phân trang và ngân sách bộ nhớ cho kết quả truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-010
+    title: Reset trạng thái session trước khi connection được tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-011
+    title: Validation, idle timeout, max lifetime và chính sách pool như HikariCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-012
+    title: Phát hiện connection leak và pool starvation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-013
+    title: Đánh giá tác động của hủy request đến truy vấn đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jdbc-and-database-connection-pools-014
+    title: Phân bổ connection budget giữa nhiều instance ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: non-jdbc-resource-pools
+  title: Pool tài nguyên ngoài JDBC
+  childs:
+  - slug: non-jdbc-resource-pools-001
+    title: Phân biệt pool connection, pool client và client có multiplexing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-002
+    title: Xác định khi nào cần pooling cho tài nguyên tạo lập tốn kém
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-003
+    title: Ownership khi borrow-return và quy tắc không dùng sau khi trả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-004
+    title: Giới hạn pool, số waiter và timeout lấy tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-005
+    title: Kiểm tra tài nguyên khi tạo mới, mượn và trả theo nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-006
+    title: Loại bỏ tài nguyên hỏng và bổ sung lại có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-007
+    title: Idle eviction, max lifetime và chu kỳ bảo trì pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-008
+    title: Reset trạng thái trước khi chuyển tài nguyên cho người mượn khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-009
+    title: Tránh trả trùng, mất lượt trả và giữ tài nguyên trong callback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-010
+    title: Quản lý Redis client, message broker client và session theo API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-011
+    title: Pool warm-up, reconnect đồng loạt và kiểm soát tốc độ tạo mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-jdbc-resource-pools-012
+    title: Đo utilization, thời gian mượn và thời gian chờ của pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: buffers-streaming-and-reference-counting
+  title: Bộ đệm, streaming và reference counting
+  childs:
+  - slug: buffers-streaming-and-reference-counting-001
+    title: Heap buffer, direct buffer và tiêu chí lựa chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-002
+    title: Định cỡ buffer theo tốc độ producer-consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-003
+    title: Giới hạn tổng bộ nhớ theo số buffer và số tác vụ đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-004
+    title: ByteBuffer position, limit, capacity và vòng đời tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-005
+    title: Slice, duplicate và quan hệ chia sẻ vùng nhớ gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-006
+    title: Ownership của buffer khi đi qua pipeline bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-007
+    title: Reference counting và retain-release trong thư viện như Netty
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-008
+    title: Xử lý release trên đường lỗi, timeout và hủy subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-009
+    title: Pool buffer, fragmentation và cân bằng chi phí tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-010
+    title: Streaming, chunking và tránh gom toàn bộ dữ liệu vào bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-011
+    title: Giới hạn dữ liệu sau giải nén và sau giải mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: buffers-streaming-and-reference-counting-012
+    title: Phát hiện buffer leak bằng cơ chế của thư viện sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: caches-and-long-lived-data
+  title: Cache và dữ liệu giữ lâu trong bộ nhớ
+  childs:
+  - slug: caches-and-long-lived-data-001
+    title: Phân biệt cache, nguồn dữ liệu chính và hàng đợi công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-002
+    title: Giới hạn cache theo số phần tử và trọng lượng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-003
+    title: TTL, thời gian không truy cập và chính sách eviction
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-004
+    title: Đo hit rate cùng chi phí heap và chi phí tải lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-005
+    title: Cache stampede và giới hạn số tác vụ tải dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-006
+    title: Giới hạn dữ liệu đang tải cùng dữ liệu đã được cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-007
+    title: Ownership và cleanup của giá trị cache chứa tài nguyên đóng được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-008
+    title: Vòng đời eviction listener và xử lý cleanup bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-009
+    title: Tránh khóa theo key hoặc bảng theo dõi tăng không giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-010
+    title: Thiết kế cache theo tenant và ngăn chiếm dụng ngân sách chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caches-and-long-lived-data-011
+    title: Kiểm chứng eviction dưới tải và khi nguồn dữ liệu chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: queues-and-pending-tasks
+  title: Hàng đợi và tác vụ đang chờ
+  childs:
+  - slug: queues-and-pending-tasks-001
+    title: Bounded queue và ngân sách bộ nhớ của backlog
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-002
+    title: Queue depth, tuổi tác vụ và thời gian chờ xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-003
+    title: Chính sách block, reject, drop và timeout khi hàng đợi đầy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-004
+    title: Giới hạn kích thước từng phần tử và tổng byte trong hàng đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-005
+    title: Tốc độ producer-consumer và lan truyền áp lực ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-006
+    title: Message broker prefetch và số message đang được xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-007
+    title: Thời điểm ack, nack và vòng đời tài nguyên theo message
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-008
+    title: Retry queue, dead-letter queue và giới hạn dữ liệu lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-009
+    title: Tác vụ hết hạn, tác vụ đã hủy và thu hồi dữ liệu đang giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-010
+    title: Drain hàng đợi khi shutdown và quy tắc xử lý phần còn lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: queues-and-pending-tasks-011
+    title: Ngăn scheduled task và delayed task tích tụ không giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: timeouts-deadlines-and-retry-budgets
+  title: Timeout, deadline và retry budget
+  childs:
+  - slug: timeouts-deadlines-and-retry-budgets-001
+    title: Timeout theo thao tác và deadline cho toàn bộ request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-002
+    title: Phân bổ ngân sách thời gian qua chuỗi lời gọi downstream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-003
+    title: Đo thời gian trôi qua bằng đồng hồ đơn điệu phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-004
+    title: Giới hạn thời gian chờ queue, lock, permit và connection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-005
+    title: Phân biệt hết thời gian chờ kết quả với dừng thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-006
+    title: Lan truyền yêu cầu hủy và thu hồi tài nguyên sau timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-007
+    title: Chọn timeout từ phân bố độ trễ và mục tiêu dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-008
+    title: Retry có giới hạn số lần, thời gian và tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-009
+    title: Exponential backoff, jitter và tránh retry đồng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-010
+    title: Idempotency và điều kiện an toàn khi thực hiện lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-011
+    title: Ngăn retry nhiều tầng khuếch đại tải và giữ connection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: timeouts-deadlines-and-retry-budgets-012
+    title: Hedged request, bản sao công việc và ngân sách hủy tác vụ dư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-limits-and-backpressure
+  title: Giới hạn tải và backpressure
+  childs:
+  - slug: load-limits-and-backpressure-001
+    title: Rate limit, concurrency limit và bounded queue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-002
+    title: Admission control trước khi cấp phát tài nguyên đắt đỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-003
+    title: Giới hạn theo request, người dùng, tenant và downstream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-004
+    title: Semaphore và hàng đợi chờ permit có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-005
+    title: Token bucket và kiểm soát tải đột biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-006
+    title: Backpressure từ consumer đến producer trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-007
+    title: Demand và cancellation trong Flow hoặc Reactive Streams
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-008
+    title: Giới hạn prefetch, concurrency và buffer ở các toán tử bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-009
+    title: Tránh blocking trên event loop và thread xử lý tín hiệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-010
+    title: Load shedding theo mức bão hòa và độ ưu tiên công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-011
+    title: Phản hồi quá tải và hướng dẫn client giảm nhịp gửi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-limits-and-backpressure-012
+    title: Điều chỉnh giới hạn tải bằng phép đo và kiểm thử ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-isolation-and-fault-tolerance
+  title: Cô lập tài nguyên và khả năng chịu lỗi
+  childs:
+  - slug: resource-isolation-and-fault-tolerance-001
+    title: Bulkhead theo downstream và loại công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-002
+    title: Tách ngân sách tác vụ tương tác với tác vụ nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-003
+    title: Cô lập tenant để hạn chế noisy neighbor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-004
+    title: Tránh dùng chung executor cho tác vụ có đặc tính chờ khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-005
+    title: Circuit breaker và giới hạn tài nguyên khi downstream lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-006
+    title: Giới hạn retry riêng cho từng vùng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-007
+    title: Fallback có ngân sách CPU, bộ nhớ và thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-008
+    title: Ưu tiên và phân bổ công bằng khi nhiều tác vụ tranh tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-009
+    title: Ngăn lỗi một pool làm cạn toàn bộ thread hoặc heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-isolation-and-fault-tolerance-010
+    title: Xây dựng chế độ suy giảm khi vượt ngưỡng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jvm-operating-system-and-containers
+  title: JVM trong hệ điều hành và container
+  childs:
+  - slug: jvm-operating-system-and-containers-001
+    title: CPU request, CPU limit và quota trong môi trường container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-002
+    title: CPU throttling và tác động lên độ trễ, GC và timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-003
+    title: Nhận diện số processor khả dụng trong JVM và ảnh hưởng đến pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-004
+    title: Memory request, memory limit và ngân sách tổng của tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-005
+    title: Dự phòng thread stack, metaspace, code cache và direct memory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-006
+    title: Phân biệt Java OutOfMemoryError với OOM kill của hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-007
+    title: Đọc chỉ số cgroup phù hợp với phiên bản môi trường triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-008
+    title: Giới hạn file descriptor và số tiến trình hoặc thread
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-009
+    title: Page cache, mapped memory và cách tính bộ nhớ của môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-010
+    title: Quản lý ephemeral storage, volume và dung lượng tệp chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-011
+    title: Giới hạn tài nguyên theo instance và ngân sách chung của cụm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-012
+    title: Autoscaling theo tín hiệu bão hòa và giới hạn downstream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-operating-system-and-containers-013
+    title: Kiểm chứng cấu hình JVM trong đúng image và giới hạn container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-observability-and-alerting
+  title: Quan sát tài nguyên và cảnh báo
+  childs:
+  - slug: resource-observability-and-alerting-001
+    title: Thiết kế bộ chỉ số utilization, saturation và error
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-002
+    title: Thu thập JVM metrics qua JMX và thư viện như Micrometer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-003
+    title: Đo CPU, heap, non-heap, RSS và allocation rate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-004
+    title: Đo GC pause, tần suất GC và áp lực thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-005
+    title: Đo thread count, trạng thái thread và deadlock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-006
+    title: Đo executor queue, task age và số lần từ chối tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-007
+    title: Đo connection pool active, idle, pending và acquisition time
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-008
+    title: Đo open file descriptor, socket và trạng thái kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-009
+    title: Đo direct buffer, cache, queue và tổng byte đang giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-010
+    title: Theo dõi request đang xử lý, timeout, cancellation và rejection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-011
+    title: Kết hợp metrics, log và trace theo dòng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-012
+    title: Giới hạn cardinality, sampling và chi phí telemetry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-observability-and-alerting-013
+    title: Đặt cảnh báo theo xu hướng cạn tài nguyên và ảnh hưởng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-exhaustion-investigation
+  title: Điều tra sự cố cạn tài nguyên
+  childs:
+  - slug: resource-exhaustion-investigation-001
+    title: Lập timeline và xác định tài nguyên bão hòa đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-002
+    title: Thu thập bằng chứng với chi phí phù hợp khi hệ thống đang quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-003
+    title: Dùng jcmd để kiểm tra trạng thái JVM và thu thập chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-004
+    title: Thread dump, heap dump, GC log và JFR theo loại triệu chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-005
+    title: Đối chiếu chỉ số JVM với công cụ tiến trình và hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-006
+    title: Phân tích chuỗi chờ giữa request, executor và connection pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-007
+    title: Nhận diện phân biệt CPU cao, GC cao và I/O chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-008
+    title: Điều tra số descriptor tăng, socket giữ lâu và direct memory tăng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-009
+    title: Giảm tải, cô lập nguồn lỗi và phục hồi có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-010
+    title: Bảo vệ dữ liệu nhạy cảm trong dump và bản ghi chẩn đoán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-exhaustion-investigation-011
+    title: Chứng minh nguyên nhân gốc và ghi lại runbook xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: startup-graceful-shutdown-and-recovery
+  title: Khởi động, graceful shutdown và khôi phục
+  childs:
+  - slug: startup-graceful-shutdown-and-recovery-001
+    title: Khởi tạo tài nguyên theo thứ tự phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-002
+    title: Đặt timeout và rollback khi khởi động không hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-003
+    title: Warm-up pool và cache theo ngân sách đã định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-004
+    title: Ngừng nhận công việc mới trước khi thu hồi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-005
+    title: Drain request và hàng đợi trong ngân sách shutdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-006
+    title: Shutdown executor, awaitTermination và xử lý khi hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-007
+    title: Hủy tác vụ nền và chờ cleanup hoàn thành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-008
+    title: Đóng client, connection pool, file và buffer theo ownership
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-009
+    title: Quản lý shutdown hook và thứ tự với lifecycle của framework
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-010
+    title: Giới hạn cleanup khi thread hoặc downstream không phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-011
+    title: Tín hiệu dừng container và thời gian kết thúc được cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-012
+    title: Khôi phục tệp tạm, trạng thái dở dang và công việc cần tiếp tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: startup-graceful-shutdown-and-recovery-013
+    title: Kiểm thử khởi động-dừng lặp lại để phát hiện rò rỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: load-testing-and-budget-validation
+  title: Kiểm thử tải và xác minh ngân sách
+  childs:
+  - slug: load-testing-and-budget-validation-001
+    title: Thiết kế workload đại diện cho kích thước và phân bố request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-002
+    title: Đo baseline sau warm-up và cố định điều kiện so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-003
+    title: Load test, stress test, spike test và soak test
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-004
+    title: Phân biệt mô hình tải mở và mô hình tải đóng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-005
+    title: Đo latency percentile và tránh sai lệch coordinated omission
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-006
+    title: Tăng tải theo bước để xác định điểm bão hòa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-007
+    title: Kiểm chứng giới hạn queue, pool, buffer và concurrency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-008
+    title: Chèn lỗi downstream chậm, mất kết nối và timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-009
+    title: Kiểm thử thiếu CPU, thiếu bộ nhớ, hết descriptor và hết đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-010
+    title: Theo dõi số dư tài nguyên sau lỗi, hủy tác vụ và shutdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-011
+    title: Kiểm thử nhiều tenant để đánh giá cô lập và công bằng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-012
+    title: Xác định capacity theo instance và ngân sách downstream chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: load-testing-and-budget-validation-013
+    title: Đặt tiêu chí hồi quy cho độ trễ và xu hướng tăng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-management-practical-labs
+  title: Bài thực hành tổng hợp quản lý tài nguyên
+  childs:
+  - slug: resource-management-practical-labs-001
+    title: Xây dựng ResourceScope với rollback khi cấp phát thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-002
+    title: Sửa rò rỉ stream và descriptor trong tác vụ xử lý nhiều tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-003
+    title: Đo CPU hot path và giới hạn song song cho tác vụ tính toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-004
+    title: Tái hiện heap leak qua cache và phân tích heap dump
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-005
+    title: Giới hạn direct buffer và xác minh release trên đường lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-006
+    title: Sửa thread leak và backlog trong executor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-007
+    title: So sánh platform thread và virtual thread với cùng ngân sách downstream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-008
+    title: Tái hiện connection pool starvation do giữ transaction lâu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-009
+    title: Sửa rò rỉ HTTP response body và giới hạn tải về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-010
+    title: Xây dựng pipeline streaming có bounded buffer và backpressure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-011
+    title: Thiết kế deadline và retry budget cho chuỗi lời gọi dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-012
+    title: Triển khai graceful shutdown và kiểm chứng không mất ownership
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-013
+    title: Lập dashboard và runbook cho CPU, bộ nhớ, thread, file và pool
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-014
+    title: Kiểm thử ứng dụng trong container bị giới hạn CPU và bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-management-practical-labs-015
+    title: Đánh giá cuối kỳ bằng báo cáo ngân sách và bằng chứng thu hồi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

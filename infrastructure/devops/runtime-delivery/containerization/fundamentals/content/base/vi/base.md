@@ -1,0 +1,7 @@
+# DevOps Runtime Delivery Containerization Fundamentals
+
+Containerization là kỹ thuật đóng gói ứng dụng cùng thư viện và cấu hình cần thiết thành một image, rồi chạy nó trong môi trường tiến trình được cô lập. Khác với máy ảo có hệ điều hành khách riêng, các container trên cùng host thường chia sẻ kernel của hệ điều hành, giúp giảm chi phí khởi tạo và tăng tính linh hoạt khi triển khai. Hiểu đúng sự khác nhau giữa image, container, engine và runtime là nền tảng để triển khai ứng dụng nhất quán từ máy phát triển tới hệ thống CI/CD và production.
+
+Roadmap một cấp gồm tám mốc: tìm hiểu container so với VM, image và layers, runtime cùng cơ chế namespaces/cgroups, sau đó thực hành vòng đời container bằng lệnh cơ bản. Tiếp theo, người học tạo image với Dockerfile, phân phối qua registry, tổ chức container networking và lưu trữ dữ liệu bằng volume hoặc bind mount. Mốc cuối tập trung vào bảo mật, giới hạn tài nguyên, quan sát và bảo trì image; các nguyên tắc này tạo nền tảng cho Docker, Docker Compose và Kubernetes ở những module chuyên sâu.
+
+Module phù hợp với developer hoặc DevOps engineer đã biết dòng lệnh, ứng dụng web và Linux cơ bản. Sau khi học, bạn có thể giải thích cách hoạt động của container, tự build và chạy ứng dụng mẫu, kiểm tra logs và cổng mạng, duy trì dữ liệu cần thiết sau khi thay container, đồng thời đánh giá những rủi ro thường gặp như image không đáng tin cậy, quyền root và thiếu giới hạn tài nguyên.

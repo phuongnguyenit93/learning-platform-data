@@ -1,0 +1,57 @@
+roadmap:
+- id: tai-san-rui-ro
+  title: Tài sản & rủi ro
+  purpose: Xác định tài nguyên hạ tầng quan trọng và các đường tấn công cần kiểm soát.
+  objectives:
+  - Lập danh mục máy chủ, mạng, storage và owner
+  - Vẽ trust boundary cho một workload
+  - Đánh giá và ưu tiên các nguy cơ chính
+- id: iam-least-privilege
+  title: IAM & Least Privilege
+  purpose: Hạn chế quyền của người dùng và workload theo nhu cầu thực tế.
+  objectives:
+  - Thiết kế role và policy với quyền tối thiểu
+  - Bật MFA và ưu tiên credential ngắn hạn
+  - Kiểm tra một yêu cầu bị từ chối quyền
+- id: network-segmentation
+  title: Network Segmentation
+  purpose: Giảm bề mặt tấn công và đường di chuyển ngang qua các ranh giới mạng.
+  objectives:
+  - Giới hạn inbound/outbound bằng security group
+  - Thử NetworkPolicy khi CNI hỗ trợ
+  - Kiểm chứng dịch vụ không được phép truy cập
+- id: hardening-patching
+  title: Hardening & Patching
+  purpose: Cấu hình máy chủ và nền tảng theo chuẩn an toàn, giảm lỗ hổng đã biết.
+  objectives:
+  - Đối chiếu cấu hình với CIS Benchmark
+  - Tắt dịch vụ và cổng không cần thiết
+  - Lập quy trình cập nhật và xác nhận bản vá
+- id: secrets-encryption
+  title: Secrets & Encryption
+  purpose: Bảo vệ thông tin xác thực, khóa và dữ liệu khi lưu trữ hoặc truyền tải.
+  objectives:
+  - Lưu secrets bên ngoài mã nguồn và IaC
+  - Thực hành rotation và thu hồi credential
+  - Kiểm tra TLS và encryption at rest
+- id: iac-policy-as-code
+  title: IaC & Policy as Code
+  purpose: Chặn cấu hình hạ tầng thiếu an toàn trước khi tài nguyên được tạo.
+  objectives:
+  - Quét Terraform/Kubernetes manifest với Checkov
+  - Viết quy tắc policy cho cấu hình rủi ro
+  - Đặt security gate trong quy trình review/CI
+- id: audit-drift-detection
+  title: Audit & Drift Detection
+  purpose: Theo dõi hoạt động quản trị và phát hiện cấu hình lệch khỏi trạng thái an toàn.
+  objectives:
+  - Bật và kiểm tra audit log hạ tầng
+  - Đặt cảnh báo cho thay đổi quyền và mạng
+  - Phát hiện drift từ cấu hình IaC đã duyệt
+- id: ung-pho-xac-minh
+  title: Ứng phó & xác minh
+  purpose: Tập xử lý sự cố và đánh giá lại kiểm soát để giảm nguy cơ tái diễn.
+  objectives:
+  - Thử cô lập tài nguyên có dấu hiệu xâm nhập
+  - Thu hồi quyền và luân chuyển secrets bị lộ
+  - Diễn tập phục hồi và cập nhật checklist

@@ -1,0 +1,7 @@
+# DevOps Reliability Operations Disaster Recovery
+
+**Disaster Recovery (DR)** là tập hợp các chiến lược, quy trình và biện pháp kỹ thuật giúp khôi phục hệ thống, dữ liệu và hoạt động quan trọng sau sự cố nghiêm trọng. DR không chỉ là sao lưu dữ liệu hay tự động khởi động lại dịch vụ: một phương án có giá trị phải chứng minh được khả năng khôi phục toàn bộ chức năng cần thiết trong giới hạn thời gian và mất mát dữ liệu mà tổ chức chấp nhận.
+
+Lộ trình gồm tám mốc: nhận diện rủi ro và mức độ ưu tiên, xác lập RTO/RPO cùng các phụ thuộc, chọn chiến lược khôi phục, bảo vệ và kiểm tra backup, chuẩn bị môi trường DR, xây dựng runbook failover/failback, tự động hóa và giám sát, cuối cùng là diễn tập và cải tiến. Người học sẽ phân biệt tính sẵn sàng cao (High Availability) với DR, đánh giá chi phí của các mức dự phòng và hiểu vì sao sao chép dữ liệu không thay thế hoàn toàn khả năng khôi phục từ backup.
+
+Module phù hợp với kỹ sư DevOps, SRE hoặc người vận hành đã biết hạ tầng, cơ sở dữ liệu, mạng và triển khai ứng dụng. Sau khi hoàn thành, bạn có thể phác thảo kế hoạch DR cho một dịch vụ, xác định mục tiêu phục hồi, thiết kế các bước khôi phục dữ liệu và chuyển lưu lượng, kiểm tra sự độc lập của môi trường dự phòng và tổ chức bài diễn tập có số đo để cải thiện khả năng phục hồi thực tế.

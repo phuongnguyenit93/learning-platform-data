@@ -1,0 +1,543 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Browser security là gì
+  - Vì sao trình duyệt cần sandbox
+  - Browser và server khác nhau thế nào
+  - Web platform security model
+  - Trust boundary trong trình duyệt
+  - Đầu ra của ứng dụng web an toàn
+  - Giới hạn của browser security
+  - Lộ trình học browser security
+- level1: Mô hình bảo mật web
+  level2:
+  - User agent
+  - Web origin
+  - Web document
+  - Network request
+  - Browser process
+  - Renderer process
+  - Sandbox boundary
+  - Browser security policy
+- level1: Origin
+  level2:
+  - Origin là gì
+  - Scheme host port
+  - Same origin
+  - Cross-origin
+  - Opaque origin
+  - Origin serialization
+  - Origin comparison
+  - Origin thay đổi khi redirect
+- level1: Same-origin policy
+  level2:
+  - Chính sách cùng origin
+  - DOM isolation
+  - Data read isolation
+  - Request và read khác nhau
+  - Cross-origin window
+  - Cross-origin frame
+  - Same-origin policy exception
+  - Giới hạn của SOP
+- level1: Site và origin
+  level2:
+  - Site là gì
+  - Same-site
+  - Cross-site
+  - Registrable domain
+  - Public suffix
+  - Schemeful same-site
+  - Site isolation
+  - Đánh đổi site và origin
+- level1: Navigation
+  level2:
+  - Top-level navigation
+  - Điều hướng frame
+  - Cross-origin navigation
+  - Open redirect
+  - Redirect chain
+  - URL fragment
+  - History API
+  - Navigation policy
+- level1: URL và encoding
+  level2:
+  - URL parsing
+  - URL normalization
+  - Percent encoding
+  - Unicode hostname
+  - Punycode
+  - URL confusion
+  - Query parameter
+  - URL leakage
+- level1: CORS
+  level2:
+  - CORS là gì
+  - Simple request
+  - Preflight request
+  - Access-Control-Allow-Origin
+  - Access-Control-Allow-Credentials
+  - Allowed methods
+  - Allowed headers
+  - CORS misconfiguration
+- level1: CORS nâng cao
+  level2:
+  - Wildcard origin
+  - Origin reflection
+  - Credentialed CORS
+  - Preflight cache
+  - Private Network Access
+  - Expose headers
+  - Vary Origin
+  - Thiết kế allowlist CORS
+- level1: Cookie
+  level2:
+  - Cookie là gì
+  - Cookie scope
+  - Domain attribute
+  - Path attribute
+  - Expires và Max-Age
+  - Secure attribute
+  - HttpOnly attribute
+  - SameSite attribute
+- level1: Cookie security
+  level2:
+  - Cookie prefix
+  - Host-only cookie
+  - Cookie phiên
+  - Persistent cookie
+  - Cookie tossing
+  - Cookie fixation
+  - Cookie size limit
+  - Cookie audit
+- level1: Session trên browser
+  level2:
+  - Browser session
+  - Session identifier
+  - Session creation
+  - Session rotation
+  - Session expiry
+  - Session invalidation
+  - Concurrent session
+  - Session theft
+- level1: CSRF
+  level2:
+  - CSRF là gì
+  - CSRF trên cookie authentication
+  - SameSite defense
+  - CSRF token
+  - Synchronizer token
+  - Double-submit cookie
+  - Origin check
+  - CSRF negative test
+- level1: XSS và DOM
+  level2:
+  - XSS trong browser
+  - Reflected XSS
+  - Stored XSS
+  - DOM-based XSS
+  - HTML context
+  - Attribute context
+  - JavaScript context
+  - URL context
+- level1: Output encoding
+  level2:
+  - Contextual output encoding
+  - HTML encoding
+  - Attribute encoding
+  - JavaScript encoding
+  - CSS encoding
+  - URL encoding
+  - Encoding không thay thế validation
+  - Kiểm thử encoding
+- level1: DOM security
+  level2:
+  - DOM sink
+  - DOM source
+  - innerHTML
+  - outerHTML
+  - document.write
+  - eval
+  - setTimeout string
+  - Safe DOM API
+- level1: CSP
+  level2:
+  - Content Security Policy
+  - script-src
+  - style-src
+  - img-src
+  - connect-src
+  - frame-src
+  - object-src
+  - default-src
+- level1: CSP nâng cao
+  level2:
+  - Nonce source
+  - Hash source
+  - Strict-dynamic
+  - Report-only mode
+  - Báo cáo CSP
+  - Inline script
+  - Unsafe-inline
+  - Unsafe-eval
+- level1: Trusted Types
+  level2:
+  - Nguyên lý Trusted Types
+  - TrustedHTML
+  - TrustedScript
+  - TrustedScriptURL
+  - Default policy
+  - DOM sink enforcement
+  - Migration sang Trusted Types
+  - Kiểm thử Trusted Types
+- level1: Clickjacking
+  level2:
+  - Clickjacking là gì
+  - Frame embedding
+  - X-Frame-Options
+  - frame-ancestors
+  - UI redress
+  - Transparent overlay
+  - Same-origin frame
+  - Kiểm thử clickjacking
+- level1: Iframe
+  level2:
+  - Iframe security
+  - sandbox attribute
+  - allow attribute
+  - Origin của sandbox frame
+  - Điều hướng trong iframe
+  - Frame communication
+  - Credentialless iframe
+  - Iframe isolation
+- level1: postMessage
+  level2:
+  - postMessage là gì
+  - MessageEvent origin
+  - targetOrigin
+  - Structured clone
+  - Kiểm tra thông điệp
+  - Wildcard targetOrigin
+  - Window reference
+  - postMessage abuse
+- level1: Cross-origin isolation
+  level2:
+  - Chính sách cách ly cross-origin
+  - COOP
+  - COEP
+  - CORP
+  - SharedArrayBuffer
+  - Cross-origin resource policy
+  - Window opener isolation
+  - Kiểm tra isolation
+- level1: Security headers
+  level2:
+  - Security response header
+  - Content-Security-Policy
+  - Strict-Transport-Security
+  - Header nosniff
+  - Header referrer
+  - Permissions-Policy
+  - Cross-Origin-Opener-Policy
+  - Cross-Origin-Resource-Policy
+- level1: HSTS và TLS
+  level2:
+  - HTTPS trong browser
+  - TLS certificate
+  - Certificate warning
+  - Nội dung mixed content
+  - HSTS
+  - Preload list
+  - Downgrade attack
+  - Secure context
+- level1: Mixed content
+  level2:
+  - Active mixed content
+  - Passive mixed content
+  - Mixed content blocking
+  - HTTP image
+  - HTTP script
+  - HTTP API call
+  - Upgrade insecure requests
+  - Kiểm tra mixed content
+- level1: Resource integrity
+  level2:
+  - Subresource Integrity
+  - Integrity attribute
+  - Cross-origin resource
+  - Hash verification
+  - CDN security
+  - Dependency resource
+  - Integrity failure
+  - SRI deployment
+- level1: Permissions
+  level2:
+  - Browser permission
+  - Geolocation
+  - Camera
+  - Microphone
+  - Notifications
+  - Clipboard
+  - Persistent permission
+  - Permission prompt
+- level1: Permissions Policy
+  level2:
+  - Chính sách quyền trình duyệt
+  - Policy header
+  - Allowlist origin
+  - Feature delegation
+  - Iframe permission
+  - Default allowlist
+  - Permission inheritance
+  - Policy audit
+- level1: Storage
+  level2:
+  - Web storage
+  - localStorage
+  - sessionStorage
+  - IndexedDB
+  - Cache Storage
+  - Phân vùng storage
+  - Storage quota
+  - Xóa dữ liệu storage
+- level1: Storage security
+  level2:
+  - Storage của same-origin
+  - Sensitive data trong browser
+  - Token lưu trong localStorage
+  - Token trong cookie
+  - Cache chứa dữ liệu
+  - DevTools exposure
+  - Storage leak
+  - Storage cleanup
+- level1: Service worker
+  level2:
+  - Service worker là gì
+  - Worker scope
+  - Service worker registration
+  - Fetch interception
+  - Đầu độc cache
+  - Update lifecycle
+  - Offline data
+  - Service worker takeover
+- level1: PWA
+  level2:
+  - Progressive Web App
+  - Manifest
+  - Installability
+  - Offline mode
+  - Push notification
+  - Background sync
+  - Origin requirement
+  - PWA security review
+- level1: Fetch và XMLHttpRequest
+  level2:
+  - Fetch API
+  - XMLHttpRequest
+  - Credentials mode
+  - Mode cors
+  - Mode no-cors
+  - Request redirect mode
+  - Response type
+  - Abort request
+- level1: WebSocket
+  level2:
+  - WebSocket security
+  - Origin header
+  - Handshake
+  - Authentication
+  - Authorization
+  - Kiểm tra payload message
+  - Connection lifetime
+  - WebSocket abuse
+- level1: WebRTC
+  level2:
+  - WebRTC security
+  - Peer connection
+  - ICE candidate
+  - STUN và TURN
+  - Media permission
+  - Data channel
+  - IP privacy
+  - WebRTC threat
+- level1: Authentication browser
+  level2:
+  - Browser authentication
+  - Login form
+  - Cookie phiên xác thực
+  - Bearer token
+  - OAuth redirect
+  - OIDC state
+  - Passkey browser flow
+  - Authentication UI
+- level1: Browser token security
+  level2:
+  - Access token trong browser
+  - Refresh token
+  - Token storage
+  - Token rotation
+  - Token leakage
+  - Token audience
+  - Token expiration
+  - Logout token
+- level1: Privacy
+  level2:
+  - Browser privacy
+  - Third-party tracking
+  - First-party context
+  - Third-party cookie
+  - Phân vùng theo site
+  - Fingerprinting
+  - Referrer leakage
+  - Privacy budget
+- level1: Referrer và URL leak
+  level2:
+  - Chính sách referrer
+  - Referrer header
+  - URL trong history
+  - URL trong analytics
+  - URL trong log
+  - Query chứa secret
+  - Fragment chứa token
+  - Giảm dữ liệu trong URL
+- level1: Browser cache
+  level2:
+  - HTTP cache
+  - Cache-Control
+  - Private response
+  - Public response
+  - Cache key
+  - Đầu độc HTTP cache
+  - Sensitive response cache
+  - Cache invalidation
+- level1: Download và file
+  level2:
+  - Browser download
+  - Content-Disposition
+  - Content-Type
+  - Filename handling
+  - Download bomb
+  - File origin
+  - Blob URL
+  - Sandbox file
+- level1: Content type
+  level2:
+  - MIME type
+  - Content sniffing
+  - Header MIME an toàn
+  - nosniff
+  - Script MIME
+  - JSON MIME
+  - Upload response
+  - Type confusion
+- level1: Browser extension
+  level2:
+  - Extension security
+  - Extension permission
+  - Content script
+  - Background script
+  - Host permission
+  - Extension messaging
+  - Extension độc hại
+  - Extension review
+- level1: Developer tools
+  level2:
+  - DevTools và secret
+  - Source map
+  - Debug endpoint
+  - Console log
+  - Network panel
+  - Browser storage inspection
+  - Production debugging
+  - Xóa dữ liệu nhạy cảm
+- level1: Error và report
+  level2:
+  - Browser error page
+  - Error message
+  - Unhandled exception
+  - Stack trace
+  - Reporting API
+  - Báo cáo vi phạm CSP
+  - Network error
+  - Không lộ thông tin nội bộ
+- level1: Kiểm thử
+  level2:
+  - Browser security test
+  - SOP test
+  - CORS test
+  - CSRF test
+  - XSS test
+  - CSP test
+  - Cookie test
+  - Header test
+- level1: Kiểm thử nâng cao
+  level2:
+  - Origin boundary test
+  - Redirect test
+  - postMessage test
+  - Storage test
+  - Service worker test
+  - Permission test
+  - Cache test
+  - Cross-browser test
+- level1: Vận hành
+  level2:
+  - Security header rollout
+  - Triển khai CSP theo giai đoạn
+  - Certificate renewal
+  - Cookie policy review
+  - Permission review
+  - Service worker update
+  - Dependency update
+  - Browser compatibility
+- level1: Giám sát
+  level2:
+  - Security header metric
+  - CSP violation
+  - Authentication event
+  - CSRF detection
+  - XSS signal
+  - Unusual origin
+  - Browser error metric
+  - Client security telemetry
+- level1: Ứng phó sự cố
+  level2:
+  - XSS incident
+  - Token leak
+  - Cookie compromise
+  - Malicious service worker
+  - DNS hijacking
+  - Sự cố extension độc hại
+  - Containment client
+  - Post-incident review
+- level1: Kiến trúc
+  level2:
+  - Browser security boundary
+  - Backend for frontend
+  - Content delivery network
+  - API gateway
+  - Identity provider
+  - Third-party integration
+  - Client-side trust
+  - Defense in depth
+- level1: Case study
+  level2:
+  - CORS mở quá rộng
+  - CSRF qua cookie
+  - XSS qua DOM
+  - Clickjacking trang quản trị
+  - Case token trong localStorage
+  - Service worker độc hại
+  - Case triển khai CSP
+  - OAuth redirect sai
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ browser trust boundary
+  - Thiết kế origin policy
+  - Thiết lập CORS
+  - Thiết lập cookie an toàn
+  - Thiết kế CSRF defense
+  - Thiết lập CSP
+  - Bảo vệ iframe và message
+  - Kiểm tra storage và service worker
+  - Kiểm thử browser security
+  - Hoàn thiện hồ sơ browser security

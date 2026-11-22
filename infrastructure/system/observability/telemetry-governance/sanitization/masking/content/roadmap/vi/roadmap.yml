@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-masking
+  title: Tổng quan Masking
+  purpose: Hiểu cách che dữ liệu nhạy cảm mà vẫn giữ giá trị chẩn đoán.
+  objectives:
+  - Giải thích mục đích masking trong telemetry.
+  - Phân biệt masking, filtering và redaction.
+- id: nhan-dien-du-lieu
+  title: Nhận diện dữ liệu
+  purpose: Xác định nơi PII và bí mật có thể lọt vào telemetry.
+  objectives:
+  - Rà soát log body, span attributes và metric labels.
+  - Nhận diện token, email, URL và thông tin định danh.
+- id: chinh-sach-masking
+  title: Chính sách Masking
+  purpose: Quy định dữ liệu cần che và mức thông tin được giữ lại.
+  objectives:
+  - Lập danh mục trường và quy tắc được phép xuất.
+  - Chọn điểm xử lý trước khi gửi tới backend.
+- id: ky-thuat-che-gia-tri
+  title: Kỹ thuật che giá trị
+  purpose: Lựa chọn cách thay thế phù hợp với yêu cầu điều tra.
+  objectives:
+  - So sánh che toàn phần, che một phần và băm/HMAC.
+  - Xác định rủi ro khôi phục hoặc liên kết danh tính.
+- id: masking-logs
+  title: Masking Logs
+  purpose: Che thông tin nhạy cảm trong bản ghi có cấu trúc và văn bản.
+  objectives:
+  - Áp dụng quy tắc cho field và log body.
+  - Kiểm tra log vẫn đủ ngữ cảnh khi tra cứu sự cố.
+- id: traces-metrics
+  title: Traces & Metrics
+  purpose: Bảo vệ thuộc tính quan sát mà không làm hỏng tín hiệu.
+  objectives:
+  - Che định danh trong span, URL và thuộc tính Resource.
+  - Đánh giá tác động lên metric labels và chuỗi thời gian.
+- id: collector-pipeline
+  title: Collector Pipeline
+  purpose: Triển khai masking tập trung trước khi xuất dữ liệu.
+  objectives:
+  - Cấu hình redaction/transform processor với quy tắc phù hợp.
+  - Kiểm tra telemetry đầu ra qua pipeline thử nghiệm.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & Vận hành
+  purpose: Đo độ an toàn và chất lượng của chính sách masking.
+  objectives:
+  - Thử ca lọt dữ liệu, che nhầm và chuỗi bất thường.
+  - Theo dõi hiệu năng, thay đổi quy tắc và hồi quy.

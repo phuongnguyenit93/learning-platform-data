@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-oci
+  title: Tổng quan OCI
+  purpose: Hiểu cách Oracle Cloud Infrastructure tổ chức tài nguyên và chọn vị trí triển khai phù hợp.
+  objectives:
+  - Phân biệt tenancy, region và realm.
+  - Giải thích availability domain và fault domain.
+  - Chọn region theo độ trễ, khả dụng và yêu cầu dữ liệu.
+- id: iam-compartments
+  title: IAM & Compartments
+  purpose: Quản trị tài nguyên và quyền truy cập bằng các ranh giới rõ ràng.
+  objectives:
+  - Tổ chức resource theo compartments.
+  - Phân biệt user, group, dynamic group và policy.
+  - Viết policy cấp quyền tối thiểu cho một nhóm.
+- id: vcn-networking
+  title: VCN & Networking
+  purpose: Thiết kế mạng riêng cho ứng dụng và kiểm soát đường đi của lưu lượng.
+  objectives:
+  - Tạo VCN cùng public/private subnet.
+  - Thiết lập route table, Internet/NAT/Service Gateway.
+  - Kiểm soát truy cập bằng security list hoặc NSG.
+- id: compute-instances
+  title: Compute Instances
+  purpose: Chọn và vận hành tài nguyên tính toán đúng nhu cầu ứng dụng.
+  objectives:
+  - Phân biệt VM và bare metal, chọn shape/OCPU.
+  - Tạo instance và kết nối qua SSH an toàn.
+  - Gắn boot/block volume và kiểm tra trạng thái.
+- id: storage-services
+  title: Storage Services
+  purpose: Lựa chọn lưu trữ theo nhu cầu dữ liệu, hiệu năng và độ bền.
+  objectives:
+  - Phân biệt Object, Block và File Storage.
+  - Tạo bucket và tải lên/xuống object.
+  - Giải thích storage tiers, lifecycle và backup.
+- id: database-tren-oci
+  title: Database trên OCI
+  purpose: Lựa chọn dịch vụ database được quản lý và kết nối ứng dụng an toàn.
+  objectives:
+  - So sánh DB System và Autonomous AI Database.
+  - Tạo database thử nghiệm theo dịch vụ phù hợp.
+  - Xem xét kết nối riêng, backup và scaling.
+- id: security-monitoring
+  title: Security & Monitoring
+  purpose: Theo dõi sức khỏe hệ thống đồng thời bảo vệ dữ liệu và quyền truy cập.
+  objectives:
+  - Đọc metrics và cấu hình Monitoring alarm.
+  - Kiểm tra log, cảnh báo và quyền IAM.
+  - Áp dụng bảo mật mạng và mã hóa dữ liệu.
+- id: iac-cost-control
+  title: IaC & Cost Control
+  purpose: Tự động hóa hạ tầng và theo dõi chi phí để vận hành có kiểm soát.
+  objectives:
+  - Tạo Terraform stack trong OCI Resource Manager.
+  - Chạy plan/apply và kiểm tra kết quả.
+  - Đọc Cost Analysis, tags và ngân sách.

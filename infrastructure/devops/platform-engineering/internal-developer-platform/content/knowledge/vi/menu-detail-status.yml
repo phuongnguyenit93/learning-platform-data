@@ -1,0 +1,3037 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Nền tảng phát triển nội bộ (Internal Developer Platform) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vấn đề phân mảnh công cụ, thao tác lặp lại và thời gian chờ của nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: người dùng, khả năng nền tảng, dịch vụ, môi trường và quy trình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt Internal Developer Platform với Internal Developer Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mối liên hệ giữa IDP, Platform Engineering, DevOps và SRE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của tự phục vụ trong giảm công việc phối hợp thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ranh giới giữa nền tảng dùng chung và logic nghiệp vụ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Những điều kiện tổ chức cần có trước khi xây dựng IDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: developer-needs
+  title: Nhu cầu người dùng
+  childs:
+  - slug: developer-needs-001
+    title: Xác định nhóm người dùng và các công việc họ cần hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-002
+    title: Khảo sát hành trình từ tạo dự án đến vận hành và ngừng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-003
+    title: Phân tích thời gian chờ, bước bàn giao và điểm gây lỗi trong quy trình hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-004
+    title: Phân biệt nhu cầu thực tế với yêu cầu thêm một công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-005
+    title: Thu thập phản hồi bằng phỏng vấn, quan sát và dữ liệu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-006
+    title: Đánh giá mức độ phức tạp mà người dùng phải tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-007
+    title: Chọn trường hợp sử dụng phổ biến có giá trị khi chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-008
+    title: Xác định nhu cầu khác nhau của dịch vụ mới và ứng dụng đang vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-needs-009
+    title: Đặt tiêu chí thành công cho từng hành trình tự phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-products
+  title: Sản phẩm nền tảng
+  childs:
+  - slug: platform-products-001
+    title: Quản lý IDP như sản phẩm nội bộ có người dùng và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-002
+    title: Xác định giá trị cung cấp và phạm vi khả năng được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-003
+    title: Xây dựng danh mục khả năng theo nhu cầu thay vì tập hợp công cụ sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-004
+    title: Ưu tiên phát triển theo tác động, tần suất sử dụng và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-005
+    title: Chọn lớp tích hợp tối thiểu đủ phục vụ thay vì tự xây lại mọi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-006
+    title: Tách tiêu chuẩn bắt buộc khỏi lựa chọn mặc định được khuyến nghị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-007
+    title: Công bố lộ trình, giới hạn hỗ trợ và cách tiếp nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-008
+    title: Quản lý phản hồi và giả thuyết sản phẩm trong từng vòng cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-products-009
+    title: Đánh giá lợi ích của nền tảng đối với nhóm ứng dụng và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture
+  title: Kiến trúc
+  childs:
+  - slug: architecture-001
+    title: Phân lớp giao diện, API, điều phối công việc và hệ thống cung cấp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-002
+    title: Phân biệt mặt phẳng điều khiển nền tảng với nơi ứng dụng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-003
+    title: Vai trò của catalog, danh tính, chính sách và dữ liệu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-004
+    title: Luồng từ yêu cầu người dùng đến tài nguyên được tạo và xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-005
+    title: Chọn xử lý đồng bộ, công việc bất đồng bộ hoặc vòng lặp đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-006
+    title: Phân chia chức năng giữa IDP và các hệ thống CI/CD, IaC, GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-007
+    title: Thiết kế ranh giới tích hợp với dịch vụ nội bộ và nhà cung cấp bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-008
+    title: Xác định dữ liệu có thẩm quyền và các bản chiếu phục vụ giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-009
+    title: Đánh giá điểm lỗi tập trung và phạm vi ảnh hưởng của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-010
+    title: Tránh phụ thuộc vào portal duy nhất để thực hiện mọi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-model
+  title: Mô hình tài nguyên
+  childs:
+  - slug: resource-model-001
+    title: Định nghĩa dịch vụ, thành phần, hệ thống, tài nguyên và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-002
+    title: Thiết kế định danh ổn định và quan hệ giữa các đối tượng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-003
+    title: Biểu diễn chủ sở hữu, vòng đời, mức quan trọng và thông tin hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-004
+    title: Tách ý định người dùng khỏi chi tiết triển khai của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-005
+    title: Thiết kế hợp đồng yêu cầu đầu vào, kết quả đầu ra và trạng thái lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-006
+    title: Xác định thuộc tính nào người dùng được chọn và thuộc tính do nền tảng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-007
+    title: Phân biệt trạng thái mong muốn, trạng thái quan sát được và trạng thái hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-008
+    title: Quản lý tài nguyên dùng chung và ranh giới quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-model-009
+    title: Phiên bản hóa schema và bảo toàn tương thích khi mô hình phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: self-service-interface
+  title: Giao diện tự phục vụ
+  childs:
+  - slug: self-service-interface-001
+    title: Lựa chọn portal, CLI, API và luồng qua Git theo hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-002
+    title: Thiết kế trải nghiệm nhất quán giữa các kênh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-003
+    title: Xây dựng biểu mẫu theo khả năng cần yêu cầu thay vì chi tiết hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-004
+    title: Kiểm tra dữ liệu và phản hồi lỗi tại đúng bước người dùng cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-005
+    title: Hiển thị quyền, chi phí dự kiến và phạm vi tác động trước thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-006
+    title: Phân biệt yêu cầu đã tiếp nhận, đang xử lý và tài nguyên đã sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-007
+    title: Cung cấp trạng thái tiến độ, lịch sử và cách tiếp tục khi thao tác bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-008
+    title: Thiết kế đường dẫn đến tài liệu, log và hỗ trợ có ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-009
+    title: Giữ giao diện dễ truy cập và dùng được cho nhiều nhóm kỹ năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-interface-010
+    title: Cung cấp API ổn định cho tự động hóa mà không phụ thuộc thao tác giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-catalog
+  title: Danh mục dịch vụ
+  childs:
+  - slug: service-catalog-001
+    title: Vai trò của software catalog trong tìm kiếm và hiểu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-002
+    title: Đăng ký dịch vụ mới và tiếp nhận dịch vụ có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-003
+    title: Lưu thông tin chủ sở hữu, kho mã, tài liệu và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-004
+    title: Mô hình hóa phụ thuộc giữa ứng dụng, API và tài nguyên hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-005
+    title: Tìm kiếm, phân loại và lọc dịch vụ theo ngữ cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-006
+    title: Đồng bộ dữ liệu từ Git, hệ thống danh tính và nền tảng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-007
+    title: Xử lý dữ liệu trùng, chủ sở hữu thiếu và thông tin đã lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-008
+    title: Phân biệt catalog với CMDB và nguồn trạng thái vận hành trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-009
+    title: Liên kết sức khỏe, cảnh báo và mức tuân thủ mà không tạo nguồn sự thật cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-010
+    title: Quản lý vòng đời đăng ký, đổi chủ sở hữu, lưu trữ và xóa mục catalog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: golden-paths
+  title: Lộ trình chuẩn
+  childs:
+  - slug: golden-paths-001
+    title: Lộ trình chuẩn (golden path) là gì và gồm những thành phần nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-002
+    title: Phân biệt golden path với template tạo mã ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-003
+    title: Thiết kế luồng tạo, kiểm thử, triển khai và quan sát dịch vụ hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-004
+    title: Cung cấp mặc định an toàn và tài liệu thực hành có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-005
+    title: Xác định mức tùy biến mà vẫn giữ cam kết hỗ trợ của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-006
+    title: Thiết kế cách rời lộ trình chuẩn khi nhu cầu ứng dụng vượt phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-007
+    title: Quản lý phiên bản và thời hạn hỗ trợ của từng golden path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-008
+    title: Đánh giá lộ trình chuẩn bằng kết quả người dùng đạt được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: golden-paths-009
+    title: Tránh buộc mọi ứng dụng dùng chung một kiến trúc hoặc công nghệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project-templates
+  title: Khuôn mẫu dự án
+  childs:
+  - slug: project-templates-001
+    title: Thiết kế template tạo kho mã, cấu trúc ứng dụng và cấu hình ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-002
+    title: Định nghĩa tham số, schema và quy tắc đặt tên cho dự án mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-003
+    title: Sinh pipeline, tài liệu, thông tin catalog và cấu hình quan sát mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-004
+    title: Tham chiếu thành phần dùng chung thay vì sao chép mọi nội dung vào dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-005
+    title: Kiểm tra nội dung sinh ra bằng build, test và kiểm tra chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-006
+    title: Xác định trách nhiệm cập nhật sau khi dự án đã được tạo từ template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-007
+    title: Phân biệt nâng phiên bản template với nâng các dự án đã sinh trước đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-008
+    title: Quản lý nguồn tin cậy và quyền thực thi của template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-templates-009
+    title: Thiết kế hủy thao tác hoặc dọn tài nguyên khi tạo dự án chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: request-workflows
+  title: Quy trình yêu cầu
+  childs:
+  - slug: request-workflows-001
+    title: Mô tả một hành động tự phục vụ bằng điều kiện, đầu vào và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-002
+    title: Phân biệt thao tác được phép tự động với thao tác cần phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-003
+    title: Kiểm tra quyền và chính sách trước khi tạo công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-004
+    title: Tính lũy đẳng và chống tạo tài nguyên trùng khi người dùng gửi lại yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-005
+    title: Thiết kế trạng thái chờ duyệt, đang chạy, thành công, thất bại và bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-006
+    title: Lưu mã công việc và cho phép người dùng kiểm tra kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-007
+    title: Quản lý thời hạn yêu cầu và thay đổi điều kiện trong lúc chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-008
+    title: Xác định khi nào có thể hủy và khi nào cần thao tác bù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-009
+    title: Truy vết người yêu cầu, người phê duyệt và hệ thống thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: request-workflows-010
+    title: Giữ phê duyệt và thông tin nhạy cảm nhất quán giữa portal, CLI và API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-execution
+  title: Thực thi bất đồng bộ
+  childs:
+  - slug: asynchronous-execution-001
+    title: Tách tiếp nhận yêu cầu khỏi worker thực thi có quyền hạn chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-002
+    title: Lựa chọn hàng đợi, workflow engine hoặc bộ điều khiển đối soát theo bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-003
+    title: Quản lý bước phụ thuộc và trạng thái công việc bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-004
+    title: Phân biệt lỗi tạm thời với lỗi dữ liệu hoặc chính sách cần người dùng sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-005
+    title: Thiết lập thử lại, thời gian chờ và giãn khoảng cách có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-006
+    title: Xử lý sự kiện lặp, đến sai thứ tự và kết quả bị gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-007
+    title: Ngăn hai công việc cùng thay đổi một tài nguyên theo cách xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-008
+    title: Xử lý thành công một phần và thao tác bù giữa nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-009
+    title: Khôi phục công việc sau khi worker hoặc dịch vụ điều phối khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-010
+    title: Giới hạn đồng thời, hạn mức và phạm vi ảnh hưởng của tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-execution-011
+    title: Đối chiếu kết quả công việc với trạng thái thực của tài nguyên đã tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-provisioning
+  title: Cấp phát hạ tầng
+  childs:
+  - slug: infrastructure-provisioning-001
+    title: Cung cấp khả năng yêu cầu compute, mạng và lưu trữ theo hợp đồng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-002
+    title: Ánh xạ yêu cầu sản phẩm với module IaC hoặc dịch vụ cung cấp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-003
+    title: Quản lý tham số được phép tùy biến và cấu hình hạ tầng do nền tảng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-004
+    title: Xem trước thay đổi, chi phí và thao tác phá hủy trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-005
+    title: Liên kết kết quả cấp phát với danh tính dịch vụ và catalog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-006
+    title: Quản lý trạng thái công cụ IaC, khóa thao tác và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-007
+    title: Phát hiện tài nguyên tạo bên ngoài hoặc sai lệch so với khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-008
+    title: Cập nhật, thay thế và thu hồi tài nguyên theo vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-provisioning-009
+    title: Giữ khả năng tích hợp nhiều nhà cung cấp mà không che mất giới hạn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments
+  title: Môi trường
+  childs:
+  - slug: environments-001
+    title: Mô hình hóa môi trường phát triển, kiểm thử, tiền sản xuất và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-002
+    title: Cấp môi trường theo yêu cầu với mức cô lập và quota phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-003
+    title: Tạo môi trường xem trước cho đề xuất thay đổi khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-004
+    title: Quản lý thời hạn sử dụng và tự động dọn môi trường tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-005
+    title: Tách dữ liệu, cấu hình và bí mật giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-006
+    title: Liên kết môi trường với phiên bản ứng dụng và tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-007
+    title: Giữ khả năng tái tạo môi trường từ đầu vào có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-008
+    title: Kiểm soát truy cập và dữ liệu nhạy cảm trong môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-009
+    title: Xử lý môi trường không được sử dụng, bị bỏ quên hoặc thiếu chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-010
+    title: Thu hồi môi trường mà không xóa nhầm tài nguyên hoặc dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: development-environments
+  title: Môi trường lập trình
+  childs:
+  - slug: development-environments-001
+    title: Chuẩn hóa công cụ phát triển và phụ thuộc theo loại dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-002
+    title: Cung cấp lựa chọn phát triển cục bộ hoặc workspace từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-003
+    title: Tái tạo môi trường lập trình từ cấu hình có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-004
+    title: Kết nối môi trường phát triển với dịch vụ phụ trợ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-005
+    title: Cấp quyền truy cập tạm mà không phát tán bí mật dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-006
+    title: Cô lập dữ liệu, mạng và mã chưa tin cậy trong môi trường phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-007
+    title: Quản lý thời hạn, tài nguyên và chi phí của workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: development-environments-008
+    title: Giữ trải nghiệm phát triển tương thích với quy trình build và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-platform
+  title: Nền tảng thực thi
+  childs:
+  - slug: runtime-platform-001
+    title: Cung cấp hợp đồng chạy dịch vụ, tác vụ nền và công việc theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-002
+    title: Ánh xạ nhu cầu ứng dụng với container, máy ảo hoặc dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-003
+    title: Đóng gói mặc định về tài nguyên, mạng, sức khỏe và kết thúc êm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-004
+    title: Cho phép nhóm ứng dụng điều chỉnh trong phạm vi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-005
+    title: Thiết lập khám phá dịch vụ, tên miền và điểm truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-006
+    title: Cung cấp lựa chọn mở rộng và giới hạn năng lực theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-007
+    title: Tách cấu hình ứng dụng khỏi cấu hình vận hành cụm dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-008
+    title: Theo dõi phiên bản và sức khỏe của ứng dụng qua nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-platform-009
+    title: Phân định vận hành nền tảng thực thi với trách nhiệm của nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-services
+  title: Dịch vụ phụ trợ
+  childs:
+  - slug: shared-services-001
+    title: Cung cấp cơ sở dữ liệu, cache, hàng đợi và lưu trữ đối tượng theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-002
+    title: Định nghĩa gói dịch vụ với năng lực, mức hỗ trợ và giới hạn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-003
+    title: Cấp danh tính, kết nối và quyền sử dụng tài nguyên cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-004
+    title: Quản lý vòng đời từ tạo mới đến thay đổi dung lượng và ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-005
+    title: Phân biệt tài nguyên dành riêng với dịch vụ dùng chung giữa nhiều ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-006
+    title: Quy định sao lưu, giữ dữ liệu và phục hồi theo trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-007
+    title: Xử lý thay đổi phiên bản và khả năng tương thích với ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-008
+    title: Quản lý migration và chuyển giao dữ liệu có phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-services-009
+    title: Kiểm tra phụ thuộc trước khi xóa để tránh làm gián đoạn dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-delivery
+  title: Phân phối phần mềm
+  childs:
+  - slug: software-delivery-001
+    title: Cung cấp quy trình build, test và phát hành artifact có thể tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-002
+    title: Tích hợp hệ thống CI/CD hiện có thay vì tạo nguồn thực thi cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-003
+    title: Quản lý registry, quyền xuất bản và quyền tải artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-004
+    title: Liên kết commit, kết quả kiểm tra, artifact và cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-005
+    title: Cung cấp luồng thăng cấp cùng artifact qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-006
+    title: Tích hợp GitOps hoặc API triển khai theo mô hình vận hành đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-007
+    title: Hiển thị riêng trạng thái pipeline, đồng bộ và sức khỏe ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-008
+    title: Đặt cổng phê duyệt, kiểm tra chính sách và điều kiện phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-009
+    title: Cung cấp hành động quay lại phiên bản với thông tin rủi ro và giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-delivery-010
+    title: Tách quyền thay đổi môi trường sản xuất khỏi quyền chỉnh giao diện nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-observability
+  title: Quan sát ứng dụng
+  childs:
+  - slug: application-observability-001
+    title: Cung cấp cấu hình log, chỉ số và dấu vết phân tán theo mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-002
+    title: Liên kết tín hiệu quan sát với dịch vụ, chủ sở hữu và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-003
+    title: Cung cấp dashboard phù hợp với nhu cầu nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-004
+    title: Phân biệt sức khỏe tài nguyên với hành vi dịch vụ đối với người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-005
+    title: Liên kết cảnh báo và hướng dẫn xử lý sự cố theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-006
+    title: Truy cập log và dữ liệu chẩn đoán theo quyền và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-007
+    title: Quản lý dữ liệu nhạy cảm, thời hạn lưu giữ và chi phí quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-008
+    title: Nhận diện dữ liệu trễ hoặc thiếu thay vì hiển thị trạng thái khỏe không có căn cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-observability-009
+    title: Phân định nền tảng quan sát dùng chung với trách nhiệm theo dõi nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: self-service-operations
+  title: Vận hành tự phục vụ
+  childs:
+  - slug: self-service-operations-001
+    title: Thiết kế hành động vận hành sau triển khai (day-2) theo nhu cầu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-002
+    title: Cung cấp thao tác đổi cấu hình, mở rộng và khởi động lại có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-003
+    title: Cho phép xem log, chạy chẩn đoán và kiểm tra phụ thuộc theo quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-004
+    title: Kiểm soát truy cập tương tác vào tiến trình hoặc môi trường sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-005
+    title: Xác nhận phạm vi ảnh hưởng trước thao tác gây gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-006
+    title: Áp dụng thời hạn truy cập tạm và ghi nhận bằng chứng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-007
+    title: Phối hợp thao tác khẩn cấp với nguồn khai báo để tránh bị ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-008
+    title: Chuyển chủ sở hữu và bàn giao quyền vận hành dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-009
+    title: Ngừng dịch vụ, thu hồi quyền và dọn tài nguyên theo quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: self-service-operations-010
+    title: Ngăn thao tác tự phục vụ trở thành đường bỏ qua chính sách bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-and-access
+  title: Danh tính và quyền
+  childs:
+  - slug: identity-and-access-001
+    title: Tích hợp danh tính tổ chức và đăng nhập thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-002
+    title: Ánh xạ người dùng, nhóm và vai trò với tài nguyên nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-003
+    title: Phân biệt xác thực, phân quyền và kiểm tra chính sách hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-004
+    title: Kiểm tra quyền tại API và worker thay vì chỉ ẩn nút trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-005
+    title: Phân biệt quyền của người yêu cầu với danh tính hệ thống thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-006
+    title: Thiết kế ủy quyền để tránh nền tảng dùng quyền cao thay người không được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-007
+    title: Cấp quyền tối thiểu cho từng adapter và loại công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-008
+    title: Đồng bộ thay đổi thành viên và thu hồi quyền khi rời tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-009
+    title: Quản lý danh tính workload và thông tin xác thực ngắn hạn khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-010
+    title: Kiểm toán quyết định cấp quyền và thao tác đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets-and-certificates
+  title: Bí mật và chứng chỉ
+  childs:
+  - slug: secrets-and-certificates-001
+    title: Tách giá trị bí mật khỏi metadata hiển thị trong catalog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-002
+    title: Tích hợp kho bí mật và cung cấp tham chiếu an toàn cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-003
+    title: Giới hạn chủ thể được đọc, cấp và xoay vòng thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-004
+    title: Tránh lưu bí mật trong template, Git, artifact và lịch sử công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-005
+    title: Che dữ liệu trong log, đầu ra bước thực thi và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-006
+    title: Quản lý chứng chỉ, khóa và danh tính kết nối theo vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-007
+    title: Xoay vòng bí mật và xác minh ứng dụng đã nhận giá trị mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-008
+    title: Thu hồi thông tin xác thực khi dịch vụ hoặc môi trường bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-certificates-009
+    title: Xử lý sự cố lộ bí mật và phục hồi khả năng truy cập có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-team-policies
+  title: Chính sách đa nhóm
+  childs:
+  - slug: multi-team-policies-001
+    title: Xác định đơn vị thuê dùng nền tảng theo đội ngũ, sản phẩm hoặc tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-002
+    title: Tách tài nguyên, dữ liệu và quyền giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-003
+    title: Thiết lập quota, giới hạn chi phí và danh mục dịch vụ được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-004
+    title: Áp dụng chính sách tại lúc yêu cầu, lúc thực thi và trong quá trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-005
+    title: Phân biệt mặc định an toàn với quy tắc bắt buộc không được ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-006
+    title: Quản lý ngoại lệ bằng lý do, người phê duyệt và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-007
+    title: Ngăn một nhóm gây cạn tài nguyên hoặc làm gián đoạn nhóm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-008
+    title: Chuẩn hóa chủ sở hữu, nhãn và metadata phục vụ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-009
+    title: Đối chiếu bằng chứng tuân thủ với trạng thái thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-team-policies-010
+    title: Đánh giá khi nào cần tách không gian quản lý hoặc tách hệ thống nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: supply-chain-security
+  title: An toàn chuỗi cung ứng
+  childs:
+  - slug: supply-chain-security-001
+    title: Thiết lập nguồn tin cậy cho template, plugin và thành phần tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-002
+    title: Kiểm tra mã, phụ thuộc và artifact trong quy trình mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-003
+    title: Liên kết thông tin xuất xứ và danh mục thành phần với artifact phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-004
+    title: Xác minh nội dung và quyền thực thi trước khi đưa thành phần vào nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-005
+    title: Cô lập tác vụ build và tác vụ có quyền tạo tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-006
+    title: Giới hạn khả năng thực thi mã tùy ý từ biểu mẫu và tham số người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-007
+    title: Quản lý cập nhật, bản vá và ngừng dùng thành phần có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-008
+    title: Xử lý artifact hoặc template bị xác định không còn đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-009
+    title: Phân định kiểm tra tự động với quyết định chấp nhận rủi ro có trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-integration
+  title: Tích hợp hệ thống
+  childs:
+  - slug: system-integration-001
+    title: Thiết kế adapter giữa hợp đồng nền tảng và API hệ thống bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-002
+    title: Xác định nguồn có thẩm quyền cho danh tính, catalog và trạng thái triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-003
+    title: Chọn gọi API, webhook, sự kiện hoặc đối soát định kỳ theo bài toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-004
+    title: Phiên bản hóa hợp đồng tích hợp và kiểm tra khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-005
+    title: Xử lý phân trang, giới hạn tốc độ và lỗi tạm thời của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-006
+    title: Chống xử lý trùng và xác minh tính xác thực của sự kiện nhận vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-007
+    title: Đồng bộ thông tin khi webhook bị mất, trễ hoặc đến sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-008
+    title: Giới hạn quyền, bí mật và kết nối mạng của mỗi tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-009
+    title: Kiểm tra khả năng gỡ hoặc thay thế nhà cung cấp mà không mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integration-010
+    title: Quản lý plugin theo vòng đời và trách nhiệm hỗ trợ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-and-evolution
+  title: Phiên bản và tiến hóa
+  childs:
+  - slug: versioning-and-evolution-001
+    title: Quản lý phiên bản API, schema, template và gói khả năng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-002
+    title: Thiết kế thay đổi tương thích với người dùng và công việc đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-003
+    title: Phân biệt cập nhật nền tảng với cập nhật ứng dụng sử dụng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-004
+    title: Thông báo thời hạn ngừng hỗ trợ và cung cấp đường nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-005
+    title: Di chuyển metadata và trạng thái công việc có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-006
+    title: Cập nhật hàng loạt cấu hình dùng chung mà vẫn giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-007
+    title: Thử phiên bản mới với một nhóm người dùng trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-008
+    title: Quay lại phiên bản nền tảng mà không làm mất trạng thái tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-and-evolution-009
+    title: Quản lý lối tùy biến để tránh mỗi nhóm trở thành một nhánh sản phẩm riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-reliability
+  title: Độ tin cậy nền tảng
+  childs:
+  - slug: platform-reliability-001
+    title: Xác định các hành trình quan trọng cần đo độ sẵn sàng và thời gian đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-002
+    title: Tách khả năng tạo thay đổi mới khỏi khả năng ứng dụng đang chạy tiếp tục phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-003
+    title: Thiết lập SLI, SLO và điều kiện cảnh báo cho API và công việc nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-004
+    title: Thiết kế dự phòng cho dữ liệu trạng thái, hàng đợi và dịch vụ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-005
+    title: Giới hạn lỗi lan truyền khi một tích hợp hoặc nhà cung cấp ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-006
+    title: Hiển thị trạng thái suy giảm thay vì khẳng định kết quả chưa được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-007
+    title: Phục hồi công việc sau sự cố mà không tạo trùng hoặc mất dấu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-008
+    title: Sao lưu và phục hồi cấu hình, metadata, quyền và trạng thái thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-009
+    title: Chuẩn bị quy trình vận hành khi portal không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-reliability-010
+    title: Diễn tập khôi phục và đối chiếu tài nguyên thực tế sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-testing
+  title: Kiểm thử nền tảng
+  childs:
+  - slug: platform-testing-001
+    title: Kiểm thử hợp đồng API, schema và quy tắc kiểm tra dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-002
+    title: Kiểm thử template bằng dự án sinh thực tế và kết quả build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-003
+    title: Kiểm thử tích hợp adapter với môi trường nhà cung cấp có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-004
+    title: Kiểm thử toàn hành trình từ yêu cầu đến tài nguyên sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-005
+    title: Kiểm thử phân quyền giữa người dùng, đội ngũ và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-006
+    title: Kiểm thử gửi lặp, chạy đồng thời và khôi phục công việc bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-007
+    title: Kiểm thử lỗi một phần và thao tác bù khi nhiều hệ thống cùng tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-008
+    title: Đánh giá tải, giới hạn đồng thời và tác động của công việc chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-009
+    title: Kiểm thử khả dụng giao diện và khả năng hoàn thành tác vụ của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-testing-010
+    title: Xây dựng dữ liệu kiểm thử và bước dọn tài nguyên an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: costs-and-capacity
+  title: Chi phí và năng lực
+  childs:
+  - slug: costs-and-capacity-001
+    title: Liên kết chi phí hạ tầng với dịch vụ, môi trường và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-002
+    title: Phân biệt chi phí nền tảng dùng chung với chi phí tài nguyên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-003
+    title: Hiển thị ước lượng và giới hạn trước khi người dùng yêu cầu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-004
+    title: Thiết lập ngân sách, cảnh báo và quota theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-005
+    title: Phát hiện môi trường tạm quá hạn và tài nguyên không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-006
+    title: Cung cấp dữ liệu phân bổ chi phí và giải thích phương pháp tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-007
+    title: Đánh giá lựa chọn công suất, thời hạn sử dụng và gói dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-008
+    title: Quản lý năng lực của hệ thống thực thi công việc nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: costs-and-capacity-009
+    title: Đo chi phí phục vụ một hành trình và công sức vận hành phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: impact-measurement
+  title: Đo hiệu quả
+  childs:
+  - slug: impact-measurement-001
+    title: Đo tỷ lệ sử dụng, người dùng quay lại và mức hoàn thành hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-002
+    title: Theo dõi thời gian từ yêu cầu đến khả năng sử dụng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-003
+    title: Đo thời gian tiếp nhận thành viên mới và tạo dịch vụ đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-004
+    title: Theo dõi số bước thủ công và nhu cầu hỗ trợ còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-005
+    title: Kết hợp dữ liệu sử dụng với phản hồi định tính của nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-006
+    title: Đánh giá tác động đến phân phối phần mềm mà không gán mọi thay đổi cho IDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-007
+    title: Phân biệt mức dùng bắt buộc với giá trị người dùng tự nguyện lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-008
+    title: Thiết lập dữ liệu ban đầu và so sánh theo nhóm trường hợp tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-009
+    title: Bảo vệ quyền riêng tư và tránh biến chỉ số nền tảng thành giám sát cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-measurement-010
+    title: Điều chỉnh ưu tiên sản phẩm theo kết quả và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-model
+  title: Tổ chức vận hành
+  childs:
+  - slug: operating-model-001
+    title: Phân định trách nhiệm giữa nhóm nền tảng, nhóm hạ tầng và nhóm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-002
+    title: Xác định chủ sở hữu sản phẩm, khả năng và tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-003
+    title: Công bố cam kết hỗ trợ, giờ phục vụ và đường báo sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-004
+    title: Tách lỗi nền tảng khỏi lỗi ứng dụng để định tuyến hỗ trợ đúng nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-005
+    title: Quản lý yêu cầu đóng góp từ nhóm dùng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-006
+    title: Phân bổ nguồn lực cho phát triển mới, vận hành và giảm công việc lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-007
+    title: Tổ chức review kiến trúc và thay đổi chính sách có đại diện người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-008
+    title: Duy trì tài liệu, ví dụ và thông tin liên hệ có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-model-009
+    title: Tránh chuyển toàn bộ công việc vận hành ứng dụng sang nhóm nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-and-rollout
+  title: Triển khai áp dụng
+  childs:
+  - slug: adoption-and-rollout-001
+    title: Chọn hành trình đầu tiên theo nhu cầu có giá trị và dễ kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-002
+    title: Hợp tác với nhóm dùng thử để xây phiên bản nền tảng tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-003
+    title: Tích hợp công cụ hiện có trước khi cân nhắc thay thế diện rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-004
+    title: Tiếp nhận dịch vụ đang chạy mà không buộc tạo lại toàn bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-005
+    title: Chuẩn bị tài liệu, ví dụ và hỗ trợ tiếp nhận người dùng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-006
+    title: Giới thiệu khả năng qua trường hợp sử dụng thực tế và phản hồi trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-007
+    title: Mở rộng theo nhóm và môi trường với tiêu chí dừng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-008
+    title: Quản lý thời gian cùng tồn tại giữa quy trình cũ và quy trình nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-009
+    title: Đánh giá giả thuyết giá trị trước khi bổ sung khả năng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-and-rollout-010
+    title: Duy trì đường xuất dữ liệu và kế hoạch rời nền tảng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: solution-selection
+  title: Lựa chọn giải pháp
+  childs:
+  - slug: solution-selection-001
+    title: Xây tiêu chí lựa chọn từ hành trình người dùng và yêu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-002
+    title: So sánh tự xây, dùng sản phẩm có sẵn và kết hợp nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-003
+    title: Đánh giá khả năng mở rộng bằng API, plugin và hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-004
+    title: Vai trò của Backstage ở lớp portal, catalog và trải nghiệm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-005
+    title: Phân biệt chọn portal với hoàn thiện các khả năng của IDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-006
+    title: Đánh giá mô hình triển khai, danh tính, phân quyền và lưu trữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-007
+    title: Kiểm tra chi phí tích hợp, nâng cấp, hỗ trợ và phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-008
+    title: Thử nghiệm giải pháp bằng cùng hành trình và tiêu chí nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: solution-selection-009
+    title: Xác định ranh giới với hướng dẫn triển khai chuyên sâu từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pitfalls-and-incidents
+  title: Sai lầm và sự cố
+  childs:
+  - slug: pitfalls-and-incidents-001
+    title: Nền tảng tập hợp nhiều liên kết nhưng người dùng vẫn phải tự phối hợp mọi bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-002
+    title: Template tạo dự án thành công nhưng không có quy trình vận hành tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-003
+    title: Catalog sai chủ sở hữu hoặc hiển thị trạng thái nguồn đã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-004
+    title: API báo tiếp nhận thành công nhưng tài nguyên không được tạo hoặc chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-005
+    title: Gửi lại yêu cầu gây tạo trùng do thiếu kiểm soát lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-006
+    title: Công việc thất bại giữa chừng để lại tài nguyên mồ côi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-007
+    title: Quyền trên portal không khớp quyền thực tế của hệ thống thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-008
+    title: Thay đổi trực tiếp bị công cụ quản lý cấu hình hoặc GitOps ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-009
+    title: Một tích hợp chậm làm nghẽn toàn bộ hàng đợi công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-010
+    title: Trừu tượng hóa quá nhiều khiến người dùng không hiểu giới hạn và không thể chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-011
+    title: Nền tảng có nhiều khả năng nhưng ít người hoàn thành hành trình cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pitfalls-and-incidents-012
+    title: Chẩn đoán theo yêu cầu, danh tính, công việc và trạng thái nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-labs
+  title: Thực hành
+  childs:
+  - slug: hands-on-labs-001
+    title: Khảo sát một hành trình tạo và đưa dịch vụ mới vào vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-002
+    title: Thiết kế hợp đồng tự phục vụ với đầu vào, quyền và tiêu chí sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-003
+    title: Xây mô hình catalog liên kết dịch vụ, chủ sở hữu, kho mã và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-004
+    title: Thiết kế golden path gồm template, pipeline, tài liệu và cấu hình quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-005
+    title: Cấp môi trường và tài nguyên phụ trợ bằng công việc có trạng thái bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-006
+    title: Kiểm thử gửi lặp, lỗi một phần và dọn tài nguyên tạo chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-007
+    title: Tích hợp triển khai và phân biệt trạng thái công việc với sức khỏe ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-008
+    title: Thực hiện thao tác vận hành có phân quyền và bằng chứng kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-009
+    title: Đo thời gian hoàn thành, nhu cầu hỗ trợ và phản hồi người dùng thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-010
+    title: Nâng phiên bản một khả năng mà vẫn giữ tương thích với dịch vụ đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-011
+    title: Ngừng dịch vụ rồi xác minh quyền, dữ liệu và tài nguyên đã được xử lý đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-012
+    title: Đánh giá IDP thử nghiệm theo giá trị, an toàn và công sức duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

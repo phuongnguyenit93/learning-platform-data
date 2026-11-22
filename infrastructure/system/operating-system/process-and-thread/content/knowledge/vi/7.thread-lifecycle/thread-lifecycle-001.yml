@@ -1,0 +1,3 @@
+menuLevel1: Vòng đời luồng
+menuLevel2: Tạo luồng bằng pthread_create và truyền dữ liệu đầu vào
+status: ''

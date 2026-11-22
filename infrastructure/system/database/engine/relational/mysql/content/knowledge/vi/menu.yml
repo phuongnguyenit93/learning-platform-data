@@ -1,0 +1,777 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - MySQL là gì và vai trò trong hệ thống ứng dụng
+  - Bài toán lưu trữ quan hệ, toàn vẹn dữ liệu và xử lý giao dịch
+  - Phân biệt MySQL Server, SQL, storage engine và ứng dụng Java
+  - 'Bản đồ thuật ngữ: server, instance, database, table, session và transaction'
+  - Luồng từ yêu cầu ứng dụng đến câu lệnh SQL và dữ liệu trên đĩa
+  - Đặc điểm tải giao dịch OLTP, báo cáo và tải hỗn hợp
+  - Vai trò và ranh giới công việc của lập trình viên, DBA và người vận hành
+  - Nhánh LTS, Innovation và cách xác định tính năng theo phiên bản
+  - Community, Enterprise, dịch vụ quản lý và điều kiện sử dụng tính năng
+  - Phân biệt MySQL với MariaDB và các hệ tương thích giao thức MySQL
+  - Trình tự học từ môi trường thực hành đến ứng dụng và vận hành
+- level1: Môi trường thực hành
+  level2:
+  - Chọn phiên bản MySQL và tài nguyên cho môi trường học
+  - Cài đặt bằng gói hệ điều hành, máy ảo hoặc container
+  - Khởi tạo data directory và tài khoản quản trị ban đầu
+  - File cấu hình, cổng, socket và thư mục dữ liệu
+  - Lưu dữ liệu bền vững bằng volume và tái tạo môi trường
+  - Thiết lập tài khoản thực hành với quyền tối thiểu
+  - Chuẩn bị schema, dữ liệu mẫu và các trường hợp biên
+  - Kiểm tra phiên bản, storage engine và các biến cấu hình quan trọng
+  - Thiết lập bộ ký tự, collation, múi giờ và SQL mode có thể tái lập
+  - Kết nối từ máy chủ, container khác và ứng dụng Java
+  - Tách môi trường phát triển, kiểm thử và vận hành
+  - Sao lưu cấu hình và dọn môi trường thực hành đúng phạm vi
+- level1: Công cụ và kết nối
+  level2:
+  - Sử dụng mysql client, MySQL Shell và MySQL Workbench
+  - Chạy câu lệnh, script SQL và ghi lại kết quả thực hành
+  - Classic Protocol, X Protocol và phạm vi sử dụng theo phiên bản
+  - Kết nối TCP/IP, Unix socket và named pipe theo nền tảng
+  - Host, port, socket, database mặc định và chuỗi kết nối
+  - 'Vòng đời kết nối: xác thực, khởi tạo phiên, thực thi và đóng'
+  - Tài khoản dạng user@host và cách MySQL lựa chọn tài khoản khớp
+  - Cấu hình TLS, kiểm tra danh tính máy chủ và quản lý chứng thư
+  - Quản lý mật khẩu bằng cấu hình bảo vệ hoặc cơ chế lưu thông tin đăng nhập
+  - 'Kiểm tra kết nối theo lớp: DNS, mạng, giao thức, xác thực và quyền'
+  - Biến người dùng, biến hệ thống và tham số ở phạm vi phiên
+  - DELIMITER trong công cụ dòng lệnh và dấu kết thúc stored program
+  - Đọc SQLSTATE, mã lỗi MySQL và thông báo lỗi từ client
+- level1: Kiến trúc
+  level2:
+  - Các lớp kết nối, phân tích cú pháp, tối ưu và thực thi SQL
+  - Server layer, storage engine API và ranh giới trách nhiệm
+  - Mô hình tiến trình, luồng phục vụ kết nối và luồng nền
+  - Luồng parse, prepare, execute và trả kết quả
+  - Bộ nhớ dùng chung, bộ nhớ theo kết nối và vùng làm việc
+  - Data dictionary, metadata cache và table definition cache
+  - Phân biệt buffer pool, bộ đệm hệ điều hành và cache phía ứng dụng
+  - Luồng ghi dữ liệu qua buffer pool, redo, undo và binary log
+  - Checkpoint, flush, purge và phối hợp các tác vụ nền
+  - Temporary table nội bộ và thao tác có thể tràn ra đĩa
+  - Plugin, component và cơ chế mở rộng máy chủ
+  - Cơ chế query cache của phiên bản cũ và giới hạn khi chuyển phiên bản
+- level1: Storage engine
+  level2:
+  - Storage engine là gì và vì sao ảnh hưởng đến hành vi SQL
+  - InnoDB và các đặc tính phục vụ giao dịch
+  - MyISAM, cơ chế khóa và giới hạn về giao dịch
+  - MEMORY, vòng đời dữ liệu và giới hạn vận hành
+  - CSV, ARCHIVE, FEDERATED và điều kiện sử dụng
+  - TempTable và phân biệt bảng tạm nội bộ với bảng tạm người dùng
+  - NDB Cluster và ranh giới với InnoDB Cluster
+  - Chọn engine theo toàn vẹn, đồng thời, độ bền và nhu cầu truy vấn
+  - SHOW ENGINES, default_storage_engine và khai báo engine cho bảng
+  - Chuyển engine và kiểm tra lại dữ liệu, ràng buộc, chỉ mục
+  - Nguy cơ giao dịch chứa nhiều bảng thuộc engine khác nhau
+- level1: Schema và metadata
+  level2:
+  - Quan hệ giữa database, schema, table và tài khoản người dùng
+  - CREATE DATABASE, USE và phạm vi database mặc định
+  - Tên đối tượng, backtick và từ khóa dành riêng
+  - Phân biệt chữ hoa chữ thường, filesystem và lower_case_table_names
+  - INFORMATION_SCHEMA và tra cứu metadata có cấu trúc
+  - SHOW CREATE TABLE, SHOW INDEX và SHOW TABLE STATUS
+  - Tra cứu cột, giá trị mặc định, ràng buộc và generated column
+  - Tra cứu view, routine, trigger, event và người định nghĩa
+  - Data dictionary và khác biệt so với các file metadata của bản cũ
+  - Comment, quy ước đặt tên và tài liệu hóa schema
+  - Quyền nhìn thấy metadata và giới hạn theo tài khoản
+- level1: Kiểu dữ liệu
+  level2:
+  - Chọn kiểu dữ liệu theo miền giá trị, độ chính xác và chi phí lưu trữ
+  - TINYINT, SMALLINT, MEDIUMINT, INT, BIGINT và SIGNED/UNSIGNED
+  - DECIMAL so với FLOAT/DOUBLE và độ chính xác dữ liệu tiền tệ
+  - Độ rộng hiển thị số nguyên, ZEROFILL và tương thích phiên bản
+  - BOOLEAN/BOOL, TINYINT và kiểm tra miền giá trị đúng/sai
+  - BIT và khác biệt với số nguyên hoặc chuỗi nhị phân
+  - CHAR, VARCHAR và đánh đổi độ dài với cách lưu trữ
+  - BINARY, VARBINARY và so sánh theo byte
+  - TINYTEXT/TEXT/MEDIUMTEXT/LONGTEXT và các kiểu BLOB tương ứng
+  - DATE, TIME, DATETIME, TIMESTAMP và YEAR
+  - ENUM, SET và đánh đổi khi thay đổi tập giá trị
+  - JSON và kiểu dữ liệu không gian
+  - NULL, chuỗi rỗng, số 0 và logic ba giá trị
+  - Chuyển kiểu ngầm định, so sánh số/chuỗi và mất khả năng dùng chỉ mục
+  - Giới hạn kích thước dòng, độ dài khóa và dữ liệu lưu ngoài trang
+  - Ánh xạ kiểu dữ liệu giữa MySQL, JDBC và mô hình miền Java
+- level1: Bộ ký tự và collation
+  level2:
+  - Bộ ký tự, mã hóa và quy tắc so sánh (collation) giải quyết vấn đề nào
+  - utf8mb4, các tên utf8 lịch sử và khả năng lưu emoji
+  - Thiết lập bộ ký tự/collation ở server, database, table và column
+  - character_set_client, character_set_connection và character_set_results
+  - Độ dài theo ký tự, độ dài theo byte và giới hạn chỉ mục
+  - Phân biệt hoa/thường, dấu và ý nghĩa các hậu tố collation
+  - So sánh chuỗi nhị phân, chuỗi văn bản và ký tự có dấu
+  - Collation coercibility và lỗi trộn collation
+  - Khoảng trắng cuối, PAD SPACE/NO PAD và ảnh hưởng đến UNIQUE
+  - Sắp xếp và tìm kiếm tiếng Việt theo yêu cầu nghiệp vụ
+  - Chuyển bộ ký tự/collation và đánh giá dữ liệu trùng sau chuyển đổi
+  - Kiểm chứng mã hóa xuyên suốt file, client, JDBC và database
+- level1: Ngày giờ
+  level2:
+  - Phân biệt ngày lịch, giờ trong ngày, khoảng thời gian và thời điểm
+  - DATE, DATETIME, TIMESTAMP và miền giá trị theo phiên bản
+  - Độ chính xác phần giây và quy tắc làm tròn khi lưu
+  - Múi giờ hệ điều hành, server và session
+  - Khác biệt chuyển đổi múi giờ của TIMESTAMP và DATETIME
+  - NOW, CURRENT_TIMESTAMP, UTC_TIMESTAMP và thời điểm lấy giá trị
+  - DEFAULT CURRENT_TIMESTAMP và ON UPDATE CURRENT_TIMESTAMP
+  - DATE_FORMAT, STR_TO_DATE và định dạng đầu vào tường minh
+  - DATE_ADD, DATE_SUB, TIMESTAMPDIFF và xử lý cuối tháng
+  - CONVERT_TZ, timezone table và thay đổi giờ mùa hè
+  - Zero date, ngày không hợp lệ và ảnh hưởng của SQL mode
+  - Lọc khoảng thời gian nửa mở và thiết kế truy vấn khai thác chỉ mục
+- level1: SQL mode và ngữ nghĩa
+  level2:
+  - Phạm vi GLOBAL/SESSION của sql_mode và cách kiểm tra cấu hình hiệu lực
+  - Strict mode, lỗi chuyển đổi và nguy cơ dữ liệu bị cắt ngắn
+  - ONLY_FULL_GROUP_BY và quy tắc xác định giá trị trong nhóm
+  - Phụ thuộc hàm, ANY_VALUE và ý nghĩa tính đúng của kết quả
+  - ANSI_QUOTES, định danh và dấu ngoặc kép
+  - PIPES_AS_CONCAT, phép nối chuỗi và khác biệt với toán tử OR
+  - NO_BACKSLASH_ESCAPES, escape và xử lý literal an toàn
+  - Quy tắc phép chia, tràn số và dữ liệu ngày giờ không hợp lệ
+  - Warning so với error và đọc SHOW WARNINGS
+  - sql_safe_updates và phân biệt với các cờ sql_mode
+  - Ngữ nghĩa affected rows, matched rows và ảnh hưởng từ tùy chọn client
+  - Kiểm chứng hành vi SQL khi thay đổi phiên bản hoặc cấu hình phiên
+- level1: Bảng và ràng buộc
+  level2:
+  - Chuyển miền dữ liệu và quan hệ nghiệp vụ thành bảng MySQL
+  - CREATE TABLE, DEFAULT, NOT NULL và biểu thức giá trị mặc định
+  - PRIMARY KEY, UNIQUE và yêu cầu định danh dòng trong InnoDB
+  - FOREIGN KEY, điều kiện kiểu dữ liệu/chỉ mục và engine hỗ trợ
+  - ON DELETE/ON UPDATE, CASCADE, SET NULL và RESTRICT
+  - CHECK constraint và khác biệt thực thi giữa các phiên bản
+  - NULL trong UNIQUE, CHECK và khóa ghép
+  - AUTO_INCREMENT, cách cấp giá trị và khoảng trống sau rollback
+  - Generated column dạng VIRTUAL/STORED và giới hạn biểu thức
+  - DEFAULT expression, invisible column và điều kiện phiên bản
+  - CREATE TABLE LIKE, CREATE TABLE AS SELECT và thuộc tính cần đối chiếu
+  - 'ALTER TABLE: thêm, đổi, xóa cột và ràng buộc'
+  - Phân biệt DELETE, TRUNCATE, DROP và ảnh hưởng giao dịch
+  - RENAME TABLE, đổi tên nguyên tử và các phụ thuộc cần kiểm tra
+  - Kiểm tra dữ liệu mồ côi và rủi ro khi tắt foreign_key_checks
+- level1: SELECT cơ bản
+  level2:
+  - Cấu trúc SELECT và thứ tự xử lý logic các mệnh đề
+  - Chọn cột, biểu thức, bí danh và truy vấn không cần bảng
+  - WHERE, phép so sánh và kết hợp AND, OR, NOT
+  - IN, BETWEEN, LIKE và ký tự đại diện
+  - IS NULL, IS NOT NULL và phép so sánh NULL-safe <=>
+  - DISTINCT và chi phí loại bỏ dữ liệu trùng
+  - ORDER BY, thứ tự NULL và yêu cầu sắp xếp xác định
+  - LIMIT, OFFSET và phân trang trên tập dữ liệu thay đổi
+  - Biến bind và phân biệt dữ liệu đầu vào với tên đối tượng
+  - Quy tắc phân giải bí danh trong WHERE, GROUP BY và ORDER BY
+  - Đọc kết quả rỗng, dữ liệu NULL và số dòng bị nhân bản
+  - Kiểm chứng truy vấn bằng dữ liệu tối thiểu và trường hợp biên
+- level1: Hàm và biểu thức
+  level2:
+  - Biểu thức số học, độ ưu tiên và phép chia / hoặc DIV
+  - ROUND, TRUNCATE, MOD, CEIL, FLOOR và quy tắc số âm
+  - CONCAT, CONCAT_WS và ảnh hưởng của NULL
+  - SUBSTRING, LEFT, RIGHT, LOCATE và thao tác chuỗi
+  - LENGTH, CHAR_LENGTH và dữ liệu nhiều byte
+  - TRIM, REPLACE, LPAD, RPAD và chuẩn hóa dữ liệu
+  - LOWER, UPPER và quan hệ với bộ ký tự/collation
+  - REGEXP_LIKE, REGEXP_SUBSTR, REGEXP_REPLACE theo phiên bản
+  - CASE, IF và lựa chọn nhánh biểu thức
+  - IFNULL, COALESCE, NULLIF và kiểu dữ liệu kết quả
+  - CAST, CONVERT và kiểm soát chuyển đổi tường minh
+  - LEAST, GREATEST và xử lý NULL hoặc kiểu dữ liệu hỗn hợp
+  - UUID, UUID_TO_BIN, BIN_TO_UUID và điều kiện sử dụng
+  - LAST_INSERT_ID, CONNECTION_ID và các giá trị gắn với phiên
+- level1: Gom nhóm và tập hợp
+  level2:
+  - COUNT(*), COUNT(cột), SUM, AVG, MIN và MAX
+  - NULL, tập rỗng và kết quả của phép tổng hợp
+  - GROUP BY theo một cột, khóa ghép hoặc biểu thức
+  - Phân biệt WHERE và HAVING
+  - Tổng hợp có điều kiện bằng CASE hoặc biểu thức logic
+  - WITH ROLLUP, GROUPING và phân biệt dòng tổng với NULL dữ liệu
+  - GROUP_CONCAT, thứ tự nối và giới hạn group_concat_max_len
+  - JSON_ARRAYAGG, JSON_OBJECTAGG và đặc điểm kết quả
+  - UNION, UNION ALL và tương thích kiểu dữ liệu các nhánh
+  - INTERSECT, EXCEPT và điều kiện hỗ trợ theo phiên bản
+  - ORDER BY/LIMIT trong truy vấn tập hợp và phạm vi áp dụng
+  - Kiểm chứng tổng hợp sau JOIN để tránh đếm hoặc cộng trùng
+- level1: JOIN và truy vấn con
+  level2:
+  - INNER JOIN theo khóa đơn, khóa ghép và điều kiện nhiều cột
+  - LEFT/RIGHT OUTER JOIN và dữ liệu không có bản ghi tương ứng
+  - CROSS JOIN, self join và nguy cơ nhân số dòng
+  - Vị trí điều kiện trong ON/WHERE và ảnh hưởng đến OUTER JOIN
+  - USING, NATURAL JOIN và rủi ro khi schema thay đổi
+  - Mô phỏng FULL OUTER JOIN và kiểm chứng dữ liệu trùng
+  - Scalar subquery và điều kiện trả về tối đa một dòng
+  - Single-row, multi-row và correlated subquery
+  - EXISTS, NOT EXISTS và truy vấn kiểm tra tồn tại
+  - IN, NOT IN và bẫy NULL trong truy vấn con
+  - Derived table, bí danh và tổ chức truy vấn nhiều bước
+  - LATERAL derived table và điều kiện phiên bản hỗ trợ
+  - Chọn JOIN hay truy vấn con theo ngữ nghĩa và kế hoạch thực thi
+- level1: CTE và truy vấn cây
+  level2:
+  - WITH và Common Table Expression để đặt tên tập kết quả trung gian
+  - Phạm vi tên, nhiều CTE và quan hệ tham chiếu giữa các CTE
+  - Derived table, CTE và lựa chọn tái sử dụng truy vấn
+  - 'WITH RECURSIVE: phần khởi tạo và phần đệ quy'
+  - Kiểu dữ liệu cột CTE đệ quy và nguy cơ cắt ngắn dữ liệu
+  - Truy vấn cây tổ chức, đường dẫn và độ sâu
+  - Phát hiện chu trình và điều kiện dừng đệ quy
+  - Giới hạn cte_max_recursion_depth và kiểm soát chi phí
+  - Sinh dãy ngày, bù dữ liệu thiếu kỳ và tổng hợp theo lịch
+  - Merge/materialization của CTE và kiểm tra kế hoạch thực thi
+- level1: Hàm cửa sổ
+  level2:
+  - Phân biệt hàm tổng hợp và hàm cửa sổ
+  - Cấu trúc OVER, PARTITION BY và ORDER BY
+  - ROW_NUMBER, RANK và DENSE_RANK
+  - LAG, LEAD và so sánh với dòng trước hoặc dòng sau
+  - FIRST_VALUE, LAST_VALUE, NTH_VALUE và phạm vi cửa sổ
+  - Khung ROWS/RANGE, khung mặc định và các dòng đồng hạng
+  - SUM/AVG chạy dồn và trung bình trượt
+  - NTILE, CUME_DIST, PERCENT_RANK và phân bố dữ liệu
+  - WINDOW clause và tái sử dụng định nghĩa cửa sổ
+  - Top-N trong từng nhóm và xử lý các giá trị bằng nhau
+  - Lọc kết quả hàm cửa sổ qua CTE hoặc derived table
+  - Giới hạn cú pháp, chi phí sắp xếp và kiểm chứng kết quả
+- level1: Thay đổi dữ liệu
+  level2:
+  - INSERT một dòng, nhiều dòng và INSERT từ SELECT
+  - Giá trị mặc định, cột sinh tự động và cột bỏ qua trong INSERT
+  - INSERT IGNORE, warning và nguy cơ che giấu dữ liệu không hợp lệ
+  - INSERT ON DUPLICATE KEY UPDATE và ý nghĩa của khóa xung đột
+  - REPLACE và ảnh hưởng xóa/chèn đến khóa ngoại, trigger, định danh
+  - UPDATE một bảng và cập nhật nhiều bảng
+  - DELETE một bảng, nhiều bảng và xóa dữ liệu cha con
+  - ORDER BY/LIMIT trong DML và giới hạn theo dạng câu lệnh
+  - Lấy khóa tự sinh bằng LAST_INSERT_ID hoặc cơ chế generated keys
+  - Affected rows và nhận diện trường hợp dữ liệu không thay đổi
+  - Nạp hoặc thay đổi dữ liệu theo lô có thể thực hiện lại an toàn
+  - Chia lô theo khóa ổn định và tránh giao dịch quá lớn
+  - Tác động của DML đến chỉ mục, khóa, undo, redo và binary log
+- level1: Giao dịch
+  level2:
+  - Đơn vị công việc nghiệp vụ và các thuộc tính ACID
+  - START TRANSACTION, BEGIN, COMMIT và ROLLBACK
+  - autocommit và ranh giới giao dịch ở từng kết nối
+  - SAVEPOINT, ROLLBACK TO SAVEPOINT và RELEASE SAVEPOINT
+  - Tính nguyên tử câu lệnh và tính nguyên tử toàn giao dịch
+  - DDL implicit commit và các ngoại lệ cần kiểm tra
+  - Atomic DDL, implicit commit và giới hạn hoàn tác DDL
+  - Giao dịch chứa bảng không hỗ trợ transaction và thao tác ngoài database
+  - READ ONLY/READ WRITE và lựa chọn đặc tính giao dịch
+  - Consistent snapshot và thời điểm thiết lập ảnh chụp đọc
+  - Phối hợp redo, binary log và độ bền của commit
+  - Thiết kế giao dịch ngắn, xử lý lỗi và thực hiện lại có kiểm soát
+- level1: MVCC và mức cô lập
+  level2:
+  - MVCC giải quyết đọc đồng thời với ghi như thế nào
+  - Undo record, row version và read view trong InnoDB
+  - Consistent read so với locking/current read
+  - READ UNCOMMITTED và dữ liệu chưa commit
+  - READ COMMITTED và ảnh chụp mới theo câu lệnh
+  - REPEATABLE READ và ảnh chụp nhất quán trong giao dịch
+  - SERIALIZABLE và tác động đến khóa hoặc mức đồng thời
+  - Dirty read, nonrepeatable read, phantom và write skew
+  - Ảnh hưởng của autocommit đến mức cô lập quan sát được
+  - Khác biệt giữa SELECT thường và UPDATE/DELETE trong cùng giao dịch
+  - Lost update và thiết kế khóa lạc quan bằng cột phiên bản
+  - Giao dịch đọc kéo dài, undo history và hoạt động purge
+  - Kiểm chứng từng mức cô lập bằng lịch thực thi của hai phiên
+- level1: Khóa và đồng thời
+  level2:
+  - Shared lock, exclusive lock và intention lock
+  - Record lock, gap lock, next-key lock và insert intention lock
+  - Khóa theo chỉ mục được quét và ảnh hưởng của kế hoạch thực thi
+  - Truy vấn điểm theo khóa duy nhất so với truy vấn theo khoảng
+  - SELECT FOR UPDATE và SELECT FOR SHARE
+  - NOWAIT, SKIP LOCKED và bài toán nhận việc từ bảng
+  - Đổi chiến lược gap lock theo mức cô lập và loại thao tác
+  - Kiểm tra khóa ngoại, khóa duy nhất và các điểm tranh chấp
+  - AUTO-INC lock, innodb_autoinc_lock_mode và cấp khóa đồng thời
+  - Deadlock, thứ tự lấy khóa và cách InnoDB chọn giao dịch bị hủy
+  - Lock wait timeout và phạm vi rollback theo cấu hình
+  - Metadata lock, giao dịch chưa kết thúc và DDL bị treo
+  - LOCK TABLES và ranh giới với khóa giao dịch của InnoDB
+  - GET_LOCK, RELEASE_LOCK và vòng đời khóa tư vấn theo kết nối
+  - Quan sát data_locks, data_lock_waits và phiên gây chặn
+  - Thiết kế thao tác đồng thời đúng dữ liệu và an toàn khi retry
+- level1: Lưu trữ InnoDB
+  level2:
+  - Quan hệ giữa tablespace, segment, extent, page và record
+  - Chỉ mục phân cụm (clustered index) và cách tổ chức dữ liệu theo khóa chính
+  - Khóa chính tự khai báo, khóa duy nhất phù hợp và hidden row ID
+  - Secondary index lưu khóa chính và tác động của khóa chính rộng
+  - Page split, page merge và phân mảnh khi chèn/cập nhật
+  - COMPACT, DYNAMIC, COMPRESSED và điều kiện row format
+  - Dữ liệu TEXT/BLOB ngoài trang và giới hạn kích thước record
+  - System tablespace, file-per-table và general tablespace
+  - Temporary tablespace, undo tablespace và quản lý dung lượng
+  - Redo log, log sequence number và checkpoint
+  - Undo log, history list và các tác vụ purge
+  - Doublewrite buffer và bảo vệ trước ghi trang chưa hoàn chỉnh
+  - Crash recovery và khôi phục trạng thái giao dịch
+  - TRUNCATE, DROP, OPTIMIZE và khả năng thu hồi dung lượng
+- level1: Chỉ mục
+  level2:
+  - Cấu trúc B+tree và cơ chế tra cứu theo khóa
+  - PRIMARY, UNIQUE và secondary index trong InnoDB
+  - Composite index, leftmost prefix và thứ tự các cột
+  - Covering index và truy cập dữ liệu qua secondary index
+  - Index range scan, ref lookup và full index scan
+  - Index condition pushdown và điều kiện được đẩy xuống engine
+  - Index merge và đánh đổi so với composite index
+  - Prefix index cho chuỗi dài và giới hạn tính phân biệt
+  - Functional key part và chỉ mục generated column
+  - Descending index và truy vấn sắp xếp nhiều chiều
+  - Invisible index và thử nghiệm bỏ chỉ mục khỏi bộ tối ưu
+  - Selectivity, cardinality và phân bố dữ liệu lệch
+  - Ảnh hưởng của collation, chuyển kiểu và hàm bao quanh cột
+  - Chi phí bảo trì khi INSERT/UPDATE/DELETE và tránh tạo dư thừa
+  - Phân biệt chỉ mục B-tree, FULLTEXT, SPATIAL và hash theo engine
+- level1: Bộ tối ưu và thống kê
+  level2:
+  - Cost-based optimizer và các đầu vào lựa chọn kế hoạch
+  - Cardinality, selectivity, cost và giới hạn của ước lượng
+  - Thống kê bảng/chỉ mục và nguồn metadata liên quan
+  - Persistent statistics, lấy mẫu và tự động tính lại của InnoDB
+  - ANALYZE TABLE và thời điểm cập nhật thống kê
+  - Histogram, loại phân bố và điều kiện bộ tối ưu sử dụng
+  - Độ lệch dữ liệu, tương quan giữa các cột và lỗi ước lượng
+  - Join order, access path và lựa chọn thuật toán JOIN
+  - Semijoin, antijoin và biến đổi truy vấn tồn tại
+  - Derived merge, materialization và đẩy điều kiện lọc
+  - optimizer_switch, optimizer hint và phạm vi query block
+  - Optimizer trace và cách đối chiếu quyết định tối ưu
+  - Đánh giá hồi quy kế hoạch sau nạp dữ liệu hoặc nâng cấp
+- level1: Kế hoạch thực thi
+  level2:
+  - EXPLAIN dạng bảng, FORMAT=JSON và FORMAT=TREE
+  - EXPLAIN ANALYZE và việc truy vấn thực sự được chạy
+  - Đọc cây thực thi, vòng lặp và quan hệ giữa các nhánh
+  - 'Access type: const, eq_ref, ref, range, index và ALL'
+  - possible_keys, key, key_len và điều kiện dùng chỉ mục
+  - rows, filtered và lượng dữ liệu ước tính sau lọc
+  - Actual rows, loops, thời gian khởi tạo và thời gian hoàn tất
+  - Using index, Using where và Using index condition
+  - Using temporary, filesort và ý nghĩa thao tác sắp xếp
+  - Nested-loop, hash join và thay đổi theo phiên bản
+  - Đọc kế hoạch cho CTE, derived table, subquery và UNION
+  - So sánh kế hoạch ước tính với số liệu thực thi trên dữ liệu đại diện
+  - Giới hạn của EXPLAIN và tránh kết luận chỉ từ một cột chi phí
+- level1: Tối ưu SQL
+  level2:
+  - Quy trình đo tải, chọn SQL trọng yếu, sửa và kiểm chứng lại
+  - Giảm số dòng, số cột và dữ liệu trung gian phải xử lý
+  - Điều kiện có thể khai thác chỉ mục và tránh chuyển kiểu ngoài ý muốn
+  - Thiết kế composite index theo điều kiện lọc, JOIN và sắp xếp
+  - Tối ưu phân trang OFFSET lớn bằng khóa tiếp nối
+  - Top-N, ORDER BY/LIMIT và yêu cầu thứ tự ổn định
+  - Tối ưu EXISTS/IN và tránh truy vấn con lặp không cần thiết
+  - Giảm nhân dòng trong JOIN và sửa tổng hợp bị đếm trùng
+  - Tối ưu GROUP BY, DISTINCT và truy vấn báo cáo
+  - Tránh N+1, truy vấn lặp và số lần trao đổi mạng quá lớn
+  - Batch DML, INSERT nhiều dòng và giới hạn kích thước gói
+  - Hint, FORCE/USE/IGNORE INDEX và điều kiện cú pháp theo phiên bản
+  - Kiểm soát truy vấn không có điều kiện giới hạn hoặc đọc quá nhiều dữ liệu
+  - Đo độ trễ, thông lượng, CPU/I/O và tính đúng sau thay đổi
+- level1: Phân vùng
+  level2:
+  - Mục tiêu phân vùng và giới hạn khác với chia dữ liệu giữa nhiều máy chủ
+  - RANGE, LIST, HASH, KEY và biến thể COLUMNS
+  - Chọn partition key theo thời gian hoặc miền dữ liệu
+  - Yêu cầu khóa phân vùng trong các khóa UNIQUE/PRIMARY
+  - Partition pruning và điều kiện lọc có thể cắt vùng
+  - Giới hạn khóa ngoại, storage engine và kiểu dữ liệu theo phiên bản
+  - ADD, DROP, TRUNCATE, REORGANIZE và COALESCE PARTITION
+  - EXCHANGE PARTITION và kiểm tra dữ liệu khi hoán đổi
+  - Chỉ mục theo partition và đánh đổi khi truy vấn nhiều vùng
+  - Luân chuyển dữ liệu cũ và lập kế hoạch bảo trì partition
+  - Đo lợi ích thực tế, chi phí mở bảng và số lượng partition
+- level1: View và bảng tạm
+  level2:
+  - CREATE VIEW và sử dụng view làm ranh giới truy vấn
+  - ALGORITHM MERGE/TEMPTABLE/UNDEFINED và điều kiện áp dụng
+  - View có thể cập nhật và WITH CHECK OPTION
+  - SQL SECURITY DEFINER/INVOKER và quyền truy cập qua view
+  - Phụ thuộc view, thay đổi schema và kiểm tra định nghĩa
+  - Giới hạn của view và cách lưu kết quả báo cáo bằng bảng riêng
+  - CREATE TEMPORARY TABLE và phạm vi nhìn thấy theo kết nối
+  - Vòng đời bảng tạm khi tái sử dụng kết nối qua pool
+  - Giao dịch, CREATE/DROP TEMPORARY TABLE và giới hạn rollback
+  - Bảng tạm nội bộ, TempTable/MEMORY và điều kiện tràn ra đĩa
+  - Chọn view, CTE, bảng tạm hoặc bảng lưu kết quả theo bài toán
+- level1: Stored program
+  level2:
+  - Vai trò stored procedure/function và ranh giới với mã Java
+  - CREATE PROCEDURE, CREATE FUNCTION và cách gọi
+  - BEGIN/END, khối lồng nhau và phạm vi biến
+  - Biến cục bộ, biến người dùng và tham số IN/OUT/INOUT
+  - SET, SELECT INTO và quy tắc gán kết quả
+  - IF, CASE, LOOP, WHILE, REPEAT và LEAVE/ITERATE
+  - SQL SECURITY, DEFINER và quyền người thực thi
+  - Thời điểm lưu SQL mode cho stored program
+  - Function trong biểu thức SQL và giới hạn tác dụng phụ
+  - DETERMINISTIC, đặc tính truy cập dữ liệu và binary logging
+  - PREPARE, EXECUTE, DEALLOCATE PREPARE và phạm vi SQL động được phép
+  - Ranh giới COMMIT/ROLLBACK trong procedure so với function/trigger
+  - Trả nhiều tập kết quả và hợp đồng gọi từ ứng dụng
+  - Stored function so với loadable function và ranh giới bảo mật
+- level1: Cursor và xử lý lỗi
+  level2:
+  - 'DECLARE: thứ tự khai báo biến, condition, cursor và handler'
+  - Cursor chỉ đọc, đi một chiều và đặc điểm tập kết quả
+  - OPEN, FETCH, CLOSE và quản lý vòng đời cursor
+  - NOT FOUND handler và kết thúc vòng lặp đọc
+  - CONTINUE/EXIT handler và phạm vi khối áp dụng
+  - SQLSTATE, mã lỗi MySQL và condition có tên
+  - SIGNAL, RESIGNAL và bảo toàn thông tin lỗi
+  - GET DIAGNOSTICS để đọc thông tin lỗi hoặc số dòng
+  - Xử lý lỗi từng câu lệnh so với hoàn tác toàn nghiệp vụ
+  - Ưu tiên SQL xử lý theo tập hợp trước khi dùng vòng lặp
+  - Thiết kế lỗi có mã ổn định và kiểm thử từ JDBC
+- level1: Trigger và event
+  level2:
+  - BEFORE/AFTER trigger cho INSERT, UPDATE và DELETE
+  - NEW, OLD và khả năng thay đổi giá trị trong BEFORE trigger
+  - Trigger cấp dòng và giới hạn so với trigger cấp câu lệnh
+  - Nhiều trigger cùng thời điểm/sự kiện và FOLLOWS/PRECEDES
+  - Trigger, ràng buộc khóa ngoại và hành vi CASCADE
+  - REPLACE/upsert và chuỗi trigger thực tế được kích hoạt
+  - Giới hạn truy cập bảng đang được thay đổi và nguy cơ đệ quy
+  - Ranh giới giao dịch và xử lý lỗi phát sinh trong trigger
+  - Event Scheduler, lịch một lần hoặc định kỳ và múi giờ
+  - DEFINER, quyền thực thi và trạng thái event
+  - Theo dõi event thất bại và thiết kế công việc có thể thực hiện lại
+  - Lựa chọn constraint, trigger, event hoặc tác vụ từ ứng dụng
+- level1: JSON
+  level2:
+  - Kiểu JSON gốc, kiểm tra hợp lệ và cấu trúc lưu trữ
+  - JSON object, array, scalar và khác biệt JSON null/SQL NULL
+  - JSON path, JSON_EXTRACT, toán tử -> và ->>
+  - JSON_VALUE và điều kiện hỗ trợ theo phiên bản
+  - JSON_TABLE để chuyển tài liệu thành dữ liệu dạng bảng
+  - JSON_OBJECT, JSON_ARRAY và tạo tài liệu từ dữ liệu quan hệ
+  - JSON_SET, JSON_INSERT, JSON_REPLACE và JSON_REMOVE
+  - JSON_CONTAINS, JSON_OVERLAPS và truy vấn thành phần
+  - Generated column, functional index và chỉ mục cho đường dẫn JSON
+  - Multi-valued index và các giới hạn với mảng JSON
+  - Cập nhật JSON một phần và điều kiện tối ưu lưu trữ/binary log
+  - Kiểm tra JSON schema, giới hạn kích thước và dữ liệu đầu vào
+  - Chọn mô hình quan hệ, tài liệu hoặc kết hợp theo nhu cầu truy vấn
+- level1: Tìm kiếm văn bản
+  level2:
+  - Bài toán tìm kiếm văn bản và khác biệt với LIKE
+  - FULLTEXT index và điều kiện engine/cột hỗ trợ
+  - MATCH AGAINST trong natural language mode
+  - Boolean mode, toán tử tìm kiếm và ý nghĩa kết quả
+  - Query expansion và đánh đổi độ liên quan
+  - Stopword, độ dài token và cấu hình xây dựng chỉ mục
+  - Parser mặc định, ngram parser và điều kiện sử dụng
+  - Collation, tiếng Việt và kiểm chứng chất lượng tách từ
+  - Tính điểm, sắp xếp độ liên quan và phân trang kết quả
+  - Chi phí cập nhật FULLTEXT và lựa chọn công cụ tìm kiếm chuyên biệt
+- level1: Dữ liệu không gian
+  level2:
+  - Geometry, Point, LineString, Polygon và các kiểu tập hợp
+  - Cartesian/geographic spatial reference system và SRID
+  - Tạo dữ liệu từ WKT/WKB và kiểm tra cấu trúc hình học
+  - Thứ tự trục, kinh độ/vĩ độ và xử lý SRID 4326
+  - ST_Contains, ST_Within, ST_Intersects và điều kiện quan hệ
+  - Khoảng cách, đơn vị đo và điều kiện hệ tọa độ hỗ trợ
+  - SPATIAL index, bounding rectangle và điều kiện khai thác
+  - Chuyển hệ tọa độ, kiểm tra tính hợp lệ và giới hạn theo phiên bản
+  - Thiết kế truy vấn vị trí có dữ liệu biên và kiểm chứng sai số
+- level1: Cấu hình và vận hành
+  level2:
+  - Option file, tham số dòng lệnh và thứ tự ưu tiên cấu hình
+  - Biến GLOBAL, SESSION, read-only và biến có thể thay đổi động
+  - SET GLOBAL, SET PERSIST, SET PERSIST_ONLY và cấu hình sau khởi động
+  - Khởi động, tắt máy chủ an toàn và kiểm tra crash recovery
+  - Quản lý systemd/service hoặc vòng đời container theo môi trường
+  - Data directory, socket, PID file và quyền filesystem
+  - Quản lý max_connections, timeout và giới hạn tài nguyên phiên
+  - Thread/table cache, open_files_limit và giới hạn hệ điều hành
+  - Redo, undo, binary log, temporary file và kế hoạch dung lượng
+  - Chính sách xoay log, lưu log và cảnh báo đầy đĩa
+  - Event Scheduler, tác vụ bảo trì và lịch thực hiện ngoài database
+  - Xác định cấu hình hiệu lực thay vì chỉ đọc một file cấu hình
+  - Kiểm tra sức khỏe và xây dựng sổ tay vận hành có thể thực hiện lại
+- level1: Quan sát hệ thống
+  level2:
+  - Error log, general log, slow query log và phạm vi dữ liệu ghi nhận
+  - SHOW PROCESSLIST và phân biệt kết nối chờ với truy vấn đang chạy
+  - 'Performance Schema: instrument, consumer và chi phí thu thập'
+  - sys schema và các view phục vụ chẩn đoán
+  - Statement digest và nhóm các truy vấn cùng cấu trúc
+  - Latency, rows examined, rows sent và tần suất thực thi
+  - Theo dõi wait, stage, transaction và tác vụ theo thread
+  - Đọc SHOW ENGINE INNODB STATUS và trạng thái deadlock gần nhất
+  - Phân tích locks, metadata locks và phiên chặn
+  - Bộ đếm tích lũy, khoảng đo và diễn giải dữ liệu sau restart/reset
+  - Đo CPU, RAM, I/O, disk latency và mạng từ hệ điều hành
+  - Xuất metric, thiết lập cảnh báo và mức hiệu năng cơ sở
+  - Giữ ngữ cảnh ứng dụng khi đối chiếu log với CONNECTION_ID
+  - Giới hạn dữ liệu nhạy cảm và thời gian lưu log/trace
+- level1: Hiệu năng hệ thống
+  level2:
+  - Phân biệt nghẽn CPU, I/O, bộ nhớ, khóa và mạng
+  - Buffer pool, working set và đo nhu cầu bộ nhớ thực tế
+  - Buffer pool hit/miss, dirty page và hoạt động flush
+  - Redo capacity, checkpoint age và tải ghi đột biến
+  - innodb_flush_log_at_trx_commit, sync_binlog và đánh đổi độ bền
+  - innodb_io_capacity, background flush và đặc tính thiết bị lưu trữ
+  - Undo purge, history list length và giao dịch kéo dài
+  - sort_buffer_size, join_buffer_size và bộ nhớ nhân theo kết nối
+  - Temporary table nội bộ, giới hạn RAM và dữ liệu tràn đĩa
+  - Adaptive hash index, change buffer và điều kiện tính năng theo phiên bản
+  - Thread pool, cơ chế điều phối và điều kiện edition
+  - Số kết nối, kích thước pool ứng dụng và tác động đến thông lượng
+  - Đo tải đại diện, thay đổi từng yếu tố và kiểm tra hồi quy
+- level1: Bảo mật
+  level2:
+  - Nguyên tắc quyền tối thiểu và tách tài khoản quản trị/ứng dụng
+  - CREATE USER, ALTER USER, DROP USER và vòng đời tài khoản
+  - user@host, wildcard và các điều kiện lựa chọn tài khoản
+  - Authentication plugin, caching_sha2_password và tương thích driver
+  - GRANT, REVOKE và quyền theo server/database/table/column/routine
+  - Static privilege, dynamic privilege và hạn chế tài khoản quản trị
+  - Role, default role và quyền có hiệu lực trong phiên
+  - Password policy, khóa tài khoản, hết hạn và luân chuyển mật khẩu
+  - TLS, kiểm tra chứng thư và hạn chế kết nối không bảo vệ
+  - SQL injection, prepared statement và kiểm soát định danh động
+  - DEFINER/INVOKER và rủi ro quyền vượt phạm vi qua stored object
+  - LOCAL INFILE, FILE privilege, secure_file_priv và bề mặt truy cập file
+  - Tablespace encryption, keyring, sao lưu khóa và điều kiện sử dụng
+  - Audit, Enterprise Audit và ranh giới với general/slow log
+  - Network binding, firewall và giới hạn truy cập quản trị
+  - Quản lý bí mật, che dữ liệu thử nghiệm và tránh dữ liệu nhạy cảm trong log
+  - Rà soát tài khoản ẩn danh, quyền thừa và tài khoản không còn sử dụng
+- level1: Sao lưu và phục hồi
+  level2:
+  - Phân biệt logical backup, physical backup, restore và recovery
+  - Xác định RPO/RTO và xây dựng kế hoạch kiểm chứng phục hồi
+  - 'mysqldump: phạm vi database/table và lựa chọn đối tượng đi kèm'
+  - Consistent snapshot với single-transaction và giới hạn khi có DDL/nontransactional table
+  - Routine, trigger, event, user/grant và các thành phần cần sao lưu
+  - MySQL Shell dump/load utilities và điều kiện tương thích
+  - Physical backup, MySQL Enterprise Backup và lựa chọn công cụ theo điều kiện sử dụng
+  - Hot/cold backup, khóa cần thiết và tính nhất quán bộ file
+  - GTID, binary log coordinates và metadata đi kèm bản sao
+  - Nén, mã hóa, thời gian lưu và bản sao ngoài máy chủ
+  - Khôi phục schema hoặc toàn server vào môi trường cô lập
+  - Charset, collation, SQL mode và cấu hình cần đối chiếu sau restore
+  - Khôi phục bảng lớn, kiểm tra ràng buộc và số liệu nghiệp vụ
+  - Sao lưu cấu hình, tài khoản, chứng thư và khóa mã hóa
+  - Diễn tập khôi phục định kỳ và ghi nhận thời gian/điểm dữ liệu phục hồi
+- level1: Binary log và PITR
+  level2:
+  - Vai trò binary log và phân biệt với redo/undo của InnoDB
+  - Statement-based, row-based, mixed format và điều kiện phiên bản
+  - Row image, transaction event và dung lượng binary log
+  - binlog cache, giao dịch lớn và chi phí ghi log
+  - Xem binary log bằng mysqlbinlog và giải mã row event
+  - Rotate, expire và PURGE BINARY LOGS theo nhu cầu phục hồi/replication
+  - Khóa mã hóa binary log và khả năng đọc log sau sự cố
+  - Point-in-time recovery từ bản sao nền và chuỗi binary log
+  - Xác định mốc thời gian, vị trí hoặc GTID trước thao tác sai
+  - Phạm vi lọc khi phát lại log và nguy cơ thiếu phụ thuộc giao dịch
+  - Kiểm chứng kết quả PITR bằng dữ liệu nghiệp vụ
+  - Giới hạn thao tác reset binary log/GTID và thay đổi cú pháp theo phiên bản
+- level1: Replication và GTID
+  level2:
+  - Mô hình source/replica và vai trò trong mở rộng đọc hoặc khôi phục
+  - Luồng binlog dump, receiver, relay log và applier
+  - Asynchronous/semi-synchronous replication và điều kiện xác nhận commit
+  - Thiết lập replication bằng file/position hoặc GTID
+  - GTID, server_uuid, server_id và yêu cầu định danh duy nhất
+  - gtid_executed, gtid_purged và quan hệ với backup
+  - GTID auto-position và điều kiện thay thế replica
+  - Snapshot nhất quán, Clone plugin và khởi tạo replica
+  - Row-based replication, statement không xác định và khác biệt dữ liệu
+  - Replication filter và rủi ro với giao dịch xuyên database
+  - Parallel applier, dependency tracking và giữ thứ tự commit theo phiên bản
+  - Replication lag, relay log và cách đo độ trễ thực tế
+  - read_only, super_read_only và ngăn ghi nhầm lên replica
+  - Read-after-write khi ứng dụng đọc qua replica
+  - Đứt kết nối, lỗi apply, giao dịch thiếu/thừa và kế hoạch sửa có kiểm chứng
+  - Đối soát dữ liệu, resync và điều kiện tái tạo replica
+  - Replication channel, multi-source và giới hạn khi kết hợp dữ liệu
+  - Bảo vệ log còn cần cho replica và phát hiện giao dịch ngoài luồng
+- level1: Sẵn sàng cao
+  level2:
+  - Phân biệt sẵn sàng cao, phục hồi thảm họa và mở rộng tải
+  - Group Replication, nhóm thành viên và cơ chế đồng thuận
+  - Single-primary/multi-primary và giới hạn mô hình ghi
+  - Quorum, mất liên lạc và phòng ngừa split-brain
+  - Distributed recovery, clone và điều kiện thành viên gia nhập
+  - Xung đột chứng nhận giao dịch và xử lý tại ứng dụng
+  - Mức nhất quán Group Replication và ảnh hưởng độ trễ
+  - InnoDB Cluster, MySQL Shell AdminAPI và ranh giới với Group Replication
+  - MySQL Router, cổng dịch vụ và định tuyến vai trò
+  - InnoDB ReplicaSet và phân biệt với InnoDB Cluster
+  - InnoDB ClusterSet, cụm dự phòng và điều kiện phiên bản hỗ trợ
+  - Switchover, failover, fencing và kiểm chứng máy chủ được phép ghi
+  - Đổi topology, bảo trì thành viên và điều kiện mất quorum
+  - Kiểm thử mất kết nối, đọc dữ liệu cũ và retry giao dịch từ ứng dụng
+  - Đối chiếu backup, replication và diễn tập khôi phục trong cùng kế hoạch
+- level1: Nhập xuất và di chuyển
+  level2:
+  - 'Chọn phạm vi di chuyển: dữ liệu, schema, tài khoản và cấu hình'
+  - Xuất nhập bằng mysqldump và kiểm soát thứ tự đối tượng
+  - MySQL Shell dump/load, xử lý song song và metadata tương thích
+  - LOAD DATA INFILE so với LOAD DATA LOCAL INFILE
+  - 'CSV: delimiter, enclosure, escape, newline, charset và biểu diễn NULL'
+  - SELECT INTO OUTFILE, quyền FILE và secure_file_priv
+  - Nạp theo lô, bỏ dòng lỗi có kiểm soát và đọc warning
+  - Khóa duy nhất, khóa ngoại và kiểm tra tính toàn vẹn sau nạp
+  - Đối chiếu bộ ký tự, collation, múi giờ và SQL mode giữa nguồn/đích
+  - Di chuyển dữ liệu lớn khi ứng dụng vẫn đang ghi
+  - Đồng bộ dữ liệu tăng thêm bằng replication hoặc CDC
+  - Đối soát số dòng, tổng kiểm tra và các bất biến nghiệp vụ
+  - Kế hoạch cắt chuyển, ngừng ghi và quay lui khi kiểm tra thất bại
+  - Chuyển từ hệ quản trị khác và xử lý khác biệt kiểu dữ liệu/ngữ nghĩa SQL
+- level1: Thay đổi schema
+  level2:
+  - Quản lý DDL, stored program và dữ liệu tham chiếu bằng version control
+  - Flyway/Liquibase với MySQL và lịch sử migration
+  - Schema drift, thứ tự migration và khóa triển khai đồng thời
+  - DDL implicit commit và thiết kế chịu lỗi từng phần
+  - ALGORITHM INSTANT/INPLACE/COPY và điều kiện từng loại thay đổi
+  - LOCK clause, metadata lock và khoảng chờ DDL
+  - Thêm cột, đổi kiểu, tạo chỉ mục và thay đổi khóa chính trên bảng lớn
+  - Expand/contract để schema tương thích nhiều phiên bản ứng dụng
+  - Backfill dữ liệu theo khóa ổn định và khả năng tiếp tục sau lỗi
+  - Online schema change bằng bảng phụ, trigger hoặc binary log
+  - Đánh giá pt-online-schema-change/gh-ost theo điều kiện và giới hạn
+  - Ảnh hưởng đến replication lag, dung lượng, redo và thời gian bảo trì
+  - Đổi tên bảng/cột, dependency và hợp đồng ứng dụng
+  - Kiểm chứng dữ liệu, quyền truy cập và kế hoạch quay lui sau migration
+- level1: Nâng cấp và tương thích
+  level2:
+  - Lập ma trận tương thích server, Connector/J, công cụ và ứng dụng
+  - Release note, tính năng bị loại bỏ và biến cấu hình thay đổi
+  - Kiểm tra trước nâng cấp bằng công cụ phù hợp với phiên bản
+  - Đường nâng cấp được hỗ trợ và điều kiện chuyển nhánh phát hành
+  - Nâng cấp tại chỗ so với dựng mới rồi di chuyển dữ liệu
+  - Thứ tự nâng cấp source/replica hoặc thành viên cụm
+  - Authentication plugin, SQL mode và collation sau nâng cấp
+  - Data dictionary, system table và tính tương thích thư mục dữ liệu
+  - So sánh SQL plan, độ trễ, lỗi và kết quả nghiệp vụ trước/sau
+  - Sao lưu trước thay đổi, diễn tập phục hồi và giới hạn downgrade
+  - Kiểm tra plugin/component, stored object và công cụ vận hành
+- level1: Connector/J
+  level2:
+  - Chọn Connector/J theo JDK, JDBC và ma trận tương thích MySQL
+  - JDBC URL, DataSource và thuộc tính kết nối
+  - TLS, sslMode, truststore và xác thực danh tính máy chủ
+  - Authentication plugin, RSA key và quản lý thông tin đăng nhập
+  - Connection, Statement, PreparedStatement và CallableStatement
+  - Prepared statement phía client/server và useServerPrepStmts
+  - cachePrepStmts, giới hạn prepared statement và vòng đời tài nguyên
+  - Ánh xạ DECIMAL, UNSIGNED BIGINT, BIT và BOOLEAN sang Java
+  - Ánh xạ DATE/TIME/DATETIME/TIMESTAMP và các kiểu java.time
+  - connectionTimeZone, preserveInstants và đồng bộ múi giờ JDBC
+  - Generated keys, AUTO_INCREMENT và ranh giới kết nối
+  - rewriteBatchedStatements, batch DML và xử lý lỗi từng phần
+  - Fetch size, useCursorFetch và đọc tập kết quả lớn dạng luồng
+  - Đọc ghi TEXT/BLOB hoặc JSON và giới hạn max_allowed_packet
+  - connectTimeout, socketTimeout, query timeout và hủy câu lệnh
+  - SQLState, vendor code, CommunicationsException và phân loại lỗi retry
+  - Đóng ResultSet/Statement, trả kết nối về pool và dọn trạng thái phiên
+  - Giới hạn autoReconnect, failover URL và tính toàn vẹn giao dịch
+- level1: Spring Boot và JPA
+  level2:
+  - Cấu hình MySQL DataSource trong Spring Boot theo từng môi trường
+  - HikariCP, kích thước pool và giới hạn max_connections phía server
+  - maxLifetime, keepalive, wait_timeout và vòng đời kết nối
+  - Khởi tạo/reset session state, SQL mode và timezone khi tái sử dụng kết nối
+  - JdbcTemplate, named parameter và ánh xạ kết quả
+  - MySQL dialect theo phiên bản Hibernate và server
+  - Entity, tên bảng/cột, backtick và phân biệt hoa/thường theo nền tảng
+  - IDENTITY, AUTO_INCREMENT, UUID và chiến lược sinh khóa
+  - Ảnh hưởng của chiến lược định danh đến batch insert
+  - Ánh xạ JSON, enum, LOB, giá trị tiền tệ và thời gian
+  - '@Transactional, propagation và ranh giới giao dịch qua proxy'
+  - Read-only, isolation, flush và hành vi thực tế của InnoDB
+  - Optimistic/pessimistic locking, timeout và chuyển đổi lỗi
+  - Phân trang, native query, projection và kiểm soát N+1
+  - Stored procedure, nhiều result set và OUT parameter
+  - Lỗi mất kết nối, retry có giới hạn và chống ghi trùng nghiệp vụ
+- level1: Kiểm thử
+  level2:
+  - Chọn phiên bản, storage engine và cấu hình giống môi trường mục tiêu
+  - MySQL container/Testcontainers và môi trường kiểm thử cô lập
+  - Khác biệt khi thay MySQL bằng H2 hoặc database giả lập
+  - Tạo/reset schema, seed dữ liệu và thứ tự khóa ngoại
+  - Kiểm thử NULL, chuỗi rỗng, Unicode, emoji và collation
+  - Kiểm thử độ chính xác số, UNSIGNED và ánh xạ Java
+  - Kiểm thử múi giờ, giờ mùa hè, giá trị ngày giờ biên
+  - Kiểm thử giao dịch, rollback, autocommit và implicit commit của DDL
+  - Kiểm thử khóa, deadlock và lost update bằng nhiều kết nối
+  - Kiểm thử stored procedure/function, trigger và event
+  - Kiểm thử timeout, pool cạn, kết nối đứt và kết quả commit chưa rõ
+  - Đo tải với dữ liệu đại diện, khởi động tải và độ trễ phân vị
+  - Kiểm thử migration, backup/restore, replication và failover
+  - Tổ chức bằng chứng để tái hiện lỗi và đánh giá hồi quy
+- level1: Xử lý sự cố
+  level2:
+  - Khoanh vùng thời điểm, phạm vi, thay đổi gần nhất và bằng chứng
+  - Can't connect, connection refused và lỗi phân giải địa chỉ/socket
+  - Access denied và kiểm tra user@host, plugin, TLS, mật khẩu
+  - Unknown database/table/column và phân biệt lỗi tên với thiếu quyền
+  - Duplicate entry và xung đột PRIMARY/UNIQUE
+  - Cannot add/update/delete child row và lỗi khóa ngoại
+  - Data too long, out of range, truncated value và strict mode
+  - Incorrect datetime, zero date và lỗi chuyển đổi múi giờ
+  - Illegal mix of collations và dữ liệu sai bộ ký tự
+  - Lock wait timeout, deadlock và kiểm tra phạm vi rollback
+  - Waiting for table metadata lock và giao dịch bỏ quên
+  - Too many connections, connection leak và pool ứng dụng cạn
+  - MySQL server has gone away/lost connection và timeout/gói quá lớn
+  - Disk full, table is full và temporary space cạn
+  - Truy vấn chậm đột ngột do thống kê, dữ liệu lệch hoặc đổi kế hoạch
+  - Replica lag, lỗi apply và giao dịch không còn trong binary log
+  - GTID sai lệch, server UUID trùng và clone môi trường không đúng
+  - Crash recovery kéo dài và thu thập log trước khi can thiệp
+  - Phân biệt hỏng dữ liệu với lỗi ứng dụng và giới hạn innodb_force_recovery
+  - Đánh giá tác động trước khi KILL QUERY, KILL CONNECTION hoặc restart
+- level1: Mở rộng hệ thống
+  level2:
+  - Mở rộng theo chiều dọc, chiều ngang và xác định giới hạn thực tế
+  - Tách đọc/ghi qua replica và yêu cầu nhất quán của từng nghiệp vụ
+  - MySQL Router, proxy kết nối và ranh giới với connection pool
+  - Cache phía ứng dụng và chiến lược vô hiệu hóa sau commit
+  - Outbox, CDC và đồng bộ sự kiện từ binary log
+  - 'Debezium hoặc công cụ CDC khác: snapshot, offset và schema change'
+  - Chia dữ liệu theo tenant/khóa và phân biệt sharding với partitioning
+  - Giao dịch xuyên shard, XA và giới hạn phối hợp phân tán
+  - Khóa nghiệp vụ, tính lũy đẳng (idempotency) và chống xử lý sự kiện trùng
+  - Lưu trữ dữ liệu cũ, tổng hợp báo cáo và tách tải phân tích
+  - Dịch vụ MySQL được quản lý và ranh giới quyền vận hành/backup
+  - Tương thích giao thức so với tương thích ngữ nghĩa khi dùng dịch vụ hoặc engine khác
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng schema đơn hàng với khóa ngoại, CHECK và dữ liệu mẫu
+  - Thiết kế bộ ký tự/collation để lưu và tìm kiếm tiếng Việt
+  - Viết báo cáo có CTE, hàm cửa sổ, xếp hạng và tổng phụ
+  - Thiết kế giữ chỗ tồn kho và kiểm chứng cạnh tranh giữa nhiều phiên
+  - Xây dựng upsert có thể thực hiện lại mà không ghi trùng nghiệp vụ
+  - Đóng gói stored procedure với hợp đồng lỗi và kiểm thử
+  - Nạp dữ liệu CSV lớn, xử lý dòng lỗi và đối soát kết quả
+  - Tối ưu truy vấn từ slow log đến kế hoạch và lựa chọn chỉ mục
+  - Tích hợp Java/Spring Boot với giao dịch và ánh xạ thời gian/số
+  - Mô phỏng deadlock, pool cạn, timeout và mất kết nối
+  - Triển khai thay đổi schema trên bảng lớn có ứng dụng đang hoạt động
+  - Diễn tập restore/PITR sau cập nhật hoặc xóa nhầm
+  - Dựng replica, quan sát lag và kiểm thử chuyển vai trò
+  - Hoàn thiện sổ tay vận hành với sơ đồ, metric và bằng chứng phục hồi

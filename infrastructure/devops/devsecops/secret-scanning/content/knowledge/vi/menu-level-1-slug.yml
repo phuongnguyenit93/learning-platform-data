@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình rủi ro
+  slug: risk-model
+  index: 1
+- title: Nhận diện bí mật
+  slug: secret-identification
+  index: 2
+- title: Bề mặt quét
+  slug: scanning-scope
+  index: 3
+- title: Lịch sử Git
+  slug: git-history
+  index: 4
+- title: Cơ chế phát hiện
+  slug: detection-mechanisms
+  index: 5
+- title: Quy tắc tùy chỉnh
+  slug: custom-rules
+  index: 6
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 7
+- title: Gitleaks
+  slug: gitleaks
+  index: 8
+- title: TruffleHog
+  slug: trufflehog
+  index: 9
+- title: detect-secrets
+  slug: detect-secrets
+  index: 10
+- title: Nền tảng kho mã
+  slug: repository-platforms
+  index: 11
+- title: Kiểm tra cục bộ
+  slug: local-scanning
+  index: 12
+- title: Tích hợp CI/CD
+  slug: cicd-integration
+  index: 13
+- title: Quét ngoài kho mã
+  slug: external-repository-scanning
+  index: 14
+- title: Xác minh hiệu lực
+  slug: secret-validation
+  index: 15
+- title: Báo cáo an toàn
+  slug: secure-reporting
+  index: 16
+- title: Phân loại cảnh báo
+  slug: alert-triage
+  index: 17
+- title: Baseline và ngoại lệ
+  slug: baselines-and-exceptions
+  index: 18
+- title: Ứng phó lộ bí mật
+  slug: secret-leak-response
+  index: 19
+- title: Làm sạch lịch sử
+  slug: git-history-cleanup
+  index: 20
+- title: Ngăn ngừa tái diễn
+  slug: recurrence-prevention
+  index: 21
+- title: Bảo mật bộ quét
+  slug: scanner-security
+  index: 22
+- title: Chính sách kiểm soát
+  slug: control-policies
+  index: 23
+- title: Triển khai diện rộng
+  slug: organization-rollout
+  index: 24
+- title: Hiệu năng và độ tin cậy
+  slug: performance-and-reliability
+  index: 25
+- title: Kiểm thử và đo lường
+  slug: testing-and-metrics
+  index: 26
+- title: Khắc phục sự cố
+  slug: troubleshooting
+  index: 27
+- title: Thực hành có hướng dẫn
+  slug: guided-labs
+  index: 28
+- title: Tình huống tổng hợp
+  slug: integrated-scenarios
+  index: 29

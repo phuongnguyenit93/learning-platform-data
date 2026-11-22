@@ -1,0 +1,13 @@
+references:
+  - title: "OpenTelemetry — Logs"
+    url: "https://opentelemetry.io/docs/concepts/signals/logs/"
+    description: "Giới thiệu log như một tín hiệu quan sát và liên kết với telemetry."
+  - title: "OpenTelemetry — Logs Data Model"
+    url: "https://opentelemetry.io/docs/specs/otel/logs/data-model/"
+    description: "Các trường cơ bản của log record như timestamp, severity, body, attributes và trace ID."
+  - title: "The Twelve-Factor App — Logs"
+    url: "https://www.12factor.net/logs"
+    description: "Cách xem log như luồng sự kiện và tách ứng dụng khỏi hạ tầng thu thập, lưu trữ."
+  - title: "OWASP — Logging Cheat Sheet"
+    url: "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"
+    description: "Nguyên tắc log an toàn, tránh dữ liệu nhạy cảm và bảo đảm chất lượng log."

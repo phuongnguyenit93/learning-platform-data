@@ -1,0 +1,43 @@
+roadmap:
+- id: tu-duy-abac
+  title: Tư duy ABAC
+  purpose: Hiểu cách ABAC dùng thuộc tính để quyết định quyền theo ngữ cảnh.
+  objectives:
+  - Phân biệt xác thực với phân quyền và nêu phạm vi của ABAC.
+  - So sánh ABAC với RBAC qua một tình huống truy cập.
+- id: mo-hinh-thuoc-tinh
+  title: Mô hình thuộc tính
+  purpose: Biểu diễn đủ thông tin cần thiết cho một yêu cầu truy cập.
+  objectives:
+  - Lập bộ thuộc tính cho chủ thể, tài nguyên, hành động và môi trường.
+  - Xác định kiểu dữ liệu và ý nghĩa thống nhất cho từng thuộc tính.
+- id: quy-tac-va-chinh-sach
+  title: Quy tắc và chính sách
+  purpose: Chuyển yêu cầu nghiệp vụ thành điều kiện cấp quyền rõ ràng.
+  objectives:
+  - Viết quy tắc cho phép hoặc từ chối bằng các điều kiện thuộc tính.
+  - Áp dụng mặc định từ chối và xác định cách xử lý các quy tắc xung đột.
+- id: luong-quyet-dinh
+  title: Luồng quyết định
+  purpose: Tách trách nhiệm quản lý, đánh giá và thực thi chính sách.
+  objectives:
+  - Mô tả vai trò của điểm quyết định (PDP), thực thi (PEP), cung cấp thuộc tính (PIP) và quản trị chính sách (PAP).
+  - Vẽ luồng yêu cầu, thu thập thuộc tính, đánh giá và áp dụng quyết định.
+- id: thuoc-tinh-dang-tin-cay
+  title: Thuộc tính đáng tin cậy
+  purpose: Ngăn dữ liệu giả mạo hoặc lỗi thời dẫn đến cấp quyền sai.
+  objectives:
+  - Xác định nguồn đáng tin, bên quản lý và thời hạn hợp lệ của thuộc tính.
+  - Thiết kế xử lý an toàn khi thuộc tính thiếu, sai hoặc do bên yêu cầu tự khai.
+- id: thuc-thi-va-bo-nho-dem
+  title: Thực thi và bộ nhớ đệm
+  purpose: Duy trì quyết định đúng khi hệ thống và thuộc tính thay đổi.
+  objectives:
+  - Đặt kiểm tra quyền trên mọi đường truy cập, gắn đúng tài nguyên và hành động.
+  - Xác định hiệu lực bộ nhớ đệm, lúc đánh giá lại và hành vi an toàn khi bộ phận quyết định lỗi.
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng chính sách và kiểm soát thay đổi trong quá trình sử dụng.
+  objectives:
+  - Lập bảng kiểm thử cho phép, từ chối, thuộc tính thiếu, xung đột và thay đổi ngữ cảnh.
+  - Thiết kế ghi vết quyết định, quản lý phiên bản và khôi phục chính sách khi triển khai sai.

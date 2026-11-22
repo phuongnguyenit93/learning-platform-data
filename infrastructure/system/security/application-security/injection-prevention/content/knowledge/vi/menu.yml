@@ -1,0 +1,574 @@
+menu:
+- level1: Khái niệm injection
+  level2:
+  - Injection là gì
+  - Untrusted data đi vào interpreter
+  - Data bị biến thành syntax
+  - Injection so với validation failure
+  - Injection so với authorization failure
+  - Impact của injection
+  - Confidentiality impact
+  - Integrity impact
+  - Availability impact
+  - Injection trong legacy code
+- level1: Trust boundary
+  level2:
+  - Trust boundary là gì
+  - Input từ browser
+  - Input từ mobile app
+  - Input từ API client
+  - Input từ partner
+  - Input từ message queue
+  - Input từ database
+  - Input từ file
+  - Input từ environment
+  - Input từ admin
+  - Không tin dữ liệu nội bộ mặc định
+- level1: Nguồn dữ liệu không tin cậy
+  level2:
+  - Query parameter
+  - Path parameter
+  - Request body
+  - HTTP header
+  - Cookie
+  - Multipart file
+  - Form field
+  - Webhook payload
+  - Email content
+  - URL redirect
+  - Metadata từ client
+- level1: Input validation
+  level2:
+  - Server-side validation
+  - Syntax validation
+  - Semantic validation
+  - Type validation
+  - Length limit
+  - Range limit
+  - Allowlist validation
+  - Reject invalid input
+  - Validate nested object
+  - Validate array size
+  - Validate dữ liệu sau parse
+- level1: Canonicalization
+  level2:
+  - Canonicalization là gì
+  - Decode đúng một lần
+  - URL decoding
+  - Unicode normalization
+  - Path normalization
+  - Case normalization
+  - Canonical host
+  - Canonical email
+  - Canonical JSON
+  - Tránh double encoding
+  - Kiểm thử alternate encoding
+- level1: Safe API
+  level2:
+  - Safe API không dùng interpreter trực tiếp
+  - Parameterized API
+  - Structured API
+  - Typed API
+  - Command API tách argument
+  - Query builder an toàn
+  - Template variable binding
+  - XML parser an toàn
+  - API không eval string
+  - Đọc tài liệu default
+  - Không tự viết escaping
+- level1: Nguyên tắc phòng thủ
+  level2:
+  - Validate input
+  - Dùng safe API
+  - Parameterize data
+  - Encode theo context
+  - Allowlist cấu trúc
+  - Least privilege
+  - Defense in depth
+  - Không dựa denylist
+  - Không dựa obfuscation
+  - Không coi sanitizer là authorization
+- level1: SQL injection
+  level2:
+  - SQL injection là gì
+  - String concatenation nguy hiểm
+  - PreparedStatement
+  - Named parameter
+  - Parameter binding
+  - Dynamic value parameterization
+  - SQL syntax tách khỏi data
+  - SQL error không lộ schema
+  - SQL injection qua GET
+  - SQL injection qua JSON
+  - SQL injection qua header
+- level1: SQL cấu trúc động
+  level2:
+  - Table name không bind như value
+  - Column name allowlist
+  - Sort direction allowlist
+  - Filter operator allowlist
+  - Dynamic ORDER BY
+  - Dynamic WHERE
+  - Dynamic LIMIT
+  - Dynamic schema
+  - Map input sang constant
+  - Không append raw identifier
+- level1: ORM và HQL
+  level2:
+  - HQL injection
+  - JPQL injection
+  - ORM query concatenation
+  - Named parameter trong ORM
+  - Criteria API
+  - Specification an toàn
+  - Native query parameter
+  - ORM log query
+  - Stored entity filter
+  - ORM không thay authorization
+  - Kiểm thử ORM injection
+- level1: Stored procedure
+  level2:
+  - Procedure parameter binding
+  - Dynamic SQL trong procedure
+  - Procedure privilege
+  - Least privilege database user
+  - SQL injection trong function
+  - Validate procedure argument
+  - Review procedure source
+  - Không tin procedure là tự động an toàn
+  - Auditing procedure
+  - Test procedure injection
+- level1: NoSQL injection
+  level2:
+  - NoSQL injection là gì
+  - Mongo query object
+  - JSON operator injection
+  - MongoDB query validation
+  - Reject unexpected operator
+  - Typed query builder
+  - NoSQL regex injection
+  - Redis command input
+  - Dynamo expression input
+  - Cassandra query binding
+  - Document filter authorization
+- level1: LDAP injection
+  level2:
+  - LDAP injection là gì
+  - LDAP filter encoding
+  - LDAP DN encoding
+  - Parameterized LDAP API
+  - Allowlist LDAP attribute
+  - LDAP search base
+  - LDAP wildcard handling
+  - LDAP authentication query
+  - LDAP error handling
+  - Test LDAP special characters
+- level1: XPath và XQuery
+  level2:
+  - XPath injection là gì
+  - Parameterized XPath
+  - XPath variable binding
+  - XML input validation
+  - Allowlist XPath selector
+  - XPath predicate injection
+  - XQuery expression
+  - Namespace handling
+  - XPath error response
+  - Test XPath payload
+- level1: OS command injection
+  level2:
+  - OS command injection là gì
+  - Không gọi shell khi không cần
+  - Process API tách executable
+  - Argument list
+  - Allowlist executable
+  - Allowlist argument
+  - Working directory cố định
+  - Environment tối thiểu
+  - Timeout process
+  - Exit code validation
+  - Process privilege giảm
+- level1: Argument injection
+  level2:
+  - Argument injection là gì
+  - Command option injection
+  - Filename thành option
+  - End-of-options marker
+  - Argument boundary
+  - Allowlist argument type
+  - Reject leading dash
+  - Path argument validation
+  - ProcessBuilder đúng cách
+  - Test argument edge case
+- level1: Code injection
+  level2:
+  - eval và exec risk
+  - Dynamic code execution
+  - Script engine input
+  - Runtime compilation
+  - Expression evaluation
+  - Reflection từ user input
+  - Class name allowlist
+  - Method name allowlist
+  - Disable dynamic evaluation
+  - Sandbox không tuyệt đối
+  - Code execution least privilege
+- level1: Template injection
+  level2:
+  - Server-side template injection
+  - Template source so với template data
+  - Named variable binding
+  - Không nối template string
+  - Render context tối thiểu
+  - Không truyền secret vào context
+  - Engine sandbox
+  - Disable dangerous helper
+  - Auto-escaping không chống SSTI
+  - User-created template policy
+  - SSTI test
+- level1: Expression injection
+  level2:
+  - Expression Language injection
+  - SpEL injection
+  - OGNL injection
+  - MVEL injection
+  - Template expression
+  - Expression parser config
+  - Disable method invocation
+  - Allowlist property access
+  - Không eval input
+  - Expression timeout
+  - Test expression payload
+- level1: XSS và HTML injection
+  level2:
+  - Reflected XSS
+  - Stored XSS
+  - DOM-based XSS
+  - HTML context encoding
+  - Attribute context encoding
+  - JavaScript context encoding
+  - CSS context encoding
+  - URL context encoding
+  - Output encoding sau validation
+  - Sanitize rich text
+  - Không mark untrusted HTML safe
+- level1: JavaScript và DOM
+  level2:
+  - innerHTML risk
+  - textContent an toàn
+  - DOM sink
+  - DOM source
+  - URL trong DOM
+  - postMessage origin check
+  - Script URL
+  - Event handler injection
+  - Trusted Types
+  - DOM XSS test
+  - Client-side validation không đủ
+- level1: CSS và URL
+  level2:
+  - CSS injection
+  - Style attribute
+  - URL scheme validation
+  - javascript scheme
+  - data scheme
+  - Open redirect liên quan
+  - Contextual URL encoding
+  - Allowlist hostname
+  - CSS sanitizer
+  - Link target policy
+- level1: XML và XXE
+  level2:
+  - XML External Entity
+  - Disable external entities
+  - Disable DTD
+  - Secure XML parser
+  - Entity expansion
+  - Billion laughs
+  - XInclude
+  - Schema validation
+  - XPath sau parse
+  - XML error handling
+  - Test XXE
+- level1: Header và CRLF
+  level2:
+  - HTTP header injection
+  - CRLF injection
+  - Response splitting
+  - Header value validation
+  - Header encoding
+  - Set-Cookie injection
+  - Location header
+  - Log header injection
+  - Reject control characters
+  - Proxy normalization
+- level1: Log và CSV injection
+  level2:
+  - Log injection
+  - Log field encoding
+  - Escape newline trong log
+  - Structured logging
+  - CSV formula injection
+  - Spreadsheet formula prefix
+  - Export encoding
+  - Email header injection
+  - SMTP command injection
+  - Audit rejected input
+- level1: Regex và ReDoS
+  level2:
+  - Regular expression injection
+  - User-controlled regex
+  - Regex allowlist
+  - Regex length limit
+  - ReDoS
+  - Backtracking control
+  - Possessive quantifier
+  - Regex timeout
+  - Safe regex engine
+  - Test pathological input
+- level1: File và path
+  level2:
+  - Filename injection
+  - Path traversal liên quan
+  - File path allowlist
+  - Path canonicalization
+  - Null byte
+  - Archive entry path
+  - Command từ filename
+  - Template từ filename
+  - Safe temporary path
+  - Storage ngoài web root
+- level1: Deserialization
+  level2:
+  - Deserialization injection
+  - Untrusted object graph
+  - Type allowlist
+  - Polymorphic type risk
+  - Gadget chain
+  - JSON type metadata
+  - XML object mapping
+  - Java serialization
+  - Reject unknown type
+  - Resource limit khi deserialize
+- level1: GraphQL
+  level2:
+  - GraphQL input validation
+  - GraphQL query injection
+  - Resolver authorization
+  - Field allowlist
+  - Query depth limit
+  - Query complexity
+  - Directive validation
+  - Custom scalar validation
+  - Introspection policy
+  - GraphQL error masking
+- level1: API và JSON
+  level2:
+  - JSON schema validation
+  - Unknown field rejection
+  - Mass assignment liên quan
+  - Nested object validation
+  - Prototype pollution
+  - JSON number limits
+  - JSON string limits
+  - JSON parser configuration
+  - Content-type validation
+  - API error không lộ query
+- level1: Database layer
+  level2:
+  - Database account least privilege
+  - Read-only account
+  - Write scope
+  - SQL view
+  - Stored data isolation
+  - Connection pool identity
+  - Database audit
+  - Query timeout
+  - Resource limit
+  - Injection không bypass authorization
+- level1: Output encoding
+  level2:
+  - Encode theo output context
+  - HTML encoder
+  - JavaScript encoder
+  - CSS encoder
+  - URL encoder
+  - JSON encoder
+  - XML encoder
+  - Double encoding
+  - Encoding order
+  - Không encode sai context
+  - Review encoding sink
+- level1: Input và output relationship
+  level2:
+  - Validation không thay encoding
+  - Encoding không thay authorization
+  - Sanitization không thay parameterization
+  - Canonicalize trước validate
+  - Validate trước business logic
+  - Encode tại sink
+  - Không lưu raw data vô hạn
+  - Preserve legitimate Unicode
+  - Reject malformed data
+  - Cross-service contract
+- level1: Error handling
+  level2:
+  - Không lộ SQL error
+  - Không lộ stack trace
+  - Không lộ template detail
+  - Không lộ command output
+  - Error code nhất quán
+  - Fail closed
+  - Không echo input nguy hiểm
+  - Log an toàn
+  - Exception mapping
+  - Error response test
+- level1: Monitoring
+  level2:
+  - Injection attempt alert
+  - SQL syntax anomaly
+  - Command execution alert
+  - LDAP filter anomaly
+  - Template evaluation alert
+  - XSS payload detection
+  - Repeated rejected input
+  - High error rate
+  - WAF signal
+  - SIEM correlation
+- level1: Testing
+  level2:
+  - Unit validation test
+  - Integration query test
+  - Negative security test
+  - Parameterized query test
+  - XSS output test
+  - Command execution test
+  - LDAP test
+  - XPath test
+  - Template test
+  - XXE test
+  - ReDoS test
+- level1: Fuzzing
+  level2:
+  - Mutation fuzzing
+  - Grammar-based fuzzing
+  - Unicode fuzzing
+  - Encoding fuzzing
+  - Nested JSON fuzzing
+  - Oversized input fuzzing
+  - Delimiter fuzzing
+  - Boundary value fuzzing
+  - Protocol fuzzing
+  - Track rejected payload
+- level1: Code review
+  level2:
+  - Find string concatenation
+  - Find eval API
+  - Find shell invocation
+  - Find dynamic query
+  - Find unsafe template
+  - Find XML parser
+  - Find reflection input
+  - Find output sink
+  - Check safe library usage
+  - Review data flow
+  - Review privilege of interpreter
+- level1: Framework operations
+  level2:
+  - Framework default parser
+  - Framework escaping mode
+  - Framework template config
+  - ORM parameter binding
+  - Web server header handling
+  - JSON parser limits
+  - XML parser hardening
+  - Error handling defaults
+  - Dependency version
+  - Secure configuration review
+- level1: Architecture
+  level2:
+  - Avoid interpreter at boundary
+  - Separate data and code
+  - API gateway validation
+  - Service validation
+  - Data layer validation
+  - Trusted internal API
+  - Isolate high-risk parser
+  - Process sandbox
+  - Network egress restriction
+  - Least privilege runtime
+- level1: LLM prompt injection
+  level2:
+  - Prompt injection là gì
+  - Untrusted content trong prompt
+  - Structured prompt
+  - Tách instruction và data
+  - Tool boundary authorization
+  - Output validation
+  - Least privilege tool
+  - Remote content screening
+  - Encoding detection
+  - Prompt injection monitoring
+- level1: DevSecOps
+  level2:
+  - SAST injection rule
+  - DAST injection scan
+  - IAST data flow
+  - Dependency update
+  - Security lint
+  - Pre-commit review
+  - CI security gate
+  - Regression payload suite
+  - Artifact scanning
+  - Security training
+- level1: Incident response
+  level2:
+  - Triage injection alert
+  - Contain affected endpoint
+  - Disable vulnerable feature
+  - Rotate exposed credential
+  - Preserve evidence
+  - Determine data access
+  - Patch safe API
+  - Replay test malicious input
+  - Notify stakeholder
+  - Post-incident root cause
+- level1: Performance và DoS
+  level2:
+  - Input size limit
+  - Query timeout (bổ sung 2)
+  - Command timeout
+  - Regex timeout (bổ sung 2)
+  - XML entity limit
+  - Template resource limit
+  - GraphQL complexity limit
+  - Rate limiting
+  - Circuit breaker
+  - Memory budget
+- level1: Anti-pattern
+  level2:
+  - Chỉ validate ở client
+  - Dùng denylist làm defense chính
+  - Tự escape SQL
+  - Nối user input vào query
+  - Gọi shell với chuỗi raw
+  - Eval input
+  - Truyền secret vào template
+  - Bật external entity
+  - Log nguyên payload
+  - Tin framework default
+  - Dùng sanitizer thay authorization
+- level1: Checklist production
+  level2:
+  - Đã lập trust boundary
+  - Đã validate server-side
+  - Đã dùng safe API
+  - Đã parameterize query
+  - Đã encode theo context
+  - Đã harden parser
+  - Đã giới hạn resource
+  - Đã có least privilege
+  - Đã có logging an toàn
+  - Đã có alert
+  - Đã có test injection
+  - Đã có runbook xử lý

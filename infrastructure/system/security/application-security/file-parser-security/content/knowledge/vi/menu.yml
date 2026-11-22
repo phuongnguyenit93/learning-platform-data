@@ -1,0 +1,431 @@
+menu:
+- level1: Định hướng Parser Security
+  level2:
+  - File parser security là gì
+  - Vì sao file parser là bề mặt tấn công
+  - Mối quan hệ giữa file, parser và hệ thống
+  - Các loại rủi ro khi xử lý file không tin cậy
+  - Biên giới tin cậy trong pipeline xử lý file
+  - Mục tiêu bảo vệ tính bí mật và toàn vẹn
+  - Lộ trình học File Parser Security
+  - Thuật ngữ nền tảng cần nắm
+- level1: Bề mặt tấn công
+  level2:
+  - Nguồn file từ người dùng
+  - File nhận từ API và webhook
+  - File tải từ URL bên ngoài
+  - File trong email và message queue
+  - Parser thư viện và parser tự viết
+  - Các bước hậu xử lý sau parse
+  - Điểm giao giữa parser và hệ điều hành
+  - Lập bản đồ toàn bộ đường đi của file
+- level1: Mô hình đe dọa
+  level2:
+  - Tài sản cần bảo vệ khi parse file
+  - Kẻ tấn công và năng lực tấn công
+  - Input độc hại và input được chế tạo
+  - Tác động đến máy chủ và người dùng
+  - Rò rỉ dữ liệu qua lỗi parser
+  - Thực thi mã qua chuỗi xử lý file
+  - Từ chối dịch vụ qua tài nguyên parser
+  - Xây dựng threat model cho một parser
+- level1: Định dạng và cấu trúc file
+  level2:
+  - Magic bytes và file signature
+  - Header, body và trailer
+  - Container format và embedded object
+  - Metadata và phần mở rộng tùy chọn
+  - Cấu trúc lồng nhau và đệ quy
+  - Chỉ mục, offset và độ dài
+  - Định dạng text và binary
+  - Phân biệt định dạng thật với tên file
+- level1: Biên giới tin cậy
+  level2:
+  - File không tin cậy (untrusted file)
+  - Dữ liệu sau khi giải mã hoặc giải nén
+  - Dữ liệu do parser tạo ra
+  - Dữ liệu chuyển giữa các service
+  - Tin cậy sai do kiểm tra ở một lớp
+  - Trust boundary giữa ứng dụng và thư viện
+  - Trust boundary giữa container và host
+  - Đặt kiểm soát tại đúng biên giới
+- level1: Tiếp nhận file
+  level2:
+  - Xác định nguồn và chủ sở hữu file
+  - Kiểm tra yêu cầu upload
+  - Giới hạn số file trong một request
+  - Kiểm soát tên field multipart
+  - Xử lý upload bị gián đoạn
+  - Đảm bảo stream được đóng đúng cách
+  - Không xử lý file trước khi kiểm tra
+  - Thiết kế pipeline tiếp nhận an toàn
+- level1: Nhận diện loại file
+  level2:
+  - Mimetype do client cung cấp
+  - Mimetype được suy luận từ nội dung
+  - File extension và giới hạn của nó
+  - Kiểm tra magic number
+  - Mâu thuẫn giữa extension và nội dung
+  - Polyglot file
+  - Các lớp nhận diện kết hợp
+  - Kiểm thử bypass loại file
+- level1: Tên file và đường dẫn
+  level2:
+  - Path traversal trong tên file
+  - Canonical path và normalize path
+  - Ký tự phân cách trên các hệ điều hành
+  - Tên file tuyệt đối và tương đối
+  - Reserved name và ký tự đặc biệt
+  - Unicode normalization trong tên file
+  - Symbolic link và file ngoài thư mục
+  - Sinh tên file lưu trữ an toàn
+- level1: Kiểm soát upload
+  level2:
+  - Allowlist định dạng được hỗ trợ
+  - Blocklist và giới hạn áp dụng
+  - Giới hạn kích thước request
+  - Giới hạn kích thước file thực tế
+  - Kiểm tra nội dung trước khi lưu
+  - Tách vùng upload tạm và vùng phục vụ
+  - Quyền truy cập thư mục upload
+  - Kiểm thử upload file độc hại
+- level1: Giới hạn tài nguyên
+  level2:
+  - Giới hạn thời gian parse
+  - Giới hạn bộ nhớ
+  - Giới hạn độ sâu lồng nhau
+  - Giới hạn số phần tử
+  - Giới hạn độ dài chuỗi
+  - Giới hạn số object được tạo
+  - Giới hạn thread và queue
+  - Xử lý khi vượt giới hạn
+- level1: Từ chối dịch vụ qua parser
+  level2:
+  - Parser denial of service là gì
+  - CPU exhaustion
+  - Memory exhaustion
+  - Đệ quy quá sâu
+  - File có cấu trúc bất thường
+  - Nhiều file nhỏ trong một request
+  - Slow parse và timeout
+  - Đo lường và cảnh báo parser DoS
+- level1: Archive security
+  level2:
+  - ZIP, TAR, GZIP và các archive phổ biến
+  - Kiểm tra entry trong archive
+  - Path traversal khi giải nén
+  - Archive lồng nhau
+  - Giới hạn số lượng entry
+  - Giới hạn kích thước sau giải nén
+  - Symbolic link trong archive
+  - Đóng file và dọn thư mục tạm
+- level1: Compression bomb
+  level2:
+  - Compression bomb là gì
+  - Tỷ lệ nén bất thường
+  - Theo dõi kích thước giải nén thực tế
+  - Giới hạn tổng kích thước output
+  - Giới hạn độ sâu archive lồng nhau
+  - Ngắt giải nén giữa chừng
+  - Bảo vệ worker xử lý archive
+  - Kiểm thử zip bomb an toàn
+- level1: XML parser security
+  level2:
+  - XML external entity (XXE)
+  - DOCTYPE và external entity
+  - External DTD
+  - XML entity expansion
+  - Billion Laughs
+  - XML schema và giới hạn tài nguyên
+  - Tắt tính năng XML không cần thiết
+  - Kiểm thử cấu hình XML parser
+- level1: JSON parser security
+  level2:
+  - JSON input không tin cậy
+  - Độ sâu object và array
+  - Số lượng field và kích thước value
+  - Duplicate key trong JSON
+  - Số lớn và sai khác kiểu dữ liệu
+  - Parser permissive và parser strict
+  - JSON chứa dữ liệu lồng nguy hiểm
+  - Kiểm thử JSON malformed
+- level1: YAML parser security
+  level2:
+  - YAML tag và kiểu dữ liệu đặc biệt
+  - YAML deserialization nguy hiểm
+  - Alias và anchor
+  - Độ sâu và kích thước tài liệu
+  - Safe loader và full loader
+  - Allowlist kiểu dữ liệu YAML
+  - Không thực thi biểu thức từ YAML
+  - Kiểm thử YAML độc hại
+- level1: CSV và bảng dữ liệu
+  level2:
+  - CSV injection là gì
+  - Formula trong ô spreadsheet
+  - Dấu phân cách và quoting
+  - Dòng có độ dài bất thường
+  - Encoding và BOM
+  - Header trùng lặp hoặc sai vị trí
+  - Giới hạn số dòng và số cột
+  - Xuất dữ liệu CSV an toàn
+- level1: Office và tài liệu
+  level2:
+  - DOCX, XLSX, PPTX là container gì
+  - Embedded object trong tài liệu
+  - Macro và nội dung thực thi
+  - External link trong tài liệu
+  - Relationship và target bên ngoài
+  - Đọc metadata tài liệu
+  - Giới hạn phần tử trong Open XML
+  - Cô lập parser tài liệu
+- level1: Ảnh và media
+  level2:
+  - Parser ảnh và metadata
+  - ImageTragick và rủi ro tương tự
+  - Ảnh có payload nhúng
+  - Độ phân giải quá lớn
+  - Pixel bomb và decompression bomb
+  - EXIF và GPS metadata
+  - Transcoding an toàn
+  - Kiểm thử ảnh malformed
+- level1: PDF và định dạng phức tạp
+  level2:
+  - PDF object và cross-reference
+  - JavaScript trong PDF
+  - Embedded file trong PDF
+  - External action và link
+  - PDF parser resource exhaustion
+  - Font và stream bất thường
+  - Render PDF trong môi trường cô lập
+  - Kiểm tra PDF trước khi phân phối
+- level1: Serialization và deserialization
+  level2:
+  - Serialization boundary trong ứng dụng
+  - Java native serialization
+  - ObjectInputStream và dữ liệu không tin cậy
+  - Gadget chain
+  - Allowlist class được phép đọc
+  - Ký và xác thực object
+  - Thay thế bằng format dữ liệu an toàn
+  - Kiểm thử deserialization
+- level1: Schema validation
+  level2:
+  - Schema là gì
+  - Validation trước khi parse sâu
+  - Strict schema và unknown field
+  - Required, optional và default
+  - Giới hạn độ dài và số lượng
+  - Kiểu dữ liệu và phạm vi giá trị
+  - Schema evolution an toàn
+  - Bằng chứng validation đã thực thi
+- level1: Canonicalization
+  level2:
+  - Canonicalization là gì
+  - Normalize trước và sau validation
+  - Mâu thuẫn giữa biểu diễn và giá trị
+  - Double encoding
+  - URL, path và ký tự escape
+  - Unicode normalization
+  - Kiểm tra lại sau giải mã
+  - Ngăn validation bypass bằng canonicalization
+- level1: Encoding và Unicode
+  level2:
+  - UTF-8 và encoding khác nhau
+  - BOM và ký tự ẩn
+  - Invalid byte sequence
+  - Null byte
+  - Unicode confusable
+  - Ký tự điều khiển
+  - Độ dài theo byte và theo ký tự
+  - Kiểm thử parser với Unicode bất thường
+- level1: Parser differential
+  level2:
+  - Nhiều parser cho cùng một định dạng
+  - Khác biệt cách diễn giải file
+  - Parser confusion
+  - Validation bằng parser này, xử lý bằng parser khác
+  - Round-trip và mất thông tin
+  - Canonical output
+  - Kiểm thử interoperability
+  - Ngăn bypass do khác biệt parser
+- level1: SSRF từ nội dung file
+  level2:
+  - File có URL hoặc resource bên ngoài
+  - External reference trong XML
+  - Link và image trong tài liệu
+  - URL callback trong webhook file
+  - Chặn mạng khi parser không cần mạng
+  - Allowlist scheme và host
+  - Bảo vệ metadata service
+  - Kiểm thử SSRF trong parser pipeline
+- level1: File tạm và lưu trữ
+  level2:
+  - Thư mục tạm an toàn
+  - Tên file tạm không đoán được
+  - Quyền đọc ghi của file tạm
+  - Race condition khi tạo file
+  - Symbolic link trong thư mục tạm
+  - Dọn file sau thành công hoặc lỗi
+  - Tách file đang xử lý khỏi file đã duyệt
+  - Kiểm tra dữ liệu còn sót lại
+- level1: Cô lập parser
+  level2:
+  - Process isolation
+  - Container isolation
+  - Sandbox và seccomp
+  - Giới hạn filesystem
+  - Giới hạn network
+  - Chạy bằng user không đặc quyền
+  - Timeout và kill process
+  - Đánh giá ranh giới cô lập
+- level1: Content disarm
+  level2:
+  - Content Disarm and Reconstruction (CDR)
+  - Tách nội dung cần dùng khỏi phần nguy hiểm
+  - Re-encode ảnh và tài liệu
+  - Loại bỏ macro và embedded object
+  - Loại bỏ external link
+  - Giữ lại metadata cần thiết
+  - So sánh file gốc và file đã làm sạch
+  - Giới hạn khi CDR không thay thế sandbox
+- level1: Quét malware
+  level2:
+  - Antivirus và malware scanner
+  - Thời điểm quét trong pipeline
+  - Quét trước và sau khi giải nén
+  - Tích hợp scanner qua service
+  - Timeout và lỗi scanner
+  - Xử lý kết quả nghi ngờ
+  - Cập nhật signature
+  - Không coi scan là kiểm soát duy nhất
+- level1: Xử lý sau khi parse
+  level2:
+  - Dữ liệu parse chuyển sang domain object
+  - Không tin dữ liệu vì đã parse thành công
+  - Validation nghiệp vụ sau validation format
+  - Lưu dữ liệu đã kiểm duyệt
+  - Gửi sự kiện sau khi kiểm tra
+  - Không thực thi lệnh từ trường dữ liệu
+  - Không render trực tiếp nội dung không an toàn
+  - Theo dõi trạng thái file
+- level1: Logging và error handling
+  level2:
+  - Lỗi parser và thông tin nhạy cảm
+  - Không ghi nội dung file nguyên bản vào log
+  - Không phản hồi stack trace cho client
+  - Mã lỗi ổn định cho người dùng
+  - Correlation ID cho điều tra
+  - Phân biệt lỗi input và lỗi hệ thống
+  - Cảnh báo lỗi lặp lại
+  - Kiểm thử log khi parser thất bại
+- level1: Java parser security
+  level2:
+  - java.nio.file và thao tác path
+  - Path.normalize và Path.toRealPath
+  - Files.createTempFile an toàn
+  - InputStream và giới hạn đọc
+  - BufferedInputStream và kích thước
+  - try-with-resources
+  - Timeout trong tác vụ parser
+  - Exception handling trong Java
+- level1: Thư viện Java phổ biến
+  level2:
+  - Apache Commons Compress
+  - Apache Tika và nhận diện loại file
+  - Jackson JSON parser
+  - SnakeYAML
+  - JAXP XML parser
+  - PDFBox
+  - Apache POI
+  - Đọc security advisory của thư viện
+- level1: Quản lý dependency
+  level2:
+  - Theo dõi dependency của parser
+  - CVE trong thư viện xử lý file
+  - Pin version và cập nhật có kiểm soát
+  - SBOM cho ứng dụng parser
+  - Kiểm tra dependency transitive
+  - SCA và policy chặn build
+  - Đánh giá thay đổi lớn của thư viện
+  - Quy trình ứng phó khi có CVE
+- level1: Kiểm thử parser
+  level2:
+  - Unit test cho input hợp lệ
+  - Unit test cho input malformed
+  - Boundary value test
+  - Negative test cho file độc hại
+  - Fuzz testing
+  - Property-based testing
+  - Mutation testing cho validation
+  - Đo coverage của nhánh lỗi
+- level1: Fuzzing và corpus
+  level2:
+  - Corpus file là gì
+  - Seed file hợp lệ
+  - Sinh biến thể malformed
+  - Fuzz cấu trúc và kích thước
+  - Theo dõi crash và timeout
+  - Minimize input gây lỗi
+  - Fuzz trong môi trường cô lập
+  - Đưa testcase đã phát hiện vào regression
+- level1: Kiểm thử tích hợp
+  level2:
+  - Kiểm thử upload đến lưu trữ
+  - Kiểm thử giải nén đến parse
+  - Kiểm thử parser với scanner
+  - Kiểm thử queue và retry
+  - Kiểm thử timeout end-to-end
+  - Kiểm thử nhiều worker đồng thời
+  - Kiểm thử quyền filesystem
+  - Kiểm thử khi dependency lỗi
+- level1: Giám sát vận hành
+  level2:
+  - Thời gian parse và kích thước file
+  - Tỷ lệ file bị từ chối
+  - Tỷ lệ lỗi theo định dạng
+  - Memory và CPU của parser
+  - Số lần timeout
+  - Số lượng archive bị chặn
+  - Theo dõi version parser
+  - Cảnh báo dấu hiệu tấn công
+- level1: Phản ứng sự cố
+  level2:
+  - Cô lập file nghi ngờ
+  - Dừng pipeline bị khai thác
+  - Thu thập file và bằng chứng
+  - Xác định phiên bản parser bị ảnh hưởng
+  - Tìm các file tương tự
+  - Cập nhật rule và cấu hình
+  - Thông báo cho nhóm liên quan
+  - Diễn tập sự cố parser
+- level1: Tình huống thực hành
+  level2:
+  - Upload ảnh đại diện người dùng
+  - Giải nén file ZIP do khách hàng gửi
+  - Đọc XML từ hệ thống đối tác
+  - Nhập CSV vào cơ sở dữ liệu
+  - Xử lý tài liệu DOCX
+  - Parse JSON từ webhook
+  - Quét và lưu file PDF
+  - Thiết kế pipeline file an toàn
+- level1: Checklist File Parser Security
+  level2:
+  - Checklist nhận diện loại file
+  - Checklist giới hạn tài nguyên
+  - Checklist path và file tạm
+  - Checklist archive và giải nén
+  - Checklist parser theo định dạng
+  - Checklist cô lập và quyền hệ thống
+  - Checklist dependency và CVE
+  - Checklist kiểm thử trước phát hành
+- level1: Tổng kết và lộ trình áp dụng
+  level2:
+  - Từ input không tin cậy đến output an toàn
+  - Từ kiểm tra định dạng đến validation nghiệp vụ
+  - Từ parser đơn lẻ đến pipeline nhiều bước
+  - Từ lỗi parser đến giám sát vận hành
+  - Các sai lầm thường gặp
+  - Kế hoạch hardening theo giai đoạn
+  - Rà soát một module Java xử lý file
+  - Bài tập tổng hợp File Parser Security

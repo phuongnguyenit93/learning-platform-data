@@ -1,0 +1,7 @@
+# DevOps Source Management Collaboration Platform Bitbucket
+
+**Bitbucket** là nền tảng cộng tác và quản lý mã nguồn Git của Atlassian. Trong **Bitbucket Cloud**, nhóm phát triển có thể tổ chức repository theo workspace và project, phân quyền truy cập, tạo nhánh cho từng thay đổi, trao đổi qua pull request và kiểm soát việc merge vào nhánh chính. Kết hợp với Bitbucket Pipelines và webhooks, nền tảng tạo một luồng làm việc liên tục từ cập nhật mã nguồn đến kiểm thử tự động và tích hợp công cụ khác.
+
+Module dành cho người đã biết Git cơ bản, commit, branch và quy trình phát triển phần mềm theo nhóm. Bạn sẽ bắt đầu từ cấu trúc workspace/project/repository, thực hành tạo kho mã nguồn và đồng bộ Git, sau đó cấu hình quyền truy cập và xác thực bằng SSH hoặc token có scope phù hợp. Lộ trình tiếp tục với feature branch, pull request, code review, branch restrictions và merge checks; phần cuối hướng dẫn tạo `bitbucket-pipelines.yml`, quản lý secured variables và tích hợp webhook cho các sự kiện của repository.
+
+Sau tám mốc, bạn có thể tổ chức một quy trình cộng tác trên Bitbucket Cloud: đưa thay đổi lên nhánh riêng, yêu cầu review, bảo vệ nhánh chính, chạy kiểm thử tự động và theo dõi kết quả trước khi merge. Cần lưu ý một số merge checks mang tính khuyến nghị ở các gói thông thường, còn khả năng cưỡng chế có thể phụ thuộc gói Premium; giao diện và tính năng của Bitbucket Data Center cũng không hoàn toàn giống Bitbucket Cloud.

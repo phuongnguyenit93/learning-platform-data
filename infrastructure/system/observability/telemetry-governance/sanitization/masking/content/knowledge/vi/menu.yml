@@ -1,0 +1,258 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Che dữ liệu (masking) là gì trong quản trị dữ liệu quan sát
+  - Vì sao nhật ký (logs), chỉ số (metrics) và truy vết (traces) có thể làm lộ dữ liệu
+  - 'Các thành phần: nguồn phát, trường dữ liệu, quy tắc, điểm xử lý và nơi lưu'
+  - Quan hệ giữa che dữ liệu, làm sạch dữ liệu và giảm thiểu thu thập
+  - Phân biệt che giá trị, loại bỏ trường (redaction) và lọc sự kiện (filtering)
+  - Nhận biết sự chồng lấn thuật ngữ masking và redaction giữa các công cụ
+  - Phân biệt che dữ liệu với băm, mã hóa, token hóa và ẩn danh
+  - Cân bằng khả năng chẩn đoán với mức độ tiết lộ thông tin
+  - Lộ trình học từ nhận diện dữ liệu đến kiểm chứng toàn tuyến
+- level1: Phạm vi dữ liệu
+  level2:
+  - Lập bản đồ dữ liệu từ ứng dụng đến các đích quan sát
+  - Thông tin nhận dạng trực tiếp và thông tin có thể kết hợp để nhận dạng
+  - Mật khẩu, khóa API, access token, cookie và mã phiên
+  - Email, số điện thoại, địa chỉ, IP và mã định danh người dùng
+  - Dữ liệu tài chính, sức khỏe và thông tin nghiệp vụ riêng tư
+  - Dữ liệu trong tên trường, tên tài nguyên và tên phép đo
+  - Các bản sao trong bộ đệm, hàng đợi, tệp tạm và bản xuất
+  - Chọn dữ liệu không thu thập, dữ liệu cần che và ngữ cảnh được giữ
+- level1: Mô hình đe dọa
+  level2:
+  - Xác định bên có thể đọc dữ liệu tại từng ranh giới tin cậy
+  - Rò rỉ trước điểm che dữ liệu và rủi ro của các bản ghi thô
+  - Nhận dạng lại từ phần ký tự còn lộ và các trường kết hợp
+  - Suy đoán giá trị từ độ dài, định dạng và tần suất xuất hiện
+  - Vượt quy tắc bằng đổi tên trường, mã hóa hoặc thay đổi cách biểu diễn
+  - Rò rỉ qua công cụ xem, truy vấn, cảnh báo và tệp tải xuống
+  - Xác định giả định, giới hạn bảo vệ và tiêu chí chấp nhận rủi ro
+- level1: Chính sách che dữ liệu
+  level2:
+  - Chuyển yêu cầu bảo vệ thành quy tắc theo từng trường
+  - Xác định chủ sở hữu, mục đích sử dụng và phạm vi áp dụng
+  - Chọn che toàn bộ, che một phần hoặc không thu thập
+  - Quy định phần tiền tố, hậu tố và dấu phân cách được giữ
+  - Chọn ký hiệu thay thế và giới hạn thông tin mà đầu ra tiết lộ
+  - Áp dụng chính sách theo dịch vụ, môi trường, tenant và đích xuất
+  - Quản lý trường chưa biết, trường mới và dữ liệu không đúng định dạng
+  - Quy định thứ tự ưu tiên, ngoại lệ và thời hạn ngoại lệ
+  - Xác định tiêu chí bảo vệ dữ liệu và tiêu chí giữ giá trị chẩn đoán
+- level1: Kỹ thuật che
+  level2:
+  - Thay toàn bộ giá trị bằng một ký hiệu cố định
+  - Che theo vị trí và chỉ giữ phần được chính sách cho phép
+  - Che theo độ dài cố định và che giữ nguyên độ dài
+  - Che email theo phần tên hộp thư và tên miền
+  - Che số điện thoại, mã định danh và số tài khoản theo ngữ cảnh
+  - Giảm độ chi tiết của địa chỉ IP và vị trí địa lý
+  - Thay thế theo định dạng mà không tạo ra định danh có thật
+  - Xử lý chuỗi ngắn, chuỗi rỗng, giá trị null và giá trị đã được che
+  - Đánh giá thông tin còn lộ sau từng kỹ thuật che
+- level1: Nhận diện dữ liệu
+  level2:
+  - Nhận diện theo tên trường, đường dẫn và lược đồ dữ liệu
+  - Nhận diện theo mẫu giá trị và biểu thức chính quy (regex)
+  - Kết hợp tên trường, kiểu dữ liệu và ngữ cảnh sự kiện
+  - Giới hạn của regex khi phát hiện email, token và dữ liệu tự do
+  - 'Nhận diện số thẻ bằng cấu trúc và kiểm tra Luhn: phạm vi và giới hạn'
+  - Xử lý chữ hoa, chữ thường, bí danh và biến thể tên trường
+  - Chuẩn hóa Unicode và cách biểu diễn trước khi đối sánh
+  - Phân biệt nhận diện nhầm với bỏ sót dữ liệu cần che
+  - Quản lý danh sách mẫu và kiểm chứng trên dữ liệu tổng hợp
+- level1: Quy tắc biến đổi
+  level2:
+  - Mô hình chọn trường, điều kiện áp dụng và thao tác thay thế
+  - Thiết kế quy tắc theo khóa chính xác, mẫu khóa và đường dẫn
+  - Ưu tiên quy tắc chuyên biệt trước quy tắc tổng quát
+  - Xử lý nhiều mẫu trùng khớp và các quy tắc chồng lấn
+  - Giữ tính ổn định khi xử lý lại nhiều lần (idempotency)
+  - Xử lý thiếu trường, sai kiểu, lỗi phân tích và lỗi thực thi
+  - Chọn hành vi an toàn khi che thất bại và giữ bằng chứng sự kiện
+  - Gắn phiên bản chính sách và trạng thái xử lý mà không lưu giá trị gốc
+- level1: Dữ liệu có cấu trúc
+  level2:
+  - Che thuộc tính theo lược đồ thay vì thay chuỗi trên toàn bản ghi
+  - Duyệt JSON lồng nhau, mảng, danh sách và cấu trúc map
+  - Xử lý khóa động, khóa chứa dữ liệu nhạy cảm và trường mở rộng
+  - Xử lý chuỗi chứa JSON và dữ liệu được tuần tự hóa nhiều lớp
+  - Giữ cấu trúc, kiểu dữ liệu và khả năng phân tích của đầu ra
+  - Chọn thay thế an toàn khi kiểu số không cho phép ký hiệu che
+  - Phân biệt thiếu trường, null, rỗng và giá trị đã được thay thế
+  - Giới hạn độ sâu, kích thước và chi phí duyệt dữ liệu
+- level1: Dữ liệu văn bản
+  level2:
+  - Che dữ liệu trong thông điệp tự do và mẫu thông điệp
+  - Xác định ranh giới khớp để tránh che nhầm một phần giá trị
+  - Xử lý nhiều giá trị nhạy cảm trong cùng một dòng
+  - Xử lý xuống dòng, stack trace và bản ghi nhiều dòng
+  - Xử lý Unicode, dấu tiếng Việt và cụm ký tự hiển thị
+  - Giải mã có kiểm soát với URL encoding và chuỗi escape
+  - Đánh giá Base64, dữ liệu nén và nội dung không thể phân tích
+  - Giới hạn regex tốn tài nguyên và khác biệt giữa các bộ máy regex
+  - Phân biệt che dữ liệu với chống chèn dòng giả vào nhật ký
+- level1: Nhật ký ứng dụng
+  level2:
+  - Che nội dung body, thuộc tính và dữ liệu tài nguyên của log
+  - Nhật ký có cấu trúc và rủi ro khi ghép chuỗi trực tiếp
+  - Dữ liệu nhạy cảm trong tham số thông điệp và ngoại lệ
+  - Che dữ liệu trong MDC và ngữ cảnh nhật ký
+  - Kiểm soát toString, tuần tự hóa đối tượng và nhật ký tự động
+  - Che dữ liệu trong access log, audit log và nhật ký bảo mật
+  - Xử lý stdout, tệp log, appender và các đích ghi song song
+  - Giữ thời gian, mức độ, loại sự kiện và mã lỗi phục vụ điều tra
+  - Kiểm chứng đường ghi khẩn cấp, log khởi động và log từ thư viện
+- level1: Truy vết phân tán
+  level2:
+  - Xác định dữ liệu nhạy cảm trong span và thuộc tính tài nguyên
+  - Che dữ liệu trong tên span, sự kiện và thông tin ngoại lệ
+  - Kiểm soát HTTP attributes, database attributes và messaging attributes
+  - Giữ quan hệ trace/span trong khi bảo vệ định danh nghiệp vụ
+  - Rủi ro từ baggage và việc truyền dữ liệu sang dịch vụ khác
+  - Phân biệt che bản ghi telemetry với kiểm soát context trên đường truyền
+  - Ảnh hưởng của che dữ liệu đến quyết định sampling và định tuyến
+  - Kiểm tra span do thư viện hoặc agent tự động tạo
+- level1: Chỉ số đo lường
+  level2:
+  - Dữ liệu nhạy cảm trong thuộc tính điểm đo và nhãn metrics
+  - Quan hệ giữa định danh cá nhân và số lượng tổ hợp nhãn (cardinality)
+  - Vì sao tên phép đo và nhãn động không nên chứa dữ liệu người dùng
+  - Nguy cơ nhiều chuỗi thời gian trùng định danh sau khi che nhãn
+  - Phân biệt che nhãn với tổng hợp lại các chuỗi thời gian
+  - Bảo toàn ý nghĩa của counter, gauge và histogram khi biến đổi
+  - Kiểm tra dữ liệu trong exemplars và liên kết sang traces
+  - Kiểm chứng truy vấn, cảnh báo và dashboard sau thay đổi nhãn
+- level1: Giao thức và tích hợp
+  level2:
+  - Che Authorization, cookie và các HTTP header được thu thập
+  - Che tham số truy vấn, thành phần đường dẫn và URL có thông tin đăng nhập
+  - Xử lý request/response body và nội dung theo Content-Type
+  - Che dữ liệu trong SQL, tham số truy vấn và chuỗi kết nối
+  - Che metadata, header và payload của hàng đợi thông điệp
+  - Kiểm soát thuộc tính gRPC và dữ liệu lỗi tích hợp
+  - Dữ liệu trong đường dẫn tệp, tên máy, container và Kubernetes metadata
+  - Kiểm chứng telemetry từ proxy, database driver và thư viện bên thứ ba
+  - Che thuộc tính của hồ sơ hiệu năng (profiles) và thông tin tiến trình
+- level1: Vị trí xử lý
+  level2:
+  - Che tại nơi tạo sự kiện trước khi dữ liệu rời ứng dụng
+  - Che trong SDK, agent thu thập và gateway tập trung
+  - Che trước nơi lưu bền vững, hàng đợi và bộ đệm có dữ liệu thô
+  - Phân biệt che lúc thu nhận với che lúc truy vấn hoặc hiển thị
+  - Thiết kế nhiều lớp bảo vệ với trách nhiệm và chính sách nhất quán
+  - Thứ tự phân tích, chuẩn hóa, làm giàu, che dữ liệu và xuất
+  - Kiểm soát các nhánh fan-out và mọi đường xuất dữ liệu
+  - Xác định phạm vi che trước hoặc sau sampling, định tuyến và phân lô
+- level1: Java và Spring Boot
+  level2:
+  - Thiết kế đối tượng dữ liệu nhật ký chỉ chứa trường được phép
+  - Áp dụng che dữ liệu trước khi gọi SLF4J và tránh nội suy dữ liệu thô
+  - 'Tích hợp Logback: encoder, layout và giới hạn của thay thế trên chuỗi'
+  - Che MDC và quản lý ngữ cảnh trong luồng bất đồng bộ
+  - Kiểm soát nhật ký HTTP từ Servlet filter, interceptor và WebClient
+  - Che dữ liệu trong exception handler mà vẫn giữ nguyên lỗi nghiệp vụ
+  - Kiểm soát Jackson, toString và nhật ký do mã sinh tự động
+  - Phân biệt xử lý log ứng dụng với span và metrics do Java agent tạo
+  - Giới hạn của annotation che dữ liệu khi có nhiều đường tuần tự hóa
+  - Kiểm thử mọi appender và exporter thay vì chỉ xem console
+- level1: OpenTelemetry Collector
+  level2:
+  - Xác định phiên bản, bản phân phối và processor thực sự có sẵn
+  - Thiết kế luồng receiver, processor, exporter cho từng loại tín hiệu
+  - Dùng transform processor và OTTL để thay thế dữ liệu có điều kiện
+  - Chọn đúng ngữ cảnh resource, log, span và datapoint khi biến đổi
+  - Che chuỗi và giá trị thuộc tính bằng các hàm thay thế phù hợp
+  - Dùng redaction processor để che mẫu giá trị và phân biệt với xóa thuộc tính
+  - Phân biệt xử lý thuộc tính với xử lý log body và nội dung lồng nhau
+  - Đánh giá error_mode và nguy cơ dữ liệu chưa che tiếp tục được xuất
+  - Bố trí processor trước các đường xuất và điểm lưu dữ liệu cần bảo vệ
+  - Kiểm tra log nội bộ, debug exporter và dữ liệu trong thông báo lỗi
+  - Xác minh cấu hình, chạy dữ liệu mẫu và kiểm tra đầu ra theo phiên bản
+- level1: Tương quan và định danh
+  level2:
+  - Xác định nhu cầu liên kết sự kiện sau khi che dữ liệu
+  - Giới hạn của hậu tố giống nhau và ký hiệu che cố định khi đối chiếu
+  - Phân biệt giá trị để hiển thị với định danh thay thế để tương quan
+  - Rủi ro dò từ điển khi băm dữ liệu có ít giá trị khả dĩ
+  - Vai trò và giới hạn của HMAC hoặc token hóa cho định danh thay thế
+  - Giới hạn phạm vi liên kết theo tenant, môi trường và mục đích
+  - Ảnh hưởng của đổi khóa hoặc đổi chính sách đến dữ liệu lịch sử
+  - Đánh giá khả năng nhận dạng lại sau khi nối nhiều nguồn telemetry
+- level1: Hiệu năng và độ tin cậy
+  level2:
+  - Đo độ trễ, thông lượng, CPU và bộ nhớ của bước che dữ liệu
+  - Biên dịch trước mẫu regex và giới hạn kích thước đầu vào
+  - So sánh duyệt trường có cấu trúc với quét toàn bộ chuỗi
+  - Xử lý tải đột biến, áp lực hàng đợi và dữ liệu quá lớn
+  - Giữ hành vi nhất quán khi thử lại, xử lý trùng hoặc khởi động lại
+  - Xử lý quy tắc không hợp lệ, lỗi phụ thuộc và cấu hình chưa tải được
+  - Phân biệt fail-open, fail-closed và ảnh hưởng đến bằng chứng quan sát
+  - Tránh rò rỉ trong bộ nhớ đệm, thông báo lỗi và cơ chế dự phòng
+  - Giới hạn ảnh hưởng của bước che đến luồng nghiệp vụ
+- level1: Kiểm thử
+  level2:
+  - Tạo bộ dữ liệu tổng hợp với đầu vào và đầu ra mong đợi
+  - Kiểm thử từng quy tắc, biên độ dài và giá trị không đúng kiểu
+  - Kiểm thử Unicode, dữ liệu lồng nhau, nhiều dòng và nhiều lớp mã hóa
+  - Kiểm thử nhận diện nhầm và bỏ sót trên các nhóm dữ liệu
+  - Kiểm thử thứ tự quy tắc, tính lặp ổn định và tính nhất quán
+  - 'Kiểm thử thuộc tính: dữ liệu cần bảo vệ không còn ở đầu ra'
+  - Kiểm thử tích hợp từ nơi phát đến mọi đích xuất và nơi lưu
+  - Kiểm thử lỗi processor, cấu hình hỏng, retry và đường dự phòng
+  - Dùng dấu nhận biết tổng hợp để phát hiện đường dữ liệu chưa được che
+  - Kiểm thử hồi quy cho truy vấn, cảnh báo và tương quan log–trace
+  - Kiểm thử tải, giới hạn tài nguyên và điều kiện chấp nhận phát hành
+- level1: Triển khai thay đổi
+  level2:
+  - Quản lý quy tắc bằng cấu hình có phiên bản và lịch sử phê duyệt
+  - Rà soát thay đổi bằng cặp dữ liệu mẫu trước và sau khi che
+  - Kiểm tra cú pháp, năng lực processor và chính sách trong CI/CD
+  - Triển khai thử trên phạm vi nhỏ mà không đưa dữ liệu thô sang đích phụ
+  - Đồng bộ phiên bản chính sách giữa ứng dụng, agent và gateway
+  - Xử lý thay đổi lược đồ và dịch vụ mới chưa có quy tắc
+  - Thiết kế quay lui mà vẫn giữ các yêu cầu bảo vệ tối thiểu
+  - Kiểm chứng sau triển khai và quản lý dữ liệu cũ chưa được che
+- level1: Giám sát và ứng phó
+  level2:
+  - Theo dõi số lần khớp, lỗi xử lý và bản ghi bị chặn bằng chỉ số tổng hợp
+  - Thiết kế nhãn giám sát không chứa giá trị hoặc định danh nhạy cảm
+  - Phát hiện lưu lượng đi qua nhưng không được áp dụng chính sách
+  - Phát hiện tăng đột biến tỷ lệ che và suy giảm giá trị chẩn đoán
+  - Giám sát phiên bản quy tắc và độ lệch cấu hình giữa các điểm xử lý
+  - Điều tra sự cố bằng dữ liệu đã che và quyền truy cập được kiểm soát
+  - Khoanh vùng đích nhận, bản sao và khoảng thời gian bị rò rỉ
+  - Phối hợp xử lý thông tin xác thực đã lộ và dữ liệu lịch sử
+  - Xác minh khắc phục và bổ sung kiểm thử hồi quy sau sự cố
+- level1: Quản trị vận hành
+  level2:
+  - Phân định trách nhiệm giữa nhóm ứng dụng, nền tảng và bảo mật
+  - Lập danh mục quy tắc cùng dữ liệu, mục đích và chủ sở hữu tương ứng
+  - Quản lý quyền sửa quy tắc, quyền xem telemetry và ngoại lệ
+  - Ghi dấu vết thay đổi chính sách mà không ghi lại giá trị gốc
+  - Phối hợp che dữ liệu với thời hạn lưu giữ và quyền truy cập
+  - Rà soát đích bên thứ ba, bản xuất và chia sẻ dữ liệu hỗ trợ
+  - Đánh giá định kỳ hiệu quả che và rủi ro dữ liệu còn lại
+- level1: Lỗi thường gặp
+  level2:
+  - Chỉ che trên dashboard trong khi dữ liệu thô vẫn được lưu
+  - Che một appender hoặc một exporter nhưng bỏ sót các nhánh khác
+  - Dùng một regex tổng quát cho mọi loại dữ liệu và định dạng
+  - Cho rằng dấu sao, băm hoặc giữ vài ký tự luôn bảo đảm ẩn danh
+  - Che hỏng trace ID hoặc làm trùng định danh chuỗi thời gian
+  - Vô tình thay đổi đối tượng nghiệp vụ khi chuẩn bị dữ liệu nhật ký
+  - Ghi lại đầu vào thô trong log gỡ lỗi hoặc thông báo che thất bại
+  - Cho phép ngoại lệ kéo dài hoặc tắt che dữ liệu để xử lý sự cố
+  - Cho rằng lấy mẫu hoặc mã hóa đường truyền thay thế được che dữ liệu
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế chính sách che cho luồng đăng nhập với dữ liệu tổng hợp
+  - Che email và số điện thoại trong log JSON của Spring Boot
+  - Che token trong HTTP telemetry và kiểm tra mọi đường xuất
+  - Che URL, dữ liệu truy vấn SQL và thông tin ngoại lệ trong traces
+  - Thiết kế lại nhãn metrics nhạy cảm mà vẫn giữ ý nghĩa phép đo
+  - Dựng pipeline Collector che dữ liệu trước đích lưu trữ
+  - Tiêm lỗi quy tắc và xác minh dữ liệu chưa che không lọt ra ngoài
+  - Đánh giá đồng thời độ bao phủ, chi phí xử lý và khả năng chẩn đoán
+  - Hoàn thiện bảng kiểm và hướng dẫn vận hành cho một luồng thực tế

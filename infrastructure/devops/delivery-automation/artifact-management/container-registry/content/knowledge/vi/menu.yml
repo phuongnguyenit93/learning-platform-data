@@ -1,0 +1,317 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Kho phân phối ảnh container (Container Registry): vai trò trong chuỗi bàn giao'
+  - Phân biệt registry, repository, image và container đang chạy
+  - Registry công khai, riêng tư, tự vận hành và dịch vụ được quản lý
+  - Quan hệ giữa mã nguồn, bản dựng, ảnh container và bản phát hành
+  - 'Luồng tổng thể: dựng ảnh, đẩy lên, kiểm tra và kéo về triển khai'
+  - Trách nhiệm của registry so với công cụ dựng ảnh và nền tảng chạy
+  - 'Thuật ngữ nền tảng: tag, digest, manifest, layer và namespace'
+- level1: Mô hình OCI
+  level2:
+  - Vai trò của đặc tả OCI Image và OCI Distribution
+  - 'Image manifest: cấu hình và danh sách lớp dữ liệu của một ảnh'
+  - 'Image configuration: thông tin thực thi và siêu dữ liệu ảnh'
+  - 'Layer và blob: nội dung được lưu và chia sẻ'
+  - 'Descriptor: media type, kích thước và digest của nội dung tham chiếu'
+  - Image index và Docker manifest list cho nhiều nền tảng
+  - Phân biệt digest của manifest, cấu hình và từng blob
+  - Digest của lớp nén và DiffID của lớp giải nén
+  - Ảnh hưởng của kiểu nén và tuần tự hóa đến định danh nội dung
+  - Khả năng tương thích giữa định dạng Docker và OCI
+- level1: Định danh và phiên bản
+  level2:
+  - 'Cấu trúc tham chiếu ảnh: máy chủ, cổng, namespace, repository và tag'
+  - Tên đầy đủ và hành vi mặc định khi bỏ qua máy chủ hoặc tag
+  - Tag là tên tham chiếu có thể được gán lại theo chính sách
+  - Digest và cách tham chiếu nội dung cụ thể bằng sha256
+  - Phân biệt tag, image ID cục bộ và digest trên registry
+  - Quy ước tag theo phiên bản, commit và mã lần dựng
+  - Tag bất biến và bảo vệ tên bản phát hành
+  - Rủi ro khi dùng latest hoặc tái sử dụng tag giữa các môi trường
+- level1: Luồng push và pull
+  level2:
+  - Chuỗi bước đẩy ảnh từ kho cục bộ lên repository đích
+  - Kiểm tra blob đã tồn tại và tránh tải lại nội dung
+  - Tải các blob trước khi công bố manifest tham chiếu đến chúng
+  - Chuỗi bước kéo ảnh và xác minh nội dung nhận được
+  - Lựa chọn manifest con theo nền tảng của máy chạy
+  - Tải lại sau gián đoạn và điều kiện hỗ trợ của máy khách, máy chủ
+  - Tác động của việc gán lại tag trong khi nhiều máy đang kéo ảnh
+  - Phân biệt ảnh có sẵn trong máy với ảnh còn truy cập được từ registry
+- level1: Giao thức phân phối
+  level2:
+  - Nhóm thao tác của Registry HTTP API V2 và OCI Distribution
+  - Truy xuất manifest, blob và thông tin tồn tại bằng GET hoặc HEAD
+  - Tạo phiên tải lên, gửi dữ liệu và hoàn tất blob
+  - Đọc media type và thương lượng định dạng manifest
+  - Liệt kê tag, phân trang và giới hạn quyền truy cập
+  - Phân biệt xóa manifest với xóa blob và xóa tên tham chiếu
+  - Mã phản hồi, lỗi giao thức và chính sách thử lại
+  - Chuyển hướng đến kho lưu trữ đối tượng hoặc địa chỉ tải có thời hạn
+  - 'Giới hạn tương thích: không giả định mọi registry hỗ trợ mọi khả năng'
+- level1: Công cụ thao tác
+  level2:
+  - 'Docker CLI: đăng nhập, gắn tag, push, pull và kiểm tra tham chiếu'
+  - 'Podman: thao tác với registry và cấu hình xác thực'
+  - Buildx và BuildKit trong quy trình dựng rồi xuất bản ảnh
+  - Skopeo cho kiểm tra và sao chép ảnh giữa các nơi lưu
+  - Crane hoặc công cụ tương đương để làm việc với manifest và digest
+  - ORAS cho sản phẩm đóng gói theo mô hình OCI
+  - Phân biệt kiểm tra siêu dữ liệu từ xa với tải toàn bộ ảnh
+  - Lựa chọn công cụ theo định dạng và khả năng cần bảo toàn
+- level1: Triển khai registry
+  level2:
+  - Xác định yêu cầu dung lượng, số người dùng và mức sẵn sàng
+  - Dựng registry cục bộ phục vụ thực hành
+  - Cấu hình nơi lưu bền vững thay vì dựa vào lớp ghi của container
+  - Tên miền, cổng, cấu hình dịch vụ và quản lý vòng đời tiến trình
+  - Đặt registry sau reverse proxy hoặc bộ cân bằng tải
+  - Tách cấu hình, thông tin bí mật và dữ liệu lưu trữ
+  - Kiểm tra sức khỏe, khởi động lại và giới hạn tài nguyên
+  - Ranh giới giữa môi trường thử nghiệm và cấu hình vận hành thực tế
+- level1: TLS và kết nối
+  level2:
+  - HTTPS và xác minh danh tính máy chủ registry
+  - Chứng chỉ công khai, CA nội bộ và chuỗi chứng chỉ
+  - Cấu hình tin cậy cho máy phát triển, runner và nút triển khai
+  - Tên miền trong chứng chỉ và lỗi hostname mismatch
+  - 'Reverse proxy: đường dẫn, header và giới hạn kích thước yêu cầu'
+  - Thời gian chờ, kết nối dài và truyền ảnh có lớp dữ liệu lớn
+  - DNS, proxy mạng và truy cập kho lưu trữ phía sau registry
+  - Giới hạn sử dụng kết nối không mã hóa trong môi trường cô lập
+- level1: Xác thực
+  level2:
+  - Phân biệt xác thực danh tính với phân quyền repository
+  - Đăng nhập bằng tài khoản cá nhân và tài khoản tự động hóa
+  - 'Luồng bearer token: challenge, cấp token và truy cập tài nguyên'
+  - Phạm vi token cho pull, push và thao tác quản trị
+  - Credential helper và nơi lưu thông tin đăng nhập phía máy khách
+  - Cấp thông tin bí mật cho CI mà không ghi vào log hoặc mã nguồn
+  - Token ngắn hạn và liên kết danh tính workload khi nền tảng hỗ trợ
+  - Hết hạn, thu hồi và luân chuyển thông tin xác thực
+  - Phân biệt đăng xuất cục bộ với thu hồi quyền phía máy chủ
+- level1: Phân quyền
+  level2:
+  - Thiết kế namespace và quyền sở hữu repository
+  - Quyền đọc, ghi, xóa và quản trị theo nguyên tắc tối thiểu
+  - Tách quyền của người phát triển, runner dựng ảnh và hệ thống triển khai
+  - Tài khoản robot, service account và giới hạn phạm vi sử dụng
+  - Repository công khai, riêng tư và hành vi truy cập ẩn danh
+  - Quyền đối với tag được bảo vệ và nội dung đã phát hành
+  - Cô lập dự án hoặc khách hàng trong registry dùng chung
+  - Kiểm toán thay đổi quyền và truy cập bất thường
+- level1: Quy ước kho ảnh
+  level2:
+  - Tổ chức repository theo sản phẩm, dịch vụ và nhóm sở hữu
+  - Phân biệt tách repository với chỉ dùng tiền tố tag
+  - Quy ước tên ảnh, tag và thông tin liên hệ của chủ sở hữu
+  - Gắn nhãn OCI cho nguồn mã, phiên bản, giấy phép và lần dựng
+  - Liên kết commit, lần chạy CI, digest và bản phát hành
+  - Quy định ảnh nền được phép và nguồn lấy ảnh
+  - Phân loại ảnh thử nghiệm, ứng viên phát hành và ảnh đang phục vụ
+  - Quản lý vòng đời repository khi dự án ngừng hoạt động
+- level1: Dựng và xuất bản ảnh
+  level2:
+  - Chuẩn bị ngữ cảnh dựng và loại trừ dữ liệu không cần thiết
+  - Ảnh nền, phụ thuộc và mức độ tái tạo của bản dựng
+  - Multi-stage build để tách môi trường dựng khỏi ảnh chạy
+  - Tối ưu lớp dữ liệu nhằm giảm dung lượng và tận dụng cache
+  - Không đưa khóa bí mật vào lớp ảnh hoặc tham số bị lưu lại
+  - Gắn nhãn, gán tag và push từ một quy trình có thể lặp
+  - Lấy digest từ kết quả xuất bản để bàn giao cho bước sau
+  - Kiểm tra ảnh đã công bố bằng cách truy cập lại từ registry
+  - 'Liên hệ với ứng dụng Java: JAR, JRE và công cụ tạo ảnh'
+- level1: Ảnh nhiều nền tảng
+  level2:
+  - OS, kiến trúc CPU và biến thể trong định danh nền tảng
+  - Phân biệt một manifest đơn với image index nhiều nền tảng
+  - Dựng ảnh native và dựng bằng mô phỏng
+  - Xuất bản từng ảnh con rồi tạo index chung
+  - Gán tag cho index và cách máy khách chọn ảnh con
+  - Digest của index so với digest của ảnh con khi ghim triển khai
+  - Kiểm tra tính đầy đủ của các nền tảng trước phát hành
+  - Bảo toàn manifest con và nội dung liên quan khi sao chép hoặc xóa
+- level1: Tích hợp CI/CD
+  level2:
+  - Thiết kế các bước dựng, kiểm tra, xuất bản và bàn giao digest
+  - Đặt quyền ghi registry đúng phạm vi của từng workflow
+  - Phân biệt quy trình cho nhánh, pull request và bản phát hành
+  - Bảo vệ thông tin xác thực khi xử lý mã từ nguồn không tin cậy
+  - Ngăn nhiều lần dựng ghi đè tag hoặc phát hành cạnh tranh
+  - Chính sách thử lại push và xác định kết quả khi phản hồi bị gián đoạn
+  - Lưu siêu dữ liệu bản dựng và tham chiếu ảnh làm đầu ra CI
+  - Điều kiện chặn xuất bản hoặc chặn thăng hạng sau kiểm tra
+  - Dọn tài nguyên tạm và thu hồi thông tin xác thực của runner
+- level1: Phát hành và thăng hạng
+  level2:
+  - Dựng một lần rồi chuyển cùng nội dung qua các môi trường
+  - Phân biệt thăng hạng bằng gán tag và sao chép sang repository khác
+  - Xác minh digest trước và sau khi chuyển ảnh
+  - Bảo toàn index, ảnh con và sản phẩm liên quan khi sao chép
+  - Điều kiện phê duyệt, nguồn gốc và kết quả kiểm tra của bản phát hành
+  - Triển khai bằng digest để xác định đúng nội dung
+  - Quay lui bằng tham chiếu đến ảnh đã biết và còn được giữ lại
+  - Ngăn chính sách dọn dẹp xóa ảnh đang dùng hoặc cần cho phục hồi
+- level1: Kéo ảnh khi triển khai
+  level2:
+  - Thông tin xác thực của máy chủ chạy container
+  - Kubernetes imagePullSecrets và phạm vi namespace
+  - Danh tính nút hoặc workload khi tích hợp registry đám mây
+  - imagePullPolicy và quan hệ với tag, digest, cache trên nút
+  - Kiểm tra ảnh sẵn có trước khi bắt đầu một đợt triển khai lớn
+  - Lỗi ImagePullBackOff, ErrImagePull và nguồn thông tin chẩn đoán
+  - Nút mới, mở rộng cụm và phụ thuộc vào tính sẵn sàng của registry
+  - Giới hạn tốc độ kéo ảnh khi nhiều máy khởi động đồng thời
+  - Phân biệt kéo ảnh thành công với ứng dụng khởi động thành công
+- level1: Chữ ký và xác minh
+  level2:
+  - Mục tiêu của chữ ký ảnh và mô hình tin cậy
+  - Phân biệt kiểm tra digest với xác minh danh tính người ký
+  - Ký theo digest và tránh dựa vào tên tag có thể thay đổi
+  - Ký bằng khóa được quản lý và ký dựa trên danh tính khi được hỗ trợ
+  - Cosign hoặc công cụ tương đương trong quy trình ký và xác minh
+  - Lưu trữ, khám phá và sao chép chữ ký gắn với ảnh
+  - Chính sách chấp nhận danh tính, nguồn phát hành và điều kiện chữ ký
+  - Xác minh trước triển khai và vai trò của admission policy
+  - Luân chuyển khóa, hết hạn chứng thư và xử lý ảnh ký trước đây
+- level1: SBOM và nguồn gốc
+  level2:
+  - Danh mục thành phần phần mềm (SBOM) và phạm vi thông tin cung cấp
+  - Định dạng SPDX, CycloneDX và liên hệ với công cụ tạo SBOM
+  - Gắn SBOM với đúng digest của ảnh được xuất bản
+  - 'Build provenance: mã nguồn, môi trường và quá trình tạo sản phẩm'
+  - 'Attestation: tuyên bố có thể xác minh về một bản dựng'
+  - Phân biệt bằng chứng nguồn gốc với kết luận không có lỗ hổng
+  - Lưu, truy xuất và đối chiếu bằng chứng trong bước phát hành
+  - Bảo toàn siêu dữ liệu nguồn gốc khi sao chép và lưu trữ dài hạn
+- level1: Quét và chính sách bảo mật
+  level2:
+  - Quét thành phần hệ điều hành và thư viện ứng dụng trong ảnh
+  - Quét trước push, trong registry và đánh giá lại ảnh đã lưu
+  - Liên hệ SBOM, cơ sở dữ liệu lỗ hổng và thời điểm đánh giá
+  - Mức độ nghiêm trọng, khả năng khai thác và bối cảnh triển khai
+  - Xử lý cảnh báo sai, ngoại lệ có thời hạn và người chịu trách nhiệm
+  - Phát hiện dữ liệu bí mật hoặc nội dung không được phép trong ảnh
+  - Cách ly ảnh nghi vấn và chặn thăng hạng hoặc triển khai
+  - Khắc phục bằng dựng lại, xác minh lại và phát hành digest mới
+  - Theo dõi ảnh đang chạy khi xuất hiện thông tin lỗ hổng mới
+- level1: Sản phẩm OCI
+  level2:
+  - Phân phối sản phẩm đóng gói khác ảnh chạy bằng registry OCI
+  - Artifact type và cách biểu diễn nội dung theo khả năng nền tảng
+  - Liên kết sản phẩm với subject và khám phá referrers
+  - Cơ chế dự phòng khi registry hoặc công cụ chưa hỗ trợ referrers
+  - Helm chart trong OCI và ranh giới với kho chart truyền thống
+  - Quản lý chữ ký, SBOM và attestation như nội dung liên quan
+  - Kiểm tra hỗ trợ đầu cuối giữa công cụ đẩy, nơi lưu và công cụ đọc
+  - Vòng đời độc lập và quan hệ dọn dẹp của ảnh cùng sản phẩm liên quan
+- level1: Cache và proxy
+  level2:
+  - Phân biệt cache của bản dựng, cache trên nút và cache của registry
+  - Pull-through cache hoặc proxy repository cho nguồn ảnh bên ngoài
+  - Cache hit, cache miss và phụ thuộc vào registry thượng nguồn
+  - Tag thay đổi và chính sách làm mới dữ liệu cache
+  - Xác thực với nguồn thượng nguồn và quyền truy cập nội dung được lưu
+  - Giảm giới hạn tốc độ và lưu lượng bằng nguồn ảnh nội bộ
+  - Giới hạn của cache khi nguồn ngoài mất kết nối hoặc đổi nội dung
+  - Xuất nhập cache BuildKit qua registry và quản lý vòng đời riêng
+- level1: Lưu giữ và thu gom
+  level2:
+  - Chính sách lưu giữ theo tuổi, số phiên bản và phân loại ảnh
+  - Ảnh có tag, ảnh không có tag và nội dung vẫn được tham chiếu
+  - Phân biệt bỏ tag, xóa manifest và thu hồi dung lượng blob
+  - Đồ thị tham chiếu từ index, manifest và sản phẩm liên quan
+  - 'Garbage collection: nhận diện nội dung không còn được giữ'
+  - Rủi ro khi thu gom đồng thời với push và yêu cầu phối hợp
+  - Bảo vệ ảnh đang triển khai, bản phát hành và mốc quay lui
+  - Chạy thử, kiểm tra phạm vi và phê duyệt chính sách xóa
+  - Khả năng khôi phục sau xóa và giới hạn của từng nền tảng
+  - Đo dung lượng thực sự thu hồi sau khi dọn dẹp
+- level1: Lưu trữ và hiệu năng
+  level2:
+  - Lưu trên filesystem so với kho đối tượng
+  - Quan hệ giữa blob, siêu dữ liệu và trạng thái cần lưu bền vững
+  - Khử trùng lặp theo nội dung và phạm vi hỗ trợ
+  - Băng thông, số kết nối và kích thước lớp ảnh
+  - Ảnh hưởng của vị trí địa lý đến thời gian push và pull
+  - Giới hạn đồng thời, timeout và điều tiết lưu lượng
+  - Dung lượng, chi phí lưu trữ và chi phí truyền dữ liệu
+  - Đo hiệu năng theo trường hợp cache lạnh và cache nóng
+  - Mở rộng nhiều bản sao với backend và cấu hình được hỗ trợ
+- level1: Nhân bản và phục hồi
+  level2:
+  - Phân biệt sao chép ảnh, nhân bản liên vùng và sao lưu hệ thống
+  - Chính sách nhân bản một chiều, hai chiều và xử lý xung đột tag
+  - Kiểm tra độ trễ và tính đầy đủ của nội dung được nhân bản
+  - Sao lưu dữ liệu, siêu dữ liệu, cấu hình và thông tin bí mật cần thiết
+  - Nhất quán bản sao lưu khi registry vẫn đang nhận ghi
+  - Mục tiêu RPO, RTO và quy trình phục hồi
+  - Diễn tập khôi phục rồi xác minh pull bằng digest
+  - Phân phối qua vùng cách ly mạng hoặc môi trường air-gapped
+  - Đồng bộ lại sau gián đoạn và đối chiếu nội dung thiếu
+- level1: Quan sát và vận hành
+  level2:
+  - Theo dõi tính sẵn sàng, độ trễ và tỷ lệ lỗi push, pull
+  - Đo dung lượng, tăng trưởng, số blob và ảnh không có tag
+  - Quan sát lỗi xác thực, phân quyền và token hết hạn
+  - Nhật ký truy cập và liên kết yêu cầu với người dùng hoặc tác vụ CI
+  - Cảnh báo giới hạn tốc độ, lỗi backend và cạn dung lượng
+  - Audit log cho thay đổi quyền, xóa ảnh và cấu hình
+  - Webhooks hoặc sự kiện registry và xử lý nhận lặp
+  - Nâng cấp, thay đổi cấu hình và kiểm tra tương thích sau bảo trì
+- level1: Lựa chọn nền tảng
+  level2:
+  - Tiêu chí chọn registry theo quyền truy cập, quy mô và yêu cầu vận hành
+  - Docker Hub và mô hình phân phối ảnh công khai hoặc riêng tư
+  - GitHub Container Registry và GitLab Container Registry trong hệ sinh thái CI
+  - Amazon ECR, Azure Container Registry và Google Artifact Registry
+  - Harbor và các lựa chọn registry tự vận hành
+  - Kho ảnh trong nền tảng quản lý sản phẩm như Nexus hoặc Artifactory
+  - So sánh khả năng OCI, phân quyền, quét, nhân bản và chính sách lưu giữ
+  - Đánh giá chi phí, giới hạn dịch vụ và mức phụ thuộc nhà cung cấp
+- level1: Di chuyển registry
+  level2:
+  - Kiểm kê repository, tag, digest và các bên đang sử dụng
+  - Kiểm tra tương thích media type và khả năng sao chép
+  - Di chuyển đầy đủ index, ảnh con, chữ ký và bằng chứng liên quan
+  - Ánh xạ namespace, quyền truy cập và danh tính tự động hóa
+  - Đối chiếu nội dung trước khi thay đổi cấu hình CI và triển khai
+  - Chuyển đổi từng bước, kiểm soát ghi song song và kế hoạch quay lui
+  - Xử lý trường hợp công cụ làm thay đổi manifest trong quá trình chuyển
+  - Ngừng nguồn cũ sau thời gian kiểm chứng và theo chính sách lưu giữ
+- level1: Kiểm thử và nghiệm thu
+  level2:
+  - Kiểm thử đăng nhập và quyền pull, push, xóa theo từng vai trò
+  - Kiểm thử push rồi pull lại ảnh bằng tag và bằng digest
+  - Kiểm thử tag bất biến và ngăn ghi đè bản phát hành
+  - Kiểm thử ảnh nhiều nền tảng và lựa chọn đúng ảnh con
+  - Kiểm thử chữ ký, SBOM và chính sách chặn ảnh không hợp lệ
+  - Kiểm thử mất kết nối, token hết hạn và phản hồi không rõ kết quả
+  - Kiểm thử dọn dẹp không làm mất ảnh được bảo vệ
+  - Kiểm thử tải đồng thời và phụ thuộc của nút triển khai mới
+  - Kiểm thử phục hồi từ bản sao lưu bằng nội dung có thể đối chiếu
+- level1: Xử lý sự cố
+  level2:
+  - Phân biệt 401, 403 và lỗi thiếu phạm vi token
+  - Sai tên repository, tag không tồn tại và manifest unknown
+  - Blob unknown, tải lên gián đoạn và nội dung chưa đầy đủ
+  - Digest không khớp và cách khoanh vùng sai lệch nội dung
+  - No matching manifest do thiếu nền tảng phù hợp
+  - Lỗi TLS, CA không tin cậy và tên miền chứng chỉ
+  - Quá giới hạn tốc độ, timeout và giới hạn của reverse proxy
+  - Push thành công nhưng môi trường triển khai không kéo được
+  - Không tìm thấy chữ ký hoặc sản phẩm liên quan sau khi sao chép
+  - Dung lượng không giảm sau khi xóa tag hoặc manifest
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng registry thực hành có lưu trữ bền vững và xác thực
+  - Dựng ảnh ứng dụng Java rồi push, pull và chạy lại
+  - Thiết lập quyền riêng cho runner ghi ảnh và hệ thống chỉ kéo ảnh
+  - Xuất bản ảnh nhiều nền tảng rồi kiểm tra index và digest
+  - Xây dựng CI xuất bản ảnh có tag phiên bản và đầu ra digest
+  - Bổ sung quét, SBOM, chữ ký và điều kiện thăng hạng
+  - Thăng hạng cùng nội dung qua môi trường và thực hiện quay lui
+  - Thử chính sách lưu giữ, thu gom và bảo vệ ảnh đang dùng
+  - Diễn tập sao lưu, phục hồi và chẩn đoán lỗi kéo ảnh

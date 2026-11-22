@@ -1,0 +1,342 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Điều phối ứng dụng (orchestration) là gì và giải quyết vấn đề nào
+  - Từ chạy container trên một máy đến vận hành ứng dụng trên nhiều máy
+  - 'Bản đồ khái niệm: cụm, nút, workload, bản sao, bộ lập lịch và bộ điều khiển'
+  - Vòng đời từ khai báo ứng dụng đến phục vụ và kết thúc
+  - Phân biệt container runtime, điều phối container và điều phối quy trình công việc
+  - Mối liên hệ giữa orchestration, containerization, deployment và quản lý hạ tầng
+  - Những việc nền tảng điều phối làm được và trách nhiệm còn thuộc ứng dụng
+  - Kiến thức Linux, mạng, container và hệ thống phân tán cần chuẩn bị
+- level1: Mô hình điều phối
+  level2:
+  - Phân biệt trạng thái mong muốn, trạng thái quan sát được và trạng thái thực tế
+  - Vai trò của vòng lặp đối soát trong duy trì ứng dụng
+  - Phân biệt lập lịch, thực thi và kiểm soát vòng đời workload
+  - Mô hình khai báo và mô hình điều khiển bằng chuỗi lệnh
+  - Hội tụ, tính lũy đẳng và giới hạn bảo đảm của một lần thao tác
+  - Phân biệt quản lý một tiến trình với quản lý một nhóm bản sao
+  - Nhận diện độ trễ quan sát và tính nhất quán cuối cùng
+  - Phân định quyền sở hữu khi nhiều bộ điều khiển tác động cùng tài nguyên
+  - 'Liên hệ điều phối với các bài toán phân tán: lỗi một phần và mất kết nối'
+- level1: Kiến trúc cụm
+  level2:
+  - Phân biệt mặt phẳng điều khiển và các nút thực thi workload
+  - Vai trò của API, kho trạng thái, bộ lập lịch và bộ điều khiển
+  - Vai trò của agent nút, container runtime và các thành phần mạng
+  - Luồng từ tiếp nhận khai báo đến phân công và chạy workload
+  - Quản lý danh tính, đăng ký và thông tin sức khỏe của nút
+  - Phân biệt trạng thái cụm với dữ liệu nghiệp vụ của ứng dụng
+  - Đánh giá ảnh hưởng khi API, kho trạng thái hoặc nút điều khiển gặp lỗi
+  - Nhận diện nhu cầu đồng thuận và giới hạn khi mất quorum của hệ thống điều khiển
+  - Phân biệt cụm tự quản với dịch vụ điều phối được nhà cung cấp quản lý
+- level1: Khai báo workload
+  level2:
+  - Biểu diễn danh tính, thuộc tính mong muốn và trạng thái báo cáo của tài nguyên
+  - Chọn mô hình cho dịch vụ dài hạn, tác vụ hữu hạn và tác vụ theo lịch
+  - Phân biệt ứng dụng không trạng thái, có trạng thái và tác vụ theo nút
+  - Khai báo image, lệnh khởi động, cấu hình và tài nguyên cần dùng
+  - Sử dụng nhãn và bộ chọn để liên kết các tài nguyên
+  - Xác định phạm vi tài nguyên theo nhóm, dự án hoặc namespace
+  - Phân biệt cấu hình tường minh với giá trị mặc định của nền tảng
+  - Kiểm tra schema và tính tương thích của khai báo trước khi áp dụng
+  - Truy vết phiên bản khai báo đến workload thực sự đang chạy
+- level1: Vòng đời workload
+  level2:
+  - Các giai đoạn chờ lập lịch, chuẩn bị môi trường, khởi động, chạy và kết thúc
+  - Tải image và xử lý phụ thuộc vào registry
+  - Thiết lập mạng, lưu trữ và cấu hình trước khi chạy tiến trình
+  - Phân biệt tiến trình chính và các thành phần hỗ trợ trong cùng đơn vị chạy
+  - Quản lý tác vụ khởi tạo trước khi ứng dụng chính hoạt động
+  - Đọc mã thoát và phân biệt kết thúc bình thường với lỗi
+  - Thiết lập chính sách khởi động lại theo loại workload
+  - Xử lý vòng lặp khởi động lỗi và thời gian chờ giữa các lần thử
+  - Tiếp nhận tín hiệu dừng và kết thúc êm trong thời gian được cấp
+  - Phân biệt khởi động lại tại chỗ với tạo bản sao thay thế
+- level1: Lập lịch
+  level2:
+  - Chuyển nhu cầu của workload thành ràng buộc chọn nút
+  - Phân biệt điều kiện bắt buộc với ưu tiên khi chọn vị trí
+  - Lọc nút không phù hợp rồi đánh giá các vị trí còn lại
+  - Áp dụng nhãn nút và ràng buộc phần cứng hoặc hệ điều hành
+  - Phân bố hoặc đặt gần workload theo quan hệ affinity và anti-affinity
+  - Giãn bản sao qua máy, vùng hoặc miền lỗi
+  - Tôn trọng tài nguyên đã cam kết khi quyết định đặt workload
+  - Phân biệt lập lịch thông thường với ưu tiên và thu hồi tài nguyên
+  - Chẩn đoán workload chờ vì không có nút đáp ứng điều kiện
+  - Phân biệt thay đổi quyết định lập lịch với cân bằng lại workload đang chạy
+- level1: Quản lý tài nguyên
+  level2:
+  - Phân biệt năng lực vật lý, tài nguyên khả dụng và phần dành cho hệ thống
+  - Khai báo nhu cầu CPU, bộ nhớ và lưu trữ tạm
+  - Phân biệt mức yêu cầu để lập lịch với giới hạn khi thực thi
+  - Nhận diện CPU bị hạn chế và tiến trình bị dừng do thiếu bộ nhớ
+  - Đánh giá chia sẻ tài nguyên và rủi ro cam kết vượt năng lực
+  - Quản lý tài nguyên chuyên dụng như GPU hoặc thiết bị tăng tốc
+  - Hiểu tác động của áp lực bộ nhớ và đĩa đến việc giữ hoặc đẩy workload khỏi nút
+  - Đặt mức dự phòng cho tải tăng và hoạt động cập nhật
+  - Điều chỉnh cấp phát dựa trên số liệu thay vì chỉ dựa trên ước lượng
+  - Đánh giá chi phí và hiệu năng khi chọn kích thước workload hoặc nút
+- level1: Mạng và khám phá
+  level2:
+  - Phân biệt mạng nút, mạng workload và địa chỉ dịch vụ
+  - Định danh dịch vụ ổn định khi các bản sao thay đổi vị trí hoặc địa chỉ
+  - Khám phá dịch vụ bằng DNS hoặc cơ chế đăng ký dịch vụ
+  - Liên kết dịch vụ với tập bản sao bằng nhãn và bộ chọn
+  - Phân biệt địa chỉ logic của dịch vụ với địa chỉ đầu cuối đang phục vụ
+  - Luồng kết nối giữa các workload trên cùng nút và khác nút
+  - Nhận diện vai trò của lớp mạng và giải pháp mạng bổ sung
+  - Đánh giá độ trễ, giới hạn kết nối và lỗi phân giải tên
+  - Phân biệt khám phá dịch vụ, cân bằng tải và chính sách truy cập mạng
+- level1: Định tuyến lưu lượng
+  level2:
+  - Phân biệt kết nối nội bộ với truy cập từ bên ngoài cụm
+  - Vai trò của cân bằng tải giữa các bản sao sẵn sàng
+  - Phân biệt định tuyến lớp vận chuyển và định tuyến HTTP
+  - Ánh xạ tên miền, đường dẫn và cổng đến dịch vụ
+  - Quản lý điểm kết thúc TLS và chuỗi tin cậy
+  - Rút bản sao khỏi luồng nhận yêu cầu khi chưa sẵn sàng hoặc đang dừng
+  - Đánh giá phiên có trạng thái, kết nối dài và giới hạn thời gian chờ
+  - Phân định chức năng điều phối với API gateway và service mesh
+- level1: Lưu trữ
+  level2:
+  - Phân biệt lớp ghi container, lưu trữ tạm và volume bền vững
+  - Xác định dữ liệu cần tồn tại khi workload bị thay thế
+  - Tách nhu cầu lưu trữ của ứng dụng khỏi cách cấp phát hạ tầng lưu trữ
+  - Phân biệt cấp phát tĩnh, cấp phát động và lớp dịch vụ lưu trữ
+  - Đánh giá chế độ truy cập, khả năng dùng chung và giới hạn gắn volume
+  - Ảnh hưởng của vị trí dữ liệu đến quyết định lập lịch
+  - Quản lý gắn, tháo và chuyển volume khi workload đổi nút
+  - Phân biệt xóa workload với xóa dữ liệu và chính sách giữ lại
+  - Đánh giá hiệu năng, dung lượng, sao lưu và khả năng phục hồi dữ liệu
+- level1: Ứng dụng có trạng thái
+  level2:
+  - Phân biệt trạng thái trong bộ nhớ, trên đĩa và trong dịch vụ dữ liệu ngoài
+  - Quản lý danh tính ổn định cho các bản sao có vai trò riêng
+  - Liên kết từng bản sao với dữ liệu bền vững tương ứng
+  - Đánh giá thứ tự khởi động, dừng và thay thế của nhóm có trạng thái
+  - Phân biệt nhân bản workload với nhân bản dữ liệu
+  - Hiểu vai trò của leader, quorum và cơ chế bầu chọn ở cấp ứng dụng
+  - Đánh giá mở rộng, cập nhật và khôi phục cụm dữ liệu
+  - Phân định trách nhiệm của nền tảng với operator hoặc hệ thống quản trị dữ liệu
+  - Nhận diện trường hợp nên dùng dịch vụ dữ liệu được quản lý bên ngoài
+- level1: Cấu hình và bí mật
+  level2:
+  - Tách image ứng dụng khỏi dữ liệu cấu hình theo môi trường
+  - Cấp cấu hình qua biến môi trường, tệp hoặc dịch vụ cấu hình
+  - Phân biệt cấu hình công khai, dữ liệu nhạy cảm và bí mật
+  - Giới hạn quyền truy cập và phạm vi sử dụng bí mật
+  - Phân biệt mã hóa bí mật với việc chỉ thay đổi cách biểu diễn dữ liệu
+  - Quản lý khóa, chứng chỉ và thông tin xác thực theo vòng đời
+  - Đánh giá khi nào cập nhật cấu hình cần reload hoặc tạo workload mới
+  - Phối hợp xoay vòng bí mật giữa ứng dụng và hệ thống bên ngoài
+  - Tránh rò rỉ bí mật qua image, log, biến hiển thị và báo cáo chẩn đoán
+  - Truy vết phiên bản cấu hình đang được một workload sử dụng
+- level1: Danh tính và quyền
+  level2:
+  - Phân biệt danh tính người vận hành, hệ thống tự động và workload
+  - Xác thực yêu cầu đến API của nền tảng điều phối
+  - Cấp quyền theo hành động, loại tài nguyên và phạm vi quản lý
+  - Áp dụng đặc quyền tối thiểu cho triển khai, quan sát và vận hành
+  - Tách quyền sử dụng API khỏi quyền truy cập máy chủ hoặc tiến trình
+  - Quản lý danh tính ứng dụng khi gọi dịch vụ nền tảng và dịch vụ ngoài
+  - Hạn chế cấp thông tin xác thực không cần thiết cho workload
+  - Quản lý quyền khẩn cấp, thu hồi truy cập và bằng chứng thao tác
+  - Đánh giá tác động khi tài khoản triển khai hoặc danh tính workload bị lộ
+- level1: Kiểm tra sức khỏe
+  level2:
+  - Phân biệt tiến trình đang chạy với ứng dụng sẵn sàng phục vụ
+  - Vai trò của kiểm tra khởi động, sống còn và sẵn sàng
+  - Thiết kế endpoint kiểm tra phản ánh đúng trạng thái cần đo
+  - Chọn chu kỳ, thời gian chờ và ngưỡng thất bại phù hợp
+  - Tránh khởi động lại ứng dụng chỉ vì phụ thuộc tạm thời gặp lỗi
+  - Loại bản sao chưa sẵn sàng khỏi luồng nhận yêu cầu
+  - Xử lý ứng dụng khởi động chậm hoặc cần làm nóng bộ nhớ đệm
+  - Kết hợp kiểm tra kỹ thuật với kiểm chứng chức năng nghiệp vụ
+  - Chẩn đoán kiểm tra sức khỏe quá nhạy gây gián đoạn dây chuyền
+- level1: Tự phục hồi
+  level2:
+  - Nhận diện lỗi tiến trình, lỗi workload và lỗi nút thực thi
+  - Phát hiện mất bản sao và tạo đối tượng thay thế để đạt trạng thái mong muốn
+  - Phân biệt khởi động lại tiến trình, thay workload và chuyển sang nút khác
+  - Xử lý nút mất kết nối khi chưa biết workload cũ còn chạy hay không
+  - Giới hạn tốc độ thử lại và tránh khuếch đại lỗi do khởi động đồng loạt
+  - Phân biệt lỗi tạm thời với lỗi cấu hình cần con người sửa
+  - Thiết kế ứng dụng chịu được việc bị thay thế vào thời điểm bất kỳ
+  - Tránh giả định tự phục hồi sẽ tự sửa lỗi logic hoặc phục hồi dữ liệu
+  - Xác minh năng lực cụm còn đủ để tạo bản sao thay thế
+  - Theo dõi hệ thống đã hội tụ thực sự sau sự cố
+  - Đánh giá nguy cơ hai bản sao cùng ghi dữ liệu và cơ chế ngăn truy cập đồng thời
+- level1: Tính sẵn sàng
+  level2:
+  - Phân biệt độ sẵn sàng của ứng dụng và của mặt phẳng điều khiển
+  - Phân bố bản sao qua các miền lỗi độc lập
+  - Xác định số bản sao cần thiết theo tải và mục tiêu sẵn sàng
+  - Đánh giá lỗi tương quan do dùng chung nút, vùng, mạng hoặc lưu trữ
+  - Giữ mức dự phòng khi bảo trì và khi một phần cụm ngừng hoạt động
+  - Phân biệt gián đoạn có kế hoạch với sự cố ngoài dự kiến
+  - Giới hạn gián đoạn đồng thời khi di chuyển hoặc cập nhật workload
+  - Đánh giá phân vùng mạng và yêu cầu nhất quán của ứng dụng có trạng thái
+  - Kiểm chứng mục tiêu sẵn sàng bằng thử nghiệm lỗi có kiểm soát
+- level1: Mở rộng
+  level2:
+  - Phân biệt mở rộng ngang, mở rộng dọc và mở rộng số nút
+  - Chọn chỉ số phản ánh nhu cầu thực tế của ứng dụng
+  - Phân biệt số bản sao mong muốn, đã được tạo và sẵn sàng
+  - Thiết lập giới hạn tối thiểu, tối đa và tốc độ thay đổi
+  - Xử lý độ trễ khởi động và thời gian ổn định của vòng lặp mở rộng
+  - Tránh dao động tăng giảm liên tục do chỉ số biến động
+  - Phối hợp mở rộng workload với bổ sung hoặc thu hẹp năng lực nút
+  - Đánh giá nút thắt ở cơ sở dữ liệu, hàng đợi hoặc dịch vụ bên ngoài
+  - Giới hạn mở rộng đối với ứng dụng có trạng thái và tài nguyên chuyên dụng
+  - Ngăn cấu hình số bản sao cố định xung đột với bộ điều khiển tự mở rộng
+- level1: Cập nhật ứng dụng
+  level2:
+  - Sử dụng image và cấu hình có phiên bản xác định để cập nhật
+  - Phân biệt thay tiến trình tại chỗ với tạo workload từ phiên bản mới
+  - Hiểu rolling update, blue-green và canary ở mức mô hình điều phối
+  - Quản lý số bản sao cũ và mới cùng tồn tại trong giai đoạn chuyển tiếp
+  - Chuẩn bị tài nguyên dự phòng cho quá trình cập nhật
+  - Kết hợp điều kiện sẵn sàng với chuyển hướng lưu lượng
+  - Thiết kế kết thúc êm và xử lý yêu cầu đang chạy
+  - Theo dõi tiến độ, dừng cập nhật và nhận diện lỗi triển khai
+  - Đánh giá điều kiện quay lại phiên bản trước và giới hạn phục hồi dữ liệu
+  - Phân định cơ chế điều phối với chiến lược phát hành chuyên sâu
+- level1: Tác vụ nền
+  level2:
+  - Phân biệt dịch vụ dài hạn với công việc chạy đến khi hoàn tất
+  - Quản lý số lần thực thi song song và điều kiện hoàn tất
+  - Xử lý thất bại, thử lại và giới hạn thời gian chạy
+  - Thiết kế công việc lũy đẳng khi một tác vụ có thể được thực thi lại
+  - Phân biệt lịch kích hoạt với bảo đảm công việc thực sự đã chạy
+  - Xử lý lịch bị lỡ, độ trễ và các lần chạy chồng lấn
+  - Quản lý tác vụ cần xuất hiện trên từng nút thực thi
+  - Lưu kết quả, log và chính sách dọn tài nguyên của tác vụ
+  - Đánh giá tác động tải của tác vụ nền đến dịch vụ đang phục vụ
+  - Giới hạn bảo đảm chạy đúng một lần và yêu cầu chống xử lý trùng
+- level1: Phụ thuộc ứng dụng
+  level2:
+  - Phân biệt thứ tự tạo tài nguyên với phụ thuộc đã sẵn sàng sử dụng
+  - Thiết kế khởi động khi cơ sở dữ liệu hoặc dịch vụ phụ thuộc chưa sẵn sàng
+  - Giới hạn thời gian chờ, số lần thử và tốc độ gọi lại của ứng dụng
+  - Tránh phụ thuộc vòng làm các dịch vụ không thể sẵn sàng
+  - Điều phối tác vụ khởi tạo dữ liệu và migration có kiểm soát
+  - Giữ tương thích khi nhiều phiên bản ứng dụng cùng truy cập dữ liệu
+  - Phân biệt phụ thuộc do nền tảng quản lý với hệ thống bên ngoài cụm
+  - Kiểm tra tác động dây chuyền khi một dịch vụ dùng chung gặp sự cố
+- level1: Cô lập và bảo mật
+  level2:
+  - Phân biệt cô lập tiến trình bằng container với ranh giới máy ảo
+  - Giảm quyền tiến trình và tránh chạy đặc quyền khi không cần
+  - Giới hạn quyền truy cập filesystem, thiết bị và tài nguyên của máy chủ
+  - Đánh giá rủi ro dùng mạng hoặc namespace của nút thực thi
+  - Áp dụng chính sách lưu lượng giữa các nhóm workload
+  - Bảo vệ đường truy cập từ bên ngoài đến dịch vụ nội bộ
+  - Kiểm tra nguồn image, phiên bản, lỗ hổng và tính toàn vẹn
+  - Giảm bề mặt tấn công của workload và thành phần điều khiển
+  - Quản lý bản vá cho nút, runtime và nền tảng điều phối
+  - Xác định phạm vi ảnh hưởng khi một workload hoặc nút bị xâm phạm
+- level1: Chính sách đa nhóm
+  level2:
+  - Tách tài nguyên theo đội ngũ, dự án và môi trường
+  - Phân biệt ranh giới tổ chức logic với mức cô lập bảo mật thực tế
+  - Thiết lập quota, giới hạn mặc định và quy tắc sử dụng tài nguyên
+  - Ngăn một nhóm chiếm hết tài nguyên hoặc gây ảnh hưởng nhóm khác
+  - Áp dụng quy tắc tiếp nhận workload trước khi cho phép chạy
+  - Quy định nhãn, chủ sở hữu, ngân sách và trách nhiệm vận hành
+  - Quản lý ngoại lệ chính sách có phê duyệt và thời hạn
+  - Đánh giá khi nào cần tách namespace, tách cụm hoặc tách hạ tầng
+- level1: Quan sát
+  level2:
+  - Phân biệt log, chỉ số, dấu vết phân tán và sự kiện điều phối
+  - Liên kết tín hiệu theo ứng dụng, workload, nút và phiên bản
+  - Theo dõi tài nguyên yêu cầu, sử dụng thực tế và mức giới hạn
+  - Quan sát độ trễ lập lịch, thời gian khởi động và số lần khởi động lại
+  - Theo dõi sức khỏe API, bộ điều khiển, nút, mạng và lưu trữ
+  - Thu thập log tập trung để giữ bằng chứng khi workload bị thay thế
+  - Kết nối dấu vết yêu cầu qua nhiều bản sao và dịch vụ
+  - Thiết lập cảnh báo dựa trên ảnh hưởng dịch vụ và mục tiêu vận hành
+  - Tránh cảnh báo dư thừa và che khuất nguyên nhân gốc
+  - Bảo vệ dữ liệu nhạy cảm trong log, metric và thông tin chẩn đoán
+- level1: Vận hành cụm
+  level2:
+  - Thêm, rút và thay thế nút mà vẫn duy trì ứng dụng
+  - Ngăn nhận workload mới trước khi bảo trì một nút
+  - Di chuyển workload có kiểm soát và tôn trọng giới hạn gián đoạn
+  - Chuẩn bị năng lực thay thế trước khi thu hẹp cụm
+  - Nâng cấp nền tảng, runtime và thành phần bổ sung theo ma trận tương thích
+  - Sao lưu trạng thái điều khiển và phân biệt với sao lưu dữ liệu ứng dụng
+  - Khôi phục mặt phẳng điều khiển và xác minh workload sau sự cố
+  - Quản lý chứng chỉ, thông tin xác thực và cấu hình vận hành cụm
+  - Đánh giá tác động khi dịch vụ điều khiển không truy cập được
+  - Lập phương án xử lý cụm bị thiếu năng lực, mất nút hoặc gián đoạn mạng
+- level1: Tích hợp quy trình
+  level2:
+  - Phân chia trách nhiệm giữa cấp phát hạ tầng và điều phối ứng dụng
+  - Luồng CI tạo image, kiểm thử và xuất bản artifact
+  - Luồng CD đề xuất hoặc áp dụng phiên bản khai báo mới
+  - Vai trò của GitOps trong đối soát cấu hình triển khai
+  - Vai trò của Helm và công cụ đóng gói cấu hình ở mức khái niệm
+  - Tách quyền build, xuất bản artifact và thay đổi môi trường
+  - Truy vết commit nguồn, image, cấu hình và phiên bản đang chạy
+  - Kiểm soát nhiều hệ thống tự động cùng tác động vào một tài nguyên
+  - Phân định nền tảng điều phối với công cụ quản lý cấu hình máy chủ
+- level1: Kiểm thử
+  level2:
+  - Kiểm tra cú pháp, schema và chính sách của khai báo
+  - Kiểm thử khởi động, sẵn sàng, dừng êm và hành vi khi bị thay thế
+  - Kiểm thử cấu hình mạng, khám phá dịch vụ và quyền truy cập
+  - Kiểm thử lưu trữ bền vững khi workload đổi nút
+  - Kiểm thử giới hạn tài nguyên và cách ứng dụng phản ứng khi thiếu tài nguyên
+  - Thử nghiệm mất bản sao, mất nút và kết nối gián đoạn có kiểm soát
+  - Đánh giá khả năng mở rộng và độ trễ ổn định khi tải tăng
+  - Kiểm thử cập nhật, thất bại một phần và quay lại phiên bản
+  - Đặt tiêu chí xác minh bằng trạng thái nền tảng và hành vi dịch vụ
+- level1: Lựa chọn nền tảng
+  level2:
+  - Xây dựng tiêu chí từ loại workload, quy mô và yêu cầu vận hành
+  - So sánh Kubernetes, Docker Swarm và Nomad ở mức mô hình điều phối
+  - Phân biệt nền tảng điều phối với dịch vụ container được quản lý
+  - Đánh giá khả năng mạng, lưu trữ, lập lịch và mở rộng cần thiết
+  - Đánh giá quyền truy cập, cô lập nhóm và tích hợp hệ thống danh tính
+  - So sánh mức độ tự quản, khả năng quan sát và yêu cầu đội ngũ
+  - Kiểm tra tương thích ứng dụng và sự phụ thuộc vào thành phần mở rộng
+  - Đánh giá tổng chi phí, độ phức tạp và rủi ro phụ thuộc nhà cung cấp
+  - Phân định kiến thức chung với hướng dẫn chuyên sâu Kubernetes và Helm
+- level1: Chuyển đổi ứng dụng
+  level2:
+  - Khảo sát cấu hình, dữ liệu và phụ thuộc trước khi đưa ứng dụng lên cụm
+  - Chuẩn hóa image, tín hiệu dừng và kiểm tra sức khỏe
+  - Đưa trạng thái cần chia sẻ ra khỏi bản sao ứng dụng khi phù hợp
+  - Thiết lập nhu cầu tài nguyên từ số liệu và thử nghiệm
+  - Xác định ranh giới mạng, bí mật và quyền truy cập cần chuyển giao
+  - Chọn ứng dụng thử nghiệm và phạm vi triển khai ban đầu
+  - Chuyển lưu lượng theo giai đoạn với tiêu chí dừng và phương án quay lại
+  - Đánh giá các ứng dụng chưa phù hợp với cơ chế điều phối đã chọn
+- level1: Xử lý sự cố
+  level2:
+  - Workload không được lập lịch do thiếu tài nguyên hoặc ràng buộc không phù hợp
+  - Không tải được image do đường dẫn, phiên bản, mạng hoặc quyền registry
+  - Ứng dụng liên tục khởi động lại do lỗi tiến trình hoặc kiểm tra sức khỏe
+  - Dịch vụ không có bản sao sẵn sàng hoặc chọn nhầm tập workload
+  - Không kết nối được dịch vụ do DNS, tuyến mạng hoặc chính sách truy cập
+  - Truy cập ngoài cụm thất bại do định tuyến, cổng hoặc chứng chỉ
+  - Không gắn được volume do quyền, vị trí dữ liệu hoặc giới hạn truy cập
+  - Hiệu năng giảm do giới hạn CPU, thiếu bộ nhớ hoặc tranh chấp tài nguyên
+  - Tự mở rộng không hiệu quả do thiếu chỉ số hoặc thiếu năng lực nút
+  - Cập nhật bị treo, workload không dừng được hoặc không đủ bản sao khả dụng
+  - Phân tích theo lớp từ ứng dụng đến workload, nút và mặt phẳng điều khiển
+- level1: Thực hành
+  level2:
+  - Vẽ mô hình cụm và luồng từ khai báo đến workload chạy trên nút
+  - Thiết kế một dịch vụ nhiều bản sao với định danh truy cập ổn định
+  - Khai báo tài nguyên, cấu hình và bí mật theo phạm vi tối thiểu
+  - Kiểm tra lập lịch khi thay đổi nhu cầu tài nguyên và ràng buộc vị trí
+  - Thử sức khỏe, dừng êm và phân phối lại lưu lượng giữa các bản sao
+  - Quan sát hệ thống tạo bản sao thay thế khi tiến trình hoặc nút gặp lỗi
+  - Kiểm tra dữ liệu còn tồn tại sau khi workload bị thay thế
+  - Thử tăng tải và theo dõi mở rộng ứng dụng cùng năng lực cụm
+  - Cập nhật phiên bản rồi diễn tập quay lại khi kiểm tra thất bại
+  - Thực hiện tác vụ hữu hạn có thử lại an toàn và lưu kết quả
+  - Thu thập bằng chứng để đánh giá sẵn sàng, bảo mật và khả năng phục hồi

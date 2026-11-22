@@ -1,0 +1,7 @@
+# Operating System File System
+
+Filesystem là cách hệ điều hành tổ chức, đặt tên, lưu trữ và truy xuất dữ liệu trên thiết bị hoặc trong bộ nhớ. Trên Linux, người dùng nhìn thấy một cây thư mục thống nhất, trong khi kernel dùng Virtual Filesystem (VFS) để kết nối các thao tác như mở, đọc, ghi và truy vấn metadata với những filesystem cụ thể. Các khái niệm inode, directory entry, mount point và block giúp giải thích cách tên tệp liên hệ với dữ liệu, cách nhiều thiết bị xuất hiện trong cùng cây thư mục và vì sao metadata có thể khác với nội dung tệp.
+
+Roadmap một cấp gồm tám mốc: cấu trúc filesystem và hierarchy; VFS, inode và metadata; thao tác đường dẫn, hard link và symbolic link; thiết bị, phân vùng và các filesystem phổ biến. Người học tiếp tục thực hành mount và cấu hình `/etc/fstab`, tìm hiểu ext4 cùng journaling, sau đó theo dõi dung lượng block, inode và quota. Mốc cuối tập trung vào chẩn đoán lỗi mount hoặc I/O, kiểm tra tính toàn vẹn và quy trình backup/recovery. Các lệnh thao tác thiết bị hay sửa filesystem có thể gây mất dữ liệu nếu áp dụng sai đối tượng; cần xác minh device, mount state và bản sao lưu trước khi thực hiện.
+
+Module phù hợp với người học Linux, system administrator hoặc developer cần quản lý dữ liệu trên máy chủ. Sau khi hoàn thành, bạn có thể đọc cấu trúc filesystem, truy vấn thiết bị và metadata, mount/unmount đúng cách, phát hiện đầy dung lượng hoặc inode, và xây dựng quy trình điều tra lỗi lưu trữ có kiểm soát thay vì xử lý bằng thao tác phá hủy dữ liệu.

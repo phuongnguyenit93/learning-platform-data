@@ -1,0 +1,3 @@
+menuLevel1: Đo bộ nhớ
+menuLevel2: Đọc MemFree, MemAvailable, Cached, Dirty, Writeback trong /proc/meminfo
+status: ''

@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 1
+- title: Cách ly tiến trình
+  slug: process-isolation
+  index: 2
+- title: Đặc quyền Linux
+  slug: linux-privileges
+  index: 3
+- title: Chính sách kernel
+  slug: kernel-security-policies
+  index: 4
+- title: Bảo vệ host
+  slug: host-protection
+  index: 5
+- title: Chạy rootless
+  slug: rootless-containers
+  index: 6
+- title: Thiết kế image
+  slug: image-design
+  index: 7
+- title: Dockerfile an toàn
+  slug: secure-dockerfiles
+  index: 8
+- title: Bảo mật build
+  slug: build-security
+  index: 9
+- title: Quản lý bí mật
+  slug: secrets-management
+  index: 10
+- title: Kiểm kê thành phần
+  slug: component-inventory
+  index: 11
+- title: Xử lý lỗ hổng
+  slug: vulnerability-remediation
+  index: 12
+- title: Bảo vệ registry
+  slug: registry-security
+  index: 13
+- title: Xác thực image
+  slug: image-verification
+  index: 14
+- title: Cấu hình runtime
+  slug: runtime-configuration
+  index: 15
+- title: Mạng container
+  slug: container-networking
+  index: 16
+- title: Lưu trữ an toàn
+  slug: secure-storage
+  index: 17
+- title: Ranh giới Kubernetes
+  slug: kubernetes-boundaries
+  index: 18
+- title: Danh tính workload
+  slug: workload-identities
+  index: 19
+- title: Bảo vệ Pod
+  slug: pod-security
+  index: 20
+- title: Kiểm soát triển khai
+  slug: deployment-controls
+  index: 21
+- title: Cách ly nâng cao
+  slug: advanced-isolation
+  index: 22
+- title: Môi trường đặc thù
+  slug: specialized-environments
+  index: 23
+- title: Giám sát runtime
+  slug: runtime-monitoring
+  index: 24
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 25
+- title: Cập nhật và khắc phục
+  slug: updates-remediation
+  index: 26
+- title: Kiểm chứng bảo mật
+  slug: security-validation
+  index: 27
+- title: Quản trị bảo mật
+  slug: security-governance
+  index: 28
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 29

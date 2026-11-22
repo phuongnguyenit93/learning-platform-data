@@ -1,0 +1,2692 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Khôi phục sau thảm họa (Disaster Recovery) là gì và vì sao hệ thống cần DR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Mối liên hệ giữa dịch vụ kinh doanh, ứng dụng, hạ tầng và dữ liệu khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt DR, tính sẵn sàng cao (HA), sao lưu và duy trì hoạt động kinh doanh (BC)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Các khái niệm: sự cố, thảm họa, miền lỗi, điểm khôi phục và vùng dự phòng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Vòng đời DR: chuẩn bị, phát hiện, kích hoạt, khôi phục, kiểm chứng và trở về'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của DR trong Reliability Engineering và vận hành DevOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Giới hạn của dự phòng tự động và ý nghĩa của một hệ thống có thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và kiến thức nền về hệ phân tán, mạng, lưu trữ và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disaster-scenarios
+  title: Kịch bản thảm họa
+  childs:
+  - slug: disaster-scenarios-001
+    title: Mất máy chủ, cụm, trung tâm dữ liệu, vùng sẵn sàng và khu vực địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-002
+    title: Mất mạng, phân vùng mạng và mất kết nối với dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-003
+    title: Hỏng dữ liệu, xóa nhầm và thay đổi dữ liệu ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-004
+    title: Lỗi triển khai, cấu hình sai và hỏng trạng thái hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-005
+    title: Mã độc tống tiền, tài khoản bị chiếm và dữ liệu sao lưu bị tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-006
+    title: Mất dịch vụ định danh, quản lý khóa hoặc hệ thống điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-007
+    title: Sự cố đồng thời, sự cố dây chuyền và lỗi chung giữa các vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-scenarios-008
+    title: Phân loại kịch bản theo phạm vi ảnh hưởng, khả năng phát hiện và cách phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: impact-analysis
+  title: Phân tích tác động
+  childs:
+  - slug: impact-analysis-001
+    title: Phân tích tác động kinh doanh (BIA) và xác định dịch vụ thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-002
+    title: Tác động của gián đoạn đến người dùng, doanh thu, dữ liệu và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-003
+    title: Thời gian gián đoạn tối đa chấp nhận được và ngưỡng ảnh hưởng kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-004
+    title: Phân hạng dịch vụ theo mức quan trọng và nhu cầu khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-005
+    title: Mức dịch vụ tối thiểu cần duy trì trong thời gian thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-006
+    title: Phụ thuộc kinh doanh và thứ tự khôi phục các luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-007
+    title: Giả định về nhân sự, địa điểm làm việc và nhà cung cấp trong thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-analysis-008
+    title: Chuyển yêu cầu kinh doanh thành tiêu chí kỹ thuật và tiêu chí nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recovery-objectives
+  title: Mục tiêu khôi phục
+  childs:
+  - slug: recovery-objectives-001
+    title: 'RTO: mục tiêu thời gian khôi phục và cách xác định điểm bắt đầu, kết thúc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-002
+    title: 'RPO: mục tiêu điểm khôi phục và mức mất dữ liệu có thể chấp nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-003
+    title: Phân biệt RTO/RPO mục tiêu, cấu hình kỹ thuật và kết quả thực đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-004
+    title: Phân bổ thời gian cho phát hiện, quyết định, cấp phát, phục hồi và kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-005
+    title: Mối liên hệ giữa RTO, RPO và thời gian gián đoạn tối đa chấp nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-006
+    title: Xác định RTO/RPO theo dịch vụ, tập dữ liệu và luồng giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-007
+    title: Độ trễ sao chép, tần suất sao lưu và giới hạn suy luận về RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-008
+    title: Đo độ mới của điểm dữ liệu thực sự khôi phục được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-009
+    title: Khả năng phục vụ lưu lượng tối thiểu và thời gian trở lại công suất đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-objectives-010
+    title: Cân bằng mục tiêu khôi phục với tính nhất quán, chi phí và độ phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inventory-dependencies
+  title: Kiểm kê và phụ thuộc
+  childs:
+  - slug: inventory-dependencies-001
+    title: Kiểm kê ứng dụng, dữ liệu, hạ tầng và phiên bản đang vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-002
+    title: Lập bản đồ phụ thuộc giữa dịch vụ và các luồng nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-003
+    title: 'Nhận diện phụ thuộc ẩn: DNS, định danh, khóa, chứng chỉ và đồng bộ thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-004
+    title: Phụ thuộc vào registry, kho mã, CI/CD và nơi lưu hiện vật phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-005
+    title: Phân biệt tài nguyên cần khôi phục, có thể tái tạo và có thể tạm bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-006
+    title: Dịch vụ bên thứ ba, đầu mối hỗ trợ và khả năng thay thế khi gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-007
+    title: Xác định nguồn sự thật cho dữ liệu, cấu hình và trạng thái triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-008
+    title: Phát hiện phụ thuộc vòng và xây dựng thứ tự khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-dependencies-009
+    title: Gắn tài sản với chủ sở hữu, phương án khôi phục và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dr-strategies
+  title: Chiến lược DR
+  childs:
+  - slug: dr-strategies-001
+    title: 'Backup and Restore: khôi phục từ bản sao lưu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-002
+    title: 'Cold Standby: chuẩn bị địa điểm dự phòng nhưng chưa chạy đầy đủ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-003
+    title: 'Pilot Light: duy trì những thành phần cốt lõi để mở rộng khi cần'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-004
+    title: 'Warm Standby: duy trì hệ thống dự phòng với công suất giảm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-005
+    title: 'Hot Standby và Active-Passive: sẵn sàng chuyển vai trò phục vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-006
+    title: 'Active-Active: nhiều nơi cùng phục vụ và các thách thức điều phối dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-007
+    title: So sánh chiến lược theo RTO, RPO, chi phí và độ phức tạp vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-008
+    title: Chọn chiến lược khác nhau cho từng lớp dịch vụ và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-009
+    title: Chế độ suy giảm chức năng, chỉ đọc và xử lý thủ công có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-strategies-010
+    title: Điều kiện lựa chọn chuyển vùng, khôi phục tại chỗ hoặc tái dựng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-domains
+  title: Miền lỗi
+  childs:
+  - slug: failure-domains-001
+    title: Miền lỗi ở cấp tiến trình, máy chủ, cụm, vùng và khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-002
+    title: Tách biệt địa lý, nguồn điện, mạng và hệ thống quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-003
+    title: Lỗi tương quan và rủi ro dùng chung hệ thống điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-004
+    title: Dự phòng nhiều vùng sẵn sàng so với khôi phục liên khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-005
+    title: Tách tài khoản, thông tin xác thực và quyền quản trị vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-006
+    title: Năng lực dự phòng và khả năng chịu tải khi mất một miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-007
+    title: Hạn chế từ vị trí dữ liệu, độ trễ và kết nối liên vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-domains-008
+    title: Đánh giá điểm lỗi đơn và kiểm chứng mức độc lập của phương án DR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backups
+  title: Sao lưu
+  childs:
+  - slug: backups-001
+    title: Phân biệt sao lưu, snapshot, bản sao đồng bộ và lưu trữ dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-002
+    title: Sao lưu đầy đủ, gia tăng, chênh lệch và chuỗi phụ thuộc bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-003
+    title: Sao lưu dữ liệu, cấu hình, siêu dữ liệu và hiện vật cần cho khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-004
+    title: Nhất quán ở mức ứng dụng và nhất quán sau sự cố trong bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-005
+    title: Chọn lịch sao lưu và thời gian lưu giữ theo mục tiêu khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-006
+    title: Nguyên tắc 3-2-1 và bản sao ngoại tuyến hoặc bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-007
+    title: Tách bản sao lưu khỏi miền lỗi và quyền quản trị của hệ thống chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-008
+    title: Mã hóa, quản lý khóa và khả năng giải mã khi môi trường chính mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-009
+    title: Kiểm tra checksum, tính toàn vẹn và khả năng đọc chuỗi sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-010
+    title: Danh mục bản sao, vị trí lưu và khả năng tìm đúng điểm khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-011
+    title: Phân biệt tác vụ sao lưu thành công với dữ liệu có thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backups-012
+    title: Thử phục hồi định kỳ và phát hiện thiếu sót của chính sách sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-replication
+  title: Sao chép dữ liệu
+  childs:
+  - slug: data-replication-001
+    title: Sao chép đồng bộ, bất đồng bộ và đánh đổi giữa độ trễ với độ bền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-002
+    title: Kiến trúc một nơi ghi, nhiều nơi đọc và nhiều nơi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-003
+    title: Độ trễ sao chép và ảnh hưởng đến điểm dữ liệu có thể khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-004
+    title: Quorum, phân vùng mạng và điều kiện cho phép nhận ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-005
+    title: 'Split-brain: hai phía cùng nhận vai trò chính và nguy cơ phân kỳ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-006
+    title: 'Fencing: ngăn hệ thống chính cũ tiếp tục ghi sau chuyển đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-007
+    title: Sao chép lỗi logic, dữ liệu bị xóa và nhu cầu giữ lịch sử độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-008
+    title: Khởi tạo bản sao, đồng bộ lại và xử lý tồn đọng sau mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-replication-009
+    title: Kiểm chứng trạng thái bản sao trước khi cho phép tiếp quản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: databases
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: databases-001
+    title: Phân biệt khôi phục vật lý, khôi phục logic và chuyển vai trò bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-002
+    title: Snapshot, bản sao nền và nhật ký giao dịch trong chuỗi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-003
+    title: Khôi phục đến một thời điểm (PITR) và chọn thời điểm trước khi dữ liệu hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-004
+    title: Xác minh chuỗi WAL hoặc binlog và xử lý khoảng trống nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-005
+    title: Khôi phục schema, dữ liệu, index, quyền truy cập và cấu hình cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-006
+    title: Chọn bản sao đủ mới và điều kiện nâng bản sao thành hệ thống chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-007
+    title: Nhất quán giữa nhiều cơ sở dữ liệu và giới hạn của phục hồi riêng lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-008
+    title: Khôi phục hệ thống phân mảnh và dữ liệu phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-009
+    title: Đặc thù khôi phục cơ sở dữ liệu được quản lý bởi nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-010
+    title: Đổi điểm kết nối và xử lý connection pool sau chuyển vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: databases-011
+    title: Kiểm tra khả năng đọc ghi, tính toàn vẹn và hiệu năng sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-consistency
+  title: Tính nhất quán
+  childs:
+  - slug: data-consistency-001
+    title: Xác định ranh giới giao dịch và các bất biến dữ liệu cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-002
+    title: Giao dịch đang xử lý tại thời điểm thảm họa và trạng thái chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-003
+    title: Đối soát dữ liệu giữa cơ sở dữ liệu, hàng đợi và dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-004
+    title: Yêu cầu lặp lại an toàn (idempotency) khi phát lại tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-005
+    title: Phát hiện và xử lý mất dữ liệu, dữ liệu trùng và sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-006
+    title: Event log, checkpoint và khôi phục tiến độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-007
+    title: Ngăn ghi trong thời gian phục hồi và kiểm chứng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-008
+    title: Xử lý dữ liệu phát sinh ở vùng dự phòng trước khi trở về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-consistency-009
+    title: Quyết định bù trừ nghiệp vụ khi không thể phục hồi toàn bộ giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-files
+  title: Lưu trữ và tệp
+  childs:
+  - slug: storage-files-001
+    title: Khôi phục block storage, file storage và object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-002
+    title: Snapshot volume và tính nhất quán giữa nhiều volume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-003
+    title: Versioning, thời gian lưu giữ và khôi phục đối tượng đã xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-004
+    title: Khôi phục quyền, ACL, siêu dữ liệu và tham chiếu tới tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-005
+    title: Đối chiếu bản ghi cơ sở dữ liệu với tệp hoặc đối tượng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-006
+    title: Tái tạo chỉ mục tìm kiếm, dữ liệu dẫn xuất và tài nguyên có thể dựng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-007
+    title: Băng thông, số lượng đối tượng và giới hạn thông lượng khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-files-008
+    title: Kiểm tra tính toàn vẹn và khả năng truy cập sau khi gắn lại lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-caching
+  title: Thông điệp và bộ nhớ đệm
+  childs:
+  - slug: messaging-caching-001
+    title: Phân biệt trạng thái bền vững với bộ nhớ đệm có thể tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-002
+    title: Khôi phục broker, topic, queue và cấu hình định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-003
+    title: Sao lưu hoặc sao chép dữ liệu thông điệp và giới hạn của từng cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-004
+    title: Offset, consumer group và điểm tiếp tục xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-005
+    title: Phát lại thông điệp, chống trùng và bảo toàn thứ tự cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-006
+    title: Dead-letter queue và xử lý thông điệp không thể hoàn thành sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-007
+    title: Khôi phục cache, phiên đăng nhập và dữ liệu tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-008
+    title: Làm nóng bộ nhớ đệm và tránh dồn tải xuống cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-caching-009
+    title: Đối soát tác vụ đã nhận, đã xử lý và chưa xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-recovery
+  title: Khôi phục ứng dụng
+  childs:
+  - slug: application-recovery-001
+    title: Ứng dụng không trạng thái và ứng dụng có trạng thái trong kế hoạch DR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-002
+    title: Chọn phiên bản ứng dụng tương thích với dữ liệu được phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-003
+    title: Khôi phục cấu hình, biến môi trường, feature flag và tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-004
+    title: Sẵn sàng của image, package và hiện vật phát hành ở vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-005
+    title: Thứ tự khởi động và điều kiện sẵn sàng của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-006
+    title: Tạm dừng scheduler, batch job và consumer để tránh chạy trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-007
+    title: Chế độ chỉ đọc và tắt tính năng chưa thể bảo đảm an toàn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-008
+    title: Điều chỉnh timeout, retry và circuit breaker trong giai đoạn phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-recovery-009
+    title: Kiểm tra các luồng nghiệp vụ trước khi mở lại toàn bộ chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-automation
+  title: Hạ tầng và tự động hóa
+  childs:
+  - slug: infrastructure-automation-001
+    title: Hạ tầng dưới dạng mã (IaC) trong tái dựng môi trường DR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-002
+    title: Khôi phục state của công cụ IaC, backend và cơ chế khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-003
+    title: Quản lý module, provider và phiên bản cấu hình cần cho tái dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-004
+    title: Tách cấu hình dùng chung khỏi cấu hình theo vùng và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-005
+    title: Thứ tự cấp phát mạng, lưu trữ, dữ liệu và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-006
+    title: Thiết kế tác vụ khôi phục có thể chạy lại và tiếp tục sau gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-007
+    title: Phát hiện sai lệch cấu hình giữa hệ thống chính và dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-008
+    title: Kiểm soát bước tự động, bước thủ công và điểm cần phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-009
+    title: Chế độ xem trước, nhật ký thực thi và khả năng dừng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-automation-010
+    title: Khôi phục khi chính nền tảng CI/CD hoặc hệ thống điều khiển bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networks-traffic
+  title: Mạng và lưu lượng
+  childs:
+  - slug: networks-traffic-001
+    title: Khôi phục mạng, route, firewall, gateway và kết nối riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-002
+    title: DNS, TTL và thời gian lan truyền khi đổi vùng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-003
+    title: Cân bằng tải, health check và điều kiện loại bỏ điểm cuối lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-004
+    title: Chuyển lưu lượng bằng DNS, bộ cân bằng toàn cục hoặc cơ chế định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-005
+    title: Endpoint cơ sở dữ liệu, service discovery và cấu hình phía khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-006
+    title: Chứng chỉ TLS, tên miền và quyền quản lý DNS trong thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-007
+    title: Allowlist, địa chỉ IP và phụ thuộc cấu hình với đối tác bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-008
+    title: Kết nối VPN, peering và đường truyền tới dữ liệu cần phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-009
+    title: Kết nối đang tồn tại, cache DNS và client vẫn truy cập vùng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networks-traffic-010
+    title: Mở lưu lượng theo từng bước và khả năng đảo ngược khi kiểm chứng thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identities-secrets
+  title: Danh tính và bí mật
+  childs:
+  - slug: identities-secrets-001
+    title: Khôi phục định danh, phân quyền và tài khoản phục vụ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-002
+    title: Tài khoản truy cập khẩn cấp (break-glass) và điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-003
+    title: Khả năng đăng nhập khi hệ thống SSO hoặc nhà cung cấp định danh gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-004
+    title: Khôi phục secret, token, chứng chỉ và cấu hình kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-005
+    title: Khóa mã hóa, quyền giải mã và tính sẵn sàng của KMS hoặc HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-006
+    title: Tách quyền truy cập bản sao lưu khỏi quyền quản trị hệ thống chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-007
+    title: Tránh vòng phụ thuộc giữa nơi lưu bí mật và hạ tầng cần khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-008
+    title: Thu hồi và thay thông tin xác thực nếu nghi ngờ bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-009
+    title: Ghi nhận truy cập đặc quyền trong thời gian DR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-010
+    title: Kiểm tra lại phân quyền và đóng quyền khẩn cấp sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes
+  title: Kubernetes
+  childs:
+  - slug: kubernetes-001
+    title: 'Phạm vi sao lưu: tài nguyên cụm, cấu hình và dữ liệu của ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-002
+    title: Khôi phục cụm hiện có so với tái dựng cụm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-003
+    title: Vai trò của sao lưu etcd và giới hạn với dữ liệu trong PersistentVolume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-004
+    title: CSI snapshot, bản sao volume và khả năng phục hồi khác vùng hoặc khác cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-005
+    title: CRD, operator và thứ tự phục hồi tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-006
+    title: StatefulSet, danh tính pod và gắn lại lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-007
+    title: Khôi phục RBAC, secret, ingress, chứng chỉ và DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-008
+    title: GitOps trong tái dựng trạng thái mong muốn và giới hạn với dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-009
+    title: Registry, node image và năng lực cấp phát khi mở rộng cụm dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-010
+    title: Kiểm chứng ứng dụng có trạng thái sau khôi phục toàn cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud
+  title: Đám mây
+  childs:
+  - slug: cloud-001
+    title: Phân biệt DR giữa vùng sẵn sàng, khu vực và tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-002
+    title: Trách nhiệm của khách hàng và nhà cung cấp đối với sao lưu, khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-003
+    title: Khả năng phục hồi của dịch vụ được quản lý và giới hạn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-004
+    title: Quota, năng lực cung cấp tài nguyên và giới hạn API tại vùng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-005
+    title: Sao chép snapshot, object, image và khóa cần cho khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-006
+    title: Phụ thuộc vào hệ thống điều khiển toàn cục và dịch vụ theo khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-007
+    title: Độ tương đồng dịch vụ, phiên bản và cấu hình giữa các khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-008
+    title: Đường truyền, thời gian chuyển dữ liệu và chi phí phục hồi liên vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-009
+    title: Đánh giá đa đám mây theo khả năng khôi phục thực tế và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runbooks-planning
+  title: Kế hoạch và runbook
+  childs:
+  - slug: runbooks-planning-001
+    title: 'Cấu trúc kế hoạch DR: phạm vi, giả định, mục tiêu và kịch bản kích hoạt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-002
+    title: Phân vai chỉ huy, kỹ thuật, nghiệp vụ, liên lạc và người phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-003
+    title: Danh bạ khẩn cấp, nhà cung cấp và kênh liên lạc thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-004
+    title: Runbook theo từng dịch vụ và thứ tự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-005
+    title: Đầu vào, điều kiện tiên quyết và quyền cần cho mỗi bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-006
+    title: Bước kiểm tra, kết quả mong đợi và tiêu chí dừng hoặc chuyển phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-007
+    title: Vị trí lưu tài liệu có thể truy cập khi hệ thống chính mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-008
+    title: Mẫu ghi mốc thời gian, quyết định, lệnh thực thi và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-009
+    title: Điều kiện đảo ngược và xử lý khi một bước phục hồi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-010
+    title: Quản lý phiên bản runbook cùng thay đổi kiến trúc và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-planning-011
+    title: Khả năng thực hiện bởi người chưa trực tiếp xây dựng phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dr-activation
+  title: Kích hoạt DR
+  childs:
+  - slug: dr-activation-001
+    title: Nhận diện sự cố vượt khả năng xử lý thông thường và đánh giá phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-002
+    title: Tiêu chí tuyên bố thảm họa và thẩm quyền kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-003
+    title: Cân nhắc chờ sửa hệ thống chính hay chuyển sang dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-004
+    title: Xác định tình trạng dữ liệu và thời điểm an toàn để phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-005
+    title: Kiểm tra nhân sự, quyền truy cập và mức sẵn sàng của vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-006
+    title: Giữ bằng chứng và cô lập nguồn gây hỏng trước khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-007
+    title: Thông báo trạng thái, mục tiêu dịch vụ và độ chắc chắn của dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-008
+    title: Thiết lập chỉ huy thống nhất và tránh thao tác khôi phục xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dr-activation-009
+    title: Ghi nhận mốc thời gian để đo kết quả RTO/RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failover
+  title: Chuyển đổi dự phòng
+  childs:
+  - slug: failover-001
+    title: 'Failover: điều kiện chuyển quyền phục vụ sang hệ thống dự phòng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-002
+    title: Chuyển đổi có kế hoạch và chuyển đổi khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-003
+    title: Chuyển đổi thủ công, bán tự động và tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-004
+    title: Ngăn ghi ở hệ thống chính cũ và xác nhận cơ chế fencing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-005
+    title: Kiểm tra độ mới dữ liệu trước khi nâng vai trò hệ thống dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-006
+    title: Khôi phục hoặc mở rộng hạ tầng theo thứ tự đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-007
+    title: Cập nhật endpoint, định tuyến và các phụ thuộc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-008
+    title: Cho phép ghi, chạy tác vụ nền và mở lưu lượng theo từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-009
+    title: Phát hiện split-brain, dữ liệu phân kỳ và chuyển đổi một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failover-010
+    title: Tiêu chí xác nhận failover thành công hoặc dừng mở rộng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failback
+  title: Trở về hệ thống chính
+  childs:
+  - slug: failback-001
+    title: 'Failback: mục đích, điều kiện thực hiện và rủi ro riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-002
+    title: Xác minh nguyên nhân sự cố đã được xử lý và môi trường chính đủ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-003
+    title: Chọn nguồn dữ liệu có thẩm quyền sau thời gian chạy ở vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-004
+    title: Đồng bộ ngược, đối soát và xử lý dữ liệu phân kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-005
+    title: Lập kế hoạch dừng ghi hoặc giảm lưu lượng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-006
+    title: Thứ tự chuyển vai trò dữ liệu, ứng dụng và định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-007
+    title: Kiểm soát tác vụ nền, lịch chạy và consumer trong lúc chuyển về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-008
+    title: Điều kiện hủy failback và tiếp tục vận hành ở vùng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-009
+    title: Kiểm chứng dữ liệu, nghiệp vụ và hiệu năng sau chuyển về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failback-010
+    title: Tái thiết lập sao lưu, sao chép và năng lực DR cho sự cố tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recovery-validation
+  title: Kiểm chứng phục hồi
+  childs:
+  - slug: recovery-validation-001
+    title: Xác minh hạ tầng đã dựng đúng cấu hình và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-002
+    title: Kiểm tra tính toàn vẹn dữ liệu và các bất biến nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-003
+    title: Đối chiếu giao dịch, tệp, thông điệp và tác vụ đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-004
+    title: Kiểm thử đọc ghi và các hành trình người dùng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-005
+    title: Kiểm tra phụ thuộc bên ngoài, callback và tích hợp đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-006
+    title: Đo khả năng phục vụ, độ trễ, lỗi và công suất sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-007
+    title: Đánh giá mất dữ liệu thực tế so với RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-008
+    title: Đo thời gian phục hồi dịch vụ thực tế so với RTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-009
+    title: Xác minh giám sát, cảnh báo, sao lưu và sao chép đã hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-010
+    title: Bằng chứng nghiệm thu của kỹ thuật và chủ sở hữu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-validation-011
+    title: Tiêu chí kết thúc DR và chuyển sang chế độ vận hành bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disaster-recovery-drills
+  title: Diễn tập
+  childs:
+  - slug: disaster-recovery-drills-001
+    title: Mục tiêu diễn tập, phạm vi, giả định và tiêu chí thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-002
+    title: Diễn tập trên bàn (tabletop) để kiểm tra quyết định và phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-003
+    title: Thử phục hồi bản sao lưu trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-004
+    title: Diễn tập từng thành phần, toàn dịch vụ và toàn vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-005
+    title: Đánh giá mức tương đồng giữa môi trường thử nghiệm và vận hành thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-006
+    title: Giới hạn phạm vi ảnh hưởng, điều kiện dừng và kế hoạch đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-007
+    title: Thử mất mạng, mất quyền truy cập và mất dịch vụ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-008
+    title: Diễn tập lỗi dữ liệu và kiểm tra lựa chọn điểm khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-009
+    title: Kiểm chứng failover và failback trong cùng chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-010
+    title: Đo thời gian, mức mất dữ liệu và thao tác thủ công phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-011
+    title: Rà soát sau diễn tập và giao trách nhiệm xử lý lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disaster-recovery-drills-012
+    title: Lập lịch diễn tập lại sau thay đổi lớn hoặc kết quả chưa đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cyberattack-recovery
+  title: Phục hồi sau tấn công
+  childs:
+  - slug: cyberattack-recovery-001
+    title: Phân biệt khôi phục do lỗi kỹ thuật với khôi phục sau xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-002
+    title: Cô lập hệ thống bị ảnh hưởng và phối hợp với quy trình ứng phó bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-003
+    title: Xác định thời điểm dữ liệu và bản sao lưu còn đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-004
+    title: Kiểm tra tính độc lập và khả năng truy cập bản sao lưu bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-005
+    title: Tái dựng môi trường sạch thay vì sử dụng lại thành phần bị nghi ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-006
+    title: Khôi phục định danh, thay khóa và thu hồi phiên truy cập bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-007
+    title: Ngăn tái nhiễm từ hiện vật, cấu hình hoặc tài khoản chưa được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-008
+    title: Kiểm tra dữ liệu phục hồi trước khi kết nối lại các hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-009
+    title: Giữ bằng chứng điều tra và ghi nhận mức mất dữ liệu phải chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cyberattack-recovery-010
+    title: Điều kiện mở lại dịch vụ và tăng cường theo dõi sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-metrics
+  title: Quan sát và chỉ số
+  childs:
+  - slug: observability-metrics-001
+    title: Theo dõi trạng thái sao lưu, độ mới và khả năng phục hồi bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-002
+    title: Giám sát độ trễ sao chép, lỗi đồng bộ và dung lượng lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-003
+    title: Theo dõi mức sẵn sàng của vùng dự phòng và phụ thuộc thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-004
+    title: Cảnh báo khi mục tiêu RPO hoặc giả định DR có nguy cơ không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-005
+    title: Quan sát độc lập khi hệ thống giám sát chính không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-006
+    title: Dòng thời gian từ phát hiện tới phục hồi và các điểm gây chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-007
+    title: Tỷ lệ phục hồi thành công, độ phủ diễn tập và kết quả RTO/RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-008
+    title: Tuổi runbook, sai lệch cấu hình và phụ thuộc chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-metrics-009
+    title: Báo cáo rủi ro tồn đọng và theo dõi cải tiến sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-costs
+  title: Quản trị và chi phí
+  childs:
+  - slug: governance-costs-001
+    title: Chủ sở hữu kế hoạch DR và trách nhiệm duy trì từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-002
+    title: Ngân sách hạ tầng dự phòng, lưu trữ, mạng và thời gian diễn tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-003
+    title: Chi phí khi kích hoạt DR, mở rộng công suất và chuyển dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-004
+    title: Lựa chọn mức bảo vệ theo phân hạng dịch vụ và tác động kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-005
+    title: Yêu cầu nội bộ về lưu giữ, vị trí dữ liệu và bằng chứng kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-006
+    title: Kiểm soát thay đổi để phương án DR theo kịp hệ thống đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-007
+    title: Đánh giá phương án và cam kết khôi phục của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-008
+    title: Đào tạo, bàn giao và tránh phụ thuộc vào một cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-costs-009
+    title: Rà soát định kỳ mục tiêu, giả định, chi phí và rủi ro được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-lab
+  title: Thực hành
+  childs:
+  - slug: hands-on-lab-001
+    title: Xây dựng bản đồ phụ thuộc và phân hạng một ứng dụng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-002
+    title: Đề xuất RTO/RPO từ tình huống kinh doanh và tiêu chí nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-003
+    title: Thiết kế phương án sao lưu với bản sao độc lập và kiểm tra phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-004
+    title: Khôi phục cơ sở dữ liệu tới thời điểm trước một thao tác xóa nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-005
+    title: Tái dựng hạ tầng và triển khai đúng phiên bản ứng dụng từ mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-006
+    title: Mô phỏng mất hệ thống chính và chuyển vai trò dữ liệu có fencing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-007
+    title: Kiểm chứng giao dịch, hàng đợi và dữ liệu trùng sau failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-008
+    title: Thực hiện failback với đồng bộ ngược và đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-009
+    title: Diễn tập phục hồi khi thiếu quyền, thiếu khóa hoặc mất registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-lab-010
+    title: Tổng hợp runbook, bằng chứng RTO/RPO và kế hoạch cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Bản sao lưu báo thành công nhưng không đọc hoặc không khôi phục được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Thiếu khóa mã hóa, quyền truy cập hoặc thông tin xác thực khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Snapshot không nhất quán hoặc thiếu chuỗi nhật ký phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Đồ thị phụ thuộc vòng làm hệ thống không thể khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Vùng dự phòng thiếu quota, tài nguyên hoặc phiên bản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: DNS, cache và kết nối cũ vẫn đưa lưu lượng về hệ thống chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Split-brain và dữ liệu phát sinh ở cả hai phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Phục hồi dữ liệu xong nhưng ứng dụng không thể phục vụ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: RTO vượt mục tiêu do tải dữ liệu, dựng lại chỉ mục hoặc thao tác thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Failback thất bại, sao chép không khôi phục và mất khả năng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Checklist điều tra từ con người, quyền truy cập, dữ liệu tới hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

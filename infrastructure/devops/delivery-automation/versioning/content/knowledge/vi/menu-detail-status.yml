@@ -1,0 +1,2200 @@
+menu:
+- slug: versioning-overview
+  title: Tổng quan phiên bản
+  childs:
+  - slug: versioning-overview-001
+    title: Vai trò của phiên bản trong vòng đời phát triển, phân phối và vận hành phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-002
+    title: Phân biệt phiên bản sản phẩm, API, mã nguồn, bản dựng, artifact và cấu hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-003
+    title: Phân biệt commit, Git tag, release, build và deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-004
+    title: Quan hệ giữa số phiên bản, hợp đồng tương thích và kỳ vọng của người sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-005
+    title: Thiết kế nguồn sự thật cho phiên bản và chủ thể có quyền công bố phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-006
+    title: Tính bất biến của phiên bản đã phát hành và nguyên tắc không tái sử dụng định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-007
+    title: Vòng đời từ thay đổi mã nguồn đến phiên bản đang chạy trên từng môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-overview-008
+    title: Những rủi ro khi suy đoán tính tương thích hoặc nội dung bản dựng chỉ từ số phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: version-naming-conventions
+  title: Quy ước định danh
+  childs:
+  - slug: version-naming-conventions-001
+    title: So sánh SemVer, CalVer, số bản dựng tăng dần và phiên bản theo commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-002
+    title: Lựa chọn quy ước cho thư viện, ứng dụng, dịch vụ và công cụ nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-003
+    title: Thiết lập định dạng phiên bản chuẩn và quy tắc chuyển đổi giữa các hệ sinh thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-004
+    title: Phân biệt phiên bản SemVer với tiền tố v, tên nhánh và tên Git tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-005
+    title: Quy định tên sản phẩm, phạm vi package, kênh phân phối và định danh phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-006
+    title: Thống nhất quy ước chữ hoa, chữ thường, ký tự hợp lệ và độ dài định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-007
+    title: Xử lý phiên bản kế thừa và di chuyển sang quy ước mới mà vẫn giữ lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-naming-conventions-008
+    title: Ghi nhận chính sách versioning để nhóm phát triển và nhóm vận hành cùng áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: semver-fundamentals
+  title: SemVer cốt lõi
+  childs:
+  - slug: semver-fundamentals-001
+    title: Cấu trúc MAJOR.MINOR.PATCH và điều kiện áp dụng Semantic Versioning
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-002
+    title: Xác định API công khai trước khi cam kết tính tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-003
+    title: Tăng MAJOR khi thay đổi phá vỡ hợp đồng đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-004
+    title: Tăng MINOR khi bổ sung chức năng tương thích ngược và đánh dấu ngừng hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-005
+    title: Tăng PATCH khi sửa lỗi tương thích ngược
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-006
+    title: Đặt lại MINOR và PATCH khi tăng thành phần phiên bản cao hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-007
+    title: Đặc điểm phiên bản 0.y.z và quyết định công bố phiên bản ổn định 1.0.0
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-008
+    title: Quy tắc số nguyên không âm, dấu phân cách và cấm số 0 ở đầu thành phần số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-009
+    title: So sánh thứ tự ưu tiên bằng giá trị số thay vì sắp xếp chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: semver-fundamentals-010
+    title: Giới hạn của SemVer khi đánh giá chất lượng, an toàn và mức độ phù hợp của bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: prerelease-versions
+  title: Bản tiền phát hành
+  childs:
+  - slug: prerelease-versions-001
+    title: Mục đích và cấu trúc định danh prerelease trong SemVer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-002
+    title: Xây dựng quy ước alpha, beta và release candidate theo mức độ sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-003
+    title: So sánh phiên bản prerelease với phiên bản ổn định có cùng MAJOR.MINOR.PATCH
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-004
+    title: So sánh từng định danh prerelease dạng số, dạng chữ và dãy định danh có độ dài khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-005
+    title: Quy tắc ký tự hợp lệ và số 0 ở đầu định danh prerelease dạng số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-006
+    title: Quản lý chuỗi bản thử nghiệm và chuyển từ release candidate sang bản ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-007
+    title: Phân phối prerelease theo kênh riêng và kiểm soát nhóm người dùng nhận bản thử nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: prerelease-versions-008
+    title: Phân biệt prerelease hợp lệ theo SemVer với nhãn SNAPSHOT đặc thù của công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-metadata
+  title: Build metadata
+  childs:
+  - slug: build-metadata-001
+    title: Cấu trúc build metadata sau dấu cộng và tập ký tự được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-002
+    title: Bổ sung commit SHA, mã pipeline và định danh bản dựng vào metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-003
+    title: Quy tắc bỏ qua build metadata khi so sánh thứ tự ưu tiên SemVer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-004
+    title: Phân biệt hai định danh bản dựng khác nhau nhưng có cùng thứ tự ưu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-005
+    title: Lựa chọn thông tin đặt trong phiên bản, manifest và hồ sơ phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-006
+    title: Giới hạn hỗ trợ build metadata trong package manager, registry và công cụ triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-007
+    title: Duy trì liên kết truy vết khi định dạng artifact không giữ nguyên chuỗi SemVer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-metadata-008
+    title: Tránh đưa bí mật, dữ liệu cá nhân và thông tin không ổn định vào metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compatibility-contracts
+  title: Hợp đồng tương thích
+  childs:
+  - slug: compatibility-contracts-001
+    title: Phân biệt tương thích mã nguồn, nhị phân, giao thức, dữ liệu và hành vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-002
+    title: Xác định bên cung cấp, bên tiêu thụ và phạm vi hợp đồng cần giữ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-003
+    title: Phân biệt tương thích ngược và tương thích xuôi trong quá trình nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-004
+    title: Đánh giá tác động của việc thêm, xóa, đổi tên và thay đổi ý nghĩa chức năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-005
+    title: Xử lý thay đổi mặc định, cấu hình, quyền truy cập và đặc tính vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-006
+    title: Thiết kế chính sách deprecation, thời gian chuyển đổi và thời điểm loại bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-007
+    title: Lập ma trận phiên bản được hỗ trợ giữa các thành phần phụ thuộc nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-008
+    title: Quyết định mức tăng phiên bản khi một bản phát hành chứa nhiều loại thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-contracts-009
+    title: Lập kế hoạch chuyển đổi cho thay đổi phá vỡ tương thích và thông báo tới bên sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: change-impact-analysis
+  title: Phát hiện thay đổi
+  childs:
+  - slug: change-impact-analysis-001
+    title: Phân loại thay đổi tính năng, sửa lỗi, tài liệu, tái cấu trúc và bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-002
+    title: Nhận diện breaking change từ hợp đồng thực tế thay vì chỉ dựa vào tên loại commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-003
+    title: Đánh giá tác động của thay đổi dependency trực tiếp và gián tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-004
+    title: Phát hiện thay đổi API bằng so sánh chữ ký, schema và kết quả kiểm thử hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-005
+    title: Đánh giá thay đổi hành vi mà công cụ so sánh API tĩnh không phát hiện được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-006
+    title: Ghi nhận thay đổi trong pull request bằng nhãn, changeset hoặc bản ghi có cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-007
+    title: Quy định người duyệt và bằng chứng cho quyết định tăng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-impact-analysis-008
+    title: Giải quyết trường hợp công cụ đề xuất phiên bản khác với đánh giá của nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-and-service-versioning
+  title: API và dịch vụ
+  childs:
+  - slug: api-and-service-versioning-001
+    title: Phân biệt phiên bản API công khai với phiên bản triển khai của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-002
+    title: Quản lý thay đổi endpoint, tham số, mã trạng thái và cấu trúc phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-003
+    title: Đánh giá tương thích khi thêm trường, mở rộng enum và thay đổi quy tắc kiểm tra dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-004
+    title: Lựa chọn phiên bản API qua đường dẫn, header hoặc cơ chế thương lượng phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-005
+    title: Duy trì nhiều thế hệ API và xây dựng lộ trình ngừng hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-006
+    title: Quản lý phiên bản SDK và thư viện máy khách tương ứng với API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-007
+    title: Bảo đảm tương thích trong rolling deployment khi nhiều phiên bản dịch vụ cùng hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-and-service-versioning-008
+    title: Kiểm thử hợp đồng giữa nhà cung cấp và bên tiêu thụ trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-and-message-evolution
+  title: Dữ liệu và thông điệp
+  childs:
+  - slug: data-and-message-evolution-001
+    title: Phân biệt phiên bản ứng dụng với phiên bản schema cơ sở dữ liệu và sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-002
+    title: Phân loại thay đổi schema theo khả năng đọc và ghi của phiên bản cũ, mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-003
+    title: Áp dụng quy trình expand, migrate và contract khi thay đổi cấu trúc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-004
+    title: Thiết kế phiên bản thông điệp, event và hợp đồng trao đổi bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-005
+    title: Kiểm tra tương thích backward, forward và full theo chính sách schema registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-006
+    title: Xử lý trường tùy chọn, giá trị mặc định và trường chưa biết trong từng định dạng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-007
+    title: Điều phối thứ tự nâng cấp producer, consumer và dịch vụ sử dụng cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-message-evolution-008
+    title: Đánh giá giới hạn rollback khi migration hoặc dữ liệu mới không còn tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependency-versioning
+  title: Phiên bản dependency
+  childs:
+  - slug: dependency-versioning-001
+    title: Phân biệt phiên bản chính xác, khoảng phiên bản và nhãn phiên bản động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-002
+    title: Đọc ý nghĩa của khoảng phiên bản theo quy tắc riêng của từng package manager
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-003
+    title: Đối chiếu quy tắc caret, tilde, khoảng mở và cách xử lý prerelease trong npm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-004
+    title: Quản lý dependency trong Maven và Gradle với release, SNAPSHOT và phiên bản động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-005
+    title: Vai trò của lockfile, dependency locking và dependency verification
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-006
+    title: Sử dụng BOM, platform và dependency constraints để thống nhất phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-007
+    title: Kiểm soát xung đột dependency bắc cầu, nâng cấp ngoài dự kiến và lệch phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-008
+    title: Tự động đề xuất nâng cấp dependency và đánh giá mức độ tương thích trước khi hợp nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-versioning-009
+    title: Kết hợp chính sách cập nhật bảo mật với kiểm thử hồi quy và khả năng tái lập bản dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: git-tags
+  title: Git tag
+  childs:
+  - slug: git-tags-001
+    title: Phân biệt lightweight tag, annotated tag và signed tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-002
+    title: Thiết kế tên tag cho repository đơn, nhiều module và nhiều dòng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-003
+    title: Liên kết tag với commit phát hành và xác minh đối tượng commit thực tế của tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-004
+    title: Tạo, liệt kê, kiểm tra và phân phối tag tới remote theo chính sách dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-005
+    title: Phân biệt tag Git, release trên nền tảng quản lý mã nguồn và artifact đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-006
+    title: Bảo vệ namespace tag và kiểm soát quyền tạo, xóa hoặc thay đổi tag phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-007
+    title: Xác thực chữ ký tag và danh tính chủ thể thực hiện phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-008
+    title: Ngăn di chuyển tag đã phát hành và xử lý tag sai bằng quy trình có truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-tags-009
+    title: Xử lý lịch sử Git nông, thiếu tag và mốc so sánh khi pipeline tính phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: release-branches
+  title: Nhánh phát hành
+  childs:
+  - slug: release-branches-001
+    title: Lựa chọn trunk-based development, nhánh phát hành hoặc GitFlow theo nhu cầu bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-002
+    title: Ánh xạ nhánh chính, nhánh thử nghiệm và nhánh bảo trì tới kênh phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-003
+    title: Quản lý đồng thời nhiều dòng MAJOR và nhiều phiên bản còn được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-004
+    title: Backport bản vá bằng cherry-pick và ghi nhận liên kết với thay đổi gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-005
+    title: Xử lý hotfix khi nhánh phát triển đã có thay đổi cho phiên bản tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-006
+    title: Chốt phạm vi release candidate và kiểm soát thay đổi sau thời điểm đóng băng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-007
+    title: Ngăn xung đột số phiên bản giữa các nhánh và các pipeline chạy đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-branches-008
+    title: Giữ nhất quán giữa lịch sử hợp nhất, changelog và tập commit của bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-versioning
+  title: Phiên bản artifact
+  childs:
+  - slug: artifact-versioning-001
+    title: Định danh artifact bằng tọa độ package, phiên bản và kho lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-002
+    title: Ánh xạ Git tag và commit sang phiên bản Maven, Gradle hoặc npm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-003
+    title: Phân biệt phiên bản release, SNAPSHOT và bản dựng thử nghiệm trong kho artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-004
+    title: Quản lý classifier, biến thể nền tảng và nhiều đầu ra của cùng một bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-005
+    title: Gắn phiên bản vào manifest, thông tin package và đầu ra hiển thị của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-006
+    title: Xử lý khác biệt quy tắc chuẩn hóa và so sánh phiên bản giữa các hệ sinh thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-007
+    title: Xác định danh tính nội dung bằng checksum, hash hoặc digest bên cạnh số phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-008
+    title: Bảo đảm artifact đã công bố không bị ghi đè dù quy trình build được chạy lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-versioning-009
+    title: Liên kết artifact, tài liệu, chữ ký và thông tin nguồn gốc trong hồ sơ phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-image-versioning
+  title: Container image
+  childs:
+  - slug: container-image-versioning-001
+    title: Phân biệt image tag có thể thay đổi và image digest định danh nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-002
+    title: Thiết kế tag SemVer, tag theo commit và nhãn kênh latest, stable hoặc canary
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-003
+    title: Xử lý ký tự build metadata không hợp lệ trong định dạng container tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-004
+    title: Gắn nhãn OCI cho phiên bản, revision, nguồn mã và thông tin bản dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-005
+    title: Ghim triển khai bằng digest và xác minh image thực tế được runtime sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-006
+    title: Quản lý image đa kiến trúc với digest của image index và manifest theo nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-007
+    title: Áp dụng chính sách bất biến, lưu giữ và dọn dẹp image trong registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-image-versioning-008
+    title: Truy vết base image và xác định ảnh hưởng của việc rebuild cùng mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: changelogs
+  title: Changelog
+  childs:
+  - slug: changelogs-001
+    title: Phân biệt changelog, release notes, lịch sử commit và hướng dẫn nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-002
+    title: Tổ chức mục Unreleased, phiên bản, ngày phát hành và liên kết so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-003
+    title: Phân loại nội dung Added, Changed, Deprecated, Removed, Fixed và Security
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-004
+    title: Mô tả tác động đối với người sử dụng và hành động cần thực hiện khi nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-005
+    title: Ghi rõ breaking change, migration và thay đổi cấu hình bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-006
+    title: Liên kết thay đổi với issue, pull request, commit và artifact liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-007
+    title: Quản lý changelog cho prerelease, nhiều nhánh bảo trì và bản vá backport
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: changelogs-008
+    title: Tự động tổng hợp bản nháp và duyệt nội dung trước khi công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: release-policies
+  title: Chính sách phát hành
+  childs:
+  - slug: release-policies-001
+    title: Xác định lịch phát hành định kỳ, theo nhu cầu và phát hành khẩn cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-002
+    title: Định nghĩa tiêu chí sẵn sàng và cổng kiểm soát cho từng kênh phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-003
+    title: Quy định chủ thể duyệt, chủ thể thực thi và trách nhiệm khi phát hành thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-004
+    title: Thiết lập cửa sổ hỗ trợ, dòng LTS và điều kiện kết thúc vòng đời phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-005
+    title: Xây dựng quy trình công bố phiên bản mới, deprecation và thay đổi phá vỡ tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-006
+    title: Quy định xử lý bản phát hành lỗi, thu hồi và đánh dấu ngừng sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-007
+    title: Đặt chính sách không tái sử dụng phiên bản đã công bố kể cả sau khi thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-policies-008
+    title: Lập hồ sơ phát hành gồm phạm vi thay đổi, bằng chứng kiểm thử và hướng dẫn phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: automated-version-calculation
+  title: Tính phiên bản tự động
+  childs:
+  - slug: automated-version-calculation-001
+    title: Xây dựng thuật toán xác định phiên bản kế tiếp từ mốc phát hành gần nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-002
+    title: Áp dụng Conventional Commits với phạm vi và dấu hiệu breaking change
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-003
+    title: Sử dụng changeset hoặc bản ghi thay đổi để tính phiên bản theo package
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-004
+    title: Xử lý squash merge, revert, cherry-pick và commit không ảnh hưởng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-005
+    title: Kết hợp quy tắc tự động với ngoại lệ được kiểm soát và lý do có thể kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-006
+    title: Sinh định danh prerelease nhất quán cho nhánh, pull request và release candidate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-007
+    title: Xử lý repository chưa có tag, phiên bản khởi đầu và lịch sử không liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-008
+    title: Chống trùng phiên bản bằng khóa, kiểm tra trạng thái remote và cơ chế tuần tự hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: automated-version-calculation-009
+    title: Chạy thử để xem phiên bản, changelog và tập artifact dự kiến trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: release-pipelines
+  title: Pipeline phát hành
+  childs:
+  - slug: release-pipelines-001
+    title: Thiết kế chuỗi kiểm tra, tính phiên bản, build, kiểm thử, đóng gói và công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-002
+    title: Phân biệt pipeline xác minh thay đổi với pipeline được quyền phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-003
+    title: Đối chiếu nguồn kích hoạt theo tag, nhánh, lịch hoặc thao tác thủ công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-004
+    title: Chốt commit và phiên bản trước khi tạo artifact phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-005
+    title: Kiểm tra nhất quán giữa tag, file cấu hình build, manifest và tọa độ artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-006
+    title: Tạo và xác minh checksum, chữ ký cùng bằng chứng nguồn gốc trước khi phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-007
+    title: Sắp xếp việc tạo tag, đẩy artifact và công bố release để có thể phục hồi khi lỗi từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-008
+    title: Thiết kế tính lặp an toàn, retry và tiếp tục pipeline mà không tạo phiên bản trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-009
+    title: Ngăn vòng lặp pipeline do commit cập nhật phiên bản hoặc changelog tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-pipelines-010
+    title: Lưu kết quả và bằng chứng phát hành để điều tra, đối soát và truy vết sau này
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: release-automation-tools
+  title: Công cụ tự động hóa
+  childs:
+  - slug: release-automation-tools-001
+    title: So sánh mô hình phát hành bằng release pull request và phát hành trực tiếp sau hợp nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-002
+    title: Áp dụng semantic-release để phân tích commit, tính phiên bản và công bố release
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-003
+    title: Áp dụng release-please để quản lý pull request cập nhật phiên bản và changelog
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-004
+    title: Áp dụng Changesets cho package, dependency nội bộ và repository nhiều gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-005
+    title: Tích hợp quy trình phiên bản vào Maven hoặc Gradle cho dự án Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-006
+    title: Kết nối công cụ phát hành với CI và registry bằng quyền truy cập tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-007
+    title: Kiểm soát phiên bản công cụ, plugin và cấu hình có ảnh hưởng tới kết quả phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-automation-tools-008
+    title: Lựa chọn công cụ theo mô hình repository, hệ sinh thái artifact và yêu cầu bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-repositories
+  title: Kho artifact
+  childs:
+  - slug: artifact-repositories-001
+    title: Tổ chức kho release, kho snapshot, kho thử nghiệm và quyền truy cập tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-002
+    title: Công bố package cùng metadata cần thiết cho việc phân giải dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-003
+    title: Kiểm tra artifact tồn tại và xác minh nội dung trước khi quyết định bỏ qua hoặc retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-004
+    title: Ngăn ghi đè phiên bản và xác định chính sách đối với artifact đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-005
+    title: Quản lý staging, kiểm duyệt và chuyển trạng thái artifact sang kênh phân phối chính thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-006
+    title: Xử lý cache, mirror và độ trễ đồng bộ khiến phiên bản mới chưa được tìm thấy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-007
+    title: Thiết lập lưu giữ, lưu trữ dài hạn và khả năng phục hồi phiên bản cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-repositories-008
+    title: Thu hồi hoặc đánh dấu bản lỗi theo khả năng của registry mà vẫn bảo toàn dấu vết kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-promotion
+  title: Triển khai và promotion
+  childs:
+  - slug: deployment-and-promotion-001
+    title: Tách quyết định phát hành artifact khỏi quyết định triển khai tới môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-002
+    title: Build một lần và promotion cùng nội dung artifact qua các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-003
+    title: Ghi nhận ánh xạ phiên bản sản phẩm, digest artifact, môi trường và lần triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-004
+    title: Quản lý phiên bản manifest, Helm chart và cấu hình độc lập với phiên bản ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-005
+    title: Cập nhật phiên bản triển khai qua GitOps và giữ lịch sử thay đổi có thể đối chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-006
+    title: Triển khai canary, blue-green và rolling update với điều kiện tương thích phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-007
+    title: Kiểm soát feature flag và cấu hình làm thay đổi hành vi của cùng một phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-promotion-008
+    title: Xác nhận sau triển khai bằng phiên bản runtime, digest thực tế và kiểm thử smoke
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: version-traceability
+  title: Truy vết phiên bản
+  childs:
+  - slug: version-traceability-001
+    title: Thiết kế chuỗi liên kết từ yêu cầu thay đổi đến commit, tag, build, artifact và deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-002
+    title: Tạo manifest phát hành hoặc release bill of materials cho các thành phần được triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-003
+    title: Cung cấp endpoint thông tin phiên bản và lệnh hiển thị phiên bản của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-004
+    title: Gắn phiên bản dịch vụ, revision và môi trường vào log, trace và metadata giám sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-005
+    title: Quản lý nhãn phiên bản trong metrics để tránh cardinality tăng không kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-006
+    title: Đối chiếu số phiên bản công bố với digest và commit của tiến trình đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-007
+    title: Phát hiện lệch phiên bản giữa pod, instance, vùng và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-008
+    title: Truy ngược sự cố từ thời điểm triển khai tới thay đổi mã nguồn và dependency liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: version-traceability-009
+    title: Lưu lịch sử triển khai, người thực hiện và bằng chứng xác minh phục vụ kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rollback-and-hotfixes
+  title: Rollback và hotfix
+  childs:
+  - slug: rollback-and-hotfixes-001
+    title: Phân biệt rollback triển khai, revert mã nguồn và phát hành phiên bản sửa lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-002
+    title: Đánh giá khả năng quay lui dựa trên tương thích dữ liệu, cấu hình và dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-003
+    title: Chọn artifact đã xác minh bằng phiên bản cùng digest khi rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-004
+    title: Tạo hotfix từ dòng phiên bản đang được hỗ trợ và xác định số phiên bản kế tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-005
+    title: Đưa bản vá trở lại nhánh phát triển và các nhánh bảo trì có liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-006
+    title: Xử lý phiên bản đã phát hành sai mà không sửa nội dung artifact hoặc di chuyển tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-007
+    title: Cập nhật changelog, trạng thái release và hướng dẫn cho người đang dùng bản lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rollback-and-hotfixes-008
+    title: Diễn tập phục hồi và xác minh phiên bản thực tế sau rollback hoặc hotfix
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monorepo-and-module-versioning
+  title: Monorepo và đa module
+  childs:
+  - slug: monorepo-and-module-versioning-001
+    title: Lựa chọn phiên bản đồng bộ hoặc phiên bản độc lập cho các module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-002
+    title: Xác định phạm vi thay đổi và tập package chịu ảnh hưởng trong đồ thị dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-003
+    title: Lan truyền thay đổi phiên bản tới dependency nội bộ và package phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-004
+    title: Thiết kế namespace Git tag và changelog riêng cho từng thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-005
+    title: Điều phối thứ tự build, công bố package và phát hành bộ thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-006
+    title: Quản lý BOM và manifest phiên bản cho một bộ sản phẩm gồm nhiều artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-007
+    title: Xử lý thay đổi dùng chung, package riêng tư và module không cần phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-and-module-versioning-008
+    title: Khôi phục quy trình khi chỉ một phần package của đợt phát hành được công bố thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: release-security
+  title: Bảo mật phát hành
+  childs:
+  - slug: release-security-001
+    title: Phân quyền tạo tag, công bố artifact và phê duyệt phát hành theo vai trò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-002
+    title: Quản lý token ngắn hạn, danh tính workload và bí mật dùng trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-003
+    title: Ký tag, artifact và image để xác minh nguồn phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-004
+    title: Liên kết SBOM với đúng phiên bản artifact và nội dung dependency thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-005
+    title: Gắn provenance và attestation với commit, công cụ cùng môi trường build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-006
+    title: Kiểm tra hash, chữ ký và chính sách nguồn gốc khi nhận hoặc triển khai artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-007
+    title: Ứng phó khi token, khóa ký hoặc tài khoản phát hành bị xâm phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: release-security-008
+    title: Phát hành bản vá bảo mật và ghi nhận phiên bản bị ảnh hưởng mà vẫn tuân thủ chính sách công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-testing
+  title: Kiểm thử versioning
+  childs:
+  - slug: versioning-testing-001
+    title: Kiểm tra cú pháp phiên bản, quy tắc đặt tag và ánh xạ định dạng artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-002
+    title: Xây dựng bộ trường hợp so sánh SemVer gồm prerelease và build metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-003
+    title: Kiểm tra quyết định tăng MAJOR, MINOR và PATCH với tập thay đổi đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-004
+    title: Kiểm thử tương thích API, nhị phân, schema và hành vi giữa các phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-005
+    title: Kiểm tra nhất quán phiên bản trong package, manifest, changelog và release notes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-006
+    title: Kiểm thử dry run, chạy đồng thời, retry và lỗi từng phần của pipeline phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-007
+    title: Đánh giá khả năng tái lập bản dựng và xác minh digest khi promotion
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-testing-008
+    title: Kiểm tra truy vết và phục hồi từ phiên bản đang chạy tới artifact cùng commit nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: versioning-troubleshooting-001
+    title: Chẩn đoán phiên bản không hợp lệ hoặc thứ tự sắp xếp khác mong đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-002
+    title: Xử lý pipeline không tìm thấy tag vì checkout nông, thiếu quyền hoặc chưa fetch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-003
+    title: Điều tra tag, changelog, package và artifact có phiên bản không nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-004
+    title: Giải quyết xung đột phiên bản do nhiều pipeline hoặc nhiều nhánh cùng phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-005
+    title: Khắc phục prerelease bị đưa nhầm vào kênh ổn định hoặc dependency tự nhận bản thử nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-006
+    title: Điều tra artifact cùng nhãn phiên bản nhưng khác nội dung hoặc digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-007
+    title: Xử lý package đã công bố nhưng release chưa hoàn tất và trường hợp ngược lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-008
+    title: Chẩn đoán môi trường vẫn chạy bản cũ do cache, image tag động hoặc cấu hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-troubleshooting-009
+    title: Xác minh và phục hồi chuỗi truy vết khi thiếu manifest, metadata hoặc lịch sử triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: end-to-end-versioning-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-versioning-practice-001
+    title: Thiết kế chính sách SemVer và hợp đồng tương thích cho một thư viện Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-002
+    title: Phân loại tập thay đổi và chọn phiên bản tiếp theo kèm lập luận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-003
+    title: Tạo chuỗi alpha, beta, release candidate và bản ổn định cùng changelog tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-004
+    title: Xây dựng pipeline phát hành artifact Java và container image từ một commit đã chốt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-005
+    title: Tự động tính phiên bản, tạo release notes và công bố qua quy trình có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-006
+    title: Promotion artifact qua các môi trường và chứng minh phiên bản thực tế đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-007
+    title: Thực hiện hotfix, backport và rollback trong tình huống bản phát hành gặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: end-to-end-versioning-practice-008
+    title: Thiết kế phát hành nhiều module kèm manifest, bằng chứng nguồn gốc và báo cáo truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

@@ -1,0 +1,7 @@
+# DevOps Source Management Fundamentals
+
+**Source management** là việc tổ chức, quản lý phiên bản và kiểm soát thay đổi của mã nguồn trong suốt vòng đời phát triển phần mềm. Trọng tâm là repository chung, lịch sử commit có thể truy vết, nhánh để làm việc song song và quy trình tích hợp thay đổi có kiểm tra. Git là công cụ quản lý phiên bản phổ biến; các nền tảng như GitHub, GitLab hoặc Bitbucket bổ sung quyền truy cập, pull request, review và tự động hóa nhưng không thay thế kiến thức nền về Git.
+
+Module dành cho người đã biết thao tác dòng lệnh và cấu trúc một dự án phần mềm cơ bản. Bạn sẽ bắt đầu từ lý do cần version control, tạo và tổ chức repository, hiểu working tree–staging area–commit và đọc lịch sử thay đổi. Sau đó là thực hành branch, merge, xử lý conflict, làm việc với remote và cộng tác qua pull request; tiếp theo là bảo vệ nhánh, giới hạn quyền, tránh lưu secret và thiết lập các điều kiện chất lượng trước khi merge.
+
+Sau tám mốc, bạn có thể thực hiện vòng đời thay đổi nhỏ từ nhánh cá nhân đến nhánh chính, giải thích ai đã thay đổi gì, đối chiếu commit với tag phát hành và kiểm tra trạng thái CI. Một kho mã tốt không chỉ lưu được tệp mà còn giúp nhóm **phát hiện lỗi sớm, khôi phục có kiểm soát và truy vết nguồn của bản phát hành**. Không nên rewrite hoặc force-push lịch sử chung tùy tiện; khi credential bị lộ, cần thu hồi hoặc luân chuyển khóa chứ không chỉ xóa tệp khỏi commit mới.

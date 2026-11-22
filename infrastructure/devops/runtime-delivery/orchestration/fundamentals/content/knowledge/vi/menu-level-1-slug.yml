@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình điều phối
+  slug: orchestration-model
+  index: 1
+- title: Kiến trúc cụm
+  slug: cluster-architecture
+  index: 2
+- title: Khai báo workload
+  slug: workload-declarations
+  index: 3
+- title: Vòng đời workload
+  slug: workload-lifecycle
+  index: 4
+- title: Lập lịch
+  slug: scheduling
+  index: 5
+- title: Quản lý tài nguyên
+  slug: resource-management
+  index: 6
+- title: Mạng và khám phá
+  slug: networking-discovery
+  index: 7
+- title: Định tuyến lưu lượng
+  slug: traffic-routing
+  index: 8
+- title: Lưu trữ
+  slug: storage
+  index: 9
+- title: Ứng dụng có trạng thái
+  slug: stateful-applications
+  index: 10
+- title: Cấu hình và bí mật
+  slug: configuration-secrets
+  index: 11
+- title: Danh tính và quyền
+  slug: identities-permissions
+  index: 12
+- title: Kiểm tra sức khỏe
+  slug: health-checks
+  index: 13
+- title: Tự phục hồi
+  slug: self-healing
+  index: 14
+- title: Tính sẵn sàng
+  slug: availability
+  index: 15
+- title: Mở rộng
+  slug: scaling
+  index: 16
+- title: Cập nhật ứng dụng
+  slug: application-updates
+  index: 17
+- title: Tác vụ nền
+  slug: background-jobs
+  index: 18
+- title: Phụ thuộc ứng dụng
+  slug: application-dependencies
+  index: 19
+- title: Cô lập và bảo mật
+  slug: isolation-security
+  index: 20
+- title: Chính sách đa nhóm
+  slug: multi-team-policies
+  index: 21
+- title: Quan sát
+  slug: observability
+  index: 22
+- title: Vận hành cụm
+  slug: cluster-operations
+  index: 23
+- title: Tích hợp quy trình
+  slug: workflow-integration
+  index: 24
+- title: Kiểm thử
+  slug: testing
+  index: 25
+- title: Lựa chọn nền tảng
+  slug: platform-selection
+  index: 26
+- title: Chuyển đổi ứng dụng
+  slug: application-migration
+  index: 27
+- title: Xử lý sự cố
+  slug: incident-troubleshooting
+  index: 28
+- title: Thực hành
+  slug: hands-on-exercises
+  index: 29

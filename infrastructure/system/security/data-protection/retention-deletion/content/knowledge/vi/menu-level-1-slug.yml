@@ -1,0 +1,133 @@
+menu:
+- title: Khái niệm retention deletion
+  slug: retention-and-deletion-concepts
+  index: 0
+- title: Phạm vi dữ liệu
+  slug: data-scope
+  index: 1
+- title: Inventory dữ liệu
+  slug: data-inventory
+  index: 2
+- title: Phân loại dữ liệu
+  slug: data-classification
+  index: 3
+- title: Mục đích và cơ sở
+  slug: purpose-and-legal-basis
+  index: 4
+- title: Retention policy
+  slug: retention-policy
+  index: 5
+- title: Retention schedule (bổ sung 2)
+  slug: retention-schedule
+  index: 6
+- title: Retention trigger (bổ sung 2)
+  slug: retention-triggers
+  index: 7
+- title: Legal hold
+  slug: legal-hold
+  index: 8
+- title: Archive
+  slug: archiving
+  index: 9
+- title: Deletion lifecycle
+  slug: deletion-lifecycle
+  index: 10
+- title: Soft delete (bổ sung 2)
+  slug: soft-delete
+  index: 11
+- title: Hard delete (bổ sung 2)
+  slug: hard-delete
+  index: 12
+- title: Anonymization
+  slug: anonymization
+  index: 13
+- title: Pseudonymization
+  slug: pseudonymization
+  index: 14
+- title: Database deletion
+  slug: database-deletion
+  index: 15
+- title: Object và file
+  slug: objects-and-files
+  index: 16
+- title: Log retention
+  slug: log-retention
+  index: 17
+- title: Backup
+  slug: backups
+  index: 18
+- title: Replica và cache
+  slug: replicas-and-caches
+  index: 19
+- title: Search index
+  slug: search-indexes
+  index: 20
+- title: Message và event
+  slug: messages-and-events
+  index: 21
+- title: SaaS và bên thứ ba
+  slug: saas-and-third-parties
+  index: 22
+- title: Cloud
+  slug: cloud
+  index: 23
+- title: Media sanitization
+  slug: media-sanitization
+  index: 24
+- title: Cryptographic erase
+  slug: cryptographic-erasure
+  index: 25
+- title: Deletion request
+  slug: deletion-requests
+  index: 26
+- title: Data subject rights
+  slug: data-subject-rights
+  index: 27
+- title: Privacy by design
+  slug: privacy-by-design
+  index: 28
+- title: Accuracy và review
+  slug: accuracy-and-review
+  index: 29
+- title: Access control deletion
+  slug: deletion-access-control
+  index: 30
+- title: Encryption và deletion
+  slug: encryption-and-deletion
+  index: 31
+- title: Automation
+  slug: automation
+  index: 32
+- title: Distributed deletion
+  slug: distributed-deletion
+  index: 33
+- title: Audit và evidence
+  slug: audits-and-evidence
+  index: 34
+- title: Monitoring
+  slug: monitoring
+  index: 35
+- title: Incident và breach
+  slug: incidents-and-breaches
+  index: 36
+- title: Restore và recovery
+  slug: restoration-and-recovery
+  index: 37
+- title: Kiểm thử
+  slug: testing
+  index: 38
+- title: Metrics
+  slug: metrics
+  index: 39
+- title: Governance và audit
+  slug: governance-and-audits
+  index: 40
+- title: Migration
+  slug: migration
+  index: 41
+- title: Anti-pattern
+  slug: anti-patterns
+  index: 42
+- title: Checklist production
+  slug: production-checklist
+  index: 43

@@ -1,0 +1,57 @@
+roadmap:
+- id: opaque-token-bearer-token
+  title: Opaque Token & Bearer Token
+  purpose: Hiểu opaque token như chuỗi tham chiếu mà bên nhận không thể suy ra trực tiếp quyền truy cập từ nội dung token.
+  objectives:
+  - Phân biệt opaque token với JWT tự chứa
+  - Giải thích bearer token và rủi ro lộ token
+  - Mô tả vai trò Authorization Server và Resource Server
+- id: phat-hanh-luu-tru-token
+  title: Phát hành & lưu trữ token
+  purpose: Tạo mã định danh khó đoán, ràng buộc với quyền được cấp và bảo vệ vòng đời lưu trữ token.
+  objectives:
+  - Sinh token bằng nguồn ngẫu nhiên mật mã an toàn
+  - Liên kết token với chủ thể, client, scope và hạn dùng
+  - Bảo vệ dữ liệu token khi lưu trữ và truyền tải
+- id: introspection-rfc-7662
+  title: Introspection — RFC 7662
+  purpose: Xác minh trạng thái token thông qua Authorization Server thay vì suy đoán ý nghĩa từ chuỗi opaque.
+  objectives:
+  - Gửi token tới endpoint introspection có xác thực
+  - Đọc active, scope, exp và metadata trả về
+  - Từ chối token không hợp lệ hoặc hết hạn
+- id: scope-audience-authorization
+  title: Scope, Audience & Authorization
+  purpose: Tách bước kiểm tra token còn hiệu lực khỏi quyết định cho phép truy cập từng tài nguyên.
+  objectives:
+  - Kiểm tra scope và audience cho API cần bảo vệ
+  - Phân biệt authentication với authorization
+  - Ngăn token hợp lệ truy cập sai tài nguyên
+- id: expiration-revocation
+  title: Expiration & Revocation
+  purpose: Quản lý thời hạn và khả năng thu hồi token để giảm tác động khi tài khoản đổi quyền hoặc token bị lộ.
+  objectives:
+  - Thiết lập TTL phù hợp với mức rủi ro
+  - Thực hành thu hồi token theo RFC 7009
+  - Kiểm chứng introspection phản ánh token đã bị thu hồi
+- id: spring-security-opaque-token
+  title: Spring Security Opaque Token
+  purpose: Thực hành Resource Server Java xác thực opaque bearer token qua introspection và ánh xạ quyền.
+  objectives:
+  - Cấu hình introspection-uri và client credentials
+  - Ánh xạ scope thành authority SCOPE_
+  - Bảo vệ endpoint và kiểm tra lỗi 401/403
+- id: caching-availability
+  title: Caching & Availability
+  purpose: Cân bằng độ trễ, tải introspection và độ mới của trạng thái thu hồi trong môi trường phân tán.
+  objectives:
+  - Đo chi phí gọi introspection mỗi request
+  - Thiết kế cache TTL ngắn với giới hạn stale data
+  - Xử lý timeout và lỗi IdP theo nguyên tắc fail closed
+- id: kiem-thu-danh-doi-thiet-ke
+  title: Kiểm thử & đánh đổi thiết kế
+  purpose: Đánh giá tính an toàn và khả năng vận hành trước khi chọn opaque token cho hệ thống API.
+  objectives:
+  - Kiểm thử token expired, revoked, sai scope và sai audience
+  - Đánh giá log, TLS và bảo vệ bí mật introspection
+  - So sánh opaque token với JWT về thu hồi và độ trễ

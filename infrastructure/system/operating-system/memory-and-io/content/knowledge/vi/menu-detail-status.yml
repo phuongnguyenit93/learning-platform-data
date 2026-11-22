@@ -1,0 +1,3694 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Bộ nhớ và I/O là gì, vì sao hệ điều hành phải quản lý chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Mối liên hệ giữa CPU, RAM, thiết bị lưu trữ và thiết bị ngoại vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Từ chương trình đến tiến trình, không gian địa chỉ và tài nguyên I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt bộ nhớ ảo, bộ nhớ vật lý, swap và lưu trữ lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Bản đồ thuật ngữ: trang, khung trang, ánh xạ, bộ đệm và hàng đợi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Hành trình dữ liệu từ thiết bị vào bộ nhớ rồi đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phân biệt cơ chế của hệ điều hành với chính sách của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Phạm vi kiến thức chung và ví dụ triển khai trên Linux, Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: 'Điều kiện thực hành: kiến trúc máy, phiên bản nhân và quyền truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Trình tự học từ mô hình khái niệm đến quan sát và chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-fundamentals
+  title: Nền tảng bộ nhớ
+  childs:
+  - slug: memory-fundamentals-001
+    title: 'Thứ bậc bộ nhớ: thanh ghi, cache CPU, RAM và thiết bị lưu trữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-002
+    title: Dung lượng, độ trễ và băng thông trong hệ thống bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-003
+    title: Đơn vị byte, KiB, MiB, GiB và cách đọc số liệu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-004
+    title: Địa chỉ, con trỏ, độ rộng địa chỉ và giới hạn kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-005
+    title: Bộ nhớ vật lý liên tục và các vùng địa chỉ dành cho phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-006
+    title: Căn chỉnh dữ liệu và ảnh hưởng đến truy cập bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-007
+    title: Phân biệt truy cập bộ nhớ với yêu cầu đọc ghi thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-008
+    title: Vai trò của MMU, bộ điều khiển bộ nhớ và hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-009
+    title: Tính khả biến của RAM và ý nghĩa đối với dữ liệu cần lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-fundamentals-010
+    title: Bộ nhớ dùng chung phần cứng và nhu cầu bảo vệ giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: address-space
+  title: Không gian địa chỉ
+  childs:
+  - slug: address-space-001
+    title: Vì sao mỗi tiến trình cần một không gian địa chỉ ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-002
+    title: Ánh xạ địa chỉ ảo sang địa chỉ vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-003
+    title: Dự trữ vùng địa chỉ và cấp phát trang vật lý theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-004
+    title: Phân trang và phân đoạn trong mô hình quản lý địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-005
+    title: Trang ảo, khung trang vật lý và độ lệch trong trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-006
+    title: Vùng địa chỉ người dùng và vùng địa chỉ nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-007
+    title: Cùng một địa chỉ ảo trong hai tiến trình khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-008
+    title: Nhiều địa chỉ ảo cùng ánh xạ đến một trang vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-009
+    title: 'Bộ nhớ ảo lớn hơn RAM: điều kiện và giới hạn thực tế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: address-space-010
+    title: Lỗ trống, giới hạn không gian địa chỉ và lỗi cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: page-tables-tlb
+  title: Bảng trang và TLB
+  childs:
+  - slug: page-tables-tlb-001
+    title: Cấu trúc bảng trang và lý do tổ chức nhiều cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-002
+    title: Phân rã địa chỉ thành chỉ số bảng trang và độ lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-003
+    title: Quá trình duyệt bảng trang của phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-004
+    title: 'Các thuộc tính trang: hiện diện, quyền truy cập, đã truy cập và đã sửa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-005
+    title: Bộ đệm ánh xạ TLB và vai trò trong hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-006
+    title: Phân biệt TLB miss, cache miss và page fault
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-007
+    title: Chi phí bộ nhớ của bảng trang khi không gian địa chỉ lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-008
+    title: Thay đổi ánh xạ và vô hiệu hóa mục TLB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-009
+    title: TLB shootdown khi nhiều CPU cùng sử dụng một không gian địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-010
+    title: ASID và PCID trong việc nhận diện không gian địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-011
+    title: Quan hệ giữa kích thước trang, phạm vi bao phủ TLB và phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-tables-tlb-012
+    title: Ví dụ tính ánh xạ địa chỉ với một mô hình bảng trang đơn giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-memory
+  title: Bộ nhớ tiến trình
+  childs:
+  - slug: process-memory-001
+    title: Bố cục vùng mã, dữ liệu, BSS, heap, stack và vùng ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-002
+    title: Bộ nhớ dùng chung giữa các luồng trong cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-003
+    title: Ngăn xếp riêng của từng luồng và chi phí số lượng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-004
+    title: Vùng nhớ vô danh và vùng nhớ được hậu thuẫn bởi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-005
+    title: Vùng nhớ riêng và vùng nhớ chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-006
+    title: Trạng thái vùng địa chỉ và các quyền đọc, ghi, thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-007
+    title: Vòng đời ánh xạ khi khởi tạo, thay thế và kết thúc tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-008
+    title: Copy-on-write sau fork và thời điểm phát sinh bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-009
+    title: Ảnh hưởng của nạp thư viện dùng chung đến số liệu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-010
+    title: Đọc bản đồ bộ nhớ tiến trình qua /proc/<pid>/maps trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-memory-011
+    title: Phân biệt vùng nhớ hợp lệ, vùng bảo vệ và truy cập vượt biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: page-faults
+  title: Lỗi trang
+  childs:
+  - slug: page-faults-001
+    title: Page fault là gì và vì sao không phải mọi lỗi trang đều là lỗi chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-002
+    title: Cấp trang theo nhu cầu khi truy cập lần đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-003
+    title: Trang toàn số không và cấp phát khi ghi lần đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-004
+    title: Lỗi trang do copy-on-write
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-005
+    title: Lỗi trang khi đọc tệp được ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-006
+    title: Minor fault và major fault trong số liệu Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-007
+    title: Chuỗi xử lý lỗi trang từ CPU đến nhân rồi trở lại ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-008
+    title: Phân biệt lỗi thiếu trang với lỗi vi phạm quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-009
+    title: SIGSEGV và SIGBUS trong các tình huống bộ nhớ thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-010
+    title: Chi phí chạm trang lần đầu và giai đoạn làm nóng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-faults-011
+    title: Cấp phát trước, chạm trước và giới hạn của việc giảm lỗi trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kernel-memory-allocation
+  title: Cấp phát trong nhân
+  childs:
+  - slug: kernel-memory-allocation-001
+    title: Tổ chức bộ nhớ vật lý theo node, zone và khung trang trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-002
+    title: Bộ cấp phát buddy và các khối trang theo bậc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-003
+    title: Phân mảnh nội và phân mảnh ngoại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-004
+    title: Bộ cấp phát slab và SLUB cho đối tượng trong nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-005
+    title: So sánh kmalloc, vmalloc và cấp phát theo trang ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-006
+    title: Liên tục trong không gian ảo và liên tục trong không gian vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-007
+    title: Cờ cấp phát, ngữ cảnh được phép chờ và khả năng thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-008
+    title: Các ngưỡng trang trống và vùng dự trữ cho cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-009
+    title: Dồn trang bằng compaction và chi phí di chuyển trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-010
+    title: Trang có thể di chuyển, không thể di chuyển và trang bị ghim
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kernel-memory-allocation-011
+    title: Bộ nhớ nhân có thể thu hồi và bộ nhớ nhân không thể thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-memory-allocation
+  title: Cấp phát ứng dụng
+  childs:
+  - slug: application-memory-allocation-001
+    title: Quan hệ giữa malloc, calloc, realloc, free và hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-002
+    title: Heap của bộ cấp phát và các ánh xạ brk, mmap trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-003
+    title: Vì sao cấp phát thành công chưa phản ánh lượng RAM thực dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-004
+    title: Vì sao free không luôn làm RSS giảm ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-005
+    title: Phân mảnh heap và lượng bộ nhớ giữ lại trong bộ cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-006
+    title: Arena, cache theo luồng và đánh đổi giữa tốc độ với dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-007
+    title: Cấp phát lớn, cấp phát nhỏ và chi phí đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-008
+    title: Vòng đời sở hữu vùng nhớ và nguy cơ rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-009
+    title: Truy cập sau giải phóng, giải phóng hai lần và truy cập vượt biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-010
+    title: Phân biệt rò rỉ, giữ lại bộ nhớ hợp lệ và cache của bộ cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-memory-allocation-011
+    title: Lựa chọn chiến lược tái sử dụng bộ đệm theo kích thước và vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-mapping
+  title: Ánh xạ bộ nhớ
+  childs:
+  - slug: memory-mapping-001
+    title: mmap là gì và khi nào ánh xạ tệp hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-002
+    title: Ánh xạ vô danh và ánh xạ tệp trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-003
+    title: MAP_PRIVATE, MAP_SHARED và hành vi khi ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-004
+    title: Căn chỉnh offset, độ dài ánh xạ và ranh giới trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-005
+    title: Quyền truy cập qua PROT_READ, PROT_WRITE, PROT_EXEC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-006
+    title: Thay đổi quyền và giải phóng ánh xạ bằng mprotect, munmap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-007
+    title: Lỗi trang khi truy cập tệp được ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-008
+    title: Quan hệ giữa mmap, page cache và dữ liệu bẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-009
+    title: msync và giới hạn của việc đồng bộ vùng ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-010
+    title: Tệp bị thu ngắn hoặc thay đổi khi đang được ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-011
+    title: madvise và gợi ý về cách sử dụng vùng nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-012
+    title: mlock, munlock, giới hạn khóa trang và chi phí đối với hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-mapping-013
+    title: So sánh mmap với read, write theo kiểu truy cập và yêu cầu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-memory
+  title: Bộ nhớ chia sẻ
+  childs:
+  - slug: shared-memory-001
+    title: Vì sao chia sẻ trang có thể giảm sao chép giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-002
+    title: Bộ nhớ chia sẻ có tên, không tên và ánh xạ tệp dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-003
+    title: POSIX shared memory với shm_open và mmap trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-004
+    title: memfd_create và vùng nhớ chia sẻ có descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-005
+    title: Vòng đời đối tượng chia sẻ, ánh xạ và thao tác đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-006
+    title: Nhất quán quan sát dữ liệu và nhu cầu đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-007
+    title: Khóa, semaphore và thao tác nguyên tử trong phối hợp tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-008
+    title: Bố cục dữ liệu chia sẻ và vấn đề con trỏ khác không gian địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-009
+    title: Đồng bộ quyền sở hữu và tránh ghi đè dữ liệu đang được đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-010
+    title: Phân biệt chia sẻ bộ nhớ, truyền thông điệp và sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-011
+    title: Tác động của copy-on-write khi tiến trình cùng đọc rồi cùng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-protection
+  title: Bảo vệ bộ nhớ
+  childs:
+  - slug: memory-protection-001
+    title: Cách ly tiến trình bằng không gian địa chỉ và quyền trên trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-002
+    title: Phân biệt quyền của trang với quyền truy cập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-003
+    title: Vùng chỉ đọc, vùng không thực thi và nguyên tắc W^X
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-004
+    title: ASLR và ngẫu nhiên hóa vị trí vùng nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-005
+    title: Trang bảo vệ và phát hiện truy cập vượt giới hạn stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-006
+    title: Xóa dữ liệu trang trước khi cấp lại cho tiến trình khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-007
+    title: Rủi ro dữ liệu nhạy cảm trong swap và core dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-008
+    title: Giới hạn khóa trang và chính sách thu thập bản kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-009
+    title: Kiểm tra địa chỉ vùng người dùng khi nhân sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-010
+    title: Phân biệt bảo vệ của hệ điều hành với an toàn bộ nhớ của ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locality
+  title: Tính cục bộ
+  childs:
+  - slug: locality-001
+    title: Tính cục bộ theo thời gian và theo không gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-002
+    title: Cache line và quan hệ với kiểu truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-003
+    title: Truy cập tuần tự, truy cập ngẫu nhiên và bước nhảy địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-004
+    title: Kích thước tập dữ liệu hoạt động và các tầng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-005
+    title: Cache hit, cache miss và chi phí chờ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-006
+    title: Băng thông bộ nhớ và khả năng xử lý nhiều yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-007
+    title: Bộ nạp trước phần cứng và giới hạn theo kiểu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-008
+    title: False sharing khi các luồng cập nhật dữ liệu cùng cache line
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-009
+    title: Nhất quán cache phần cứng và phân biệt với đồng bộ chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-010
+    title: Phân biệt cache CPU, TLB, page cache và cache ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locality-011
+    title: Ảnh hưởng của bố cục dữ liệu đến lượng trang được chạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: numa-huge-pages
+  title: NUMA và trang lớn
+  childs:
+  - slug: numa-huge-pages-001
+    title: Kiến trúc NUMA và độ trễ truy cập bộ nhớ cục bộ, từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-002
+    title: Chính sách first-touch và vị trí cấp phát trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-003
+    title: Liên hệ giữa gắn CPU, vị trí luồng và vị trí dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-004
+    title: Chính sách bind, preferred, interleave trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-005
+    title: Quan sát phân bố bộ nhớ bằng numactl và numastat
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-006
+    title: Cân bằng NUMA tự động và chi phí di chuyển trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-007
+    title: Trang lớn giúp giảm áp lực TLB như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-008
+    title: Transparent Huge Pages và HugeTLB trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-009
+    title: Dự trữ trang lớn, tính sẵn có và phân mảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-010
+    title: Tách trang, ghép trang và chi phí độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-011
+    title: Đánh đổi giữa kích thước trang, mức dùng RAM và khả năng thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: numa-huge-pages-012
+    title: Kiểm tra cấu hình thực tế trước khi đánh giá NUMA hoặc trang lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-reclamation
+  title: Thu hồi bộ nhớ
+  childs:
+  - slug: memory-reclamation-001
+    title: Tập trang hoạt động và nhu cầu giữ lại dữ liệu thường dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-002
+    title: Trang sạch, trang bẩn và điều kiện có thể thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-003
+    title: Chọn trang thay thế và mục tiêu cân bằng chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-004
+    title: FIFO, LRU, Clock qua mô hình chuỗi truy cập trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-005
+    title: Bất thường Belady và giới hạn của mô hình FIFO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-006
+    title: Xấp xỉ LRU trong hệ điều hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-007
+    title: Danh sách hoạt động, không hoạt động và nhận diện trang được dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-008
+    title: Multi-Gen LRU trên Linux và điều kiện cấu hình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-009
+    title: Thu hồi nền bằng kswapd và thu hồi trực tiếp khi cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-010
+    title: Quan hệ giữa thu hồi, ghi trả và swap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-011
+    title: Tranh chấp giữa bộ nhớ ứng dụng với page cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-reclamation-012
+    title: Thrashing khi hệ thống liên tục nạp và loại bỏ tập trang cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: swapping-oom
+  title: Swap và OOM
+  childs:
+  - slug: swapping-oom-001
+    title: Swap là gì và khác với mở rộng dung lượng RAM như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-002
+    title: Swap partition, swap file và đường đi trang vô danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-003
+    title: Swap-in, swap-out và chi phí đọc ghi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-004
+    title: Swap sử dụng nhiều và hoạt động swap mạnh là hai tín hiệu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-005
+    title: Swappiness và các yếu tố ảnh hưởng quyết định thu hồi trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-006
+    title: zram, zswap và đánh đổi giữa CPU, RAM, I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-007
+    title: Overcommit và mối liên hệ giữa cam kết với cấp phát thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-008
+    title: Các chế độ overcommit và CommitLimit trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-009
+    title: Khi nào cấp phát trả lỗi, tiến trình bị kết thúc hoặc hệ thống OOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-010
+    title: OOM toàn hệ thống và OOM trong cgroup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-011
+    title: oom_score, oom_score_adj và lựa chọn tiến trình trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-012
+    title: Phân biệt OOM killer trong nhân với dịch vụ userspace như systemd-oomd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: swapping-oom-013
+    title: Điều tra sự kiện OOM bằng nhật ký và số liệu trước sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: page-cache
+  title: Page cache
+  childs:
+  - slug: page-cache-001
+    title: Vai trò của page cache trong đọc ghi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-002
+    title: Đường đọc khi cache hit và khi cache miss
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-003
+    title: Đọc trước bằng readahead và ảnh hưởng của truy cập tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-004
+    title: Ghi vào cache, đánh dấu trang bẩn và ghi trả nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-005
+    title: Phân biệt page cache với cache metadata của hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-006
+    title: Bộ nhớ đệm tệp và dữ liệu ánh xạ cùng chia sẻ trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-007
+    title: Thu hồi trang sạch và xử lý trang bẩn dưới áp lực bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-008
+    title: Dirty ratio, dirty bytes và ngưỡng ghi trả trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-009
+    title: Giới hạn tốc độ ghi của ứng dụng khi trang bẩn tích tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-010
+    title: Vì sao RAM dùng làm cache vẫn có thể phục vụ cấp phát mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-011
+    title: posix_fadvise và gợi ý kiểu truy cập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: page-cache-012
+    title: drop_caches trong thí nghiệm có kiểm soát và giới hạn của kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-limits
+  title: Giới hạn tài nguyên
+  childs:
+  - slug: resource-limits-001
+    title: Phân biệt dung lượng máy, giới hạn tiến trình và giới hạn nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-002
+    title: RLIMIT_AS, RLIMIT_DATA, RLIMIT_STACK và RLIMIT_MEMLOCK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-003
+    title: Giới hạn descriptor và RLIMIT_NOFILE trong ứng dụng I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-004
+    title: Mô hình phân cấp của cgroup v2 và giới hạn kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-005
+    title: Đọc memory.current, memory.stat và memory.events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-006
+    title: memory.low, memory.min, memory.high, memory.max và mục đích riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-007
+    title: Giới hạn swap bằng memory.swap.max
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-008
+    title: Page cache và bộ nhớ nhân trong hạch toán cgroup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-009
+    title: PSI và thời gian tác vụ bị đình trệ vì bộ nhớ hoặc I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-010
+    title: io.stat, io.max, io.weight và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-011
+    title: Phân biệt hãm tốc độ, áp lực bộ nhớ và OOM trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-012
+    title: Ngân sách RAM cho ứng dụng, runtime, bộ đệm và phần dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-fundamentals
+  title: Nền tảng I/O
+  childs:
+  - slug: io-fundamentals-001
+    title: I/O là gì và các thành phần tham gia một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-002
+    title: Thiết bị khối, thiết bị ký tự, tệp thường, pipe và socket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-003
+    title: Giao diện thống nhất của file descriptor và khác biệt ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-004
+    title: Từ lời gọi thư viện đến syscall, nhân và trình điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-005
+    title: Phân biệt đường điều khiển yêu cầu với đường truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-006
+    title: Thiết bị tốc độ thấp, tốc độ cao và vai trò của bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-007
+    title: Độ trễ phục vụ, thời gian xếp hàng và thời gian hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-008
+    title: Thông lượng, IOPS, kích thước yêu cầu và số yêu cầu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-009
+    title: Đọc ghi tuần tự và ngẫu nhiên theo đặc điểm tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-fundamentals-010
+    title: Hoàn tất syscall, hoàn tất thiết bị và lưu bền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: read-write-apis
+  title: API đọc ghi
+  childs:
+  - slug: read-write-apis-001
+    title: Mở, sử dụng và đóng descriptor qua open, read, write, close
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-002
+    title: File descriptor, open file description và offset dùng chung trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-003
+    title: dup, fork và ảnh hưởng đến vị trí đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-004
+    title: Đọc thiếu, ghi thiếu và vòng lặp xử lý đầy đủ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-005
+    title: EOF và phân biệt với lỗi đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-006
+    title: EINTR, EAGAIN và cách xử lý theo loại thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-007
+    title: pread, pwrite và đọc ghi theo offset tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-008
+    title: readv, writev và gom nhiều vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-009
+    title: lseek và giới hạn đối với các loại descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-010
+    title: O_APPEND, ghi nối tiếp và giới hạn bảo đảm nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-011
+    title: PIPE_BUF và tính nguyên tử khi nhiều bên cùng ghi pipe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: read-write-apis-012
+    title: Vòng đời descriptor, rò rỉ tài nguyên và đóng trong chương trình nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-buffering
+  title: Bộ đệm I/O
+  childs:
+  - slug: io-buffering-001
+    title: Phân biệt bộ đệm thư viện, bộ đệm ứng dụng và bộ đệm trong nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-002
+    title: Buffered I/O và đường đi qua page cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-003
+    title: Direct I/O với O_DIRECT và các ràng buộc theo hệ thống tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-004
+    title: Căn chỉnh địa chỉ bộ đệm, kích thước và offset khi dùng direct I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-005
+    title: Phân biệt direct I/O, synchronous I/O và asynchronous I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-006
+    title: Vì sao bỏ qua page cache không đồng nghĩa dữ liệu đã lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-007
+    title: Ảnh hưởng khi kết hợp buffered I/O, direct I/O và mmap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-008
+    title: Kích thước bộ đệm, số syscall và đánh đổi độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-009
+    title: Gom lô yêu cầu và giới hạn lượng dữ liệu chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-010
+    title: Sao chép giữa vùng người dùng và vùng nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-011
+    title: sendfile, splice, copy_file_range và các cách giảm sao chép trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-buffering-012
+    title: Giới hạn của khái niệm zero-copy theo từng đường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: devices-dma
+  title: Thiết bị và DMA
+  childs:
+  - slug: devices-dma-001
+    title: Vai trò của trình điều khiển trong vòng đời yêu cầu I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-002
+    title: Thanh ghi thiết bị và I/O ánh xạ bộ nhớ ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-003
+    title: Phân biệt MMIO với ánh xạ tệp của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-004
+    title: Thăm dò trạng thái và thông báo bằng ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-005
+    title: DMA và truyền dữ liệu giữa thiết bị với bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-006
+    title: Địa chỉ CPU, địa chỉ vật lý và địa chỉ DMA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-007
+    title: IOMMU trong dịch địa chỉ và cách ly truy cập thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-008
+    title: Bộ đệm DMA nhất quán và ánh xạ DMA theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-009
+    title: Ghim trang và bảo đảm vòng đời vùng nhớ đang truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-010
+    title: Phân tán, gom dữ liệu bằng scatter-gather DMA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-011
+    title: Quan hệ giữa cache CPU, rào cản bộ nhớ và dữ liệu DMA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devices-dma-012
+    title: Chi phí ngắt, gom ngắt và thăm dò khi tải cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: block-io
+  title: I/O khối
+  childs:
+  - slug: block-io-001
+    title: Đường đi yêu cầu từ hệ thống tệp đến tầng khối và thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-002
+    title: Sector logic, sector vật lý, block và căn chỉnh truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-003
+    title: HDD, SSD, NVMe và đặc điểm ảnh hưởng đến I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-004
+    title: Cấu trúc bio và request ở mức tổng quan Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-005
+    title: Hàng đợi phần mềm và hàng đợi phần cứng trong blk-mq
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-006
+    title: Gộp, chia nhỏ và sắp xếp yêu cầu đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-007
+    title: Queue depth và khai thác song song của thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-008
+    title: Bộ lập lịch mq-deadline, BFQ, Kyber và none khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-009
+    title: Đánh đổi giữa công bằng, thông lượng và độ trễ đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-010
+    title: Bộ đệm ghi trong thiết bị và bảo vệ khi mất nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-011
+    title: Discard, TRIM và ảnh hưởng đến hiệu năng SSD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: block-io-012
+    title: Quan sát khả năng thiết bị và cấu hình qua lsblk, sysfs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-models
+  title: Mô hình I/O
+  childs:
+  - slug: io-models-001
+    title: Blocking I/O và trạng thái chờ của luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-002
+    title: Non-blocking I/O và ý nghĩa thao tác chưa thể tiến hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-003
+    title: Synchronous I/O và asynchronous I/O theo cách hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-004
+    title: Sự khác nhau giữa sẵn sàng xử lý và đã hoàn tất thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-005
+    title: Vì sao non-blocking không tự động tạo I/O bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-006
+    title: Phạm vi tác dụng của O_NONBLOCK theo loại descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-007
+    title: Một luồng cho mỗi kết nối, nhóm luồng và vòng lặp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-008
+    title: Tác vụ chặn trong vòng lặp sự kiện và hậu quả độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-009
+    title: Backpressure khi bên nhận hoặc thiết bị xử lý không kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-010
+    title: Giới hạn yêu cầu đang xử lý để kiểm soát RAM và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-models-011
+    title: Hủy thao tác, timeout và vòng đời tài nguyên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-multiplexing
+  title: Ghép kênh I/O
+  childs:
+  - slug: io-multiplexing-001
+    title: Vì sao cần theo dõi nhiều descriptor trong một luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-002
+    title: select, tập descriptor và các giới hạn giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-003
+    title: poll và chi phí quét danh sách descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-004
+    title: 'epoll: đăng ký quan tâm và nhận danh sách sự kiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-005
+    title: Level-triggered và edge-triggered
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-006
+    title: Đọc hoặc ghi đến EAGAIN khi xử lý edge-triggered
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-007
+    title: EPOLLONESHOT và quản lý quyền xử lý giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-008
+    title: Sẵn sàng đọc, sẵn sàng ghi, lỗi và đóng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-009
+    title: Tránh vòng lặp bận khi luôn theo dõi khả năng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-010
+    title: Phân biệt khả năng dùng epoll cho socket, pipe và tệp thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-011
+    title: Kết hợp eventfd, timerfd, signalfd với vòng lặp sự kiện Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-multiplexing-012
+    title: kqueue và IOCP trong đối chiếu mô hình sự kiện giữa hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-io
+  title: I/O bất đồng bộ
+  childs:
+  - slug: asynchronous-io-001
+    title: Vòng đời nộp yêu cầu, xử lý và nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-002
+    title: Phân biệt POSIX AIO, Linux native AIO và io_uring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-003
+    title: Hàng đợi nộp yêu cầu và hàng đợi hoàn tất của io_uring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-004
+    title: SQE, CQE và định danh yêu cầu để đối chiếu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-005
+    title: Nộp nhiều yêu cầu và thu nhiều kết quả theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-006
+    title: Vòng đời bộ đệm, descriptor và dữ liệu gắn với yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-007
+    title: Kết quả lỗi, hoàn tất một phần và thứ tự hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-008
+    title: Liên kết yêu cầu, timeout và hủy yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-009
+    title: Đăng ký bộ đệm, đăng ký tệp và chi phí giữ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-010
+    title: SQPOLL, IOPOLL và đánh đổi giữa CPU với độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-011
+    title: Phân biệt xử lý bất đồng bộ với công việc được chuyển sang luồng trợ giúp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-012
+    title: Kiểm tra hỗ trợ theo nhân, thiết bị và chính sách bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-io-013
+    title: Giới hạn số yêu cầu đang xử lý và kích thước hàng đợi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-durability
+  title: Độ bền dữ liệu
+  childs:
+  - slug: data-durability-001
+    title: Phân biệt ghi thành công, quan sát được và tồn tại sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-002
+    title: fflush và phạm vi đẩy dữ liệu của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-003
+    title: fsync, fdatasync và dữ liệu, metadata cần đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-004
+    title: O_SYNC, O_DSYNC và hành vi ghi trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-005
+    title: sync, syncfs và phạm vi đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-006
+    title: Đồng bộ tệp được ánh xạ qua msync
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-007
+    title: Ghi tệp tạm, đồng bộ, đổi tên và đồng bộ thư mục trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-008
+    title: Quan hệ giữa nhật ký hệ thống tệp với độ bền dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-009
+    title: Flush thiết bị, FUA và bộ đệm có bảo vệ mất nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-010
+    title: Ghi rách, ranh giới nguyên tử và điều kiện bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-011
+    title: Xử lý lỗi ghi trả xuất hiện ở thao tác đồng bộ hoặc thao tác sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-durability-012
+    title: Kiểm thử khôi phục sau sự cố theo mô hình lỗi xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-measurement
+  title: Đo bộ nhớ
+  childs:
+  - slug: memory-measurement-001
+    title: Phân biệt bộ nhớ ảo, bộ nhớ thường trú và bộ nhớ được cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-002
+    title: RSS, PSS, USS và cách tính phần bộ nhớ chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-003
+    title: Đọc MemFree, MemAvailable, Cached, Dirty, Writeback trong /proc/meminfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-004
+    title: Đọc VmSize, VmRSS, VmSwap và giới hạn số liệu trong /proc/<pid>/status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-005
+    title: Phân tích ánh xạ chi tiết qua smaps và smaps_rollup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-006
+    title: free, top, ps, pmap và khác biệt cách tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-007
+    title: vmstat và các chỉ số lỗi trang, swap, tiến trình chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-008
+    title: Quan sát slab bằng slabtop và /proc/slabinfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-009
+    title: Kiểm tra phân mảnh vật lý bằng buddyinfo và pagetypeinfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-010
+    title: Quan sát trang lớn, NUMA và bộ nhớ bị khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-011
+    title: Đo cache miss, TLB miss, page fault bằng perf khi phần cứng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-measurement-012
+    title: Lấy mẫu theo thời gian và tránh cộng trùng bộ nhớ chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-measurement
+  title: Đo I/O
+  childs:
+  - slug: io-measurement-001
+    title: Phân biệt số byte ứng dụng yêu cầu với I/O thực đến thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-002
+    title: Đọc số liệu tiến trình từ /proc/<pid>/io
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-003
+    title: Đọc số liệu thiết bị từ /proc/diskstats và sysfs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-004
+    title: 'iostat: thông lượng, IOPS, await và độ dài hàng đợi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-005
+    title: Giới hạn diễn giải %util trên thiết bị có xử lý song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-006
+    title: pidstat -d, iotop và điều kiện quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-007
+    title: strace để quan sát syscall, thời gian chờ và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-008
+    title: perf, eBPF, bpftrace để theo dõi sự kiện I/O khi có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-009
+    title: Đo phân bố độ trễ và các phân vị p50, p95, p99
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-010
+    title: Quan hệ giữa thông lượng, độ trễ và số yêu cầu theo định luật Little
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-011
+    title: CPU iowait, tác vụ trạng thái D và giới hạn suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-measurement-012
+    title: Đối chiếu số liệu ứng dụng, tiến trình, cgroup và thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-diagnostics
+  title: Chẩn đoán bộ nhớ
+  childs:
+  - slug: memory-diagnostics-001
+    title: Quy trình xác định triệu chứng, phạm vi và thời điểm tăng bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-002
+    title: RAM trống thấp nhưng MemAvailable còn cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-003
+    title: RSS tăng vì chạm trang, cache ứng dụng hoặc rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-004
+    title: Bộ cấp phát giữ RAM sau khi giải phóng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-005
+    title: Tiến trình có không gian ảo lớn nhưng RSS nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-006
+    title: Major fault tăng và độ trễ truy cập tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-007
+    title: Swap hoạt động mạnh, thu hồi trực tiếp và thrashing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-008
+    title: Cấp phát thất bại dù máy vẫn còn bộ nhớ trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-009
+    title: Độ trễ do compaction, trang lớn hoặc truy cập NUMA từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-010
+    title: Phân biệt lỗi SIGSEGV, SIGBUS, OOM và lỗi cấp phát của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-011
+    title: Container bị OOM khi máy chủ chưa hết RAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-diagnostics-012
+    title: Lập giả thuyết và xác minh bằng nhiều nguồn số liệu độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: io-diagnostics
+  title: Chẩn đoán I/O
+  childs:
+  - slug: io-diagnostics-001
+    title: Quy trình lần theo đường dữ liệu từ ứng dụng đến thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-002
+    title: Ứng dụng đọc nhiều nhưng thiết bị đọc ít do cache hit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-003
+    title: Ghi nhanh lúc đầu rồi chậm khi trang bẩn đạt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-004
+    title: Độ trễ cao do hàng đợi, thiết bị hay thao tác đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-005
+    title: Thông lượng thấp vì quá nhiều yêu cầu nhỏ hoặc syscall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-006
+    title: Độ trễ đuôi tăng khi trộn đọc, ghi và tải nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-007
+    title: CPU cao do sao chép, xử lý sự kiện hoặc thăm dò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-008
+    title: Tắc nghẽn do descriptor, giới hạn cgroup hoặc thiếu bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-009
+    title: Ứng dụng treo ở I/O và diễn giải trạng thái chờ trong nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-010
+    title: Vòng lặp sự kiện bận hoặc bỏ sót sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-011
+    title: Phân biệt ENOSPC, EDQUOT, EIO và lỗi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: io-diagnostics-012
+    title: Phân biệt nghẽn I/O cục bộ với nghẽn trên lưu trữ mạng hoặc máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtualization-environments
+  title: Môi trường ảo hóa
+  childs:
+  - slug: virtualization-environments-001
+    title: Phân biệt bộ nhớ ứng dụng, hệ điều hành khách và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-002
+    title: Dịch địa chỉ hai tầng với EPT, NPT ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-003
+    title: Overcommit bộ nhớ trên máy chủ ảo hóa và giới hạn tài nguyên thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-004
+    title: Ballooning và phối hợp thu hồi bộ nhớ giữa khách với máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-005
+    title: Swap trong máy khách, swap trên máy chủ và nguy cơ đình trệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-006
+    title: Hợp nhất trang giống nhau bằng KSM và các đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-007
+    title: NUMA, trang lớn và vị trí bộ nhớ của máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-008
+    title: Đường I/O qua thiết bị ảo, virtio và lưu trữ phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-009
+    title: Bộ đệm nhiều tầng trong máy khách, máy chủ và dịch vụ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtualization-environments-010
+    title: Đối chiếu số liệu khách, máy chủ và giới hạn lưu trữ dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: windows-comparison
+  title: Đối chiếu Windows
+  childs:
+  - slug: windows-comparison-001
+    title: Bộ nhớ ảo, trạng thái reserve, commit và trang thường trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-002
+    title: VirtualAlloc, VirtualFree và vòng đời vùng nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-003
+    title: Working set, private bytes, commit charge và giới hạn cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-004
+    title: Soft fault, hard fault và quan hệ với đọc dữ liệu từ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-005
+    title: Page file, danh sách standby và bộ nhớ đệm hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-006
+    title: Ánh xạ tệp qua CreateFileMapping và MapViewOfFile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-007
+    title: Bảo vệ vùng nhớ bằng VirtualProtect và trang bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-008
+    title: I/O đồng bộ và overlapped I/O với ReadFile, WriteFile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-009
+    title: IOCP và mô hình thông báo hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-010
+    title: Quản lý OVERLAPPED, bộ đệm và thao tác hủy I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-011
+    title: Bộ đệm tệp, FILE_FLAG_NO_BUFFERING và FILE_FLAG_WRITE_THROUGH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-012
+    title: FlushFileBuffers và yêu cầu lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-013
+    title: Quan sát bằng Task Manager, Resource Monitor, Performance Monitor, RAMMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-comparison-014
+    title: Đối chiếu thuật ngữ Windows và Linux khi đọc báo cáo bộ nhớ, I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-implications
+  title: Liên hệ Java
+  childs:
+  - slug: java-implications-001
+    title: Phân biệt Java heap với toàn bộ bộ nhớ của tiến trình JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-002
+    title: Metaspace, code cache, stack luồng và bộ nhớ native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-003
+    title: -Xmx và ngân sách RAM ngoài heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-004
+    title: Cấp phát đối tượng, chạm trang và số liệu RSS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-005
+    title: ByteBuffer trực tiếp và vòng đời bộ nhớ ngoài heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-006
+    title: MappedByteBuffer và ánh xạ tệp của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-007
+    title: Bộ đệm Java, page cache và số liệu I/O thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-008
+    title: FileChannel và các cách giảm sao chép dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-009
+    title: Selector và cơ chế ghép kênh của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-010
+    title: AsynchronousFileChannel và giới hạn suy luận từ tên API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-011
+    title: FileChannel.force và yêu cầu lưu bền theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-012
+    title: Native Memory Tracking, /proc và đối chiếu số liệu JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-013
+    title: Phân biệt OutOfMemoryError của JVM với OOM kill của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-implications-014
+    title: Giới hạn container và khoảng dự phòng cho bộ nhớ native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Lập bản đồ đường đi bộ nhớ và I/O cho một chương trình đọc ghi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Quan sát dự trữ vùng địa chỉ, cấp phát và chạm từng trang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Đo copy-on-write trước và sau khi tiến trình ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: So sánh truy cập tuần tự, ngẫu nhiên và theo bước nhảy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Đối chiếu read, mmap và direct I/O trên cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: So sánh blocking, non-blocking và xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Đo ảnh hưởng kích thước yêu cầu và queue depth bằng fio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Tách phép đo cache nóng, cache lạnh và lượng dữ liệu lớn hơn RAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Giới hạn vùng thử nghiệm, dung lượng và tải để bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Tái hiện thu hồi, swap, OOM trong môi trường có giới hạn riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: Đo chi phí fsync và so sánh ghi từng lần với ghi theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-012
+    title: Kiểm tra độ bền bằng quy trình gây sự cố và khôi phục có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-013
+    title: So sánh chỉ số ứng dụng Java với bộ nhớ và I/O của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-014
+    title: Ghi nhận phiên bản hệ điều hành, phần cứng, cấu hình và sai số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-015
+    title: Thiết kế thay đổi từ giả thuyết, đo lại và quyết định giữ hay hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

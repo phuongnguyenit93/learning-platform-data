@@ -1,0 +1,282 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Cơ sở dữ liệu phân tán là gì: nút, cụm, bản sao và phân mảnh'
+  - 'Vì sao cần sao chép và phân tán dữ liệu: độ sẵn sàng, quy mô và độ trễ'
+  - Phân biệt sao chép (replication), phân vùng (partitioning) và phân mảnh (sharding)
+  - Phân biệt hệ phân tán, cơ sở dữ liệu phân tán và nhiều cơ sở dữ liệu độc lập
+  - Đường đi của một yêu cầu đọc và ghi qua ứng dụng, bộ định tuyến và các nút
+  - Mối liên hệ giữa độ nhất quán, độ bền, độ sẵn sàng và hiệu năng
+  - 'Bản sao không thay thế sao lưu: các giới hạn cần hiểu từ đầu'
+  - Kiến thức nền và lộ trình học từ một nút đến nhiều nút, nhiều vùng
+- level1: Mô hình lỗi
+  level2:
+  - Lỗi dừng, lỗi khởi động lại và dữ liệu còn lại sau sự cố
+  - 'Phân hoạch mạng: các nút vẫn chạy nhưng không liên lạc được'
+  - 'Độ trễ bất định, mất gói và nút chậm: vì sao hết thời gian chờ không chứng minh nút đã chết'
+  - Lỗi từng phần và tình huống ghi đã thành công nhưng phản hồi bị mất
+  - Thứ tự nhân quả, đồng thời và giới hạn của đồng hồ vật lý
+  - 'Đồng hồ logic Lamport, đồng hồ vector và dấu thời gian lai: mục đích và giới hạn'
+  - 'Miền lỗi: tiến trình, máy chủ, ổ đĩa, vùng sẵn sàng và vùng địa lý'
+  - Các bất biến dữ liệu cần bảo vệ khi lỗi và khôi phục xảy ra
+- level1: Kiến trúc bản sao
+  level2:
+  - Vai trò nút chủ (leader), nút theo sau (follower) và nút bỏ phiếu
+  - So sánh kiến trúc một nút chủ, nhiều nút chủ và không nút chủ
+  - 'Sao chép đồng bộ, bất đồng bộ và bán đồng bộ: thời điểm xác nhận ghi'
+  - Phân biệt nút chứa dữ liệu, nút chỉ đọc, nút quan sát và nút phân xử
+  - Số lượng bản sao và cách đặt bản sao theo miền lỗi
+  - Sao chép theo chuỗi, theo tầng và các đánh đổi vận hành
+  - Vai trò của bộ định tuyến, bộ cân bằng tải và cơ chế khám phá cụm
+  - Tách biệt cấu hình sao chép với cơ chế bầu chọn và bảo đảm nhất quán
+- level1: Nhật ký sao chép
+  level2:
+  - 'Sao chép vật lý và sao chép logic: đơn vị dữ liệu và mức phụ thuộc hệ quản trị'
+  - 'Sao chép theo câu lệnh, theo hàng và theo nhật ký: đặc điểm và giới hạn'
+  - 'WAL, binlog và replication log: quan hệ với nhật ký giao dịch'
+  - Ranh giới giao dịch, thứ tự bản ghi và điều kiện áp dụng nguyên tử
+  - 'Vị trí nhật ký, số thứ tự và mã giao dịch: theo dõi tiến độ sao chép'
+  - Luồng gửi, nhận, lưu bền và áp dụng nhật ký trên bản sao
+  - Gửi lại, phát lại và chống áp dụng trùng sau khi kết nối bị gián đoạn
+  - Thu thập thay đổi dữ liệu (CDC) và ranh giới với sao chép nội bộ
+  - Thay đổi lược đồ, dữ liệu lớn và tính tương thích của luồng sao chép
+- level1: Khởi tạo bản sao
+  level2:
+  - Tạo bản sao đầu tiên từ ảnh chụp dữ liệu (snapshot) hoặc bản sao lưu nền
+  - Giữ tính nhất quán của ảnh chụp khi hệ thống vẫn tiếp nhận ghi
+  - Chuyển từ sao chép dữ liệu nền sang phát lại nhật ký liên tục
+  - Bắt kịp dữ liệu, xác định vị trí an toàn và điều kiện đưa bản sao vào phục vụ
+  - Giữ nhật ký đủ lâu cho bản sao mới hoặc bản sao bị gián đoạn
+  - Kiểm soát băng thông, tài nguyên và áp lực ngược trong quá trình đồng bộ
+  - Phát hiện bản sao lệch dữ liệu bằng kiểm tra đối chiếu và checksum
+  - Khởi tạo lại bản sao khi thiếu nhật ký hoặc không thể tiếp tục đồng bộ
+- level1: Một nút chủ
+  level2:
+  - Luồng ghi qua nút chủ và các cách phục vụ yêu cầu đọc
+  - Thời điểm commit, lưu bền và xác nhận cho ứng dụng
+  - 'Độ trễ sao chép: nguyên nhân ở khâu truyền, lưu trữ và áp dụng'
+  - Mở rộng đọc bằng bản sao và giới hạn mở rộng ghi của một nút chủ
+  - Dữ liệu vừa ghi chưa xuất hiện khi đọc từ bản sao
+  - Đọc thấy dữ liệu cũ hơn và thứ tự thay đổi không nhất quán giữa các bản sao
+  - Định tuyến đọc về nút chủ, chờ bản sao bắt kịp và bám phiên đọc
+  - 'Mất nút chủ trước hoặc sau xác nhận ghi: phân tích khả năng mất dữ liệu'
+  - Đánh đổi giữa độ trễ ghi, độ bền và khả năng tiếp tục phục vụ
+- level1: Nhiều nút chủ
+  level2:
+  - Khi nào cần nhận ghi tại nhiều nút và nhiều địa điểm
+  - Sao chép hai chiều, theo vòng và kết nối nhiều nút chủ
+  - Xung đột ghi đồng thời, xóa–sửa và vi phạm ràng buộc duy nhất
+  - Phát hiện xung đột bằng phiên bản và thông tin nhân quả
+  - Quy tắc ghi sau thắng (LWW) và rủi ro khi dùng thời gian vật lý
+  - Hợp nhất theo nghiệp vụ, lưu nhiều phiên bản và phân xử xung đột
+  - 'CRDT: ý tưởng hội tụ, các phép hợp nhất phù hợp và giới hạn'
+  - Phân quyền ghi theo dữ liệu hoặc địa điểm để giảm xung đột
+  - Đồng bộ lại sau mất kết nối và kiểm chứng kết quả hội tụ
+- level1: Không nút chủ
+  level2:
+  - Mô hình gửi đọc và ghi đến nhiều bản sao qua nút điều phối
+  - Ý nghĩa của N, R, W và điều kiện giao nhau giữa tập đọc và tập ghi
+  - Vì sao R + W > N không tự bảo đảm tính tuyến tính trong mọi hệ thống
+  - 'Quorum chặt và quorum linh hoạt (sloppy quorum): khác biệt về tập bản sao'
+  - 'Hinted handoff: chuyển tạm bản ghi khi một bản sao không sẵn sàng'
+  - 'Read repair: phát hiện và sửa bản sao cũ trong quá trình đọc'
+  - 'Anti-entropy và cây Merkle: đối chiếu dữ liệu ngoài luồng đọc'
+  - Xử lý nhiều phiên bản đồng thời và giao trách nhiệm hợp nhất cho ứng dụng
+  - Tombstone, thu gom dữ liệu xóa và nguy cơ dữ liệu đã xóa xuất hiện lại
+- level1: Mô hình nhất quán
+  level2:
+  - 'Nhất quán trong ACID và nhất quán bản sao: hai ý nghĩa cần phân biệt'
+  - 'Tính tuyến tính (linearizability): một lịch sử chung tôn trọng thứ tự thời gian thực'
+  - Nhất quán tuần tự (sequential consistency) và khác biệt với tính tuyến tính
+  - Nhất quán nhân quả (causal consistency) và các phụ thuộc giữa thao tác
+  - 'Nhất quán cuối cùng (eventual consistency): điều kiện hội tụ và giới hạn'
+  - Đọc được dữ liệu vừa ghi (read-your-writes) trong một phiên làm việc
+  - 'Đọc đơn điệu, ghi đơn điệu và ghi theo sau đọc: các bảo đảm theo phiên'
+  - Đọc tiền tố nhất quán và quan sát các thay đổi theo đúng thứ tự
+  - Giới hạn độ cũ theo thời gian hoặc phiên bản (bounded staleness)
+  - Phân biệt tính tuyến tính, tính tuần tự hóa giao dịch và tuần tự hóa nghiêm ngặt
+  - Lựa chọn bảo đảm đọc và ghi theo bất biến nghiệp vụ
+- level1: CAP và PACELC
+  level2:
+  - 'CAP xét điều gì: nhất quán tuyến tính, tính sẵn sàng và phân hoạch mạng'
+  - Phân tích hành vi khi mạng bị chia cắt thay vì gắn nhãn hệ thống tuyệt đối
+  - Lựa chọn từ chối yêu cầu hoặc chấp nhận dữ liệu có thể cũ khi phân hoạch
+  - Vì sao không thể bỏ qua khả năng phân hoạch trong một hệ nhiều nút
+  - 'PACELC: đánh đổi độ trễ và nhất quán khi mạng hoạt động bình thường'
+  - Thay đổi mức nhất quán theo thao tác và theo loại dữ liệu
+  - Diễn đạt cam kết với ứng dụng bằng kịch bản lỗi cụ thể
+- level1: Đồng thuận
+  level2:
+  - Đồng thuận giải quyết bài toán nào trong nhật ký và siêu dữ liệu của cụm
+  - Tính an toàn, tính tiến triển và các giả định về mạng, lỗi nút
+  - Đa số phiếu và quan hệ giữa số nút bỏ phiếu với khả năng chịu lỗi
+  - 'Raft: nhiệm kỳ, bầu nút chủ và sao chép nhật ký ở mức nguyên lý'
+  - Điểm commit, điều kiện xác nhận và bảo vệ các bản ghi đã cam kết
+  - 'Paxos và nhóm giao thức đồng thuận: ý tưởng chung và phạm vi tìm hiểu'
+  - Đọc nhất quán qua nút chủ, hàng rào đọc và điều kiện sử dụng lease
+  - Thay đổi thành viên cụm mà vẫn duy trì sự giao nhau của các đa số
+  - 'Giới hạn của đồng thuận: không tự giải quyết giao dịch nhiều phân mảnh'
+- level1: Chuyển nút chủ
+  level2:
+  - Phân biệt chuyển vai trò có kế hoạch (switchover) và chuyển khi lỗi (failover)
+  - Phát hiện lỗi bằng heartbeat, thời gian chờ và tín hiệu giám sát
+  - Chọn ứng viên theo tiến độ nhật ký, độ bền và điều kiện đủ tư cách
+  - 'Split-brain: hai nút cùng nhận ghi và hậu quả đối với dữ liệu'
+  - 'Fencing và mã nhiệm kỳ: ngăn nút chủ cũ tiếp tục ghi'
+  - Quy trình nâng nút mới, cập nhật định tuyến và nối lại ứng dụng
+  - Đối chiếu nhật ký phân kỳ khi nút chủ cũ quay lại
+  - 'Chuyển vai trò thủ công và tự động: quyền điều khiển và điều kiện dừng'
+  - Đo thời gian khôi phục và xác minh dữ liệu sau chuyển nút chủ
+- level1: Phân mảnh dữ liệu
+  level2:
+  - 'Phân vùng trong một máy và phân mảnh trên nhiều nút: ranh giới triển khai'
+  - Phân mảnh ngang, phân chia theo chức năng và kết hợp nhiều chiến lược
+  - 'Phân mảnh theo khoảng: truy vấn theo dải và điểm nóng ở biên'
+  - 'Phân mảnh theo hàm băm: phân phối tải và hạn chế truy vấn theo dải'
+  - Băm nhất quán, nút ảo và cách giảm dữ liệu phải di chuyển
+  - Phân mảnh theo thư mục và vai trò của bảng ánh xạ
+  - Chọn khóa phân mảnh theo lực lượng giá trị, độ lệch và mẫu truy cập
+  - 'Khóa tăng dần, khách hàng lớn và dữ liệu nóng: các bẫy thường gặp'
+  - Kết hợp bản sao với phân mảnh và tách hai hệ số cấu hình
+  - Đặt dữ liệu liên quan cùng phân mảnh và cân nhắc khả năng tăng trưởng
+- level1: Định tuyến dữ liệu
+  level2:
+  - Định tuyến từ ứng dụng, qua proxy hoặc qua nút điều phối
+  - Siêu dữ liệu cụm, bản đồ phân mảnh và bộ nhớ đệm định tuyến
+  - Phát hiện bản đồ cũ, chuyển hướng yêu cầu và tránh vòng lặp thử lại
+  - Tách, gộp và chuyển phân mảnh khi quy mô dữ liệu thay đổi
+  - 'Di chuyển dữ liệu trực tuyến: sao chép nền, bắt kịp thay đổi và chuyển quyền'
+  - Tái cân bằng theo dung lượng, lưu lượng và giới hạn tài nguyên
+  - Thay đổi khóa phân mảnh và tái phân mảnh dữ liệu hiện có
+  - Xử lý nút rời cụm, nút mới gia nhập và tác vụ chuyển dữ liệu bị gián đoạn
+  - Bảo vệ tính đúng đắn trong thời gian quyền sở hữu phân mảnh thay đổi
+- level1: Mô hình dữ liệu
+  level2:
+  - Thiết kế dữ liệu từ mẫu đọc, mẫu ghi và ranh giới giao dịch
+  - Chọn khóa chính, khóa duy nhất và phạm vi duy nhất trên nhiều phân mảnh
+  - 'Sinh ID phân tán: UUID, bộ cấp phát số và ID dựa trên thời gian'
+  - 'Chỉ mục cục bộ và chỉ mục toàn cục: chi phí cập nhật và định tuyến'
+  - Phi chuẩn hóa, nhân bản dữ liệu tham chiếu và chi phí đồng bộ
+  - Quan hệ, khóa ngoại và các ràng buộc vượt ranh giới phân mảnh
+  - Phân tách dữ liệu nhiều khách hàng và xử lý khách hàng có tải vượt trội
+  - Thay đổi mô hình dữ liệu mà vẫn giữ khả năng đọc, ghi trong giai đoạn chuyển tiếp
+- level1: Truy vấn phân tán
+  level2:
+  - Truy vấn một phân mảnh và truy vấn phát tán đến nhiều phân mảnh
+  - Cắt tỉa phân mảnh và đẩy điều kiện lọc xuống nơi lưu dữ liệu
+  - Tổng hợp, sắp xếp và giới hạn kết quả trên nhiều nút
+  - Phép nối cùng phân mảnh, truyền bảng nhỏ và phân phối lại dữ liệu
+  - Phân trang, thứ tự ổn định và ảnh hưởng của dữ liệu thay đổi đồng thời
+  - Tính nhất quán của ảnh chụp khi truy vấn chạm nhiều bản sao hoặc phân mảnh
+  - Nút chậm, dữ liệu lệch và độ trễ đuôi của truy vấn phân tán
+  - Đọc kế hoạch thực thi và đánh giá chi phí mạng, bộ nhớ, lưu trữ
+- level1: Giao dịch phân tán
+  level2:
+  - Ranh giới giao dịch một nút, một phân mảnh và nhiều phân mảnh
+  - MVCC phân tán, ảnh chụp đọc và kiểm soát xung đột
+  - 'Cam kết hai pha (2PC): chuẩn bị, quyết định và kết thúc giao dịch'
+  - Sự cố của bộ điều phối hoặc bên tham gia và trạng thái chưa xác định
+  - Nhật ký quyết định, phục hồi giao dịch và nguy cơ giữ khóa kéo dài
+  - Phân biệt đồng thuận nhật ký với cam kết nguyên tử của giao dịch
+  - Khóa phân tán, deadlock và giới hạn của cơ chế hết hạn khóa
+  - Phát hiện xung đột, hủy và thử lại giao dịch theo cách an toàn
+  - 'Saga và thao tác bù: phạm vi thay thế giao dịch nguyên tử'
+  - Transactional outbox, CDC và xử lý lặp an toàn khi phát sự kiện
+- level1: Nhiều vùng địa lý
+  level2:
+  - Phân biệt vùng sẵn sàng, vùng địa lý và trung tâm dữ liệu
+  - Bố trí bản sao để chịu lỗi vùng và tác động đến độ trễ ghi
+  - Kiến trúc một vùng ghi và nhiều vùng đọc
+  - Kiến trúc nhiều vùng ghi và phân quyền sở hữu dữ liệu
+  - Gắn phiên người dùng với vùng và bảo đảm đọc dữ liệu vừa ghi
+  - Mất kết nối liên vùng, mất cả vùng và điều kiện chuyển lưu lượng
+  - Vị trí lưu dữ liệu theo địa lý và ràng buộc cư trú dữ liệu
+  - Chi phí truyền dữ liệu, khôi phục lưu lượng và kiểm thử kịch bản liên vùng
+- level1: Độ bền và phục hồi
+  level2:
+  - Định nghĩa mục tiêu mất dữ liệu (RPO) và thời gian phục hồi (RTO)
+  - 'Sao chép, sao lưu và lưu nhật ký: các lớp bảo vệ bổ sung cho nhau'
+  - Khôi phục đến thời điểm mong muốn (PITR) và ranh giới nhật ký cần giữ
+  - 'Bản sao chậm có chủ đích: tác dụng và giới hạn trước lỗi thao tác'
+  - Ảnh chụp và sao lưu nhất quán khi dữ liệu trải trên nhiều phân mảnh
+  - Phát hiện hỏng dữ liệu, lệch dữ liệu và lựa chọn nguồn phục hồi đáng tin cậy
+  - Khôi phục cụm, dựng lại bản sao và kiểm tra bất biến nghiệp vụ
+  - Phục hồi sau thảm họa và diễn tập chuyển sang hạ tầng dự phòng
+  - Chuyển hệ thống trở về hạ tầng chính và đối soát dữ liệu phát sinh
+- level1: Tích hợp ứng dụng
+  level2:
+  - Hợp đồng đọc và ghi giữa ứng dụng với cơ sở dữ liệu phân tán
+  - Phân tách kết nối ghi, kết nối đọc và các mức nhất quán cần thiết
+  - Ghim kết nối theo giao dịch và tránh đọc nhầm bản sao sau khi ghi
+  - Thời gian chờ, ngân sách yêu cầu và lan truyền hủy tác vụ
+  - Thử lại có giới hạn, giãn khoảng chờ và tránh bão kết nối
+  - Idempotency key và xử lý kết quả ghi không rõ thành công hay thất bại
+  - JDBC, pool kết nối và tái lập kết nối khi nút chủ thay đổi
+  - 'Spring Transaction: kiểm chứng ý nghĩa readOnly và cách định tuyến nguồn dữ liệu'
+  - Bộ nhớ đệm, vô hiệu hóa dữ liệu cũ và giới hạn của nhất quán xuyên hệ thống
+  - Kiểm thử hợp đồng đọc–ghi của ứng dụng dưới các kịch bản lỗi
+- level1: Quan sát hệ thống
+  level2:
+  - Chỉ số độ trễ sao chép theo thời gian, dung lượng và vị trí nhật ký
+  - Tách độ trễ truyền nhật ký khỏi độ trễ áp dụng nhật ký
+  - Theo dõi quorum, nhiệm kỳ, bầu chọn và thay đổi vai trò nút
+  - Theo dõi phân mảnh nóng, dữ liệu lệch và tiến độ tái cân bằng
+  - Đo độ trễ trung vị, độ trễ đuôi, thông lượng và tỷ lệ lỗi
+  - Tương quan log, chỉ số và dấu vết yêu cầu giữa ứng dụng với cụm
+  - Cảnh báo bản sao tụt hậu, mất đa số và tăng nhật ký bất thường
+  - Phân biệt lỗi mạng, thiếu tài nguyên và chậm lưu trữ từ bằng chứng
+  - Xây dựng SLI, SLO và bảng theo dõi theo bảo đảm người dùng nhận được
+- level1: Vận hành an toàn
+  level2:
+  - Lập kế hoạch dung lượng cho dữ liệu, bản sao, nhật ký và tăng trưởng
+  - Thêm, rút và thay nút theo trình tự bảo vệ đa số và bản sao dữ liệu
+  - Nâng cấp cuốn chiếu và kiểm tra tương thích phiên bản
+  - Thay đổi cấu hình sao chép và mức xác nhận ghi có kiểm soát
+  - Triển khai lược đồ theo mở rộng–thu hẹp khi các bản sao chưa đồng nhất
+  - Giới hạn tác vụ nền, phục hồi và tái cân bằng để bảo vệ tải chính
+  - Kiểm soát giao dịch dài, độ trễ áp dụng và lượng nhật ký phải giữ
+  - Runbook xử lý mất nút, mất đa số, lệch dữ liệu và đầy ổ đĩa
+  - Điều kiện tạm dừng, quay lui và xác minh sau mỗi thay đổi vận hành
+- level1: Bảo mật
+  level2:
+  - Xác thực và phân quyền giữa các nút, ứng dụng và bộ điều khiển cụm
+  - Mã hóa kết nối sao chép và kiểm tra danh tính nút
+  - Phân tách mạng, cổng quản trị và quyền truy cập nhật ký
+  - Quản lý, luân chuyển chứng thư và thông tin bí mật khi cụm đang chạy
+  - Quyền tối thiểu cho sao chép, CDC, sao lưu và phục hồi
+  - Dữ liệu nhạy cảm trong bản sao, nhật ký, ảnh chụp và môi trường thử nghiệm
+  - Kiểm toán thao tác đổi vai trò, đổi cấu hình và truy cập dữ liệu
+- level1: Hệ quản trị tiêu biểu
+  level2:
+  - Khung đối chiếu hệ quản trị theo mô hình sao chép, phân mảnh và nhất quán
+  - 'PostgreSQL: sao chép vật lý, sao chép logic và vận hành bản sao'
+  - 'MySQL: sao chép theo binlog, GTID và nhóm sao chép'
+  - 'MongoDB: replica set, sharding và mức bảo đảm đọc–ghi'
+  - 'Cassandra: phân phối dữ liệu, quorum và sửa chữa bản sao'
+  - 'Redis: sao chép, Sentinel, Cluster và giới hạn độ bền cần kiểm chứng'
+  - 'Cơ sở dữ liệu SQL phân tán: nhóm đồng thuận, phân mảnh và giao dịch'
+  - Phân biệt tính năng của hệ quản trị với công cụ điều phối và dịch vụ quản lý
+  - Kiểm chứng bảo đảm theo phiên bản, cấu hình và tài liệu chính thức
+- level1: Thực hành kiểm chứng
+  level2:
+  - Dựng cụm thử nghiệm có thể tái tạo và xác định bất biến cần kiểm tra
+  - Theo dõi đường đi của một bản ghi từ nút nhận ghi đến các bản sao
+  - Tạo độ trễ sao chép và kiểm chứng đọc sau ghi, đọc đơn điệu
+  - Tắt nút chủ ở các thời điểm khác nhau trong quá trình xác nhận ghi
+  - Mô phỏng phân hoạch mạng và kiểm tra khả năng ngăn split-brain
+  - Tạo ghi đồng thời để quan sát xung đột và kết quả hợp nhất
+  - Tạo dữ liệu lệch, phân mảnh nóng và đo tác động của việc đổi khóa
+  - Thêm nút, tái cân bằng và kiểm tra tính đúng đắn khi dữ liệu di chuyển
+  - Làm gián đoạn giao dịch nhiều phân mảnh và theo dõi phục hồi quyết định
+  - Khôi phục từ sao lưu hoặc đến một thời điểm rồi đối chiếu dữ liệu
+  - Benchmark tải đọc–ghi và tổng hợp bằng chứng trước, trong, sau sự cố
+- level1: Thiết kế kiến trúc
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành bất biến, SLO, RPO và RTO
+  - Lựa chọn sao chép hay phân mảnh theo nút thắt thực tế
+  - Thiết kế hệ thống nhiều đọc với yêu cầu dữ liệu vừa ghi phải hiển thị
+  - Thiết kế dữ liệu đơn hàng, tồn kho và thanh toán theo ranh giới nhất quán
+  - Thiết kế hệ thống nhiều khách hàng với phân bố tải không đồng đều
+  - Thiết kế dịch vụ nhiều vùng và hoạt động khi mất kết nối
+  - Lập ma trận đánh đổi về tính đúng đắn, độ trễ, độ sẵn sàng và chi phí
+  - Ghi quyết định kiến trúc, giới hạn bảo đảm và kế hoạch kiểm chứng trước triển khai

@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "DEVOPS_INFRASTRUCTURE_MANAGEMENT_INFRASTRUCTURE_AS_CODE_TERRAFORM"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Thực hành quản lý hạ tầng bằng Terraform và HCL, từ provider, resource, module đến quy trình plan/apply và đồ thị phụ thuộc. Hiểu cách bảo vệ state, dùng backend và khóa, phát hiện drift, kiểm thử thay đổi và tích hợp CI/CD để triển khai hạ tầng có kiểm soát."
+  }
+}

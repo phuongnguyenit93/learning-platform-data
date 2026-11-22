@@ -1,0 +1,338 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Liquibase là gì và bài toán quản lý thay đổi lược đồ
+  - Vai trò của Liquibase trong vòng đời ứng dụng và cơ sở dữ liệu
+  - Phân biệt migration, đồng bộ lược đồ ORM và chạy SQL thủ công
+  - Các khái niệm changelog, changeset, change type và trạng thái thực thi
+  - Quan hệ giữa mã nguồn, changelog và từng môi trường triển khai
+  - Phạm vi sử dụng, giới hạn và lựa chọn công cụ phù hợp
+  - Cách tiếp cận tài liệu theo phiên bản, hệ quản trị và giấy phép
+- level1: Mô hình thực thi
+  level2:
+  - Luồng xử lý từ đọc changelog đến ghi nhận thay đổi
+  - Vai trò và cấu trúc bảng DATABASECHANGELOG
+  - Vai trò và cơ chế phối hợp của DATABASECHANGELOGLOCK
+  - Cách xác định changeset đã chạy và changeset đang chờ
+  - Thứ tự khai báo, thứ tự thực thi và phụ thuộc giữa thay đổi
+  - Checksum trong quá trình đối chiếu changeset
+  - Phân biệt trạng thái triển khai với cấu trúc cơ sở dữ liệu thực tế
+  - Ranh giới trách nhiệm giữa Liquibase, JDBC và hệ quản trị
+- level1: Cài đặt
+  level2:
+  - Chuẩn bị Java, Liquibase CLI và trình điều khiển JDBC
+  - Cài đặt CLI và kiểm tra phiên bản đang sử dụng
+  - Tạo dự án và cấu trúc thư mục migration tối thiểu
+  - Chạy Liquibase với Docker và gắn thư mục changelog
+  - Sử dụng Liquibase qua Maven và Gradle
+  - Chuẩn bị cơ sở dữ liệu thực hành bằng Docker Compose
+  - Thiết lập kết nối đầu tiên và chạy một changeset mẫu
+  - Quản lý phiên bản công cụ, JDBC và các thư viện mở rộng
+- level1: Cấu hình
+  level2:
+  - Cấu hình kết nối JDBC và chọn cơ sở dữ liệu đích
+  - Vai trò của liquibase.properties và tham số dòng lệnh
+  - Cấu hình qua biến môi trường và cơ chế ưu tiên giá trị
+  - Xác định changelog gốc, classpath và search path
+  - Phân biệt catalog, schema mặc định và schema lưu bảng theo dõi
+  - Đặt tên và vị trí các bảng quản lý của Liquibase
+  - Cấu hình kết nối bảo mật và tham chiếu thông tin bí mật
+  - Tách cấu hình phát triển, kiểm thử và production
+  - Kiểm tra cấu hình hiệu lực trước khi thực thi
+- level1: Changelog
+  level2:
+  - Vai trò của changelog gốc và cách tổ chức cây tệp
+  - Chia changelog theo phiên bản phát hành, miền nghiệp vụ hoặc thành phần
+  - Khai báo include và kiểm soát thứ tự tệp được nạp
+  - Sử dụng includeAll và kiểm soát thứ tự phụ thuộc
+  - Đường dẫn tương đối, tài nguyên classpath và khả năng đóng gói
+  - Quản lý logicalFilePath khi di chuyển hoặc đổi tên tệp
+  - Quy ước tên tệp và duy trì cấu trúc dễ kiểm tra
+  - Tránh tham chiếu vòng, nạp trùng và phụ thuộc ngầm
+- level1: Changeset
+  level2:
+  - Cấu trúc changeset và cách đặt id, author
+  - Bộ định danh changeset và vai trò của đường dẫn
+  - Chọn độ lớn changeset và nguyên tắc mỗi thay đổi có mục đích rõ ràng
+  - Changeset bất biến sau khi đã được triển khai
+  - Điều khiển thực thi lặp bằng runAlways
+  - Cập nhật đối tượng có thể thay thế bằng runOnChange
+  - Phối hợp runAlways, runOnChange và checksum
+  - Thuộc tính runInTransaction và phạm vi kiểm soát giao dịch
+  - Comments và siêu dữ liệu phục vụ truy vết thay đổi
+- level1: Định dạng
+  level2:
+  - Viết changelog XML và khai báo namespace, schema
+  - Viết changelog YAML và tránh lỗi kiểu dữ liệu, thụt dòng
+  - Viết changelog JSON và kiểm tra cấu trúc
+  - Viết formatted SQL với changeset và chỉ thị Liquibase
+  - Đối chiếu khả năng biểu đạt giữa XML, YAML, JSON và formatted SQL
+  - Phân biệt SQL thông thường với formatted SQL
+  - Phối hợp nhiều định dạng trong một dự án
+  - Kiểm tra mức hỗ trợ cú pháp theo phiên bản và loại changelog
+- level1: Tham số hóa
+  level2:
+  - Khai báo và sử dụng changelog properties
+  - Thay thế thuộc tính trong tên đối tượng và giá trị cấu hình
+  - Phạm vi, thứ tự khai báo và ưu tiên của thuộc tính
+  - Tách giá trị khác nhau giữa các môi trường
+  - Kiểm soát thay thế thuộc tính trong SQL và dữ liệu mẫu
+  - Quy tắc đặt tên, chữ hoa thường và objectQuotingStrategy
+  - Sử dụng modifySql cho khác biệt SQL có kiểm soát
+  - Giữ changelog dễ tái tạo khi có tham số và giá trị mặc định
+- level1: Bộ lọc thực thi
+  level2:
+  - Lọc changeset theo hệ quản trị bằng dbms
+  - Contexts và cách phân nhóm mục đích thực thi
+  - Labels và cách gắn nhãn thay đổi
+  - Biểu thức lọc contexts và labels
+  - Phối hợp bộ lọc ở changelog, changeset và lệnh thực thi
+  - Hành vi khi không truyền bộ lọc hoặc changeset không có nhãn
+  - Tách dữ liệu thử nghiệm khỏi thay đổi cấu trúc
+  - Kiểm tra tập changeset được chọn trước khi cập nhật
+- level1: Tiền điều kiện
+  level2:
+  - Vai trò của preconditions và khác biệt với bộ lọc
+  - Tiền điều kiện ở cấp changelog và cấp changeset
+  - Kiểm tra bảng, cột, khóa và đối tượng đã tồn tại
+  - Kiểm tra hệ quản trị, người dùng và kết quả SQL
+  - Kết hợp điều kiện bằng AND, OR và NOT
+  - Phân biệt onFail với onError
+  - Lựa chọn HALT, WARN, CONTINUE và MARK_RAN theo phạm vi hỗ trợ
+  - Hệ quả của MARK_RAN đối với lịch sử và việc chạy lại
+  - Viết thông báo lỗi rõ ràng và cân nhắc chi phí kiểm tra
+- level1: Thay đổi bảng
+  level2:
+  - Tạo bảng, định nghĩa cột và chọn kiểu dữ liệu
+  - Ánh xạ kiểu dữ liệu giữa Liquibase và hệ quản trị
+  - Thêm cột và lựa chọn giá trị mặc định
+  - Đổi tên bảng, đổi tên cột và tác động tới mã ứng dụng
+  - Thay đổi kiểu dữ liệu và kiểm tra tính tương thích
+  - Thêm, đổi hoặc xóa giá trị mặc định
+  - Quản lý cột tự tăng, identity và sequence
+  - Xóa cột, xóa bảng và kiểm soát mất dữ liệu
+  - Bổ sung mô tả bảng, cột và kiểm tra SQL được sinh
+- level1: Khóa và chỉ mục
+  level2:
+  - Tạo, thay đổi và xóa khóa chính
+  - Tạo khóa ngoại và kiểm soát dữ liệu vi phạm
+  - Thiết lập quy tắc tham chiếu khi cập nhật hoặc xóa
+  - Ràng buộc duy nhất và dữ liệu trùng lặp
+  - Thêm hoặc gỡ ràng buộc NOT NULL
+  - Ràng buộc CHECK và lựa chọn cách khai báo phù hợp
+  - Tạo, đổi và xóa chỉ mục
+  - Chỉ mục ghép, thứ tự cột và khác biệt theo hệ quản trị
+  - Đặt tên ràng buộc, chỉ mục để hỗ trợ triển khai và hoàn tác
+- level1: SQL và đối tượng
+  level2:
+  - Sử dụng sql cho thay đổi không thuận tiện với change type
+  - Sử dụng sqlFile và quản lý tài nguyên SQL bên ngoài
+  - Tách câu lệnh bằng splitStatements và endDelimiter
+  - Xử lý dấu chú thích, dấu chấm phẩy và khối SQL nhiều câu
+  - Tạo và thay thế view
+  - Quản lý stored procedure, function và trigger
+  - Quản lý sequence và các đối tượng đặc thù hệ quản trị
+  - Khai báo quyền truy cập và đối tượng hỗ trợ bằng SQL
+  - Phối hợp SQL đặc thù với dbms, preconditions và rollback
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Phân biệt thay đổi lược đồ, dữ liệu tham chiếu và dữ liệu nghiệp vụ
+  - Thêm, cập nhật và xóa dữ liệu bằng change type
+  - Nạp dữ liệu CSV bằng loadData
+  - Cập nhật dữ liệu từ CSV bằng loadUpdateData
+  - Xử lý encoding, dấu phân cách, NULL và kiểu dữ liệu khi nạp
+  - Thiết kế dữ liệu tham chiếu có khóa ổn định
+  - Chuyển đổi và bổ sung dữ liệu cũ trước khi siết ràng buộc
+  - Chia nhỏ tác vụ bổ sung dữ liệu cho bảng lớn
+  - Giữ dữ liệu thử nghiệm tách biệt và tránh lộ dữ liệu nhạy cảm
+  - Lập kế hoạch phục hồi cho thay đổi dữ liệu khó đảo ngược
+- level1: Giao dịch và khóa
+  level2:
+  - Ranh giới giao dịch của changeset và hành vi khi có lỗi
+  - DDL có giao dịch và DDL tự commit theo từng hệ quản trị
+  - Lựa chọn runInTransaction cho câu lệnh có yêu cầu đặc biệt
+  - Rủi ro trạng thái dở dang khi changeset không có giao dịch
+  - Khóa điều phối của Liquibase và khóa đối tượng trong cơ sở dữ liệu
+  - Nhiều tiến trình cùng khởi chạy migration
+  - Thời gian chờ khóa, timeout và giới hạn tài nguyên
+  - Thiết kế changeset giảm thời gian khóa và phạm vi ảnh hưởng
+- level1: Kiểm tra và cập nhật
+  level2:
+  - Kiểm tra cấu trúc changelog bằng validate
+  - Xem changeset đang chờ bằng status
+  - Xem lịch sử triển khai bằng history
+  - Xem trước SQL bằng update-sql và xác định giới hạn của bản xem trước
+  - Thực thi thay đổi bằng update
+  - Cập nhật theo số lượng changeset bằng update-count
+  - Cập nhật tới mốc gắn thẻ bằng update-to-tag
+  - Đọc kết quả lệnh, mã thoát và nhật ký thực thi
+  - Phân biệt kiểm tra changelog với xác minh kết quả trên cơ sở dữ liệu
+  - Chuẩn hóa chuỗi kiểm tra trước và sau mỗi lần cập nhật
+- level1: Hoàn tác
+  level2:
+  - Phân biệt rollback migration, khôi phục bản sao lưu và sửa tiến
+  - Khai báo rollback tự động và rollback tường minh
+  - Viết rollback cho formatted SQL và sqlFile
+  - Gắn mốc bằng tag và change type tagDatabase
+  - Hoàn tác theo tag, số lượng changeset hoặc thời điểm
+  - Xem trước SQL hoàn tác bằng các lệnh rollback tương ứng
+  - Thứ tự hoàn tác và phụ thuộc giữa các đối tượng
+  - Nhận diện thay đổi phá hủy dữ liệu hoặc không thể đảo ngược
+  - Phối hợp hoàn tác cơ sở dữ liệu với phiên bản ứng dụng
+  - Kiểm thử cập nhật, hoàn tác và cập nhật lại
+- level1: Checksum và lịch sử
+  level2:
+  - Phân biệt thay đổi tệp changelog với changeset mới
+  - Nguyên nhân checksum không khớp và cách điều tra
+  - Chọn sửa tiến bằng changeset mới thay cho sửa lịch sử
+  - Vai trò và hệ quả của clear-checksums
+  - Chấp nhận checksum có kiểm soát bằng validCheckSum
+  - Đối chiếu runOnChange với đối tượng SQL có thể thay thế
+  - Ảnh hưởng của đổi đường dẫn, tác giả hoặc id changeset
+  - Changelog-sync và việc ghi nhận thay đổi mà không thực thi DDL
+  - Mark-next-changeset-ran và rủi ro bỏ qua thay đổi
+  - Nguyên tắc bảo vệ lịch sử và tránh sửa bảng theo dõi thủ công
+- level1: Tiếp nhận CSDL
+  level2:
+  - Khảo sát cơ sở dữ liệu hiện hữu trước khi đưa vào Liquibase
+  - Xác định lược đồ chuẩn và mốc baseline
+  - Tạo bản nháp changelog từ cơ sở dữ liệu bằng generate-changelog
+  - Rà soát đối tượng bị bỏ sót, kiểu dữ liệu và phụ thuộc
+  - Phân biệt cơ sở dữ liệu đã có cấu trúc với cơ sở dữ liệu mới
+  - Đánh dấu baseline bằng changelog-sync sau khi đối chiếu
+  - Kiểm chứng cùng changelog trên cơ sở dữ liệu rỗng
+  - Xử lý khác biệt giữa các môi trường trước khi tiếp nhận
+  - Lập kế hoạch chuyển giao từ script SQL hoặc công cụ migration khác
+- level1: So sánh lược đồ
+  level2:
+  - Vai trò của snapshot, diff và diff-changelog
+  - Chọn cơ sở dữ liệu tham chiếu và cơ sở dữ liệu đích
+  - Tạo snapshot phục vụ đối chiếu và lưu dấu trạng thái
+  - Đọc kết quả đối tượng thiếu, thừa và thay đổi
+  - Tạo bản nháp migration từ diff-changelog
+  - Giới hạn nhận diện đổi tên và ý nghĩa nghiệp vụ
+  - Lọc schema, loại đối tượng và phạm vi so sánh
+  - Rà soát thứ tự DDL, nguy cơ mất dữ liệu và khả năng hoàn tác
+  - Phát hiện schema drift do thay đổi ngoài quy trình
+- level1: Nhiều cơ sở dữ liệu
+  level2:
+  - Thiết kế changelog cho nhiều hệ quản trị
+  - Chọn change type dùng chung và SQL đặc thù
+  - Quản lý kiểu dữ liệu, hàm mặc định và tên đối tượng khác nhau
+  - Kiểm thử cùng migration trên từng hệ quản trị được hỗ trợ
+  - Quản lý nhiều schema và catalog trong một ứng dụng
+  - Migration theo từng tenant và theo dõi trạng thái độc lập
+  - Lựa chọn thứ tự triển khai khi có phụ thuộc giữa các cơ sở dữ liệu
+  - Cô lập thông tin kết nối, lịch sử và lỗi của từng đích
+- level1: Cộng tác
+  level2:
+  - Quy ước đặt tên changeset và tệp trong nhóm
+  - Phân chia quyền sở hữu theo miền nghiệp vụ hoặc thành phần
+  - Làm việc trên nhiều nhánh và xử lý xung đột changelog
+  - Giữ định danh và đường dẫn ổn định khi hợp nhất mã
+  - Kiểm soát thứ tự thay đổi có phụ thuộc giữa các nhánh
+  - Đóng gói changelog cùng phiên bản phát hành
+  - Rà soát migration trong pull request
+  - Quy trình hotfix và đưa thay đổi trở lại các nhánh liên quan
+- level1: Spring Boot
+  level2:
+  - Thêm Liquibase vào ứng dụng Spring Boot
+  - Cấu trúc tài nguyên và cấu hình spring.liquibase.change-log
+  - Dùng DataSource ứng dụng hoặc kết nối migration riêng
+  - Cấu hình contexts, labels và schema theo profile
+  - Thứ tự khởi động và hành vi khi migration thất bại
+  - Phối hợp Liquibase với Hibernate và thiết lập ddl-auto
+  - Quản lý migration khi ứng dụng có nhiều DataSource
+  - Tắt migration có chủ đích trong một số môi trường
+  - Chọn migration lúc khởi động hay tác vụ triển khai riêng
+  - Đóng gói và kiểm tra đường dẫn changelog trong JAR
+- level1: Kiểm thử
+  level2:
+  - Thiết kế các lớp kiểm thử cho migration
+  - Khởi tạo cơ sở dữ liệu mới từ toàn bộ changelog
+  - Nâng cấp từ dữ liệu và lược đồ của phiên bản trước
+  - Kiểm thử bằng Testcontainers với hệ quản trị thực tế
+  - Giới hạn khi dùng H2 thay cho cơ sở dữ liệu production
+  - Kiểm tra ràng buộc, chỉ mục và dữ liệu sau migration
+  - Kiểm thử chạy lại, runOnChange và runAlways
+  - Kiểm thử preconditions, lỗi giữa chừng và phục hồi
+  - Kiểm thử rollback và tính tương thích ứng dụng
+  - Tạo bộ dữ liệu đại diện cho bảng lớn và trường hợp biên
+- level1: CI/CD
+  level2:
+  - Xây dựng chuỗi validate, kiểm thử và xem trước SQL
+  - Đóng gói changelog và công cụ thành artifact có phiên bản
+  - Truyền cấu hình môi trường và bí mật trong pipeline
+  - Rà soát, phê duyệt và lưu SQL dự kiến triển khai
+  - Chỉ cho phép một tác vụ migration trên cùng cơ sở dữ liệu
+  - Phối hợp migration với triển khai nhiều bản sao ứng dụng
+  - Xác minh sau triển khai và lưu bằng chứng thực thi
+  - Xử lý pipeline bị hủy, chạy lại hoặc lỗi một phần
+  - Tách bước migration khỏi bước khởi động ứng dụng khi phù hợp
+- level1: Triển khai an toàn
+  level2:
+  - Đánh giá tác động trước thay đổi trên production
+  - Thiết kế expand-contract để duy trì tương thích
+  - Thêm cột mới, bổ sung dữ liệu và chuyển đổi cách đọc ghi
+  - Đổi tên hoặc tách cột qua nhiều phiên bản phát hành
+  - Thêm NOT NULL, khóa ngoại và chỉ mục trên bảng lớn
+  - Cân nhắc DDL trực tuyến và khả năng của từng hệ quản trị
+  - Phối hợp migration với feature flag và phiên bản ứng dụng
+  - Lựa chọn rollback, sửa tiến hoặc khôi phục dữ liệu khi có sự cố
+  - Thiết lập điểm dừng và tiêu chí xác nhận hoàn tất
+- level1: Bảo mật
+  level2:
+  - Phân quyền tài khoản migration theo nguyên tắc tối thiểu
+  - Tách tài khoản migration khỏi tài khoản chạy ứng dụng
+  - Bảo vệ mật khẩu, chuỗi kết nối và chứng thư
+  - Kiểm soát thông tin nhạy cảm trong log và SQL xem trước
+  - Rà soát SQL, tham số hóa và nguồn changelog không tin cậy
+  - Kiểm soát quyền sửa changelog và phê duyệt production
+  - Bảo vệ bảng lịch sử, khóa và bằng chứng triển khai
+  - Kiểm soát nguồn cung thư viện, extension và image container
+- level1: Vận hành
+  level2:
+  - Theo dõi thời gian chạy, trạng thái và changeset thất bại
+  - Thiết lập mức log và thu thập nhật ký phục vụ điều tra
+  - Đối chiếu lịch sử Liquibase với phiên bản ứng dụng
+  - Dùng list-locks và đánh giá tình trạng khóa
+  - Điều kiện an toàn trước khi sử dụng release-locks
+  - Đánh giá hiệu năng changelog lớn và tiền điều kiện tốn kém
+  - Chuẩn bị bản sao lưu và diễn tập khôi phục
+  - Nâng cấp Liquibase, JDBC và extension có kiểm thử tương thích
+  - Quy trình vận hành và bàn giao sau phát hành
+- level1: Xử lý sự cố
+  level2:
+  - Lỗi kết nối, xác thực, JDBC và thiếu quyền
+  - Không tìm thấy changelog, include hoặc tài nguyên SQL
+  - Lỗi cú pháp XML, YAML, JSON và formatted SQL
+  - Changeset không chạy do bộ lọc, lịch sử hoặc định danh
+  - Changeset chạy lại ngoài dự kiến
+  - Checksum không hợp lệ sau chỉnh sửa hoặc nâng cấp
+  - Khóa còn tồn tại sau tiến trình bị dừng
+  - Migration thất bại do dữ liệu, ràng buộc hoặc phụ thuộc
+  - Changeset thực thi dở dang và lịch sử không phản ánh đầy đủ
+  - Khác biệt kết quả giữa máy phát triển, CI và production
+  - Rollback thất bại và quy trình chọn phương án phục hồi
+- level1: Mở rộng
+  level2:
+  - Khi nào cần custom change thay vì change type có sẵn
+  - CustomTaskChange, CustomSqlChange và khả năng hoàn tác
+  - Viết custom precondition và xử lý lỗi
+  - Đóng gói extension, classpath và quản lý phụ thuộc
+  - Kiểm thử extension trên các phiên bản Liquibase mục tiêu
+  - Tích hợp Liquibase bằng API Java khi có nhu cầu đặc thù
+  - Đánh giá tính năng bổ sung theo phiên bản và giấy phép
+  - Giới hạn tùy biến để giữ migration dễ kiểm tra và bảo trì
+- level1: Thực hành
+  level2:
+  - Xây dựng dự án Spring Boot với changelog đầu tiên
+  - Thiết kế lược đồ đơn hàng qua nhiều phiên bản phát hành
+  - Nạp dữ liệu tham chiếu và kiểm tra chạy lại an toàn
+  - Tiếp nhận cơ sở dữ liệu có sẵn và xác lập baseline
+  - Triển khai đổi cấu trúc bằng expand-contract
+  - Mô phỏng xung đột nhánh và xử lý thứ tự migration
+  - Thực hành điều tra checksum, khóa và changeset lỗi
+  - Xây dựng pipeline kiểm thử và triển khai migration
+  - Diễn tập rollback, sửa tiến và khôi phục dữ liệu
+  - Hoàn thiện quy trình rà soát và tiêu chí nghiệm thu migration

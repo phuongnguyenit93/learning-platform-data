@@ -1,0 +1,3352 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Istio là gì và giải quyết vấn đề giao tiếp giữa các dịch vụ nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Service mesh trong kiến trúc microservices
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt service mesh, API gateway, ingress controller và thư viện ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Lưu lượng bên trong hệ thống và lưu lượng qua biên mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Ba nhóm năng lực: quản lý lưu lượng, bảo mật và quan sát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Thuật ngữ nền tảng: workload, service, proxy, control plane và data plane'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Quan hệ giữa Istio, Kubernetes, Envoy và Gateway API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: So sánh sidecar mode và ambient mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Điều kiện lựa chọn Istio và chi phí vận hành cần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Lộ trình học từ mạng Kubernetes đến vận hành mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-traffic-flow
+  title: Kiến trúc và luồng mạng
+  childs:
+  - slug: architecture-traffic-flow-001
+    title: Vai trò của istiod trong khám phá dịch vụ và phân phối cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-002
+    title: Envoy sidecar, ztunnel, waypoint và gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-003
+    title: Luồng yêu cầu khi ứng dụng chưa tham gia mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-004
+    title: Luồng outbound và inbound qua sidecar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-005
+    title: Luồng kết nối qua ztunnel trong ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-006
+    title: Luồng yêu cầu qua waypoint tại phía đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-007
+    title: xDS và quá trình đồng bộ cấu hình đến proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-008
+    title: Listener, route, cluster và endpoint trong Envoy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-009
+    title: Phân biệt cấu hình mong muốn và cấu hình proxy thực nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-traffic-flow-010
+    title: Ảnh hưởng khi control plane hoặc data plane gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-environments
+  title: Môi trường và cài đặt
+  childs:
+  - slug: installation-environments-001
+    title: Kiến thức nền về Pod, Service, EndpointSlice và DNS Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-002
+    title: Chọn phiên bản Istio và Kubernetes tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-003
+    title: Chuẩn bị cluster thực hành bằng kind, minikube hoặc nền tảng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-004
+    title: Kiểm tra CNI, quyền cài CRD và yêu cầu nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-005
+    title: Cài đặt istioctl và quản lý kubeconfig context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-006
+    title: Cài CRD Gateway API theo kênh và phiên bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-007
+    title: Cài Istio bằng istioctl và lựa chọn profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-008
+    title: Cài Istio bằng Helm theo từng component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-009
+    title: Phân biệt IstioOperator làm đầu vào istioctl và Helm values
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-environments-010
+    title: Xác minh istiod, CNI, ztunnel và gateway sau cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-mesh
+  title: Mesh đầu tiên
+  childs:
+  - slug: first-mesh-001
+    title: Triển khai Bookinfo hoặc ứng dụng nhiều dịch vụ tối giản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-002
+    title: Thiết lập namespace, ServiceAccount và nhãn ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-003
+    title: Đưa workload vào ambient hoặc bật sidecar injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-004
+    title: Gửi yêu cầu nội bộ trước và sau khi tham gia mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-005
+    title: Đưa một dịch vụ ra ngoài qua ingress gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-006
+    title: Bổ sung waypoint khi cần xử lý HTTP trong ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-007
+    title: Quan sát yêu cầu bằng metrics, access logs và Kiali
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-008
+    title: Kiểm chứng danh tính workload và kết nối mTLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-mesh-009
+    title: Phân biệt cài mesh thành công với ứng dụng hoạt động đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-apis
+  title: Cấu hình và API
+  childs:
+  - slug: configuration-apis-001
+    title: Các nhóm API networking, security, telemetry và extensions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-002
+    title: Metadata, namespace, selector và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-003
+    title: Phân biệt Gateway của Istio và Gateway của Kubernetes Gateway API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-004
+    title: VirtualService, DestinationRule và mô hình API Istio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-005
+    title: GatewayClass, Gateway, HTTPRoute và mô hình Gateway API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-006
+    title: parentRefs, backendRefs và targetRefs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-007
+    title: Điều kiện tham chiếu xuyên namespace và ReferenceGrant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-008
+    title: MeshConfig, ProxyConfig và cấu hình theo workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-009
+    title: Kiểm tra status, conditions và cấu hình không có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-apis-010
+    title: Mức ổn định API và giới hạn theo mode, phiên bản, implementation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sidecar-mode
+  title: Sidecar mode
+  childs:
+  - slug: sidecar-mode-001
+    title: Injection tự động qua webhook và injection thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-002
+    title: Nhãn namespace, nhãn revision và xử lý nhãn xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-003
+    title: Vai trò istio-proxy và proxy agent trong Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-004
+    title: Chuyển hướng traffic bằng init container hoặc Istio CNI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-005
+    title: Inbound, outbound và các cổng dành riêng cho proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-006
+    title: Readiness, startup probe và cơ chế ghi lại health probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-007
+    title: Thứ tự khởi động ứng dụng và proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-008
+    title: Graceful shutdown, drain và kết nối đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-009
+    title: Job, CronJob, init container và vòng đời sidecar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sidecar-mode-010
+    title: Phạm vi IP, cổng bị loại trừ và hậu quả khi traffic đi ngoài proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ambient-mode
+  title: Ambient mode
+  childs:
+  - slug: ambient-mode-001
+    title: Lớp bảo vệ L4 và lớp xử lý L7 trong ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-002
+    title: Vai trò của Istio CNI node agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-003
+    title: ztunnel chạy theo node và danh tính của nhiều workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-004
+    title: HBONE và đường hầm HTTP CONNECT được bảo vệ bằng mTLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-005
+    title: Đưa namespace hoặc workload vào ambient bằng nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-006
+    title: Theo dõi luồng cùng node và khác node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-007
+    title: Phân biệt service traffic, workload traffic và traffic ngoài mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-008
+    title: Khả năng quan sát và áp dụng chính sách khi chỉ có ztunnel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-009
+    title: Quan hệ giữa ambient và Kubernetes NetworkPolicy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-mode-010
+    title: Kiểm tra tương tác với sidecar và giới hạn theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: waypoints
+  title: Waypoint
+  childs:
+  - slug: waypoints-001
+    title: Khi nào ứng dụng cần waypoint để có tính năng L7
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-002
+    title: Triển khai waypoint bằng GatewayClass istio-waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-003
+    title: Sử dụng istioctl waypoint và xác minh tài nguyên được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-004
+    title: Gắn waypoint cho namespace, Service hoặc workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-005
+    title: Phân biệt waypoint-for service, workload và all
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-006
+    title: Tính ưu tiên khi nhiều nhãn chọn waypoint cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-007
+    title: HTTPRoute và chính sách gắn vào waypoint hoặc Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-008
+    title: Bảo đảm traffic phải đi qua waypoint bằng chính sách tại ztunnel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-009
+    title: Đường ingress đến waypoint và các điều kiện bật riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: waypoints-010
+    title: Chia sẻ, mở rộng và phân tách waypoint theo ranh giới vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-discovery-protocols
+  title: Khám phá và giao thức
+  childs:
+  - slug: service-discovery-protocols-001
+    title: Service registry của Istio và dữ liệu từ Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-002
+    title: Service name, FQDN, namespace và phân giải tên ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-003
+    title: Địa chỉ Service, Pod IP và headless service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-004
+    title: Khai báo giao thức qua tên cổng và appProtocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-005
+    title: Nhận diện HTTP, HTTP/2, gRPC và TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-006
+    title: Giới hạn với server-first protocol và giao thức không phải TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-007
+    title: Phân biệt TLS ứng dụng, HTTPS và mTLS của mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-008
+    title: DNS capture, DNS proxying và cấp địa chỉ cho dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-009
+    title: Đăng ký nguồn bên ngoài bằng ServiceEntry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-protocols-010
+    title: Giới hạn khả kiến ServiceEntry trong sidecar và ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-routing
+  title: Định tuyến HTTP
+  childs:
+  - slug: http-routing-001
+    title: Chọn HTTPRoute hoặc VirtualService theo chế độ và tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-002
+    title: Định tuyến theo hostname, URI, method, header và query parameter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-003
+    title: Exact, prefix, regex và thứ tự khớp quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-004
+    title: Điều kiện AND, OR và quy tắc mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-005
+    title: backendRefs và phân phối trọng số trong Gateway API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-006
+    title: Subsets theo nhãn phiên bản trong DestinationRule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-007
+    title: Quan hệ giữa VirtualService destination và DestinationRule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-008
+    title: Rewrite, redirect và chỉnh sửa request/response headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-009
+    title: Định tuyến gRPC và HTTP/2 đến đúng backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-010
+    title: Định tuyến TCP hoặc TLS theo cổng, SNI và khả năng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-011
+    title: VirtualService trong ambient ở mức Alpha và giới hạn trộn với Gateway API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-routing-012
+    title: Kiểm chứng route bằng traffic thực và cấu hình proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-balancing
+  title: Cân bằng tải
+  childs:
+  - slug: load-balancing-001
+    title: Phân biệt cân bằng tải theo kết nối và theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-002
+    title: Endpoint Kubernetes và nhóm backend của mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-003
+    title: Round robin, least request và lựa chọn theo tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-004
+    title: Consistent hashing, ring hash và Maglev
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-005
+    title: Session affinity và điều kiện phù hợp với ứng dụng có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-006
+    title: Cấu hình trafficPolicy theo dịch vụ, subset và cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-007
+    title: Locality theo region, zone và subzone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-008
+    title: Phân phối trọng số theo locality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-009
+    title: Failover giữa locality và quan hệ với outlier detection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-010
+    title: Ảnh hưởng của connection pool, HTTP/2 và kết nối dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ingress
+  title: Ingress
+  childs:
+  - slug: ingress-001
+    title: Ranh giới giữa load balancer bên ngoài và ingress gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-002
+    title: Triển khai gateway tự động bằng Gateway API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-003
+    title: Triển khai gateway bằng Helm và quản lý vòng đời riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-004
+    title: Gateway listeners, hostname và allowedRoutes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-005
+    title: Gắn HTTPRoute vào gateway và kiểm tra Accepted, Programmed, ResolvedRefs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-006
+    title: Cấu hình ingress bằng Istio Gateway và VirtualService
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-007
+    title: Service type LoadBalancer, NodePort và cách truy cập trong môi trường local
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-008
+    title: Phân tách gateway public, private và theo nhóm dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-009
+    title: Địa chỉ IP nguồn, X-Forwarded-For và proxy đứng trước gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingress-010
+    title: Phân biệt gateway ở biên và waypoint phục vụ traffic nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gateway-tls
+  title: TLS tại gateway
+  childs:
+  - slug: gateway-tls-001
+    title: Phân biệt TLS termination, passthrough và TLS origination
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-002
+    title: Cấu hình HTTPS listener và chứng chỉ từ Kubernetes Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-003
+    title: certificateRefs và credentialName theo từng hệ API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-004
+    title: SNI, hostname và chuỗi chứng chỉ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-005
+    title: Chuyển HTTP sang HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-006
+    title: mTLS giữa client bên ngoài và ingress gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-007
+    title: TLS từ gateway đến backend và kiểm tra chứng chỉ upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-008
+    title: Phân biệt mã hóa lớp ứng dụng và mTLS trong mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-009
+    title: Luân chuyển chứng chỉ và kiểm chứng không làm gián đoạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gateway-tls-010
+    title: Chẩn đoán TLS sai host, sai Secret, sai trust hoặc mã hóa lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: egress
+  title: Egress
+  childs:
+  - slug: egress-001
+    title: Luồng truy cập dịch vụ bên ngoài mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-002
+    title: Khai báo host, port, resolution và endpoint bằng ServiceEntry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-003
+    title: Phân biệt ALLOW_ANY và REGISTRY_ONLY trong sidecar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-004
+    title: Giới hạn của REGISTRY_ONLY như một cơ chế kiểm soát cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-005
+    title: Egress gateway và định tuyến lưu lượng ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-006
+    title: Kết hợp gateway với NetworkPolicy để thực thi đường ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-007
+    title: TLS origination đến dịch vụ ngoài và xác minh SNI, SAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-008
+    title: Dịch vụ ngoài dùng DNS động hoặc wildcard theo khả năng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-009
+    title: Egress trong ambient và yêu cầu waypoint, gateway tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: egress-010
+    title: Theo dõi danh tính, log và đích đến của traffic egress
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timeouts-retries
+  title: Timeout và retry
+  childs:
+  - slug: timeouts-retries-001
+    title: Phân biệt connection timeout, request timeout và idle timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-002
+    title: Ngân sách thời gian cho chuỗi gọi nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-003
+    title: Cấu hình timeout trên route và tác động đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-004
+    title: Retry attempts, per-try timeout và điều kiện retry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-005
+    title: Retry HTTP, gRPC và giới hạn với tác vụ không idempotent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-006
+    title: Tương tác giữa retry tại proxy và retry trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-007
+    title: Nguy cơ tăng tải dây chuyền khi dịch vụ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-008
+    title: Kết nối dài, streaming và deadline của gRPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timeouts-retries-009
+    title: Kiểm chứng timeout/retry bằng lỗi và độ trễ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: circuit-breaking
+  title: Circuit breaking
+  childs:
+  - slug: circuit-breaking-001
+    title: Connection pool và giới hạn kết nối TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-002
+    title: Giới hạn request đang chờ và request đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-003
+    title: Keepalive, vòng đời kết nối và giới hạn request trên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-004
+    title: Phân biệt circuit breaking tại proxy và circuit breaker trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-005
+    title: Outlier detection và loại endpoint lỗi khỏi nhóm phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-006
+    title: Ngưỡng lỗi, chu kỳ đánh giá, thời gian loại và tỷ lệ loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-007
+    title: Phân biệt lỗi kết nối với lỗi phản hồi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-008
+    title: Kết hợp outlier detection với locality failover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-009
+    title: Giới hạn của ngưỡng theo từng proxy và từng upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: circuit-breaking-010
+    title: Đánh giá phục hồi khi endpoint khỏe trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: progressive-delivery
+  title: Triển khai phiên bản
+  childs:
+  - slug: progressive-delivery-001
+    title: Tách phiên bản workload khỏi quy tắc phân phối traffic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-002
+    title: Chia traffic theo trọng số để triển khai canary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-003
+    title: Định tuyến người dùng thử nghiệm theo header hoặc cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-004
+    title: A/B testing và yêu cầu nhất quán giữa các lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-005
+    title: Blue-green và điều kiện chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-006
+    title: Quan sát tỷ lệ lỗi, độ trễ và tài nguyên trước khi tăng trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-007
+    title: Rollback route và xử lý phiên bản đã ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-008
+    title: Kết hợp Argo Rollouts hoặc công cụ triển khai tiến dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-009
+    title: Phân biệt trọng số route và số replica ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fault-injection
+  title: Thử nghiệm lỗi
+  childs:
+  - slug: fault-injection-001
+    title: Mục tiêu và phạm vi của fault injection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-002
+    title: Tạo độ trễ có điều kiện theo route
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-003
+    title: Tạo HTTP abort và chọn tỷ lệ ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-004
+    title: Phân biệt lỗi do proxy tạo và lỗi thực từ backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-005
+    title: Giới hạn kết hợp fault injection với timeout, retry và từng hệ API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-006
+    title: Traffic mirroring và tỷ lệ gửi bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-007
+    title: Đặc điểm phản hồi, headers và tác dụng phụ của request được mirror
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-008
+    title: Dùng dữ liệu thử nghiệm và cô lập đích nhận bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-injection-009
+    title: Đo mức ảnh hưởng, dừng thử nghiệm và xác minh phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identities-certificates
+  title: Danh tính và chứng chỉ
+  childs:
+  - slug: identities-certificates-001
+    title: Workload identity và Kubernetes ServiceAccount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-002
+    title: SPIFFE identity, trust domain và phạm vi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-003
+    title: Phân biệt danh tính workload với danh tính người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-004
+    title: CA tích hợp, root CA và intermediate CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-005
+    title: Quy trình yêu cầu, cấp và phân phối chứng chỉ workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-006
+    title: SDS, proxy agent và cách chứng chỉ đến data plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-007
+    title: Thời hạn, luân chuyển và kiểm tra chuỗi chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-008
+    title: Tích hợp CA ngoài theo cơ chế được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-009
+    title: Quản lý root trust và kế hoạch đổi trust domain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-certificates-010
+    title: Bảo vệ quyền ServiceAccount, private key và kênh control plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mesh-mtls
+  title: mTLS trong mesh
+  childs:
+  - slug: mesh-mtls-001
+    title: Xác thực hai chiều và mã hóa kết nối giữa workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-002
+    title: Auto mTLS và điều kiện nâng kết nối lên mTLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-003
+    title: PeerAuthentication và chính sách ở mesh, namespace, workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-004
+    title: PERMISSIVE, STRICT và kế thừa chính sách trong sidecar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-005
+    title: DestinationRule TLS settings và hành vi phía client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-006
+    title: Phân biệt TLS SIMPLE, MUTUAL, ISTIO_MUTUAL và DISABLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-007
+    title: mTLS trong ambient và giới hạn áp dụng PeerAuthentication
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-008
+    title: Giao tiếp giữa workload trong mesh và ngoài mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-009
+    title: Chuyển dần sang yêu cầu mTLS mà vẫn kiểm chứng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mesh-mtls-010
+    title: Xác minh mTLS bằng telemetry, chứng chỉ và kết nối thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jwt-request-authentication
+  title: JWT và xác thực yêu cầu
+  childs:
+  - slug: jwt-request-authentication-001
+    title: Phân biệt peer authentication và request authentication
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-002
+    title: RequestAuthentication, issuer, audience và JWKS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-003
+    title: Vị trí JWT trong header, cookie hoặc query theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-004
+    title: Trường hợp token hợp lệ, token lỗi và request không có token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-005
+    title: Phối hợp RequestAuthentication với AuthorizationPolicy để bắt buộc JWT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-006
+    title: requestPrincipal, claims và danh tính được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-007
+    title: Nhiều issuer, luân chuyển khóa và lỗi truy cập JWKS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-008
+    title: Gắn chính sách JWT đúng gateway hoặc waypoint bằng targetRefs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jwt-request-authentication-009
+    title: Giới hạn xác thực JWT so với đăng nhập, OAuth2 và nghiệp vụ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Phân quyền
+  childs:
+  - slug: authorization-001
+    title: AuthorizationPolicy và mô hình from, to, when
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Chính sách theo mesh, namespace, workload và targetRefs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Phân biệt CUSTOM, DENY, ALLOW và AUDIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Thứ tự đánh giá và cách kết hợp nhiều chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Mặc định từ chối và khai báo quyền cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Phân quyền theo ServiceAccount, namespace và danh tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Phân quyền HTTP theo method, path, host và thuộc tính JWT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Phân quyền TCP và xử lý thuộc tính HTTP không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-009
+    title: Chính sách L4 tại ztunnel và chính sách L7 tại waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-010
+    title: Ảnh hưởng của selector sai và traffic không đi qua điểm thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-011
+    title: Kiểm thử quyền được phép, bị từ chối và trường hợp thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-012
+    title: Dry-run, audit và giới hạn hỗ trợ theo component, phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: extensible-policies
+  title: Chính sách mở rộng
+  childs:
+  - slug: extensible-policies-001
+    title: External authorization với action CUSTOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-002
+    title: Khai báo extension provider HTTP hoặc gRPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-003
+    title: Tích hợp dịch vụ ext_authz hoặc bộ máy chính sách ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-004
+    title: Timeout, lỗi dịch vụ xác thực và hành vi khi không có quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-005
+    title: Phân biệt rate limit cục bộ và rate limit toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-006
+    title: Thiết kế descriptor, quota và phản hồi HTTP 429
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-007
+    title: Triển khai rate limit tại gateway hoặc proxy có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: extensible-policies-008
+    title: Đánh giá chi phí và điểm phụ thuộc của chính sách ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-extensions
+  title: Mở rộng proxy
+  childs:
+  - slug: proxy-extensions-001
+    title: Khi nào API chuẩn chưa đáp ứng yêu cầu xử lý traffic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-002
+    title: Phạm vi và rủi ro tương thích của EnvoyFilter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-003
+    title: Giới hạn hỗ trợ EnvoyFilter trên waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-004
+    title: WasmPlugin, nguồn module và kiểm soát phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-005
+    title: TrafficExtension và Lua theo mức hỗ trợ hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-006
+    title: Gắn extension đúng workload, gateway hoặc waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-007
+    title: Thứ tự xử lý filter và tương tác với bảo mật, telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-extensions-008
+    title: Kiểm thử lỗi plugin, hiệu năng và quy trình gỡ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-topology
+  title: Metrics và topology
+  childs:
+  - slug: metrics-topology-001
+    title: Phân biệt metrics của ứng dụng, proxy và control plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-002
+    title: Request rate, error rate, duration và TCP metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-003
+    title: Nhãn source, destination, reporter và canonical service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-004
+    title: Khác biệt telemetry L4 ở ztunnel và L7 ở waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-005
+    title: Telemetry API và extensionProviders
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-006
+    title: Tùy chỉnh chiều dữ liệu và kiểm soát cardinality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-007
+    title: Thu thập metrics bằng Prometheus và bảo vệ endpoint scrape
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-008
+    title: Dashboard Grafana cho dịch vụ, gateway và control plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-009
+    title: Kiali, service graph và giới hạn suy luận từ traffic thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-topology-010
+    title: Thiết kế cảnh báo kết nối, tỷ lệ lỗi, độ trễ và sức khỏe mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-logs
+  title: Access logs
+  childs:
+  - slug: access-logs-001
+    title: Phân biệt log ứng dụng, access log proxy và log control plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-002
+    title: Bật access logging bằng Telemetry API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-003
+    title: Log HTTP, TCP và log kết nối của ztunnel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-004
+    title: Định dạng văn bản, JSON và trường cần ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-005
+    title: Response code, response flags và response code details
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-006
+    title: Lọc access log bằng biểu thức phù hợp với giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-007
+    title: Gửi access log đến OpenTelemetry Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-008
+    title: Liên kết log với trace ID, route và workload identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-logs-009
+    title: Che dữ liệu nhạy cảm và điều chỉnh volume log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-tracing
+  title: Distributed tracing
+  childs:
+  - slug: distributed-tracing-001
+    title: Vai trò proxy trong tạo span và quan sát lời gọi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-002
+    title: Trách nhiệm của ứng dụng khi truyền trace context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-003
+    title: W3C Trace Context, B3 và tính tương thích propagation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-004
+    title: Khai báo tracing provider bằng MeshConfig
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-005
+    title: Cấu hình provider, sampling và custom tags bằng Telemetry API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-006
+    title: Xuất OTLP đến Collector hoặc backend tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-007
+    title: Liên kết spans của ingress, sidecar, waypoint và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-008
+    title: Phân biệt thời gian mạng, thời gian proxy và xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-tracing-009
+    title: Điều tra trace đứt đoạn, span trùng và sampling không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring-boot
+  title: Java và Spring Boot
+  childs:
+  - slug: java-spring-boot-001
+    title: Đưa ứng dụng Spring MVC hoặc WebFlux vào mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-002
+    title: Khai báo Service port, giao thức và canonical service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-003
+    title: Phối hợp Actuator health probes với sidecar hoặc ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-004
+    title: Quan sát REST, gRPC và HTTP client giữa các dịch vụ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-005
+    title: Truyền context qua Micrometer Tracing hoặc OpenTelemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-006
+    title: Phối hợp timeout, retry của HTTP client với Istio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-007
+    title: Phối hợp Resilience4j với circuit breaking và retry tại proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-008
+    title: Giao tiếp JDBC, Redis, Kafka và giới hạn quan sát ở L4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-009
+    title: TLS trong ứng dụng và lớp mTLS do mesh cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-010
+    title: Kiểm tra graceful shutdown, connection pool và request đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-models
+  title: Mô hình triển khai
+  childs:
+  - slug: deployment-models-001
+    title: Single cluster, multicluster và ranh giới một mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-002
+    title: Single network, multi-network và khả năng định tuyến Pod IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-003
+    title: Primary, remote và external control plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-004
+    title: Tách control plane, gateway và namespace ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-005
+    title: Phân tách tenant, đội vận hành và quyền cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-006
+    title: High availability cho istiod, gateway và waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-007
+    title: NetworkPolicy, firewall và các kết nối hạ tầng bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-008
+    title: Đánh đổi giữa mức cô lập, khả năng phục hồi và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multicluster
+  title: Multicluster
+  childs:
+  - slug: multicluster-001
+    title: Chuẩn bị network, DNS, API server access và trust chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-002
+    title: Mesh ID, cluster name và network identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-003
+    title: Multi-primary và primary-remote trong sidecar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-004
+    title: East-west gateway và kết nối giữa các mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-005
+    title: Khám phá endpoint và quyền truy cập cluster từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-006
+    title: Định danh cùng service qua nhiều cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-007
+    title: Locality load balancing và failover giữa cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-008
+    title: Ambient multi-primary, multi-network và trạng thái hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-009
+    title: Giới hạn waypoint, service visibility và tương tác sidecar trong ambient multicluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multicluster-010
+    title: Kiểm chứng khi mất cluster, mất gateway hoặc mất liên kết mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-machines-legacy-systems
+  title: Máy ảo và hệ thống cũ
+  childs:
+  - slug: virtual-machines-legacy-systems-001
+    title: Khi nào cần đưa workload ngoài Kubernetes vào mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-002
+    title: Giới hạn hỗ trợ máy ảo theo data plane mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-003
+    title: WorkloadGroup, WorkloadEntry và ServiceEntry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-004
+    title: Bootstrap proxy, trust, token và kết nối đến istiod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-005
+    title: Đăng ký workload, health check và thông tin endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-006
+    title: DNS và định tuyến giữa VM với Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-007
+    title: Danh tính và mTLS cho ứng dụng trên VM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-legacy-systems-008
+    title: Vận hành vòng đời proxy, chứng chỉ và workload không còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-management
+  title: Quản lý cấu hình
+  childs:
+  - slug: configuration-management-001
+    title: Tổ chức manifest theo mesh, namespace và đội sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-002
+    title: Phân quyền tạo route, gateway và chính sách bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-003
+    title: Quy ước tên, labels và kiểm soát tham chiếu xuyên namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-004
+    title: Phân biệt giá trị Helm, cấu hình cài đặt và CRD runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-005
+    title: Quản lý cấu hình bằng GitOps, Helm hoặc Kustomize
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-006
+    title: Kiểm tra schema và istioctl analyze trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-007
+    title: Kiểm thử route, chính sách và dữ liệu telemetry bằng traffic mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-008
+    title: Phát hiện quy tắc xung đột, không thể khớp và tài nguyên không được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-009
+    title: Đánh giá thay đổi theo canary và lưu kế hoạch rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-management-010
+    title: Phân biệt thu hẹp khả kiến cấu hình với thực thi ranh giới bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-scaling
+  title: Hiệu năng và quy mô
+  childs:
+  - slug: performance-scaling-001
+    title: Đo latency, throughput, CPU và memory trước khi thêm mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-002
+    title: Chi phí của sidecar theo Pod, ztunnel theo node và waypoint dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-003
+    title: Đo ảnh hưởng mTLS, HTTP/2, connection reuse và xử lý L7
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-004
+    title: Quy mô service registry, endpoint và cấu hình xDS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-005
+    title: Thu hẹp cấu hình sidecar bằng Sidecar resource và exportTo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-006
+    title: Giới hạn namespace được khám phá bằng discoverySelectors
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-007
+    title: ServiceEntry visibility và phạm vi tương ứng trong ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-008
+    title: Điều chỉnh tài nguyên, replica và autoscaling cho các component
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-009
+    title: Tối ưu metrics, tracing, access logs và cardinality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-scaling-010
+    title: Kiểm thử tải, kết nối dài và giới hạn của benchmark tổng quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-recovery
+  title: Nâng cấp và phục hồi
+  childs:
+  - slug: upgrades-recovery-001
+    title: Đọc release notes, phiên bản hỗ trợ và compatibility settings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-002
+    title: Kiểm tra tương thích bằng istioctl x precheck
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-003
+    title: Phân biệt revision, revision tag và namespace enrollment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-004
+    title: Canary control plane và chuyển nhóm workload trong sidecar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-005
+    title: Nâng cấp sidecar và gateway theo revision
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-006
+    title: Thứ tự nâng CRD, istiod, CNI, ztunnel và waypoint trong ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-007
+    title: Tác động theo node khi nâng cấp ztunnel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-008
+    title: Bảo vệ kết nối dài bằng kế hoạch drain và nâng cấp node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-009
+    title: Kiểm chứng traffic, bảo mật và telemetry sau nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-recovery-010
+    title: Rollback và điều kiện gỡ revision không còn được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ambient-migration
+  title: Chuyển đổi sang ambient
+  childs:
+  - slug: ambient-migration-001
+    title: Kiểm kê sidecar, VirtualService, DestinationRule và chính sách hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-002
+    title: Đối chiếu tính năng đang dùng với khả năng ambient của phiên bản đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-003
+    title: Bổ sung CNI, ztunnel và waypoint cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-004
+    title: Chuyển route sang Gateway API khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-005
+    title: Chuyển selector sang targetRefs cho chính sách tại waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-006
+    title: Kiểm thử ranh giới L4, L7 và đường traffic phải qua waypoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-007
+    title: Chuyển nhóm workload nhỏ và xử lý nhãn injection, ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-008
+    title: Kiểm chứng giao tiếp sidecar, ambient và workload ngoài mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ambient-migration-009
+    title: So sánh telemetry, hiệu năng và khả năng rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Quy trình lần theo DNS, Service, endpoint, proxy và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Kiểm tra installation, injection và CNI bằng log, events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Dùng istioctl analyze và proxy-status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Dùng proxy-config để đọc listener, route, cluster, endpoint và secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Dùng ztunnel-config để đọc workload, service, policy và certificate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Điều tra waypoint không nhận traffic hoặc route không được gắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Điều tra HTTP 404, 503, timeout và Envoy response flags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Điều tra lỗi mTLS, trust domain, hết hạn chứng chỉ và JWKS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Điều tra AuthorizationPolicy từ chối hoặc áp dụng sai phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Điều tra DNS capture, headless service và server-first protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Điều tra egress, multicluster và kết nối ngoài mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Thu thập config dump, debug log và dữ liệu hỗ trợ có chọn lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-labs
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-labs-001
+    title: Dựng hệ Spring Boot nhiều dịch vụ và chọn data plane mode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-002
+    title: Cấu hình ingress HTTPS và route theo hostname, path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-003
+    title: Triển khai canary theo trọng số và đo kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-004
+    title: Áp dụng mTLS cùng phân quyền theo ServiceAccount
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-005
+    title: Bắt buộc JWT cho API và kiểm thử các trường hợp bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-006
+    title: Đưa dịch vụ ngoài qua egress có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-007
+    title: Thử nghiệm timeout, retry, outlier detection và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-008
+    title: Liên kết Prometheus, Grafana, Kiali và tracing backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-009
+    title: Diễn tập nâng cấp hoặc chuyển sidecar sang ambient
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-labs-010
+    title: Hoàn thiện cấu hình GitOps, kiểm tra CI và sổ tay vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: tomcat-jakarta-servlet
+  title: Tomcat & Jakarta Servlet
+  purpose: Hiểu Tomcat là servlet container và chọn phiên bản phù hợp với Java, Servlet API của ứng dụng.
+  objectives:
+  - Phân biệt servlet container với web server và application server.
+  - Giải thích Tomcat thực thi Jakarta Servlet và JSP.
+  - Đối chiếu Tomcat 9/10.1/11 với Java và API tương ứng.
+- id: cai-dat-khoi-chay
+  title: Cài đặt & Khởi chạy
+  purpose: Thiết lập một instance Tomcat riêng để triển khai và kiểm tra ứng dụng web Java.
+  objectives:
+  - Phân biệt CATALINA_HOME với CATALINA_BASE.
+  - Khởi động, dừng và xác nhận Tomcat hoạt động.
+  - Nhận diện thư mục conf, webapps, logs và lib.
+- id: catalina-connectors
+  title: Catalina & Connectors
+  purpose: Nắm cấu trúc xử lý request qua các thành phần Tomcat và vị trí cấu hình HTTP.
+  objectives:
+  - Mô tả Server, Service, Engine, Host và Context.
+  - Xác định Connector, port và server.xml.
+  - Giải thích đường từ HTTP Connector đến web application.
+- id: request-threads
+  title: Request & Threads
+  purpose: Hiểu cách Tomcat nhận HTTP request và điều phối tài nguyên khi có nhiều kết nối.
+  objectives:
+  - Vẽ luồng request → servlet → response.
+  - Phân biệt connection với request-processing thread.
+  - Đọc maxThreads, maxConnections và acceptCount.
+- id: war-context-deployment
+  title: WAR & Context Deployment
+  purpose: Triển khai ứng dụng Java theo context path và kiểm tra quá trình nạp lại ứng dụng.
+  objectives:
+  - Giải thích cấu trúc WAR và WEB-INF.
+  - Triển khai WAR thử nghiệm và truy cập context path.
+  - Phân biệt deploy, reload, undeploy và autoDeploy.
+- id: sessions-jndi-resources
+  title: Sessions & JNDI Resources
+  purpose: Hiểu nơi lưu trạng thái phiên và cách webapp sử dụng tài nguyên do container quản lý.
+  objectives:
+  - Mô tả HttpSession và thời gian hết hạn.
+  - Cấu hình một resource JDBC DataSource qua JNDI.
+  - Phân biệt thư viện của ứng dụng và thư viện chung Tomcat.
+- id: security-tls
+  title: Security & TLS
+  purpose: Giới hạn bề mặt tấn công và bảo vệ kết nối khi vận hành servlet container.
+  objectives:
+  - Cấu hình HTTPS/TLS cho Connector thử nghiệm.
+  - Giới hạn quyền Manager, Host Manager và user Tomcat.
+  - Rà soát webapps mặc định, quyền file và cấu hình nhạy cảm.
+- id: logging-monitoring
+  title: Logging & Monitoring
+  purpose: Quan sát hành vi runtime và chẩn đoán lỗi triển khai, kết nối hoặc quá tải.
+  objectives:
+  - Tìm catalina log, application log và access log.
+  - Kiểm tra tình trạng threads, sessions và memory qua JMX.
+  - Lập checklist xử lý lỗi 404, 500 hoặc port conflict.

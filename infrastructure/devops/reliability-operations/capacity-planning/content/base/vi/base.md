@@ -1,0 +1,7 @@
+# DevOps Reliability Operations Capacity Planning
+
+Capacity Planning là việc dự báo và chuẩn bị đủ năng lực hạ tầng, ứng dụng và các dịch vụ phụ thuộc để đáp ứng nhu cầu hiện tại lẫn tương lai mà vẫn giữ mục tiêu độ tin cậy. Trong DevOps/SRE, không thể chỉ quan sát CPU trung bình hoặc tăng số máy khi hệ thống chậm: cần hiểu thông lượng, độ trễ, mức bão hòa, lưu lượng cao điểm, thời gian cấp phát tài nguyên và khả năng tiếp tục phục vụ khi có lỗi. Quy hoạch năng lực tốt cân bằng hiệu năng, dự phòng và chi phí.
+
+Module phù hợp với người đã có nền tảng Linux, networking, metrics/monitoring và vận hành ứng dụng Java. Lộ trình bắt đầu từ xác định SLO và đặc tính workload, đo bottleneck xuyên suốt ứng dụng, database và hàng đợi. Sau đó người học dự báo tăng trưởng, xác định headroom, chạy load/stress/soak test để kiểm chứng giới hạn thực tế, chọn chiến lược sizing và kiểm tra quota. Cuối cùng là autoscaling có kiểm soát, failover và tổ chức các đợt rà soát capacity bằng dashboard cùng runbook.
+
+Sau khi hoàn thành, bạn có thể lập bản ước tính năng lực cho một dịch vụ, tìm điểm nghẽn từ metrics, tạo kịch bản kiểm thử tải, giải thích yêu cầu dự phòng và đề xuất mở rộng đúng thành phần. Kết quả capacity test và forecast cần được cập nhật khi hành vi người dùng, kiến trúc hoặc giới hạn nhà cung cấp thay đổi; autoscaling không thay thế cho việc chuẩn bị năng lực trước các đợt tăng tải lớn.

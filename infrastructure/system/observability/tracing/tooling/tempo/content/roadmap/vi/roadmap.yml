@@ -1,0 +1,57 @@
+roadmap:
+- id: tempo-trace-architecture
+  title: Tempo & Trace Architecture
+  purpose: Hiểu vai trò Tempo như backend lưu trữ và truy vấn distributed traces trong hệ thống observability.
+  objectives:
+  - Phân biệt trace, span, trace ID và span attributes.
+  - Mô tả luồng ứng dụng → Collector → Tempo → Grafana.
+  - Giải thích vai trò ingestion và query path.
+- id: trien-khai-deployment-modes
+  title: Triển khai & Deployment Modes
+  purpose: Chọn cách chạy Tempo phù hợp môi trường phát triển, thử nghiệm hoặc production.
+  objectives:
+  - Triển khai monolithic mode cho môi trường nhỏ.
+  - Phân biệt microservices mode và yêu cầu Kafka-compatible queue.
+  - Kiểm tra endpoint ingestion và query sau khi cài đặt.
+- id: ingestion-receivers
+  title: Ingestion & Receivers
+  purpose: Đưa trace data vào Tempo qua giao thức và pipeline thu thập phù hợp.
+  objectives:
+  - Cấu hình OTLP receiver cho traces.
+  - Kiểm tra trace ID và spans sau khi gửi dữ liệu.
+  - Nhận diện lỗi receiver, tenant header và giới hạn ingestion.
+- id: storage-retention
+  title: Storage & Retention
+  purpose: Cấu hình lưu trữ trace bền vững và kiểm soát thời gian lưu dữ liệu.
+  objectives:
+  - Kết nối object storage như S3, GCS hoặc Azure Blob.
+  - Phân biệt local storage cho thử nghiệm với object storage production.
+  - Thiết lập retention và theo dõi block/compaction.
+- id: traceql-query
+  title: TraceQL & Query
+  purpose: Truy vấn trace theo ID hoặc thuộc tính để điều tra request chậm và lỗi.
+  objectives:
+  - Tra cứu trace bằng trace ID.
+  - Viết TraceQL filter theo resource, span và status attributes.
+  - Dùng Grafana Explore để kiểm tra kết quả query.
+- id: metrics-from-traces
+  title: Metrics from Traces
+  purpose: Tạo góc nhìn RED và service graph từ spans để liên kết tracing với metrics.
+  objectives:
+  - Cấu hình metrics-generator processors.
+  - Tạo span metrics và service graphs.
+  - Gửi metrics qua Prometheus remote write và kiểm tra kết quả.
+- id: tenant-limits-security
+  title: Tenant, Limits & Security
+  purpose: Cô lập dữ liệu trace và bảo vệ endpoint ingestion/query khi nhiều nhóm cùng sử dụng.
+  objectives:
+  - Giải thích tenant header và multitenancy.
+  - Đặt giới hạn ingestion hoặc kích thước trace theo tenant.
+  - Bảo vệ Tempo sau authentication proxy và giới hạn quyền truy cập.
+- id: operations-troubleshooting
+  title: Operations & Troubleshooting
+  purpose: Theo dõi sức khỏe Tempo, điều tra lỗi ingest/query và điều chỉnh năng lực vận hành.
+  objectives:
+  - Theo dõi metrics, logs và trạng thái component.
+  - Chẩn đoán lỗi object storage, queue hoặc query latency.
+  - Kiểm tra dữ liệu hết hạn, compaction và khả năng phục hồi.

@@ -1,0 +1,97 @@
+menu:
+- title: Nền tảng OpenTelemetry
+  slug: opentelemetry-foundations
+  index: 0
+- title: Kiến trúc OpenTelemetry
+  slug: opentelemetry-architecture
+  index: 1
+- title: Hệ sinh thái Java
+  slug: java-ecosystem
+  index: 2
+- title: Tài nguyên và ngữ nghĩa
+  slug: resources-semantics
+  index: 3
+- title: Khởi tạo SDK
+  slug: sdk-initialization
+  index: 4
+- title: Cấu hình SDK
+  slug: sdk-configuration
+  index: 5
+- title: API truy vết
+  slug: tracing-api
+  index: 6
+- title: Thiết kế span
+  slug: span-design
+  index: 7
+- title: Ngữ cảnh trong tiến trình
+  slug: in-process-context
+  index: 8
+- title: Truyền ngữ cảnh
+  slug: context-propagation
+  index: 9
+- title: Bất đồng bộ trên JVM
+  slug: jvm-asynchrony
+  index: 10
+- title: Lấy mẫu truy vết
+  slug: trace-sampling
+  index: 11
+- title: API số đo
+  slug: metrics-api
+  index: 12
+- title: SDK số đo
+  slug: metrics-sdk
+  index: 13
+- title: Nhật ký OpenTelemetry
+  slug: otel-logging
+  index: 14
+- title: Java agent
+  slug: java-agent
+  index: 15
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 16
+- title: Đo lường thư viện
+  slug: library-instrumentation
+  index: 17
+- title: OTLP và exporter
+  slug: otlp-exporters
+  index: 18
+- title: Cấu hình Collector
+  slug: collector-configuration
+  index: 19
+- title: Xử lý tại Collector
+  slug: collector-processing
+  index: 20
+- title: Nối và định tuyến dữ liệu
+  slug: pipeline-routing
+  index: 21
+- title: Triển khai Collector
+  slug: collector-deployment
+  index: 22
+- title: Độ tin cậy đường xuất
+  slug: export-reliability
+  index: 23
+- title: Liên kết các tín hiệu
+  slug: signal-correlation
+  index: 24
+- title: Bảo mật dữ liệu
+  slug: data-security
+  index: 25
+- title: Hiệu năng và chi phí
+  slug: performance-costs
+  index: 26
+- title: Giám sát và chẩn đoán
+  slug: monitoring-diagnostics
+  index: 27
+- title: Kiểm thử đo lường
+  slug: instrumentation-testing
+  index: 28
+- title: Quản trị và nâng cấp
+  slug: governance-upgrades
+  index: 29
+- title: Tương thích hệ sinh thái
+  slug: ecosystem-compatibility
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 31

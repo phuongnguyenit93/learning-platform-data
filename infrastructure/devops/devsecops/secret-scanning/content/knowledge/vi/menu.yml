@@ -1,0 +1,309 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bí mật xác thực là gì và vì sao không được lưu trong mã nguồn
+  - Quét bí mật bị lộ giải quyết vấn đề gì trong DevSecOps
+  - Phân biệt bí mật, dữ liệu nhạy cảm, định danh công khai và cấu hình
+  - Phân biệt quét bí mật với SAST, quét phụ thuộc và quản lý bí mật
+  - Vòng đời từ tạo bí mật đến sử dụng, phát hiện, thu hồi và thay thế
+  - Vai trò của lập trình viên, nhóm nền tảng, bảo mật và chủ sở hữu bí mật
+  - Giới hạn của công cụ quét và trách nhiệm của con người
+- level1: Mô hình rủi ro
+  level2:
+  - Tài sản cần bảo vệ và phạm vi ảnh hưởng khi thông tin xác thực bị lộ
+  - Đường đi của bí mật từ máy lập trình viên đến kho mã và môi trường chạy
+  - Kịch bản lộ bí mật qua commit, pull request, fork và bản sao kho mã
+  - Kịch bản lộ bí mật qua nhật ký, gói phát hành và ảnh container
+  - Kho mã riêng tư vẫn có thể làm lộ bí mật như thế nào
+  - Phân biệt bí mật bị công khai, đã bị sử dụng và chưa xác định tình trạng
+  - Xác định ranh giới quét, nguồn dữ liệu và trách nhiệm xử lý
+- level1: Nhận diện bí mật
+  level2:
+  - Mật khẩu và chuỗi kết nối cơ sở dữ liệu có thông tin xác thực
+  - Khóa API, mã truy cập cá nhân và mã thông báo dịch vụ
+  - Thông tin xác thực đám mây và thông tin xác thực tạm thời
+  - Khóa riêng SSH, TLS và khóa ký cần bảo vệ
+  - Thông tin xác thực registry, kho gói và hệ thống CI/CD
+  - Webhook, URL có thông tin xác thực và URL ký sẵn
+  - Cookie phiên, mã thông báo phiên và thông tin đăng nhập ứng dụng
+  - Bí mật trong cấu hình thử nghiệm, dữ liệu mẫu và bản sao lưu
+  - Phân biệt chứng thư, khóa công khai, mã băm và khóa riêng
+- level1: Bề mặt quét
+  level2:
+  - Mã nguồn, tệp ẩn, tệp cấu hình và thư mục chưa được theo dõi
+  - Tệp .env, cấu hình ứng dụng và cấu hình dành cho từng môi trường
+  - Dockerfile, Compose, manifest Kubernetes và Helm values
+  - Mã hạ tầng, tệp biến và tệp trạng thái Terraform
+  - Script tự động hóa, notebook và bộ sưu tập yêu cầu API
+  - Tài liệu, ví dụ lệnh, issue và nội dung thảo luận kỹ thuật
+  - Nhật ký xây dựng, kết quả kiểm thử, báo cáo và tệp lưu tạm
+  - Gói phát hành, gói phụ thuộc nội bộ và tệp nén
+  - Ảnh container, các lớp ảnh và dấu vết trong quá trình xây dựng
+- level1: Lịch sử Git
+  level2:
+  - Khác biệt giữa quét cây tệp hiện tại và quét lịch sử commit
+  - Commit, nhánh, thẻ và các tham chiếu trong phạm vi quét
+  - Bí mật đã xóa khỏi phiên bản hiện tại nhưng còn trong lịch sử
+  - Ảnh hưởng của shallow clone và thiếu tham chiếu đến độ bao phủ
+  - Quét phần thay đổi so với quét toàn bộ kho mã
+  - Xử lý merge commit, rebase và thay đổi tên hoặc đường dẫn tệp
+  - Phạm vi của submodule, Git LFS và nội dung nằm ngoài kho mã
+  - Fork, mirror và bản sao ngoài phạm vi kiểm soát
+  - Quản lý tiến độ quét khi lịch sử lớn hoặc bị viết lại
+- level1: Cơ chế phát hiện
+  level2:
+  - Nhận diện theo mẫu định dạng và biểu thức chính quy
+  - Nhận diện theo tiền tố, độ dài và cấu trúc của nhà cung cấp
+  - Độ hỗn loạn của chuỗi và giới hạn khi dùng entropy
+  - Kết hợp từ khóa, ngữ cảnh dòng và tên tệp để tăng độ tin cậy
+  - Phát hiện thông tin xác thực theo cặp có quan hệ với nhau
+  - Phát hiện khối khóa nhiều dòng và định dạng khóa riêng
+  - Chuỗi được mã hóa, chuỗi bị tách và giới hạn của giải mã
+  - Phân biệt kết quả khớp mẫu với bí mật còn hiệu lực
+  - Điểm mù khi chỉ dựa vào mẫu đã biết hoặc entropy
+- level1: Quy tắc tùy chỉnh
+  level2:
+  - Xác định nhu cầu tạo quy tắc cho bí mật nội bộ
+  - Thu thập mẫu giả lập đại diện và mô tả định dạng bí mật
+  - Thiết kế biểu thức chính quy có ranh giới và ngữ cảnh rõ ràng
+  - Chọn nhóm bắt dữ liệu và phần bí mật cần che trong kết quả
+  - Kết hợp từ khóa, entropy và điều kiện loại trừ có kiểm soát
+  - Tạo tập mẫu phải phát hiện và tập mẫu không được báo
+  - Kiểm thử hiệu năng quy tắc và tránh biểu thức gây tốn tài nguyên
+  - Quản lý phiên bản, chủ sở hữu và quy trình duyệt thay đổi quy tắc
+  - Đánh giá tác động của quy tắc mới trước khi bật chặn
+- level1: Lựa chọn công cụ
+  level2:
+  - So sánh công cụ cục bộ, công cụ CI và dịch vụ tích hợp kho mã
+  - Đánh giá tập quy tắc, phạm vi lịch sử và khả năng tùy chỉnh
+  - Đánh giá xác minh hiệu lực, che dữ liệu và định dạng báo cáo
+  - Đánh giá hỗ trợ monorepo, nhiều kho mã và quét tăng dần
+  - Đánh giá mô hình quyền truy cập và dữ liệu gửi ra ngoài
+  - Đánh giá chi phí, giấy phép, vận hành và khả năng chuyển đổi
+  - Xây dựng bộ tình huống thử nghiệm để so sánh độ bao phủ
+  - Phối hợp nhiều công cụ và kiểm soát cảnh báo trùng lặp
+- level1: Gitleaks
+  level2:
+  - Vai trò của Gitleaks trong quét kho mã và hệ thống CI
+  - Cài đặt, cố định phiên bản và kiểm tra nguồn phân phối
+  - Quét tệp làm việc và quét lịch sử theo mục đích kiểm tra
+  - Đọc báo cáo để xác định quy tắc, đường dẫn và vị trí phát hiện
+  - Cấu hình quy tắc, phạm vi quét và chính sách che bí mật
+  - Quản lý baseline và ngoại lệ mà không bỏ qua phát hiện mới
+  - Tích hợp vào kiểm tra cục bộ và cổng kiểm soát CI
+  - Kiểm chứng hành vi sau khi nâng cấp công cụ hoặc cấu hình
+- level1: TruffleHog
+  level2:
+  - Vai trò của TruffleHog và các nguồn quét cần đánh giá
+  - Cài đặt, cố định phiên bản và cấp quyền tối thiểu
+  - Quét nguồn dữ liệu đã được cho phép trong phạm vi thử nghiệm
+  - Phân biệt phát hiện theo bộ nhận diện và kết quả xác minh
+  - Kiểm soát kết nối mạng và quyền cho phép xác minh bí mật
+  - Đọc kết quả có cấu trúc và che thông tin nhạy cảm
+  - Xử lý giới hạn tốc độ, lỗi nguồn quét và kết quả chưa xác định
+  - Tích hợp vào CI và kiểm thử cấu hình bằng bí mật giả lập
+- level1: detect-secrets
+  level2:
+  - Vai trò của detect-secrets trong kiểm soát bí mật của dự án
+  - Cài đặt và cố định phiên bản công cụ cùng các plugin sử dụng
+  - Tạo baseline ban đầu và hiểu dữ liệu baseline lưu giữ
+  - Rà soát phát hiện để phân loại bí mật và kết quả báo nhầm
+  - Cấu hình bộ phát hiện, bộ lọc và phạm vi tệp
+  - Tích hợp kiểm tra trước commit vào quy trình của nhóm
+  - Cập nhật baseline qua rà soát thay vì chấp nhận hàng loạt
+  - Đánh giá giới hạn khi dùng baseline cho quét lịch sử
+- level1: Nền tảng kho mã
+  level2:
+  - Phạm vi của GitHub secret scanning và push protection
+  - Phạm vi của GitLab secret detection và kiểm soát khi đẩy mã
+  - Kiểm tra điều kiện gói dịch vụ, quyền và tính năng trước triển khai
+  - Cấu hình phạm vi bật quét theo tổ chức, nhóm và kho mã
+  - Chính sách chặn đẩy mã và quy trình ngoại lệ có phê duyệt
+  - Quản lý cảnh báo, phân công người xử lý và lịch sử thao tác
+  - Tích hợp API, webhook và hệ thống tiếp nhận cảnh báo
+  - Đối chiếu độ bao phủ giữa tính năng nền tảng và công cụ độc lập
+- level1: Kiểm tra cục bộ
+  level2:
+  - Quét dự án trước khi tạo commit và trước khi đẩy mã
+  - Chọn quét vùng đã stage hay toàn bộ cây tệp theo mục tiêu
+  - Tích hợp pre-commit hook và quản lý cấu hình dùng chung
+  - Phản hồi dễ hiểu cho lập trình viên mà không in lại bí mật
+  - Thiết lập công cụ cho dự án mới và môi trường phát triển chuẩn
+  - Nhận diện trường hợp hook bị bỏ qua hoặc không được cài đặt
+  - Kiểm tra bổ sung trong IDE và giới hạn của phản hồi cục bộ
+  - Thực hành sửa thay đổi trước khi bí mật đi vào lịch sử
+- level1: Tích hợp CI/CD
+  level2:
+  - Chọn thời điểm quét ở pull request, nhánh chính và lịch định kỳ
+  - Thiết kế quét phần thay đổi kết hợp quét toàn bộ theo lịch
+  - Lấy đúng lịch sử, nhánh gốc và phạm vi so sánh trong CI
+  - Chạy bộ quét với quyền tối thiểu và cấu hình được kiểm soát
+  - Bảo vệ quy trình khi kiểm tra đóng góp từ fork không tin cậy
+  - Ngăn thay đổi pull request tự vô hiệu hóa quy tắc hoặc cổng chặn
+  - Phân biệt phát hiện bí mật với lỗi công cụ và lỗi hạ tầng
+  - Thiết kế mã thoát, điều kiện thất bại và thời gian chờ
+  - Lưu báo cáo an toàn và kiểm soát thời hạn lưu trữ
+  - Áp dụng mẫu tích hợp cho GitHub Actions, GitLab CI và Jenkins
+- level1: Quét ngoài kho mã
+  level2:
+  - Quét đầu ra xây dựng trước khi phát hành
+  - Quét nội dung giải nén và kiểm soát giới hạn tài nguyên
+  - Quét ảnh container cùng các lớp có thể còn chứa bí mật
+  - Quét nhật ký và báo cáo mà không tạo thêm bản sao dữ liệu nhạy cảm
+  - Kiểm soát quét tệp nhị phân, nội dung mã hóa và định dạng không hỗ trợ
+  - Quét kho lưu trữ nội bộ bằng tài khoản chỉ đọc theo phạm vi
+  - Xác định phần dữ liệu chưa được kiểm tra trong báo cáo độ bao phủ
+  - Lập lịch quét lại khi nguồn dữ liệu hoặc quy tắc thay đổi
+- level1: Xác minh hiệu lực
+  level2:
+  - Phân biệt kiểm tra định dạng, xác minh hiệu lực và đánh giá quyền
+  - Điều kiện được phép gửi yêu cầu xác minh đến nhà cung cấp
+  - Nguy cơ gây tác động khi thử sử dụng thông tin xác thực
+  - Kiểm soát lưu lượng ra ngoài, giới hạn tốc độ và nhật ký xác minh
+  - Xử lý kết quả còn hiệu lực, hết hiệu lực và chưa thể xác định
+  - Bí mật hết hiệu lực vẫn có thể cung cấp thông tin nhạy cảm
+  - Không suy diễn bí mật an toàn chỉ vì xác minh thất bại
+  - Ghi nhận bằng chứng tối thiểu mà không lưu giá trị bí mật
+- level1: Báo cáo an toàn
+  level2:
+  - Thông tin tối thiểu của một phát hiện có thể xử lý được
+  - Xác định kho mã, commit, tệp, dòng và quy tắc phát hiện
+  - Che giá trị bí mật trong terminal, báo cáo và giao diện CI
+  - Sinh dấu vân tay phục vụ đối chiếu mà không phát tán bí mật
+  - Xuất JSON, CSV hoặc SARIF theo khả năng công cụ
+  - Chuẩn hóa kết quả từ nhiều công cụ thành mô hình thống nhất
+  - Bảo vệ đường dẫn, đoạn ngữ cảnh và siêu dữ liệu nhạy cảm
+  - Kiểm soát người xem, thời hạn lưu và xóa báo cáo
+- level1: Phân loại cảnh báo
+  level2:
+  - Phân biệt bí mật thật, báo nhầm và dữ liệu mẫu có chủ đích
+  - Đánh giá mức độ nghiêm trọng theo quyền, môi trường và phạm vi lộ
+  - Ưu tiên bí mật sản xuất, quyền quản trị và kho mã công khai
+  - Xử lý thông tin xác thực tạm thời hoặc chưa xác định chủ sở hữu
+  - Gộp phát hiện trùng theo bí mật, vị trí và chuỗi sự kiện
+  - Phân công người xử lý và thời hạn phản hồi
+  - Quản lý trạng thái từ phát hiện đến xác nhận đã khắc phục
+  - Điều kiện mở lại cảnh báo và xử lý phát hiện tái diễn
+- level1: Baseline và ngoại lệ
+  level2:
+  - Mục đích của baseline khi tiếp nhận kho mã đã tồn tại
+  - Phân biệt ghi nhận nợ tồn đọng với chấp nhận rủi ro
+  - Ngăn phát hiện mới bị che khuất bởi baseline cũ
+  - Tạo allowlist theo dấu vân tay, quy tắc hoặc đường dẫn hẹp
+  - Nguy cơ của ngoại lệ quá rộng và loại trừ toàn bộ thư mục
+  - Yêu cầu lý do, chủ sở hữu và ngày hết hạn ngoại lệ
+  - Rà soát định kỳ baseline, dữ liệu mẫu và ngoại lệ hết hạn
+  - Kiểm tra ảnh hưởng khi thay đổi đường dẫn hoặc viết lại lịch sử
+- level1: Ứng phó lộ bí mật
+  level2:
+  - Tiếp nhận cảnh báo và xác nhận phạm vi mà không phát tán bí mật
+  - Ưu tiên thu hồi hoặc vô hiệu hóa bí mật đã lộ
+  - Thay thế bí mật và cập nhật các hệ thống phụ thuộc
+  - Kiểm tra dấu vết sử dụng trái phép và phạm vi quyền bị ảnh hưởng
+  - Bảo toàn bằng chứng tối thiểu phục vụ điều tra
+  - Phối hợp chủ sở hữu dịch vụ, nhà cung cấp và nhóm ứng phó
+  - Xác nhận dịch vụ hoạt động sau khi thay thế thông tin xác thực
+  - Đóng sự cố bằng bằng chứng thu hồi, quét lại và theo dõi
+  - Rút kinh nghiệm và bổ sung biện pháp ngăn tái diễn
+- level1: Làm sạch lịch sử
+  level2:
+  - Vì sao xóa tệp hoặc commit mới không đủ để thu hồi bí mật
+  - Điều kiện cần cân nhắc trước khi viết lại lịch sử Git
+  - Lập kế hoạch xử lý các nhánh, thẻ và tham chiếu liên quan
+  - Dùng git-filter-repo trong môi trường được phép để loại bỏ dữ liệu
+  - Phối hợp cập nhật bản sao làm việc sau khi viết lại lịch sử
+  - Xử lý fork, mirror, cache, bản phát hành và bản sao lưu còn dữ liệu
+  - Quét lại và xác minh phạm vi đã làm sạch
+  - Giới hạn của làm sạch lịch sử và yêu cầu thu hồi bí mật độc lập
+- level1: Ngăn ngừa tái diễn
+  level2:
+  - Thay bí mật trong mã nguồn bằng tham chiếu cấu hình an toàn
+  - Phân biệt vai trò của quét bí mật và hệ thống quản lý bí mật
+  - Dùng danh tính ứng dụng (workload identity) và thông tin xác thực ngắn hạn
+  - Giảm quyền và phạm vi sử dụng để giới hạn tác động khi bị lộ
+  - Bảo vệ tệp môi trường và hiểu giới hạn của .gitignore
+  - Dùng dữ liệu giả lập rõ ràng cho tài liệu và kiểm thử
+  - Truyền bí mật khi xây dựng mà không ghi vào lớp ảnh hoặc nhật ký
+  - Rà soát mẫu dự án, script và quy trình gây lặp lại lỗi
+- level1: Bảo mật bộ quét
+  level2:
+  - Đánh giá quyền mà bộ quét cần khi đọc kho mã và nguồn dữ liệu
+  - Bảo vệ thông tin xác thực dùng để vận hành bộ quét
+  - Cô lập tiến trình và hạn chế quyền đọc ghi trên máy chạy
+  - Kiểm soát cấu hình, plugin và bản phân phối của công cụ
+  - Ngăn rò rỉ qua log gỡ lỗi, bộ nhớ đệm và thư mục tạm
+  - Bảo vệ báo cáo khi gửi sang hệ thống tiếp nhận bên ngoài
+  - Quy định vị trí xử lý dữ liệu và điều kiện dùng dịch vụ bên thứ ba
+  - Ứng phó khi máy quét hoặc tài khoản tích hợp bị xâm nhập
+- level1: Chính sách kiểm soát
+  level2:
+  - Xác định tiêu chuẩn bí mật bị cấm trong mã và tài liệu
+  - Chọn điều kiện cảnh báo, chặn và yêu cầu rà soát thủ công
+  - Áp dụng cổng kiểm soát theo mức độ nghiêm trọng và bối cảnh
+  - Tách quyền duyệt ngoại lệ khỏi người tạo thay đổi
+  - Thiết lập quy trình xử lý khẩn cấp và kiểm tra sau ngoại lệ
+  - Quy định thời hạn xử lý và trách nhiệm của chủ sở hữu
+  - Lưu dấu vết quyết định phục vụ kiểm toán và điều tra
+  - Quản lý thay đổi chính sách, thông báo và thời gian chuyển tiếp
+- level1: Triển khai diện rộng
+  level2:
+  - Kiểm kê kho mã, nguồn dữ liệu và mức độ ưu tiên triển khai
+  - Quét ban đầu để đo tồn đọng trước khi bật chặn
+  - Triển khai thí điểm rồi mở rộng theo mức độ sẵn sàng
+  - Tổ chức cấu hình dùng chung và phần tùy chỉnh của từng dự án
+  - Xử lý monorepo, kho mã lưu trữ và kho mã không có chủ sở hữu rõ ràng
+  - Phân bổ nguồn lực xử lý nợ tồn đọng và hỗ trợ nhóm phát triển
+  - Đồng bộ quyền, cấu hình và tình trạng bật quét ở nhiều kho mã
+  - Phát hiện cấu hình lệch chuẩn và kho mã chưa được bảo vệ
+- level1: Hiệu năng và độ tin cậy
+  level2:
+  - Đo thời gian quét theo kích thước kho mã và chiều dài lịch sử
+  - Thiết kế quét tăng dần mà vẫn có kiểm tra toàn bộ định kỳ
+  - Phân chia công việc quét song song và tránh bỏ sót nguồn dữ liệu
+  - Giới hạn kích thước tệp, độ sâu giải nén và tài nguyên tiến trình
+  - Xử lý timeout, lỗi kết nối và giới hạn tốc độ nguồn quét
+  - Đánh dấu quét không đầy đủ thay vì báo không có bí mật
+  - Theo dõi kết quả lỗi và khôi phục công việc quét có kiểm soát
+  - Kiểm tra nguy cơ kết quả cũ khi dùng cache hoặc checkpoint
+- level1: Kiểm thử và đo lường
+  level2:
+  - Xây dựng kho mã thử nghiệm bằng bí mật giả lập an toàn
+  - Thiết kế ca kiểm thử cho lịch sử, nhánh, tệp xóa và mã hóa
+  - Kiểm thử quy tắc với tập đúng, tập sai và trường hợp biên
+  - Đo độ chính xác (precision), độ bao phủ phát hiện (recall) và giới hạn của tập dữ liệu đánh giá
+  - Theo dõi độ bao phủ kho mã, nguồn dữ liệu và lịch sử
+  - Theo dõi thời gian phát hiện, phản hồi và thu hồi bí mật
+  - Đo tỷ lệ báo nhầm, ngoại lệ và phát hiện tái diễn
+  - Kiểm thử hồi quy sau nâng cấp công cụ và tập quy tắc
+  - Diễn tập cảnh báo đến khắc phục mà không dùng bí mật sản xuất
+- level1: Khắc phục sự cố
+  level2:
+  - Quét không có kết quả do chọn sai phạm vi hoặc thiếu lịch sử
+  - Bộ quét bỏ qua tệp do ignore, allowlist hoặc giới hạn kích thước
+  - Cảnh báo nhiễu từ mã băm, dữ liệu ngẫu nhiên và khóa công khai
+  - Phát hiện bị bỏ sót do mẫu chưa hỗ trợ hoặc ngữ cảnh không phù hợp
+  - Xác minh hiệu lực thất bại do quyền, mạng hoặc giới hạn tốc độ
+  - Pipeline thành công dù bộ quét lỗi hoặc chưa chạy hết
+  - Cảnh báo lặp lại sau khi đã sửa do nhánh, cache hoặc bản sao khác
+  - Báo cáo làm lộ bí mật và cách cô lập, thay thế thông tin bị lộ
+- level1: Thực hành có hướng dẫn
+  level2:
+  - Dựng kho mã thử nghiệm và bộ dữ liệu giả lập có phạm vi rõ ràng
+  - Phát hiện bí mật trong tệp hiện tại và commit đã xóa
+  - Tích hợp kiểm tra trước commit và kiểm tra pull request
+  - Viết quy tắc cho định dạng bí mật nội bộ giả lập
+  - Tạo baseline, xử lý báo nhầm và kiểm chứng ngoại lệ hẹp
+  - Quét gói phát hành và ảnh container trong môi trường thử nghiệm
+  - Mô phỏng thu hồi, thay thế và quét lại sau cảnh báo
+  - So sánh kết quả hai công cụ trên cùng bộ tình huống
+  - Thu thập bằng chứng hoàn thành mà không lưu bí mật thật
+- level1: Tình huống tổng hợp
+  level2:
+  - Tiếp nhận kho mã cũ có nhiều phát hiện tồn đọng
+  - Ngăn bí mật mới đi vào nhánh chính từ đóng góp bên ngoài
+  - Xử lý khóa đám mây giả lập bị lộ qua nhật ký CI
+  - Xử lý bí mật đã xóa khỏi mã nhưng còn trong các lớp ảnh
+  - Triển khai quy tắc mới gây tăng mạnh số lượng cảnh báo nhầm
+  - Thiết kế chương trình quét bí mật cho nhiều nhóm phát triển
+  - Đánh giá đánh đổi giữa độ bao phủ, độ nhiễu và tốc độ phản hồi
+  - Checklist tự đánh giá và tiêu chí hoàn thành quy trình quét

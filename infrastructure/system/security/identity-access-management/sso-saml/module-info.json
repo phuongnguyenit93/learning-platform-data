@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Security này là security chung , không chỉ bao gồm java , vì vậy các knowledge liên quan đến chỉ riêng java hay spring , đặc biệt là spring security hãy bỏ qua"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_IDENTITY_ACCESS_MANAGEMENT_SSO_SAML"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hiểu SSO và liên kết danh tính bằng SAML 2.0 qua vai trò IdP/SP, assertion, metadata, binding, chữ ký XML và luồng đăng nhập, đăng xuất. Người học biết thiết lập quan hệ tin cậy, xác minh phản hồi, ánh xạ tài khoản và phòng vệ trước tấn công SAML ở mức bảo mật tổng quát."
+  }
+}

@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan PBAC
+  slug: pbac-overview
+  index: 0
+- title: Các mô hình truy cập
+  slug: access-control-models
+  index: 1
+- title: Phân tích yêu cầu
+  slug: requirements-analysis
+  index: 2
+- title: Mô hình yêu cầu truy cập
+  slug: access-request-model
+  index: 3
+- title: Kiến trúc chính sách
+  slug: policy-architecture
+  index: 4
+- title: Cấu trúc chính sách
+  slug: policy-structure
+  index: 5
+- title: Ngữ nghĩa quyết định
+  slug: decision-semantics
+  index: 6
+- title: Kết hợp chính sách
+  slug: policy-combining
+  index: 7
+- title: Dữ liệu và ngữ cảnh
+  slug: context-and-data
+  index: 8
+- title: Điều kiện truy cập
+  slug: access-conditions
+  index: 9
+- title: Mô hình tài nguyên
+  slug: resource-model
+  index: 10
+- title: Thực thi phân quyền
+  slug: authorization-enforcement
+  index: 11
+- title: Phân quyền dữ liệu
+  slug: data-level-authorization
+  index: 12
+- title: Đa tổ chức
+  slug: multi-tenancy
+  index: 13
+- title: Phân quyền quản trị
+  slug: delegated-administration
+  index: 14
+- title: Phân phối chính sách
+  slug: policy-distribution
+  index: 15
+- title: Cache và thu hồi
+  slug: cache-and-revocation
+  index: 16
+- title: Khả dụng và hiệu năng
+  slug: availability-and-performance
+  index: 17
+- title: Chính sách dạng mã
+  slug: policy-as-code
+  index: 18
+- title: XACML
+  slug: xacml
+  index: 19
+- title: OPA và Rego
+  slug: opa-and-rego
+  index: 20
+- title: Cedar
+  slug: cedar
+  index: 21
+- title: Chọn bộ máy chính sách
+  slug: policy-engine-selection
+  index: 22
+- title: Kiểm thử chính sách
+  slug: policy-testing
+  index: 23
+- title: Phân tích và xác minh
+  slug: analysis-and-verification
+  index: 24
+- title: Triển khai và chuyển đổi
+  slug: deployment-and-migration
+  index: 25
+- title: Quan sát và điều tra
+  slug: observability-and-investigation
+  index: 26
+- title: Bảo vệ hệ thống PBAC
+  slug: pbac-system-security
+  index: 27
+- title: Quản trị và kiểm toán
+  slug: governance-and-auditing
+  index: 28
+- title: Tình huống ứng dụng
+  slug: application-scenarios
+  index: 29
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 30
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 31
+- title: Tra cứu và ôn tập
+  slug: reference-and-review
+  index: 32

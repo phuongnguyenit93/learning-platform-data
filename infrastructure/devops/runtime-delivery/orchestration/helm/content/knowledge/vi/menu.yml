@@ -1,0 +1,333 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Helm là gì và bài toán đóng gói ứng dụng Kubernetes
+  - Vì sao quản lý nhiều manifest thủ công trở nên khó duy trì
+  - 'Bản đồ khái niệm: chart, values, template, manifest và release'
+  - Luồng xử lý từ chart và cấu hình đến tài nguyên trong cluster
+  - Phân biệt chart, container image và ứng dụng đang chạy
+  - Ranh giới trách nhiệm giữa Helm, bộ điều khiển Kubernetes và công cụ hạ tầng
+  - Vai trò người dùng chart, tác giả chart và người vận hành release
+  - Lộ trình học từ cài chart có sẵn đến phát triển và bàn giao chart
+- level1: Chuẩn bị
+  level2:
+  - 'Kiến thức Kubernetes cần có: Pod, Deployment, Service và namespace'
+  - Kiến thức YAML và dòng lệnh phục vụ thực hành
+  - Cài Helm CLI và kiểm tra phiên bản thực tế
+  - Chuẩn bị cluster thử nghiệm và quyền truy cập phù hợp
+  - Kubeconfig, context và namespace đích
+  - Xác nhận khả năng kết nối bằng Helm và kubectl
+  - Đọc trợ giúp lệnh và thông tin môi trường từ helm env
+  - Tách môi trường thực hành khỏi tài nguyên đang phục vụ người dùng
+- level1: Phiên bản và tương thích
+  level2:
+  - Phân biệt phiên bản Helm CLI, định dạng chart và phiên bản Kubernetes
+  - Đọc đúng tài liệu Helm 3 hoặc Helm 4 theo môi trường sử dụng
+  - Nhận diện hướng dẫn Helm 2 và mô hình Tiller trong tài liệu cũ
+  - Khả năng dùng chart hiện có và kiểm tra tương thích khi đổi bản Helm
+  - 'Thay đổi tên cờ thất bại: --atomic ở Helm 3 và --rollback-on-failure ở Helm 4'
+  - Cơ chế chờ tài nguyên và khác biệt giữa các phiên bản Helm
+  - Client-side apply, server-side apply và quyền sở hữu trường tài nguyên
+  - Thay đổi plugin và post-renderer khi chuyển sang Helm 4
+  - Khóa phiên bản công cụ và kiểm chứng quy trình trước khi nâng cấp
+- level1: Khám phá chart
+  level2:
+  - Phân biệt danh mục tìm kiếm chart với kho phân phối chart
+  - Tìm chart bằng helm search hub và helm search repo
+  - Đọc README, Chart.yaml và values mặc định bằng helm show
+  - Kiểm tra nguồn phát hành, người duy trì và lịch sử phiên bản
+  - Đọc yêu cầu Kubernetes, phụ thuộc và quyền cần cấp
+  - Đánh giá tài nguyên, cấu hình mạng và lưu trữ trước khi cài
+  - Chọn phiên bản chart cụ thể thay vì phụ thuộc bản mới nhất
+  - Tải và giải nén chart để kiểm tra nội dung
+- level1: Vòng đời release
+  level2:
+  - Release là gì và cách phân biệt các lần cài cùng một chart
+  - Đặt tên release và xác định namespace quản lý
+  - Cài chart từ thư mục, gói nén hoặc nguồn phân phối
+  - Truyền values khi cài đặt và ghi nhận cấu hình đã dùng
+  - Theo dõi release bằng helm list và helm status
+  - Xem values, manifest, hooks và ghi chú bằng helm get
+  - Đọc revision và trạng thái qua helm history
+  - Phân biệt Helm báo thành công với ứng dụng đáp ứng yêu cầu thực tế
+  - Mối liên hệ giữa install, upgrade, rollback và uninstall
+- level1: Cấu trúc chart
+  level2:
+  - Khởi tạo bộ khung chart bằng helm create
+  - Vai trò Chart.yaml, values.yaml và templates/
+  - Thư mục charts/ và các chart phụ thuộc
+  - Thư mục crds/ và ranh giới với template thông thường
+  - values.schema.json và hợp đồng cấu hình đầu vào
+  - _helpers.tpl, NOTES.txt, README và tài liệu sử dụng
+  - .helmignore và kiểm soát nội dung đưa vào gói
+  - Tổ chức tệp theo tài nguyên để dễ đọc và bảo trì
+- level1: Thông tin chart
+  level2:
+  - Các trường nhận diện, mô tả và người duy trì trong Chart.yaml
+  - Phân biệt apiVersion của chart với apiVersion của tài nguyên Kubernetes
+  - Phân biệt version của chart, appVersion và phiên bản image
+  - Quy tắc phiên bản ngữ nghĩa và ý nghĩa thay đổi tương thích
+  - Ràng buộc kubeVersion và điều kiện hỗ trợ cluster
+  - Application chart và library chart
+  - Annotations, nguồn mã và thông tin phục vụ tra cứu
+  - Tăng phiên bản chart khi thay đổi template hoặc hợp đồng values
+- level1: Values
+  level2:
+  - Vai trò của values mặc định và cấu hình do người dùng cung cấp
+  - Tổ chức khóa cấu hình rõ nghĩa và tránh lồng quá sâu
+  - Thứ tự ưu tiên giữa mặc định, tệp -f và tham số dòng lệnh
+  - Gộp nhiều tệp cấu hình và tác động của thứ tự khai báo
+  - Phân biệt --set, --set-string, --set-file và --set-json
+  - Kiểu chuỗi, số, boolean và lỗi suy diễn kiểu trong YAML
+  - Cách gộp map, thay thế danh sách và xử lý giá trị null
+  - Phân biệt khóa không tồn tại, giá trị rỗng và giá trị false
+  - Đọc cấu hình do người dùng đặt và toàn bộ cấu hình đã tính toán
+  - Thiết kế giá trị mặc định và tài liệu cho từng tùy chọn
+- level1: Schema cấu hình
+  level2:
+  - Khi nào cần values.schema.json thay vì chỉ ghi hướng dẫn
+  - Khai báo kiểu dữ liệu, trường bắt buộc và giới hạn giá trị
+  - Ràng buộc cấu trúc đối tượng và phần tử danh sách
+  - Ngăn khóa sai và cấu hình ngoài hợp đồng được hỗ trợ
+  - Kiểm tra tổ hợp cấu hình và điều kiện phụ thuộc
+  - Phạm vi kiểm tra trên values cuối cùng và schema của subchart
+  - Phân biệt kiểm tra schema, kiểm tra template và kiểm tra Kubernetes API
+  - Duy trì tương thích schema khi phát hành chart mới
+- level1: Go template
+  level2:
+  - Template tạo manifest như thế nào từ dữ liệu đầu vào
+  - Dấu phân cách biểu thức và vị trí chèn giá trị trong YAML
+  - Các đối tượng .Values, .Release, .Chart, .Capabilities và .Template
+  - Truy cập trường, gọi hàm và nối xử lý bằng pipeline
+  - Khoảng trắng, dấu xuống dòng và lỗi ghép tài liệu YAML
+  - quote, indent và nindent khi dựng cấu trúc YAML
+  - Phân biệt chú thích YAML và chú thích template
+  - Render chart bằng helm template để quan sát kết quả
+  - Giới hạn của render cục bộ khi không truy vấn cluster
+- level1: Phạm vi và điều khiển
+  level2:
+  - Dấu chấm đại diện ngữ cảnh hiện tại và biến gốc $
+  - Điều kiện if, else và quy tắc đánh giá giá trị rỗng
+  - with và thay đổi ngữ cảnh trong khối xử lý
+  - range trên danh sách và map
+  - Khai báo biến và phạm vi tồn tại của biến
+  - Truyền ngữ cảnh khi gọi template khác
+  - Đọc dữ liệu cấp gốc bên trong vòng lặp và khối with
+  - Tránh lỗi nil khi khóa lồng nhau không tồn tại
+- level1: Hàm và dữ liệu
+  level2:
+  - Xử lý chuỗi và tạo tên tài nguyên phù hợp
+  - default, coalesce và lưu ý với false hoặc số không
+  - required và fail để dừng khi cấu hình không hợp lệ
+  - dict, list và thao tác dữ liệu trong template
+  - Chuyển đổi kiểu và kiểm tra kiểu dữ liệu
+  - toYaml, fromYaml, toJson và từ dữ liệu sang cấu trúc manifest
+  - Gộp dữ liệu, sao chép map và tránh sửa dữ liệu dùng chung ngoài ý muốn
+  - Xử lý phiên bản bằng semverCompare
+  - Tra cứu API và phiên bản Kubernetes qua .Capabilities
+  - lookup và sự khác biệt giữa render ngoại tuyến với truy vấn cluster
+- level1: Template dùng chung
+  level2:
+  - Tách đoạn lặp thành named template trong _helpers.tpl
+  - define, template và include khác nhau ở cách sử dụng kết quả
+  - Quy ước đặt tên helper để tránh xung đột giữa các chart
+  - Truyền nhiều dữ liệu cho helper bằng dict
+  - Helper cho tên đầy đủ, labels và annotations
+  - Kết hợp include với pipeline và thụt lề
+  - tpl để đánh giá chuỗi như template và giới hạn tin cậy đầu vào
+  - Cân bằng tái sử dụng với khả năng đọc hiểu chart
+- level1: Tệp và ghi chú
+  level2:
+  - Đọc tệp đi kèm chart qua .Files
+  - Chọn tệp bằng Glob và chuyển nội dung vào ConfigMap
+  - AsConfig, AsSecrets và yêu cầu về cấu trúc dữ liệu
+  - Phạm vi tệp có thể truy cập và tác động của .helmignore
+  - Đóng gói cấu hình nhiều dòng mà không làm hỏng YAML
+  - Tạo NOTES.txt với hướng dẫn kiểm tra và truy cập ứng dụng
+  - Giới hạn thông tin nhạy cảm trong ghi chú và kết quả render
+- level1: Tài nguyên ứng dụng
+  level2:
+  - Tạo Deployment hoặc StatefulSet theo đặc điểm ứng dụng
+  - Khai báo image, tag, digest và imagePullPolicy
+  - Giữ labels và selectors nhất quán giữa các tài nguyên
+  - Cấu hình Service, cổng ứng dụng và Ingress khi có bộ điều khiển phù hợp
+  - Biến môi trường, ConfigMap và tham chiếu Secret có sẵn
+  - Readiness, liveness và startup probes
+  - Requests, limits và cấu hình số bản sao
+  - ServiceAccount, securityContext và quyền chạy của workload
+  - Cấu hình scheduling, affinity và tolerations theo nhu cầu
+  - Tùy chọn HPA, PodDisruptionBudget và NetworkPolicy
+  - Checksum cấu hình và chủ động kích hoạt rollout khi cần
+- level1: Phụ thuộc chart
+  level2:
+  - Khai báo dependencies trong Chart.yaml
+  - Ràng buộc phiên bản và nguồn lấy chart phụ thuộc
+  - Phân biệt helm dependency update với helm dependency build
+  - Chart.lock và tái tạo đúng tập phụ thuộc đã phê duyệt
+  - Subchart độc lập và phạm vi values nhìn thấy được
+  - Ghi đè values của subchart từ chart cha
+  - Global values và giới hạn chia sẻ dữ liệu giữa chart
+  - Condition, tags, alias và import-values
+  - Library chart để chia sẻ logic thay vì cài ứng dụng riêng
+  - Ranh giới umbrella chart và các release triển khai độc lập
+- level1: Nhiều môi trường
+  level2:
+  - Tách cấu hình dùng chung khỏi khác biệt từng môi trường
+  - Tổ chức tệp values cho phát triển, staging và production
+  - Phân biệt namespace, release name và ranh giới môi trường
+  - Áp dụng cùng phiên bản chart với cấu hình đã phê duyệt
+  - Tách địa chỉ dịch vụ, tài nguyên, storage và ingress theo môi trường
+  - Đối chiếu cấu hình cuối cùng trước khi triển khai
+  - Phân phối bí mật ngoài các tệp values được lưu công khai
+  - Tránh sao chép toàn bộ chart chỉ để đổi cấu hình
+- level1: Nâng cấp release
+  level2:
+  - Phân biệt nâng phiên bản chart, đổi image và cập nhật values
+  - Đọc thay đổi schema và yêu cầu tương thích trước upgrade
+  - helm upgrade và lựa chọn upgrade --install
+  - Giữ lại, đặt lại hoặc kết hợp values theo tùy chọn và phiên bản Helm
+  - Render, dry-run phía client hoặc server và giới hạn từng cách kiểm tra
+  - Ảnh hưởng của thay đổi trường bất biến và phương án thay thế tài nguyên
+  - Chờ readiness, Job và giới hạn thời gian thực thi
+  - Xử lý thất bại, dọn tài nguyên mới và chính sách quay lui
+  - Tránh nhiều tiến trình cùng nâng cấp một release
+  - Xác nhận revision, tài nguyên và hành vi ứng dụng sau upgrade
+- level1: Quay lui và gỡ bỏ
+  level2:
+  - Chọn revision đích từ lịch sử release
+  - helm rollback và ý nghĩa tạo một revision mới
+  - Cấu hình, manifest và hooks tham gia quá trình quay lui
+  - Giới hạn rollback đối với dữ liệu và thay đổi hệ thống bên ngoài
+  - Xác nhận tính tương thích của ứng dụng với schema dữ liệu cũ và mới
+  - Gỡ release bằng helm uninstall và lựa chọn giữ lịch sử
+  - Tài nguyên có chính sách giữ lại và trách nhiệm dọn thủ công
+  - Kiểm tra PVC, hook, CRD và tài nguyên dùng chung sau khi gỡ
+  - Lập kế hoạch cài lại mà không giả định dữ liệu đã bị xóa
+- level1: Hooks
+  level2:
+  - Hook là gì và điểm can thiệp trong vòng đời release
+  - Các thời điểm pre-install, post-install, pre-upgrade và post-upgrade
+  - Hooks khi rollback, delete và chạy kiểm thử
+  - Khai báo annotations và thứ tự thực thi bằng hook weight
+  - Job chạy migration, kiểm tra điều kiện hoặc chuẩn bị dữ liệu
+  - Điều kiện hoàn thành, timeout và lỗi làm gián đoạn thao tác Helm
+  - Hook delete policy và vòng đời tài nguyên hook
+  - Hook từ subchart và giới hạn kiểm soát từ chart cha
+  - Tính lũy đẳng và rủi ro chạy lại hook sau thất bại
+  - Phân biệt hook sắp xếp tác vụ với cơ chế chờ ứng dụng phụ thuộc
+- level1: Kiểm thử chart
+  level2:
+  - Chiến lược kiểm tra từ template đến ứng dụng đã triển khai
+  - helm lint và giới hạn của kiểm tra tĩnh
+  - Render với nhiều bộ values và kiểm tra YAML đầu ra
+  - Kiểm tra schema values và các tổ hợp cấu hình không hợp lệ
+  - Kiểm tra manifest theo Kubernetes API và phiên bản cluster mục tiêu
+  - Kiểm thử logic template bằng công cụ bổ sung khi cần
+  - Viết tài nguyên kiểm thử và chạy helm test
+  - Đọc kết quả, nhật ký và dọn tài nguyên kiểm thử
+  - Kiểm thử luồng cài mới, nâng cấp, quay lui và gỡ bỏ
+  - Kiểm tra lại sau thay đổi phụ thuộc hoặc phiên bản Kubernetes
+- level1: CRD
+  level2:
+  - Phân biệt CustomResourceDefinition và đối tượng custom resource
+  - Thứ tự đăng ký CRD trước khi tạo tài nguyên sử dụng kiểu mới
+  - Thư mục crds/ và giới hạn không dùng template cho CRD ở đây
+  - Giới hạn quản lý nâng cấp và xóa CRD bằng Helm
+  - CRD có sẵn trong cluster và tình huống nhiều release dùng chung
+  - Tách vòng đời CRD khỏi chart ứng dụng khi cần
+  - Giới hạn dry-run khi API tùy chỉnh chưa tồn tại
+  - Phối hợp với operator và trách nhiệm quản lý custom resource
+  - Lập kế hoạch chuyển phiên bản CRD và bảo vệ dữ liệu liên quan
+- level1: Lưu trữ và dữ liệu
+  level2:
+  - Thiết kế persistence như một hợp đồng cấu hình của chart
+  - Khai báo PVC hoặc tham chiếu volume đã có
+  - StorageClass, access mode và ràng buộc môi trường
+  - Phân biệt vòng đời release với vòng đời dữ liệu
+  - Ảnh hưởng của thay đổi tên tài nguyên và volume đến dữ liệu
+  - Quản lý thay đổi schema dữ liệu khi nâng ứng dụng
+  - Sao lưu và kiểm chứng khả năng phục hồi trước thao tác có rủi ro
+  - Trách nhiệm dọn dữ liệu khi uninstall hoặc kết thúc môi trường
+- level1: Kho chart và OCI
+  level2:
+  - Đóng gói chart bằng helm package
+  - Kho chart HTTP, index.yaml và phiên bản gói
+  - Thêm, cập nhật, liệt kê và gỡ cấu hình kho bằng helm repo
+  - Phân biệt helm repo update với nâng cấp release
+  - OCI registry và cách tham chiếu chart qua oci://
+  - Đăng nhập registry và quản lý thông tin xác thực
+  - Đẩy, tải và cài chart từ OCI registry
+  - Ghim phiên bản hoặc digest theo khả năng của bản Helm đang dùng
+  - Phát hành cùng một gói chart qua các môi trường
+  - Kho riêng, kết nối TLS và phân phối trong môi trường hạn chế mạng
+- level1: Bảo mật chart
+  level2:
+  - Đánh giá template và tài nguyên trước khi chạy chart bên ngoài
+  - Kiểm tra nguồn chart, phụ thuộc và phiên bản được phê duyệt
+  - Provenance, chữ ký và xác minh tính toàn vẹn của gói chart
+  - Digest xác nhận nội dung và giới hạn khi đánh giá độ tin cậy
+  - Quyền Helm CLI đối với Kubernetes và phạm vi namespace
+  - Quyền ServiceAccount do chart tạo khác gì quyền người cài chart
+  - Giá trị bí mật có thể xuất hiện trong manifest, nhật ký và dữ liệu release
+  - Base64 trong Secret không thay thế mã hóa và kiểm soát truy cập
+  - Tham chiếu hệ thống quản lý bí mật thay vì lưu bí mật trong chart
+  - Đánh giá mã thực thi từ plugin, hook và post-renderer
+- level1: Chẩn đoán lỗi
+  level2:
+  - Phân loại lỗi tải chart, phụ thuộc, values, render và Kubernetes API
+  - Đọc helm status, helm history và thông tin release
+  - Dùng helm template --debug để khoanh vùng lỗi template
+  - Đối chiếu values đã tính toán với manifest đã ghi nhận
+  - Lỗi YAML, thụt lề, sai kiểu và khóa cấu hình không tồn tại
+  - Lỗi quyền truy cập, quyền quản lý và tài nguyên đã tồn tại
+  - Lỗi API bị loại bỏ hoặc chart không tương thích cluster
+  - Pod không sẵn sàng, Job thất bại và thời gian chờ bị vượt
+  - Kết hợp kubectl describe, events và logs để điều tra
+  - Release pending và thao tác đang chạy hoặc bị gián đoạn
+  - Thu thập bằng chứng trước khi sửa trạng thái hoặc xóa metadata release
+- level1: Tự động hóa bàn giao
+  level2:
+  - Pipeline chart từ thay đổi mã đến gói được phát hành
+  - Khóa phiên bản Helm, chart, phụ thuộc và image
+  - Chạy lint, render, schema và kiểm thử trước khi xuất bản
+  - Xuất bản gói chart và lưu thông tin truy vết nguồn
+  - Xác thực vào registry và cluster bằng thông tin xác thực phù hợp
+  - Phê duyệt cấu hình và đích triển khai trước khi áp dụng
+  - Điều phối đồng thời theo release để tránh hai lần ghi chồng
+  - Xác nhận sau triển khai và quy trình xử lý khi thất bại
+  - Lưu bằng chứng triển khai mà không làm lộ dữ liệu nhạy cảm
+- level1: GitOps và mở rộng
+  level2:
+  - Phân biệt Helm chạy trực tiếp với bộ điều khiển GitOps dùng chart
+  - Nguồn sự thật của phiên bản chart và values trong quy trình GitOps
+  - Helm dùng để render và Helm quản lý release khác nhau thế nào
+  - Sai lệch tài nguyên và trách nhiệm hòa giải về trạng thái mong muốn
+  - Post-renderer để biến đổi manifest sau khi template được render
+  - Giữ kết quả biến đổi nhất quán giữa các lần triển khai
+  - Plugin mở rộng CLI, tải chart và xử lý kết quả render theo phiên bản
+  - Quản lý nguồn, phiên bản và quyền thực thi của plugin
+  - Giới thiệu Helm SDK và ranh giới khi nhúng Helm vào công cụ riêng
+- level1: Quản trị release
+  level2:
+  - Quy ước tên release, namespace, labels và chủ sở hữu
+  - Dữ liệu release, cơ chế lưu trữ và quyền đọc thông tin triển khai
+  - Giới hạn lịch sử revision và kế hoạch giữ bằng chứng cần thiết
+  - Tài nguyên dùng chung và ranh giới quyền quản lý giữa các release
+  - Nhận diện thay đổi thủ công ngoài Helm và đối chiếu sai lệch
+  - Quy trình tiếp nhận tài nguyên có sẵn và đánh giá rủi ro chuyển quyền quản lý
+  - Theo dõi API lỗi thời trước khi nâng phiên bản Kubernetes
+  - Chính sách cập nhật chart và kiểm tra tương thích định kỳ
+  - Tài liệu vận hành, trách nhiệm bàn giao và điều kiện ngừng release
+- level1: Thực hành tổng hợp
+  level2:
+  - Cài một chart có sẵn với cấu hình riêng và xác minh ứng dụng
+  - Tạo chart cho một dịch vụ gồm Deployment, Service và ConfigMap
+  - Bổ sung schema và báo lỗi rõ ràng cho cấu hình không hợp lệ
+  - Tách helper và loại bỏ phần template lặp lại
+  - Tích hợp subchart với cấu hình bật tắt và phiên bản được khóa
+  - Triển khai cùng chart vào hai môi trường với values khác nhau
+  - Mô phỏng upgrade thất bại và thực hiện quay lui có kiểm chứng
+  - Kiểm thử hook migration và phân tích giới hạn khôi phục dữ liệu
+  - Đóng gói, xác minh và phân phối chart qua OCI registry
+  - Tự động hóa lint, kiểm thử, phát hành và xác nhận sau triển khai
+  - Điều tra một release lỗi rồi gỡ bỏ mà vẫn quản lý đúng dữ liệu cần giữ

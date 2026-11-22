@@ -1,0 +1,85 @@
+menu:
+- title: Nền tảng cảnh báo
+  slug: alerting-foundations
+  index: 0
+- title: Nguồn tín hiệu
+  slug: signal-sources
+  index: 1
+- title: Luồng xử lý
+  slug: processing-pipeline
+  index: 2
+- title: Vòng đời cảnh báo
+  slug: alert-lifecycle
+  index: 3
+- title: Chất lượng cảnh báo
+  slug: alert-quality
+  index: 4
+- title: Phạm vi giám sát
+  slug: monitoring-scope
+  index: 5
+- title: Thiết kế điều kiện
+  slug: condition-design
+  index: 6
+- title: Ngưỡng và độ nhạy
+  slug: thresholds-sensitivity
+  index: 7
+- title: Yếu tố thời gian
+  slug: time-semantics
+  index: 8
+- title: Dữ liệu thiếu và sai
+  slug: missing-bad-data
+  index: 9
+- title: SLI và SLO
+  slug: slis-slos
+  index: 10
+- title: Ngân sách lỗi
+  slug: error-budgets
+  index: 11
+- title: Mức độ và ưu tiên
+  slug: severity-priority
+  index: 12
+- title: Ngữ cảnh cảnh báo
+  slug: alert-context
+  index: 13
+- title: Nhóm và tương quan
+  slug: grouping-correlation
+  index: 14
+- title: Kiểm soát nhiễu
+  slug: noise-reduction
+  index: 15
+- title: Định tuyến và sở hữu
+  slug: routing-ownership
+  index: 16
+- title: Kênh thông báo
+  slug: notification-channels
+  index: 17
+- title: Trực và leo thang
+  slug: on-call-escalation
+  index: 18
+- title: Tiếp nhận và ứng phó
+  slug: triage-response
+  index: 19
+- title: Mẫu cho ứng dụng
+  slug: application-alert-patterns
+  index: 20
+- title: Mẫu cho hạ tầng
+  slug: infrastructure-alert-patterns
+  index: 21
+- title: Kiểm thử cảnh báo
+  slug: alert-testing
+  index: 22
+- title: Độ tin cậy hệ cảnh báo
+  slug: alert-system-reliability
+  index: 23
+- title: Bảo mật và chi phí
+  slug: security-costs
+  index: 24
+- title: Quản trị quy tắc
+  slug: rule-governance
+  index: 25
+- title: Đo lường và cải tiến
+  slug: metrics-improvement
+  index: 26
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 27

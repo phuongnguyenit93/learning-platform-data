@@ -1,0 +1,106 @@
+menu:
+- title: Tư duy chẩn đoán
+  slug: diagnostic-methodology
+  index: 0
+- title: Quy trình xử lý sự cố
+  slug: incident-response-workflow
+  index: 1
+- title: Bản đồ hệ thống
+  slug: system-mapping
+  index: 2
+- title: Công cụ Linux
+  slug: linux-tools
+  index: 3
+- title: Công cụ Windows
+  slug: windows-tools
+  index: 4
+- title: Công cụ macOS
+  slug: macos-tools
+  index: 5
+- title: Log và bằng chứng
+  slug: logs-and-evidence
+  index: 6
+- title: CPU và tải
+  slug: cpu-and-load
+  index: 7
+- title: Tiến trình và luồng
+  slug: processes-and-threads
+  index: 8
+- title: Bộ nhớ
+  slug: memory
+  index: 9
+- title: I/O lưu trữ
+  slug: storage-io
+  index: 10
+- title: Dung lượng và filesystem
+  slug: disk-space-and-filesystems
+  index: 11
+- title: Quyền và chính sách
+  slug: permissions-and-policies
+  index: 12
+- title: Kết nối mạng
+  slug: network-connectivity
+  index: 13
+- title: Phân giải tên
+  slug: name-resolution
+  index: 14
+- title: Cổng và socket
+  slug: ports-and-sockets
+  index: 15
+- title: TLS và đường truy cập
+  slug: tls-and-access-paths
+  index: 16
+- title: Dịch vụ hệ thống
+  slug: system-services
+  index: 17
+- title: Khởi động và kernel
+  slug: boot-and-kernel
+  index: 18
+- title: Shell và môi trường
+  slug: shell-and-environment
+  index: 19
+- title: Thư viện và cấu hình
+  slug: libraries-and-config
+  index: 20
+- title: Giới hạn tài nguyên
+  slug: resource-limits
+  index: 21
+- title: Thời gian và tác vụ định kỳ
+  slug: scheduled-tasks-and-time
+  index: 22
+- title: Mount và lưu trữ mạng
+  slug: network-mounts
+  index: 23
+- title: Máy ảo và WSL
+  slug: virtual-machines-and-wsl
+  index: 24
+- title: Container
+  slug: containers
+  index: 25
+- title: Ứng dụng Java
+  slug: java-applications
+  index: 26
+- title: Crash và bản dump
+  slug: crashes-and-dumps
+  index: 27
+- title: Truy vết nâng cao
+  slug: advanced-tracing
+  index: 28
+- title: Phần cứng và thiết bị
+  slug: hardware-and-devices
+  index: 29
+- title: Phân tích hiệu năng
+  slug: performance-analysis
+  index: 30
+- title: Thay đổi và hồi quy
+  slug: changes-and-regressions
+  index: 31
+- title: Khôi phục và kiểm chứng
+  slug: recovery-and-validation
+  index: 32
+- title: Nguyên nhân gốc
+  slug: root-cause-analysis
+  index: 33
+- title: Thực hành chẩn đoán
+  slug: diagnostic-labs
+  index: 34

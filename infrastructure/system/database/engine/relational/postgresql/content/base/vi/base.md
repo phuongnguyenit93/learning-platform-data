@@ -1,0 +1,7 @@
+# Database Engine Relational PostgreSQL
+
+PostgreSQL là hệ quản trị cơ sở dữ liệu quan hệ mã nguồn mở với khả năng hỗ trợ SQL, ràng buộc toàn vẹn, transaction và nhiều kiểu dữ liệu mở rộng. Module này tập trung vào cách sử dụng PostgreSQL như một *database engine* thực tế: từ tạo schema, truy vấn dữ liệu đến hiểu cơ chế xử lý đồng thời, hiệu năng và vận hành. Người học nên có kiến thức cơ bản về bảng, khóa và SQL; ví dụ có thể thực hành trực tiếp qua `psql` trước khi tích hợp với ứng dụng Java.
+
+Lộ trình bắt đầu bằng việc chạy PostgreSQL và kết nối tới database, sau đó thiết kế bảng và ràng buộc, viết thao tác CRUD, JOIN và truy vấn tổng hợp. Tiếp theo, bạn khám phá kiểu dữ liệu như `JSONB`, `UUID`, chỉ mục và kế hoạch truy vấn `EXPLAIN`, rồi tìm hiểu transaction, MVCC, isolation và locking. Những mốc cuối đề cập quyền truy cập theo role, `VACUUM`/`ANALYZE`, theo dõi hoạt động, backup và quy trình phục hồi.
+
+Sau khi hoàn thành, bạn có thể tạo một database nhỏ có ràng buộc đúng, viết và tối ưu truy vấn phổ biến, giải thích ảnh hưởng của transaction đồng thời, và thực hành sao lưu/phục hồi để kiểm chứng dữ liệu. Điểm cốt lõi là đánh giá lựa chọn schema, chỉ mục và vận hành bằng kết quả đo được, không coi PostgreSQL chỉ là nơi lưu bảng.

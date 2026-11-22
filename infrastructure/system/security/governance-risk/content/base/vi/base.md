@@ -1,0 +1,5 @@
+# Security Governance Risk
+
+Quản trị rủi ro bảo mật là quá trình xác định, đánh giá, quyết định cách ứng phó và theo dõi các tình huống có thể ảnh hưởng đến thông tin, hệ thống và hoạt động của tổ chức. Điểm cốt lõi không chỉ là phát hiện lỗ hổng kỹ thuật mà còn là liên hệ rủi ro với tài sản, tác động kinh doanh, khẩu vị rủi ro và người chịu trách nhiệm. Các khung tham chiếu như **NIST Cybersecurity Framework 2.0** và hướng dẫn quản trị rủi ro của NIST giúp tổ chức có ngôn ngữ chung để ưu tiên và truyền đạt quyết định.
+
+Module phù hợp với người đã biết những khái niệm bảo mật cơ bản và muốn tham gia hoạt động quản trị hoặc vận hành an ninh thông tin. Bạn sẽ xác định bối cảnh, vai trò và tiêu chí đánh giá; nhận diện tài sản, đe dọa, điểm yếu; phân tích likelihood và impact; rồi ghi nhận kết quả trong **risk register**. Tiếp đó, bạn lựa chọn phương án xử lý và kiểm soát, xem xét rủi ro nhà cung cấp, theo dõi chỉ báo và báo cáo rủi ro còn lại. Sau lộ trình, bạn có thể thực hiện một vòng đánh giá rủi ro đơn giản, giải thích cơ sở ưu tiên và đề xuất hành động có người phụ trách.

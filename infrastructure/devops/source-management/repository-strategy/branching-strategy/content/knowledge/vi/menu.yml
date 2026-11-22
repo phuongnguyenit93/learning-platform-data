@@ -1,0 +1,260 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Chiến lược nhánh là gì và giải quyết bài toán phối hợp nào
+  - Phân biệt cơ chế nhánh của Git với quy trình sử dụng nhánh của nhóm
+  - Quan hệ giữa nhánh, tích hợp liên tục, phát hành và triển khai
+  - Chi phí của việc trì hoãn tích hợp và duy trì nhiều dòng phát triển
+  - Phân biệt chiến lược nhánh, cách hợp nhất và chiến lược kho mã
+  - Vì sao không có một mô hình nhánh tối ưu cho mọi sản phẩm
+  - Lộ trình từ hiểu lịch sử Git đến lựa chọn và vận hành chiến lược
+- level1: Nền tảng Git
+  level2:
+  - Nhánh là tham chiếu đến commit thay vì một bản sao độc lập của toàn bộ kho
+  - Đọc đồ thị commit, quan hệ cha và điểm phân nhánh
+  - Vai trò của HEAD, nhánh cục bộ và nhánh theo dõi từ xa
+  - Phân biệt nhánh mặc định, nhánh tích hợp chính và nhánh phát hành
+  - Phân biệt nhánh di chuyển theo commit với tag đánh dấu một phiên bản
+  - Nhận diện hai nhánh đã phân kỳ và tổ tiên chung dùng khi hợp nhất
+  - Phân biệt thay đổi chưa commit với nội dung thuộc lịch sử nhánh
+  - Hiểu phạm vi của fetch, push và cập nhật tham chiếu từ xa
+- level1: Yêu cầu và ràng buộc
+  level2:
+  - Xác định tần suất tích hợp, phát hành và triển khai mong muốn
+  - Phân biệt sản phẩm vận hành một phiên bản với sản phẩm hỗ trợ nhiều phiên bản
+  - Đánh giá năng lực kiểm thử tự động và độ tin cậy của CI
+  - Xác định thời gian chờ thẩm định và mức độ phụ thuộc giữa các nhóm
+  - Xác định yêu cầu ổn định bản phát hành và cửa sổ đóng băng thay đổi
+  - Ghi nhận yêu cầu truy vết, phân quyền và kiểm soát thay đổi
+  - Đánh giá chi phí duy trì nhánh theo vòng đời sản phẩm
+- level1: Vòng đời nhánh
+  level2:
+  - Chọn commit hoặc nhánh gốc phù hợp với mục đích công việc
+  - Xác định mục tiêu, phạm vi và người chịu trách nhiệm cho nhánh
+  - Đặt tên nhánh rõ ràng và liên kết với yêu cầu công việc
+  - Giữ nhánh tập trung vào một thay đổi có thể thẩm định
+  - Đặt kỳ vọng tuổi nhánh và tần suất đồng bộ với dòng tích hợp
+  - Quy định điều kiện sẵn sàng hợp nhất
+  - Xóa nhánh đã hoàn thành mà vẫn giữ lịch sử và thông tin thẩm định
+  - Xử lý nhánh bị bỏ dở, nhánh thử nghiệm và nhánh không còn người phụ trách
+- level1: Cách hợp nhất
+  level2:
+  - Fast-forward và điều kiện không cần tạo merge commit
+  - Hợp nhất bằng merge commit và ý nghĩa giữ quan hệ cha
+  - Squash khi hợp nhất và ảnh hưởng đến độ chi tiết lịch sử
+  - Rebase để đặt lại các commit lên một nền mới
+  - Phân biệt rebase cục bộ với tùy chọn rebase-and-merge của nền tảng
+  - Ảnh hưởng của cách hợp nhất đến revert, bisect và truy vết
+  - Rủi ro khi tiếp tục dùng một nhánh đã được squash vào nhánh đích
+  - Chọn quy ước hợp nhất theo nhu cầu của nhóm thay vì chỉ hình thức đồ thị
+- level1: GitHub flow
+  level2:
+  - Vai trò của nhánh mặc định và các nhánh thay đổi ngắn hạn
+  - Tạo nhánh cho một thay đổi độc lập
+  - Commit, đẩy thay đổi và mở pull request để trao đổi
+  - Sử dụng pull request dạng nháp để nhận phản hồi sớm
+  - Thẩm định mã, chạy kiểm tra và giải quyết phản hồi
+  - Hợp nhất khi đáp ứng điều kiện rồi đóng vòng đời nhánh
+  - Liên kết bước tích hợp với quy trình triển khai của sản phẩm
+  - Giới hạn khi cần hỗ trợ nhiều dòng phiên bản hoặc giai đoạn ổn định kéo dài
+- level1: Trunk-based development
+  level2:
+  - Nhánh tích hợp chính (trunk) và nguyên tắc tích hợp thường xuyên
+  - Phân biệt làm trực tiếp trên trunk với dùng nhánh ngắn hạn
+  - Giữ trunk ở trạng thái có thể kiểm chứng và sẵn sàng phát hành
+  - Chia thay đổi thành các bước nhỏ có thể tích hợp độc lập
+  - Tách thời điểm đưa mã vào trunk khỏi thời điểm bật tính năng
+  - Sử dụng cờ tính năng để kiểm soát phần việc chưa công khai
+  - Vai trò của kiểm thử tự động và thẩm định có thời gian chờ ngắn
+  - Phát hành từ trunk hoặc tạo nhánh phát hành khi nhu cầu đòi hỏi
+  - Nhận diện nhánh sống lâu bị gắn nhãn trunk-based nhưng chưa tích hợp thực sự
+- level1: Gitflow
+  level2:
+  - Bối cảnh ra đời và mục tiêu của mô hình Gitflow
+  - Vai trò của main và develop trong mô hình gốc
+  - 'Nhánh feature: nơi bắt đầu, nơi hợp nhất và điều kiện kết thúc'
+  - 'Nhánh release: ổn định một phiên bản trong khi phát triển tiếp tục'
+  - 'Nhánh hotfix: sửa lỗi cho phiên bản đã được phát hành'
+  - Đưa thay đổi từ release và hotfix về các dòng phát triển cần nhận
+  - Gắn tag và giữ dấu vết của các mốc phát hành
+  - Phân biệt mô hình Gitflow với công cụ hỗ trợ thao tác mang cùng tên
+  - Đánh giá chi phí nhiều nhánh dài hạn và các lần hợp nhất lặp lại
+  - Đọc mô hình trong đúng bối cảnh thay vì coi là chuẩn bắt buộc
+- level1: Các biến thể
+  level2:
+  - Nhánh phát hành dài hạn cho các phiên bản còn được hỗ trợ
+  - Nhánh theo môi trường và các rủi ro khi mã giữa môi trường phân kỳ
+  - Cách tổ chức dòng phát triển và dòng phát hành thường được thảo luận trong GitLab Flow
+  - Mô hình đóng góp qua fork và quan hệ với chiến lược nhánh
+  - Chuỗi nhánh hoặc pull request phụ thuộc và chi phí cập nhật
+  - Nhánh ổn định, nhánh thử nghiệm và điều kiện tránh tạo dòng phát triển song song ngoài ý muốn
+  - Phân biệt một biến thể có mục tiêu rõ với quy trình lai thiếu quy ước
+- level1: Lựa chọn chiến lược
+  level2:
+  - Lập tiêu chí từ cách sản phẩm được phát hành và hỗ trợ
+  - So sánh GitHub flow, trunk-based development và Gitflow theo cùng tiêu chí
+  - Chọn cách tổ chức cho dịch vụ web có tần suất triển khai cao
+  - Chọn cách tổ chức cho thư viện hoặc phần mềm có nhiều phiên bản đang được dùng
+  - Đánh giá ảnh hưởng của thời gian thẩm định và năng lực CI
+  - Đánh giá chi phí hợp nhất, sửa lỗi nhiều dòng và đào tạo
+  - Thử nghiệm chiến lược với các tình huống tính năng, phát hành và hotfix
+  - Ghi quyết định, giả định và điều kiện cần xem xét lại
+  - Tránh lựa chọn chỉ theo quy mô nhóm hoặc mức phổ biến của mô hình
+- level1: Phân rã thay đổi
+  level2:
+  - Tách một yêu cầu lớn thành các thay đổi có thể kiểm chứng độc lập
+  - Phân biệt thay đổi nhỏ với thay đổi thiếu hoàn chỉnh gây hỏng nhánh chính
+  - Tách tái cấu trúc khỏi thay đổi hành vi khi có thể
+  - Giảm phụ thuộc giữa các nhánh của nhiều người
+  - Dùng lớp trung gian để thay thế dần một cách triển khai
+  - Quản lý cờ tính năng, giá trị mặc định và công việc xóa cờ
+  - Giữ tương thích mã và dữ liệu trong các bước chuyển tiếp
+  - Xử lý công việc kéo dài mà không dựa hoàn toàn vào nhánh sống lâu
+- level1: Pull request và thẩm định
+  level2:
+  - Xác định nhánh nguồn và nhánh đích trước khi gửi yêu cầu hợp nhất
+  - Viết mô tả nêu vấn đề, hành vi thay đổi và bằng chứng kiểm chứng
+  - Giữ phạm vi nhỏ để người duyệt hiểu trọn thay đổi
+  - Phân công người thẩm định theo quyền sở hữu và phần bị ảnh hưởng
+  - Phân biệt góp ý cần sửa với trao đổi hoặc đề xuất tùy chọn
+  - Quản lý thay đổi bổ sung sau khi đã được chấp thuận
+  - Nhận diện thẩm định chậm như một phần của tuổi nhánh
+  - Xử lý pull request phụ thuộc mà không hợp nhất sai thứ tự
+  - Giữ thảo luận và căn cứ quyết định sau khi nhánh đã bị xóa
+- level1: Đồng bộ nhánh
+  level2:
+  - Fetch trạng thái mới và xác định nhánh đang chậm hoặc phân kỳ
+  - Cập nhật nhánh thay đổi bằng merge từ dòng tích hợp
+  - Cập nhật nhánh thay đổi bằng rebase khi quy ước cho phép
+  - Chọn cách cập nhật khi nhiều người cùng sử dụng một nhánh
+  - Hiểu commit đổi danh tính sau khi lịch sử được viết lại
+  - Phối hợp trước khi force-push và hiểu giới hạn của force-with-lease
+  - Tránh đồng bộ hình thức nhưng vẫn trì hoãn việc đưa thay đổi về dòng tích hợp
+- level1: Xung đột tích hợp
+  level2:
+  - Phân biệt xung đột văn bản với xung đột ngữ nghĩa
+  - Đọc ba phía của phép hợp nhất để hiểu nguồn gốc xung đột
+  - Giải quyết xung đột dựa trên ý định thay đổi thay vì chọn toàn bộ một phía
+  - Kiểm tra lại sau khi giải quyết xung đột hoặc rebase
+  - Xử lý thay đổi cùng API, cấu hình hoặc lược đồ dữ liệu
+  - Phối hợp với tác giả khi không thể tự xác định hành vi đúng
+  - Giảm xung đột bằng tích hợp thường xuyên và thỏa thuận ranh giới công việc
+  - Phân tích nguyên nhân nhánh thường xuyên xung đột để sửa quy trình
+- level1: CI và kiểm chứng
+  level2:
+  - Kiểm tra nhánh thay đổi trước khi tích hợp
+  - Phân biệt kiểm tra commit nguồn với kiểm tra kết quả hợp nhất dự kiến
+  - Xử lý trường hợp từng nhánh đều xanh nhưng hợp nhất lại gây lỗi
+  - Dùng hàng đợi hợp nhất khi nhiều thay đổi cạnh tranh cùng nhánh đích
+  - Ràng buộc kết quả kiểm tra với đúng commit sẽ được hợp nhất
+  - Quy định kiểm tra tối thiểu trước khi hợp nhất và sau khi vào nhánh chính
+  - Phân biệt kiểm thử nhanh, kiểm thử tích hợp và kiểm thử chấp nhận
+  - Xử lý kiểm thử không ổn định mà không làm mất ý nghĩa cổng kiểm tra
+  - Khôi phục nhánh chính sớm khi có thay đổi khiến build bị hỏng
+- level1: Bảo vệ nhánh
+  level2:
+  - Xác định nhánh cần bảo vệ và các thao tác cần kiểm soát
+  - Yêu cầu thẩm định và kiểm tra bắt buộc trước khi hợp nhất
+  - Giới hạn đẩy trực tiếp, xóa nhánh và viết lại lịch sử
+  - Quản lý quyền của người dùng, bot và tài khoản tự động hóa
+  - Phân biệt bảo vệ nhánh với kiểm soát quyền triển khai môi trường
+  - Quy định xử lý ngoại lệ khẩn cấp và giữ dấu vết thay đổi
+  - Kiểm soát bí mật khi chạy CI cho đóng góp từ fork hoặc mã chưa tin cậy
+  - Đối chiếu khả năng của nền tảng với chính sách thực sự cần áp dụng
+- level1: Phát hành và môi trường
+  level2:
+  - Phân biệt commit đã tích hợp, bản build, bản phát hành và lần triển khai
+  - Dùng tag và mã artifact để xác định phiên bản triển khai chính xác
+  - Tạo nhánh release từ mốc đã xác định khi cần giai đoạn ổn định
+  - Quy định loại thay đổi được nhận trong giai đoạn ổn định bản phát hành
+  - Đưa cùng artifact qua các môi trường thay vì dựng lại theo tên nhánh
+  - Tách cấu hình môi trường khỏi việc duy trì nhiều bản sao mã
+  - Xử lý khi nhánh chính đi tiếp trong lúc một phiên bản đang được kiểm chứng
+  - Quản lý thời điểm kết thúc hỗ trợ và đóng nhánh phát hành
+- level1: Hotfix và bảo trì
+  level2:
+  - Xác định commit thực tế đang được phát hành trước khi tạo bản sửa
+  - Chọn nhánh gốc của hotfix theo dòng phiên bản cần sửa
+  - Giữ hotfix tập trung và kiểm chứng đúng phạm vi ảnh hưởng
+  - Đưa bản sửa về dòng phát triển để lỗi không xuất hiện lại
+  - Chuyển bản sửa về phiên bản cũ còn hỗ trợ bằng backport
+  - Phân biệt cherry-pick một thay đổi với hợp nhất toàn bộ nhánh
+  - Xử lý phụ thuộc của bản sửa khi chuyển sang mã phiên bản cũ
+  - Truy vết các commit tương ứng khi cùng bản sửa có nhiều danh tính
+  - Phát hành phiên bản sửa lỗi và đối soát các dòng đã nhận thay đổi
+- level1: Hoàn tác và phục hồi
+  level2:
+  - Phân biệt revert bằng commit mới với reset và viết lại lịch sử
+  - Chọn cách hoàn tác trên nhánh dùng chung
+  - Hiểu yêu cầu chọn nhánh cha khi revert một merge commit
+  - Ảnh hưởng của việc revert đến lần hợp nhất lại thay đổi
+  - Phân biệt hoàn tác mã với quay lại artifact hoặc dữ liệu khi triển khai
+  - Xử lý thay đổi không thể đảo ngược chỉ bằng một lệnh Git
+  - Khôi phục tham chiếu đã xóa khi commit còn có thể tìm lại
+  - Kiểm chứng nhánh chính và các dòng bảo trì sau khi phục hồi
+- level1: Nhóm và kho mã
+  level2:
+  - Ảnh hưởng của monorepo và polyrepo đến điều phối nhánh
+  - Phân biệt nhánh theo công việc với nhánh cố định theo từng nhóm
+  - Quản lý thay đổi ảnh hưởng nhiều mô-đun trong cùng kho
+  - Phối hợp thay đổi hợp đồng giữa nhiều kho mà không đồng nhất tên nhánh với tính tương thích
+  - Giảm tình trạng nhiều nhóm có dòng tích hợp riêng quá lâu
+  - Tổ chức đóng góp bên ngoài bằng fork và người duy trì
+  - Dùng worktree cho công việc song song mà không thay thế quy trình tích hợp
+- level1: Vận hành quy trình
+  level2:
+  - Viết quy ước nhánh có thể hiểu và thực hiện nhất quán
+  - Xác định trách nhiệm cập nhật, duyệt, hợp nhất và dọn nhánh
+  - Theo dõi tuổi nhánh, số nhánh đang mở và thời gian chờ thẩm định
+  - Theo dõi thời gian từ bắt đầu thay đổi đến tích hợp và phát hành
+  - Phân tích tỷ lệ xung đột, kiểm tra lỗi và sửa lỗi nhiều dòng
+  - Dùng chỉ số để tìm điểm nghẽn thay vì áp chỉ tiêu hình thức
+  - Tự động hóa nhắc nhở và dọn nhánh theo điều kiện an toàn
+  - Rà soát quy trình khi tần suất phát hành hoặc nhu cầu hỗ trợ thay đổi
+- level1: Chuyển đổi chiến lược
+  level2:
+  - Khảo sát nhánh đang tồn tại và các luồng hợp nhất thực tế
+  - Xác định lý do chuyển đổi và điều kiện để quy trình mới hoạt động
+  - Chuẩn bị CI, kiểm thử và năng lực chia nhỏ thay đổi trước khi giảm nhánh
+  - Lập bản đồ các phiên bản còn hỗ trợ và công việc chưa tích hợp
+  - Thử nghiệm trên phạm vi nhỏ và đo kết quả
+  - Quy định cách kết thúc nhánh cũ và điểm bắt đầu quy trình mới
+  - Cập nhật bảo vệ nhánh, trigger CI và tài liệu cộng tác
+  - Đánh giá lại sau chuyển đổi mà không chỉ đổi tên nhánh
+- level1: Tình huống Java
+  level2:
+  - Chia thay đổi API và cách triển khai trong thư viện Java thành các bước tương thích
+  - Phối hợp mã Spring Boot với thay đổi lược đồ dữ liệu
+  - Kiểm tra bản hợp nhất dự kiến bằng build và bộ kiểm thử Gradle hoặc Maven
+  - Tạo dòng bảo trì cho thư viện đang có nhiều phiên bản được sử dụng
+  - Backport bản sửa mà không vô tình đưa vào yêu cầu JDK mới hơn
+  - Đối chiếu tag, phiên bản thư viện và artifact được phát hành
+  - Thiết kế thay đổi lớn bằng cờ tính năng hoặc lớp trung gian thay vì giữ nhánh dài hạn
+- level1: Sai lầm thường gặp
+  level2:
+  - Đồng nhất tạo nhiều nhánh với có chiến lược phối hợp rõ ràng
+  - Coi Gitflow là quy trình bắt buộc cho mọi sản phẩm
+  - Coi trunk-based development là cấm mọi nhánh thay đổi
+  - Để nhánh tính năng tồn tại lâu rồi chỉ giải quyết tích hợp ở cuối
+  - Dùng tên nhánh production như bằng chứng duy nhất về mã đang chạy
+  - Cho rằng merge không xung đột văn bản nghĩa là hành vi luôn đúng
+  - Viết lại lịch sử dùng chung mà không phối hợp
+  - Đưa hotfix lên production nhưng quên dòng phát triển hoặc dòng bảo trì
+  - Dùng nhánh theo môi trường để che việc artifact và cấu hình không được quản lý
+  - Đặt quá nhiều cổng phê duyệt khiến thời gian tích hợp tăng mà chất lượng không được kiểm chứng
+- level1: Thực hành
+  level2:
+  - 'Bài tập nền tảng: đọc đồ thị commit và xác định điểm phân kỳ'
+  - 'Bài tập vòng đời: tạo, thẩm định, hợp nhất và kết thúc một nhánh thay đổi'
+  - 'Bài tập lịch sử: so sánh merge commit, squash và rebase trên kho thử nghiệm'
+  - 'Bài tập GitHub flow: mô phỏng thay đổi nhỏ qua pull request và CI'
+  - 'Bài tập trunk-based: chia một tính năng lớn thành các bước có thể tích hợp'
+  - 'Bài tập Gitflow: lần theo feature, release và hotfix bằng đồ thị commit'
+  - 'Bài tập xung đột: giải quyết xung đột văn bản và phát hiện lỗi ngữ nghĩa'
+  - 'Bài tập hotfix: chuyển bản sửa sang hai dòng phiên bản còn hỗ trợ'
+  - 'Bài tập hoàn tác: revert thay đổi lỗi rồi kiểm chứng lần tích hợp tiếp theo'
+  - 'Bài tập CI: tái hiện hai nhánh đều xanh nhưng kết quả hợp nhất bị lỗi'
+  - 'Bài tập lựa chọn: đề xuất chiến lược từ nhu cầu phát hành và năng lực nhóm'
+  - 'Bài tập tổng hợp: viết quy ước nhánh kèm luồng phát hành, bảo trì và bằng chứng kiểm chứng'
+  - Tiêu chí tự đánh giá khả năng tích hợp, truy vết và chi phí duy trì
+  - Câu hỏi ôn tập và tình huống giải thích đánh đổi của chiến lược nhánh

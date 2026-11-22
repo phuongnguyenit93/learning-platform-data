@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: connectivity-overview
+  index: 0
+- title: Phòng thực hành
+  slug: network-labs
+  index: 1
+- title: Liên kết và thiết bị
+  slug: physical-links-devices
+  index: 2
+- title: Địa chỉ IPv4
+  slug: ipv4-addressing
+  index: 3
+- title: IPv6 và Dual Stack
+  slug: ipv6-dual-stack
+  index: 4
+- title: Mạng nội bộ
+  slug: local-networks
+  index: 5
+- title: Cấp phát cấu hình
+  slug: configuration-provisioning
+  index: 6
+- title: Định tuyến
+  slug: routing
+  index: 7
+- title: Tên và phân giải
+  slug: dns-name-resolution
+  index: 8
+- title: Cổng và socket
+  slug: ports-sockets
+  index: 9
+- title: TCP và UDP
+  slug: tcp-udp
+  index: 10
+- title: ICMP và đường đi
+  slug: icmp-path-tracing
+  index: 11
+- title: NAT và ánh xạ cổng
+  slug: nat-port-forwarding
+  index: 12
+- title: Tường lửa
+  slug: firewalls
+  index: 13
+- title: Truy cập Internet
+  slug: internet-access
+  index: 14
+- title: Kết nối ứng dụng
+  slug: application-connectivity
+  index: 15
+- title: Proxy và chuyển tiếp
+  slug: proxies-forwarding
+  index: 16
+- title: SSH và đường hầm
+  slug: ssh-tunnels
+  index: 17
+- title: VPN
+  slug: vpn
+  index: 18
+- title: Mạng ảo
+  slug: virtual-networks
+  index: 19
+- title: Docker
+  slug: docker-networking
+  index: 20
+- title: Kubernetes
+  slug: kubernetes-networking
+  index: 21
+- title: Mạng đám mây
+  slug: cloud-networking
+  index: 22
+- title: Mạng lai
+  slug: hybrid-networks
+  index: 23
+- title: Kết nối trong Java
+  slug: java-networking
+  index: 24
+- title: Công cụ Linux
+  slug: linux-tools
+  index: 25
+- title: Windows và WSL
+  slug: windows-wsl
+  index: 26
+- title: Bắt và đọc gói tin
+  slug: packet-capture-analysis
+  index: 27
+- title: MTU và hiệu năng
+  slug: mtu-performance
+  index: 28
+- title: Độ tin cậy
+  slug: reliability
+  index: 29
+- title: Thiết kế và vận hành
+  slug: network-design-operations
+  index: 30
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 31
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 32

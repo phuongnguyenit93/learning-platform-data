@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình lỗi
+  slug: failure-models
+  index: 1
+- title: Kiến trúc bản sao
+  slug: replica-architecture
+  index: 2
+- title: Nhật ký sao chép
+  slug: replication-logs
+  index: 3
+- title: Khởi tạo bản sao
+  slug: replica-initialization
+  index: 4
+- title: Một nút chủ
+  slug: single-leader-replication
+  index: 5
+- title: Nhiều nút chủ
+  slug: multi-leader-replication
+  index: 6
+- title: Không nút chủ
+  slug: leaderless-replication
+  index: 7
+- title: Mô hình nhất quán
+  slug: consistency-models
+  index: 8
+- title: CAP và PACELC
+  slug: cap-pacelc
+  index: 9
+- title: Đồng thuận
+  slug: consensus
+  index: 10
+- title: Chuyển nút chủ
+  slug: leader-failover
+  index: 11
+- title: Phân mảnh dữ liệu
+  slug: data-sharding
+  index: 12
+- title: Định tuyến dữ liệu
+  slug: data-routing
+  index: 13
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 14
+- title: Truy vấn phân tán
+  slug: distributed-queries
+  index: 15
+- title: Giao dịch phân tán
+  slug: distributed-transactions
+  index: 16
+- title: Nhiều vùng địa lý
+  slug: multi-region-deployment
+  index: 17
+- title: Độ bền và phục hồi
+  slug: durability-recovery
+  index: 18
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 19
+- title: Quan sát hệ thống
+  slug: observability
+  index: 20
+- title: Vận hành an toàn
+  slug: safe-operations
+  index: 21
+- title: Bảo mật
+  slug: security
+  index: 22
+- title: Hệ quản trị tiêu biểu
+  slug: database-examples
+  index: 23
+- title: Thực hành kiểm chứng
+  slug: validation-exercises
+  index: 24
+- title: Thiết kế kiến trúc
+  slug: architecture-design
+  index: 25

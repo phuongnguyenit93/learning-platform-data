@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nguyên lý
+  slug: principles
+  index: 1
+- title: Luồng giao phần mềm
+  slug: software-delivery-flow
+  index: 2
+- title: Tích hợp mã nguồn
+  slug: source-integration
+  index: 3
+- title: Kiến trúc pipeline
+  slug: pipeline-architecture
+  index: 4
+- title: Pipeline bằng mã
+  slug: pipeline-as-code
+  index: 5
+- title: Sự kiện kích hoạt
+  slug: trigger-events
+  index: 6
+- title: Môi trường thực thi
+  slug: execution-environments
+  index: 7
+- title: Build tái lập
+  slug: reproducible-builds
+  index: 8
+- title: Phụ thuộc và cache
+  slug: dependencies-caching
+  index: 9
+- title: Chiến lược kiểm thử
+  slug: testing-strategy
+  index: 10
+- title: Cổng chất lượng
+  slug: quality-gates
+  index: 11
+- title: Artifact
+  slug: artifacts
+  index: 12
+- title: Cấu hình môi trường
+  slug: environment-configuration
+  index: 13
+- title: Bí mật và danh tính
+  slug: secrets-identity
+  index: 14
+- title: Bảo mật pipeline
+  slug: pipeline-security
+  index: 15
+- title: Triển khai tự động
+  slug: automated-deployment
+  index: 16
+- title: Chiến lược triển khai
+  slug: deployment-strategies
+  index: 17
+- title: Phát hành tính năng
+  slug: feature-releases
+  index: 18
+- title: Thay đổi dữ liệu
+  slug: data-changes
+  index: 19
+- title: Kiểm chứng sau triển khai
+  slug: post-deployment-validation
+  index: 20
+- title: Quay lui và phục hồi
+  slug: rollback-recovery
+  index: 21
+- title: Thất bại và thử lại
+  slug: failures-retries
+  index: 22
+- title: Điều phối đồng thời
+  slug: concurrency-coordination
+  index: 23
+- title: Tối ưu phản hồi
+  slug: fast-feedback
+  index: 24
+- title: Quan sát và bằng chứng
+  slug: observability-evidence
+  index: 25
+- title: Nhiều dự án
+  slug: multi-project-pipelines
+  index: 26
+- title: Công cụ và mô hình
+  slug: tools-patterns
+  index: 27
+- title: Phối hợp nhóm
+  slug: team-collaboration
+  index: 28
+- title: Đo lường và cải tiến
+  slug: metrics-improvement
+  index: 29
+- title: Lỗi tư duy
+  slug: thinking-pitfalls
+  index: 30
+- title: Thực hành
+  slug: hands-on-lab
+  index: 31

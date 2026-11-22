@@ -1,0 +1,85 @@
+menu:
+  - title: "Tổng quan đám mây"
+    slug: cloud-overview
+    index: 0
+  - title: "Mô hình dịch vụ"
+    slug: service-models
+    index: 1
+  - title: "Mô hình triển khai"
+    slug: deployment-models
+    index: 2
+  - title: "Vùng và miền lỗi"
+    slug: regions-and-failure-domains
+    index: 3
+  - title: "Tài nguyên và API"
+    slug: resources-and-apis
+    index: 4
+  - title: "Tài khoản và quản trị"
+    slug: accounts-and-governance
+    index: 5
+  - title: "Lựa chọn tài nguyên"
+    slug: resource-selection
+    index: 6
+  - title: "Máy ảo"
+    slug: virtual-machines
+    index: 7
+  - title: "Container"
+    slug: containers
+    index: 8
+  - title: "Serverless"
+    slug: serverless
+    index: 9
+  - title: "Nền tảng lưu trữ"
+    slug: storage-fundamentals
+    index: 10
+  - title: "Lưu trữ đối tượng"
+    slug: object-storage
+    index: 11
+  - title: "Lưu trữ khối và tệp"
+    slug: block-and-file-storage
+    index: 12
+  - title: "Dịch vụ dữ liệu"
+    slug: data-services
+    index: 13
+  - title: "Mạng đám mây"
+    slug: virtual-networking
+    index: 14
+  - title: "Kết nối mạng"
+    slug: network-connectivity
+    index: 15
+  - title: "Phân phối lưu lượng"
+    slug: traffic-distribution
+    index: 16
+  - title: "Danh tính và quyền"
+    slug: identity-and-access
+    index: 17
+  - title: "Trách nhiệm bảo mật"
+    slug: shared-security-responsibility
+    index: 18
+  - title: "Giám sát hệ thống"
+    slug: monitoring-and-observability
+    index: 19
+  - title: "Mở rộng và hiệu năng"
+    slug: scaling-and-performance
+    index: 20
+  - title: "Độ tin cậy"
+    slug: reliability
+    index: 21
+  - title: "Sao lưu và khôi phục"
+    slug: backup-and-recovery
+    index: 22
+  - title: "Chi phí đám mây"
+    slug: cost-management
+    index: 23
+  - title: "Tự động hóa hạ tầng"
+    slug: infrastructure-automation
+    index: 24
+  - title: "Di chuyển lên đám mây"
+    slug: workload-migration
+    index: 25
+  - title: "Tình huống kiến trúc"
+    slug: architecture-scenarios
+    index: 26
+  - title: "Thực hành nền tảng"
+    slug: foundational-labs
+    index: 27

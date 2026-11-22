@@ -1,0 +1,3 @@
+menuLevel1: amtool
+menuLevel2: Kiểm tra alertmanager.yml bằng amtool check-config
+status: ''

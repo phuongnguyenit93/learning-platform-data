@@ -1,0 +1,5 @@
+# DevOps Reliability Operations — SLI, SLO và SLA
+
+Độ tin cậy của dịch vụ cần được mô tả bằng những phép đo và mục tiêu có ý nghĩa với người dùng. **SLI (Service Level Indicator)** là chỉ số đo chất lượng thực tế, chẳng hạn tỷ lệ yêu cầu thành công hoặc tỷ lệ phản hồi dưới ngưỡng độ trễ. **SLO (Service Level Objective)** xác định mức chất lượng cần đạt trong một khoảng thời gian, còn **SLA (Service Level Agreement)** là cam kết dịch vụ với các hệ quả hoặc nghĩa vụ khi không đáp ứng. Ba khái niệm liên quan nhưng không thay thế cho nhau.
+
+Module dành cho người đã biết vận hành dịch vụ, HTTP và giám sát cơ bản. Bạn sẽ chọn hành trình người dùng cần bảo vệ, định nghĩa phép đo SLI, thiết lập SLO theo cửa sổ thời gian, rồi triển khai số liệu và dashboard. Từ đó, bạn học tính **error budget** và **burn rate**, xây cảnh báo có thể hành động, hiểu cách SLA liên hệ với cam kết khách hàng và dùng chính sách ngân sách lỗi để quyết định ưu tiên độ tin cậy hay phát hành tính năng. Mục tiêu cuối cùng là xây được một bộ SLI/SLO nhỏ, đo được và có cơ chế rà soát phù hợp với dịch vụ thực tế.

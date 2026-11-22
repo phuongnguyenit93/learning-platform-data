@@ -1,0 +1,57 @@
+roadmap:
+- id: maven-central-gav
+  title: Maven Central & GAV
+  purpose: Hiểu vai trò của Maven Central như kho phát hành công khai và cách định danh một thư viện Java.
+  objectives:
+  - Phân biệt local repository, Maven Central và kho riêng
+  - Giải thích groupId, artifactId, version (GAV)
+  - Phân biệt release bất biến với bản SNAPSHOT
+- id: tai-khoan-namespace
+  title: Tài khoản & Namespace
+  purpose: Xác minh quyền xuất bản dưới một namespace trước khi công bố artifact.
+  objectives:
+  - Tạo tài khoản Central Publisher Portal
+  - Đăng ký và xác thực namespace cho groupId
+  - Chọn version và coordinates không trùng bản phát hành
+- id: pom-thong-tin-du-an
+  title: POM & thông tin dự án
+  purpose: Đảm bảo người dùng tra cứu được thư viện và nguồn gốc của bản phát hành.
+  objectives:
+  - Khai báo name, description, url và licenses trong POM
+  - Bổ sung developers và SCM URL
+  - Kiểm tra groupId, artifactId, version và packaging
+- id: dong-goi-ban-phat-hanh
+  title: Đóng gói bản phát hành
+  purpose: Tạo đầy đủ file cần thiết để Central Portal có thể kiểm tra thành phần Java.
+  objectives:
+  - Chạy build và test trước khi release
+  - Đính kèm sources.jar và javadoc.jar khi cần
+  - Kiểm tra JAR, POM và phụ thuộc trước khi upload
+- id: ky-so-checksum
+  title: Ký số & Checksum
+  purpose: Chứng minh nguồn gốc file phát hành và đáp ứng yêu cầu xác thực từ Maven Central.
+  objectives:
+  - Sinh và giữ an toàn cặp khóa GPG
+  - Tạo chữ ký .asc cho artifact và POM
+  - Kiểm tra checksum cùng chữ ký trước khi xuất bản
+- id: central-publishing-plugin
+  title: Central Publishing Plugin
+  purpose: Tự động tạo bundle và gửi bản phát hành bằng Maven qua giao diện Publisher Portal hiện hành.
+  objectives:
+  - Cấu hình central-publishing-maven-plugin trong pom.xml
+  - Đặt user token trong settings.xml hoặc secret CI
+  - Chạy mvn deploy để upload và kích hoạt validation
+- id: validation-publish
+  title: Validation & Publish
+  purpose: Phân biệt upload thành công với release chính thức và xử lý lỗi kiểm tra trước khi công bố.
+  objectives:
+  - Đọc validation results và sửa lỗi POM/signature
+  - Chọn manual Publish hoặc autoPublish khi phù hợp
+  - Giải thích vì sao không thể ghi đè release đã publish
+- id: ci-cd-kiem-chung
+  title: CI/CD & kiểm chứng
+  purpose: Đưa việc phát hành vào pipeline có kiểm soát và xác minh người dùng có thể lấy dependency.
+  objectives:
+  - Kích hoạt publishing khi tạo tag/release đã duyệt
+  - Bảo vệ token và khóa ký, tránh leak trong log
+  - Kiểm tra GAV trên Maven Central và thử resolve dependency

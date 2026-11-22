@@ -1,0 +1,3307 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Metric là gì và vì sao hệ thống cần số liệu đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của metrics trong khả năng quan sát hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt metrics, logs, traces và profiles
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Khác biệt giữa sự kiện riêng lẻ với số liệu đã tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Từ câu hỏi vận hành đến phép đo, biểu đồ và quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Giám sát bên trong và đo từ góc nhìn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Những câu hỏi metrics trả lời tốt và các giới hạn cần nhận biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Bản đồ thuật ngữ: phép đo, điểm dữ liệu, chuỗi thời gian và chiều dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Phân biệt nguyên lý chung với mô hình của từng hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Trình tự học từ thiết kế phép đo đến kiểm chứng và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-design
+  title: Thiết kế phép đo
+  childs:
+  - slug: measurement-design-001
+    title: Xác định đối tượng, hành vi và thời điểm cần đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-002
+    title: Phân biệt số liệu kỹ thuật với số liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-003
+    title: Đo đầu vào, đầu ra, lỗi và lượng công việc đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-004
+    title: Xác định phạm vi của một yêu cầu, thao tác hoặc giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-005
+    title: Đo thời gian xử lý và thời gian chờ theo ranh giới rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-006
+    title: Đếm yêu cầu logic và đếm từng lần thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-007
+    title: Phân biệt sự kiện thành công, thất bại, hủy bỏ và hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-008
+    title: Chọn nguồn đo phía máy khách hoặc máy chủ theo câu hỏi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-009
+    title: Xác định đơn vị, tập đối tượng và chu kỳ quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-010
+    title: Ghi hợp đồng phép đo trước khi lựa chọn thư viện hoặc công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-design-011
+    title: Tránh số liệu dễ thu thập nhưng không phục vụ quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-model
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-model-001
+    title: Phép đo, công cụ ghi nhận và phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-002
+    title: Một điểm dữ liệu gồm giá trị, thời gian và thông tin nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-003
+    title: Chuỗi thời gian và các yếu tố xác định danh tính chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-004
+    title: Tên metric, mô tả, đơn vị và loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-005
+    title: Nhãn, thuộc tính và chiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-006
+    title: Tài nguyên phát sinh số liệu và thông tin phạm vi đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-007
+    title: Phân biệt tên metric, một chuỗi cụ thể và một điểm trên chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-008
+    title: Giá trị vô hướng và dữ liệu phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-009
+    title: Metric nhận trực tiếp và metric suy ra bằng phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-010
+    title: Quan hệ giữa phép ghi nhận, dữ liệu xuất ra và dữ liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-011
+    title: Đối chiếu mô hình chuỗi thời gian với mô hình điểm dữ liệu OpenTelemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-units
+  title: Thời gian và đơn vị
+  childs:
+  - slug: time-units-001
+    title: Thời điểm xảy ra sự kiện, thời điểm thu thập và thời điểm tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-002
+    title: Thời gian tuyệt đối và thời gian đơn điệu khi đo khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-003
+    title: Ảnh hưởng của lệch đồng hồ và điều chỉnh đồng hồ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-004
+    title: Khoảng thu thập, khoảng xuất dữ liệu và độ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-005
+    title: Giây, mili giây và cách chuyển đổi thời lượng nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-006
+    title: Byte, bit và các hệ đơn vị dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-007
+    title: Đơn vị đếm, đơn vị mỗi giây và phân tích thứ nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-008
+    title: Tỷ lệ từ 0 đến 1 và phần trăm từ 0 đến 100
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-009
+    title: Dấu thời gian của điểm đo và khoảng thời gian điểm đo đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-010
+    title: Chênh lệch múi giờ hiển thị với thời gian lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-units-011
+    title: Làm tròn số, độ chính xác và giá trị rất lớn hoặc rất nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: counters
+  title: Counter
+  childs:
+  - slug: counters-001
+    title: Bộ đếm tích lũy và các sự kiện phù hợp để đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-002
+    title: Tính đơn điệu của counter và ngoại lệ khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-003
+    title: Đếm số yêu cầu, lỗi, byte và công việc đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-004
+    title: Phân biệt giá trị bộ đếm với số sự kiện trong một khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-005
+    title: Chuyển chênh lệch counter thành tốc độ phát sinh sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-006
+    title: Khởi tạo bằng không và tình huống chưa có chuỗi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-007
+    title: Counter reset, tràn số và thay đổi danh tính tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-008
+    title: Vì sao không dùng counter để biểu diễn giá trị có thể giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-009
+    title: Đếm tại một điểm xác định để tránh đếm hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-010
+    title: Tính nhất quán khi nhiều luồng cập nhật bộ đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: counters-011
+    title: Phân biệt tổng bộ đếm của dịch vụ với bộ đếm của từng bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gauges
+  title: Gauge
+  childs:
+  - slug: gauges-001
+    title: Gauge và giá trị đại diện cho một thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-002
+    title: Đo nhiệt độ, bộ nhớ đang dùng và độ dài hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-003
+    title: Ghi giá trị tuyệt đối và quan sát giá trị từ nguồn có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-004
+    title: Giá trị âm, giá trị bằng không và miền giá trị hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-005
+    title: Thời điểm đọc gauge và nguy cơ bỏ lỡ biến động ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-006
+    title: Gauge phản ánh trạng thái mới nhất hay một giá trị đã quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-007
+    title: Giá trị tối đa, tối thiểu, trung bình và giá trị cuối trong cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-008
+    title: Khi nào có thể cộng gauge của nhiều thực thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-009
+    title: Gauge tỷ lệ và lý do cần giữ cả tử số lẫn mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-010
+    title: Phân biệt gauge với counter và số thay đổi trong khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gauges-011
+    title: Quan sát trạng thái mà không giữ tham chiếu tài nguyên ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation-tools
+  title: Công cụ ghi nhận
+  childs:
+  - slug: instrumentation-tools-001
+    title: Phân biệt loại công cụ ghi nhận với dạng dữ liệu xuất ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-002
+    title: Đếm sự kiện bằng Counter và theo dõi tăng giảm bằng UpDownCounter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-003
+    title: Quan sát giá trị tích lũy sẵn có bằng bộ đếm bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-004
+    title: Quan sát số lượng hiện tại bằng công cụ tăng giảm bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-005
+    title: Gauge đồng bộ và gauge quan sát theo chu kỳ trong mô hình phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-006
+    title: Histogram để ghi từng lần quan sát giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-007
+    title: Bộ đo thời lượng và bộ đo kích thước trong các thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-008
+    title: Tính cộng gộp và tính đơn điệu khi lựa chọn công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-009
+    title: Một phép ghi nhận có thể tạo nhiều chuỗi đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-010
+    title: Phân biệt callback quan sát với luồng xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-tools-011
+    title: Đối chiếu thuật ngữ OpenTelemetry, Prometheus và Micrometer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: histograms
+  title: Histogram
+  childs:
+  - slug: histograms-001
+    title: Phân phối giá trị và lý do một số trung bình chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-002
+    title: Khoảng giá trị, ranh giới bucket và số quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-003
+    title: Tổng số quan sát, tổng giá trị và trung bình có trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-004
+    title: Thiết kế bucket theo phạm vi dữ liệu và ngưỡng cần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-005
+    title: Bucket tuyến tính, theo cấp số nhân và theo ngưỡng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-006
+    title: Phân biệt số đếm riêng từng bucket với bucket tích lũy theo ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-007
+    title: Classic histogram và biểu diễn nhiều chuỗi thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-008
+    title: Native histogram và exponential histogram ở mức mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-009
+    title: Đánh đổi giữa độ chính xác, phạm vi biểu diễn và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-010
+    title: Điều kiện gộp các phân phối có cấu trúc bucket tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-011
+    title: Đổi cấu trúc bucket và ảnh hưởng đến dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: histograms-012
+    title: Quan sát âm, giá trị bằng không và điều kiện diễn giải tổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quantiles-summaries
+  title: Phân vị và summary
+  childs:
+  - slug: quantiles-summaries-001
+    title: Trung vị, phân vị và cách diễn giải p50, p95, p99
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-002
+    title: Độ trễ đuôi và trải nghiệm của nhóm yêu cầu chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-003
+    title: Tính phân vị từ tập quan sát thô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-004
+    title: Ước lượng phân vị từ histogram và vai trò của nội suy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-005
+    title: Sai số theo giá trị và sai số theo thứ hạng phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-006
+    title: Summary và phân vị được tính sẵn phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-007
+    title: Vì sao không lấy trung bình p99 của các bản sao dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-008
+    title: Phần nào của summary có thể cộng gộp và phần nào không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-009
+    title: Ảnh hưởng của số lượng quan sát thấp đến phân vị cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-010
+    title: Phân vị theo cửa sổ thời gian và giới hạn truy vấn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-011
+    title: Phân vị của từng chặng và phân vị của toàn bộ hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-012
+    title: Chọn histogram hoặc summary theo yêu cầu truy vấn và khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quantiles-summaries-013
+    title: Bỏ sót quan sát khi hệ thống chậm và sai lệch độ trễ do coordinated omission
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cumulative-measurements
+  title: Tính tích lũy
+  childs:
+  - slug: cumulative-measurements-001
+    title: Dữ liệu cộng dồn và dữ liệu chênh lệch theo khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-002
+    title: Cumulative temporality và delta temporality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-003
+    title: Thời điểm bắt đầu, thời điểm kết thúc và nhận diện reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-004
+    title: Phân biệt tích lũy theo thời gian với tích lũy theo ranh giới bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-005
+    title: Số tổng đơn điệu và số tổng không đơn điệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-006
+    title: Chuyển delta sang cumulative và trạng thái cần lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-007
+    title: Chuyển cumulative sang delta và yêu cầu giữ điểm trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-008
+    title: Khoảng dữ liệu bị mất và giới hạn của khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-009
+    title: Các khoảng thời gian chồng lấn và nguy cơ đếm trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-010
+    title: Một nguồn ghi cho một chuỗi và vấn đề trùng danh tính nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-011
+    title: Khởi động lại bộ thu thập và mất trạng thái chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cumulative-measurements-012
+    title: Lựa chọn temporality dựa trên khả năng của đường ống và nơi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dimensions
+  title: Chiều dữ liệu
+  childs:
+  - slug: dimensions-001
+    title: Phân loại số liệu theo dịch vụ, môi trường và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-002
+    title: Phân biệt thuộc tính tài nguyên với thuộc tính từng phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-003
+    title: Nhãn hạ tầng và nhãn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-004
+    title: Phạm vi nhãn theo máy, tiến trình, bản sao và vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-005
+    title: Chuẩn hóa route thay vì dùng đường dẫn chứa định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-006
+    title: Mã trạng thái, loại lỗi và tập giá trị hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-007
+    title: Giá trị thiếu, giá trị rỗng và ý nghĩa của nhóm chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-008
+    title: Tách chiều dữ liệu khi truy vấn để không làm mất ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-009
+    title: Loại bỏ chiều dữ liệu và tác động đến khả năng phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-010
+    title: Tránh đổi ý nghĩa cùng một nhãn giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dimensions-011
+    title: Định danh người dùng, request ID và dữ liệu không phù hợp làm nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cardinality
+  title: Cardinality
+  childs:
+  - slug: cardinality-001
+    title: Cardinality là gì và cách đếm số chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-002
+    title: Ước lượng số tổ hợp từ các chiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-003
+    title: Phân biệt số giá trị của từng nhãn với số tổ hợp thực xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-004
+    title: Chuỗi đang hoạt động và chuỗi từng xuất hiện trong thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-005
+    title: Series churn khi bản sao và giá trị nhãn liên tục thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-006
+    title: Vì sao nhãn ít giá trị vẫn có thể tạo nhiều chuỗi khi kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-007
+    title: Chi phí bucket histogram nhân với số tổ hợp nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-008
+    title: 'Những nguồn không giới hạn: URL thô, thông báo lỗi và định danh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-009
+    title: Ngân sách cardinality theo metric, dịch vụ và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-010
+    title: Giới hạn thuộc tính, gom nhóm giá trị và cơ chế tràn khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-011
+    title: Đánh đổi giữa chi tiết phân tích với chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cardinality-012
+    title: Theo dõi số chuỗi mới và phát hiện tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: naming-schema
+  title: Đặt tên và schema
+  childs:
+  - slug: naming-schema-001
+    title: Tên metric biểu đạt một đại lượng và một ý nghĩa ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-002
+    title: Mô tả rõ điểm đo, phạm vi và cách diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-003
+    title: Nhất quán tên, đơn vị và quy ước của hệ sinh thái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-004
+    title: Không mã hóa giá trị nhãn vào tên metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-005
+    title: Phân biệt tên đại lượng với trạng thái hoặc kết quả xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-006
+    title: Ngăn xung đột cùng tên nhưng khác loại, đơn vị hoặc ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-007
+    title: Quy ước ngữ nghĩa và khả năng đối chiếu giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-008
+    title: Thay đổi tên, nhãn hoặc đơn vị như một thay đổi hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-009
+    title: Tương thích khi chuyển đổi OpenTelemetry và hệ thống chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-010
+    title: Duy trì danh mục metric có nguồn phát sinh và người phụ trách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-schema-011
+    title: Ngừng sử dụng metric có kế hoạch và kiểm tra bên đang tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-collection
+  title: Thu thập số liệu
+  childs:
+  - slug: metrics-collection-001
+    title: Đường đi từ nguồn phát sinh đến hệ thống lưu trữ metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-002
+    title: Mô hình pull và thu thập theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-003
+    title: Mô hình push và xuất số liệu theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-004
+    title: Vai trò của thư viện, exporter, agent và collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-005
+    title: Phân biệt thu thập trạng thái hiện tại với thu thập sự kiện đã tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-006
+    title: Phát hiện nguồn dữ liệu và duy trì danh tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-007
+    title: Khoảng thu thập và đánh đổi giữa độ phân giải với chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-008
+    title: Tác vụ ngắn hạn và rủi ro kết thúc trước lần thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-009
+    title: Timeout, lỗi kết nối và tín hiệu nguồn không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-010
+    title: Đo phía ứng dụng so với suy ra từ logs hoặc traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-011
+    title: Đường thu thập trực tiếp và đường qua bộ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-012
+    title: Tự quan sát hoạt động thu thập và xuất số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-pipelines
+  title: Đường ống metrics
+  childs:
+  - slug: metrics-pipelines-001
+    title: Tiếp nhận, kiểm tra, biến đổi, gom lô và chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-002
+    title: Tổng hợp tại nguồn, tại bộ thu và tại nơi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-003
+    title: Chuẩn hóa tên, đơn vị và thuộc tính trước khi chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-004
+    title: Lọc metric và loại bỏ thuộc tính theo hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-005
+    title: Bộ đệm, hàng đợi và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-006
+    title: Backpressure khi nơi nhận xử lý không kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-007
+    title: Thử lại, thời gian chờ và nguy cơ gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-008
+    title: Mất dữ liệu khi tiến trình dừng hoặc hàng đợi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-009
+    title: Độ trễ đầu cuối từ phép đo đến khả năng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-010
+    title: Chuyển đổi định dạng và nguy cơ mất ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-011
+    title: Nhiều bản sao thu thập và điều kiện loại bỏ dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-pipelines-012
+    title: Số liệu về dữ liệu bị từ chối, bị bỏ và đang chờ gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-retention
+  title: Lưu trữ và lưu giữ
+  childs:
+  - slug: storage-retention-001
+    title: Cơ sở dữ liệu chuỗi thời gian và cách tổ chức dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-002
+    title: Chỉ mục chuỗi, mẫu dữ liệu và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-003
+    title: Vai trò của nén dữ liệu theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-004
+    title: Độ phân giải đầu vào và dữ liệu thực sự được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-005
+    title: Thời gian lưu giữ theo nhu cầu vận hành và phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-006
+    title: Lưu trữ ngắn hạn, dài hạn và phân tầng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-007
+    title: Downsampling và đánh đổi giữa dung lượng với thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-008
+    title: Phép tổng hợp phù hợp khi giảm độ phân giải từng loại metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-009
+    title: Phân biệt rollup theo thời gian với gộp chuỗi theo chiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-010
+    title: Dữ liệu đến muộn, sai thứ tự và chính sách tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-011
+    title: Xóa dữ liệu, cách ly nhóm sử dụng và giới hạn truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-retention-012
+    title: Ước lượng dung lượng từ số chuỗi, tần suất và thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aggregations
+  title: Phép tổng hợp
+  childs:
+  - slug: aggregations-001
+    title: Cộng gộp theo thời gian và theo các chiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-002
+    title: Tổng, số lượng, tối thiểu, tối đa và giá trị cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-003
+    title: Trung bình đơn giản và trung bình có trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-004
+    title: Tính trung bình từ tổng giá trị và tổng số quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-005
+    title: Điều kiện có thể cộng các gauge của nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-006
+    title: Giữ nhóm theo chiều cần phân tích và loại chiều không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-007
+    title: Không cộng lẫn đơn vị hoặc đại lượng khác nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-008
+    title: Tổng hợp phân phối khi bucket và ngữ nghĩa tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-009
+    title: Thứ tự tính toán và thông tin bị mất sau khi gộp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-010
+    title: Tách nhóm lưu lượng để phát hiện sai lệch bị số tổng che khuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-011
+    title: Nghịch lý Simpson khi thành phần các nhóm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-012
+    title: Chứng minh phép tổng hợp bằng một bộ số liệu nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rates-ratios
+  title: Tốc độ và tỷ lệ
+  childs:
+  - slug: rates-ratios-001
+    title: Chênh lệch giá trị, mức tăng trong khoảng và tốc độ mỗi giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-002
+    title: Chuẩn hóa tốc độ theo độ dài khoảng thời gian thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-003
+    title: Tính tốc độ trên từng chuỗi trước khi cộng khi cần nhận diện reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-004
+    title: Xử lý counter reset trong phép tính mức tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-005
+    title: Tốc độ trung bình theo cửa sổ và tốc độ từ các điểm gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-006
+    title: Tử số và mẫu số phải cùng phạm vi, thời gian và tập đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-007
+    title: Tỷ lệ lỗi, tỷ lệ thành công và tỷ lệ cache hit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-008
+    title: Tính tỷ lệ toàn dịch vụ từ tổng tử số và tổng mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-009
+    title: Vì sao không lấy trung bình phần trăm giữa các nhóm có tải khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-010
+    title: Mẫu số bằng không và phân biệt với tỷ lệ bằng không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-011
+    title: Tốc độ thay đổi gauge và khác biệt với tốc độ sự kiện counter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rates-ratios-012
+    title: Kiểm tra đơn vị đầu ra để phát hiện công thức sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-windows
+  title: Cửa sổ thời gian
+  childs:
+  - slug: time-windows-001
+    title: Cửa sổ trượt, cửa sổ cố định và khoảng thời gian căn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-002
+    title: Khoảng thu thập, bước truy vấn và độ dài cửa sổ tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-003
+    title: Tác động của số điểm quan sát đến độ ổn định phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-004
+    title: Cửa sổ ngắn nhạy với biến động và cửa sổ dài làm mượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-005
+    title: Lấy mẫu định kỳ và nguy cơ bỏ lỡ đỉnh ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-006
+    title: Sai lệch khi chọn bước truy vấn lớn hơn biến động cần xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-007
+    title: Căn chỉnh thời gian khi so sánh nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-008
+    title: So sánh với giai đoạn trước và ảnh hưởng của tính mùa vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-009
+    title: Độ trễ thu thập, độ trễ xuất và độ mới của điểm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-010
+    title: Chọn cửa sổ theo câu hỏi và thời gian phản ứng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-windows-011
+    title: Phân biệt giá trị tức thời với kết quả tổng hợp cả khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: missing-bad-data
+  title: Dữ liệu thiếu và sai
+  childs:
+  - slug: missing-bad-data-001
+    title: Không có chuỗi, không có điểm mới và giá trị bằng không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-002
+    title: Dữ liệu quá hạn và ngữ nghĩa staleness theo hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-003
+    title: Khoảng trống do mất nguồn, lỗi thu thập hoặc lỗi truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-004
+    title: NaN, vô cực và giá trị ngoài miền hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-005
+    title: Counter giảm do reset hoặc thay đổi nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-006
+    title: Dấu thời gian sai, dữ liệu trùng và điểm đến không đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-007
+    title: Điền số không và nội suy có thể làm sai kết luận như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-008
+    title: Phân biệt dịch vụ ngừng hoạt động với đường đo bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-009
+    title: Số liệu thiếu do lọc nhãn hoặc giới hạn cardinality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-010
+    title: Phát hiện khác biệt giữa số đếm gốc và số đếm suy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: missing-bad-data-011
+    title: Ghi rõ mức đầy đủ, độ mới và độ tin cậy của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-instrumentation
+  title: Gắn phép đo vào mã
+  childs:
+  - slug: code-instrumentation-001
+    title: Đặt điểm đo tại ranh giới hành vi cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-002
+    title: Đo đủ nhánh thành công, thất bại, hủy và timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-003
+    title: Bắt đầu, kết thúc và kết thúc đúng một lần cho phép đo thời lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-004
+    title: Xử lý tác vụ bất đồng bộ theo thời điểm hoàn tất thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-005
+    title: Đếm yêu cầu đang xử lý bằng cơ chế tăng giảm cân bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-006
+    title: Tách số liệu tự động và số liệu thủ công để tránh đếm trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-007
+    title: An toàn khi truy cập đồng thời và chi phí trên đường xử lý chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-008
+    title: Callback quan sát cần ngắn, không chặn và không gây tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-009
+    title: Tránh giữ tham chiếu đối tượng hoặc tạo metric trong mỗi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-010
+    title: Ổn định tập nhãn trước khi phát sinh phép ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-011
+    title: Không để lỗi ghi metrics thay đổi kết quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-instrumentation-012
+    title: Kiểm chứng điểm đo bằng số sự kiện và kết quả đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-patterns
+  title: Mẫu tín hiệu
+  childs:
+  - slug: signal-patterns-001
+    title: 'Bốn tín hiệu cốt lõi: độ trễ, lưu lượng, lỗi và mức bão hòa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-002
+    title: RED cho dịch vụ xử lý yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-003
+    title: USE cho tài nguyên có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-004
+    title: Phân biệt mức sử dụng với mức bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-005
+    title: Độ trễ của yêu cầu thành công và yêu cầu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-006
+    title: Lưu lượng đầu vào, đầu ra và số yêu cầu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-007
+    title: Độ dài hàng đợi, thời gian chờ và khả năng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-008
+    title: Phân biệt chỉ báo dẫn trước với chỉ báo xuất hiện sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-009
+    title: Tín hiệu kỹ thuật có thể hỗ trợ giải thích tác động người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-010
+    title: Chọn số đo theo kiến trúc đồng bộ, bất đồng bộ hoặc xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-patterns-011
+    title: Giới hạn của việc dùng một mẫu tín hiệu cho mọi thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-resources
+  title: Tài nguyên hệ thống
+  childs:
+  - slug: system-resources-001
+    title: CPU đã dùng, thời gian CPU và mức tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-002
+    title: Bộ nhớ đang dùng, bộ nhớ khả dụng và giới hạn cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-003
+    title: Tốc độ lỗi trang, swap và áp lực bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-004
+    title: Dung lượng lưu trữ, inode và khả năng tiếp tục ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-005
+    title: IOPS, thông lượng, độ trễ I/O và hàng đợi thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-006
+    title: Thông lượng mạng, lỗi truyền và số kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-007
+    title: Mức dùng descriptor, luồng và các giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-008
+    title: Phân biệt số liệu máy chủ, container và tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-009
+    title: Hạn mức CPU, giới hạn bộ nhớ và phạm vi của mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-010
+    title: Đo tài nguyên theo bản sao, máy, vùng và toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-resources-011
+    title: Giới hạn suy luận nguyên nhân từ một chỉ số tài nguyên đơn lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: services-jvm
+  title: Dịch vụ và JVM
+  childs:
+  - slug: services-jvm-001
+    title: Số yêu cầu, lỗi và thời lượng xử lý HTTP theo route chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-002
+    title: Số thao tác đang xử lý và mức dùng nhóm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-003
+    title: Hàng đợi, tuổi thông điệp và độ trễ xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-004
+    title: 'Nhóm kết nối cơ sở dữ liệu: đang dùng, rảnh và đang chờ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-005
+    title: Tốc độ truy vấn, lỗi và thời gian chờ phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-006
+    title: Cache hit, cache miss, thao tác loại bỏ và kích thước cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-007
+    title: Heap, non-heap và tổng bộ nhớ của tiến trình JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-008
+    title: Số lần, tổng thời gian và phân phối tạm dừng GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-009
+    title: Tốc độ cấp phát và quan hệ với áp lực thu gom rác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-010
+    title: Số luồng, trạng thái luồng và tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-011
+    title: Đọc số liệu Micrometer, OpenTelemetry và runtime theo cùng một hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-jvm-012
+    title: Đối chiếu số liệu ứng dụng với tài nguyên hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: business-metrics
+  title: Metrics nghiệp vụ
+  childs:
+  - slug: business-metrics-001
+    title: Chọn phép đo gắn với một kết quả nghiệp vụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-002
+    title: Số đơn hàng tạo mới, thanh toán thành công và giao dịch thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-003
+    title: Phân biệt yêu cầu kỹ thuật với một sự kiện nghiệp vụ duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-004
+    title: Thử lại, giao nhận lặp và nguy cơ đếm trùng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-005
+    title: Đếm khi ghi nhận ý định, khi xác nhận hay khi hoàn tất giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-006
+    title: Giao dịch cơ sở dữ liệu thất bại sau thời điểm ghi metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-007
+    title: Số liệu quan sát vận hành và sổ cái nghiệp vụ cần độ chính xác cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-008
+    title: Chuyển đổi theo nhóm người dùng mà không đưa định danh cá nhân vào nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-009
+    title: Phân biệt số thực thể hiện có với số sự kiện đã xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: business-metrics-010
+    title: Kiểm tra chênh lệch với nguồn dữ liệu nghiệp vụ có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slis-slos
+  title: SLI và SLO
+  childs:
+  - slug: slis-slos-001
+    title: Chỉ số mức dịch vụ và mục tiêu mức dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-002
+    title: Từ hành trình người dùng đến định nghĩa sự kiện tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-003
+    title: Xác định tập sự kiện hợp lệ làm mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-004
+    title: SLI về tính sẵn sàng, độ trễ, độ mới và tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-005
+    title: Đánh giá tỷ lệ yêu cầu nằm dưới ngưỡng độ trễ bằng phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-006
+    title: SLI dựa trên sự kiện và SLI dựa trên cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-007
+    title: Ngân sách lỗi và tốc độ tiêu thụ ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-008
+    title: Cửa sổ đánh giá cố định và cửa sổ trượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-009
+    title: Ảnh hưởng của lưu lượng thấp và dữ liệu thiếu đến SLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-010
+    title: Phân biệt mục tiêu người dùng với ngưỡng tài nguyên nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-011
+    title: Giới hạn của metric phía máy chủ khi đánh giá trải nghiệm đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slis-slos-012
+    title: Cung cấp số liệu đầu vào cho cảnh báo theo SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-correlation
+  title: Liên hệ các tín hiệu
+  childs:
+  - slug: signal-correlation-001
+    title: Metrics giúp khoanh vùng thời điểm và phạm vi bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-002
+    title: Từ metric bất thường đến logs chứa chi tiết sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-003
+    title: Từ phân phối độ trễ đến trace của yêu cầu chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-004
+    title: Exemplar và liên kết một quan sát đại diện với trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-005
+    title: Phân biệt exemplar với nhãn làm tăng số chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-006
+    title: Vai trò của resource attributes trong đối chiếu các tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-007
+    title: Ảnh hưởng của lấy mẫu traces đến metrics suy ra từ traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-008
+    title: Đếm từ logs và điều kiện đầy đủ, không trùng, không bị lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-009
+    title: Liên hệ metric CPU với profile để tìm đoạn mã tiêu tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-010
+    title: Tương quan giữa hai tín hiệu và giới hạn kết luận quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: charts-interpretation
+  title: Biểu đồ và diễn giải
+  childs:
+  - slug: charts-interpretation-001
+    title: Chọn đường thời gian, bảng, cột hoặc heatmap theo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-002
+    title: Hiển thị đơn vị, cửa sổ tính toán và phạm vi tổng hợp rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-003
+    title: Xem tổng quan trước rồi phân tách theo nhóm nghi vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-004
+    title: Biểu diễn counter bằng tốc độ hoặc mức tăng khi câu hỏi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-005
+    title: Dùng heatmap để quan sát thay đổi phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-006
+    title: Hiển thị nhiều phân vị cùng số lượng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-007
+    title: Thang tuyến tính, thang logarit và nguy cơ gây hiểu nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-008
+    title: Trục tung, khoảng giá trị và tác động đến cảm nhận biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-009
+    title: Biểu diễn khoảng trống và dữ liệu quá hạn trung thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-010
+    title: Đánh dấu triển khai, thay đổi cấu hình và sự kiện vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-011
+    title: So sánh các nhóm có lưu lượng hoặc kích thước khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: charts-interpretation-012
+    title: Chỉ ra câu hỏi và hành động gắn với từng biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-governance
+  title: Chi phí và quản trị
+  childs:
+  - slug: cost-governance-001
+    title: Chi phí CPU, RAM và độ trễ do gắn phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-002
+    title: Chi phí truyền, tiếp nhận, lưu trữ và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-003
+    title: Ước lượng tải theo số chuỗi, chu kỳ và loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-004
+    title: Ngân sách histogram theo số bucket và độ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-005
+    title: Kiểm soát cardinality ngay tại nguồn và tại đường ống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-006
+    title: Giảm số chiều, giảm tần suất hoặc tổng hợp sớm theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-007
+    title: Đánh đổi giữa dữ liệu đầy đủ và các hình thức lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-008
+    title: Bảo vệ thông tin nhạy cảm trong tên, nhãn và exemplars
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-009
+    title: Phân quyền truy cập theo dịch vụ, môi trường và nhóm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-010
+    title: Quản lý người phụ trách, thay đổi schema và ngừng metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-011
+    title: Theo dõi mức dùng tài nguyên của chính hệ thống metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-diagnostics
+  title: Kiểm chứng và chẩn đoán
+  childs:
+  - slug: validation-diagnostics-001
+    title: Kiểm thử counter bằng chuỗi sự kiện có kết quả biết trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-002
+    title: Kiểm thử gauge khi trạng thái thay đổi và tài nguyên được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-003
+    title: Kiểm thử bucket, count, sum bằng tập quan sát nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-004
+    title: Kiểm chứng reset, khởi động lại và thay đổi bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-005
+    title: Kiểm chứng nhiều luồng, tác vụ bất đồng bộ và các nhánh lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-006
+    title: Phát hiện sai đơn vị, sai loại công cụ và sai phạm vi phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-007
+    title: Phân biệt lỗi ở điểm đo, khâu thu thập, lưu trữ và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-008
+    title: Điều tra đường biểu đồ bằng phẳng dù ứng dụng còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-009
+    title: Điều tra tốc độ tăng đột biến sau triển khai hoặc reset
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-010
+    title: Điều tra p99 khác nhau giữa ứng dụng và hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-011
+    title: Điều tra cardinality tăng và dữ liệu bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-diagnostics-012
+    title: Đối chiếu số liệu suy ra với dữ liệu gốc và nguồn độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Thiết kế danh mục metrics cho một dịch vụ nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Lập bảng phép đo, loại công cụ, đơn vị và nhãn hữu hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Tạo dữ liệu mẫu để tính mức tăng, tốc độ và tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Tính trung bình có trọng số cho các bản sao có tải khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Dựng histogram và ước lượng phân vị từ tập thời lượng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: So sánh tỷ lệ dưới ngưỡng độ trễ với giá trị p99
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Ước lượng cardinality trước và sau khi thêm một chiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Mô phỏng mất điểm, reset và khởi động lại bộ thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: So sánh kết quả khi đổi cửa sổ và bước truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Đối chiếu dữ liệu tích lũy với dữ liệu chênh lệch theo khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Thiết kế biểu đồ RED và USE từ cùng một hệ thống mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Xây dựng một SLI từ định nghĩa sự kiện tốt và hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-013
+    title: Liên kết một điểm bất thường với logs, traces hoặc profiles
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-014
+    title: Đo chi phí gắn phép đo dưới tải có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-015
+    title: Hoàn thiện hợp đồng metric và bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

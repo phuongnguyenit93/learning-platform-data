@@ -1,0 +1,572 @@
+menu:
+- level1: Khái niệm phân loại
+  level2:
+  - Data classification là gì
+  - Data classification so với data labeling
+  - Data classification so với data inventory
+  - Mục tiêu của persistent label
+  - Phân loại để làm gì
+  - Phân loại theo rủi ro
+  - Phân loại theo tác động
+  - Phân loại cho dữ liệu có cấu trúc
+  - Phân loại cho dữ liệu phi cấu trúc
+  - Phân loại trong Zero Trust
+- level1: Khái niệm tối giản
+  level2:
+  - Data minimization là gì
+  - Adequate data
+  - Relevant data
+  - Limited data
+  - Necessary data
+  - Thu thập ít hơn không có nghĩa là thiếu
+  - Tối giản ở thời điểm thiết kế
+  - Tối giản trong runtime
+  - Tối giản bản sao
+  - Tối giản thời gian lưu trữ
+- level1: Mối liên hệ
+  level2:
+  - Classification dẫn đến control
+  - Minimization giảm attack surface
+  - Classification và retention
+  - Classification và encryption
+  - Classification và access control
+  - Classification và logging
+  - Minimization và privacy
+  - Minimization và cost
+  - Label và automation
+  - Đánh giá lại khi mục đích thay đổi
+- level1: Inventory dữ liệu
+  level2:
+  - Data inventory
+  - Data asset
+  - Data owner
+  - Data steward
+  - Data custodian
+  - Data processor
+  - System of record
+  - Data location
+  - Data flow
+  - Data copy
+  - Đối soát inventory
+- level1: Data map
+  level2:
+  - Bản đồ hệ thống
+  - Bản đồ luồng dữ liệu
+  - Nguồn thu thập
+  - Điểm xử lý
+  - Điểm lưu trữ
+  - Điểm chia sẻ
+  - Điểm xuất dữ liệu
+  - Bản sao tạm thời
+  - Bên nhận dữ liệu
+  - Data lineage
+  - Cập nhật data map
+- level1: Mục đích xử lý
+  level2:
+  - Specified purpose
+  - Explicit purpose
+  - Legitimate purpose
+  - Purpose statement
+  - Use case
+  - Business necessity
+  - Processing activity
+  - Reuse dữ liệu
+  - Purpose compatibility
+  - Purpose change review
+  - Không thu thập “just in case”
+- level1: Cơ sở và trách nhiệm
+  level2:
+  - Lawful basis
+  - Consent context
+  - Contract context
+  - Legal obligation
+  - Public interest
+  - Accountability
+  - Data owner approval
+  - Privacy owner review
+  - Security owner review
+  - Document decision
+  - Exception justification
+- level1: Phân loại mức độ
+  level2:
+  - Public
+  - Internal
+  - Confidential
+  - Restricted
+  - Highly sensitive
+  - Personal data
+  - Special category data
+  - Regulated data
+  - Secret data
+  - Mission-critical data
+  - Classification matrix
+- level1: Tác động bảo mật
+  level2:
+  - Confidentiality impact
+  - Integrity impact
+  - Availability impact
+  - Safety impact
+  - Privacy impact
+  - Financial impact
+  - Operational impact
+  - Reputational impact
+  - Legal impact
+  - Aggregate impact
+  - Impact level decision
+- level1: Nhóm dữ liệu
+  level2:
+  - Identity data
+  - Contact data
+  - Authentication data
+  - Financial data
+  - Health data
+  - Location data
+  - Behavioral data
+  - Content data
+  - Telemetry data
+  - Audit data
+  - Derived data
+- level1: Dữ liệu phi cấu trúc
+  level2:
+  - Document discovery
+  - Email classification
+  - Chat classification
+  - File share classification
+  - PDF và office file
+  - Image và OCR
+  - Source code classification
+  - Log file classification
+  - Metadata classification
+  - Unstructured data labeling
+  - Review label tự động
+- level1: Label
+  level2:
+  - Label vocabulary
+  - Label hierarchy
+  - Label inheritance
+  - Label propagation
+  - Label trên object
+  - Label trên record
+  - Label trên field
+  - Label trên message
+  - Label version
+  - Label conflict
+  - Label visibility
+- level1: Phân loại tự động
+  level2:
+  - Rule-based classification
+  - Pattern matching
+  - Regex detection
+  - Entropy detection
+  - Machine learning classifier
+  - Confidence score
+  - Human-in-the-loop
+  - False positive
+  - False negative
+  - Model drift
+  - Review classification result
+- level1: Phân loại thủ công
+  level2:
+  - Manual label
+  - Owner chọn mức
+  - User guidance
+  - Mandatory label
+  - Default label
+  - Label override
+  - Override approval
+  - Label review
+  - Label correction
+  - Audit thao tác label
+- level1: Kiểm soát theo label
+  level2:
+  - Access policy theo label
+  - Encryption policy theo label
+  - DLP policy theo label
+  - Retention policy theo label
+  - Sharing policy theo label
+  - Export policy theo label
+  - Logging policy theo label
+  - Masking policy theo label
+  - Alert policy theo label
+  - Automation policy theo label
+- level1: Data minimization thu thập
+  level2:
+  - Chỉ thu trường cần thiết
+  - Loại field không dùng
+  - Form field tối thiểu
+  - Optional field review
+  - Default value review
+  - Purpose-to-field mapping
+  - Collection notice
+  - Không thu thập thông tin nhạy cảm thừa
+  - Giảm dữ liệu telemetry
+  - Giảm dữ liệu debug
+- level1: Minimization lưu trữ
+  level2:
+  - Không lưu bản sao không cần
+  - Giới hạn thời gian lưu
+  - Xóa dữ liệu tạm
+  - Giảm snapshot
+  - Giảm archive
+  - Giảm log payload
+  - Giảm cache payload
+  - Giảm message payload
+  - Giảm export file
+  - Review dữ liệu tồn
+- level1: Minimization truy cập
+  level2:
+  - Chỉ cung cấp field cần dùng
+  - Field-level access
+  - Row-level access
+  - Need-to-know
+  - Least privilege
+  - Mask dữ liệu không cần
+  - Tokenize dữ liệu
+  - Pseudonymize dữ liệu
+  - Giới hạn download
+  - Giới hạn bulk export
+- level1: Minimization xử lý
+  level2:
+  - Chỉ xử lý trong scope
+  - Không load toàn bộ record
+  - Query projection
+  - Column selection
+  - Filter sớm
+  - Aggregate thay vì raw data
+  - Tính toán tại nguồn
+  - Không copy sang môi trường khác
+  - Giảm dữ liệu đưa vào AI
+  - Giảm dữ liệu đưa vào analytics
+- level1: Minimization chia sẻ
+  level2:
+  - Data sharing purpose
+  - Data sharing agreement
+  - Recipient cần gì
+  - Field-level sharing
+  - Data transfer minimization
+  - Third-party scope
+  - Internal sharing scope
+  - Public exposure review
+  - Chia sẻ aggregate
+  - Review link và export
+- level1: Privacy by design
+  level2:
+  - Privacy by design (bổ sung 2)
+  - Privacy by default
+  - Data protection từ đầu
+  - Threat modeling cho dữ liệu
+  - DPIA khi cần
+  - Default deny sharing
+  - Default retention ngắn
+  - Default field tối thiểu
+  - Privacy review trong SDLC
+  - Privacy regression test
+- level1: Accuracy và chất lượng
+  level2:
+  - Data accuracy
+  - Data completeness
+  - Data relevance
+  - Data consistency
+  - Duplicate data
+  - Stale data
+  - Conflicting source
+  - Data quality rule
+  - Correction workflow
+  - Xóa dữ liệu sai
+  - Data quality ownership
+- level1: Retention liên kết
+  level2:
+  - Retention theo classification
+  - Retention theo purpose
+  - Retention theo record type
+  - Retention trigger
+  - Review hết hạn
+  - Legal hold
+  - Archive rule
+  - Deletion rule
+  - Anonymization rule
+  - Retention exception
+  - Đồng bộ retention label
+- level1: Access control
+  level2:
+  - Classification-aware authorization
+  - RBAC theo dữ liệu
+  - ABAC theo label
+  - Policy condition
+  - Context-aware access
+  - External sharing control
+  - Privileged access review
+  - Access request
+  - Access revoke
+  - Audit data access
+- level1: Encryption
+  level2:
+  - Encryption theo mức nhạy cảm
+  - Key policy theo label
+  - Encryption at rest
+  - Encryption in transit
+  - Field-level encryption
+  - Application-level encryption
+  - Tokenization
+  - Key separation
+  - Key rotation
+  - Decrypt permission
+  - Kiểm tra encrypted coverage
+- level1: Masking và redaction
+  level2:
+  - UI masking
+  - API response filtering
+  - Log redaction
+  - Email redaction
+  - Export redaction
+  - Format-preserving masking
+  - Static masking
+  - Dynamic masking
+  - Reveal có phê duyệt
+  - Kiểm thử không lộ dữ liệu
+- level1: DLP
+  level2:
+  - DLP policy
+  - DLP discovery
+  - DLP endpoint
+  - DLP email
+  - DLP web upload
+  - DLP cloud storage
+  - DLP database
+  - DLP alert
+  - DLP block và quarantine
+  - DLP false positive
+  - Xử lý DLP exception
+- level1: Data loss prevention
+  level2:
+  - Phát hiện dữ liệu nhạy cảm
+  - Ngăn upload trái phép
+  - Ngăn copy ra ngoài
+  - Ngăn in dữ liệu
+  - Ngăn screenshot
+  - Ngăn chia sẻ công khai
+  - Ngăn export hàng loạt
+  - Ngăn gửi nhầm email
+  - User coaching
+  - DLP incident response
+- level1: Data lifecycle
+  level2:
+  - Create data
+  - Collect data
+  - Use data
+  - Share data
+  - Store data
+  - Archive data
+  - Delete data
+  - Anonymize data
+  - Review lifecycle
+  - Lifecycle owner
+  - Lifecycle evidence
+- level1: Data deletion
+  level2:
+  - Delete record
+  - Soft delete
+  - Hard delete
+  - Delete backup
+  - Delete replica
+  - Delete search index
+  - Delete cache
+  - Delete message
+  - Delete export
+  - Deletion verification
+  - Deletion evidence
+- level1: Backup và bản sao
+  level2:
+  - Backup classification
+  - Backup access
+  - Encrypted backup
+  - Backup retention
+  - Replica classification
+  - Snapshot classification
+  - Test environment copy
+  - Disaster recovery copy
+  - Cross-region copy
+  - Temporary copy
+  - Đối soát bản sao
+- level1: Logging và telemetry
+  level2:
+  - Security event logging
+  - Audit trail
+  - Minimize log fields
+  - Mask PII trong log
+  - Không log credential
+  - Trace context
+  - Retention log theo label
+  - Telemetry sampling
+  - Debug logging control
+  - Log access review
+- level1: Analytics và AI
+  level2:
+  - Analytics purpose
+  - Feature minimization
+  - Training data minimization
+  - Prompt data minimization
+  - PII trong dataset
+  - Synthetic data
+  - Aggregation
+  - De-identification
+  - Model output leakage
+  - Data lineage cho dataset
+  - Xóa dataset không cần
+- level1: Cloud và SaaS
+  level2:
+  - Cloud data classification
+  - Cloud label/tag
+  - Object storage policy
+  - Cloud DLP
+  - SaaS data map
+  - SaaS export
+  - Cloud sharing
+  - Cross-region transfer
+  - Provider copy
+  - Cloud access review
+  - Cloud deletion
+- level1: Database
+  level2:
+  - Schema classification
+  - Column classification
+  - Row classification
+  - Sensitive column discovery
+  - Query minimization
+  - View thay vì table
+  - Read replica exposure
+  - Database audit
+  - Data masking view
+  - Database export control
+  - Database copy review
+- level1: API và message
+  level2:
+  - API data contract
+  - Minimize request fields
+  - Minimize response fields
+  - Field projection
+  - Schema classification (bổ sung 2)
+  - Message label
+  - Event payload minimization
+  - Header minimization
+  - PII trong queue
+  - API logging minimization
+  - Consumer scope
+- level1: Development và testing
+  level2:
+  - Synthetic test data
+  - Masked test data
+  - Production copy prohibition
+  - Seed data minimization
+  - Test fixture classification
+  - Local developer data
+  - Debug dump control
+  - Snapshot cleanup
+  - CI artifact cleanup
+  - Data leakage test
+  - Developer guidance
+- level1: Third-party
+  level2:
+  - Data processor inventory
+  - Purpose trong hợp đồng
+  - Minimum shared fields
+  - Processor access
+  - Subprocessor copy
+  - International transfer
+  - Third-party retention
+  - Deletion confirmation
+  - Vendor audit
+  - Offboarding data
+  - Third-party incident
+- level1: Monitoring
+  level2:
+  - Classification coverage
+  - Unlabeled data
+  - Sensitive data exposure
+  - Excess collection
+  - Excess retention
+  - Public sharing alert
+  - Bulk access alert
+  - DLP trend
+  - Data copy growth
+  - Policy violation
+  - Remediation backlog
+- level1: Testing
+  level2:
+  - Test classification rule
+  - Test label propagation
+  - Test access policy
+  - Test masking
+  - Test DLP
+  - Test retention
+  - Test deletion
+  - Test anonymization
+  - Test backup copy
+  - Test data subject flow
+  - Test false positive
+- level1: Metrics
+  level2:
+  - Inventory coverage
+  - Classification coverage (bổ sung 2)
+  - Label accuracy
+  - Sensitive data discovery rate
+  - Minimized field count
+  - Data copy count
+  - Public exposure count
+  - DLP incident count
+  - Masking coverage
+  - Deletion completion rate
+  - Policy exception count
+- level1: Governance
+  level2:
+  - Data classification policy
+  - Data minimization policy
+  - Data owner accountability
+  - Privacy officer role
+  - Security officer role
+  - Records manager role
+  - Policy exception
+  - Review calendar
+  - Training and awareness
+  - Audit evidence
+  - Control mapping
+- level1: Migration
+  level2:
+  - Legacy data discovery
+  - Legacy label mapping
+  - Data minimization during migration
+  - Source classification
+  - Destination classification
+  - Temporary migration copy
+  - Migration access
+  - Post-migration cleanup
+  - Record reconciliation
+  - Delete legacy source
+  - Migration evidence
+- level1: Anti-pattern
+  level2:
+  - Thu thập dữ liệu không mục đích
+  - Giữ dữ liệu vì có thể hữu ích
+  - Một label cho mọi dữ liệu
+  - Không có data owner
+  - Label nhưng không có control
+  - Copy production vào test
+  - Log toàn bộ payload
+  - Export toàn bộ table
+  - Chia sẻ raw data không cần
+  - Dùng anonymization giả
+  - Không review classification
+- level1: Checklist production
+  level2:
+  - Đã lập data inventory
+  - Đã có data map
+  - Đã xác định purpose
+  - Đã có classification matrix
+  - Đã gán data owner
+  - Đã áp control theo label
+  - Đã tối giản field thu thập
+  - Đã tối giản bản sao
+  - Đã bảo vệ log và export
+  - Đã kiểm thử DLP
+  - Đã kiểm thử deletion
+  - Đã có review định kỳ

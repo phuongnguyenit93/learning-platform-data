@@ -1,0 +1,85 @@
+menu:
+  - title: "Tư duy DevOps"
+    slug: devops-mindset
+    index: 0
+  - title: "Luồng giá trị"
+    slug: value-stream
+    index: 1
+  - title: "Phối hợp đội ngũ"
+    slug: team-collaboration
+    index: 2
+  - title: "Nền tảng hệ thống"
+    slug: systems-fundamentals
+    index: 3
+  - title: "Quản lý mã nguồn"
+    slug: source-control
+    index: 4
+  - title: "Build và phụ thuộc"
+    slug: build-and-dependencies
+    index: 5
+  - title: "Hiện vật phần mềm"
+    slug: software-artifacts
+    index: 6
+  - title: "Chiến lược kiểm thử"
+    slug: testing-strategy
+    index: 7
+  - title: "Tích hợp liên tục"
+    slug: continuous-integration
+    index: 8
+  - title: "Phân phối liên tục"
+    slug: continuous-delivery
+    index: 9
+  - title: "Triển khai và phát hành"
+    slug: deployment-and-release
+    index: 10
+  - title: "Cấu hình và môi trường"
+    slug: configuration-and-environments
+    index: 11
+  - title: "Hạ tầng dạng mã"
+    slug: infrastructure-as-code
+    index: 12
+  - title: "Tự động hóa vận hành"
+    slug: operations-automation
+    index: 13
+  - title: "Container"
+    slug: containers
+    index: 14
+  - title: "Điều phối container"
+    slug: container-orchestration
+    index: 15
+  - title: "Hạ tầng đám mây"
+    slug: cloud-infrastructure
+    index: 16
+  - title: "Dữ liệu và migration"
+    slug: data-and-migrations
+    index: 17
+  - title: "Khả năng quan sát"
+    slug: observability
+    index: 18
+  - title: "Độ tin cậy"
+    slug: reliability
+    index: 19
+  - title: "Vận hành thường nhật"
+    slug: routine-operations
+    index: 20
+  - title: "Quản lý sự cố"
+    slug: incident-management
+    index: 21
+  - title: "Sao lưu và phục hồi"
+    slug: backup-and-recovery
+    index: 22
+  - title: "Bảo mật xuyên suốt"
+    slug: devsecops
+    index: 23
+  - title: "Quản trị thay đổi"
+    slug: change-governance
+    index: 24
+  - title: "Đo lường và cải tiến"
+    slug: measurement-and-improvement
+    index: 25
+  - title: "Chi phí và năng lực"
+    slug: cost-and-capacity
+    index: 26
+  - title: "Thực hành tổng hợp"
+    slug: capstone-project
+    index: 27

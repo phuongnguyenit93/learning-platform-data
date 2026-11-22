@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 1
+- title: Tài sản và rủi ro
+  slug: assets-risks
+  index: 2
+- title: Chuẩn và trách nhiệm
+  slug: standards-responsibilities
+  index: 3
+- title: Danh tính người dùng
+  slug: user-identities
+  index: 4
+- title: Truy cập đặc quyền
+  slug: privileged-access
+  index: 5
+- title: Danh tính máy
+  slug: machine-identities
+  index: 6
+- title: Kiến trúc mạng
+  slug: network-architecture
+  index: 7
+- title: Kiểm soát lưu lượng
+  slug: traffic-controls
+  index: 8
+- title: DNS và thời gian
+  slug: dns-time-sync
+  index: 9
+- title: Máy chủ Linux
+  slug: linux-servers
+  index: 10
+- title: Máy chủ Windows
+  slug: windows-servers
+  index: 11
+- title: Phần cứng và ảo hóa
+  slug: hardware-virtualization
+  index: 12
+- title: Cấu hình và bản vá
+  slug: configuration-patching
+  index: 13
+- title: Nền tảng đám mây
+  slug: cloud-platforms
+  index: 14
+- title: Cấu hình đám mây
+  slug: cloud-configuration
+  index: 15
+- title: Mã hóa và khóa
+  slug: encryption-key-management
+  index: 16
+- title: TLS và chứng chỉ
+  slug: tls-certificates
+  index: 17
+- title: Bí mật hạ tầng
+  slug: infrastructure-secrets
+  index: 18
+- title: Lưu trữ và dữ liệu
+  slug: data-storage
+  index: 19
+- title: Dịch vụ dữ liệu
+  slug: data-services
+  index: 20
+- title: Hạ tầng dưới dạng mã
+  slug: infrastructure-as-code
+  index: 21
+- title: Trạng thái Terraform
+  slug: terraform-state
+  index: 22
+- title: Chính sách bằng mã
+  slug: policy-as-code
+  index: 23
+- title: Hạ tầng Kubernetes
+  slug: kubernetes-infrastructure
+  index: 24
+- title: Nhật ký và kiểm toán
+  slug: logging-auditing
+  index: 25
+- title: Phát hiện đe dọa
+  slug: threat-detection
+  index: 26
+- title: Lỗ hổng và phơi lộ
+  slug: vulnerabilities-exposure
+  index: 27
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 28
+- title: Sao lưu và phục hồi
+  slug: backup-recovery
+  index: 29
+- title: Vận hành an toàn
+  slug: secure-operations
+  index: 30
+- title: Kiểm chứng và tuân thủ
+  slug: compliance-verification
+  index: 31
+- title: Hạ tầng kết hợp
+  slug: hybrid-infrastructure
+  index: 32
+- title: Bài thực hành
+  slug: hands-on-labs
+  index: 33

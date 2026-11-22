@@ -1,0 +1,3 @@
+menuLevel1: HTTP/2
+menuLevel2: Chặn đầu hàng ở TCP dù HTTP đã ghép nhiều luồng
+status: ''

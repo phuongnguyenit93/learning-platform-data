@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: incident-overview
+  index: 0
+- title: Vòng đời sự cố
+  slug: incident-lifecycle
+  index: 1
+- title: Chuẩn bị ứng phó
+  slug: response-preparation
+  index: 2
+- title: Phân cấp và ưu tiên
+  slug: severity-prioritization
+  index: 3
+- title: Tổ chức chỉ huy
+  slug: incident-command
+  index: 4
+- title: Trực vận hành
+  slug: on-call-operations
+  index: 5
+- title: Phát hiện sự cố
+  slug: incident-detection
+  index: 6
+- title: Tiếp nhận và đánh giá
+  slug: intake-triage
+  index: 7
+- title: Điều phối ứng phó
+  slug: response-coordination
+  index: 8
+- title: Thông tin và bằng chứng
+  slug: communications-evidence
+  index: 9
+- title: Chẩn đoán hệ thống
+  slug: system-diagnostics
+  index: 10
+- title: Giảm thiểu tác động
+  slug: impact-mitigation
+  index: 11
+- title: Ứng phó thay đổi
+  slug: change-related-incidents
+  index: 12
+- title: Sự cố hiệu năng
+  slug: performance-incidents
+  index: 13
+- title: Sự cố phụ thuộc
+  slug: dependency-incidents
+  index: 14
+- title: Sự cố dữ liệu
+  slug: data-incidents
+  index: 15
+- title: Sự cố ứng dụng
+  slug: application-incidents
+  index: 16
+- title: Sự cố nền tảng
+  slug: platform-incidents
+  index: 17
+- title: Sự cố bảo mật
+  slug: security-incidents
+  index: 18
+- title: Truyền thông nội bộ
+  slug: internal-communications
+  index: 19
+- title: Truyền thông bên ngoài
+  slug: external-communications
+  index: 20
+- title: Sự cố nghiêm trọng
+  slug: major-incidents
+  index: 21
+- title: Phục hồi dịch vụ
+  slug: service-recovery
+  index: 22
+- title: Đóng sự cố
+  slug: incident-closure
+  index: 23
+- title: Phân tích sau sự cố
+  slug: post-incident-analysis
+  index: 24
+- title: Cải tiến phòng ngừa
+  slug: prevention-improvements
+  index: 25
+- title: Runbook và playbook
+  slug: runbooks-playbooks
+  index: 26
+- title: Công cụ và tự động hóa
+  slug: tools-automation
+  index: 27
+- title: Đo lường vận hành
+  slug: operational-metrics
+  index: 28
+- title: Diễn tập và đào tạo
+  slug: drills-training
+  index: 29
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 30
+- title: Tình huống phối hợp
+  slug: coordination-scenarios
+  index: 31
+- title: Lộ trình áp dụng
+  slug: adoption-roadmap
+  index: 32

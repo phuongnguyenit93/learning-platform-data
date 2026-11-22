@@ -1,0 +1,103 @@
+menu:
+  - title: "Nguyên lý truy cập"
+    slug: access-control-principles
+    index: 0
+  - title: "Danh tính Linux"
+    slug: linux-identities
+    index: 1
+  - title: "Tài khoản Linux"
+    slug: linux-accounts
+    index: 2
+  - title: "Nhóm Linux"
+    slug: linux-groups
+    index: 3
+  - title: "Xác thực Linux"
+    slug: linux-authentication
+    index: 4
+  - title: "Quyền POSIX"
+    slug: posix-permissions
+    index: 5
+  - title: "Truy cập thư mục"
+    slug: directory-access
+    index: 6
+  - title: "Thiết lập quyền Linux"
+    slug: linux-permission-management
+    index: 7
+  - title: "Quyền đặc biệt"
+    slug: special-permission-bits
+    index: 8
+  - title: "ACL POSIX"
+    slug: posix-acls
+    index: 9
+  - title: "Ủy quyền sudo"
+    slug: sudo-delegation
+    index: 10
+  - title: "Capabilities Linux"
+    slug: linux-capabilities
+    index: 11
+  - title: "SELinux và AppArmor"
+    slug: selinux-and-apparmor
+    index: 12
+  - title: "Danh tính Windows"
+    slug: windows-identities
+    index: 13
+  - title: "Tài khoản Windows"
+    slug: windows-accounts
+    index: 14
+  - title: "Token và đặc quyền Windows"
+    slug: windows-tokens-and-privileges
+    index: 15
+  - title: "Cơ chế NTFS"
+    slug: ntfs-security-model
+    index: 16
+  - title: "Quản lý ACL NTFS"
+    slug: ntfs-acl-management
+    index: 17
+  - title: "Chia sẻ tệp mạng"
+    slug: network-file-sharing
+    index: 18
+  - title: "Quyền tiến trình"
+    slug: process-permissions
+    index: 19
+  - title: "Dịch vụ Linux"
+    slug: linux-service-permissions
+    index: 20
+  - title: "Dịch vụ Windows"
+    slug: windows-service-permissions
+    index: 21
+  - title: "Container Linux"
+    slug: linux-container-permissions
+    index: 22
+  - title: "Container Windows và WSL"
+    slug: windows-containers-and-wsl
+    index: 23
+  - title: "Quyền trong Kubernetes"
+    slug: kubernetes-permissions
+    index: 24
+  - title: "Thiết kế quyền tối thiểu"
+    slug: least-privilege-design
+    index: 25
+  - title: "Kiểm toán Linux"
+    slug: linux-access-auditing
+    index: 26
+  - title: "Kiểm toán Windows"
+    slug: windows-access-auditing
+    index: 27
+  - title: "Chẩn đoán Linux"
+    slug: linux-permission-troubleshooting
+    index: 28
+  - title: "Chẩn đoán Windows"
+    slug: windows-permission-troubleshooting
+    index: 29
+  - title: "Chẩn đoán container"
+    slug: container-permission-troubleshooting
+    index: 30
+  - title: "Thực hành Linux"
+    slug: linux-permissions-labs
+    index: 31
+  - title: "Thực hành Windows"
+    slug: windows-permissions-labs
+    index: 32
+  - title: "Vận hành và ứng cứu"
+    slug: operations-and-incident-response
+    index: 33

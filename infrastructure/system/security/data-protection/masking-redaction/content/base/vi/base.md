@@ -1,0 +1,7 @@
+# Security Data Protection Masking Redaction
+
+**Masking** và **redaction** là các kỹ thuật giảm mức độ lộ thông tin nhạy cảm khi dữ liệu được hiển thị, truyền qua API, ghi log hoặc sử dụng trong môi trường thử nghiệm. Masking thường thay một phần hoặc toàn bộ ký tự bằng giá trị che giấu; redaction loại bỏ hoặc thay thế nội dung không được phép xuất hiện. Tùy bài toán còn có tokenization và các kỹ thuật de-identification khác. Việc che dữ liệu không đồng nghĩa với mã hóa, phân quyền hoặc bảo đảm dữ liệu không thể bị tái nhận diện.
+
+Lộ trình gồm tám mốc: phân loại dữ liệu nhạy cảm, phân biệt các kỹ thuật biến đổi, nhận diện PII và bí mật, áp dụng tại UI/API, che thông tin trong log và lỗi, bảo vệ dữ liệu truy vấn và môi trường thử nghiệm, kiểm soát quyền cùng rủi ro suy luận, cuối cùng là kiểm thử và giám sát rò rỉ. Trọng tâm là đặt quy tắc biến đổi tại đúng ranh giới dữ liệu, tránh làm lộ dữ liệu gốc qua những kênh phụ như telemetry, cache hoặc xuất báo cáo.
+
+Module phù hợp với lập trình viên backend, frontend, DevOps và kỹ sư bảo mật đã quen với API, logging và quản lý dữ liệu cơ bản. Sau khi hoàn thành, bạn có thể chọn mức che giấu theo mục đích sử dụng, thiết kế bộ lọc cho PII và credential, đánh giá giới hạn của dynamic data masking, kiểm thử dữ liệu đầu ra và xây dựng quy trình giảm rủi ro lộ thông tin nhạy cảm.

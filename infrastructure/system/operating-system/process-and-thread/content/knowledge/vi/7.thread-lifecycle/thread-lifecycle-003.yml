@@ -1,0 +1,3 @@
+menuLevel1: Vòng đời luồng
+menuLevel2: 'pthread_join: chờ một luồng kết thúc và nhận kết quả'
+status: ''

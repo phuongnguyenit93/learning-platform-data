@@ -1,0 +1,2413 @@
+menu:
+- slug: abac-fundamentals
+  title: Nền tảng
+  childs:
+  - slug: abac-fundamentals-001
+    title: ABAC là gì và bài toán phân quyền theo thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-002
+    title: Phân biệt xác thực, phân quyền và đánh giá chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-003
+    title: Vì sao quyền tĩnh khó đáp ứng ngữ cảnh thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-004
+    title: Chủ thể, tài nguyên, hành động và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-005
+    title: Thuộc tính và chính sách khác nhau như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-006
+    title: So sánh ABAC với ACL, RBAC, ReBAC và PBAC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-007
+    title: Lợi ích, chi phí và trường hợp không cần dùng ABAC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-fundamentals-008
+    title: Ví dụ xuyên suốt và lộ trình học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: decision-model
+  title: Mô hình quyết định
+  childs:
+  - slug: decision-model-001
+    title: 'Mô hình yêu cầu: chủ thể–hành động–tài nguyên–ngữ cảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-002
+    title: Quyết định cho phép, từ chối và kết quả đánh giá mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-003
+    title: Mặc định từ chối và nguyên tắc đặc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-004
+    title: Phân biệt có thuộc tính với thỏa điều kiện chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-005
+    title: Phạm vi áp dụng và điều kiện của một quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-006
+    title: Quyền truy cập là hàm của dữ liệu và chính sách tại một thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-007
+    title: Tách quyết định quyền khỏi thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: decision-model-008
+    title: Bất biến bảo mật và ranh giới tin cậy của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attribute-design
+  title: Thiết kế thuộc tính
+  childs:
+  - slug: attribute-design-001
+    title: Đặt tên, không gian tên và định nghĩa ý nghĩa thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-002
+    title: 'Kiểu dữ liệu: chuỗi, số, thời gian, boolean và định danh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-003
+    title: Thuộc tính đơn trị, đa trị và tập giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-004
+    title: Phân biệt không có thuộc tính, giá trị null và tập rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-005
+    title: Giá trị chuẩn hóa, chữ hoa–thường và định dạng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-006
+    title: Thuộc tính gốc, thuộc tính dẫn xuất và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-007
+    title: Độ nhạy cảm, nguồn gốc và mức độ tin cậy của thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-008
+    title: Schema, từ điển thuộc tính và chủ sở hữu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-design-009
+    title: Phiên bản thuộc tính và khả năng tương thích chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: subject-attributes
+  title: Thuộc tính chủ thể
+  childs:
+  - slug: subject-attributes-001
+    title: Danh tính ổn định, trạng thái tài khoản và loại chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-002
+    title: Phòng ban, chức danh, nhóm và tư cách thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-003
+    title: Vai trò và quyền được cấp như dữ liệu đầu vào cho ABAC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-004
+    title: Mức độ xác thực, độ tin cậy thiết bị và phiên truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-005
+    title: Quan hệ lao động, chứng nhận và điều kiện đủ tư cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-006
+    title: Người dùng, service account và danh tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-007
+    title: Người gọi trực tiếp và người dùng được đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: subject-attributes-008
+    title: Giới hạn tin cậy của claims trong token và dữ liệu phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-attributes
+  title: Thuộc tính tài nguyên
+  childs:
+  - slug: resource-attributes-001
+    title: Định danh, loại tài nguyên và phạm vi tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-002
+    title: Chủ sở hữu, đơn vị quản lý và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-003
+    title: Phân loại dữ liệu, độ nhạy cảm và nhãn bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-004
+    title: Trạng thái nghiệp vụ và giai đoạn vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-005
+    title: Khu vực lưu trữ, vùng địa lý và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-006
+    title: Tài nguyên cha–con và thuộc tính kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-007
+    title: Thuộc tính được dẫn xuất từ nội dung hoặc quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-attributes-008
+    title: Ngăn người dùng tự sửa nhãn để mở rộng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: actions-context
+  title: Hành động và ngữ cảnh
+  childs:
+  - slug: actions-context-001
+    title: Xây dựng danh mục hành động theo nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-002
+    title: Ánh xạ thao tác kỹ thuật với quyền xem, sửa, chia sẻ và phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-003
+    title: Thời điểm truy cập, múi giờ và khoảng thời gian hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-004
+    title: Địa chỉ mạng, vị trí và giới hạn tin cậy của tín hiệu mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-005
+    title: Thiết bị, kênh truy cập và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-006
+    title: Mức độ rủi ro và điều kiện xác thực bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-007
+    title: Mục đích sử dụng dữ liệu và ngữ cảnh giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: actions-context-008
+    title: Ngăn máy khách giả mạo thuộc tính môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attribute-sources
+  title: Nguồn thuộc tính
+  childs:
+  - slug: attribute-sources-001
+    title: Nguồn dữ liệu có thẩm quyền và nguồn dữ liệu tham khảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-002
+    title: Lấy thuộc tính từ IdP, thư mục, cơ sở dữ liệu và hệ thống nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-003
+    title: Thuộc tính được gửi kèm yêu cầu và thuộc tính được truy vấn bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-004
+    title: Thu thập thuộc tính theo mô hình push, pull và kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-005
+    title: Xác thực nguồn phát hành và bảo vệ toàn vẹn khi truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-006
+    title: Giải quyết nhiều nguồn cung cấp cùng một thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-007
+    title: Phân biệt dữ liệu không tồn tại với nguồn dữ liệu bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-sources-008
+    title: Hợp đồng độ mới, độ tin cậy và độ sẵn sàng của nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attribute-lifecycle
+  title: Vòng đời thuộc tính
+  childs:
+  - slug: attribute-lifecycle-001
+    title: Cấp phát thuộc tính khi tạo tài khoản hoặc tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-002
+    title: Cập nhật theo sự kiện nghiệp vụ và thay đổi tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-003
+    title: Thu hồi, hết hạn và xóa thuộc tính không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-004
+    title: Người dùng chuyển nhóm, nghỉ việc hoặc bị khóa tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-005
+    title: Thay đổi nhãn tài nguyên và tác động đến quyền đang có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-006
+    title: Đồng bộ dữ liệu, đối soát và xử lý sai lệch nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-007
+    title: Dấu thời gian, phiên bản và bằng chứng nguồn gốc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attribute-lifecycle-008
+    title: Rà soát thuộc tính mồ côi, không được dùng hoặc có ý nghĩa trùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-expressions
+  title: Biểu thức chính sách
+  childs:
+  - slug: policy-expressions-001
+    title: Biểu diễn quy tắc bằng điều kiện trên thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-002
+    title: So sánh bằng, khác, lớn hơn và quan hệ thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-003
+    title: Kết hợp AND, OR, NOT và quy tắc ưu tiên toán tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-004
+    title: Kiểm tra thành viên, giao tập, tập con và phép lượng hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-005
+    title: Điều kiện ngày giờ, khoảng giá trị và mẫu chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-006
+    title: So sánh thuộc tính chủ thể với thuộc tính tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-007
+    title: Chuyển kiểu dữ liệu và nguy cơ so sánh sai ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-008
+    title: Hàm hỗ trợ, thuộc tính dẫn xuất và giới hạn tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-expressions-009
+    title: Viết điều kiện dễ đọc, dễ kiểm thử và tránh phủ định phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evaluation-semantics
+  title: Ngữ nghĩa đánh giá
+  childs:
+  - slug: evaluation-semantics-001
+    title: Tìm chính sách phù hợp với loại yêu cầu và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-002
+    title: Thứ tự đánh giá và điều kiện dừng sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-003
+    title: Hành vi khi thiếu thuộc tính hoặc thuộc tính sai kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-004
+    title: Phân biệt không áp dụng, từ chối rõ ràng và lỗi đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-005
+    title: Chuyển kết quả quyết định thành hành vi thực thi an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-006
+    title: Nghĩa vụ bắt buộc và hành vi khi không thực hiện được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-007
+    title: Thông tin tư vấn và yêu cầu bổ sung đi kèm quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-semantics-008
+    title: Không trộn ngữ nghĩa của các ngôn ngữ và bộ máy chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-combining
+  title: Kết hợp chính sách
+  childs:
+  - slug: policy-combining-001
+    title: Nhiều quy tắc cùng áp dụng cho một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-combining-002
+    title: 'Ưu tiên từ chối và ưu tiên cho phép: tác động bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-combining-003
+    title: Kết hợp theo thứ tự và nguy cơ phụ thuộc vị trí quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-combining-004
+    title: Chính sách nền, chính sách cục bộ và ngoại lệ có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-combining-005
+    title: Điều kiện đồng thời giữa chính sách tổ chức và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-combining-006
+    title: Xử lý xung đột và chính sách chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-combining-007
+    title: Kiểm tra quyền hiệu lực sau khi kết hợp nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abac-architecture
+  title: Kiến trúc ABAC
+  childs:
+  - slug: abac-architecture-001
+    title: 'PEP: điểm chặn và thực thi quyết định quyền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-002
+    title: 'PDP: nơi đánh giá chính sách và trả quyết định'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-003
+    title: 'PAP: quản trị, phê duyệt và phát hành chính sách'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-004
+    title: 'PIP: cung cấp thuộc tính phục vụ đánh giá'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-005
+    title: Kho chính sách và kho thuộc tính có trách nhiệm khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-006
+    title: Luồng xử lý một yêu cầu từ tiếp nhận đến thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-007
+    title: Hợp đồng yêu cầu–phản hồi giữa PEP và PDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-architecture-008
+    title: Tách mặt phẳng quản trị khỏi mặt phẳng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-enforcement
+  title: Triển khai và thực thi
+  childs:
+  - slug: deployment-enforcement-001
+    title: Kiểm tra tại API Gateway, dịch vụ và tầng truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-002
+    title: PDP tập trung, PDP nhúng, sidecar và mô hình kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-003
+    title: Thư viện nội bộ và rủi ro thiếu nhất quán giữa ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-004
+    title: Kiểm tra mọi đường truy cập, kể cả endpoint phụ và API cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-005
+    title: Thực thi nghĩa vụ che dữ liệu, ghi dấu vết và giới hạn phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-006
+    title: Truy cập đồng bộ, tác vụ nền và luồng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-007
+    title: Dịch vụ gọi thay người dùng và chống nhầm lẫn quyền hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-008
+    title: Subscription và kết nối kéo dài khi quyền thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-enforcement-009
+    title: Giới hạn của việc chỉ ẩn nút hoặc kiểm tra tại giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-protection
+  title: Bảo vệ dữ liệu
+  childs:
+  - slug: data-protection-001
+    title: Phân quyền cấp đối tượng và điều kiện lọc bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-002
+    title: Phân quyền cấp trường và che giấu dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-003
+    title: Lọc trước truy vấn so với lọc sau khi tải dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-004
+    title: Phân trang, tìm kiếm và thống kê trong phạm vi được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-005
+    title: Ánh xạ chính sách sang bộ lọc truy vấn và giới hạn biểu đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-006
+    title: Quyền tạo, cập nhật và chuyển trạng thái tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-007
+    title: Batch, xuất dữ liệu và quyền trên từng phần tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-protection-008
+    title: Chỉ mục tìm kiếm, báo cáo và các bản sao dữ liệu dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tenant-isolation
+  title: Cách ly tenant
+  childs:
+  - slug: tenant-isolation-001
+    title: Tenant là thuộc tính và ranh giới cách ly bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-002
+    title: Ràng buộc tenant của chủ thể, tài nguyên và yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-003
+    title: Người dùng thuộc nhiều tenant và chuyển ngữ cảnh an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-004
+    title: Không tin tenant_id do máy khách tự khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-005
+    title: Chính sách nền không được bị ngoại lệ cục bộ vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-006
+    title: Chia sẻ xuyên tenant và quản trị toàn hệ thống có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-007
+    title: Cách ly tenant trong cache, nhật ký và phân phối chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hybrid-access-models
+  title: Mô hình kết hợp
+  childs:
+  - slug: hybrid-access-models-001
+    title: RBAC xác định quyền nền và ABAC bổ sung điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-access-models-002
+    title: Vai trò theo phạm vi tài nguyên thay vì chỉ vai trò toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-access-models-003
+    title: Kết hợp ACL với điều kiện động theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-access-models-004
+    title: Quan hệ sở hữu, thành viên và cộng tác trong ABAC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-access-models-005
+    title: 'ABAC và ReBAC: thuộc tính dẫn xuất từ quan hệ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-access-models-006
+    title: Ánh xạ nhãn phân loại và yêu cầu kiểm soát bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hybrid-access-models-007
+    title: Chọn ranh giới mô hình để tránh chính sách quá phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delegation-consent
+  title: Ủy quyền và đồng thuận
+  childs:
+  - slug: delegation-consent-001
+    title: Quyền của người đại diện và quyền của người được đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delegation-consent-002
+    title: Giới hạn ủy quyền theo tài nguyên, hành động và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delegation-consent-003
+    title: Ngăn người ủy quyền cấp quyền vượt quyền hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delegation-consent-004
+    title: Đồng thuận của người dùng như một điều kiện có phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delegation-consent-005
+    title: Thay đổi mục đích sử dụng và hiệu lực đồng thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delegation-consent-006
+    title: Thu hồi ủy quyền, chia sẻ và quyền sử dụng tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delegation-consent-007
+    title: Phân biệt quyết định truy cập với quản lý vòng đời đồng thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xacml
+  title: XACML
+  childs:
+  - slug: xacml-001
+    title: Vai trò của XACML trong biểu diễn và trao đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-002
+    title: Request Context và các nhóm thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-003
+    title: Rule, Policy, PolicySet và Target
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-004
+    title: AttributeDesignator, AttributeSelector và tập giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-005
+    title: Condition, kiểu dữ liệu và các hàm đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-006
+    title: Permit, Deny, NotApplicable và Indeterminate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-007
+    title: Các thuật toán kết hợp quy tắc và chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-008
+    title: Obligation và Advice trong quá trình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xacml-009
+    title: Profile, khả năng tương tác và giới hạn cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-languages
+  title: Ngôn ngữ chính sách
+  childs:
+  - slug: policy-languages-001
+    title: Phân biệt mô hình ABAC với ngôn ngữ và bộ máy thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-002
+    title: Biểu diễn chính sách bằng dữ liệu cấu hình và bằng DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-003
+    title: Rego và mô hình đầu vào–dữ liệu–kết quả quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-004
+    title: Cedar và mô hình principal–action–resource–context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-005
+    title: Schema, kiểm tra kiểu và giới hạn biểu đạt của ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-006
+    title: Ngôn ngữ nhúng so với bộ máy đánh giá độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-007
+    title: Quy ước kết quả, xử lý lỗi và hợp đồng của từng bộ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-languages-008
+    title: Tiêu chí đánh giá tính dễ hiểu, kiểm thử và khả năng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-design
+  title: Thiết kế chính sách
+  childs:
+  - slug: policy-design-001
+    title: Chuyển yêu cầu nghiệp vụ thành bảng quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-design-002
+    title: Bắt đầu từ bất biến và các tình huống phải từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-design-003
+    title: Chia chính sách theo miền nghiệp vụ và loại tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-design-004
+    title: Tái sử dụng quy tắc chung mà không che giấu ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-design-005
+    title: Giữ chính sách ngắn, có tên rõ và nguồn yêu cầu truy vết được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-design-006
+    title: Quản lý ngoại lệ, thời hạn ngoại lệ và chủ sở hữu phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-design-007
+    title: Tài liệu hóa giả định, phụ thuộc thuộc tính và tình huống biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-distribution
+  title: Phân phối chính sách
+  childs:
+  - slug: policy-distribution-001
+    title: Quản lý chính sách như mã nguồn có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-distribution-002
+    title: Rà soát, phê duyệt và phân tách quyền chỉnh sửa–phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-distribution-003
+    title: Đóng gói chính sách, schema và dữ liệu tham chiếu đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-distribution-004
+    title: Xác thực nguồn, chữ ký và toàn vẹn gói chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-distribution-005
+    title: Triển khai theo giai đoạn và theo dõi phiên bản tại từng PDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-distribution-006
+    title: Cập nhật nguyên tử, rollback và bản chính sách tốt gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-distribution-007
+    title: Ngăn lệch phiên bản giữa chính sách, thuộc tính và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency-caching
+  title: Nhất quán và cache
+  childs:
+  - slug: consistency-caching-001
+    title: Độ mới của thuộc tính và độ mới của quyết định quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-002
+    title: Khóa cache bao gồm mọi đầu vào ảnh hưởng đến quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-003
+    title: Thời hạn cache và sự kiện vô hiệu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-004
+    title: Thu hồi quyền khi cache, replica hoặc token còn dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-005
+    title: Đồng bộ chính sách và thuộc tính trong hệ thống phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-006
+    title: TOCTOU giữa thời điểm đánh giá và thao tác tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-007
+    title: Tái kiểm tra quyền trong giao dịch và tác vụ kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-caching-008
+    title: Phân biệt cache chính sách, cache thuộc tính và cache quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance
+  title: Hiệu năng
+  childs:
+  - slug: performance-001
+    title: Ngân sách độ trễ và chi phí trên đường truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-002
+    title: Chọn chính sách ứng viên trước khi đánh giá điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-003
+    title: Tránh truy vấn thuộc tính lặp lại và vấn đề N+1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-004
+    title: Đánh giá theo lô cho danh sách và thao tác hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-005
+    title: Tiền xử lý, biên dịch và đánh giá từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-006
+    title: Giới hạn độ phức tạp biểu thức, đồ thị và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-007
+    title: Benchmark với phân bố yêu cầu và dữ liệu gần thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failures-availability
+  title: Lỗi và khả dụng
+  childs:
+  - slug: failures-availability-001
+    title: Timeout và lỗi khi gọi PDP hoặc nguồn thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-availability-002
+    title: Từ chối an toàn khi không xác định được quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-availability-003
+    title: Phân biệt lỗi hệ thống với yêu cầu bị chính sách từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-availability-004
+    title: Dự phòng PDP và lựa chọn chính sách hợp lệ gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-availability-005
+    title: Retry, circuit breaker và giới hạn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-availability-006
+    title: Chế độ suy giảm có phạm vi rõ ràng và không tự mở quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failures-availability-007
+    title: Mục tiêu độ trễ, độ sẵn sàng và độ trễ thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: abac-system-security
+  title: Bảo mật hệ thống ABAC
+  childs:
+  - slug: abac-system-security-001
+    title: Mô hình đe dọa cho PEP, PDP, PAP và PIP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-002
+    title: Giả mạo hoặc sửa thuộc tính để nâng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-003
+    title: Bỏ qua PEP và các đường truy cập dữ liệu trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-004
+    title: Chèn dữ liệu vào biểu thức và thực thi chính sách không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-005
+    title: Đầu vào gây cạn tài nguyên bộ máy đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-006
+    title: Chiếm quyền quản trị, thay chính sách và phát hành trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-007
+    title: Bảo vệ giao tiếp, xác thực dịch vụ và giới hạn quyền vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: abac-system-security-008
+    title: Quyền khẩn cấp có phê duyệt, thời hạn và dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: privacy-governance
+  title: Riêng tư và quản trị
+  childs:
+  - slug: privacy-governance-001
+    title: Thu thập tối thiểu thuộc tính cần cho quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-governance-002
+    title: Phân loại thuộc tính nhạy cảm và hạn chế người được xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-governance-003
+    title: Không ghi giá trị nhạy cảm đầy đủ trong log và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-governance-004
+    title: Mục đích sử dụng, thời hạn lưu giữ và vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-governance-005
+    title: Nguy cơ suy đoán thông tin từ quyết định cho phép hoặc từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-governance-006
+    title: Phân công chủ sở hữu thuộc tính, chính sách và điểm thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-governance-007
+    title: Rà soát định kỳ phạm vi quyền và chất lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Ma trận chủ thể–tài nguyên–hành động–ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-002
+    title: Ca cho phép, ca từ chối và ca không có chính sách phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-003
+    title: Thuộc tính thiếu, sai kiểu, hết hạn và nguồn dữ liệu bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-004
+    title: Biên thời gian, múi giờ và thời điểm chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-005
+    title: Chính sách xung đột, ngoại lệ và thuật toán kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-006
+    title: Kiểm thử cách ly tenant và thay đổi thuộc tính để nâng quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-007
+    title: Kiểm thử tích hợp PEP–PDP–PIP và thực thi nghĩa vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-008
+    title: Kiểm thử cache lạc hậu, thu hồi quyền và cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-strategy-009
+    title: Kiểm thử hiệu năng, quá tải và lỗi thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-analysis
+  title: Phân tích chính sách
+  childs:
+  - slug: policy-analysis-001
+    title: Kiểm tra schema, cú pháp và kiểu trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-analysis-002
+    title: Phát hiện quy tắc không thể đạt, dư thừa và chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-analysis-003
+    title: Property-based testing cho bất biến bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-analysis-004
+    title: Mutation testing để phát hiện điều kiện bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-analysis-005
+    title: So sánh quyết định giữa phiên bản cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-analysis-006
+    title: 'Phân tích tác động: ai được thêm quyền và ai bị mất quyền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-analysis-007
+    title: Phân biệt bằng chứng kiểm thử với mức bảo đảm của kiểm chứng hình thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-explainability
+  title: Nhật ký và giải thích
+  childs:
+  - slug: logging-explainability-001
+    title: Ghi yêu cầu, kết quả và lý do quyết định ở mức phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-002
+    title: Truy vết phiên bản chính sách và nguồn thuộc tính đã dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-003
+    title: Giải thích quy tắc nào cho phép hoặc từ chối yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-004
+    title: Phản hồi cho người dùng mà không tiết lộ chính sách nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-005
+    title: Liên kết dấu vết giữa PEP, PDP, PIP và thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-006
+    title: Chỉ số độ trễ, tỷ lệ lỗi và biến động quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-007
+    title: Phát hiện thay đổi quyền bất thường sau một lần phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-explainability-008
+    title: Bảo vệ toàn vẹn, quyền truy cập và thời hạn lưu nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-incidents
+  title: Vận hành và sự cố
+  childs:
+  - slug: operations-incidents-001
+    title: Kiểm kê phiên bản chính sách, PDP và điểm thực thi đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-incidents-002
+    title: Phát hiện thuộc tính lỗi thời và nguồn dữ liệu sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-incidents-003
+    title: Phân tích lỗi cấp quyền quá rộng và lỗi từ chối sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-incidents-004
+    title: Khoanh vùng theo chính sách, tenant, chủ thể và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-incidents-005
+    title: Rollback chính sách và vô hiệu hóa cache liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-incidents-006
+    title: Bảo toàn bằng chứng và tái hiện quyết định lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-incidents-007
+    title: Bổ sung ca hồi quy và sửa quy trình quản trị sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-to-abac
+  title: Di trú sang ABAC
+  childs:
+  - slug: migration-to-abac-001
+    title: Kiểm kê quyền hiện hữu và quy tắc nằm rải rác trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-to-abac-002
+    title: Xây từ điển thuộc tính và xác định nguồn có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-to-abac-003
+    title: Chọn miền nghiệp vụ thí điểm và bất biến cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-to-abac-004
+    title: Ánh xạ ACL hoặc RBAC hiện tại sang chính sách có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-to-abac-005
+    title: Chạy shadow evaluation và phân tích chênh lệch quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-to-abac-006
+    title: Chuyển dần điểm thực thi, theo dõi tác động và rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-to-abac-007
+    title: Loại bỏ quy tắc cũ sau khi xác minh đường truy cập mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: design-scenarios
+  title: Tình huống thiết kế
+  childs:
+  - slug: design-scenarios-001
+    title: 'Nhân sự: phòng ban, cấp quản lý và hồ sơ nhạy cảm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-002
+    title: 'Y tế: quan hệ chăm sóc, mục đích sử dụng và truy cập khẩn cấp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-003
+    title: 'Tài chính: hạn mức, trạng thái giao dịch và tách nhiệm vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-004
+    title: 'SaaS nhiều tenant: gói dịch vụ, thành viên và tài nguyên dùng chung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-005
+    title: 'Kho tài liệu: nhãn phân loại, chủ sở hữu và quyền chia sẻ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-006
+    title: 'Workload: danh tính dịch vụ, môi trường và loại dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-007
+    title: 'Truy cập từ xa: thiết bị, thời gian và mức độ rủi ro'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: design-scenarios-008
+    title: Phân tích khi nên kết hợp ABAC với RBAC hoặc ReBAC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Thiết kế miền dữ liệu và ma trận quyền cho một hệ thống tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Xây schema thuộc tính và bộ dữ liệu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Viết chính sách cho phép, từ chối và ngoại lệ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thiết kế hợp đồng quyết định và vị trí đặt PEP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Tích hợp nguồn thuộc tính và xử lý dữ liệu thiếu hoặc lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Mô phỏng thu hồi quyền, cache lạc hậu và thay đổi nhãn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Kiểm thử hồi quy và so sánh tác động khi đổi phiên bản chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Rà soát thiết kế từ yêu cầu nghiệp vụ đến bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

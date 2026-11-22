@@ -1,0 +1,49 @@
+roadmap:
+- id: passkeys-va-fido2
+  title: Passkeys và FIDO2
+  purpose: Nắm mô hình đăng nhập bằng khóa công khai.
+  objectives:
+  - Phân biệt passkey với mật khẩu và mã OTP.
+  - Liên hệ passkeys, WebAuthn, CTAP2 và FIDO2.
+- id: khoa-va-bo-xac-thuc
+  title: Khóa và bộ xác thực
+  purpose: Hiểu các thành phần tham gia xác thực.
+  objectives:
+  - Xác định vai trò dịch vụ, trình duyệt và bộ xác thực.
+  - Phân biệt sự hiện diện và xác minh người dùng.
+- id: dang-ky-passkey
+  title: Đăng ký passkey
+  purpose: Gắn khóa công khai với đúng tài khoản.
+  objectives:
+  - Mô tả luồng tạo thử thách và đăng ký thông tin xác thực.
+  - Xác định vai trò của chứng thực bộ xác thực (attestation).
+- id: dang-nhap-bang-webauthn
+  title: Đăng nhập bằng WebAuthn
+  purpose: Kiểm chứng quyền sử dụng khóa riêng khi đăng nhập.
+  objectives:
+  - Mô tả luồng yêu cầu và phản hồi xác thực.
+  - Giải thích việc kiểm tra chữ ký và thử thách.
+- id: kiem-tra-bao-mat
+  title: Kiểm tra bảo mật
+  purpose: Áp dụng ràng buộc để chống giả mạo và phát lại.
+  objectives:
+  - Kiểm tra origin, RP ID và cờ xác minh người dùng.
+  - Quản lý thử thách dùng một lần, có thời hạn và gắn đúng phiên.
+- id: su-dung-da-thiet-bi
+  title: Sử dụng đa thiết bị
+  purpose: Chọn cách sử dụng passkey phù hợp với thiết bị và rủi ro.
+  objectives:
+  - So sánh passkey gắn thiết bị và passkey đồng bộ.
+  - Phân biệt bộ xác thực tích hợp, khóa bảo mật và đăng nhập chéo thiết bị.
+- id: quan-ly-va-khoi-phuc
+  title: Quản lý và khôi phục
+  purpose: Duy trì quyền truy cập khi đổi hoặc mất thiết bị.
+  objectives:
+  - Thiết kế thêm, xem và gỡ passkey của tài khoản.
+  - Đánh giá khôi phục tài khoản và phương án đăng nhập dự phòng.
+- id: trien-khai-va-kiem-thu
+  title: Triển khai và kiểm thử
+  purpose: Kiểm chứng tích hợp trước khi mở rộng sử dụng.
+  objectives:
+  - Thử luồng hợp lệ, sai origin, phát lại và hủy xác thực.
+  - Kiểm tra tương thích, theo dõi lỗi và lập kế hoạch chuyển đổi.

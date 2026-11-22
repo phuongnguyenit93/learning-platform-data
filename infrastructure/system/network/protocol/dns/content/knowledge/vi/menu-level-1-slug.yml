@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan DNS
+  slug: dns-overview
+  index: 0
+- title: Tên miền
+  slug: domains
+  index: 1
+- title: Kiến trúc DNS
+  slug: dns-architecture
+  index: 2
+- title: Luồng phân giải
+  slug: resolution-flow
+  index: 3
+- title: Bản ghi DNS
+  slug: dns-records
+  index: 4
+- title: Zone và ủy quyền
+  slug: zones-delegation
+  index: 5
+- title: Gói tin DNS
+  slug: dns-packets
+  index: 6
+- title: UDP và TCP
+  slug: udp-tcp
+  index: 7
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 8
+- title: DNS ngược
+  slug: reverse-dns
+  index: 9
+- title: Bộ phân giải đệ quy
+  slug: recursive-resolvers
+  index: 10
+- title: Máy chủ có thẩm quyền
+  slug: authoritative-servers
+  index: 11
+- title: Đồng bộ zone
+  slug: zone-transfers
+  index: 12
+- title: DNS động
+  slug: dynamic-dns
+  index: 13
+- title: Nền tảng DNSSEC
+  slug: dnssec-foundations
+  index: 14
+- title: Vận hành DNSSEC
+  slug: dnssec-operations
+  index: 15
+- title: DNS mã hóa
+  slug: encrypted-dns
+  index: 16
+- title: DNS trên máy khách
+  slug: client-dns
+  index: 17
+- title: DNS nội bộ
+  slug: internal-dns
+  index: 18
+- title: DNS và ứng dụng
+  slug: dns-applications
+  index: 19
+- title: Cloud và container
+  slug: cloud-containers
+  index: 20
+- title: DNS và thư điện tử
+  slug: email-dns
+  index: 21
+- title: Định tuyến bằng DNS
+  slug: dns-routing
+  index: 22
+- title: Bảo mật DNS
+  slug: dns-security
+  index: 23
+- title: Hiệu năng và độ sẵn sàng
+  slug: performance-availability
+  index: 24
+- title: Công cụ và quan sát
+  slug: tools-observability
+  index: 25
+- title: Xử lý sự cố DNS
+  slug: dns-troubleshooting
+  index: 26
+- title: Thực hành DNS
+  slug: dns-practice
+  index: 27
+- title: Thiết kế và vận hành
+  slug: dns-design-operations
+  index: 28

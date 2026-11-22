@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mục tiêu và phạm vi
+  slug: goals-and-scope
+  index: 1
+- title: Mô hình tải
+  slug: load-modeling
+  index: 2
+- title: Chỉ số năng lực
+  slug: capacity-metrics
+  index: 3
+- title: Dữ liệu nền
+  slug: baseline-data
+  index: 4
+- title: Mô hình hiệu năng
+  slug: performance-modeling
+  index: 5
+- title: Kiểm thử tải
+  slug: load-testing
+  index: 6
+- title: Phân tích nút thắt
+  slug: bottleneck-analysis
+  index: 7
+- title: Dự báo nhu cầu
+  slug: demand-forecasting
+  index: 8
+- title: Rủi ro dự báo
+  slug: forecasting-risks
+  index: 9
+- title: Quy hoạch CPU
+  slug: cpu-capacity-planning
+  index: 10
+- title: Quy hoạch bộ nhớ
+  slug: memory-capacity-planning
+  index: 11
+- title: Quy hoạch lưu trữ
+  slug: storage-capacity-planning
+  index: 12
+- title: Quy hoạch mạng
+  slug: network-capacity-planning
+  index: 13
+- title: Năng lực ứng dụng
+  slug: application-capacity
+  index: 14
+- title: Cơ sở dữ liệu
+  slug: database-capacity
+  index: 15
+- title: Bộ nhớ đệm
+  slug: cache-capacity
+  index: 16
+- title: Xử lý bất đồng bộ
+  slug: asynchronous-processing
+  index: 17
+- title: Hệ thống phân tán
+  slug: distributed-systems-capacity
+  index: 18
+- title: Năng lực Kubernetes
+  slug: kubernetes-capacity
+  index: 19
+- title: Năng lực cloud
+  slug: cloud-capacity
+  index: 20
+- title: Mở rộng tự động
+  slug: autoscaling
+  index: 21
+- title: Dự phòng năng lực
+  slug: capacity-reserves
+  index: 22
+- title: Điều tiết quá tải
+  slug: overload-management
+  index: 23
+- title: Hiệu quả chi phí
+  slug: cost-efficiency
+  index: 24
+- title: Lập kế hoạch
+  slug: capacity-planning-process
+  index: 25
+- title: Giám sát năng lực
+  slug: capacity-monitoring
+  index: 26
+- title: Vận hành liên tục
+  slug: continuous-operations
+  index: 27
+- title: Thực hành tổng hợp
+  slug: hands-on-exercise
+  index: 28

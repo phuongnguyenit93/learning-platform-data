@@ -1,0 +1,3 @@
+menuLevel1: Envelope encryption
+menuLevel2: Rewrap DEK khi thay KEK mà không đọc lại plaintext
+status: ''

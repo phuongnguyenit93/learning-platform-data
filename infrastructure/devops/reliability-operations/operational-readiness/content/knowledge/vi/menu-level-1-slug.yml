@@ -1,0 +1,94 @@
+menu:
+- title: Sẵn sàng vận hành
+  slug: operational-readiness
+  index: 0
+- title: Hồ sơ dịch vụ
+  slug: service-profile
+  index: 1
+- title: Quy trình và trách nhiệm
+  slug: procedures-and-responsibilities
+  index: 2
+- title: Mục tiêu chất lượng
+  slug: quality-objectives
+  index: 3
+- title: Kiến trúc và phụ thuộc
+  slug: architecture-and-dependencies
+  index: 4
+- title: Hạ tầng và môi trường
+  slug: infrastructure-and-environments
+  index: 5
+- title: Mạng và kết nối
+  slug: networking-and-connectivity
+  index: 6
+- title: Cấu hình và bí mật
+  slug: configuration-and-secrets
+  index: 7
+- title: Năng lực và hiệu năng
+  slug: capacity-and-performance
+  index: 8
+- title: Khả năng chịu lỗi
+  slug: fault-tolerance
+  index: 9
+- title: Dữ liệu và tính nhất quán
+  slug: data-and-consistency
+  index: 10
+- title: Sao lưu và khôi phục
+  slug: backup-and-restore
+  index: 11
+- title: Thay đổi dữ liệu
+  slug: data-changes
+  index: 12
+- title: Phát hành và quay lui
+  slug: releases-and-rollbacks
+  index: 13
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 14
+- title: Cảnh báo và phát hiện
+  slug: alerts-and-detection
+  index: 15
+- title: Tác vụ bất đồng bộ
+  slug: asynchronous-tasks
+  index: 16
+- title: Bảo mật vận hành
+  slug: operational-security
+  index: 17
+- title: Quy trình thao tác
+  slug: operating-procedures
+  index: 18
+- title: Trực và hỗ trợ
+  slug: oncall-and-support
+  index: 19
+- title: Sẵn sàng ứng phó sự cố
+  slug: incident-readiness
+  index: 20
+- title: Liên tục dịch vụ
+  slug: service-continuity
+  index: 21
+- title: Nhà cung cấp và tích hợp
+  slug: vendors-and-integrations
+  index: 22
+- title: Vận hành thường nhật
+  slug: routine-operations
+  index: 23
+- title: Kiểm chứng tổng thể
+  slug: end-to-end-validation
+  index: 24
+- title: Hồ sơ và bằng chứng
+  slug: documentation-and-evidence
+  index: 25
+- title: Rủi ro và quyết định
+  slug: risks-and-decisions
+  index: 26
+- title: Kế hoạch đưa vào vận hành
+  slug: go-live-plan
+  index: 27
+- title: Bàn giao và theo dõi
+  slug: handover-and-monitoring
+  index: 28
+- title: Duy trì và cải tiến
+  slug: continuous-improvement
+  index: 29
+- title: Tình huống và thực hành
+  slug: scenarios-and-practice
+  index: 30

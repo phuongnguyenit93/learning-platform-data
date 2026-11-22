@@ -1,0 +1,2551 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: GraalVM Native Image và vai trò trong hệ sinh thái Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-002
+    title: Biên dịch trước AOT và sự khác biệt với thông dịch, JIT trên JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-003
+    title: Executable native gồm mã ứng dụng, thư viện và thành phần runtime nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-004
+    title: Substrate VM và các dịch vụ runtime đi kèm executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-005
+    title: Đặc tính startup, footprint và khả năng mở rộng theo số tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-006
+    title: Các giới hạn về tính động và tác động đến thiết kế ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-007
+    title: Phân biệt các bản phân phối, phiên bản và điều kiện sử dụng tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: overview-008
+    title: Các trường hợp phù hợp và chưa phù hợp với Native Image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: closed-world-assumption
+  title: Nguyên lý closed-world
+  childs:
+  - slug: closed-world-assumption-001
+    title: Giả định closed-world và ranh giới mã được biết tại thời điểm build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-002
+    title: Đồ thị gọi, điểm vào và cách xác định mã có thể được thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-003
+    title: Phân tích tĩnh và vai trò của thông tin kiểu trong việc giữ lại mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-004
+    title: Loại bỏ mã không khả đạt và tác động đến kích thước executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-005
+    title: Vì sao reflection, JNI và nạp tài nguyên cần thông tin bổ sung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-006
+    title: Giới hạn của nạp lớp tùy ý, sinh bytecode và thay đổi mã lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-007
+    title: Ranh giới giữa mã Java biên dịch trước và thư viện native liên kết ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: closed-world-assumption-008
+    title: Phân biệt lỗi do giả định closed-world với lỗi logic ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: toolchain-and-environment
+  title: Công cụ và môi trường
+  childs:
+  - slug: toolchain-and-environment-001
+    title: Chọn GraalVM, JDK và Native Image theo yêu cầu của dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-002
+    title: Kiểm tra phiên bản, đường dẫn công cụ và tính nhất quán của JAVA_HOME
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-003
+    title: Chuẩn bị compiler C, linker, header và thư viện hệ thống cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-004
+    title: Thiết lập môi trường build trên Linux, macOS và Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-005
+    title: Phân biệt máy build, kiến trúc đích và hệ điều hành đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-006
+    title: Dự trù RAM, CPU, dung lượng đĩa và thời gian cho quá trình build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-007
+    title: Cô lập toolchain bằng container hoặc môi trường build tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: toolchain-and-environment-008
+    title: Ghi nhận phiên bản và kiểm tra tính năng được hỗ trợ trước khi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compilation-workflow
+  title: Quy trình biên dịch
+  childs:
+  - slug: compilation-workflow-001
+    title: Từ mã Java đến bytecode, phân tích khả đạt và sinh mã máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-002
+    title: Xây dựng executable đầu tiên từ lớp main và classpath
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-003
+    title: Biên dịch ứng dụng từ JAR và xử lý entry point rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-004
+    title: Các giai đoạn phân tích, khởi tạo, biên dịch, tạo image heap và liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-005
+    title: Phân biệt tùy chọn truyền cho JVM build, công cụ native-image và chương trình đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-006
+    title: Đọc build output để xác nhận kết quả, chi phí và các cảnh báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-007
+    title: Kiểm tra executable tạo ra và xác minh không phụ thuộc JVM ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compilation-workflow-008
+    title: Quản lý tham số build trong tệp cấu hình thay vì lệnh khó tái lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: project-integration
+  title: Tích hợp dự án
+  childs:
+  - slug: project-integration-001
+    title: Tổ chức mã nguồn, cấu hình Native Image và tài nguyên trong dự án Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-002
+    title: Tích hợp Maven với Native Build Tools và profile build riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-003
+    title: Tích hợp Gradle với Native Build Tools và các task liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-004
+    title: Quản lý classpath, module path và dự án dùng Java Platform Module System
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-005
+    title: Xử lý ứng dụng nhiều module và thứ tự đóng gói dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-006
+    title: Vị trí META-INF/native-image và cách đóng gói cấu hình trong JAR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-007
+    title: Phân biệt cấu hình do ứng dụng, thư viện và framework cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: project-integration-008
+    title: Duy trì hai luồng build JVM và native với cấu hình dùng chung có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reachability-analysis
+  title: Phân tích khả đạt
+  childs:
+  - slug: reachability-analysis-001
+    title: Khái niệm reachability và các nguồn hình thành điểm vào của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-002
+    title: Ảnh hưởng của đa hình, interface và kiểu cụ thể đến kết quả phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-003
+    title: Nhận diện lời gọi động mà công cụ có thể hoặc không thể suy luận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-004
+    title: Phân tích ảnh hưởng của dependency và mã đăng ký tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-005
+    title: Đọc báo cáo để tìm lớp, phương thức và dữ liệu bị giữ lại ngoài dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-006
+    title: Phân biệt mã không khả đạt với mã cần đăng ký để truy cập động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-007
+    title: Thu hẹp dependency và điểm vào để giảm phạm vi phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-analysis-008
+    title: Kiểm chứng thay đổi reachability khi nâng cấp thư viện hoặc cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reachability-metadata
+  title: Metadata tương thích
+  childs:
+  - slug: reachability-metadata-001
+    title: Vai trò của reachability metadata trong việc khai báo hành vi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-002
+    title: Các nhóm metadata cho reflection, tài nguyên, proxy, JNI và serialization
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-003
+    title: Cấu trúc reachability-metadata.json và quan hệ với định dạng cấu hình riêng theo phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-004
+    title: Vị trí, phạm vi áp dụng và quy tắc kết hợp metadata từ nhiều nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-005
+    title: Metadata có điều kiện và cách tránh giữ lại tính năng không sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-006
+    title: Sử dụng kho reachability metadata và xác minh tương thích phiên bản dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-007
+    title: Phát hiện metadata thiếu, dư thừa hoặc đã lỗi thời sau khi thay đổi mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reachability-metadata-008
+    title: Quản lý metadata trong mã nguồn và kiểm tra các chế độ phát hiện đăng ký thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reflection
+  title: Reflection
+  childs:
+  - slug: reflection-001
+    title: Tra cứu lớp, constructor, phương thức và trường bằng reflection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-002
+    title: Phân biệt quyền tra cứu thành viên với quyền gọi hoặc truy cập thành viên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-003
+    title: Các trường hợp tên lớp hoặc thành viên có thể được suy luận khi build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-004
+    title: Đăng ký reflection bằng metadata và API được phiên bản đang dùng hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-005
+    title: Xử lý annotation, generic và mô hình introspection của thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-006
+    title: Ảnh hưởng của private access, module encapsulation và tùy chọn mở module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-007
+    title: Cấu hình reflection tối thiểu cho dependency injection và ánh xạ đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reflection-008
+    title: Chẩn đoán lỗi thiếu thành viên và kiểm chứng đường gọi reflection hiếm gặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: proxies-and-dynamic-invocation
+  title: Proxy và gọi động
+  childs:
+  - slug: proxies-and-dynamic-invocation-001
+    title: Dynamic proxy của JDK và yêu cầu đăng ký tập interface
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-002
+    title: Ảnh hưởng của thứ tự interface và class loader trong cấu hình proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-003
+    title: MethodHandle, VarHandle và invokedynamic trong ứng dụng biên dịch trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-004
+    title: Lambda và các trường hợp runtime có thể xử lý từ bytecode đã biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-005
+    title: Phân biệt proxy dựa trên interface với proxy sinh subclass
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-006
+    title: Giới hạn của thư viện sinh bytecode và instrumentation lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-007
+    title: Chuyển sinh mã động sang annotation processing hoặc sinh mã lúc build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: proxies-and-dynamic-invocation-008
+    title: Thiết kế extension và plugin theo tập triển khai được xác định trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resources-and-service-loading
+  title: Tài nguyên và dịch vụ
+  childs:
+  - slug: resources-and-service-loading-001
+    title: Đóng gói tài nguyên classpath và quy tắc chọn tài nguyên vào executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-002
+    title: Khai báo mẫu tài nguyên, kiểm soát phạm vi và tránh đóng gói dư thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-003
+    title: Đọc tệp cấu hình, template và tài nguyên nhị phân sau khi biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-004
+    title: ResourceBundle, locale và dữ liệu quốc tế hóa cần giữ lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-005
+    title: ServiceLoader, provider và tệp META-INF/services trong Native Image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-006
+    title: Phân biệt tài nguyên nhúng với tệp bên ngoài được cung cấp khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-007
+    title: Kiểm chứng đường dẫn, phân biệt chữ hoa chữ thường và encoding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-service-loading-008
+    title: Chẩn đoán tài nguyên hoặc service provider có trên JVM nhưng thiếu ở native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jni-and-native-interop
+  title: JNI và mã native
+  childs:
+  - slug: jni-and-native-interop-001
+    title: Vai trò của JNI trong giao tiếp hai chiều giữa Java và mã native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-002
+    title: Khai báo lớp, phương thức và trường được mã native truy cập qua JNI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-003
+    title: Nạp thư viện bằng System.load, System.loadLibrary và quản lý đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-004
+    title: Tương thích ABI, kiến trúc CPU và phiên bản thư viện native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-005
+    title: Callback vào Java, gắn thread native và quản lý tham chiếu JNI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-006
+    title: Liên kết tĩnh, liên kết động và phân phối thư viện native phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-007
+    title: Phân biệt JNI với C interop và Foreign Function and Memory API theo mức hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jni-and-native-interop-008
+    title: Chẩn đoán thiếu symbol, lỗi nạp thư viện, crash và lỗi quản lý bộ nhớ native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-serialization
+  title: Tuần tự hóa dữ liệu
+  childs:
+  - slug: data-serialization-001
+    title: Java serialization và yêu cầu metadata cho các kiểu được tuần tự hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-002
+    title: Constructor, đồ thị đối tượng và các hook serialization cần kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-003
+    title: JSON, XML và ánh xạ đối tượng dựa trên reflection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-004
+    title: Chuyển sang serializer sinh mã trước khi build khi thư viện hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-005
+    title: Record, generic, kiểu đa hình và đăng ký subtype trong dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-006
+    title: ORM, entity, lazy proxy và ảnh hưởng của enhancement đến native build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-007
+    title: JDBC driver, codec và service provider của các thư viện truy cập dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-serialization-008
+    title: Kiểm thử tương thích dữ liệu giữa bản JVM và bản native qua các phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: class-initialization
+  title: Khởi tạo lớp
+  childs:
+  - slug: class-initialization-001
+    title: Phân biệt khởi tạo lớp lúc build và lúc runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-002
+    title: Static initializer, static field và dữ liệu đi vào image heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-003
+    title: Chọn chính sách khởi tạo theo lớp, package và quan hệ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-004
+    title: Lợi ích startup và rủi ro đóng băng trạng thái từ máy build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-005
+    title: Lớp chứa thời gian, số ngẫu nhiên hoặc thông tin môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-006
+    title: Giới hạn với thread, socket, file descriptor và đối tượng gắn tài nguyên hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-007
+    title: Theo dõi chuỗi khởi tạo và chẩn đoán đối tượng không hợp lệ trong image heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: class-initialization-008
+    title: Kiểm thử lại hành vi khi chuyển lớp giữa build-time và runtime initialization
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: state-and-configuration
+  title: Trạng thái và cấu hình
+  childs:
+  - slug: state-and-configuration-001
+    title: Phân định cấu hình cố định khi build và cấu hình thay đổi khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-002
+    title: Đọc biến môi trường, system property và tham số dòng lệnh đúng thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-003
+    title: Ngăn thông tin bí mật, token và dữ liệu máy build đi vào executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-004
+    title: Thiết kế khởi tạo client, connection pool và cache khi ứng dụng bắt đầu chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-005
+    title: Kiểm soát thời gian, timezone, locale, charset và nguồn số ngẫu nhiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-006
+    title: Tách đường dẫn máy build khỏi đường dẫn tệp và thư mục ở môi trường đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-007
+    title: Khởi tạo lại trạng thái phụ thuộc hạ tầng khi tiến trình được triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: state-and-configuration-008
+    title: Xác minh một executable chạy đúng với nhiều bộ cấu hình runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: libraries-and-frameworks
+  title: Thư viện và framework
+  childs:
+  - slug: libraries-and-frameworks-001
+    title: Đánh giá mức hỗ trợ Native Image của thư viện trước khi tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-002
+    title: Vai trò của AOT processing trong framework và quan hệ với native-image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-003
+    title: Dependency injection, component scanning và sinh cấu hình lúc build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-004
+    title: AOP, transaction, validation và các proxy do framework tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-005
+    title: Logging, template engine và các cơ chế tự phát hiện tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-006
+    title: HTTP client, database client và dependency chứa thư viện native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-007
+    title: Xử lý dependency chưa tương thích bằng cấu hình, thay thế hoặc giới hạn tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: libraries-and-frameworks-008
+    title: Duy trì ma trận phiên bản framework, JDK, GraalVM và metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-time-extensions
+  title: Cơ chế mở rộng
+  childs:
+  - slug: build-time-extensions-001
+    title: Feature API và các giai đoạn mở rộng quy trình tạo Native Image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-002
+    title: Đăng ký reflection, tài nguyên và hành vi cần thiết bằng feature
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-003
+    title: Phân biệt hosted API dùng khi build với API khả dụng trong executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-004
+    title: Substitution và trường hợp cần thay thế mã không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-005
+    title: Điều kiện áp dụng substitution và sự phụ thuộc vào chi tiết thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-006
+    title: Tạo executable cung cấp C entry point hoặc thư viện dùng từ mã native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-007
+    title: Đánh giá độ ổn định của API mở rộng và chi phí duy trì qua phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-time-extensions-008
+    title: Kiểm thử feature và substitution để tránh thay đổi ngữ nghĩa ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-model
+  title: Mô hình thực thi
+  childs:
+  - slug: execution-model-001
+    title: Thread Java, đồng bộ hóa và mô hình bộ nhớ trong runtime native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-002
+    title: Executor, CompletableFuture và common pool trong ứng dụng native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-003
+    title: Kiểm tra hỗ trợ và giới hạn virtual thread theo phiên bản toolchain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-004
+    title: Thread-local, context propagation và chi phí khi tăng số luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-005
+    title: Signal, shutdown hook và quá trình dừng ứng dụng có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-006
+    title: Khởi tạo tiến trình con và tương tác với hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-007
+    title: Giới hạn đối với agent runtime, attach, instrumentation và thay đổi lớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-model-008
+    title: Kiểm thử race condition, deadlock và hành vi đồng thời trên executable thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: memory-and-garbage-collection
+  title: Bộ nhớ và GC
+  childs:
+  - slug: memory-and-garbage-collection-001
+    title: Phân biệt Java heap, image heap, stack, code và bộ nhớ native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-002
+    title: Các bộ thu gom rác được hỗ trợ theo phiên bản và bản phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-003
+    title: Chọn GC theo throughput, độ trễ, footprint và giới hạn triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-004
+    title: Cấu hình heap và các tùy chọn GC dành cho executable native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-005
+    title: Ảnh hưởng của giới hạn container và bộ nhớ khả dụng đến tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-006
+    title: Đo RSS, PSS, peak memory và hiểu khác biệt với số liệu heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-007
+    title: Quản lý direct buffer, JNI allocation và tài nguyên ngoài heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: memory-and-garbage-collection-008
+    title: Chẩn đoán OutOfMemoryError, tiến trình bị OOM kill và rò rỉ tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: networking-and-security
+  title: Mạng và bảo mật
+  childs:
+  - slug: networking-and-security-001
+    title: Socket, DNS, HTTP và khả năng tương thích của các network stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-002
+    title: TLS, trust store, certificate và cấu hình xác thực khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-003
+    title: Security provider, thuật toán mật mã và cơ chế tìm provider
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-004
+    title: Nguồn entropy và việc khởi tạo SecureRandom đúng môi trường runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-005
+    title: Proxy mạng, timezone và dữ liệu hệ thống mà ứng dụng cần khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-006
+    title: Kiểm chứng kết nối JDBC, HTTP và các dịch vụ có xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-007
+    title: Giảm bề mặt mã được đóng gói và hiểu giới hạn của lợi ích bảo mật này
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: networking-and-security-008
+    title: Cập nhật executable khi JDK, thư viện Java hoặc thư viện native có bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: metadata-collection
+  title: Thu thập metadata
+  childs:
+  - slug: metadata-collection-001
+    title: Native Image tracing agent và cơ chế quan sát hành vi trên JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-002
+    title: Gắn agent vào ứng dụng mẫu, integration test hoặc kịch bản người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-003
+    title: Thiết kế dữ liệu và luồng chạy để phủ reflection, tài nguyên, proxy và JNI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-004
+    title: Thu thập nhiều phiên chạy và hợp nhất metadata có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-005
+    title: Lọc hành vi từ công cụ kiểm thử và dependency không thuộc ứng dụng đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-006
+    title: Rà soát metadata tự sinh để tránh đăng ký quá rộng hoặc giữ dữ liệu ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-007
+    title: Giới hạn của agent khi nhánh lỗi, cấu hình hoặc đường chạy chưa được thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metadata-collection-008
+    title: Đưa metadata đã rà soát vào dự án và kiểm chứng bằng executable native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compatibility-testing
+  title: Kiểm thử tương thích
+  childs:
+  - slug: compatibility-testing-001
+    title: Phân tầng unit test trên JVM, native test và kiểm thử executable hoàn chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-002
+    title: Dùng cùng hợp đồng kiểm thử để so sánh kết quả giữa JVM và native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-003
+    title: Kiểm thử đường chạy động, cấu hình tùy chọn và nhánh lỗi ít gặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-004
+    title: Kiểm thử tài nguyên, locale, timezone, charset và hệ thống tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-005
+    title: Kiểm thử reflection, serialization, service loading và tương tác JNI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-006
+    title: Kiểm thử database, TLS, mạng và các dịch vụ phụ thuộc thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-007
+    title: Xây ma trận hệ điều hành, kiến trúc, libc và phiên bản toolchain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compatibility-testing-008
+    title: Đặt tiêu chí chấp nhận cho chức năng, độ ổn định, startup và bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-diagnostics
+  title: Chẩn đoán build
+  childs:
+  - slug: build-diagnostics-001
+    title: Phân loại lỗi cấu hình, phân tích khả đạt, biên dịch và liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-002
+    title: Đọc nguyên nhân gốc trong log thay vì chỉ dựa vào thông báo cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-003
+    title: Xử lý thiếu lớp, thiếu dependency và classpath không nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-004
+    title: Chẩn đoán phần tử không được hỗ trợ và đường gọi dẫn đến chúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-005
+    title: Tìm nguyên nhân khởi tạo lớp sai thời điểm và image heap không hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-006
+    title: Xử lý lỗi compiler C, linker, header và thư viện hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-007
+    title: Phân tích build hết RAM, bị dừng hoặc mất thời gian bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-diagnostics-008
+    title: Tạo ví dụ tái hiện tối thiểu và xác nhận bản sửa với đúng toolchain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: runtime-debugging
+  title: Gỡ lỗi runtime
+  childs:
+  - slug: runtime-debugging-001
+    title: Phân biệt lỗi logic, thiếu metadata và phụ thuộc môi trường triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-002
+    title: Chẩn đoán truy cập reflection, proxy, tài nguyên hoặc JNI chưa được đăng ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-003
+    title: Đọc stack trace và duy trì thông tin cần thiết để truy ngược về mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-004
+    title: Tạo debug information và sử dụng debugger native theo nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-005
+    title: Phân tích core dump, signal và crash liên quan mã native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-006
+    title: Tìm lỗi chỉ xảy ra trên native do trạng thái bị cố định lúc build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-007
+    title: So sánh hành vi với JVM bằng dữ liệu đầu vào và cấu hình tương đương
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-debugging-008
+    title: Thu thập bằng chứng tái hiện và xác nhận bản sửa trên môi trường đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-profiling
+  title: Quan sát và profiling
+  childs:
+  - slug: observability-and-profiling-001
+    title: Thiết kế log, metric và trace cho ứng dụng Native Image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-002
+    title: Xác định tính năng giám sát cần bật lúc build và cấu hình được khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-003
+    title: Kiểm tra khả năng dùng JFR, JMX và công cụ giám sát theo phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-004
+    title: Thu thập thông tin thread, heap và GC bằng công cụ được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-005
+    title: Profiling CPU bằng công cụ native và điều kiện ánh xạ symbol
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-006
+    title: Profiling allocation và phân biệt bộ nhớ Java với bộ nhớ native
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-007
+    title: Đánh giá mức tương thích của thư viện telemetry và agent quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-profiling-008
+    title: Cân bằng khả năng chẩn đoán, kích thước executable và chi phí runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-benchmarking
+  title: Đánh giá hiệu năng
+  childs:
+  - slug: performance-benchmarking-001
+    title: Thiết lập baseline JVM với phiên bản JDK và cấu hình vận hành rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-002
+    title: Đo thời gian tạo tiến trình, startup, readiness và phản hồi đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-003
+    title: Đo throughput, latency percentile và hiệu năng sau khi tải ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-004
+    title: Đo heap, RSS, peak memory và tổng bộ nhớ khi chạy nhiều instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-005
+    title: So sánh CPU tiêu thụ, kích thước artifact và thời gian build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-006
+    title: Kiểm soát tải, dữ liệu, cache, CPU quota và giới hạn bộ nhớ khi đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-007
+    title: Lặp phép đo, phân tích sai số và tránh kết luận từ một lần chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-008
+    title: Diễn giải kết quả theo workload thay vì giả định native luôn nhanh hơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: executable-optimization
+  title: Tối ưu executable
+  childs:
+  - slug: executable-optimization-001
+    title: Chọn mức tối ưu biên dịch phù hợp với thời gian build và mục tiêu runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-002
+    title: Profile-guided optimization và điều kiện hỗ trợ của toolchain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-003
+    title: Thu profile bằng workload đại diện và tạo executable dùng profile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-004
+    title: Lựa chọn tập lệnh CPU để cân bằng hiệu năng và tính di động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-005
+    title: Giảm mã, tài nguyên và metadata thừa dựa trên báo cáo build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-006
+    title: Điều chỉnh khởi tạo lớp để cải thiện startup mà vẫn giữ đúng ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-007
+    title: Quản lý debug information, symbol và tùy chọn giảm kích thước artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: executable-optimization-008
+    title: Đo lại chức năng, throughput, latency và footprint sau mỗi tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-optimization
+  title: Tối ưu quá trình build
+  childs:
+  - slug: build-optimization-001
+    title: Đọc phân bổ thời gian và bộ nhớ theo từng giai đoạn build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-002
+    title: Điều chỉnh tài nguyên máy build và mức song song theo giới hạn thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-003
+    title: Tách build phục vụ phát triển với build tối ưu cho phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-004
+    title: Giảm dependency và cấu hình quá rộng làm tăng chi phí phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-005
+    title: Cache dependency và các đầu vào build mà công cụ hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-006
+    title: Tránh giả định cache luôn thay thế được quá trình native compilation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-007
+    title: Tổ chức pipeline để phản hồi sớm từ kiểm thử JVM trước native build tốn kém
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-optimization-008
+    title: Theo dõi chi phí build và phát hiện hồi quy khi thay đổi toolchain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linking-and-platforms
+  title: Liên kết và nền tảng
+  childs:
+  - slug: linking-and-platforms-001
+    title: Executable phụ thuộc hệ điều hành, kiến trúc và ABI như thế nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-002
+    title: Phân biệt liên kết động, liên kết tĩnh và các cấu hình liên kết kết hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-003
+    title: glibc, musl và khả năng tương thích với môi trường Linux đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-004
+    title: Kiểm tra thư viện hệ thống còn cần sau khi tạo executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-005
+    title: Giới hạn cross-compilation và chiến lược build trên nền tảng phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-006
+    title: Tạo artifact riêng cho x86-64, ARM64 và các nền tảng được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-007
+    title: Kiểm soát tập lệnh CPU tối thiểu để tránh lỗi trên máy triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linking-and-platforms-008
+    title: Xác minh executable trên môi trường đích tối thiểu trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: containers-and-deployment
+  title: Container và triển khai
+  childs:
+  - slug: containers-and-deployment-001
+    title: Multi-stage build để tách môi trường biên dịch khỏi image chạy ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-002
+    title: Chọn base image theo libc, thư viện native và dữ liệu hệ thống cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-003
+    title: Đánh giá image tối giản, distroless và scratch theo phụ thuộc thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-004
+    title: Cấp certificate, timezone, locale và quyền truy cập tệp cho tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-005
+    title: Chạy non-root và cấu hình filesystem chỉ đọc khi ứng dụng đáp ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-006
+    title: Thiết lập CPU, memory limit và quan sát hành vi trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-007
+    title: Readiness, liveness, graceful shutdown và autoscaling với startup ngắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-and-deployment-008
+    title: Đánh giá ứng dụng CLI, serverless, batch và dịch vụ chạy dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-cd-and-supply-chain
+  title: CI/CD và chuỗi cung ứng
+  childs:
+  - slug: ci-cd-and-supply-chain-001
+    title: Thiết kế pipeline từ kiểm thử JVM đến native build và kiểm thử artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-002
+    title: Cố định JDK, GraalVM, plugin build và dependency để kiểm soát đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-003
+    title: Lưu log, tham số build, metadata và nguồn gốc artifact theo phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-004
+    title: Bảo vệ secret và kiểm tra dữ liệu không mong muốn trong executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-005
+    title: Tạo SBOM cho thư viện Java, thành phần runtime và thư viện native liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-006
+    title: Quét lỗ hổng với hiểu biết về giới hạn nhận diện dependency trong executable
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-007
+    title: Ký, lưu trữ và phân phối artifact theo hệ điều hành và kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-and-supply-chain-008
+    title: Tự động build lại và kiểm thử khi toolchain hoặc dependency có bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: production-operations
+  title: Vận hành production
+  childs:
+  - slug: production-operations-001
+    title: Chuẩn bị cấu hình runtime, tài nguyên và khả năng quan sát trước rollout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-002
+    title: Triển khai canary và so sánh hành vi giữa bản native với baseline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-003
+    title: Theo dõi startup, latency, lỗi, GC và mức sử dụng bộ nhớ thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-004
+    title: Đặt request và limit dựa trên peak memory cùng đặc điểm workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-005
+    title: Xử lý shutdown, timeout, retry và thay đổi số instance khi có tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-006
+    title: Lưu symbol, debug artifact và thông tin build để điều tra sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-007
+    title: Thực hiện rollback sang artifact đã kiểm chứng khi xuất hiện hồi quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: production-operations-008
+    title: Lập chu kỳ nâng cấp, build lại và kiểm thử hồi quy trên môi trường đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jvm-migration
+  title: Di chuyển từ JVM
+  childs:
+  - slug: jvm-migration-001
+    title: Khảo sát hành vi động, dependency, agent và yêu cầu vận hành hiện có
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-002
+    title: Chọn một luồng nghiệp vụ đại diện để xây dựng bản native thử nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-003
+    title: Lập danh sách reflection, proxy, tài nguyên, JNI và khởi tạo lớp cần xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-004
+    title: Phân loại vấn đề có thể cấu hình, cần sửa mã hoặc cần thay thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-005
+    title: Di chuyển theo từng mốc và giữ khả năng kiểm chứng bằng bản JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-006
+    title: Bổ sung kiểm thử cho nhánh tùy chọn và tích hợp chưa được tracing agent quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-007
+    title: So sánh chi phí phát triển, build, hạ tầng và hỗ trợ vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jvm-migration-008
+    title: Xác định tiêu chí chuyển sang native, trì hoãn hoặc tiếp tục dùng JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: design-trade-offs
+  title: Thiết kế và đánh đổi
+  childs:
+  - slug: design-trade-offs-001
+    title: Startup nhanh và footprint thấp trong bối cảnh tần suất khởi động thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-002
+    title: Throughput ổn định của AOT so với khả năng tối ưu thích nghi của JIT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-003
+    title: Chi phí build và bộ nhớ máy build so với lợi ích khi chạy nhiều instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-004
+    title: Tính linh hoạt của cấu hình và plugin dưới giả định closed-world
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-005
+    title: Khả năng quan sát, gỡ lỗi và chi phí hỗ trợ thư viện phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-006
+    title: Tính di động của bytecode so với ma trận artifact native phải duy trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-007
+    title: Đối chiếu Native Image với tối ưu JVM, CDS và các cơ chế giảm startup phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: design-trade-offs-008
+    title: Lập bảng quyết định dựa trên số liệu và tổng chi phí sở hữu của workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-labs
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-labs-001
+    title: Xây CLI Java thành executable và đo startup cùng footprint so với JVM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-002
+    title: Sửa ứng dụng reflection, dynamic proxy và ServiceLoader bị thiếu metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-003
+    title: Đóng gói tài nguyên, ResourceBundle và cấu hình khác nhau giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-004
+    title: Tích hợp thư viện JNI và kiểm chứng phụ thuộc native trên máy đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-005
+    title: Tái hiện lỗi khởi tạo lớp lúc build và thiết kế lại trạng thái runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-006
+    title: Dùng tracing agent, rà soát metadata và bổ sung kiểm thử đường chạy còn thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-007
+    title: Đóng gói dịch vụ có database và TLS vào container rồi kiểm thử tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-008
+    title: Lập báo cáo so sánh startup, bộ nhớ, throughput, thời gian build và đề xuất lựa chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

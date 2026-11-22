@@ -1,0 +1,332 @@
+menu:
+- level1: Nền tảng hiệu năng
+  level2:
+  - Hiệu năng cơ sở dữ liệu là gì và ảnh hưởng đến thời gian đáp ứng ứng dụng
+  - 'Hành trình một yêu cầu: kết nối, phân tích SQL, lập kế hoạch, thực thi và trả kết quả'
+  - 'Các tài nguyên giới hạn: CPU, bộ nhớ, lưu trữ, mạng và khả năng xử lý đồng thời'
+  - Phân biệt truy vấn chậm, hệ thống quá tải và thời gian chờ tài nguyên
+  - Khác biệt giữa tải giao dịch (OLTP), tải phân tích (OLAP) và tải hỗn hợp
+  - Đánh đổi giữa tốc độ đọc, tốc độ ghi, dung lượng, tính nhất quán và độ bền dữ liệu
+  - Tư duy tối ưu theo bằng chứng và giới hạn của việc áp dụng mẹo chung
+- level1: Chỉ số và mục tiêu
+  level2:
+  - Độ trễ trung bình, trung vị và các phân vị p95, p99
+  - Thông lượng giao dịch, truy vấn và số yêu cầu xử lý thành công
+  - Thời gian CPU, thời gian chờ và thời gian thực thi toàn trình
+  - Số yêu cầu đồng thời, độ dài hàng đợi và mức bão hòa tài nguyên
+  - Chỉ số đọc logic, đọc vật lý, dung lượng tạm và lượng dữ liệu trả về
+  - Tỷ lệ lỗi, hết thời gian chờ và giao dịch phải thực hiện lại
+  - Xác lập mục tiêu dịch vụ (SLO) và ngân sách độ trễ cho cơ sở dữ liệu
+  - 'Định luật Little: liên hệ thông lượng, độ trễ và số yêu cầu đang xử lý'
+- level1: Khối lượng công việc
+  level2:
+  - Thu thập tập truy vấn và nhóm truy vấn theo mẫu (query fingerprint)
+  - Phân loại thao tác đọc, ghi, tìm kiếm điểm, quét phạm vi và tổng hợp
+  - Phân bố tham số, độ chọn lọc, dữ liệu lệch và các khóa được truy cập nhiều
+  - Kích thước dữ liệu, tập dữ liệu hoạt động và tốc độ tăng trưởng
+  - Nhịp tải ổn định, đột biến, theo mùa và tác vụ định kỳ
+  - Phân biệt thời gian thực thi trong cơ sở dữ liệu với thời gian chờ tại ứng dụng
+  - Xây dựng tải đại diện từ luồng nghiệp vụ và dữ liệu thực tế
+  - Ưu tiên tối ưu theo tổng chi phí, tần suất và tác động nghiệp vụ
+- level1: Phương pháp đo
+  level2:
+  - Thiết lập đường cơ sở trước khi thay đổi truy vấn hoặc cấu hình
+  - Thiết kế giả thuyết và thay đổi từng yếu tố trong mỗi thí nghiệm
+  - Kiểm soát dữ liệu, cấu hình, phiên bản và tài nguyên môi trường đo
+  - Làm nóng hệ thống và phân biệt bộ đệm nóng với bộ đệm lạnh
+  - Lặp lại phép đo, quan sát độ biến thiên và nhận diện nhiễu
+  - Đo tải đồng thời thay vì suy luận từ một lần chạy đơn lẻ
+  - Phân biệt tương quan với nguyên nhân khi đọc chỉ số hiệu năng
+  - Ghi nhận bằng chứng trước và sau cùng điều kiện hoàn tác
+- level1: Quan sát hệ thống
+  level2:
+  - Thu thập nhật ký truy vấn chậm và thống kê theo mẫu truy vấn
+  - Theo dõi phiên đang chạy, giao dịch đang mở và truy vấn chờ
+  - Phân tích sự kiện chờ (wait events) và chuỗi phiên chặn nhau
+  - Đối chiếu chỉ số CPU, bộ nhớ, đĩa và mạng ở hệ điều hành
+  - Đo thời gian truy vấn bằng số liệu ứng dụng và dấu vết phân tán
+  - Lấy mẫu và kiểm soát chi phí giám sát khi hệ thống đang chịu tải
+  - Ẩn dữ liệu nhạy cảm trong câu SQL, tham số và bản ghi chẩn đoán
+  - 'Công cụ theo hệ quản trị: pg_stat_statements, Performance Schema và Query Store'
+- level1: Kế hoạch thực thi
+  level2:
+  - 'Kế hoạch ước lượng và kế hoạch thực tế: thông tin và mục đích sử dụng'
+  - 'Đọc cây thực thi: luồng dữ liệu, thứ tự phép toán và số vòng lặp'
+  - Đọc số hàng, chi phí ước lượng, thời gian thực tế và lượng dữ liệu trung gian
+  - Nhận diện quét bảng, quét chỉ mục, tìm kiếm chỉ mục và truy xuất hàng
+  - Nhận diện phép nối, sắp xếp, tổng hợp và ghi dữ liệu tạm
+  - Phân tích bộ đệm, đọc đĩa và tràn bộ nhớ qua thông tin thực thi
+  - So sánh kế hoạch với nhiều giá trị tham số và nhiều kích thước dữ liệu
+  - 'Chạy EXPLAIN ANALYZE an toàn: câu lệnh thực sự chạy và có thể làm thay đổi dữ liệu'
+  - 'Những thông tin kế hoạch không phản ánh đầy đủ: mạng, hàng đợi và xử lý phía ứng dụng'
+- level1: Bộ tối ưu truy vấn
+  level2:
+  - Các giai đoạn phân tích cú pháp, biến đổi truy vấn và chọn kế hoạch
+  - Tối ưu theo chi phí và giới hạn của mô hình chi phí
+  - Đẩy điều kiện lọc, loại bỏ phép tính thừa và biến đổi truy vấn tương đương
+  - Không gian tìm kiếm thứ tự nối và ảnh hưởng của nhiều bảng
+  - Kế hoạch lưu lại, biên dịch lại và chi phí lập kế hoạch
+  - Câu lệnh chuẩn bị sẵn, tham số hóa và lựa chọn kế hoạch
+  - Tham số nhạy cảm, parameter sniffing và kế hoạch dùng chung theo hệ quản trị
+  - Hint, ép kế hoạch và điều kiện cần theo dõi khi can thiệp bộ tối ưu
+- level1: Thống kê và ước lượng
+  level2:
+  - Ước lượng số hàng (cardinality) và vai trò đối với lựa chọn kế hoạch
+  - Độ chọn lọc, số giá trị phân biệt và tỷ lệ giá trị NULL
+  - Biểu đồ phân bố, giá trị phổ biến và dữ liệu lệch
+  - Tương quan giữa các cột và giới hạn của giả định độc lập
+  - Thống kê nhiều cột và thống kê mở rộng theo hệ quản trị
+  - Thống kê lỗi thời, thay đổi dữ liệu lớn và thời điểm cập nhật
+  - 'Thu thập thống kê bằng lấy mẫu: chi phí và độ chính xác'
+  - Chẩn đoán chênh lệch số hàng ước lượng với số hàng thực tế
+- level1: Cơ chế truy cập
+  level2:
+  - Trang dữ liệu, tổ chức lưu hàng và đường đi từ khóa đến bản ghi
+  - Quét toàn bảng và các tình huống quét tuần tự có lợi
+  - Tìm kiếm điểm và quét phạm vi bằng chỉ mục B-tree
+  - Đọc ngẫu nhiên, đọc tuần tự và chi phí truy xuất bổ sung về bảng
+  - Chỉ mục phân cụm và tổ chức bảng theo hệ quản trị
+  - Quét bitmap và kết hợp nhiều chỉ mục theo hệ quản trị
+  - 'Truy vấn chỉ từ chỉ mục: điều kiện thực tế và giới hạn kiểm tra tính hiển thị'
+  - Ảnh hưởng của độ rộng hàng và tính cục bộ dữ liệu đến đường truy cập
+- level1: Thiết kế chỉ mục
+  level2:
+  - Lựa chọn chỉ mục từ truy vấn quan trọng và tập điều kiện thực tế
+  - 'Chỉ mục nhiều cột: thứ tự cột, tiền tố và phạm vi tìm kiếm'
+  - Phối hợp điều kiện bằng, điều kiện phạm vi và thứ tự sắp xếp
+  - Chỉ mục bao phủ và các cột bổ sung theo hệ quản trị
+  - 'Chỉ mục duy nhất: ràng buộc dữ liệu và ảnh hưởng đến thực thi'
+  - Đánh giá chỉ mục cho khóa ngoại và các phép nối thường gặp
+  - Chi phí ghi, dung lượng và bộ đệm của mỗi chỉ mục
+  - Phát hiện chỉ mục trùng lặp, ít dùng và quyết định loại bỏ có kiểm chứng
+  - Kiểm chứng chỉ mục mới bằng kế hoạch thực tế và tải đọc ghi hỗn hợp
+- level1: Chỉ mục chuyên biệt
+  level2:
+  - Chỉ mục một phần hoặc có điều kiện và phạm vi áp dụng
+  - Chỉ mục biểu thức, chỉ mục hàm và cột sinh theo hệ quản trị
+  - Chỉ mục băm và giới hạn đối với tìm kiếm phạm vi
+  - BRIN và dữ liệu lớn có tương quan với vị trí lưu trữ
+  - GIN, GiST và các kiểu truy vấn chuyên biệt trong PostgreSQL
+  - Chỉ mục tìm kiếm toàn văn và khác biệt với tìm chuỗi bằng LIKE
+  - Chỉ mục cho JSON, dữ liệu không gian và yêu cầu toán tử phù hợp
+  - Columnstore và đánh đổi giữa tải phân tích với cập nhật dữ liệu
+  - Tiêu chí lựa chọn loại chỉ mục theo tính năng của từng hệ quản trị
+- level1: Điều kiện và biểu thức
+  level2:
+  - Điều kiện có thể tận dụng chỉ mục (SARGable) và cách nhận diện
+  - Hàm trên cột, phép toán và chuyển đổi kiểu ngầm trong điều kiện lọc
+  - Kiểu dữ liệu tham số và ảnh hưởng đến khả năng dùng chỉ mục
+  - 'Điều kiện thời gian: khoảng nửa mở, múi giờ và tránh biến đổi cột'
+  - LIKE, ký tự đại diện đầu chuỗi và giới hạn của chỉ mục thông thường
+  - OR, IN và cách tách truy vấn khi có bằng chứng kế hoạch tốt hơn
+  - NULL, NOT IN và ngữ nghĩa ba giá trị khi viết lại truy vấn
+  - Quy tắc đối chiếu chuỗi (collation), phân biệt hoa thường và chi phí so sánh
+  - Giảm cột và số hàng trả về từ sớm mà vẫn giữ đúng kết quả
+- level1: Phép nối
+  level2:
+  - 'Nested loop, hash join và merge join: điều kiện và đánh đổi'
+  - Kích thước hai phía nối, số vòng lặp và lượng dữ liệu trung gian
+  - Chỉ mục hỗ trợ phép nối và lựa chọn phía truy cập
+  - Đẩy điều kiện lọc và ảnh hưởng của thứ tự nối
+  - INNER JOIN, OUTER JOIN và ràng buộc ngữ nghĩa khi viết lại
+  - EXISTS, NOT EXISTS và phép nối bán phần theo nhu cầu kiểm tra tồn tại
+  - Chẩn đoán nhân bản số hàng và tích Descartes ngoài ý muốn
+  - Tràn bộ nhớ ở phép nối băm và ảnh hưởng của phân bố khóa
+  - 'Nối nhiều bảng: giảm tập dữ liệu trung gian và kiểm chứng kết quả'
+- level1: Sắp xếp và tổng hợp
+  level2:
+  - ORDER BY, thứ tự chỉ mục và khi nào có thể tránh sắp xếp
+  - Sắp xếp top-N, LIMIT và yêu cầu thứ tự kết quả xác định
+  - Bộ nhớ sắp xếp, dữ liệu tạm và dấu hiệu tràn xuống đĩa
+  - GROUP BY với tổng hợp băm hoặc tổng hợp theo thứ tự
+  - DISTINCT và chi phí loại trùng trên tập dữ liệu lớn
+  - 'WHERE và HAVING: thời điểm lọc và tính đúng đắn của phép tổng hợp'
+  - 'Hàm cửa sổ: phân vùng, sắp xếp và kích thước khung tính toán'
+  - Tổng hợp trước và bảng tổng hợp cho báo cáo lặp lại
+- level1: Mẫu truy vấn
+  level2:
+  - Truy vấn con tương quan và số lần thực thi lặp
+  - CTE, bảng dẫn xuất và việc vật chất hóa theo hệ quản trị
+  - 'UNION và UNION ALL: loại trùng, thứ tự và chi phí'
+  - Truy vấn lấy bản ghi mới nhất hoặc top-N trong từng nhóm
+  - Truy vấn kiểm tra tồn tại và đếm theo đúng nhu cầu nghiệp vụ
+  - Truy vấn cập nhật hoặc xóa khối lượng lớn theo từng đợt
+  - 'Bảng tạm và kết quả trung gian: khi nào giảm được công việc lặp'
+  - Giảm lượt trao đổi bằng xử lý theo tập hợp thay cho từng bản ghi
+  - Kiểm chứng ngữ nghĩa, bản ghi trùng và giá trị NULL sau khi viết lại SQL
+- level1: Phân trang và tìm kiếm
+  level2:
+  - Chi phí của OFFSET khi chuyển đến các trang sâu
+  - Phân trang theo khóa (keyset pagination) và điều kiện truy vấn tiếp theo
+  - Khóa sắp xếp ghép, giá trị trùng và thứ tự ổn định
+  - Phân trang khi dữ liệu thay đổi đồng thời và yêu cầu nhất quán
+  - Tổng số bản ghi, đếm chính xác và lựa chọn giảm chi phí đếm
+  - Tìm kiếm kết hợp bộ lọc, sắp xếp và thiết kế chỉ mục
+  - 'Tìm kiếm toàn văn: chỉ số liên quan, giới hạn kết quả và chi phí'
+  - Đánh giá phân trang bằng dữ liệu lớn và phân bố tham số thực tế
+- level1: Mô hình dữ liệu
+  level2:
+  - Chọn kiểu dữ liệu theo miền giá trị và chi phí lưu trữ
+  - 'Khóa chính: độ rộng, tính tăng dần và ảnh hưởng đến chỉ mục'
+  - Chuẩn hóa và phi chuẩn hóa dưới góc nhìn đường đọc ghi
+  - Hàng rộng, cột văn bản lớn và tách dữ liệu ít truy cập
+  - 'Quan hệ, JSON và mô hình thuộc tính linh hoạt: chi phí truy vấn'
+  - Dữ liệu thời gian, độ chính xác số và chi phí chuyển đổi
+  - Ràng buộc dữ liệu, kiểm tra tính duy nhất và chi phí thao tác ghi
+  - Thiết kế bảng tổng hợp hoặc dữ liệu dẫn xuất với cơ chế cập nhật rõ ràng
+- level1: Phân vùng dữ liệu
+  level2:
+  - 'Mục tiêu phân vùng: giảm phạm vi truy cập và đơn giản hóa vòng đời dữ liệu'
+  - Phân vùng theo khoảng, danh sách và băm theo mẫu truy cập
+  - Loại bỏ phân vùng (partition pruning) và điều kiện truy vấn phù hợp
+  - Chỉ mục cục bộ, chỉ mục toàn cục và ràng buộc theo hệ quản trị
+  - Chi phí lập kế hoạch và quản lý khi có quá nhiều phân vùng
+  - Lựa chọn khóa phân vùng và xử lý phân bố dữ liệu lệch
+  - Thêm, tách, gắn và loại bỏ phân vùng dưới tải
+  - Kiểm chứng lợi ích phân vùng và phân biệt với chia dữ liệu sang nhiều máy
+- level1: Giao dịch và tranh chấp
+  level2:
+  - Thời gian giao dịch và ảnh hưởng đến số phiên chờ
+  - Khóa hàng, khóa bảng và cách xác định điểm tranh chấp
+  - Mức cô lập, MVCC và chi phí duy trì các phiên bản dữ liệu
+  - Giao dịch đọc kéo dài và ảnh hưởng đến dọn dẹp dữ liệu cũ
+  - Khóa được cập nhật nhiều, bộ đếm dùng chung và giới hạn thông lượng ghi
+  - Deadlock, thứ tự truy cập và chi phí thực hiện lại giao dịch
+  - Kích thước lô ghi và cân bằng giữa thời gian giữ khóa với chi phí commit
+  - Thiết lập thời gian chờ khóa, thời gian chờ truy vấn và hủy thao tác
+  - Đo thông lượng cùng độ trễ khi tăng số yêu cầu đồng thời
+- level1: Đường ghi dữ liệu
+  level2:
+  - Nhật ký giao dịch, WAL hoặc redo và quá trình commit
+  - Độ bền dữ liệu, đồng bộ xuống đĩa và chi phí xác nhận giao dịch
+  - Group commit và ảnh hưởng của số phiên ghi đồng thời
+  - Checkpoint, ghi nền và các đợt tăng độ trễ
+  - Khuếch đại ghi từ chỉ mục, cập nhật hàng và nhật ký
+  - Chèn hàng loạt, công cụ nạp dữ liệu và xử lý theo lô
+  - Upsert, kiểm tra trùng và tranh chấp trên khóa duy nhất
+  - Kích thước giao dịch, tốc độ nạp và áp lực lên bản sao
+  - Đo tốc độ ghi bền vững sau giai đoạn tăng tốc ban đầu
+- level1: Bộ nhớ và bộ đệm
+  level2:
+  - Buffer pool, shared buffers và bộ đệm trang của hệ điều hành
+  - Tập dữ liệu hoạt động, tỷ lệ trúng bộ đệm và giới hạn suy luận
+  - Bộ nhớ theo truy vấn, theo phép toán và theo phiên kết nối
+  - Ngân sách bộ nhớ toàn hệ thống khi nhiều truy vấn chạy đồng thời
+  - Tràn sắp xếp hoặc phép nối xuống đĩa và cách chẩn đoán
+  - Áp lực bộ nhớ, hoán đổi và nguy cơ hết bộ nhớ
+  - Bộ đệm lạnh sau khởi động, triển khai hoặc chuyển đổi máy chủ
+  - Bộ đệm kế hoạch và khác biệt với bộ đệm dữ liệu hoặc kết quả
+- level1: Lưu trữ và tài nguyên
+  level2:
+  - IOPS, băng thông, độ trễ thiết bị và hàng đợi I/O
+  - Đọc tuần tự, đọc ngẫu nhiên và đặc điểm thiết bị SSD
+  - Giới hạn CPU, số lõi và khả năng song song thực tế
+  - Song song trong truy vấn và tranh chấp tài nguyên giữa các truy vấn
+  - Bố trí dữ liệu, nhật ký và vùng tạm theo đặc điểm tải
+  - Dung lượng trống, tăng trưởng tệp và tác động khi gần đầy đĩa
+  - Giới hạn tài nguyên của máy ảo, container và dịch vụ cơ sở dữ liệu
+  - Giới hạn I/O, hạn mức tăng tốc và cơ chế điều tiết của dịch vụ đám mây
+  - Định cỡ tài nguyên dựa trên phép đo và điểm bão hòa
+- level1: Kết nối và mạng
+  level2:
+  - Chi phí mở kết nối, xác thực và thiết lập TLS
+  - Nhóm kết nối (connection pool), số kết nối hoạt động và hàng đợi
+  - Định cỡ nhóm kết nối theo khả năng xử lý của cơ sở dữ liệu
+  - Phân biệt thời gian chờ lấy kết nối với thời gian chạy SQL
+  - Rò rỉ kết nối, giao dịch bỏ quên và phiên nhàn rỗi trong giao dịch
+  - Độ trễ mạng, số lượt trao đổi và khoảng cách giữa ứng dụng với cơ sở dữ liệu
+  - Kích thước kết quả, truyền theo luồng và việc giữ kết nối lâu
+  - Phối hợp thời gian chờ, hủy truy vấn, thử lại và giới hạn số yêu cầu
+  - Proxy kết nối và các ràng buộc về trạng thái phiên hoặc giao dịch
+- level1: Ứng dụng Java
+  level2:
+  - Đo JDBC và tách thời gian lấy kết nối, thực thi, đọc kết quả
+  - 'HikariCP: số kết nối, thời gian chờ và chỉ số sử dụng'
+  - PreparedStatement, tham số liên kết và tái sử dụng câu lệnh
+  - 'JDBC batch: kích thước lô, ranh giới giao dịch và kiểm chứng số lượt gửi'
+  - Fetch size, truyền kết quả theo luồng và hành vi riêng của trình điều khiển
+  - 'JPA hoặc Hibernate: nhận diện N+1 từ số lượng và mẫu truy vấn'
+  - Fetch join, entity graph, DTO projection và chi phí tải dữ liệu thừa
+  - Phân trang với quan hệ tập hợp và rủi ro xử lý trong bộ nhớ
+  - Persistence context, dirty checking và thao tác flush khi xử lý nhiều bản ghi
+  - Ranh giới giao dịch Spring và tác động của gọi dịch vụ ngoài trong giao dịch
+  - Kiểm thử tích hợp trên hệ quản trị thực để xác minh kế hoạch và hành vi JDBC
+- level1: Bảo trì dữ liệu
+  level2:
+  - Cập nhật thống kê sau thay đổi lớn và theo dõi hiệu quả
+  - Bản ghi chết, dữ liệu phình to và cơ chế thu hồi dung lượng
+  - VACUUM, autovacuum và ảnh hưởng của giao dịch kéo dài trong PostgreSQL
+  - 'Phân mảnh chỉ mục: cách đo và ý nghĩa theo từng hệ quản trị'
+  - 'Xây dựng lại chỉ mục: lợi ích, chi phí và điều kiện thực hiện trực tuyến'
+  - Lưu trữ dữ liệu cũ, chính sách giữ dữ liệu và xóa theo lô
+  - Bảo trì phân vùng và kiểm soát kích thước bảng hoặc chỉ mục
+  - Ảnh hưởng của sao lưu, kiểm tra dữ liệu và tác vụ nền đến tải chính
+  - Đặt ngân sách tài nguyên và thời điểm chạy công việc bảo trì
+- level1: Tải phân tích
+  level2:
+  - Khác biệt truy cập theo hàng và theo cột trong truy vấn phân tích
+  - Chiếu cột, lọc sớm và giảm dữ liệu phải quét
+  - Nén dữ liệu, xử lý theo lô và thực thi vector hóa
+  - Tổng hợp trên dữ liệu lớn và chi phí xáo trộn dữ liệu
+  - Materialized view, bảng tổng hợp và chi phí làm mới
+  - Phân bố dữ liệu, khóa phân phối và các nhóm dữ liệu quá lớn
+  - Cô lập tải báo cáo để bảo vệ độ trễ giao dịch
+  - Đánh đổi độ tươi dữ liệu, thời gian phản hồi và chi phí tính toán
+- level1: Mở rộng hệ thống
+  level2:
+  - Mở rộng tài nguyên một máy và giới hạn của đường ghi
+  - 'Bản sao phục vụ đọc: phân luồng truy vấn và độ trễ sao chép'
+  - Đọc sau ghi, tính nhất quán và tác động đến thiết kế ứng dụng
+  - 'Bộ đệm ứng dụng: tỷ lệ trúng, vô hiệu hóa và độ tươi dữ liệu'
+  - Chống dồn tải khi bộ đệm hết hạn hoặc khởi động lại
+  - 'Chia dữ liệu (sharding): chọn khóa và giới hạn của truy vấn nhiều phân mảnh'
+  - Tác động hiệu năng của giao dịch hoặc phép nối phân tán
+  - Quản lý hàng đợi, giới hạn đồng thời và áp lực ngược khi quá tải
+  - So sánh lợi ích tối ưu truy vấn với chi phí thay đổi kiến trúc
+- level1: Kiểm thử hiệu năng
+  level2:
+  - Thiết kế kịch bản từ giao dịch nghiệp vụ và tỷ lệ đọc ghi
+  - Sinh dữ liệu đại diện về kích thước, phân bố và quan hệ
+  - Kiểm thử tải ổn định, tải tăng dần, tải đột biến và chạy dài hạn
+  - Mô hình tải mở, tải đóng và sai lệch do bỏ sót thời gian chờ
+  - Giới hạn của máy phát tải và cách tránh đo nhầm nút thắt
+  - Đo thông lượng tối đa trong phạm vi mục tiêu độ trễ và tỷ lệ lỗi
+  - Dùng pgbench, sysbench hoặc bộ phát tải phù hợp với hệ quản trị
+  - So sánh thay đổi bằng cùng bộ dữ liệu và điều kiện đo
+  - Kiểm thử hồi quy hiệu năng sau đổi SQL, chỉ mục, cấu hình hoặc phiên bản
+  - Lập báo cáo kết quả gồm mục tiêu, điều kiện, số liệu và giới hạn
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quy trình khoanh vùng từ triệu chứng đến truy vấn và tài nguyên
+  - Truy vấn chậm do kế hoạch đổi sau tăng trưởng dữ liệu
+  - 'CPU cao: phân biệt tính toán, lập kế hoạch và quá nhiều truy vấn nhỏ'
+  - 'I/O cao: phân biệt quét dữ liệu, truy xuất ngẫu nhiên và ghi nền'
+  - Độ trễ tăng do khóa, giao dịch dài và chuỗi phiên chặn nhau
+  - Cạn nhóm kết nối, hàng đợi tăng và hiệu ứng thử lại dồn dập
+  - Tràn bộ nhớ, vùng tạm lớn và thiếu dung lượng lưu trữ
+  - Độ trễ p99 tăng trong checkpoint, bảo trì hoặc đột biến tải
+  - Sự cố bản sao đọc chậm và chuyển tải làm quá tải máy chính
+  - Giảm tải tạm thời, thu thập bằng chứng và xác minh phục hồi
+- level1: Vận hành hiệu năng
+  level2:
+  - Dashboard theo mục tiêu dịch vụ, tài nguyên và truy vấn quan trọng
+  - Cảnh báo theo triệu chứng người dùng và ngưỡng bão hòa
+  - Dự báo dung lượng, tăng trưởng dữ liệu và giới hạn kết nối
+  - Quản lý thay đổi SQL, chỉ mục và cấu hình có kế hoạch hoàn tác
+  - 'Tạo chỉ mục hoặc đổi lược đồ dưới tải: khóa và chi phí tài nguyên'
+  - Nâng cấp hệ quản trị hoặc trình điều khiển và kiểm tra hồi quy kế hoạch
+  - Giám sát sau triển khai và phát hiện hiệu năng giảm theo thời gian
+  - Quản lý chi phí tài nguyên theo thông lượng và mục tiêu độ trễ
+  - Hồ sơ điều tra sự cố và thư viện thí nghiệm có thể tái lập
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết lập bộ dữ liệu, tải mẫu và đường cơ sở có thể tái lập
+  - Đọc kế hoạch để tối ưu một truy vấn lọc và sắp xếp
+  - Thiết kế chỉ mục ghép rồi đo ảnh hưởng đến cả đọc và ghi
+  - Xử lý ước lượng sai do dữ liệu lệch hoặc thống kê lỗi thời
+  - Tối ưu phép nối và tổng hợp có dữ liệu trung gian lớn
+  - So sánh OFFSET với phân trang theo khóa trên dữ liệu tăng dần
+  - Khắc phục N+1 và đo số lượt truy vấn trong ứng dụng Java
+  - Chẩn đoán tranh chấp khóa và điều chỉnh kích thước giao dịch
+  - Điều chỉnh nhóm kết nối qua thử nghiệm mức tải đồng thời
+  - Lập báo cáo tối ưu gồm tính đúng đắn, số liệu trước sau và đánh đổi

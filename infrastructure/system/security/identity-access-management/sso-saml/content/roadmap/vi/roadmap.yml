@@ -1,0 +1,43 @@
+roadmap:
+- id: ban-chat-sso
+  title: Bản chất SSO
+  purpose: Hiểu cách một lần xác thực giúp truy cập nhiều ứng dụng qua quan hệ tin cậy.
+  objectives:
+  - Phân biệt SSO, liên kết danh tính và phân quyền tại ứng dụng.
+  - Vẽ vai trò của nhà cung cấp danh tính (IdP), nhà cung cấp dịch vụ (SP) và trình duyệt.
+- id: thanh-phan-saml
+  title: Thành phần SAML
+  purpose: Đọc được cấu trúc và cách trao đổi thông tin xác thực SAML.
+  objectives:
+  - Phân biệt assertion, giao thức, binding và profile trong SAML 2.0.
+  - Nhận diện NameID, thuộc tính và mô tả lần xác thực (AuthnStatement) trong assertion.
+- id: thiet-lap-tin-cay
+  title: Thiết lập tin cậy
+  purpose: Cấu hình đúng bên đối tác, địa chỉ nhận và khóa được phép xác minh.
+  objectives:
+  - Đọc metadata để xác định entityID, địa chỉ nhận phản hồi (ACS) và khóa xác minh.
+  - Thiết kế cập nhật metadata và luân chuyển khóa, chứng thư an toàn.
+- id: luong-dang-nhap
+  title: Luồng đăng nhập
+  purpose: Theo dõi yêu cầu và phản hồi qua các bên trong SSO.
+  objectives:
+  - Vẽ luồng SP khởi tạo với AuthnRequest, Response, ACS và binding phù hợp.
+  - So sánh luồng IdP khởi tạo và SP khởi tạo; nêu giới hạn của phản hồi không gắn yêu cầu.
+- id: xac-minh-an-toan
+  title: Xác minh an toàn
+  purpose: Chỉ tạo phiên từ phản hồi hợp lệ và đúng ngữ cảnh tin cậy.
+  objectives:
+  - Xác minh chữ ký bằng khóa tin cậy và chỉ sử dụng nội dung đã được xác minh.
+  - Kiểm tra bên phát, đích nhận, thời hạn, liên kết yêu cầu và chống phát lại.
+- id: danh-tinh-va-phien
+  title: Danh tính và phiên
+  purpose: Gắn kết quả SAML với đúng tài khoản và quản lý phiên ở từng hệ thống.
+  objectives:
+  - Thiết kế ánh xạ NameID, thuộc tính sang tài khoản, tránh gộp nhầm danh tính.
+  - Phân biệt thời hạn assertion với phiên IdP/SP, đăng xuất cục bộ và Single Logout.
+- id: gia-co-va-kiem-thu
+  title: Gia cố và kiểm thử
+  purpose: Phát hiện cấu hình sai và các cách lợi dụng thông điệp SAML.
+  objectives:
+  - Nhận diện tấn công phát lại, bọc chữ ký XML (XSW) và chuyển hướng không an toàn qua RelayState.
+  - Lập kiểm thử phản hồi bị sửa, hết hạn, sai đích, đổi khóa và đăng xuất; ghi vết không lộ assertion.

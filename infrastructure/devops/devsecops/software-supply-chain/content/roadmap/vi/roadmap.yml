@@ -1,0 +1,57 @@
+roadmap:
+- id: rui-ro-chuoi-cung-ung
+  title: Rủi ro chuỗi cung ứng
+  purpose: Nhận diện điểm tấn công từ mã nguồn đến artifact và môi trường triển khai.
+  objectives:
+  - Vẽ đường đi source → build → package → deploy.
+  - Nhận diện package độc hại, CI bị chiếm quyền và artifact bị sửa.
+  - Xác định tài sản, bên tin cậy và điểm cần kiểm chứng.
+- id: nguon-dependency-tin-cay
+  title: Nguồn & Dependency Tin cậy
+  purpose: Giảm rủi ro từ thay đổi mã và thành phần bên thứ ba.
+  objectives:
+  - Áp dụng code review và bảo vệ nhánh phát hành.
+  - Pin version/digest và xác thực nguồn dependency.
+  - Đánh giá dự án OSS bằng OpenSSF Scorecard.
+- id: bao-ve-ci-build
+  title: Bảo vệ CI & Build
+  purpose: Giữ môi trường xây dựng độc lập và quyền truy cập tối thiểu.
+  objectives:
+  - Giới hạn quyền token, secrets và runner.
+  - Tách build đáng tin cậy khỏi đóng góp không tin cậy.
+  - Kiểm tra quy trình build và khả năng tái tạo kết quả.
+- id: sbom-danh-muc-thanh-phan
+  title: SBOM & Danh mục thành phần
+  purpose: Biết chính xác thành phần và quan hệ phụ thuộc trong sản phẩm.
+  objectives:
+  - Tạo SBOM theo CycloneDX hoặc SPDX.
+  - Nhận diện direct và transitive dependencies.
+  - Gắn SBOM với phiên bản hoặc digest artifact.
+- id: quet-rui-ro-chinh-sach
+  title: Quét rủi ro & Chính sách
+  purpose: Quyết định chấp nhận hay chặn dependency dựa trên bằng chứng.
+  objectives:
+  - Quét CVE, thành phần lỗi thời và license.
+  - Ưu tiên xử lý theo mức độ ảnh hưởng thực tế.
+  - Đặt ngưỡng chặn và quy trình ngoại lệ có thời hạn.
+- id: slsa-build-provenance
+  title: SLSA & Build Provenance
+  purpose: Chứng minh artifact được tạo từ nguồn và quy trình build dự kiến.
+  objectives:
+  - Đọc bản ghi build provenance và materials.
+  - Phân biệt các mức bảo đảm trong SLSA Build Track.
+  - Kiểm tra liên kết source, workflow và artifact digest.
+- id: ky-xac-minh-artifact
+  title: Ký & Xác minh Artifact
+  purpose: Bảo đảm danh tính bên phát hành và tính toàn vẹn trước khi dùng.
+  objectives:
+  - Ký image hoặc artifact bằng Sigstore Cosign.
+  - Xác minh chữ ký, danh tính và digest.
+  - Phân biệt chữ ký artifact với provenance attestation.
+- id: release-gate-ung-pho
+  title: Release Gate & Ứng phó
+  purpose: Biến bằng chứng chuỗi cung ứng thành kiểm soát phát hành và xử lý sự cố.
+  objectives:
+  - Chặn deploy nếu thiếu SBOM, provenance hoặc xác minh hợp lệ.
+  - Theo dõi dependency và artifact đã phát hành.
+  - Lập quy trình thu hồi, cập nhật và truy vết phiên bản.

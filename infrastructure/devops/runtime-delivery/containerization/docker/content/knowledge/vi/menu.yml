@@ -1,0 +1,412 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Container hóa là gì và vấn đề Docker giải quyết
+  - Container khác máy ảo ở cơ chế cách ly và phần nhân hệ điều hành
+  - Image, container, Dockerfile và registry liên hệ với nhau như thế nào
+  - Từ mã nguồn đến image và tiến trình phục vụ trong container
+  - Lợi ích về đóng gói, tái lập và chuyển giao ứng dụng
+  - Giới hạn của container đối với bảo mật, dữ liệu và tính sẵn sàng
+  - Docker trong môi trường phát triển, kiểm thử và triển khai
+  - Phân biệt Docker với nền tảng điều phối và dịch vụ chạy container
+  - Trình tự học từ chạy image có sẵn đến vận hành ứng dụng nhiều dịch vụ
+- level1: Kiến trúc Docker
+  level2:
+  - Vai trò của Docker CLI, Docker Engine và Docker daemon
+  - Cơ chế client-server và giao tiếp qua Docker API
+  - Vai trò của containerd và runtime trong chuỗi chạy container
+  - Namespace và các phạm vi được cách ly trong Linux
+  - Cgroup và cơ chế quản lý tài nguyên của tiến trình
+  - Hệ thống tệp nhiều lớp và lớp ghi riêng của container
+  - Quan hệ giữa tiến trình trong container với hệ điều hành máy chủ
+  - Khác biệt giữa Docker Engine và Docker Desktop
+  - Linux container, Windows container và yêu cầu tương thích hệ điều hành
+  - 'Các đối tượng Docker: image, container, network, volume và build cache'
+- level1: Cài đặt và kết nối
+  level2:
+  - Chuẩn bị điều kiện hệ điều hành, ảo hóa và tài nguyên
+  - Cài đặt Docker Engine trên Linux
+  - Cài đặt Docker Desktop trên Windows và macOS
+  - Vai trò của WSL 2 hoặc máy ảo khi chạy Linux container
+  - Kiểm tra môi trường bằng docker version, docker info và hello-world
+  - Kết nối CLI với daemon qua socket hoặc đầu cuối từ xa
+  - Quản lý nhiều môi trường bằng docker context
+  - Quyền truy cập Docker socket và ý nghĩa của nhóm docker
+  - Chạy Docker ở chế độ rootless và các giới hạn cần kiểm tra
+  - Cấu hình proxy, DNS và chứng chỉ cho kết nối tải image
+  - Phân biệt cấu hình CLI, cấu hình daemon và cấu hình ứng dụng
+- level1: Vòng đời container
+  level2:
+  - Tạo và chạy container bằng docker create, docker start, docker run
+  - Các trạng thái created, running, paused, exited và restarting
+  - Chạy tương tác, cấp TTY và chạy nền bằng -i, -t, -d
+  - Đặt tên, nhận diện và lọc container bằng docker ps
+  - Dừng, khởi động lại và kết thúc cưỡng bức container
+  - Tạm dừng và tiếp tục tiến trình bằng docker pause, docker unpause
+  - Theo dõi kết quả bằng docker wait và mã thoát
+  - Xóa container và hiểu điều kiện sử dụng --rm
+  - Phân biệt chạy lại container cũ với tạo container từ image mới
+  - Vì sao container kết thúc khi tiến trình chính kết thúc
+- level1: Cấu hình chạy
+  level2:
+  - Truyền lệnh và đối số khi chạy một image
+  - Khai báo biến môi trường bằng -e và --env-file
+  - Chọn người dùng và nhóm chạy tiến trình bằng --user
+  - Chọn thư mục làm việc và thư mục gốc chỉ đọc
+  - Đặt hostname, nhãn và thông tin nhận diện container
+  - 'Chính sách khởi động lại: no, on-failure, always và unless-stopped'
+  - Phạm vi của chính sách khởi động lại so với xử lý lỗi ứng dụng
+  - Giới hạn quyền, thiết bị và khả năng truy cập máy chủ
+  - Kiểm tra cấu hình đã áp dụng bằng docker inspect
+  - Tránh phụ thuộc vào thay đổi thủ công bên trong container đang chạy
+- level1: Tiến trình và tín hiệu
+  level2:
+  - PID 1 trong container và trách nhiệm thu gom tiến trình con
+  - Dạng exec và dạng shell khi khởi chạy tiến trình
+  - Truyền tín hiệu đến ứng dụng và nguy cơ bị shell trung gian giữ lại
+  - Dừng mềm với SIGTERM và thời điểm chuyển sang kết thúc cưỡng bức
+  - Chọn tín hiệu dừng bằng STOPSIGNAL hoặc tùy chọn chạy
+  - Giới hạn thời gian dừng và công việc cần hoàn tất trước khi thoát
+  - Sử dụng tiến trình init nhỏ với --init
+  - Một container, tiến trình chính và các tiến trình hỗ trợ
+  - Thiết kế ứng dụng để xử lý dừng, khởi động lại và mất máy chủ
+  - Chẩn đoán tiến trình còn sót, tín hiệu không tới và mã thoát bất thường
+- level1: Kiểm tra và nhật ký
+  level2:
+  - Đọc nhật ký chuẩn bằng docker logs
+  - Theo dõi thời gian, số dòng và nhật ký liên tục
+  - Logging driver, nơi lưu và chính sách xoay vòng nhật ký
+  - Chạy lệnh kiểm tra bằng docker exec
+  - Phân biệt docker exec với docker attach
+  - Xem tiến trình và mức tài nguyên bằng docker top, docker stats
+  - Đọc metadata và lọc trường bằng docker inspect --format
+  - Sao chép tệp kiểm tra bằng docker cp
+  - Xem thay đổi lớp ghi bằng docker diff
+  - Theo dõi vòng đời đối tượng bằng docker events
+  - Kiểm tra container tối giản không có shell hoặc công cụ chẩn đoán
+- level1: Image và layer
+  level2:
+  - Image bất biến khác với lớp ghi của container
+  - Layer, metadata cấu hình và lịch sử tạo image
+  - Image ID, tag và digest khác nhau thế nào
+  - Tải, liệt kê và kiểm tra image bằng pull, image ls, image inspect
+  - Đọc lịch sử lớp bằng docker history
+  - Cơ chế dùng chung layer và cách tính dung lượng lưu trữ
+  - Copy-on-write và ảnh hưởng khi sửa tệp thuộc lớp chỉ đọc
+  - Xóa tệp ở layer sau không làm biến mất dữ liệu ở layer trước
+  - Tạo image bằng Dockerfile so với ghi lại container bằng docker commit
+  - Phân biệt docker save/load với docker export/import
+  - Image, manifest và danh sách biến thể theo nền tảng
+- level1: Dockerfile
+  level2:
+  - Vai trò của Dockerfile và thư mục ngữ cảnh bản dựng
+  - FROM và lựa chọn image nền phù hợp
+  - WORKDIR và đường dẫn làm việc trong các chỉ thị tiếp theo
+  - COPY, ADD và khác biệt khi đưa tệp vào image
+  - RUN để tạo nội dung image và CMD để khai báo lệnh mặc định
+  - ENTRYPOINT và cách phối hợp với CMD
+  - ARG trong lúc dựng và ENV trong cấu hình image
+  - USER để thay đổi danh tính thực thi
+  - EXPOSE mô tả cổng nhưng không tự công bố cổng ra máy chủ
+  - VOLUME và hệ quả khi image khai báo điểm lưu dữ liệu
+  - LABEL để lưu metadata phục vụ nhận diện và truy vết
+  - HEALTHCHECK và cấu hình kiểm tra sức khỏe
+  - Dạng shell, dạng exec và cách mở rộng biến trong chỉ thị
+  - Tạo bản dựng đầu tiên bằng docker build và kiểm tra container kết quả
+- level1: Tối ưu bản dựng
+  level2:
+  - Giới hạn ngữ cảnh gửi cho bộ dựng bằng .dockerignore
+  - Quy tắc khớp đường dẫn và loại tệp nhạy cảm khỏi ngữ cảnh
+  - Thứ tự chỉ thị và điều kiện tái sử dụng layer
+  - Tách cài phụ thuộc khỏi sao chép phần mã thường thay đổi
+  - Phân biệt bộ nhớ đệm bản dựng với bộ nhớ đệm của trình quản lý gói
+  - Giảm kích thước image mà vẫn giữ phụ thuộc cần lúc chạy
+  - Dọn tệp tạm đúng layer và tránh tưởng đã xóa bí mật khỏi lịch sử
+  - Chọn image nền theo tương thích, khả năng cập nhật và yêu cầu chẩn đoán
+  - Ghim nguồn đầu vào và nhận diện yếu tố khiến bản dựng khó tái lập
+  - Đọc kết quả bản dựng để tìm bước chậm và bước bị mất cache
+  - Cân bằng số layer, độ rõ ràng và hiệu quả bộ nhớ đệm
+- level1: BuildKit và Buildx
+  level2:
+  - Vai trò của BuildKit so với giao diện docker build
+  - Builder instance và quản lý bằng docker buildx
+  - Kiểm tra builder, driver và khả năng hỗ trợ nền tảng
+  - Bản dựng song song và quan hệ phụ thuộc giữa các giai đoạn
+  - Cache mount cho dữ liệu được dùng lại khi dựng
+  - Bind mount trong bước dựng và phạm vi tồn tại
+  - Secret mount để cấp bí mật mà không đưa vào layer
+  - SSH mount để truy cập phụ thuộc riêng trong lúc dựng
+  - Nhập và xuất bộ nhớ đệm giữa các máy chạy
+  - Xuất kết quả về kho image cục bộ, registry hoặc hệ thống tệp
+  - Phân biệt dữ liệu cache với đầu ra thực sự của bản dựng
+- level1: Build đa giai đoạn
+  level2:
+  - Multi-stage build tách môi trường biên dịch khỏi môi trường chạy
+  - Đặt tên giai đoạn và sao chép đầu ra bằng COPY --from
+  - Tách giai đoạn phụ thuộc, biên dịch, kiểm thử và đóng gói
+  - Chọn giai đoạn đích bằng --target
+  - Chỉ đưa thư viện và tệp cần thiết vào image cuối
+  - Tổ chức giai đoạn phát triển có công cụ và giai đoạn chạy tối giản
+  - Quyền sở hữu tệp khi sao chép giữa các giai đoạn
+  - Kiểm tra tính tương thích thư viện hệ thống giữa image dựng và image chạy
+  - Ví dụ đóng gói ứng dụng Java với bộ công cụ biên dịch và môi trường chạy riêng
+- level1: Đa nền tảng
+  level2:
+  - Phân biệt hệ điều hành, kiến trúc CPU và biến thể nền tảng
+  - Image cho linux/amd64, linux/arm64 và yêu cầu của máy chạy
+  - Tạo bản dựng cho nền tảng đích bằng --platform
+  - Giả lập, máy dựng gốc và biên dịch chéo
+  - Dùng BUILDPLATFORM, TARGETPLATFORM và các tham số kiến trúc
+  - Gộp nhiều biến thể image trong một tham chiếu công bố
+  - Kiểm tra manifest và chọn biến thể phù hợp khi pull
+  - Phụ thuộc nhị phân, thư viện hệ thống và lỗi exec format error
+  - Kiểm thử trên nền tảng đích thay vì chỉ dựa vào kết quả dựng
+- level1: Registry
+  level2:
+  - Registry, repository và tag trong tên image đầy đủ
+  - Đặt lại tên bằng docker tag trước khi đẩy image
+  - Đăng nhập, đăng xuất và bảo vệ thông tin xác thực
+  - Đẩy và tải image bằng docker push, docker pull
+  - Docker Hub và registry riêng trong luồng phân phối image
+  - Tag có thể thay đổi và lựa chọn triển khai theo digest
+  - Xác minh image đã đẩy có đúng nội dung mong muốn
+  - Phân quyền đọc, ghi và phạm vi thông tin xác thực
+  - Kết nối TLS, chuỗi chứng chỉ và lỗi xác thực registry
+  - Chính sách lưu giữ image và giới hạn của việc chỉ xóa tag
+  - Trao đổi image ngoại tuyến bằng save/load và kiểm tra nền tảng
+- level1: Dữ liệu bền vững
+  level2:
+  - Vì sao dữ liệu trong lớp ghi có thể mất khi xóa container
+  - Phân biệt named volume, anonymous volume, bind mount và tmpfs
+  - Tạo, liệt kê và kiểm tra volume bằng docker volume
+  - Gắn volume bằng --mount và cú pháp -v
+  - Khởi tạo nội dung volume từ image và trường hợp thư mục bị che
+  - Dùng lại volume khi tạo container mới
+  - Phạm vi chia sẻ volume giữa nhiều container
+  - Quyền sở hữu, UID/GID và quyền đọc ghi dữ liệu
+  - Xóa container khác với xóa volume và dữ liệu bên trong
+  - Sao lưu, khôi phục và kiểm tra tính nhất quán dữ liệu
+  - Giới hạn của volume cục bộ khi chuyển sang máy chủ khác
+- level1: Bind mount và tmpfs
+  level2:
+  - Bind mount liên kết đường dẫn máy chủ với đường dẫn trong container
+  - Đường dẫn nguồn được hiểu trên máy chạy daemon
+  - Khác biệt xử lý đường dẫn không tồn tại giữa --mount và -v
+  - Gắn tệp hoặc thư mục ở chế độ chỉ đọc
+  - Che nội dung đã có trong image khi gắn thư mục bên ngoài
+  - Bind mount cho mã nguồn phát triển và cấu hình ứng dụng
+  - Khác biệt đường dẫn, quyền và hiệu năng trên Docker Desktop
+  - Cơ chế lan truyền mount và các tình huống cần kiểm tra
+  - Tmpfs cho dữ liệu tạm và giới hạn bảo vệ dữ liệu nhạy cảm
+  - Chọn cơ chế lưu theo vòng đời, hiệu năng và yêu cầu di chuyển
+- level1: Mạng container
+  level2:
+  - Mô hình giao tiếp giữa container, máy chủ và hệ thống bên ngoài
+  - Network driver và phạm vi sử dụng của bridge, host, none, overlay
+  - Mạng bridge mặc định và mạng bridge do người dùng tạo
+  - Tạo, liệt kê và kiểm tra mạng bằng docker network
+  - Gắn hoặc tách container khỏi mạng
+  - DNS nội bộ và tìm dịch vụ theo tên trên mạng phù hợp
+  - Nhiều mạng cho một container và tách luồng giao tiếp
+  - Dải địa chỉ, subnet, gateway và xung đột với mạng máy chủ
+  - Kết nối IPv4, IPv6 và điều kiện cấu hình tương ứng
+  - Giới hạn của localhost trong từng không gian mạng
+  - Khác biệt mạng khi chạy trực tiếp trên Linux và qua Docker Desktop
+  - Phạm vi cách ly mạng và các ràng buộc bảo mật cần bổ sung
+- level1: Cổng và kết nối
+  level2:
+  - Phân biệt cổng ứng dụng, cổng container và cổng máy chủ
+  - Công bố cổng bằng -p và -P
+  - Ràng buộc địa chỉ máy chủ để giới hạn nơi có thể truy cập
+  - Công bố TCP, UDP và kiểm tra bằng docker port
+  - Ứng dụng lắng nghe trên loopback so với mọi giao diện trong container
+  - Kết nối giữa các container mà không công bố cổng ra máy chủ
+  - Kết nối từ container tới dịch vụ trên máy chủ và khác biệt nền tảng
+  - NAT, tường lửa và ảnh hưởng đến đường đi của yêu cầu
+  - Chẩn đoán cổng trùng, kết nối bị từ chối và kết nối hết thời gian chờ
+  - Thực hành truy vết từ máy khách đến đúng tiến trình nhận yêu cầu
+- level1: Giới hạn tài nguyên
+  level2:
+  - Cgroup giới hạn tài nguyên nhưng không thay đổi tài nguyên vật lý của máy
+  - Giới hạn bộ nhớ và nhận diện tình huống OOM
+  - Bộ nhớ swap và các điều kiện hỗ trợ của môi trường chạy
+  - Giới hạn CPU theo thời gian và theo tập CPU được phép dùng
+  - Phân biệt trọng số chia sẻ CPU với giới hạn cứng
+  - Giới hạn số tiến trình và nguy cơ tạo quá nhiều tiến trình con
+  - Giới hạn tệp mở, kích thước bộ nhớ chia sẻ và nhu cầu của ứng dụng
+  - Ảnh hưởng của lớp ghi, volume và logging đến sử dụng đĩa
+  - Đối chiếu cấu hình giới hạn với số đo docker stats
+  - Điều chỉnh tài nguyên máy ảo của Docker Desktop
+  - Kiểm tra hành vi ứng dụng khi bị giới hạn thay vì chỉ đo lúc nhàn rỗi
+- level1: Sức khỏe và khởi động
+  level2:
+  - Trạng thái container running khác với dịch vụ đã sẵn sàng
+  - Thiết kế lệnh HEALTHCHECK theo khả năng phục vụ thực tế
+  - Khoảng kiểm tra, thời gian chờ, số lần thử và giai đoạn khởi động
+  - Các trạng thái starting, healthy, unhealthy và cách đọc kết quả
+  - Giới hạn của healthcheck đối với khởi động lại container độc lập
+  - Chờ phụ thuộc và thử lại kết nối ở phía ứng dụng
+  - Tránh kiểm tra sức khỏe gây tải hoặc làm thay đổi dữ liệu
+  - Khởi động chậm, làm nóng ứng dụng và điều kiện nhận lưu lượng
+  - Phối hợp kiểm tra sức khỏe với dừng mềm và thay thế phiên bản
+- level1: Docker Compose
+  level2:
+  - Compose giải quyết việc mô tả và chạy ứng dụng nhiều container
+  - CLI docker compose và quan hệ với Docker Engine
+  - Mô hình services, networks, volumes, configs và secrets
+  - Tệp Compose và vai trò của tên project
+  - Khai báo service từ image có sẵn hoặc từ Dockerfile
+  - Mô tả cổng, lệnh chạy, biến môi trường và vùng lưu dữ liệu
+  - Giao tiếp giữa các service theo tên và mạng của project
+  - Thứ tự phụ thuộc và giới hạn của depends_on
+  - Chờ healthcheck bằng điều kiện phù hợp trong depends_on
+  - Chạy cấu hình nhiều dịch vụ đầu tiên và kiểm tra trạng thái
+- level1: Cấu hình Compose
+  level2:
+  - Nội suy biến và nguồn giá trị dùng khi đọc tệp Compose
+  - Phân biệt tệp .env dùng nội suy với env_file cấp biến cho container
+  - Thứ tự ưu tiên của biến môi trường và nguy cơ ghi đè ngoài ý muốn
+  - Tách cấu hình nền với cấu hình bổ sung theo môi trường
+  - Quy tắc ghép nhiều tệp và cách kiểm tra cấu hình kết quả
+  - Profiles để chọn nhóm dịch vụ tùy theo mục đích chạy
+  - Đặt tên project để tránh trộn môi trường và tài nguyên
+  - Volume hoặc network do project tạo so với tài nguyên external
+  - Phân biệt secrets của Compose với cơ chế quản lý bí mật có mã hóa
+  - Kiểm tra docker compose config mà không làm lộ giá trị nhạy cảm
+  - Khả năng hỗ trợ thuộc tính phụ thuộc vào nền tảng thực thi
+- level1: Vận hành Compose
+  level2:
+  - Phân biệt docker compose up, start, restart và run
+  - Xây dựng lại image và điều kiện tạo lại container
+  - Chạy lệnh một lần với run và lệnh trong container có sẵn với exec
+  - Theo dõi trạng thái, nhật ký và sự kiện của các service
+  - Cập nhật từng service và đánh giá ảnh hưởng đến phụ thuộc
+  - Tăng số bản sao bằng --scale và giới hạn khi đặt cổng hoặc tên cố định
+  - Dừng project bằng stop so với dỡ tài nguyên bằng down
+  - Ý nghĩa của down --volumes đối với dữ liệu
+  - Xử lý container mồ côi sau khi đổi cấu hình
+  - Truyền tín hiệu, thời gian dừng và chính sách restart trong Compose
+  - Giới hạn của Compose trên một máy đối với tính sẵn sàng và điều phối nhiều máy
+- level1: Container hóa ứng dụng
+  level2:
+  - Chọn tiến trình chính và tách dịch vụ theo vòng đời vận hành
+  - Đưa cấu hình ra ngoài image và ghi nhật ký ra stdout/stderr
+  - Thiết kế đường dẫn ghi dữ liệu và chạy bằng người dùng không phải root
+  - Ứng dụng web cần lắng nghe trên giao diện phù hợp
+  - Kết nối cơ sở dữ liệu qua mạng và giữ dữ liệu ngoài lớp ghi
+  - 'Đóng gói dịch vụ Java: môi trường chạy, bộ nhớ và tín hiệu dừng'
+  - Phân biệt chế độ phát triển có gắn mã nguồn với image triển khai
+  - Tác vụ nền, lịch chạy và xử lý công việc khi container dừng
+  - Chạy thay đổi lược đồ có kiểm soát thay vì để mọi bản sao cùng thực hiện
+  - Kiểm tra ứng dụng từ một bản dựng sạch và dữ liệu được quản lý rõ ràng
+- level1: Bảo mật container
+  level2:
+  - Ranh giới cách ly container và phần nhân hệ điều hành dùng chung
+  - Chạy ứng dụng bằng người dùng không phải root
+  - Phân biệt non-root trong container với Docker rootless
+  - Giảm Linux capabilities và tránh cấp quyền quá rộng
+  - Ngăn nâng quyền mới và áp dụng hệ thống tệp chỉ đọc
+  - Vai trò của seccomp, AppArmor và SELinux
+  - Rủi ro của --privileged, host namespace và gắn thiết bị máy chủ
+  - Docker socket và khả năng điều khiển máy chủ từ container
+  - Giới hạn đường dẫn gắn ngoài và quyền đọc ghi
+  - Giữ bí mật ngoài image, đối số dựng và nhật ký
+  - Kiểm tra quyền thực tế của tiến trình thay vì chỉ dựa vào Dockerfile
+  - Cập nhật hệ điều hành, daemon và image nền theo kế hoạch
+- level1: An toàn chuỗi cung ứng
+  level2:
+  - Đánh giá nguồn image và nhà xuất bản
+  - Phân biệt tag tin cậy, digest cố định và bằng chứng nguồn gốc
+  - Quét lỗ hổng image và diễn giải kết quả trong ngữ cảnh sử dụng
+  - Danh mục thành phần phần mềm (SBOM) phục vụ kiểm kê phụ thuộc
+  - Chữ ký và thông tin xác nhận quá trình dựng image
+  - Bảo vệ nguồn mã, phụ thuộc và máy thực hiện bản dựng
+  - Cấp bí mật lúc dựng mà không lưu vào image hoặc cache chia sẻ
+  - Quét dữ liệu nhạy cảm trong ngữ cảnh dựng và lịch sử layer
+  - Tái dựng image khi nền tảng hoặc phụ thuộc cần vá
+  - Điều kiện cho phép image đi vào môi trường quan trọng
+- level1: Vận hành Docker Engine
+  level2:
+  - Quản lý dịch vụ daemon và đọc nhật ký phía máy chủ
+  - Vai trò của daemon.json và kiểm tra trước khi thay cấu hình
+  - Nơi Docker lưu dữ liệu và ranh giới với đường dẫn trong container
+  - Phân biệt storage driver, image store và volume driver
+  - Theo dõi dung lượng bằng docker system df
+  - Phân biệt dọn container, image, volume, network và build cache
+  - Đánh giá tác động trước khi dùng các lệnh prune
+  - Xoay vòng nhật ký và ngăn đĩa đầy do container
+  - Kết nối daemon từ xa qua SSH hoặc TLS được xác thực
+  - Cập nhật Engine và đánh giá tác động đến container đang chạy
+  - Khả năng live restore và giới hạn khi daemon gián đoạn
+  - Sao lưu cấu hình, dữ liệu ứng dụng và kiểm tra phương án khôi phục
+- level1: Sự cố và chẩn đoán
+  level2:
+  - Quy trình thu thập trạng thái, log, cấu hình và sự kiện trước khi sửa
+  - CLI không kết nối được daemon hoặc bị từ chối quyền socket
+  - Pull thất bại do tên image, xác thực, mạng hoặc chứng chỉ
+  - Build thất bại do ngữ cảnh, đường dẫn và quyền truy cập tệp
+  - Cache cho kết quả ngoài dự kiến hoặc khiến tưởng thay đổi chưa có
+  - Container thoát ngay do lệnh chạy, cấu hình hoặc thiếu phụ thuộc
+  - Lỗi permission denied khi chạy hoặc ghi dữ liệu
+  - Không truy cập được dịch vụ do cổng, DNS, bind address hoặc tường lửa
+  - Container bị kết thúc do thiếu bộ nhớ và giới hạn tài nguyên
+  - Dữ liệu không xuất hiện do gắn nhầm volume hoặc bind mount
+  - Máy chủ hết đĩa và cách xác định đối tượng chiếm dung lượng
+  - Khác biệt kiến trúc, thư viện hệ thống và định dạng tệp thực thi
+  - Ứng dụng chậm do CPU, I/O, mạng hoặc môi trường máy ảo
+  - Xác minh sau sửa và lưu tình huống tái hiện để phòng ngừa
+- level1: Docker Swarm
+  level2:
+  - Swarm mode và ranh giới với việc chạy container trên một máy
+  - Vai trò manager, worker, node và service
+  - Task, số bản sao và trạng thái mong muốn
+  - Mạng overlay và giao tiếp giữa các node
+  - Phân phối lưu lượng qua routing mesh và cách công bố cổng
+  - Rolling update, điều kiện dừng và khả năng rollback service
+  - Secrets, configs và cách cấp cho task
+  - Triển khai stack và giới hạn tương thích với tệp Compose
+  - Đặt ràng buộc vị trí chạy và bảo trì node
+  - Dữ liệu bền vững khi task được chuyển sang máy khác
+  - Giữ quorum manager và giới hạn sẵn sàng của cụm
+- level1: Tích hợp CI/CD
+  level2:
+  - Xây dựng image từ phiên bản mã nguồn xác định
+  - Chạy kiểm thử trong giai đoạn dựng hoặc container tạm
+  - Tái sử dụng cache giữa các lần chạy mà vẫn kiểm soát đầu vào
+  - Cấp quyền registry và bí mật dựng theo phạm vi tối thiểu
+  - Bảo vệ Docker daemon khi chạy công việc CI không tin cậy
+  - Phân biệt gắn socket máy chủ với chạy Docker-in-Docker
+  - Gắn metadata phiên bản và nhận diện image bằng digest
+  - Quét, xác minh và công bố cùng gói đã qua kiểm tra
+  - Phát hành image nhiều kiến trúc từ máy chạy phù hợp
+  - Giữ artifact và bằng chứng để truy vết hoặc quay lại phiên bản trước
+  - Dọn tài nguyên của tác vụ CI mà không ảnh hưởng công việc khác
+- level1: Triển khai và phục hồi
+  level2:
+  - Chuẩn bị máy đích, registry, cấu hình, dữ liệu và quyền truy cập
+  - Chuyển cùng image qua các môi trường thay vì dựng lại tùy ý
+  - Kiểm tra digest và cấu hình trước khi tạo phiên bản mới
+  - Đợi ứng dụng sẵn sàng trước khi chuyển lưu lượng
+  - Phối hợp dừng mềm với cập nhật phiên bản
+  - Giữ tính tương thích khi phiên bản cũ và mới dùng chung dữ liệu
+  - Quay lại image cũ và giới hạn khi dữ liệu hoặc cấu hình đã đổi
+  - Phục hồi ứng dụng từ image, cấu hình và bản sao dữ liệu đã kiểm chứng
+  - Ranh giới giữa lệnh Docker và tính sẵn sàng cần nền tảng điều phối
+  - Bàn giao nhật ký, sức khỏe và thông tin phiên bản sau triển khai
+- level1: Thực hành tổng hợp
+  level2:
+  - Quan sát image, container, tiến trình và lớp ghi trên một ví dụ nhỏ
+  - Viết Dockerfile đầu tiên và đối chiếu RUN, CMD, ENTRYPOINT
+  - Tối ưu cache bằng cách thay đổi mã nguồn và tệp phụ thuộc
+  - Chuyển bản dựng một giai đoạn sang multi-stage build
+  - Kiểm chứng bí mật dựng không nằm trong nội dung image
+  - Giữ dữ liệu qua việc xóa và tạo lại container
+  - So sánh volume, bind mount và tmpfs theo vòng đời dữ liệu
+  - Tạo hai mạng và kiểm tra giao tiếp theo tên dịch vụ
+  - Mô phỏng lỗi cổng, DNS, quyền ghi và thiếu bộ nhớ
+  - Chạy ứng dụng cùng cơ sở dữ liệu bằng Docker Compose
+  - Thực hành healthcheck, phụ thuộc và dừng mềm
+  - Đẩy image lên registry và chạy lại theo digest
+  - Dựng và kiểm tra image cho hai kiến trúc CPU
+  - Diễn tập cập nhật, quay lại phiên bản và phục hồi dữ liệu
+  - Đánh giá một cấu hình container về quyền, tài nguyên và khả năng vận hành

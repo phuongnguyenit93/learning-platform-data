@@ -1,0 +1,402 @@
+menu:
+- level1: Tổng quan Grafana
+  level2:
+  - Grafana là gì và giải quyết bài toán trực quan hóa dữ liệu nào
+  - Vai trò của dashboard trong quan sát và điều tra sự cố
+  - Phân biệt Grafana với nơi thu thập và lưu trữ metric, log, trace
+  - Mối liên hệ giữa nguồn dữ liệu, truy vấn, panel và dashboard
+  - Luồng dữ liệu từ backend đến biểu đồ người dùng nhìn thấy
+  - Phân biệt Grafana OSS, Enterprise và Grafana Cloud
+  - Xác định tính năng theo phiên bản, ấn bản và plugin đang sử dụng
+  - Kiến thức đầu vào và lộ trình từ panel đầu tiên đến dashboard hoàn chỉnh
+- level1: Tư duy dashboard
+  level2:
+  - Xác định người xem, câu hỏi và quyết định cần hỗ trợ
+  - Phân biệt dashboard tổng quan, chẩn đoán và phân tích chuyên sâu
+  - Tổ chức luồng xem từ sức khỏe dịch vụ đến nguyên nhân khả dĩ
+  - Chọn tín hiệu theo lưu lượng, lỗi, độ trễ và mức bão hòa
+  - Chuyển câu hỏi vận hành thành truy vấn và cách trình bày
+  - Chọn biểu đồ theo ý nghĩa dữ liệu thay vì hiệu ứng thị giác
+  - Phân biệt triệu chứng, tương quan và bằng chứng về nguyên nhân
+  - Xác định nguồn, đơn vị và giới hạn diễn giải cho từng chỉ số
+  - Đặt tiêu chí hoàn thành trước khi xây dựng dashboard
+- level1: Môi trường thực hành
+  level2:
+  - Chuẩn bị Grafana cùng dữ liệu mẫu có thể tái hiện
+  - Chọn chạy cục bộ bằng container và cố định phiên bản
+  - Tổ chức cấu hình, cổng truy cập và vùng dữ liệu bền vững
+  - Làm quen chế độ xem, chế độ sửa và trình biên tập panel
+  - Tạo nguồn dữ liệu thử và kiểm tra truy vấn đầu tiên
+  - Tạo, lưu và mở lại dashboard tối thiểu
+  - Phân biệt dữ liệu mẫu với dữ liệu từ hệ thống đang hoạt động
+  - Kiểm tra trạng thái dashboard sau khi khởi động lại Grafana
+- level1: Nguồn dữ liệu
+  level2:
+  - Nguồn dữ liệu là kết nối đến backend và có định danh như thế nào
+  - Kết nối Prometheus cho metric, Loki cho log và Tempo cho trace
+  - Kết nối SQL hoặc dịch vụ đám mây khi cần dữ liệu bổ sung
+  - Cấu hình địa chỉ, xác thực và TLS theo môi trường triển khai
+  - Phân biệt kết nối từ Grafana server với truy cập từ trình duyệt
+  - Chọn nguồn mặc định và quản lý UID ổn định
+  - Dùng nguồn Mixed khi một panel cần nhiều backend
+  - Dùng nguồn Dashboard để tái sử dụng kết quả truy vấn khi phù hợp
+  - Nhận diện dữ liệu thử, dữ liệu dựng sẵn và nguồn phát trực tiếp
+  - Kiểm tra hỗ trợ plugin, phiên bản và tính năng truy vấn
+  - Xác minh kết nối thành công và quyền đọc tập dữ liệu thực tế
+- level1: Mô hình dữ liệu
+  level2:
+  - Khung dữ liệu (data frame) là cầu nối giữa truy vấn và trực quan hóa
+  - Trường dữ liệu, kiểu giá trị, nhãn và cấu hình hiển thị
+  - Phân biệt bảng dữ liệu với chuỗi thời gian
+  - Định dạng chuỗi thời gian dạng rộng và dạng dài
+  - Vai trò của trường thời gian và thứ tự dữ liệu
+  - Phân biệt một frame, nhiều frame và nhiều chuỗi trong cùng kết quả
+  - Giá trị null, dữ liệu thiếu và giá trị bằng 0
+  - Đơn vị dữ liệu gốc và đơn vị hiển thị
+  - Đọc dữ liệu trả về trước khi chọn loại panel
+  - Nhận diện kiểu dữ liệu không phù hợp với biểu đồ đã chọn
+- level1: Truy vấn panel
+  level2:
+  - Chọn trình dựng truy vấn hoặc chế độ viết mã theo nguồn dữ liệu
+  - Tổ chức nhiều truy vấn với định danh tham chiếu A, B và C
+  - Phân biệt truy vấn tức thời với truy vấn theo khoảng thời gian
+  - Lựa chọn đầu ra dạng bảng hoặc chuỗi thời gian
+  - Đặt tên truy vấn, chuỗi và nhãn để kết quả dễ nhận diện
+  - Kiểm tra truy vấn sau khi biến dashboard được nội suy
+  - Phân biệt truy vấn, biểu thức và phép biến đổi dữ liệu
+  - Phân biệt ẩn dữ liệu trong biểu đồ với ẩn hoặc vô hiệu hóa truy vấn
+  - Chọn nơi lọc và tổng hợp dữ liệu giữa backend với Grafana
+  - Dùng Query inspector để kiểm tra yêu cầu và phản hồi thực tế
+  - Nhận diện tính năng lưu truy vấn hoặc ghi truy vấn phụ thuộc ấn bản
+- level1: Thời gian và độ phân giải
+  level2:
+  - Chọn khoảng thời gian tương đối hoặc tuyệt đối
+  - Phân biệt múi giờ trình duyệt, dashboard và dữ liệu nguồn
+  - Điều chỉnh tự làm mới theo độ mới thực tế của dữ liệu
+  - Thiết lập khoảng thời gian riêng và dịch thời gian cho panel
+  - Quan hệ giữa độ rộng panel, số điểm tối đa và bước truy vấn
+  - Vai trò của Min interval, Min step và các giới hạn theo nguồn
+  - Sử dụng $__interval, $__range và biến thời gian đúng ngữ cảnh
+  - Dùng $__rate_interval với Prometheus theo khoảng thu thập
+  - Phân biệt lấy mẫu hiển thị với cửa sổ tính toán trong truy vấn
+  - Ảnh hưởng của dữ liệu đến muộn và mốc now đến biểu đồ
+  - Kiểm tra khoảng trống, dữ liệu thưa và so sánh giữa các khoảng
+- level1: Explore và Drilldown
+  level2:
+  - Khi nào nên khám phá dữ liệu trước khi tạo dashboard
+  - Chạy và điều chỉnh truy vấn trong Explore
+  - Chia màn hình để so sánh nguồn dữ liệu hoặc giả thuyết
+  - Sử dụng lịch sử truy vấn và giữ bối cảnh điều tra
+  - Đọc kết quả, thống kê và lỗi qua trình kiểm tra
+  - Chuyển từ truy vấn khám phá sang panel phục vụ theo dõi lâu dài
+  - Làm quen các trải nghiệm Drilldown cho metric, log, trace hoặc profile
+  - Kiểm tra điều kiện phiên bản, plugin và nguồn dữ liệu của từng Drilldown
+  - Chia sẻ truy vấn cùng thời gian và bộ lọc đủ để tái hiện
+- level1: Biểu đồ thời gian
+  level2:
+  - Khi nào dùng Time series cho dữ liệu biến đổi theo thời gian
+  - Chọn đường, vùng hoặc cột theo tính chất chỉ số
+  - Cấu hình trục, đơn vị và khoảng giá trị
+  - Phân biệt giới hạn trục cứng với giới hạn trục mềm
+  - Dùng trục logarithm và nhiều trục khi có lý do rõ ràng
+  - Hiển thị điểm, độ dày đường và vùng tô phù hợp
+  - Điều chỉnh nối khoảng trống mà không che dữ liệu thiếu
+  - Phân biệt xếp chồng giá trị với biểu đồ phần trăm
+  - Chọn tooltip và chú giải phục vụ so sánh chuỗi
+  - Giữ màu ổn định để nhận diện cùng dịch vụ qua nhiều panel
+  - Đọc đúng tốc độ, tổng tích lũy và số đo tức thời trên biểu đồ
+- level1: Chỉ số và ngưỡng
+  level2:
+  - Dùng Stat để trình bày một giá trị có ý nghĩa rõ ràng
+  - 'Chọn phép rút gọn: cuối cùng, cuối hợp lệ, trung bình, nhỏ nhất hoặc lớn nhất'
+  - Phân biệt hiển thị từng giá trị với tổng hợp cả tập dữ liệu
+  - Kết hợp chỉ số lớn với đường xu hướng nhỏ
+  - Dùng Gauge và Bar gauge khi có khoảng giá trị tham chiếu
+  - Chọn ngưỡng tuyệt đối hoặc theo phần trăm
+  - Ánh xạ giá trị thành nhãn trạng thái dễ hiểu
+  - Biểu diễn không có dữ liệu và giá trị ngoài dự kiến
+  - Phân biệt màu ngưỡng hiển thị với quy tắc phát cảnh báo
+  - Kiểm tra tỷ lệ 0–1 với phần trăm 0–100 để tránh sai đơn vị
+- level1: Bảng và danh mục
+  level2:
+  - Dùng Table khi cần so sánh nhiều thuộc tính cùng lúc
+  - Chọn cột, thứ tự cột, độ rộng và định dạng từng trường
+  - Sắp xếp, lọc và phân trang theo khả năng của bảng
+  - Hiển thị liên kết, trạng thái và dữ liệu dài trong ô
+  - Dùng Bar chart để so sánh các nhóm rời rạc
+  - Chọn cột ngang hoặc dọc theo số nhóm và độ dài tên
+  - Phân biệt nhóm cột với cột xếp chồng
+  - Dùng Pie chart khi dữ liệu thực sự biểu diễn các phần của một tổng
+  - Giới hạn số nhóm và xử lý phần còn lại có chủ đích
+  - Kiểm tra thứ tự, mẫu số và đơn vị để tránh so sánh gây hiểu nhầm
+- level1: Phân bố và trạng thái
+  level2:
+  - Phân biệt phân bố giá trị với xu hướng theo thời gian
+  - Dùng Histogram cho tập quan sát và chọn độ rộng khoảng
+  - Dùng Heatmap để biểu diễn phân bố thay đổi theo thời gian
+  - Phân biệt dữ liệu quan sát thô với dữ liệu histogram đã gom bucket
+  - Chọn thang màu, trục và khoảng giá trị để đọc đúng heatmap
+  - Dùng State timeline cho các khoảng trạng thái liên tục
+  - Dùng Status history cho trạng thái tại từng thời điểm quan sát
+  - Ánh xạ mã số hoặc chuỗi thành trạng thái có ý nghĩa
+  - Xử lý trạng thái null, không xác định và khoảng gián đoạn
+  - Liên kết thay đổi trạng thái với mốc triển khai hoặc sự cố
+- level1: Trực quan chuyên biệt
+  level2:
+  - Dùng Geomap khi dữ liệu có tọa độ hoặc định danh vị trí
+  - Chọn lớp bản đồ và cách biểu diễn giá trị theo vị trí
+  - Dùng Node graph cho tập nút và quan hệ có hướng
+  - Chuẩn bị trường định danh, liên kết và chỉ số cho sơ đồ nút
+  - Dùng Canvas để trình bày sơ đồ hệ thống gắn dữ liệu động
+  - Dùng XY chart khi cần phân tích quan hệ giữa hai đại lượng
+  - Nhận diện trường hợp phù hợp với Trend hoặc Candlestick
+  - Dùng Text và Dashboard list để tạo ngữ cảnh cùng điều hướng
+  - Đánh giá panel mở rộng theo tính năng, phiên bản và chi phí bảo trì
+  - Xác minh sơ đồ phản ánh đúng dữ liệu thay vì suy diễn kiến trúc
+- level1: Tùy biến trường
+  level2:
+  - Cấu hình đơn vị, số chữ số và tên hiển thị qua Standard options
+  - Phân biệt đổi định dạng với thay đổi giá trị dữ liệu
+  - Thiết lập min, max và giá trị hiển thị khi thiếu dữ liệu
+  - Chọn bảng màu và quy tắc gán màu theo chuỗi hoặc giá trị
+  - Ánh xạ giá trị đơn, khoảng và giá trị đặc biệt
+  - Dùng field override theo tên, biểu thức chính quy hoặc kiểu dữ liệu
+  - Dùng override theo truy vấn hoặc đặc điểm giá trị
+  - Phối hợp tùy chọn chung với nhiều override mà không gây xung đột
+  - Giữ đơn vị và cách trình bày nhất quán giữa các panel
+  - Kiểm tra override sau khi đổi tên trường hoặc phép biến đổi
+- level1: Biến dashboard
+  level2:
+  - Biến giúp một dashboard phục vụ nhiều dịch vụ hoặc môi trường như thế nào
+  - Chọn biến Query, Custom, Constant, Text box hoặc Data source
+  - Xây dựng chuỗi phụ thuộc giữa môi trường, cụm và dịch vụ
+  - Điều khiển thời điểm cập nhật và thứ tự biến
+  - Phân biệt tên biến, nhãn hiển thị và giá trị truy vấn
+  - Xử lý nhiều lựa chọn và tùy chọn All
+  - Định dạng, escape và nội suy biến theo từng ngôn ngữ truy vấn
+  - Dùng bộ lọc tùy biến theo khả năng của nguồn dữ liệu
+  - Dùng biến trong tiêu đề, mô tả, liên kết và phép biến đổi
+  - Truyền biến qua URL và kiểm tra lựa chọn mặc định
+  - Nhận diện biến trống, vòng phụ thuộc và truy vấn biến quá tốn kém
+  - Phân biệt biến điều khiển giao diện với giới hạn quyền truy cập dữ liệu
+- level1: Bố cục linh hoạt
+  level2:
+  - Tổ chức panel theo nhóm câu hỏi và thứ tự điều tra
+  - Chọn kích thước, khoảng cách và vị trí panel theo mức quan trọng
+  - Phân biệt bố cục tự sắp xếp với lưới tùy chỉnh theo phiên bản
+  - Tổ chức nội dung bằng hàng hoặc tab khi được hỗ trợ
+  - Lặp panel hoặc nhóm nội dung theo giá trị biến
+  - Kiểm soát số panel phát sinh khi có nhiều lựa chọn
+  - Thiết lập khả năng hiển thị có điều kiện theo tính năng phiên bản
+  - Kiểm tra bố cục trên màn hình lớn, nhỏ và chế độ trình chiếu
+  - Giữ điều khiển thời gian cùng bộ lọc dễ nhận biết
+  - Tránh nhầm nội dung bị ẩn với dữ liệu không tồn tại
+- level1: Biến đổi dữ liệu
+  level2:
+  - Phép biến đổi xử lý dữ liệu trả về để phù hợp với cách hiển thị
+  - Phân biệt thay đổi dữ liệu với tùy chọn định dạng trường
+  - Thứ tự áp dụng và quan hệ đầu vào, đầu ra giữa các bước
+  - Lọc theo trường, giá trị hoặc định danh truy vấn
+  - Chọn, sắp xếp, ẩn và đổi tên trường
+  - Chuyển kiểu chuỗi, số và thời gian
+  - Trích xuất trường từ nội dung có cấu trúc khi phù hợp
+  - Chuyển chuỗi thành hàng hoặc tổ chức lại bảng dữ liệu
+  - Giới hạn, sắp xếp và gom dữ liệu trước khi hiển thị
+  - Kiểm tra dữ liệu từng bước và tạm vô hiệu hóa phép biến đổi
+  - Dùng biến dashboard trong phép biến đổi có chủ đích
+- level1: Ghép và tính toán
+  level2:
+  - Chọn khóa ghép theo thời gian, định danh hoặc nhãn
+  - Phân biệt ghép trong với ghép ngoài và dữ liệu bị thiếu
+  - Trộn nhiều bảng hoặc chuỗi theo cấu trúc dữ liệu thực tế
+  - Tránh nhân số hàng do khóa ghép không duy nhất
+  - Gom nhóm và tính tổng, trung bình hoặc số lượng
+  - Rút gọn chuỗi thành giá trị theo mục đích của panel
+  - Tạo trường tính toán từ các trường đã có
+  - Phân biệt biểu thức phía server với biến đổi dữ liệu trong panel
+  - Căn chỉnh thời điểm và đơn vị trước khi thực hiện phép tính
+  - Xử lý mẫu số bằng 0, null và kết quả không hữu hạn
+  - Đối chiếu kết quả sau ghép với dữ liệu nguồn để tránh mất hoặc đếm trùng
+- level1: Liên kết tương tác
+  level2:
+  - Phân biệt dashboard link, panel link và data link
+  - Tạo luồng đi từ tổng quan đến dashboard chi tiết
+  - Truyền thời gian và lựa chọn biến sang điểm đến
+  - Dùng nhãn chuỗi, tên trường và giá trị điểm dữ liệu trong liên kết
+  - Phân biệt giá trị thô với giá trị đã định dạng
+  - Mã hóa URL và ánh xạ tên biến đúng giữa hai dashboard
+  - Lọc các panel bằng thao tác chọn dữ liệu theo khả năng được hỗ trợ
+  - Đi từ panel đến Explore hoặc công cụ điều tra bên ngoài
+  - Phân biệt liên kết điều hướng với action gọi API
+  - Giới hạn action theo quyền, phạm vi ảnh hưởng và khả năng của panel
+  - Kiểm thử liên kết khi chọn nhiều giá trị hoặc không có dữ liệu
+- level1: Chú thích và cảnh báo
+  level2:
+  - Annotation bổ sung ngữ cảnh cho biến động dữ liệu như thế nào
+  - Tạo mốc triển khai, thay đổi cấu hình và thời gian xảy ra sự cố
+  - Phân biệt chú thích điểm với vùng thời gian
+  - Lấy annotation từ nguồn truy vấn và lọc theo nhãn
+  - Hiển thị annotation trên biểu đồ mà không che dữ liệu
+  - Dùng Annotations list để tổng hợp sự kiện cần xem
+  - Dùng Alert list để hiển thị trạng thái cảnh báo liên quan
+  - Liên kết dashboard và panel với quy tắc cảnh báo
+  - Phân biệt màu ngưỡng, trạng thái cảnh báo và thông báo đã gửi
+  - Xác định ranh giới giữa trực quan hóa với thiết kế hệ thống cảnh báo
+- level1: Hiển thị metric
+  level2:
+  - Chọn metric theo câu hỏi vận hành và hợp đồng đo đạc
+  - Biểu diễn counter bằng tốc độ hoặc mức tăng phù hợp
+  - Giữ đúng nhãn dịch vụ và mức gom khi truy vấn Prometheus
+  - Tính tỷ lệ lỗi từ tử số và mẫu số có cùng phạm vi
+  - Phân biệt trung bình, phân vị và giá trị cực đại của độ trễ
+  - Hiển thị histogram cùng cấu trúc bucket tương ứng
+  - Đặt đơn vị, tỷ lệ và cách làm tròn phù hợp với dữ liệu
+  - Phân biệt thiếu chuỗi, không có lưu lượng và chỉ số bằng 0
+  - Biểu diễn SLI, SLO và ngân sách lỗi với cửa sổ rõ ràng
+  - Đối chiếu panel với truy vấn gốc và số liệu kiểm chứng
+  - Dùng recording rule hoặc dữ liệu tổng hợp khi biểu thức được dùng lặp lại
+- level1: Hiển thị log
+  level2:
+  - Chọn nguồn log và truy vấn theo dịch vụ, môi trường cùng thời gian
+  - Phân biệt lọc nhãn nguồn với lọc nội dung hoặc trường log
+  - Hiển thị thứ tự, mức độ và trường dữ liệu trong Logs panel
+  - Đọc log có cấu trúc và mở chi tiết từng bản ghi
+  - Phân biệt số dòng được trả về với tổng số sự kiện thực tế
+  - Giới hạn số dòng và chọn cách làm mới hoặc theo dõi trực tiếp
+  - Tạo metric từ log để biểu diễn tần suất hoặc tỷ lệ
+  - Hiển thị bảng tổng hợp lỗi mà vẫn giữ đường đến log gốc
+  - Liên kết trace ID hoặc mã yêu cầu trong log
+  - Xử lý bản ghi trùng, nhiều dòng và dữ liệu đến muộn
+  - Giữ thông tin nhạy cảm ngoài tiêu đề, trường hiển thị và liên kết chia sẻ
+- level1: Hiển thị trace
+  level2:
+  - Chọn nguồn tracing và tra cứu bằng trace ID
+  - Tìm trace bằng thuộc tính và TraceQL khi dùng Tempo
+  - Đọc dòng thời gian cùng quan hệ cha con của các span
+  - Phân biệt thời lượng span với thời gian toàn yêu cầu
+  - Nhận diện span lỗi, lời gọi chậm và khoảng chờ
+  - Kiểm tra thuộc tính tài nguyên, sự kiện và mã trạng thái
+  - Chọn cách hiển thị trace trong Explore hoặc panel hỗ trợ
+  - Phân biệt cây span với sơ đồ phụ thuộc dịch vụ
+  - Dùng TraceQL metrics để trực quan hóa kết quả tổng hợp từ trace
+  - Nhận diện giới hạn do lấy mẫu, thiếu span và dữ liệu chưa đầy đủ
+- level1: Liên kết tín hiệu
+  level2:
+  - Thiết kế hành trình điều tra từ metric đến log, trace và profile
+  - Dùng exemplar để đi từ điểm metric đến trace đại diện
+  - Đi từ trace đến log theo dịch vụ, định danh và thời gian
+  - Đi từ log có trace ID đến trace tương ứng
+  - Liên kết metric với log để kiểm tra mức ảnh hưởng
+  - Kết nối Pyroscope và đọc Flame graph theo tài nguyên được đo
+  - Phân biệt Flame graph của profile với dòng thời gian trace
+  - Chuẩn hóa tên dịch vụ, nhãn môi trường và định danh giữa các nguồn
+  - Phối hợp khoảng thời gian và quyền truy cập khi chuyển tín hiệu
+  - Kiểm tra liên kết khi trace bị lấy mẫu hoặc dữ liệu đã hết thời gian lưu
+  - Đối chiếu khả năng hỗ trợ correlation theo nguồn và phiên bản
+- level1: Dashboard ứng dụng
+  level2:
+  - Thiết kế trang tổng quan sức khỏe cho một dịch vụ
+  - Nhóm chỉ số theo lưu lượng, lỗi và độ trễ
+  - Theo dõi tài nguyên theo mức sử dụng, bão hòa và lỗi
+  - Hiển thị metric Spring Boot và Micrometer theo tên thực tế
+  - Tổ chức panel JVM, heap, GC và luồng có ngữ cảnh
+  - Theo dõi cơ sở dữ liệu, nhóm kết nối và dịch vụ phụ thuộc
+  - Hiển thị hàng đợi, tuổi công việc và kết quả tác vụ định kỳ
+  - Đặt mốc phát hành cạnh biến động lỗi hoặc độ trễ
+  - Tạo đường điều tra từ dịch vụ đến instance và thao tác cụ thể
+  - Biểu diễn trạng thái thiếu dữ liệu thay vì suy diễn dịch vụ khỏe
+  - Kiểm tra dashboard bằng một kịch bản lỗi có kết quả đã biết
+- level1: Thiết kế giao diện
+  level2:
+  - Đặt tên dashboard và tiêu đề panel theo câu hỏi rõ ràng
+  - Dùng mô tả ngắn để giải thích công thức và giới hạn diễn giải
+  - Tạo thứ bậc thị giác theo mức quan trọng của thông tin
+  - Giữ đơn vị, quy ước màu và nhãn nhất quán
+  - Chọn màu có độ tương phản và không chỉ dựa vào đỏ hoặc xanh
+  - Giới hạn số chuỗi, số nhóm và thông tin trong chú giải
+  - Tránh cắt trục, xếp chồng hoặc nhiều trục làm sai cảm nhận
+  - Kiểm tra khả năng đọc ở giao diện sáng và tối
+  - Thiết kế cho màn hình nhỏ, bàn điều hành và chế độ trình chiếu
+  - Dùng văn bản và hướng dẫn xử lý khi panel không có dữ liệu
+  - Đánh giá dashboard bằng tác vụ thực tế của người xem
+- level1: Tái sử dụng dashboard
+  level2:
+  - Tổ chức dashboard bằng thư mục, nhãn và quy ước đặt tên
+  - Dùng UID ổn định cho liên kết và quản lý vòng đời
+  - Phân biệt sao chép dashboard với dùng chung thành phần
+  - Dùng library panel khi phù hợp và kiểm tra phạm vi hỗ trợ
+  - Đánh giá tác động khi thay đổi panel đang được nhiều dashboard dùng
+  - Tận dụng biến để giảm các dashboard chỉ khác dịch vụ hoặc môi trường
+  - Import dashboard có sẵn và ánh xạ lại nguồn dữ liệu
+  - Rà soát dashboard cộng đồng theo metric, phiên bản và nhu cầu
+  - Theo dõi lịch sử thay đổi và khôi phục phiên bản khi cần
+  - Xác định chủ sở hữu, lịch rà soát và điều kiện ngừng sử dụng
+- level1: Chia sẻ và phân quyền
+  level2:
+  - Chọn cách chia sẻ nội bộ theo người xem và mục đích
+  - Giữ khoảng thời gian cùng lựa chọn biến trong liên kết
+  - Phân biệt chia sẻ liên kết, snapshot và xuất cấu hình JSON
+  - Nhận diện dữ liệu thực tế còn hiện diện trong snapshot
+  - Xuất ảnh, PDF hoặc báo cáo theo ấn bản và dịch vụ hỗ trợ
+  - Đánh giá nhúng panel và chia sẻ ra ngoài theo mô hình xác thực
+  - Phân biệt quyền thư mục, dashboard với quyền truy vấn nguồn dữ liệu
+  - Nhận diện khả năng giới hạn nguồn dữ liệu và RBAC theo ấn bản
+  - Vì sao biến hoặc trường bị ẩn không bảo vệ dữ liệu phía backend
+  - Kiểm tra dữ liệu, liên kết và thông tin nhạy cảm trước khi chia sẻ
+  - Xác minh quyền bằng đúng vai trò của người nhận
+- level1: Dashboard bằng mã
+  level2:
+  - Dashboard as code giúp kiểm soát thay đổi và triển khai như thế nào
+  - Đọc cấu hình JSON và các định danh nguồn dữ liệu được tham chiếu
+  - Phân biệt mô hình Classic với schema v2 theo phiên bản
+  - Quản lý nguồn dữ liệu và dashboard qua provisioning
+  - Phân biệt tài nguyên được quản lý bằng mã với bản sửa trực tiếp trên UI
+  - Đưa cấu hình vào Git với biến môi trường và ánh xạ UID phù hợp
+  - Đánh giá Git Sync theo tính năng và điều kiện hỗ trợ
+  - Chọn Terraform, Grafana Operator hoặc Foundation SDK theo cách triển khai
+  - Sử dụng API tài nguyên tương thích với phiên bản Grafana
+  - Rà soát thay đổi truy vấn, biến, bố cục và quyền truy cập
+  - Kiểm tra tính hợp lệ, import và khả năng quay lui trước khi phát hành
+  - Xác minh dashboard sau nâng cấp Grafana hoặc plugin
+- level1: Hiệu năng dashboard
+  level2:
+  - Ước lượng số truy vấn từ panel, biến và nội dung lặp
+  - Chọn chu kỳ làm mới phù hợp với nhu cầu cùng độ trễ dữ liệu
+  - Thu hẹp thời gian, nhãn và số nhóm ngay tại nguồn
+  - Giảm số điểm, số hàng và kích thước phản hồi
+  - Phân tích chi phí của phép ghép và biến đổi phía trình duyệt
+  - Tái sử dụng kết quả khi nhiều panel cần cùng một truy vấn
+  - Kiểm tra hiệu quả của recording rule và dữ liệu tổng hợp
+  - Đánh giá query caching theo backend và ấn bản hỗ trợ
+  - Phân biệt lỗi backend chậm với trình duyệt dựng biểu đồ chậm
+  - Đo trên dashboard có nhiều lựa chọn biến và số chuỗi lớn
+  - Cân bằng độ chi tiết, tốc độ tải và chi phí truy vấn
+- level1: Chẩn đoán và kiểm thử
+  level2:
+  - Phân loại lỗi kết nối, xác thực, truy vấn và trực quan hóa
+  - Kiểm tra No data do khoảng thời gian, bộ lọc hoặc biến rỗng
+  - Lần theo dữ liệu từ phản hồi nguồn đến từng bước biến đổi
+  - Kiểm tra thời gian, múi giờ và đơn vị khi số liệu hiển thị sai
+  - Chẩn đoán thiếu chuỗi hoặc nhân số hàng sau phép ghép
+  - Kiểm tra phép rút gọn, ngưỡng và ánh xạ giá trị
+  - Dùng panel inspector để xem dữ liệu, yêu cầu, thống kê và lỗi
+  - Đối chiếu dữ liệu trước và sau định dạng khi xuất CSV
+  - Kiểm thử các trạng thái bình thường, lỗi, dữ liệu thưa và không có dữ liệu
+  - Kiểm tra bộ lọc, liên kết và bố cục dưới nhiều lựa chọn
+  - Kiểm tra quyền xem cùng khả năng chia sẻ bằng vai trò thực tế
+  - Rà soát tác động sau thay đổi schema, plugin hoặc phiên bản
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo dashboard đầu tiên từ dữ liệu mẫu đến panel đã lưu
+  - Xây dựng bảng theo dõi lưu lượng, lỗi và độ trễ từ Prometheus
+  - Thêm biến môi trường, dịch vụ và instance có quan hệ phụ thuộc
+  - Tạo Stat, Time series, Table và Heatmap cho cùng bài toán vận hành
+  - Ghép metric có đơn vị khác nhau và kiểm chứng từng bước tính toán
+  - Biểu diễn các đợt triển khai cùng trạng thái dịch vụ
+  - Tạo luồng từ dashboard tổng quan đến log và trace của một yêu cầu lỗi
+  - Liên kết metric, exemplar và trace để điều tra độ trễ tăng
+  - Phân tích profile bằng Flame graph khi cần bằng chứng về CPU
+  - Thiết kế dashboard ứng dụng Spring Boot có dữ liệu thiếu và lỗi mô phỏng
+  - Đóng gói dashboard bằng mã và triển khai sang môi trường khác
+  - Kiểm thử quyền xem, liên kết, hiệu năng và khả năng đọc
+  - Đánh giá dashboard hoàn chỉnh theo câu hỏi vận hành ban đầu

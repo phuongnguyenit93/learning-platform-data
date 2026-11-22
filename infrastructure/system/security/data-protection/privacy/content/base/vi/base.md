@@ -1,0 +1,7 @@
+# Security Data Protection Privacy
+
+Privacy trong bảo vệ dữ liệu là cách một hệ thống tôn trọng quyền và lợi ích của cá nhân khi thu thập, sử dụng, lưu giữ hoặc chia sẻ thông tin liên quan đến họ. Khác với bảo mật chỉ tập trung ngăn truy cập trái phép, quyền riêng tư còn đặt câu hỏi liệu dữ liệu có cần được thu thập, mục đích sử dụng có minh bạch và phù hợp, cá nhân có khả năng kiểm soát thông tin của mình hay không. Các yêu cầu pháp lý cụ thể phụ thuộc khu vực pháp lý và vai trò của tổ chức; những nguyên tắc trong module được trình bày như nền tảng để đánh giá và thiết kế hệ thống.
+
+Roadmap một cấp gồm tám mốc: nhận diện dữ liệu cá nhân và rủi ro quyền riêng tư; lập bản đồ luồng dữ liệu cùng mục đích sử dụng; tìm hiểu cơ sở xử lý và thông báo minh bạch. Tiếp theo, người học áp dụng privacy by design/default, data minimization, kiểm soát quyền truy cập và kỹ thuật giảm nhận dạng, rồi thiết kế quy trình đáp ứng quyền của chủ thể dữ liệu. Các mốc cuối tập trung vào chia sẻ dữ liệu với nhà cung cấp, thời hạn lưu giữ và đánh giá tác động tới quyền riêng tư (PIA/DPIA), kết hợp theo dõi, khắc phục rủi ro và cải tiến liên tục.
+
+Module phù hợp với developer, security engineer, product engineer hoặc người phụ trách thiết kế hệ thống đã hiểu API, database và vòng đời dữ liệu cơ bản. Sau khi học, bạn có thể phác họa data flow, nhận diện xử lý dữ liệu không cần thiết, đề xuất cấu hình bảo vệ theo mặc định, xây checklist đáp ứng yêu cầu của cá nhân và tham gia đánh giá rủi ro quyền riêng tư trước khi phát hành tính năng.

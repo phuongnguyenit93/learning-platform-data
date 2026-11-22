@@ -1,0 +1,57 @@
+roadmap:
+- id: luong-trien-khai-ung-dung
+  title: Luồng triển khai ứng dụng
+  purpose: Hiểu cách đưa một phiên bản đã build lên môi trường chạy và phân biệt các bước delivery.
+  objectives:
+  - Phân biệt build, deploy và release.
+  - Mô tả artifact → môi trường → chạy thử → phục vụ người dùng.
+  - Xác định đầu vào và tiêu chí thành công của deployment.
+- id: artifact-moi-truong
+  title: Artifact & môi trường
+  purpose: Bảo đảm mỗi môi trường sử dụng đúng bản build và có cấu hình vận hành phù hợp.
+  objectives:
+  - Định danh artifact bằng version và image digest.
+  - Phân biệt dev, staging và production theo mục đích kiểm thử.
+  - Giải thích lợi ích của build once, deploy many.
+- id: workload-diem-truy-cap
+  title: Workload & điểm truy cập
+  purpose: Nắm tài nguyên chạy ứng dụng và cách đưa lưu lượng tới các phiên bản đang hoạt động.
+  objectives:
+  - Khai báo image, replicas và tài nguyên cho Deployment.
+  - Giải thích quan hệ Deployment, ReplicaSet và Pod.
+  - Dùng Service để truy cập các Pod phù hợp.
+- id: config-bi-mat
+  title: Config & bí mật
+  purpose: Tách cấu hình môi trường khỏi mã nguồn và hạn chế lộ thông tin xác thực.
+  objectives:
+  - Đưa cấu hình thông thường vào biến môi trường hoặc ConfigMap.
+  - Dùng Secret cho token, mật khẩu và giới hạn quyền đọc.
+  - Kiểm tra cấu hình trước khi deploy, tránh log giá trị nhạy cảm.
+- id: suc-khoe-luu-luong
+  title: Sức khỏe & lưu lượng
+  purpose: Chỉ chuyển lưu lượng khi ứng dụng sẵn sàng và phát hiện lỗi lúc khởi động hoặc vận hành.
+  objectives:
+  - Phân biệt startup, readiness và liveness probes.
+  - Kiểm tra endpoint và kết nối tới dịch vụ phụ thuộc.
+  - Quan sát replica sẵn sàng và hành vi khi probe thất bại.
+- id: rollout-duong-lui
+  title: Rollout & đường lui
+  purpose: Thay đổi phiên bản có kiểm soát, theo dõi tiến độ và chuẩn bị khôi phục khi có lỗi.
+  objectives:
+  - Thực hiện rolling update và theo dõi rollout status.
+  - Nhận biết Recreate, blue-green và canary ở mức khái quát.
+  - Thử rollout undo; lưu ý rollback không hoàn tác dữ liệu.
+- id: tu-dong-hoa-phe-duyet
+  title: Tự động hóa & phê duyệt
+  purpose: Đưa triển khai vào CI/CD để giảm thao tác thủ công và kiểm soát quyền phát hành.
+  objectives:
+  - Tổ chức các bước package, test, publish và deploy.
+  - Dùng secret có phạm vi hẹp và quyền môi trường phù hợp.
+  - Thiết lập kiểm tra, phê duyệt hoặc quality gate trước production.
+- id: xac-minh-giam-sat
+  title: Xác minh & giám sát
+  purpose: Khẳng định ứng dụng hoạt động sau khi deploy và theo dõi tác động thực tế tới người dùng.
+  objectives:
+  - Thực hiện smoke test hoặc kiểm tra API sau triển khai.
+  - Theo dõi log, metrics, error rate và latency.
+  - Lập checklist sự cố, cảnh báo và quy trình rollback.

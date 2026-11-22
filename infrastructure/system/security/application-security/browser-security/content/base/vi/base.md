@@ -1,0 +1,7 @@
+# Security Application Security Browser Security
+
+Browser Security là tập hợp cơ chế bảo vệ ứng dụng web tại ranh giới giữa trình duyệt, website, JavaScript và những tài nguyên được tải từ các origin khác nhau. Trình duyệt áp dụng các chính sách như Same-Origin Policy, CORS, giới hạn cookie và kiểm soát nội dung để giảm khả năng một trang đọc dữ liệu hoặc thực thi hành động không được phép. Tuy nhiên, cơ chế phía trình duyệt không thay thế kiểm tra xác thực, phân quyền và xác thực dữ liệu tại máy chủ; hệ thống an toàn cần phối hợp cả hai phía.
+
+Roadmap một cấp gồm tám mốc: bắt đầu từ ranh giới origin/site và secure context, tiếp tục với Same-Origin Policy, CORS, cookie và browser storage. Người học nhận diện XSS, sử dụng output encoding, DOM API an toàn và HTML sanitization; sau đó tìm hiểu CSRF, chính sách SameSite, CSRF token, CSP và Trusted Types. Các mốc cuối tập trung vào clickjacking, cross-origin isolation, giao tiếp giữa cửa sổ, HTTPS, HSTS và kiểm tra các security headers trong trình duyệt thực tế.
+
+Module dành cho developer đã biết HTTP, HTML, JavaScript và cách ứng dụng web sử dụng session hoặc API. Sau khi hoàn thành, bạn có thể phân tích rủi ro ở browser, thiết lập chính sách bảo vệ phù hợp, kiểm tra hành vi cookie và cross-origin request, cũng như kiểm thử các tình huống XSS, CSRF, nhúng iframe hoặc tải tài nguyên không an toàn mà không đánh đồng một security header với giải pháp bảo mật toàn diện.

@@ -1,0 +1,7 @@
+# DevOps Delivery Automation CI/CD Jenkins — Tự động hóa quy trình phân phối phần mềm
+
+Jenkins là máy chủ tự động hóa mã nguồn mở giúp kết nối các bước lấy mã từ Git, build, chạy kiểm thử, đóng gói và chuyển giao phần mềm. Thay vì thao tác thủ công cho mỗi lần thay đổi, nhóm phát triển có thể định nghĩa quy trình nhất quán bằng `Jenkinsfile` và lưu ngay trong repository. Jenkins đóng vai trò điều phối, còn các *agents* cung cấp môi trường thực thi; công cụ không thay thế thiết kế quy trình CI/CD hoặc việc kiểm soát chất lượng phát hành.
+
+Module dành cho người đã nắm Git, Java, Maven và CI/CD cơ bản. Lộ trình bắt đầu từ mô hình Jenkins, cài đặt và plugin, sau đó tìm hiểu controller–agent, executor và cách chọn agent cho từng công việc. Trọng tâm là Declarative Pipeline với các khối `agent`, `stages`, `steps`, `post`, tích hợp SCM và Multibranch Pipeline để kiểm tra các nhánh hoặc pull request. Người học sẽ xây pipeline Java thực hiện build/test, xuất JUnit report và lưu artifact.
+
+Cuối module, bạn sẽ học cách dùng Jenkins Credentials đúng phạm vi, phân quyền tối thiểu, tổ chức bước publish/deploy theo điều kiện kiểm thử và xử lý tình huống pipeline thất bại qua logs, timeout hoặc retry. Hoàn thành lộ trình, bạn có thể tự tạo một Jenkinsfile đơn giản cho dự án Java, giải thích luồng CI/CD từ commit đến artifact và vận hành pipeline an toàn, có thể kiểm chứng.

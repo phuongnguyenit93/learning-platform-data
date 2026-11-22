@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-mang-rui-ro
+  title: Mô hình Mạng & Rủi ro
+  purpose: Nắm giao thức, luồng lưu lượng và ranh giới tin cậy để nhận diện điểm dễ bị tấn công.
+  objectives:
+  - Phân biệt IP, TCP, UDP và các cổng dịch vụ
+  - Vẽ luồng client–server qua các vùng mạng
+  - Xác định bề mặt tấn công và trust boundary
+- id: phan-vung-segmentation
+  title: Phân vùng & Segmentation
+  purpose: Giới hạn giao tiếp không cần thiết giữa các hệ thống để giảm di chuyển ngang khi bị xâm nhập.
+  objectives:
+  - Phân chia public, app và database subnet
+  - So sánh VLAN, VPC và microsegmentation
+  - Kiểm thử những luồng được phép qua từng vùng
+- id: firewall-acl
+  title: Firewall & ACL
+  purpose: Dùng chính sách lọc lưu lượng tối thiểu và kiểm tra cả chiều vào lẫn chiều ra.
+  objectives:
+  - Phân biệt stateful firewall với stateless ACL
+  - Tạo quy tắc allowlist theo IP, protocol và port
+  - Xác minh lưu lượng được cho phép hoặc từ chối
+- id: tls-ket-noi-an-toan
+  title: TLS & Kết nối An toàn
+  purpose: Bảo vệ dữ liệu đang truyền và kiểm tra danh tính của đầu cuối giao tiếp.
+  objectives:
+  - Giải thích TLS handshake và xác thực chứng chỉ
+  - Thử HTTPS, phát hiện certificate hết hạn
+  - Phân biệt mã hóa khi truyền với phân quyền truy cập
+- id: zero-trust-access
+  title: Zero Trust Access
+  purpose: Kiểm soát truy cập theo danh tính và ngữ cảnh thay vì mặc định tin cậy mạng nội bộ.
+  objectives:
+  - Giải thích least privilege và verify explicitly
+  - So sánh VPN truyền thống với cách tiếp cận ZTNA
+  - Thiết kế luồng truy cập dịch vụ có xác thực
+- id: giam-sat-ids-ips
+  title: Giám sát & IDS/IPS
+  purpose: Phát hiện bất thường qua telemetry mạng và phân loại cảnh báo có căn cứ.
+  objectives:
+  - Thu thập firewall log và network flow log
+  - Phân biệt IDS, IPS và hành vi cảnh báo
+  - Điều tra một cảnh báo bằng IP, port và timestamp
+- id: ngan-chan-tan-cong-mang
+  title: Ngăn chặn Tấn công Mạng
+  purpose: Hiểu rủi ro gián đoạn và truy cập trái phép để chọn lớp phòng vệ phù hợp.
+  objectives:
+  - Nhận diện DDoS, quét cổng và lưu lượng bất thường
+  - Đề xuất rate limiting và lọc tại biên mạng
+  - Diễn tập tình huống tấn công trong lab an toàn
+- id: danh-gia-ung-pho
+  title: Đánh giá & Ứng phó
+  purpose: Kiểm chứng chính sách mạng và chuẩn bị cách khôi phục khi phát hiện sự cố.
+  objectives:
+  - Rà soát rule quá rộng và cổng phơi nhiễm
+  - Thử kiểm tra cấu hình trong môi trường được phép
+  - Viết runbook cô lập, điều tra và khôi phục dịch vụ

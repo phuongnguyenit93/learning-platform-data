@@ -1,0 +1,329 @@
+menu:
+- level1: 1. Tổng quan SSO
+  level2:
+  - 1.1. Đăng nhập một lần (SSO) là gì và vấn đề cần giải quyết
+  - 1.2. Phân biệt xác thực, cấp quyền và quản lý tài khoản
+  - 1.3. Phiên đăng nhập tại nhà cung cấp danh tính và tại từng ứng dụng
+  - 1.4. Đăng nhập tập trung, liên kết danh tính và đăng nhập một lần
+  - 1.5. SSO trong tổ chức, giữa đối tác và trong ứng dụng nhiều khách hàng
+  - 1.6. Lợi ích, phạm vi ảnh hưởng và sự phụ thuộc vào hệ thống danh tính
+  - 1.7. Vai trò của SAML 2.0 trong bức tranh SSO
+  - 1.8. Lộ trình từ mô hình tin cậy đến giao thức, bảo mật và vận hành
+- level1: 2. Danh tính và tin cậy
+  level2:
+  - 2.1. Nhà cung cấp danh tính (IdP) và bên cung cấp dịch vụ (SP)
+  - 2.2. Chủ thể, trình duyệt, ứng dụng và miền quản trị
+  - 2.3. Mối quan hệ tin cậy giữa IdP với SP
+  - 2.4. Danh tính cục bộ và danh tính được liên kết
+  - 2.5. Định danh ổn định, thuộc tính và thông tin dùng để cấp quyền
+  - 2.6. Luồng trình duyệt chuyển tiếp thông điệp và giới hạn tin cậy
+  - 2.7. Phân biệt tin cậy vào bên phát hành với tin cậy vào người dùng
+  - 2.8. Ranh giới giữa chứng minh xác thực và quyết định cấp quyền
+  - 2.9. Mô hình đe dọa khi IdP, SP hoặc thiết bị người dùng bị xâm nhập
+- level1: 3. Bức tranh giao thức
+  level2:
+  - 3.1. SSO bằng SAML, OpenID Connect và cơ chế xác thực trong miền
+  - 3.2. Phân biệt SAML assertion, ID token và access token
+  - 3.3. Vai trò của OAuth trong ủy quyền và quan hệ với OIDC
+  - 3.4. Khi nào chọn SAML cho ứng dụng web và tích hợp doanh nghiệp
+  - 3.5. Giới hạn khi dùng SAML cho ứng dụng di động, SPA và API
+  - 3.6. SSO qua proxy và nguy cơ tin cậy sai header danh tính
+  - 3.7. Liên kết danh tính khác với đồng bộ tài khoản bằng SCIM
+  - 3.8. Tiêu chí chọn giao thức theo nền tảng, đối tác và yêu cầu vận hành
+- level1: 4. Kiến trúc SAML 2.0
+  level2:
+  - 4.1. Assertion, protocol, binding, profile và metadata liên hệ với nhau thế nào
+  - 4.2. Không gian tên XML và các thành phần thông điệp cốt lõi
+  - 4.3. Web Browser SSO Profile và phạm vi luồng đăng nhập
+  - 4.4. Luồng khởi tạo từ SP và luồng khởi tạo từ IdP
+  - 4.5. Đường truyền qua trình duyệt và đường trao đổi trực tiếp giữa máy chủ
+  - 4.6. Entity ID, endpoint và quan hệ giữa chúng
+  - 4.7. Assertion Consumer Service (ACS) và điểm tiếp nhận kết quả
+  - 4.8. Single Sign-On Service và Single Logout Service
+  - 4.9. Các giả định bảo mật của mô hình bearer assertion
+  - 4.10. Các điểm cần xác minh trước khi thiết lập phiên ứng dụng
+- level1: 5. Metadata và cấu hình
+  level2:
+  - 5.1. EntityDescriptor và vai trò của Entity ID
+  - 5.2. IDPSSODescriptor, SPSSODescriptor và khả năng được công bố
+  - 5.3. Endpoint, Binding, Location và lựa chọn ACS
+  - 5.4. KeyDescriptor cho ký và mã hóa
+  - 5.5. NameIDFormat, dịch vụ thuộc tính và yêu cầu tích hợp
+  - 5.6. Metadata tĩnh, tải động và quy trình xác lập nguồn tin cậy
+  - 5.7. Chữ ký metadata, thời hạn, bộ nhớ đệm và chống dùng bản lỗi thời
+  - 5.8. Phân biệt chứng thư dùng trong SAML với chứng thư TLS
+  - 5.9. Quản lý cấu hình theo môi trường và tránh nhầm đối tác
+  - 5.10. Phê duyệt thay đổi metadata, endpoint và khóa của đối tác
+- level1: 6. Yêu cầu xác thực
+  level2:
+  - 6.1. Cấu trúc AuthnRequest và các trường định danh yêu cầu
+  - 6.2. ID, Version, IssueInstant, Issuer và Destination
+  - 6.3. AssertionConsumerServiceURL, ACS index và kiểm soát điểm nhận
+  - 6.4. ProtocolBinding và cách yêu cầu phương thức trả kết quả
+  - 6.5. ForceAuthn, IsPassive và giới hạn ý nghĩa của từng tùy chọn
+  - 6.6. NameIDPolicy và yêu cầu định dạng danh tính
+  - 6.7. RequestedAuthnContext và cách diễn đạt mức xác thực mong muốn
+  - 6.8. Subject, Scoping và các tùy chọn nâng cao
+  - 6.9. Ký yêu cầu xác thực và chính sách chấp nhận của IdP
+  - 6.10. Lưu trạng thái yêu cầu chờ để đối chiếu phản hồi
+- level1: 7. Assertion và phản hồi
+  level2:
+  - 7.1. Response, Status và phân biệt thành công với lỗi giao thức
+  - 7.2. Issuer, ID, IssueInstant và liên kết với AuthnRequest
+  - 7.3. Subject, NameID và SubjectConfirmation
+  - '7.4. Bearer SubjectConfirmationData: Recipient, InResponseTo và thời hạn'
+  - '7.5. Conditions: NotBefore, NotOnOrAfter và giới hạn thời gian'
+  - 7.6. AudienceRestriction và phạm vi bên được nhận assertion
+  - '7.7. AuthnStatement: thời điểm xác thực, SessionIndex và AuthnContext'
+  - 7.8. AttributeStatement và cấu trúc tên, kiểu, giá trị thuộc tính
+  - 7.9. AuthzDecisionStatement và phạm vi sử dụng trong thiết kế
+  - 7.10. Nhiều assertion, assertion được mã hóa và chính sách lựa chọn đối tượng hợp lệ
+  - 7.11. Phân biệt dữ liệu trong Response với dữ liệu đã được assertion xác nhận
+- level1: 8. Bindings và mã hóa thông điệp
+  level2:
+  - 8.1. HTTP Redirect Binding và thông điệp trong chuỗi truy vấn
+  - 8.2. HTTP POST Binding và biểu mẫu chuyển tiếp qua trình duyệt
+  - 8.3. Nén, Base64, URL encoding và thứ tự xử lý phù hợp từng binding
+  - 8.4. HTTP Artifact Binding và trao đổi thông điệp qua tham chiếu
+  - 8.5. ArtifactResolve, ArtifactResponse và kênh phân giải trực tiếp
+  - 8.6. SOAP Binding và vai trò trong các trao đổi máy chủ
+  - 8.7. Chữ ký của Redirect Binding so với XML Signature
+  - 8.8. Giới hạn kích thước URL, proxy trung gian và khả năng tương thích
+  - 8.9. RelayState và quan hệ với trạng thái chuyển hướng của ứng dụng
+  - 8.10. Chọn binding dựa trên hỗ trợ đối tác và yêu cầu bảo mật
+- level1: 9. Đăng nhập từ SP
+  level2:
+  - 9.1. Người dùng truy cập tài nguyên chưa có phiên ứng dụng
+  - 9.2. SP tạo yêu cầu, lưu trạng thái chờ và chuyển hướng đến IdP
+  - 9.3. IdP xác định người dùng và đánh giá chính sách xác thực
+  - 9.4. Tái sử dụng phiên IdP hoặc yêu cầu đăng nhập mới
+  - 9.5. IdP tạo phản hồi và chuyển trình duyệt đến ACS
+  - 9.6. SP kiểm chứng thông điệp, assertion và yêu cầu đang chờ
+  - 9.7. Ánh xạ danh tính sang tài khoản cục bộ
+  - 9.8. Tạo phiên ứng dụng và chuyển đến tài nguyên được cho phép
+  - 9.9. Xử lý nhiều tab, nhiều yêu cầu đồng thời và yêu cầu đã hết hạn
+  - 9.10. Phân tích luồng khi người dùng đã có phiên ở một phần hệ thống
+- level1: 10. Đăng nhập từ IdP
+  level2:
+  - 10.1. Cổng ứng dụng tại IdP và phản hồi không gắn yêu cầu từ SP
+  - 10.2. Khác biệt về trạng thái chờ và kiểm chứng InResponseTo
+  - 10.3. Điều kiện cho phép hoặc từ chối unsolicited response
+  - 10.4. Chọn SP, ACS và điểm đến theo cấu hình đã tin cậy
+  - 10.5. RelayState và giới hạn đường chuyển hướng sau đăng nhập
+  - 10.6. Nguy cơ đăng nhập nhầm tài khoản và login CSRF
+  - 10.7. Yêu cầu xác nhận người dùng hoặc chuyển sang luồng SP-initiated khi cần
+  - 10.8. Xử lý danh tính chưa được cấp tài khoản và ứng dụng nhiều khách hàng
+  - 10.9. Ca kiểm thử bảo mật riêng cho luồng khởi tạo từ IdP
+- level1: 11. Kiểm chứng bắt buộc
+  level2:
+  - 11.1. Xác định đúng đối tác, cấu hình và phiên bản giao thức
+  - 11.2. Kiểm tra trạng thái phản hồi trước khi dùng danh tính
+  - 11.3. Xác minh Issuer và khóa ký thuộc miền tin cậy đã cấu hình
+  - 11.4. Kiểm tra chữ ký trên đúng đối tượng sẽ được ứng dụng sử dụng
+  - 11.5. Phân biệt và kiểm tra Destination, Recipient và Audience
+  - 11.6. Đối chiếu InResponseTo với yêu cầu chờ theo luồng được cho phép
+  - 11.7. Kiểm tra SubjectConfirmation và điều kiện bearer
+  - 11.8. Kiểm tra thời hạn, sai lệch đồng hồ và chính sách giới hạn tuổi thông điệp
+  - 11.9. Chặn sử dụng lại Response ID hoặc Assertion ID theo chính sách
+  - 11.10. Chỉ tạo phiên sau khi toàn bộ kiểm chứng cần thiết đã thành công
+  - 11.11. Từ chối dữ liệu thiếu, mâu thuẫn, không mong đợi hoặc không thể xác minh
+- level1: 12. Chữ ký XML
+  level2:
+  - 12.1. Mục tiêu xác thực nguồn và bảo vệ tính toàn vẹn của chữ ký
+  - 12.2. SignedInfo, Reference, DigestValue và SignatureValue
+  - 12.3. Canonicalization, transforms và khác biệt biểu diễn XML
+  - 12.4. Chữ ký trên Response, Assertion hoặc cả hai
+  - 12.5. Xác định đối tượng được ký thay vì chỉ kiểm tra có chữ ký hợp lệ
+  - 12.6. Giới hạn thuật toán ký, hàm băm và phép biến đổi được chấp nhận
+  - 12.7. Xác định khóa tin cậy mà không dựa mù quáng vào KeyInfo
+  - 12.8. Xử lý nhiều chữ ký, nhiều Reference và định danh XML trùng
+  - 12.9. Ảnh hưởng của sửa đổi, tái định dạng hoặc giải mã XML
+  - 12.10. Kiểm thử tương thích chữ ký và từ chối cấu trúc bất thường
+- level1: 13. Mã hóa assertion
+  level2:
+  - 13.1. Mục tiêu bảo mật dữ liệu assertion trên đường chuyển qua trình duyệt
+  - 13.2. EncryptedAssertion và các thành phần XML Encryption
+  - 13.3. Khóa mã hóa dữ liệu và khóa bảo vệ vật liệu mã hóa
+  - 13.4. Chọn khóa công khai của SP và bảo vệ khóa riêng giải mã
+  - 13.5. Phân biệt mã hóa assertion với bảo vệ kênh bằng TLS
+  - 13.6. Quan hệ giữa giải mã, xác minh chữ ký và lựa chọn dữ liệu sử dụng
+  - 13.7. Giới hạn thuật toán, tham số và cấu trúc mã hóa được chấp nhận
+  - 13.8. Tránh dùng khả năng giải mã làm bằng chứng xác thực nguồn
+  - 13.9. Luân chuyển khóa giải mã và thời gian hỗ trợ cấu hình chuyển tiếp
+  - 13.10. Xử lý lỗi giải mã mà không rò rỉ thông tin nhạy cảm
+- level1: 14. An toàn xử lý XML
+  level2:
+  - 14.1. Phân tích XML bằng thành phần SAML đã được duy trì phù hợp
+  - 14.2. Ngăn thực thể ngoài, DTD và truy cập tài nguyên ngoài ý muốn
+  - 14.3. Giới hạn kích thước, độ sâu và mức tiêu thụ tài nguyên khi phân tích
+  - 14.4. Kiểm tra cấu trúc, schema và vị trí phần tử mong đợi
+  - 14.5. XML Signature Wrapping và sự khác nhau giữa phần tử được ký với phần tử được đọc
+  - 14.6. Xử lý ID duy nhất, namespace và phần tử trùng lặp
+  - 14.7. Tránh truy vấn XML mơ hồ hoặc chọn phần tử theo vị trí không kiểm soát
+  - 14.8. Từ chối thuật toán hoặc phép biến đổi không nằm trong chính sách
+  - 14.9. Không ghi XML chứa thuộc tính nhạy cảm vào nhật ký thông thường
+  - 14.10. Kiểm thử dữ liệu sai cấu trúc và ca tấn công đã biết trong môi trường kiểm thử
+- level1: 15. Định danh và liên kết tài khoản
+  level2:
+  - 15.1. NameID dạng persistent, transient và các định dạng khác
+  - 15.2. Phạm vi định danh theo Issuer, SP và khách hàng
+  - 15.3. Chọn khóa liên kết ổn định thay vì mặc định dùng địa chỉ email
+  - 15.4. Ảnh hưởng khi email, tên đăng nhập hoặc miền tổ chức thay đổi
+  - 15.5. Liên kết tài khoản có sẵn và điều kiện chứng minh quyền sở hữu
+  - 15.6. Tạo tài khoản đúng lúc (JIT) và giới hạn của việc tạo khi đăng nhập
+  - 15.7. Ngăn chiếm tài khoản qua liên kết tự động hoặc miền email chưa xác minh
+  - 15.8. Xử lý danh tính trùng, tài khoản đã khóa và người dùng quay lại tổ chức
+  - 15.9. Di chuyển IdP mà không tạo tài khoản trùng hoặc mất liên kết
+  - 15.10. Quy tắc xóa liên kết, vô hiệu hóa tài khoản và lưu bằng chứng
+- level1: 16. Thuộc tính và cấp quyền
+  level2:
+  - 16.1. Thỏa thuận tên, kiểu dữ liệu và giá trị thuộc tính giữa IdP với SP
+  - 16.2. Thuộc tính bắt buộc, tùy chọn, nhiều giá trị và giá trị không hợp lệ
+  - 16.3. Ánh xạ nhóm, vai trò và đơn vị tổ chức vào mô hình quyền cục bộ
+  - 16.4. Không biến mọi thuộc tính nhận được thành quyền được tin cậy
+  - 16.5. Giới hạn quyền mặc định khi thiếu hoặc không nhận diện thuộc tính
+  - 16.6. Phân biệt dữ liệu hồ sơ với bằng chứng có thể dùng để cấp quyền
+  - 16.7. Độ mới của nhóm, vai trò và quyền sau khi phiên đã được tạo
+  - 16.8. Giảm thiểu thuộc tính theo mục đích và yêu cầu quyền riêng tư
+  - 16.9. Xử lý tên hiển thị, ngôn ngữ, Unicode và chuẩn hóa có kiểm soát
+  - 16.10. Kiểm chứng quyền truy cập tài nguyên sau bước SSO
+- level1: 17. MFA và mức bảo đảm
+  level2:
+  - 17.1. Chính sách xác thực tại IdP và trách nhiệm kiểm chứng tại SP
+  - 17.2. AuthnContextClassRef và ý nghĩa cần thống nhất với đối tác
+  - 17.3. Yêu cầu xác thực mới qua ForceAuthn
+  - 17.4. Xác thực tăng cường cho thao tác nhạy cảm
+  - 17.5. Thời điểm xác thực gốc và tuổi tối đa được chấp nhận
+  - 17.6. Phân biệt có phiên IdP với đã đáp ứng mức bảo đảm cần thiết
+  - 17.7. Khôi phục tài khoản và nguy cơ hạ cấp phương thức xác thực
+  - 17.8. Xử lý trường hợp IdP không hỗ trợ hoặc không đáp ứng yêu cầu
+  - 17.9. Giới hạn của assertion khi tài khoản hoặc thiết bị đã bị chiếm
+- level1: 18. Phiên và trình duyệt
+  level2:
+  - 18.1. Phiên IdP, assertion SAML và phiên SP là các đối tượng khác nhau
+  - 18.2. Tạo mới định danh phiên sau xác thực để tránh session fixation
+  - 18.3. Thời hạn phiên ứng dụng và quan hệ với điều kiện trong assertion
+  - 18.4. SessionIndex, SessionNotOnOrAfter và cách dùng trong chính sách phiên
+  - 18.5. Cookie Secure, HttpOnly và SameSite trong luồng chuyển hướng
+  - 18.6. Ảnh hưởng của POST liên miền, nhiều miền và cơ chế riêng tư trình duyệt
+  - 18.7. Bảo vệ trạng thái yêu cầu, ràng buộc phiên trình duyệt và chống CSRF
+  - 18.8. Đăng nhập nhiều tab, quay lại trang cũ và gửi lại biểu mẫu
+  - 18.9. Đồng bộ thay đổi tài khoản với phiên đang tồn tại
+  - 18.10. Phân biệt đăng xuất cục bộ, đăng xuất IdP và đăng xuất liên kết
+- level1: 19. Đăng xuất liên kết
+  level2:
+  - 19.1. Single Logout (SLO) và mục tiêu kết thúc nhiều phiên
+  - 19.2. LogoutRequest, LogoutResponse và trạng thái kết quả
+  - 19.3. NameID, SessionIndex và lựa chọn phiên cần kết thúc
+  - 19.4. Luồng đăng xuất bắt đầu từ SP hoặc IdP
+  - 19.5. Trao đổi qua trình duyệt và trao đổi trực tiếp khi được hỗ trợ
+  - 19.6. Chữ ký, đối chiếu yêu cầu và kiểm chứng điểm nhận
+  - 19.7. Xử lý ứng dụng không phản hồi, lỗi từng phần và người dùng đóng trình duyệt
+  - 19.8. Giới hạn bảo đảm đăng xuất toàn bộ khi hệ thống phân tán
+  - 19.9. Quan hệ với phiên cục bộ, phiên thiết bị khác và cơ chế thu hồi
+  - 19.10. Thiết kế trải nghiệm đăng xuất và thông báo kết quả trung thực
+- level1: 20. Vòng đời khóa và metadata
+  level2:
+  - 20.1. Khóa ký của IdP và khóa giải mã hoặc ký của SP
+  - 20.2. Lưu trữ khóa riêng và phân tách quyền vận hành
+  - 20.3. Chứng thư tự ký hoặc được CA cấp trong mô hình tin cậy SAML
+  - 20.4. Công bố nhiều khóa và thời gian cùng chấp nhận khi luân chuyển
+  - 20.5. Phối hợp lịch thay khóa giữa các bên liên kết
+  - 20.6. Xử lý metadata được tải lại, bộ nhớ đệm và cập nhật thất bại
+  - 20.7. Thời hạn chứng thư, thời hạn metadata và chính sách kiểm tra của đối tác
+  - 20.8. Thu hồi tin cậy khi khóa hoặc cấu hình bị xâm nhập
+  - 20.9. Kiểm thử luân chuyển và tránh loại bỏ khóa cũ quá sớm
+  - 20.10. Lập danh mục đối tác, chủ sở hữu và lịch cảnh báo
+- level1: 21. Liên kết nhiều tổ chức
+  level2:
+  - 21.1. Quan hệ một IdP với nhiều SP và một SP với nhiều IdP
+  - 21.2. Khám phá IdP và chọn miền danh tính cho người dùng
+  - 21.3. Định tuyến theo khách hàng mà không tin cậy đầu vào tùy ý
+  - 21.4. Cách ly metadata, khóa, định danh và thuộc tính giữa các khách hàng
+  - 21.5. Identity broker và hệ thống trung gian chuyển tiếp danh tính
+  - 21.6. Chuyển đổi SAML với giao thức khác và giới hạn giữ nguyên ngữ nghĩa
+  - 21.7. Chuỗi liên kết, phạm vi tin cậy và nguy cơ nhầm bên phát hành
+  - 21.8. Tích hợp đối tác, sáp nhập tổ chức và người dùng thuộc nhiều miền
+  - 21.9. Chính sách tiếp nhận, kiểm thử và chấm dứt quan hệ liên kết
+- level1: 22. Triển khai và tích hợp
+  level2:
+  - 22.1. Thu thập hợp đồng tích hợp trước khi cấu hình IdP và SP
+  - 22.2. Đăng ký Entity ID, ACS, bindings và khóa theo từng môi trường
+  - 22.3. Cấu hình reverse proxy, tên miền công khai và URL phía sau proxy
+  - 22.4. Kiểm soát forwarded headers và tránh tạo endpoint từ đầu vào không tin cậy
+  - 22.5. Đồng bộ thời gian và chọn dung sai đồng hồ có giới hạn
+  - 22.6. Thống nhất NameID, thuộc tính, nhóm và chính sách JIT
+  - 22.7. Tách cấu hình thử nghiệm khỏi cấu hình sản xuất
+  - 22.8. Kiểm thử cả luồng đăng nhập, từ chối và đăng xuất
+  - 22.9. Triển khai từng nhóm người dùng và chuẩn bị phương án quay lui
+  - 22.10. Tài khoản quản trị dự phòng có kiểm soát khi SSO gặp lỗi
+- level1: 23. Khả dụng và vận hành
+  level2:
+  - 23.1. Tác động khi IdP không khả dụng đối với phiên mới và phiên đang tồn tại
+  - 23.2. Dự phòng IdP, kho phiên và cấu hình tin cậy
+  - 23.3. Cân bằng tải, trạng thái yêu cầu chờ và bộ nhớ chống phát lại
+  - 23.4. Tính nhất quán khi nhiều bản sao SP xử lý phản hồi
+  - 23.5. Giới hạn thử lại và tránh vòng chuyển hướng đăng nhập
+  - 23.6. Giám sát endpoint, độ trễ, lỗi xác thực và mức sử dụng
+  - 23.7. Quy trình bảo trì, nâng cấp và thay đổi cấu hình đối tác
+  - 23.8. Khôi phục metadata, khóa và cấu hình sau sự cố
+  - 23.9. Điều kiện truy cập khẩn cấp và rà soát sau khi sử dụng
+- level1: 24. Quan sát và xử lý lỗi
+  level2:
+  - 24.1. Mã tương quan giữa AuthnRequest, Response, Assertion và phiên ứng dụng
+  - 24.2. Ghi nhận Issuer, bên nhận, thời điểm và loại lỗi mà không lộ thuộc tính
+  - 24.3. Phân biệt lỗi cấu hình, lỗi chữ ký, lỗi thời gian và lỗi cấp quyền
+  - 24.4. Chẩn đoán sai Audience, Recipient, Destination và InResponseTo
+  - 24.5. Chẩn đoán vòng lặp đăng nhập, mất cookie và phản hồi không có yêu cầu chờ
+  - 24.6. Chẩn đoán NameID thay đổi, nhóm thiếu và tài khoản trùng
+  - 24.7. Kiểm tra cấu trúc thông điệp bằng dữ liệu thử hoặc dữ liệu đã bảo vệ
+  - 24.8. Cảnh báo phát lại, thay đổi khóa ngoài dự kiến và thất bại tăng đột biến
+  - 24.9. Giới hạn truy cập, lưu giữ và chia sẻ bằng chứng đăng nhập
+  - 24.10. Quy trình hỗ trợ người dùng không yêu cầu gửi assertion chứa dữ liệu nhạy cảm
+- level1: 25. Tấn công và phòng vệ
+  level2:
+  - 25.1. Assertion hoặc Response bị phát lại
+  - 25.2. Login CSRF, đăng nhập nhầm tài khoản và phản hồi không được yêu cầu
+  - 25.3. XML Signature Wrapping và thao túng cấu trúc assertion
+  - 25.4. Thay Issuer, Audience hoặc ACS để vượt ranh giới tin cậy
+  - 25.5. RelayState dẫn đến chuyển hướng mở hoặc làm lộ trạng thái
+  - 25.6. Liên kết tài khoản tự động sai và chiếm quyền qua thuộc tính
+  - 25.7. Lạm dụng thuật toán yếu, cấu hình bỏ kiểm chứng và khóa không đáng tin
+  - 25.8. Rò rỉ assertion qua nhật ký, URL, công cụ gỡ lỗi hoặc hệ thống hỗ trợ
+  - 25.9. Xâm nhập IdP và tác động diện rộng đến các SP
+  - 25.10. Giới hạn thiệt hại bằng cấp quyền tối thiểu, phiên hợp lý và giám sát
+- level1: 26. Vòng đời tài khoản và quyền riêng tư
+  level2:
+  - 26.1. SSO không thay thế cấp phát, cập nhật và vô hiệu hóa tài khoản
+  - 26.2. Kết hợp JIT với đồng bộ vòng đời qua SCIM hoặc cơ chế khác
+  - 26.3. Người dùng rời tổ chức và xử lý phiên còn tồn tại
+  - 26.4. Rà soát quyền, nhóm và tài khoản không còn hoạt động
+  - 26.5. Giảm thiểu dữ liệu được chia sẻ giữa IdP và SP
+  - 26.6. Định danh theo từng SP và hạn chế theo dõi chéo ứng dụng
+  - 26.7. Thông báo mục đích sử dụng, thời hạn lưu và quyền truy cập dữ liệu
+  - 26.8. Phân công trách nhiệm giữa tổ chức, IdP và nhà cung cấp ứng dụng
+  - 26.9. Lưu bằng chứng tuân thủ mà không thu thập toàn bộ assertion
+- level1: 27. Kiểm thử và chuyển đổi
+  level2:
+  - 27.1. Bộ ca cho SP-initiated, IdP-initiated, xác thực mới và phiên IdP sẵn có
+  - 27.2. Kiểm thử chữ ký sai, khóa lạ, XML bất thường và dữ liệu thiếu
+  - 27.3. Kiểm thử Audience, Recipient, Destination và InResponseTo sai
+  - 27.4. Kiểm thử hết hạn, chưa có hiệu lực, sai đồng hồ và phát lại
+  - 27.5. Kiểm thử nhiều IdP, nhiều khách hàng và nhiều tab trình duyệt
+  - 27.6. Kiểm thử JIT, liên kết tài khoản, thay đổi NameID và thu hồi quyền
+  - 27.7. Kiểm thử SLO lỗi từng phần, mất cookie và mất một điểm dịch vụ
+  - 27.8. Diễn tập luân chuyển khóa và metadata trước khi áp dụng sản xuất
+  - 27.9. Chuyển từ đăng nhập cục bộ hoặc IdP cũ với kế hoạch ánh xạ tài khoản
+  - 27.10. Tiêu chí nghiệm thu về bảo mật, khả dụng và trải nghiệm
+- level1: 28. Tình huống và thực hành
+  level2:
+  - 28.1. Vẽ sơ đồ một lần đăng nhập để dùng nhiều ứng dụng
+  - 28.2. Đọc metadata và xác định Entity ID, ACS, binding cùng khóa tin cậy
+  - 28.3. Phân tích AuthnRequest, Response và Assertion trên dữ liệu mô phỏng
+  - 28.4. Xây dựng danh sách kiểm chứng trước khi tạo phiên
+  - 28.5. Thiết kế liên kết tài khoản ổn định và ánh xạ quyền có giới hạn
+  - 28.6. Mô phỏng phát lại và xác nhận phản hồi bị từ chối
+  - 28.7. Thiết kế cấu hình nhiều khách hàng mà không dùng nhầm IdP
+  - 28.8. Lập quy trình đổi khóa ký và giữ khả năng đăng nhập trong giai đoạn chuyển tiếp
+  - 28.9. Diễn tập IdP mất kết nối, tài khoản bị khóa và SLO thất bại
+  - 28.10. Hoàn thiện hồ sơ tích hợp, mô hình đe dọa và bằng chứng kiểm thử

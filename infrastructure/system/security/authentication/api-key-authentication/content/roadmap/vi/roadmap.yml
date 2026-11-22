@@ -1,0 +1,58 @@
+roadmap:
+- id: api-key-pham-vi-su-dung
+  title: API Key & phạm vi sử dụng
+  purpose: Hiểu API key xác định ứng dụng hoặc client trong nhiều hệ thống nhưng không thay thế mọi cơ chế xác thực và phân
+    quyền.
+  objectives:
+  - Phân biệt API key với token phiên và OAuth 2.0.
+  - Vẽ luồng client gửi key đến API.
+  - Nêu rủi ro khi dùng một key chung cho mọi client.
+- id: sinh-cap-phat-api-key
+  title: Sinh & cấp phát API Key
+  purpose: Tạo thông tin xác thực khó đoán và gắn từng khóa với chủ sở hữu có thể quản lý.
+  objectives:
+  - Mô tả cách tạo key bằng nguồn ngẫu nhiên an toàn.
+  - Gắn key ID, owner, mục đích và thời điểm cấp.
+  - Thiết kế quy trình phát key chỉ lộ giá trị khi cần.
+- id: truyen-key-an-toan
+  title: Truyền Key an toàn
+  purpose: Bảo vệ API key trên đường truyền và tránh vô tình để lộ trong URL hoặc lịch sử truy cập.
+  objectives:
+  - Gửi key trong header theo quy ước của API.
+  - Kiểm tra API chỉ tiếp nhận yêu cầu qua HTTPS.
+  - Nhận diện nguy cơ key lọt vào URL, log và trace.
+- id: kiem-tra-key-phia-server
+  title: Kiểm tra Key phía Server
+  purpose: Xác minh khóa hợp lệ và còn hiệu lực trước khi cho phép gọi API theo chính sách.
+  objectives:
+  - Xử lý key thiếu, sai hoặc đã thu hồi.
+  - Mô tả cách đối chiếu key an toàn tại gateway/server.
+  - Trả lỗi thống nhất mà không tiết lộ key.
+- id: quyen-han-che-su-dung
+  title: Quyền & hạn chế sử dụng
+  purpose: Giới hạn phạm vi tác động khi một API key bị lộ hoặc dùng sai mục đích.
+  objectives:
+  - Gắn mỗi key với đúng client và tài nguyên cần thiết.
+  - Áp dụng API/IP/referrer restrictions nếu hỗ trợ.
+  - Kiểm tra authorization riêng cho dữ liệu người dùng.
+- id: luu-tru-bao-ve-key
+  title: Lưu trữ & bảo vệ Key
+  purpose: Giữ khóa bí mật ở cả môi trường phát triển, triển khai và vận hành.
+  objectives:
+  - Đưa secret vào secret manager hoặc cấu hình an toàn.
+  - Kiểm tra repository, log và CI không chứa key rõ.
+  - Thiết lập phân quyền đọc key theo least privilege.
+- id: quota-giam-sat-su-dung
+  title: Quota & giám sát sử dụng
+  purpose: Quan sát hành vi API để phát hiện lạm dụng và bảo vệ tài nguyên hệ thống.
+  objectives:
+  - Đặt throttling và quota theo client ở mức phù hợp.
+  - Theo dõi tỷ lệ lỗi, request bất thường và key ID.
+  - Giải thích vì sao quota không thay thế kiểm soát truy cập.
+- id: rotation-thu-hoi
+  title: Rotation & thu hồi
+  purpose: Hạn chế tác hại khi key hết hạn, thay chủ hoặc bị nghi ngờ lộ.
+  objectives:
+  - Phát hành key mới và cập nhật client an toàn.
+  - Thu hồi key cũ sau khi xác nhận chuyển đổi.
+  - Diễn tập phản ứng khi key bị lộ và kiểm thử từ chối.

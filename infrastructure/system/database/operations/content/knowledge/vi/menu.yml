@@ -1,0 +1,324 @@
+menu:
+- level1: Tổng quan vận hành
+  level2:
+  - Database Operations là gì và mục tiêu giữ hệ thống dữ liệu ổn định
+  - Vòng đời cơ sở dữ liệu từ triển khai đến ngừng hoạt động
+  - 'Thành phần cần vận hành: tiến trình, bộ nhớ, lưu trữ, mạng và bản sao'
+  - Phân chia trách nhiệm giữa quản trị cơ sở dữ liệu, phát triển và vận hành hệ thống
+  - Phân biệt tính sẵn sàng, độ bền dữ liệu, tính toàn vẹn và hiệu năng
+  - Tài sản dữ liệu, mức độ quan trọng và phạm vi ảnh hưởng khi xảy ra sự cố
+  - Cam kết dịch vụ (SLA), mục tiêu dịch vụ (SLO) và chỉ số dịch vụ (SLI)
+  - Tài liệu kiến trúc, danh mục hệ thống và sổ tay quy trình vận hành
+- level1: Môi trường vận hành
+  level2:
+  - Tách biệt môi trường phát triển, kiểm thử, tiền sản xuất và sản xuất
+  - Lựa chọn tự quản lý hay dịch vụ cơ sở dữ liệu được quản lý
+  - Triển khai trên máy vật lý, máy ảo, container và nền tảng điều phối
+  - Lựa chọn hệ quản trị, phiên bản được hỗ trợ và thời hạn hỗ trợ
+  - Ước lượng tải ban đầu, cấu hình tài nguyên và dư địa dự phòng
+  - Quy hoạch tên hệ thống, địa chỉ kết nối, vùng mạng và khu vực triển khai
+  - Đồng bộ thời gian, múi giờ, bảng mã và quy tắc so sánh chuỗi
+  - Chuẩn hóa cấu hình môi trường và phát hiện khác biệt ngoài dự kiến
+- level1: Triển khai hệ thống
+  level2:
+  - Kiểm tra điều kiện hệ điều hành, tài nguyên và quyền trước khi cài đặt
+  - Cài đặt gói phần mềm hoặc ảnh container từ nguồn tin cậy
+  - Khởi tạo cụm, thư mục dữ liệu và cơ sở dữ liệu ban đầu
+  - Thiết lập tài khoản dịch vụ và quyền tối thiểu trên hệ điều hành
+  - Quản lý dịch vụ và chính sách khởi động lại sau lỗi
+  - Khởi động, dừng và khởi động lại có kiểm soát
+  - Phân biệt kiểm tra tiến trình sống, khả năng sẵn sàng và truy vấn kiểm chứng
+  - Bảo toàn dữ liệu qua vòng đời container và thay thế máy chủ
+  - Nghiệm thu triển khai, bàn giao cấu hình và thiết lập đường cơ sở
+- level1: Quản lý cấu hình
+  level2:
+  - Phân loại cấu hình theo phạm vi toàn hệ thống, cơ sở dữ liệu và phiên kết nối
+  - Thứ tự ưu tiên giữa tệp cấu hình, tham số khởi động và cấu hình động
+  - Phân biệt thay đổi có hiệu lực ngay, cần nạp lại và cần khởi động lại
+  - Phân bổ bộ nhớ cho bộ đệm, truy vấn và các tiến trình nền
+  - Thiết lập giới hạn kết nối, tiến trình và tài nguyên truy vấn
+  - Cấu hình ghi nhật ký giao dịch, đồng bộ dữ liệu và đánh đổi độ bền
+  - Quản lý cấu hình bằng phiên bản, lịch sử thay đổi và người chịu trách nhiệm
+  - Kiểm chứng cấu hình hiệu lực và hoàn tác thay đổi gây suy giảm
+- level1: Lưu trữ dữ liệu
+  level2:
+  - Tổ chức tệp dữ liệu, nhật ký giao dịch, tệp tạm và kho sao lưu
+  - Lựa chọn loại đĩa theo độ trễ, IOPS, thông lượng và độ bền
+  - Bố trí vùng lưu trữ, điểm gắn kết và dung lượng dự phòng
+  - Hệ thống tệp, quyền truy cập, hạn ngạch và giới hạn số tệp
+  - Giám sát dung lượng trống, inode và tốc độ tăng trưởng
+  - Ảnh chụp lưu trữ (snapshot) và điều kiện nhất quán của dữ liệu
+  - Giới hạn của RAID và bản sao đối với việc thay thế sao lưu
+  - Di chuyển hoặc mở rộng vùng lưu trữ mà vẫn bảo toàn dữ liệu
+  - Phát hiện lỗi đọc ghi, hỏng tệp và nguy cơ mất dữ liệu
+- level1: Mạng và kết nối
+  level2:
+  - Luồng kết nối từ ứng dụng qua mạng đến dịch vụ cơ sở dữ liệu
+  - Cấu hình địa chỉ lắng nghe, cổng, DNS và điểm truy cập
+  - Phân đoạn mạng, tường lửa và danh sách nguồn được phép kết nối
+  - Mã hóa đường truyền TLS và kiểm tra danh tính máy chủ
+  - Quản lý chứng chỉ, thời hạn và thay mới chứng chỉ
+  - Thiết lập thời gian chờ kết nối, truy vấn, giao dịch và phiên nhàn rỗi
+  - Giới hạn kết nối đồng thời và phòng ngừa kết nối tăng đột biến
+  - Chẩn đoán lỗi DNS, bắt tay TLS, ngắt kết nối và mạng chập chờn
+- level1: Tích hợp ứng dụng
+  level2:
+  - Quản lý nhóm kết nối (connection pool) theo ngân sách kết nối toàn hệ thống
+  - Kiểm tra kết nối còn sống, tái sử dụng kết nối và xử lý kết nối lỗi
+  - Thiết lập thời gian chờ theo toàn bộ đường đi của một yêu cầu
+  - Thử lại có giới hạn, giãn nhịp và tránh khuếch đại tải khi có lỗi
+  - Tính lặp an toàn của thao tác ghi khi ứng dụng phải thử lại
+  - Giới hạn thời gian giao dịch và tránh giữ giao dịch khi chờ dịch vụ ngoài
+  - Điều phối khởi động ứng dụng để tránh đồng loạt mở kết nối
+  - Xử lý đổi điểm truy cập và kết nối lại sau chuyển đổi dự phòng
+  - Đối chiếu phiên bản trình điều khiển, giao thức và khả năng tương thích
+- level1: Tài khoản và quyền
+  level2:
+  - Phân biệt danh tính người dùng, tài khoản dịch vụ và vai trò
+  - Cấp quyền tối thiểu theo cơ sở dữ liệu, lược đồ và đối tượng dữ liệu
+  - Tách tài khoản ứng dụng, quản trị, sao lưu và giám sát
+  - Quy trình cấp, thay đổi, thu hồi và rà soát quyền truy cập
+  - Quản lý mật khẩu và thông tin xác thực trong kho bí mật
+  - Luân chuyển thông tin xác thực mà hạn chế gián đoạn dịch vụ
+  - Kiểm soát phiên quản trị đặc quyền và truy cập khẩn cấp
+  - Phát hiện tài khoản không sử dụng, quyền thừa và tài khoản dùng chung
+- level1: Bảo mật dữ liệu
+  level2:
+  - Nhận diện dữ liệu nhạy cảm và xác định yêu cầu bảo vệ
+  - Mã hóa dữ liệu lưu trữ, bản sao lưu và dữ liệu truyền tải
+  - Quản lý vòng đời khóa mã hóa và khả năng khôi phục khóa
+  - Giảm bề mặt tấn công từ dịch vụ, tiện ích và phần mở rộng không cần thiết
+  - Bảo vệ nhật ký, tệp xuất và bản sao dữ liệu ngoài môi trường sản xuất
+  - Che dữ liệu hoặc tạo dữ liệu giả phục vụ phát triển và kiểm thử
+  - Theo dõi lỗ hổng, ưu tiên bản vá và kiểm chứng sau cập nhật
+  - Nhật ký kiểm toán và truy vết hành động truy cập dữ liệu
+  - Phát hiện truy cập bất thường và phối hợp xử lý sự cố bảo mật
+- level1: Quan sát hệ thống
+  level2:
+  - Xây dựng đường cơ sở và xác định nguồn thu thập chỉ số vận hành
+  - Theo dõi độ trễ, lưu lượng, tỷ lệ lỗi và mức sử dụng tài nguyên
+  - Giám sát CPU, bộ nhớ, đĩa, mạng và giới hạn của môi trường chạy
+  - Giám sát kết nối, phiên hoạt động, hàng chờ và giao dịch kéo dài
+  - Theo dõi khóa chờ, truy vấn chậm và tình trạng nhật ký giao dịch
+  - Thu thập nhật ký máy chủ, nhật ký lỗi và thông báo khởi động
+  - Liên kết chỉ số, nhật ký và dấu vết yêu cầu giữa ứng dụng với cơ sở dữ liệu
+  - Thiết kế bảng theo dõi theo dịch vụ, cụm, máy chủ và cơ sở dữ liệu
+  - Kiểm soát chi phí lưu trữ, thời gian giữ và dữ liệu nhạy cảm trong hệ thống quan sát
+- level1: Cảnh báo và trực ca
+  level2:
+  - Chuyển mục tiêu dịch vụ thành điều kiện cảnh báo có thể hành động
+  - Ưu tiên cảnh báo theo ảnh hưởng người dùng và mức độ khẩn cấp
+  - Thiết lập ngưỡng, khoảng quan sát, xu hướng và độ trễ cảnh báo
+  - Cảnh báo thiếu dung lượng, mất kết nối, lỗi sao lưu và bản sao chậm
+  - Phân biệt cảnh báo nguyên nhân, triệu chứng và kiểm tra trạng thái
+  - Giảm cảnh báo trùng lặp, dao động và không dẫn đến hành động
+  - Tổ chức lịch trực, bàn giao ca và đường chuyển cấp xử lý
+  - Gắn cảnh báo với quy trình xử lý và kiểm thử toàn bộ đường gửi cảnh báo
+- level1: Sao lưu dữ liệu
+  level2:
+  - Xác định mục tiêu điểm khôi phục (RPO) và thời gian khôi phục (RTO)
+  - Phân biệt sao lưu logic, sao lưu vật lý và ảnh chụp lưu trữ
+  - Lựa chọn sao lưu toàn bộ, tăng dần và vi sai theo khả năng hệ quản trị
+  - Sao lưu khi hệ thống hoạt động và điều kiện tạo bản sao nhất quán
+  - Lưu trữ nhật ký giao dịch để hỗ trợ khôi phục đến thời điểm
+  - Thiết kế lịch sao lưu, thời hạn giữ và chuỗi bản sao cần thiết
+  - Tách vị trí sao lưu khỏi hệ thống nguồn và hạn chế quyền xóa
+  - Mã hóa, kiểm tra tính toàn vẹn và lập danh mục bản sao lưu
+  - Đánh giá ảnh hưởng của sao lưu đến tải sản xuất và băng thông
+  - Giám sát công việc sao lưu, phát hiện thiếu bản sao và quản lý bản hết hạn
+- level1: Khôi phục dữ liệu
+  level2:
+  - Xây dựng kế hoạch khôi phục và lựa chọn điểm khôi phục phù hợp
+  - Chuẩn bị môi trường đích, phiên bản hệ quản trị và khóa giải mã
+  - Khôi phục từ bản sao logic, vật lý và ảnh chụp nhất quán
+  - Phục hồi chuỗi bản sao và nhật ký giao dịch theo đúng thứ tự
+  - Khôi phục đến thời điểm trước thao tác xóa nhầm hoặc ghi sai
+  - Khôi phục một phần dữ liệu và nhận diện giới hạn của từng phương pháp
+  - Đối chiếu cấu trúc, số liệu và tính toàn vẹn sau khôi phục
+  - Kiểm chứng bằng nghiệp vụ và ứng dụng trước khi mở lại lưu lượng
+  - Diễn tập khôi phục và đo RPO, RTO thực tế
+  - Xử lý bản sao hỏng, thiếu nhật ký hoặc không thể giải mã
+- level1: Sẵn sàng cao
+  level2:
+  - Nhận diện điểm lỗi đơn và miền sự cố của kiến trúc triển khai
+  - Lựa chọn kiến trúc dự phòng theo yêu cầu sẵn sàng và nhất quán
+  - Vai trò của bầu chọn, số phiếu và cơ chế đồng thuận khi hệ quản trị hỗ trợ
+  - Chuyển đổi dự phòng thủ công và tự động
+  - Ngăn hai nút cùng nhận ghi bằng cơ chế cách ly nút lỗi (fencing)
+  - Cập nhật điểm truy cập, nhóm kết nối và định tuyến sau chuyển đổi
+  - Đánh giá mất dữ liệu có thể xảy ra và điều kiện được phép chuyển đổi
+  - Đưa nút cũ trở lại cụm và chuyển trả vai trò có kiểm soát
+  - Diễn tập hỏng nút, mất mạng và lỗi miền triển khai
+- level1: Vận hành bản sao
+  level2:
+  - Thiết lập bản sao và tạo dữ liệu ban đầu một cách nhất quán
+  - Giám sát trạng thái, độ trễ và mức chênh lệch dữ liệu giữa các bản sao
+  - Định tuyến đọc và xử lý tình huống ứng dụng cần đọc dữ liệu vừa ghi
+  - Quản lý thời gian giữ nhật ký để bản sao có thể theo kịp
+  - Ảnh hưởng của truy vấn dài và tác vụ bảo trì trên nút bản sao
+  - Thêm, loại bỏ và thay thế nút trong cấu hình sao chép
+  - Chẩn đoán đứt chuỗi sao chép, sai lệch dữ liệu và bản sao dừng cập nhật
+  - Tái đồng bộ hoặc dựng lại bản sao mà hạn chế ảnh hưởng hệ thống chính
+  - 'Vận hành cụm phân mảnh: theo dõi phân bố tải và di chuyển phân mảnh'
+- level1: Bảo trì dữ liệu
+  level2:
+  - Lập lịch bảo trì theo tải sử dụng và yêu cầu sẵn sàng
+  - Cập nhật thống kê để hỗ trợ bộ tối ưu truy vấn
+  - Bảo trì chỉ mục và đánh giá ảnh hưởng của thao tác xây dựng lại
+  - Thu hồi không gian, xử lý dữ liệu chết và phân mảnh theo cơ chế hệ quản trị
+  - Kiểm tra tính toàn vẹn dữ liệu và phát hiện hỏng cấu trúc lưu trữ
+  - Quản lý bảng phân vùng, vòng đời phân vùng và thao tác loại bỏ dữ liệu cũ
+  - Lưu trữ dài hạn, xóa theo lô và thực hiện chính sách thời hạn giữ dữ liệu
+  - Theo dõi tác vụ nền, điểm kiểm tra và quá trình hợp nhất dữ liệu
+  - Kiểm soát khóa, nhật ký và dung lượng phát sinh từ công việc bảo trì
+- level1: Chẩn đoán hiệu năng
+  level2:
+  - Khoanh vùng suy giảm từ ứng dụng, mạng, hệ điều hành hay hệ quản trị
+  - Phân biệt hệ thống thiếu tài nguyên với hệ thống bị chặn bởi chờ đợi
+  - Phân tích truy vấn chậm bằng số liệu thực tế và kế hoạch thực thi
+  - Nhận diện thay đổi kế hoạch thực thi và thống kê không còn phù hợp
+  - Phát hiện giao dịch kéo dài, chuỗi khóa chờ và bế tắc
+  - Phân tích áp lực bộ nhớ, tệp tạm và thao tác tràn ra đĩa
+  - Đánh giá độ trễ ghi nhật ký, đồng bộ đĩa và tác vụ nền
+  - Ưu tiên giới hạn tải, hủy truy vấn hoặc kết thúc phiên theo mức ảnh hưởng
+  - Kiểm chứng giả thuyết bằng một thay đổi có kiểm soát và đo lại kết quả
+- level1: Dung lượng và chi phí
+  level2:
+  - Dự báo tăng trưởng theo dữ liệu, chỉ mục, nhật ký, tệp tạm và bản sao
+  - Ước lượng giới hạn an toàn về kết nối, CPU, bộ nhớ và đĩa
+  - Phân tích tải bình thường, giờ cao điểm và đợt tăng tải bất thường
+  - Kiểm thử tải với dữ liệu và hành vi sử dụng đại diện
+  - Mở rộng tài nguyên máy chủ và đánh giá giới hạn mở rộng
+  - Mở rộng số nút và chi phí sao chép, phân phối hoặc tái cân bằng
+  - Tính chi phí tổng của tài nguyên, giấy phép, sao lưu và truyền dữ liệu
+  - Tối ưu tài nguyên theo số liệu mà vẫn giữ dư địa phục hồi sự cố
+  - Thiết lập ngân sách, hạn ngạch và cảnh báo chi phí
+- level1: Thay đổi an toàn
+  level2:
+  - Phân loại thay đổi theo rủi ro, phạm vi ảnh hưởng và khả năng hoàn tác
+  - Chuẩn bị điều kiện thực hiện, người phụ trách và tiêu chí dừng thay đổi
+  - Kiểm thử thay đổi trong môi trường gần với sản xuất
+  - Đánh giá khóa, thời gian chạy và dung lượng của thay đổi lược đồ
+  - Phối hợp triển khai ứng dụng với thay đổi dữ liệu tương thích ngược
+  - Áp dụng thay đổi từng giai đoạn và giới hạn phạm vi tác động
+  - Chuẩn bị phương án hoàn tác cấu hình, ứng dụng và dữ liệu
+  - Phân biệt hoàn tác thay đổi với khôi phục dữ liệu đã mất
+  - Kiểm tra sau thay đổi và ghi nhận cấu hình, phiên bản thực tế
+- level1: Di chuyển dữ liệu
+  level2:
+  - Lựa chọn phương án di chuyển theo dung lượng và thời gian gián đoạn cho phép
+  - Kiểm kê dữ liệu, đối tượng, tài khoản, phần mở rộng và phụ thuộc cần di chuyển
+  - Kiểm tra tương thích bảng mã, kiểu dữ liệu, múi giờ và quy tắc so sánh
+  - Xuất nhập dữ liệu, sao chép vật lý và đồng bộ thay đổi liên tục
+  - Thực hiện nạp dữ liệu ban đầu và theo kịp thay đổi phát sinh
+  - Đối chiếu tính đầy đủ, tính chính xác và tính toàn vẹn dữ liệu đích
+  - Chốt thời điểm dừng ghi và chuyển lưu lượng sang hệ thống mới
+  - Thiết kế thời hạn quay lui và xử lý dữ liệu phát sinh sau chuyển đổi
+  - Theo dõi hệ thống mới và thu hồi tài nguyên nguồn sau nghiệm thu
+- level1: Nâng cấp và vá lỗi
+  level2:
+  - Phân biệt nâng cấp bản vá, phiên bản nhỏ và phiên bản lớn
+  - Đọc thay đổi không tương thích và xác định yêu cầu nâng cấp
+  - Kiểm tra trình điều khiển, phần mở rộng và công cụ quản trị liên quan
+  - Diễn tập nâng cấp trên bản sao dữ liệu đại diện
+  - Lựa chọn nâng cấp tại chỗ, dựng cụm mới hoặc nâng cấp lần lượt khi được hỗ trợ
+  - Tính đến thời gian sao lưu, chuyển đổi định dạng và xây dựng lại đối tượng
+  - Thiết lập điểm kiểm tra, tiêu chí dừng và phương án quay lại phiên bản cũ
+  - Kiểm chứng hiệu năng, dữ liệu và chức năng sau nâng cấp
+- level1: Tự động hóa vận hành
+  level2:
+  - Quản lý hạ tầng và cấu hình dưới dạng mã có kiểm soát phiên bản
+  - Thiết kế tác vụ lặp an toàn và kiểm tra điều kiện trước khi thực thi
+  - Tự động hóa triển khai, sao lưu, kiểm tra khôi phục và bảo trì
+  - Lập lịch, giới hạn đồng thời và ngăn hai tác vụ chạy chồng
+  - Thiết lập thời gian chờ, hủy tác vụ và thử lại có kiểm soát
+  - Quản lý quyền và thông tin xác thực của tài khoản tự động hóa
+  - Ghi nhật ký thực thi, mã kết quả và bằng chứng kiểm chứng
+  - Chạy thử, phê duyệt theo rủi ro và triển khai thay đổi tự động từng phần
+  - Phát hiện cấu hình lệch chuẩn và xử lý lỗi giữa chừng
+- level1: Ứng phó sự cố
+  level2:
+  - Xác định mức độ nghiêm trọng từ ảnh hưởng đến người dùng và dữ liệu
+  - Tiếp nhận cảnh báo, chỉ định người điều phối và thiết lập kênh xử lý
+  - Thu thập bằng chứng, dòng thời gian và thay đổi gần nhất
+  - Ưu tiên giảm ảnh hưởng, bảo toàn dữ liệu và ngăn sự cố lan rộng
+  - Quyết định giới hạn tải, chuyển đổi dự phòng, dừng ghi hoặc khôi phục
+  - Cập nhật tình trạng cho các bên liên quan theo trách nhiệm được phân công
+  - Xác minh dịch vụ phục hồi và giám sát sau khi kết thúc sự cố
+  - Phân tích nguyên nhân gốc và các yếu tố góp phần gây sự cố
+  - Theo dõi hành động phòng ngừa và cập nhật quy trình vận hành
+- level1: Kịch bản sự cố
+  level2:
+  - Hệ quản trị không khởi động hoặc liên tục khởi động lại
+  - Ứng dụng không kết nối được hoặc cạn số kết nối
+  - Đĩa đầy, hết inode hoặc nhật ký giao dịch tăng không kiểm soát
+  - CPU tăng cao, bộ nhớ cạn hoặc tiến trình bị hệ điều hành kết thúc
+  - Giao dịch treo, khóa chờ kéo dài và bế tắc lặp lại
+  - Truy vấn chậm đột ngột sau thay đổi dữ liệu, cấu hình hoặc triển khai
+  - Bản sao mất kết nối, tụt lại quá xa hoặc không còn đồng bộ
+  - Xóa nhầm dữ liệu, cập nhật sai hàng loạt hoặc thay đổi lược đồ lỗi
+  - Bản sao lưu thất bại, không khôi phục được hoặc dữ liệu bị hỏng
+  - Chứng chỉ hết hạn, thông tin xác thực lỗi hoặc tài khoản bị khóa
+- level1: Khôi phục thảm họa
+  level2:
+  - Xác định kịch bản mất máy chủ, mất cụm, mất khu vực và mất nhà cung cấp
+  - Thiết kế vị trí dự phòng theo RPO, RTO và các phụ thuộc dịch vụ
+  - Lựa chọn dự phòng nguội, dự phòng ấm hoặc dự phòng nóng
+  - Bảo vệ bản sao lưu trước lỗi diện rộng, thao tác xóa và mã độc tống tiền
+  - Khôi phục hạ tầng, mạng, danh tính, khóa và cơ sở dữ liệu theo đúng thứ tự
+  - Chuyển hướng ứng dụng và kiểm chứng hoạt động nghiệp vụ tại nơi dự phòng
+  - Phòng ngừa ghi đồng thời và dữ liệu phân kỳ khi hệ thống chính trở lại
+  - Quay về môi trường chính và đối soát dữ liệu sau thảm họa
+  - Diễn tập định kỳ, đo thời gian thực tế và cập nhật kế hoạch liên tục dịch vụ
+- level1: Dịch vụ đám mây
+  level2:
+  - Phân chia trách nhiệm giữa nhà cung cấp và đơn vị sử dụng
+  - Cấu hình kết nối riêng, danh tính và quyền truy cập dịch vụ
+  - Quản lý nhóm cấu hình, cửa sổ bảo trì và cập nhật tự động
+  - Kiểm chứng sao lưu tự động, khôi phục đến thời điểm và giới hạn giữ dữ liệu
+  - Đánh giá chế độ nhiều vùng sẵn sàng và bản sao khác khu vực
+  - Theo dõi hạn ngạch, giới hạn lưu trữ và điều kiện mở rộng tự động
+  - Giám sát sự kiện nhà cung cấp và chuẩn bị dữ liệu khi yêu cầu hỗ trợ
+  - Kiểm soát chi phí tài nguyên, I/O, sao lưu và truyền dữ liệu
+  - Chuẩn bị xuất dữ liệu và phương án rời dịch vụ khi cần
+- level1: Đặc thù hệ quản trị
+  level2:
+  - Ánh xạ quy trình chung sang công cụ, chỉ số và giới hạn của từng hệ quản trị
+  - 'PostgreSQL: vận hành WAL, VACUUM, thống kê và vị trí sao chép'
+  - 'MySQL: vận hành InnoDB, redo log, binary log và sao chép'
+  - 'SQL Server: mô hình phục hồi, nhật ký giao dịch và tác vụ bảo trì'
+  - 'Cơ sở dữ liệu tài liệu: vận hành tập bản sao, chỉ mục và phân mảnh'
+  - 'Hệ khóa–giá trị: giới hạn bộ nhớ, loại bỏ dữ liệu và cơ chế lưu bền'
+  - 'Hệ phân tán dùng LSM-tree: hợp nhất dữ liệu, sửa chữa bản sao và dung lượng tạm'
+  - Xác minh lệnh vận hành theo phiên bản và tránh áp dụng máy móc giữa các hệ
+- level1: Quản trị dữ liệu
+  level2:
+  - Gắn quyền sở hữu, mức độ quan trọng và thời hạn giữ cho tập dữ liệu
+  - Kiểm kê vị trí dữ liệu chính, bản sao, tệp xuất và bản sao lưu
+  - Quản lý yêu cầu lưu giữ, hạn chế truy cập và xóa dữ liệu theo chính sách
+  - Xử lý yêu cầu xóa khi dữ liệu còn tồn tại trong bản sao lưu
+  - Lưu giữ bằng chứng kiểm toán về truy cập, thay đổi và thao tác vận hành
+  - Rà soát quyền, cấu hình bảo mật, sao lưu và khả năng khôi phục định kỳ
+  - Kiểm soát tính toàn vẹn dữ liệu và quy trình xử lý sai lệch
+  - Quản lý ngoại lệ, rủi ro còn lại và kế hoạch khắc phục
+- level1: Ngừng vận hành
+  level2:
+  - Kiểm kê ứng dụng, công việc nền và người dùng còn phụ thuộc hệ thống
+  - Xác nhận điều kiện chấm dứt dịch vụ và yêu cầu giữ dữ liệu
+  - Chuyển dữ liệu cần giữ và kiểm thử khả năng đọc lại
+  - Dừng ghi, chặn kết nối mới và xác minh không còn lưu lượng
+  - Thu hồi tài khoản, thông tin xác thực, chứng chỉ và quyền mạng
+  - Xóa dữ liệu, khóa mã hóa và bản sao theo chính sách được phê duyệt
+  - Thu hồi máy chủ, lưu trữ, dịch vụ đám mây và tài nguyên quan sát
+  - Cập nhật danh mục hệ thống, tài liệu và bằng chứng hoàn tất
+- level1: Thực hành vận hành
+  level2:
+  - Dựng môi trường thử nghiệm và ghi lại đường cơ sở của hệ thống
+  - Thiết lập quyền tối thiểu, kết nối mã hóa và luân chuyển thông tin xác thực
+  - Xây dựng bảng theo dõi và kiểm thử cảnh báo từ đầu đến cuối
+  - Sao lưu, khôi phục đến thời điểm và đối chiếu dữ liệu thực tế
+  - Tạo lỗi kết nối, cạn dung lượng và khóa chờ trong môi trường cô lập
+  - Diễn tập chuyển đổi dự phòng và kiểm tra ứng dụng kết nối trở lại
+  - Thực hiện một thay đổi cấu hình hoặc nâng cấp có phương án quay lui
+  - Viết báo cáo sự cố dựa trên bằng chứng và bổ sung quy trình xử lý
+  - Nghiệm thu khả năng vận hành bằng số liệu RPO, RTO và mục tiêu dịch vụ

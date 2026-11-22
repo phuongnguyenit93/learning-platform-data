@@ -1,0 +1,64 @@
+roadmap:
+- id: jdbc-pool-hikaricp
+  title: JDBC Pool & HikariCP
+  purpose: Hiểu cơ chế tái sử dụng JDBC Connection và lý do ứng dụng cần connection pool.
+  objectives:
+  - Phân biệt tạo kết nối mới và mượn/trả kết nối từ pool.
+  - Giải thích vai trò DataSource và HikariCP.
+  - Vẽ luồng request → pool → database.
+- id: tich-hop-java-spring-boot
+  title: Tích hợp Java & Spring Boot
+  purpose: Khởi tạo HikariCP và sử dụng một DataSource thống nhất trong ứng dụng.
+  objectives:
+  - Tạo HikariDataSource với URL, user và driver phù hợp.
+  - Cấu hình spring.datasource và spring.datasource.hikari trong Spring Boot.
+  - Chạy truy vấn kiểm tra kết nối tới DB thử nghiệm.
+- id: pool-sizing-nhu-cau-tai
+  title: Pool Sizing & Nhu cầu tải
+  purpose: Cân bằng mức đồng thời với giới hạn kết nối và khả năng xử lý của database.
+  objectives:
+  - Giải thích maximumPoolSize và minimumIdle.
+  - Đo tải thực tế thay vì tăng pool size theo số request.
+  - Tính tổng số connection khi có nhiều application instance.
+- id: connection-timeout-hang-doi
+  title: Connection Timeout & Hàng đợi
+  purpose: Kiểm soát thời gian chờ lấy connection khi pool bận.
+  objectives:
+  - Thiết lập connectionTimeout và hiểu lỗi khi hết thời gian chờ.
+  - Phân biệt chờ lấy connection với query timeout.
+  - Quan sát active, idle và pending connections dưới tải.
+- id: lifetime-idle-keepalive
+  title: Lifetime, Idle & Keepalive
+  purpose: Giữ kết nối hợp lệ khi database hoặc hạ tầng có timeout riêng.
+  objectives:
+  - Phân biệt maxLifetime, idleTimeout và keepaliveTime.
+  - Đặt maxLifetime ngắn hơn giới hạn kết nối của hạ tầng.
+  - Giải thích kiểm tra isValid() và TCP keepalive.
+- id: transaction-quan-ly-tai-nguyen
+  title: Transaction & Quản lý tài nguyên
+  purpose: Tránh giữ connection quá lâu và trả kết nối an toàn sau sử dụng.
+  objectives:
+  - Dùng try-with-resources cho Connection hoặc JDBC resource.
+  - Phân biệt đóng connection logic với đóng kết nối vật lý.
+  - Thử commit, rollback và xử lý exception đúng cách.
+- id: metrics-leak-detection
+  title: Metrics & Leak Detection
+  purpose: Quan sát pool để phát hiện nghẽn và nghi ngờ rò rỉ kết nối.
+  objectives:
+  - Theo dõi active, idle, total và pending qua JMX hoặc Micrometer.
+  - Bật leakDetectionThreshold khi chẩn đoán có kiểm soát.
+  - Phân tích thời gian chờ và cảnh báo thay vì chỉ tăng pool.
+- id: db-failure-resilience
+  title: DB Failure & Resilience
+  purpose: Xử lý sự cố mạng, khởi động và mất kết nối mà không che giấu lỗi.
+  objectives:
+  - Nhận biết lỗi DB restart, stale connection và pool exhaustion.
+  - Phân biệt initializationFailTimeout với connectionTimeout.
+  - Thử tình huống DB tạm dừng và ghi nhận khả năng hồi phục.
+- id: load-test-tuning
+  title: Load Test & Tuning
+  purpose: Kiểm nghiệm cấu hình pool trước khi vận hành ở môi trường thật.
+  objectives:
+  - Chạy thử với nhiều mức concurrency và truy vấn khác nhau.
+  - So sánh latency, throughput, pending và DB utilization.
+  - Điều chỉnh pool, timeout và giới hạn workload dựa trên số đo.

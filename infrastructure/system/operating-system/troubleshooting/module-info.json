@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "OPERATING_SYSTEM_TROUBLESHOOTING"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Rèn phương pháp chẩn đoán lỗi hệ điều hành dựa trên triệu chứng, nhật ký và bằng chứng thay vì phỏng đoán. Người học sử dụng công cụ Linux, Windows, macOS để kiểm tra tiến trình, CPU, bộ nhớ, filesystem, mạng, dịch vụ và xác minh nguyên nhân gốc sau khắc phục."
+  }
+}

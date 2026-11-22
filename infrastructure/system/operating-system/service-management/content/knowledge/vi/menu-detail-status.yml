@@ -1,0 +1,2833 @@
+menu:
+- slug: service-overview
+  title: Tổng quan dịch vụ
+  childs:
+  - slug: service-overview-001
+    title: Khái niệm dịch vụ nền, daemon và tiến trình chạy lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-002
+    title: Phân biệt dịch vụ hệ thống, dịch vụ người dùng và ứng dụng tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-003
+    title: Vai trò của trình quản lý dịch vụ trong hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-004
+    title: Phân biệt quản lý dịch vụ, lập lịch tác vụ và điều phối container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-005
+    title: 'Các thành phần của dịch vụ: chương trình, cấu hình, tài khoản và dữ liệu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-006
+    title: Trạng thái dịch vụ, mã thoát và kết quả thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-007
+    title: Đối chiếu thuật ngữ systemd, Windows Services và launchd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-overview-008
+    title: Phạm vi trách nhiệm giữa ứng dụng, hệ điều hành và người vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-management-architecture
+  title: Kiến trúc quản lý
+  childs:
+  - slug: service-management-architecture-001
+    title: Quan hệ giữa trình khởi tạo hệ thống, trình quản lý dịch vụ và tiến trình con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-002
+    title: Mô hình quản lý khai báo và mô hình điều khiển theo lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-003
+    title: Phạm vi hệ thống, người dùng và phiên đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-004
+    title: Cơ chế đăng ký, phát hiện và nạp cấu hình dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-005
+    title: Quan hệ giữa định nghĩa dịch vụ và chương trình thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-006
+    title: Giao tiếp giữa ứng dụng và trình quản lý dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-007
+    title: Môi trường thực thi của dịch vụ so với terminal và desktop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-architecture-008
+    title: Đặc điểm tiến trình cha, tiến trình con và nhóm tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-lifecycle
+  title: Vòng đời dịch vụ
+  childs:
+  - slug: service-lifecycle-001
+    title: Đăng ký, cài đặt và gỡ bỏ dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-002
+    title: Nạp cấu hình, kiểm tra cấu hình và áp dụng thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-003
+    title: Khởi động, dừng, khởi động lại và nạp lại cấu hình ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-004
+    title: Phân biệt kích hoạt tự khởi động và khởi chạy ngay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-005
+    title: Trạng thái đang khởi động, đang chạy, đã dừng và thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-006
+    title: Phân biệt tiến trình đang chạy, dịch vụ sẵn sàng và dịch vụ khỏe mạnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-007
+    title: Dừng có kiểm soát, giải phóng tài nguyên và xử lý tiến trình còn sót
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-lifecycle-008
+    title: Thiết kế thao tác vận hành có thể lặp lại và kiểm chứng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-startup
+  title: Khởi động hệ thống
+  childs:
+  - slug: system-startup-001
+    title: Trình tự khởi động hệ điều hành và thời điểm khởi chạy dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-002
+    title: Tự khởi động khi bật máy, khi đăng nhập và khi có sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-003
+    title: Dịch vụ thủ công, tự động, trì hoãn và bị vô hiệu hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-004
+    title: Dịch vụ cần mạng, phân giải tên hoặc hệ thống tệp sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-005
+    title: Giới hạn của thứ tự khởi động khi ứng dụng chưa sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-006
+    title: Xử lý dịch vụ khi đăng xuất, tắt máy và khởi động lại hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-007
+    title: Ảnh hưởng của chế độ ngủ, đánh thức và chuyển đổi kết nối mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-startup-008
+    title: Kiểm thử hành vi dịch vụ sau một lần khởi động máy hoàn chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-configuration
+  title: Cấu hình thực thi
+  childs:
+  - slug: execution-configuration-001
+    title: Đường dẫn chương trình, đối số và quy tắc trích dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-002
+    title: Thư mục làm việc và đường dẫn tuyệt đối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-003
+    title: Biến môi trường, PATH và khác biệt giữa shell với trình quản lý dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-004
+    title: Đầu vào chuẩn, đầu ra chuẩn và đầu ra lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-005
+    title: Quyền truy cập tệp thực thi, thư mục cấu hình và thư mục dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-006
+    title: Vị trí lưu dữ liệu bền vững, tệp tạm, PID và socket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-007
+    title: Thiết lập locale, múi giờ, mã hóa và giới hạn môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-008
+    title: Chương trình chạy foreground, tự tách nền và trình bao thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-configuration-009
+    title: Xử lý tín hiệu, yêu cầu dừng và thời gian chờ kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-dependencies
+  title: Phụ thuộc dịch vụ
+  childs:
+  - slug: service-dependencies-001
+    title: Phân biệt phụ thuộc bắt buộc, phụ thuộc tùy chọn và thứ tự thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-002
+    title: Phụ thuộc vào dịch vụ, mạng, ổ đĩa, chứng chỉ và tài nguyên ngoài máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-003
+    title: Đồ thị phụ thuộc và phát hiện vòng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-004
+    title: Kiểm tra điều kiện trước khi khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-005
+    title: Cơ chế báo sẵn sàng và kiểm tra sức khỏe ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-006
+    title: Thử lại khi phụ thuộc tạm thời chưa khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-007
+    title: Lan truyền thao tác dừng, khởi động lại và lỗi phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-dependencies-008
+    title: Thiết kế ứng dụng chịu được phụ thuộc gián đoạn trong lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-accounts
+  title: Tài khoản thực thi
+  childs:
+  - slug: service-accounts-001
+    title: Lựa chọn tài khoản hệ thống, tài khoản chuyên dụng và tài khoản người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-002
+    title: UID, GID, nhóm bổ sung và quyền sở hữu dữ liệu trên Unix
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-003
+    title: Định danh, nhóm và ngữ cảnh bảo mật trên Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-004
+    title: Phân biệt quyền cài đặt dịch vụ với quyền chạy dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-005
+    title: Quyền truy cập tài nguyên cục bộ và tài nguyên mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-006
+    title: Hạn chế đăng nhập tương tác cho tài khoản dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-007
+    title: Quản lý vòng đời tài khoản và luân chuyển thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-008
+    title: Thay đổi tài khoản thực thi và kiểm tra ảnh hưởng đến dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-accounts-009
+    title: Truy vết hành động và xác định chủ sở hữu dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: least-privilege
+  title: Phân quyền tối thiểu
+  childs:
+  - slug: least-privilege-001
+    title: Xây dựng tập quyền tối thiểu theo chức năng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-002
+    title: Quyền điều khiển dịch vụ và phân quyền cho người vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-003
+    title: Bảo vệ định nghĩa dịch vụ, chương trình thực thi và thư mục cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-004
+    title: Nguy cơ leo thang đặc quyền qua cấu hình hoặc chương trình có thể ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-005
+    title: Phân tách quyền đọc cấu hình, ghi dữ liệu và quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-006
+    title: Giới hạn truy cập mạng, cổng lắng nghe và tài nguyên nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-007
+    title: Cô lập dịch vụ bằng cơ chế bảo vệ của từng hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-008
+    title: Ảnh hưởng của SELinux, AppArmor, SIP và cơ chế bảo vệ nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-009
+    title: Kiểm tra quyền hiệu lực và ghi nhận ngoại lệ đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-and-secrets
+  title: Cấu hình và bí mật
+  childs:
+  - slug: configuration-and-secrets-001
+    title: Tách cấu hình ứng dụng khỏi cấu hình trình quản lý dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-002
+    title: Quản lý cấu hình theo môi trường phát triển, kiểm thử và sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-003
+    title: Thứ tự ưu tiên cấu hình và tránh ghi đè ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-004
+    title: Lưu mật khẩu, khóa API và chứng chỉ bằng cơ chế phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-005
+    title: Rủi ro lộ bí mật qua đối số, biến môi trường và nhật ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-006
+    title: Luân chuyển bí mật và chứng chỉ với ảnh hưởng gián đoạn được kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-007
+    title: Kiểm tra cấu hình trước khi nạp lại hoặc khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-secrets-008
+    title: Quản lý phiên bản cấu hình và phát hiện sai lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-basics
+  title: systemd cơ bản
+  childs:
+  - slug: systemd-basics-001
+    title: Kiến trúc systemd và vai trò của systemctl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-002
+    title: 'Các loại unit: service, target, socket, timer, path và mount'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-003
+    title: Liệt kê unit đang nạp và định nghĩa unit đã cài đặt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-004
+    title: Đọc trạng thái dịch vụ bằng systemctl status và systemctl show
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-005
+    title: Điều khiển start, stop, restart, reload và reload-or-restart
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-006
+    title: Phân biệt enable, disable, mask và unmask
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-007
+    title: Vị trí unit hệ thống, unit cục bộ và cấu hình theo người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-008
+    title: Đọc cấu hình hiệu lực bằng systemctl cat
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-basics-009
+    title: Đối chiếu active, inactive, failed, enabled, disabled và static
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-units
+  title: Unit systemd
+  childs:
+  - slug: systemd-units-001
+    title: Cấu trúc tệp unit với các phần Unit, Service và Install
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-002
+    title: Chọn Type=simple, exec, forking, oneshot, notify hoặc dbus
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-003
+    title: Khai báo ExecStart và quy tắc truyền đối số không qua shell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-004
+    title: Thực thi bước chuẩn bị và dọn dẹp bằng các chỉ thị Exec
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-005
+    title: Cấu hình User, Group, WorkingDirectory và môi trường thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-006
+    title: Thiết lập RuntimeDirectory, StateDirectory, CacheDirectory và LogsDirectory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-007
+    title: Quản lý PIDFile, RemainAfterExit và dịch vụ thực thi một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-008
+    title: Thiết lập ExecReload, ExecStop, KillMode và tín hiệu dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-009
+    title: Tạo drop-in, đặt lại giá trị và kiểm soát thứ tự ghi đè
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-units-010
+    title: Kiểm tra bằng systemd-analyze verify và áp dụng bằng daemon-reload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-activation
+  title: Kích hoạt systemd
+  childs:
+  - slug: systemd-activation-001
+    title: Liên kết WantedBy, RequiredBy và kích hoạt unit khi khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-002
+    title: Socket activation và chuyển socket cho chương trình dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-003
+    title: Timer activation với OnCalendar và bộ đếm thời gian tương đối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-004
+    title: Path activation khi tệp hoặc thư mục thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-005
+    title: D-Bus activation và điều kiện ứng dụng hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-006
+    title: Template unit, instance unit và tham số hóa bằng specifier
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-007
+    title: Dịch vụ người dùng với systemctl --user và user manager
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-008
+    title: Quản lý user service sau đăng xuất bằng linger
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-activation-009
+    title: Transient unit và chạy tác vụ có quản lý bằng systemd-run
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-dependencies
+  title: Phụ thuộc systemd
+  childs:
+  - slug: systemd-dependencies-001
+    title: Phân biệt Wants, Requires, Requisite và BindsTo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-002
+    title: Thứ tự Before và After độc lập với yêu cầu kích hoạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-003
+    title: Quan hệ PartOf và lan truyền thao tác quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-004
+    title: Xung đột unit, vòng phụ thuộc và phụ thuộc mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-005
+    title: Điều kiện Condition, kiểm tra Assert và ExecCondition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-006
+    title: Phân biệt network.target, network-online.target và ứng dụng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-007
+    title: Phụ thuộc mount và truy cập đường dẫn bằng RequiresMountsFor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-008
+    title: Xem đồ thị bằng list-dependencies và phân tích critical-chain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-dependencies-009
+    title: Thiết kế target để nhóm dịch vụ và kiểm tra hành vi dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-recovery
+  title: Khôi phục systemd
+  childs:
+  - slug: systemd-recovery-001
+    title: Chính sách Restart và phân biệt kết thúc thành công với thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-002
+    title: Khoảng chờ RestartSec và giới hạn StartLimitIntervalSec, StartLimitBurst
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-003
+    title: Điều chỉnh mã thoát bằng SuccessExitStatus và RestartPreventExitStatus
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-004
+    title: Giới hạn TimeoutStartSec, TimeoutStopSec và thời gian chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-005
+    title: Thông báo sẵn sàng bằng sd_notify và Type=notify
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-006
+    title: WatchdogSec và yêu cầu ứng dụng gửi tín hiệu watchdog
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-007
+    title: Xử lý thất bại bằng OnFailure và dịch vụ hỗ trợ khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-008
+    title: Chẩn đoán vòng lặp khởi động lại và điều kiện dùng reset-failed
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-recovery-009
+    title: Kiểm thử crash, treo, dừng chậm và phụ thuộc bị mất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-hardening
+  title: Bảo vệ systemd
+  childs:
+  - slug: systemd-hardening-001
+    title: DynamicUser và lựa chọn danh tính thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-002
+    title: NoNewPrivileges, CapabilityBoundingSet và AmbientCapabilities
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-003
+    title: ProtectSystem, ProtectHome và đường dẫn được phép ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-004
+    title: PrivateTmp, PrivateDevices và bảo vệ tài nguyên hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-005
+    title: RestrictAddressFamilies, IPAddressAllow và IPAddressDeny
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-006
+    title: SystemCallFilter và giới hạn chức năng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-007
+    title: Truyền bí mật bằng LoadCredential và cơ chế credentials
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-008
+    title: Giới hạn CPU, bộ nhớ, I/O, số tác vụ và số tệp mở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-hardening-009
+    title: Đánh giá bằng systemd-analyze security và kiểm thử tính tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systemd-logging
+  title: Nhật ký systemd
+  childs:
+  - slug: systemd-logging-001
+    title: Đọc nhật ký theo unit bằng journalctl -u
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-002
+    title: Lọc theo lần khởi động máy, khoảng thời gian và mức độ ưu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-003
+    title: Theo dõi log trực tiếp và xem ngữ cảnh trước khi dịch vụ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-004
+    title: Cấu hình StandardOutput, StandardError và định danh nhật ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-005
+    title: Lưu journal bền vững, giới hạn dung lượng và thời gian lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-006
+    title: Quyền đọc journal và kiểm soát dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-007
+    title: Phân biệt log của ứng dụng, systemd và nhân Linux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-008
+    title: Thu thập core dump bằng coredumpctl khi hệ thống hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systemd-logging-009
+    title: Xuất log, liên kết PID và xây dựng dòng thời gian sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: non-systemd-linux-services
+  title: Linux ngoài systemd
+  childs:
+  - slug: non-systemd-linux-services-001
+    title: Nhận diện trình init và khả năng quản lý dịch vụ của bản phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-systemd-linux-services-002
+    title: SysV init, init script và khái niệm runlevel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-systemd-linux-services-003
+    title: Lệnh service, update-rc.d và chkconfig trong môi trường tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-systemd-linux-services-004
+    title: OpenRC, runlevel và quan hệ phụ thuộc dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-systemd-linux-services-005
+    title: Khác biệt giữa trình giám sát tiến trình và trình init
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-systemd-linux-services-006
+    title: Giới hạn tương thích khi chuyển init script sang unit systemd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: non-systemd-linux-services-007
+    title: Di chuyển dịch vụ cũ và kiểm chứng hành vi khởi động, dừng, ghi log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-services
+  title: Windows Services
+  childs:
+  - slug: windows-services-001
+    title: Kiến trúc Service Control Manager và tiến trình dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-002
+    title: Phân biệt ServiceName, DisplayName và đường dẫn chương trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-003
+    title: Tra cứu và điều khiển dịch vụ bằng services.msc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-004
+    title: PowerShell Get-Service, Start-Service, Stop-Service và Restart-Service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-005
+    title: Sử dụng sc.exe và tránh nhầm tên lệnh trong PowerShell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-006
+    title: Tra cứu cấu hình bằng CIM và lớp Win32_Service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-007
+    title: Các trạng thái dịch vụ và khả năng chấp nhận lệnh điều khiển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-008
+    title: Tạo và xóa dịch vụ bằng công cụ quản trị phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-009
+    title: Phân biệt tiến trình dịch vụ riêng, tiến trình dùng chung và svchost
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-services-010
+    title: Session 0 isolation và giới hạn tương tác với desktop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-service-configuration
+  title: Cấu hình Windows
+  childs:
+  - slug: windows-service-configuration-001
+    title: Chế độ Automatic, Automatic Delayed Start, Manual và Disabled
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-002
+    title: Khởi động theo sự kiện với service trigger
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-003
+    title: ImagePath, đối số và xử lý đường dẫn chứa khoảng trắng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-004
+    title: Khai báo và kiểm tra phụ thuộc giữa các Windows service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-005
+    title: Thư mục làm việc, hồ sơ tài khoản và biến môi trường của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-006
+    title: Quyền truy cập tệp, Registry, chứng chỉ và thư mục dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-007
+    title: Trạng thái pending, checkpoint, wait hint và thời gian khởi động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-008
+    title: Yêu cầu chương trình triển khai giao thức Windows Service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-configuration-009
+    title: Đóng gói ứng dụng console bằng service wrapper và quản lý vòng đời wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-service-accounts
+  title: Tài khoản Windows
+  childs:
+  - slug: windows-service-accounts-001
+    title: So sánh LocalSystem, LocalService và NetworkService
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-002
+    title: Virtual service account và service SID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-003
+    title: Tài khoản cục bộ, tài khoản miền và danh tính khi truy cập mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-004
+    title: Managed service account và group managed service account
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-005
+    title: Quyền Log on as a service và ảnh hưởng của Group Policy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-006
+    title: NTFS ACL, Registry ACL và quyền truy cập khóa riêng chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-007
+    title: Phân quyền điều khiển dịch vụ bằng security descriptor và SDDL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-008
+    title: Rủi ro unquoted service path và quyền ghi vào chương trình dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-accounts-009
+    title: Luân chuyển mật khẩu, kiểm tra đăng nhập và thu hồi quyền dư thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-service-recovery
+  title: Phục hồi Windows
+  childs:
+  - slug: windows-service-recovery-001
+    title: Cấu hình Recovery cho lần lỗi thứ nhất, thứ hai và tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-002
+    title: Khoảng chờ khởi động lại và chu kỳ đặt lại bộ đếm lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-003
+    title: Phân biệt tiến trình crash, dịch vụ báo lỗi và dừng theo yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-004
+    title: Cấu hình failure actions và failureflag bằng sc.exe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-005
+    title: Chạy chương trình khôi phục và kiểm soát quyền thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-006
+    title: Giới hạn và tác động của hành động khởi động lại máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-007
+    title: Phát hiện dịch vụ treo khi SCM vẫn báo Running
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-recovery-008
+    title: Kiểm thử chính sách phục hồi và xử lý vòng lặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-service-logging
+  title: Nhật ký Windows
+  childs:
+  - slug: windows-service-logging-001
+    title: Đọc Event Viewer và các kênh System, Application, Operational liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-002
+    title: Lọc sự kiện Service Control Manager theo thời gian và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-003
+    title: Tra cứu sự kiện bằng Get-WinEvent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-004
+    title: Liên hệ lỗi đăng nhập, phụ thuộc, khởi động quá hạn và thoát bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-005
+    title: Thu thập log riêng của ứng dụng và log của service wrapper
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-006
+    title: Đọc mã lỗi Win32, HRESULT và mã thoát riêng của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-007
+    title: Thu thập crash dump, hang dump và dữ liệu Windows Error Reporting
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-logging-008
+    title: Xuất sự kiện, kiểm soát lưu trữ và dựng dòng thời gian sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: macos-launchd
+  title: launchd trên macOS
+  childs:
+  - slug: macos-launchd-001
+    title: Kiến trúc launchd và vai trò của launchctl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-002
+    title: Phân biệt LaunchDaemon và LaunchAgent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-003
+    title: Miền system, user và gui trong launchctl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-004
+    title: Thư mục cấu hình hệ thống, quản trị viên và người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-005
+    title: Định danh job bằng Label và cấu trúc tệp plist
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-006
+    title: Đăng ký bằng bootstrap và gỡ khỏi miền bằng bootout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-007
+    title: Khởi chạy bằng kickstart và xem trạng thái bằng print
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-008
+    title: Phân biệt enable, disable và trạng thái đã bootstrap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-launchd-009
+    title: Quyền sở hữu, quyền truy cập và kiểm tra plist bằng plutil
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: launchd-configuration
+  title: Cấu hình launchd
+  childs:
+  - slug: launchd-configuration-001
+    title: Khai báo Program, ProgramArguments và quy tắc truyền đối số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-002
+    title: WorkingDirectory, EnvironmentVariables và môi trường tối giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-003
+    title: RunAtLoad và ảnh hưởng đến thời điểm chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-004
+    title: KeepAlive, điều kiện duy trì và nguy cơ khởi động lại liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-005
+    title: StartInterval, StartCalendarInterval và hành vi khi máy ngủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-006
+    title: WatchPaths, QueueDirectories và kích hoạt theo tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-007
+    title: Socket activation và yêu cầu ứng dụng nhận socket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-008
+    title: StandardOutPath, StandardErrorPath và chuẩn bị thư mục log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: launchd-configuration-009
+    title: UserName, GroupName, Umask và giới hạn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: macos-service-operations
+  title: Vận hành macOS
+  childs:
+  - slug: macos-service-operations-001
+    title: Chọn LaunchDaemon cho dịch vụ máy và LaunchAgent cho phiên người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-002
+    title: Khởi động trước đăng nhập và hoạt động sau đăng xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-003
+    title: Áp dụng thay đổi plist và kiểm chứng cấu hình đã nạp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-004
+    title: Chạy foreground và quản lý tiến trình con với launchd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-005
+    title: Yêu cầu dừng, thời gian thoát và hành vi KeepAlive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-006
+    title: Giới hạn phụ thuộc trực tiếp và thiết kế chờ tài nguyên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-007
+    title: Quyền riêng tư TCC, Keychain và ngữ cảnh truy cập của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-operations-008
+    title: Di chuyển cấu hình launchctl cũ sang lệnh quản lý theo miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: macos-service-logging
+  title: Nhật ký macOS
+  childs:
+  - slug: macos-service-logging-001
+    title: Xem Unified Logging bằng Console, log show và log stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-logging-002
+    title: Lọc theo tiến trình, subsystem và khoảng thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-logging-003
+    title: Đọc đầu ra chuẩn và đầu ra lỗi đã cấu hình cho job
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-logging-004
+    title: Chẩn đoán job không nạp, chạy rồi thoát và mã thoát gần nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-logging-005
+    title: Phân biệt lỗi plist, đường dẫn, quyền và môi trường thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-logging-006
+    title: Thu thập crash report, diagnostic report và dữ liệu phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: macos-service-logging-007
+    title: Thiết lập lưu trữ, xoay vòng và bảo vệ log chứa dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring-and-alerting
+  title: Giám sát và cảnh báo
+  childs:
+  - slug: monitoring-and-alerting-001
+    title: Lựa chọn chỉ số trạng thái, mức sẵn sàng và sức khỏe chức năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-002
+    title: Theo dõi số lần khởi động lại, tỷ lệ lỗi và thời gian gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-003
+    title: Kiểm tra cổng, endpoint và giao dịch tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-004
+    title: Theo dõi tài nguyên cùng tiến trình con của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-005
+    title: Thiết kế ngưỡng, khoảng quan sát và mức độ cảnh báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-006
+    title: Tránh cảnh báo lặp, chống dao động và xử lý khoảng bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-007
+    title: Tập trung log, metrics và sự kiện từ nhiều máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-008
+    title: Liên kết cảnh báo với chủ sở hữu và quy trình xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-alerting-009
+    title: Kiểm chứng cơ chế giám sát khi dịch vụ chết, treo hoặc suy giảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resources-and-performance
+  title: Tài nguyên và hiệu năng
+  childs:
+  - slug: resources-and-performance-001
+    title: Đo thời gian khởi động, thời gian sẵn sàng và thời gian dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-002
+    title: Phân tích CPU cao, vòng lặp bận và tranh chấp tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-003
+    title: Chẩn đoán tăng bộ nhớ, rò rỉ bộ nhớ và thiếu bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-004
+    title: Giới hạn file descriptor, handle, thread và tiến trình con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-005
+    title: Đánh giá I/O đĩa, dung lượng log và tệp dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-006
+    title: Phân tích kết nối mạng, DNS, timeout và cạn cổng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-007
+    title: Giới hạn tài nguyên bằng cgroups, Windows Job Objects và khả năng nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-008
+    title: Ảnh hưởng của ưu tiên lập lịch và giới hạn tài nguyên đến độ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-performance-009
+    title: Xây dựng đường cơ sở và so sánh trước, sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: service-troubleshooting-001
+    title: Quy trình xác định phạm vi ảnh hưởng và thu thập bằng chứng ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-002
+    title: Dịch vụ chạy thủ công thành công nhưng thất bại khi chạy nền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-003
+    title: Dịch vụ không tự chạy sau khởi động máy hoặc đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-004
+    title: Dịch vụ bị từ chối truy cập do tài khoản, ACL hoặc cơ chế bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-005
+    title: Dịch vụ lỗi vì thiếu biến môi trường, sai thư mục hoặc đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-006
+    title: Dịch vụ không sẵn sàng do DNS, cổng, chứng chỉ hoặc phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-007
+    title: Dịch vụ chạy rồi thoát và phân tích mã kết thúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-008
+    title: Dịch vụ treo, dừng không được hoặc còn tiến trình con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-009
+    title: Dịch vụ khởi động lại liên tục và xác định nguyên nhân gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-troubleshooting-010
+    title: Đối chiếu log, cấu hình hiệu lực và thay đổi gần nhất để xác nhận nguyên nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-upgrades
+  title: Triển khai và nâng cấp
+  childs:
+  - slug: deployment-and-upgrades-001
+    title: Đóng gói chương trình, cấu hình và định nghĩa dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-002
+    title: Cài đặt theo thứ tự tài khoản, quyền, dữ liệu và đăng ký dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-003
+    title: Kiểm tra trước triển khai và xác nhận phiên bản đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-004
+    title: Dừng có kiểm soát và hoàn thành công việc đang xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-005
+    title: Thay thế chương trình, nạp cấu hình và kiểm tra sức khỏe sau nâng cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-006
+    title: Quản lý thay đổi lược đồ dữ liệu và khả năng tương thích khi quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-007
+    title: Triển khai từng phần trên nhiều máy và giảm thời gian gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-008
+    title: Gỡ cài đặt, xử lý tài khoản và chính sách giữ lại dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-upgrades-009
+    title: Xử lý bản cập nhật hệ điều hành làm thay đổi hành vi dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-automation
+  title: Tự động hóa vận hành
+  childs:
+  - slug: operations-automation-001
+    title: Thiết kế lệnh quản trị có thể lặp lại và kiểm tra trạng thái cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-002
+    title: Tự động hóa Linux bằng shell và công cụ quản lý cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-003
+    title: Tự động hóa Windows bằng PowerShell và CIM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-004
+    title: Tự động hóa macOS bằng launchctl và quản lý plist
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-005
+    title: Thực thi từ xa, xác thực và giới hạn quyền quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-006
+    title: Quản lý dịch vụ trên nhiều máy với giới hạn đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-007
+    title: Phát hiện cấu hình sai lệch và đối chiếu với cấu hình chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-008
+    title: Kiểm thử định nghĩa dịch vụ và vòng đời trong quy trình tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: special-runtime-environments
+  title: Môi trường đặc thù
+  childs:
+  - slug: special-runtime-environments-001
+    title: Quản lý dịch vụ trong máy ảo và môi trường phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-002
+    title: Khả năng dùng systemd trong WSL theo cấu hình môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-003
+    title: Phân biệt vòng đời dịch vụ bên trong container và vòng đời container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-004
+    title: PID 1, chuyển tiếp tín hiệu và thu hồi tiến trình con trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-005
+    title: Dịch vụ trên máy không có phiên desktop hoặc người dùng đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-006
+    title: Khác biệt giữa máy cá nhân, máy chủ và máy thuộc miền quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-007
+    title: Hạn chế của môi trường CI khi kiểm thử trình quản lý dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-runtime-environments-008
+    title: Kiểm tra tính năng theo phiên bản hệ điều hành và công cụ quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-restore
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-restore-001
+    title: Xác định cấu hình, định nghĩa dịch vụ, dữ liệu và bí mật cần bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-restore-002
+    title: Sao lưu quyền truy cập, tài khoản tham chiếu và phụ thuộc cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-restore-003
+    title: Khôi phục dịch vụ trên máy mới và ánh xạ lại danh tính thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-restore-004
+    title: Khôi phục cấu hình cùng dữ liệu ở trạng thái nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-restore-005
+    title: Quay lui sau thay đổi cấu hình hoặc nâng cấp thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-restore-006
+    title: Kiểm thử khôi phục sau mất máy, mất ổ đĩa và hỏng cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-restore-007
+    title: Xác nhận mục tiêu thời gian khôi phục và mức mất dữ liệu chấp nhận được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operational-procedures
+  title: Quy trình vận hành
+  childs:
+  - slug: operational-procedures-001
+    title: Lập danh mục dịch vụ, mục đích, chủ sở hữu và mức độ quan trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-002
+    title: Tài liệu hóa cách cài đặt, khởi động, dừng và kiểm tra sức khỏe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-003
+    title: Xây dựng quy trình xử lý sự cố theo triệu chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-004
+    title: Quản lý cửa sổ bảo trì, thay đổi và kế hoạch quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-005
+    title: Kiểm tra định kỳ tài khoản, quyền, chứng chỉ và dung lượng log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-006
+    title: Ghi nhận thao tác quản trị và bàn giao ca trực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-007
+    title: Phân tích sau sự cố và theo dõi hành động khắc phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operational-procedures-008
+    title: Rà soát dịch vụ dư thừa, dịch vụ không rõ nguồn gốc và cấu hình lỗi thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-management-labs
+  title: Bài thực hành
+  childs:
+  - slug: service-management-labs-001
+    title: Chạy ứng dụng nền bằng tài khoản chuyên dụng trên ba hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-002
+    title: Tạo systemd service và cấu hình tự khởi động sau khi bật máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-003
+    title: Thực hành drop-in, phụ thuộc và dịch vụ systemd theo người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-004
+    title: Tạo socket unit, timer unit và template unit cho tình huống cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-005
+    title: Mô phỏng crash, restart limit, watchdog và thu thập journal trên Linux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-006
+    title: Cài đặt Windows Service và kiểm tra tài khoản cùng quyền tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-007
+    title: Cấu hình Windows Recovery, phụ thuộc và phân tích sự kiện SCM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-008
+    title: Tạo LaunchDaemon và LaunchAgent với cấu hình plist đã kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-009
+    title: Chẩn đoán launchd job lỗi quyền, môi trường và vòng lặp KeepAlive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-010
+    title: Xây dựng giám sát sức khỏe và mô phỏng dịch vụ đang chạy nhưng không đáp ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-011
+    title: Triển khai bản nâng cấp, quay lui và khôi phục trên máy thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-management-labs-012
+    title: Lập hồ sơ vận hành và so sánh cùng một dịch vụ trên Linux, Windows, macOS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

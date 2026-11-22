@@ -1,0 +1,1868 @@
+# Truy vấn cây danh mục và kiểm soát chu trình
+
+Cây danh mục xuất hiện trong nhiều hệ thống: danh mục sản phẩm, thư mục, đơn vị tổ chức, nhóm quyền, chủ đề bài học và cấu trúc địa điểm. Dữ liệu thường được lưu dưới dạng mỗi nút có một mã và một mã cha. Từ những hàng đơn giản đó, truy vấn cần dựng lại cả cây, tìm đường dẫn từ gốc đến một nút, lấy toàn bộ nhánh con hoặc xác định nút lá.
+
+Một vấn đề khó hơn là **chu trình** (*cycle*). Nếu danh mục A có cha là B, B có cha là C, còn C lại có cha là A, dữ liệu không còn là cây hợp lệ. Truy vấn đệ quy có thể lặp vô hạn hoặc chạy đến giới hạn tài nguyên; breadcrumb có thể sai; thao tác chuyển danh mục có thể làm hỏng cấu trúc đang hoạt động.
+
+Bài học **Database SQL → Thực hành tổng hợp** hướng dẫn cách:
+
+1. Chọn mô hình dữ liệu cho cây danh mục và hiểu quan hệ giữa nút cha, nút con.
+2. Truy vấn cây bằng recursive CTE: từ gốc xuống, từ nút lên, lấy subtree, đường dẫn và nút lá.
+3. Theo dõi đường đi đã duyệt để phát hiện và chặn chu trình trong lúc truy vấn.
+4. Kiểm tra dữ liệu mồ côi, nút tự làm cha và chu trình dài nhiều nút.
+5. Kiểm soát thao tác thêm nút hoặc chuyển nút sang cha mới để không tạo chu trình.
+6. Hiểu giới hạn của constraint, trigger, transaction và ghi đồng thời.
+
+Các ví dụ chính dùng **PostgreSQL**. Phần cuối so sánh cú pháp và lưu ý với SQL Server, MySQL, Oracle và SQLite. Chạy script trong database sandbox; không thử cập nhật cấu trúc danh mục production khi chưa có quy trình kiểm soát.
+
+## 1. Cây danh mục là gì?
+
+Một cây là cấu trúc phân cấp có một nút gốc, mỗi nút không phải gốc có đúng một cha và không có đường đi nào quay lại chính nút ban đầu. Một tập nhiều cây độc lập gọi là **forest** (rừng).
+
+Ví dụ:
+
+~~~text
+Cửa hàng
+├── Điện tử
+│   ├── Máy tính
+│   │   ├── Laptop
+│   │   └── Máy bàn
+│   ├── Điện thoại
+│   └── Âm thanh
+│       └── Tai nghe
+└── Phụ kiện
+    ├── Bộ sạc
+    └── Tiện ích
+
+Hàng thanh lý
+~~~
+
+Trong hình:
+
+- Cửa hàng và Hàng thanh lý là nút gốc.
+- Điện tử và Phụ kiện là con trực tiếp của Cửa hàng.
+- Laptop là con của Máy tính, đồng thời là hậu duệ của Điện tử và Cửa hàng.
+- Laptop, Máy bàn, Điện thoại, Tai nghe, Bộ sạc và Tiện ích là các nút lá trong ví dụ.
+
+### 1.1. Thuật ngữ cần phân biệt
+
+| Thuật ngữ | Ý nghĩa |
+| --- | --- |
+| Node (nút) | Một mục trong cấu trúc phân cấp |
+| Root (gốc) | Nút không có cha |
+| Parent (cha) | Nút trực tiếp quản lý một nút khác |
+| Child (con) | Nút có cha trực tiếp là một nút khác |
+| Sibling (anh em) | Các nút có cùng cha |
+| Ancestor (tổ tiên) | Cha, ông, cụ... của một nút |
+| Descendant (hậu duệ) | Con, cháu... của một nút |
+| Leaf (lá) | Nút không có con |
+| Depth (độ sâu) | Số cạnh từ gốc đến nút; trong bài gốc có depth 0 |
+| Height (chiều cao) | Số cạnh dài nhất từ nút đến một lá |
+| Path (đường đi) | Chuỗi nút nối từ gốc hoặc nút bắt đầu đến nút hiện tại |
+| Subtree (cây con) | Một nút cùng toàn bộ hậu duệ của nó |
+| Cycle (chu trình) | Đường đi theo các cạnh quay lại một nút đã gặp |
+
+Depth và height là hai đại lượng khác nhau. Nút gốc có depth 0; một nút sâu hơn có depth lớn hơn. Lá có height 0; một nút có nhiều tầng con có height lớn hơn.
+
+### 1.2. Tree, forest và DAG
+
+Không phải mọi cấu trúc có cha-con đều là một cây:
+
+- **Tree:** một gốc, mỗi nút khác gốc có đúng một cha, không có cycle.
+- **Forest:** nhiều cây độc lập; mỗi nút có tối đa một cha, không có cycle.
+- **DAG (directed acyclic graph):** đồ thị có hướng không chu trình; một nút có thể có nhiều cha.
+
+Danh mục sản phẩm thường là forest vì một danh mục có một cha trực tiếp. Nhưng cùng một bài viết có thể xuất hiện trong nhiều chủ đề; khi đó mô hình nhiều-cha (DAG) phù hợp hơn. Đừng ép một DAG vào cột parent_id duy nhất.
+
+## 2. Mô hình adjacency list
+
+Mô hình phổ biến nhất lưu cha trực tiếp trong chính bảng nút. Mỗi hàng có một parent_id tham chiếu đến category_id của hàng cha.
+
+~~~text
+categories
+--------------------------------------------------
+category_id | name         | parent_id
+--------------------------------------------------
+1           | Cửa hàng     | NULL
+2           | Điện tử      | 1
+3           | Máy tính     | 2
+4           | Laptop       | 3
+5           | Máy bàn      | 3
+6           | Điện thoại   | 2
+7           | Phụ kiện     | 1
+--------------------------------------------------
+~~~
+
+Ưu điểm:
+
+- Thêm một nút đơn giản.
+- Chuyển nút sang cha khác thường chỉ cần UPDATE một hàng.
+- Mỗi quan hệ cha trực tiếp được biểu diễn rõ.
+- Có thể dùng khóa ngoại để ngăn tham chiếu đến cha không tồn tại.
+
+Hạn chế:
+
+- Lấy toàn bộ hậu duệ hoặc tổ tiên cần truy vấn đệ quy.
+- Không thể ngăn chu trình nhiều nút chỉ bằng khóa ngoại.
+- Thao tác di chuyển một nhánh lớn cần chú ý tính nhất quán và ghi đồng thời.
+
+### 2.1. Tạo bảng PostgreSQL
+
+Các câu lệnh sau tạo schema riêng và bảng danh mục. Chạy trong database sandbox mới; nếu đã có đối tượng cùng tên, hãy dùng một database/schema thử nghiệm riêng.
+
+~~~sql
+CREATE SCHEMA lab_r434;
+
+CREATE TABLE lab_r434.categories (
+    category_id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    category_code TEXT NOT NULL UNIQUE,
+    category_name TEXT NOT NULL,
+    parent_id BIGINT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT categories_parent_fk
+        FOREIGN KEY (parent_id)
+        REFERENCES lab_r434.categories(category_id)
+        DEFERRABLE INITIALLY IMMEDIATE,
+    CONSTRAINT categories_no_self_parent
+        CHECK (parent_id IS NULL OR parent_id <> category_id)
+);
+
+CREATE INDEX categories_parent_sort_idx
+    ON lab_r434.categories(parent_id, sort_order, category_id);
+~~~
+
+Giải thích:
+
+- category_id là khóa chính của nút.
+- category_code là mã nghiệp vụ duy nhất.
+- parent_id là khóa ngoại tự tham chiếu; NULL biểu thị nút gốc.
+- sort_order quyết định thứ tự anh em khi hiển thị.
+- is_active cho biết nút có đang được dùng trong giao diện hay không.
+- CHECK ngăn nút trực tiếp làm cha của chính nó.
+- Chỉ mục theo parent_id hỗ trợ tìm các nút con và duyệt cây.
+
+**Khóa ngoại không ngăn được chu trình nhiều nút.** Nó chỉ bảo đảm cha được tham chiếu tồn tại (và có thể trì hoãn kiểm tra theo cấu hình). CHECK trên chỉ ngăn trường hợp parent_id = category_id.
+
+### 2.2. Nạp dữ liệu mẫu
+
+~~~sql
+INSERT INTO lab_r434.categories (
+    category_id, category_code, category_name,
+    parent_id, sort_order, is_active
+)
+VALUES
+    (1,  'STORE',       'Cửa hàng',      NULL, 10, TRUE),
+    (2,  'ELECTRONICS', 'Điện tử',       1,    10, TRUE),
+    (3,  'COMPUTERS',   'Máy tính',      2,    10, TRUE),
+    (4,  'LAPTOPS',     'Laptop',        3,    10, TRUE),
+    (5,  'DESKTOPS',    'Máy bàn',       3,    20, TRUE),
+    (6,  'PHONES',      'Điện thoại',    2,    20, TRUE),
+    (7,  'ACCESSORIES', 'Phụ kiện',      1,    20, TRUE),
+    (8,  'CHARGERS',    'Bộ sạc',        7,    10, TRUE),
+    (9,  'AUDIO',       'Âm thanh',      2,    30, TRUE),
+    (10, 'HEADPHONES',  'Tai nghe',      9,    10, TRUE),
+    (11, 'CLEARANCE',   'Hàng thanh lý', NULL, 20, TRUE),
+    (12, 'GADGETS',     'Tiện ích',      7,    20, TRUE);
+~~~
+
+Kết quả là một forest có hai gốc: Cửa hàng và Hàng thanh lý. Các ID được ghi tường minh để expected result trong bài dễ đối chiếu.
+
+### 2.3. Xem quan hệ cha trực tiếp
+
+~~~sql
+SELECT
+    c.category_id,
+    c.category_code,
+    c.category_name,
+    c.parent_id,
+    p.category_name AS parent_name,
+    c.sort_order,
+    c.is_active
+FROM lab_r434.categories AS c
+LEFT JOIN lab_r434.categories AS p
+    ON p.category_id = c.parent_id
+ORDER BY c.parent_id NULLS FIRST, c.sort_order, c.category_id;
+~~~
+
+Đây là self-join một cấp: mỗi hàng danh mục được nối với tối đa một hàng cha. Nó chưa lấy ông/bà hoặc các hậu duệ nhiều tầng.
+
+## 3. Recursive CTE hoạt động như thế nào?
+
+Recursive CTE là truy vấn có phần tham chiếu lại chính kết quả CTE. Nó phù hợp để đi qua một cấu trúc không biết trước có bao nhiêu tầng.
+
+Một recursive CTE thường có hai phần:
+
+1. **Anchor member:** xác định hàng bắt đầu, ví dụ các nút gốc hoặc một nút được chọn.
+2. **Recursive member:** tìm hàng tiếp theo dựa trên hàng đã có, ví dụ tìm mọi con có parent_id bằng ID hiện tại.
+
+~~~text
+Anchor: chon nut bat dau
+          |
+          v
+Them cac nut con truc tiep
+          |
+          v
+Dung cac nut moi de tim con tiep
+          |
+          v
+Khong con hang moi -> ket thuc
+~~~
+
+Trong PostgreSQL:
+
+~~~sql
+WITH RECURSIVE cte_name AS (
+    -- Anchor member
+    SELECT ...
+
+    UNION ALL
+
+    -- Recursive member: tham chieu cte_name
+    SELECT ...
+    FROM some_table AS t
+    JOIN cte_name AS c
+      ON ...
+)
+SELECT *
+FROM cte_name;
+~~~
+
+UNION ALL thường phù hợp vì giữ mọi hàng và tránh bước loại trùng tốn chi phí. Nếu dữ liệu có chu trình, UNION ALL không tự dừng; phải có điều kiện ngăn lặp hoặc cơ chế CYCLE.
+
+### 3.1. Depth-first và breadth-first
+
+Khi duyệt cây, có hai cách hình dung:
+
+- **Depth-first:** đi sâu hết một nhánh rồi quay lại nhánh kế tiếp.
+- **Breadth-first:** đi qua các nút cùng tầng trước rồi mới xuống tầng sâu hơn.
+
+Recursive CTE tạo ra tập hàng theo từng vòng lặp, nhưng không nên dựa vào thứ tự vật lý của các hàng để suy ra thứ tự hiển thị. Hãy tạo cột depth/path/order và dùng ORDER BY ở SELECT ngoài cùng.
+
+## 4. Truy vấn toàn bộ cây từ các nút gốc
+
+Ta bắt đầu từ những hàng có parent_id IS NULL rồi lần lượt tìm con.
+
+### 4.1. Cây đơn giản có depth
+
+~~~sql
+WITH RECURSIVE category_tree AS (
+    SELECT
+        c.category_id,
+        c.category_code,
+        c.category_name,
+        c.parent_id,
+        c.sort_order,
+        0 AS depth
+    FROM lab_r434.categories AS c
+    WHERE c.parent_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        child.category_id,
+        child.category_code,
+        child.category_name,
+        child.parent_id,
+        child.sort_order,
+        parent.depth + 1 AS depth
+    FROM lab_r434.categories AS child
+    JOIN category_tree AS parent
+        ON child.parent_id = parent.category_id
+)
+SELECT
+    category_id,
+    category_code,
+    category_name,
+    parent_id,
+    depth
+FROM category_tree
+ORDER BY depth, parent_id NULLS FIRST, sort_order, category_id;
+~~~
+
+Anchor trả các gốc ở depth 0. Recursive member tìm con trực tiếp và tăng depth thêm 1. Vì ORDER BY depth, truy vấn hiển thị theo tầng (gần với breadth-first), nhưng thứ tự anh em cần được xác định thêm bằng sort_order và khóa.
+
+Expected depth:
+
+| category_id | category_name | parent_id | depth |
+| ---: | --- | ---: | ---: |
+| 1 | Cửa hàng | NULL | 0 |
+| 11 | Hàng thanh lý | NULL | 0 |
+| 2 | Điện tử | 1 | 1 |
+| 7 | Phụ kiện | 1 | 1 |
+| 3 | Máy tính | 2 | 2 |
+| 6 | Điện thoại | 2 | 2 |
+| 9 | Âm thanh | 2 | 2 |
+| 8 | Bộ sạc | 7 | 2 |
+| 12 | Tiện ích | 7 | 2 |
+| 4 | Laptop | 3 | 3 |
+| 5 | Máy bàn | 3 | 3 |
+| 10 | Tai nghe | 9 | 3 |
+
+### 4.2. Duyệt theo thứ tự cây và tạo breadcrumb path
+
+Để hiển thị các nút theo thứ tự từng nhánh, ta giữ đường đi ID và đường đi sort_order.
+
+~~~sql
+WITH RECURSIVE category_tree AS (
+    SELECT
+        c.category_id,
+        c.category_code,
+        c.category_name,
+        c.parent_id,
+        c.sort_order,
+        0 AS depth,
+        ARRAY[c.category_id]::BIGINT[] AS id_path,
+        ARRAY[c.sort_order]::INTEGER[] AS sort_path,
+        ARRAY[c.category_name]::TEXT[] AS name_path
+    FROM lab_r434.categories AS c
+    WHERE c.parent_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        child.category_id,
+        child.category_code,
+        child.category_name,
+        child.parent_id,
+        child.sort_order,
+        parent.depth + 1,
+        parent.id_path || child.category_id,
+        parent.sort_path || child.sort_order,
+        parent.name_path || child.category_name
+    FROM lab_r434.categories AS child
+    JOIN category_tree AS parent
+        ON child.parent_id = parent.category_id
+)
+SELECT
+    category_id,
+    repeat('  ', depth) || category_name AS indented_name,
+    array_to_string(name_path, ' / ') AS breadcrumb,
+    depth,
+    id_path
+FROM category_tree
+ORDER BY sort_path, id_path;
+~~~
+
+Ví dụ breadcrumb:
+
+| category_id | breadcrumb |
+| ---: | --- |
+| 1 | Cửa hàng |
+| 2 | Cửa hàng / Điện tử |
+| 3 | Cửa hàng / Điện tử / Máy tính |
+| 4 | Cửa hàng / Điện tử / Máy tính / Laptop |
+| 5 | Cửa hàng / Điện tử / Máy tính / Máy bàn |
+| 6 | Cửa hàng / Điện tử / Điện thoại |
+| 9 | Cửa hàng / Điện tử / Âm thanh |
+| 10 | Cửa hàng / Điện tử / Âm thanh / Tai nghe |
+
+id_path dùng để truy vết chính xác nút trong đường đi. name_path thuận tiện cho giao diện, nhưng nếu tên chứa dấu phân cách thì chuỗi breadcrumb có thể mơ hồ; giữ ID path làm dữ liệu kỹ thuật đáng tin cậy hơn.
+
+### 4.3. Chỉ lấy các danh mục đang hoạt động
+
+Có hai cách lọc khác nhau:
+
+~~~sql
+-- Cach A: chi hien hang active, nhung van di qua nut inactive
+WITH RECURSIVE tree AS (
+    SELECT category_id, parent_id, category_name, 0 AS depth
+    FROM lab_r434.categories
+    WHERE parent_id IS NULL
+
+    UNION ALL
+
+    SELECT c.category_id, c.parent_id, c.category_name, t.depth + 1
+    FROM lab_r434.categories AS c
+    JOIN tree AS t ON c.parent_id = t.category_id
+)
+SELECT *
+FROM tree AS t
+JOIN lab_r434.categories AS c USING (category_id)
+WHERE c.is_active
+ORDER BY depth, category_id;
+~~~
+
+~~~sql
+-- Cach B: nut inactive cat ca nhanh con khoi viec duyet
+WITH RECURSIVE tree AS (
+    SELECT category_id, parent_id, category_name, 0 AS depth
+    FROM lab_r434.categories
+    WHERE parent_id IS NULL
+      AND is_active
+
+    UNION ALL
+
+    SELECT c.category_id, c.parent_id, c.category_name, t.depth + 1
+    FROM lab_r434.categories AS c
+    JOIN tree AS t ON c.parent_id = t.category_id
+    WHERE c.is_active
+)
+SELECT *
+FROM tree
+ORDER BY depth, category_id;
+~~~
+
+Cách A có thể hiện một nút con active dù cha của nó inactive. Cách B coi nút inactive là ranh giới, nên toàn bộ nhánh bên dưới bị ẩn. Chọn theo quy tắc nghiệp vụ; đừng đặt điều kiện is_active vào recursive member một cách vô thức.
+
+## 5. Lấy subtree — toàn bộ hậu duệ của một danh mục
+
+Nhiều màn hình cần hiển thị một nhánh cụ thể, không phải toàn bộ forest. Ví dụ mở danh mục Điện tử và lấy tất cả danh mục con.
+
+### 5.1. Subtree bắt đầu từ một ID
+
+~~~sql
+WITH RECURSIVE subtree AS (
+    SELECT
+        c.category_id,
+        c.category_code,
+        c.category_name,
+        c.parent_id,
+        0 AS relative_depth
+    FROM lab_r434.categories AS c
+    WHERE c.category_id = 2
+
+    UNION ALL
+
+    SELECT
+        child.category_id,
+        child.category_code,
+        child.category_name,
+        child.parent_id,
+        parent.relative_depth + 1
+    FROM lab_r434.categories AS child
+    JOIN subtree AS parent
+        ON child.parent_id = parent.category_id
+)
+SELECT *
+FROM subtree
+ORDER BY relative_depth, category_id;
+~~~
+
+Kết quả có Điện tử ở relative_depth 0, các con trực tiếp ở 1, và các tầng sâu hơn tiếp tục tăng. Nếu ID 2 không tồn tại, anchor không trả hàng nên cả kết quả rỗng.
+
+### 5.2. Chỉ lấy hậu duệ, không lấy chính nút bắt đầu
+
+Nếu truy vấn trên là CTE subtree:
+
+~~~sql
+SELECT *
+FROM subtree
+WHERE relative_depth > 0;
+~~~
+
+Không cần thay đổi anchor; lọc relative_depth ở ngoài giúp giữ rõ ý nghĩa độ sâu tương đối.
+
+### 5.3. Đếm số hậu duệ
+
+~~~sql
+WITH RECURSIVE descendants AS (
+    SELECT category_id
+    FROM lab_r434.categories
+    WHERE category_id = 2
+
+    UNION ALL
+
+    SELECT child.category_id
+    FROM lab_r434.categories AS child
+    JOIN descendants AS d
+        ON child.parent_id = d.category_id
+)
+SELECT COUNT(*) - 1 AS descendant_count
+FROM descendants;
+~~~
+
+Truy vấn tính cả nút bắt đầu trong CTE nên trừ 1 để chỉ đếm hậu duệ. Với ID hợp lệ 2, có 6 hậu duệ trong dữ liệu mẫu.
+
+## 6. Lấy tổ tiên — đi từ nút lên gốc
+
+Muốn tạo breadcrumb cho Laptop, ta bắt đầu tại Laptop rồi lần lượt theo parent_id đến khi gặp gốc.
+
+~~~sql
+WITH RECURSIVE ancestors AS (
+    SELECT
+        c.category_id,
+        c.category_name,
+        c.parent_id,
+        0 AS distance_from_start
+    FROM lab_r434.categories AS c
+    WHERE c.category_id = 4
+
+    UNION ALL
+
+    SELECT
+        p.category_id,
+        p.category_name,
+        p.parent_id,
+        a.distance_from_start + 1
+    FROM lab_r434.categories AS p
+    JOIN ancestors AS a
+        ON p.category_id = a.parent_id
+)
+SELECT
+    category_id,
+    category_name,
+    distance_from_start
+FROM ancestors
+ORDER BY distance_from_start DESC;
+~~~
+
+Expected:
+
+| category_id | category_name | distance_from_start |
+| ---: | --- | ---: |
+| 1 | Cửa hàng | 3 |
+| 2 | Điện tử | 2 |
+| 3 | Máy tính | 1 |
+| 4 | Laptop | 0 |
+
+Thứ tự DESC đưa gốc lên trước, nút hiện tại ở cuối breadcrumb.
+
+## 7. Tìm nút lá và nút có con
+
+Nút lá là nút không có hàng nào tham chiếu nó qua parent_id.
+
+~~~sql
+SELECT
+    c.category_id,
+    c.category_name
+FROM lab_r434.categories AS c
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM lab_r434.categories AS child
+    WHERE child.parent_id = c.category_id
+)
+ORDER BY c.category_id;
+~~~
+
+Với dữ liệu mẫu, Laptop, Máy bàn, Điện thoại, Bộ sạc, Tai nghe, Tiện ích và Hàng thanh lý là các nút lá.
+
+Ngược lại, nút có ít nhất một con:
+
+~~~sql
+SELECT
+    c.category_id,
+    c.category_name
+FROM lab_r434.categories AS c
+WHERE EXISTS (
+    SELECT 1
+    FROM lab_r434.categories AS child
+    WHERE child.parent_id = c.category_id
+)
+ORDER BY c.category_id;
+~~~
+
+EXISTS/NOT EXISTS phù hợp khi chỉ cần kiểm tra có con hay không; JOIN trực tiếp có thể nhân một hàng cha thành nhiều hàng nếu cha có nhiều con.
+
+## 8. Đường dẫn, depth và chiều cao
+
+### 8.1. Tạo đường dẫn ID
+
+Trong recursive CTE đi từ gốc xuống, khởi tạo path bằng mảng có ID gốc và nối thêm ID con ở mỗi vòng. Đường dẫn này hỗ trợ:
+
+- Hiển thị thứ tự duyệt.
+- Tạo breadcrumb.
+- Kiểm tra một ID đã xuất hiện trên nhánh hiện tại chưa.
+- Chẩn đoán dữ liệu lặp.
+
+Đường dẫn dạng chuỗi có thể dễ đọc nhưng khó so sánh và dễ mơ hồ nếu ID/tên chứa dấu phân cách. Với PostgreSQL, mảng BIGINT[] hoặc TEXT[] là lựa chọn tiện lợi.
+
+### 8.2. Tính depth
+
+Depth thường bắt đầu từ 0 ở gốc:
+
+~~~sql
+0 AS depth
+~~~
+
+Mỗi lần đi xuống:
+
+~~~sql
+parent.depth + 1
+~~~
+
+Nếu giao diện muốn tầng gốc là cấp 1, chỉ cần hiển thị depth + 1. Hãy ghi rõ quy ước vì hai cách đánh số đều phổ biến.
+
+### 8.3. Tính height của mỗi nút
+
+Height là khoảng cách lớn nhất từ nút đến một lá. Có thể duyệt từ từng nút xuống và lấy MAX(depth):
+
+~~~sql
+WITH RECURSIVE walk AS (
+    SELECT
+        c.category_id AS start_id,
+        c.category_id AS current_id,
+        c.parent_id,
+        0 AS depth
+    FROM lab_r434.categories AS c
+
+    UNION ALL
+
+    SELECT
+        w.start_id,
+        child.category_id,
+        child.parent_id,
+        w.depth + 1
+    FROM walk AS w
+    JOIN lab_r434.categories AS child
+        ON child.parent_id = w.current_id
+)
+SELECT
+    start_id AS category_id,
+    MAX(depth) AS height
+FROM walk
+GROUP BY start_id
+ORDER BY start_id;
+~~~
+
+Truy vấn giả định dữ liệu không có cycle. Nếu đã có cycle, recursive CTE không có điều kiện dừng và có thể chạy vô hạn. Hãy dùng path guard hoặc CYCLE trước khi áp dụng cho dữ liệu chưa được tin cậy.
+
+## 9. Chu trình là gì và vì sao nguy hiểm?
+
+Trong adjacency list, mỗi cạnh đi từ nút con đến cha (hoặc ngược lại tùy cách hình dung). Một cycle xuất hiện khi đi theo các quan hệ cha-con và quay lại nút đã gặp.
+
+Ví dụ:
+
+~~~text
+A.parent_id = B
+B.parent_id = C
+C.parent_id = A
+
+A -> B -> C -> A
+~~~
+
+Các trường hợp:
+
+1. **Self-cycle:** A.parent_id = A.
+2. **Cycle hai nút:** A là cha của B, B lại là cha của A.
+3. **Cycle nhiều nút:** A → B → C → D → A.
+4. **Cycle không nối với gốc:** một thành phần dữ liệu độc lập chứa chu trình; truy vấn bắt đầu từ root sẽ không nhìn thấy nó.
+
+Hậu quả:
+
+- Recursive CTE có thể tiếp tục sinh hàng cho đến khi chạm giới hạn tài nguyên.
+- Breadcrumb hoặc đường dẫn có thể lặp vô hạn.
+- Tính depth/height không còn ý nghĩa như cây.
+- Một thao tác xóa nhánh có thể xóa phạm vi ngoài dự kiến.
+- Bộ lọc quyền hoặc phạm vi kế thừa có thể cấp quyền sai.
+- Giao diện có thể lặp nút hoặc không tải được cây.
+
+## 10. Ngăn vòng lặp trong recursive CTE bằng visited path
+
+Khi duyệt xuống, hãy giữ danh sách ID đã xuất hiện trên **đường đi hiện tại**. Trước khi thêm con, kiểm tra ID con đã nằm trong path chưa.
+
+### 10.1. Duyệt từ root có path guard
+
+~~~sql
+WITH RECURSIVE category_tree AS (
+    SELECT
+        c.category_id,
+        c.category_name,
+        c.parent_id,
+        0 AS depth,
+        ARRAY[c.category_id]::BIGINT[] AS id_path,
+        FALSE AS is_cycle
+    FROM lab_r434.categories AS c
+    WHERE c.parent_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        child.category_id,
+        child.category_name,
+        child.parent_id,
+        parent.depth + 1,
+        parent.id_path || child.category_id,
+        child.category_id = ANY(parent.id_path) AS is_cycle
+    FROM lab_r434.categories AS child
+    JOIN category_tree AS parent
+        ON child.parent_id = parent.category_id
+    WHERE NOT parent.is_cycle
+      AND NOT child.category_id = ANY(parent.id_path)
+)
+SELECT
+    category_id,
+    category_name,
+    parent_id,
+    depth,
+    id_path
+FROM category_tree
+ORDER BY depth, category_id;
+~~~
+
+Điều kiện NOT child.category_id = ANY(parent.id_path) ngăn thêm một nút đã xuất hiện trên nhánh hiện tại. Vì vậy truy vấn dừng khi gặp cạnh tạo cycle.
+
+Lưu ý: với điều kiện chặn ngay trước khi thêm nút lặp, kết quả trên chỉ **bỏ qua cạnh tạo chu trình**; cột is_cycle trong những hàng được trả về luôn FALSE. Nếu muốn nhìn thấy hàng/cạnh gây cycle để báo lỗi, hãy dùng truy vấn chẩn đoán ở phần tiếp theo hoặc CYCLE clause.
+
+### 10.2. Path guard chỉ bảo vệ đường đi đang duyệt
+
+Không nên dùng một tập global visited IDs cho mọi nhánh nếu mô hình là DAG, vì cùng một nút có thể được đi tới từ nhiều cha khác nhau mà không tạo cycle. Với cây/forest mỗi nút chỉ có một cha, một đường đi duy nhất từ root là quy tắc thông thường. Với DAG, cần phân biệt:
+
+- Nút đã được thăm ở một nhánh khác.
+- Nút xuất hiện lại trên chính đường đi hiện tại.
+
+Chỉ trường hợp thứ hai là cycle.
+
+### 10.3. PostgreSQL CYCLE clause
+
+PostgreSQL hỗ trợ cú pháp CYCLE trong recursive CTE ở các phiên bản có tính năng này (PostgreSQL 14 trở lên). Cú pháp tự theo dõi khóa đã xuất hiện và tạo cột đánh dấu cùng đường dẫn:
+
+~~~sql
+WITH RECURSIVE walk AS (
+    SELECT
+        c.category_id,
+        c.category_name,
+        c.parent_id,
+        0 AS depth
+    FROM lab_r434.categories AS c
+    WHERE c.category_id = 2
+
+    UNION ALL
+
+    SELECT
+        child.category_id,
+        child.category_name,
+        child.parent_id,
+        parent.depth + 1
+    FROM lab_r434.categories AS child
+    JOIN walk AS parent
+        ON child.parent_id = parent.category_id
+)
+CYCLE category_id SET is_cycle USING id_path
+SELECT
+    category_id,
+    category_name,
+    parent_id,
+    depth,
+    is_cycle,
+    id_path
+FROM walk
+ORDER BY depth, id_path;
+~~~
+
+CYCLE tạo is_cycle và id_path. Khi phát hiện chu trình trên nhánh, hàng đánh dấu được đưa ra để truy vấn ngoài có thể quan sát; nhánh đệ quy đó không tiếp tục lặp mãi.
+
+Nếu dùng phiên bản PostgreSQL cũ hơn hoặc dialect khác, dùng visited path thủ công theo kiểu dữ liệu hỗ trợ.
+
+## 11. Phát hiện cycle kể cả khi nó không nối với root
+
+Truy vấn bắt đầu từ parent_id IS NULL chỉ nhìn thấy các nút có đường đi từ một gốc. Nếu một nhóm nút tạo cycle và không có gốc, toàn bộ nhóm đó bị bỏ qua. Để kiểm tra toàn bảng adjacency list, bắt đầu một lần từ **mỗi nút** rồi lần theo parent_id.
+
+### 11.1. Duyệt chuỗi cha từ mọi nút
+
+~~~sql
+WITH RECURSIVE parent_walk AS (
+    SELECT
+        c.category_id AS start_id,
+        c.category_id AS current_id,
+        c.parent_id,
+        ARRAY[c.category_id]::BIGINT[] AS id_path,
+        FALSE AS is_cycle
+    FROM lab_r434.categories AS c
+
+    UNION ALL
+
+    SELECT
+        w.start_id,
+        p.category_id,
+        p.parent_id,
+        w.id_path || p.category_id,
+        p.category_id = ANY(w.id_path) AS is_cycle
+    FROM parent_walk AS w
+    JOIN lab_r434.categories AS p
+        ON p.category_id = w.parent_id
+    WHERE NOT w.is_cycle
+      AND NOT p.category_id = ANY(w.id_path)
+)
+SELECT
+    start_id,
+    current_id,
+    id_path
+FROM parent_walk
+WHERE is_cycle;
+~~~
+
+Ở đây phần recursive chỉ theo **cha**. Nếu nút cha kế tiếp đã nằm trong path, hàng cycle được nhận diện. Để giữ lại hàng phát hiện thay vì chặn trước, không dùng điều kiện cuối NOT p.category_id = ANY(w.id_path); cột is_cycle sẽ đánh dấu nó. Ví dụ đầy đủ để báo cạnh tạo cycle:
+
+~~~sql
+WITH RECURSIVE parent_walk AS (
+    SELECT
+        c.category_id AS start_id,
+        c.category_id AS current_id,
+        c.parent_id,
+        ARRAY[c.category_id]::BIGINT[] AS id_path,
+        FALSE AS is_cycle
+    FROM lab_r434.categories AS c
+
+    UNION ALL
+
+    SELECT
+        w.start_id,
+        p.category_id,
+        p.parent_id,
+        w.id_path || p.category_id,
+        p.category_id = ANY(w.id_path)
+    FROM parent_walk AS w
+    JOIN lab_r434.categories AS p
+        ON p.category_id = w.parent_id
+    WHERE NOT w.is_cycle
+)
+SELECT
+    start_id,
+    id_path AS cycle_path
+FROM parent_walk
+WHERE is_cycle
+ORDER BY start_id;
+~~~
+
+Kết quả có thể có nhiều đường dẫn cho cùng một cycle vì mỗi nút trong thành phần đó đều có thể là start_id. Đây là báo cáo theo điểm bắt đầu, không phải danh sách cycle đã chuẩn hóa duy nhất.
+
+### 11.2. Tại sao cần bắt đầu từ mọi nút?
+
+Giả sử:
+
+~~~text
+Root A -> Child B -> Child C
+
+X -> Y -> Z -> X
+~~~
+
+Truy vấn từ root A chỉ tìm thấy A, B, C. Cycle X-Y-Z-X không có nút gốc, vì vậy không thể được phát hiện bởi truy vấn chỉ bắt đầu từ root. Bắt đầu parent_walk từ mọi hàng giúp tìm được cả thành phần bất thường.
+
+### 11.3. Chỉ mục hỗ trợ
+
+Với adjacency list, chỉ mục trên parent_id giúp truy vấn con. Kiểm tra ancestor đi từ parent_id đến khóa chính thường dùng index của category_id. Với bảng lớn, hãy kiểm tra kế hoạch truy vấn và số lần recursive expansion. Đừng tăng giới hạn đệ quy để che dữ liệu lỗi.
+
+## 12. Kiểm tra orphan và self-parent
+
+Nếu khóa ngoại đã được tạo và đang VALID, orphan không thể tồn tại qua thao tác thông thường. Nhưng dữ liệu import, constraint chưa validate hoặc quy trình migration có thể để lại hàng mồ côi.
+
+### 12.1. Tìm parent_id không tồn tại
+
+~~~sql
+SELECT
+    c.category_id,
+    c.category_code,
+    c.parent_id
+FROM lab_r434.categories AS c
+LEFT JOIN lab_r434.categories AS p
+    ON p.category_id = c.parent_id
+WHERE c.parent_id IS NOT NULL
+  AND p.category_id IS NULL;
+~~~
+
+Expected là 0 hàng. Đây là kiểm tra tham chiếu, không phải kiểm tra cycle.
+
+### 12.2. Tìm nút tự làm cha
+
+~~~sql
+SELECT
+    category_id,
+    category_code,
+    parent_id
+FROM lab_r434.categories
+WHERE category_id = parent_id;
+~~~
+
+CHECK constraint trong bảng đã ngăn trường hợp này. Truy vấn vẫn hữu ích khi audit dữ liệu legacy hoặc kiểm tra bảng trước khi thêm constraint.
+
+### 12.3. Ba kiểm tra khác nhau
+
+| Kiểm tra | Phát hiện |
+| --- | --- |
+| Foreign key/orphan query | Cha được tham chiếu có tồn tại không? |
+| Self-parent CHECK/query | Một nút có trực tiếp làm cha của chính nó không? |
+| Recursive cycle detection | Một đường đi nhiều bước có quay lại nút đã gặp không? |
+
+Không thay một kiểm tra bằng kiểm tra khác.
+
+## 13. Thử tạo chu trình trong sandbox
+
+Dữ liệu mẫu ban đầu là forest hợp lệ. Ta cố ý tạo cycle để kiểm chứng truy vấn chẩn đoán, sau đó rollback.
+
+### 13.1. Tạo cycle ba nút trong transaction
+
+Trong dữ liệu ban đầu:
+
+- Điện tử (2) có cha là Cửa hàng (1).
+- Máy tính (3) có cha là Điện tử (2).
+- Laptop (4) có cha là Máy tính (3).
+
+Ta đổi cha của Điện tử thành Laptop:
+
+~~~sql
+BEGIN;
+
+UPDATE lab_r434.categories
+SET parent_id = 4
+WHERE category_id = 2;
+
+-- Chay truy van cycle detection tai muc 11.2 o day.
+
+ROLLBACK;
+~~~
+
+Quan hệ trở thành:
+
+~~~text
+Điện tử (2)
+    parent = Laptop (4)
+Laptop (4)
+    parent = Máy tính (3)
+Máy tính (3)
+    parent = Điện tử (2)
+
+2 -> 4 -> 3 -> 2
+~~~
+
+Foreign key vẫn hợp lệ vì cả ba hàng đều tồn tại. CHECK self-parent cũng không vi phạm vì không hàng nào tự trỏ đến chính nó. Chỉ kiểm tra chu trình mới phát hiện lỗi.
+
+### 13.2. Vì sao truy vấn từ root không nhìn thấy cycle này?
+
+Sau UPDATE, Cửa hàng (1) không còn đường đi đến Điện tử (2), vì Điện tử đã trỏ lên Laptop. Thành phần 2-3-4 trở thành một cycle tách khỏi root. CTE bắt đầu từ parent_id IS NULL không tìm thấy nó.
+
+Đây là lý do kiểm tra toàn bảng phải khởi tạo parent_walk từ mọi nút.
+
+### 13.3. Luôn rollback dữ liệu kiểm thử
+
+Sau khi chạy chẩn đoán, thực hiện ROLLBACK như ví dụ. Nếu đang dùng SQL client tự động commit hoặc mỗi statement ở transaction riêng, hãy xác nhận transaction thực sự còn mở trước khi thử. Không để dữ liệu cycle trong database dùng chung.
+
+## 14. Ngăn cycle khi chuyển một nút sang cha mới
+
+Giả sử người quản trị muốn chuyển nút M sang làm con của nút P. Thao tác này hợp lệ chỉ khi P **không phải chính M và không nằm trong subtree của M**.
+
+Nếu P là hậu duệ của M, đặt parent_id = P sẽ khiến M trở thành hậu duệ của chính nó theo đường đi mới.
+
+### 14.1. Quy tắc kiểm tra
+
+~~~text
+Dang chuyen M vao duoi P
+
+1. Tim subtree cua M, bao gom chinh M.
+2. Kiem tra P co nam trong subtree khong.
+3. Neu co: tu choi, vi se tao cycle.
+4. Neu khong: co the tiep tuc, neu cac dieu kien khac hop le.
+~~~
+
+### 14.2. Truy vấn kiểm tra trước khi UPDATE
+
+Ví dụ PostgreSQL dùng hai bind parameters:
+
+- $1: category_id của nút cần di chuyển.
+- $2: category_id của cha mới; NULL nghĩa là chuyển thành gốc.
+
+~~~sql
+WITH RECURSIVE moving_subtree AS (
+    SELECT c.category_id
+    FROM lab_r434.categories AS c
+    WHERE c.category_id = $1
+
+    UNION ALL
+
+    SELECT child.category_id
+    FROM lab_r434.categories AS child
+    JOIN moving_subtree AS parent
+        ON child.parent_id = parent.category_id
+)
+SELECT
+    EXISTS (
+        SELECT 1
+        FROM lab_r434.categories
+        WHERE category_id = $1
+    ) AS moving_node_exists,
+    (
+        $2 IS NULL
+        OR NOT EXISTS (
+            SELECT 1
+            FROM moving_subtree
+            WHERE category_id = $2
+        )
+    ) AS parent_is_outside_subtree;
+~~~
+
+Nếu moving_node_exists = FALSE, nút cần chuyển không tồn tại. Nếu parent_is_outside_subtree = FALSE, cha mới nằm trong chính nhánh của nút cần chuyển nên thao tác sẽ tạo cycle. Khóa ngoại sẽ kiểm tra cha mới có tồn tại khi UPDATE, nhưng ứng dụng vẫn nên trả lỗi nghiệp vụ rõ ràng.
+
+### 14.3. Ví dụ di chuyển hợp lệ
+
+Chuyển Máy bàn (5) sang làm con trực tiếp của Điện thoại (6):
+
+~~~sql
+UPDATE lab_r434.categories
+SET parent_id = 6
+WHERE category_id = 5;
+~~~
+
+Điện thoại không nằm trong subtree của Máy bàn, nên quan hệ mới không tạo cycle. Tuy nhiên thao tác thực tế cần chạy trong transaction có kiểm soát ghi đồng thời như phần sau.
+
+### 14.4. Ví dụ di chuyển không hợp lệ
+
+Chuyển Điện tử (2) xuống làm con của Laptop (4) sẽ tạo cycle vì Laptop là hậu duệ của Điện tử. Truy vấn kiểm tra trả parent_is_outside_subtree = FALSE.
+
+## 15. Vì sao kiểm tra trước UPDATE chưa đủ khi có ghi đồng thời?
+
+Giả sử hai transaction chạy cùng lúc:
+
+1. Transaction A kiểm tra chuyển nút X xuống dưới Y; hiện tại Y chưa nằm trong subtree X nên thấy hợp lệ.
+2. Transaction B kiểm tra chuyển Y xuống dưới X; hiện tại X chưa nằm trong subtree Y nên cũng thấy hợp lệ.
+3. A cập nhật X.parent_id = Y.
+4. B cập nhật Y.parent_id = X.
+
+Nếu cả hai kiểm tra dựa trên trạng thái cũ rồi cùng commit, kết quả có thể tạo cycle X-Y-X. Đây là **race condition** của mô hình check-then-write.
+
+Một truy vấn kiểm tra đúng trong một snapshot không tự bảo đảm dữ liệu vẫn đúng khi transaction khác cùng thay đổi cây.
+
+### 15.1. Tuần tự hóa thao tác thay đổi cây
+
+Một giải pháp đơn giản là dùng transaction-scoped advisory lock chung cho mọi thao tác thay đổi parent_id của cây:
+
+~~~sql
+BEGIN;
+
+-- Tat ca luong thay doi hierarchy phai dung cung khoa.
+SELECT pg_advisory_xact_lock(434, 1);
+
+-- Chay truy van moving_subtree de kiem tra.
+-- Chi UPDATE neu moving node ton tai va cha moi nam ngoai subtree.
+
+UPDATE lab_r434.categories
+SET parent_id = 6
+WHERE category_id = 5;
+
+COMMIT;
+~~~
+
+Advisory lock là khóa do ứng dụng quy ước, không tự gắn với bảng. Mọi đường ghi có thể thay đổi cấu trúc phải tuân thủ cùng khóa. Dùng transaction-level lock để khóa tự nhả khi COMMIT hoặc ROLLBACK.
+
+Ví dụ dùng cặp khóa (434, 1) chỉ là namespace minh họa; chọn cặp khóa riêng cho ứng dụng. Nếu có nhiều cây độc lập theo tenant, có thể thiết kế khóa theo tenant để tránh tuần tự hóa không cần thiết.
+
+### 15.2. SERIALIZABLE và retry
+
+Transaction isolation SERIALIZABLE có thể phát hiện một số lịch thực thi đồng thời không thể tuần tự hóa và hủy một transaction. Ứng dụng phải nhận diện lỗi serialization và retry toàn bộ transaction theo chính sách phù hợp.
+
+SERIALIZABLE không có nghĩa mọi thao tác sẽ tự động thành công; cũng không thay thế việc kiểm tra quy tắc cycle. Hãy kiểm tra hành vi theo DBMS, isolation level và cách ứng dụng retry.
+
+### 15.3. Chọn cách bảo vệ phù hợp
+
+| Cách | Điểm cần nhớ |
+| --- | --- |
+| Chỉ kiểm tra rồi UPDATE | Có race nếu nhiều writer cùng thay đổi cây |
+| Khóa hàng liên quan | Cần xác định và khóa đủ phạm vi; khóa một nút có thể không đủ |
+| Advisory lock theo cây/tenant | Đơn giản để tuần tự hóa nếu mọi writer cùng tuân thủ |
+| SERIALIZABLE | Có thể abort transaction; cần retry có kiểm soát |
+| Trigger có khóa | Áp quy tắc gần bảng, bao phủ các câu UPDATE thông thường |
+
+## 16. Đóng gói thao tác chuyển nút trong PostgreSQL
+
+Nếu có nhiều ứng dụng hoặc nhiều câu SQL được phép sửa parent_id, một hàm/procedure dùng chung giúp đặt quy tắc kiểm tra tại database. Điểm quan trọng về concurrency là **lấy khóa chung trước khi kiểm tra**, sau đó mới cập nhật trong cùng transaction.
+
+Ví dụ sau tạo một hàm chuyển nút. Hàm dùng SECURITY DEFINER để role ứng dụng chỉ cần quyền gọi hàm; owner của hàm phải là role đáng tin cậy, không phải superuser. search_path được cố định và các đối tượng đều được schema-qualify.
+
+~~~sql
+CREATE OR REPLACE FUNCTION lab_r434.move_category(
+    p_category_id BIGINT,
+    p_new_parent_id BIGINT
+)
+RETURNS VOID
+LANGUAGE plpgsql
+VOLATILE
+SECURITY DEFINER
+SET search_path = pg_catalog
+AS $function$
+DECLARE
+    v_node_exists BOOLEAN;
+    v_parent_exists BOOLEAN;
+    v_subtree_has_cycle BOOLEAN;
+    v_parent_chain_has_cycle BOOLEAN;
+    v_would_create_cycle BOOLEAN;
+BEGIN
+    IF p_category_id IS NULL THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '22023',
+            MESSAGE = 'A category identifier is required';
+    END IF;
+
+    -- Khoa chung phai duoc lay truoc cac truy van kiem tra.
+    PERFORM pg_catalog.pg_advisory_xact_lock(434, 1);
+
+    SELECT EXISTS (
+        SELECT 1
+        FROM lab_r434.categories
+        WHERE category_id = p_category_id
+    )
+    INTO v_node_exists;
+
+    IF NOT v_node_exists THEN
+        RAISE EXCEPTION USING
+            ERRCODE = 'P0002',
+            MESSAGE = 'Category was not found';
+    END IF;
+
+    IF p_new_parent_id IS NOT NULL THEN
+        SELECT EXISTS (
+            SELECT 1
+            FROM lab_r434.categories
+            WHERE category_id = p_new_parent_id
+        )
+        INTO v_parent_exists;
+
+        IF NOT v_parent_exists THEN
+            RAISE EXCEPTION USING
+                ERRCODE = 'P0002',
+                MESSAGE = 'Parent category was not found';
+        END IF;
+    END IF;
+
+    -- Kiem tra subtree hien tai, bao gom ca cycle legacy neu co.
+    WITH RECURSIVE descendants(category_id, id_path, is_cycle) AS (
+        SELECT
+            p_category_id,
+            ARRAY[p_category_id]::BIGINT[],
+            FALSE
+
+        UNION ALL
+
+        SELECT
+            child.category_id,
+            d.id_path || child.category_id,
+            child.category_id = ANY(d.id_path)
+        FROM lab_r434.categories AS child
+        JOIN descendants AS d
+            ON child.parent_id = d.category_id
+        WHERE NOT d.is_cycle
+    )
+    SELECT
+        COALESCE(BOOL_OR(is_cycle), FALSE),
+        COALESCE(BOOL_OR(category_id = p_new_parent_id), FALSE)
+    INTO v_subtree_has_cycle, v_would_create_cycle
+    FROM descendants;
+
+    IF v_subtree_has_cycle THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '23514',
+            MESSAGE = 'The category subtree already contains a cycle';
+    END IF;
+
+    IF v_would_create_cycle THEN
+        RAISE EXCEPTION USING
+            ERRCODE = '23514',
+            MESSAGE = 'Moving the category would create a cycle';
+    END IF;
+
+    -- Khong gan mot nut vao mot nhanh ma chuoi cha da bi cycle.
+    IF p_new_parent_id IS NOT NULL THEN
+        WITH RECURSIVE parent_walk(
+            category_id, parent_id, id_path, is_cycle
+        ) AS (
+            SELECT
+                c.category_id,
+                c.parent_id,
+                ARRAY[c.category_id]::BIGINT[],
+                FALSE
+            FROM lab_r434.categories AS c
+            WHERE c.category_id = p_new_parent_id
+
+            UNION ALL
+
+            SELECT
+                p.category_id,
+                p.parent_id,
+                w.id_path || p.category_id,
+                p.category_id = ANY(w.id_path)
+            FROM parent_walk AS w
+            JOIN lab_r434.categories AS p
+                ON p.category_id = w.parent_id
+            WHERE NOT w.is_cycle
+        )
+        SELECT COALESCE(BOOL_OR(is_cycle), FALSE)
+        INTO v_parent_chain_has_cycle
+        FROM parent_walk;
+
+        IF v_parent_chain_has_cycle THEN
+            RAISE EXCEPTION USING
+                ERRCODE = '23514',
+                MESSAGE = 'The proposed parent belongs to a cyclic hierarchy';
+        END IF;
+    END IF;
+
+    UPDATE lab_r434.categories
+    SET parent_id = p_new_parent_id
+    WHERE category_id = p_category_id;
+END;
+$function$;
+~~~
+
+Hàm thực hiện theo thứ tự:
+
+1. Lấy advisory transaction lock dùng chung.
+2. Xác nhận nút cần di chuyển và cha mới tồn tại.
+3. Duyệt subtree của nút cần chuyển; từ chối nếu subtree đã chứa cycle.
+4. Từ chối nếu cha mới nằm trong subtree của nút cần chuyển.
+5. Kiểm tra chuỗi tổ tiên của cha mới không đi vào một cycle legacy.
+6. Cập nhật parent_id; khóa ngoại vẫn bảo vệ tham chiếu.
+
+Nếu p_new_parent_id là NULL, hàm chuyển nút thành root. Nếu nó bằng chính p_category_id, subtree chứa chính nút nên bước kiểm tra sẽ từ chối.
+
+### 16.1. Giới hạn quyền để buộc ứng dụng dùng hàm
+
+Hàm SECURITY DEFINER có quyền của owner khi thực thi. Hãy chọn owner chuyên biệt, đáng tin cậy và chỉ cấp các quyền cần thiết trên bảng. Sau khi tạo hàm, thu hồi EXECUTE mặc định từ PUBLIC và chỉ cấp cho role ứng dụng được phép chuyển danh mục:
+
+~~~sql
+-- Thay app_category_editor bang role da duoc tao trong moi truong.
+REVOKE ALL
+ON FUNCTION lab_r434.move_category(BIGINT, BIGINT)
+FROM PUBLIC;
+
+GRANT USAGE ON SCHEMA lab_r434
+TO app_category_editor;
+
+GRANT EXECUTE
+ON FUNCTION lab_r434.move_category(BIGINT, BIGINT)
+TO app_category_editor;
+
+-- Khong cho role goi ham UPDATE truc tiep parent_id.
+REVOKE UPDATE (parent_id)
+ON lab_r434.categories
+FROM app_category_editor;
+~~~
+
+Nếu role nhận UPDATE ở cấp bảng từ PUBLIC hoặc qua membership của role khác, thu hồi các grant rộng đó nữa; column-level REVOKE không vô hiệu hóa một quyền UPDATE cấp bảng đã được cấp qua đường khác. Nếu role cần sửa các cột khác, cấp quyền theo cột phù hợp. Đảm bảo owner của hàm có SELECT và UPDATE trên bảng.
+
+### 16.2. Gọi hàm
+
+~~~sql
+SELECT lab_r434.move_category(5, 6);
+~~~
+
+Lệnh chuyển Máy bàn (5) thành con của Điện thoại (6). Có thể gọi trong transaction tường minh nếu thao tác cần đi cùng những thay đổi nghiệp vụ khác:
+
+~~~sql
+BEGIN;
+
+SELECT lab_r434.move_category(5, 6);
+
+-- Thuc hien cac thay doi phu thuoc khac neu can.
+
+COMMIT;
+~~~
+
+Nếu bất kỳ bước nào lỗi, ROLLBACK sẽ hoàn tác thay đổi trong transaction.
+
+### 16.3. Vì sao khóa phải lấy trước truy vấn kiểm tra?
+
+Nếu hai transaction cùng kiểm tra trên trạng thái cũ rồi mới UPDATE, cả hai có thể thấy thao tác riêng lẻ hợp lệ nhưng kết hợp lại tạo cycle. Hàm lấy advisory lock trước các câu SELECT kiểm tra, nên trong mô hình READ COMMITTED, các lời gọi dùng cùng khóa được tuần tự hóa và lời gọi sau kiểm tra trạng thái đã commit của lời gọi trước.
+
+Nếu ứng dụng dùng REPEATABLE READ hoặc SERIALIZABLE, snapshot transaction có thể đã được thiết lập trước khi hàm chờ khóa. Khi đó cần thiết kế thứ tự lấy khóa trước khi đọc dữ liệu, xử lý lỗi serialization và retry toàn bộ transaction. Không giả định advisory lock tự làm mới snapshot của transaction.
+
+### 16.4. Phạm vi bảo vệ
+
+- Mọi đường thay đổi parent_id phải bị giới hạn để đi qua hàm hoặc cùng một cơ chế khóa/kiểm tra.
+- Không cho role ứng dụng thay function, thay trigger hoặc tắt các kiểm soát.
+- Bulk import, replication, restore và thao tác đặc quyền cần quy trình audit riêng.
+- Nếu di chuyển nhiều nút cùng lúc, kiểm tra toàn bộ trạng thái đích trước khi áp dụng.
+- Kiểm thử với nhiều writer, rollback và isolation level thực tế.
+
+Advisory lock là khóa do ứng dụng quy ước, không tự gắn với bảng. Nó chỉ bảo vệ những writer cùng tuân thủ một khóa. Nếu có đường ghi bỏ qua hàm, quy tắc có thể bị phá vỡ; hãy kết hợp phân quyền và kiểm tra dữ liệu định kỳ.
+
+## 17. Kiểm tra độ sâu và giới hạn tài nguyên
+
+Một cây hợp lệ vẫn có thể quá sâu đối với một số giao diện hoặc ứng dụng. Giới hạn độ sâu là một yêu cầu riêng với phát hiện cycle.
+
+### 17.1. Giới hạn depth khi hiển thị
+
+~~~sql
+WITH RECURSIVE subtree AS (
+    SELECT
+        category_id,
+        category_name,
+        parent_id,
+        0 AS depth
+    FROM lab_r434.categories
+    WHERE category_id = 1
+
+    UNION ALL
+
+    SELECT
+        child.category_id,
+        child.category_name,
+        child.parent_id,
+        parent.depth + 1
+    FROM lab_r434.categories AS child
+    JOIN subtree AS parent
+        ON child.parent_id = parent.category_id
+    WHERE parent.depth < 3
+)
+SELECT *
+FROM subtree
+ORDER BY depth, category_id;
+~~~
+
+Điều kiện parent.depth < 3 cho phép thêm các nút ở depth 1, 2 và 3; không mở rộng từ nút ở depth 3. Đây là giới hạn hiển thị, không chứng minh phần cây sâu hơn không tồn tại.
+
+### 17.2. Phân biệt truncation với complete result
+
+Nếu API chỉ lấy ba tầng đầu, response nên thể hiện rằng dữ liệu đã bị giới hạn hoặc có thể tải tiếp. Không gắn nhãn “toàn bộ cây” cho một kết quả đã cắt theo depth.
+
+### 17.3. Không dựa vào giới hạn recursion để sửa cycle
+
+Một số hệ quản trị có giới hạn recursion hoặc tùy chọn MAXRECURSION. Giới hạn này có thể giúp truy vấn lỗi có kiểm soát thay vì tiêu thụ tài nguyên lâu, nhưng không làm dữ liệu trở thành cây hợp lệ. Hãy phát hiện cycle và sửa dữ liệu nguồn.
+
+## 18. Xóa nhánh, chuyển nhánh và tính toàn vẹn
+
+Một thao tác trên cây thường ảnh hưởng cả subtree.
+
+### 18.1. Xem trước subtree trước khi xóa
+
+~~~sql
+WITH RECURSIVE subtree AS (
+    SELECT category_id, category_name, parent_id, 0 AS depth
+    FROM lab_r434.categories
+    WHERE category_id = 7
+
+    UNION ALL
+
+    SELECT child.category_id, child.category_name,
+           child.parent_id, parent.depth + 1
+    FROM lab_r434.categories AS child
+    JOIN subtree AS parent
+        ON child.parent_id = parent.category_id
+)
+SELECT *
+FROM subtree
+ORDER BY depth, category_id;
+~~~
+
+Truy vấn xem trước giúp biết chính xác phạm vi bị ảnh hưởng. Với dữ liệu lớn, kiểm tra quyền, số hàng, liên kết sản phẩm và các bảng phụ thuộc trước khi xóa.
+
+### 18.2. ON DELETE RESTRICT, CASCADE hay SET NULL?
+
+Khóa ngoại parent_id tự tham chiếu có thể dùng các hành vi:
+
+- RESTRICT/NO ACTION: không cho xóa cha nếu còn con tham chiếu.
+- CASCADE: xóa cả hậu duệ trực tiếp/gián tiếp theo chuỗi FK.
+- SET NULL: chuyển các con trực tiếp thành nút gốc; các hậu duệ của chúng vẫn nằm dưới các con đó.
+
+Không có lựa chọn nào đúng cho mọi nghiệp vụ. Danh mục sản phẩm có thể cần chặn xóa khi còn sản phẩm; hệ thống thư mục có thể cần chuyển nhánh; danh mục tạm có thể cho phép xóa cả subtree sau xác nhận.
+
+### 18.3. Chuyển nhánh không giống đổi cha một hàng
+
+Khi chuyển một nút, toàn bộ hậu duệ của nó đi theo vì parent_id của các hậu duệ vẫn tham chiếu nút gốc nhánh. Tuy nhiên nếu mô hình có bảng quan hệ phụ, quyền kế thừa, cache path hoặc closure table, cần cập nhật đồng bộ các cấu trúc đó trong cùng transaction hoặc quy trình nhất quán.
+
+## 19. Mô hình khác cho cây danh mục
+
+Adjacency list không phải lựa chọn duy nhất.
+
+### 19.1. Adjacency list
+
+Mỗi hàng lưu parent_id.
+
+**Ưu điểm:** dễ INSERT, UPDATE, biểu diễn cha trực tiếp, dễ áp dụng FK.
+
+**Nhược điểm:** truy vấn subtree/ancestor cần đệ quy; kiểm soát cycle cần logic bổ sung.
+
+### 19.2. Materialized path
+
+Mỗi hàng lưu đường dẫn từ gốc, ví dụ:
+
+~~~text
+1
+1/2
+1/2/3
+1/2/3/4
+~~~
+
+Truy vấn prefix có thể lấy subtree dễ hơn tùy kiểu dữ liệu/index. Nhưng khi chuyển một nhánh, path của toàn bộ hậu duệ phải cập nhật. Chuỗi path cũng cần quy tắc escape/encoding nếu dùng mã có dấu phân cách.
+
+### 19.3. Nested sets
+
+Mỗi nút lưu hai số left/right biểu diễn khoảng bao quanh các hậu duệ. Truy vấn subtree có thể dùng điều kiện khoảng, nhưng INSERT, DELETE và di chuyển nút thường cần cập nhật nhiều hàng.
+
+### 19.4. Closure table
+
+Lưu mọi quan hệ tổ tiên-hậu duệ:
+
+~~~text
+ancestor_id | descendant_id | depth
+-----------------------------------
+1           | 1             | 0
+1           | 2             | 1
+1           | 3             | 2
+1           | 4             | 3
+2           | 2             | 0
+2           | 3             | 1
+2           | 4             | 2
+3           | 3             | 0
+3           | 4             | 1
+4           | 4             | 0
+~~~
+
+Truy vấn ancestor/subtree đơn giản bằng JOIN, nhưng lưu nhiều hàng hơn và thao tác chuyển nhánh cần cập nhật closure rows chính xác.
+
+### 19.5. Chọn mô hình theo workload
+
+| Nhu cầu | Mô hình thường đáng cân nhắc |
+| --- | --- |
+| Thêm/chuyển một nút thường xuyên, đọc cây vừa phải | Adjacency list |
+| Đọc subtree theo prefix thường xuyên | Materialized path |
+| Đọc phạm vi subtree nhiều, ít thay đổi cấu trúc | Nested sets |
+| Truy vấn ancestor/descendant rất thường xuyên | Closure table |
+| Một nút có nhiều cha | DAG bằng bảng cạnh, không phải parent_id đơn |
+
+Đừng chọn mô hình chỉ vì một truy vấn đơn lẻ. Cân nhắc tỷ lệ đọc/ghi, kích thước cây, độ sâu, tính đồng thời, cách phân quyền và chi phí duy trì dữ liệu dẫn xuất.
+
+## 20. Nếu một danh mục có nhiều cha: mô hình DAG
+
+Nếu một bài viết có thể nằm trong nhiều chủ đề, dùng bảng node và bảng edge riêng:
+
+~~~sql
+CREATE TABLE lab_r434.topic_nodes (
+    node_id BIGINT PRIMARY KEY,
+    node_name TEXT NOT NULL
+);
+
+CREATE TABLE lab_r434.topic_edges (
+    parent_id BIGINT NOT NULL
+        REFERENCES lab_r434.topic_nodes(node_id),
+    child_id BIGINT NOT NULL
+        REFERENCES lab_r434.topic_nodes(node_id),
+    PRIMARY KEY (parent_id, child_id),
+    CHECK (parent_id <> child_id)
+);
+
+CREATE INDEX topic_edges_child_idx
+    ON lab_r434.topic_edges(child_id);
+~~~
+
+Một nút có thể có nhiều hàng trong topic_edges với vai trò child_id. Khi duyệt DAG, cùng một nút có thể được đến từ nhiều đường đi khác nhau mà không có cycle. Vì vậy:
+
+- Không dùng một global visited set để loại mọi lần gặp lại nếu cần liệt kê mọi đường đi.
+- Vẫn cần ngăn một nút lặp trên **chính path hiện tại**.
+- Có thể cần phân biệt số đường đi với số nút duy nhất.
+- Cycle detection phải đi theo cạnh và kiểm tra path.
+
+### 20.1. Duyệt DAG với path guard
+
+~~~sql
+WITH RECURSIVE paths AS (
+    SELECT
+        n.node_id,
+        n.node_name,
+        ARRAY[n.node_id]::BIGINT[] AS id_path,
+        0 AS depth
+    FROM lab_r434.topic_nodes AS n
+    WHERE n.node_id = 1
+
+    UNION ALL
+
+    SELECT
+        child.node_id,
+        child.node_name,
+        p.id_path || child.node_id,
+        p.depth + 1
+    FROM paths AS p
+    JOIN lab_r434.topic_edges AS e
+        ON e.parent_id = p.node_id
+    JOIN lab_r434.topic_nodes AS child
+        ON child.node_id = e.child_id
+    WHERE NOT child.node_id = ANY(p.id_path)
+)
+SELECT *
+FROM paths
+ORDER BY depth, id_path;
+~~~
+
+Trong DAG, một node có thể xuất hiện nhiều lần ở kết quả vì có nhiều path hợp lệ. Nếu chỉ muốn tập node duy nhất, phải định nghĩa rõ chọn path nào hoặc tổng hợp sau khi duyệt. Nếu muốn phát hiện cycle, cần giữ lại cạnh làm lặp node thay vì chỉ chặn nó.
+
+## 21. Kiểm tra toàn vẹn trước khi đưa cây vào sử dụng
+
+Một quy trình audit có thể gồm:
+
+1. Kiểm tra parent_id tham chiếu đến hàng tồn tại.
+2. Kiểm tra self-parent.
+3. Tìm cycle từ mọi nút, không chỉ từ root.
+4. Đếm số gốc và xác nhận forest có đúng số cây nghiệp vụ.
+5. Kiểm tra depth lớn bất thường.
+6. Kiểm tra mã danh mục trùng hoặc tên anh em trùng nếu nghiệp vụ cấm.
+7. Kiểm tra nút inactive có con active theo quy tắc hiển thị.
+8. Kiểm tra các bảng phụ thuộc và quyền kế thừa.
+
+### 21.1. Đếm số root
+
+~~~sql
+SELECT COUNT(*) AS root_count
+FROM lab_r434.categories
+WHERE parent_id IS NULL;
+~~~
+
+Với fixture mẫu, expected là 2.
+
+### 21.2. Kiểm tra depth tối đa
+
+~~~sql
+WITH RECURSIVE tree AS (
+    SELECT category_id, parent_id, 0 AS depth
+    FROM lab_r434.categories
+    WHERE parent_id IS NULL
+
+    UNION ALL
+
+    SELECT c.category_id, c.parent_id, t.depth + 1
+    FROM lab_r434.categories AS c
+    JOIN tree AS t ON c.parent_id = t.category_id
+)
+SELECT MAX(depth) AS max_depth
+FROM tree;
+~~~
+
+Truy vấn này giả định dữ liệu không có cycle nối với root. Hãy chạy cycle audit trước hoặc thêm path guard nếu nguồn chưa đáng tin.
+
+### 21.3. Kiểm tra mọi nút có thể đi tới root
+
+Trong một forest hợp lệ, mọi nút đều phải có chuỗi parent hữu hạn kết thúc tại một root. Nếu một nút không thể đi tới root, có thể nó nằm trong cycle hoặc dữ liệu tham chiếu bất thường.
+
+Parent-walk từ mọi nút ở phần 11 cho phép xác định đường đi; kết hợp kết quả đó với truy vấn root reachability để phân loại nút bất thường.
+
+## 22. Khác biệt cú pháp giữa các hệ quản trị
+
+Nguyên tắc duyệt đệ quy và path guard tương tự nhau, nhưng cú pháp và giới hạn khác biệt.
+
+### 22.1. PostgreSQL
+
+PostgreSQL dùng WITH RECURSIVE. Có thể theo dõi path bằng array và toán tử ANY, hoặc dùng SEARCH/CYCLE ở các phiên bản hỗ trợ. Không có MAXRECURSION query hint kiểu SQL Server; cần thiết kế điều kiện dừng và kiểm soát dữ liệu.
+
+### 22.2. SQL Server
+
+SQL Server dùng recursive CTE với anchor member và recursive member, nhưng không đặt từ khóa RECURSIVE sau WITH. Có thể dùng kiểu chuỗi hoặc cấu trúc khác để theo dõi path; cần xử lý cẩn thận delimiter và kiểu dữ liệu. OPTION (MAXRECURSION n) có thể giới hạn số vòng lặp, nhưng không sửa cycle.
+
+~~~sql
+-- SQL Server minh hoa:
+WITH CategoryTree AS (
+    SELECT
+        category_id,
+        parent_id,
+        category_name,
+        0 AS depth
+    FROM dbo.Categories
+    WHERE parent_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        c.category_id,
+        c.parent_id,
+        c.category_name,
+        t.depth + 1
+    FROM dbo.Categories AS c
+    JOIN CategoryTree AS t
+        ON c.parent_id = t.category_id
+)
+SELECT *
+FROM CategoryTree
+ORDER BY depth, category_id
+OPTION (MAXRECURSION 100);
+~~~
+
+MAXRECURSION là giới hạn bảo vệ truy vấn. Với dữ liệu sâu hợp lệ, cần chọn giới hạn phù hợp; giá trị 0 bỏ giới hạn mặc định và cần được cân nhắc cẩn thận.
+
+### 22.3. MySQL
+
+MySQL 8.0 hỗ trợ recursive CTE qua WITH RECURSIVE. Kiểu cột của anchor member quyết định kiểu kết quả CTE; nếu path chuỗi có thể dài hơn giá trị ban đầu, cần CAST anchor sang độ dài đủ lớn. Có thể dùng JSON array hoặc chuỗi path và kiểm tra membership theo cách phù hợp.
+
+MySQL cũng có giới hạn đệ quy cấu hình được, ví dụ cte_max_recursion_depth; giới hạn này không thay thế kiểm tra cycle.
+
+### 22.4. Oracle Database
+
+Oracle hỗ trợ hierarchical query với CONNECT BY PRIOR và các truy vấn đệ quy theo cú pháp riêng. CONNECT BY NOCYCLE giúp tránh tiếp tục theo đường tạo chu trình; CONNECT_BY_ISCYCLE hỗ trợ nhận diện vị trí cycle trong ngữ cảnh phù hợp.
+
+~~~sql
+-- Oracle minh hoa:
+SELECT
+    category_id,
+    parent_id,
+    category_name,
+    LEVEL AS depth
+FROM categories
+START WITH parent_id IS NULL
+CONNECT BY NOCYCLE PRIOR category_id = parent_id
+ORDER SIBLINGS BY sort_order, category_id;
+~~~
+
+PRIOR category_id = parent_id đi từ cha đến con. ORDER SIBLINGS BY sắp xếp anh em mà giữ cấu trúc phân cấp.
+
+### 22.5. SQLite
+
+SQLite hỗ trợ recursive CTE qua WITH RECURSIVE. Không có array type PostgreSQL; có thể dùng chuỗi path với delimiter được chọn an toàn hoặc JSON functions nếu build hỗ trợ. Cần giới hạn độ sâu và theo dõi path để tránh cycle.
+
+~~~sql
+-- SQLite minh hoa, ID la so nguyen va dau phan cach duoc chon rieng:
+WITH RECURSIVE tree(category_id, parent_id, depth, path) AS (
+    SELECT
+        category_id,
+        parent_id,
+        0,
+        '/' || category_id || '/'
+    FROM categories
+    WHERE parent_id IS NULL
+
+    UNION ALL
+
+    SELECT
+        c.category_id,
+        c.parent_id,
+        t.depth + 1,
+        t.path || c.category_id || '/'
+    FROM categories AS c
+    JOIN tree AS t ON c.parent_id = t.category_id
+    WHERE instr(t.path, '/' || c.category_id || '/') = 0
+)
+SELECT *
+FROM tree
+ORDER BY depth, category_id;
+~~~
+
+Với ID số nguyên và delimiter bao quanh, kiểm tra chuỗi tránh nhầm ID 1 với ID 11. Nếu path dùng mã văn bản tùy ý, phải encode/escape delimiter hoặc dùng cấu trúc JSON phù hợp.
+
+### 22.6. Bảng so sánh
+
+| Hệ quản trị | Dạng truy vấn phân cấp | Cơ chế chống cycle/giới hạn thường gặp |
+| --- | --- | --- |
+| PostgreSQL | WITH RECURSIVE | Array path, CYCLE/SEARCH ở phiên bản hỗ trợ |
+| SQL Server | Recursive CTE | Path guard tự viết, OPTION (MAXRECURSION) |
+| MySQL 8+ | WITH RECURSIVE | Path guard, cte_max_recursion_depth |
+| Oracle | CONNECT BY hoặc recursive subquery factoring | NOCYCLE, CONNECT_BY_ISCYCLE, path |
+| SQLite | WITH RECURSIVE | Path guard, giới hạn recursion của engine |
+
+Kiểm tra phiên bản DBMS trước khi dùng cú pháp nâng cao. Một giới hạn recursion giúp ngăn truy vấn tiêu thụ tài nguyên quá mức; nó không bảo đảm dữ liệu là cây hợp lệ.
+
+## 23. Lỗi thường gặp
+
+| Lỗi | Hậu quả | Cách xử lý |
+| --- | --- | --- |
+| Chỉ lưu parent_id mà không kiểm tra cycle | Có thể tạo chuỗi cha-con quay lại nút cũ | Recursive validation và cơ chế bảo vệ ghi |
+| Nghĩ FK ngăn cycle | FK chỉ kiểm tra cha tồn tại | Kiểm tra đường đi |
+| Chỉ CHECK parent_id <> id | Chỉ chặn self-cycle | Kiểm tra cycle nhiều nút |
+| Chỉ duyệt từ root để audit | Bỏ sót cycle tách khỏi root | Bắt đầu parent-walk từ mọi nút |
+| Recursive CTE dùng UNION ALL không path guard | Có thể lặp vô hạn | Visited path hoặc CYCLE |
+| Dùng global visited cho DAG | Loại nhầm path hợp lệ | Kiểm tra lặp trên path hiện tại |
+| Không có ORDER BY ngoài cùng | Thứ tự hiển thị không được đảm bảo | Sắp xếp theo path/sort_order/ID |
+| Lọc is_active ở sai vị trí | Có thể ẩn nhầm cả nhánh hoặc để lộ con | Xác định semantics của inactive node |
+| Dùng DISTINCT để loại nút lặp | Che triệu chứng, mất thông tin đường đi | Xác định grain và cycle |
+| Không phân biệt depth và height | Tính sai cấp/chiều cao | Định nghĩa điểm gốc và hướng đo |
+| Dùng path chuỗi không escape | Nhận diện nhầm ID hoặc hỏng breadcrumb | Dùng array/encoding rõ ràng |
+| Chỉ kiểm tra rồi UPDATE | Race giữa hai transaction | Advisory lock/serialization và retry |
+| Trigger không dùng khóa chung | Vẫn có thể race với writer khác | Mọi writer dùng cùng quy ước |
+| Trigger chỉ ngăn cycle mới | Cycle cũ vẫn tồn tại | Audit và sửa dữ liệu legacy |
+| Bulk update nhiều nút mà kiểm tra từng hàng đơn giản | Trạng thái trung gian có thể phức tạp | Procedure kiểm tra toàn bộ trạng thái đích |
+| Tăng recursion limit để che cycle | Tốn tài nguyên và trì hoãn lỗi | Sửa dữ liệu và có path guard |
+| Xóa nút cha mà không xem subtree | Mất nhánh hoặc vi phạm FK | Preview subtree, chọn delete policy |
+| Dùng adjacency list cho nhiều-cha | Không biểu diễn đủ quan hệ | Bảng edge/DAG |
+
+## 24. Bài tập thực hành có đáp án
+
+Các bài dựa trên schema lab_r434 và dữ liệu mẫu. Bài tạo cycle phải chạy trong transaction và rollback sau khi quan sát kết quả.
+
+### Bài 1 — Xác định root
+
+**Yêu cầu:** tìm tất cả danh mục không có cha.
+
+**Đáp án:**
+
+~~~sql
+SELECT category_id, category_name
+FROM lab_r434.categories
+WHERE parent_id IS NULL
+ORDER BY category_id;
+~~~
+
+Expected là Cửa hàng (1) và Hàng thanh lý (11).
+
+### Bài 2 — Tìm con trực tiếp
+
+**Yêu cầu:** lấy các danh mục con trực tiếp của Điện tử (2).
+
+**Đáp án:**
+
+~~~sql
+SELECT category_id, category_name
+FROM lab_r434.categories
+WHERE parent_id = 2
+ORDER BY sort_order, category_id;
+~~~
+
+Expected: Máy tính, Điện thoại và Âm thanh.
+
+### Bài 3 — Lấy toàn bộ cây
+
+**Yêu cầu:** duyệt từ tất cả root và trả depth.
+
+**Đáp án:** dùng recursive CTE có anchor parent_id IS NULL; recursive member nối child.parent_id với category_tree.category_id; mỗi vòng tăng depth 1.
+
+### Bài 4 — Breadcrumb cho Laptop
+
+**Yêu cầu:** trả đường dẫn từ root đến category_id 4.
+
+**Đáp án:** bắt đầu từ nút 4, recursive member JOIN cha theo parent_id, rồi ORDER BY distance_from_start DESC. Expected: Cửa hàng / Điện tử / Máy tính / Laptop.
+
+### Bài 5 — Lấy subtree của Phụ kiện
+
+**Yêu cầu:** lấy Phụ kiện và mọi hậu duệ.
+
+**Đáp án:** anchor category_id = 7, recursive member tìm các hàng có parent_id bằng ID hiện tại. Expected gồm Phụ kiện, Bộ sạc và Tiện ích.
+
+### Bài 6 — Chỉ lấy hậu duệ
+
+**Yêu cầu:** không trả nút bắt đầu trong kết quả subtree.
+
+**Đáp án:** gắn relative_depth = 0 ở anchor, tăng 1 ở mỗi vòng và lọc relative_depth > 0 ở SELECT ngoài.
+
+### Bài 7 — Tìm nút lá
+
+**Yêu cầu:** tìm danh mục không có con.
+
+**Đáp án:** dùng NOT EXISTS trên bảng categories với child.parent_id = c.category_id.
+
+### Bài 8 — Kiểm tra self-parent
+
+**Yêu cầu:** tìm hàng có category_id = parent_id.
+
+**Đáp án:**
+
+~~~sql
+SELECT *
+FROM lab_r434.categories
+WHERE category_id = parent_id;
+~~~
+
+Expected là 0 hàng trong fixture hợp lệ.
+
+### Bài 9 — Tìm orphan
+
+**Yêu cầu:** tìm parent_id khác NULL nhưng không có hàng cha tương ứng.
+
+**Đáp án:** LEFT JOIN categories p ON p.category_id = c.parent_id, lọc c.parent_id IS NOT NULL AND p.category_id IS NULL.
+
+### Bài 10 — Vì sao FK không ngăn cycle?
+
+**Câu hỏi:** A.parent_id = B và B.parent_id = A có thể thỏa FK không?
+
+**Đáp án:** có, nếu cả A và B đều tồn tại. FK kiểm tra tham chiếu tồn tại, không kiểm tra đường đi có quay lại nút ban đầu.
+
+### Bài 11 — Tạo cycle hai nút
+
+**Yêu cầu:** mô tả một cycle ngắn nhất giữa hai nút.
+
+**Đáp án:** A.parent_id = B và B.parent_id = A. Self-parent CHECK không chặn vì mỗi nút tham chiếu nút còn lại.
+
+### Bài 12 — Cycle ba nút trong fixture
+
+**Yêu cầu:** đổi parent_id của Điện tử (2) thành Laptop (4).
+
+**Đáp án:** thao tác tạo chuỗi 2 → 4 → 3 → 2. Chạy trong BEGIN, kiểm tra cycle, rồi ROLLBACK.
+
+### Bài 13 — Vì sao root traversal bỏ sót cycle?
+
+**Đáp án:** cycle 2-3-4 sau khi đổi parent không còn đường đi từ root 1. Anchor chỉ lấy parent_id IS NULL nên không khởi tạo từ các nút trong cycle.
+
+### Bài 14 — Phát hiện cycle toàn bảng
+
+**Yêu cầu:** phát hiện chu trình kể cả khi không nối với root.
+
+**Đáp án:** khởi tạo parent_walk từ mọi category, mỗi lần theo parent_id và giữ array path; khi parent kế tiếp đã xuất hiện trong path, đánh dấu is_cycle.
+
+### Bài 15 — Ngăn cycle khi di chuyển nút
+
+**Yêu cầu:** trước khi chuyển M xuống dưới P, kiểm tra P có nằm trong subtree M không.
+
+**Đáp án:** recursive CTE lấy subtree của M, bao gồm chính M. Nếu EXISTS category_id = P thì từ chối.
+
+### Bài 16 — Chuyển nút thành root
+
+**Câu hỏi:** parent_id = NULL có thể tạo cycle mới không?
+
+**Đáp án:** không; nó loại bỏ cạnh tới cha. Tuy nhiên cần xét nghiệp vụ, số root và quyền truy cập phụ thuộc cấu trúc.
+
+### Bài 17 — Vì sao cần advisory lock?
+
+**Tình huống:** hai transaction đồng thời chuyển A xuống B và B xuống A.
+
+**Đáp án:** cả hai có thể kiểm tra trên trạng thái cũ và cùng thấy hợp lệ. Khóa chung tuần tự hóa thao tác thay đổi hierarchy để transaction thứ hai kiểm tra trên trạng thái đã commit của transaction đầu.
+
+### Bài 18 — MAXRECURSION có sửa cycle không?
+
+**Đáp án:** không. Nó chỉ giới hạn số vòng lặp hoặc làm truy vấn dừng với lỗi theo DBMS. Dữ liệu vẫn có chu trình và cần được sửa.
+
+### Bài 19 — Depth và height
+
+**Câu hỏi:** depth của root bằng 0; height của một leaf bằng bao nhiêu?
+
+**Đáp án:** height của leaf bằng 0 vì không có cạnh đi xuống. Depth và height đo theo hai hướng khác nhau.
+
+### Bài 20 — DAG và global visited
+
+**Tình huống:** một chủ đề có hai cha hợp lệ, cả hai cùng dẫn đến một nút con.
+
+**Đáp án:** nút con có thể xuất hiện trong hai path hợp lệ. Global visited có thể loại nhầm path thứ hai. Chỉ coi là cycle khi nút xuất hiện lại trên chính path hiện tại.
+
+### Bài 21 — Tìm chiều cao
+
+**Yêu cầu:** tính height mỗi nút trên cây hợp lệ.
+
+**Đáp án:** bắt đầu một traversal từ từng nút, tăng depth mỗi lần đi xuống, rồi GROUP BY start_id và lấy MAX(depth). Phải bảo đảm không có cycle hoặc thêm path guard.
+
+### Bài 22 — Sắp xếp anh em
+
+**Yêu cầu:** hiển thị các con theo sort_order, sau đó category_id.
+
+**Đáp án:** giữ sort_path trong recursive CTE và ORDER BY sort_path, id_path ở truy vấn ngoài; hoặc dùng cách sắp xếp phù hợp của DBMS.
+
+### Bài 23 — Xóa một nhánh
+
+**Yêu cầu:** trước khi xóa Phụ kiện, xem tất cả hàng bị ảnh hưởng.
+
+**Đáp án:** chạy subtree CTE với anchor category_id = 7 và hiển thị mọi hậu duệ trước khi chọn ON DELETE policy hoặc thao tác xóa.
+
+### Bài 24 — Chọn mô hình nhiều-cha
+
+**Tình huống:** một bài viết xuất hiện trong nhiều chủ đề.
+
+**Đáp án:** dùng bảng node và bảng edge parent_id/child_id. Đây là DAG nếu cần ngăn cycle; parent_id đơn trong adjacency list không biểu diễn được nhiều cha.
+
+## 25. Checklist vận hành cây danh mục
+
+Trước khi đưa cây vào sử dụng hoặc thay đổi cấu trúc:
+
+- [ ] Xác định mô hình là tree, forest hay DAG.
+- [ ] Xác định grain và khóa duy nhất của mỗi nút/cạnh.
+- [ ] Có khóa ngoại để ngăn parent_id mồ côi.
+- [ ] Có kiểm tra self-parent.
+- [ ] Có truy vấn audit cycle bắt đầu từ mọi nút.
+- [ ] Recursive CTE có path guard hoặc cơ chế CYCLE phù hợp.
+- [ ] Truy vấn hiển thị có ORDER BY xác định.
+- [ ] Quy tắc depth, height, inactive và root được định nghĩa.
+- [ ] Thao tác reparent kiểm tra parent mới nằm ngoài subtree.
+- [ ] Ghi đồng thời được tuần tự hóa hoặc xử lý serialization retry.
+- [ ] Trigger/procedure được kiểm thử với bulk update và transaction rollback.
+- [ ] Xem trước subtree trước khi xóa hoặc chuyển nhánh.
+- [ ] Độ sâu và kích thước kết quả có giới hạn phù hợp với ứng dụng.
+- [ ] Dữ liệu migration/import được audit trước khi mở cho người dùng.
+
+## 26. Ghi nhớ
+
+| Câu hỏi | Nguyên tắc |
+| --- | --- |
+| parent_id biểu diễn gì? | Quan hệ cha trực tiếp của một nút |
+| Root được nhận diện ra sao? | parent_id IS NULL |
+| Một hàng không có con là gì? | Nút lá |
+| Recursive CTE gồm phần nào? | Anchor member và recursive member |
+| Vì sao cần path? | Theo dõi đường đi, phát hiện nút lặp |
+| FK có ngăn cycle không? | Không; chỉ kiểm tra tham chiếu tồn tại |
+| CHECK parent_id <> id làm gì? | Chặn self-cycle, không chặn cycle nhiều nút |
+| Vì sao audit từ root chưa đủ? | Cycle có thể tách khỏi mọi root |
+| Cách tìm cycle toàn bảng? | Bắt đầu parent-walk từ mọi nút |
+| Di chuyển M xuống P an toàn khi nào? | P không nằm trong subtree của M |
+| Kiểm tra trước UPDATE có đủ khi concurrency? | Không; cần khóa/serialization và retry |
+| Advisory lock có tự bảo vệ mọi writer? | Chỉ khi mọi đường ghi tuân thủ cùng quy ước |
+| MAXRECURSION có sửa dữ liệu không? | Không; chỉ giới hạn truy vấn |
+| DAG khác tree thế nào? | DAG có thể có nhiều cha và nhiều path hợp lệ |
+| Xóa một nút cha cần gì? | Preview subtree và chọn chính sách xóa |
+
+**Điểm cốt lõi:** truy vấn cây danh mục cần biết rõ hướng đi, điểm bắt đầu và ý nghĩa của mỗi hàng. Recursive CTE giúp đi qua nhiều tầng; path hoặc CYCLE giúp phát hiện đường đi quay lại nút đã gặp. Nhưng bảo vệ cây phải bắt đầu từ lúc ghi dữ liệu: khóa ngoại ngăn cha không tồn tại, CHECK ngăn self-parent, còn cycle nhiều nút cần kiểm tra toàn bộ đường đi và kiểm soát các thao tác thay đổi cha trong transaction có xử lý ghi đồng thời. Đối với DAG, hãy mô hình hóa cạnh riêng và phân biệt nút được gặp lại ở path khác với cycle trên chính path hiện tại.

@@ -1,0 +1,2812 @@
+menu:
+- slug: tempo-overview
+  title: Tổng quan Tempo
+  childs:
+  - slug: tempo-overview-001
+    title: Grafana Tempo là gì và giải quyết bài toán truy vết phân tán nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-002
+    title: Vai trò của trace trong việc tìm lỗi và điểm nghẽn giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-003
+    title: Phân biệt nơi tạo span, bộ thu thập, Tempo và giao diện Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-004
+    title: Luồng dữ liệu từ ứng dụng đến lưu trữ và truy vấn trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-005
+    title: Mối liên hệ giữa trace, log, metric và hồ sơ hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-006
+    title: Phân biệt Tempo tự quản lý với dịch vụ tracing trên Grafana Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-007
+    title: Khả năng và giới hạn của Tempo so với Jaeger và Zipkin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-overview-008
+    title: Kiến thức đầu vào và lộ trình từ trace đầu tiên đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-model
+  title: Mô hình trace
+  childs:
+  - slug: trace-model-001
+    title: Trace, span và quan hệ cha con trong một yêu cầu phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-002
+    title: Vai trò của trace ID, span ID và parent span ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-003
+    title: Phân biệt span phía client, server, producer, consumer và nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-004
+    title: Thuộc tính tài nguyên, thuộc tính span và thông tin thư viện đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-005
+    title: Ý nghĩa của service.name, môi trường và phiên bản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-006
+    title: Trạng thái span, sự kiện và thông tin ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-007
+    title: Span link và quan hệ bất đồng bộ không biểu diễn bằng cây cha con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-008
+    title: Phân biệt thời lượng từng span với thời lượng toàn trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-009
+    title: Ảnh hưởng của mất ngữ cảnh, lệch đồng hồ và span đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-010
+    title: Quy ước ngữ nghĩa OpenTelemetry và tính nhất quán của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tempo-3-architecture
+  title: Kiến trúc Tempo 3.x
+  childs:
+  - slug: tempo-3-architecture-001
+    title: Chọn chế độ một tiến trình hoặc nhiều thành phần độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-002
+    title: Distributor tiếp nhận, xác thực cấu trúc và điều phối dữ liệu span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-003
+    title: Kafka làm nhật ký bền vững trong chế độ microservices
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-004
+    title: Live-store phục vụ truy vấn dữ liệu mới tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-005
+    title: Block-builder tạo khối Parquet cho kho lưu trữ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-006
+    title: Query frontend chia truy vấn và tổng hợp kết quả từ querier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-007
+    title: Backend scheduler và backend worker quản lý tác vụ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-008
+    title: Metrics-generator tạo metric tùy chọn từ luồng span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-009
+    title: Đường ghi và đường đọc trong chế độ monolithic không cần Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-3-architecture-010
+    title: Khác biệt kiến trúc với ingester và compactor của Tempo 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-lab
+  title: Phòng thực hành
+  childs:
+  - slug: practice-lab-001
+    title: Chuẩn bị Docker Compose, Tempo, Grafana và nguồn phát trace mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-002
+    title: Cố định phiên bản Tempo, Grafana và công cụ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-003
+    title: Tổ chức tệp cấu hình, cổng mạng và vùng dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-004
+    title: Khởi chạy chế độ monolithic với lưu trữ cục bộ cho học tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-005
+    title: Tạo trace mẫu với trace ID đã biết để kiểm tra đường đi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-006
+    title: Khai báo nguồn dữ liệu Tempo trong Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-007
+    title: Xác nhận trace đầu tiên bằng API và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-lab-008
+    title: Dừng, khởi chạy lại và kiểm tra giới hạn lưu trữ của môi trường thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: foundational-configuration
+  title: Cấu hình nền tảng
+  childs:
+  - slug: foundational-configuration-001
+    title: Cấu trúc tệp cấu hình Tempo và vai trò của các khối chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-002
+    title: Chọn target phù hợp với chế độ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-003
+    title: Phân biệt cấu hình HTTP server, gRPC nội bộ và receiver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-004
+    title: Đọc giá trị mặc định theo đúng phiên bản thay vì sao chép cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-005
+    title: Dùng biến môi trường và kiểm tra thay thế giá trị trong YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-006
+    title: Phân biệt cấu hình chung, runtime overrides và giới hạn theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-007
+    title: Kiểm tra cấu hình hiệu lực cùng nhật ký khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundational-configuration-008
+    title: Quản lý cấu hình theo môi trường và bảo vệ thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-ingestion
+  title: Tiếp nhận trace
+  childs:
+  - slug: trace-ingestion-001
+    title: Chọn OTLP làm giao thức tiếp nhận từ ứng dụng hoặc collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-002
+    title: Phân biệt OTLP gRPC và OTLP HTTP cùng định dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-003
+    title: Phân biệt cổng receiver OTLP với API HTTP truy vấn Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-004
+    title: Khai báo địa chỉ lắng nghe và kết nối giữa các container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-005
+    title: Bật receiver Jaeger hoặc Zipkin khi tích hợp hệ thống hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-006
+    title: Cấu hình TLS và thông tin xác thực trên đường gửi trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-007
+    title: Kiểm soát kích thước lô, nén dữ liệu và giới hạn thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-008
+    title: Xử lý phản hồi từ chối, lỗi tạm thời và kết quả tiếp nhận một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-ingestion-009
+    title: Xác minh nhận thành công và thời điểm dữ liệu thực sự truy vấn được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-connectivity
+  title: Kết nối ứng dụng
+  childs:
+  - slug: application-connectivity-001
+    title: Chọn OpenTelemetry Java agent, SDK hoặc Micrometer Tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-002
+    title: Cấu hình tên dịch vụ, tài nguyên và OTLP exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-003
+    title: Đưa trace Spring Boot qua collector trước khi đến Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-004
+    title: Tránh tạo span hoặc xuất trace trùng khi dùng nhiều cơ chế đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-005
+    title: Kiểm tra truyền trace context qua HTTP giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-006
+    title: Giữ ngữ cảnh khi chuyển luồng, xử lý bất đồng bộ và gửi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-007
+    title: Bổ sung span nghiệp vụ có mục đích cùng thuộc tính hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-008
+    title: Ghi trace ID và span ID vào log để phục vụ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-connectivity-009
+    title: Kiểm tra ngoại lệ, lời gọi cơ sở dữ liệu và yêu cầu chậm trong trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collector-alloy
+  title: Collector và Alloy
+  childs:
+  - slug: collector-alloy-001
+    title: Vai trò trung gian của OpenTelemetry Collector và Grafana Alloy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-002
+    title: Tổ chức pipeline receiver, processor và exporter cho trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-003
+    title: Chọn mô hình bộ thu thập gần ứng dụng hoặc cổng thu thập tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-004
+    title: Gom lô và giới hạn bộ nhớ trong quá trình xử lý span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-005
+    title: Chuẩn hóa thuộc tính tài nguyên trước khi gửi đến Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-006
+    title: Lọc span không cần thiết và loại bỏ thuộc tính nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-007
+    title: Cấu hình hàng đợi gửi, thử lại và giới hạn khi Tempo tạm ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-008
+    title: Bảo toàn trace ID, nhãn tenant và quan hệ span qua pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-009
+    title: Quan sát số span nhận, gửi, bị từ chối và bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-alloy-010
+    title: Kiểm tra cấu hình Alloy riêng với cấu hình YAML của Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sampling-strategies
+  title: Chiến lược lấy mẫu
+  childs:
+  - slug: sampling-strategies-001
+    title: Vì sao cần cân bằng độ đầy đủ của trace với chi phí thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-002
+    title: Phân biệt lấy mẫu đầu luồng và cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-003
+    title: Giữ quyết định lấy mẫu nhất quán theo ngữ cảnh cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-004
+    title: Đặt chính sách giữ trace lỗi, chậm hoặc quan trọng với nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-005
+    title: Định tuyến các span cùng trace đến cùng bộ xử lý lấy mẫu cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-006
+    title: Chọn khoảng chờ quyết định và xử lý trace kéo dài hoặc span đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-007
+    title: Ước lượng bộ nhớ và khả năng mất trace của bộ lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-008
+    title: Phân biệt dữ liệu bị lấy mẫu với dữ liệu bị mất do pipeline lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-009
+    title: Ảnh hưởng của lấy mẫu đến span metrics và sơ đồ dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-010
+    title: Vì sao liên kết từ log hoặc exemplar có thể trỏ đến trace không được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-strategies-011
+    title: Kiểm chứng chính sách bằng tập trace có kết quả kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: object-storage
+  title: Lưu trữ đối tượng
+  childs:
+  - slug: object-storage-001
+    title: Vai trò của object storage trong lưu trữ trace dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-002
+    title: Chọn S3 tương thích, Google Cloud Storage hoặc Azure Blob Storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-003
+    title: Cấu hình bucket, vùng, endpoint và quyền truy cập cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-004
+    title: Dùng MinIO cho phòng thực hành với giao thức S3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-005
+    title: Giới hạn của backend tệp cục bộ khi chuyển sang vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-006
+    title: Khối dữ liệu Apache Parquet và cách đọc theo cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-007
+    title: Tệp siêu dữ liệu, danh sách khối và khả năng phát hiện dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-008
+    title: Phân biệt dữ liệu cục bộ tạm thời với dữ liệu đã ghi bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: object-storage-009
+    title: Đối chiếu định dạng khối và khả năng đọc của phiên bản Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-lifecycle
+  title: Vòng đời trace
+  childs:
+  - slug: trace-lifecycle-001
+    title: Từ span mới tiếp nhận đến khối lưu trữ dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-002
+    title: Phân biệt dữ liệu truy vấn từ live-store và từ object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-003
+    title: Độ trễ khả kiến khi tạo khối, ghi kho và cập nhật danh sách khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-004
+    title: Cách Tempo xử lý trace chưa đầy đủ và span bổ sung về sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-005
+    title: Vai trò của compaction trong hợp nhất và tối ưu khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-006
+    title: Thiết lập thời gian lưu giữ chung và theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-007
+    title: Phối hợp chính sách xóa của Tempo với vòng đời bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-008
+    title: Ảnh hưởng của span đến muộn và trace kéo dài đến kết quả tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-lifecycle-009
+    title: Xác minh dữ liệu hết hạn và tránh kỳ vọng xóa tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-trace-lookup
+  title: Tra cứu qua API
+  childs:
+  - slug: api-trace-lookup-001
+    title: Phân biệt truy xuất bằng trace ID với tìm kiếm theo thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-002
+    title: Tra cứu một trace đã biết và đọc cấu trúc phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-003
+    title: Chọn khoảng thời gian khi tìm kiếm trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-004
+    title: Tìm tên thuộc tính và giá trị thuộc tính phục vụ truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-005
+    title: Gửi TraceQL qua API tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-006
+    title: Phân biệt API truy vấn trace với API TraceQL metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-007
+    title: Điều chỉnh giới hạn kết quả, thời gian chờ và kích thước phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-008
+    title: Đọc thống kê truy vấn để xác định lượng dữ liệu đã quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-trace-lookup-009
+    title: Phân biệt không tìm thấy, không có quyền, vượt giới hạn và lỗi backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grafana-exploration
+  title: Khám phá Grafana
+  childs:
+  - slug: grafana-exploration-001
+    title: Cấu hình nguồn dữ liệu Tempo và kiểm tra kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-002
+    title: Tổ chức nguồn dữ liệu theo môi trường và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-003
+    title: Tra cứu trace ID trong Explore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-004
+    title: Dùng trình dựng truy vấn và trình soạn TraceQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-005
+    title: Đọc cây span, dòng thời gian và các lời gọi chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-006
+    title: Xác định dịch vụ chậm, span lỗi và khoảng thời gian chưa có minh chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-007
+    title: Kiểm tra thuộc tính tài nguyên, sự kiện và liên kết span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-008
+    title: Sử dụng Traces Drilldown theo khả năng của phiên bản Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-009
+    title: Lưu và chia sẻ truy vấn cùng khoảng thời gian đủ để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-exploration-010
+    title: Phân biệt tổng độ dài các span với thời gian chờ của toàn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traceql-basics
+  title: TraceQL cơ bản
+  childs:
+  - slug: traceql-basics-001
+    title: Mô hình tập span và biểu thức chọn trong cặp dấu ngoặc nhọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-002
+    title: Phân biệt trường nội tại với thuộc tính tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-003
+    title: Chọn đúng phạm vi span, resource, event, link và instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-004
+    title: Lọc dịch vụ bằng resource.service.name
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-005
+    title: Lọc theo tên span, loại span và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-006
+    title: Phân biệt span:duration, trace:duration và bí danh duration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-007
+    title: So sánh chuỗi, số, thời lượng và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-008
+    title: Kết hợp điều kiện trên cùng một span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-009
+    title: Xử lý thuộc tính thiếu, kiểu dữ liệu khác nhau và tên cần trích dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-basics-010
+    title: Đối chiếu truy vấn với dữ liệu span thực tế và quy ước ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traceql-advanced
+  title: TraceQL nâng cao
+  childs:
+  - slug: traceql-advanced-001
+    title: Phân biệt kết hợp điều kiện trong một span với kết hợp nhiều tập span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-002
+    title: Tìm trace đi qua nhiều dịch vụ bằng các phép toán tập span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-003
+    title: Truy vấn quan hệ cha con, tổ tiên và hậu duệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-004
+    title: Truy vấn các span cùng cha và chuỗi lỗi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-005
+    title: Phân biệt toán tử cấu trúc trả phía phải với toán tử hợp cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-006
+    title: Nhận diện giới hạn và tính thử nghiệm của toán tử phủ định cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-007
+    title: Lọc tập span bằng count, avg, min, max và sum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-008
+    title: Gom tập span bằng by trước khi kiểm tra điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-009
+    title: Chọn thuộc tính cần hiển thị bằng select
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-010
+    title: Xây dựng truy vấn tìm lời gọi lặp, truy vấn cơ sở dữ liệu chậm và lỗi dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-advanced-011
+    title: Kiểm tra giới hạn số kết quả và tránh mặc định kết quả luôn mới nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traceql-metrics
+  title: TraceQL metrics
+  childs:
+  - slug: traceql-metrics-001
+    title: Phân biệt tìm trace, tổng hợp trong trace và metric theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-002
+    title: Điều kiện phiên bản, cấu hình và dữ liệu khối để chạy TraceQL metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-003
+    title: Tính số lượng và tốc độ span bằng count_over_time và rate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-004
+    title: Tính độ trễ trung bình, phân vị và phân bố từ span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-005
+    title: Gom metric theo dịch vụ, thao tác hoặc thuộc tính cần phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-006
+    title: Kết hợp biểu thức để tính tỷ lệ lỗi và chỉ số dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-007
+    title: Chọn bước thời gian và khoảng truy vấn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-008
+    title: Tìm nhóm nổi bật bằng topk, bottomk và chức năng so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-009
+    title: Dùng exemplar để mở trace đóng góp vào một điểm metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-010
+    title: Đánh giá ảnh hưởng của lấy mẫu và dữ liệu thiếu đến kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceql-metrics-011
+    title: Phân biệt kết quả TraceQL metrics với metric tạo sẵn bởi metrics-generator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-generator
+  title: Metrics-generator
+  childs:
+  - slug: metrics-generator-001
+    title: Khi nào nên tạo metric từ trace để giám sát liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-002
+    title: Luồng dữ liệu và vai trò tùy chọn của metrics-generator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-003
+    title: Bật bộ xử lý span metrics và chọn tenant áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-004
+    title: Đọc số lượng lời gọi, tỷ lệ lỗi và phân bố thời lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-005
+    title: Chọn chiều phân tích, nhãn và ranh giới bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-006
+    title: Xuất metric bằng remote write đến Prometheus hoặc Mimir
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-007
+    title: Kiểm soát số tổ hợp nhãn và giới hạn chuỗi đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-008
+    title: Xử lý span đến muộn và kiểm tra dữ liệu bị bỏ khỏi quá trình tạo metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-009
+    title: Tránh đếm trùng khi nhiều nơi cùng tạo hoặc gửi metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-010
+    title: Phân biệt số span với số yêu cầu nghiệp vụ khi đánh giá chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-generator-011
+    title: Chọn tạo metric trước hay sau lấy mẫu theo mục tiêu độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-graphs
+  title: Sơ đồ dịch vụ
+  childs:
+  - slug: service-graphs-001
+    title: Cách service graph suy ra quan hệ dịch vụ từ các cặp span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-002
+    title: Phân biệt quan hệ client-server với producer-consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-003
+    title: Bật bộ xử lý service graphs và cấu hình nguồn metric cho Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-004
+    title: Đọc tốc độ yêu cầu, lỗi và độ trễ trên các cạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-005
+    title: Biểu diễn cơ sở dữ liệu và dịch vụ ngoài bằng các nút thích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-006
+    title: Thiết kế thuộc tính định danh để tránh chia nhỏ hoặc gộp nhầm dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-007
+    title: Ảnh hưởng của thiếu cặp span và hết khoảng chờ ghép cặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-008
+    title: Ảnh hưởng của lấy mẫu và chia luồng span đến độ đầy đủ sơ đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-graphs-009
+    title: Kiểm tra sơ đồ bằng luồng yêu cầu đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-correlation
+  title: Liên kết tín hiệu
+  childs:
+  - slug: signal-correlation-001
+    title: Thiết kế khóa tương quan giữa trace, log và metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-002
+    title: Cấu hình liên kết từ log Loki đến trace trong Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-003
+    title: Cấu hình liên kết từ trace đến log theo dịch vụ và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-004
+    title: Đi từ exemplar Prometheus đến trace đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-005
+    title: Liên kết span với metric liên quan để kiểm tra mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-006
+    title: Liên kết trace với hồ sơ hiệu năng khi có dữ liệu Pyroscope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-007
+    title: Chuẩn hóa nhãn và định dạng trace ID giữa các nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-008
+    title: Điều chỉnh khoảng thời gian để không bỏ sót log hoặc metric liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-009
+    title: Chẩn đoán liên kết sai do lấy mẫu, thiếu ID hoặc nguồn dữ liệu khác tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tenant-isolation
+  title: Phân tách tenant
+  childs:
+  - slug: tenant-isolation-001
+    title: Tenant là gì và khi nào cần tách dữ liệu theo tổ chức hoặc nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-002
+    title: Bật chế độ đa tenant và sử dụng X-Scope-OrgID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-003
+    title: Truyền tenant nhất quán trên đường ghi và đường đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-004
+    title: Ánh xạ danh tính đã xác thực sang tenant tại cổng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-005
+    title: Phân biệt nhãn dịch vụ trong span với ranh giới tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-006
+    title: Cấu hình nguồn dữ liệu Grafana theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-007
+    title: Đặt giới hạn tiếp nhận, truy vấn và thời gian lưu theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-008
+    title: Phân biệt cấu hình overrides tĩnh với overrides có thể cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-009
+    title: Kiểm soát truy vấn nhiều tenant theo khả năng và quyền được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tenant-isolation-010
+    title: Kiểm thử không đọc chéo hoặc ghi nhầm tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Ranh giới xác thực của Tempo và vai trò reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Bảo vệ đường nhận OTLP và đường truy vấn bằng TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Xác thực kết nối từ collector, Grafana và các thành phần nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Giới hạn mạng và tách endpoint vận hành khỏi truy cập người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Ngăn giả mạo tenant bằng cách kiểm soát header tại cổng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Loại bỏ bí mật, dữ liệu cá nhân và nội dung yêu cầu khỏi span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Quản lý quyền bucket, thông tin xác thực và mã hóa lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Kiểm soát quyền xem trace và chia sẻ liên kết trên Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Thiết kế lưu giữ và xử lý yêu cầu xóa theo khả năng thực tế của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-deployment
+  title: Triển khai phân tán
+  childs:
+  - slug: distributed-deployment-001
+    title: Chọn microservices khi cần mở rộng và tách đường ghi với đường đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-002
+    title: Chuẩn bị hệ thống tương thích Kafka cho Tempo 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-003
+    title: Thiết kế topic, partition và thời gian lưu đủ cho quá trình tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-004
+    title: Phân biệt độ bền của Kafka với số bản sao thành phần Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-005
+    title: Triển khai distributor, live-store và block-builder theo vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-006
+    title: Kết nối query frontend, querier và kho lưu trữ đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-007
+    title: Triển khai backend scheduler, backend worker và metrics-generator cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-008
+    title: Vai trò của cơ chế thành viên và các vòng phân phối công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-009
+    title: Định tuyến cổng vào cho OTLP, truy vấn và lưu lượng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-deployment-010
+    title: Xác minh từng chặng từ Kafka đến dữ liệu mới và dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-deployment
+  title: Triển khai Kubernetes
+  childs:
+  - slug: kubernetes-deployment-001
+    title: Chọn Helm chart hoặc Operator tương thích với phiên bản Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-002
+    title: Chuẩn bị cấu hình, secret và quyền truy cập object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-003
+    title: Khai báo Kafka cho triển khai phân tán Tempo 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-004
+    title: Đặt tài nguyên CPU, bộ nhớ và vùng lưu trữ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-005
+    title: Cấu hình khám phá dịch vụ và kết nối nội bộ giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-006
+    title: Kiểm tra readiness, thời gian khởi động và trình tự dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-007
+    title: Phân bố bản sao theo vùng và kiểm tra miền sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-008
+    title: Bảo vệ ingress, receiver và cổng truy vấn theo chính sách mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-009
+    title: Quản lý cấu hình qua GitOps và kiểm tra cấu hình sau khi kết xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-010
+    title: Nâng cấp từng bước và kiểm tra trace sau mỗi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-optimization
+  title: Tối ưu truy vấn
+  childs:
+  - slug: query-optimization-001
+    title: Phân tích thời gian truy vấn, dữ liệu quét và số tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-002
+    title: Thu hẹp khoảng thời gian và chọn bộ lọc có khả năng loại trừ tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-003
+    title: Chỉ rõ phạm vi thuộc tính để giảm dữ liệu phải đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-004
+    title: Dùng dedicated attribute columns cho thuộc tính truy vấn thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-005
+    title: Tận dụng cách lưu theo cột của Parquet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-006
+    title: Phối hợp chia truy vấn, mức song song và năng lực querier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-007
+    title: Chọn bộ nhớ đệm và nhận diện dữ liệu phù hợp để lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-008
+    title: Giới hạn số trace, số span trả về và kích thước phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-009
+    title: Đánh giá chi phí của biểu thức chính quy và toán tử cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimization-010
+    title: Đo riêng dữ liệu mới, dữ liệu lịch sử và TraceQL metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-costs
+  title: Dung lượng và chi phí
+  childs:
+  - slug: capacity-costs-001
+    title: Ước lượng lưu lượng span theo tốc độ yêu cầu và số span mỗi trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-002
+    title: Đo kích thước thuộc tính và chi phí của trace quá lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-003
+    title: Lập kế hoạch dung lượng theo thời gian lưu và mức nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-004
+    title: Ước lượng chi phí object storage, truy cập đối tượng và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-005
+    title: Tính tài nguyên Kafka, live-store và block-builder cho đường ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-006
+    title: Tính tài nguyên querier và cache cho nhu cầu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-007
+    title: Phân tích chi phí chuỗi metric phát sinh từ metrics-generator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-008
+    title: Đặt giới hạn và ngân sách sử dụng theo tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-009
+    title: Đánh đổi lấy mẫu, chi tiết thuộc tính và thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-010
+    title: Đo tải thực tế trước khi thay đổi số bản sao hoặc tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tempo-monitoring
+  title: Giám sát Tempo
+  childs:
+  - slug: tempo-monitoring-001
+    title: Thu thập metric và nhật ký của từng thành phần Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-002
+    title: Theo dõi span tiếp nhận, bị từ chối và bị loại bỏ theo nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-003
+    title: Theo dõi độ trễ Kafka và tiến độ tiêu thụ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-004
+    title: Giám sát live-store, tạo khối và lỗi ghi object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-005
+    title: Giám sát compaction, retention và độ mới của danh sách khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-006
+    title: Theo dõi tỷ lệ lỗi, độ trễ và tài nguyên của truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-007
+    title: Giám sát metric bị thiếu và giới hạn chuỗi của metrics-generator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-008
+    title: Sử dụng bảng điều khiển và cảnh báo phù hợp với phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-009
+    title: Dùng Tempo Vulture để kiểm tra đường ghi và đọc từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tempo-monitoring-010
+    title: Tự truy vết Tempo có kiểm soát và tránh phụ thuộc giám sát vòng tròn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resilience
+  title: Khả năng phục hồi
+  childs:
+  - slug: resilience-001
+    title: Xác định ranh giới chấp nhận ghi và cam kết bền vững dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-002
+    title: Thiết kế độ bền Kafka phù hợp với mục tiêu mất dữ liệu cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-003
+    title: Khôi phục luồng tiêu thụ sau khi thành phần xử lý ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-004
+    title: Phân bố live-store theo vùng và kiểm tra khả năng phục vụ dữ liệu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-005
+    title: Ứng phó khi object storage chậm hoặc tạm thời không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-006
+    title: Kiểm soát hàng đợi và áp lực ngược trong collector lẫn Tempo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-007
+    title: Dừng an toàn, cập nhật lần lượt và kiểm tra span đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-008
+    title: Phân biệt sao lưu cấu hình, bảo vệ bucket và khả năng phát lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resilience-009
+    title: Kiểm chứng mục tiêu phục hồi bằng thử lỗi có phạm vi giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không nhận được span do sai endpoint, giao thức hoặc địa chỉ lắng nghe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Trace không xuất hiện do sai khoảng thời gian hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Phân biệt bị lấy mẫu, bị từ chối tiếp nhận và chưa đủ thời gian khả kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Thiếu span hoặc đứt trace do mất ngữ cảnh và cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Tìm thấy trace ID nhưng truy vấn thuộc tính không cho kết quả kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: TraceQL sai kiểu dữ liệu, sai phạm vi hoặc dùng thuộc tính không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Truy vấn chậm, hết thời gian chờ hoặc vượt số tác vụ trong hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Lỗi Kafka, thành viên cụm hoặc tiến độ xử lý bị dồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Khối dữ liệu lỗi, không đủ quyền bucket hoặc dữ liệu lịch sử biến mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Tiến trình hết bộ nhớ do trace lớn, thuộc tính lớn hoặc truy vấn nặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Span metrics và service graph thiếu dù trace đã được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Lần theo bằng chứng từ ứng dụng, collector đến Tempo và Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-testing
+  title: Kiểm thử tích hợp
+  childs:
+  - slug: integration-testing-001
+    title: Xây dựng trace mẫu với dịch vụ, trạng thái và thời lượng đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-002
+    title: Kiểm tra đường ghi và đọc bằng trace ID xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-003
+    title: Đối chiếu kết quả TraceQL với thuộc tính và cấu trúc trace mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-004
+    title: Kiểm thử trace lỗi, chậm, bất đồng bộ và span đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-005
+    title: Kiểm thử mất kết nối, hàng đợi đầy và chính sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-006
+    title: Kiểm tra cách ly tenant cùng xác thực đường ghi và đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-007
+    title: Kiểm chứng lấy mẫu và sai lệch của metric sinh từ trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-008
+    title: Đo hiệu năng truy vấn trên khoảng dữ liệu và tải đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-testing-009
+    title: Tự động kiểm tra cấu hình và đường dữ liệu sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-migration
+  title: Nâng cấp và di trú
+  childs:
+  - slug: upgrades-migration-001
+    title: Lập ma trận phiên bản Tempo, Grafana, Collector và định dạng khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-002
+    title: Đọc thay đổi không tương thích trước mỗi lần nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-003
+    title: Phân biệt đường nâng cấp monolithic với microservices từ Tempo 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-004
+    title: Chuyển cấu hình ingester và compactor sang thành phần Tempo 3.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-005
+    title: Thay thế chế độ scalable single binary đã bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-006
+    title: Chuẩn bị Kafka và chuyển đường nhận span trong triển khai phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-007
+    title: Chuyển overrides cũ sang cấu trúc có phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-008
+    title: Loại bỏ cấu hình local_blocks cũ theo hướng dẫn phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-009
+    title: Kiểm tra khả năng đọc trace lịch sử và giới hạn TraceQL metrics của khối cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-010
+    title: Xác định điều kiện quay lui và xác minh lại sau di trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Dựng hệ thống ứng dụng, Collector, Tempo và Grafana bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Theo dõi một yêu cầu HTTP qua nhiều dịch vụ và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Tái hiện trace đứt do mất ngữ cảnh rồi xác minh cách khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Tìm nguyên nhân yêu cầu chậm bằng cây span và TraceQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Phân tích lỗi dây chuyền bằng quan hệ cấu trúc giữa các span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Giữ trace lỗi và chậm bằng chính sách lấy mẫu cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Tạo span metrics, service graph và liên kết từ exemplar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Đi từ log sự cố đến trace và quay lại metric liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Tách hai tenant và kiểm tra quyền truy cập cùng giới hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Chuyển lưu trữ cục bộ sang MinIO và kiểm tra dữ liệu sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Thử lỗi pipeline và đánh giá độ trễ, mất dữ liệu cùng khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Lập kế hoạch triển khai Tempo 3.x với kiểm thử, giám sát và ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

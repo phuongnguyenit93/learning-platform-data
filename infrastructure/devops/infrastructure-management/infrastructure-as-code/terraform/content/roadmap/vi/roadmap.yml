@@ -1,0 +1,49 @@
+roadmap:
+- id: terraform-iac
+  title: Terraform & IaC
+  purpose: Hiểu cách Terraform quản lý hạ tầng bằng cấu hình khai báo thay vì thao tác thủ công.
+  objectives:
+  - Giải thích Infrastructure as Code và cách Terraform hoạt động.
+  - Nhận diện vòng lặp viết cấu hình, lập kế hoạch và áp dụng thay đổi.
+- id: cu-phap-hcl
+  title: Cú pháp HCL
+  purpose: Đọc và tạo cấu hình Terraform cơ bản một cách có cấu trúc.
+  objectives:
+  - Viết block, argument, expression và reference trong tệp .tf.
+  - Kiểm tra cú pháp và định dạng cấu hình bằng validate/fmt.
+- id: provider-resource
+  title: Provider & Resource
+  purpose: Biết khai báo đối tượng hạ tầng và các kết nối cần thiết.
+  objectives:
+  - Khai báo required_providers và provider phù hợp.
+  - Tạo resource và đọc thuộc tính từ data source.
+- id: variables-outputs
+  title: Variables & Outputs
+  purpose: Tách cấu hình khỏi giá trị môi trường và truyền dữ liệu giữa các thành phần.
+  objectives:
+  - Khai báo input variable, locals và output.
+  - Dùng giá trị và reference để biểu diễn phụ thuộc tài nguyên.
+- id: init-plan-apply
+  title: Init, Plan, Apply
+  purpose: Thực hành vòng đời triển khai hạ tầng và xem xét thay đổi trước khi áp dụng.
+  objectives:
+  - Chạy init, plan và đọc create/update/delete trong kế hoạch.
+  - Áp dụng thay đổi có kiểm tra và thu hồi bằng destroy trong môi trường thử nghiệm.
+- id: state-backend
+  title: State & Backend
+  purpose: Hiểu cách Terraform ghi nhận tài nguyên quản lý và bảo vệ trạng thái dùng chung.
+  objectives:
+  - Giải thích mục đích state và tránh đưa state nhạy cảm vào Git.
+  - Phân biệt local/remote backend và ý nghĩa state locking.
+- id: modules-tai-su-dung
+  title: Modules tái sử dụng
+  purpose: Đóng gói cấu hình thành thành phần có giao diện rõ ràng.
+  objectives:
+  - Tạo module với input và output.
+  - Gọi module, cố định phiên bản và giải thích phụ thuộc giữa modules.
+- id: drift-import-ci
+  title: Drift, Import & CI
+  purpose: Phát hiện khác biệt thực tế và đưa kiểm tra cấu hình vào quy trình nhóm.
+  objectives:
+  - Nhận diện drift qua plan và dùng import cho tài nguyên sẵn có.
+  - Đưa fmt, validate và plan vào kiểm tra pull request trước khi apply.

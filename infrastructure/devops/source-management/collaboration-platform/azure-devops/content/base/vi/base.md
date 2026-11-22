@@ -1,0 +1,7 @@
+# DevOps Source Management Collaboration Platform Azure DevOps
+
+Azure DevOps là nền tảng hỗ trợ nhóm phát triển quản lý công việc, mã nguồn và tự động hóa quy trình phân phối phần mềm. Trong quản lý source code, **Azure Repos** cung cấp Git repository để các thành viên cùng lưu lịch sử, tạo nhánh và review thay đổi trước khi nhập vào nhánh chính. Azure Boards hỗ trợ truy vết công việc; Azure Pipelines có thể kiểm tra chất lượng mã tự động. Mục tiêu của module là xây dựng quy trình cộng tác rõ ràng, không chỉ biết cách đẩy mã lên remote.
+
+Module dành cho người đã có kiến thức Git cơ bản, branch, commit và pull/push. Lộ trình bắt đầu từ organization, project và cách tạo repository trên Azure DevOps, sau đó thực hành Git workflow với feature branch, pull request, comment và code review. Bạn sẽ học cách áp dụng **branch policies** như bắt buộc reviewer, giải quyết bình luận và xác thực build trước khi merge. Việc liên kết Azure Boards work item với commit hoặc PR giúp người tham gia biết thay đổi được thực hiện vì nhiệm vụ nào.
+
+Phần cuối tập trung vào phân quyền theo nhóm, nguyên tắc cấp quyền tối thiểu và tích hợp kiểm tra CI để bảo vệ nhánh quan trọng. Hoàn thành module, bạn có thể cấu hình một luồng cộng tác cơ bản từ work item đến code review và build validation, đồng thời giải thích trách nhiệm của repository, project, reviewer và quản trị viên trong một nhóm phát triển.

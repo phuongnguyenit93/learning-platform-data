@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": "Security này là security chung , không chỉ bao gồm java , vì vậy các knowledge liên quan đến chỉ riêng java hay spring , đặc biệt là spring security hãy bỏ qua"
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "SECURITY_AUTHENTICATION_TOKEN_BASED_AUTHENTICATION"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Khám phá xác thực dựa trên token trong các hệ thống nói chung: loại token, phát hành, xác minh, truyền nhận, lưu trữ và vòng đời thu hồi. Học thiết kế quyền truy cập, chống đánh cắp và phát lại, quản lý khóa, đánh giá mối đe dọa và kiểm thử luồng xác thực an toàn."
+  }
+}

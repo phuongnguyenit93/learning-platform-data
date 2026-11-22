@@ -1,0 +1,91 @@
+menu:
+  - title: "Tổng quan"
+    slug: filtering-overview
+    index: 0
+  - title: "Mục tiêu và phạm vi"
+    slug: goals-and-scope
+    index: 1
+  - title: "Luồng telemetry"
+    slug: telemetry-flow
+    index: 2
+  - title: "Mô hình dữ liệu"
+    slug: telemetry-data-model
+    index: 3
+  - title: "Ngữ nghĩa loại bỏ"
+    slug: drop-semantics
+    index: 4
+  - title: "Thiết kế chính sách"
+    slug: policy-design
+    index: 5
+  - title: "OTTL căn bản"
+    slug: ottl-basics
+    index: 6
+  - title: "OTTL nâng cao"
+    slug: advanced-ottl
+    index: 7
+  - title: "Điều kiện an toàn"
+    slug: safe-filter-conditions
+    index: 8
+  - title: "Filter processor"
+    slug: filter-processor
+    index: 9
+  - title: "Lọc log"
+    slug: log-filtering
+    index: 10
+  - title: "Lọc span"
+    slug: span-filtering
+    index: 11
+  - title: "Lọc sự kiện span"
+    slug: span-event-filtering
+    index: 12
+  - title: "Lọc metric"
+    slug: metric-filtering
+    index: 13
+  - title: "Lọc datapoint"
+    slug: datapoint-filtering
+    index: 14
+  - title: "Bảo toàn tương quan"
+    slug: correlation-preservation
+    index: 15
+  - title: "Dữ liệu nhạy cảm"
+    slug: sensitive-data-protection
+    index: 16
+  - title: "Thứ tự processor"
+    slug: processor-ordering
+    index: 17
+  - title: "Pipeline nhiều nhánh"
+    slug: branched-pipelines
+    index: 18
+  - title: "Triển khai đa tầng"
+    slug: multi-tier-deployment
+    index: 19
+  - title: "Tối ưu chi phí"
+    slug: cost-optimization
+    index: 20
+  - title: "Hiệu năng và tải"
+    slug: performance-and-load
+    index: 21
+  - title: "Kiểm thử điều kiện"
+    slug: condition-testing
+    index: 22
+  - title: "Kiểm thử pipeline"
+    slug: pipeline-testing
+    index: 23
+  - title: "Kiểm thử điều tra lỗi"
+    slug: incident-investigation-testing
+    index: 24
+  - title: "Quan sát bộ lọc"
+    slug: filter-observability
+    index: 25
+  - title: "Xử lý sự cố"
+    slug: filter-troubleshooting
+    index: 26
+  - title: "Phát hành chính sách"
+    slug: policy-rollout
+    index: 27
+  - title: "Quản trị chính sách"
+    slug: policy-governance
+    index: 28
+  - title: "Bài tập thực hành"
+    slug: filtering-labs
+    index: 29

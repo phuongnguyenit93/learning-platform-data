@@ -1,0 +1,49 @@
+roadmap:
+- id: jvm-runtime-lifecycle
+  title: JVM & Runtime Lifecycle
+  purpose: Hiểu vai trò của JVM khi nạp, thực thi và quản lý vòng đời của một ứng dụng Java.
+  objectives:
+  - '- Phân biệt JDK, JVM, process Java và application lifecycle.'
+  - '- Mô tả các giai đoạn launch, initialization, execution và shutdown.'
+- id: runtime-data-areas-memory
+  title: Runtime Data Areas & Memory
+  purpose: Nắm cách JVM tổ chức bộ nhớ cho object, lời gọi phương thức và dữ liệu runtime.
+  objectives:
+  - '- Phân biệt heap, Java stack, PC register, method area và native stack.'
+  - '- Giải thích frame, local variables, operand stack và Metaspace.'
+- id: class-loading-linking
+  title: Class Loading & Linking
+  purpose: Hiểu cách class được tìm thấy, kiểm tra, liên kết và khởi tạo trong runtime.
+  objectives:
+  - '- Mô tả loading, verification, preparation, resolution và initialization.'
+  - '- Giải thích class loader delegation, classpath/module path và class identity.'
+- id: execution-engine-jit
+  title: Execution Engine & JIT
+  purpose: Biết cách bytecode được diễn giải và tối ưu thành mã máy trong quá trình chạy.
+  objectives:
+  - '- Phân biệt interpreter, tiered compilation, JIT và code cache.'
+  - '- Giải thích profiling, warm-up và ảnh hưởng tới startup/performance.'
+- id: garbage-collection-heap
+  title: Garbage Collection & Heap
+  purpose: Quản lý vòng đời object và cân bằng bộ nhớ với mục tiêu hiệu năng ứng dụng.
+  objectives:
+  - '- Giải thích reachability, allocation, collection và GC pause.'
+  - '- So sánh G1, ZGC, Serial/Parallel theo workload và mục tiêu.'
+- id: threads-runtime-concurrency
+  title: Threads & Runtime Concurrency
+  purpose: Hiểu cách JVM thực thi nhiều luồng và biểu hiện các vấn đề đồng bộ.
+  objectives:
+  - '- Phân biệt platform thread, virtual thread, daemon và thread state.'
+  - '- Nhận diện monitor contention, deadlock, blocking và thread dump.'
+- id: runtime-configuration-resources
+  title: Runtime Configuration & Resources
+  purpose: Cấu hình JVM phù hợp môi trường triển khai và theo dõi tài nguyên thực tế.
+  objectives:
+  - '- Thực hành -Xms, -Xmx, -XX flags, system properties và -Xlog.'
+  - '- Phân biệt heap với native memory, kiểm tra container CPU/memory limits.'
+- id: diagnostics-performance-tuning
+  title: Diagnostics & Performance Tuning
+  purpose: Tìm nguyên nhân sự cố runtime bằng dữ liệu quan sát trước khi điều chỉnh tham số.
+  objectives:
+  - '- Dùng jcmd, jfr/JFR, heap dump, GC log và Native Memory Tracking.'
+  - '- Phân tích CPU, allocation, GC pause, class/thread growth và đo lại sau tuning.'

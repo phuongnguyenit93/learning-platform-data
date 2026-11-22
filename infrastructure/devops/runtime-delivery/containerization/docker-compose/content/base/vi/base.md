@@ -1,0 +1,5 @@
+# DevOps Runtime Delivery — Containerization với Docker Compose
+
+Docker Compose là công cụ mô tả và quản lý ứng dụng gồm nhiều container bằng tệp cấu hình khai báo như `compose.yaml`. Thay vì chạy thủ công từng container và tự kết nối chúng, bạn có thể định nghĩa dịch vụ, image, cổng mạng, volume, phụ thuộc và biến môi trường trong một Compose project, sau đó khởi chạy hoặc dừng toàn bộ stack bằng các lệnh thống nhất. Compose đặc biệt hữu ích khi phát triển, kiểm thử tích hợp và dựng môi trường nhiều dịch vụ có thể tái tạo.
+
+Module dành cho người đã biết Docker image, Dockerfile và các lệnh container cơ bản. Lộ trình bắt đầu từ mô hình Compose và cú pháp khai báo service, thực hành `up`/`down`, khám phá DNS nội bộ và lưu trữ dữ liệu, rồi xử lý thứ tự khởi động bằng healthcheck. Phần sau tập trung vào cấu hình theo môi trường, profiles, secrets và kỹ thuật kiểm tra, gỡ lỗi ứng dụng nhiều container. Kết thúc lộ trình, bạn có thể dựng một stack ứng dụng–cơ sở dữ liệu đơn giản, kiểm chứng kết nối và bảo vệ dữ liệu trong quá trình vận hành.

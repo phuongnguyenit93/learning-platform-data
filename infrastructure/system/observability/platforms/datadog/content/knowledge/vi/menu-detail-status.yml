@@ -1,0 +1,4030 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Datadog là gì và giải quyết bài toán quan sát hệ thống nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của Datadog trong kiến trúc ứng dụng và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Metrics, logs, traces, profiles và sự kiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt monitoring, observability và quy trình điều tra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa Agent, SDK, integration và nền tảng SaaS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Luồng dữ liệu từ nguồn phát sinh đến truy vấn và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Quan sát từ hạ tầng đến dịch vụ và trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Ranh giới giữa năng lực quan sát và các sản phẩm bảo mật mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Lộ trình học và kiến thức nền về hệ điều hành, mạng, JVM và cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: organizations-environments
+  title: Tổ chức và môi trường
+  childs:
+  - slug: organizations-environments-001
+    title: Datadog site, organization và cách chọn endpoint tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-002
+    title: Phạm vi dữ liệu giữa site, organization và môi trường ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-003
+    title: Tổ chức tài khoản cho phát triển, kiểm thử và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-004
+    title: Phân biệt API key, application key và client token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-005
+    title: Vai trò người dùng, nhóm và tài khoản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-006
+    title: Kiểm tra quyền sử dụng sản phẩm và mức khả dụng theo site
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-007
+    title: Điều hướng giao diện, tìm kiếm chung và bộ chọn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-environments-008
+    title: Chuẩn bị môi trường thực hành và dữ liệu không nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: datadog-agent
+  title: Datadog Agent
+  childs:
+  - slug: datadog-agent-001
+    title: Kiến trúc core Agent, Trace Agent, Process Agent và system-probe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-002
+    title: Cài đặt Agent trên Linux, Windows và macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-003
+    title: Tổ chức datadog.yaml, conf.d và cấu hình integration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-004
+    title: Cấu hình API key, DD_SITE và biến môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-005
+    title: Quản lý dịch vụ Agent và quyền truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-006
+    title: Kết nối qua proxy, TLS và các endpoint gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-007
+    title: Đọc trạng thái Agent và danh sách check đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-008
+    title: Kiểm tra cấu hình bằng status, configcheck và check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: datadog-agent-009
+    title: Quản lý phiên bản, nâng cấp và Fleet Automation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: initial-data-collection
+  title: Thu thập đầu tiên
+  childs:
+  - slug: initial-data-collection-001
+    title: Dựng ứng dụng thử nghiệm và Agent trong môi trường riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-002
+    title: Xác minh host và system metrics xuất hiện trên Datadog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-003
+    title: Gửi một custom metric bằng DogStatsD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-004
+    title: Thu thập JSON log từ một tệp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-005
+    title: Gửi trace của một yêu cầu HTTP từ ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-006
+    title: Tìm cùng dịch vụ qua metrics, logs và traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-007
+    title: Tạo dashboard và monitor thử nghiệm cho luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: initial-data-collection-008
+    title: Phân biệt dữ liệu chưa phát sinh, đang trễ và bị lỗi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tags-identity
+  title: Tags và định danh
+  childs:
+  - slug: tags-identity-001
+    title: Tags dạng key:value và vai trò trong lọc, tổng hợp, phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-002
+    title: Unified Service Tagging với env, service và version
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-003
+    title: Tags ở host, container, pod, integration và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-004
+    title: Ánh xạ Kubernetes labels và Docker labels sang tags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-005
+    title: Host name, host alias và tránh nhận diện trùng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-006
+    title: Định danh service, resource, operation và phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-007
+    title: Quy ước team, region, cluster và namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-008
+    title: Tránh xung đột tag, thiếu tag và giá trị không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-identity-009
+    title: Cardinality và tác động của user_id, request_id đến metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-integrations
+  title: Tích hợp dữ liệu
+  childs:
+  - slug: data-integrations-001
+    title: Phân biệt Agent-based, API-based và cloud integration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-002
+    title: Kích hoạt integration và xác minh dữ liệu thực sự được nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-003
+    title: Cấu trúc init_config, instances và quyền truy cập dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-004
+    title: Autodiscovery và cấu hình theo container hoặc workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-005
+    title: Thu thập Prometheus/OpenMetrics bằng integration tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-006
+    title: Thu thập JMX bằng JMXFetch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-007
+    title: Tích hợp MySQL, PostgreSQL, Redis, Kafka và NGINX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-008
+    title: Viết custom Agent check khi chưa có integration phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-009
+    title: Kiểm soát khoảng thu thập, timeout và số instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-integrations-010
+    title: Đánh giá integration cộng đồng, phiên bản và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-data-model
+  title: Mô hình metrics
+  childs:
+  - slug: metrics-data-model-001
+    title: Metric name, điểm dữ liệu, timestamp, tags và chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-002
+    title: Phân biệt kiểu gửi dữ liệu và kiểu metrics trong giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-003
+    title: Gauge, count và rate trong dữ liệu đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-004
+    title: Histogram tại Agent và distribution tổng hợp trên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-005
+    title: Set, timer và cách ánh xạ từ StatsD/DogStatsD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-006
+    title: Đơn vị, metadata và ý nghĩa của metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-007
+    title: Metrics hạ tầng, integration metrics và custom metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-008
+    title: Phân biệt missing data, giá trị zero và dữ liệu đến trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-data-model-009
+    title: Độ phân giải, lưu giữ dữ liệu và rollup theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-metrics
+  title: Metrics tùy chỉnh
+  childs:
+  - slug: custom-metrics-001
+    title: Thiết kế metric từ câu hỏi nghiệp vụ hoặc vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-002
+    title: Gửi metrics qua DogStatsD bằng UDP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-003
+    title: Sử dụng Unix Domain Socket và nhận diện nguồn gửi khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-004
+    title: Namespace, tags, sample rate và cơ chế gom dữ liệu tại client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-005
+    title: Chọn count, gauge, histogram hoặc distribution đúng ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-006
+    title: Gửi metrics qua HTTP API và hiểu trách nhiệm tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-007
+    title: Thu thập Micrometer metrics bằng DogStatsD hoặc Datadog registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-008
+    title: Thu thập endpoint OpenMetrics của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-009
+    title: Tạo metrics từ log hoặc span và hiểu tập dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-metrics-010
+    title: Kiểm tra mất gói, queue đầy và chi phí do cardinality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-queries
+  title: Truy vấn metrics
+  childs:
+  - slug: metrics-queries-001
+    title: Cấu trúc truy vấn metrics và bộ lọc theo tags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-002
+    title: Tổng hợp theo không gian và nhóm theo host, service, region
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-003
+    title: Tổng hợp theo thời gian và lựa chọn rollup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-004
+    title: Phân biệt as_count, as_rate, rate và derivative
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-005
+    title: Công thức nhiều truy vấn và tính tỷ lệ lỗi đúng mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-006
+    title: Percentile của distribution và giới hạn của trung bình percentile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-007
+    title: Xử lý interpolation, fill, default_zero và dữ liệu thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-008
+    title: Top list, xếp hạng và so sánh theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-009
+    title: Timeshift, smoothing, anomaly và forecast trong phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-queries-010
+    title: Kiểm tra chênh lệch kết quả giữa dashboard và monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-collection
+  title: Thu thập logs
+  childs:
+  - slug: log-collection-001
+    title: Chọn Agent, cloud forwarder, HTTP API hoặc collector trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-002
+    title: Bật log collection và cấu hình nguồn tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-003
+    title: Gán service, source, status, host và tags cho log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-004
+    title: Thu thập stdout, stderr và log từ container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-005
+    title: Ghép nhiều dòng và stack trace Java tại nguồn thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-006
+    title: Theo dõi vị trí đọc, log rotation và tệp bị truncate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-007
+    title: Lọc include/exclude và che nội dung trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-008
+    title: Thu thập Kubernetes logs theo workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-009
+    title: Tiếp nhận log từ AWS, Azure và Google Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-collection-010
+    title: Kiểm tra timestamp, mã hóa và giới hạn kích thước bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-processing
+  title: Xử lý logs
+  childs:
+  - slug: log-processing-001
+    title: Vòng đời ingestion, pipeline, processor và indexing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-002
+    title: Thứ tự pipeline và bộ lọc chọn bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-003
+    title: Tự động phân tích JSON và dùng Grok cho log văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-004
+    title: Viết, thử và bảo trì quy tắc Grok với mẫu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-005
+    title: Chuẩn hóa timestamp bằng Date Remapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-006
+    title: Chuẩn hóa service, status, message và trace ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-007
+    title: Trích xuất thuộc tính, đổi tên trường và chuyển kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-008
+    title: Bổ sung dữ liệu bằng lookup và bảng tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-009
+    title: Phân biệt xử lý tại Agent, Observability Pipelines và phía Datadog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-processing-010
+    title: Kiểm chứng log trước sau xử lý và tránh mất trường quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-analysis
+  title: Phân tích logs
+  childs:
+  - slug: log-analysis-001
+    title: Phân biệt Live Tail và Log Explorer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-002
+    title: Tìm kiếm văn bản, thuộc tính, tags và cú pháp boolean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-003
+    title: Sử dụng facet và measure đúng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-004
+    title: Lọc theo thời gian, service, environment và mức lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-005
+    title: Tổng hợp thành timeseries, top list và bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-006
+    title: Phát hiện mẫu log lặp lại bằng Patterns
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-007
+    title: Tạo saved view và chia sẻ ngữ cảnh truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-008
+    title: Đi từ log đến trace, host, container và source code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-009
+    title: Tạo log-based metric, dashboard và monitor từ truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-analysis-010
+    title: Điều tra log không tìm thấy dù Agent đã gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-retention
+  title: Lưu trữ logs
+  childs:
+  - slug: log-retention-001
+    title: Phân biệt log được nhận, được index và được archive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-002
+    title: Thiết kế index, thứ tự định tuyến và thời gian lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-003
+    title: Exclusion filter, sampling và quota theo index
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-004
+    title: Đánh giá Standard Indexing và Flex Logs theo workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-005
+    title: Archive sang lưu trữ đối tượng trên cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-006
+    title: Tìm dữ liệu trực tiếp bằng Archive Search khi khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-007
+    title: Rehydrate dữ liệu và sử dụng historical view
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-008
+    title: Quyền truy cập archive, historical view và dữ liệu được phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-009
+    title: Đánh đổi khả năng tìm kiếm, thời gian truy cập và mức sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-retention-010
+    title: Kiểm chứng thay đổi retention mà không suy diễn dữ liệu còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-pipelines
+  title: Observability Pipelines
+  childs:
+  - slug: observability-pipelines-001
+    title: Khi nào cần xử lý telemetry trong hạ tầng của mình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-002
+    title: Vai trò của control plane và Observability Pipelines Worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-003
+    title: Kết nối source, processor và destination được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-004
+    title: Phân tích, bổ sung trường, lọc và che dữ liệu tại Worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-005
+    title: Định tuyến đến Datadog, kho lưu trữ và các đích khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-006
+    title: Xử lý logs và metrics theo khả năng của phiên bản Worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-007
+    title: Buffer bộ nhớ, buffer đĩa và áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-008
+    title: Hành vi khi đích chậm, buffer đầy hoặc Worker khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-pipelines-009
+    title: Triển khai, nâng cấp và giám sát sức khỏe pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-collection
+  title: Thu thập traces
+  childs:
+  - slug: trace-collection-001
+    title: Trace, span, parent span, service, resource và operation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-002
+    title: Phân biệt instrumentation tự động và thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-003
+    title: Cài Datadog SDK theo ngôn ngữ và runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-004
+    title: Kết nối ứng dụng với Trace Agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-005
+    title: Truyền context qua HTTP và W3C Trace Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-006
+    title: Truyền context qua hàng đợi và tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-007
+    title: Thêm span, tag, lỗi và sự kiện tại điểm nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-008
+    title: Chuẩn hóa tên resource và tránh URL có cardinality cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-009
+    title: Liên kết trace với logs và runtime metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-collection-010
+    title: Kiểm tra dữ liệu nhạy cảm trong headers, tags và payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: apm-analysis
+  title: Phân tích APM
+  childs:
+  - slug: apm-analysis-001
+    title: Đọc trang dịch vụ và các chỉ số request, error, duration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-002
+    title: Phân tích endpoint và resource có độ trễ cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-003
+    title: Đọc flame graph, waterfall và cây span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-004
+    title: Phân biệt thời gian của span, thời gian chờ và thời gian tự xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-005
+    title: Tìm kiếm span bằng Trace Explorer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-006
+    title: So sánh Live Search với dữ liệu đã được index
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-007
+    title: Tổng hợp spans theo thuộc tính và tạo phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-008
+    title: Tìm trace theo quan hệ giữa nhiều spans
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-009
+    title: Theo dõi dependency map và tác động đến dịch vụ liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: apm-analysis-010
+    title: Phân tích phiên bản triển khai và thay đổi hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sampling-retention
+  title: Sampling và retention
+  childs:
+  - slug: sampling-retention-001
+    title: Phân biệt thu thập, ingestion sampling và retention filtering
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-002
+    title: Kiểm soát ingestion tại SDK, Agent và theo dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-003
+    title: Sampling ở đầu trace và theo kết quả trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-004
+    title: Quy tắc giữ trace lỗi, trace chậm và luồng nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-005
+    title: Phân biệt lấy mẫu cả trace và giữ riêng spans
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-006
+    title: Custom retention filter và intelligent retention
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-007
+    title: Thứ tự filter và khả năng tìm kiếm từng span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-008
+    title: Trace metrics, span-based metrics và ảnh hưởng của lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-009
+    title: Ảnh hưởng của sampling đến liên kết logs, RUM và traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sampling-retention-010
+    title: Đo volume, chất lượng dữ liệu và hiệu quả sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring-boot
+  title: Java và Spring Boot
+  childs:
+  - slug: java-spring-boot-001
+    title: Kiểm tra hỗ trợ JDK, framework và thư viện Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-002
+    title: Khởi chạy JVM với dd-java-agent.jar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-003
+    title: Cấu hình DD_SERVICE, DD_ENV, DD_VERSION và địa chỉ Agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-004
+    title: Quan sát Spring MVC, WebFlux và lời gọi HTTP client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-005
+    title: Quan sát JDBC, connection pool, Redis và Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-006
+    title: JVM runtime metrics, heap, GC và luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-007
+    title: Tương quan Logback hoặc Log4j2 với trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-008
+    title: Custom spans và OpenTelemetry API với Datadog SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-009
+    title: Quan sát Executor, CompletableFuture và reactive context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-010
+    title: Kết hợp Micrometer, JMX và tracing mà tránh ghi trùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-011
+    title: Phân tích một yêu cầu chậm từ HTTP đến truy vấn SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-profiling
+  title: Profiling liên tục
+  childs:
+  - slug: continuous-profiling-001
+    title: Continuous Profiler bổ sung gì cho APM và metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-002
+    title: Điều kiện hỗ trợ theo ngôn ngữ, nền tảng và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-003
+    title: Bật profiling trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-004
+    title: Phân biệt CPU time, wall-clock time và các kiểu profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-005
+    title: Điều tra cấp phát bộ nhớ, contention và phương thức tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-006
+    title: Đọc flame graph và so sánh profile theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-007
+    title: Liên kết profile với service, version và trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-008
+    title: Phân biệt Datadog Profiler và JFR theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-profiling-009
+    title: Đánh giá chi phí thu thập và ảnh hưởng đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-debugging
+  title: Gỡ lỗi ứng dụng
+  childs:
+  - slug: application-debugging-001
+    title: Error Tracking và cách nhóm lỗi theo dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-002
+    title: Theo dõi lỗi mới, lỗi tái xuất hiện và phiên bản bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-003
+    title: Liên kết lỗi với logs, traces, RUM và source code
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-004
+    title: Dynamic Instrumentation và điều kiện bật tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-005
+    title: Thêm log probe, metric probe và span probe khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-006
+    title: Điều kiện kích hoạt, giới hạn tần suất và thời gian thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-007
+    title: Kiểm soát biến cục bộ, dữ liệu nhạy cảm và quyền gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-008
+    title: Exception Replay và dữ liệu trạng thái tại thời điểm lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-debugging-009
+    title: Gỡ probe sau điều tra và kiểm chứng mức dùng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry
+  title: OpenTelemetry
+  childs:
+  - slug: opentelemetry-001
+    title: Phân biệt OTel API, SDK, Collector và Datadog SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-002
+    title: Chọn đường tích hợp theo bảng tương thích tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-003
+    title: Datadog Distribution of OpenTelemetry Collector và DDOT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-004
+    title: Tiếp nhận OTLP qua Datadog Agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-005
+    title: Xuất dữ liệu từ upstream Collector sang Datadog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-006
+    title: Gửi trực tiếp đến OTLP intake trong trường hợp phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-007
+    title: Phân biệt endpoint, giao thức và xác thực của từng đường gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-008
+    title: Ánh xạ resource attributes sang host, service và tags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-009
+    title: Ánh xạ OTel metrics, histogram và temporality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-010
+    title: Tạo trace metrics trước sampling và kiểm chứng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-011
+    title: Di chuyển instrumentation và tránh chạy chồng các SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-containers
+  title: Hạ tầng và container
+  childs:
+  - slug: infrastructure-containers-001
+    title: Host Map, host list và phạm vi dữ liệu của từng host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-002
+    title: Theo dõi CPU, memory, disk I/O, network và filesystem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-003
+    title: Live Processes và phân tích tiến trình sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-004
+    title: Cài Datadog Agent bằng Docker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-005
+    title: Thu thập container metrics và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-006
+    title: Autodiscovery qua Docker labels
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-007
+    title: Giới hạn thu thập theo container và image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-008
+    title: Cấu hình volume, socket và quyền truy cập host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-009
+    title: Phân biệt tài nguyên host, container và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-containers-010
+    title: Giám sát mất kết nối Agent và host ngừng gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes
+  title: Kubernetes
+  childs:
+  - slug: kubernetes-001
+    title: Kiến trúc node Agent, Cluster Agent và Cluster Check Runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-002
+    title: Cài đặt bằng Datadog Operator hoặc Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-003
+    title: DatadogAgent resource, values.yaml và Kubernetes Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-004
+    title: Định danh cluster và ánh xạ namespace, pod, workload thành tags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-005
+    title: Autodiscovery bằng annotations và DatadogInstrumentation khi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-006
+    title: Thu thập kubelet metrics, trạng thái workload và events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-007
+    title: Thu thập logs và APM từ pod ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-008
+    title: Admission Controller và lựa chọn instrumentation tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-009
+    title: Cluster checks, endpoint checks và phân phối workload thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-010
+    title: Kubernetes Explorer và điều tra restart, pending, OOMKilled
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-011
+    title: Quyền RBAC, security context và giới hạn tài nguyên Agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-012
+    title: Giám sát Fargate, Autopilot và các giới hạn môi trường quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-serverless
+  title: Cloud và serverless
+  childs:
+  - slug: cloud-serverless-001
+    title: Kết nối AWS, Azure và Google Cloud theo phạm vi cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-002
+    title: Phân biệt cloud API integration với Agent trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-003
+    title: Quyền IAM, service account và giới hạn truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-004
+    title: Thu thập metrics, events, tags và logs từ cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-005
+    title: Tránh đếm trùng tài nguyên và dữ liệu từ nhiều đường thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-006
+    title: Quan sát AWS Lambda và vai trò extension, SDK, forwarder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-007
+    title: Điều tra cold start, timeout, lỗi và thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-008
+    title: Quan sát ECS Fargate, Azure Functions và Cloud Run theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-009
+    title: Liên kết yêu cầu serverless với dịch vụ và hàng đợi bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-serverless-010
+    title: Tính đến độ trễ cloud metrics trong truy vấn và monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-monitoring
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: database-monitoring-001
+    title: Phân biệt integration metrics và Database Monitoring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-002
+    title: Thiết lập PostgreSQL, MySQL hoặc database được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-003
+    title: Quyền database tối thiểu và lựa chọn nguồn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-004
+    title: Theo dõi query metrics, normalized query và query samples
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-005
+    title: Đọc explain plan và tìm truy vấn chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-006
+    title: Điều tra lock, wait, connection và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-007
+    title: Liên kết APM với truy vấn SQL trong DBM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-008
+    title: Theo dõi thay đổi plan và hiệu năng sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-009
+    title: Che câu lệnh SQL, tham số và giới hạn dữ liệu truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-monitoring-010
+    title: Tạo dashboard và monitor cho sức khỏe database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-dependencies
+  title: Mạng và phụ thuộc
+  childs:
+  - slug: network-dependencies-001
+    title: Phân biệt Cloud Network Monitoring và Network Device Monitoring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-002
+    title: Luồng mạng, kết nối và quan hệ client-server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-003
+    title: Điều kiện system-probe, eBPF và quyền theo hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-004
+    title: Phân tích lưu lượng theo service, pod, host và availability zone
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-005
+    title: Điều tra latency, retransmission và kết nối thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-006
+    title: DNS Monitoring và phân biệt timeout với lỗi phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-007
+    title: Network map và lần theo phụ thuộc chưa được instrument
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-008
+    title: Thu thập thiết bị mạng qua SNMP khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-dependencies-009
+    title: Liên kết dữ liệu mạng với APM, logs và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-flow
+  title: Luồng dữ liệu
+  childs:
+  - slug: data-flow-001
+    title: Data Streams Monitoring và quan sát ứng dụng hướng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-002
+    title: Phân biệt broker metrics, consumer lag và độ trễ đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-003
+    title: Instrument producer và consumer Java theo phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-004
+    title: Truyền context qua message headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-005
+    title: Đọc topology, pathway, throughput và payload size
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-006
+    title: Điều tra consumer chậm, backlog và độ trễ lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-007
+    title: Liên kết Kafka, RabbitMQ, SQS với ứng dụng và đội sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-008
+    title: Kafka Console và quan hệ giữa topic, broker, schema, service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-009
+    title: Jobs Monitoring trong Data Observability cho tác vụ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rum-session-replay
+  title: RUM và Session Replay
+  childs:
+  - slug: rum-session-replay-001
+    title: Phân biệt trải nghiệm người dùng thực và kiểm thử tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-002
+    title: Khởi tạo Browser RUM SDK và chọn client token đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-003
+    title: Views, actions, resources, errors và sessions
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-004
+    title: Theo dõi Core Web Vitals và hiệu năng điều hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-005
+    title: Thu thập lỗi frontend và source maps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-006
+    title: Đo user action và hành trình quan trọng trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-007
+    title: Liên kết yêu cầu trình duyệt với backend traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-008
+    title: Cấu hình sampling cho RUM và Session Replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-009
+    title: Che nội dung, giới hạn dữ liệu và xử lý consent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-010
+    title: Dùng Session Replay để tái hiện vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rum-session-replay-011
+    title: Quan sát ứng dụng mobile theo SDK và nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synthetic-testing
+  title: Kiểm thử tổng hợp
+  childs:
+  - slug: synthetic-testing-001
+    title: API tests cho HTTP, DNS, TCP, SSL và gRPC theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-002
+    title: Thiết kế assertion về trạng thái, nội dung và thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-003
+    title: Multistep API tests và chuỗi giao dịch có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-004
+    title: Browser tests cho hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-005
+    title: Quản lý biến, tài khoản thử nghiệm và thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-006
+    title: Chọn managed location hoặc private location
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-007
+    title: Triển khai và giám sát private location worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-008
+    title: Lịch chạy, retry và điều kiện phát cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-009
+    title: Liên kết Synthetic test với APM trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-010
+    title: Tích hợp Continuous Testing vào CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synthetic-testing-011
+    title: Phân biệt lỗi ứng dụng, lỗi môi trường test và test không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ai-application-observability
+  title: Quan sát ứng dụng AI
+  childs:
+  - slug: ai-application-observability-001
+    title: Agent Observability cho ứng dụng LLM và tác nhân AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-002
+    title: Phân biệt giám sát LLM workflow với giám sát hạ tầng AI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-003
+    title: Tracing lời gọi model, tool, retrieval và chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-004
+    title: Theo dõi latency, lỗi, token và chi phí theo model
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-005
+    title: Liên kết prompt, phiên bản và kết quả thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-006
+    title: Đánh giá chất lượng bằng evaluator và phản hồi người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-007
+    title: Che dữ liệu trong prompt, input và output
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ai-application-observability-008
+    title: Điều kiện SDK, site và giới hạn tích hợp theo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboards-notebooks
+  title: Dashboard và Notebook
+  childs:
+  - slug: dashboards-notebooks-001
+    title: Thiết kế dashboard theo câu hỏi vận hành và đối tượng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-002
+    title: Chọn timeseries, query value, table, toplist và heatmap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-003
+    title: Kết hợp metrics, logs, traces và SLO trong cùng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-004
+    title: Sử dụng template variables và bộ lọc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-005
+    title: Công thức, đơn vị, trục và ngưỡng hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-006
+    title: Đánh dấu deployment và sự kiện lên đồ thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-007
+    title: Tổ chức widget, liên kết điều tra và dashboard mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-008
+    title: Quyền xem, quyền sửa và giới hạn chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-009
+    title: Dùng Notebook để ghi giả thuyết, bằng chứng và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-notebooks-010
+    title: Quản lý JSON, phiên bản và tái sử dụng dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: basic-monitors
+  title: Monitor cơ bản
+  childs:
+  - slug: basic-monitors-001
+    title: Phân biệt biểu đồ phân tích và điều kiện đánh giá monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-002
+    title: Chọn metric, service check, logs hoặc APM monitor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-003
+    title: Ngưỡng warning, alert và recovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-004
+    title: Evaluation window, aggregation và tần suất đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-005
+    title: Simple alert và multi alert theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-006
+    title: Hành vi khi dữ liệu thiếu, zero hoặc đến trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-007
+    title: Evaluation delay, new group delay và require full window
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-008
+    title: Trạng thái OK, WARN, ALERT và NO DATA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: basic-monitors-009
+    title: Kiểm thử monitor với dữ liệu và lịch sử thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-alerting
+  title: Cảnh báo nâng cao
+  childs:
+  - slug: advanced-alerting-001
+    title: Change alert và so sánh biến động theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-002
+    title: Anomaly monitor và điều kiện dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-003
+    title: Outlier monitor và so sánh giữa các thành viên cùng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-004
+    title: Forecast monitor và dự báo vượt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-005
+    title: Composite monitor và quan hệ giữa các monitor thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-006
+    title: Cảnh báo tỷ lệ lỗi bằng as_count và đúng thứ tự tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-007
+    title: Theo dõi phân phối độ trễ bằng percentile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-008
+    title: RUM, Synthetics, database và network monitors theo nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-009
+    title: Giảm flapping bằng ngưỡng phục hồi và cửa sổ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-alerting-010
+    title: Đánh giá false positive, false negative và dữ liệu thưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-routing
+  title: Định tuyến thông báo
+  childs:
+  - slug: notification-routing-001
+    title: Thiết kế thông báo có tác động, bằng chứng và bước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-002
+    title: Biến mẫu theo trạng thái và theo nhóm bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-003
+    title: Định tuyến theo team, service, environment và mức ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-004
+    title: Tích hợp email, Slack, Microsoft Teams và công cụ trực vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-005
+    title: Renotify, escalation và giới hạn thông báo lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-006
+    title: Downtime, maintenance window và phạm vi mute
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-007
+    title: Quản lý monitor ownership, tags và quyền chỉnh sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-008
+    title: Xác minh đường thông báo trong môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-routing-009
+    title: Đo chất lượng cảnh báo và xử lý monitor không còn hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slos-error-budgets
+  title: SLO và error budget
+  childs:
+  - slug: slos-error-budgets-001
+    title: Phân biệt SLI, SLO và mục tiêu chất lượng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-002
+    title: Chọn chỉ số theo hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-003
+    title: Metric-based SLO và tỷ lệ good events trên total events
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-004
+    title: Monitor-based SLO và thời gian monitor đạt yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-005
+    title: Time Slice SLO và định nghĩa khoảng thời gian tốt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-006
+    title: Mục tiêu, cửa sổ thời gian và tác động của lưu lượng thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-007
+    title: Tính error budget và tốc độ tiêu thụ ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-008
+    title: Burn-rate alert với nhiều cửa sổ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-009
+    title: Xử lý missing data, maintenance và status correction
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slos-error-budgets-010
+    title: Dùng SLO để ưu tiên cải thiện và đánh giá thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-catalog-changes
+  title: Catalog và thay đổi
+  childs:
+  - slug: service-catalog-changes-001
+    title: Catalog trong Internal Developer Portal và mô hình entity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-002
+    title: Khai báo service, system, API và phụ thuộc theo schema hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-003
+    title: Gắn đội sở hữu, repository, tài liệu và thông tin trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-004
+    title: Khám phá entity từ telemetry và bổ sung metadata chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-005
+    title: Liên kết catalog với APM, SLO, monitors và incidents
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-006
+    title: Scorecards và theo dõi tiêu chuẩn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-007
+    title: Thu thập Events từ hạ tầng, công cụ CI/CD và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-008
+    title: Đánh dấu deployment theo service, version và environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-catalog-changes-009
+    title: Change Tracking và đối chiếu thay đổi với tín hiệu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: Phân biệt monitor alert, case và incident
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: Khai báo incident, severity và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: Phân công Incident Commander và người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: Gắn graphs, logs, traces và thay đổi vào timeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: Datadog On-Call và quy trình nhận, chuyển, leo thang cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: Phối hợp điều tra và ghi nhận mốc thời gian có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: Xác minh phục hồi bằng dữ liệu và kết quả người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: Tạo postmortem và phân biệt nguyên nhân với tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-009
+    title: Theo dõi hành động sau sự cố và đội chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-010
+    title: Workflow Automation cho tác vụ lặp lại với quyền được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd-code-quality
+  title: CI/CD và chất lượng mã
+  childs:
+  - slug: cicd-code-quality-001
+    title: CI/CD Optimization và quan hệ với CI Visibility, Test Optimization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-002
+    title: Thu thập pipeline, job, stage và trạng thái thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-003
+    title: Tích hợp GitHub Actions hoặc nền tảng CI được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-004
+    title: Phân tích thời gian chờ, thời gian chạy và pipeline thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-005
+    title: Thu thập kết quả JUnit và thông tin Git của bài kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-006
+    title: Phát hiện flaky tests và kiểm thử làm chậm pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-007
+    title: Liên kết commit, deployment và hồi quy trong production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-008
+    title: Source Code Integration và điều hướng từ telemetry đến mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-code-quality-009
+    title: Quan hệ với Code Security, SAST và SCA khi cần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: correlation-investigation
+  title: Liên kết và điều tra
+  childs:
+  - slug: correlation-investigation-001
+    title: Chuẩn hóa thời gian và phạm vi trước khi so sánh tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-002
+    title: Đi từ triệu chứng người dùng đến service bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-003
+    title: Kết hợp metrics để xác định thời điểm và quy mô tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-004
+    title: Dùng traces để khoanh vùng lời gọi hoặc phụ thuộc chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-005
+    title: Dùng logs để kiểm tra lỗi cụ thể và dữ liệu thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-006
+    title: Dùng profiles, database và network để kiểm chứng giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-007
+    title: Sử dụng Watchdog để phát hiện điểm khác thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-008
+    title: Sử dụng Bits Investigation và đánh giá bằng chứng được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-009
+    title: Phân biệt tương quan, giả thuyết và nguyên nhân đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: correlation-investigation-010
+    title: Ghi lại truy vấn, mốc thời gian và giới hạn dữ liệu điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Lập danh mục telemetry và dữ liệu nhạy cảm có thể bị thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Quyền RBAC và giới hạn dữ liệu theo sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Kiểm soát truy cập logs bằng cơ chế phù hợp với tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Quản lý API key, scoped application key và client token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: SSO, service account và vòng đời quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Che hoặc loại bỏ dữ liệu tại ứng dụng, Agent và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Sensitive Data Scanner và vị trí xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Bảo vệ secrets, debug snapshots và dữ liệu Session Replay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Kiểm soát việc chia sẻ dashboard, notebook và ảnh chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-010
+    title: Audit Trail và kiểm tra thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-011
+    title: Phân biệt sản phẩm bảo mật mở rộng với chính sách bảo vệ telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-terraform
+  title: API và Terraform
+  childs:
+  - slug: api-terraform-001
+    title: Chọn Datadog API v1/v2 và endpoint đúng site
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-002
+    title: Xác thực, scopes và quyền tài khoản gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-003
+    title: Phân trang, giới hạn tốc độ, retry và xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-004
+    title: Đọc và gửi metrics, logs, events qua API phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-005
+    title: Quản lý monitor, dashboard, SLO và log configuration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-006
+    title: Sử dụng SDK chính thức và cố định phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-007
+    title: Quản lý tài nguyên bằng Datadog Terraform provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-008
+    title: Import tài nguyên có sẵn và xử lý configuration drift
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-009
+    title: Tách cấu hình môi trường và bảo vệ credentials, state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-terraform-010
+    title: Review, plan, apply và kiểm chứng sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-governance
+  title: Chi phí và quản trị
+  childs:
+  - slug: cost-governance-001
+    title: Xác định các đơn vị sử dụng của từng sản phẩm đang bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-002
+    title: Phân biệt ingestion, indexing, retention và khả năng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-003
+    title: Theo dõi usage và estimated usage theo nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-004
+    title: Metrics without Limits và tag indexing của custom metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-005
+    title: Cardinality Explorer và kiểm soát tags làm tăng số chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-006
+    title: Điều chỉnh log indexing, archive và quota theo giá trị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-007
+    title: Điều chỉnh APM ingestion và retention có đo chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-008
+    title: Kiểm soát volume RUM, Session Replay và Synthetic test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-009
+    title: Phân bổ usage theo team, service và environment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-010
+    title: Đặt cảnh báo tăng trưởng và rà soát dữ liệu không còn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-governance-011
+    title: Đánh giá tính khả dụng, gói sử dụng và tài liệu hiện hành trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-troubleshooting
+  title: Vận hành và khắc phục
+  childs:
+  - slug: operations-troubleshooting-001
+    title: Giám sát Agent, integration và đường vận chuyển telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-002
+    title: Điều tra sai API key, sai site, DNS, proxy và chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-003
+    title: Điều tra metrics thiếu, sai đơn vị, sai tag hoặc ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-004
+    title: Điều tra logs chỉ có ở Live Tail nhưng không có trong Explorer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-005
+    title: Điều tra lỗi parsing, timestamp và log rotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-006
+    title: Điều tra trace mất context, thiếu spans và sampling ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-007
+    title: Điều tra dữ liệu lệch giữa dashboard, monitor và SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-008
+    title: Điều tra thiếu dữ liệu Kubernetes, cloud và database
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-009
+    title: Đo overhead của Agent, SDK, profiler và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-010
+    title: Xây quy trình nâng cấp canary, rollback và kiểm tra tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-011
+    title: Thu thập diagnostic và flare sau khi rà soát dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-troubleshooting-012
+    title: Lập sổ tay vận hành và kiểm tra phục hồi đường telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Quan sát ứng dụng Spring Boot với PostgreSQL, Redis và Kafka
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Chuẩn hóa tags và liên kết metrics, logs, traces, profiles
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Thiết kế dashboard theo RED, USE và hành trình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Phát hiện và điều tra API chậm do truy vấn SQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Điều tra GC, memory pressure và lỗi ứng dụng tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Quan sát consumer lag và độ trễ xử lý message đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Triển khai Agent và APM cho workload Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Kết hợp RUM, Synthetic test và trace để điều tra lỗi frontend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Xây SLO, burn-rate alert và diễn tập incident
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Quản lý dashboard, monitors và SLO bằng Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Giảm volume và cardinality rồi kiểm chứng khả năng điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Tích hợp một dịch vụ OpenTelemetry và đối chiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

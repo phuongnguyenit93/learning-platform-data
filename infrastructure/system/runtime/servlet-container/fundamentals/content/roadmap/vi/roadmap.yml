@@ -1,0 +1,55 @@
+roadmap:
+- id: vai-tro-servlet-container
+  title: Vai trò Servlet Container
+  purpose: Hiểu môi trường chạy Jakarta Servlet và ranh giới giữa máy chủ HTTP với ứng dụng Java web.
+  objectives:
+  - Mô tả luồng client → connector → servlet → response.
+  - Phân biệt servlet container với web server và application server đầy đủ.
+- id: kien-truc-tomcat
+  title: Kiến trúc Tomcat
+  purpose: Nhận diện các thành phần Tomcat điều phối cổng HTTP, host và ứng dụng web.
+  objectives:
+  - Vẽ quan hệ Server, Service, Connector, Engine, Host, Context.
+  - Giải thích Connector tiếp nhận request và Context xác định ứng dụng.
+- id: vong-doi-servlet
+  title: Vòng đời Servlet
+  purpose: Nắm cách container khởi tạo, gọi và hủy Servlet theo hợp đồng Jakarta Servlet.
+  objectives:
+  - Cài HttpServlet với doGet/doPost và @WebServlet mapping.
+  - Quan sát init, service và destroy qua log hoặc breakpoint.
+- id: http-request-response
+  title: HTTP Request & Response
+  purpose: Xử lý dữ liệu đầu vào, status, header và body ở lớp Servlet.
+  objectives:
+  - Đọc method, path, query, header bằng HttpServletRequest.
+  - Thiết lập status, content type và ghi body qua HttpServletResponse.
+- id: filter-listener
+  title: Filter & Listener
+  purpose: Bổ sung xử lý dùng chung và quan sát vòng đời mà không trộn vào Servlet nghiệp vụ.
+  objectives:
+  - Tạo Filter ghi thời gian xử lý với FilterChain.
+  - Tạo ServletContextListener và mô tả thứ tự xử lý.
+- id: scope-http-session
+  title: Scope & HTTP Session
+  purpose: Quản lý dữ liệu trong phạm vi request, ứng dụng và phiên truy cập người dùng.
+  objectives:
+  - Phân biệt request, session và ServletContext attributes.
+  - Tạo/đọc/hủy HttpSession và giải thích session ID qua cookie.
+- id: luong-async-servlet
+  title: Luồng & Async Servlet
+  purpose: Hiểu servlet dùng chung nhiều request và cách giảm thời gian chiếm thread khi chờ I/O.
+  objectives:
+  - Nhận diện shared mutable state gây race condition trong servlet.
+  - Dùng AsyncContext và kiểm tra timeout, complete hoặc dispatch.
+- id: war-classloader
+  title: WAR & ClassLoader
+  purpose: Đóng gói và triển khai web application đúng cấu trúc cùng phạm vi thư viện.
+  objectives:
+  - Đóng gói WAR với WEB-INF/classes, WEB-INF/lib và web.xml nếu cần.
+  - Triển khai WAR lên Tomcat và giải thích classloader của từng webapp.
+- id: cau-hinh-van-hanh
+  title: Cấu hình & Vận hành
+  purpose: Cấu hình container an toàn và quan sát hành vi khi tải hoặc lỗi tăng.
+  objectives:
+  - Đọc server.xml, HTTP Connector, context path và giới hạn thread.
+  - Kiểm tra access log/JMX, bảo mật Manager và quyền chạy Tomcat.

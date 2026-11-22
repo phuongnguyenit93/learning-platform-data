@@ -1,0 +1,2395 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: 'Kho phân phối ảnh container (Container Registry): vai trò trong chuỗi bàn giao'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt registry, repository, image và container đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Registry công khai, riêng tư, tự vận hành và dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Quan hệ giữa mã nguồn, bản dựng, ảnh container và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Luồng tổng thể: dựng ảnh, đẩy lên, kiểm tra và kéo về triển khai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Trách nhiệm của registry so với công cụ dựng ảnh và nền tảng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Thuật ngữ nền tảng: tag, digest, manifest, layer và namespace'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oci-model
+  title: Mô hình OCI
+  childs:
+  - slug: oci-model-001
+    title: Vai trò của đặc tả OCI Image và OCI Distribution
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-002
+    title: 'Image manifest: cấu hình và danh sách lớp dữ liệu của một ảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-003
+    title: 'Image configuration: thông tin thực thi và siêu dữ liệu ảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-004
+    title: 'Layer và blob: nội dung được lưu và chia sẻ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-005
+    title: 'Descriptor: media type, kích thước và digest của nội dung tham chiếu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-006
+    title: Image index và Docker manifest list cho nhiều nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-007
+    title: Phân biệt digest của manifest, cấu hình và từng blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-008
+    title: Digest của lớp nén và DiffID của lớp giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-009
+    title: Ảnh hưởng của kiểu nén và tuần tự hóa đến định danh nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-model-010
+    title: Khả năng tương thích giữa định dạng Docker và OCI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: naming-and-versioning
+  title: Định danh và phiên bản
+  childs:
+  - slug: naming-and-versioning-001
+    title: 'Cấu trúc tham chiếu ảnh: máy chủ, cổng, namespace, repository và tag'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-002
+    title: Tên đầy đủ và hành vi mặc định khi bỏ qua máy chủ hoặc tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-003
+    title: Tag là tên tham chiếu có thể được gán lại theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-004
+    title: Digest và cách tham chiếu nội dung cụ thể bằng sha256
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-005
+    title: Phân biệt tag, image ID cục bộ và digest trên registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-006
+    title: Quy ước tag theo phiên bản, commit và mã lần dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-007
+    title: Tag bất biến và bảo vệ tên bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: naming-and-versioning-008
+    title: Rủi ro khi dùng latest hoặc tái sử dụng tag giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: push-and-pull-workflows
+  title: Luồng push và pull
+  childs:
+  - slug: push-and-pull-workflows-001
+    title: Chuỗi bước đẩy ảnh từ kho cục bộ lên repository đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-002
+    title: Kiểm tra blob đã tồn tại và tránh tải lại nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-003
+    title: Tải các blob trước khi công bố manifest tham chiếu đến chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-004
+    title: Chuỗi bước kéo ảnh và xác minh nội dung nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-005
+    title: Lựa chọn manifest con theo nền tảng của máy chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-006
+    title: Tải lại sau gián đoạn và điều kiện hỗ trợ của máy khách, máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-007
+    title: Tác động của việc gán lại tag trong khi nhiều máy đang kéo ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: push-and-pull-workflows-008
+    title: Phân biệt ảnh có sẵn trong máy với ảnh còn truy cập được từ registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distribution-protocol
+  title: Giao thức phân phối
+  childs:
+  - slug: distribution-protocol-001
+    title: Nhóm thao tác của Registry HTTP API V2 và OCI Distribution
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-002
+    title: Truy xuất manifest, blob và thông tin tồn tại bằng GET hoặc HEAD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-003
+    title: Tạo phiên tải lên, gửi dữ liệu và hoàn tất blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-004
+    title: Đọc media type và thương lượng định dạng manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-005
+    title: Liệt kê tag, phân trang và giới hạn quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-006
+    title: Phân biệt xóa manifest với xóa blob và xóa tên tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-007
+    title: Mã phản hồi, lỗi giao thức và chính sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-008
+    title: Chuyển hướng đến kho lưu trữ đối tượng hoặc địa chỉ tải có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-protocol-009
+    title: 'Giới hạn tương thích: không giả định mọi registry hỗ trợ mọi khả năng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registry-tools
+  title: Công cụ thao tác
+  childs:
+  - slug: registry-tools-001
+    title: 'Docker CLI: đăng nhập, gắn tag, push, pull và kiểm tra tham chiếu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-002
+    title: 'Podman: thao tác với registry và cấu hình xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-003
+    title: Buildx và BuildKit trong quy trình dựng rồi xuất bản ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-004
+    title: Skopeo cho kiểm tra và sao chép ảnh giữa các nơi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-005
+    title: Crane hoặc công cụ tương đương để làm việc với manifest và digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-006
+    title: ORAS cho sản phẩm đóng gói theo mô hình OCI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-007
+    title: Phân biệt kiểm tra siêu dữ liệu từ xa với tải toàn bộ ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-tools-008
+    title: Lựa chọn công cụ theo định dạng và khả năng cần bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registry-deployment
+  title: Triển khai registry
+  childs:
+  - slug: registry-deployment-001
+    title: Xác định yêu cầu dung lượng, số người dùng và mức sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-002
+    title: Dựng registry cục bộ phục vụ thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-003
+    title: Cấu hình nơi lưu bền vững thay vì dựa vào lớp ghi của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-004
+    title: Tên miền, cổng, cấu hình dịch vụ và quản lý vòng đời tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-005
+    title: Đặt registry sau reverse proxy hoặc bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-006
+    title: Tách cấu hình, thông tin bí mật và dữ liệu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-007
+    title: Kiểm tra sức khỏe, khởi động lại và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-deployment-008
+    title: Ranh giới giữa môi trường thử nghiệm và cấu hình vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-and-connectivity
+  title: TLS và kết nối
+  childs:
+  - slug: tls-and-connectivity-001
+    title: HTTPS và xác minh danh tính máy chủ registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-002
+    title: Chứng chỉ công khai, CA nội bộ và chuỗi chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-003
+    title: Cấu hình tin cậy cho máy phát triển, runner và nút triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-004
+    title: Tên miền trong chứng chỉ và lỗi hostname mismatch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-005
+    title: 'Reverse proxy: đường dẫn, header và giới hạn kích thước yêu cầu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-006
+    title: Thời gian chờ, kết nối dài và truyền ảnh có lớp dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-007
+    title: DNS, proxy mạng và truy cập kho lưu trữ phía sau registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-connectivity-008
+    title: Giới hạn sử dụng kết nối không mã hóa trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication
+  title: Xác thực
+  childs:
+  - slug: authentication-001
+    title: Phân biệt xác thực danh tính với phân quyền repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-002
+    title: Đăng nhập bằng tài khoản cá nhân và tài khoản tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-003
+    title: 'Luồng bearer token: challenge, cấp token và truy cập tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-004
+    title: Phạm vi token cho pull, push và thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-005
+    title: Credential helper và nơi lưu thông tin đăng nhập phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-006
+    title: Cấp thông tin bí mật cho CI mà không ghi vào log hoặc mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-007
+    title: Token ngắn hạn và liên kết danh tính workload khi nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-008
+    title: Hết hạn, thu hồi và luân chuyển thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-009
+    title: Phân biệt đăng xuất cục bộ với thu hồi quyền phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization
+  title: Phân quyền
+  childs:
+  - slug: authorization-001
+    title: Thiết kế namespace và quyền sở hữu repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-002
+    title: Quyền đọc, ghi, xóa và quản trị theo nguyên tắc tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-003
+    title: Tách quyền của người phát triển, runner dựng ảnh và hệ thống triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-004
+    title: Tài khoản robot, service account và giới hạn phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-005
+    title: Repository công khai, riêng tư và hành vi truy cập ẩn danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-006
+    title: Quyền đối với tag được bảo vệ và nội dung đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-007
+    title: Cô lập dự án hoặc khách hàng trong registry dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-008
+    title: Kiểm toán thay đổi quyền và truy cập bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-naming-conventions
+  title: Quy ước kho ảnh
+  childs:
+  - slug: repository-naming-conventions-001
+    title: Tổ chức repository theo sản phẩm, dịch vụ và nhóm sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-002
+    title: Phân biệt tách repository với chỉ dùng tiền tố tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-003
+    title: Quy ước tên ảnh, tag và thông tin liên hệ của chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-004
+    title: Gắn nhãn OCI cho nguồn mã, phiên bản, giấy phép và lần dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-005
+    title: Liên kết commit, lần chạy CI, digest và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-006
+    title: Quy định ảnh nền được phép và nguồn lấy ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-007
+    title: Phân loại ảnh thử nghiệm, ứng viên phát hành và ảnh đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-naming-conventions-008
+    title: Quản lý vòng đời repository khi dự án ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: image-build-and-publishing
+  title: Dựng và xuất bản ảnh
+  childs:
+  - slug: image-build-and-publishing-001
+    title: Chuẩn bị ngữ cảnh dựng và loại trừ dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-002
+    title: Ảnh nền, phụ thuộc và mức độ tái tạo của bản dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-003
+    title: Multi-stage build để tách môi trường dựng khỏi ảnh chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-004
+    title: Tối ưu lớp dữ liệu nhằm giảm dung lượng và tận dụng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-005
+    title: Không đưa khóa bí mật vào lớp ảnh hoặc tham số bị lưu lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-006
+    title: Gắn nhãn, gán tag và push từ một quy trình có thể lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-007
+    title: Lấy digest từ kết quả xuất bản để bàn giao cho bước sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-008
+    title: Kiểm tra ảnh đã công bố bằng cách truy cập lại từ registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: image-build-and-publishing-009
+    title: 'Liên hệ với ứng dụng Java: JAR, JRE và công cụ tạo ảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-platform-images
+  title: Ảnh nhiều nền tảng
+  childs:
+  - slug: multi-platform-images-001
+    title: OS, kiến trúc CPU và biến thể trong định danh nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-002
+    title: Phân biệt một manifest đơn với image index nhiều nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-003
+    title: Dựng ảnh native và dựng bằng mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-004
+    title: Xuất bản từng ảnh con rồi tạo index chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-005
+    title: Gán tag cho index và cách máy khách chọn ảnh con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-006
+    title: Digest của index so với digest của ảnh con khi ghim triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-007
+    title: Kiểm tra tính đầy đủ của các nền tảng trước phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-platform-images-008
+    title: Bảo toàn manifest con và nội dung liên quan khi sao chép hoặc xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: cicd-integration-001
+    title: Thiết kế các bước dựng, kiểm tra, xuất bản và bàn giao digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-002
+    title: Đặt quyền ghi registry đúng phạm vi của từng workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-003
+    title: Phân biệt quy trình cho nhánh, pull request và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-004
+    title: Bảo vệ thông tin xác thực khi xử lý mã từ nguồn không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-005
+    title: Ngăn nhiều lần dựng ghi đè tag hoặc phát hành cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-006
+    title: Chính sách thử lại push và xác định kết quả khi phản hồi bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-007
+    title: Lưu siêu dữ liệu bản dựng và tham chiếu ảnh làm đầu ra CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-008
+    title: Điều kiện chặn xuất bản hoặc chặn thăng hạng sau kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-009
+    title: Dọn tài nguyên tạm và thu hồi thông tin xác thực của runner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: releases-and-promotion
+  title: Phát hành và thăng hạng
+  childs:
+  - slug: releases-and-promotion-001
+    title: Dựng một lần rồi chuyển cùng nội dung qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-002
+    title: Phân biệt thăng hạng bằng gán tag và sao chép sang repository khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-003
+    title: Xác minh digest trước và sau khi chuyển ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-004
+    title: Bảo toàn index, ảnh con và sản phẩm liên quan khi sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-005
+    title: Điều kiện phê duyệt, nguồn gốc và kết quả kiểm tra của bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-006
+    title: Triển khai bằng digest để xác định đúng nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-007
+    title: Quay lui bằng tham chiếu đến ảnh đã biết và còn được giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-promotion-008
+    title: Ngăn chính sách dọn dẹp xóa ảnh đang dùng hoặc cần cho phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-image-pulls
+  title: Kéo ảnh khi triển khai
+  childs:
+  - slug: deployment-image-pulls-001
+    title: Thông tin xác thực của máy chủ chạy container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-002
+    title: Kubernetes imagePullSecrets và phạm vi namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-003
+    title: Danh tính nút hoặc workload khi tích hợp registry đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-004
+    title: imagePullPolicy và quan hệ với tag, digest, cache trên nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-005
+    title: Kiểm tra ảnh sẵn có trước khi bắt đầu một đợt triển khai lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-006
+    title: Lỗi ImagePullBackOff, ErrImagePull và nguồn thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-007
+    title: Nút mới, mở rộng cụm và phụ thuộc vào tính sẵn sàng của registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-008
+    title: Giới hạn tốc độ kéo ảnh khi nhiều máy khởi động đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-image-pulls-009
+    title: Phân biệt kéo ảnh thành công với ứng dụng khởi động thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signatures-and-verification
+  title: Chữ ký và xác minh
+  childs:
+  - slug: signatures-and-verification-001
+    title: Mục tiêu của chữ ký ảnh và mô hình tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-002
+    title: Phân biệt kiểm tra digest với xác minh danh tính người ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-003
+    title: Ký theo digest và tránh dựa vào tên tag có thể thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-004
+    title: Ký bằng khóa được quản lý và ký dựa trên danh tính khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-005
+    title: Cosign hoặc công cụ tương đương trong quy trình ký và xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-006
+    title: Lưu trữ, khám phá và sao chép chữ ký gắn với ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-007
+    title: Chính sách chấp nhận danh tính, nguồn phát hành và điều kiện chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-008
+    title: Xác minh trước triển khai và vai trò của admission policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-and-verification-009
+    title: Luân chuyển khóa, hết hạn chứng thư và xử lý ảnh ký trước đây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sbom-and-provenance
+  title: SBOM và nguồn gốc
+  childs:
+  - slug: sbom-and-provenance-001
+    title: Danh mục thành phần phần mềm (SBOM) và phạm vi thông tin cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-002
+    title: Định dạng SPDX, CycloneDX và liên hệ với công cụ tạo SBOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-003
+    title: Gắn SBOM với đúng digest của ảnh được xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-004
+    title: 'Build provenance: mã nguồn, môi trường và quá trình tạo sản phẩm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-005
+    title: 'Attestation: tuyên bố có thể xác minh về một bản dựng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-006
+    title: Phân biệt bằng chứng nguồn gốc với kết luận không có lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-007
+    title: Lưu, truy xuất và đối chiếu bằng chứng trong bước phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-and-provenance-008
+    title: Bảo toàn siêu dữ liệu nguồn gốc khi sao chép và lưu trữ dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scanning-and-security-policies
+  title: Quét và chính sách bảo mật
+  childs:
+  - slug: scanning-and-security-policies-001
+    title: Quét thành phần hệ điều hành và thư viện ứng dụng trong ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-002
+    title: Quét trước push, trong registry và đánh giá lại ảnh đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-003
+    title: Liên hệ SBOM, cơ sở dữ liệu lỗ hổng và thời điểm đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-004
+    title: Mức độ nghiêm trọng, khả năng khai thác và bối cảnh triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-005
+    title: Xử lý cảnh báo sai, ngoại lệ có thời hạn và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-006
+    title: Phát hiện dữ liệu bí mật hoặc nội dung không được phép trong ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-007
+    title: Cách ly ảnh nghi vấn và chặn thăng hạng hoặc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-008
+    title: Khắc phục bằng dựng lại, xác minh lại và phát hành digest mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-and-security-policies-009
+    title: Theo dõi ảnh đang chạy khi xuất hiện thông tin lỗ hổng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oci-artifacts
+  title: Sản phẩm OCI
+  childs:
+  - slug: oci-artifacts-001
+    title: Phân phối sản phẩm đóng gói khác ảnh chạy bằng registry OCI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-002
+    title: Artifact type và cách biểu diễn nội dung theo khả năng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-003
+    title: Liên kết sản phẩm với subject và khám phá referrers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-004
+    title: Cơ chế dự phòng khi registry hoặc công cụ chưa hỗ trợ referrers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-005
+    title: Helm chart trong OCI và ranh giới với kho chart truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-006
+    title: Quản lý chữ ký, SBOM và attestation như nội dung liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-007
+    title: Kiểm tra hỗ trợ đầu cuối giữa công cụ đẩy, nơi lưu và công cụ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oci-artifacts-008
+    title: Vòng đời độc lập và quan hệ dọn dẹp của ảnh cùng sản phẩm liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching-and-proxies
+  title: Cache và proxy
+  childs:
+  - slug: caching-and-proxies-001
+    title: Phân biệt cache của bản dựng, cache trên nút và cache của registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-002
+    title: Pull-through cache hoặc proxy repository cho nguồn ảnh bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-003
+    title: Cache hit, cache miss và phụ thuộc vào registry thượng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-004
+    title: Tag thay đổi và chính sách làm mới dữ liệu cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-005
+    title: Xác thực với nguồn thượng nguồn và quyền truy cập nội dung được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-006
+    title: Giảm giới hạn tốc độ và lưu lượng bằng nguồn ảnh nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-007
+    title: Giới hạn của cache khi nguồn ngoài mất kết nối hoặc đổi nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-and-proxies-008
+    title: Xuất nhập cache BuildKit qua registry và quản lý vòng đời riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-and-garbage-collection
+  title: Lưu giữ và thu gom
+  childs:
+  - slug: retention-and-garbage-collection-001
+    title: Chính sách lưu giữ theo tuổi, số phiên bản và phân loại ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-002
+    title: Ảnh có tag, ảnh không có tag và nội dung vẫn được tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-003
+    title: Phân biệt bỏ tag, xóa manifest và thu hồi dung lượng blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-004
+    title: Đồ thị tham chiếu từ index, manifest và sản phẩm liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-005
+    title: 'Garbage collection: nhận diện nội dung không còn được giữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-006
+    title: Rủi ro khi thu gom đồng thời với push và yêu cầu phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-007
+    title: Bảo vệ ảnh đang triển khai, bản phát hành và mốc quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-008
+    title: Chạy thử, kiểm tra phạm vi và phê duyệt chính sách xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-009
+    title: Khả năng khôi phục sau xóa và giới hạn của từng nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-garbage-collection-010
+    title: Đo dung lượng thực sự thu hồi sau khi dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-and-performance
+  title: Lưu trữ và hiệu năng
+  childs:
+  - slug: storage-and-performance-001
+    title: Lưu trên filesystem so với kho đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-002
+    title: Quan hệ giữa blob, siêu dữ liệu và trạng thái cần lưu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-003
+    title: Khử trùng lặp theo nội dung và phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-004
+    title: Băng thông, số kết nối và kích thước lớp ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-005
+    title: Ảnh hưởng của vị trí địa lý đến thời gian push và pull
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-006
+    title: Giới hạn đồng thời, timeout và điều tiết lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-007
+    title: Dung lượng, chi phí lưu trữ và chi phí truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-008
+    title: Đo hiệu năng theo trường hợp cache lạnh và cache nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-performance-009
+    title: Mở rộng nhiều bản sao với backend và cấu hình được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: replication-and-recovery
+  title: Nhân bản và phục hồi
+  childs:
+  - slug: replication-and-recovery-001
+    title: Phân biệt sao chép ảnh, nhân bản liên vùng và sao lưu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-002
+    title: Chính sách nhân bản một chiều, hai chiều và xử lý xung đột tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-003
+    title: Kiểm tra độ trễ và tính đầy đủ của nội dung được nhân bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-004
+    title: Sao lưu dữ liệu, siêu dữ liệu, cấu hình và thông tin bí mật cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-005
+    title: Nhất quán bản sao lưu khi registry vẫn đang nhận ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-006
+    title: Mục tiêu RPO, RTO và quy trình phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-007
+    title: Diễn tập khôi phục rồi xác minh pull bằng digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-008
+    title: Phân phối qua vùng cách ly mạng hoặc môi trường air-gapped
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: replication-and-recovery-009
+    title: Đồng bộ lại sau gián đoạn và đối chiếu nội dung thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-and-operations-001
+    title: Theo dõi tính sẵn sàng, độ trễ và tỷ lệ lỗi push, pull
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-002
+    title: Đo dung lượng, tăng trưởng, số blob và ảnh không có tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-003
+    title: Quan sát lỗi xác thực, phân quyền và token hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-004
+    title: Nhật ký truy cập và liên kết yêu cầu với người dùng hoặc tác vụ CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-005
+    title: Cảnh báo giới hạn tốc độ, lỗi backend và cạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-006
+    title: Audit log cho thay đổi quyền, xóa ảnh và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-007
+    title: Webhooks hoặc sự kiện registry và xử lý nhận lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-operations-008
+    title: Nâng cấp, thay đổi cấu hình và kiểm tra tương thích sau bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-selection
+  title: Lựa chọn nền tảng
+  childs:
+  - slug: platform-selection-001
+    title: Tiêu chí chọn registry theo quyền truy cập, quy mô và yêu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-002
+    title: Docker Hub và mô hình phân phối ảnh công khai hoặc riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-003
+    title: GitHub Container Registry và GitLab Container Registry trong hệ sinh thái CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-004
+    title: Amazon ECR, Azure Container Registry và Google Artifact Registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-005
+    title: Harbor và các lựa chọn registry tự vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-006
+    title: Kho ảnh trong nền tảng quản lý sản phẩm như Nexus hoặc Artifactory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-007
+    title: So sánh khả năng OCI, phân quyền, quét, nhân bản và chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-selection-008
+    title: Đánh giá chi phí, giới hạn dịch vụ và mức phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registry-migration
+  title: Di chuyển registry
+  childs:
+  - slug: registry-migration-001
+    title: Kiểm kê repository, tag, digest và các bên đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-002
+    title: Kiểm tra tương thích media type và khả năng sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-003
+    title: Di chuyển đầy đủ index, ảnh con, chữ ký và bằng chứng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-004
+    title: Ánh xạ namespace, quyền truy cập và danh tính tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-005
+    title: Đối chiếu nội dung trước khi thay đổi cấu hình CI và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-006
+    title: Chuyển đổi từng bước, kiểm soát ghi song song và kế hoạch quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-007
+    title: Xử lý trường hợp công cụ làm thay đổi manifest trong quá trình chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-migration-008
+    title: Ngừng nguồn cũ sau thời gian kiểm chứng và theo chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-acceptance
+  title: Kiểm thử và nghiệm thu
+  childs:
+  - slug: testing-and-acceptance-001
+    title: Kiểm thử đăng nhập và quyền pull, push, xóa theo từng vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-002
+    title: Kiểm thử push rồi pull lại ảnh bằng tag và bằng digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-003
+    title: Kiểm thử tag bất biến và ngăn ghi đè bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-004
+    title: Kiểm thử ảnh nhiều nền tảng và lựa chọn đúng ảnh con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-005
+    title: Kiểm thử chữ ký, SBOM và chính sách chặn ảnh không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-006
+    title: Kiểm thử mất kết nối, token hết hạn và phản hồi không rõ kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-007
+    title: Kiểm thử dọn dẹp không làm mất ảnh được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-008
+    title: Kiểm thử tải đồng thời và phụ thuộc của nút triển khai mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-acceptance-009
+    title: Kiểm thử phục hồi từ bản sao lưu bằng nội dung có thể đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Phân biệt 401, 403 và lỗi thiếu phạm vi token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Sai tên repository, tag không tồn tại và manifest unknown
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Blob unknown, tải lên gián đoạn và nội dung chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Digest không khớp và cách khoanh vùng sai lệch nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: No matching manifest do thiếu nền tảng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi TLS, CA không tin cậy và tên miền chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Quá giới hạn tốc độ, timeout và giới hạn của reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Push thành công nhưng môi trường triển khai không kéo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Không tìm thấy chữ ký hoặc sản phẩm liên quan sau khi sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Dung lượng không giảm sau khi xóa tag hoặc manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Dựng registry thực hành có lưu trữ bền vững và xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Dựng ảnh ứng dụng Java rồi push, pull và chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Thiết lập quyền riêng cho runner ghi ảnh và hệ thống chỉ kéo ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Xuất bản ảnh nhiều nền tảng rồi kiểm tra index và digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: Xây dựng CI xuất bản ảnh có tag phiên bản và đầu ra digest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Bổ sung quét, SBOM, chữ ký và điều kiện thăng hạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Thăng hạng cùng nội dung qua môi trường và thực hiện quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Thử chính sách lưu giữ, thu gom và bảo vệ ảnh đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Diễn tập sao lưu, phục hồi và chẩn đoán lỗi kéo ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

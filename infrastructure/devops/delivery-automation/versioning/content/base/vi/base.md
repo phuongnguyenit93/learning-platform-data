@@ -1,0 +1,7 @@
+# DevOps Delivery Automation Versioning — Quản lý phiên bản phát hành
+
+Versioning giúp mỗi bản phần mềm có một danh tính rõ ràng để nhóm phát triển biết đã thay đổi điều gì, có tương thích với bản trước hay không và đang triển khai chính xác artifact nào. Trong delivery automation, cần phân biệt commit SHA trong Git, tag đánh dấu mã nguồn, version của package và release đưa tới người dùng. Quy ước phiên bản nhất quán làm cho build, phát hành, truy vết sự cố và rollback đáng tin cậy hơn.
+
+Module dành cho người đã nắm Git, Maven hoặc quy trình build và CI/CD cơ bản. Bạn sẽ bắt đầu từ mục đích của versioning, học **Semantic Versioning** theo MAJOR.MINOR.PATCH và cách biểu diễn pre-release, build metadata. Tiếp theo là xác định tương thích API, ghi lại thay đổi bằng Conventional Commits/changelog, tạo Git tags và phát hành release notes. Phần artifact versioning liên hệ version của Maven với image tag/digest và yêu cầu tránh ghi đè nội dung đã công bố.
+
+Cuối lộ trình, bạn sẽ phác thảo pipeline tự động chọn phiên bản, kiểm thử, tạo tag và publish artifact có thể truy xuất nguồn gốc. Sau module, bạn có thể phân loại thay đổi theo mức độ tương thích, giải thích một số phiên bản thực tế và đề xuất quy trình release có khả năng tái lập, kiểm chứng, khôi phục khi cần.

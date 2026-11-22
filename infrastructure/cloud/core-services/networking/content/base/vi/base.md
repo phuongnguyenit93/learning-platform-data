@@ -1,0 +1,7 @@
+# Cloud Core Services Networking
+
+Networking là lớp nền tảng kết nối tài nguyên trên cloud. Dù triển khai ứng dụng bằng máy ảo, container hay dịch vụ managed, người học vẫn cần hiểu địa chỉ IP/CIDR, subnet, định tuyến và các điểm kiểm soát truy cập để hệ thống trao đổi dữ liệu đúng nơi, an toàn và có thể khắc phục sự cố. Các nền tảng lớn dùng tên gọi và phạm vi tài nguyên khác nhau: Amazon VPC, Azure Virtual Network và Google Cloud VPC cùng giải quyết bài toán mạng ảo nhưng không có mô hình triển khai hoàn toàn giống nhau.
+
+Module dành cho lập trình viên backend, DevOps và người học cloud đã quen khái niệm mạng máy tính cơ bản. Lộ trình bắt đầu bằng địa chỉ IP và chia subnet; tiếp theo là VPC/VNet, route table, Internet Gateway, NAT và kiểm soát ingress/egress bằng firewall. Sau đó bạn học DNS công khai/nội bộ, cân bằng tải L4/L7 và health check, kết nối riêng qua private endpoint, peering hoặc VPN. Phần cuối tập trung vào flow logs, phân tích lỗi DNS/route/firewall và ước tính chi phí hạ tầng mạng.
+
+Bài thực hành gợi ý là mô hình ba tầng web–app–database: chỉ điểm vào web được công khai qua load balancer, backend và database có luồng truy cập giới hạn, và tài nguyên private chỉ ra internet qua cơ chế được cấp phép khi cần. Hãy thử kiểm tra các tuyến mạng, quy tắc firewall và health check trước khi xóa tài nguyên thử nghiệm. Sau module, bạn có thể phác thảo kiến trúc networking cloud, giải thích từng luồng kết nối và phân biệt bảo mật mạng với chi phí vận hành.

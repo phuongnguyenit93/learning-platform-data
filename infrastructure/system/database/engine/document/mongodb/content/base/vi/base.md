@@ -1,0 +1,7 @@
+# Database Engine Document MongoDB
+
+MongoDB là hệ quản trị cơ sở dữ liệu document, lưu bản ghi dưới dạng BSON với các field, object lồng nhau và array. Thay vì ép mọi dữ liệu vào bảng quan hệ cố định, MongoDB cho phép thiết kế collection và cấu trúc document dựa trên cách ứng dụng truy cập dữ liệu. Mô hình này linh hoạt nhưng vẫn cần quy ước schema, kiểm tra dữ liệu và thiết kế index phù hợp để hệ thống dễ bảo trì và truy vấn hiệu quả.
+
+Module phù hợp với người đã biết Java, JSON và kiến thức cơ sở dữ liệu cơ bản. Lộ trình bắt đầu bằng các khái niệm document/BSON, khởi chạy MongoDB local hoặc Atlas và thực hành CRUD bằng `mongosh`. Sau đó, người học thiết kế quan hệ bằng embedding hoặc referencing, tối ưu truy vấn với index và `explain`, tổng hợp dữ liệu qua aggregation pipeline và kết nối ứng dụng Java bằng MongoDB Java Sync Driver.
+
+Sau khi hoàn thành, bạn có thể thiết kế collection cho một bài toán thực tế, xây dựng truy vấn và aggregation, nhận diện chi phí của index, viết chức năng CRUD bằng Java và giải thích khi nào cần multi-document transaction. Bạn cũng nắm nền tảng replica set, sharding, read/write concern và các lưu ý về quyền truy cập, bảo vệ connection string để chuẩn bị triển khai an toàn hơn.

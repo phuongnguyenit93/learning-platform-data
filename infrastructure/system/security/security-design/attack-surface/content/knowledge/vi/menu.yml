@@ -1,0 +1,556 @@
+menu:
+- level1: Khái niệm attack surface
+  level2:
+  - Attack surface là gì
+  - Điểm kẻ tấn công có thể đi vào
+  - Điểm có thể gây tác động
+  - Điểm có thể lấy dữ liệu
+  - Attack surface và attack vector
+  - Attack surface và vulnerability
+  - Attack surface bên ngoài
+  - Attack surface bên trong
+  - Attack surface của môi trường
+  - Attack surface thay đổi theo thời gian
+- level1: Phạm vi và ranh giới
+  level2:
+  - System boundary
+  - Application boundary
+  - Network boundary
+  - Trust boundary
+  - Admin boundary
+  - Cloud account boundary
+  - Tenant boundary
+  - Third-party boundary
+  - Development boundary
+  - Production boundary
+  - Scope được ủy quyền
+  - Tài sản ngoài phạm vi
+- level1: Tài sản và chủ sở hữu
+  level2:
+  - Inventory tài sản
+  - Application asset
+  - API asset
+  - Host asset
+  - Domain asset
+  - Cloud resource
+  - Database asset
+  - Credential asset
+  - Data asset
+  - Build artifact
+  - Asset owner
+  - Asset criticality
+  - Asset lifecycle
+- level1: Attack surface inventory
+  level2:
+  - Asset inventory
+  - Service inventory
+  - Endpoint inventory
+  - Port inventory
+  - Protocol inventory
+  - Certificate inventory
+  - Dependency inventory
+  - Identity inventory
+  - Admin interface inventory
+  - Public storage inventory
+  - Shadow asset
+  - Unknown asset
+  - Inventory freshness
+- level1: Discovery có kiểm soát
+  level2:
+  - Passive discovery
+  - Active discovery
+  - DNS discovery
+  - Subdomain discovery
+  - Virtual host discovery
+  - Certificate Transparency
+  - IP và host mapping
+  - Non-standard port review
+  - Archive URL review
+  - JavaScript asset review
+  - Service banner review
+  - Discovery trong phạm vi cho phép
+  - Discovery evidence
+- level1: Web attack surface
+  level2:
+  - Web application entry point
+  - Public page
+  - Authenticated page
+  - Admin page
+  - Hidden URL
+  - HTTP method
+  - Path parameter
+  - Query parameter
+  - Request header
+  - Cookie
+  - Upload endpoint
+  - Download endpoint
+  - Redirect endpoint
+  - WebSocket endpoint
+- level1: API attack surface
+  level2:
+  - API inventory
+  - REST endpoint
+  - GraphQL endpoint
+  - gRPC endpoint
+  - Webhook endpoint
+  - OpenAPI contract
+  - Undocumented endpoint
+  - Undocumented parameter
+  - API version
+  - API gateway
+  - API authentication
+  - API authorization
+  - API rate limit
+  - API error response
+- level1: Identity attack surface
+  level2:
+  - Login endpoint
+  - Registration endpoint
+  - Password reset
+  - Account recovery
+  - MFA enrollment
+  - MFA verification
+  - Identity federation
+  - OAuth callback
+  - SAML endpoint
+  - Service account
+  - Privileged account
+  - Identity synchronization
+  - User enumeration
+- level1: Session và token
+  level2:
+  - Session cookie
+  - Session identifier
+  - Session fixation point
+  - Session renewal
+  - Logout endpoint
+  - Access token
+  - Refresh token
+  - API key
+  - Token introspection
+  - Token revocation
+  - Token storage
+  - Token leakage
+  - Replay surface
+  - Cross-device session
+- level1: Input attack surface
+  level2:
+  - Form input
+  - JSON input
+  - XML input
+  - CSV input
+  - File input
+  - Header input
+  - Cookie input
+  - Path input
+  - Query input
+  - Message input
+  - Environment input
+  - Configuration input
+  - Untrusted deserialization
+- level1: Injection surface
+  level2:
+  - SQL injection surface
+  - NoSQL injection surface
+  - Command injection surface
+  - LDAP injection surface
+  - Expression injection surface
+  - Template injection surface
+  - Header injection surface
+  - Path traversal surface
+  - XPath injection surface
+  - Server-side template surface
+  - Search query injection
+  - Injection through message broker
+- level1: Output và browser surface
+  level2:
+  - HTML response
+  - JSON response
+  - XML response
+  - JavaScript response
+  - Template rendering
+  - Reflected output
+  - Stored output
+  - DOM output
+  - Content-Type handling
+  - CORS response
+  - CSP policy
+  - Clickjacking surface
+  - Open redirect
+  - Browser storage
+- level1: File và resource surface
+  level2:
+  - File upload
+  - File download
+  - File preview
+  - Image processing
+  - Document processing
+  - Archive extraction
+  - Temporary file
+  - Public object storage
+  - Static file server
+  - Path-based resource lookup
+  - File parser dependency
+  - CDR và antivirus boundary
+  - File ownership
+- level1: Network attack surface
+  level2:
+  - Public listener
+  - Internal listener
+  - TLS endpoint
+  - Certificate endpoint
+  - DNS resolver
+  - Proxy
+  - Load balancer
+  - Service mesh
+  - Internal API
+  - Management port
+  - Debug port
+  - Health endpoint
+  - Network policy
+  - Egress path
+- level1: Cloud attack surface
+  level2:
+  - Cloud account
+  - Cloud project
+  - IAM role
+  - Instance metadata service
+  - Object storage bucket
+  - Managed database
+  - Queue service
+  - Function endpoint
+  - API gateway
+  - Load balancer rule
+  - Security group
+  - Cloud secret
+  - Cloud control plane
+  - Public resource exposure
+- level1: Container và Kubernetes
+  level2:
+  - Container image
+  - Image registry
+  - Container runtime
+  - Container network
+  - Pod
+  - Service
+  - Ingress
+  - ConfigMap
+  - Secret
+  - ServiceAccount
+  - RBAC binding
+  - Admission controller
+  - Kubernetes API
+  - Host mount
+  - Privileged container
+- level1: Data store surface
+  level2:
+  - Database listener
+  - Database credential
+  - Database admin console
+  - Query endpoint
+  - Backup endpoint
+  - Replication endpoint
+  - Cache
+  - Search engine
+  - Object storage
+  - Data export
+  - Data import
+  - Migration tool
+  - Database driver
+  - Connection pool
+- level1: Message và integration surface
+  level2:
+  - Message producer
+  - Message consumer
+  - Message broker
+  - Topic
+  - Queue
+  - Dead-letter queue
+  - Webhook receiver
+  - Webhook sender
+  - File transfer
+  - Email integration
+  - Third-party API
+  - Message serializer
+  - Message header
+  - Replay interface
+- level1: Admin và operations surface
+  level2:
+  - Admin console
+  - Operations API
+  - Actuator endpoint
+  - Metrics endpoint
+  - Tracing endpoint
+  - Log viewer
+  - Feature flag service
+  - Configuration server
+  - Secret manager
+  - Job scheduler
+  - Batch trigger
+  - Support tool
+  - Break-glass access
+  - Remote command interface
+- level1: Development và CI/CD
+  level2:
+  - Source repository
+  - Pull request
+  - CI runner
+  - Build server
+  - Artifact repository
+  - Package registry
+  - Deployment pipeline
+  - Infrastructure as code
+  - Container build
+  - Signing key
+  - Release credential
+  - Preview environment
+  - Test environment
+  - Developer workstation
+- level1: Supply chain surface
+  level2:
+  - Direct dependency
+  - Transitive dependency
+  - Plugin
+  - Build tool
+  - Base image
+  - Third-party SDK
+  - Generated code
+  - Code generator
+  - Package maintainer
+  - Artifact provenance
+  - Dependency confusion
+  - Typosquatting
+  - Vulnerable component
+  - End-of-life component
+- level1: Configuration surface
+  level2:
+  - Application properties
+  - Environment variable
+  - Command-line argument
+  - Secret reference
+  - Feature flag
+  - Debug setting
+  - Profile setting
+  - CORS setting
+  - TLS setting
+  - Logging setting
+  - Actuator exposure
+  - Default credential
+  - Configuration drift
+  - Runtime override
+- level1: Access control surface
+  level2:
+  - Unauthenticated route
+  - Authenticated route
+  - Privileged route
+  - Object identifier
+  - Resource ownership
+  - Tenant identifier
+  - Role assignment
+  - Permission check
+  - Field-level access
+  - Function-level access
+  - Batch authorization
+  - Export authorization
+  - Administrative bypass
+  - Authorization cache
+- level1: Data flow và trust
+  level2:
+  - Data entry point
+  - Data exit point
+  - Trust level
+  - Trusted service
+  - Untrusted client
+  - Cross-boundary data flow
+  - Sensitive data flow
+  - Credential flow
+  - Token flow
+  - Message flow
+  - Data transformation
+  - Serialization boundary
+  - Third-party data flow
+  - Data flow evidence
+- level1: Attack path
+  level2:
+  - Entry point to asset
+  - Chained weakness
+  - Privilege escalation path
+  - Lateral movement path
+  - Data exfiltration path
+  - Control plane path
+  - Management path
+  - Supply chain path
+  - Trust boundary crossing
+  - Attack path likelihood
+  - Attack path impact
+  - Path mitigation
+  - Path validation
+- level1: Common weakness mapping
+  level2:
+  - Broken access control
+  - Authentication weakness
+  - Injection
+  - Cryptographic failure
+  - Insecure design
+  - Security misconfiguration
+  - Vulnerable component
+  - Identification failure
+  - Software integrity failure
+  - Logging failure
+  - SSRF
+  - Unsafe deserialization
+  - Unrestricted file upload
+  - Business logic abuse
+- level1: Attack surface reduction
+  level2:
+  - Remove unused endpoint
+  - Remove unused port
+  - Remove unused dependency
+  - Disable debug interface
+  - Close unused management path
+  - Restrict network exposure
+  - Restrict egress
+  - Minimize service privilege
+  - Minimize data collection
+  - Minimize public metadata
+  - Disable default account
+  - Reduce protocol surface
+  - Reduce feature surface
+  - Reduce trust boundary crossings
+- level1: Hardening controls
+  level2:
+  - Secure default
+  - Deny by default
+  - Least privilege
+  - Network segmentation
+  - Input validation
+  - Output encoding
+  - Strong authentication
+  - Authorization at boundary
+  - Encryption in transit
+  - Encryption at rest
+  - Rate limiting
+  - Resource quotas
+  - Security headers
+  - Audit logging
+  - Dependency patching
+- level1: Validation và testing
+  level2:
+  - Attack surface review
+  - Asset discovery verification
+  - Endpoint enumeration review
+  - Authenticated testing
+  - Unauthenticated testing
+  - Input fuzz testing
+  - Authorization matrix test
+  - Configuration review
+  - Dependency scan
+  - Container scan
+  - Secret scan
+  - Dynamic application test
+  - Penetration test
+  - Regression test
+- level1: Monitoring attack surface
+  level2:
+  - External asset monitoring
+  - DNS change monitoring
+  - Certificate change monitoring
+  - New endpoint monitoring
+  - New port monitoring
+  - Cloud exposure monitoring
+  - Dependency change monitoring
+  - Configuration drift monitoring
+  - Vulnerability monitoring
+  - Credential exposure monitoring
+  - Alert prioritization
+  - False positive handling
+  - Evidence retention
+- level1: Vulnerability management
+  level2:
+  - Vulnerability intake
+  - Asset-to-vulnerability mapping
+  - Severity
+  - Exploitability
+  - Business impact
+  - Known exploited vulnerability
+  - Patch priority
+  - Temporary mitigation
+  - Compensating control
+  - Exception approval
+  - Remediation SLA
+  - Retest after remediation
+  - Risk acceptance
+- level1: Change và lifecycle
+  level2:
+  - Attack surface baseline
+  - Change impact review
+  - New service review
+  - New endpoint review
+  - New dependency review
+  - New cloud resource review
+  - Release gate
+  - Decommission service
+  - Retire domain
+  - Revoke credential
+  - Remove stale DNS
+  - Delete orphan resource
+  - Update inventory sau thay đổi
+- level1: Incident response
+  level2:
+  - Attack surface incident
+  - Publicly exposed secret
+  - Unexpected public endpoint
+  - Compromised dependency
+  - Suspicious admin interface
+  - Data exfiltration path
+  - Containment
+  - Disable exposed surface
+  - Rotate credential
+  - Preserve evidence
+  - Notify owner
+  - Post-incident attack surface review
+  - Cập nhật control sau incident
+- level1: Verification framework
+  level2:
+  - OWASP WSTG attack surface identification
+  - Application enumeration
+  - Domain và subdomain review
+  - Virtual host review
+  - Non-standard port review
+  - Entry point inventory
+  - API discovery
+  - Request và response mapping
+  - OWASP ASVS architecture
+  - ASVS API và web service
+  - NIST attack surface definition
+  - Mapping finding sang control
+  - Giới hạn phạm vi kiểm thử
+- level1: Thiết kế case study
+  level2:
+  - Vẽ attack surface của web app
+  - Lập inventory cho REST API
+  - Lập inventory cho cloud service
+  - Lập inventory cho Kubernetes
+  - Vẽ trust boundary
+  - Đánh dấu entry point
+  - Đánh dấu sensitive asset
+  - Lập attack path
+  - Chọn control giảm surface
+  - Thiết kế monitoring
+  - Viết remediation plan
+  - Đánh giá residual risk
+- level1: Thực hành tổng hợp
+  level2:
+  - Khám phá tài sản trong phạm vi cho phép
+  - Tạo attack surface register
+  - Phân loại public và internal surface
+  - Lập data flow diagram
+  - Lập endpoint authorization matrix
+  - Tìm surface bị bỏ quên
+  - Đánh giá file upload surface
+  - Đánh giá SSRF surface
+  - Đánh giá supply chain surface
+  - Đóng một endpoint không cần thiết
+  - Thiết lập attack surface baseline
+  - Viết runbook xử lý exposure
+  - Checklist review trước production

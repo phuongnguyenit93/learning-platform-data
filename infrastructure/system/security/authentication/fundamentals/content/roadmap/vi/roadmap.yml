@@ -1,0 +1,57 @@
+roadmap:
+- id: danh-tinh-ranh-gioi-xac-thuc
+  title: Danh tính & ranh giới xác thực
+  purpose: Hiểu mục đích xác thực và các vai trò trong một lần đăng nhập trước khi lựa chọn công nghệ.
+  objectives:
+  - Phân biệt identification, authentication và authorization
+  - Xác định user, authenticator, verifier và ứng dụng tin cậy
+  - Nhận diện rủi ro impersonation và credential theft
+- id: phuong-thuc-muc-bao-dam
+  title: Phương thức & mức bảo đảm
+  purpose: So sánh các cách chứng minh danh tính và lựa chọn mức bảo đảm theo rủi ro nghiệp vụ.
+  objectives:
+  - Phân loại yếu tố biết, sở hữu và sinh trắc học
+  - So sánh password, OTP, khóa công khai và passkey
+  - Giải thích Authentication Assurance Level (AAL)
+- id: mat-khau-bao-ve-bi-mat
+  title: Mật khẩu & bảo vệ bí mật
+  purpose: Xử lý credential an toàn cả khi xác thực lẫn khi lưu giữ phía máy chủ.
+  objectives:
+  - Thiết lập chính sách mật khẩu theo hướng dẫn hiện đại
+  - Lưu password hash có salt bằng Argon2id hoặc cơ chế phù hợp
+  - Không lưu hoặc ghi log mật khẩu dưới dạng rõ
+- id: mfa-passkeys
+  title: MFA & Passkeys
+  purpose: Tăng độ tin cậy của đăng nhập và nhận biết sự khác biệt giữa MFA thông thường với xác thực chống phishing.
+  objectives:
+  - Phân biệt hai yếu tố độc lập với hai bước cùng yếu tố
+  - So sánh OTP/TOTP với WebAuthn và passkeys
+  - Chọn MFA hoặc step-up cho thao tác rủi ro cao
+- id: luong-dang-nhap-an-toan
+  title: Luồng đăng nhập an toàn
+  purpose: Giảm khả năng bị dò tài khoản, thử mật khẩu hàng loạt hoặc đánh cắp thông tin trong luồng xác thực.
+  objectives:
+  - Thiết kế luồng login qua HTTPS và thông báo lỗi chung
+  - Áp dụng rate limiting, giám sát và bảo vệ credential stuffing
+  - Kiểm tra trạng thái tài khoản và kết quả xác thực
+- id: phien-tai-xac-thuc
+  title: Phiên & tái xác thực
+  purpose: Duy trì trạng thái đăng nhập mà không để session trở thành điểm yếu sau khi người dùng được xác thực.
+  objectives:
+  - Sinh session ID ngẫu nhiên và đổi khi đăng nhập
+  - Cấu hình cookie Secure, HttpOnly, SameSite khi phù hợp
+  - Áp dụng idle/absolute timeout, logout và reauthentication
+- id: federation-openid-connect
+  title: Federation & OpenID Connect
+  purpose: Hiểu cách ứng dụng dựa vào nhà cung cấp danh tính bên ngoài mà không nhầm xác thực với ủy quyền.
+  objectives:
+  - Phân biệt Identity Provider và Relying Party
+  - Phân biệt OAuth 2.0 với đăng nhập qua OIDC
+  - Xác minh ID token, issuer, audience và nonce khi dùng
+- id: khoi-phuc-kiem-thu
+  title: Khôi phục & Kiểm thử
+  purpose: Đảm bảo khôi phục tài khoản không yếu hơn đăng nhập và kiểm thử các trường hợp thất bại.
+  objectives:
+  - Thiết kế reset token ngắn hạn, một lần và chống enumeration
+  - Kiểm thử mật khẩu sai, brute force, session fixation và logout
+  - Theo dõi audit log mà không làm lộ credential

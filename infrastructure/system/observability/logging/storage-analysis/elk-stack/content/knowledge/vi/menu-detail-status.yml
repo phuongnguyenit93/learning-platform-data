@@ -1,0 +1,3271 @@
+menu:
+- slug: elk-overview
+  title: Bức tranh ELK
+  childs:
+  - slug: elk-overview-001
+    title: ELK Stack là gì và giải quyết bài toán nhật ký tập trung như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-002
+    title: Vai trò của Elasticsearch, Logstash và Kibana trong cùng một hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-003
+    title: Elastic Stack mở rộng ELK bằng Beats, Elastic Agent và các tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-004
+    title: Từ một dòng log đến sự kiện có cấu trúc để tìm kiếm và phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-005
+    title: Thu thập, xử lý, lập chỉ mục, lưu giữ và truy vấn liên hệ với nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-006
+    title: Phân biệt kho log, số liệu đo và trace khi điều tra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-007
+    title: Giới hạn của ELK và các đánh đổi về độ trễ, chi phí, vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elk-overview-008
+    title: Kiến thức nền và thứ tự học từ dòng log đầu tiên đến hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-flow-design
+  title: Thiết kế đường dữ liệu
+  childs:
+  - slug: data-flow-design-001
+    title: Xác định nguồn log, người sử dụng và câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-002
+    title: Các tuyến ứng dụng → bộ thu → Elasticsearch → Kibana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-003
+    title: Khi nào gửi trực tiếp, khi nào cần Logstash hoặc ingest pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-004
+    title: Vai trò của Kafka hay hàng đợi bên ngoài khi cần đệm và phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-005
+    title: Chọn nơi phân tích, chuẩn hóa và làm giàu để tránh xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-006
+    title: Phân biệt thời điểm sự kiện xảy ra với thời điểm được thu nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-007
+    title: Mất dữ liệu, trùng dữ liệu và thay đổi thứ tự trên toàn đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-008
+    title: Xác định mục tiêu độ trễ, lưu lượng, thời hạn lưu và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-flow-design-009
+    title: Tách môi trường, nhóm ứng dụng và phạm vi quyền truy cập ngay từ thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-setup
+  title: Cài đặt môi trường
+  childs:
+  - slug: environment-setup-001
+    title: Chọn bộ phiên bản tương thích cho Elasticsearch, Kibana, Logstash và bộ thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-002
+    title: Yêu cầu tài nguyên, hệ điều hành và Java theo từng bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-003
+    title: Khởi chạy Elasticsearch và Kibana bằng Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-004
+    title: Bổ sung Logstash và bộ thu log vào cùng môi trường học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-005
+    title: Phân biệt cổng HTTP, transport, Kibana và cổng input của Logstash
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-006
+    title: Cấu hình volume để dữ liệu tồn tại sau khi container khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-007
+    title: Thiết lập xác thực, chứng chỉ và kết nối Kibana với Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-008
+    title: Địa chỉ localhost trong ứng dụng, container và mạng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-009
+    title: Kiểm tra trạng thái khởi động bằng log, API và giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-setup-010
+    title: Ghim phiên bản, quản lý cấu hình và tái tạo môi trường có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: first-log
+  title: Log đầu tiên
+  childs:
+  - slug: first-log-001
+    title: Tạo bộ log mẫu có thời gian, mức độ, tên dịch vụ và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-002
+    title: Dựng pipeline Logstash tối thiểu với input, filter và output
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-003
+    title: Kiểm tra sự kiện trung gian bằng stdout trước khi gửi Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-004
+    title: Ghi sự kiện và xác nhận tài liệu đã tồn tại bằng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-005
+    title: Tạo data view phù hợp khi dùng chế độ cổ điển của Discover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-006
+    title: Chọn trường thời gian và cửa sổ hiển thị để thấy dữ liệu vừa gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-007
+    title: Tìm một sự kiện từ nguồn ban đầu tới kết quả trên Kibana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: first-log-008
+    title: Đổi dữ liệu đầu vào để quan sát hành vi khi phân tích thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ecs-normalization
+  title: Chuẩn hóa ECS
+  childs:
+  - slug: ecs-normalization-001
+    title: Elastic Common Schema là gì và vì sao cần tên trường thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-002
+    title: 'Các trường nền tảng: @timestamp, message, log.level và ecs.version'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-003
+    title: Thông tin dịch vụ, máy chủ, tiến trình và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-004
+    title: 'event.original, event.created và event.ingested: bảo toàn nguồn và các mốc thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-005
+    title: trace.id, span.id và transaction.id để liên kết log với ngữ cảnh xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-006
+    title: Phân loại sự kiện bằng event.dataset và các trường event phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-007
+    title: data_stream.type, dataset, namespace và quy ước tổ chức nguồn log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-008
+    title: Chọn kiểu dữ liệu, đơn vị đo và múi giờ trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-009
+    title: Tách trường tùy biến khỏi trường ECS để tránh xung đột ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecs-normalization-010
+    title: Quản lý phiên bản schema và hợp đồng dữ liệu giữa bên phát, bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring-logs
+  title: Log Java và Spring
+  childs:
+  - slug: java-spring-logs-001
+    title: Xuất JSON có cấu trúc từ Logback hoặc Log4j2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-002
+    title: Dùng thư viện ECS Logging Java và chọn cách cấu hình theo phiên bản Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-003
+    title: Đặt tên dịch vụ, phiên bản và môi trường trong sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-004
+    title: Đưa mã yêu cầu và định danh trace vào MDC đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-005
+    title: Giữ ngoại lệ và stack trace thành một sự kiện đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-006
+    title: Chọn ghi stdout hay tệp theo mô hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-007
+    title: Hàng đợi appender bất đồng bộ và đánh đổi khi bộ đệm đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-008
+    title: Xoay vòng tệp, giới hạn dung lượng và tương tác với bộ thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-009
+    title: Che thông tin nhạy cảm trước khi log rời ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-logs-010
+    title: Tránh ghi đồng thời nhiều định dạng hoặc nhiều đích gây thu thập trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: filebeat-collection
+  title: Thu thập bằng Filebeat
+  childs:
+  - slug: filebeat-collection-001
+    title: Vai trò Filebeat trong đọc tệp và chuyển tiếp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-002
+    title: Cấu hình filestream với đường dẫn, định danh input và quyền đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-003
+    title: Nhận diện tệp, lưu vị trí đọc và khôi phục sau khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-004
+    title: Ảnh hưởng của đổi tên, xoay vòng, cắt ngắn và xóa tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-005
+    title: Ghép multiline tại nguồn để giữ stack trace đúng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-006
+    title: Đọc JSON từng dòng và phân biệt bước giải mã với bước chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-007
+    title: Chọn output Elasticsearch hoặc Logstash và thiết lập TLS, xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-008
+    title: Bộ đệm, xác nhận tiếp nhận và hành vi khi đầu ra bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-009
+    title: Thu log container bằng parser và metadata phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: filebeat-collection-010
+    title: Chuyển từ input log/container kế thừa sang filestream mà không đọc trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: elastic-agent-fleet
+  title: Elastic Agent và Fleet
+  childs:
+  - slug: elastic-agent-fleet-001
+    title: Elastic Agent khác Beats ở mô hình cấu hình và quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-002
+    title: Chọn chế độ standalone hoặc quản lý tập trung bằng Fleet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-003
+    title: Vai trò Fleet Server, agent policy và enrollment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-004
+    title: Dùng integration có sẵn hoặc cấu hình nguồn log tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-005
+    title: 'Tài nguyên do integration quản lý: pipeline, template và dashboard'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-006
+    title: Chèn xử lý tùy biến qua điểm mở rộng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-007
+    title: Theo dõi trạng thái agent, lỗi thu thập và cấu hình đang có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-008
+    title: Triển khai agent trên máy chủ hoặc Kubernetes theo quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elastic-agent-fleet-009
+    title: Tránh thu cùng một nguồn đồng thời bằng nhiều agent hay integration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logstash-configuration
+  title: Cấu hình Logstash
+  childs:
+  - slug: logstash-configuration-001
+    title: Cấu trúc pipeline input → filter → output và mô hình sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-002
+    title: Phân biệt logstash.yml, pipelines.yml và tệp cấu hình pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-003
+    title: Tham chiếu trường, trường lồng nhau và cú pháp điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-004
+    title: Dùng tags và @metadata để định tuyến mà không lưu metadata nội bộ ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-005
+    title: Chọn codec ở input và output phù hợp định dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-006
+    title: Tách nhiều pipeline và kết nối pipeline khi cần cách ly xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-007
+    title: Quản lý biến môi trường, secrets và Logstash keystore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-008
+    title: Kiểm tra cú pháp, nạp lại cấu hình và xử lý lỗi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-009
+    title: Chọn số worker, kích thước lô và hiểu giới hạn bảo toàn thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logstash-configuration-010
+    title: Quản lý plugin và chế độ tương thích ECS theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: parsing-enrichment
+  title: Phân tích và làm giàu
+  childs:
+  - slug: parsing-enrichment-001
+    title: Chọn JSON, dissect hoặc grok theo cấu trúc nguồn log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-002
+    title: Thiết kế grok pattern với kiểu dữ liệu và mẫu lỗi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-003
+    title: Dùng dissect cho thông điệp có dấu phân tách ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-004
+    title: Chuẩn hóa thời gian bằng date filter, múi giờ và định dạng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-005
+    title: Đổi tên, chuyển kiểu, xóa trường và chuẩn hóa giá trị bằng mutate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-006
+    title: Làm giàu thông tin địa lý, user agent và dữ liệu tra cứu khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-007
+    title: Xử lý trường thiếu, null, mảng và cấu trúc lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-008
+    title: Định tuyến riêng sự kiện lỗi phân tích thay vì âm thầm bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-009
+    title: Giới hạn biểu thức chính quy và tránh grok tiêu tốn quá nhiều CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-010
+    title: Giữ event.original để kiểm chứng kết quả sau biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: parsing-enrichment-011
+    title: Phân biệt dữ liệu sự kiện với metadata tạm dùng trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-durability
+  title: Độ bền pipeline
+  childs:
+  - slug: pipeline-durability-001
+    title: Hàng đợi bộ nhớ và persistent queue bảo vệ những giai đoạn nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-002
+    title: Xác nhận tiếp nhận, checkpoint và khả năng phát lại sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-003
+    title: Giới hạn của persistent queue khi đĩa hỏng hoặc nguồn không có cơ chế xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-004
+    title: Tính ít nhất một lần và khả năng sinh sự kiện trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-005
+    title: Cơ chế điều tiết ngược (backpressure) khi đầu ra chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-006
+    title: Định cỡ dung lượng hàng đợi theo lưu lượng và thời gian gián đoạn dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-007
+    title: Phân biệt thử lại lỗi HTTP với lỗi từng tài liệu trong phản hồi Bulk
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-008
+    title: 'Dead letter queue: phạm vi hỗ trợ và loại lỗi thực tế được đưa vào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-009
+    title: Đọc, sửa và gửi lại dữ liệu DLQ với theo dõi vị trí xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-010
+    title: Giám sát dung lượng, dọn dữ liệu và giới hạn lưu của DLQ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-durability-011
+    title: Dừng có kiểm soát, rút hết hàng đợi và kiểm tra dữ liệu sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ingest-pipelines
+  title: Ingest pipeline
+  childs:
+  - slug: ingest-pipelines-001
+    title: Ingest pipeline xử lý sự kiện tại Elasticsearch khác Logstash như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-002
+    title: Cấu trúc processors, điều kiện và thứ tự thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-003
+    title: Dùng các processor JSON, grok, date, set, rename và remove
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-004
+    title: Xử lý lỗi bằng on_failure ở processor hoặc toàn pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-005
+    title: Thử dữ liệu bằng API simulate trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-006
+    title: Phân biệt pipeline được chỉ định, default pipeline và final pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-007
+    title: Gắn pipeline với template hoặc tuyến ghi dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-008
+    title: Enrich processor và vòng đời dữ liệu tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-009
+    title: Quản lý phiên bản pipeline để tránh đổi nghĩa dữ liệu đang gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ingest-pipelines-010
+    title: Chọn nơi xử lý theo chi phí CPU, khả năng mở rộng và quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: elasticsearch-data-model
+  title: Mô hình Elasticsearch
+  childs:
+  - slug: elasticsearch-data-model-001
+    title: Document, field, index và cluster trong mô hình lưu trữ log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-002
+    title: Quan hệ giữa index logic và các shard vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-003
+    title: Primary shard, replica và khả năng tiếp tục phục vụ khi node hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-004
+    title: Data stream, backing index và write index
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-005
+    title: Alias để đọc nhiều index hoặc chuyển đích ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-006
+    title: Lucene segment và quá trình ghi, tìm kiếm ở mức khái quát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-007
+    title: Translog, refresh, flush và merge có vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-008
+    title: Ghi thành công khác tài liệu đã nhìn thấy trong tìm kiếm gần thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: elasticsearch-data-model-009
+    title: Replica phục vụ sẵn sàng cao và khác cơ chế sao lưu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mappings-data-types
+  title: Mapping và kiểu dữ liệu
+  childs:
+  - slug: mappings-data-types-001
+    title: Mapping tường minh khác tự suy luận trường bằng dynamic mapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-002
+    title: Chọn text, keyword và multi-fields theo mục tiêu tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-003
+    title: Kiểu date, date_nanos và các bẫy về định dạng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-004
+    title: Chọn kiểu số, boolean, IP và dữ liệu địa lý phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-005
+    title: object, nested và cách bảo toàn quan hệ trong mảng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-006
+    title: flattened cho tập khóa động và đánh đổi khả năng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-007
+    title: _source, index và doc_values phục vụ những nhu cầu nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-008
+    title: Dynamic templates và quy tắc đặt kiểu cho trường mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-009
+    title: Mapping explosion do tên trường tăng không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-010
+    title: Xung đột kiểu giữa các nguồn hoặc các index theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-011
+    title: 'Runtime fields: bổ sung khả năng đọc dữ liệu mà không sửa ngay dữ liệu đã ghi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mappings-data-types-012
+    title: Đổi mapping cần reindex trong trường hợp nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: templates-data-streams
+  title: Template và data stream
+  childs:
+  - slug: templates-data-streams-001
+    title: 'Component template và index template: phân chia phần dùng chung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-002
+    title: Quy tắc tên, mức ưu tiên và xử lý template chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-003
+    title: Kết hợp settings, mappings và cấu hình data stream trong template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-004
+    title: Thử template để xác định cấu hình thực tế trước khi tạo dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-005
+    title: Yêu cầu trường thời gian và mô hình ghi bổ sung của data stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-006
+    title: Tên logs-<dataset>-<namespace> và sự nhất quán với trường data_stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-007
+    title: Rollover tạo backing index mới khác xóa dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-008
+    title: Thay template tác động tới index mới khác index đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-009
+    title: Giới hạn cập nhật, xóa và khử trùng lặp qua data stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-010
+    title: Tùy biến tài nguyên do integration quản lý mà không sửa trực tiếp phần sẽ bị ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-data-streams-011
+    title: Đánh giá logsdb theo phiên bản, điều kiện sử dụng và yêu cầu lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: indexing-replay
+  title: Ghi dữ liệu và phát lại
+  childs:
+  - slug: indexing-replay-001
+    title: Index API, create và lựa chọn thao tác phù hợp dữ liệu log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-002
+    title: Bulk API và cấu trúc NDJSON của một lô thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-003
+    title: Phản hồi HTTP thành công vẫn có thể chứa tài liệu ghi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-004
+    title: Phân loại lỗi tạm thời, lỗi dữ liệu và xung đột để xử lý đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-005
+    title: Chọn kích thước lô, mức song song và giới hạn bộ nhớ bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-006
+    title: 'Document ID tự sinh hoặc xác định trước: chi phí và khả năng khử trùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-007
+    title: Dấu vân tay sự kiện (fingerprint) và giới hạn khử trùng lặp toàn đường đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-008
+    title: Đọc lại log lịch sử mà vẫn giữ thời gian sự kiện gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-009
+    title: Rollover và phạm vi khử trùng khi dữ liệu có thể nằm ở backing index khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-010
+    title: Reindex, cập nhật hoặc xóa theo truy vấn với phạm vi được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: indexing-replay-011
+    title: Kiểm đếm, đối soát và ghi nhận tiến độ cho một lần nạp lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-fundamentals
+  title: Nền tảng tìm kiếm
+  childs:
+  - slug: search-fundamentals-001
+    title: Chỉ mục đảo giúp tìm thông điệp khác cách quét toàn bộ tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-002
+    title: Analyzer tách từ, chuẩn hóa và ảnh hưởng tới kết quả tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-003
+    title: Keyword giữ giá trị để lọc chính xác, gom nhóm và sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-004
+    title: Phân biệt tìm toàn văn, khớp chính xác và tìm cụm từ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-005
+    title: Chuỗi rỗng, null, trường thiếu và điều kiện exists
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-006
+    title: Tìm kiếm có tính điểm khác điều kiện lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-007
+    title: Múi giờ, date math và ranh giới cửa sổ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-008
+    title: Sắp xếp ổn định và phân trang trên tập log đang thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-fundamentals-009
+    title: Wildcard, biểu thức chính quy và nguy cơ truy vấn quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-dsl
+  title: Query DSL
+  childs:
+  - slug: query-dsl-001
+    title: Cấu trúc yêu cầu _search và giới hạn dữ liệu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-002
+    title: match, match_phrase và term dùng với mapping nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-003
+    title: bool với must, filter, should và must_not
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-004
+    title: range theo thời gian, mã trạng thái hoặc giá trị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-005
+    title: exists, terms và điều kiện trên nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-006
+    title: Truy vấn nested để giữ quan hệ giữa trường trong cùng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-007
+    title: Chọn trường trả về bằng _source filtering và fields
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-008
+    title: Sắp xếp, search_after và point in time khi cần phân trang sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-009
+    title: Giới hạn số kết quả, tổng số khớp và chi phí truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-010
+    title: Dùng profile hoặc explain để kiểm tra giả thuyết về tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-dsl-011
+    title: Truy vấn nhiều index và xử lý khác biệt mapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kql-lucene
+  title: KQL và Lucene
+  childs:
+  - slug: kql-lucene-001
+    title: KQL dùng lọc tài liệu trong giao diện Kibana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-002
+    title: Tìm thông điệp tự do hoặc lọc theo field:value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-003
+    title: Kết hợp AND, OR, NOT và nhóm điều kiện rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-004
+    title: Lọc tồn tại, khoảng giá trị và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-005
+    title: Phân biệt text với keyword khi điều kiện có vẻ không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-006
+    title: Escape ký tự đặc biệt, giá trị chứa khoảng trắng và wildcard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-007
+    title: Lucene query syntax và điểm khác với KQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-008
+    title: Phân biệt cú pháp lọc với khả năng gom nhóm, biến đổi và sắp xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kql-lucene-009
+    title: Đối chiếu truy vấn văn bản với bộ lọc trực quan để tránh điều kiện bị áp dụng hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: esql-analysis
+  title: Phân tích bằng ES|QL
+  childs:
+  - slug: esql-analysis-001
+    title: ES|QL là ngôn ngữ đường ống truy vấn và phân tích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-002
+    title: FROM, WHERE, KEEP và DROP để chọn nguồn, dòng và cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-003
+    title: EVAL để tạo biểu thức, chuẩn hóa và tính giá trị dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-004
+    title: STATS và BY để tổng hợp theo dịch vụ, mức log hoặc loại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-005
+    title: Xử lý thời gian và chia khoảng để tìm xu hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-006
+    title: SORT, LIMIT và thứ tự lệnh ảnh hưởng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-007
+    title: DISSECT hoặc GROK trong truy vấn khác xử lý trước khi lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-008
+    title: Kiểu dữ liệu, null và trường đa giá trị trong phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-009
+    title: Dùng ES|QL trong Discover để chuyển từ log chi tiết sang bảng phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: esql-analysis-010
+    title: Giới hạn kết quả và tính năng phụ thuộc phiên bản trước khi dùng cho báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aggregations-statistics
+  title: Tổng hợp và thống kê
+  childs:
+  - slug: aggregations-statistics-001
+    title: Bucket aggregation khác metric aggregation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-002
+    title: terms để tìm nhóm phổ biến và giới hạn độ chính xác của nhóm đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-003
+    title: date_histogram với khoảng cố định hoặc theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-004
+    title: filters, range và chia nhóm theo điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-005
+    title: count, sum, avg, min và max trên trường có kiểu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-006
+    title: cardinality và percentiles có thể là phép tính xấp xỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-007
+    title: composite aggregation để duyệt nhiều tổ hợp khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-008
+    title: Pipeline aggregation và tính tỷ lệ từ các nhóm đã tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-009
+    title: Xử lý nhóm rỗng, dữ liệu đến muộn và khoảng thời gian chưa hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-010
+    title: Phân biệt số dòng ERROR với số yêu cầu thất bại khi chọn mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregations-statistics-011
+    title: Giới hạn số bucket và tránh tổng hợp trên trường có quá nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discover-investigations
+  title: Điều tra bằng Discover
+  childs:
+  - slug: discover-investigations-001
+    title: Chọn chế độ ES|QL hoặc chế độ cổ điển với data view
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-002
+    title: Thiết lập cửa sổ thời gian tuyệt đối, tương đối và tự làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-003
+    title: Chọn cột, sắp xếp và mở tài liệu để kiểm tra dữ liệu thô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-004
+    title: Lọc theo dịch vụ, môi trường, mức log và định danh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-005
+    title: Xem sự kiện trước–sau để khôi phục bối cảnh một lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-006
+    title: Khảo sát phân bố và kiểu dữ liệu của từng trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-007
+    title: Tìm theo trace.id để nối sự kiện qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-008
+    title: Lưu phiên điều tra, truy vấn và bộ lọc để dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-009
+    title: Chia sẻ liên kết có phạm vi thời gian, tránh mất bối cảnh khi người khác mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-010
+    title: Xuất kết quả trong giới hạn quyền, dung lượng và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discover-investigations-011
+    title: Phân biệt dữ liệu không tồn tại với sai data view, thời gian hoặc quyền đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kibana-visualization
+  title: Trực quan hóa Kibana
+  childs:
+  - slug: kibana-visualization-001
+    title: 'Chọn biểu đồ theo câu hỏi: xu hướng, so sánh, phân bố hoặc nhóm lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-002
+    title: Dùng Lens để dựng biểu đồ từ trường có thể tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-003
+    title: Đặt khoảng thời gian và độ chia biểu đồ phù hợp lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-004
+    title: Tạo bảng các lỗi phổ biến theo dịch vụ và loại ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-005
+    title: Xây dashboard tổng quan log theo môi trường và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-006
+    title: Dùng controls, bộ lọc và drilldown tới Discover hoặc trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-007
+    title: Định nghĩa tỷ lệ, đơn vị và chú giải để tránh hiểu sai số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-008
+    title: Xử lý dữ liệu thưa, nhóm Other và giới hạn nhóm đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-009
+    title: Lưu, xuất nhập và quản lý phụ thuộc của saved objects
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kibana-visualization-010
+    title: Quản lý quyền chia sẻ dashboard và kiểm chứng tính năng theo phiên bản, gói sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-lifecycle
+  title: Vòng đời dữ liệu
+  childs:
+  - slug: data-lifecycle-001
+    title: Phân biệt rollover, chuyển tầng lưu trữ và xóa dữ liệu hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-002
+    title: Chọn ILM hoặc data stream lifecycle theo môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-003
+    title: Các giai đoạn hot, warm, cold, frozen và delete trong thiết kế ILM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-004
+    title: Điều kiện rollover theo kích thước, số tài liệu và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-005
+    title: Tuổi index, thời điểm rollover và tuổi sự kiện là các mốc khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-006
+    title: Áp chính sách cho dữ liệu mới và kiểm tra trạng thái bằng API explain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-007
+    title: Xử lý lifecycle bị chặn bởi phân bổ shard, quyền hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-008
+    title: Lưu dữ liệu đến muộn, nạp lại lịch sử và tác động tới thời hạn lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-009
+    title: Searchable snapshots và điều kiện phiên bản, hạ tầng, gói sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-010
+    title: Đổi chính sách lưu giữ sau khi đã có dữ liệu và kiểm chứng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-011
+    title: Xác định thời hạn lưu theo giá trị điều tra, chi phí và yêu cầu của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cluster-shard-allocation
+  title: Cluster và phân bổ shard
+  childs:
+  - slug: cluster-shard-allocation-001
+    title: Vai trò node quản lý cluster, node dữ liệu, ingest và điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-002
+    title: Trạng thái green, yellow, red phản ánh primary và replica như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-003
+    title: Phân bổ shard, tái cân bằng và phục hồi sau khi node rời cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-004
+    title: Replica đặt khác node và nhận biết miền lỗi khi thiết kế sẵn sàng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-005
+    title: Chọn số shard ban đầu và ảnh hưởng của quá nhiều shard nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-006
+    title: Data tiers và quy tắc đưa index tới tầng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-007
+    title: Ngưỡng dung lượng đĩa và trường hợp hệ thống chặn ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-008
+    title: Đọc allocation explain để tìm nguyên nhân shard chưa được gán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-009
+    title: Mở rộng cluster theo lưu trữ, tốc độ ghi và tải truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cluster-shard-allocation-010
+    title: Đánh giá tác động khi thay node, bảo trì hoặc gián đoạn một miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-capacity
+  title: Hiệu năng và dung lượng
+  childs:
+  - slug: performance-capacity-001
+    title: Ước lượng dữ liệu từ số sự kiện, kích thước, thời hạn lưu và hệ số lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-002
+    title: Tách chi phí dữ liệu gốc, chỉ mục, replica, hàng đợi và snapshot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-003
+    title: Chọn heap, bộ nhớ ngoài heap và phần dành cho cache hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-004
+    title: Đo tốc độ ghi cùng độ trễ dữ liệu có thể tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-005
+    title: Điều chỉnh bulk size, mức song song và backoff theo kết quả đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-006
+    title: Tác động của refresh interval, replica và merge tới tốc độ ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-007
+    title: Tối ưu Logstash bằng worker utilization, số worker và kích thước lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-008
+    title: Giảm trường thừa, số giá trị khác nhau quá lớn và nội dung log quá dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-009
+    title: Giới hạn wildcard, runtime fields và tổng hợp tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-010
+    title: Giảm phạm vi index và thời gian trước khi mở rộng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-011
+    title: Đánh giá logsdb, nén và chế độ _source theo yêu cầu đọc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-capacity-012
+    title: Thiết kế phép thử tải với dữ liệu, truy vấn và mức song song đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-authorization
+  title: Bảo mật và phân quyền
+  childs:
+  - slug: security-authorization-001
+    title: Xác thực người dùng, tài khoản dịch vụ và API key có phạm vi tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-002
+    title: RBAC cho ghi dữ liệu, đọc log, quản lý pipeline và quản trị cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-003
+    title: TLS giữa node, giữa các thành phần và từ trình duyệt tới Kibana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-004
+    title: Quản lý CA, chứng chỉ, tên máy và vòng đời gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-005
+    title: Lưu thông tin xác thực trong cơ chế phù hợp thay vì tệp cấu hình được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-006
+    title: Giới hạn mạng và bề mặt truy cập của Elasticsearch, Kibana, Logstash
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-007
+    title: Tách dữ liệu theo môi trường hoặc tổ chức với quyền đọc được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-008
+    title: Kibana Spaces khác ranh giới phân quyền dữ liệu Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-009
+    title: Quyền theo tài liệu, trường và điều kiện tính năng của từng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-010
+    title: Che, xóa hoặc không thu thông tin cá nhân, mật khẩu và token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-011
+    title: Audit truy cập, xoay vòng thông tin xác thực và bảo vệ dữ liệu xuất ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-authorization-012
+    title: Giới hạn kích thước sự kiện và ngăn dữ liệu đầu vào lạm dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-deployment
+  title: Triển khai thực tế
+  childs:
+  - slug: production-deployment-001
+    title: Phân biệt self-managed, Elastic Cloud Hosted và Serverless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-002
+    title: Tách cấu hình học thử khỏi yêu cầu của môi trường vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-003
+    title: Triển khai trên máy chủ hoặc container với đĩa và tài nguyên phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-004
+    title: 'Kubernetes: lưu trữ bền vững, quyền đọc log và phân bố thành phần'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-005
+    title: Elastic Cloud on Kubernetes và phạm vi tài nguyên được operator quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-006
+    title: Kiểm tra sẵn sàng, kiểm tra sống và thứ tự phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-007
+    title: Cấu hình reverse proxy, địa chỉ công khai và cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-008
+    title: Triển khai thay đổi pipeline theo giai đoạn và quan sát tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-deployment-009
+    title: Quản lý cấu hình, template, pipeline và dashboard dưới dạng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-alerting
+  title: Giám sát và cảnh báo
+  childs:
+  - slug: monitoring-alerting-001
+    title: Theo dõi độ trễ từ thời điểm sự kiện tới khi xuất hiện trong tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-002
+    title: Đối soát lưu lượng giữa nguồn, bộ thu, Logstash và Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-003
+    title: Quan sát agent, input, hàng đợi và số sự kiện bị bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-004
+    title: Đọc Node Stats, pipeline metrics và chỉ số persistent queue của Logstash
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-005
+    title: Theo dõi cluster health, JVM, GC, đĩa và thread pool Elasticsearch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-006
+    title: Phát hiện indexing rejection, circuit breaker và truy vấn chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-007
+    title: Xây cảnh báo theo log lỗi, số lần xuất hiện và tỷ lệ có mẫu số hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-008
+    title: Chọn lịch chạy, cửa sổ tìm kiếm và cách xử lý log đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-009
+    title: Nhóm cảnh báo, chống lặp và phân biệt không có log với hệ thống bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-010
+    title: Theo dõi lần chạy quy tắc, quyền truy vấn và lỗi connector thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-alerting-011
+    title: Xác định mục tiêu vận hành cùng quy trình xử lý khi pipeline mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-recovery
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-recovery-001
+    title: Snapshot repository và điều kiện truy cập từ cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-002
+    title: Replica không thay snapshot; sao chép thư mục dữ liệu không thay quy trình backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-003
+    title: Tạo snapshot và kiểm tra trạng thái hoàn tất, thất bại hoặc một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-004
+    title: Lập lịch và giữ snapshot bằng Snapshot Lifecycle Management khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-005
+    title: 'Phạm vi snapshot: index, data stream, cluster state và feature states'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-006
+    title: Khôi phục thử vào môi trường biệt lập trước khi cần phục hồi thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-007
+    title: Giới hạn tương thích phiên bản và xung đột tên khi restore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-008
+    title: Khôi phục Kibana saved objects, pipeline, template và cấu hình liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-009
+    title: Xác định RPO, RTO và kiểm chứng bằng bài tập phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-010
+    title: Bảo vệ kho snapshot, quyền truy cập và dữ liệu nhạy cảm bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không thấy log: lần theo từng chặng từ tệp nguồn tới truy vấn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Sai data view, trường thời gian, múi giờ hoặc cửa sổ lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Agent không đọc tệp do quyền, đường dẫn, định danh hoặc trạng thái đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Log bị mất hoặc trùng sau xoay vòng, khởi động lại và phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Stack trace bị tách hoặc nhiều sự kiện bị ghép nhầm thành một
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Grok thất bại, ngày giờ sai và trường bị chuyển kiểu ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Mapping conflict, quá nhiều trường và tài liệu bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Bulk báo thành công ở HTTP nhưng chứa lỗi từng tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Logstash bị chặn do output chậm, persistent queue đầy hoặc pipeline nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Lỗi TLS, xác thực, quyền ghi và enrollment giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Cluster yellow hoặc red, shard chưa gán và dung lượng đĩa cạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Truy vấn chậm, dashboard lỗi và kết quả thống kê không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Đối chiếu log nội bộ, số liệu đo, dữ liệu thô và dòng thời gian trước khi thay cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-quality
+  title: Kiểm thử và chất lượng
+  childs:
+  - slug: testing-quality-001
+    title: Bộ dữ liệu kiểm thử gồm log đúng, sai định dạng và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-002
+    title: Kiểm thử grok, dissect, date và pipeline ingest bằng dữ liệu cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-003
+    title: Xác nhận schema ECS, kiểu trường, múi giờ và quy tắc che dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-004
+    title: Kiểm thử tích hợp toàn tuyến từ nguồn đến kết quả tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-005
+    title: Chờ có điều kiện để kiểm chứng hệ thống xử lý gần thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-006
+    title: Đối soát mất, trùng và sai thứ tự bằng định danh sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-007
+    title: Giả lập đầu ra ngừng hoạt động, đầy bộ đệm và ứng dụng dừng đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-008
+    title: Đo tốc độ nạp, độ trễ tìm kiếm và truy vấn dưới tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-009
+    title: Kiểm chứng quyền truy cập với tài khoản có vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-quality-010
+    title: Kiểm tra dashboard, cảnh báo và phục hồi sau thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-migration
+  title: Nâng cấp và chuyển đổi
+  childs:
+  - slug: upgrades-migration-001
+    title: Lập ma trận tương thích thành phần, plugin và định dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-002
+    title: Đọc deprecation, thay đổi mặc định và điều kiện nâng cấp theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-003
+    title: Thử nâng cấp trên dữ liệu đại diện cùng bản sao cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-004
+    title: Chuyển Filebeat input kế thừa sang filestream với kiểm soát vị trí đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-005
+    title: Chuyển từ Beats sang Elastic Agent mà không thu cùng nguồn hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-006
+    title: Chuyển index theo ngày sang data stream hoặc alias phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-007
+    title: Đổi schema và mapping bằng index mới, reindex và chuyển đích đọc ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-008
+    title: Nâng cấp rolling hoặc gián đoạn toàn bộ theo lộ trình được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-009
+    title: Phân biệt phục hồi bằng snapshot với hạ phiên bản trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-migration-010
+    title: Đối chiếu số sự kiện, truy vấn, dashboard và cảnh báo trước–sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Dựng ELK cục bộ và thu JSON log từ ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Chuẩn hóa log về ECS rồi tìm theo dịch vụ, mức độ và mã yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Đọc stack trace nhiều dòng bằng Filebeat mà không trộn các sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thiết kế Logstash pipeline phân tích access log và log ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Tạo lỗi mapping, đưa dữ liệu phù hợp vào DLQ và xử lý lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Ngắt Elasticsearch để quan sát backpressure, persistent queue và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thiết kế data stream, template và chính sách lưu giữ cho nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: So sánh KQL, Query DSL và ES|QL trên cùng câu hỏi điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Xây dashboard lỗi theo dịch vụ với drilldown về log chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Lần theo một trace ID xuyên nhiều dịch vụ và đối chiếu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Thử tải để tìm nút thắt ở bộ thu, xử lý, ghi hoặc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Thực hành phân quyền đọc, ghi và xác nhận không lộ dữ liệu giữa nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Tạo snapshot, xóa dữ liệu thử nghiệm có kiểm soát và khôi phục vào môi trường riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Viết quy trình điều tra một sự cố từ triệu chứng đến bằng chứng và nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

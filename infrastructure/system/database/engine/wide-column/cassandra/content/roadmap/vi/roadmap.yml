@@ -1,0 +1,50 @@
+roadmap:
+- id: tu-duy-cassandra
+  title: Tư duy Cassandra
+  purpose: Hiểu Cassandra giải quyết bài toán nào và các giới hạn cần cân nhắc.
+  objectives:
+  - Phân biệt mô hình cột rộng với lưu trữ cột phục vụ phân tích.
+  - Nêu bài toán phù hợp với Cassandra và các đánh đổi chính.
+- id: kien-truc-phan-tan
+  title: Kiến trúc phân tán
+  purpose: Hiểu cách cụm phân phối dữ liệu và duy trì các bản sao.
+  objectives:
+  - Vẽ luồng định tuyến theo token và vai trò nút điều phối.
+  - Giải thích hệ số sao chép (RF), bản sao và phạm vi trung tâm dữ liệu.
+- id: thiet-ke-theo-truy-van
+  title: Thiết kế theo truy vấn
+  purpose: Tổ chức dữ liệu để truy vấn có phạm vi rõ ràng và chi phí dự đoán được.
+  objectives:
+  - Chọn khóa phân vùng, khóa phân cụm và thứ tự đọc theo truy vấn.
+  - Chia nhóm (bucket) để giới hạn phân vùng và giảm điểm nóng dữ liệu.
+- id: thao-tac-cql
+  title: Thao tác CQL
+  purpose: Thực hiện đúng vòng đời tạo, đọc, cập nhật và xóa dữ liệu.
+  objectives:
+  - Dựng môi trường, tạo keyspace/table và thực hiện CRUD bằng CQL.
+  - Giải thích tác động của TTL, timestamp, DELETE và BATCH.
+- id: nhat-quan-va-dong-thoi
+  title: Nhất quán và đồng thời
+  purpose: Giữ tính đúng khi đọc/ghi đồng thời và khi một phần cụm gặp lỗi.
+  objectives:
+  - Đối chiếu ONE, QUORUM, LOCAL_QUORUM với RF và tình huống lỗi nút.
+  - Thử cập nhật có điều kiện bằng LWT, kiểm tra xung đột và giới hạn nguyên tử.
+- id: ket-noi-java
+  title: Kết nối Java
+  purpose: Đưa truy vấn Cassandra vào ứng dụng với vòng đời và xử lý lỗi rõ ràng.
+  objectives:
+  - Dùng CqlSession, prepared statement và phân trang để đọc/ghi từ Java.
+  - Thiết lập timeout và kiểm tra retry theo tính lũy đẳng của thao tác.
+- id: luu-tru-va-hieu-nang
+  title: Lưu trữ và hiệu năng
+  purpose: Liên hệ cơ chế lưu trữ với độ trễ, tải đọc/ghi và nhu cầu mở rộng.
+  objectives:
+  - Giải thích đường ghi/đọc qua commit log, memtable, SSTable và compaction.
+  - Đo độ trễ, nhận diện tombstone/phân vùng lớn và đánh giá chỉ mục theo phiên bản.
+- id: van-hanh-an-toan
+  title: Vận hành an toàn
+  purpose: Duy trì cụm, bảo vệ truy cập và kiểm chứng khả năng phục hồi.
+  objectives:
+  - Theo dõi chỉ số cụm và kiểm chứng quy trình repair.
+  - Thực hiện sao lưu/khôi phục thử và đối soát dữ liệu.
+  - Thiết lập xác thực, phân quyền và TLS cho kết nối.

@@ -1,0 +1,91 @@
+menu:
+  - title: "Tổng quan"
+    slug: os-overview
+    index: 0
+  - title: "Phần cứng nền tảng"
+    slug: hardware-foundations
+    index: 1
+  - title: "Kiến trúc kernel"
+    slug: kernel-architecture
+    index: 2
+  - title: "Khởi động hệ thống"
+    slug: system-boot
+    index: 3
+  - title: "System call"
+    slug: system-calls
+    index: 4
+  - title: "Tiến trình"
+    slug: processes
+    index: 5
+  - title: "Luồng"
+    slug: threads
+    index: 6
+  - title: "Lập lịch CPU"
+    slug: cpu-scheduling
+    index: 7
+  - title: "Giao tiếp liên tiến trình"
+    slug: interprocess-communication
+    index: 8
+  - title: "Đồng bộ"
+    slug: concurrency-synchronization
+    index: 9
+  - title: "Deadlock và tính sống"
+    slug: deadlocks-and-liveness
+    index: 10
+  - title: "Tổ chức bộ nhớ"
+    slug: memory-organization
+    index: 11
+  - title: "Bộ nhớ ảo"
+    slug: virtual-memory
+    index: 12
+  - title: "Cấp phát bộ nhớ"
+    slug: memory-allocation
+    index: 13
+  - title: "Tệp và thư mục"
+    slug: files-and-directories
+    index: 14
+  - title: "Hệ thống tệp"
+    slug: file-systems
+    index: 15
+  - title: "Lưu trữ khối"
+    slug: block-storage
+    index: 16
+  - title: "Thiết bị và I/O"
+    slug: devices-and-io
+    index: 17
+  - title: "Bộ đệm và cache"
+    slug: buffering-and-caching
+    index: 18
+  - title: "Mạng và socket"
+    slug: networking-and-sockets
+    index: 19
+  - title: "Thời gian và sự kiện"
+    slug: clocks-timers-and-events
+    index: 20
+  - title: "Người dùng và quyền"
+    slug: users-and-permissions
+    index: 21
+  - title: "Bảo vệ và cô lập"
+    slug: protection-and-isolation
+    index: 22
+  - title: "Quản lý tài nguyên"
+    slug: resource-management
+    index: 23
+  - title: "Máy ảo"
+    slug: virtual-machines
+    index: 24
+  - title: "Container"
+    slug: containers
+    index: 25
+  - title: "Môi trường ứng dụng"
+    slug: application-environment
+    index: 26
+  - title: "Độ tin cậy"
+    slug: reliability-and-recovery
+    index: 27
+  - title: "Quan sát hệ thống"
+    slug: system-observability
+    index: 28
+  - title: "Thực hành tổng hợp"
+    slug: os-practice-labs
+    index: 29

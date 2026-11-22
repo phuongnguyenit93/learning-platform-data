@@ -1,0 +1,109 @@
+menu:
+  - title: "Nền tảng vận hành cloud"
+    slug: operations-fundamentals
+    index: 0
+  - title: "Kiến trúc và khả năng sẵn sàng"
+    slug: architecture-and-availability
+    index: 1
+  - title: "Tổ chức môi trường và quản trị"
+    slug: environment-organization-and-governance
+    index: 2
+  - title: "Kiểm kê tài nguyên và cấu hình"
+    slug: resource-inventory-and-configuration
+    index: 3
+  - title: "Định danh và quyền vận hành"
+    slug: identity-and-access-management
+    index: 4
+  - title: "Hạ tầng dưới dạng mã"
+    slug: infrastructure-as-code
+    index: 5
+  - title: "Tự động hóa vận hành"
+    slug: operations-automation
+    index: 6
+  - title: "Vận hành máy ảo và hệ điều hành"
+    slug: virtual-machines-and-operating-systems
+    index: 7
+  - title: "Vận hành container và registry"
+    slug: containers-and-registries
+    index: 8
+  - title: "Vận hành Kubernetes"
+    slug: kubernetes-operations
+    index: 9
+  - title: "Ứng dụng và dịch vụ phi máy chủ"
+    slug: applications-and-serverless-services
+    index: 10
+  - title: "Vận hành mạng cloud"
+    slug: network-operations
+    index: 11
+  - title: "DNS, TLS và cân bằng tải"
+    slug: dns-tls-and-load-balancing
+    index: 12
+  - title: "Vận hành lưu trữ"
+    slug: storage-operations
+    index: 13
+  - title: "Vận hành dịch vụ dữ liệu"
+    slug: data-service-operations
+    index: 14
+  - title: "Nền tảng quan sát hệ thống"
+    slug: observability-foundations
+    index: 15
+  - title: "Giám sát bằng metrics"
+    slug: metrics-monitoring
+    index: 16
+  - title: "Nhật ký và truy vết phân tán"
+    slug: logging-and-distributed-tracing
+    index: 17
+  - title: "SLI, SLO và error budget"
+    slug: slis-slos-and-error-budgets
+    index: 18
+  - title: "Thiết kế cảnh báo"
+    slug: alert-design
+    index: 19
+  - title: "Ứng trực và ứng phó sự cố"
+    slug: on-call-and-incident-response
+    index: 20
+  - title: "Điều tra nguyên nhân và cải tiến"
+    slug: root-cause-analysis-and-improvement
+    index: 21
+  - title: "Quản lý dịch vụ và thay đổi"
+    slug: service-and-change-management
+    index: 22
+  - title: "Phát hành và triển khai an toàn"
+    slug: safe-releases-and-deployments
+    index: 23
+  - title: "Hiệu năng và năng lực hệ thống"
+    slug: performance-and-capacity
+    index: 24
+  - title: "Vận hành chi phí cloud"
+    slug: cost-management-and-finops
+    index: 25
+  - title: "Sao lưu và khôi phục dữ liệu"
+    slug: data-backup-and-recovery
+    index: 26
+  - title: "Khôi phục thảm họa và liên tục kinh doanh"
+    slug: disaster-recovery-business-continuity
+    index: 27
+  - title: "An toàn vận hành và ứng phó bảo mật"
+    slug: security-operations-and-response
+    index: 28
+  - title: "Tuân thủ và kiểm toán vận hành"
+    slug: operational-compliance-and-auditing
+    index: 29
+  - title: "Bảo trì và vòng đời dịch vụ"
+    slug: maintenance-and-service-lifecycle
+    index: 30
+  - title: "Vận hành hybrid và nhiều cloud"
+    slug: hybrid-and-multicloud-operations
+    index: 31
+  - title: "Kiểm thử khả năng phục hồi"
+    slug: resilience-testing
+    index: 32
+  - title: "Runbook và quản lý tri thức"
+    slug: runbooks-and-knowledge-management
+    index: 33
+  - title: "Nền tảng vận hành tự phục vụ"
+    slug: self-service-operations-platform
+    index: 34
+  - title: "Thực hành vận hành tổng hợp"
+    slug: integrated-operations-practice
+    index: 35

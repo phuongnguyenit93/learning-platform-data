@@ -1,0 +1,49 @@
+roadmap:
+- id: vai-tro-api-gateway
+  title: Vai trò API Gateway
+  purpose: Hiểu gateway là điểm vào thống nhất giữa client và các dịch vụ.
+  objectives:
+  - Mô tả luồng client → gateway → upstream.
+  - Phân biệt API Gateway với reverse proxy và load balancer.
+- id: routing-upstream
+  title: Routing & Upstream
+  purpose: Đưa yêu cầu tới đúng dịch vụ và phiên bản cần xử lý.
+  objectives:
+  - Định tuyến theo host, path và HTTP method.
+  - Giải thích health check và cân bằng tải upstream.
+- id: http-tls
+  title: HTTP & TLS
+  purpose: Hiểu cách gateway xử lý giao thức và kết nối bảo mật.
+  objectives:
+  - Nhận diện method, status, headers, rewrite và CORS.
+  - Giải thích TLS termination và HTTPS tới upstream.
+- id: xac-thuc-phan-quyen
+  title: Xác thực & Phân quyền
+  purpose: Kiểm soát danh tính và quyền truy cập API tại ranh giới hệ thống.
+  objectives:
+  - So sánh API key, JWT và OAuth2/OIDC.
+  - Phân biệt kiểm tra tại gateway và phân quyền trong service.
+- id: kiem-soat-luu-luong
+  title: Kiểm soát lưu lượng
+  purpose: Bảo vệ upstream trước tải lớn và các lỗi phụ thuộc.
+  objectives:
+  - Giải thích rate limit, quota và timeout.
+  - Đánh giá retry, circuit breaker và tính idempotent.
+- id: gateway-patterns
+  title: Gateway Patterns
+  purpose: Chọn mẫu thiết kế giảm phức tạp cho client và backend.
+  objectives:
+  - Phân biệt routing, aggregation và offloading.
+  - Nêu trường hợp áp dụng Backend for Frontend (BFF).
+- id: giam-sat-van-hanh
+  title: Giám sát & Vận hành
+  purpose: Đo độ tin cậy và giữ gateway sẵn sàng phục vụ.
+  objectives:
+  - Theo dõi latency, traffic, lỗi qua metrics và logs.
+  - Giải thích dự phòng, cấu hình và rollout an toàn.
+- id: thiet-ke-kiem-thu
+  title: Thiết kế & Kiểm thử
+  purpose: Kết hợp các nguyên lý trong một kịch bản API đơn giản.
+  objectives:
+  - Phác họa gateway phục vụ hai backend và chính sách truy cập.
+  - Thử route sai, thiếu quyền, vượt hạn mức và upstream lỗi.

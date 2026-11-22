@@ -1,0 +1,64 @@
+roadmap:
+- id: nen-tang-ibm-cloud
+  title: Nền tảng IBM Cloud
+  purpose: Nắm cấu trúc nền tảng và cách tổ chức tài nguyên trước khi triển khai dịch vụ.
+  objectives:
+  - Khám phá Catalog, console và IBM Cloud CLI
+  - Phân biệt region, zone và resource group
+  - Chọn vị trí và loại dịch vụ cho bài toán mẫu
+- id: iam-quan-ly-truy-cap
+  title: IAM & quản lý truy cập
+  purpose: Thiết lập ranh giới quyền truy cập theo danh tính và tài nguyên để hạn chế cấp quyền quá rộng.
+  objectives:
+  - Phân biệt user, service ID và API key
+  - Gán IAM policy theo role và resource group
+  - Kiểm tra quyền của tài khoản triển khai
+- id: vpc-networking
+  title: VPC & Networking
+  purpose: Thiết kế kết nối riêng, định tuyến và kiểm soát lưu lượng cho các workload cloud.
+  objectives:
+  - Tạo VPC và subnet theo vùng khả dụng
+  - Phân biệt security group với network ACL
+  - Giải thích public gateway, floating IP và load balancer
+- id: compute-may-ao
+  title: Compute & máy ảo
+  purpose: Lựa chọn tài nguyên tính toán phù hợp và triển khai ứng dụng cơ bản trên hạ tầng VPC.
+  objectives:
+  - Tạo virtual server instance và SSH key
+  - Chọn profile CPU, RAM và block storage
+  - Kiểm tra kết nối và phân phối tải vào ứng dụng
+- id: containers-serverless
+  title: Containers & Serverless
+  purpose: So sánh mô hình vận hành Kubernetes với dịch vụ chạy ứng dụng không quản lý hạ tầng.
+  objectives:
+  - Triển khai workload lên IBM Cloud Kubernetes Service
+  - Chạy app hoặc job bằng IBM Cloud Code Engine
+  - Chọn mô hình chạy theo nhu cầu mở rộng và quản trị
+- id: storage-databases
+  title: Storage & Databases
+  purpose: Chọn lưu trữ object hay cơ sở dữ liệu được quản lý theo đặc tính và yêu cầu dữ liệu.
+  objectives:
+  - Tạo bucket IBM Cloud Object Storage và phân quyền
+  - Khởi tạo managed PostgreSQL và kết nối an toàn
+  - Giải thích backup, độ bền và vị trí lưu dữ liệu
+- id: secrets-an-toan
+  title: Secrets & an toàn
+  purpose: Bảo vệ tài khoản, credential và dữ liệu nhạy cảm xuyên suốt vòng đời ứng dụng.
+  objectives:
+  - Quản lý bí mật bằng IBM Cloud Secrets Manager
+  - Áp dụng IAM least privilege và private endpoint khi hỗ trợ
+  - Phân biệt encryption, key management và audit event
+- id: iac-tu-dong-hoa
+  title: IaC & tự động hóa
+  purpose: Chuẩn hóa cách tạo, cập nhật và hủy tài nguyên để môi trường có thể lặp lại.
+  objectives:
+  - Dùng Terraform để mô tả hạ tầng IBM Cloud
+  - Giải thích workspace và state trong Cloud Schematics
+  - Kiểm tra thay đổi trước khi áp dụng lên môi trường
+- id: quan-sat-chi-phi
+  title: Quan sát & chi phí
+  purpose: Theo dõi hoạt động và ngân sách để vận hành workload ổn định, có kiểm soát.
+  objectives:
+  - Tạo dashboard và alert bằng IBM Cloud Monitoring
+  - Xem log, sự kiện và lỗi của dịch vụ
+  - Kiểm tra usage, ước tính chi phí và đặt cảnh báo chi tiêu

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-platform-engineering
+  title: Tổng quan Platform Engineering
+  purpose: Hiểu mục đích xây nền tảng dùng chung để giảm gánh nặng vận hành cho đội phát triển.
+  objectives:
+  - Giải thích vai trò Platform Engineering và lợi ích cho developer.
+  - Phân biệt phạm vi với DevOps và SRE.
+- id: platform-as-a-product
+  title: Platform as a Product
+  purpose: Xác định nhu cầu của developer trước khi xây các tính năng nền tảng.
+  objectives:
+  - Mô tả developer là người dùng nội bộ của platform.
+  - Ưu tiên một pain point bằng phỏng vấn và feedback.
+- id: idp-self-service
+  title: IDP & Self-service
+  purpose: Nắm cách nền tảng nội bộ cung cấp năng lực dùng chung mà không cần xử lý ticket thủ công.
+  objectives:
+  - Giải thích Internal Developer Platform và self-service.
+  - Phân biệt IDP với developer portal chỉ đóng vai trò giao diện.
+- id: golden-paths
+  title: Golden Paths
+  purpose: Chuẩn hóa quy trình lặp lại bằng mẫu và tự động hóa dễ sử dụng.
+  objectives:
+  - Mô tả Golden Path cho tạo service hoặc triển khai.
+  - Xác định templates, defaults và các bước tự động.
+- id: thanh-phan-platform
+  title: Thành phần Platform
+  purpose: Hình dung các dịch vụ kỹ thuật đứng sau trải nghiệm self-service.
+  objectives:
+  - Liên kết CI/CD, hạ tầng, secrets và observability với IDP.
+  - Phân biệt giao diện platform với công cụ nền tảng.
+- id: guardrails-ownership
+  title: Guardrails & Ownership
+  purpose: Cân bằng quyền tự chủ của developer với bảo mật, tin cậy và trách nhiệm vận hành.
+  objectives:
+  - Đề xuất policy/guardrail an toàn cho một workflow.
+  - Xác định ranh giới trách nhiệm giữa platform và application team.
+- id: developer-experience
+  title: Developer Experience
+  purpose: Thiết kế trải nghiệm dễ tìm, dễ hiểu và có phản hồi khi thao tác lỗi.
+  objectives:
+  - Mô tả vai trò tài liệu, service catalog và hỗ trợ.
+  - Đánh giá một journey theo tính dễ dùng và khả năng tự xử lý.
+- id: do-luong-cai-tien
+  title: Đo lường & cải tiến
+  purpose: Duy trì platform như sản phẩm được cải tiến dựa trên giá trị thực tế.
+  objectives:
+  - Đề xuất chỉ số adoption, thời gian self-service và satisfaction.
+  - Lập vòng phản hồi để ưu tiên cải tiến tiếp theo.

@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-sast-dast
+  title: Tổng quan SAST & DAST
+  purpose: Hiểu hai cách kiểm tra bảo mật ứng dụng và phạm vi bổ trợ của chúng.
+  objectives:
+  - Phân biệt SAST phân tích mã tĩnh và DAST kiểm tra ứng dụng đang chạy.
+  - Xác định giai đoạn SDLC phù hợp cho mỗi cách.
+  - Nêu các giới hạn của kết quả quét tự động.
+- id: loi-bao-mat-data-flow
+  title: Lỗi bảo mật & Data Flow
+  purpose: Nhận biết các kiểu lỗi phổ biến và cách SAST truy vết dữ liệu.
+  objectives:
+  - Nêu ví dụ SQL injection, XSS và dữ liệu nhạy cảm lộ ra.
+  - Phân biệt source, sanitizer và sink.
+  - Đọc đường đi dữ liệu trong một finding SAST.
+- id: thiet-lap-sast
+  title: Thiết lập SAST
+  purpose: Tự động phân tích mã trong quá trình phát triển và review.
+  objectives:
+  - Chọn bộ quy tắc phù hợp ngôn ngữ và framework.
+  - Chạy scanner trên code mẫu ở local và pull request.
+  - Đọc vị trí mã, mức độ và đề xuất khắc phục.
+- id: pham-vi-moi-truong-dast
+  title: Phạm vi & Môi trường DAST
+  purpose: Chuẩn bị mục tiêu quét hợp lệ và có kiểm soát.
+  objectives:
+  - Xác định URL, API, tài khoản thử nghiệm và phạm vi được phép.
+  - Cấu hình staging, dữ liệu giả và giới hạn tốc độ quét.
+  - Phân biệt passive scan với active scan có tác động.
+- id: zap-baseline-scan
+  title: ZAP Baseline Scan
+  purpose: Thu thập phát hiện DAST ban đầu mà không chạy payload tấn công chủ động.
+  objectives:
+  - Chạy OWASP ZAP baseline trên ứng dụng thử nghiệm được phép.
+  - Xuất và đọc báo cáo HTML hoặc JSON.
+  - Nhận diện cảnh báo header, cookie và cấu hình HTTP.
+- id: dast-chu-dong-xac-thuc
+  title: DAST Chủ động & Xác thực
+  purpose: Kiểm tra sâu hơn theo vai trò đăng nhập trong môi trường được phép.
+  objectives:
+  - Thiết lập context và phiên đăng nhập thử nghiệm.
+  - Giới hạn endpoint, phương thức và scan policy.
+  - Đánh giá nguy cơ gây thay đổi dữ liệu trước khi active scan.
+- id: triage-khac-phuc
+  title: Triage & Khắc phục
+  purpose: Biến cảnh báo scanner thành vấn đề có thể tái hiện và sửa đúng nguyên nhân.
+  objectives:
+  - Phân biệt true positive và false positive.
+  - Ưu tiên theo mức nghiêm trọng, khả năng khai thác và ảnh hưởng.
+  - Viết kiểm thử hồi quy sau khi sửa lỗi.
+- id: ci-cd-gate-theo-doi
+  title: CI/CD Gate & Theo dõi
+  purpose: Gắn SAST và DAST vào luồng phát hành với phản hồi rõ ràng.
+  objectives:
+  - Chạy SAST trên PR và DAST trên staging định kỳ.
+  - Đưa kết quả SAST dạng SARIF vào hệ thống quản lý cảnh báo.
+  - Đặt ngưỡng chặn, ngoại lệ có thời hạn và theo dõi xu hướng.

@@ -1,0 +1,49 @@
+roadmap:
+- id: hash-mac-signature
+  title: Hash, MAC & Signature
+  purpose: Phân biệt ba cơ chế mật mã theo nhu cầu toàn vẹn, xác thực nguồn gốc và khả năng kiểm chứng.
+  objectives:
+  - '- Giải thích hash không có khóa, MAC dùng khóa bí mật và signature dùng cặp khóa.'
+  - '- Chọn cơ chế phù hợp cho checksum, xác thực thông điệp và chữ ký.'
+- id: sha-2-sha-3-thuoc-tinh
+  title: SHA-2, SHA-3 & Thuộc tính
+  purpose: Nắm các đặc tính của hàm băm mật mã và tiêu chí chọn thuật toán hiện đại.
+  objectives:
+  - '- Giải thích collision, preimage và second-preimage resistance.'
+  - '- So sánh SHA-256/SHA-3; tránh MD5/SHA-1 cho ứng dụng mới.'
+- id: bytes-encoding-digest
+  title: Bytes, Encoding & Digest
+  purpose: Đảm bảo hai bên băm đúng cùng một chuỗi byte và hiểu giới hạn của digest.
+  objectives:
+  - '- Chuẩn hóa UTF-8, thứ tự trường và biểu diễn số khi tạo dữ liệu để băm.'
+  - '- Tạo/đối chiếu digest, giải thích vì sao hash đơn thuần không xác thực.'
+- id: hmac-secret-key
+  title: HMAC & Secret Key
+  purpose: Sử dụng MAC có khóa để xác nhận tính toàn vẹn và nguồn gốc với hai phía chia sẻ bí mật.
+  objectives:
+  - '- Tính HMAC-SHA256 từ message và key có độ mạnh phù hợp.'
+  - '- Phân biệt HMAC với SHA-256(message || secret) tự thiết kế.'
+- id: mac-verification-replay
+  title: MAC Verification & Replay
+  purpose: Xác minh tag an toàn và hạn chế việc gửi lại thông điệp hợp lệ nhưng đã cũ.
+  objectives:
+  - '- So sánh MAC bằng phương thức hạn chế timing leak.'
+  - '- Thiết kế timestamp, nonce và phạm vi dữ liệu được ký để chặn replay.'
+- id: digital-signatures
+  title: Digital Signatures
+  purpose: Sử dụng khóa riêng để ký và khóa công khai đã được tin cậy để kiểm chứng dữ liệu.
+  objectives:
+  - '- Phân biệt public/private key và ký so với mã hóa.'
+  - '- Nhận diện RSA-PSS, ECDSA, Ed25519 và xác thực public key.'
+- id: java-jca-hash-mac-sign
+  title: 'Java JCA: Hash/MAC/Sign'
+  purpose: Thực hành API mật mã chuẩn của Java thay vì tự triển khai thuật toán.
+  objectives:
+  - '- Dùng MessageDigest, javax.crypto.Mac và java.security.Signature.'
+  - '- Viết ví dụ sign/verify và HMAC verify với dữ liệu bị thay đổi.'
+- id: key-lifecycle-security-tests
+  title: Key Lifecycle & Security Tests
+  purpose: Quản lý khóa, tham số và khả năng tương thích để cơ chế xác thực hoạt động bền vững.
+  objectives:
+  - '- Lập quy trình tạo, lưu, phân quyền, luân chuyển, thu hồi khóa.'
+  - '- Kiểm thử tampering, key sai, encoding sai và signature không hợp lệ.'

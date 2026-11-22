@@ -1,0 +1,365 @@
+menu:
+- level1: Tổng quan Tempo
+  level2:
+  - Grafana Tempo là gì và giải quyết bài toán truy vết phân tán nào
+  - Vai trò của trace trong việc tìm lỗi và điểm nghẽn giữa các dịch vụ
+  - Phân biệt nơi tạo span, bộ thu thập, Tempo và giao diện Grafana
+  - Luồng dữ liệu từ ứng dụng đến lưu trữ và truy vấn trace
+  - Mối liên hệ giữa trace, log, metric và hồ sơ hiệu năng
+  - Phân biệt Tempo tự quản lý với dịch vụ tracing trên Grafana Cloud
+  - Khả năng và giới hạn của Tempo so với Jaeger và Zipkin
+  - Kiến thức đầu vào và lộ trình từ trace đầu tiên đến vận hành
+- level1: Mô hình trace
+  level2:
+  - Trace, span và quan hệ cha con trong một yêu cầu phân tán
+  - Vai trò của trace ID, span ID và parent span ID
+  - Phân biệt span phía client, server, producer, consumer và nội bộ
+  - Thuộc tính tài nguyên, thuộc tính span và thông tin thư viện đo đạc
+  - Ý nghĩa của service.name, môi trường và phiên bản dịch vụ
+  - Trạng thái span, sự kiện và thông tin ngoại lệ
+  - Span link và quan hệ bất đồng bộ không biểu diễn bằng cây cha con
+  - Phân biệt thời lượng từng span với thời lượng toàn trace
+  - Ảnh hưởng của mất ngữ cảnh, lệch đồng hồ và span đến muộn
+  - Quy ước ngữ nghĩa OpenTelemetry và tính nhất quán của dữ liệu
+- level1: Kiến trúc Tempo 3.x
+  level2:
+  - Chọn chế độ một tiến trình hoặc nhiều thành phần độc lập
+  - Distributor tiếp nhận, xác thực cấu trúc và điều phối dữ liệu span
+  - Kafka làm nhật ký bền vững trong chế độ microservices
+  - Live-store phục vụ truy vấn dữ liệu mới tiếp nhận
+  - Block-builder tạo khối Parquet cho kho lưu trữ đối tượng
+  - Query frontend chia truy vấn và tổng hợp kết quả từ querier
+  - Backend scheduler và backend worker quản lý tác vụ dữ liệu
+  - Metrics-generator tạo metric tùy chọn từ luồng span
+  - Đường ghi và đường đọc trong chế độ monolithic không cần Kafka
+  - Khác biệt kiến trúc với ingester và compactor của Tempo 2.x
+- level1: Phòng thực hành
+  level2:
+  - Chuẩn bị Docker Compose, Tempo, Grafana và nguồn phát trace mẫu
+  - Cố định phiên bản Tempo, Grafana và công cụ thu thập
+  - Tổ chức tệp cấu hình, cổng mạng và vùng dữ liệu bền vững
+  - Khởi chạy chế độ monolithic với lưu trữ cục bộ cho học tập
+  - Tạo trace mẫu với trace ID đã biết để kiểm tra đường đi dữ liệu
+  - Khai báo nguồn dữ liệu Tempo trong Grafana
+  - Xác nhận trace đầu tiên bằng API và giao diện
+  - Dừng, khởi chạy lại và kiểm tra giới hạn lưu trữ của môi trường thử
+- level1: Cấu hình nền tảng
+  level2:
+  - Cấu trúc tệp cấu hình Tempo và vai trò của các khối chức năng
+  - Chọn target phù hợp với chế độ triển khai
+  - Phân biệt cấu hình HTTP server, gRPC nội bộ và receiver
+  - Đọc giá trị mặc định theo đúng phiên bản thay vì sao chép cấu hình cũ
+  - Dùng biến môi trường và kiểm tra thay thế giá trị trong YAML
+  - Phân biệt cấu hình chung, runtime overrides và giới hạn theo tenant
+  - Kiểm tra cấu hình hiệu lực cùng nhật ký khởi động
+  - Quản lý cấu hình theo môi trường và bảo vệ thông tin xác thực
+- level1: Tiếp nhận trace
+  level2:
+  - Chọn OTLP làm giao thức tiếp nhận từ ứng dụng hoặc collector
+  - Phân biệt OTLP gRPC và OTLP HTTP cùng định dạng dữ liệu
+  - Phân biệt cổng receiver OTLP với API HTTP truy vấn Tempo
+  - Khai báo địa chỉ lắng nghe và kết nối giữa các container
+  - Bật receiver Jaeger hoặc Zipkin khi tích hợp hệ thống hiện có
+  - Cấu hình TLS và thông tin xác thực trên đường gửi trace
+  - Kiểm soát kích thước lô, nén dữ liệu và giới hạn thông điệp
+  - Xử lý phản hồi từ chối, lỗi tạm thời và kết quả tiếp nhận một phần
+  - Xác minh nhận thành công và thời điểm dữ liệu thực sự truy vấn được
+- level1: Kết nối ứng dụng
+  level2:
+  - Chọn OpenTelemetry Java agent, SDK hoặc Micrometer Tracing
+  - Cấu hình tên dịch vụ, tài nguyên và OTLP exporter
+  - Đưa trace Spring Boot qua collector trước khi đến Tempo
+  - Tránh tạo span hoặc xuất trace trùng khi dùng nhiều cơ chế đo đạc
+  - Kiểm tra truyền trace context qua HTTP giữa các dịch vụ
+  - Giữ ngữ cảnh khi chuyển luồng, xử lý bất đồng bộ và gửi thông điệp
+  - Bổ sung span nghiệp vụ có mục đích cùng thuộc tính hữu ích
+  - Ghi trace ID và span ID vào log để phục vụ liên kết
+  - Kiểm tra ngoại lệ, lời gọi cơ sở dữ liệu và yêu cầu chậm trong trace
+- level1: Collector và Alloy
+  level2:
+  - Vai trò trung gian của OpenTelemetry Collector và Grafana Alloy
+  - Tổ chức pipeline receiver, processor và exporter cho trace
+  - Chọn mô hình bộ thu thập gần ứng dụng hoặc cổng thu thập tập trung
+  - Gom lô và giới hạn bộ nhớ trong quá trình xử lý span
+  - Chuẩn hóa thuộc tính tài nguyên trước khi gửi đến Tempo
+  - Lọc span không cần thiết và loại bỏ thuộc tính nhạy cảm
+  - Cấu hình hàng đợi gửi, thử lại và giới hạn khi Tempo tạm ngừng
+  - Bảo toàn trace ID, nhãn tenant và quan hệ span qua pipeline
+  - Quan sát số span nhận, gửi, bị từ chối và bị loại bỏ
+  - Kiểm tra cấu hình Alloy riêng với cấu hình YAML của Collector
+- level1: Chiến lược lấy mẫu
+  level2:
+  - Vì sao cần cân bằng độ đầy đủ của trace với chi phí thu thập
+  - Phân biệt lấy mẫu đầu luồng và cuối luồng
+  - Giữ quyết định lấy mẫu nhất quán theo ngữ cảnh cha
+  - Đặt chính sách giữ trace lỗi, chậm hoặc quan trọng với nghiệp vụ
+  - Định tuyến các span cùng trace đến cùng bộ xử lý lấy mẫu cuối luồng
+  - Chọn khoảng chờ quyết định và xử lý trace kéo dài hoặc span đến muộn
+  - Ước lượng bộ nhớ và khả năng mất trace của bộ lấy mẫu
+  - Phân biệt dữ liệu bị lấy mẫu với dữ liệu bị mất do pipeline lỗi
+  - Ảnh hưởng của lấy mẫu đến span metrics và sơ đồ dịch vụ
+  - Vì sao liên kết từ log hoặc exemplar có thể trỏ đến trace không được lưu
+  - Kiểm chứng chính sách bằng tập trace có kết quả kỳ vọng
+- level1: Lưu trữ đối tượng
+  level2:
+  - Vai trò của object storage trong lưu trữ trace dài hạn
+  - Chọn S3 tương thích, Google Cloud Storage hoặc Azure Blob Storage
+  - Cấu hình bucket, vùng, endpoint và quyền truy cập cần thiết
+  - Dùng MinIO cho phòng thực hành với giao thức S3
+  - Giới hạn của backend tệp cục bộ khi chuyển sang vận hành thực tế
+  - Khối dữ liệu Apache Parquet và cách đọc theo cột
+  - Tệp siêu dữ liệu, danh sách khối và khả năng phát hiện dữ liệu mới
+  - Phân biệt dữ liệu cục bộ tạm thời với dữ liệu đã ghi bền vững
+  - Đối chiếu định dạng khối và khả năng đọc của phiên bản Tempo
+- level1: Vòng đời trace
+  level2:
+  - Từ span mới tiếp nhận đến khối lưu trữ dài hạn
+  - Phân biệt dữ liệu truy vấn từ live-store và từ object storage
+  - Độ trễ khả kiến khi tạo khối, ghi kho và cập nhật danh sách khối
+  - Cách Tempo xử lý trace chưa đầy đủ và span bổ sung về sau
+  - Vai trò của compaction trong hợp nhất và tối ưu khối
+  - Thiết lập thời gian lưu giữ chung và theo tenant
+  - Phối hợp chính sách xóa của Tempo với vòng đời bucket
+  - Ảnh hưởng của span đến muộn và trace kéo dài đến kết quả tra cứu
+  - Xác minh dữ liệu hết hạn và tránh kỳ vọng xóa tức thời
+- level1: Tra cứu qua API
+  level2:
+  - Phân biệt truy xuất bằng trace ID với tìm kiếm theo thuộc tính
+  - Tra cứu một trace đã biết và đọc cấu trúc phản hồi
+  - Chọn khoảng thời gian khi tìm kiếm trace
+  - Tìm tên thuộc tính và giá trị thuộc tính phục vụ truy vấn
+  - Gửi TraceQL qua API tìm kiếm
+  - Phân biệt API truy vấn trace với API TraceQL metrics
+  - Điều chỉnh giới hạn kết quả, thời gian chờ và kích thước phản hồi
+  - Đọc thống kê truy vấn để xác định lượng dữ liệu đã quét
+  - Phân biệt không tìm thấy, không có quyền, vượt giới hạn và lỗi backend
+- level1: Khám phá Grafana
+  level2:
+  - Cấu hình nguồn dữ liệu Tempo và kiểm tra kết nối
+  - Tổ chức nguồn dữ liệu theo môi trường và tenant
+  - Tra cứu trace ID trong Explore
+  - Dùng trình dựng truy vấn và trình soạn TraceQL
+  - Đọc cây span, dòng thời gian và các lời gọi chồng lấn
+  - Xác định dịch vụ chậm, span lỗi và khoảng thời gian chưa có minh chứng
+  - Kiểm tra thuộc tính tài nguyên, sự kiện và liên kết span
+  - Sử dụng Traces Drilldown theo khả năng của phiên bản Grafana
+  - Lưu và chia sẻ truy vấn cùng khoảng thời gian đủ để tái hiện
+  - Phân biệt tổng độ dài các span với thời gian chờ của toàn yêu cầu
+- level1: TraceQL cơ bản
+  level2:
+  - Mô hình tập span và biểu thức chọn trong cặp dấu ngoặc nhọn
+  - Phân biệt trường nội tại với thuộc tính tùy biến
+  - Chọn đúng phạm vi span, resource, event, link và instrumentation
+  - Lọc dịch vụ bằng resource.service.name
+  - Lọc theo tên span, loại span và trạng thái
+  - Phân biệt span:duration, trace:duration và bí danh duration
+  - So sánh chuỗi, số, thời lượng và biểu thức chính quy
+  - Kết hợp điều kiện trên cùng một span
+  - Xử lý thuộc tính thiếu, kiểu dữ liệu khác nhau và tên cần trích dẫn
+  - Đối chiếu truy vấn với dữ liệu span thực tế và quy ước ngữ nghĩa
+- level1: TraceQL nâng cao
+  level2:
+  - Phân biệt kết hợp điều kiện trong một span với kết hợp nhiều tập span
+  - Tìm trace đi qua nhiều dịch vụ bằng các phép toán tập span
+  - Truy vấn quan hệ cha con, tổ tiên và hậu duệ
+  - Truy vấn các span cùng cha và chuỗi lỗi lan truyền
+  - Phân biệt toán tử cấu trúc trả phía phải với toán tử hợp cấu trúc
+  - Nhận diện giới hạn và tính thử nghiệm của toán tử phủ định cấu trúc
+  - Lọc tập span bằng count, avg, min, max và sum
+  - Gom tập span bằng by trước khi kiểm tra điều kiện
+  - Chọn thuộc tính cần hiển thị bằng select
+  - Xây dựng truy vấn tìm lời gọi lặp, truy vấn cơ sở dữ liệu chậm và lỗi dây chuyền
+  - Kiểm tra giới hạn số kết quả và tránh mặc định kết quả luôn mới nhất
+- level1: TraceQL metrics
+  level2:
+  - Phân biệt tìm trace, tổng hợp trong trace và metric theo thời gian
+  - Điều kiện phiên bản, cấu hình và dữ liệu khối để chạy TraceQL metrics
+  - Tính số lượng và tốc độ span bằng count_over_time và rate
+  - Tính độ trễ trung bình, phân vị và phân bố từ span
+  - Gom metric theo dịch vụ, thao tác hoặc thuộc tính cần phân tích
+  - Kết hợp biểu thức để tính tỷ lệ lỗi và chỉ số dẫn xuất
+  - Chọn bước thời gian và khoảng truy vấn phù hợp
+  - Tìm nhóm nổi bật bằng topk, bottomk và chức năng so sánh
+  - Dùng exemplar để mở trace đóng góp vào một điểm metric
+  - Đánh giá ảnh hưởng của lấy mẫu và dữ liệu thiếu đến kết luận
+  - Phân biệt kết quả TraceQL metrics với metric tạo sẵn bởi metrics-generator
+- level1: Metrics-generator
+  level2:
+  - Khi nào nên tạo metric từ trace để giám sát liên tục
+  - Luồng dữ liệu và vai trò tùy chọn của metrics-generator
+  - Bật bộ xử lý span metrics và chọn tenant áp dụng
+  - Đọc số lượng lời gọi, tỷ lệ lỗi và phân bố thời lượng
+  - Chọn chiều phân tích, nhãn và ranh giới bucket
+  - Xuất metric bằng remote write đến Prometheus hoặc Mimir
+  - Kiểm soát số tổ hợp nhãn và giới hạn chuỗi đang hoạt động
+  - Xử lý span đến muộn và kiểm tra dữ liệu bị bỏ khỏi quá trình tạo metric
+  - Tránh đếm trùng khi nhiều nơi cùng tạo hoặc gửi metric
+  - Phân biệt số span với số yêu cầu nghiệp vụ khi đánh giá chỉ số
+  - Chọn tạo metric trước hay sau lấy mẫu theo mục tiêu độ chính xác
+- level1: Sơ đồ dịch vụ
+  level2:
+  - Cách service graph suy ra quan hệ dịch vụ từ các cặp span
+  - Phân biệt quan hệ client-server với producer-consumer
+  - Bật bộ xử lý service graphs và cấu hình nguồn metric cho Grafana
+  - Đọc tốc độ yêu cầu, lỗi và độ trễ trên các cạnh
+  - Biểu diễn cơ sở dữ liệu và dịch vụ ngoài bằng các nút thích hợp
+  - Thiết kế thuộc tính định danh để tránh chia nhỏ hoặc gộp nhầm dịch vụ
+  - Ảnh hưởng của thiếu cặp span và hết khoảng chờ ghép cặp
+  - Ảnh hưởng của lấy mẫu và chia luồng span đến độ đầy đủ sơ đồ
+  - Kiểm tra sơ đồ bằng luồng yêu cầu đã biết
+- level1: Liên kết tín hiệu
+  level2:
+  - Thiết kế khóa tương quan giữa trace, log và metric
+  - Cấu hình liên kết từ log Loki đến trace trong Tempo
+  - Cấu hình liên kết từ trace đến log theo dịch vụ và thời gian
+  - Đi từ exemplar Prometheus đến trace đại diện
+  - Liên kết span với metric liên quan để kiểm tra mức ảnh hưởng
+  - Liên kết trace với hồ sơ hiệu năng khi có dữ liệu Pyroscope
+  - Chuẩn hóa nhãn và định dạng trace ID giữa các nguồn
+  - Điều chỉnh khoảng thời gian để không bỏ sót log hoặc metric liên quan
+  - Chẩn đoán liên kết sai do lấy mẫu, thiếu ID hoặc nguồn dữ liệu khác tenant
+- level1: Phân tách tenant
+  level2:
+  - Tenant là gì và khi nào cần tách dữ liệu theo tổ chức hoặc nhóm
+  - Bật chế độ đa tenant và sử dụng X-Scope-OrgID
+  - Truyền tenant nhất quán trên đường ghi và đường đọc
+  - Ánh xạ danh tính đã xác thực sang tenant tại cổng truy cập
+  - Phân biệt nhãn dịch vụ trong span với ranh giới tenant
+  - Cấu hình nguồn dữ liệu Grafana theo tenant
+  - Đặt giới hạn tiếp nhận, truy vấn và thời gian lưu theo tenant
+  - Phân biệt cấu hình overrides tĩnh với overrides có thể cập nhật
+  - Kiểm soát truy vấn nhiều tenant theo khả năng và quyền được cấp
+  - Kiểm thử không đọc chéo hoặc ghi nhầm tenant
+- level1: Bảo mật dữ liệu
+  level2:
+  - Ranh giới xác thực của Tempo và vai trò reverse proxy
+  - Bảo vệ đường nhận OTLP và đường truy vấn bằng TLS
+  - Xác thực kết nối từ collector, Grafana và các thành phần nội bộ
+  - Giới hạn mạng và tách endpoint vận hành khỏi truy cập người dùng
+  - Ngăn giả mạo tenant bằng cách kiểm soát header tại cổng tin cậy
+  - Loại bỏ bí mật, dữ liệu cá nhân và nội dung yêu cầu khỏi span
+  - Quản lý quyền bucket, thông tin xác thực và mã hóa lưu trữ
+  - Kiểm soát quyền xem trace và chia sẻ liên kết trên Grafana
+  - Thiết kế lưu giữ và xử lý yêu cầu xóa theo khả năng thực tế của backend
+- level1: Triển khai phân tán
+  level2:
+  - Chọn microservices khi cần mở rộng và tách đường ghi với đường đọc
+  - Chuẩn bị hệ thống tương thích Kafka cho Tempo 3.x
+  - Thiết kế topic, partition và thời gian lưu đủ cho quá trình tiêu thụ
+  - Phân biệt độ bền của Kafka với số bản sao thành phần Tempo
+  - Triển khai distributor, live-store và block-builder theo vai trò
+  - Kết nối query frontend, querier và kho lưu trữ đối tượng
+  - Triển khai backend scheduler, backend worker và metrics-generator cần thiết
+  - Vai trò của cơ chế thành viên và các vòng phân phối công việc
+  - Định tuyến cổng vào cho OTLP, truy vấn và lưu lượng nội bộ
+  - Xác minh từng chặng từ Kafka đến dữ liệu mới và dữ liệu lịch sử
+- level1: Triển khai Kubernetes
+  level2:
+  - Chọn Helm chart hoặc Operator tương thích với phiên bản Tempo
+  - Chuẩn bị cấu hình, secret và quyền truy cập object storage
+  - Khai báo Kafka cho triển khai phân tán Tempo 3.x
+  - Đặt tài nguyên CPU, bộ nhớ và vùng lưu trữ cần thiết
+  - Cấu hình khám phá dịch vụ và kết nối nội bộ giữa các thành phần
+  - Kiểm tra readiness, thời gian khởi động và trình tự dừng
+  - Phân bố bản sao theo vùng và kiểm tra miền sự cố
+  - Bảo vệ ingress, receiver và cổng truy vấn theo chính sách mạng
+  - Quản lý cấu hình qua GitOps và kiểm tra cấu hình sau khi kết xuất
+  - Nâng cấp từng bước và kiểm tra trace sau mỗi thay đổi
+- level1: Tối ưu truy vấn
+  level2:
+  - Phân tích thời gian truy vấn, dữ liệu quét và số tác vụ
+  - Thu hẹp khoảng thời gian và chọn bộ lọc có khả năng loại trừ tốt
+  - Chỉ rõ phạm vi thuộc tính để giảm dữ liệu phải đọc
+  - Dùng dedicated attribute columns cho thuộc tính truy vấn thường xuyên
+  - Tận dụng cách lưu theo cột của Parquet
+  - Phối hợp chia truy vấn, mức song song và năng lực querier
+  - Chọn bộ nhớ đệm và nhận diện dữ liệu phù hợp để lưu đệm
+  - Giới hạn số trace, số span trả về và kích thước phản hồi
+  - Đánh giá chi phí của biểu thức chính quy và toán tử cấu trúc
+  - Đo riêng dữ liệu mới, dữ liệu lịch sử và TraceQL metrics
+- level1: Dung lượng và chi phí
+  level2:
+  - Ước lượng lưu lượng span theo tốc độ yêu cầu và số span mỗi trace
+  - Đo kích thước thuộc tính và chi phí của trace quá lớn
+  - Lập kế hoạch dung lượng theo thời gian lưu và mức nén
+  - Ước lượng chi phí object storage, truy cập đối tượng và truyền dữ liệu
+  - Tính tài nguyên Kafka, live-store và block-builder cho đường ghi
+  - Tính tài nguyên querier và cache cho nhu cầu truy vấn
+  - Phân tích chi phí chuỗi metric phát sinh từ metrics-generator
+  - Đặt giới hạn và ngân sách sử dụng theo tenant
+  - Đánh đổi lấy mẫu, chi tiết thuộc tính và thời gian lưu
+  - Đo tải thực tế trước khi thay đổi số bản sao hoặc tài nguyên
+- level1: Giám sát Tempo
+  level2:
+  - Thu thập metric và nhật ký của từng thành phần Tempo
+  - Theo dõi span tiếp nhận, bị từ chối và bị loại bỏ theo nguyên nhân
+  - Theo dõi độ trễ Kafka và tiến độ tiêu thụ dữ liệu
+  - Giám sát live-store, tạo khối và lỗi ghi object storage
+  - Giám sát compaction, retention và độ mới của danh sách khối
+  - Theo dõi tỷ lệ lỗi, độ trễ và tài nguyên của truy vấn
+  - Giám sát metric bị thiếu và giới hạn chuỗi của metrics-generator
+  - Sử dụng bảng điều khiển và cảnh báo phù hợp với phiên bản triển khai
+  - Dùng Tempo Vulture để kiểm tra đường ghi và đọc từ bên ngoài
+  - Tự truy vết Tempo có kiểm soát và tránh phụ thuộc giám sát vòng tròn
+- level1: Khả năng phục hồi
+  level2:
+  - Xác định ranh giới chấp nhận ghi và cam kết bền vững dữ liệu
+  - Thiết kế độ bền Kafka phù hợp với mục tiêu mất dữ liệu cho phép
+  - Khôi phục luồng tiêu thụ sau khi thành phần xử lý ngừng hoạt động
+  - Phân bố live-store theo vùng và kiểm tra khả năng phục vụ dữ liệu mới
+  - Ứng phó khi object storage chậm hoặc tạm thời không truy cập được
+  - Kiểm soát hàng đợi và áp lực ngược trong collector lẫn Tempo
+  - Dừng an toàn, cập nhật lần lượt và kiểm tra span đang xử lý
+  - Phân biệt sao lưu cấu hình, bảo vệ bucket và khả năng phát lại dữ liệu
+  - Kiểm chứng mục tiêu phục hồi bằng thử lỗi có phạm vi giới hạn
+- level1: Chẩn đoán sự cố
+  level2:
+  - Không nhận được span do sai endpoint, giao thức hoặc địa chỉ lắng nghe
+  - Trace không xuất hiện do sai khoảng thời gian hoặc tenant
+  - Phân biệt bị lấy mẫu, bị từ chối tiếp nhận và chưa đủ thời gian khả kiến
+  - Thiếu span hoặc đứt trace do mất ngữ cảnh và cấu hình ứng dụng
+  - Tìm thấy trace ID nhưng truy vấn thuộc tính không cho kết quả kỳ vọng
+  - TraceQL sai kiểu dữ liệu, sai phạm vi hoặc dùng thuộc tính không tồn tại
+  - Truy vấn chậm, hết thời gian chờ hoặc vượt số tác vụ trong hàng đợi
+  - Lỗi Kafka, thành viên cụm hoặc tiến độ xử lý bị dồn
+  - Khối dữ liệu lỗi, không đủ quyền bucket hoặc dữ liệu lịch sử biến mất
+  - Tiến trình hết bộ nhớ do trace lớn, thuộc tính lớn hoặc truy vấn nặng
+  - Span metrics và service graph thiếu dù trace đã được lưu
+  - Lần theo bằng chứng từ ứng dụng, collector đến Tempo và Grafana
+- level1: Kiểm thử tích hợp
+  level2:
+  - Xây dựng trace mẫu với dịch vụ, trạng thái và thời lượng đã biết
+  - Kiểm tra đường ghi và đọc bằng trace ID xác định
+  - Đối chiếu kết quả TraceQL với thuộc tính và cấu trúc trace mẫu
+  - Kiểm thử trace lỗi, chậm, bất đồng bộ và span đến muộn
+  - Kiểm thử mất kết nối, hàng đợi đầy và chính sách thử lại
+  - Kiểm tra cách ly tenant cùng xác thực đường ghi và đọc
+  - Kiểm chứng lấy mẫu và sai lệch của metric sinh từ trace
+  - Đo hiệu năng truy vấn trên khoảng dữ liệu và tải đã xác định
+  - Tự động kiểm tra cấu hình và đường dữ liệu sau triển khai
+- level1: Nâng cấp và di trú
+  level2:
+  - Lập ma trận phiên bản Tempo, Grafana, Collector và định dạng khối
+  - Đọc thay đổi không tương thích trước mỗi lần nâng cấp
+  - Phân biệt đường nâng cấp monolithic với microservices từ Tempo 2.x
+  - Chuyển cấu hình ingester và compactor sang thành phần Tempo 3.x
+  - Thay thế chế độ scalable single binary đã bị loại bỏ
+  - Chuẩn bị Kafka và chuyển đường nhận span trong triển khai phân tán
+  - Chuyển overrides cũ sang cấu trúc có phạm vi
+  - Loại bỏ cấu hình local_blocks cũ theo hướng dẫn phiên bản
+  - Kiểm tra khả năng đọc trace lịch sử và giới hạn TraceQL metrics của khối cũ
+  - Xác định điều kiện quay lui và xác minh lại sau di trú
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng hệ thống ứng dụng, Collector, Tempo và Grafana bằng Docker Compose
+  - Theo dõi một yêu cầu HTTP qua nhiều dịch vụ và cơ sở dữ liệu
+  - Tái hiện trace đứt do mất ngữ cảnh rồi xác minh cách khắc phục
+  - Tìm nguyên nhân yêu cầu chậm bằng cây span và TraceQL
+  - Phân tích lỗi dây chuyền bằng quan hệ cấu trúc giữa các span
+  - Giữ trace lỗi và chậm bằng chính sách lấy mẫu cuối luồng
+  - Tạo span metrics, service graph và liên kết từ exemplar
+  - Đi từ log sự cố đến trace và quay lại metric liên quan
+  - Tách hai tenant và kiểm tra quyền truy cập cùng giới hạn sử dụng
+  - Chuyển lưu trữ cục bộ sang MinIO và kiểm tra dữ liệu sau khởi động lại
+  - Thử lỗi pipeline và đánh giá độ trễ, mất dữ liệu cùng khả năng phục hồi
+  - Lập kế hoạch triển khai Tempo 3.x với kiểm thử, giám sát và ngân sách

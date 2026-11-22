@@ -1,0 +1,277 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Tối thiểu hóa dữ liệu telemetry là gì và vì sao cần thực hiện
+  - Quan hệ giữa mục đích quan sát, dữ liệu cần thiết và dữ liệu dư thừa
+  - 'Các chiều tối thiểu hóa: loại dữ liệu, số trường, độ chi tiết, tần suất và thời gian'
+  - Vai trò của logs, traces, metrics và profiles trong việc lựa chọn dữ liệu
+  - Phân biệt giảm dữ liệu với chỉ giảm chi phí hoặc kích thước lưu trữ
+  - Phân biệt tối thiểu hóa với phân loại, redaction, masking và kiểm soát truy cập
+  - Vì sao lấy mẫu, nén hoặc băm định danh không tự bảo đảm tối thiểu hóa
+  - Lộ trình học từ nhu cầu chẩn đoán đến chính sách và bằng chứng kiểm thử
+- level1: Mục đích sử dụng
+  level2:
+  - Xác định câu hỏi vận hành trước khi bổ sung trường telemetry
+  - Phân tích nhu cầu phát hiện lỗi, điều tra sự cố và đo hiệu năng
+  - Chọn tín hiệu tối thiểu cho SLI, SLO và cảnh báo
+  - Phân biệt dữ liệu cần thường xuyên với dữ liệu chỉ cần khi điều tra
+  - Đánh giá mức cần thiết của định danh người dùng, phiên và thông tin nghiệp vụ
+  - Lập ma trận mục đích–tín hiệu–trường dữ liệu–người sử dụng
+  - Xác định tiêu chí chứng minh một trường dữ liệu vẫn còn hữu ích
+  - Nhận diện thói quen thu thập mọi thứ để dự phòng nhưng không có mục đích cụ thể
+- level1: Kiểm kê telemetry
+  level2:
+  - Lập danh mục nguồn phát, loại tín hiệu, trường dữ liệu và nơi tiếp nhận
+  - Theo dõi dữ liệu từ mã nguồn, thư viện và cơ chế tự động đo đạc
+  - Khám phá cấu trúc thực tế bằng dữ liệu giả lập hoặc mẫu được kiểm soát
+  - Đo số sự kiện, số thuộc tính, độ dài giá trị và dung lượng phát sinh
+  - Kiểm kê số tổ hợp giá trị thuộc tính (cardinality) theo dịch vụ và môi trường
+  - Tìm dữ liệu trùng lặp giữa log, span, metric và hệ thống thu thập song song
+  - Tìm trường không được truy vấn, dashboard bỏ hoang và luồng dữ liệu không có chủ sở hữu
+  - Kiểm kê bản sao trong tệp, bộ đệm, hàng đợi, kho dữ liệu và tệp xuất
+  - Đánh giá rủi ro định danh trực tiếp và khả năng kết hợp các trường để nhận diện cá nhân
+- level1: Chính sách dữ liệu
+  level2:
+  - Định nghĩa tập dữ liệu tối thiểu theo từng mục đích quan sát
+  - Thiết kế danh sách trường được phép thay vì mặc định thu thập mọi trường
+  - Quyết định loại bỏ, tổng quát hóa, tổng hợp hoặc chỉ thu thập có điều kiện
+  - Quy định dữ liệu nhạy cảm và bí mật không được đưa vào telemetry
+  - Xử lý trường chưa biết, thuộc tính tùy biến và khóa sinh động
+  - Thiết kế chính sách theo dịch vụ, môi trường và nhóm khách hàng
+  - Xác định thứ tự ưu tiên giữa nhu cầu chẩn đoán và giới hạn bảo vệ dữ liệu
+  - Quy định ngoại lệ có người chịu trách nhiệm, phạm vi và thời hạn
+  - Phân biệt yêu cầu tối thiểu hóa với chính sách lưu giữ và nghĩa vụ kiểm toán
+- level1: Hợp đồng telemetry
+  level2:
+  - Định nghĩa cấu trúc sự kiện, tên trường, kiểu dữ liệu và mục đích sử dụng
+  - Chọn thuộc tính bắt buộc, tùy chọn và bị cấm trong từng loại tín hiệu
+  - Sử dụng quy ước ngữ nghĩa phù hợp mà không bật mọi thuộc tính tùy chọn
+  - Quy định miền giá trị hữu hạn cho nhãn và thuộc tính dùng để phân nhóm
+  - Quy định độ dài, kích thước, độ sâu và số phần tử được phép
+  - Quản lý phiên bản cấu trúc và xử lý trường mới phát sinh
+  - Thiết kế nhãn trạng thái để phân biệt thiếu dữ liệu với bị loại bỏ có chủ đích
+  - Kiểm tra hợp đồng telemetry bằng mã và cấu hình trong CI
+- level1: Kiến trúc kiểm soát
+  level2:
+  - Ưu tiên không tạo dữ liệu không cần thiết ngay tại nguồn
+  - Phân chia trách nhiệm giữa ứng dụng, SDK, agent, gateway và kho dữ liệu
+  - So sánh chặn trước thu thập với loại bỏ sau khi đã truyền hoặc lưu đệm
+  - Đặt bước tối thiểu hóa trước điểm xuất và ranh giới chia sẻ dữ liệu
+  - Phối hợp nhiều lớp kiểm soát mà không tạo cấu hình mâu thuẫn
+  - Xác định thứ tự làm giàu, tối thiểu hóa, lấy mẫu, định tuyến và xuất dữ liệu
+  - Rà soát đường xuất phụ, pipeline phân nhánh và chế độ dự phòng
+  - Ngăn bước xử lý phía sau bổ sung lại dữ liệu đã bị loại bỏ
+- level1: Thu thập tại nguồn
+  level2:
+  - Chọn điểm đo đạc theo câu hỏi vận hành thay vì ghi mọi thao tác
+  - Tắt instrumentation và loại sự kiện không phục vụ mục đích đã xác định
+  - Giới hạn phạm vi tự động thu thập header, body, tham số và đối tượng
+  - Thiết kế API ghi telemetry chỉ nhận các trường được phép
+  - Tránh dựng chuỗi hoặc tuần tự hóa dữ liệu chỉ để loại bỏ ở bước sau
+  - Kiểm soát dữ liệu do thư viện bên thứ ba và tác vụ nền phát ra
+  - Giảm dữ liệu lặp ở vòng lặp, tác vụ định kỳ và các lần thử lại
+  - Giới hạn dữ liệu profile, thông tin tiến trình và đường dẫn tệp theo nhu cầu chẩn đoán
+- level1: Tối thiểu hóa logs
+  level2:
+  - Chọn mức log và loại sự kiện theo môi trường và mục đích
+  - Dùng mã sự kiện và trường có cấu trúc thay cho thông điệp dài chứa dữ liệu nghiệp vụ
+  - Chọn tập trường tối thiểu cho một bản ghi lỗi hoặc một giao dịch
+  - Tránh ghi toàn bộ DTO, entity, Map và đối tượng request/response
+  - Giảm bản ghi lặp, lỗi lặp và log thành công không có giá trị phân biệt
+  - Giới hạn ngăn xếp lời gọi, chuỗi nguyên nhân và chi tiết lỗi theo tình huống
+  - Kiểm soát log nhiều dòng, dữ liệu nhị phân và nội dung tệp
+  - Giảm dữ liệu trong MDC mà vẫn giữ liên kết chẩn đoán cần thiết
+  - Giữ đủ sự kiện an ninh và kiểm toán theo yêu cầu đã được xác định riêng
+- level1: Tối thiểu hóa traces
+  level2:
+  - Chọn ranh giới span có giá trị thay vì tạo span cho mọi lời gọi
+  - Giữ tên span ổn định và tránh nhúng định danh hoặc dữ liệu nghiệp vụ
+  - Chọn thuộc tính span phục vụ phân tích độ trễ và nguyên nhân lỗi
+  - Giới hạn sự kiện span, liên kết, thuộc tính sự kiện và thông báo trạng thái
+  - Giảm span lặp trong vòng lặp, kiểm tra sức khỏe và tác vụ tần suất cao
+  - Kiểm soát dữ liệu ngoại lệ và nội dung truy vấn được tự động gắn vào trace
+  - Bảo toàn quan hệ cha–con khi loại bỏ span hoặc thay đổi điểm đo đạc
+  - Phối hợp dữ liệu trace với log để tránh ghi lặp cùng một chi tiết
+  - Rà soát thuộc tính resource và scope áp dụng cho nhiều span
+- level1: Tối thiểu hóa metrics
+  level2:
+  - Chọn phép đo gắn với câu hỏi vận hành và loại bỏ instrument không dùng
+  - Thiết kế nhãn có miền giá trị hữu hạn và tránh định danh người dùng
+  - Phân biệt số giá trị của một nhãn với tổng số tổ hợp thuộc tính
+  - Dùng mẫu tuyến đường và nhóm kết quả thay cho URL hoặc thông điệp lỗi tự do
+  - Chọn thuộc tính trước khi tạo chuỗi thời gian thay vì xóa muộn ở kho dữ liệu
+  - Đánh giá xung đột định danh và nhu cầu tổng hợp khi loại bỏ nhãn
+  - Chọn loại phép đo và độ chi tiết histogram phù hợp với nhu cầu
+  - Điều chỉnh chu kỳ thu thập mà không bỏ lỡ biến động cần phát hiện
+  - Rà soát exemplar vì thuộc tính đã bị lọc khỏi chuỗi vẫn có thể đi kèm exemplar
+  - Phân biệt giới hạn cardinality với chính sách loại bỏ dữ liệu nhạy cảm
+- level1: Ngữ cảnh và định danh
+  level2:
+  - Chọn ngữ cảnh dịch vụ, phiên bản và môi trường thực sự cần thiết
+  - Phân biệt Trace ID, Span ID với định danh người dùng và phiên đăng nhập
+  - Giữ mã tương quan theo phạm vi cần thiết và đánh giá khả năng liên kết dữ liệu
+  - Giới hạn baggage và thông tin lan truyền giữa các dịch vụ
+  - Rà soát địa chỉ IP, vị trí và định danh thiết bị trước khi thu thập
+  - Tổng quát hóa thông tin địa lý hoặc thời gian khi chi tiết gốc không cần thiết
+  - Đánh giá định danh đã băm và dữ liệu thay bằng mã đại diện
+  - Ngăn định danh nhạy cảm xuất hiện trong tên trường, tên tệp hoặc nhãn metric
+- level1: HTTP và thông điệp
+  level2:
+  - Chọn danh sách header cần thu thập cho HTTP client và server
+  - Dùng http.route thay cho đường dẫn chứa định danh cụ thể khi phù hợp
+  - Giới hạn tham số URL, query string và URL ký số
+  - Thu thập mô tả cấu trúc hoặc kích thước payload thay cho toàn bộ nội dung
+  - Kiểm soát request body, response body, multipart và nội dung tệp
+  - Giữ mẫu câu truy vấn SQL thay vì giá trị bind và dữ liệu trả về
+  - Giới hạn dữ liệu trong lời gọi RPC, truy vấn GraphQL và lệnh truy cập dữ liệu
+  - Chọn metadata thông điệp thay cho toàn bộ payload trong hệ thống hàng đợi
+  - Rà soát bản sao dữ liệu trong retry, dead-letter queue và công cụ phát lại
+- level1: Lấy mẫu có mục đích
+  level2:
+  - Phân biệt giảm số bản ghi với giảm trường dữ liệu trong từng bản ghi
+  - Lấy mẫu từ đầu (head sampling) và mức dữ liệu được tránh tạo hoặc xuất
+  - Lấy mẫu sau khi thu thập (tail sampling) và dữ liệu vẫn phải xử lý trước quyết định
+  - Chọn xác suất lấy mẫu dựa trên lưu lượng và mục đích quan sát
+  - Phối hợp quyết định lấy mẫu giữa các dịch vụ trong cùng một trace
+  - Ưu tiên trace lỗi hoặc chậm và giới hạn của dữ liệu đã bị loại ở bước trước
+  - Kiểm soát thiên lệch khi suy luận tỷ lệ lỗi hoặc phân bố độ trễ từ mẫu
+  - Đặt giới hạn tài nguyên và xem xét span đến muộn khi lấy mẫu theo đuôi
+  - Giữ đầy đủ các loại sự kiện bắt buộc theo chính sách thay vì lấy mẫu đồng loạt
+- level1: Tổng hợp và độ chi tiết
+  level2:
+  - Thay sự kiện chi tiết bằng số đếm, phân bố hoặc thống kê khi đủ đáp ứng mục đích
+  - Chọn khoảng thời gian tổng hợp và độ phân giải phù hợp
+  - Nhóm giá trị liên tục hoặc nhạy cảm thành các miền có ý nghĩa
+  - Giữ cấu trúc truy vấn hoặc loại thao tác thay cho giá trị nghiệp vụ cụ thể
+  - Phân biệt tổng hợp số đo với xóa nhãn trên các điểm dữ liệu đã tồn tại
+  - Bảo toàn phép đếm, đơn vị và ngữ nghĩa thời gian khi tổng hợp
+  - Đánh giá nguy cơ nhận diện từ nhóm có ít phần tử hoặc thuộc tính quá chi tiết
+  - Xác định thông tin chẩn đoán bị mất khi thay dữ liệu gốc bằng bản tổng hợp
+- level1: Giới hạn và ngân sách
+  level2:
+  - Đặt ngân sách số trường và kích thước cho từng bản ghi hoặc span
+  - Giới hạn độ dài giá trị, số phần tử và độ sâu dữ liệu lồng nhau
+  - Đặt ngân sách số tổ hợp nhãn cho metric theo dịch vụ
+  - Giới hạn tần suất sự kiện và lưu lượng telemetry theo môi trường
+  - Phân biệt giới hạn lưu lượng với lấy mẫu và kiểm soát tính cần thiết
+  - Định nghĩa hành vi khi vượt giới hạn thay vì cắt hoặc bỏ dữ liệu tùy tiện
+  - Ưu tiên tín hiệu quan trọng khi ngân sách có hạn
+  - Đánh giá giới hạn cắt chuỗi vì phần dữ liệu còn lại vẫn có thể nhạy cảm
+  - Theo dõi số lần vượt giới hạn và tránh biến giới hạn kỹ thuật thành thước đo quyền riêng tư
+- level1: OpenTelemetry SDK
+  level2:
+  - Cấu hình phạm vi instrumentation và tập thuộc tính được thu thập
+  - Chọn sampler phù hợp trong quá trình tạo span
+  - Áp dụng giới hạn span, sự kiện, liên kết và thuộc tính theo khả năng SDK
+  - Thiết kế Metric View để chọn instrument, thuộc tính và phép tổng hợp
+  - Kiểm soát exemplar riêng với bộ lọc thuộc tính của luồng metric
+  - Giới hạn dữ liệu log và thuộc tính resource tại điểm cấu hình thích hợp
+  - Kiểm tra thời điểm processor chạy so với ghi nhận, lưu đệm và export
+  - Xác minh API, cấu hình và hành vi thực tế theo ngôn ngữ và phiên bản SDK
+- level1: Java và Spring Boot
+  level2:
+  - Thiết kế DTO telemetry chỉ chứa các trường được duyệt
+  - Tránh ghi toàn bộ đối tượng qua toString(), record hoặc mã sinh tự động
+  - Kiểm soát trường log trong SLF4J và Logback mà không phụ thuộc vào mức log
+  - Chọn điểm xử lý request và response trong filter hoặc interceptor
+  - Giới hạn dữ liệu từ exception handler và lỗi kiểm tra đầu vào
+  - Rà soát Java agent, cấu hình tự động đo đạc và thuộc tính tùy biến
+  - Kiểm soát tag của Micrometer và thuộc tính tùy biến trong Observation
+  - Giới hạn dữ liệu ở tác vụ bất đồng bộ, bộ lập lịch và dịch vụ xử lý thông điệp
+  - Kiểm tra thông tin được công bố qua endpoint quản trị và công cụ chẩn đoán
+  - Xác nhận đầu ra log, metric và OTLP bằng ứng dụng mẫu có dữ liệu giả lập
+- level1: Collector và OTTL
+  level2:
+  - Chọn attributes, resource, filter hoặc transform processor theo loại kiểm soát
+  - Áp dụng danh sách khóa được phép trên resource và từng loại tín hiệu
+  - Phân biệt xóa thuộc tính với loại bỏ toàn bộ log record, span hoặc metric
+  - Chọn ngữ cảnh và đường dẫn OTTL cho log, span, sự kiện và điểm dữ liệu
+  - Xử lý trường lồng nhau, kiểu dữ liệu khác nhau và thuộc tính không tồn tại
+  - Tổng quát hóa giá trị và giữ miền giá trị hữu hạn bằng quy tắc biến đổi
+  - Phối hợp tối thiểu hóa với lấy mẫu và tổng hợp theo thứ tự đã kiểm chứng
+  - Rà soát connector, pipeline phân nhánh và exporter tránh dữ liệu đi vòng
+  - Ngăn debug exporter hoặc log lỗi processor ghi lại dữ liệu nguyên bản
+  - Kiểm tra khả năng hỗ trợ và thay đổi hành vi theo bản phân phối, phiên bản Collector
+- level1: Truyền và lưu trữ
+  level2:
+  - Chỉ gửi tập dữ liệu cần thiết cho từng nơi nhận và mục đích sử dụng
+  - Giảm việc gửi cùng dữ liệu đến nhiều nền tảng hoặc nhiều môi trường
+  - Kiểm soát bản sao trong queue, spool, bộ đệm bền vững và vùng cách ly
+  - Xử lý tối thiểu hóa trước khi dữ liệu vượt ranh giới tổ chức hoặc nhà cung cấp
+  - Phối hợp thời gian lưu giữ với mức chi tiết và mục đích của dữ liệu
+  - Xem xét giảm độ phân giải hoặc tổng hợp khi dữ liệu không còn cần chi tiết
+  - Rà soát dữ liệu trong dashboard, cảnh báo, báo cáo và gói hỗ trợ kỹ thuật
+  - Giới hạn dữ liệu trong bản sao lưu, tệp xuất và dữ liệu đưa sang môi trường kiểm thử
+- level1: Chế độ chẩn đoán
+  level2:
+  - Thiết kế cơ chế tăng mức chi tiết có phạm vi và thời hạn
+  - Chỉ bật thu thập bổ sung cho dịch vụ hoặc tình huống điều tra cần thiết
+  - Giữ nguyên ranh giới dữ liệu bị cấm khi bật debug
+  - Đặt giới hạn lưu lượng, số bản ghi và kích thước dữ liệu chẩn đoán
+  - Tự hết hạn cấu hình tạm và xác nhận đã quay về chính sách thông thường
+  - Phê duyệt, ghi nhận người bật và mục đích sử dụng dữ liệu bổ sung
+  - Kiểm soát gói chẩn đoán, profile và tệp dump trước khi chia sẻ
+  - Đánh giá kết quả điều tra để tránh biến ngoại lệ tạm thời thành thu thập thường trực
+- level1: Bảo toàn chất lượng
+  level2:
+  - Xây dựng kịch bản chẩn đoán làm tiêu chuẩn đánh giá trước và sau thay đổi
+  - Kiểm tra khả năng phát hiện lỗi hiếm và sự cố có thời gian ngắn
+  - Đánh giá khả năng liên kết log–trace–metric sau khi bỏ bớt trường
+  - Kiểm tra cảnh báo, truy vấn, dashboard và phép tính SLI/SLO
+  - Đánh giá ảnh hưởng của lấy mẫu đối với số đếm, tỷ lệ và phân vị
+  - Kiểm tra mất khả năng phân nhóm hoặc xung đột dữ liệu khi loại nhãn
+  - Phân biệt dữ liệu bị bỏ theo chính sách với mất dữ liệu do lỗi hệ thống
+  - Chọn điểm cân bằng bằng bằng chứng thay vì chỉ tối ưu phần trăm giảm dung lượng
+- level1: Kiểm thử và bằng chứng
+  level2:
+  - Tạo bộ dữ liệu giả lập thể hiện dữ liệu cần giữ và dữ liệu phải loại bỏ
+  - Kiểm thử hợp đồng về trường, kiểu dữ liệu và miền giá trị được phép
+  - Kiểm thử đầu vào có khóa mới, dữ liệu lồng nhau và giá trị quá giới hạn
+  - Kiểm tra dữ liệu nhạy cảm không tồn tại trong nội dung, thuộc tính và exemplar
+  - Kiểm thử trực tiếp đầu ra SDK và từng processor trong pipeline
+  - Kiểm thử xuyên suốt từ ứng dụng đến kho dữ liệu và các đường xuất phụ
+  - Kiểm tra bộ đệm, retry, phát lại và cấu hình dự phòng
+  - Kiểm thử hồi quy truy vấn chẩn đoán và tính đúng của metric sau biến đổi
+  - So sánh dữ liệu trước và sau bằng số trường, độ chi tiết, lưu lượng và mục đích được đáp ứng
+  - Tích hợp cổng kiểm tra trong CI và lưu bằng chứng không chứa dữ liệu thật
+- level1: Hiệu năng và sự cố
+  level2:
+  - Đo chi phí tạo, tuần tự hóa, truyền và xử lý telemetry
+  - So sánh hiệu quả giảm tại nguồn với loại bỏ ở collector
+  - Kiểm tra tải cao, cardinality tăng đột biến và hàng đợi đầy
+  - Xử lý thiếu tài nguyên mà không tự chuyển sang xuất dữ liệu nguyên bản
+  - Quy định hành vi khi cấu hình không hợp lệ hoặc biến đổi dữ liệu thất bại
+  - Kiểm tra khởi động lại, mất kết nối và phát lại dữ liệu đã lưu đệm
+  - Khôi phục phiên bản chính sách mà không tái bật thu thập không cần thiết
+  - Phân biệt lượng dữ liệu giảm có chủ đích với mất tín hiệu do sự cố pipeline
+- level1: Giám sát liên tục
+  level2:
+  - Theo dõi số bản ghi, số trường, kích thước và lưu lượng theo nguồn phát
+  - Theo dõi số chuỗi thời gian và mức tăng cardinality
+  - Phát hiện cấu trúc telemetry thay đổi hoặc xuất hiện trường chưa được duyệt
+  - Đo tỷ lệ trường dư thừa, bản ghi trùng và dữ liệu không được sử dụng
+  - Theo dõi lần vượt ngân sách, lỗi biến đổi và lượng dữ liệu bị loại
+  - Cảnh báo khi quy tắc ngừng hoạt động hoặc đường xuất không áp dụng chính sách
+  - Rà soát log và metric của chính bộ kiểm soát để tránh phát sinh dữ liệu dư thừa
+  - Đối chiếu mức giảm dữ liệu với chất lượng chẩn đoán và chi phí thực tế
+- level1: Quản trị thay đổi
+  level2:
+  - Phân công chủ sở hữu mục đích, hợp đồng dữ liệu và cấu hình thu thập
+  - Quản lý chính sách bằng phiên bản và quy trình duyệt thay đổi
+  - Triển khai thử trên phạm vi hẹp và so sánh chất lượng tín hiệu
+  - Phát hiện lệch cấu hình giữa dịch vụ, môi trường và pipeline
+  - Rà soát lại trường dữ liệu khi thay đổi sản phẩm hoặc nâng cấp thư viện
+  - Thu hồi trường, dashboard và luồng xuất không còn mục đích sử dụng
+  - Quản lý ngoại lệ, thời hạn và bằng chứng kiểm tra định kỳ
+  - Ghi nhận dữ liệu còn thu thập, lý do cần thiết và rủi ro còn tồn tại
+  - Phối hợp với phân loại, lưu giữ, kiểm soát truy cập và yêu cầu tuân thủ
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập danh mục và ma trận mục đích cho telemetry của một API nghiệp vụ
+  - Thiết kế hợp đồng log tối thiểu cho ứng dụng Java/Spring Boot
+  - Giảm thuộc tính trace và kiểm chứng vẫn điều tra được lỗi
+  - Thiết kế nhãn metric hữu hạn và kiểm tra dữ liệu đi kèm exemplar
+  - So sánh lấy mẫu từ đầu, lấy mẫu theo đuôi và thu thập đầy đủ có giới hạn
+  - Cấu hình Collector và OTTL để áp dụng chính sách trên nhiều tín hiệu
+  - Thử tình huống debug tạm thời, vượt ngân sách và processor thất bại
+  - Đánh giá tổng thể bằng bộ kiểm thử, chất lượng chẩn đoán và lượng dữ liệu giảm được

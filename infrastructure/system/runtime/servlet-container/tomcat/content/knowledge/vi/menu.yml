@@ -1,0 +1,475 @@
+menu:
+- level1: Tổng quan Tomcat
+  level2:
+  - Apache Tomcat là gì và vai trò trong ứng dụng Java web
+  - Servlet container, HTTP server và application server
+  - Tomcat, JVM và hệ điều hành phối hợp như thế nào
+  - Catalina, Coyote và Jasper trong bức tranh tổng thể
+  - Tomcat cung cấp gì và không bao phủ toàn bộ Jakarta EE như thế nào
+  - Tomcat độc lập và Tomcat nhúng
+  - Một Tomcat phục vụ nhiều ứng dụng và một ứng dụng chạy nhiều instance
+  - Phân biệt Tomcat với Apache HTTP Server, Jetty và Netty
+  - Khi chọn Tomcat và những ràng buộc cần xem xét
+  - Thuật ngữ cốt lõi và lộ trình học Tomcat
+- level1: Nền tảng web
+  level2:
+  - Từ URL trên trình duyệt đến ứng dụng Servlet
+  - DNS, TCP, TLS và HTTP trong một kết nối web
+  - Kết nối mạng, HTTP request và tác vụ xử lý khác nhau như thế nào
+  - HTTP keep-alive và tái sử dụng kết nối
+  - HTTP/1.1 và ghép kênh của HTTP/2
+  - Request, response, header và body
+  - Địa chỉ bind, cổng lắng nghe và tên máy chủ
+  - Context path, servlet path và đường dẫn tài nguyên
+  - Blocking I/O, non-blocking I/O và xử lý Servlet
+  - Phân biệt lỗi tại trình duyệt, proxy, container và ứng dụng
+- level1: Kiến trúc nội bộ
+  level2:
+  - Server và phạm vi quản lý toàn bộ Tomcat
+  - Service và quan hệ giữa Connector với Engine
+  - Engine và lựa chọn máy chủ ảo
+  - Host và tập ứng dụng thuộc một máy chủ ảo
+  - Context và một ứng dụng web
+  - Wrapper và đại diện cho một Servlet
+  - Connector và bộ xử lý giao thức của Coyote
+  - Endpoint, socket và bộ xử lý kết nối
+  - Mapper và quá trình định tuyến tới ứng dụng
+  - Pipeline, Valve và chuỗi xử lý của container
+  - Filter khác Valve ở phạm vi và vòng đời
+  - Đồ thị thành phần và đường đi của một request
+- level1: Cài đặt và bố cục
+  level2:
+  - Chọn bản phân phối và kiểm tra tương thích Java
+  - Phân biệt nhánh phiên bản, tính năng và bản vá
+  - Cài từ bản nhị phân và xác minh tệp tải về
+  - CATALINA_HOME và CATALINA_BASE
+  - Bố cục bin, conf, lib, logs, temp, webapps và work
+  - Tách bộ cài dùng chung khỏi cấu hình từng instance
+  - JAVA_HOME, JRE_HOME và đường dẫn Java thực sự được dùng
+  - JAVA_OPTS và CATALINA_OPTS trong cơ chế script khởi động
+  - setenv.sh, setenv.bat và cấu hình môi trường
+  - Chạy foreground để kiểm chứng lần khởi động đầu
+  - Tài khoản hệ điều hành, thư mục làm việc và quyền truy cập
+  - Chạy nhiều instance với cổng và thư mục độc lập
+- level1: Hệ thống cấu hình
+  level2:
+  - server.xml và cấu hình cấu trúc máy chủ
+  - context.xml và cấu hình ứng dụng web
+  - web.xml mặc định và web.xml của từng ứng dụng
+  - catalina.properties và thuộc tính cấp container
+  - logging.properties và cấu hình JULI
+  - tomcat-users.xml và phạm vi sử dụng
+  - META-INF/context.xml và Context descriptor bên ngoài WAR
+  - Thuộc tính thay thế và cấu hình theo môi trường
+  - Thứ tự áp dụng cấu hình theo phạm vi máy chủ và ứng dụng
+  - Phân biệt thay đổi cần khởi động lại với thay đổi hỗ trợ nạp lại
+  - Kiểm tra cấu hình trước khi triển khai
+  - Quản lý bí mật và tránh sao chép cấu hình không còn phù hợp phiên bản
+- level1: Vòng đời container
+  level2:
+  - Khởi tạo, start, stop và destroy của thành phần Tomcat
+  - Quan hệ vòng đời giữa Server, Service, Engine, Host và Context
+  - Đọc log để nhận diện các giai đoạn khởi động
+  - LifecycleListener và mở rộng hành vi vòng đời
+  - Thứ tự khởi tạo ứng dụng và tài nguyên
+  - Ứng dụng khởi động lỗi trong khi tiến trình Tomcat vẫn còn
+  - Readiness, liveness và trạng thái sẵn sàng tiếp nhận request
+  - Dừng có kiểm soát và request đang xử lý
+  - Thời hạn dừng và tác vụ không chịu kết thúc
+  - Shutdown hook, tín hiệu hệ điều hành và cơ chế dừng bằng script
+  - Kiểm chứng tiến trình, cổng và tài nguyên sau khi dừng
+- level1: Connector
+  level2:
+  - Chọn HTTP Connector theo nhu cầu triển khai
+  - 'HTTP/1.1 NIO và NIO2: mô hình xử lý và phạm vi hỗ trợ'
+  - Acceptor, Poller và luồng xử lý giao thức
+  - Địa chỉ lắng nghe, port và giới hạn truy cập
+  - maxConnections, acceptCount và các điểm chờ kết nối
+  - connectionTimeout và thời gian chờ dữ liệu
+  - keepAliveTimeout và giới hạn request trên kết nối
+  - Kích thước header, body và giới hạn phân tích request
+  - HTTP/2, ALPN và lựa chọn nâng cấp giao thức
+  - AJP Connector và vai trò khi tích hợp web server
+  - Bảo vệ AJP bằng giới hạn mạng, xác thực và thuộc tính cho phép
+  - Thư viện native, OpenSSL và đối chiếu hỗ trợ theo phiên bản
+  - Tránh sao chép tham số Connector cũ không còn hiệu lực
+- level1: Luồng và đồng thời
+  level2:
+  - Mô hình luồng từ tiếp nhận kết nối đến thực thi Servlet
+  - Thread pool của Connector và Executor dùng chung
+  - maxThreads, minSpareThreads và lựa chọn nơi cấu hình
+  - Phân biệt số kết nối mở với số request đang xử lý
+  - Hàng đợi socket, hàng đợi tác vụ và giới hạn tài nguyên
+  - Blocking I/O trong Servlet trên nền Connector non-blocking
+  - Servlet async và thời điểm trả luồng cho container
+  - Non-blocking Servlet I/O và callback đọc ghi
+  - Virtual thread và điều kiện hỗ trợ của bộ phiên bản đang dùng
+  - Luồng ứng dụng tự tạo và trách nhiệm quản lý vòng đời
+  - Trạng thái dùng chung, thread safety và race condition
+  - ThreadLocal và rủi ro lưu dữ liệu qua nhiều request
+  - Điều tiết mức đồng thời và bảo vệ hệ thống phụ thuộc
+- level1: Xử lý HTTP
+  level2:
+  - Tiếp nhận socket và phân tích dòng yêu cầu
+  - Phân tích header, body và giới hạn giao thức
+  - Lựa chọn Host, Context và Wrapper qua Mapper
+  - Chuỗi Valve trước khi vào ứng dụng
+  - Filter chain và gọi phương thức service của Servlet
+  - 'Request dispatcher: forward, include và xử lý bất đồng bộ'
+  - Chuỗi xử lý lỗi và error page
+  - Buffer response, flush và thời điểm response được commit
+  - Ghi phản hồi, kết thúc request và tái sử dụng kết nối
+  - Mã hóa URI, query string và thân request
+  - Multipart upload, tệp tạm và giới hạn kích thước
+  - Cookie, header và chuyển hướng trong xử lý HTTP
+  - Xử lý client ngắt kết nối giữa chừng
+  - Phân biệt timeout của Connector với timeout nghiệp vụ
+- level1: Vòng đời Servlet
+  level2:
+  - Đăng ký Servlet bằng descriptor, annotation và API
+  - Khởi tạo Servlet, load-on-startup và phương thức init
+  - Một Servlet nhận nhiều request đồng thời
+  - service, doGet, doPost và ý nghĩa HTTP method
+  - ServletConfig và ServletContext
+  - Filter, FilterConfig và thứ tự áp dụng
+  - Listener theo dõi vòng đời ứng dụng, request và session
+  - ServletContainerInitializer và khám phá thành phần
+  - AsyncContext, dispatch, timeout và AsyncListener
+  - Phạm vi request, session và application
+  - Tài nguyên ứng dụng cần giải phóng khi destroy
+  - Ranh giới giữa trách nhiệm Servlet chuẩn và cơ chế riêng của Tomcat
+- level1: Đóng gói ứng dụng
+  level2:
+  - Cấu trúc WAR và thư mục ứng dụng đã giải nén
+  - WEB-INF/classes và WEB-INF/lib
+  - WEB-INF/web.xml và web-fragment.xml
+  - Tài nguyên công khai và tài nguyên nằm dưới WEB-INF
+  - META-INF và metadata đi kèm ứng dụng
+  - Phân biệt thư viện provided với thư viện cần đóng gói
+  - Servlet API và nguy cơ đóng gói trùng API container
+  - Dependency scan, annotation scan và thời gian khởi động
+  - Chọn context path và ứng dụng ROOT
+  - Đóng gói WAR truyền thống và executable JAR
+  - Kiểm tra nội dung gói trước khi đưa lên máy chủ
+- level1: Triển khai ứng dụng
+  level2:
+  - appBase, docBase và vị trí ứng dụng
+  - Triển khai WAR, thư mục và Context descriptor
+  - deployOnStartup, autoDeploy và cơ chế phát hiện thay đổi
+  - unpackWARs và quản lý bản giải nén
+  - Deploy, undeploy, reload và redeploy khác nhau như thế nào
+  - Context path, tên tệp WAR và quy tắc đặt phiên bản
+  - Parallel deployment và request thuộc các phiên bản khác nhau
+  - Ảnh hưởng triển khai lại tới session và tác vụ đang chạy
+  - Tránh xung đột giữa WAR, thư mục và descriptor cùng tên
+  - Quyền tệp và lỗi truy cập khi triển khai
+  - Chuyển lưu lượng, kiểm tra sức khỏe và quay lui
+  - Triển khai bất biến thay cho sửa trực tiếp ứng dụng đang chạy
+  - Kiểm chứng phiên bản ứng dụng thực sự được phục vụ
+- level1: Classloader
+  level2:
+  - Cây classloader của JVM và Tomcat
+  - Bootstrap, System, Common và Webapp classloader
+  - Phạm vi thư viện trong lib của container và WEB-INF/lib
+  - Ủy quyền nạp lớp và các ngoại lệ đối với API nền tảng
+  - delegate và ảnh hưởng tới thứ tự tìm lớp
+  - Cô lập lớp giữa các ứng dụng trên cùng Tomcat
+  - ClassNotFoundException, NoClassDefFoundError và nguyên nhân khác nhau
+  - ClassCastException do lớp cùng tên được nạp bởi loader khác nhau
+  - Xung đột phiên bản thư viện và lỗi liên kết nhị phân
+  - Context ClassLoader và thư viện tự khám phá implementation
+  - Nạp lại ứng dụng và vòng đời Webapp classloader
+  - Classloader leak qua luồng, ThreadLocal, driver và thư viện dùng chung
+- level1: JSP và tài nguyên
+  level2:
+  - Jasper và quá trình JSP được chuyển thành Servlet
+  - Biên dịch JSP, bộ nhớ đệm và thư mục work
+  - JSP, EL, tag library và khả năng tương thích phụ thuộc
+  - Biên dịch trước JSP và kiểm tra lỗi trước triển khai
+  - Tài nguyên tĩnh qua DefaultServlet
+  - Welcome file, MIME type và ánh xạ trang lỗi
+  - Cache header, conditional request và tài nguyên tĩnh
+  - Nén phản hồi và loại nội dung phù hợp
+  - WebResourceRoot và nguồn tài nguyên của ứng dụng
+  - Jar scan, TLD scan và tối ưu có kiểm chứng
+  - Quyền truy cập thư mục và tránh công khai tài nguyên nội bộ
+- level1: Phiên làm việc
+  level2:
+  - HttpSession và dữ liệu gắn với người dùng
+  - JSESSIONID, cookie và nhận diện phiên
+  - Tạo, truy cập, vô hiệu hóa và hết hạn session
+  - Cookie session với Secure, HttpOnly và SameSite
+  - URL rewriting và rủi ro lộ mã phiên
+  - Session fixation và thay mã phiên sau xác thực
+  - Truy cập cùng session từ nhiều request đồng thời
+  - Kích thước dữ liệu session và áp lực bộ nhớ
+  - Session Manager và chiến lược lưu trạng thái
+  - Khôi phục session qua khởi động lại và giới hạn thực tế
+  - Serialization của thuộc tính session
+  - Session trong triển khai song song và nâng cấp ứng dụng
+- level1: Xác thực và phân quyền
+  level2:
+  - Container-managed security và bảo mật do ứng dụng quản lý
+  - Security constraint trong web.xml
+  - Realm và nguồn danh tính người dùng
+  - Role, principal và kiểm tra quyền ở mức Servlet
+  - Các phương thức xác thực theo cấu hình ứng dụng
+  - UserDatabaseRealm, JDBCRealm và DataSourceRealm
+  - JNDIRealm và tích hợp hệ thống danh tính
+  - LockOutRealm và chính sách xử lý đăng nhập thất bại
+  - SingleSignOn Valve trong phạm vi triển khai phù hợp
+  - Bảo vệ credential và lựa chọn cơ chế băm mật khẩu
+  - Kết hợp hoặc tách bảo mật container với Spring Security
+  - Chẩn đoán phản hồi 401 và 403 theo ranh giới chịu trách nhiệm
+- level1: HTTPS và TLS
+  level2:
+  - TLS kết thúc tại Tomcat hoặc tại reverse proxy
+  - SSLHostConfig, certificate và cấu hình Connector bảo mật
+  - Keystore, truststore và chuỗi chứng chỉ
+  - JKS, PKCS12 và vật liệu chứng chỉ theo cấu hình được hỗ trợ
+  - Tên miền, SAN và kiểm tra chứng chỉ máy chủ
+  - SNI và nhiều chứng chỉ trên một điểm lắng nghe
+  - Giao thức TLS, cipher suite và chính sách tương thích
+  - mTLS và xác minh chứng chỉ máy khách
+  - ALPN và thương lượng HTTP/2
+  - JSSE và implementation TLS native
+  - Đổi chứng chỉ, gia hạn và kế hoạch kiểm chứng
+  - Chẩn đoán lỗi handshake, trust và tên miền
+- level1: Bảo vệ máy chủ
+  level2:
+  - Tài khoản chạy Tomcat với quyền tối thiểu
+  - Quyền trên conf, webapps, logs, temp và work
+  - Giảm ứng dụng mặc định và bề mặt quản trị
+  - Giới hạn địa chỉ lắng nghe và phân đoạn mạng
+  - Giới hạn kích thước request, upload và tài nguyên tiêu thụ
+  - Giới hạn phương thức HTTP và truy cập tài nguyên không mong muốn
+  - HTTP request smuggling và sự thống nhất cách phân tích giữa proxy với Tomcat
+  - Đường dẫn, chuẩn hóa URL và phòng ngừa truy cập vượt phạm vi
+  - Giảm rò rỉ thông tin trong trang lỗi và header
+  - Bảo vệ tệp tạm, log và dữ liệu nhạy cảm
+  - Theo dõi cảnh báo bảo mật và cập nhật đúng nhánh hỗ trợ
+  - Rà soát cấu hình đặc quyền và tính năng không cần thiết
+- level1: Quản trị từ xa
+  level2:
+  - Manager và các thao tác quản lý ứng dụng
+  - Host Manager và quản lý máy chủ ảo
+  - Vai trò quản trị, tài khoản và giới hạn nguồn truy cập
+  - Phân biệt giao diện HTML với API quản trị
+  - Triển khai qua API quản trị và bảo vệ thông tin đăng nhập
+  - Kiểm tra trạng thái thay vì phơi bày toàn bộ giao diện quản trị
+  - JMX và các MBean quản lý Tomcat
+  - Bảo vệ JMX từ xa bằng xác thực, mã hóa và giới hạn mạng
+  - Quản lý quyền truy cập trong pipeline CI/CD
+  - Kiểm toán thao tác quản trị và ứng phó tài khoản bị lộ
+- level1: Proxy và cân bằng tải
+  level2:
+  - Kiến trúc reverse proxy trước Tomcat
+  - Chuyển tiếp Host, scheme, port và địa chỉ máy khách
+  - RemoteIpValve và ranh giới tin cậy của proxy
+  - Forwarded, X-Forwarded-* và nguy cơ giả mạo header
+  - proxyName, proxyPort, scheme và secure trong cấu hình phù hợp
+  - Tạo redirect đúng khi TLS kết thúc ở proxy
+  - Đồng bộ timeout và giới hạn request giữa các tầng
+  - Cân bằng tải HTTP và tích hợp AJP theo nhu cầu
+  - Health check, loại instance lỗi và khôi phục lưu lượng
+  - Sticky session, jvmRoute và định tuyến phiên
+  - Đường dẫn ứng dụng, rewrite và xử lý context path
+  - WebSocket upgrade và kết nối dài qua proxy
+- level1: WebSocket
+  level2:
+  - WebSocket trong vai trò của Tomcat
+  - Handshake, upgrade và quan hệ với HTTP
+  - Endpoint, phiên WebSocket và vòng đời kết nối
+  - Gửi nhận thông điệp đồng bộ và bất đồng bộ
+  - Giới hạn kích thước thông điệp và bộ đệm
+  - Timeout nhàn rỗi và phát hiện kết nối không còn hoạt động
+  - Thread safety và điều tiết bên nhận chậm
+  - Xác thực, phân quyền và kiểm tra nguồn kết nối
+  - Cân bằng tải và trạng thái kết nối dài
+  - Đóng kết nối khi triển khai lại hoặc dừng instance
+- level1: JNDI và tài nguyên
+  level2:
+  - JNDI và không gian tên java:comp/env
+  - Resource, ResourceLink và tài nguyên dùng chung
+  - Khai báo DataSource trong Context
+  - Kết nối JDBC và vị trí đặt driver
+  - Connection pool và lựa chọn implementation
+  - Kích thước pool, thời gian chờ và kiểm tra kết nối
+  - Quan hệ giữa thread pool Tomcat với connection pool
+  - Phát hiện kết nối không được trả lại
+  - Vòng đời tài nguyên khi reload, redeploy và shutdown
+  - Tách thông tin kết nối khỏi gói ứng dụng
+  - Lỗi tra cứu JNDI và sai phạm vi cấu hình
+- level1: Nhật ký
+  level2:
+  - JULI và hệ thống log nội bộ của Tomcat
+  - catalina, localhost và log của ứng dụng
+  - Console output, catalina.out và khác biệt theo cách chạy
+  - logging.properties, logger, handler và mức log
+  - AccessLogValve và mẫu access log
+  - Ghi thời gian xử lý, trạng thái HTTP và thông tin định tuyến
+  - Mã tương quan request giữa proxy, Tomcat và ứng dụng
+  - Xoay vòng, lưu giữ và thu gom log
+  - Che dữ liệu nhạy cảm trong URL, header và thông báo lỗi
+  - Chọn mức log chẩn đoán và kiểm soát chi phí ghi log
+- level1: Giám sát
+  level2:
+  - Phân biệt trạng thái tiến trình với sức khỏe ứng dụng
+  - Thu thập chỉ số Tomcat qua JMX
+  - Theo dõi kết nối, luồng bận và hàng đợi
+  - Thông lượng request, độ trễ và tỷ lệ lỗi
+  - Giám sát session, ứng dụng và kết quả triển khai
+  - 'Chỉ số JVM: heap, GC, Metaspace và số luồng'
+  - 'Chỉ số hệ điều hành: CPU, RAM, file descriptor và socket'
+  - Micrometer và tích hợp chỉ số trong ứng dụng Spring Boot
+  - Truy vết phân tán và vị trí instrumentation
+  - Cảnh báo theo mức bão hòa và ảnh hưởng người dùng
+  - Dashboard kết hợp proxy, Tomcat, ứng dụng và cơ sở dữ liệu
+  - Thu thập bằng chứng trước khi khởi động lại
+- level1: Hiệu năng
+  level2:
+  - Đặt mục tiêu độ trễ, thông lượng và mức tải đồng thời
+  - Đo đường cơ sở trước khi thay cấu hình
+  - Phân biệt nghẽn CPU, I/O, thread pool và connection pool
+  - Điều chỉnh số luồng theo đặc điểm tác vụ
+  - Chọn giới hạn kết nối và hàng đợi theo dung lượng thực
+  - Keep-alive, kết nối dài và chi phí tài nguyên
+  - Timeout và bảo vệ khi hệ thống phụ thuộc xử lý chậm
+  - Nén, tài nguyên tĩnh và chi phí CPU
+  - Kích thước buffer, body lớn và áp lực bộ nhớ
+  - Ảnh hưởng của session, JSP và quét thư viện
+  - HTTP/2 và hiệu năng cần kiểm chứng theo tình huống
+  - Kiểm thử tải tăng dần, tải đột biến và tải kéo dài
+  - Tránh tăng giới hạn đồng loạt khiến quá tải chuyển sang tầng khác
+- level1: Bộ nhớ và JVM
+  level2:
+  - Heap, Metaspace, bộ nhớ trực tiếp và stack luồng
+  - Chọn heap theo giới hạn tiến trình và container
+  - Thu gom rác, thời gian dừng và độ trễ request
+  - OutOfMemoryError theo từng vùng bộ nhớ
+  - Thread dump để phát hiện chờ, khóa và cạn luồng
+  - Heap dump và phân tích đối tượng giữ bộ nhớ
+  - JFR, jcmd và dữ liệu chẩn đoán JVM
+  - Session, cache và upload giữ bộ nhớ như thế nào
+  - Rò rỉ bộ nhớ sau nhiều lần redeploy
+  - Luồng nền, ThreadLocal và thư viện không dọn tài nguyên
+  - Cạn file descriptor, socket và bộ nhớ native
+  - Kiểm chứng cấu hình JVM thực sự được áp dụng
+- level1: Cụm và tính sẵn sàng
+  level2:
+  - Scale up, scale out và giới hạn một instance
+  - Chạy nhiều Tomcat sau bộ cân bằng tải
+  - Ứng dụng không giữ session và ứng dụng có session
+  - Sticky session và điều kiện failover
+  - Nhân bản session trong cụm Tomcat
+  - DeltaManager, BackupManager và phạm vi lựa chọn
+  - Yêu cầu distributable và dữ liệu có thể tuần tự hóa
+  - Chi phí mạng, bộ nhớ và tính nhất quán của session
+  - Lưu session bên ngoài container và đánh đổi
+  - Khám phá thành viên cụm và bảo vệ kênh trao đổi
+  - Rolling deployment và tương thích dữ liệu session
+  - Diễn tập mất instance và kiểm chứng phục hồi
+- level1: Tomcat nhúng
+  level2:
+  - Tomcat nhúng khác bản độc lập ở cách ghép nối và quản lý
+  - Khởi tạo Tomcat bằng API Java
+  - Tạo Connector, Context và đăng ký Servlet bằng mã
+  - Thiết lập base directory và tài nguyên ứng dụng
+  - Thêm Filter, Listener và Valve theo vòng đời
+  - Classpath ứng dụng và khả năng khám phá thư viện
+  - Khởi động, chờ và dừng container trong tiến trình chủ
+  - Truyền cấu hình và quản lý tài nguyên dùng chung
+  - Đóng gói executable JAR với container nhúng
+  - Giới hạn của cấu hình khi không dùng bộ cài độc lập
+  - Kiểm thử tích hợp với Tomcat nhúng
+- level1: Spring Boot
+  level2:
+  - Tomcat trong mô hình Spring Boot Servlet
+  - Starter web và quan hệ phụ thuộc container
+  - Quá trình Spring Boot tạo và khởi động web server
+  - Cấu hình server.* và đối chiếu tài liệu đúng phiên bản
+  - WebServerFactoryCustomizer và tùy biến Tomcat
+  - Thêm Connector, Valve và cấu hình session
+  - Context path, cổng, địa chỉ bind và trang lỗi
+  - Graceful shutdown và thời hạn dừng của ứng dụng
+  - Actuator, trạng thái sẵn sàng và chỉ số Tomcat
+  - Executable JAR và WAR triển khai lên Tomcat ngoài
+  - SpringBootServletInitializer và cấu hình phụ thuộc provided
+  - Quản lý phiên bản Tomcat theo cơ chế dependency management
+  - Tránh nhầm thuộc tính Spring Boot với thuộc tính Connector gốc
+- level1: Dịch vụ và container
+  level2:
+  - Chạy Tomcat bằng script, dịch vụ hệ điều hành và container
+  - Thiết lập systemd unit và biến môi trường
+  - Windows service và cấu hình Java của tiến trình dịch vụ
+  - Chạy foreground trong container và truyền tín hiệu dừng
+  - Image bất biến, tài khoản không đặc quyền và quyền tệp
+  - Giới hạn CPU, bộ nhớ và file descriptor
+  - Đưa cấu hình, bí mật và dữ liệu ra vị trí phù hợp
+  - Ghi log ra console và thu gom tập trung
+  - Liveness, readiness và thời gian khởi động
+  - Thư mục tạm, hệ tệp chỉ đọc và dữ liệu cần ghi
+  - Dừng theo thứ tự loại lưu lượng rồi kết thúc tiến trình
+  - Tự khởi động lại có kiểm soát và tránh che giấu lỗi lặp
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử cấu hình và khởi động container
+  - Kiểm thử Servlet bằng mock và bằng Tomcat thực
+  - Kiểm thử WAR trên cùng nhánh Tomcat mục tiêu
+  - Kiểm thử HTTP header, mã hóa, cookie và redirect
+  - Kiểm thử TLS, mTLS và hoạt động sau reverse proxy
+  - Kiểm thử session, timeout và đăng nhập đồng thời
+  - Kiểm thử upload lớn, client chậm và client ngắt kết nối
+  - Kiểm thử async Servlet và WebSocket
+  - Kiểm thử tải với số kết nối và số request được kiểm soát
+  - Kiểm thử deploy, redeploy, shutdown và quay lui
+  - Kiểm thử failover và dữ liệu session
+  - Tạo môi trường tái lập và lưu bằng chứng cấu hình
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quy trình khoanh vùng từ mạng đến ứng dụng
+  - Tomcat không khởi động do Java, cấu hình hoặc quyền truy cập
+  - Port đã được sử dụng và bind sai địa chỉ
+  - Tiến trình đang chạy nhưng ứng dụng chưa triển khai thành công
+  - 404 do context path, mapping hoặc tài nguyên không tồn tại
+  - 400 và lỗi phân tích request, mã hóa hoặc header
+  - 413 và các giới hạn upload không thống nhất
+  - 500 do ứng dụng và chuỗi nguyên nhân trong log
+  - 502, 503, 504 tại proxy và cách đối chiếu log Tomcat
+  - Request treo do cạn luồng, khóa hoặc chờ cơ sở dữ liệu
+  - Lỗi chứng chỉ, TLS handshake và giao thức không tương thích
+  - Lỗi session mất sau cân bằng tải hoặc triển khai lại
+  - Lỗi classloader và xung đột thư viện
+  - CPU cao, GC kéo dài và rò rỉ bộ nhớ
+  - Không dừng được do tác vụ nền hoặc tài nguyên chưa đóng
+  - Lập báo cáo nguyên nhân gốc và xác minh biện pháp sửa
+- level1: Nâng cấp và bảo trì
+  level2:
+  - Lập ma trận Tomcat, Java và Jakarta Servlet cần hỗ trợ
+  - Đọc hướng dẫn chuyển đổi giữa các nhánh phiên bản
+  - javax.servlet và jakarta.servlet trong tương thích ứng dụng
+  - Kiểm tra JSP, WebSocket, thư viện và API liên quan
+  - Tham số cấu hình bị đổi, bỏ hoặc thay ngữ nghĩa
+  - Đối chiếu thư viện native và tính năng TLS
+  - Không sao chép nguyên thư mục conf cũ sang bản mới
+  - Kiểm thử hồi quy bằng bản phân phối sạch
+  - Thay phiên bản Tomcat nhúng trong giới hạn tương thích của framework
+  - Triển khai thử, quan sát và chuẩn bị quay lui
+  - Quản lý lịch vá lỗi và bằng chứng phiên bản đang chạy
+- level1: Thực hành Tomcat
+  level2:
+  - Chuẩn bị hai instance Tomcat độc lập trên cùng máy
+  - Đóng gói và triển khai ứng dụng Servlet tối thiểu
+  - Theo dõi một request qua Connector, Valve, Filter và Servlet
+  - Thử nghiệm request đồng thời và trạng thái dùng chung
+  - Quan sát thread pool với tác vụ nhanh và tác vụ chặn
+  - Thực nghiệm timeout và async Servlet
+  - Thiết lập DataSource JNDI và quan sát cạn connection pool
+  - Đặt reverse proxy và kiểm chứng scheme, địa chỉ IP, redirect
+  - Thiết lập HTTPS và xác minh chuỗi chứng chỉ
+  - Cấu hình session rồi kiểm thử nhiều instance
+  - Triển khai ứng dụng Spring Boot theo JAR và WAR
+  - Thu thập access log, JMX và thread dump khi có tải
+  - Tái hiện lỗi classloader và rò rỉ sau redeploy
+  - Thực hành graceful shutdown và chuyển lưu lượng
+  - Rà soát bảo mật, hiệu năng và viết runbook vận hành

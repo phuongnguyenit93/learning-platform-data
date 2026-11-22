@@ -1,0 +1,2905 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Tài khoản dịch vụ là gì và vì sao hệ thống cần danh tính riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt tài khoản dịch vụ với tài khoản người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt danh tính, tài khoản, thông tin xác thực và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Các bên quản lý, sử dụng và xác minh tài khoản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Luồng từ workload đến xác thực rồi truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Trường hợp sử dụng trong ứng dụng, tự động hóa, hạ tầng và tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Rủi ro của việc dùng tài khoản cá nhân cho tiến trình tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Rủi ro của một tài khoản dùng chung cho nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Bản đồ vòng đời và các quyết định bảo mật chủ yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: nonhuman-identities
+  title: Danh tính phi con người
+  childs:
+  - slug: nonhuman-identities-001
+    title: Service account trong bức tranh non-human identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-002
+    title: Workload identity và mối quan hệ với tài khoản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-003
+    title: Service principal, ứng dụng OAuth và tài khoản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-004
+    title: Managed identity và danh tính do nền tảng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-005
+    title: Machine account, tài khoản thiết bị và tài khoản tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-006
+    title: Tài khoản hệ điều hành khác với danh tính trên dịch vụ đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-007
+    title: Tài khoản cơ sở dữ liệu khác với danh tính ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-008
+    title: API key, chứng thư và token là thông tin xác thực hay bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-009
+    title: Danh tính dùng chung, danh tính chuyên biệt và danh tính tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: nonhuman-identities-010
+    title: Không đồng nhất thuật ngữ của các nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-model
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-model-001
+    title: Đánh cắp khóa, mật khẩu, token và chứng thư của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-002
+    title: Workload bị xâm phạm và lạm dụng quyền của chính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-003
+    title: Quyền vượt nhu cầu và mở rộng phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-004
+    title: Tài khoản mồ côi hoặc không có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-005
+    title: Thông tin xác thực nằm trong mã nguồn, ảnh máy hoặc nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-006
+    title: Giả mạo ngữ cảnh workload khi liên kết danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-007
+    title: Leo thang quyền qua giả danh hoặc tạo thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-008
+    title: Di chuyển ngang giữa môi trường, tenant hoặc tài khoản đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-009
+    title: Confused deputy trong truy cập thay mặt bên khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-010
+    title: Lạm dụng tài khoản dịch vụ để che giấu người thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-011
+    title: Gián đoạn hệ thống khi xoay khóa hoặc vô hiệu hóa tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-design
+  title: Thiết kế danh tính
+  childs:
+  - slug: identity-design-001
+    title: Một danh tính cho một trách nhiệm hoặc ranh giới tin cậy phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-002
+    title: Tách tài khoản theo môi trường phát triển, thử nghiệm và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-003
+    title: Tách danh tính triển khai khỏi danh tính chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-004
+    title: Tách tác vụ đọc, ghi, quản trị và khôi phục khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-005
+    title: Chọn phạm vi theo dịch vụ, workload, nhóm triển khai hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-006
+    title: Định danh bất biến và tên hiển thị dễ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-007
+    title: Quy ước tên, nhãn và metadata phục vụ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-008
+    title: Tránh đưa dữ liệu nhạy cảm vào tên hoặc nhãn công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-009
+    title: Chọn danh tính dài hạn hoặc danh tính theo workload ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-design-010
+    title: Giới hạn số danh tính mà vẫn giữ khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ownership-and-accountability
+  title: Trách nhiệm sở hữu
+  childs:
+  - slug: ownership-and-accountability-001
+    title: Chủ sở hữu nghiệp vụ và chủ sở hữu kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-002
+    title: Đơn vị vận hành, người phê duyệt và người quản lý quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-003
+    title: Phân biệt người tạo tài khoản với người chịu trách nhiệm lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-004
+    title: Ghi nhận mục đích, hệ thống sử dụng và tài nguyên truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-005
+    title: Thời hạn sử dụng hoặc thời điểm cần rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-006
+    title: Quy trình chuyển chủ sở hữu khi nhân sự hoặc đội nhóm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-007
+    title: Trách nhiệm khi nhà cung cấp hoặc đối tác dùng tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-008
+    title: Đầu mối xử lý cảnh báo, xoay khóa và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-009
+    title: Tách nhiệm vụ trong tạo tài khoản, cấp quyền và truy cập bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ownership-and-accountability-010
+    title: Không coi danh tính phi con người là tài khoản không cần quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: account-inventory
+  title: Kiểm kê tài khoản
+  childs:
+  - slug: account-inventory-001
+    title: Phát hiện tài khoản trên IAM, hệ điều hành và hệ thống dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-002
+    title: Ánh xạ tài khoản với workload, ứng dụng và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-003
+    title: Thu thập chủ sở hữu, mục đích và mức quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-004
+    title: Kiểm kê khóa, token, chứng thư cùng cơ chế cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-005
+    title: Quyền trực tiếp, quyền kế thừa và quyền hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-006
+    title: Quan hệ giả danh, ủy quyền và quyền tạo thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-007
+    title: Lần sử dụng gần nhất và hạn chế của dữ liệu hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-008
+    title: Tài khoản không rõ chủ, không dùng hoặc có quyền nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-009
+    title: Biểu diễn phụ thuộc giữa tài khoản với các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-inventory-010
+    title: Đối chiếu cấu hình thực tế với nguồn quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: account-lifecycle
+  title: Vòng đời tài khoản
+  childs:
+  - slug: account-lifecycle-001
+    title: Yêu cầu, phê duyệt, tạo và đưa vào sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-002
+    title: Chọn thời hạn hoặc điều kiện chấm dứt tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-003
+    title: Cấp quyền ban đầu và gắn với workload hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-004
+    title: Theo dõi thay đổi mục đích, quyền và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-005
+    title: Rà soát định kỳ quyền và nhu cầu tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-006
+    title: Tạm dừng, vô hiệu hóa và khôi phục có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-007
+    title: Thu hồi quyền khi workload hoặc dự án chấm dứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-008
+    title: Xóa tài khoản và xử lý dữ liệu hoặc tài nguyên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-009
+    title: Trạng thái vòng đời cùng bằng chứng chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-lifecycle-010
+    title: Tự động hóa quy trình mà vẫn giữ phê duyệt và truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: provisioning-and-registration
+  title: Tạo và đăng ký
+  childs:
+  - slug: provisioning-and-registration-001
+    title: Thông tin bắt buộc trong yêu cầu tạo tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-002
+    title: Đánh giá rủi ro trước khi chọn loại danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-003
+    title: Kiểm soát ai được tạo và ở phạm vi nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-004
+    title: Ngăn tạo tài khoản đặc quyền bằng quy trình tự phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-005
+    title: Thiết lập hạn chế đăng nhập tương tác theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-006
+    title: Không mặc nhiên cấp quyền quản trị hoặc quyền mặc định rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-007
+    title: Tạo bằng API, công cụ quản trị hoặc hạ tầng dưới dạng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-008
+    title: Tính lặp lại an toàn và tránh tạo tài khoản trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-009
+    title: Liên kết tài khoản với chủ sở hữu và hệ thống kiểm kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: provisioning-and-registration-010
+    title: Kiểm tra cấu hình trước khi giao cho workload sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-methods
+  title: Cơ chế xác thực
+  childs:
+  - slug: authentication-methods-001
+    title: Mật khẩu của tài khoản dịch vụ và các giới hạn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-002
+    title: Khóa API, client secret và khóa truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-003
+    title: Chứng thư máy khách, mTLS và bằng chứng giữ khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-004
+    title: Chữ ký yêu cầu và khóa bất đối xứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-005
+    title: OAuth client credentials trong xác thực ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-006
+    title: Token do nền tảng cấp cho danh tính được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-007
+    title: Liên kết danh tính và đổi bằng chứng workload lấy token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-008
+    title: Kerberos và xác thực tài khoản dịch vụ trong miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-009
+    title: Chọn cơ chế theo môi trường và mô hình đe dọa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-010
+    title: Phân biệt xác thực workload với xác thực người quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-methods-011
+    title: Không dùng việc không hỗ trợ MFA như lý do bỏ các kiểm soát thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: credential-protection
+  title: Bảo vệ thông tin xác thực
+  childs:
+  - slug: credential-protection-001
+    title: Tránh khóa dài hạn khi nền tảng cung cấp cơ chế phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-002
+    title: Sinh khóa hoặc bí mật bằng nguồn ngẫu nhiên an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-003
+    title: Phân phối qua kho bí mật hoặc kênh quản trị được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-004
+    title: Quyền đọc bí mật và phạm vi workload được phép nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-005
+    title: Không nhúng bí mật trong kho mã, tệp cấu hình hoặc ảnh container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-006
+    title: Biến môi trường, tệp, volume và rủi ro lộ dữ liệu tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-007
+    title: Bí mật trong bộ nhớ, crash dump và công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-008
+    title: Bảo vệ khóa riêng bằng phần cứng hoặc kho khóa khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-009
+    title: Kiểm soát xuất khóa, tải khóa và tạo bản sao mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-010
+    title: Nhật ký, bản sao lưu và pipeline có thể chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-011
+    title: Phát hiện bí mật bị công khai và quy trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-protection-012
+    title: Tách dữ liệu kiểm kê khỏi giá trị bí mật thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: short-lived-tokens
+  title: Token ngắn hạn
+  childs:
+  - slug: short-lived-tokens-001
+    title: Lợi ích và giới hạn của thông tin xác thực tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-002
+    title: Luồng xin token từ môi trường hoặc dịch vụ cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-003
+    title: Ràng buộc issuer, audience, subject và mục đích token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-004
+    title: Giới hạn thời gian sống cùng phạm vi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-005
+    title: Làm mới token trước hạn mà không gây gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-006
+    title: Quản lý bộ nhớ đệm token trong nhiều tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-007
+    title: Xử lý token hết hạn, đồng hồ lệch và nguồn cấp phát lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-008
+    title: Thu hồi quyền cấp token khác với thu hồi token đã cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-009
+    title: Chống phát lại bằng ràng buộc với bên giữ khóa khi hồ sơ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: short-lived-tokens-010
+    title: Không ghi hoặc chuyển tiếp token sang dịch vụ ngoài đối tượng nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workload-identity-federation
+  title: Liên kết workload
+  childs:
+  - slug: workload-identity-federation-001
+    title: Workload identity federation là gì và khi nào cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-002
+    title: Nguồn danh tính bên ngoài và miền tin cậy nhận token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-003
+    title: Ràng buộc các thuộc tính của workload trong chính sách tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-004
+    title: Kiểm tra issuer, audience và điều kiện nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-005
+    title: Ánh xạ workload bên ngoài sang danh tính được phép sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-006
+    title: Ngăn wildcard hoặc điều kiện quá rộng trong trust policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-007
+    title: Ràng buộc kho mã, nhánh, môi trường và tác vụ CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-008
+    title: Chống giả mạo thuộc tính có thể do bên không tin cậy điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-009
+    title: Thu hồi quan hệ liên kết khi nguồn workload thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-010
+    title: Chẩn đoán lỗi giữa cấp bằng chứng, đổi token và kiểm tra quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-identity-federation-011
+    title: Giới hạn của liên kết danh tính khi workload nguồn đã bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: least-privilege
+  title: Quyền tối thiểu
+  childs:
+  - slug: least-privilege-001
+    title: Xác định hành động và tài nguyên thật sự cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-002
+    title: Quyền trực tiếp, nhóm, role và quyền kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-003
+    title: Role dựng sẵn so với role tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-004
+    title: Tách quyền đọc dữ liệu, ghi dữ liệu và quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-005
+    title: Giới hạn quyền theo tài nguyên, môi trường và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-006
+    title: Điều kiện theo thời gian, mạng hoặc ngữ cảnh được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-007
+    title: Rủi ro quyền wildcard và quyền quản trị dự án hoặc tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-008
+    title: Quyền cấp quyền, tạo khóa và gắn danh tính cho workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-009
+    title: Phân tích đường leo thang quyền gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-010
+    title: Rà soát quyền theo hoạt động thực tế và giới hạn của suy luận này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-011
+    title: Kiểm tra quyền hiệu lực sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: least-privilege-012
+    title: Tạm cấp đặc quyền theo thời hạn khi tác vụ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: impersonation-and-delegation
+  title: Giả danh và ủy quyền
+  childs:
+  - slug: impersonation-and-delegation-001
+    title: Impersonation khác với chia sẻ khóa của tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-002
+    title: Delegation và giới hạn truy cập thay mặt chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-003
+    title: Ai được phép xin token hoặc ký dưới danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-004
+    title: Quyền giả danh khác với quyền của danh tính đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-005
+    title: Chuỗi ủy quyền nhiều bước và khả năng truy vết nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-006
+    title: Ngăn người dùng trở thành tài khoản đặc quyền qua đường gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-007
+    title: Giới hạn audience, scope và thời hạn khi ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-008
+    title: Ủy quyền cho đối tác hoặc hệ thống ngoài tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-009
+    title: Ngăn confused deputy bằng ràng buộc bên yêu cầu và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-010
+    title: Nhật ký người khởi tạo, danh tính trung gian và tài khoản đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impersonation-and-delegation-011
+    title: Thu hồi quyền giả danh mà không phá vỡ các workload hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-boundaries
+  title: Ranh giới truy cập
+  childs:
+  - slug: access-boundaries-001
+    title: Kết hợp danh tính với chính sách mạng và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-002
+    title: Giới hạn môi trường từ đó thông tin xác thực được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-003
+    title: Metadata endpoint và rủi ro SSRF lấy token của workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-004
+    title: Đường truy cập từ container đến thông tin xác thực của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-005
+    title: Truy cập tài nguyên qua proxy hoặc bộ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-006
+    title: Ràng buộc tài nguyên đích và tránh chuyển tiếp token tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-007
+    title: Tách dữ liệu cùng danh tính giữa các tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-008
+    title: Giới hạn đường ra để giảm phát tán dữ liệu khi tài khoản bị chiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-009
+    title: Không coi vị trí mạng là bằng chứng danh tính đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-boundaries-010
+    title: Đánh giá quyền truy cập tại tài nguyên thay vì chỉ tại cổng vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: Chọn danh tính chạy ứng dụng thay cho tài khoản người phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: Chuỗi tìm thông tin xác thực và nguy cơ chọn nhầm nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: Cấu hình môi trường rõ ràng và tránh rơi về khóa ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: Khởi tạo kết nối khi token hoặc chứng thư chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: Tái sử dụng kết nối và cập nhật thông tin xác thực mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: Phân biệt lỗi xác thực với lỗi thiếu quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: Retry có giới hạn và tránh lặp cấp token gây quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: Không gắn bí mật vào thông báo lỗi hoặc dấu vết chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: Xác định danh tính hiệu lực khi ứng dụng gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: Tách danh tính gọi ra của ứng dụng khỏi danh tính người dùng cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-011
+    title: Ví dụ luồng tích hợp trung lập ngôn ngữ và nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-and-automation
+  title: CI/CD và tự động hóa
+  childs:
+  - slug: ci-cd-and-automation-001
+    title: Danh tính của pipeline, runner và tác vụ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-002
+    title: Tách quyền xây dựng, phát hành và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-003
+    title: Thông tin xác thực theo tác vụ thay cho khóa dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-004
+    title: Liên kết OIDC giữa hệ thống CI/CD với nền tảng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-005
+    title: Ràng buộc kho mã, ref, môi trường và quy trình đã phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-006
+    title: Pull request từ nguồn không tin cậy và nguy cơ truy cập bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-007
+    title: Quyền của runner tự quản lý và phạm vi thông tin xác thực nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-008
+    title: Bí mật trong artifact, cache, log và biến đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-009
+    title: Phê duyệt môi trường sản xuất và giới hạn thời gian đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-010
+    title: Thu hồi quyền của pipeline hoặc runner đã ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-and-automation-011
+    title: Truy vết lần triển khai về người khởi tạo và phiên bản mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes
+  title: Kubernetes
+  childs:
+  - slug: kubernetes-001
+    title: Kubernetes ServiceAccount và danh tính trong namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-002
+    title: Phân biệt ServiceAccount với tài khoản người dùng và cloud identity
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-003
+    title: Gắn ServiceAccount phù hợp cho từng workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-004
+    title: Token được chiếu vào Pod, audience và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-005
+    title: TokenRequest và hạn chế token tĩnh dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-006
+    title: Automount token và giảm cấp phát cho Pod không cần dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-007
+    title: 'RBAC: Role, ClusterRole, RoleBinding và ClusterRoleBinding'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-008
+    title: Quyền tạo Pod, đọc Secret hoặc gắn ServiceAccount có thể mở đường leo thang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-009
+    title: Liên kết Kubernetes ServiceAccount với danh tính đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-010
+    title: Pod bị xâm phạm và phạm vi ảnh hưởng của token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-011
+    title: Thay đổi, xóa ServiceAccount và tác động lên workload đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-012
+    title: Kiểm tra danh tính cùng quyền hiệu lực từ góc nhìn Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-platforms
+  title: Nền tảng đám mây
+  childs:
+  - slug: cloud-platforms-001
+    title: Ánh xạ khái niệm tài khoản dịch vụ sang mô hình từng nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-002
+    title: AWS IAM role, role session và trust policy cho workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-003
+    title: AWS IAM user cùng rủi ro khóa truy cập dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-004
+    title: Azure service principal và thông tin xác thực ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-005
+    title: Azure managed identity theo mô hình nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-006
+    title: Google Cloud service account, role và quyền giả danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-007
+    title: Khóa do người dùng quản lý khác với token do nền tảng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-008
+    title: Danh tính gắn với máy ảo, container hoặc tác vụ serverless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-009
+    title: Truy cập chéo tài khoản, subscription, project hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-010
+    title: Chính sách tổ chức hạn chế tạo khóa và cấp đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-platforms-011
+    title: Theo dõi khác biệt thuật ngữ, giới hạn và cấu hình giữa các nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-systems
+  title: Hệ điều hành
+  childs:
+  - slug: operating-systems-001
+    title: Tài khoản chạy dịch vụ trên Linux và Unix
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-002
+    title: UID, GID, quyền tệp và quyền tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-003
+    title: Tài khoản không đăng nhập tương tác và giới hạn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-004
+    title: Đặc quyền root, capabilities và cơ chế cô lập tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-005
+    title: Danh tính cho daemon, tác vụ theo lịch và dịch vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-006
+    title: Tài khoản dịch vụ cục bộ và tài khoản miền trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-007
+    title: Managed Service Account và Group Managed Service Account
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-008
+    title: Quyền đăng nhập như dịch vụ và quyền truy cập tài nguyên mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-009
+    title: SPN, Kerberos và sai cấu hình tài khoản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-010
+    title: Tách danh tính hệ điều hành khỏi thông tin xác thực ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-systems-011
+    title: Giám sát việc tài khoản dịch vụ bị dùng cho hoạt động tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-integrations
+  title: Dữ liệu và tích hợp
+  childs:
+  - slug: data-and-integrations-001
+    title: Tài khoản kết nối cơ sở dữ liệu và quyền theo lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-002
+    title: Tách danh tính chạy ứng dụng khỏi danh tính migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-003
+    title: Xác thực cơ sở dữ liệu bằng token hoặc danh tính nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-004
+    title: Tài khoản cho hàng đợi, object storage và dịch vụ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-005
+    title: Danh tính riêng cho từng tích hợp bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-006
+    title: Giới hạn thao tác hàng loạt, xuất dữ liệu và quyền xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-007
+    title: Connection pool khi mật khẩu, token hoặc chứng thư thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-008
+    title: Truy vết người dùng nghiệp vụ khi truy cập qua tài khoản dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-009
+    title: Chỉ ghi nhận danh tính người dùng qua ngữ cảnh đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-integrations-010
+    title: Đánh giá tác động khi cùng tài khoản được nhiều ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-rotation-and-revocation
+  title: Xoay và thu hồi bí mật
+  childs:
+  - slug: secret-rotation-and-revocation-001
+    title: Phân biệt xoay bí mật với thay danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-002
+    title: Chu kỳ xoay dựa trên rủi ro và cơ chế xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-003
+    title: Kiểm kê mọi workload đang dùng thông tin xác thực cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-004
+    title: Khoảng chồng lấn giữa thông tin xác thực cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-005
+    title: Phân phối, reload và xác minh bản triển khai mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-006
+    title: Thu hồi khóa cũ sau khi xác nhận chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-007
+    title: Ứng dụng không hỗ trợ hai khóa và kế hoạch chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-008
+    title: Mật khẩu do nền tảng quản lý và trách nhiệm phần ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-009
+    title: Rollback an toàn khi xoay thông tin xác thực thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-010
+    title: Xoay khẩn cấp khi nghi ngờ bí mật bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-rotation-and-revocation-011
+    title: Phát hiện bản sao khóa cũ còn tồn tại sau xoay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deactivation-and-deletion
+  title: Vô hiệu hóa và xóa
+  childs:
+  - slug: deactivation-and-deletion-001
+    title: Xác minh nhu cầu ngừng trước khi thay đổi danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-002
+    title: Vô hiệu hóa tài khoản khác với xóa tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-003
+    title: Thu hồi quyền, quan hệ giả danh và quan hệ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-004
+    title: Thu hồi khóa, chứng thư và khả năng cấp token mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-005
+    title: Token hoặc phiên còn hiệu lực sau khi tài khoản bị thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-006
+    title: Kiểm tra tác vụ nền, lịch chạy và dịch vụ ít hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-007
+    title: Chuyển quyền sở hữu tài nguyên trước khi xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-008
+    title: Gỡ bí mật khỏi workload, kho bí mật và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-009
+    title: Lưu bằng chứng cùng dữ liệu kiểm toán theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-010
+    title: Phát hiện tái tạo tài khoản cùng tên với danh tính khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deactivation-and-deletion-011
+    title: Xác minh không còn đường truy cập từ tài khoản đã ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-and-auditing
+  title: Giám sát và kiểm toán
+  childs:
+  - slug: monitoring-and-auditing-001
+    title: Sự kiện tạo, sửa, cấp quyền và xóa tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-002
+    title: Sự kiện tạo khóa, đọc bí mật, xin token và giả danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-003
+    title: Hoạt động truy cập theo tài nguyên, vị trí và workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-004
+    title: Phân biệt người khởi tạo với danh tính thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-005
+    title: Cảnh báo quyền tăng bất thường hoặc quan hệ tin cậy bị mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-006
+    title: Phát hiện sử dụng ngoài môi trường hoặc ngoài lịch dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-007
+    title: Tài khoản không hoạt động nhưng còn quyền cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-008
+    title: Khóa lâu chưa xoay và thông tin xác thực không rõ nơi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-009
+    title: Che giấu bí mật trong log và báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-010
+    title: Bảo vệ nhật ký khỏi chỉnh sửa hoặc mất dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-011
+    title: Đo độ phủ chủ sở hữu, kiểm kê và rà soát quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-012
+    title: Đầu mối xử lý cảnh báo và bằng chứng hoàn tất khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: Phân loại lộ khóa, chiếm workload và lạm dụng đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: Cô lập workload hoặc đường cấp phát bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: Xác định quyền hiệu lực và tài nguyên đã bị truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: Thu hồi bí mật, token và quyền giả danh liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: Vô hiệu hóa tài khoản theo phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: Xử lý đường leo thang qua tài khoản hoặc role khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: Khôi phục workload bằng danh tính hoặc thông tin xác thực an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: Xác minh quyền truy cập cũ thực sự đã bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-009
+    title: Bảo toàn nhật ký và dấu vết người khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-010
+    title: Phối hợp khôi phục dịch vụ khi tài khoản phục vụ nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-011
+    title: Rà soát nguyên nhân cùng thay đổi chính sách sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policy-as-code
+  title: Chính sách bằng mã
+  childs:
+  - slug: policy-as-code-001
+    title: Quản lý danh tính và quyền bằng hạ tầng dưới dạng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-002
+    title: Yêu cầu có chủ sở hữu, mục đích và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-003
+    title: Kiểm tra quyền wildcard hoặc role đặc quyền trong thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-004
+    title: Chính sách cấm khóa dài hạn khi có lựa chọn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-005
+    title: Kiểm tra trust policy và điều kiện liên kết workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-006
+    title: Phê duyệt thay đổi quyền nhạy cảm trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-007
+    title: Phát hiện sai lệch giữa cấu hình khai báo với cấu hình thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-008
+    title: Tách quyền chạy pipeline quản trị danh tính khỏi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-009
+    title: Quản lý state và output tránh lưu bí mật ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policy-as-code-010
+    title: Rà soát định kỳ và lưu bằng chứng quyết định giữ hoặc thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-readiness
+  title: Sẵn sàng và di trú
+  childs:
+  - slug: migration-readiness-001
+    title: Phụ thuộc vào IAM, kho bí mật và dịch vụ cấp token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-002
+    title: Token hết hạn khi nguồn cấp phát không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-003
+    title: Bộ nhớ đệm và giới hạn duy trì hoạt động khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-004
+    title: Sao lưu cấu hình danh tính và quan hệ quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-005
+    title: Khôi phục mà không làm sống lại khóa hoặc quyền đã thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-006
+    title: Chuyển từ tài khoản dùng chung sang danh tính chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-007
+    title: Chuyển từ khóa dài hạn sang managed identity hoặc federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-008
+    title: Đổi chủ sở hữu, nền tảng hoặc miền tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-009
+    title: Triển khai theo giai đoạn và kiểm tra phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-readiness-010
+    title: Tiêu chí hoàn tất cùng loại bỏ danh tính và khóa cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing
+  title: Kiểm thử bảo mật
+  childs:
+  - slug: security-testing-001
+    title: Xác minh đúng danh tính thực thi trong từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-002
+    title: Kiểm thử hành động được phép và hành động phải bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-003
+    title: Truy cập tài nguyên ngoài phạm vi hoặc tenant khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-004
+    title: Thông tin xác thực sai, hết hạn, bị thu hồi hoặc bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-005
+    title: Điều kiện federation sai issuer, audience, ref hoặc thuộc tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-006
+    title: Giả danh trái phép và chuỗi leo thang quyền gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-007
+    title: Pod hoặc pipeline không tin cậy cố lấy token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-008
+    title: Metadata endpoint và đường SSRF có thể chạm thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-009
+    title: Xoay khóa khi còn kết nối hoặc yêu cầu đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-010
+    title: Vô hiệu hóa tài khoản trong khi token cũ chưa hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-011
+    title: Kho bí mật hoặc IAM gián đoạn và hành vi từ chối an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-012
+    title: Kiểm tra bí mật không lọt vào log, artifact, cache và ảnh máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-013
+    title: Diễn tập tài khoản bị chiếm và xác minh hiệu quả thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercises-001
+    title: Thiết kế danh tính cho ứng dụng có API, tác vụ nền và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Lập danh mục tài khoản cùng chủ sở hữu và đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Thiết kế quyền tối thiểu từ các thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Mô phỏng pipeline được triển khai nhưng không được đọc dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Chuyển một tích hợp dùng khóa tĩnh sang token ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Thiết kế federation cho pipeline theo kho mã và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Rà soát ServiceAccount cùng RBAC trong một cụm thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Diễn tập xoay bí mật mà không gián đoạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Diễn tập vô hiệu hóa tài khoản mồ côi và kiểm tra phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Phân tích một đường giả danh dẫn đến leo thang quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Xây dựng cảnh báo và quy trình xử lý tài khoản bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Đánh giá thiết kế bằng mô hình đe dọa và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

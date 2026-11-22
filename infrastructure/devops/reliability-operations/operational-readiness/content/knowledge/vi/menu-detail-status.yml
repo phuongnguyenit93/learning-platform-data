@@ -1,0 +1,2884 @@
+menu:
+- slug: operational-readiness
+  title: Sẵn sàng vận hành
+  childs:
+  - slug: operational-readiness-001
+    title: Sẵn sàng vận hành (operational readiness) là gì và vì sao cần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-002
+    title: Phân biệt phần mềm chạy được với dịch vụ có thể vận hành bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-003
+    title: Mối liên hệ giữa sẵn sàng vận hành, độ tin cậy và trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-004
+    title: Phân biệt sẵn sàng phát hành, sẵn sàng đưa vào sản xuất và sẵn sàng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-005
+    title: Vai trò của đánh giá sẵn sàng vận hành (Operational Readiness Review)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-006
+    title: Nhận diện con người, quy trình, kỹ thuật và bằng chứng cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-007
+    title: Thời điểm đánh giá từ thiết kế đến phát hành và sau bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-008
+    title: Xem mức độ sẵn sàng như trạng thái cần duy trì qua các thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-readiness-009
+    title: Bản đồ thuật ngữ và lộ trình học theo vòng đời dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-profile
+  title: Hồ sơ dịch vụ
+  childs:
+  - slug: service-profile-001
+    title: Xác định mục đích, người sử dụng và giá trị nghiệp vụ của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-002
+    title: Khoanh vùng thành phần thuộc trách nhiệm vận hành của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-003
+    title: Lập danh mục điểm vào, API, luồng dữ liệu và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-004
+    title: Xác định mức quan trọng và tác động khi dịch vụ gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-005
+    title: Nhận diện chủ sở hữu kỹ thuật, nghiệp vụ và đầu mối hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-006
+    title: Ghi nhận môi trường, khu vực triển khai và nơi lưu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-007
+    title: Kiểm kê phụ thuộc nội bộ, bên ngoài và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-008
+    title: Xác định mô hình lưu lượng, giờ cao điểm và chu kỳ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-009
+    title: Ghi nhận giả định, giới hạn sử dụng và trường hợp chưa hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-profile-010
+    title: Duy trì hồ sơ dịch vụ làm điểm bắt đầu cho đánh giá và bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: procedures-and-responsibilities
+  title: Quy trình và trách nhiệm
+  childs:
+  - slug: procedures-and-responsibilities-001
+    title: Phân công trách nhiệm giữa phát triển, vận hành, nền tảng, bảo mật và sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-002
+    title: Xác định người đề xuất, người đánh giá và người quyết định đưa vào vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-003
+    title: Chọn phạm vi đánh giá theo dịch vụ mới, thay đổi lớn hoặc chuyển giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-004
+    title: Thiết lập mốc đánh giá và điều kiện đầu vào của từng mốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-005
+    title: Thu thập bằng chứng trước buổi đánh giá và ghi nhận điểm chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-006
+    title: Phân biệt tự đánh giá, đánh giá chéo và phê duyệt độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-007
+    title: Quản lý hành động khắc phục với người sở hữu và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-008
+    title: Xử lý bất đồng về rủi ro hoặc trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-009
+    title: Thiết lập điều kiện đánh giá lại khi hệ thống thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: procedures-and-responsibilities-010
+    title: Giữ đánh giá phù hợp mức rủi ro và tránh thủ tục không tạo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-objectives
+  title: Mục tiêu chất lượng
+  childs:
+  - slug: quality-objectives-001
+    title: Chọn hành trình người dùng và chức năng cần được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-002
+    title: Xác định chỉ báo mức dịch vụ (SLI) phù hợp với hành vi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-003
+    title: Thiết lập mục tiêu mức dịch vụ (SLO) và cửa sổ đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-004
+    title: Phân biệt SLO nội bộ với cam kết mức dịch vụ (SLA)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-005
+    title: Xác định yêu cầu về độ trễ, khả dụng, thông lượng và độ chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-006
+    title: Xác định mục tiêu thời gian khôi phục (RTO) và điểm khôi phục (RPO)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-007
+    title: Liên hệ ngân sách lỗi với quyết định thay đổi và phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-008
+    title: Xác định nguồn đo, giới hạn đo và người sở hữu mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-objectives-009
+    title: Chuyển mục tiêu chất lượng thành điều kiện nghiệm thu có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-and-dependencies
+  title: Kiến trúc và phụ thuộc
+  childs:
+  - slug: architecture-and-dependencies-001
+    title: Vẽ kiến trúc triển khai và luồng xử lý của các chức năng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-002
+    title: Xác định miền lỗi và điểm lỗi đơn trong kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-003
+    title: Phân loại phụ thuộc bắt buộc và chức năng có thể suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-004
+    title: Đánh giá tác động dây chuyền khi một thành phần bị chậm hoặc mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-005
+    title: Nhận diện trạng thái lưu trong tiến trình, bộ nhớ đệm và kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-006
+    title: Xác định ranh giới đồng bộ, bất đồng bộ và giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-007
+    title: Đánh giá thành phần dùng chung có thể gây ảnh hưởng nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-008
+    title: Ghi nhận giới hạn mở rộng và giả định về thứ tự khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-009
+    title: Đối chiếu kiến trúc với mục tiêu chất lượng và khả năng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-and-dependencies-010
+    title: Lưu quyết định thiết kế cùng rủi ro chưa được loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-and-environments
+  title: Hạ tầng và môi trường
+  childs:
+  - slug: infrastructure-and-environments-001
+    title: Kiểm kê tài nguyên tính toán, lưu trữ và dịch vụ nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-002
+    title: Đối chiếu môi trường kiểm thử với các đặc điểm quan trọng của sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-003
+    title: Quản lý cấu hình hạ tầng bằng mã và lưu lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-004
+    title: Xác minh hạn mức tài nguyên, khả năng cấp phát và quyền cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-005
+    title: Bố trí tài nguyên theo miền lỗi phù hợp yêu cầu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-006
+    title: Kiểm tra dung lượng đĩa, inode và tài nguyên dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-007
+    title: Xác minh điều kiện khởi động, kiểm tra sẵn sàng và dừng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-008
+    title: Phát hiện sai lệch giữa cấu hình mong muốn và hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-009
+    title: Chuẩn bị quy trình cập nhật, thay thế và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-environments-010
+    title: Kiểm chứng khả năng dựng lại môi trường từ cấu hình được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-and-connectivity
+  title: Mạng và kết nối
+  childs:
+  - slug: networking-and-connectivity-001
+    title: Lập bản đồ luồng kết nối, cổng và quyền truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-002
+    title: Xác minh phân giải DNS và hành vi khi bản ghi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-003
+    title: Kiểm tra chứng chỉ TLS, chuỗi tin cậy và quy trình gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-004
+    title: Đánh giá cân bằng tải, định tuyến và kiểm tra tình trạng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-005
+    title: Xác minh tường lửa, proxy và giới hạn kết nối ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-006
+    title: Kiểm tra timeout kết nối, số kết nối và giới hạn hàng đợi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-007
+    title: Đánh giá ảnh hưởng của độ trễ, mất gói và phân vùng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-008
+    title: Xác minh đồng bộ thời gian cho log, xác thực và tác vụ theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-and-connectivity-009
+    title: Chuẩn bị cách chẩn đoán và khôi phục các sự cố kết nối phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-and-secrets
+  title: Cấu hình và bí mật
+  childs:
+  - slug: configuration-and-secrets-001
+    title: Phân loại cấu hình ứng dụng, tham số vận hành và bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-002
+    title: Xác định nguồn cấu hình chuẩn cùng thứ tự ưu tiên giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-003
+    title: Kiểm tra cấu hình bắt buộc và phát hiện giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-004
+    title: Phân tách cấu hình giữa môi trường và hạn chế sao chép nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-005
+    title: Cấp phát bí mật qua cơ chế được quản lý và giới hạn quyền đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-006
+    title: Kiểm chứng luân chuyển thông tin xác thực không gây gián đoạn ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-007
+    title: Ghi nhận thay đổi cấu hình và khả năng quay lại phiên bản trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-008
+    title: Xác định tham số có thể đổi khi chạy và tham số cần khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-009
+    title: Quản lý cờ tính năng cùng người sở hữu, thời hạn và cách tắt khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-and-secrets-010
+    title: Tránh lộ bí mật qua log, màn hình chẩn đoán và tệp đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-and-performance
+  title: Năng lực và hiệu năng
+  childs:
+  - slug: capacity-and-performance-001
+    title: Xây dựng mô hình lưu lượng từ nhu cầu sử dụng và dự báo tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-002
+    title: Thiết lập đường cơ sở cho độ trễ, thông lượng và mức sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-003
+    title: Kiểm thử tải thường, tải đỉnh và tải tăng đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-004
+    title: Kiểm thử kéo dài để phát hiện rò rỉ và suy giảm tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-005
+    title: Xác định điểm nghẽn và giới hạn năng lực của từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-006
+    title: Đánh giá pool kết nối, số luồng và mức cạnh tranh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-007
+    title: Kiểm chứng mở rộng ngang, mở rộng dọc và độ trễ cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-008
+    title: Đặt dự phòng năng lực theo rủi ro và thời gian phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-009
+    title: Xác định hành vi khi quá tải, giới hạn lưu lượng và ưu tiên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-and-performance-010
+    title: Đối chiếu năng lực được kiểm chứng với chi phí và mục tiêu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fault-tolerance
+  title: Khả năng chịu lỗi
+  childs:
+  - slug: fault-tolerance-001
+    title: Thiết lập timeout theo chuỗi gọi và giới hạn thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-002
+    title: Thiết kế retry có giới hạn, giãn cách và độ ngẫu nhiên phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-003
+    title: Ngăn retry làm tăng tải dây chuyền khi hệ thống đang suy giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-004
+    title: Áp dụng ngắt mạch (circuit breaker) khi phụ thuộc không đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-005
+    title: Cô lập tài nguyên giữa các luồng xử lý để giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-006
+    title: Thiết kế suy giảm chức năng và phương án dự phòng có giới hạn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-007
+    title: Đảm bảo xử lý lặp không gây tác dụng phụ ngoài dự kiến (idempotency)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-008
+    title: Kiểm tra hành vi khi mất một tiến trình, máy chủ hoặc miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-009
+    title: Xác minh phục hồi sau khi phụ thuộc hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fault-tolerance-010
+    title: Đánh giá trường hợp cơ chế dự phòng cũng thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-and-consistency
+  title: Dữ liệu và tính nhất quán
+  childs:
+  - slug: data-and-consistency-001
+    title: Kiểm kê dữ liệu quan trọng, nguồn chuẩn và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-002
+    title: Xác định yêu cầu nhất quán và mức chấp nhận dữ liệu trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-003
+    title: Kiểm tra ranh giới giao dịch và hành vi khi xử lý thất bại giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-004
+    title: Thiết lập ràng buộc dữ liệu và cơ chế phát hiện sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-005
+    title: Quản lý vòng đời, thời hạn lưu giữ và xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-006
+    title: Đánh giá tác động của sao chép và độ trễ giữa các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-007
+    title: Thiết kế bộ nhớ đệm cùng quy tắc hết hạn và làm mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-008
+    title: Kiểm chứng hành vi khi bộ nhớ đệm mất dữ liệu hoặc không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-009
+    title: Chuẩn bị đối soát và sửa dữ liệu có lưu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-and-consistency-010
+    title: Xác định giới hạn và rủi ro của thao tác dữ liệu thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-restore
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-and-restore-001
+    title: Xác định dữ liệu, cấu hình và bằng chứng cần sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-002
+    title: Chọn lịch sao lưu và thời hạn giữ bản theo RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-003
+    title: Phân biệt hoàn tất sao lưu với khôi phục sử dụng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-004
+    title: Kiểm chứng khả năng khôi phục bằng diễn tập thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-005
+    title: Bảo vệ bản sao lưu bằng kiểm soát quyền và mã hóa phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-006
+    title: Tách miền lỗi của bản sao lưu với hệ thống được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-007
+    title: Kiểm tra khóa giải mã và quyền truy cập trong tình huống khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-008
+    title: Đo thời gian khôi phục toàn bộ chuỗi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-009
+    title: Xác minh tính toàn vẹn và khả năng phục vụ sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-restore-010
+    title: Theo dõi lỗi sao lưu, bản quá hạn và trách nhiệm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-changes
+  title: Thay đổi dữ liệu
+  childs:
+  - slug: data-changes-001
+    title: Đánh giá rủi ro của thay đổi schema và chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-002
+    title: Kiểm chứng tương thích giữa các phiên bản ứng dụng cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-003
+    title: Tách thay đổi mở rộng, chuyển đổi sử dụng và loại bỏ cấu trúc cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-004
+    title: Ước lượng thời gian, khóa và tải phát sinh khi chạy migration
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-005
+    title: Kiểm thử trên quy mô dữ liệu đại diện cho sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-006
+    title: Thiết kế chạy lại, tiếp tục và đối soát tác vụ chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-007
+    title: Chuẩn bị bản sao, điểm kiểm tra và điều kiện dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-008
+    title: Phân biệt quay lui ứng dụng với đảo ngược thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-changes-009
+    title: Xác minh kết quả migration trước khi kết thúc giai đoạn theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: releases-and-rollbacks
+  title: Phát hành và quay lui
+  childs:
+  - slug: releases-and-rollbacks-001
+    title: Xác định artifact bất biến và phiên bản được phép triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-002
+    title: Liên kết mã nguồn, kết quả kiểm tra và artifact phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-003
+    title: Kiểm chứng pipeline triển khai cùng quyền truy cập theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-004
+    title: Lựa chọn triển khai cuốn chiếu, canary hoặc blue-green theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-005
+    title: Xác định kiểm tra sức khỏe và điều kiện chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-006
+    title: Kiểm tra tương thích giữa phiên bản mới, phiên bản cũ và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-007
+    title: Thiết lập dấu hiệu dừng phát hành và ngưỡng quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-008
+    title: Diễn tập quay lui trước khi cần dùng trong sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-009
+    title: Xác minh artifact, cấu hình và dữ liệu sau quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-010
+    title: Chuẩn bị phát hành khẩn cấp với kiểm soát và bằng chứng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: releases-and-rollbacks-011
+    title: Ghi nhận phiên bản đang phục vụ và người chịu trách nhiệm theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Xác định câu hỏi vận hành cần trả lời bằng dữ liệu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Thiết kế chỉ số từ góc nhìn người dùng và tài nguyên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Chuẩn hóa log có cấu trúc và ngữ cảnh chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Liên kết log, chỉ số và dấu vết phân tán (distributed tracing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Duy trì mã tương quan qua các bước đồng bộ và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Xây dựng bảng theo dõi sức khỏe và hành trình nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Kiểm soát số lượng tổ hợp nhãn và chi phí thu thập chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: Đặt thời hạn lưu giữ, tỷ lệ lấy mẫu và quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-009
+    title: Che dữ liệu nhạy cảm trong log và dấu vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-010
+    title: Kiểm chứng độ trễ, tính đầy đủ và khả năng truy vấn dữ liệu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-011
+    title: Xác định cách chẩn đoán khi chính hệ thống quan sát bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerts-and-detection
+  title: Cảnh báo và phát hiện
+  childs:
+  - slug: alerts-and-detection-001
+    title: Xác định tình huống cần đánh thức người trực và tình huống chỉ cần theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-002
+    title: Thiết kế cảnh báo theo ảnh hưởng người dùng và mục tiêu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-003
+    title: Chọn ngưỡng, cửa sổ đo và điều kiện khôi phục phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-004
+    title: Phát hiện thiếu dữ liệu thay vì coi đó là hệ thống khỏe mạnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-005
+    title: Định tuyến cảnh báo tới đúng người sở hữu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-006
+    title: Liên kết cảnh báo với bảng theo dõi và hướng dẫn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-007
+    title: Giảm cảnh báo trùng lặp, nhiễu và chuỗi cảnh báo phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-008
+    title: Kiểm thử đường truyền cảnh báo tới người tiếp nhận thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-009
+    title: Quản lý tắt cảnh báo tạm thời có thời hạn và lý do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-and-detection-010
+    title: Rà soát cảnh báo không có hành động rõ ràng hoặc không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-tasks
+  title: Tác vụ bất đồng bộ
+  childs:
+  - slug: asynchronous-tasks-001
+    title: Kiểm kê hàng đợi, luồng sự kiện và tác vụ chạy theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-002
+    title: Xác định yêu cầu về thứ tự, thời hạn và khả năng xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-003
+    title: Kiểm chứng hành vi khi thông điệp trùng, trễ hoặc sai định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-004
+    title: Thiết lập retry và cách ly thông điệp không xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-005
+    title: Theo dõi độ trễ xử lý, thông điệp tồn và tốc độ tăng hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-006
+    title: Điều tiết ngược (backpressure) khi bên xử lý không theo kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-007
+    title: Chuẩn bị xử lý lại thông điệp có kiểm soát và khả năng đối soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-008
+    title: Ngăn chạy chồng hoặc bỏ sót tác vụ theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-009
+    title: Kiểm tra múi giờ, thay đổi lịch và điều kiện chạy bù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-tasks-010
+    title: Xác định quy trình dừng, tiếp tục và thu hồi tác vụ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-security
+  title: Bảo mật vận hành
+  childs:
+  - slug: operational-security-001
+    title: Xác minh quyền tối thiểu cho người dùng, dịch vụ và công cụ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-002
+    title: Kiểm soát truy cập sản xuất và ghi nhận thao tác đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-003
+    title: Chuẩn bị quyền khẩn cấp cùng thời hạn và cơ chế kiểm tra sau sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-004
+    title: Kiểm tra bản vá, cấu hình an toàn và thành phần hết hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-005
+    title: Bảo vệ dữ liệu nhạy cảm khi chẩn đoán và hỗ trợ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-006
+    title: Kiểm chứng nhật ký kiểm toán và khả năng truy vết thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-007
+    title: Xác định quy trình xử lý lỗ hổng và thông tin xác thực bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-008
+    title: Xác minh kiểm soát mạng, nguồn artifact và danh tính triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-009
+    title: Đối chiếu yêu cầu bảo mật, quyền riêng tư và nghĩa vụ áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-security-010
+    title: Ghi nhận ngoại lệ bảo mật với người chấp nhận rủi ro và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operating-procedures
+  title: Quy trình thao tác
+  childs:
+  - slug: operating-procedures-001
+    title: Phân biệt hướng dẫn thao tác cụ thể (runbook) với hướng dẫn xử lý tình huống (playbook)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-002
+    title: Viết điều kiện đầu vào, quyền cần có và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-003
+    title: Cung cấp bước chẩn đoán theo triệu chứng và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-004
+    title: Mô tả lệnh hoặc thao tác với tham số và điều kiện kiểm tra rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-005
+    title: Đặt điểm dừng và cách xử lý khi kết quả khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-006
+    title: Chuẩn bị phương án hoàn tác cho thao tác có thể thay đổi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-007
+    title: Kiểm chứng hướng dẫn bằng người không trực tiếp viết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-008
+    title: Giữ liên kết tới bảng theo dõi, log, cấu hình và đầu mối hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-009
+    title: Quản lý phiên bản, người sở hữu và ngày kiểm chứng hướng dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operating-procedures-010
+    title: Chuyển thao tác lặp lại sang tự động hóa có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: oncall-and-support
+  title: Trực và hỗ trợ
+  childs:
+  - slug: oncall-and-support-001
+    title: Xác định khung giờ hỗ trợ phù hợp cam kết dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-002
+    title: Thiết lập lịch trực chính, dự phòng và bàn giao ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-003
+    title: Đảm bảo người trực có quyền truy cập, công cụ và thiết bị cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-004
+    title: Chuẩn bị tuyến nâng mức xử lý theo chuyên môn và mức nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-005
+    title: Xác định thời gian phản hồi cùng cách xử lý khi không có người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-006
+    title: Đào tạo người trực qua theo ca và xử lý tình huống mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-007
+    title: Đánh giá tải công việc, khả năng thay thế và tính bền vững của lịch trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-008
+    title: Phối hợp nhóm hỗ trợ người dùng với nhóm xử lý kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-009
+    title: Kiểm chứng danh bạ liên lạc và kênh khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: oncall-and-support-010
+    title: Xác nhận trách nhiệm hỗ trợ sau bàn giao hoặc khi đổi nhóm sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-readiness
+  title: Sẵn sàng ứng phó sự cố
+  childs:
+  - slug: incident-readiness-001
+    title: Thống nhất cách phân loại và công bố mức nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-002
+    title: Xác định người chỉ huy, người xử lý và người cập nhật thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-003
+    title: Chuẩn bị kênh phối hợp, nhật ký thời gian và nơi ghi nhận quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-004
+    title: Xây dựng tình huống đầu vào để diễn tập quy trình ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-005
+    title: Kiểm chứng thu thập bằng chứng và xác định phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-006
+    title: Chuẩn bị biện pháp cô lập hoặc giảm tác động trước khi sửa triệt để
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-007
+    title: Kiểm tra điều kiện huy động nhóm phụ thuộc và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-008
+    title: Xác minh tiêu chí phục hồi và kết thúc sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-009
+    title: Chuẩn bị đánh giá sau sự cố và theo dõi hành động khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-readiness-010
+    title: Đối chiếu kết quả diễn tập với khoảng thiếu về công cụ, quyền và năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-continuity
+  title: Liên tục dịch vụ
+  childs:
+  - slug: service-continuity-001
+    title: Chọn kịch bản gián đoạn lớn cần có phương án duy trì dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-002
+    title: Phân biệt khôi phục từng thành phần với phục hồi hành trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-003
+    title: Xác định thứ tự khôi phục theo quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-004
+    title: Chuẩn bị chuyển đổi dự phòng cùng người có thẩm quyền kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-005
+    title: Đánh giá khả năng tiếp nhận tải và dữ liệu của môi trường dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-006
+    title: Kiểm chứng dịch vụ danh tính, DNS và công cụ vận hành khi xảy ra thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-007
+    title: Chuẩn bị vận hành suy giảm hoặc thao tác thay thế trong thời gian gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-008
+    title: Đo RTO, RPO thực tế và ghi nhận khoảng thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-009
+    title: Xác định điều kiện trở lại môi trường chính an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-continuity-010
+    title: Duy trì lịch diễn tập cùng trách nhiệm cập nhật phương án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vendors-and-integrations
+  title: Nhà cung cấp và tích hợp
+  childs:
+  - slug: vendors-and-integrations-001
+    title: Kiểm kê bên cung cấp dịch vụ, sản phẩm và đầu mối hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-002
+    title: Đối chiếu cam kết của phụ thuộc với mục tiêu của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-003
+    title: Xác minh hạn mức, quota và hành vi khi bị giới hạn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-004
+    title: Kiểm tra chứng chỉ, thông tin xác thực và thời hạn hợp đồng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-005
+    title: Chuẩn bị tình huống phụ thuộc chậm, lỗi hoặc thay đổi giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-006
+    title: Xác định tuyến hỗ trợ khẩn cấp và thông tin cần cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-007
+    title: Đánh giá phương án thay thế, chuyển đổi hoặc giảm phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-008
+    title: Kiểm chứng dữ liệu gửi ra ngoài cùng yêu cầu bảo vệ tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-009
+    title: Theo dõi thông báo bảo trì, ngừng hỗ trợ và thay đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vendors-and-integrations-010
+    title: Ghi nhận rủi ro còn lại khi nhóm không kiểm soát được phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routine-operations
+  title: Vận hành thường nhật
+  childs:
+  - slug: routine-operations-001
+    title: Lập lịch bảo trì và phân công người sở hữu từng tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-002
+    title: Quản lý cập nhật bản vá và thay thế tài nguyên có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-003
+    title: Theo dõi chứng chỉ, giấy phép và thông tin xác thực sắp hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-004
+    title: Kiểm tra dung lượng, dữ liệu tồn đọng và tác vụ dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-005
+    title: Chuẩn bị quy trình thêm, đổi và thu hồi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-006
+    title: Kiểm soát thao tác quản trị hoặc sửa dữ liệu có tác động lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-007
+    title: Quản lý cửa sổ thay đổi và phối hợp các nhóm liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-008
+    title: Theo dõi chi phí cùng cảnh báo tài nguyên tăng bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-009
+    title: Đánh giá rủi ro của tác vụ tự động và khả năng dừng khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routine-operations-010
+    title: Giảm công việc thủ công lặp lại nhưng vẫn giữ khả năng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-validation
+  title: Kiểm chứng tổng thể
+  childs:
+  - slug: end-to-end-validation-001
+    title: Xây dựng kế hoạch kiểm chứng theo tiêu chí và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-002
+    title: Chọn dữ liệu, lưu lượng và môi trường đại diện cho sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-003
+    title: Kết hợp kiểm thử chức năng với hiệu năng, bảo mật và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-004
+    title: Kiểm thử khởi động, dừng, khởi động lại và mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-005
+    title: Mô phỏng lỗi có giới hạn phạm vi và điều kiện dừng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-006
+    title: Kiểm chứng đường đi từ lỗi tới cảnh báo và hành động của người trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-007
+    title: Diễn tập triển khai, quay lui, khôi phục dữ liệu và chuyển đổi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-008
+    title: Xác nhận tính năng nghiệp vụ sau phục hồi bằng kiểm tra chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-009
+    title: Ghi nhận kết quả, sai lệch, giới hạn kiểm thử và hành động tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-validation-010
+    title: Đánh giá lại khi kết quả chỉ dựa trên môi trường hoặc giả định không còn đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation-and-evidence
+  title: Hồ sơ và bằng chứng
+  childs:
+  - slug: documentation-and-evidence-001
+    title: Xây dựng danh sách kiểm tra theo đặc điểm và mức quan trọng của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-002
+    title: Liên kết mỗi tiêu chí với bằng chứng và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-003
+    title: Phân biệt tài liệu mô tả kế hoạch với kết quả đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-004
+    title: Lưu phiên bản, thời điểm và môi trường tạo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-005
+    title: Đối chiếu kiến trúc, cấu hình và artifact với hệ thống sắp phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-006
+    title: Ghi nhận tiêu chí không áp dụng cùng lý do cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-007
+    title: Quản lý điểm chưa đạt, rủi ro còn lại và kế hoạch xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-008
+    title: Bảo vệ dữ liệu nhạy cảm trong hồ sơ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-009
+    title: Thiết lập nguồn hồ sơ chuẩn để tránh tài liệu mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-and-evidence-010
+    title: Xác định hạn sử dụng và điều kiện cần làm mới bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risks-and-decisions
+  title: Rủi ro và quyết định
+  childs:
+  - slug: risks-and-decisions-001
+    title: Phân loại điểm chưa đạt theo tác động và khả năng xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-002
+    title: Phân biệt điều kiện bắt buộc chặn phát hành với cải tiến có thể theo dõi sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-003
+    title: Đánh giá biện pháp bù đắp và giới hạn của chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-004
+    title: Xác định người có thẩm quyền chấp nhận rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-005
+    title: Thiết lập ngoại lệ có thời hạn, người sở hữu và điều kiện thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-006
+    title: Đặt tiêu chí tiếp tục hoặc dừng (go/no-go) trước thời điểm quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-007
+    title: Đối chiếu năng lực hỗ trợ với lưu lượng và phạm vi phát hành dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-008
+    title: Ghi nhận quyết định, bằng chứng và trách nhiệm theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-009
+    title: Xử lý trường hợp thiếu bằng chứng hoặc các bên chưa thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-and-decisions-010
+    title: Đánh giá lại quyết định khi điều kiện trước phát hành thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: go-live-plan
+  title: Kế hoạch đưa vào vận hành
+  childs:
+  - slug: go-live-plan-001
+    title: Lập trình tự chuyển đổi cùng mốc thời gian và người thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-002
+    title: Xác nhận nguồn lực trực, đầu mối phụ thuộc và kênh điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-003
+    title: Kiểm tra điều kiện đầu vào về artifact, cấu hình, dữ liệu và quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-004
+    title: Chuẩn bị chuyển lưu lượng, nạp dữ liệu và kiểm tra sau từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-005
+    title: Xác định điều kiện tạm dừng, hủy hoặc quay lui kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-006
+    title: Truyền đạt thời gian thay đổi và ảnh hưởng dự kiến tới bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-007
+    title: Bố trí kiểm tra chủ động và giám sát tăng cường khi mở dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-008
+    title: Đối chiếu kết quả thực tế với tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-009
+    title: Ghi nhận thời điểm hoàn tất và chuyển trách nhiệm theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-live-plan-010
+    title: Chuẩn bị phương án xử lý khi phát sinh tình huống ngoài kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: handover-and-monitoring
+  title: Bàn giao và theo dõi
+  childs:
+  - slug: handover-and-monitoring-001
+    title: Xác định phạm vi trách nhiệm được chuyển giao giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-002
+    title: Bàn giao hồ sơ dịch vụ, kiến trúc, quyền truy cập và công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-003
+    title: Hướng dẫn người nhận thực hiện thao tác và xử lý tình huống điển hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-004
+    title: Xác minh người nhận có thể tìm bằng chứng và tự chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-005
+    title: Lập giai đoạn hỗ trợ tăng cường sau phát hành (hypercare)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-006
+    title: Theo dõi lưu lượng, lỗi, chi phí và yêu cầu hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-007
+    title: Quản lý điểm tồn đọng và người sở hữu sau bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-008
+    title: Đặt điều kiện kết thúc hỗ trợ tăng cường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-009
+    title: Lấy xác nhận tiếp nhận trách nhiệm dựa trên năng lực đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: handover-and-monitoring-010
+    title: Cập nhật hồ sơ từ các khác biệt phát hiện trong vận hành ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-improvement
+  title: Duy trì và cải tiến
+  childs:
+  - slug: continuous-improvement-001
+    title: Chọn chỉ số phản ánh chất lượng đánh giá và kết quả vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-002
+    title: Theo dõi điểm chưa đạt, ngoại lệ quá hạn và bằng chứng hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-003
+    title: Đánh giá sự cố sớm sau phát hành và nguyên nhân lọt qua đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-004
+    title: Đo thời gian xử lý khoảng thiếu cùng tải công việc vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-005
+    title: Phân tích cảnh báo nhiễu, thao tác thủ công và điểm nghẽn phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-006
+    title: Tự động hóa thu thập bằng chứng từ pipeline và hệ thống vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-007
+    title: Kích hoạt đánh giá lại khi đổi kiến trúc, tải, nhóm sở hữu hoặc phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-008
+    title: Tinh chỉnh danh sách kiểm tra từ sự cố và kết quả diễn tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-009
+    title: Tránh dùng tỷ lệ đánh dấu hoàn tất thay cho khả năng vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-improvement-010
+    title: Quản lý sẵn sàng vận hành khi ngừng dịch vụ hoặc chuyển sang hệ thống khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenarios-and-practice
+  title: Tình huống và thực hành
+  childs:
+  - slug: scenarios-and-practice-001
+    title: Xây dựng hồ sơ sẵn sàng vận hành cho một dịch vụ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-002
+    title: Điều chỉnh tiêu chí cho ứng dụng cũ thiếu tài liệu và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-003
+    title: Đánh giá API đồng bộ cùng giới hạn phụ thuộc và mục tiêu độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-004
+    title: Đánh giá tác vụ theo lô cùng lịch chạy, thời hạn và khả năng chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-005
+    title: Đánh giá hệ thống sự kiện cùng độ trễ, tồn đọng và xử lý lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-006
+    title: Đánh giá chuyển hệ thống sang hạ tầng hoặc nhà cung cấp mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-007
+    title: Thực hành kiểm thử tải và xác định giới hạn phục vụ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-008
+    title: Diễn tập lỗi phụ thuộc, cảnh báo, tiếp nhận và giảm tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-009
+    title: Diễn tập quay lui phiên bản có thay đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-010
+    title: Khôi phục bản sao lưu và đối chiếu kết quả với RTO, RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-011
+    title: Tổ chức buổi đánh giá có điểm chưa đạt và quyết định có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-practice-012
+    title: Bàn giao hồ sơ, hướng dẫn thao tác và kế hoạch cải tiến cho người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

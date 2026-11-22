@@ -1,0 +1,64 @@
+roadmap:
+- id: muc-tieu-bao-mat-threat-model
+  title: Mục tiêu bảo mật & Threat Model
+  purpose: Hiểu mật mã bảo vệ thuộc tính nào của dữ liệu và chọn giải pháp theo mối đe dọa.
+  objectives:
+  - Phân biệt confidentiality, integrity, authenticity và non-repudiation.
+  - Phân biệt encryption, hashing, MAC và digital signature.
+  - Xác định dữ liệu cần bảo vệ khi lưu và truyền.
+- id: entropy-secret-key-nonce
+  title: Entropy, Secret Key & Nonce
+  purpose: Nhận biết vai trò nguồn ngẫu nhiên an toàn và nguyên tắc dùng khóa, nonce đúng cách.
+  objectives:
+  - Dùng CSPRNG như Java SecureRandom cho vật liệu ngẫu nhiên.
+  - Phân biệt secret key, salt, IV và nonce.
+  - Giải thích vì sao không được dùng lại nonce với cùng khóa GCM.
+- id: ma-hoa-doi-xung-aead
+  title: Mã hóa đối xứng & AEAD
+  purpose: Bảo vệ bí mật và tính toàn vẹn của dữ liệu bằng thuật toán chuẩn.
+  objectives:
+  - Phân biệt symmetric encryption với mã hóa bất đối xứng.
+  - Giải thích AES-GCM và authentication tag.
+  - Thử phát hiện ciphertext bị sửa khi giải mã.
+- id: hash-hmac-hkdf
+  title: Hash, HMAC & HKDF
+  purpose: Phân biệt kiểm tra dữ liệu, xác thực thông điệp và dẫn xuất khóa.
+  objectives:
+  - Tính hash SHA-256 và hiểu giới hạn của hash không khóa.
+  - Giải thích HMAC bảo vệ tính toàn vẹn và xác thực nguồn dùng shared key.
+  - Nhận biết HKDF extract/expand và mục đích dẫn xuất khóa.
+- id: khoa-cong-khai-key-exchange
+  title: Khóa công khai & Key Exchange
+  purpose: Hiểu cách các bên tạo shared secret mà không chia sẻ sẵn khóa bí mật.
+  objectives:
+  - Phân biệt public key, private key và symmetric session key.
+  - Giải thích mô hình ECDH/X25519 để thỏa thuận shared secret.
+  - Nhận diện nguy cơ man-in-the-middle khi key exchange thiếu xác thực.
+- id: chu-ky-so-x-509-pki
+  title: Chữ ký số, X.509 & PKI
+  purpose: Kiểm tra nguồn gốc và tính toàn vẹn của thông điệp hoặc chứng thư.
+  objectives:
+  - Phân biệt sign/verify với encrypt/decrypt.
+  - Mô tả chữ ký EdDSA hoặc ECDSA và cặp khóa xác thực.
+  - Giải thích certificate chain, CA và xác thực danh tính endpoint.
+- id: password-hashing-salt
+  title: Password Hashing & Salt
+  purpose: Lưu mật khẩu an toàn theo cách chống dò đoán thay vì mã hóa có thể đảo ngược.
+  objectives:
+  - Phân biệt fast hash với password hashing.
+  - Chọn Argon2id hoặc hàm thích hợp có salt duy nhất.
+  - Kiểm tra quá trình verify mật khẩu không cần giải mã.
+- id: tls-1-3-kenh-an-toan
+  title: TLS 1.3 & Kênh an toàn
+  purpose: Kết hợp các kỹ thuật mật mã để bảo vệ kết nối ứng dụng.
+  objectives:
+  - Mô tả handshake, chứng thư, key exchange và session keys.
+  - Nhận biết TLS 1.3 sử dụng AEAD và bảo vệ dữ liệu truyền.
+  - Kiểm tra certificate validation, hostname và cấu hình TLS.
+- id: key-lifecycle-kiem-thu
+  title: Key Lifecycle & Kiểm thử
+  purpose: Quản lý khóa an toàn trong suốt vòng đời và kiểm tra lỗi tích hợp.
+  objectives:
+  - Thiết kế tạo, lưu, cấp quyền, luân chuyển và hủy khóa.
+  - Dùng KMS/HSM hoặc kho bí mật phù hợp, không hardcode key.
+  - Test round-trip, ciphertext bị sửa và xử lý lỗi; không tự viết thuật toán.

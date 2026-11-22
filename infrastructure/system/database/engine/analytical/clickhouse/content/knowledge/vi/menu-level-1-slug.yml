@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Khởi động
+  slug: quickstart
+  index: 1
+- title: Kiến trúc
+  slug: architecture
+  index: 2
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 3
+- title: Thiết kế bảng
+  slug: table-design
+  index: 4
+- title: Khóa và phân vùng
+  slug: keys-partitions
+  index: 5
+- title: MergeTree
+  slug: mergetree
+  index: 6
+- title: Engine khác
+  slug: other-table-engines
+  index: 7
+- title: Nhập dữ liệu
+  slug: data-ingestion
+  index: 8
+- title: Tích hợp dữ liệu
+  slug: data-integration
+  index: 9
+- title: SQL nền tảng
+  slug: sql-fundamentals
+  index: 10
+- title: Hàm và biểu thức
+  slug: functions-expressions
+  index: 11
+- title: Tổng hợp dữ liệu
+  slug: aggregations
+  index: 12
+- title: JOIN
+  slug: joins
+  index: 13
+- title: Phân tích nâng cao
+  slug: advanced-analytics
+  index: 14
+- title: Dữ liệu phức hợp
+  slug: complex-data-types
+  index: 15
+- title: Thời gian và sự kiện
+  slug: time-events
+  index: 16
+- title: Materialized View
+  slug: materialized-views
+  index: 17
+- title: Dictionary
+  slug: dictionaries
+  index: 18
+- title: Vòng đời dữ liệu
+  slug: data-lifecycle
+  index: 19
+- title: Chỉ mục và Projection
+  slug: indexes-projections
+  index: 20
+- title: Thực thi truy vấn
+  slug: query-execution
+  index: 21
+- title: Tối ưu truy vấn
+  slug: query-optimization
+  index: 22
+- title: Tài nguyên và lưu trữ
+  slug: resources-storage
+  index: 23
+- title: Sao chép
+  slug: replication
+  index: 24
+- title: Phân mảnh
+  slug: sharding
+  index: 25
+- title: Độ đúng và độ bền
+  slug: correctness-durability
+  index: 26
+- title: Bảo mật
+  slug: security
+  index: 27
+- title: Quan sát hệ thống
+  slug: observability
+  index: 28
+- title: Sao lưu và phục hồi
+  slug: backup-recovery
+  index: 29
+- title: Triển khai và nâng cấp
+  slug: deployment-upgrades
+  index: 30
+- title: Ứng dụng Java
+  slug: java-integration
+  index: 31
+- title: Kiểm thử và đo tải
+  slug: testing-load-testing
+  index: 32
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 33
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 34

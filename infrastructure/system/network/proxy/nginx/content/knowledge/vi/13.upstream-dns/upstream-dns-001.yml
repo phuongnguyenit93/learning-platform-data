@@ -1,0 +1,3 @@
+menuLevel1: DNS của upstream
+menuLevel2: Phân biệt DNS phía client với DNS Nginx dùng để tìm upstream
+status: ''

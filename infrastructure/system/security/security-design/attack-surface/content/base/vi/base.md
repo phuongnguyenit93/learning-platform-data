@@ -1,0 +1,7 @@
+# Security Security Design Attack Surface
+
+Attack Surface (bề mặt tấn công) là tập hợp các điểm mà người dùng, hệ thống bên ngoài hoặc thành phần nội bộ có thể tương tác với một ứng dụng hay nền tảng theo cách tạo ra rủi ro bảo mật. Đó có thể là API, cổng mạng, trang quản trị, luồng tải tệp, webhook, tài nguyên cloud, tích hợp bên thứ ba hoặc quyền của danh tính dịch vụ. Phân tích attack surface giúp nhóm phát triển biết điều gì đang thực sự được phơi lộ, từ đó ưu tiên kiểm tra và giảm những điểm tiếp xúc không cần thiết; đây không phải là danh sách lỗ hổng hay hoạt động quét tự do ngoài phạm vi được phép.
+
+Module dành cho người đã biết kiến trúc ứng dụng, HTTP/API, networking và nguyên lý authentication/authorization. Lộ trình bắt đầu từ xác định phạm vi, kiểm kê asset và interface, sau đó vẽ data flow, xác định entry point cùng các trust boundary. Tiếp theo là đánh giá phơi lộ Internet, phiên bản API cũ, cấu hình, dependency và quyền truy cập; cuối cùng người học chọn biện pháp thu hẹp bề mặt tấn công, xác minh hiệu quả bằng kiểm thử trong phạm vi được ủy quyền và theo dõi thay đổi qua mỗi lần triển khai.
+
+Sau khi hoàn thành, bạn có thể xây dựng bản đồ attack surface cho một dịch vụ Java hoặc hệ thống nhiều service, nhận diện các điểm vào quan trọng, gắn owner và mức phơi lộ cho tài sản, ưu tiên rủi ro theo ngữ cảnh và lập checklist giảm thiểu có thể kiểm chứng. Bản đồ này cần được cập nhật cùng kiến trúc và CI/CD vì mỗi endpoint, tích hợp hoặc cấu hình mới đều có thể làm thay đổi bề mặt tấn công.

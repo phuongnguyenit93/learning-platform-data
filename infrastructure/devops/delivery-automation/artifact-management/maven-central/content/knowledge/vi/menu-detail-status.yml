@@ -1,0 +1,2086 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Maven Central là gì và giữ vai trò nào trong chuỗi cung ứng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt Apache Maven, Maven Central và Central Publisher Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Vai trò của người phát hành và người sử dụng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt kho công khai, kho nội bộ, bộ nhớ đệm và kho cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Luồng từ mã nguồn đến gói phần mềm (artifact) được ứng dụng tải về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt quản lý artifact với lưu mã nguồn và triển khai ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Lộ trình từ tìm thư viện đến xuất bản và kiểm chứng một phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifact-coordinates
+  title: Định danh artifact
+  childs:
+  - slug: artifact-coordinates-001
+    title: Tọa độ groupId, artifactId và version trong hệ sinh thái Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-002
+    title: Vai trò của packaging, phần mở rộng và classifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-003
+    title: Phân biệt JAR chính, sources JAR và Javadoc JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-004
+    title: Ánh xạ tọa độ sang đường dẫn theo Maven Repository Layout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-005
+    title: Phân biệt namespace, groupId và tên package Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-006
+    title: Quy ước phiên bản và ý nghĩa của release so với SNAPSHOT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-007
+    title: Vai trò của POM và maven-metadata.xml trong phân giải artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-coordinates-008
+    title: Chọn tọa độ ổn định và tránh giả định có thể đổi tên một bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: artifact-search
+  title: Tra cứu artifact
+  childs:
+  - slug: artifact-search-001
+    title: Tìm thư viện theo tên, tọa độ và phiên bản trên Central
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-search-002
+    title: Đọc thông tin dự án, người phát hành và liên kết mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-search-003
+    title: Xác định phiên bản, kiểu đóng gói và các tệp đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-search-004
+    title: Kiểm tra POM và danh sách phụ thuộc trước khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-search-005
+    title: Phân biệt trang tìm kiếm, địa chỉ tải artifact và API xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-search-006
+    title: Phân biệt Maven Central với trang tổng hợp thông tin của bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: artifact-search-007
+    title: Đánh giá mức phù hợp của thư viện mà không coi việc có mặt trên Central là bảo chứng chất lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-consumption
+  title: Sử dụng với Maven
+  childs:
+  - slug: maven-consumption-001
+    title: Khai báo dependency bằng tọa độ trong pom.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-002
+    title: Hiểu vai trò của Central trong cấu hình kho của Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-003
+    title: Phân biệt repositories, pluginRepositories và distributionManagement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-004
+    title: Phân biệt tải phụ thuộc, cài vào kho cục bộ và xuất bản lên kho từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-005
+    title: Đọc cây phụ thuộc để nhận diện các thư viện được kéo theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-006
+    title: Quản lý phiên bản bằng dependencyManagement và BOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-007
+    title: Ảnh hưởng của settings.xml, mirror và proxy đến nguồn tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-consumption-008
+    title: Xác minh dự án dùng được artifact ngoài môi trường máy người phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-consumption
+  title: Sử dụng với Gradle
+  childs:
+  - slug: gradle-consumption-001
+    title: Khai báo mavenCentral trong repositories
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-002
+    title: Phân biệt nơi phân giải thư viện với nơi phân giải plugin Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-003
+    title: Quản lý kho tập trung qua dependencyResolutionManagement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-004
+    title: Khai báo phụ thuộc và lựa chọn cấu hình api, implementation phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-005
+    title: Đọc báo cáo dependencies và dependencyInsight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-006
+    title: Quản lý phiên bản bằng platform, constraints hoặc version catalog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-007
+    title: Lọc nội dung kho để giới hạn tọa độ được tìm tại từng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-008
+    title: Phân biệt mavenLocal với Maven Central khi kiểm chứng bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-consumption-009
+    title: Nhận diện ảnh hưởng của cache và chế độ offline đến kết quả kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-metadata
+  title: Phụ thuộc và siêu dữ liệu
+  childs:
+  - slug: dependencies-metadata-001
+    title: Phụ thuộc trực tiếp, phụ thuộc bắc cầu và vai trò của siêu dữ liệu (metadata)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-002
+    title: Vai trò của scope, optional và exclusions trong POM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-003
+    title: Phân biệt quản lý phiên bản với khai báo một phụ thuộc thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-004
+    title: Hiểu sự khác nhau khi Maven và Gradle chọn phiên bản xung đột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-005
+    title: Phân biệt POM với Gradle Module Metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-006
+    title: Giữ thông tin phụ thuộc đúng với API và nhu cầu chạy của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-007
+    title: Tránh đưa phụ thuộc chỉ dùng cho kiểm thử hoặc build vào hợp đồng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-metadata-008
+    title: Kiểm chứng metadata bằng dự án Maven và Gradle độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: library-preparation
+  title: Chuẩn bị thư viện
+  childs:
+  - slug: library-preparation-001
+    title: Xác định artifact nào phù hợp để phân phối công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-002
+    title: Phân biệt JAR thư viện với JAR thực thi Spring Boot chứa cấu trúc lồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-003
+    title: Thiết lập phiên bản Java đích và kiểm chứng khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-004
+    title: Tạo JAR nguồn và JAR Javadoc có nội dung phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-005
+    title: Xử lý lỗi tạo Javadoc trước khi bước vào quy trình xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-006
+    title: Kiểm tra tài nguyên, cấu hình và tệp không được phép đưa vào gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-007
+    title: Chạy kiểm thử và rà soát API công khai của phiên bản dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-preparation-008
+    title: Phân biệt build thành công với sẵn sàng phát hành cho người dùng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: publication-pom
+  title: POM xuất bản
+  childs:
+  - slug: publication-pom-001
+    title: Khai báo tọa độ và packaging đúng với thành phần được phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-002
+    title: Cung cấp tên, mô tả và URL dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-003
+    title: Khai báo thông tin giấy phép phù hợp với dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-004
+    title: Khai báo nhà phát triển và thông tin SCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-005
+    title: Đối chiếu yêu cầu metadata hiện hành của Maven Central
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-006
+    title: Kiểm tra POM được sinh thay vì chỉ nhìn cấu hình build đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-007
+    title: Phân biệt POM cha, POM tổng hợp và POM dùng để quản lý phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-008
+    title: Loại bỏ đường dẫn nội bộ, tọa độ cục bộ và thông tin không thể truy cập công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publication-pom-009
+    title: Giữ nguồn thông tin xuất bản nhất quán giữa Maven, Gradle và tài liệu phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accounts-namespaces
+  title: Tài khoản và namespace
+  childs:
+  - slug: accounts-namespaces-001
+    title: Đăng ký Central Publisher Portal và xác định danh tính người phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-002
+    title: Chọn namespace dựa trên quyền sở hữu thay vì tên mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-003
+    title: Xác minh namespace bằng quyền kiểm soát tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-004
+    title: Xác minh namespace gắn với tài khoản lưu mã theo phương thức được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-005
+    title: Phân biệt quyền quản lý tổ chức với quyền xuất bản vào namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-006
+    title: Kiểm tra trạng thái xác minh và quyền trước khi gửi artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-007
+    title: Quản lý thành viên và bàn giao quyền phát hành khi người phụ trách thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-namespaces-008
+    title: Duy trì thông tin liên hệ và bằng chứng sở hữu của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: publishing-tokens
+  title: Token xuất bản
+  childs:
+  - slug: publishing-tokens-001
+    title: Phân biệt đăng nhập Portal với thông tin xác thực dành cho công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-tokens-002
+    title: Tạo và sử dụng Portal user token theo hướng dẫn hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-tokens-003
+    title: Ánh xạ token vào server id của Maven hoặc cấu hình plugin Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-tokens-004
+    title: Phân biệt token xuất bản với khóa riêng dùng ký artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-tokens-005
+    title: Lưu token trong kho bí mật CI thay vì mã nguồn hoặc POM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-tokens-006
+    title: Thu hồi, thay thế token và kiểm tra các pipeline chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: publishing-tokens-007
+    title: Ngăn token xuất hiện trong log, lệnh chẩn đoán và gói artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signatures-integrity
+  title: Ký và toàn vẹn
+  childs:
+  - slug: signatures-integrity-001
+    title: Vai trò của chữ ký GPG/PGP đối với artifact xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-002
+    title: Phân biệt khóa công khai, khóa riêng và cụm mật khẩu bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-003
+    title: Tạo chữ ký tách rời dạng asc cho các tệp cần ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-004
+    title: Công bố khóa công khai và kiểm tra khả năng xác minh chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-005
+    title: Phân biệt chữ ký xác định người ký với checksum phát hiện tệp thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-006
+    title: Đối chiếu thuật toán checksum và quy tắc tệp đi kèm theo yêu cầu Central
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-007
+    title: Kiểm chứng chữ ký bằng tệp cuối cùng sẽ được tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-008
+    title: Quản lý khóa dùng trong CI và kế hoạch thay khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signatures-integrity-009
+    title: 'Hiểu giới hạn của chữ ký: không tự chứng minh thư viện an toàn hoặc không có lỗi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-bundles
+  title: Gói triển khai
+  childs:
+  - slug: deployment-bundles-001
+    title: Deployment bundle là gì và chứa những thành phần nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-002
+    title: Tổ chức đường dẫn trong gói theo Maven Repository Layout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-003
+    title: Đóng gói artifact chính, POM, sources, Javadoc và tệp đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-004
+    title: Phân biệt yêu cầu cho thành phần JAR với thành phần packaging pom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-005
+    title: Kiểm tra tọa độ, tên tệp và phiên bản nhất quán trong toàn bộ gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-006
+    title: Phát hiện thiếu chữ ký, checksum sai và tệp ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-007
+    title: Gộp nhiều thành phần liên quan vào một lần triển khai khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-bundles-008
+    title: Đối chiếu giới hạn định dạng và dung lượng trước khi tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven-publishing
+  title: Xuất bản với Maven
+  childs:
+  - slug: maven-publishing-001
+    title: Vai trò của central-publishing-maven-plugin trong quy trình Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-002
+    title: Cấu hình plugin và ghim phiên bản đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-003
+    title: Liên kết publishingServerId với thông tin xác thực trong settings.xml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-004
+    title: Kết hợp bước tạo sources, Javadoc và ký với bước xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-005
+    title: Hiểu plugin tạo checksum và những yêu cầu vẫn phải tự chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-006
+    title: Tạo cấu hình phát hành riêng và kiểm tra các pha thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-007
+    title: Phân biệt tải lên để thẩm định với tự động công khai bằng autoPublish
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-008
+    title: Chờ trạng thái phù hợp để pipeline không báo thành công quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-publishing-009
+    title: Đọc kết quả triển khai và lưu deployment id phục vụ đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle-publishing
+  title: Xuất bản với Gradle
+  childs:
+  - slug: gradle-publishing-001
+    title: Vai trò của maven-publish trong tạo publication và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-002
+    title: Khai báo MavenPublication từ thành phần Java phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-003
+    title: Cấu hình thông tin POM, sourcesJar và javadocJar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-004
+    title: Kết hợp signing với các publication cần phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-005
+    title: Chọn công cụ hỗ trợ Central Portal và kiểm tra đơn vị duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-006
+    title: Phân biệt plugin cộng đồng với công cụ được Sonatype trực tiếp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-007
+    title: Phân biệt API upload bundle với xuất bản bằng giao thức kho Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-008
+    title: Kiểm tra gói và metadata trong kho thử nghiệm cục bộ trước khi tải lên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-publishing-009
+    title: Ghim phiên bản plugin và kiểm tra tương thích với Gradle cùng JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: portal-api
+  title: Portal và API
+  childs:
+  - slug: portal-api-001
+    title: Xuất bản bằng cách tải deployment bundle qua giao diện Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-002
+    title: Vai trò của Publisher API trong tích hợp công cụ và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-003
+    title: Xác thực API bằng Portal user token theo giao thức được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-004
+    title: Tải bundle và lưu deployment id do dịch vụ trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-005
+    title: Phân biệt USER_MANAGED với AUTOMATIC khi gửi deployment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-006
+    title: Theo dõi trạng thái và đọc chi tiết lỗi validation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-007
+    title: Yêu cầu công khai deployment đã hợp lệ hoặc hủy deployment chưa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: portal-api-008
+    title: Kiểm tra trạng thái thực khi tải lên lỗi hoặc mất phản hồi trước khi thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-lifecycle
+  title: Vòng đời triển khai
+  childs:
+  - slug: deployment-lifecycle-001
+    title: Phân biệt bundle đã tải lên, đã được thẩm định và đã công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-002
+    title: Hiểu các trạng thái PENDING, VALIDATING và VALIDATED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-003
+    title: Hiểu các trạng thái PUBLISHING, PUBLISHED và FAILED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-004
+    title: Chọn điểm kiểm soát trước khi artifact không còn có thể sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-005
+    title: Kiểm thử bản triển khai chưa công khai bằng cơ chế được Portal hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-006
+    title: Sửa lỗi bằng một deployment mới khi gói chưa đạt yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-007
+    title: Phân biệt hủy deployment chưa phát hành với xóa một phiên bản trên Central
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-lifecycle-008
+    title: Thiết kế lần chạy lại CI dựa trên deployment và tọa độ đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-verification
+  title: Kiểm chứng phát hành
+  childs:
+  - slug: release-verification-001
+    title: Xác nhận trạng thái công khai trước khi thông báo phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-002
+    title: Phân biệt artifact truy cập được với thông tin đã xuất hiện trên trang tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-003
+    title: Tải artifact từ đúng kho bằng tọa độ đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-004
+    title: Kiểm tra nội dung JAR, POM, nguồn và tài liệu sau xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-005
+    title: Xác minh checksum và chữ ký của tệp thực tế tải về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-006
+    title: Dùng dự án tiêu thụ độc lập để kiểm tra API và phụ thuộc bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-007
+    title: Loại trừ ảnh hưởng của mavenLocal và cache cũ khi thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-verification-008
+    title: Liên kết phiên bản với commit, tag và ghi chú phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: snapshots-releases
+  title: SNAPSHOT và release
+  childs:
+  - slug: snapshots-releases-001
+    title: Phân biệt bản thử nghiệm thay đổi được với release bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-002
+    title: Phân biệt Maven Central release repository với dịch vụ Central Portal Snapshots
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-003
+    title: Bật khả năng xuất bản SNAPSHOT cho namespace theo yêu cầu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-004
+    title: Cấu hình nơi xuất bản và nơi tải SNAPSHOT trong Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-005
+    title: Hiểu metadata và các bản SNAPSHOT có dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-006
+    title: Phân biệt kiểm chứng release với quy trình SNAPSHOT không có cùng mức validation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-007
+    title: Đối chiếu chính sách lưu giữ SNAPSHOT và ảnh hưởng đến khả năng dựng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: snapshots-releases-008
+    title: Ngăn phụ thuộc SNAPSHOT ngoài ý muốn trong phiên bản phát hành ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-module-boms
+  title: Đa mô-đun và BOM
+  childs:
+  - slug: multi-module-boms-001
+    title: Xác định mô-đun nào được công khai và mô-đun nào chỉ phục vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-002
+    title: Giữ tọa độ và quan hệ phụ thuộc đúng giữa các mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-003
+    title: Xuất bản POM cha và kiểm tra khả năng phân giải từ máy sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-004
+    title: Xuất bản BOM để phối hợp phiên bản của một nhóm thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-005
+    title: Phân biệt POM tổng hợp build với BOM dành cho người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-006
+    title: Chọn phiên bản dùng chung hoặc độc lập và ghi rõ hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-007
+    title: Kiểm tra chữ ký, metadata và gói đi kèm cho từng loại publication
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-module-boms-008
+    title: Xử lý lần phát hành nhiều mô-đun mà không giả định mọi bước luôn thành công cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Tách build kiểm thử khỏi công việc có quyền xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Xác định tác nhân phát hành từ tag hoặc yêu cầu thủ công đã được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Kiểm tra tương ứng giữa tag, version và commit nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Cung cấp token và khóa ký qua cơ chế bí mật của CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: Giới hạn quyền và tránh cấp bí mật cho mã chưa được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: Tạo một bộ artifact đã kiểm chứng để sử dụng xuyên suốt lần phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Điều phối các lần chạy để không cùng xuất bản một tọa độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Lưu deployment id, checksum và kết quả thẩm định để truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Chỉ chốt trạng thái thành công sau các kiểm tra xuất bản và tiêu thụ cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Thiết kế phục hồi pipeline khi tiến trình CI dừng giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: supply-chain-security
+  title: An toàn chuỗi cung ứng
+  childs:
+  - slug: supply-chain-security-001
+    title: Kiểm tra nguồn gốc thư viện, tọa độ và tên có khả năng gây nhầm lẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-002
+    title: Giới hạn kho và phạm vi groupId để giảm rủi ro nhầm nguồn phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-003
+    title: Quản lý phiên bản được chọn và tránh phụ thuộc thay đổi ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-004
+    title: Phân biệt khóa phụ thuộc với xác minh nội dung tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-005
+    title: Kiểm tra lỗ hổng và thông tin thành phần mà không coi đó là bảo đảm tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-006
+    title: Liên kết artifact với nguồn, kết quả build và danh mục thành phần phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-007
+    title: Rà soát tệp công khai để phát hiện bí mật hoặc dữ liệu nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: supply-chain-security-008
+    title: Chuẩn bị phản ứng khi khóa ký, token hoặc tài khoản phát hành bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-limits
+  title: Vận hành và hạn mức
+  childs:
+  - slug: operations-limits-001
+    title: Phân biệt lỗi tải phụ thuộc với lỗi gửi bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-002
+    title: Sử dụng cache và repository manager khi nhu cầu tải tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-003
+    title: Tránh tải lặp và truy vấn diện rộng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-004
+    title: Xử lý giới hạn tốc độ và lỗi 429 bằng chính sách thử lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-005
+    title: Theo dõi giới hạn xuất bản và mức sử dụng theo chính sách hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-006
+    title: Giảm tệp đính kèm trùng mà vẫn giữ đầy đủ thành phần bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-007
+    title: Chẩn đoán sự cố mạng, TLS, proxy và định tuyến kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-limits-008
+    title: Theo dõi trạng thái dịch vụ và chuẩn bị thông tin khi cần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ossrh-migration
+  title: Chuyển đổi OSSRH
+  childs:
+  - slug: ossrh-migration-001
+    title: Nhận diện cấu hình OSSRH cũ và lý do cần chuyển sang Central Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-002
+    title: Phân biệt OSSRH đã ngừng hoạt động với OSSRH Staging API tương thích của Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-003
+    title: Kiểm tra namespace và quyền đã chuyển sang Portal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-004
+    title: Thay thông tin xác thực OSSRH bằng Portal user token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-005
+    title: Chọn xuất bản trực tiếp qua Portal hoặc cơ chế tương thích được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-006
+    title: Rà soát plugin, địa chỉ dịch vụ và các bước close hoặc release kiểu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-007
+    title: Đối chiếu bước chuyển deployment khi dùng công cụ chỉ gửi tệp theo giao thức Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ossrh-migration-008
+    title: Kiểm chứng quy trình release và SNAPSHOT riêng sau khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Xử lý 401 hoặc 403 do token, quyền hay namespace không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Phân biệt lỗi xác minh namespace với lỗi metadata của artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Sửa thiếu name, description, URL, licenses, developers hoặc SCM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Sửa thiếu sources, Javadoc hoặc chữ ký theo loại thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Chẩn đoán chữ ký không khớp hoặc khóa công khai không thể xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Sửa checksum sai, đường dẫn bundle sai và tọa độ không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Xử lý xung đột khi phiên bản đã tồn tại và không thể ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Phân tích deployment ở trạng thái FAILED và tránh đoán lỗi từ một thông báo ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chẩn đoán artifact chưa tải được bằng cách phân biệt kho, cache và chỉ mục tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Xử lý phụ thuộc bắc cầu không phân giải được dù JAR chính đã xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Chuẩn bị bản tái hiện lỗi và log đã che bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Coi mvn install hoặc publishToMavenLocal là đã xuất bản lên Maven Central
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Dùng groupId không có quyền hoặc nhầm nó với tên package bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Đăng JAR thực thi thay cho artifact thư viện có cấu trúc phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Chỉ kiểm tra JAR chính mà bỏ qua POM và phụ thuộc bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Cho rằng plugin upload tự tạo đủ nguồn, Javadoc và chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Dùng hướng dẫn OSSRH cũ như quy trình Portal hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Đồng nhất VALIDATED với PUBLISHED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Thử tải lên lại khi chưa kiểm tra deployment trước có được tiếp nhận hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Cho rằng có thể sửa hoặc xóa release công khai để dùng lại cùng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Kiểm chứng bằng cache cục bộ nên bỏ sót lỗi của người sử dụng thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: 'Bài tập định hướng: lần theo một tọa độ từ trang tìm kiếm đến các tệp artifact'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: 'Bài tập Maven: dùng thư viện và giải thích cây phụ thuộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: 'Bài tập Gradle: phân giải cùng thư viện và kiểm tra metadata được dùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: 'Bài tập đóng gói: tạo JAR chính, sources, Javadoc và POM của thư viện Java'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: 'Bài tập kiểm chứng: phát hiện metadata hoặc phụ thuộc xuất bản sai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: 'Bài tập chữ ký: ký và xác minh gói thử nghiệm trong môi trường cục bộ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: 'Bài tập bundle: kiểm tra layout, tọa độ và bộ tệp trước khi tải lên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: 'Bài tập quy trình: mô phỏng các trạng thái deployment và điểm cần kiểm soát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: 'Bài tập CI/CD: thiết kế pipeline có phân quyền, chống chạy trùng và đọc lại trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: 'Bài tập đa mô-đun: kiểm chứng POM cha hoặc BOM bằng dự án tiêu thụ độc lập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: 'Bài tập xử lý lỗi: phân tích tình huống token sai, phiên bản trùng hoặc thiếu artifact'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: 'Bài tập tổng hợp: lập kế hoạch phát hành và kiểm chứng thư viện qua Maven Central'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Tiêu chí tự đánh giá độ đúng của metadata, khả năng tiêu thụ và khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Câu hỏi ôn tập và tình huống giải thích lựa chọn quy trình xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

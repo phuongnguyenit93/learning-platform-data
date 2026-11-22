@@ -1,0 +1,55 @@
+roadmap:
+- id: ranh-gioi-du-lieu-tin-cay
+  title: Ranh giới dữ liệu tin cậy
+  purpose: Nhận diện điểm nhận và phân tích tệp có thể bị lợi dụng từ dữ liệu không đáng tin cậy.
+  objectives:
+  - Vẽ luồng upload → lưu tạm → parse → dùng dữ liệu.
+  - Liệt kê tài sản, quyền truy cập và các nguy cơ chính.
+- id: xac-thuc-dinh-dang-tep
+  title: Xác thực định dạng tệp
+  purpose: Chỉ nhận các kiểu tệp thực sự cần thiết thay vì tin vào metadata do người dùng gửi.
+  objectives:
+  - Áp dụng allowlist extension, MIME và chữ ký tệp.
+  - Kiểm tra định dạng thực tế bằng parser thích hợp.
+- id: gioi-han-tai-nguyen
+  title: Giới hạn tài nguyên
+  purpose: Ngăn tệp quá lớn hoặc cấu trúc quá phức tạp làm cạn CPU, bộ nhớ và dung lượng.
+  objectives:
+  - Đặt giới hạn kích thước, thời gian, độ sâu và số phần tử.
+  - Phát hiện tệp nén có tỷ lệ giải nén bất thường.
+- id: giai-nen-duong-dan
+  title: Giải nén & Đường dẫn
+  purpose: Tránh ghi hoặc đọc ra ngoài thư mục cho phép khi giải nén tệp lưu trữ.
+  objectives:
+  - Chuẩn hóa đường dẫn entry và kiểm tra nằm trong thư mục đích.
+  - Từ chối entry nguy hiểm và liên kết tượng trưng ngoài phạm vi.
+- id: cau-hinh-xml-an-toan
+  title: Cấu hình XML an toàn
+  purpose: Chặn truy cập tài nguyên ngoài và nguy cơ mở rộng entity từ nội dung XML.
+  objectives:
+  - Vô hiệu DTD, external entities và XInclude khi không cần.
+  - Kiểm tra parser từ chối XML chứa tham chiếu ngoài.
+- id: tranh-deserialization-rui-ro
+  title: Tránh Deserialization rủi ro
+  purpose: Không biến dữ liệu tùy ý thành đối tượng có khả năng gây tác dụng phụ.
+  objectives:
+  - Nhận diện ObjectInputStream, XMLDecoder và luồng decode nguy hiểm.
+  - Ưu tiên dữ liệu có schema; đặt bộ lọc lớp và giới hạn nếu bắt buộc.
+- id: an-toan-noi-dung-sau-parse
+  title: An toàn nội dung sau parse
+  purpose: Kiểm soát cách ứng dụng sử dụng giá trị được trích xuất từ tệp.
+  objectives:
+  - Xác thực trường và escape/sanitize theo ngữ cảnh đầu ra.
+  - Nhận diện CSV formula injection khi xuất lại dữ liệu.
+- id: co-lap-cap-nhat-parser
+  title: Cô lập & Cập nhật parser
+  purpose: Giảm hậu quả nếu thư viện xử lý tệp có lỗi hoặc bị khai thác.
+  objectives:
+  - Chạy tác vụ parse với quyền tối thiểu và hạn chế mạng.
+  - Theo dõi bản vá thư viện, dùng vùng lưu tạm và dọn tệp.
+- id: kiem-thu-giam-sat
+  title: Kiểm thử & Giám sát
+  purpose: Xác minh parser từ chối dữ liệu bất thường mà vẫn hoạt động ổn định.
+  objectives:
+  - Test tệp lỗi, sai định dạng, quá giới hạn và bộ mẫu fuzz.
+  - Ghi nhận lỗi parse, thời gian xử lý và nguyên nhân từ chối.

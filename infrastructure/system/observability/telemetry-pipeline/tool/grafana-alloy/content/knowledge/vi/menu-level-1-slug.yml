@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cài đặt và khởi chạy
+  slug: installation-startup
+  index: 1
+- title: Pipeline đầu tiên
+  slug: first-pipeline
+  index: 2
+- title: Cú pháp cấu hình
+  slug: configuration-syntax
+  index: 3
+- title: Biểu thức và thư viện
+  slug: expressions-libraries
+  index: 4
+- title: Mô hình component
+  slug: component-model
+  index: 5
+- title: Tái sử dụng cấu hình
+  slug: configuration-reuse
+  index: 6
+- title: Khám phá mục tiêu
+  slug: target-discovery
+  index: 7
+- title: Nhãn và relabeling
+  slug: labels-relabeling
+  index: 8
+- title: Thu thập metrics
+  slug: metric-collection
+  index: 9
+- title: Tích hợp exporter
+  slug: exporter-integration
+  index: 10
+- title: Gửi metrics
+  slug: metric-export
+  index: 11
+- title: Thu thập logs
+  slug: log-collection
+  index: 12
+- title: Xử lý logs
+  slug: log-processing
+  index: 13
+- title: Gửi logs
+  slug: log-export
+  index: 14
+- title: Pipeline OpenTelemetry
+  slug: opentelemetry-pipelines
+  index: 15
+- title: Biến đổi OpenTelemetry
+  slug: otel-transformations
+  index: 16
+- title: Tracing và lấy mẫu
+  slug: tracing-sampling
+  index: 17
+- title: Liên kết tín hiệu
+  slug: signal-correlation
+  index: 18
+- title: Profiling liên tục
+  slug: continuous-profiling
+  index: 19
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 20
+- title: Docker và Kubernetes
+  slug: docker-kubernetes
+  index: 21
+- title: Kiến trúc triển khai
+  slug: deployment-architecture
+  index: 22
+- title: Clustering và mở rộng
+  slug: clustering-scaling
+  index: 23
+- title: Độ tin cậy
+  slug: reliability
+  index: 24
+- title: Bảo mật
+  slug: security
+  index: 25
+- title: Hiệu năng và chi phí
+  slug: performance-costs
+  index: 26
+- title: Giám sát Alloy
+  slug: alloy-monitoring
+  index: 27
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 28
+- title: Quản lý cấu hình
+  slug: configuration-management
+  index: 29
+- title: Di chuyển và nâng cấp
+  slug: migration-upgrades
+  index: 30
+- title: OpenTelemetry Engine
+  slug: opentelemetry-engine
+  index: 31
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 32

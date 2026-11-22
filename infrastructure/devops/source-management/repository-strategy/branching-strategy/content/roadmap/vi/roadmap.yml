@@ -1,0 +1,57 @@
+roadmap:
+- id: branch-vong-doi
+  title: Branch & vòng đời
+  purpose: Nắm nhánh Git là gì và cách tổ chức vòng đời một thay đổi từ tạo nhánh đến hợp nhất.
+  objectives:
+  - Phân biệt main, feature, release và hotfix branch
+  - Tạo, chuyển, push và xóa branch bằng Git
+  - Giải thích nhánh ngắn hạn và nhánh dài hạn
+- id: lua-chon-workflow
+  title: Lựa chọn workflow
+  purpose: Chọn chiến lược nhánh dựa trên cách cộng tác, tần suất phát hành và yêu cầu kiểm soát.
+  objectives:
+  - So sánh GitHub Flow, trunk-based và GitFlow
+  - Nhận biết chi phí của branch sống quá lâu
+  - Đề xuất workflow cho hai nhóm phát hành khác nhau
+- id: feature-branch-pr
+  title: Feature Branch & PR
+  purpose: Tổ chức thay đổi cô lập, review và tích hợp có kiểm soát qua pull/merge request.
+  objectives:
+  - Tạo nhánh theo một thay đổi nhỏ có tên rõ nghĩa
+  - Mở PR/MR với mô tả và test evidence
+  - Hợp nhất rồi xóa nhánh đã hoàn thành
+- id: trunk-based-feature-flags
+  title: Trunk-Based & Feature Flags
+  purpose: Tích hợp code thường xuyên vào main mà vẫn kiểm soát tính sẵn sàng của tính năng.
+  objectives:
+  - Chia công việc thành commit hoặc PR nhỏ
+  - Giữ feature branch tồn tại ngắn, merge thường xuyên
+  - Dùng feature flag để che chức năng chưa hoàn chỉnh
+- id: gitflow-release-hotfix
+  title: GitFlow, Release & Hotfix
+  purpose: Nhận diện trường hợp cần tách dòng phát triển và bảo trì các phiên bản phát hành.
+  objectives:
+  - Mô tả main, develop, feature, release, hotfix
+  - Thực hành đưa hotfix về nhánh phát hành và develop
+  - Đánh giá rủi ro lệch code giữa nhiều nhánh dài hạn
+- id: merge-rebase-conflict
+  title: Merge, Rebase & Conflict
+  purpose: Xử lý hội tụ thay đổi mà không làm mất lịch sử hoặc công việc của đồng đội.
+  objectives:
+  - So sánh merge commit, squash merge và rebase
+  - Giải quyết conflict và xác nhận lại bằng test
+  - Tránh rebase/force-push tùy tiện trên nhánh dùng chung
+- id: protection-ci-gates
+  title: Protection & CI Gates
+  purpose: Đặt quy tắc bảo vệ nhánh quan trọng để mọi thay đổi qua review và kiểm tra tự động.
+  objectives:
+  - Cấu hình protected branch và quyền push/merge
+  - Yêu cầu approval, status checks trước merge
+  - Thử từ chối PR khi test lỗi hoặc thiếu phê duyệt
+- id: release-danh-gia-chien-luoc
+  title: Release & đánh giá chiến lược
+  purpose: Biến quy ước nhánh thành quy trình phát hành nhất quán và theo dõi khả năng cộng tác.
+  objectives:
+  - Gắn release tag theo commit đã kiểm chứng
+  - Dọn nhánh merged và định nghĩa quy tắc đặt tên
+  - Đo tuổi nhánh, thời gian review và tần suất merge

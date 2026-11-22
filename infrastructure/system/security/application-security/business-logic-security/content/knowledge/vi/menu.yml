@@ -1,0 +1,856 @@
+menu:
+- level1: Business Logic Foundations
+  level2:
+  - Meaning of business logic security
+  - Security versus functional correctness
+  - Business rules as controls
+  - Business invariants as guarantees
+  - Abuse of valid features
+  - Trust in business workflows
+  - Business logic security vocabulary
+- level1: Security Objectives
+  level2:
+  - Confidentiality of business data
+  - Integrity of business decisions
+  - Availability of business operations
+  - Non repudiation of critical actions
+  - Fairness of resource allocation
+  - Correctness of financial outcomes
+  - Traceability of business changes
+- level1: Business Assets
+  level2:
+  - Money and monetary balances
+  - Inventory and scarce resources
+  - Orders and fulfillment rights
+  - Subscriptions and service access
+  - Personal data and consent
+  - Reputation and trust signals
+  - Operational capacity and quotas
+- level1: Actor Model
+  level2:
+  - Anonymous visitor actor
+  - Authenticated customer actor
+  - Staff operator actor
+  - Partner integration actor
+  - Administrator actor
+  - Service account actor
+  - Compromised actor assumptions
+- level1: Trust Boundaries
+  level2:
+  - Browser to application boundary
+  - Application to database boundary
+  - Service to service boundary
+  - Tenant to tenant boundary
+  - Partner integration boundary
+  - Support to customer boundary
+  - Administrator control boundary
+- level1: Abuse Cases
+  level2:
+  - Misuse case identification
+  - Feature abuse narrative
+  - Economic abuse scenario
+  - Privilege abuse scenario
+  - Workflow skipping scenario
+  - Resource exhaustion scenario
+  - Abuse case prioritization
+- level1: Threat Modeling
+  level2:
+  - Business threat model scope
+  - Attacker goal analysis
+  - Abuse path discovery
+  - Business impact scoring
+  - Control selection
+  - Residual risk review
+  - Threat model maintenance
+- level1: Security Invariants
+  level2:
+  - Invariant definition
+  - Invariant enforcement point
+  - Invariant violation response
+  - Invariant testing
+  - Invariant monitoring
+  - Invariant migration
+  - Invariant ownership
+- level1: Domain State
+  level2:
+  - State vocabulary
+  - Initial domain state
+  - Valid state set
+  - Terminal domain state
+  - State ownership
+  - State persistence
+  - State visibility
+- level1: State Transitions
+  level2:
+  - Allowed transition map
+  - Forbidden transition handling
+  - Transition preconditions
+  - Transition postconditions
+  - Transition authorization
+  - Transition audit event
+  - Transition rollback
+- level1: Workflow Security
+  level2:
+  - Workflow step ordering
+  - Workflow completion criteria
+  - Workflow interruption
+  - Workflow resumption
+  - Workflow timeout
+  - Workflow cancellation
+  - Workflow abandonment
+- level1: Approval Workflows
+  level2:
+  - Approval request creation
+  - Approval reviewer selection
+  - Approval evidence requirements
+  - Approval decision recording
+  - Approval expiration
+  - Approval rejection handling
+  - Approval workflow audit
+- level1: Separation of Duties
+  level2:
+  - Duty separation principle
+  - Requester reviewer separation
+  - Creator approver separation
+  - Operator auditor separation
+  - Privileged action dual control
+  - Duty exception approval
+  - Duty separation testing
+- level1: Authorization Rules
+  level2:
+  - Action authorization
+  - Resource authorization
+  - Field authorization
+  - Contextual authorization
+  - Ownership authorization
+  - Delegated authorization
+  - Authorization denial behavior
+- level1: Permission Semantics
+  level2:
+  - Permission naming
+  - Permission scope
+  - Permission inheritance
+  - Permission intersection
+  - Permission revocation
+  - Permission cache invalidation
+  - Permission decision trace
+- level1: Role Design
+  level2:
+  - Role purpose
+  - Role hierarchy
+  - Role composition
+  - Role assignment policy
+  - Role activation period
+  - Role removal policy
+  - Role conflict detection
+- level1: Tenant Isolation
+  level2:
+  - Tenant identity resolution
+  - Tenant scoped queries
+  - Tenant scoped commands
+  - Cross tenant denial
+  - Tenant administrator boundary
+  - Tenant data export
+  - Tenant isolation testing
+- level1: Object Ownership
+  level2:
+  - Owner identity resolution
+  - Shared object ownership
+  - Transferred ownership
+  - Delegated object access
+  - Ownership change approval
+  - Ownership history
+  - Ownership denial response
+- level1: Business Input Rules
+  level2:
+  - Domain input validation
+  - Required business fields
+  - Allowed value ranges
+  - Cross field constraints
+  - Conditional field rules
+  - Unknown field handling
+  - Validation error semantics
+- level1: Parameter Tampering
+  level2:
+  - Hidden field tampering
+  - Price parameter tampering
+  - Quantity parameter tampering
+  - Ownership parameter tampering
+  - Status parameter tampering
+  - Role parameter tampering
+  - Tampering detection
+- level1: Mass Assignment
+  level2:
+  - Writable field inventory
+  - Command object allowlist
+  - Sensitive field exclusion
+  - Nested property binding
+  - Role field protection
+  - Mass assignment test
+  - Binding failure handling
+- level1: Client Trust
+  level2:
+  - Untrusted browser state
+  - Untrusted mobile state
+  - Untrusted cached state
+  - Untrusted hidden controls
+  - Untrusted client timestamps
+  - Server authoritative decisions
+  - Client trust boundary tests
+- level1: HTTP Method Semantics
+  level2:
+  - Safe method assumptions
+  - Idempotent method assumptions
+  - Method override risks
+  - Unexpected method rejection
+  - Action endpoint semantics
+  - Method authorization matrix
+  - Method behavior testing
+- level1: API Business Rules
+  level2:
+  - Business command endpoint
+  - Business query endpoint
+  - Action endpoint authorization
+  - API state transition
+  - API error consistency
+  - API compatibility rules
+  - API rule documentation
+- level1: Batch Operations
+  level2:
+  - Batch command authorization
+  - Batch item isolation
+  - Batch partial success
+  - Batch atomicity policy
+  - Batch size restriction
+  - Batch duplicate handling
+  - Batch result disclosure
+- level1: Pagination Security
+  level2:
+  - Pagination ownership filter
+  - Cursor integrity
+  - Offset abuse
+  - Page size limits
+  - Cross page consistency
+  - Deleted item behavior
+  - Pagination authorization tests
+- level1: Search Rules
+  level2:
+  - Search scope authorization
+  - Search result filtering
+  - Search wildcard limits
+  - Search ranking manipulation
+  - Search sensitive fields
+  - Search timing leakage
+  - Search audit trail
+- level1: Sorting Rules
+  level2:
+  - Allowed sort fields
+  - Sort field allowlist
+  - Sensitive sort prevention
+  - Stable sort requirement
+  - Sort direction validation
+  - Sort cost control
+  - Sort authorization tests
+- level1: Export Security
+  level2:
+  - Export eligibility
+  - Export field allowlist
+  - Export size restriction
+  - Export asynchronous processing
+  - Export download authorization
+  - Export retention
+  - Export audit event
+- level1: Import Security
+  level2:
+  - Import source trust
+  - Import schema validation
+  - Import row authorization
+  - Import duplicate handling
+  - Import partial failure
+  - Import rollback
+  - Import result reporting
+- level1: File Business Rules
+  level2:
+  - File ownership
+  - File classification
+  - File lifecycle
+  - File replacement policy
+  - File deletion authority
+  - File download entitlement
+  - File action audit
+- level1: Concurrency Rules
+  level2:
+  - Concurrent command model
+  - Lost update prevention
+  - Optimistic version checking
+  - Pessimistic lock decision
+  - Concurrent approval handling
+  - Concurrent cancellation handling
+  - Concurrency conflict message
+- level1: Race Conditions
+  level2:
+  - Double spend race
+  - Double claim race
+  - Duplicate redemption race
+  - Parallel state change race
+  - Check use gap
+  - Race detection test
+  - Race incident response
+- level1: TOCTOU Defense
+  level2:
+  - Check time definition
+  - Use time definition
+  - Authorization recheck
+  - Price recheck
+  - Inventory recheck
+  - Policy recheck
+  - TOCTOU regression test
+- level1: Idempotency
+  level2:
+  - Idempotency key purpose
+  - Idempotency key scope
+  - Idempotency record storage
+  - Idempotency response replay
+  - Idempotency expiration
+  - Idempotency collision
+  - Idempotency failure handling
+- level1: Replay Protection
+  level2:
+  - Command replay scenario
+  - Event replay scenario
+  - Webhook replay scenario
+  - Nonce validation
+  - Timestamp freshness
+  - Replay detection storage
+  - Replay incident handling
+- level1: Transactions
+  level2:
+  - Business transaction boundary
+  - Atomic rule enforcement
+  - Commit failure behavior
+  - Rollback semantics
+  - Transaction isolation choice
+  - Transaction timeout
+  - Transaction auditability
+- level1: Distributed Consistency
+  level2:
+  - Cross service invariant
+  - Eventual consistency risk
+  - Read after write behavior
+  - Distributed conflict resolution
+  - Compensation action
+  - Reconciliation process
+  - Consistency monitoring
+- level1: Database Constraints
+  level2:
+  - Unique business constraint
+  - Check constraint
+  - Foreign key ownership
+  - Conditional uniqueness
+  - Constraint error translation
+  - Constraint migration
+  - Constraint bypass testing
+- level1: Monetary Rules
+  level2:
+  - Balance ownership
+  - Debit authorization
+  - Credit authorization
+  - Insufficient balance handling
+  - Ledger entry integrity
+  - Money movement audit
+  - Financial correction policy
+- level1: Currency Handling
+  level2:
+  - Currency allowlist
+  - Currency conversion authority
+  - Exchange rate freshness
+  - Mixed currency prevention
+  - Currency precision
+  - Currency display consistency
+  - Currency conversion audit
+- level1: Rounding Rules
+  level2:
+  - Rounding mode selection
+  - Rounding point
+  - Fractional amount handling
+  - Tax rounding
+  - Discount rounding
+  - Settlement rounding
+  - Rounding test vectors
+- level1: Pricing Rules
+  level2:
+  - Price source authority
+  - Price snapshot
+  - Price effective period
+  - Price change authorization
+  - Customer price visibility
+  - Price override approval
+  - Price calculation audit
+- level1: Discounts
+  level2:
+  - Discount eligibility
+  - Discount stacking
+  - Discount precedence
+  - Discount expiration
+  - Discount maximum value
+  - Discount reversal
+  - Discount abuse monitoring
+- level1: Promotions
+  level2:
+  - Promotion activation
+  - Promotion audience
+  - Promotion quota
+  - Promotion geographic scope
+  - Promotion schedule
+  - Promotion cancellation
+  - Promotion outcome audit
+- level1: Coupons
+  level2:
+  - Coupon code uniqueness
+  - Coupon redemption eligibility
+  - Coupon redemption count
+  - Coupon per user limit
+  - Coupon expiration
+  - Coupon revocation
+  - Coupon brute force defense
+- level1: Inventory Rules
+  level2:
+  - Inventory ownership
+  - Available quantity
+  - Reserved quantity
+  - Inventory hold expiration
+  - Oversell prevention
+  - Inventory adjustment authority
+  - Inventory movement audit
+- level1: Order Security
+  level2:
+  - Order creation authorization
+  - Order item integrity
+  - Order price snapshot
+  - Order state transitions
+  - Order cancellation policy
+  - Order ownership transfer
+  - Order history integrity
+- level1: Fulfillment Rules
+  level2:
+  - Fulfillment eligibility
+  - Shipping destination rules
+  - Fulfillment assignment
+  - Partial fulfillment
+  - Fulfillment cancellation
+  - Delivery confirmation
+  - Fulfillment audit trail
+- level1: Payment Rules
+  level2:
+  - Payment intent ownership
+  - Payment amount integrity
+  - Payment method authorization
+  - Payment state transitions
+  - Payment retry behavior
+  - Payment confirmation trust
+  - Payment event audit
+- level1: Refund Rules
+  level2:
+  - Refund eligibility
+  - Refund amount limit
+  - Partial refund policy
+  - Refund approval
+  - Refund idempotency
+  - Refund timing
+  - Refund audit entry
+- level1: Chargeback Rules
+  level2:
+  - Chargeback case ownership
+  - Chargeback evidence
+  - Chargeback state
+  - Chargeback amount reconciliation
+  - Chargeback response authority
+  - Chargeback notification
+  - Chargeback audit history
+- level1: Credit Rules
+  level2:
+  - Credit limit ownership
+  - Credit allocation
+  - Credit consumption
+  - Credit expiration
+  - Credit reversal
+  - Credit approval
+  - Credit ledger audit
+- level1: Subscription Rules
+  level2:
+  - Subscription ownership
+  - Plan eligibility
+  - Plan transition
+  - Renewal authorization
+  - Pause and resume policy
+  - Cancellation timing
+  - Subscription audit
+- level1: Entitlement Rules
+  level2:
+  - Entitlement grant
+  - Entitlement scope
+  - Entitlement expiration
+  - Entitlement revocation
+  - Entitlement inheritance
+  - Entitlement cache freshness
+  - Entitlement decision audit
+- level1: Quota Management
+  level2:
+  - Quota ownership
+  - Quota allocation
+  - Quota consumption
+  - Quota reset period
+  - Quota overrun handling
+  - Quota delegation
+  - Quota usage audit
+- level1: Rate Policies
+  level2:
+  - Action frequency policy
+  - Per account rate policy
+  - Per tenant rate policy
+  - Burst allowance
+  - Rate policy exception
+  - Rate policy disclosure
+  - Rate policy measurement
+- level1: Resource Allocation
+  level2:
+  - Scarce resource claim
+  - Allocation priority
+  - Allocation fairness
+  - Allocation expiration
+  - Allocation release
+  - Allocation transfer
+  - Allocation audit
+- level1: Time Based Rules
+  level2:
+  - Business time source
+  - Time zone policy
+  - Business day calculation
+  - Effective date boundary
+  - Expiration boundary
+  - Clock skew tolerance
+  - Time rule testing
+- level1: Approval Limits
+  level2:
+  - Amount approval threshold
+  - Quantity approval threshold
+  - Role approval threshold
+  - Threshold aggregation
+  - Threshold bypass prevention
+  - Threshold exception
+  - Threshold change audit
+- level1: Delegation
+  level2:
+  - Delegated authority
+  - Delegation scope
+  - Delegation start time
+  - Delegation end time
+  - Delegation revocation
+  - Delegation chain
+  - Delegation audit
+- level1: Impersonation
+  level2:
+  - Support impersonation
+  - Administrator impersonation
+  - Impersonation consent
+  - Impersonation scope
+  - Impersonation banner
+  - Impersonation expiration
+  - Impersonation audit
+- level1: Emergency Actions
+  level2:
+  - Emergency action definition
+  - Emergency action authority
+  - Emergency action confirmation
+  - Emergency action scope
+  - Emergency action expiry
+  - Emergency action notification
+  - Emergency action review
+- level1: Background Jobs
+  level2:
+  - Job authorization
+  - Job input integrity
+  - Job retry safety
+  - Job duplicate prevention
+  - Job cancellation
+  - Job failure escalation
+  - Job execution audit
+- level1: Schedulers
+  level2:
+  - Scheduled action ownership
+  - Schedule creation authorization
+  - Schedule modification
+  - Schedule time interpretation
+  - Schedule overlap
+  - Schedule cancellation
+  - Scheduled action audit
+- level1: Message Security
+  level2:
+  - Message producer trust
+  - Message consumer authorization
+  - Message schema integrity
+  - Message ordering
+  - Message duplication
+  - Message dead letter handling
+  - Message audit metadata
+- level1: Webhooks
+  level2:
+  - Webhook endpoint ownership
+  - Webhook signature validation
+  - Webhook event freshness
+  - Webhook delivery retries
+  - Webhook duplicate delivery
+  - Webhook response handling
+  - Webhook subscription audit
+- level1: Partner Integrations
+  level2:
+  - Partner identity
+  - Partner capability scope
+  - Partner data ownership
+  - Partner request validation
+  - Partner failure isolation
+  - Partner contract changes
+  - Partner action audit
+- level1: External Trust
+  level2:
+  - External verification source
+  - External status authority
+  - External reference integrity
+  - External response freshness
+  - External outage behavior
+  - External disagreement handling
+  - External dependency audit
+- level1: Notification Rules
+  level2:
+  - Notification recipient authority
+  - Notification content policy
+  - Notification timing
+  - Notification deduplication
+  - Notification suppression
+  - Notification delivery failure
+  - Notification history
+- level1: Email Business Rules
+  level2:
+  - Email change authority
+  - Email ownership signal
+  - Email invitation lifecycle
+  - Email recipient privacy
+  - Email link action scope
+  - Email bounce consequence
+  - Email action audit
+- level1: Support Operations
+  level2:
+  - Support case ownership
+  - Support action permissions
+  - Support evidence requirements
+  - Support customer disclosure
+  - Support escalation
+  - Support override duration
+  - Support operation audit
+- level1: Administrative Controls
+  level2:
+  - Administrator action scope
+  - Administrative approval
+  - Administrative dual control
+  - Administrative emergency path
+  - Administrative session limits
+  - Administrative change review
+  - Administrative audit export
+- level1: Fraud Detection
+  level2:
+  - Fraud signal collection
+  - Fraud rule evaluation
+  - Fraud decision confidence
+  - Fraud review queue
+  - Fraud false positive handling
+  - Fraud case resolution
+  - Fraud decision audit
+- level1: Anomaly Detection
+  level2:
+  - Normal behavior baseline
+  - Anomalous transaction pattern
+  - Anomalous velocity pattern
+  - Anomalous location pattern
+  - Anomalous device pattern
+  - Anomaly investigation
+  - Anomaly rule tuning
+- level1: Abuse Controls
+  level2:
+  - Feature abuse threshold
+  - Automated abuse detection
+  - Human abuse review
+  - Progressive friction
+  - Temporary action block
+  - Permanent account restriction
+  - Abuse control appeal
+- level1: Rate Limit Abuse
+  level2:
+  - Credential testing velocity
+  - Coupon testing velocity
+  - Inventory claim velocity
+  - Payment retry velocity
+  - Export request velocity
+  - Support request velocity
+  - Velocity signal correlation
+- level1: Privacy Rules
+  level2:
+  - Purpose limitation
+  - Data minimization
+  - Sensitive field masking
+  - Purpose based access
+  - Retention boundary
+  - Deletion consequence
+  - Privacy decision audit
+- level1: Consent Rules
+  level2:
+  - Consent capture
+  - Consent version
+  - Consent scope
+  - Consent withdrawal
+  - Consent proof
+  - Consent dependent feature
+  - Consent audit history
+- level1: Auditability
+  level2:
+  - Critical action taxonomy
+  - Business reason recording
+  - Actor context recording
+  - Before and after values
+  - Audit event integrity
+  - Audit access control
+  - Audit retention
+- level1: Observability
+  level2:
+  - Business outcome metric
+  - Rule decision metric
+  - Denied action metric
+  - Conflict metric
+  - Abuse metric
+  - Dependency health metric
+  - Sensitive telemetry handling
+- level1: Error Semantics
+  level2:
+  - Business rejection response
+  - Authorization failure response
+  - Conflict response
+  - Expired operation response
+  - Duplicate operation response
+  - Retryable failure response
+  - Error disclosure boundary
+- level1: User Experience
+  level2:
+  - Secure default action
+  - Clear rule explanation
+  - Safe retry guidance
+  - Confirmation for risky action
+  - Cancellation affordance
+  - Recovery from rejection
+  - User visible audit context
+- level1: Testing Strategy
+  level2:
+  - Business rule unit tests
+  - Workflow integration tests
+  - Authorization matrix tests
+  - Concurrency regression tests
+  - Financial calculation tests
+  - Abuse scenario tests
+  - Production parity test data
+- level1: Property Testing
+  level2:
+  - Invariant property tests
+  - Transition property tests
+  - Amount conservation property
+  - Quota conservation property
+  - Idempotency property
+  - Authorization monotonicity property
+  - Property shrinking strategy
+- level1: Security Testing
+  level2:
+  - Parameter tampering test
+  - Workflow skipping test
+  - Object ownership test
+  - Race condition test
+  - Replay attack test
+  - Privilege escalation test
+  - Business impact test
+- level1: Load Testing
+  level2:
+  - Concurrent claim load
+  - Concurrent payment load
+  - Promotion peak load
+  - Quota reset load
+  - Queue backlog load
+  - Rate limiter load
+  - Load test integrity checks
+- level1: Failure Testing
+  level2:
+  - Database failure scenario
+  - Payment provider failure
+  - Notification provider failure
+  - Message duplication failure
+  - Clock failure
+  - Partial transaction failure
+  - Recovery reconciliation test
+- level1: Incident Response
+  level2:
+  - Business rule incident detection
+  - Emergency feature disablement
+  - Transaction freeze
+  - Unauthorized action review
+  - Affected user identification
+  - Evidence preservation
+  - Post incident rule correction
+- level1: Compliance
+  level2:
+  - Control objective mapping
+  - Financial control evidence
+  - Segregation control evidence
+  - Privacy control evidence
+  - Retention obligation
+  - Regional rule variation
+  - Compliance exception approval
+- level1: Documentation
+  level2:
+  - Business rule catalog
+  - State transition documentation
+  - Authorization matrix documentation
+  - Approval policy documentation
+  - Exception documentation
+  - Operational runbook
+  - Rule change history
+- level1: Spring Security Integration
+  level2:
+  - Spring authorization boundary
+  - Method security for commands
+  - SecurityContext actor identity
+  - Authorization event listeners
+  - Transaction authorization checks
+  - Spring Security test support
+  - Application service enforcement
+- level1: Implementation Patterns
+  level2:
+  - Policy object pattern
+  - Specification pattern
+  - Command handler pattern
+  - State machine pattern
+  - Domain service pattern
+  - Authorization decision object
+  - Explicit rule composition
+- level1: Deployment Operations
+  level2:
+  - Business rule configuration
+  - Feature flag safety
+  - Rule rollout sequencing
+  - Backward compatible rule change
+  - Database migration safety
+  - Rollback after rule defect
+  - Production rule checklist
+- level1: Security Checklists
+  level2:
+  - New feature security checklist
+  - New workflow security checklist
+  - New payment security checklist
+  - New integration security checklist
+  - New administrative action checklist
+  - Release review checklist
+  - Business logic audit checklist

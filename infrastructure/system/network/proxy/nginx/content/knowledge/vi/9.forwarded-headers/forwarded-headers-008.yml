@@ -1,0 +1,3 @@
+menuLevel1: Header và IP gốc
+menuLevel2: Phân biệt $remote_addr và $realip_remote_addr sau khi khôi phục IP
+status: ''

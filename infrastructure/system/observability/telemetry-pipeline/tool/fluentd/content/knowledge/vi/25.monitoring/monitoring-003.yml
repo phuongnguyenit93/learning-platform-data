@@ -1,0 +1,3 @@
+menuLevel1: Giám sát
+menuLevel2: Xuất metric bằng plugin prometheus và prometheus_output_monitor
+status: ''

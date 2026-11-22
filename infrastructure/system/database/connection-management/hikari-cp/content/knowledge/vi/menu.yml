@@ -1,0 +1,308 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - HikariCP là gì và bài toán tái sử dụng kết nối cơ sở dữ liệu
+  - Chi phí mở kết nối vật lý và lợi ích của nhóm kết nối
+  - Phân biệt kết nối vật lý, kết nối logic và phiên cơ sở dữ liệu
+  - Mối quan hệ giữa ứng dụng, DataSource, JDBC driver và máy chủ dữ liệu
+  - Các trạng thái kết nối đang dùng, nhàn rỗi và yêu cầu đang chờ
+  - HikariCP quản lý kết nối như thế nào trong một yêu cầu nghiệp vụ
+  - Ranh giới trách nhiệm giữa HikariCP, quản lý giao dịch và tối ưu SQL
+  - Kiến thức tiên quyết và lộ trình học từ cấu hình đến vận hành
+  - Các tình huống phù hợp và giới hạn của JDBC connection pool
+- level1: JDBC và DataSource
+  level2:
+  - Vai trò của DriverManager, Driver và DataSource trong JDBC
+  - Vòng đời Connection, Statement, PreparedStatement và ResultSet
+  - Phân biệt DataSource của JDBC driver với HikariDataSource
+  - getConnection() và close() khi dùng kết nối qua pool
+  - Quản lý tài nguyên JDBC bằng try-with-resources
+  - Quyền sở hữu kết nối và nguyên tắc trả kết nối đúng tầng
+  - Vì sao không chia sẻ một Connection giữa nhiều luồng
+  - SQLException, SQLState và chuỗi nguyên nhân lỗi JDBC
+  - Ranh giới giữa xử lý lỗi JDBC và loại bỏ kết nối hỏng
+- level1: Khởi tạo pool
+  level2:
+  - Chọn phiên bản HikariCP tương thích với Java và JDBC driver
+  - Khai báo thư viện HikariCP và driver trong Maven hoặc Gradle
+  - Vai trò của HikariConfig và HikariDataSource
+  - Tạo pool bằng HikariConfig và hàm khởi tạo HikariDataSource
+  - Khởi tạo HikariDataSource qua các phương thức cấu hình
+  - Nạp cấu hình từ Properties và tệp cấu hình
+  - Khởi tạo chủ động, khởi tạo khi dùng và thời điểm phát sinh lỗi
+  - Quản lý một HikariDataSource dùng chung theo vòng đời ứng dụng
+  - Đóng HikariDataSource và giải phóng tài nguyên nền
+  - 'Ví dụ Java độc lập: tạo pool, truy vấn, trả kết nối và đóng pool'
+- level1: Cấu hình kết nối
+  level2:
+  - Thiết lập jdbcUrl và các tham số kết nối của JDBC driver
+  - Thiết lập dataSourceClassName và thuộc tính DataSource
+  - Cấp một DataSource có sẵn cho HikariCP
+  - Chọn cách cấu hình driver và tránh phối hợp thuộc tính mâu thuẫn
+  - username, password và cơ chế truyền thông tin xác thực
+  - addDataSourceProperty() và ranh giới thuộc tính pool với driver
+  - poolName và cách đặt tên nhận diện nhiều pool
+  - connectionInitSql và lệnh khởi tạo mỗi kết nối vật lý
+  - catalog, schema và thiết lập không gian dữ liệu mặc định
+  - Đơn vị thời gian, miền giá trị và quan hệ giữa các thuộc tính
+  - Kiểm tra cấu hình thực tế sau khi hợp nhất các nguồn cấu hình
+- level1: Vòng đời kết nối
+  level2:
+  - Từ yêu cầu getConnection() đến khi nhận được kết nối
+  - Tạo kết nối vật lý mới khi pool cần bổ sung
+  - Chờ kết nối khả dụng khi các kết nối đều đang bận
+  - Kết nối đại diện (proxy) và việc theo dõi tài nguyên JDBC
+  - close() kết nối đại diện và quá trình trả kết nối về pool
+  - Phân biệt trả kết nối, loại bỏ kết nối và đóng kết nối vật lý
+  - Xử lý kết nối bị lỗi trong lúc ứng dụng đang sử dụng
+  - Kết nối đang mượn khi pool bắt đầu đóng
+  - Thời gian mượn kết nối và độ trễ truy vấn khác nhau như thế nào
+- level1: Cơ chế nội bộ
+  level2:
+  - Các thành phần HikariDataSource, HikariPool và PoolEntry
+  - ConcurrentBag và cách quản lý các kết nối dùng chung
+  - Cơ chế mượn, trả và đánh dấu trạng thái PoolEntry
+  - Đường thực thi nhanh và giảm chi phí đồng bộ hóa
+  - ProxyConnection, ProxyStatement và theo dõi tài nguyên
+  - HouseKeeper và các công việc bảo trì định kỳ
+  - Luồng tạo kết nối, đóng kết nối và tác động khi tạo kết nối chậm
+  - Đọc số liệu pool dưới góc nhìn cạnh tranh giữa nhiều luồng
+  - Phân biệt API công khai với chi tiết triển khai phụ thuộc phiên bản
+- level1: Trạng thái phiên
+  level2:
+  - autoCommit và trạng thái giao dịch mặc định của kết nối
+  - readOnly là gợi ý JDBC như thế nào và giới hạn theo driver
+  - transactionIsolation và mức cô lập giao dịch
+  - catalog, schema và ảnh hưởng đến câu SQL
+  - networkTimeout và khả năng hỗ trợ của JDBC driver
+  - Trạng thái được HikariCP theo dõi và khôi phục khi trả kết nối
+  - Biến phiên, bảng tạm và trạng thái ngoài phạm vi khôi phục tự động
+  - Nguy cơ rò trạng thái giữa hai lượt mượn kết nối
+  - unwrap(), isWrapperFor() và rủi ro thay đổi kết nối vật lý trực tiếp
+  - Thiết kế mã sử dụng kết nối không phụ thuộc trạng thái của lượt mượn trước
+- level1: Timeout
+  level2:
+  - Bản đồ timeout từ yêu cầu ứng dụng đến máy chủ cơ sở dữ liệu
+  - connectionTimeout và thời gian chờ mượn kết nối
+  - validationTimeout và giới hạn thời gian kiểm tra kết nối
+  - initializationFailTimeout và chính sách lỗi khi khởi tạo
+  - Timeout mở kết nối của driver và timeout chờ pool
+  - Timeout đọc socket, networkTimeout và kết nối mất phản hồi
+  - Statement.setQueryTimeout() và giới hạn thời gian thực thi SQL
+  - Timeout giao dịch, chờ khóa và thời hạn toàn bộ yêu cầu
+  - Quan hệ giữa validationTimeout, connectionTimeout và thời hạn yêu cầu
+  - Ngắt luồng, hủy tác vụ và giới hạn của việc dừng thao tác JDBC
+  - Chọn ngân sách thời gian nhất quán và nhận diện timeout ở đúng tầng
+- level1: Kiểm tra và bảo trì
+  level2:
+  - Kiểm tra kết nối bằng JDBC Connection.isValid()
+  - connectionTestQuery và khi nào cần câu SQL kiểm tra
+  - isolateInternalQueries và giao dịch của câu truy vấn nội bộ
+  - Phát hiện kết nối chết và thay thế kết nối không hợp lệ
+  - maximumPoolSize và giới hạn tổng kết nối của pool
+  - minimumIdle và mục tiêu duy trì kết nối nhàn rỗi
+  - idleTimeout và điều kiện thu hồi kết nối nhàn rỗi
+  - maxLifetime và thời hạn sử dụng kết nối vật lý
+  - keepaliveTime và kiểm tra định kỳ kết nối nhàn rỗi
+  - Quan hệ giữa keepaliveTime, maxLifetime và giới hạn của hạ tầng
+  - Khác biệt giữa bảo trì kết nối nhàn rỗi và kết nối đang được mượn
+  - Ảnh hưởng của lịch bảo trì, độ lệch đồng hồ và thời gian dừng JVM
+- level1: Rò rỉ tài nguyên
+  level2:
+  - Rò rỉ kết nối là gì và vì sao pool cạn dần
+  - leakDetectionThreshold và ý nghĩa cảnh báo mượn kết nối lâu
+  - Đọc dấu vết ngăn xếp tại vị trí mượn kết nối
+  - Phân biệt rò rỉ thật với giao dịch hợp lệ kéo dài
+  - Cảnh báo leak detection và việc thu hồi kết nối khác nhau thế nào
+  - Thiếu close() trên nhánh lỗi, nhánh trả sớm và mã bất đồng bộ
+  - Đóng ResultSet, Statement và kết nối theo đúng quyền sở hữu
+  - Không giữ kết nối trong lúc gọi HTTP, chờ người dùng hoặc xử lý tệp
+  - Phòng ngừa rò rỉ bằng cấu trúc mã và kiểm thử đường lỗi
+  - Xác nhận khắc phục bằng số kết nối đang dùng và thời gian mượn
+- level1: Giao dịch JDBC
+  level2:
+  - Ranh giới giao dịch và ranh giới mượn kết nối
+  - Thực hiện commit và rollback khi autoCommit tắt
+  - Xử lý ngoại lệ trước commit, trong commit và khi rollback
+  - Đảm bảo trả kết nối sau khi hoàn tất giao dịch
+  - Giao dịch chưa kết thúc khi gọi close() và hành vi cần xác minh
+  - Savepoint và giao dịch cục bộ trên một kết nối
+  - Ảnh hưởng của giao dịch dài, khóa và thời gian giữ kết nối
+  - Mượn thêm kết nối trong cùng một luồng và nguy cơ chờ lẫn nhau
+  - Giới hạn của HikariCP đối với XA và giao dịch phân tán
+  - Trách nhiệm của ứng dụng khi kết quả commit không thể xác định
+- level1: Spring Boot
+  level2:
+  - HikariCP trong cơ chế tự cấu hình DataSource của Spring Boot
+  - Phụ thuộc JDBC, loại pool được chọn và điều kiện tự cấu hình
+  - spring.datasource.* và spring.datasource.hikari.*
+  - Ánh xạ url với jdbcUrl khi tự khai báo DataSource
+  - Khai báo bean HikariDataSource và quyền sở hữu vòng đời bean
+  - Cấu hình theo profile và biến môi trường
+  - Kiểm chứng thứ tự ưu tiên của các nguồn cấu hình
+  - JdbcTemplate và cơ chế mượn, trả kết nối
+  - DataSourceTransactionManager, JdbcTransactionManager và DataSourceUtils
+  - '@Transactional và việc gắn kết nối với luồng giao dịch'
+  - Propagation.REQUIRES_NEW và nhu cầu kết nối bổ sung
+  - Health check, readiness và đóng pool khi ApplicationContext dừng
+- level1: JPA và Hibernate
+  level2:
+  - Quan hệ giữa EntityManager, Hibernate Session và JDBC Connection
+  - Tái sử dụng DataSource của Spring Boot cho JPA
+  - Thời điểm Hibernate lấy và trả kết nối
+  - Ranh giới @Transactional và thời gian giữ kết nối
+  - Truy vấn chậm, N+1 và tác động đến mức sử dụng pool
+  - Open EntityManager in View và truy cập dữ liệu ngoài lớp dịch vụ
+  - Lazy loading và việc phát sinh truy vấn ngoài dự kiến
+  - JDBC batching, flush và thời gian giao dịch
+  - Stream kết quả, con trỏ và tài nguyên cần đóng
+  - Tránh tạo đồng thời nhiều pool từ cấu hình JPA và DataSource
+- level1: Định cỡ pool
+  level2:
+  - Vì sao tăng số kết nối không luôn tăng thông lượng
+  - Phân biệt số luồng ứng dụng, kết nối và năng lực xử lý dữ liệu
+  - Ước lượng nhu cầu từ thông lượng và thời gian giữ kết nối
+  - Giới hạn của ước lượng trung bình khi tải tăng đột biến
+  - Ngân sách kết nối toàn hệ thống với nhiều bản sao ứng dụng
+  - Chừa kết nối cho quản trị, tác vụ nền và các dịch vụ khác
+  - Lựa chọn pool cố định hoặc co giãn bằng minimumIdle
+  - Ảnh hưởng của giao dịch lồng và việc giữ nhiều kết nối
+  - Tách tải tương tác với tác vụ batch theo mục tiêu độ trễ
+  - Định cỡ bằng thử nghiệm thay vì sao chép công thức cấu hình
+- level1: Tối ưu hiệu năng
+  level2:
+  - Đo độ trễ chờ kết nối, thời gian sử dụng và thông lượng riêng biệt
+  - Tìm điểm nghẽn tại ứng dụng, pool, mạng hoặc cơ sở dữ liệu
+  - Giảm phạm vi giữ kết nối trong một đơn vị công việc
+  - Tối ưu SQL và chỉ mục trước khi tăng maximumPoolSize
+  - Bộ nhớ đệm PreparedStatement ở driver và máy chủ dữ liệu
+  - Cấu hình driver cho batch, fetch size và truyền dữ liệu
+  - Luồng ảo Java và giới hạn kết nối tới cơ sở dữ liệu
+  - Giới hạn tác vụ đồng thời và điều tiết tải trước pool
+  - Chi phí tạo, kiểm tra và thay thế kết nối quá thường xuyên
+  - Đọc kết quả benchmark và tránh so sánh thiếu điều kiện tương đương
+- level1: Giám sát
+  level2:
+  - Nhóm chỉ số kết nối đang dùng, nhàn rỗi, tổng số và đang chờ
+  - Độ trễ lấy kết nối, thời gian giữ và số lần timeout
+  - Nhật ký khởi động, cấu hình và đóng HikariCP
+  - Đặt poolName để phân biệt nguồn phát sinh sự cố
+  - Micrometer và tích hợp chỉ số HikariCP trong Spring Boot
+  - Xuất chỉ số qua Actuator và hệ thống thu thập metrics
+  - Thiết kế bảng theo dõi mức sử dụng, độ trễ và lỗi của pool
+  - Cảnh báo theo thời gian kéo dài và mức ảnh hưởng thực tế
+  - Đối chiếu chỉ số pool với truy vấn, khóa và phiên trên máy chủ
+  - Nhận diện số liệu tức thời và tránh suy luận sai từ một mẫu đo
+  - Quản lý nhãn metrics và hạn chế lộ thông tin kết nối
+- level1: Quản trị pool
+  level2:
+  - registerMbeans và điều kiện sử dụng JMX
+  - HikariPoolMXBean và số liệu trạng thái pool
+  - HikariConfigMXBean và các thuộc tính có thể điều chỉnh
+  - Phân biệt cấu hình chỉ đặt lúc khởi tạo với cấu hình đổi lúc chạy
+  - softEvictConnections() và thay thế kết nối an toàn
+  - allowPoolSuspension, suspendPool() và resumePool()
+  - Ảnh hưởng của tạm dừng pool đến luồng đang chờ kết nối
+  - evictConnection() và loại bỏ một kết nối cụ thể
+  - Đồng bộ thay đổi cấu hình giữa nhiều bản sao ứng dụng
+  - Kiểm soát quyền truy cập và ghi nhận thao tác quản trị
+- level1: Nhiều nguồn dữ liệu
+  level2:
+  - Khi nào cần nhiều HikariDataSource trong một ứng dụng
+  - Định danh bean, poolName và transaction manager tương ứng
+  - Định tuyến đọc và ghi bằng nhiều DataSource
+  - AbstractRoutingDataSource và thời điểm quyết định nguồn kết nối
+  - Giao dịch đang mở và giới hạn của việc đổi nguồn dữ liệu
+  - 'Đa khách hàng: một pool dùng chung hoặc một pool mỗi khách hàng'
+  - Kiểm soát tổng số pool và ngân sách kết nối khi số khách hàng tăng
+  - Khởi tạo, thay thế và đóng pool được tạo động
+  - Tách lỗi, chỉ số và cảnh báo theo từng nguồn dữ liệu
+  - Kiểm thử để ngăn truy cập nhầm cơ sở dữ liệu hoặc khách hàng
+- level1: Hạ tầng kết nối
+  level2:
+  - JDBC driver và khác biệt hành vi giữa các hệ quản trị
+  - Giới hạn phiên và timeout phía máy chủ cơ sở dữ liệu
+  - Firewall, NAT, bộ cân bằng tải và kết nối nhàn rỗi
+  - TCP keepalive, HikariCP keepalive và câu SQL kiểm tra
+  - Proxy cơ sở dữ liệu và hai tầng quản lý kết nối
+  - Session pooling, transaction pooling và trạng thái phiên
+  - PreparedStatement, bảng tạm và khả năng tương thích với proxy
+  - Định tuyến primary, replica và vai trò của driver hoặc proxy
+  - DNS, địa chỉ dịch vụ và việc tạo kết nối mới sau chuyển đổi
+  - Đối chiếu cấu hình pool với hợp đồng vận hành của dịch vụ dữ liệu
+- level1: Khả năng phục hồi
+  level2:
+  - Khởi động khi cơ sở dữ liệu chưa sẵn sàng
+  - Mất kết nối khi pool đang nhàn rỗi hoặc đang có giao dịch
+  - Máy chủ khởi động lại, chuyển primary và kết nối cũ mất hiệu lực
+  - Phát hiện SQLException làm hỏng kết nối và cơ chế loại bỏ
+  - exceptionOverride và SQLExceptionOverride trong trường hợp chuyên biệt
+  - Phân biệt lỗi nghiệp vụ SQL với lỗi kết nối có thể phục hồi
+  - Retry có giới hạn, backoff và tránh tạo bão kết nối
+  - Tính lặp an toàn khi thử lại sau lỗi giao dịch
+  - Điều tiết tải, từ chối sớm và bảo vệ cơ sở dữ liệu đang quá tải
+  - Phối hợp health check với phục hồi để tránh vòng lặp khởi động lại
+  - Kiểm chứng pool tự trở lại trạng thái phục vụ sau sự cố
+- level1: Bảo mật
+  level2:
+  - Quản lý mật khẩu ngoài mã nguồn và tệp cấu hình công khai
+  - Quyền tối thiểu của tài khoản kết nối cơ sở dữ liệu
+  - TLS, xác minh chứng chỉ và thuộc tính bảo mật của driver
+  - Tránh lộ bí mật trong jdbcUrl, log và thông báo lỗi
+  - Xoay vòng thông tin xác thực và xử lý các kết nối đã mở
+  - Token xác thực ngắn hạn và thời điểm cấp thông tin cho kết nối mới
+  - Cô lập quyền quản trị JMX và các endpoint giám sát
+  - Nguy cơ SQL injection và trách nhiệm dùng tham số trong JDBC
+  - Kiểm soát lệnh khởi tạo kết nối và thay đổi trạng thái phiên
+- level1: Triển khai
+  level2:
+  - Vòng đời pool trong ứng dụng dài hạn và tác vụ chạy ngắn
+  - Ngân sách kết nối khi autoscaling và rolling deployment
+  - Giảm bão mở kết nối khi nhiều bản sao cùng khởi động
+  - CPU, bộ nhớ container và ảnh hưởng tới lịch bảo trì
+  - Độ chính xác đồng hồ, dừng GC và cảnh báo trễ HouseKeeper
+  - Readiness, thời gian làm nóng và phân phối lưu lượng ban đầu
+  - 'Graceful shutdown: ngừng nhận việc, hoàn tất giao dịch và đóng pool'
+  - Ứng dụng serverless và rủi ro số lượng pool tăng ngoài dự kiến
+  - Phân biệt cấu hình phát triển, kiểm thử và production
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử mã dùng DataSource và quản lý đúng quyền sở hữu tài nguyên
+  - Dùng Testcontainers để kiểm tra HikariCP với cơ sở dữ liệu thật
+  - Giới hạn của H2 khi kiểm tra hành vi JDBC driver và máy chủ
+  - Kiểm thử mượn, trả và tái sử dụng kết nối
+  - Kiểm thử cạn pool và connectionTimeout
+  - Kiểm thử khôi phục trạng thái kết nối giữa các lượt mượn
+  - Kiểm thử rollback và đóng tài nguyên trên nhánh ngoại lệ
+  - Mô phỏng mất mạng, kết nối chết và khởi động lại cơ sở dữ liệu
+  - Kiểm thử đổi thông tin xác thực và thay thế kết nối
+  - Kiểm thử tải ổn định, tải đột biến và tải kéo dài
+  - Phát hiện rò rỉ bằng chỉ số trước và sau khi chạy kiểm thử
+  - Kiểm thử đóng ứng dụng khi vẫn còn công việc sử dụng kết nối
+- level1: Chẩn đoán sự cố
+  level2:
+  - Phân loại sự cố từ triệu chứng trước khi thay đổi cấu hình
+  - 'Connection is not available: hết kết nối hay tạo kết nối thất bại'
+  - Pool có ít kết nối hơn kỳ vọng và cách tìm nguyên nhân
+  - 'Pool đầy nhưng CPU thấp: chờ khóa, I/O hay giữ kết nối ngoài SQL'
+  - Failed to validate connection và kết nối bị hạ tầng đóng
+  - Cảnh báo apparent connection leak và truy vết vị trí giữ lâu
+  - Cảnh báo thread starvation or clock leap và kiểm tra JVM
+  - Lỗi xác thực, driver, URL và thông số DataSource không hợp lệ
+  - Too many connections và ngân sách kết nối giữa các ứng dụng
+  - Lỗi Connection is closed và sử dụng kết nối sau khi trả pool
+  - Đọc thread dump cùng log, metrics và hoạt động máy chủ dữ liệu
+  - Thu thập bằng chứng, kiểm chứng giả thuyết và xác nhận phục hồi
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng ứng dụng JDBC dùng HikariCP với cấu hình có kiểm chứng
+  - So sánh mở kết nối trực tiếp với tái sử dụng qua pool
+  - Quan sát trạng thái mượn, trả và chờ kết nối bằng tải đồng thời
+  - Tái hiện rò rỉ kết nối và sửa mã theo quyền sở hữu tài nguyên
+  - Đo ảnh hưởng của giao dịch dài và lời gọi dịch vụ ngoài
+  - Tìm kích thước pool phù hợp từ dữ liệu thử tải
+  - Mô phỏng sự cố mạng và kiểm chứng chính sách timeout, retry
+  - Triển khai nhiều bản sao với ngân sách kết nối chung
+  - Lập checklist vận hành, quy trình ứng phó và kế hoạch quay lui
+  - Nâng cấp HikariCP, driver hoặc Spring Boot bằng kiểm thử hồi quy
+  - Đánh giá HikariCP với pool JDBC khác và ranh giới chuyển sang R2DBC

@@ -1,0 +1,2413 @@
+menu:
+- slug: foundations
+  title: Nền tảng
+  childs:
+  - slug: foundations-001
+    title: Khám phá dịch vụ (service discovery) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-002
+    title: Vì sao tên dịch vụ ổn định còn địa chỉ instance thường xuyên thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-003
+    title: 'Các thành phần: bên cung cấp, bên sử dụng, registry và bộ phân giải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-004
+    title: Luồng từ đăng ký dịch vụ đến chọn endpoint và thiết lập kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-005
+    title: Phân biệt khám phá dịch vụ với DNS, cân bằng tải và định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-006
+    title: Phân biệt thông tin dịch vụ tồn tại với khả năng truy cập và phục vụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-007
+    title: Vai trò của discovery khi mở rộng, triển khai lại và thay thế instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-008
+    title: Kiến thức nền và trình tự học từ mô hình đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-identities
+  title: Định danh dịch vụ
+  childs:
+  - slug: service-identities-001
+    title: Phân biệt tên dịch vụ logic, instance ID, hostname và địa chỉ IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-002
+    title: Thiết kế không gian tên theo môi trường, nhóm sở hữu và phạm vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-003
+    title: Mô tả endpoint bằng địa chỉ, cổng, giao thức và tên cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-004
+    title: Phân biệt tên dịch vụ với định danh dùng để xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-005
+    title: Quy định vòng đời và tính duy nhất của instance ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-006
+    title: Biểu diễn nhiều địa chỉ hoặc nhiều cổng cho cùng một instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-007
+    title: Quản lý alias và thay đổi tên mà không gây nhầm lẫn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-identities-008
+    title: Thiết kế metadata tối thiểu và tránh đưa bí mật vào thông tin đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: architecture-models
+  title: Mô hình kiến trúc
+  childs:
+  - slug: architecture-models-001
+    title: So sánh địa chỉ cấu hình tĩnh với khám phá động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-002
+    title: Khám phá phía client và trách nhiệm của ứng dụng gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-003
+    title: Khám phá phía server qua load balancer hoặc proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-004
+    title: Khám phá qua DNS và qua API của registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-005
+    title: Tự đăng ký so với đăng ký bởi agent hoặc nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-006
+    title: Phân biệt mặt phẳng điều khiển với đường truyền lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-007
+    title: Xác định thành phần lưu danh sách endpoint và thành phần chọn endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: architecture-models-008
+    title: Đánh giá mức phụ thuộc của ứng dụng vào SDK và nền tảng discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registry-models
+  title: Mô hình registry
+  childs:
+  - slug: registry-models-001
+    title: Tập dữ liệu dịch vụ, instance, endpoint, metadata và trạng thái sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-002
+    title: Phân biệt đăng ký có thời hạn, lease và bản ghi tồn tại lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-003
+    title: Thiết kế phiên bản bản ghi và xử lý cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-004
+    title: Phân biệt dữ liệu mong muốn với trạng thái instance thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-005
+    title: Chỉ mục tra cứu theo tên, namespace, nhãn và vị trí triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-006
+    title: Xử lý bản ghi trùng, địa chỉ thay đổi và instance đã biến mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-007
+    title: Thiết kế thao tác đăng ký lặp an toàn và quyền sở hữu bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-008
+    title: Phân biệt registry chuyên dụng với kho khóa–giá trị làm nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-models-009
+    title: Ranh giới giữa lưu thông tin khám phá với quản lý cấu hình ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-registration-lifecycle
+  title: Đăng ký và vòng đời
+  childs:
+  - slug: service-registration-lifecycle-001
+    title: Xác định thời điểm đăng ký trong quá trình khởi động ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-002
+    title: Quảng bá đúng địa chỉ và cổng mà bên sử dụng có thể truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-003
+    title: Gia hạn đăng ký bằng heartbeat hoặc lease theo cơ chế của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-004
+    title: Cập nhật metadata và trạng thái khi instance thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-005
+    title: Xử lý đăng ký thất bại, retry và tiến trình khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-006
+    title: Phát hiện bản ghi cũ sau khi ứng dụng dừng đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-007
+    title: Ngừng nhận yêu cầu mới trước khi hủy đăng ký hoặc kết thúc tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-008
+    title: Phối hợp hủy đăng ký, thời gian lan truyền và rút hết kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-registration-lifecycle-009
+    title: Kiểm tra vòng đời khi mở rộng, thu hẹp và triển khai cuốn chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-health
+  title: Sức khỏe dịch vụ
+  childs:
+  - slug: service-health-001
+    title: Phân biệt tiến trình còn sống, khởi động xong và sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-002
+    title: Kiểm tra chủ động, heartbeat và quan sát lỗi từ lưu lượng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-003
+    title: Chọn kiểm tra TCP, HTTP hoặc kiểm tra theo giao thức ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-004
+    title: Thiết kế health check phản ánh đúng điều kiện nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-005
+    title: Đặt chu kỳ, timeout và ngưỡng chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-006
+    title: Giảm dao động trạng thái khi lỗi ngắn hạn hoặc mạng không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-007
+    title: Tránh kiểm tra phụ thuộc quá sâu gây loại bỏ hàng loạt instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-008
+    title: Phân biệt sức khỏe từ góc nhìn registry với khả năng truy cập từ client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-009
+    title: Giới hạn của health check tại một thời điểm và dữ liệu đã trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-health-010
+    title: Xác định chính sách khi mọi endpoint đều bị đánh dấu không khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lookup-watching
+  title: Tra cứu và theo dõi
+  childs:
+  - slug: lookup-watching-001
+    title: Thiết kế truy vấn tên dịch vụ thành tập endpoint phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-002
+    title: Tra cứu toàn bộ danh sách, theo trang hoặc theo tập thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-003
+    title: So sánh polling, long polling và cơ chế theo dõi thay đổi (watch)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-004
+    title: Sử dụng phiên bản hoặc chỉ dấu tiến độ để nhận cập nhật liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-005
+    title: Khôi phục theo dõi khi mất kết nối hoặc bỏ lỡ sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-006
+    title: Đồng bộ lại toàn bộ để sửa sai lệch giữa client và registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-007
+    title: Phân biệt kết quả rỗng, dịch vụ không tồn tại và lỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lookup-watching-008
+    title: Giới hạn truy vấn, thêm độ lệch thời gian ngẫu nhiên và tránh nhiều client cập nhật cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: consistency
+  title: Nhất quán dữ liệu
+  childs:
+  - slug: consistency-001
+    title: Phân biệt trạng thái registry nhất quán với dữ liệu client đã cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-002
+    title: Đo thời gian hội tụ từ thay đổi instance đến quyết định kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-003
+    title: Nhất quán mạnh, nhất quán cuối cùng và yêu cầu của từng tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-004
+    title: Đánh đổi khả dụng và độ mới khi xảy ra phân vùng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-005
+    title: Vai trò của sao chép, leader và quorum tùy cơ chế registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-006
+    title: Xử lý đọc từ bản sao cũ và cập nhật đến không đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-007
+    title: Nhận diện trạng thái chia cắt và bản ghi mâu thuẫn giữa các miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: consistency-008
+    title: Xây dựng tiêu chí chấp nhận endpoint cũ thay vì giả định thay đổi có hiệu lực tức thì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: caching-freshness
+  title: Cache và độ mới
+  childs:
+  - slug: caching-freshness-001
+    title: 'Các lớp cache: registry, agent, resolver, SDK và ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-002
+    title: Chọn TTL và chu kỳ làm mới theo biến động instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-003
+    title: Xử lý cache kết quả không tồn tại và thời gian xuất hiện dịch vụ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-004
+    title: Phân biệt cache địa chỉ với tái sử dụng kết nối đến địa chỉ cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-005
+    title: Giữ bản dữ liệu tốt gần nhất khi registry không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-006
+    title: Quy định giới hạn tuổi dữ liệu và điều kiện ngừng dùng kết quả cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-007
+    title: Giảm tải làm mới bằng cập nhật nền, độ lệch ngẫu nhiên và gom truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: caching-freshness-008
+    title: Kiểm chứng thời gian loại endpoint cũ xuyên qua mọi lớp cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-balancing
+  title: Cân bằng tải
+  childs:
+  - slug: load-balancing-001
+    title: Tách khám phá tập ứng viên khỏi chọn endpoint cho một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-002
+    title: Cân bằng theo kết nối và theo yêu cầu có thể tạo phân bố khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-003
+    title: Áp dụng round-robin, ngẫu nhiên hoặc trọng số theo khả năng client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-004
+    title: Lọc endpoint theo sức khỏe, vị trí và yêu cầu tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-005
+    title: Phân biệt thứ tự câu trả lời DNS với thuật toán cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-006
+    title: Đánh giá session affinity và ảnh hưởng khi endpoint biến mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-007
+    title: Nhận diện lệch tải do kết nối lâu dài hoặc client giữ một địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-008
+    title: Phối hợp trạng thái endpoint với loại bỏ tạm thời instance lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-balancing-009
+    title: Giới hạn phạm vi discovery so với chính sách quản lý lưu lượng nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: failure-recovery
+  title: Phục hồi khi lỗi
+  childs:
+  - slug: failure-recovery-001
+    title: Phân biệt lỗi registry, lỗi phân giải, lỗi kết nối và lỗi của dịch vụ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-002
+    title: Đặt timeout cho tra cứu và gọi dịch vụ trong ngân sách thời gian chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-003
+    title: Retry có giới hạn, giãn thời gian và tránh bão truy vấn registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-004
+    title: Chọn dùng cache cũ, endpoint dự phòng hoặc từ chối yêu cầu khi discovery lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-005
+    title: Xử lý tình huống khởi động mới khi chưa có cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-006
+    title: Ngăn fallback định tuyến sang sai môi trường hoặc sai nhóm khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-007
+    title: Giới hạn tác động của registry lỗi lên các kết nối đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: failure-recovery-008
+    title: Đánh giá khả năng retry sang instance khác với thao tác không lũy đẳng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dns-discovery
+  title: Khám phá qua DNS
+  childs:
+  - slug: dns-discovery-001
+    title: Vai trò của bản ghi A, AAAA, CNAME và SRV trong tìm dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-002
+    title: Tra cứu địa chỉ khác với tra cứu cổng và giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-003
+    title: Thiết kế tên miền dịch vụ và ranh giới DNS nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-004
+    title: TTL, cache resolver và độ trễ khi cập nhật tập endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-005
+    title: Phân biệt NXDOMAIN, câu trả lời không có bản ghi và lỗi máy chủ DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-006
+    title: Ảnh hưởng của negative caching khi dịch vụ vừa được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-007
+    title: Giới hạn thông tin sức khỏe, metadata và cập nhật chủ động qua DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-008
+    title: Kiểm tra thứ tự địa chỉ và hành vi lựa chọn của từng loại client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-009
+    title: Rà soát kích thước câu trả lời và khả năng chuyển từ UDP sang TCP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dns-discovery-010
+    title: Giới hạn của DNS khi kết nối ứng dụng được giữ lâu hơn TTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-services
+  title: Kubernetes Service
+  childs:
+  - slug: kubernetes-services-001
+    title: Quan hệ giữa Pod, Service, selector và tập endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-002
+    title: ClusterIP cung cấp địa chỉ dịch vụ ổn định như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-003
+    title: Phân biệt phân giải tên Service với chuyển lưu lượng đến Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-004
+    title: Chọn Service có selector hoặc không có selector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-005
+    title: Headless Service và việc client nhận trực tiếp địa chỉ endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-006
+    title: ExternalName là bí danh DNS và những giới hạn khi ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-007
+    title: Phân biệt khám phá nội bộ với công bố dịch vụ qua NodePort hoặc LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-008
+    title: Quản lý port, targetPort và named port
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-services-009
+    title: Xác định trách nhiệm của nền tảng và của client khi Pod được thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: endpointslices
+  title: EndpointSlice
+  childs:
+  - slug: endpointslices-001
+    title: Vai trò của EndpointSlice trong biểu diễn tập endpoint của Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-002
+    title: Liên kết Service, EndpointSlice, Pod và bộ điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-003
+    title: Tổng hợp endpoint từ nhiều slice và xử lý địa chỉ xuất hiện lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-004
+    title: Đọc địa chỉ, cổng, loại địa chỉ và metadata vị trí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-005
+    title: Phân biệt các điều kiện ready, serving và terminating
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-006
+    title: Đánh giá tác động của publishNotReadyAddresses đến việc công bố endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-007
+    title: Theo dõi thay đổi EndpointSlice và đồng bộ lại khi gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-008
+    title: Quản lý endpoint thủ công cho Service không có selector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-009
+    title: Kiểm tra độ trễ từ thay đổi readiness đến client hoặc data plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: endpointslices-010
+    title: Xác minh API và khả năng hỗ trợ theo phiên bản Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-dns
+  title: DNS trong Kubernetes
+  childs:
+  - slug: kubernetes-dns-001
+    title: Cấu trúc tên Service theo namespace và tên miền cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-002
+    title: Phân biệt tên ngắn, tên tương đối và tên đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-003
+    title: Bản ghi DNS của Service thông thường và headless Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-004
+    title: Tra cứu SRV cho cổng có tên khi ứng dụng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-005
+    title: Quan hệ giữa StatefulSet, hostname ổn định và headless Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-006
+    title: Ảnh hưởng của search domain, ndots và chính sách DNS của Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-007
+    title: Khoanh vùng lỗi CoreDNS, resolver trong Pod và cache ở client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-dns-008
+    title: Kiểm tra khả năng phân giải qua namespace và ra DNS bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-discovery-consul
+  title: Consul
+  childs:
+  - slug: service-discovery-consul-001
+    title: Vai trò của server, agent và service catalog trong discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-002
+    title: Đăng ký tên dịch vụ, instance, địa chỉ, cổng và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-003
+    title: Gắn health check và kiểm tra cách lọc instance theo trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-004
+    title: Khám phá dịch vụ qua DNS và API truy vấn sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-005
+    title: Phân biệt dữ liệu catalog với kết quả đủ điều kiện nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-006
+    title: Theo dõi thay đổi bằng blocking query và xử lý đồng bộ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-007
+    title: Kiểm soát cache, độ nhất quán truy vấn và dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-008
+    title: Quản lý hủy đăng ký, instance critical và thời gian dọn bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-consul-009
+    title: Áp dụng quyền đọc, ghi và ranh giới datacenter theo khả năng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-discovery-eureka
+  title: Eureka
+  childs:
+  - slug: service-discovery-eureka-001
+    title: Vai trò của Eureka Server, Eureka Client và bản sao registry tại client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-002
+    title: Đăng ký service ID, instance ID và địa chỉ truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-003
+    title: Phân biệt heartbeat gia hạn với kiểm tra sẵn sàng phục vụ của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-004
+    title: Tra cứu registry, tải thay đổi và độ trễ cập nhật ở client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-005
+    title: Trạng thái instance và phối hợp với vòng đời Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-006
+    title: Xử lý lease hết hạn, eviction và cơ chế self-preservation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-007
+    title: Triển khai nhiều server và đánh giá trạng thái khi mất liên lạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-008
+    title: Phân biệt khám phá qua Eureka với cân bằng tải phía client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-discovery-eureka-009
+    title: Kiểm tra cấu hình bảo mật, địa chỉ server và khả năng tương thích phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-platforms
+  title: Các nền tảng khác
+  childs:
+  - slug: other-platforms-001
+    title: Dùng etcd làm nền tảng registry với lease và watch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-platforms-002
+    title: Dùng ZooKeeper với phiên kết nối, nút tạm thời và thông báo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-platforms-003
+    title: Đánh giá phần logic discovery vẫn phải tự xây khi dùng kho dữ liệu chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-platforms-004
+    title: Khám phá do nền tảng container hoặc hạ tầng máy ảo cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-platforms-005
+    title: Dịch vụ discovery được quản lý và tích hợp DNS hoặc API trên cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-platforms-006
+    title: Kiểm tra giới hạn truy vấn, vùng triển khai và mô hình quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-platforms-007
+    title: Tránh đồng nhất mọi registry về cơ chế nhất quán và loại bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring
+  title: Java và Spring
+  childs:
+  - slug: java-spring-001
+    title: Vai trò của DiscoveryClient, ReactiveDiscoveryClient và ServiceInstance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-002
+    title: Phân biệt đọc registry với đăng ký bằng ServiceRegistry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-003
+    title: Chọn implementation theo nền tảng và quản lý phiên bản bằng BOM tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-004
+    title: Cấu hình tên ứng dụng, instance và địa chỉ được quảng bá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-005
+    title: Tích hợp Spring Cloud LoadBalancer để chọn instance từ tên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-006
+    title: Áp dụng discovery cho HTTP client đồng bộ và bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-007
+    title: Kiểm soát đăng ký tự động và thứ tự khởi động của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-008
+    title: Rà soát cache DNS trong JVM cùng cache của thư viện discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-009
+    title: Kiểm thử khi thay implementation hoặc dùng cấu hình instance tĩnh cho môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-grpc
+  title: HTTP và gRPC
+  childs:
+  - slug: http-grpc-001
+    title: Liên kết tên dịch vụ với authority, cổng và giao thức khi tạo client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-002
+    title: HTTP connection pool và việc kết nối tiếp tục trỏ đến endpoint cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-003
+    title: Ảnh hưởng của HTTP/2 và kết nối ghép kênh đến phân bố lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-004
+    title: Vai trò của gRPC NameResolver trong trả về tập địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-005
+    title: Phối hợp NameResolver với chính sách cân bằng tải của gRPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-006
+    title: Theo dõi thay đổi endpoint và quản lý vòng đời channel hoặc subchannel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-007
+    title: Phân biệt khám phá thất bại với lỗi TLS, Host header hoặc tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-grpc-008
+    title: Kiểm tra hành vi làm mới khi endpoint bị xóa hoặc khi kết nối bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-addressing
+  title: Mạng và địa chỉ
+  childs:
+  - slug: network-addressing-001
+    title: Phân biệt địa chỉ bind, địa chỉ quảng bá và địa chỉ client sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-addressing-002
+    title: Đăng ký đúng endpoint khi chạy sau NAT, proxy hoặc port mapping
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-addressing-003
+    title: Khám phá dịch vụ giữa máy chủ, container và mạng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-addressing-004
+    title: Xử lý hostname nhiều địa chỉ, IPv4, IPv6 và môi trường dual-stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-addressing-005
+    title: Phân biệt phân giải thành công với có route và được phép kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-addressing-006
+    title: Kiểm tra firewall, NetworkPolicy và quyền truy cập từ từng nhóm client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-addressing-007
+    title: Tránh quảng bá localhost, địa chỉ nội bộ sai phạm vi hoặc cổng không phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: proxy-service-mesh
+  title: Proxy và service mesh
+  childs:
+  - slug: proxy-service-mesh-001
+    title: Vai trò của reverse proxy hoặc gateway trong khám phá phía server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-service-mesh-002
+    title: Proxy lấy và cập nhật tập upstream từ nguồn discovery như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-service-mesh-003
+    title: Phân biệt dữ liệu discovery với quy tắc định tuyến ở proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-service-mesh-004
+    title: Vai trò của control plane và data plane trong service mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-service-mesh-005
+    title: Khái quát xDS và việc phân phối cấu hình endpoint động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-service-mesh-006
+    title: Đánh giá cache cấu hình và hành vi khi control plane mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: proxy-service-mesh-007
+    title: Xác định lúc ứng dụng có thể dùng tên dịch vụ mà không cần SDK registry riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata-selection
+  title: Metadata và lựa chọn
+  childs:
+  - slug: metadata-selection-001
+    title: Phân loại metadata mô tả, metadata định tuyến và dữ liệu sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-002
+    title: Chọn instance theo phiên bản giao thức hoặc khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-003
+    title: Lọc theo môi trường, namespace và nhóm sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-004
+    title: Ưu tiên cùng vùng khả dụng mà vẫn có điều kiện dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-005
+    title: Phối hợp discovery với triển khai canary hoặc blue–green
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-006
+    title: Kiểm soát trọng số, trạng thái bảo trì và ngừng nhận kết nối mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-007
+    title: Xử lý thiếu metadata hoặc giá trị không được nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-selection-008
+    title: Phân biệt nhãn do dịch vụ tự khai báo với thông tin đã được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-region-deployments
+  title: Nhiều vùng triển khai
+  childs:
+  - slug: multi-region-deployments-001
+    title: Thiết kế phạm vi khám phá theo cluster, vùng khả dụng và khu vực địa lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-002
+    title: Chọn khám phá cục bộ, liên kết registry hoặc truy vấn xuyên vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-003
+    title: Phân biệt sao chép danh mục với khả năng kết nối dữ liệu xuyên vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-004
+    title: Quy định thứ tự dự phòng và điều kiện chuyển vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-005
+    title: Xử lý tên trùng, instance ID trùng và ranh giới môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-006
+    title: Đánh giá độ trễ hội tụ và dữ liệu sức khỏe từ vùng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-007
+    title: Ngăn chuyển vùng hàng loạt làm quá tải khu vực còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployments-008
+    title: Kiểm chứng hành vi khi mất kết nối giữa các vùng hoặc khôi phục mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discovery-security
+  title: Bảo mật discovery
+  childs:
+  - slug: discovery-security-001
+    title: Xác thực bên đăng ký, bên truy vấn và tác nhân quản lý registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-002
+    title: Phân quyền đọc, đăng ký, cập nhật và hủy đăng ký theo phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-003
+    title: Ngăn giả mạo dịch vụ và thay endpoint bằng địa chỉ không được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-004
+    title: Bảo vệ kết nối đến registry bằng TLS và xác minh chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-005
+    title: Quản lý token, chứng chỉ và thời điểm thay thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-006
+    title: Tách namespace và quyền truy cập giữa môi trường hoặc nhóm khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-007
+    title: Kiểm tra địa chỉ quảng bá, metadata và đầu vào API registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-008
+    title: Giới hạn khả năng liệt kê dịch vụ và lộ cấu trúc mạng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-security-009
+    title: Ghi dấu kiểm toán thay đổi danh mục mà không ghi bí mật vào log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discovery-observability
+  title: Quan sát discovery
+  childs:
+  - slug: discovery-observability-001
+    title: Đo độ trễ, tỷ lệ lỗi và kết quả rỗng của truy vấn discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-002
+    title: Theo dõi số instance, trạng thái sức khỏe và tốc độ thay đổi endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-003
+    title: Đo thời gian đăng ký, hội tụ và loại bỏ instance không còn phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-004
+    title: Theo dõi tuổi cache, lần làm mới lỗi và client đang dùng dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-005
+    title: Giám sát heartbeat, lease hết hạn và dao động health check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-006
+    title: Đối chiếu thay đổi registry với lỗi kết nối ở ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-007
+    title: Phân biệt registry khỏe với toàn bộ luồng gọi dịch vụ hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-008
+    title: Thiết kế log tương quan cho đăng ký, thay đổi endpoint và lựa chọn client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-observability-009
+    title: Xây dựng dashboard, cảnh báo và chỉ tiêu chất lượng cho discovery
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: discovery-testing
+  title: Kiểm thử discovery
+  childs:
+  - slug: discovery-testing-001
+    title: Tạo môi trường nhiều instance với địa chỉ thay đổi có thể kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-002
+    title: Kiểm thử đăng ký, truy vấn, gia hạn, hủy đăng ký và đăng ký lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-003
+    title: Kiểm thử dịch vụ chưa tồn tại, kết quả rỗng và metadata không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-004
+    title: Kiểm chứng thời gian lan truyền qua registry, resolver và client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-005
+    title: Thử dừng đột ngột, mất heartbeat và health check dao động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-006
+    title: Thử mất registry, mất quorum hoặc phân vùng mạng theo cơ chế nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-007
+    title: Thử mất watch, nhận sự kiện trùng và đồng bộ lại danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-008
+    title: Kiểm tra kết nối lâu dài khi mở rộng hoặc loại bỏ endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-009
+    title: Kiểm thử quyền truy cập, giả mạo đăng ký và sai phạm vi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: discovery-testing-010
+    title: Kiểm tra tải khi nhiều client khởi động hoặc instance thay đổi liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registry-operations
+  title: Vận hành registry
+  childs:
+  - slug: registry-operations-001
+    title: Thiết kế khả dụng cao theo cơ chế của registry được lựa chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-002
+    title: Đánh giá số dịch vụ, số instance, số client và tải truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-003
+    title: Giới hạn chi phí heartbeat, watch và cập nhật toàn bộ danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-004
+    title: Quản lý triển khai cuốn chiếu và bảo trì thành viên registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-005
+    title: Sao lưu, phục hồi và đánh giá dữ liệu cũ sau khi khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-006
+    title: Nâng cấp server, agent và client theo ma trận tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-007
+    title: Quản lý chứng chỉ, token và thay đổi cấu hình không làm gián đoạn khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-008
+    title: Xử lý bản ghi mồ côi, endpoint sai và dữ liệu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registry-operations-009
+    title: Chuẩn bị runbook cho mất registry, DNS lỗi và dịch vụ không tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: selection-migration
+  title: Lựa chọn và chuyển đổi
+  childs:
+  - slug: selection-migration-001
+    title: Đánh giá nhu cầu theo môi trường triển khai, giao thức và mức biến động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-002
+    title: So sánh DNS, discovery nền tảng và registry chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-003
+    title: Đánh giá độ mới, sức khỏe endpoint, metadata và khả năng theo dõi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-004
+    title: Đánh giá chi phí vận hành, giới hạn nền tảng và mức phụ thuộc SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-005
+    title: Xác định khi nào không cần thêm registry bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-006
+    title: Chuyển từ địa chỉ tĩnh sang tên dịch vụ theo từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-007
+    title: Chạy song song hai nguồn khám phá và xử lý kết quả mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-008
+    title: Giữ tương thích tên, metadata và hành vi client khi đổi nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-migration-009
+    title: Xác định tiêu chí chuyển hoàn toàn, quay về và ngừng registry cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Xây dựng dịch vụ gọi qua tên logic với nhiều instance được thay đổi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: So sánh khám phá phía client, qua proxy và qua DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Đăng ký dịch vụ trong Consul và quan sát thay đổi sức khỏe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Tích hợp Eureka với Spring Cloud DiscoveryClient và LoadBalancer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Khám phá Kubernetes Service thông thường và headless Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Theo dõi EndpointSlice khi Pod thay đổi readiness hoặc bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Đo ảnh hưởng của cache DNS và connection pool đến thời gian loại endpoint cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Thử registry mất kết nối, dữ liệu cũ và chính sách dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Điều tra lỗi do địa chỉ quảng bá, namespace hoặc chứng chỉ sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Hoàn thiện bộ kiểm thử vòng đời, dashboard và runbook vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

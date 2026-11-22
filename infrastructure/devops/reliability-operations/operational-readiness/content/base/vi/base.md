@@ -1,0 +1,7 @@
+# DevOps Reliability Operations Operational Readiness
+
+Operational Readiness là mức độ sẵn sàng của đội ngũ, quy trình và công nghệ để một dịch vụ được vận hành ổn định trong môi trường production. Một ứng dụng chạy đúng ở môi trường kiểm thử chưa đồng nghĩa với việc đã sẵn sàng hoạt động thực tế: cần xác định người chịu trách nhiệm, phụ thuộc hệ thống, mục tiêu dịch vụ, tín hiệu giám sát, phương án ứng phó sự cố và khả năng phục hồi. Module này hướng dẫn đánh giá những yêu cầu đó thông qua bằng chứng kiểm chứng được thay vì chỉ dựa vào cảm nhận.
+
+Roadmap một cấp gồm tám mốc, bắt đầu với tiêu chí Operational Readiness và trách nhiệm service owner, on-call; tiếp theo là đánh giá kiến trúc, dependency và rủi ro. Người học xây dựng SLI/SLO, observability, runbook và incident playbook, sau đó kiểm tra release safety, rollback, capacity, security và backup/restore. Mốc cuối tích hợp toàn bộ kết quả trong Operational Readiness Review (ORR), ghi nhận vấn đề cần khắc phục, ngoại lệ và điều kiện để ra quyết định go/no-go.
+
+Module phù hợp với DevOps engineer, SRE, software engineer hoặc nhóm hỗ trợ hệ thống đã biết CI/CD, môi trường production và khái niệm cloud cơ bản. Sau khi hoàn thành, bạn có thể thiết kế một checklist tiếp nhận vận hành, lập bằng chứng cho từng tiêu chí, diễn tập các kịch bản trọng yếu và tổ chức review trước khi go-live cũng như rà soát định kỳ trong suốt vòng đời dịch vụ.

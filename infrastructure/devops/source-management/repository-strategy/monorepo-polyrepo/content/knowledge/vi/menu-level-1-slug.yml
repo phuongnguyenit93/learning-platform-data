@@ -1,0 +1,91 @@
+menu:
+  - title: "Nền tảng kho mã"
+    slug: repository-fundamentals
+    index: 0
+  - title: "Tiêu chí lựa chọn"
+    slug: repository-selection-criteria
+    index: 1
+  - title: "Ranh giới kiến trúc"
+    slug: architecture-boundaries
+    index: 2
+  - title: "Sở hữu mã nguồn"
+    slug: code-ownership
+    index: 3
+  - title: "Cấu trúc monorepo"
+    slug: monorepo-structure
+    index: 4
+  - title: "Cấu trúc polyrepo"
+    slug: polyrepo-structure
+    index: 5
+  - title: "Mô hình kết hợp"
+    slug: hybrid-repository-models
+    index: 6
+  - title: "Đồ thị phụ thuộc"
+    slug: dependency-graphs
+    index: 7
+  - title: "Thư viện dùng chung"
+    slug: shared-libraries
+    index: 8
+  - title: "Phiên bản và thay đổi"
+    slug: versioning-and-change-management
+    index: 9
+  - title: "Build có chọn lọc"
+    slug: selective-builds
+    index: 10
+  - title: "Cache và tái lập"
+    slug: caching-and-reproducibility
+    index: 11
+  - title: "Chiến lược kiểm thử"
+    slug: testing-strategy
+    index: 12
+  - title: "CI cho monorepo"
+    slug: monorepo-ci
+    index: 13
+  - title: "CI cho polyrepo"
+    slug: polyrepo-ci
+    index: 14
+  - title: "Phát hành và triển khai"
+    slug: releases-and-deployments
+    index: 15
+  - title: "Hợp đồng và dữ liệu"
+    slug: contracts-and-data
+    index: 16
+  - title: "Phân quyền truy cập"
+    slug: repository-access-control
+    index: 17
+  - title: "Bảo mật chuỗi cung ứng"
+    slug: software-supply-chain-security
+    index: 18
+  - title: "Phối hợp nhóm"
+    slug: team-collaboration
+    index: 19
+  - title: "Quản trị kho mã"
+    slug: repository-governance
+    index: 20
+  - title: "Trải nghiệm phát triển"
+    slug: developer-experience
+    index: 21
+  - title: "Mở rộng Git"
+    slug: git-scalability
+    index: 22
+  - title: "Công cụ và nền tảng"
+    slug: tools-and-platforms
+    index: 23
+  - title: "Đo lường và chi phí"
+    slug: metrics-and-costs
+    index: 24
+  - title: "Lập kế hoạch chuyển đổi"
+    slug: migration-planning
+    index: 25
+  - title: "Hợp nhất vào monorepo"
+    slug: migration-to-monorepo
+    index: 26
+  - title: "Tách sang polyrepo"
+    slug: migration-to-polyrepo
+    index: 27
+  - title: "Vận hành sau chuyển đổi"
+    slug: post-migration-operations
+    index: 28
+  - title: "Thực hành quyết định"
+    slug: decision-making-practice
+    index: 29

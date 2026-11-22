@@ -1,0 +1,56 @@
+roadmap:
+- id: tang-van-chuyen
+  title: Tầng vận chuyển
+  purpose: Hiểu vai trò TCP và UDP giữa ứng dụng và IP để đọc đúng luồng truyền dữ liệu.
+  objectives:
+  - Xác định vị trí tầng vận chuyển trong mô hình TCP/IP.
+  - So sánh dịch vụ byte stream của TCP và datagram của UDP.
+- id: port-socket
+  title: Port & Socket
+  purpose: Biết cách ứng dụng định danh điểm giao tiếp và phân biệt các luồng kết nối.
+  objectives:
+  - Giải thích port nguồn/đích và socket.
+  - Đọc bộ 5 thông tin nhận diện một luồng mạng.
+  - Phân biệt cổng lắng nghe với cổng tạm thời.
+- id: udp-datagram
+  title: UDP Datagram
+  purpose: Nắm cơ chế gửi thông điệp tối giản và giới hạn khi dùng UDP.
+  objectives:
+  - Đọc các trường header UDP và checksum.
+  - Giải thích mất, lặp hoặc đảo thứ tự datagram.
+  - Nhận diện rủi ro kích thước gói và phân mảnh.
+- id: vong-doi-tcp
+  title: Vòng đời TCP
+  purpose: Hiểu cách TCP thiết lập, duy trì và kết thúc một kết nối.
+  objectives:
+  - Diễn giải SYN, SYN-ACK, ACK trong bắt tay ba bước.
+  - Nhận biết FIN, RST và các trạng thái TCP thường gặp.
+  - Xác định lỗi bắt tay hoặc đóng kết nối từ gói tin.
+- id: truyen-tin-tin-cay
+  title: Truyền tin tin cậy
+  purpose: Giải thích cách TCP bảo toàn thứ tự byte và phục hồi dữ liệu bị mất.
+  objectives:
+  - Đọc sequence number, acknowledgment và cửa sổ nhận.
+  - Mô tả retransmission và retransmission timeout.
+  - Phân biệt byte stream với ranh giới thông điệp ứng dụng.
+- id: luong-tac-nghen
+  title: Luồng & Tắc nghẽn
+  purpose: Phân biệt giới hạn phía nhận với điều tiết tải trên đường truyền.
+  objectives:
+  - Giải thích receive window so với congestion window.
+  - Nhận biết slow start, congestion avoidance và phản ứng khi mất gói.
+  - Liên hệ RTT, độ trễ và throughput.
+- id: lua-chon-tcp-udp
+  title: Lựa chọn TCP / UDP
+  purpose: Chọn giao thức dựa trên yêu cầu tính tin cậy, độ trễ và vận hành.
+  objectives:
+  - Đánh giá nhu cầu ordering, retransmission và message boundaries.
+  - Giải thích trách nhiệm bổ sung của ứng dụng khi dùng UDP.
+  - Nêu QUIC là giao thức xây trên UDP, không đồng nhất với UDP.
+- id: phan-tich-chan-doan
+  title: Phân tích & Chẩn đoán
+  purpose: Áp dụng kiến thức giao thức để kiểm tra tình huống mạng thực tế.
+  objectives:
+  - Lọc TCP/UDP và theo dõi luồng bằng Wireshark.
+  - Nhận diện SYN retry, RST, retransmission và mất datagram.
+  - Khoanh vùng timeout, packet loss hoặc nghẽn bằng chứng cứ.

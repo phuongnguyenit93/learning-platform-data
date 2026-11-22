@@ -1,0 +1,403 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Micrometer là gì và giải quyết bài toán gắn phép đo cho ứng dụng JVM
+  - Vai trò của Micrometer trong kiến trúc quan sát hệ thống
+  - Phân biệt thư viện đo, bộ thu thập, hệ thống lưu trữ và dashboard
+  - Quan hệ giữa Micrometer, Spring Boot Actuator và Prometheus
+  - Phạm vi của Micrometer Metrics, Observation, Tracing và Context Propagation
+  - Chọn đo trực tiếp bằng meter hoặc quan sát một thao tác bằng Observation
+  - Kiến thức đầu vào và trình tự học từ phép đo đơn giản đến tích hợp thực tế
+- level1: Kiến trúc
+  level2:
+  - Luồng dữ liệu từ thao tác ứng dụng đến meter, registry và hệ thống nhận
+  - Vai trò của Meter, MeterRegistry, MeterBinder và MeterFilter
+  - Tách mã ghi nhận phép đo khỏi cấu hình xuất dữ liệu
+  - Từ một meter trong ứng dụng đến nhiều chuỗi ở hệ thống nhận
+  - Tổng hợp dữ liệu tại ứng dụng và tính toán khi truy vấn
+  - Giới hạn tính di động khi các hệ thống hỗ trợ thống kê khác nhau
+  - Đo thủ công, đo qua thư viện và đo tự động của framework
+  - Theo dấu một yêu cầu từ ghi thời gian đến số liệu được công bố
+- level1: Cài đặt
+  level2:
+  - Chọn phiên bản Micrometer tương thích với JDK và framework
+  - Quản lý phiên bản bằng Micrometer BOM hoặc BOM của Spring Boot
+  - Phân biệt micrometer-core, micrometer-observation và các mô-đun registry
+  - Khai báo phụ thuộc bằng Gradle hoặc Maven
+  - Khởi tạo SimpleMeterRegistry trong chương trình Java độc lập
+  - Đăng ký và đọc lại một Counter hoặc Timer đầu tiên
+  - Khởi tạo registry dùng thật và cung cấp cấu hình kết nối
+  - Quản lý đóng registry và tài nguyên khi ứng dụng kết thúc
+- level1: Định danh meter
+  level2:
+  - Meter.Id và danh tính theo tổ hợp tên với tập tag
+  - Tên, mô tả, đơn vị cơ sở và loại meter
+  - Tag, Tags và cách xây dựng tập nhãn nhất quán
+  - Quy ước tên có dấu chấm và chuyển đổi sang tên của hệ thống nhận
+  - Đơn vị cơ sở cho thời gian, kích thước và các đại lượng nghiệp vụ
+  - Đăng ký nhiều lần cùng tên và tag sử dụng lại meter như thế nào
+  - Xung đột khi cùng danh tính được đăng ký bằng các loại meter khác nhau
+  - Khác biệt giữa tên tra cứu trong registry và tên công bố ra ngoài
+  - Thay đổi metadata hoặc tag sau khi meter đã được đăng ký
+- level1: Thiết kế nhãn
+  level2:
+  - Chọn tag theo câu hỏi cần phân tích và nhóm chịu trách nhiệm
+  - Số giá trị của từng tag và số tổ hợp meter được tạo
+  - Phân biệt số meter trong JVM với số chuỗi tại hệ thống nhận
+  - Chuẩn hóa URI, trạng thái và loại lỗi thành tập giá trị được kiểm soát
+  - Nguy cơ đưa user_id, request_id hoặc thông báo lỗi nguyên văn vào tag
+  - Tag dùng chung theo dịch vụ, môi trường và vùng triển khai
+  - Giữ tập khóa tag nhất quán cho các meter cùng tên
+  - Lựa chọn tag có thể biết từ đầu và tag chỉ có khi thao tác kết thúc
+  - Chính sách dữ liệu nhạy cảm và ngân sách số chuỗi cho từng nhóm phép đo
+- level1: MeterRegistry
+  level2:
+  - MeterRegistry giữ meter và cung cấp API tạo phép đo như thế nào
+  - Tạo meter bằng phương thức tiện ích hoặc builder
+  - Tra cứu bằng find, get, tên và tập tag
+  - SimpleMeterRegistry để quan sát giá trị trong bộ nhớ
+  - CompositeMeterRegistry để kết nối nhiều registry thành phần
+  - Ghi nhận trước khi có registry thành phần và việc thêm registry về sau
+  - Metrics.globalRegistry và tác động của trạng thái tĩnh dùng chung
+  - Tiêm registry vào thành phần ứng dụng để quản lý quyền sở hữu
+  - Xóa meter, đóng registry và phạm vi ảnh hưởng đến dữ liệu đã xuất
+  - Thứ tự cấu hình registry, bộ lọc và đăng ký meter
+- level1: Counter
+  level2:
+  - Counter dùng để đếm sự kiện tích lũy như thế nào
+  - Tăng một đơn vị hoặc một lượng dương có ý nghĩa
+  - Chọn tên, đơn vị và tag cho bộ đếm
+  - Giá trị tích lũy, thời gian sống tiến trình và tốc độ phát sinh sự kiện
+  - Đếm các kết quả thành công, thất bại hoặc bị từ chối
+  - Số lần quan sát đã có trong Timer hoặc DistributionSummary
+  - Đặt lại khi ứng dụng khởi động và cách đọc dữ liệu phía hệ thống nhận
+  - Kiểm chứng số lần tăng và tránh ghi nhận trùng một sự kiện
+- level1: Gauge
+  level2:
+  - Gauge lấy giá trị hiện tại của đối tượng được theo dõi
+  - Biến động giữa hai lần lấy mẫu và thông tin không được lưu lại
+  - Theo dõi giá trị qua hàm đọc, kích thước collection hoặc map
+  - Dùng AtomicInteger hoặc AtomicLong cho trạng thái có thể thay đổi
+  - Tham chiếu yếu và trách nhiệm giữ đối tượng còn sống
+  - Nguyên nhân Gauge trở thành NaN hoặc biến mất sau thu gom rác
+  - Đối tượng số bất biến và việc đăng ký lại cùng danh tính
+  - Độ an toàn luồng và chi phí của hàm đọc Gauge
+  - Lựa chọn Gauge cho độ sâu hàng đợi, số kết nối hoặc tác vụ đang chạy
+  - Kiểm chứng giá trị khi trạng thái thay đổi và khi đối tượng bị giải phóng
+- level1: Timer
+  level2:
+  - Timer đo thời lượng thao tác cùng số lần và tổng thời gian
+  - Ghi Duration hoặc lượng thời gian kèm TimeUnit
+  - Đo Runnable, Callable và các khối mã có kết quả trả về
+  - Bọc tác vụ để thực thi có đo thời gian vào thời điểm khác
+  - Timer.Sample để tách mốc bắt đầu và kết thúc
+  - Chọn tag kết quả khi thao tác đã hoàn tất
+  - Đảm bảo kết thúc phép đo trên đường thành công và đường ngoại lệ
+  - Đồng hồ đơn điệu và đồng hồ thời gian thực trong việc đo thời lượng
+  - Giá trị cực đại theo cửa sổ thời gian và hiện tượng trở về không
+  - Giá trị âm, tác vụ quá dài và giới hạn tích lũy thời gian
+  - Đối chiếu count, totalTime, mean và max bằng dữ liệu có thời lượng biết trước
+- level1: LongTaskTimer
+  level2:
+  - LongTaskTimer theo dõi thời gian của tác vụ đang thực thi
+  - Số tác vụ đang chạy, tổng thời gian và thời gian lớn nhất của tác vụ hiện hành
+  - Bắt đầu, giữ mẫu và dừng một tác vụ đúng vòng đời
+  - Nhiều tác vụ đồng thời dùng chung một LongTaskTimer
+  - Phân biệt thời gian tác vụ đang chạy với thống kê tác vụ đã hoàn tất
+  - Đo tác vụ định kỳ, xử lý lô hoặc làm mới dữ liệu kéo dài
+  - Phát hiện vượt ngưỡng trong khi tác vụ vẫn chưa kết thúc
+  - Đọc dữ liệu công bố và kiểm chứng khi tác vụ kết thúc hoặc bị lỗi
+- level1: DistributionSummary
+  level2:
+  - DistributionSummary đo phân phối đại lượng không phải thời gian
+  - Ứng dụng với kích thước dữ liệu, số phần tử hoặc lượng công việc mỗi lượt
+  - Ghi nhận count, totalAmount, mean và max
+  - Chọn baseUnit và hệ số scale phù hợp với miền giá trị
+  - Giới hạn miền giá trị kỳ vọng để kiểm soát thống kê phân phối
+  - Đặt ngưỡng serviceLevelObjectives cho đại lượng đã được chuẩn hóa
+  - Cửa sổ thống kê và tác động khi không có quan sát mới
+  - Phân biệt DistributionSummary trong Micrometer với kiểu Summary của Prometheus
+- level1: Phân phối và phân vị
+  level2:
+  - Ý nghĩa của histogram, bucket và phân vị p50, p95 hoặc p99
+  - publishPercentiles để tính phân vị tại ứng dụng
+  - publishPercentileHistogram để công bố dữ liệu phục vụ tính phân vị phía nhận
+  - Giới hạn tổng hợp phân vị đã tính sẵn giữa các tag hoặc instance
+  - serviceLevelObjectives và lựa chọn ngưỡng đáp ứng yêu cầu dịch vụ
+  - minimumExpectedValue và maximumExpectedValue trong điều khiển độ chi tiết
+  - expiry, bufferLength và thời gian sống của thống kê theo cửa sổ
+  - Đánh đổi độ chính xác, bộ nhớ và số chuỗi công bố
+  - Phạm vi hỗ trợ histogram của từng registry và thư viện phía dưới
+  - Ảnh hưởng của khoảng dừng JVM và cấu hình bù sai lệch khi lấy mẫu độ trễ
+  - Kiểm chứng phân phối bằng dữ liệu lệch và các giá trị ở phần đuôi
+- level1: Function meter
+  level2:
+  - Khi nào dùng phép đo đọc từ bộ thống kê có sẵn của đối tượng
+  - FunctionCounter và yêu cầu hàm đếm không giảm theo thời gian
+  - FunctionTimer theo dõi hàm đếm cùng tổng thời gian tích lũy
+  - Khai báo đơn vị thời gian đầu vào và chuyển đổi theo registry
+  - Phân biệt đọc số tích lũy có sẵn với gọi increment hoặc record trực tiếp
+  - Vòng đời đối tượng, đặt lại thống kê và việc thay nguồn theo dõi
+  - Đăng ký trùng danh tính và giới hạn của đối tượng số bất biến
+  - Kiểm chứng số liệu từ cache hoặc thư viện cung cấp thống kê nội bộ
+- level1: Meter nâng cao
+  level2:
+  - TimeGauge cho giá trị thời gian được lấy tại thời điểm quan sát
+  - MultiGauge cho tập hàng số liệu có thành viên thay đổi
+  - Cập nhật, thay thế và dọn hàng cũ trong MultiGauge theo chính sách rõ ràng
+  - MeterProvider để tái sử dụng cấu hình chung khi tag được xác định động
+  - Giới hạn loại meter có hỗ trợ MeterProvider theo phiên bản
+  - Tái sử dụng meter trong trường đối tượng và giảm tạo builder lặp lại
+  - Đăng ký meter tùy chỉnh với Measurement và Statistic
+  - Đánh giá khả năng xuất meter tùy chỉnh ở hệ thống đích
+- level1: MeterFilter
+  level2:
+  - Vai trò của MeterFilter trong chấp nhận, ánh xạ và cấu hình meter
+  - Ý nghĩa của ACCEPT, DENY, NEUTRAL và meter không ghi nhận dữ liệu
+  - Thứ tự bộ lọc và tác động của quyết định chấp nhận sớm
+  - Lọc meter theo tên, tiền tố hoặc điều kiện định danh
+  - Thêm, đổi hoặc loại tag và đổi tên meter
+  - maximumAllowableMetrics để giới hạn số meter được đăng ký
+  - maximumAllowableTags để chặn số giá trị tag vượt ngân sách
+  - Cấu hình thống kê phân phối theo nhóm meter
+  - Xung đột danh tính sau khi bỏ tag hoặc đổi tên
+  - Đăng ký bộ lọc trước meter và kiểm tra chính sách bằng trường hợp đối chứng
+- level1: MeterBinder
+  level2:
+  - MeterBinder đóng gói việc gắn phép đo cho một thành phần
+  - Cài đặt bindTo với tên, tag và đối tượng theo dõi được kiểm soát
+  - Vòng đời binder, registry và tài nguyên được quan sát
+  - Đăng ký binder thủ công trong Java hoặc dưới dạng bean trong Spring
+  - Giữ tham chiếu cho Gauge được tạo trong binder
+  - Đảm bảo gọi gắn phép đo lặp lại không tạo số liệu sai
+  - Dọn meter khi tài nguyên động được tạo hoặc giải phóng
+  - Quy ước tên và tag có thể tùy biến cho thư viện dùng chung
+  - MeterConvention và phạm vi hỗ trợ tùy biến binder theo phiên bản
+- level1: Registry và thời gian
+  level2:
+  - Phân biệt registry lấy mẫu chủ động với registry gửi dữ liệu định kỳ
+  - Số tích lũy và số theo bước thời gian được công bố khác nhau
+  - Tính tốc độ tại ứng dụng hoặc tại hệ thống truy vấn
+  - StepMeterRegistry và việc chuyển cửa sổ thống kê
+  - Chu kỳ gửi, chu kỳ scrape và cửa sổ phân phối là các tham số riêng
+  - Đọc số đếm, tổng thời gian hoặc max khi bước thời gian vừa thay đổi
+  - Clock và vai trò của đồng hồ đối với ghi nhận hoặc công bố
+  - Ảnh hưởng của ứng dụng dừng, registry đóng hoặc đích nhận gián đoạn
+  - Kiểm chứng cùng một phép đo trên các registry có ngữ nghĩa công bố khác nhau
+- level1: Prometheus
+  level2:
+  - PrometheusMeterRegistry và cách cung cấp nội dung scrape
+  - Chọn registry Prometheus tương thích với thế hệ Prometheus Java Client
+  - Công bố endpoint trong Java độc lập hoặc qua Spring Boot Actuator
+  - Chuyển tên, đơn vị và tag Micrometer thành chuỗi Prometheus
+  - Các chuỗi count, sum, max và bucket từ một Timer
+  - Tập khóa tag nhất quán và lỗi đăng ký cùng tên với cấu trúc khác nhau
+  - Công bố Prometheus text hoặc OpenMetrics theo khả năng của client
+  - Đọc Counter bằng rate và độ trễ trung bình từ dữ liệu Timer
+  - Tính phân vị từ histogram và kiểm tra tương thích cấu hình thống kê
+  - Exemplar và điều kiện liên kết phép đo với trace
+  - Kiểm chứng dữ liệu scrape khi ứng dụng khởi động lại hoặc meter ngừng hoạt động
+- level1: OTLP
+  level2:
+  - OtlpMeterRegistry và vai trò của giao thức OTLP đối với dữ liệu metric
+  - Cấu hình endpoint, chu kỳ gửi và thông tin xác thực
+  - Resource attributes và tag của từng meter
+  - Ngữ nghĩa cumulative hoặc delta và khả năng hỗ trợ phía nhận
+  - Ánh xạ Counter, Gauge, Timer hoặc DistributionSummary thành điểm dữ liệu OTLP
+  - Histogram có bucket tường minh hoặc dạng hàm mũ theo hỗ trợ phiên bản
+  - Giới hạn tổng hợp khi cấu hình phân vị tính tại ứng dụng
+  - Gửi qua Collector và kiểm chứng dữ liệu bằng một đích thử nghiệm
+  - Phân biệt xuất metric bằng OTLP registry với cấu hình xuất trace
+- level1: Xuất dữ liệu
+  level2:
+  - Chọn registry theo giao thức, khả năng thống kê và môi trường vận hành
+  - JMX registry để quan sát phép đo trong môi trường JVM
+  - StatsD registry và ý nghĩa của giao thức gửi tới bộ gom số liệu
+  - Cấu hình registry cho hệ thống nhận như Datadog hoặc InfluxDB
+  - Composite registry để xuất cùng phép đo tới nhiều đích
+  - Khác biệt tên, đơn vị, thời gian và tag giữa các hệ thống
+  - Giới hạn lô, thời gian chờ và hành vi lỗi phụ thuộc từng registry
+  - Quản lý lịch công bố, kết nối và tài nguyên khi đóng ứng dụng
+  - Xác minh dữ liệu thực tế ở đích trước khi dùng dashboard hoặc cảnh báo
+- level1: Spring Boot
+  level2:
+  - Tự động cấu hình MeterRegistry từ các phụ thuộc có trên classpath
+  - Tiêm registry vào bean và tách cấu hình khỏi mã nghiệp vụ
+  - MeterRegistryCustomizer cho tag dùng chung và cấu hình registry
+  - Đăng ký MeterFilter hoặc MeterBinder dưới dạng bean
+  - Điều khiển nhóm metric được bật hoặc tắt theo cấu hình ứng dụng
+  - Cấu hình phân vị, histogram và ngưỡng cho từng tên meter
+  - Endpoint /actuator/metrics để tìm và đọc phép đo
+  - Phân biệt tên meter trong Actuator với tên được xuất sang Prometheus
+  - Cho phép công bố /actuator/prometheus và bảo vệ đường truy cập
+  - Composite registry, global registry và nguy cơ đăng ký ngoài vòng đời Spring
+  - Tự động cấu hình ObservationRegistry và cách bổ sung thành phần tùy biến
+- level1: Phép đo có sẵn
+  level2:
+  - Phép đo bộ nhớ JVM, vùng nhớ, luồng và bộ nạp lớp
+  - Phép đo GC, CPU, thời gian sống tiến trình và tài nguyên hệ thống
+  - Giám sát executor, số luồng hoạt động và tác vụ chờ
+  - Giám sát bộ đệm kết nối cơ sở dữ liệu và giới hạn của dữ liệu được cung cấp
+  - 'Giám sát cache: tỷ lệ truy cập, dung lượng và loại bỏ phần tử'
+  - Phép đo HTTP phía máy chủ và chuẩn hóa đường dẫn yêu cầu
+  - Phép đo HTTP phía máy khách và cách chọn đối tượng đã được gắn phép đo
+  - Giám sát tác vụ định kỳ, xử lý thông điệp hoặc thư viện tích hợp khi được hỗ trợ
+  - Phân biệt metric tự động, metric cần bật và metric cần binder bổ sung
+  - Kiểm tra điều kiện của thư viện hoặc framework để biết phép đo thực sự được tạo
+  - Đọc tên và tag thực tế theo phiên bản thay vì suy đoán từ dashboard mẫu
+- level1: Annotation và AOP
+  level2:
+  - Vai trò của annotation và thành phần thực thi phép đo phía sau
+  - '@Timed và cấu hình TimedAspect khi framework chưa cung cấp hỗ trợ'
+  - '@Counted và cấu hình CountedAspect cho số lần thực thi'
+  - '@Timed với longTask và cách đọc dữ liệu tác vụ đang chạy'
+  - '@Observed và ObservedAspect cho vòng đời Observation'
+  - Tag từ đối số bằng @MeterTag và cơ chế phân giải được hỗ trợ
+  - Giới hạn proxy, lời gọi nội bộ cùng đối tượng và phương thức không được chặn
+  - Đo phương thức trả CompletableFuture và xác minh thời điểm hoàn tất
+  - Giới hạn hỗ trợ kiểu bất đồng bộ hoặc reactive của từng aspect
+  - Ngăn phép đo trùng khi framework đã tự động quan sát thao tác
+- level1: Đo nghiệp vụ
+  level2:
+  - Chọn câu hỏi nghiệp vụ có thể trả lời bằng số liệu tổng hợp
+  - Đếm một sự kiện theo kết quả được xác nhận
+  - Đo thời gian một thao tác ở ranh giới người dùng hoặc dịch vụ quan tâm
+  - Đo kích thước dữ liệu, số phần tử hoặc lượng công việc mỗi lượt
+  - Đo hàng đợi, số tác vụ hiện hành và thời gian chờ riêng với thời gian xử lý
+  - Phân biệt một yêu cầu logic với các lần thử lại hoặc gọi phụ thuộc
+  - Xác định kết quả sau giao dịch hoàn tất và tránh số liệu thành công sai
+  - Chọn nhóm lỗi ổn định và gắn hướng dẫn diễn giải số liệu
+  - Đối chiếu phép đo với tải thử nghiệm hoặc dữ liệu nghiệp vụ có kiểm soát
+- level1: Bất đồng bộ
+  level2:
+  - Phân biệt thời gian lập lịch, chờ thực thi và thời gian xử lý
+  - Đo tác vụ ExecutorService bằng binder phù hợp
+  - Timer.Sample qua nhiều callback và điểm kết thúc được xác định rõ
+  - Đo CompletableFuture ở nhánh hoàn tất, lỗi hoặc hủy
+  - Phân biệt thời điểm tạo Mono hoặc Flux với thời điểm đăng ký và thực thi
+  - Chọn hỗ trợ Micrometer của Reactor theo phiên bản đang dùng
+  - Tránh ghi nhận nhiều lần khi có đăng ký lại hoặc retry
+  - Quan hệ giữa đo thời lượng và truyền ngữ cảnh qua ranh giới luồng
+  - Kiểm thử hoàn tất chậm, lỗi bất đồng bộ và tác vụ bị hủy
+- level1: Observation
+  level2:
+  - Observation là gì và vì sao cần mô tả một thao tác quan sát được
+  - Quan hệ giữa Observation, ObservationRegistry và ObservationHandler
+  - Vòng đời tạo, start, stop và trạng thái không thực hiện quan sát
+  - observe để quản lý vòng đời một khối mã đồng bộ
+  - Quản lý thủ công start và stop trên mọi đường thực thi
+  - Observation.Context để giữ trạng thái phục vụ quá trình quan sát
+  - Observation.Scope và việc đóng phạm vi đúng vòng đời
+  - Ghi nhận ngoại lệ bằng error và tín hiệu tùy ý bằng event
+  - Quan hệ cha con giữa các Observation lồng nhau
+  - Phân biệt kết thúc Observation với đóng Scope
+- level1: Quy ước Observation
+  level2:
+  - Tên kỹ thuật, contextualName và ý nghĩa của từng loại tên
+  - Low-cardinality key values và high-cardinality key values
+  - Chọn thông tin đưa vào metric hoặc ngữ cảnh phục vụ trace
+  - ObservationConvention để tách quy ước khỏi mã thực thi thao tác
+  - Context chuyên biệt và supportsContext khi tùy biến một loại quan sát
+  - Thứ tự ưu tiên giữa quy ước tùy chỉnh, quy ước dùng chung và mặc định
+  - ObservationPredicate để quyết định thao tác nào được quan sát
+  - ObservationFilter để bổ sung hoặc loại thông tin theo vòng đời
+  - Thời điểm thêm nhãn và ảnh hưởng tới dữ liệu được tạo khi start hoặc stop
+- level1: Xử lý Observation
+  level2:
+  - ObservationHandler phản ứng với các sự kiện vòng đời
+  - Đăng ký handler và kiểm tra loại Context được hỗ trợ
+  - Giữ dữ liệu giữa onStart, onError, onEvent và onStop
+  - DefaultMeterObservationHandler để sinh phép đo từ Observation
+  - Timer khi hoàn tất và LongTaskTimer cho thao tác còn hoạt động
+  - Phạm vi nhãn có sẵn lúc bắt đầu so với lúc kết thúc
+  - Xử lý event, error và dữ liệu metric được hỗ trợ theo phiên bản
+  - Phối hợp nhiều handler cho phép đo, trace hoặc xử lý tùy biến
+  - ObservationDocumentation để mô tả danh mục quan sát và các khóa dữ liệu
+  - Kiểm soát lỗi trong handler để giữ hoạt động nghiệp vụ ổn định
+- level1: Tracing và ngữ cảnh
+  level2:
+  - Micrometer Tracing kết nối vòng đời quan sát với tracer như thế nào
+  - Bridge cho OpenTelemetry hoặc Brave và quản lý phiên bản tương thích
+  - Phân biệt MeterRegistry, ObservationRegistry và cấu hình xuất trace
+  - Sampling của trace và việc kiểm soát phép đo là các cấu hình riêng
+  - Liên kết trace_id hoặc span_id với nhật ký mà vẫn giữ tag metric có giới hạn
+  - Ngữ cảnh hiện hành trên luồng và ranh giới mất ngữ cảnh khi chạy bất đồng bộ
+  - Vai trò của Micrometer Context Propagation với ThreadLocal và Reactor Context
+  - Khôi phục rồi dọn ngữ cảnh để tránh lẫn dữ liệu giữa các yêu cầu
+  - Phạm vi tích hợp cần biết trước khi học sâu truyền ngữ cảnh hoặc tracing
+- level1: Hiệu năng
+  level2:
+  - Chi phí đăng ký, tra cứu và ghi nhận meter trong đường xử lý thường xuyên
+  - Lưu meter hoặc MeterProvider để hạn chế tạo đối tượng lặp lại
+  - Bùng nổ số meter do tag động và ảnh hưởng đến bộ nhớ
+  - Chi phí histogram, số bucket và phân vị tính tại ứng dụng
+  - Chi phí lấy mẫu Gauge và nguy cơ hàm đọc thực hiện công việc chậm
+  - Độ an toàn luồng của meter và của đối tượng chứa trạng thái nguồn
+  - Dọn meter của tài nguyên động và kiểm soát thời gian sống
+  - Phát hiện tag có quá nhiều giá trị theo khả năng công cụ được phiên bản cung cấp
+  - Đo chi phí bằng tải thực tế và so sánh khi bật hoặc tắt phép đo
+  - Đặt ngân sách CPU, bộ nhớ và số chuỗi cho từng nhóm phép đo
+- level1: Kiểm thử
+  level2:
+  - SimpleMeterRegistry để kiểm tra count, tag và giá trị trong bộ nhớ
+  - MockClock để điều khiển thời gian mà không cần chờ thật
+  - Kiểm thử Timer.Sample và thời lượng trên nhánh thành công hoặc ngoại lệ
+  - Kiểm thử LongTaskTimer trước, trong và sau khi tác vụ kết thúc
+  - Kiểm thử Gauge với đối tượng có vòng đời được kiểm soát
+  - Kiểm thử bộ lọc chặn meter, biến đổi nhãn và xung đột danh tính
+  - Kiểm thử chuyển cửa sổ của step registry hoặc thống kê phân phối
+  - TestObservationRegistry để xác minh vòng đời và dữ liệu quan sát
+  - Kiểm thử quan sát lồng nhau, lỗi, sự kiện và đóng Scope
+  - Kiểm thử aspect qua đối tượng được proxy và các trường hợp gọi bị bỏ qua
+  - Kiểm thử nội dung scrape hoặc dữ liệu xuất thay vì chỉ đọc giá trị registry
+  - Tách kiểm thử phép đo đơn vị với kiểm thử tích hợp qua hệ thống nhận
+- level1: Bảo mật và vận hành
+  level2:
+  - Phân loại dữ liệu trong tag, key-value, mô tả lỗi và ngữ cảnh quan sát
+  - Bảo vệ endpoint Actuator hoặc endpoint scrape
+  - Quản lý token, URL đích và thông tin xác thực registry qua cấu hình riêng
+  - TLS, chính sách mạng và quyền gửi dữ liệu tới hệ thống nhận
+  - Kiểm soát rủi ro số chuỗi tăng theo dữ liệu người dùng
+  - Theo dõi lỗi công bố và khả năng xuất dữ liệu khi ứng dụng chịu tải
+  - Quản lý lịch gửi, tài nguyên nền và đóng registry khi dừng ứng dụng
+  - Đối chiếu dữ liệu giữa các instance, phiên bản và môi trường
+  - Tài liệu tên meter, đơn vị, tag, chủ sở hữu và cách diễn giải
+- level1: Xử lý sự cố
+  level2:
+  - Không có meter do đăng ký sai registry hoặc bộ lọc từ chối
+  - Có meter trong bộ nhớ nhưng dữ liệu chưa được công bố
+  - Khác tên giữa mã Java, Actuator và hệ thống nhận
+  - Gauge trả NaN do mất đối tượng nguồn hoặc lỗi hàm đọc
+  - Đăng ký trùng, khác loại meter hoặc thiếu nhất quán tập khóa tag
+  - Timer không ghi nhận do thiếu stop hoặc kết thúc sai nhánh
+  - Số đếm tăng hai lần do nhiều tầng cùng đo một thao tác
+  - Max về không hoặc dữ liệu chỉ đổi sau khi chuyển cửa sổ
+  - Không có phân vị hoặc bucket do cấu hình hoặc hệ thống nhận không hỗ trợ
+  - Annotation không có tác dụng do thiếu aspect, thiếu proxy hoặc tự gọi nội bộ
+  - Observation không sinh dữ liệu do thiếu handler, predicate hoặc cấu hình tương ứng
+  - Mất quan hệ quan sát khi đổi luồng hoặc đăng ký reactive
+  - Bộ nhớ tăng hoặc công bố chậm do nhiều tag, bucket hoặc công việc lấy mẫu
+- level1: Nâng cấp
+  level2:
+  - Khóa phiên bản và đối chiếu ma trận JDK, Spring Boot, Micrometer cùng registry
+  - Kiểm tra thay đổi tên, tag, đơn vị và dữ liệu công bố trước khi nâng cấp
+  - Chuyển thế hệ Prometheus Java Client và các ràng buộc đăng ký
+  - Chuyển dần phép đo thủ công sang Observation tại ranh giới phù hợp
+  - Giữ tương thích dashboard và cảnh báo khi thay đổi phép đo
+  - Đánh giá API mới như MeterProvider hoặc MeterConvention theo phiên bản thực tế
+  - Triển khai từng phần với dữ liệu đối chứng và phương án quay lui
+  - Cập nhật kiểm thử hợp đồng dữ liệu và tài liệu phép đo sau thay đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo chương trình Java có Counter, Gauge, Timer và SimpleMeterRegistry
+  - Đóng gói phép đo hàng đợi bằng MeterBinder có vòng đời rõ ràng
+  - Đo tác vụ đang chạy bằng LongTaskTimer và kết quả hoàn tất bằng Timer
+  - Thiết kế phép đo kích thước dữ liệu với DistributionSummary
+  - Bật histogram có ngưỡng dịch vụ và kiểm chứng trên dữ liệu mô phỏng
+  - Tích hợp Spring Boot, Prometheus registry và endpoint được bảo vệ
+  - Viết truy vấn kiểm tra lưu lượng, lỗi và độ trễ từ dữ liệu Micrometer
+  - Tạo Observation có Context, convention và handler tạo phép đo
+  - Đo thao tác bất đồng bộ với đường lỗi, hủy và retry được kiểm chứng
+  - Tìm rồi sửa một trường hợp Gauge mất dữ liệu hoặc tag gây quá nhiều meter
+  - Xuất cùng phép đo qua nhiều registry và đối chiếu ý nghĩa dữ liệu
+  - Hoàn thiện kiểm thử, ngân sách tài nguyên và danh mục phép đo của ứng dụng

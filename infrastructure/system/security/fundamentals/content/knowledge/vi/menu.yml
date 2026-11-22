@@ -1,0 +1,415 @@
+menu:
+- level1: Tư duy bảo mật
+  level2:
+  - Bảo mật thông tin là gì và vì sao cần bảo vệ hệ thống
+  - Phân biệt bảo mật thông tin, an ninh mạng và an toàn hệ thống
+  - Bảo vệ con người, quy trình, dữ liệu và công nghệ
+  - Bảo mật là quản lý rủi ro thay vì hứa hẹn an toàn tuyệt đối
+  - Mối quan hệ giữa bảo mật, độ tin cậy, riêng tư và trải nghiệm
+  - Tài sản cần bảo vệ và điều kiện hệ thống được coi là an toàn
+  - Góc nhìn bên phòng thủ, bên sử dụng và bên tấn công
+  - Trách nhiệm của người dùng, nhà phát triển và người vận hành
+  - Phạm vi kiến thức nền tảng và đường đi sang các chuyên đề sâu
+- level1: Tài sản và dữ liệu
+  level2:
+  - Nhận diện tài sản phần cứng, phần mềm, dữ liệu và danh tính
+  - Giá trị nghiệp vụ cùng mức quan trọng của tài sản
+  - Chủ sở hữu tài sản và người được phép sử dụng
+  - Phân loại dữ liệu theo mức nhạy cảm
+  - Dữ liệu đang lưu, đang truyền và đang được xử lý
+  - Vòng đời dữ liệu từ thu thập đến hủy
+  - Luồng dữ liệu và các bên nhận dữ liệu
+  - Tài sản trực tiếp, tài sản phụ thuộc và tài sản bị bỏ quên
+  - Kiểm kê tài sản cùng nguồn cấu hình thực tế
+  - Giảm bề mặt cần bảo vệ bằng tối thiểu hóa dữ liệu và tài sản
+- level1: Mục tiêu bảo vệ
+  level2:
+  - Bộ ba bí mật, toàn vẹn và sẵn sàng
+  - Tính xác thực của dữ liệu và chủ thể
+  - Trách nhiệm giải trình và khả năng truy vết
+  - Bằng chứng không thể phủ nhận và giới hạn diễn giải
+  - Riêng tư cùng quyền kiểm soát dữ liệu cá nhân
+  - Phân biệt mất dữ liệu, lộ dữ liệu và dữ liệu bị sửa
+  - Mối quan hệ giữa mục tiêu bảo mật với yêu cầu nghiệp vụ
+  - Đánh đổi giữa các mục tiêu khi thiết kế kiểm soát
+  - Chuyển mục tiêu chung thành yêu cầu có thể kiểm tra
+- level1: Rủi ro và lỗ hổng
+  level2:
+  - Phân biệt threat, vulnerability, exploit và risk
+  - Mối đe dọa, điều kiện yếu và đường dẫn tới thiệt hại
+  - Khả năng xảy ra, mức tác động và mức phơi nhiễm
+  - Rủi ro vốn có và rủi ro còn lại sau kiểm soát
+  - Tác động lên tài chính, vận hành, danh tiếng và con người
+  - Ưu tiên theo ngữ cảnh tài sản thay vì chỉ theo mức nghiêm trọng kỹ thuật
+  - Tránh, giảm, chuyển giao và chấp nhận rủi ro
+  - Chủ sở hữu rủi ro và quyết định chấp nhận có thời hạn
+  - Giới hạn của số điểm, giả định và dữ liệu đánh giá
+  - Theo dõi rủi ro khi hệ thống hoặc mối đe dọa thay đổi
+- level1: Mối đe dọa
+  level2:
+  - Tác nhân bên ngoài, nội bộ và bên thứ ba
+  - Động cơ, năng lực, cơ hội và mục tiêu tấn công
+  - Tấn công có chủ đích và tấn công tự động trên diện rộng
+  - Sai sót vô ý và sự cố môi trường không có kẻ tấn công
+  - Phishing, social engineering và lạm dụng lòng tin
+  - Malware, ransomware và hậu quả với tài sản
+  - Đánh cắp danh tính, thông tin xác thực và phiên
+  - Lạm dụng quyền hợp lệ sau khi đã vào hệ thống
+  - Di chuyển ngang, duy trì truy cập và mở rộng ảnh hưởng
+  - Bề mặt tấn công cùng các điểm tiếp xúc công khai
+  - Tư duy chuỗi tấn công để tìm nhiều điểm ngăn chặn
+- level1: Các lớp kiểm soát
+  level2:
+  - Kiểm soát quản trị, kỹ thuật và vật lý
+  - Kiểm soát phòng ngừa, phát hiện và khắc phục
+  - Kiểm soát răn đe, bù trừ và khả năng phục hồi
+  - Chính sách, tiêu chuẩn, quy trình và bằng chứng thực hiện
+  - Kiểm soát chủ động và kiểm soát tự động
+  - Phòng thủ nhiều lớp và tránh phụ thuộc một biện pháp
+  - Hiệu lực kiểm soát khác với việc đã bật một tính năng
+  - Đánh giá chi phí, mức giảm rủi ro và tác động vận hành
+  - Chủ sở hữu, phạm vi và chu kỳ kiểm tra kiểm soát
+  - Kiểm soát bị vô hiệu hóa, cấu hình lệch hoặc không còn phù hợp
+- level1: Nguyên tắc thiết kế
+  level2:
+  - Quyền tối thiểu và chỉ cấp truy cập cần thiết
+  - Mặc định từ chối và cấu hình an toàn từ đầu
+  - Tách nhiệm vụ cùng kiểm soát thao tác nhạy cảm
+  - Kiểm tra quyền tại mọi ranh giới cần thiết
+  - Giảm bề mặt tấn công và chức năng không cần dùng
+  - Đơn giản hóa thiết kế để dễ hiểu và kiểm chứng
+  - Không dựa vào bí mật của thuật toán để bảo vệ hệ thống
+  - Thất bại theo hướng an toàn
+  - Tách môi trường và cô lập phạm vi ảnh hưởng
+  - Không tin cậy dữ liệu chỉ vì đến từ mạng nội bộ
+  - Đánh giá bảo mật ngay từ thiết kế và duy trì qua vòng đời
+- level1: Ranh giới tin cậy
+  level2:
+  - Chủ thể, tài nguyên và quyền được đặt trong ngữ cảnh
+  - Ranh giới giữa trình duyệt, ứng dụng, dịch vụ và cơ sở dữ liệu
+  - Ranh giới giữa người dùng, quản trị viên và workload
+  - Dữ liệu chưa tin cậy, nguồn tin cậy và điều kiện chuyển tiếp
+  - Trust assumption và rủi ro khi giả định không còn đúng
+  - Confused deputy và truy cập thay mặt chủ thể khác
+  - Kiểm tra danh tính cùng quyền tại tài nguyên
+  - Zero Trust ở mức nguyên tắc thiết kế
+  - Vị trí mạng khác với bằng chứng được phép truy cập
+  - Luồng tin cậy chéo tổ chức hoặc nhà cung cấp
+  - Cô lập tenant và ngăn quyền lan sang miền khác
+- level1: Mô hình hóa đe dọa
+  level2:
+  - Xác định phạm vi, tài sản và mục tiêu bảo vệ
+  - Vẽ thành phần, luồng dữ liệu và ranh giới tin cậy
+  - Nhận diện điểm vào cùng khả năng của tác nhân
+  - Xem xét giả mạo, sửa đổi, rò rỉ, gián đoạn và lạm dụng quyền
+  - Lập tình huống lạm dụng từ mục tiêu nghiệp vụ
+  - Đánh giá giả định và các phụ thuộc bên ngoài
+  - Ưu tiên mối đe dọa theo rủi ro
+  - Chọn biện pháp giảm thiểu và ghi nhận phần còn lại
+  - Chuyển mối đe dọa thành yêu cầu kiểm thử
+  - Cập nhật mô hình khi thiết kế hoặc môi trường thay đổi
+- level1: Danh tính và tài khoản
+  level2:
+  - Định danh chủ thể khác với chứng minh danh tính
+  - Người dùng, thiết bị, ứng dụng và workload
+  - Tài khoản cá nhân, quản trị và tài khoản dịch vụ
+  - Mã định danh bất biến và thuộc tính có thể thay đổi
+  - Đăng ký, xác minh, thay đổi và chấm dứt danh tính
+  - Nhà cung cấp danh tính và nguồn dữ liệu danh tính
+  - Liên kết danh tính, SSO và federation ở mức tổng quan
+  - Tài khoản dùng chung, tài khoản mồ côi và khả năng truy vết
+  - Chủ sở hữu cùng trách nhiệm quản lý tài khoản
+  - Tách tài khoản đặc quyền khỏi hoạt động thông thường
+- level1: Xác thực
+  level2:
+  - Xác thực là gì và phân biệt với phân quyền
+  - Các yếu tố biết, có và đặc điểm gắn với con người
+  - Mật khẩu, cơ chế lưu mật khẩu và rủi ro tái sử dụng
+  - Brute force, credential stuffing và kiểm soát tốc độ
+  - MFA, OTP và giới hạn chống phishing
+  - WebAuthn, passkey và bằng chứng giữ khóa
+  - Xác thực bằng chứng thư hoặc khóa cho danh tính máy
+  - Khôi phục tài khoản là một phần của mô hình xác thực
+  - Xác thực lại và tăng mức bảo đảm cho thao tác nhạy cảm
+  - Giới hạn đăng nhập tương tác của tài khoản dịch vụ
+  - Chống dò tài khoản và tránh lộ thông tin qua phản hồi lỗi
+- level1: Phân quyền
+  level2:
+  - Chủ thể, hành động, tài nguyên và ngữ cảnh truy cập
+  - Quyền trực tiếp, role, group và quyền kế thừa
+  - RBAC, ABAC và các mô hình kiểm soát phổ biến
+  - Chính sách cho phép, từ chối và xung đột quyền
+  - Quyền ở mức chức năng khác với quyền trên từng đối tượng
+  - Quyền sở hữu và truy cập chéo người dùng
+  - Cô lập tenant và tài nguyên theo tổ chức
+  - Leo thang quyền dọc và leo thang quyền ngang
+  - Kiểm tra quyền phía máy chủ thay vì chỉ điều khiển giao diện
+  - Rà soát, thu hồi và cấp quyền theo thời hạn
+  - Quyền hiệu lực có thể khác quyền được gán trực tiếp
+- level1: Phiên và token
+  level2:
+  - Phiên đăng nhập liên kết nhiều yêu cầu như thế nào
+  - Session token, access token, refresh token và ID token
+  - Bearer token và token ràng buộc bên gửi
+  - Opaque token và token tự chứa
+  - JWT là định dạng khác với giao thức xác thực
+  - Thời hạn, làm mới, xoay vòng và thu hồi
+  - Đăng xuất khác với xóa token khỏi thiết bị
+  - Lưu trữ và truyền token theo mô hình đe dọa
+  - Đánh cắp phiên, session fixation và phát lại token
+  - Cookie HttpOnly, Secure, SameSite và phạm vi cookie
+  - Trạng thái tài khoản thay đổi khi token vẫn còn hiệu lực
+- level1: Mật mã nền tảng
+  level2:
+  - Mã hóa, băm, mã xác thực thông điệp và chữ ký số
+  - Mã hóa đối xứng và bất đối xứng
+  - Hàm băm không thay thế mã hóa dữ liệu cần khôi phục
+  - Băm mật khẩu khác với băm dữ liệu thông thường
+  - Salt, pepper và chi phí xử lý mật khẩu
+  - Chữ ký chứng minh toàn vẹn cùng nguồn ký trong điều kiện tin cậy
+  - Mã hóa xác thực và kiểm tra dữ liệu bị sửa
+  - Nonce, IV và tầm quan trọng của quy tắc sử dụng
+  - Độ ngẫu nhiên mật mã và entropy
+  - Mã hóa biểu diễn Base64 khác với bảo vệ bí mật
+  - Quản lý thuật toán theo vòng đời và tránh tự viết mật mã
+  - Mật mã không thay thế quản lý khóa hay phân quyền
+- level1: Khóa và bí mật
+  level2:
+  - Phân biệt mật khẩu, API key, khóa riêng và token
+  - Vòng đời từ sinh, phân phối, sử dụng đến hủy
+  - Khóa dữ liệu khác với khóa bảo vệ khóa
+  - Kho bí mật, KMS, HSM và mục đích sử dụng
+  - Quyền truy cập bí mật theo workload
+  - Thông tin xác thực tạm thời và giới hạn của khóa dài hạn
+  - Không nhúng bí mật vào mã nguồn hoặc artifact
+  - Xoay bí mật cùng khoảng chuyển tiếp
+  - Thu hồi khi lộ bí mật hoặc chấm dứt nhu cầu
+  - Sao lưu, khôi phục và bảo vệ bản sao khóa
+  - Phát hiện rò rỉ trong log, tệp cấu hình và pipeline
+  - Che dữ liệu khi gỡ lỗi thay vì sao chép bí mật thật
+- level1: Mạng và giao thức
+  level2:
+  - Địa chỉ IP, cổng, DNS và kết nối mạng ở mức cần thiết
+  - Mô hình lớp và ranh giới giữa truyền tải với ứng dụng
+  - Phân đoạn mạng và giới hạn đường truy cập
+  - Firewall, security group và chính sách luồng mạng
+  - Proxy, reverse proxy, gateway và cân bằng tải
+  - VPN và giới hạn của việc đặt hệ thống trong mạng riêng
+  - Nghe lén, giả mạo, man-in-the-middle và chiếm hướng lưu lượng
+  - DNS, định tuyến và phụ thuộc về tính tin cậy
+  - Quản lý đường ra và giảm rò rỉ dữ liệu
+  - Giới hạn tốc độ, tải và nền tảng chống gián đoạn dịch vụ
+  - Không coi kết nối mạng thành công là được cấp quyền
+- level1: TLS và chứng thư
+  level2:
+  - TLS bảo vệ kết nối ở phạm vi nào
+  - Bắt tay TLS và vai trò khóa phiên
+  - Chứng thư liên kết danh tính với khóa công khai
+  - CA, root, intermediate và chuỗi tin cậy
+  - Kiểm tra tên dịch vụ khác với kiểm tra chữ ký chứng thư
+  - Thời hạn, gia hạn và thu hồi chứng thư
+  - Trust store cùng nguồn hình thành quyết định tin cậy
+  - TLS một chiều và xác thực hai chiều mTLS
+  - TLS termination và bảo vệ các đoạn kết nối tiếp theo
+  - Xoay chứng thư hoặc CA mà không phá vỡ liên thông
+  - Không bỏ qua xác minh chứng thư để xử lý lỗi kết nối
+- level1: Hệ điều hành và thiết bị
+  level2:
+  - Tài khoản, nhóm, quyền tệp và quyền tiến trình
+  - Đặc quyền quản trị cùng nguyên tắc hạn chế quyền
+  - Dịch vụ nền, tác vụ theo lịch và danh tính chạy dịch vụ
+  - Cài đặt tối thiểu và tắt dịch vụ không cần
+  - Vá hệ điều hành, phần mềm và firmware
+  - Mã hóa ổ đĩa cùng bảo vệ khi mất thiết bị
+  - Khóa màn hình, quản lý thiết bị và truy cập từ xa
+  - Chống mã độc, phát hiện hành vi và giới hạn công cụ
+  - Cô lập tiến trình, sandbox, máy ảo và container
+  - Cấu hình chuẩn cùng phát hiện sai lệch
+  - Dữ liệu trong tệp tạm, bộ nhớ và bản chụp chẩn đoán
+- level1: Trình duyệt và web
+  level2:
+  - Origin, site và mô hình cô lập của trình duyệt
+  - Same-Origin Policy và mục đích của CORS
+  - Cookie, localStorage, sessionStorage và bộ nhớ trang
+  - XSS và nguy cơ mã không tin cậy chạy trong trang
+  - CSRF khi trình duyệt tự động gửi thông tin xác thực
+  - Clickjacking và kiểm soát việc nhúng giao diện
+  - HTTPS, nội dung trộn lẫn và chuyển hướng
+  - Chính sách nội dung cùng lớp bảo vệ phía trình duyệt
+  - URL, referrer, lịch sử và rò rỉ dữ liệu
+  - Tiện ích mở rộng, mã bên thứ ba và chuỗi cung ứng frontend
+  - Bảo vệ luồng đăng nhập, callback và thao tác nhạy cảm
+- level1: Ứng dụng và API
+  level2:
+  - Dữ liệu đầu vào không tin cậy cùng kiểm tra hợp lệ
+  - Chuẩn hóa, phân tích cú pháp và khác biệt cách diễn giải
+  - Injection và tách dữ liệu khỏi lệnh
+  - Output encoding theo ngữ cảnh hiển thị
+  - Kiểm tra quyền tại endpoint và từng đối tượng
+  - SSRF và truy cập tài nguyên mạng từ máy chủ
+  - Path traversal, tải tệp và giới hạn thao tác tệp
+  - Deserialization, xử lý định dạng và dữ liệu phức tạp
+  - Logic nghiệp vụ, gian lận và vượt quy trình
+  - Race condition trong thao tác có yêu cầu nguyên tử
+  - Giới hạn kích thước, thời gian xử lý và số lượng yêu cầu
+  - Phản hồi lỗi, stack trace và dữ liệu không được công khai
+  - Bảo vệ API không phụ thuộc ngôn ngữ hoặc framework
+- level1: Dữ liệu và riêng tư
+  level2:
+  - Chỉ thu thập dữ liệu phục vụ mục đích xác định
+  - Quyền truy cập dữ liệu theo nhu cầu công việc
+  - Mã hóa khi lưu, khi truyền và các giới hạn bảo vệ
+  - Masking, tokenization, pseudonymization và anonymization
+  - Rủi ro tái định danh và kết hợp nhiều nguồn dữ liệu
+  - Dữ liệu thật trong môi trường thử nghiệm
+  - Nhật ký, hệ thống phân tích và bên nhận thứ ba
+  - Chính sách thời gian lưu giữ và hủy dữ liệu
+  - Sao lưu dữ liệu nhạy cảm cùng phạm vi quyền truy cập
+  - Kiểm tra yêu cầu pháp lý và hợp đồng theo đúng bối cảnh
+  - Xử lý rò rỉ dữ liệu với bằng chứng và phạm vi ảnh hưởng
+- level1: Đám mây và hạ tầng
+  level2:
+  - Mô hình trách nhiệm chung giữa nhà cung cấp với khách hàng
+  - Danh tính, quyền và cấu hình tài nguyên đám mây
+  - Vai trò của workload identity cùng service account
+  - Lưu trữ công khai ngoài ý muốn và sai cấu hình quyền
+  - Metadata endpoint cùng rủi ro truy cập qua SSRF
+  - Tách môi trường, tài khoản, project và tenant
+  - Ảnh máy, container image và bảo mật registry
+  - Cấu hình container hoặc Kubernetes ở mức nền tảng
+  - Hạ tầng dưới dạng mã và quản lý thay đổi
+  - Kiểm kê tài nguyên tạm thời hoặc bị bỏ quên
+  - Bảo vệ đường quản trị, bí mật và dữ liệu của nền tảng
+- level1: Chuỗi cung ứng
+  level2:
+  - Phần mềm phụ thuộc và ranh giới tin cậy với nhà cung cấp
+  - Kho mã, hệ thống build, registry và kênh phân phối
+  - Package độc hại, chiếm tài khoản phát hành và thay thế artifact
+  - Khóa phiên bản, kiểm tra nguồn và toàn vẹn phụ thuộc
+  - SBOM và giới hạn của danh sách thành phần
+  - Chữ ký artifact và bằng chứng nguồn gốc xây dựng
+  - CI/CD với quyền tối thiểu cùng danh tính theo tác vụ
+  - Bảo vệ branch, review và thông tin xác thực phát hành
+  - Bí mật trong artifact, cache, log và ảnh container
+  - Đánh giá bên thứ ba cùng quyền truy cập được cấp
+  - Kế hoạch xử lý khi phụ thuộc hoặc nhà cung cấp bị xâm phạm
+- level1: Phát triển an toàn
+  level2:
+  - Yêu cầu bảo mật trong phân tích nghiệp vụ
+  - Mô hình hóa đe dọa trước khi quyết định kiến trúc
+  - Hướng dẫn lập trình an toàn theo loại dữ liệu và ngữ cảnh
+  - Thiết kế API, giao diện và thông báo lỗi an toàn
+  - Review mã với trọng tâm ranh giới tin cậy và quyền
+  - Tách dữ liệu, bí mật cùng quyền giữa các môi trường
+  - Kiểm tra bảo mật tự động trong quy trình phát triển
+  - Quản lý thay đổi và tiêu chí chấp nhận trước phát hành
+  - Phát hành, theo dõi và khôi phục phiên bản
+  - Tiếp nhận báo cáo lỗ hổng và cải thiện thiết kế
+  - Bảo mật là hoạt động xuyên suốt vòng đời phần mềm
+- level1: Quản lý lỗ hổng
+  level2:
+  - Phát hiện qua kiểm kê, công cụ quét, kiểm thử và báo cáo
+  - Phân biệt lỗ hổng thực, cấu hình yếu và cảnh báo giả
+  - Xác minh khả năng ảnh hưởng trong môi trường thực tế
+  - Mức nghiêm trọng kỹ thuật khác với ưu tiên nghiệp vụ
+  - Thông tin khai thác, độ phơi nhiễm và tài sản bị ảnh hưởng
+  - Khắc phục tận gốc, giảm thiểu tạm thời và chấp nhận rủi ro
+  - Thời hạn xử lý theo mức ưu tiên và chủ sở hữu
+  - Kiểm thử bản vá trước khi triển khai
+  - Xác minh sau khắc phục và phát hiện tái xuất hiện
+  - Ngoại lệ có thời hạn cùng kiểm soát bù trừ
+  - Theo dõi nợ bảo mật và nguyên nhân lặp lại
+- level1: Đánh giá và kiểm thử
+  level2:
+  - Kiểm thử bảo mật khác với kiểm thử chức năng
+  - Phạm vi, quyền thực hiện và môi trường được phép
+  - Review thiết kế, cấu hình và mã nguồn
+  - SAST, DAST, SCA cùng điểm mạnh và giới hạn
+  - Quét bí mật và kiểm tra hạ tầng dưới dạng mã
+  - Kiểm thử âm tính cho dữ liệu, quyền và trạng thái lỗi
+  - Kiểm thử abuse case và logic nghiệp vụ
+  - Fuzzing và dữ liệu đầu vào bất thường
+  - Penetration testing theo mục tiêu cùng phạm vi đã thống nhất
+  - Đánh giá kiểm soát bằng bằng chứng có thể tái hiện
+  - Quản lý dữ liệu kiểm thử và tránh làm ảnh hưởng người dùng
+  - Kiểm thử lại sau khắc phục hoặc thay đổi quan trọng
+- level1: Nhật ký và phát hiện
+  level2:
+  - Chọn sự kiện cần quan sát theo tài sản và mối đe dọa
+  - Đăng nhập, thay đổi quyền, truy cập dữ liệu và thao tác quản trị
+  - Tương quan sự kiện theo danh tính, phiên và yêu cầu
+  - Thời gian thống nhất cùng độ chính xác của dấu thời gian
+  - Tránh ghi mật khẩu, token, khóa và dữ liệu nhạy cảm
+  - Bảo vệ tính toàn vẹn cùng quyền đọc nhật ký
+  - Thu thập tập trung và xử lý khi đường gửi log lỗi
+  - Phân biệt cảnh báo, dấu hiệu bất thường và sự cố đã xác nhận
+  - Giảm cảnh báo nhiễu mà không che mất hành vi nguy hiểm
+  - Chủ sở hữu cảnh báo và tuyến xử lý
+  - Đo độ phủ phát hiện cùng thời gian phản ứng
+- level1: Ứng phó sự cố
+  level2:
+  - Sự kiện bảo mật khác với sự cố cần ứng phó
+  - Chuẩn bị vai trò, kênh liên lạc và quy trình
+  - Xác định mức nghiêm trọng cùng phạm vi ảnh hưởng
+  - Bảo toàn bằng chứng và ghi nhận diễn biến
+  - Cô lập hệ thống, tài khoản hoặc thông tin xác thực
+  - Ngăn tiếp tục truy cập và loại bỏ nguyên nhân
+  - Thu hồi token, xoay khóa hoặc khôi phục cấu hình
+  - Khôi phục có kiểm soát và xác minh hệ thống sạch
+  - Phối hợp kỹ thuật, nghiệp vụ và các bên liên quan
+  - Yêu cầu thông báo theo bối cảnh pháp lý và hợp đồng
+  - Rút kinh nghiệm và cập nhật kiểm soát phòng ngừa
+  - Diễn tập để kiểm tra quy trình trước sự cố thực
+- level1: Khả năng phục hồi
+  level2:
+  - Tính sẵn sàng khác với phục hồi sau sự cố
+  - Phân tích tác động nghiệp vụ và phụ thuộc quan trọng
+  - RPO, RTO cùng mục tiêu mất dữ liệu và gián đoạn
+  - Chiến lược sao lưu có nhiều bản và nhiều miền lỗi
+  - Bảo vệ bản sao lưu khỏi xóa, sửa và mã hóa trái phép
+  - Kiểm thử khôi phục thay vì chỉ kiểm tra sao lưu thành công
+  - Dự phòng, chuyển đổi và giới hạn của kiến trúc HA
+  - Gián đoạn nhà cung cấp, DNS, mạng hoặc nguồn danh tính
+  - Giới hạn tải và thiết kế suy giảm có kiểm soát
+  - Kế hoạch duy trì hoạt động và khôi phục thảm họa
+  - Khôi phục mà không làm sống lại tài khoản hoặc khóa đã thu hồi
+- level1: Con người và vật lý
+  level2:
+  - Nhận diện phishing, mạo danh và yêu cầu bất thường
+  - Xác minh qua kênh độc lập trước thao tác nhạy cảm
+  - Quản lý mật khẩu và thiết bị cá nhân theo chính sách
+  - Quy trình tiếp nhận, đổi vai trò và nghỉ việc
+  - Nhận thức bảo mật phù hợp với công việc thực tế
+  - Báo cáo sự cố sớm mà không làm mất bằng chứng
+  - Kiểm soát vào phòng máy, khu vực làm việc và thiết bị
+  - Thiết bị thất lạc, phương tiện lưu trữ và hủy vật lý
+  - Rủi ro khách thăm, nhà thầu cùng hỗ trợ từ xa
+  - Yếu tố con người trong phê duyệt và khôi phục tài khoản
+- level1: Quản trị và đo lường
+  level2:
+  - Chính sách bảo mật gắn với mục tiêu tổ chức
+  - Vai trò chủ sở hữu tài sản, rủi ro và kiểm soát
+  - Tiêu chuẩn nội bộ, quy trình và hướng dẫn thực hiện
+  - Tách tuân thủ yêu cầu khỏi bằng chứng hệ thống được bảo vệ
+  - Quản lý ngoại lệ, thời hạn và kiểm soát bù trừ
+  - Đánh giá nhà cung cấp cùng trách nhiệm chia sẻ
+  - Chỉ số hoạt động khác với chỉ số hiệu quả giảm rủi ro
+  - Đo độ phủ kiểm kê, vá lỗi, MFA và rà soát quyền
+  - Kiểm toán dựa trên bằng chứng cùng khả năng truy vết
+  - Đọc tiêu chuẩn, khung quản trị và hướng dẫn đúng phạm vi
+  - Đạo đức, quyền được phép kiểm thử và công bố có trách nhiệm
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập danh mục tài sản cho một ứng dụng và các phụ thuộc
+  - Vẽ luồng dữ liệu cùng ranh giới tin cậy của hệ thống mẫu
+  - Xây dựng tình huống rủi ro và chọn kiểm soát tương ứng
+  - Thiết kế danh tính, xác thực và quyền tối thiểu
+  - Đánh giá nơi lưu phiên, token và bí mật
+  - Rà soát TLS, quyền tài nguyên và cấu hình công khai
+  - Lập bộ kiểm thử cho dữ liệu không tin cậy cùng truy cập trái quyền
+  - Thiết kế log và cảnh báo không làm lộ bí mật
+  - Ưu tiên danh sách lỗ hổng theo bối cảnh tài sản
+  - Diễn tập tài khoản bị chiếm hoặc dữ liệu bị rò rỉ
+  - Khôi phục hệ thống từ bản sao lưu trong môi trường thử
+  - Trình bày rủi ro còn lại cùng bằng chứng kiểm chứng
+  - Xác định chuyên đề tiếp theo từ các khoảng trống đã phát hiện

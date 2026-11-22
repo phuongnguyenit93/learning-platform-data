@@ -1,0 +1,2533 @@
+menu:
+- slug: sso-overview
+  title: 1. Tổng quan SSO
+  childs:
+  - slug: sso-overview-001
+    title: 1.1. Đăng nhập một lần (SSO) là gì và vấn đề cần giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-002
+    title: 1.2. Phân biệt xác thực, cấp quyền và quản lý tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-003
+    title: 1.3. Phiên đăng nhập tại nhà cung cấp danh tính và tại từng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-004
+    title: 1.4. Đăng nhập tập trung, liên kết danh tính và đăng nhập một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-005
+    title: 1.5. SSO trong tổ chức, giữa đối tác và trong ứng dụng nhiều khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-006
+    title: 1.6. Lợi ích, phạm vi ảnh hưởng và sự phụ thuộc vào hệ thống danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-007
+    title: 1.7. Vai trò của SAML 2.0 trong bức tranh SSO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-overview-008
+    title: 1.8. Lộ trình từ mô hình tin cậy đến giao thức, bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-trust
+  title: 2. Danh tính và tin cậy
+  childs:
+  - slug: identity-trust-001
+    title: 2.1. Nhà cung cấp danh tính (IdP) và bên cung cấp dịch vụ (SP)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-002
+    title: 2.2. Chủ thể, trình duyệt, ứng dụng và miền quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-003
+    title: 2.3. Mối quan hệ tin cậy giữa IdP với SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-004
+    title: 2.4. Danh tính cục bộ và danh tính được liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-005
+    title: 2.5. Định danh ổn định, thuộc tính và thông tin dùng để cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-006
+    title: 2.6. Luồng trình duyệt chuyển tiếp thông điệp và giới hạn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-007
+    title: 2.7. Phân biệt tin cậy vào bên phát hành với tin cậy vào người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-008
+    title: 2.8. Ranh giới giữa chứng minh xác thực và quyết định cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-trust-009
+    title: 2.9. Mô hình đe dọa khi IdP, SP hoặc thiết bị người dùng bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-landscape
+  title: 3. Bức tranh giao thức
+  childs:
+  - slug: protocol-landscape-001
+    title: 3.1. SSO bằng SAML, OpenID Connect và cơ chế xác thực trong miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-002
+    title: 3.2. Phân biệt SAML assertion, ID token và access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-003
+    title: 3.3. Vai trò của OAuth trong ủy quyền và quan hệ với OIDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-004
+    title: 3.4. Khi nào chọn SAML cho ứng dụng web và tích hợp doanh nghiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-005
+    title: 3.5. Giới hạn khi dùng SAML cho ứng dụng di động, SPA và API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-006
+    title: 3.6. SSO qua proxy và nguy cơ tin cậy sai header danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-007
+    title: 3.7. Liên kết danh tính khác với đồng bộ tài khoản bằng SCIM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-landscape-008
+    title: 3.8. Tiêu chí chọn giao thức theo nền tảng, đối tác và yêu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: saml-2-architecture
+  title: 4. Kiến trúc SAML 2.0
+  childs:
+  - slug: saml-2-architecture-001
+    title: 4.1. Assertion, protocol, binding, profile và metadata liên hệ với nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-002
+    title: 4.2. Không gian tên XML và các thành phần thông điệp cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-003
+    title: 4.3. Web Browser SSO Profile và phạm vi luồng đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-004
+    title: 4.4. Luồng khởi tạo từ SP và luồng khởi tạo từ IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-005
+    title: 4.5. Đường truyền qua trình duyệt và đường trao đổi trực tiếp giữa máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-006
+    title: 4.6. Entity ID, endpoint và quan hệ giữa chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-007
+    title: 4.7. Assertion Consumer Service (ACS) và điểm tiếp nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-008
+    title: 4.8. Single Sign-On Service và Single Logout Service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-009
+    title: 4.9. Các giả định bảo mật của mô hình bearer assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: saml-2-architecture-010
+    title: 4.10. Các điểm cần xác minh trước khi thiết lập phiên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metadata-configuration
+  title: 5. Metadata và cấu hình
+  childs:
+  - slug: metadata-configuration-001
+    title: 5.1. EntityDescriptor và vai trò của Entity ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-002
+    title: 5.2. IDPSSODescriptor, SPSSODescriptor và khả năng được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-003
+    title: 5.3. Endpoint, Binding, Location và lựa chọn ACS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-004
+    title: 5.4. KeyDescriptor cho ký và mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-005
+    title: 5.5. NameIDFormat, dịch vụ thuộc tính và yêu cầu tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-006
+    title: 5.6. Metadata tĩnh, tải động và quy trình xác lập nguồn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-007
+    title: 5.7. Chữ ký metadata, thời hạn, bộ nhớ đệm và chống dùng bản lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-008
+    title: 5.8. Phân biệt chứng thư dùng trong SAML với chứng thư TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-009
+    title: 5.9. Quản lý cấu hình theo môi trường và tránh nhầm đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metadata-configuration-010
+    title: 5.10. Phê duyệt thay đổi metadata, endpoint và khóa của đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-requests
+  title: 6. Yêu cầu xác thực
+  childs:
+  - slug: authentication-requests-001
+    title: 6.1. Cấu trúc AuthnRequest và các trường định danh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-002
+    title: 6.2. ID, Version, IssueInstant, Issuer và Destination
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-003
+    title: 6.3. AssertionConsumerServiceURL, ACS index và kiểm soát điểm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-004
+    title: 6.4. ProtocolBinding và cách yêu cầu phương thức trả kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-005
+    title: 6.5. ForceAuthn, IsPassive và giới hạn ý nghĩa của từng tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-006
+    title: 6.6. NameIDPolicy và yêu cầu định dạng danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-007
+    title: 6.7. RequestedAuthnContext và cách diễn đạt mức xác thực mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-008
+    title: 6.8. Subject, Scoping và các tùy chọn nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-009
+    title: 6.9. Ký yêu cầu xác thực và chính sách chấp nhận của IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-requests-010
+    title: 6.10. Lưu trạng thái yêu cầu chờ để đối chiếu phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertions-responses
+  title: 7. Assertion và phản hồi
+  childs:
+  - slug: assertions-responses-001
+    title: 7.1. Response, Status và phân biệt thành công với lỗi giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-002
+    title: 7.2. Issuer, ID, IssueInstant và liên kết với AuthnRequest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-003
+    title: 7.3. Subject, NameID và SubjectConfirmation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-004
+    title: '7.4. Bearer SubjectConfirmationData: Recipient, InResponseTo và thời hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-005
+    title: '7.5. Conditions: NotBefore, NotOnOrAfter và giới hạn thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-006
+    title: 7.6. AudienceRestriction và phạm vi bên được nhận assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-007
+    title: '7.7. AuthnStatement: thời điểm xác thực, SessionIndex và AuthnContext'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-008
+    title: 7.8. AttributeStatement và cấu trúc tên, kiểu, giá trị thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-009
+    title: 7.9. AuthzDecisionStatement và phạm vi sử dụng trong thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-010
+    title: 7.10. Nhiều assertion, assertion được mã hóa và chính sách lựa chọn đối tượng hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertions-responses-011
+    title: 7.11. Phân biệt dữ liệu trong Response với dữ liệu đã được assertion xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bindings-message-encoding
+  title: 8. Bindings và mã hóa thông điệp
+  childs:
+  - slug: bindings-message-encoding-001
+    title: 8.1. HTTP Redirect Binding và thông điệp trong chuỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-002
+    title: 8.2. HTTP POST Binding và biểu mẫu chuyển tiếp qua trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-003
+    title: 8.3. Nén, Base64, URL encoding và thứ tự xử lý phù hợp từng binding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-004
+    title: 8.4. HTTP Artifact Binding và trao đổi thông điệp qua tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-005
+    title: 8.5. ArtifactResolve, ArtifactResponse và kênh phân giải trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-006
+    title: 8.6. SOAP Binding và vai trò trong các trao đổi máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-007
+    title: 8.7. Chữ ký của Redirect Binding so với XML Signature
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-008
+    title: 8.8. Giới hạn kích thước URL, proxy trung gian và khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-009
+    title: 8.9. RelayState và quan hệ với trạng thái chuyển hướng của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bindings-message-encoding-010
+    title: 8.10. Chọn binding dựa trên hỗ trợ đối tác và yêu cầu bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sp-initiated-login
+  title: 9. Đăng nhập từ SP
+  childs:
+  - slug: sp-initiated-login-001
+    title: 9.1. Người dùng truy cập tài nguyên chưa có phiên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-002
+    title: 9.2. SP tạo yêu cầu, lưu trạng thái chờ và chuyển hướng đến IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-003
+    title: 9.3. IdP xác định người dùng và đánh giá chính sách xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-004
+    title: 9.4. Tái sử dụng phiên IdP hoặc yêu cầu đăng nhập mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-005
+    title: 9.5. IdP tạo phản hồi và chuyển trình duyệt đến ACS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-006
+    title: 9.6. SP kiểm chứng thông điệp, assertion và yêu cầu đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-007
+    title: 9.7. Ánh xạ danh tính sang tài khoản cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-008
+    title: 9.8. Tạo phiên ứng dụng và chuyển đến tài nguyên được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-009
+    title: 9.9. Xử lý nhiều tab, nhiều yêu cầu đồng thời và yêu cầu đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sp-initiated-login-010
+    title: 9.10. Phân tích luồng khi người dùng đã có phiên ở một phần hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: idp-initiated-login
+  title: 10. Đăng nhập từ IdP
+  childs:
+  - slug: idp-initiated-login-001
+    title: 10.1. Cổng ứng dụng tại IdP và phản hồi không gắn yêu cầu từ SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-002
+    title: 10.2. Khác biệt về trạng thái chờ và kiểm chứng InResponseTo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-003
+    title: 10.3. Điều kiện cho phép hoặc từ chối unsolicited response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-004
+    title: 10.4. Chọn SP, ACS và điểm đến theo cấu hình đã tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-005
+    title: 10.5. RelayState và giới hạn đường chuyển hướng sau đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-006
+    title: 10.6. Nguy cơ đăng nhập nhầm tài khoản và login CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-007
+    title: 10.7. Yêu cầu xác nhận người dùng hoặc chuyển sang luồng SP-initiated khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-008
+    title: 10.8. Xử lý danh tính chưa được cấp tài khoản và ứng dụng nhiều khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: idp-initiated-login-009
+    title: 10.9. Ca kiểm thử bảo mật riêng cho luồng khởi tạo từ IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mandatory-validation
+  title: 11. Kiểm chứng bắt buộc
+  childs:
+  - slug: mandatory-validation-001
+    title: 11.1. Xác định đúng đối tác, cấu hình và phiên bản giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-002
+    title: 11.2. Kiểm tra trạng thái phản hồi trước khi dùng danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-003
+    title: 11.3. Xác minh Issuer và khóa ký thuộc miền tin cậy đã cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-004
+    title: 11.4. Kiểm tra chữ ký trên đúng đối tượng sẽ được ứng dụng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-005
+    title: 11.5. Phân biệt và kiểm tra Destination, Recipient và Audience
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-006
+    title: 11.6. Đối chiếu InResponseTo với yêu cầu chờ theo luồng được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-007
+    title: 11.7. Kiểm tra SubjectConfirmation và điều kiện bearer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-008
+    title: 11.8. Kiểm tra thời hạn, sai lệch đồng hồ và chính sách giới hạn tuổi thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-009
+    title: 11.9. Chặn sử dụng lại Response ID hoặc Assertion ID theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-010
+    title: 11.10. Chỉ tạo phiên sau khi toàn bộ kiểm chứng cần thiết đã thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mandatory-validation-011
+    title: 11.11. Từ chối dữ liệu thiếu, mâu thuẫn, không mong đợi hoặc không thể xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xml-signatures
+  title: 12. Chữ ký XML
+  childs:
+  - slug: xml-signatures-001
+    title: 12.1. Mục tiêu xác thực nguồn và bảo vệ tính toàn vẹn của chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-002
+    title: 12.2. SignedInfo, Reference, DigestValue và SignatureValue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-003
+    title: 12.3. Canonicalization, transforms và khác biệt biểu diễn XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-004
+    title: 12.4. Chữ ký trên Response, Assertion hoặc cả hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-005
+    title: 12.5. Xác định đối tượng được ký thay vì chỉ kiểm tra có chữ ký hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-006
+    title: 12.6. Giới hạn thuật toán ký, hàm băm và phép biến đổi được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-007
+    title: 12.7. Xác định khóa tin cậy mà không dựa mù quáng vào KeyInfo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-008
+    title: 12.8. Xử lý nhiều chữ ký, nhiều Reference và định danh XML trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-009
+    title: 12.9. Ảnh hưởng của sửa đổi, tái định dạng hoặc giải mã XML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xml-signatures-010
+    title: 12.10. Kiểm thử tương thích chữ ký và từ chối cấu trúc bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertion-encryption
+  title: 13. Mã hóa assertion
+  childs:
+  - slug: assertion-encryption-001
+    title: 13.1. Mục tiêu bảo mật dữ liệu assertion trên đường chuyển qua trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-002
+    title: 13.2. EncryptedAssertion và các thành phần XML Encryption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-003
+    title: 13.3. Khóa mã hóa dữ liệu và khóa bảo vệ vật liệu mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-004
+    title: 13.4. Chọn khóa công khai của SP và bảo vệ khóa riêng giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-005
+    title: 13.5. Phân biệt mã hóa assertion với bảo vệ kênh bằng TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-006
+    title: 13.6. Quan hệ giữa giải mã, xác minh chữ ký và lựa chọn dữ liệu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-007
+    title: 13.7. Giới hạn thuật toán, tham số và cấu trúc mã hóa được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-008
+    title: 13.8. Tránh dùng khả năng giải mã làm bằng chứng xác thực nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-009
+    title: 13.9. Luân chuyển khóa giải mã và thời gian hỗ trợ cấu hình chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-encryption-010
+    title: 13.10. Xử lý lỗi giải mã mà không rò rỉ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-xml-processing
+  title: 14. An toàn xử lý XML
+  childs:
+  - slug: secure-xml-processing-001
+    title: 14.1. Phân tích XML bằng thành phần SAML đã được duy trì phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-002
+    title: 14.2. Ngăn thực thể ngoài, DTD và truy cập tài nguyên ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-003
+    title: 14.3. Giới hạn kích thước, độ sâu và mức tiêu thụ tài nguyên khi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-004
+    title: 14.4. Kiểm tra cấu trúc, schema và vị trí phần tử mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-005
+    title: 14.5. XML Signature Wrapping và sự khác nhau giữa phần tử được ký với phần tử được đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-006
+    title: 14.6. Xử lý ID duy nhất, namespace và phần tử trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-007
+    title: 14.7. Tránh truy vấn XML mơ hồ hoặc chọn phần tử theo vị trí không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-008
+    title: 14.8. Từ chối thuật toán hoặc phép biến đổi không nằm trong chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-009
+    title: 14.9. Không ghi XML chứa thuộc tính nhạy cảm vào nhật ký thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-xml-processing-010
+    title: 14.10. Kiểm thử dữ liệu sai cấu trúc và ca tấn công đã biết trong môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identifiers-account-linking
+  title: 15. Định danh và liên kết tài khoản
+  childs:
+  - slug: identifiers-account-linking-001
+    title: 15.1. NameID dạng persistent, transient và các định dạng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-002
+    title: 15.2. Phạm vi định danh theo Issuer, SP và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-003
+    title: 15.3. Chọn khóa liên kết ổn định thay vì mặc định dùng địa chỉ email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-004
+    title: 15.4. Ảnh hưởng khi email, tên đăng nhập hoặc miền tổ chức thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-005
+    title: 15.5. Liên kết tài khoản có sẵn và điều kiện chứng minh quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-006
+    title: 15.6. Tạo tài khoản đúng lúc (JIT) và giới hạn của việc tạo khi đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-007
+    title: 15.7. Ngăn chiếm tài khoản qua liên kết tự động hoặc miền email chưa xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-008
+    title: 15.8. Xử lý danh tính trùng, tài khoản đã khóa và người dùng quay lại tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-009
+    title: 15.9. Di chuyển IdP mà không tạo tài khoản trùng hoặc mất liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identifiers-account-linking-010
+    title: 15.10. Quy tắc xóa liên kết, vô hiệu hóa tài khoản và lưu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attributes-authorization
+  title: 16. Thuộc tính và cấp quyền
+  childs:
+  - slug: attributes-authorization-001
+    title: 16.1. Thỏa thuận tên, kiểu dữ liệu và giá trị thuộc tính giữa IdP với SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-002
+    title: 16.2. Thuộc tính bắt buộc, tùy chọn, nhiều giá trị và giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-003
+    title: 16.3. Ánh xạ nhóm, vai trò và đơn vị tổ chức vào mô hình quyền cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-004
+    title: 16.4. Không biến mọi thuộc tính nhận được thành quyền được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-005
+    title: 16.5. Giới hạn quyền mặc định khi thiếu hoặc không nhận diện thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-006
+    title: 16.6. Phân biệt dữ liệu hồ sơ với bằng chứng có thể dùng để cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-007
+    title: 16.7. Độ mới của nhóm, vai trò và quyền sau khi phiên đã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-008
+    title: 16.8. Giảm thiểu thuộc tính theo mục đích và yêu cầu quyền riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-009
+    title: 16.9. Xử lý tên hiển thị, ngôn ngữ, Unicode và chuẩn hóa có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attributes-authorization-010
+    title: 16.10. Kiểm chứng quyền truy cập tài nguyên sau bước SSO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mfa-assurance
+  title: 17. MFA và mức bảo đảm
+  childs:
+  - slug: mfa-assurance-001
+    title: 17.1. Chính sách xác thực tại IdP và trách nhiệm kiểm chứng tại SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-002
+    title: 17.2. AuthnContextClassRef và ý nghĩa cần thống nhất với đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-003
+    title: 17.3. Yêu cầu xác thực mới qua ForceAuthn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-004
+    title: 17.4. Xác thực tăng cường cho thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-005
+    title: 17.5. Thời điểm xác thực gốc và tuổi tối đa được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-006
+    title: 17.6. Phân biệt có phiên IdP với đã đáp ứng mức bảo đảm cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-007
+    title: 17.7. Khôi phục tài khoản và nguy cơ hạ cấp phương thức xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-008
+    title: 17.8. Xử lý trường hợp IdP không hỗ trợ hoặc không đáp ứng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mfa-assurance-009
+    title: 17.9. Giới hạn của assertion khi tài khoản hoặc thiết bị đã bị chiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-browsers
+  title: 18. Phiên và trình duyệt
+  childs:
+  - slug: sessions-browsers-001
+    title: 18.1. Phiên IdP, assertion SAML và phiên SP là các đối tượng khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-002
+    title: 18.2. Tạo mới định danh phiên sau xác thực để tránh session fixation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-003
+    title: 18.3. Thời hạn phiên ứng dụng và quan hệ với điều kiện trong assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-004
+    title: 18.4. SessionIndex, SessionNotOnOrAfter và cách dùng trong chính sách phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-005
+    title: 18.5. Cookie Secure, HttpOnly và SameSite trong luồng chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-006
+    title: 18.6. Ảnh hưởng của POST liên miền, nhiều miền và cơ chế riêng tư trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-007
+    title: 18.7. Bảo vệ trạng thái yêu cầu, ràng buộc phiên trình duyệt và chống CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-008
+    title: 18.8. Đăng nhập nhiều tab, quay lại trang cũ và gửi lại biểu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-009
+    title: 18.9. Đồng bộ thay đổi tài khoản với phiên đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-browsers-010
+    title: 18.10. Phân biệt đăng xuất cục bộ, đăng xuất IdP và đăng xuất liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: single-logout
+  title: 19. Đăng xuất liên kết
+  childs:
+  - slug: single-logout-001
+    title: 19.1. Single Logout (SLO) và mục tiêu kết thúc nhiều phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-002
+    title: 19.2. LogoutRequest, LogoutResponse và trạng thái kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-003
+    title: 19.3. NameID, SessionIndex và lựa chọn phiên cần kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-004
+    title: 19.4. Luồng đăng xuất bắt đầu từ SP hoặc IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-005
+    title: 19.5. Trao đổi qua trình duyệt và trao đổi trực tiếp khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-006
+    title: 19.6. Chữ ký, đối chiếu yêu cầu và kiểm chứng điểm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-007
+    title: 19.7. Xử lý ứng dụng không phản hồi, lỗi từng phần và người dùng đóng trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-008
+    title: 19.8. Giới hạn bảo đảm đăng xuất toàn bộ khi hệ thống phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-009
+    title: 19.9. Quan hệ với phiên cục bộ, phiên thiết bị khác và cơ chế thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: single-logout-010
+    title: 19.10. Thiết kế trải nghiệm đăng xuất và thông báo kết quả trung thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-metadata-lifecycle
+  title: 20. Vòng đời khóa và metadata
+  childs:
+  - slug: key-metadata-lifecycle-001
+    title: 20.1. Khóa ký của IdP và khóa giải mã hoặc ký của SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-002
+    title: 20.2. Lưu trữ khóa riêng và phân tách quyền vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-003
+    title: 20.3. Chứng thư tự ký hoặc được CA cấp trong mô hình tin cậy SAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-004
+    title: 20.4. Công bố nhiều khóa và thời gian cùng chấp nhận khi luân chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-005
+    title: 20.5. Phối hợp lịch thay khóa giữa các bên liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-006
+    title: 20.6. Xử lý metadata được tải lại, bộ nhớ đệm và cập nhật thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-007
+    title: 20.7. Thời hạn chứng thư, thời hạn metadata và chính sách kiểm tra của đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-008
+    title: 20.8. Thu hồi tin cậy khi khóa hoặc cấu hình bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-009
+    title: 20.9. Kiểm thử luân chuyển và tránh loại bỏ khóa cũ quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-metadata-lifecycle-010
+    title: 20.10. Lập danh mục đối tác, chủ sở hữu và lịch cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: organization-federation
+  title: 21. Liên kết nhiều tổ chức
+  childs:
+  - slug: organization-federation-001
+    title: 21.1. Quan hệ một IdP với nhiều SP và một SP với nhiều IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-002
+    title: 21.2. Khám phá IdP và chọn miền danh tính cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-003
+    title: 21.3. Định tuyến theo khách hàng mà không tin cậy đầu vào tùy ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-004
+    title: 21.4. Cách ly metadata, khóa, định danh và thuộc tính giữa các khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-005
+    title: 21.5. Identity broker và hệ thống trung gian chuyển tiếp danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-006
+    title: 21.6. Chuyển đổi SAML với giao thức khác và giới hạn giữ nguyên ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-007
+    title: 21.7. Chuỗi liên kết, phạm vi tin cậy và nguy cơ nhầm bên phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-008
+    title: 21.8. Tích hợp đối tác, sáp nhập tổ chức và người dùng thuộc nhiều miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-federation-009
+    title: 21.9. Chính sách tiếp nhận, kiểm thử và chấm dứt quan hệ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-integration
+  title: 22. Triển khai và tích hợp
+  childs:
+  - slug: deployment-integration-001
+    title: 22.1. Thu thập hợp đồng tích hợp trước khi cấu hình IdP và SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-002
+    title: 22.2. Đăng ký Entity ID, ACS, bindings và khóa theo từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-003
+    title: 22.3. Cấu hình reverse proxy, tên miền công khai và URL phía sau proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-004
+    title: 22.4. Kiểm soát forwarded headers và tránh tạo endpoint từ đầu vào không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-005
+    title: 22.5. Đồng bộ thời gian và chọn dung sai đồng hồ có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-006
+    title: 22.6. Thống nhất NameID, thuộc tính, nhóm và chính sách JIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-007
+    title: 22.7. Tách cấu hình thử nghiệm khỏi cấu hình sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-008
+    title: 22.8. Kiểm thử cả luồng đăng nhập, từ chối và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-009
+    title: 22.9. Triển khai từng nhóm người dùng và chuẩn bị phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-integration-010
+    title: 22.10. Tài khoản quản trị dự phòng có kiểm soát khi SSO gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-operations
+  title: 23. Khả dụng và vận hành
+  childs:
+  - slug: availability-operations-001
+    title: 23.1. Tác động khi IdP không khả dụng đối với phiên mới và phiên đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-002
+    title: 23.2. Dự phòng IdP, kho phiên và cấu hình tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-003
+    title: 23.3. Cân bằng tải, trạng thái yêu cầu chờ và bộ nhớ chống phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-004
+    title: 23.4. Tính nhất quán khi nhiều bản sao SP xử lý phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-005
+    title: 23.5. Giới hạn thử lại và tránh vòng chuyển hướng đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-006
+    title: 23.6. Giám sát endpoint, độ trễ, lỗi xác thực và mức sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-007
+    title: 23.7. Quy trình bảo trì, nâng cấp và thay đổi cấu hình đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-008
+    title: 23.8. Khôi phục metadata, khóa và cấu hình sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-operations-009
+    title: 23.9. Điều kiện truy cập khẩn cấp và rà soát sau khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-troubleshooting
+  title: 24. Quan sát và xử lý lỗi
+  childs:
+  - slug: observability-troubleshooting-001
+    title: 24.1. Mã tương quan giữa AuthnRequest, Response, Assertion và phiên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-002
+    title: 24.2. Ghi nhận Issuer, bên nhận, thời điểm và loại lỗi mà không lộ thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-003
+    title: 24.3. Phân biệt lỗi cấu hình, lỗi chữ ký, lỗi thời gian và lỗi cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-004
+    title: 24.4. Chẩn đoán sai Audience, Recipient, Destination và InResponseTo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-005
+    title: 24.5. Chẩn đoán vòng lặp đăng nhập, mất cookie và phản hồi không có yêu cầu chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-006
+    title: 24.6. Chẩn đoán NameID thay đổi, nhóm thiếu và tài khoản trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-007
+    title: 24.7. Kiểm tra cấu trúc thông điệp bằng dữ liệu thử hoặc dữ liệu đã bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-008
+    title: 24.8. Cảnh báo phát lại, thay đổi khóa ngoài dự kiến và thất bại tăng đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-009
+    title: 24.9. Giới hạn truy cập, lưu giữ và chia sẻ bằng chứng đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-troubleshooting-010
+    title: 24.10. Quy trình hỗ trợ người dùng không yêu cầu gửi assertion chứa dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attacks-defenses
+  title: 25. Tấn công và phòng vệ
+  childs:
+  - slug: attacks-defenses-001
+    title: 25.1. Assertion hoặc Response bị phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-002
+    title: 25.2. Login CSRF, đăng nhập nhầm tài khoản và phản hồi không được yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-003
+    title: 25.3. XML Signature Wrapping và thao túng cấu trúc assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-004
+    title: 25.4. Thay Issuer, Audience hoặc ACS để vượt ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-005
+    title: 25.5. RelayState dẫn đến chuyển hướng mở hoặc làm lộ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-006
+    title: 25.6. Liên kết tài khoản tự động sai và chiếm quyền qua thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-007
+    title: 25.7. Lạm dụng thuật toán yếu, cấu hình bỏ kiểm chứng và khóa không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-008
+    title: 25.8. Rò rỉ assertion qua nhật ký, URL, công cụ gỡ lỗi hoặc hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-009
+    title: 25.9. Xâm nhập IdP và tác động diện rộng đến các SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-010
+    title: 25.10. Giới hạn thiệt hại bằng cấp quyền tối thiểu, phiên hợp lý và giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accounts-privacy
+  title: 26. Vòng đời tài khoản và quyền riêng tư
+  childs:
+  - slug: accounts-privacy-001
+    title: 26.1. SSO không thay thế cấp phát, cập nhật và vô hiệu hóa tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-002
+    title: 26.2. Kết hợp JIT với đồng bộ vòng đời qua SCIM hoặc cơ chế khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-003
+    title: 26.3. Người dùng rời tổ chức và xử lý phiên còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-004
+    title: 26.4. Rà soát quyền, nhóm và tài khoản không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-005
+    title: 26.5. Giảm thiểu dữ liệu được chia sẻ giữa IdP và SP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-006
+    title: 26.6. Định danh theo từng SP và hạn chế theo dõi chéo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-007
+    title: 26.7. Thông báo mục đích sử dụng, thời hạn lưu và quyền truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-008
+    title: 26.8. Phân công trách nhiệm giữa tổ chức, IdP và nhà cung cấp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-privacy-009
+    title: 26.9. Lưu bằng chứng tuân thủ mà không thu thập toàn bộ assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-migration
+  title: 27. Kiểm thử và chuyển đổi
+  childs:
+  - slug: testing-migration-001
+    title: 27.1. Bộ ca cho SP-initiated, IdP-initiated, xác thực mới và phiên IdP sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-002
+    title: 27.2. Kiểm thử chữ ký sai, khóa lạ, XML bất thường và dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-003
+    title: 27.3. Kiểm thử Audience, Recipient, Destination và InResponseTo sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-004
+    title: 27.4. Kiểm thử hết hạn, chưa có hiệu lực, sai đồng hồ và phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-005
+    title: 27.5. Kiểm thử nhiều IdP, nhiều khách hàng và nhiều tab trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-006
+    title: 27.6. Kiểm thử JIT, liên kết tài khoản, thay đổi NameID và thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-007
+    title: 27.7. Kiểm thử SLO lỗi từng phần, mất cookie và mất một điểm dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-008
+    title: 27.8. Diễn tập luân chuyển khóa và metadata trước khi áp dụng sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-009
+    title: 27.9. Chuyển từ đăng nhập cục bộ hoặc IdP cũ với kế hoạch ánh xạ tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-migration-010
+    title: 27.10. Tiêu chí nghiệm thu về bảo mật, khả dụng và trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenarios-practice
+  title: 28. Tình huống và thực hành
+  childs:
+  - slug: scenarios-practice-001
+    title: 28.1. Vẽ sơ đồ một lần đăng nhập để dùng nhiều ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-002
+    title: 28.2. Đọc metadata và xác định Entity ID, ACS, binding cùng khóa tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-003
+    title: 28.3. Phân tích AuthnRequest, Response và Assertion trên dữ liệu mô phỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-004
+    title: 28.4. Xây dựng danh sách kiểm chứng trước khi tạo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-005
+    title: 28.5. Thiết kế liên kết tài khoản ổn định và ánh xạ quyền có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-006
+    title: 28.6. Mô phỏng phát lại và xác nhận phản hồi bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-007
+    title: 28.7. Thiết kế cấu hình nhiều khách hàng mà không dùng nhầm IdP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-008
+    title: 28.8. Lập quy trình đổi khóa ký và giữ khả năng đăng nhập trong giai đoạn chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-009
+    title: 28.9. Diễn tập IdP mất kết nối, tài khoản bị khóa và SLO thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-practice-010
+    title: 28.10. Hoàn thiện hồ sơ tích hợp, mô hình đe dọa và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

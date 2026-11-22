@@ -1,0 +1,49 @@
+roadmap:
+- id: kien-truc-service-discovery
+  title: Kiến trúc Service Discovery
+  purpose: Hiểu vì sao dịch vụ cần cơ chế tìm địa chỉ và cách client khám phá endpoint.
+  objectives:
+  - Phân biệt client-side và server-side discovery
+  - Mô tả vai trò service instance, endpoint và catalog
+- id: dns-srv-records
+  title: DNS & SRV Records
+  purpose: Sử dụng bản ghi DNS để tìm máy chủ và cổng cung cấp dịch vụ.
+  objectives:
+  - Phân biệt A/AAAA, CNAME và SRV theo mục đích
+  - Đọc target, port, priority và weight của SRV
+- id: mdns-dns-sd
+  title: mDNS & DNS-SD
+  purpose: Khám phá dịch vụ trong mạng cục bộ và qua bản ghi DNS-SD.
+  objectives:
+  - Giải thích mDNS trên local link
+  - Nhận diện PTR, SRV và TXT trong DNS-SD
+- id: service-registry
+  title: Service Registry
+  purpose: Hiểu cách catalog tập trung quản lý danh sách dịch vụ động.
+  objectives:
+  - Mô tả quy trình lookup từ registry đến endpoint
+  - So sánh registry-based discovery với DNS-based
+- id: dang-ky-health-check
+  title: Đăng ký & Health Check
+  purpose: Giữ danh sách instance khả dụng khi dịch vụ khởi động, lỗi hoặc dừng.
+  objectives:
+  - Đăng ký và hủy đăng ký instance
+  - Giải thích health check và loại bỏ endpoint không khỏe
+- id: discovery-tren-kubernetes
+  title: Discovery trên Kubernetes
+  purpose: Xác định cách ứng dụng trong cluster tìm dịch vụ ổn định.
+  objectives:
+  - Giải thích Service DNS, namespace và ClusterIP
+  - Phân biệt Service thông thường và headless Service
+- id: cache-failover
+  title: Cache & Failover
+  purpose: Xử lý sự thay đổi địa chỉ và instance để giảm gián đoạn kết nối.
+  objectives:
+  - Phân tích TTL, cache và nguy cơ stale endpoint
+  - Lựa chọn retry, timeout và failover phù hợp
+- id: bao-mat-chan-doan
+  title: Bảo mật & Chẩn đoán
+  purpose: Xác minh kết quả discovery và hạn chế việc công bố dịch vụ ngoài phạm vi.
+  objectives:
+  - Kiểm tra bản ghi và endpoint bằng dig hoặc nslookup
+  - Đánh giá quyền truy cập registry, DNS và lỗi phân giải

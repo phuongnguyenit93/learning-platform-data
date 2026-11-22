@@ -1,0 +1,7 @@
+# Cloud Operations
+
+Cloud Operations là tập hợp các hoạt động quản lý, giám sát, bảo vệ và cải tiến những ứng dụng cùng tài nguyên đang chạy trên nền tảng đám mây. Mục tiêu không chỉ là giữ hệ thống hoạt động, mà còn bảo đảm dịch vụ có người chịu trách nhiệm, thay đổi có kiểm soát, sự cố được phát hiện và xử lý kịp thời, dữ liệu có thể khôi phục và chi phí được nhìn thấy rõ. Các nguyên tắc trong module có thể áp dụng cho nhiều nhà cung cấp cloud, dù công cụ triển khai cụ thể sẽ khác nhau.
+
+Roadmap một cấp gồm tám mốc: xác định trách nhiệm vận hành và runbook; tự động hóa hạ tầng, cấu hình và quản lý thay đổi; xây dựng observability với SLI/SLO; tổ chức cảnh báo và ứng phó sự cố. Tiếp theo là capacity planning và resilience, quản lý quyền truy cập cùng bảo mật vận hành, kiểm thử backup và disaster recovery, cuối cùng áp dụng FinOps và chu kỳ đánh giá để cải tiến liên tục.
+
+Module dành cho người đã có kiến thức cloud cơ bản, Linux, mạng và quy trình triển khai ứng dụng; phù hợp với kỹ sư DevOps, cloud engineer, SRE hoặc người hỗ trợ hệ thống production. Sau khi học, bạn có thể xây dựng checklist vận hành cho một workload, đề xuất tín hiệu giám sát và alert có ý nghĩa, xử lý tình huống lỗi theo quy trình, kiểm tra khả năng khôi phục và cân bằng độ tin cậy với chi phí.

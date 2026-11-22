@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Định danh artifact
+  slug: artifact-coordinates
+  index: 1
+- title: Tra cứu artifact
+  slug: artifact-search
+  index: 2
+- title: Sử dụng với Maven
+  slug: maven-consumption
+  index: 3
+- title: Sử dụng với Gradle
+  slug: gradle-consumption
+  index: 4
+- title: Phụ thuộc và siêu dữ liệu
+  slug: dependencies-metadata
+  index: 5
+- title: Chuẩn bị thư viện
+  slug: library-preparation
+  index: 6
+- title: POM xuất bản
+  slug: publication-pom
+  index: 7
+- title: Tài khoản và namespace
+  slug: accounts-namespaces
+  index: 8
+- title: Token xuất bản
+  slug: publishing-tokens
+  index: 9
+- title: Ký và toàn vẹn
+  slug: signatures-integrity
+  index: 10
+- title: Gói triển khai
+  slug: deployment-bundles
+  index: 11
+- title: Xuất bản với Maven
+  slug: maven-publishing
+  index: 12
+- title: Xuất bản với Gradle
+  slug: gradle-publishing
+  index: 13
+- title: Portal và API
+  slug: portal-api
+  index: 14
+- title: Vòng đời triển khai
+  slug: deployment-lifecycle
+  index: 15
+- title: Kiểm chứng phát hành
+  slug: release-verification
+  index: 16
+- title: SNAPSHOT và release
+  slug: snapshots-releases
+  index: 17
+- title: Đa mô-đun và BOM
+  slug: multi-module-boms
+  index: 18
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 19
+- title: An toàn chuỗi cung ứng
+  slug: supply-chain-security
+  index: 20
+- title: Vận hành và hạn mức
+  slug: operations-limits
+  index: 21
+- title: Chuyển đổi OSSRH
+  slug: ossrh-migration
+  index: 22
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 23
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 24
+- title: Thực hành
+  slug: hands-on-practice
+  index: 25

@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cách phân loại
+  slug: log-classification
+  index: 1
+- title: Cấu trúc bản ghi
+  slug: log-record-structure
+  index: 2
+- title: Mức độ nghiêm trọng
+  slug: severity-levels
+  index: 3
+- title: Log chẩn đoán
+  slug: diagnostic-logs
+  index: 4
+- title: Log lỗi
+  slug: error-logs
+  index: 5
+- title: Log truy cập
+  slug: access-logs
+  index: 6
+- title: Log kiểm toán
+  slug: audit-logs
+  index: 7
+- title: Log bảo mật
+  slug: security-logs
+  index: 8
+- title: Log nghiệp vụ
+  slug: business-logs
+  index: 9
+- title: Log hành vi
+  slug: behavior-logs
+  index: 10
+- title: Log giao dịch
+  slug: transaction-logs
+  index: 11
+- title: Log hiệu năng
+  slug: performance-logs
+  index: 12
+- title: Log tích hợp
+  slug: integration-logs
+  index: 13
+- title: Log JVM
+  slug: jvm-logs
+  index: 14
+- title: Log hệ điều hành
+  slug: operating-system-logs
+  index: 15
+- title: Log cơ sở dữ liệu
+  slug: database-logs
+  index: 16
+- title: Log mạng và proxy
+  slug: network-and-proxy-logs
+  index: 17
+- title: Log container
+  slug: container-logs
+  index: 18
+- title: Log đám mây
+  slug: cloud-logs
+  index: 19
+- title: Log tác vụ và dữ liệu
+  slug: task-and-data-logs
+  index: 20
+- title: Log phát hành
+  slug: release-logs
+  index: 21
+- title: Kiểu biểu diễn
+  slug: representations
+  index: 22
+- title: Định dạng và lược đồ
+  slug: formats-and-schemas
+  index: 23
+- title: Log OpenTelemetry
+  slug: opentelemetry-logs
+  index: 24
+- title: Liên kết log
+  slug: log-correlation
+  index: 25
+- title: Chính sách từng loại
+  slug: per-type-policies
+  index: 26
+- title: Chất lượng log
+  slug: log-quality
+  index: 27
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 28

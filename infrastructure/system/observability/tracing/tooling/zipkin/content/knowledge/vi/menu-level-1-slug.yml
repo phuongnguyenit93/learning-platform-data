@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan Zipkin
+  slug: zipkin-overview
+  index: 0
+- title: Kiến trúc hệ thống
+  slug: system-architecture
+  index: 1
+- title: Cài đặt và cấu hình
+  slug: installation-configuration
+  index: 2
+- title: Trace đầu tiên
+  slug: first-trace
+  index: 3
+- title: Mô hình span
+  slug: span-model
+  index: 4
+- title: Lan truyền ngữ cảnh
+  slug: context-propagation
+  index: 5
+- title: Lấy mẫu trace
+  slug: trace-sampling
+  index: 6
+- title: Tích hợp Brave
+  slug: brave-integration
+  index: 7
+- title: Spring Boot và Micrometer
+  slug: spring-boot-micrometer
+  index: 8
+- title: Giao tiếp đồng bộ
+  slug: synchronous-communication
+  index: 9
+- title: Bất đồng bộ và thông điệp
+  slug: async-messaging
+  index: 10
+- title: Tích hợp OpenTelemetry
+  slug: opentelemetry-integration
+  index: 11
+- title: Đặt tên và gắn thẻ
+  slug: naming-tagging
+  index: 12
+- title: Gửi và thu nhận span
+  slug: span-export-ingestion
+  index: 13
+- title: Tìm kiếm trên giao diện
+  slug: ui-search
+  index: 14
+- title: Phân tích trace
+  slug: trace-analysis
+  index: 15
+- title: API Zipkin
+  slug: zipkin-api
+  index: 16
+- title: Lựa chọn lưu trữ
+  slug: storage-options
+  index: 17
+- title: Elasticsearch và OpenSearch
+  slug: elasticsearch-opensearch
+  index: 18
+- title: Cassandra và MySQL
+  slug: cassandra-mysql
+  index: 19
+- title: Đồ thị phụ thuộc
+  slug: dependency-graphs
+  index: 20
+- title: Triển khai thực tế
+  slug: production-deployment
+  index: 21
+- title: An toàn dữ liệu
+  slug: data-safety
+  index: 22
+- title: Giám sát và mở rộng
+  slug: monitoring-scaling
+  index: 23
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 24
+- title: Kiểm thử tracing
+  slug: tracing-tests
+  index: 25
+- title: Nâng cấp và chuyển đổi
+  slug: upgrades-migration
+  index: 26
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 27

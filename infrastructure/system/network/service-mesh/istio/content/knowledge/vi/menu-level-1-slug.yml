@@ -1,0 +1,112 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc và luồng mạng
+  slug: architecture-traffic-flow
+  index: 1
+- title: Môi trường và cài đặt
+  slug: installation-environments
+  index: 2
+- title: Mesh đầu tiên
+  slug: first-mesh
+  index: 3
+- title: Cấu hình và API
+  slug: configuration-apis
+  index: 4
+- title: Sidecar mode
+  slug: sidecar-mode
+  index: 5
+- title: Ambient mode
+  slug: ambient-mode
+  index: 6
+- title: Waypoint
+  slug: waypoints
+  index: 7
+- title: Khám phá và giao thức
+  slug: service-discovery-protocols
+  index: 8
+- title: Định tuyến HTTP
+  slug: http-routing
+  index: 9
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 10
+- title: Ingress
+  slug: ingress
+  index: 11
+- title: TLS tại gateway
+  slug: gateway-tls
+  index: 12
+- title: Egress
+  slug: egress
+  index: 13
+- title: Timeout và retry
+  slug: timeouts-retries
+  index: 14
+- title: Circuit breaking
+  slug: circuit-breaking
+  index: 15
+- title: Triển khai phiên bản
+  slug: progressive-delivery
+  index: 16
+- title: Thử nghiệm lỗi
+  slug: fault-injection
+  index: 17
+- title: Danh tính và chứng chỉ
+  slug: identities-certificates
+  index: 18
+- title: mTLS trong mesh
+  slug: mesh-mtls
+  index: 19
+- title: JWT và xác thực yêu cầu
+  slug: jwt-request-authentication
+  index: 20
+- title: Phân quyền
+  slug: authorization
+  index: 21
+- title: Chính sách mở rộng
+  slug: extensible-policies
+  index: 22
+- title: Mở rộng proxy
+  slug: proxy-extensions
+  index: 23
+- title: Metrics và topology
+  slug: metrics-topology
+  index: 24
+- title: Access logs
+  slug: access-logs
+  index: 25
+- title: Distributed tracing
+  slug: distributed-tracing
+  index: 26
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 27
+- title: Mô hình triển khai
+  slug: deployment-models
+  index: 28
+- title: Multicluster
+  slug: multicluster
+  index: 29
+- title: Máy ảo và hệ thống cũ
+  slug: virtual-machines-legacy-systems
+  index: 30
+- title: Quản lý cấu hình
+  slug: configuration-management
+  index: 31
+- title: Hiệu năng và quy mô
+  slug: performance-scaling
+  index: 32
+- title: Nâng cấp và phục hồi
+  slug: upgrades-recovery
+  index: 33
+- title: Chuyển đổi sang ambient
+  slug: ambient-migration
+  index: 34
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 35
+- title: Thực hành tổng hợp
+  slug: hands-on-labs
+  index: 36

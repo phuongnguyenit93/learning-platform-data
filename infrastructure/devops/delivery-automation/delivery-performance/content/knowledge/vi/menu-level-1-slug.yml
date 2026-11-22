@@ -1,0 +1,85 @@
+menu:
+  - title: "Nền tảng hiệu quả phân phối"
+    slug: delivery-performance-fundamentals
+    index: 0
+  - title: "Phạm vi và quy ước đo"
+    slug: measurement-scope-and-conventions
+    index: 1
+  - title: "Mô hình sự kiện phân phối"
+    slug: delivery-event-model
+    index: 2
+  - title: "Kiến trúc dữ liệu đo lường"
+    slug: measurement-data-architecture
+    index: 3
+  - title: "Dữ liệu từ Git"
+    slug: git-data-collection
+    index: 4
+  - title: "Dữ liệu từ CI/CD"
+    slug: ci-cd-data-collection
+    index: 5
+  - title: "Dữ liệu vận hành và sự cố"
+    slug: operations-and-incident-data
+    index: 6
+  - title: "Chất lượng dữ liệu"
+    slug: data-quality
+    index: 7
+  - title: "Tần suất triển khai"
+    slug: deployment-frequency
+    index: 8
+  - title: "Thời gian đưa thay đổi"
+    slug: lead-time-for-changes
+    index: 9
+  - title: "Tỷ lệ lỗi thay đổi"
+    slug: change-failure-rate
+    index: 10
+  - title: "Thời gian phục hồi"
+    slug: failed-deployment-recovery-time
+    index: 11
+  - title: "Bối cảnh triển khai"
+    slug: deployment-contexts
+    index: 12
+  - title: "Thống kê và cửa sổ đo"
+    slug: statistics-and-measurement-windows
+    index: 13
+  - title: "Đường cơ sở và mục tiêu"
+    slug: baselines-and-targets
+    index: 14
+  - title: "Bản đồ luồng giá trị"
+    slug: value-stream-mapping
+    index: 15
+  - title: "Nút thắt và công việc dở dang"
+    slug: bottlenecks-and-work-in-progress
+    index: 16
+  - title: "Phân tích nguyên nhân"
+    slug: root-cause-analysis
+    index: 17
+  - title: "Dashboard hiệu quả phân phối"
+    slug: delivery-performance-dashboards
+    index: 18
+  - title: "Báo cáo và cảnh báo"
+    slug: reporting-and-alerting
+    index: 19
+  - title: "Tăng tốc dòng thay đổi"
+    slug: accelerating-change-flow
+    index: 20
+  - title: "Tối ưu pipeline"
+    slug: pipeline-optimization
+    index: 21
+  - title: "Giảm lỗi thay đổi"
+    slug: reducing-change-failures
+    index: 22
+  - title: "Rút ngắn phục hồi"
+    slug: shortening-recovery-time
+    index: 23
+  - title: "Thử nghiệm cải tiến"
+    slug: improvement-experiments
+    index: 24
+  - title: "Quản trị chỉ số"
+    slug: metrics-governance
+    index: 25
+  - title: "Lộ trình áp dụng"
+    slug: adoption-roadmap
+    index: 26
+  - title: "Thực hành và tình huống"
+    slug: exercises-and-case-studies
+    index: 27

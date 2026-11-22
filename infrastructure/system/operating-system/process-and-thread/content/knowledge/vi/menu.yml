@@ -1,0 +1,327 @@
+menu:
+- level1: Bức tranh tổng quan
+  level2:
+  - 'Chương trình, tiến trình và luồng: ba khái niệm khác nhau'
+  - Vì sao hệ điều hành cần nhiều tiến trình và nhiều luồng
+  - 'Tính đồng thời và tính song song: phân biệt bằng dòng thời gian'
+  - CPU, lõi xử lý và luồng phần cứng khác luồng phần mềm như thế nào
+  - Tiến trình sở hữu tài nguyên, luồng thực hiện công việc
+  - Cách lập lịch, bộ nhớ và giao tiếp liên tiến trình kết nối với nhau
+  - Chi phí và lợi ích khi chọn nhiều tiến trình hoặc nhiều luồng
+  - Kiến thức nền và thứ tự học từ mô hình đến quan sát thực tế
+- level1: Cấu trúc tiến trình
+  level2:
+  - 'PID, PPID và TID: nhận diện tiến trình, cha và luồng'
+  - Khối điều khiển tiến trình và thông tin hệ điều hành phải lưu
+  - Không gian địa chỉ riêng và các vùng mã, dữ liệu, heap, stack
+  - 'Tài nguyên gắn với tiến trình: tệp mở, thư mục làm việc và môi trường'
+  - Thông tin nào dùng chung, thông tin nào riêng giữa các luồng
+  - Cây tiến trình và quan hệ cha–con
+  - 'Định danh có thể tái sử dụng: giới hạn của việc chỉ lưu PID'
+  - Ranh giới cách ly và quyền truy cập giữa các tiến trình
+- level1: Vòng đời tiến trình
+  level2:
+  - Các trạng thái mới tạo, sẵn sàng, đang chạy, chờ và kết thúc
+  - Chuyển trạng thái khi được cấp CPU, hết lượt hoặc chờ sự kiện
+  - Phân biệt chờ CPU với chờ I/O và chờ đồng bộ
+  - Tạm dừng và tiếp tục một tiến trình
+  - Trạng thái trừu tượng khác ký hiệu trạng thái của từng hệ điều hành
+  - 'Tiến trình zombie: đã kết thúc nhưng chưa được thu hồi trạng thái'
+  - Tiến trình mồ côi và vai trò của tiến trình nhận nuôi
+  - Đọc dòng thời gian để giải thích vì sao một tiến trình chưa chạy
+- level1: Tạo và thay chương trình
+  level2:
+  - 'fork(): tạo tiến trình con và hai nhánh thực thi'
+  - 'Copy-on-write: vì sao fork không đồng nghĩa sao chép ngay toàn bộ bộ nhớ'
+  - 'Họ hàm exec(): thay chương trình trong tiến trình hiện tại'
+  - Chuỗi fork–exec–wait để khởi chạy và theo dõi chương trình con
+  - 'posix_spawn(): giao diện tạo tiến trình và khởi chạy chương trình'
+  - 'Tài nguyên được kế thừa: biến môi trường, thư mục và tệp mở'
+  - File descriptor, open file description và ảnh hưởng của việc dùng chung
+  - FD_CLOEXEC và ngăn tệp mở bị kế thừa ngoài ý muốn
+  - 'fork trong chương trình nhiều luồng: trạng thái khóa và giới hạn thao tác ở tiến trình con'
+  - CreateProcess trên Windows và điểm khác với mô hình fork–exec
+- level1: Kết thúc và thu hồi
+  level2:
+  - Kết thúc bình thường, lỗi không được xử lý và bị hệ điều hành chấm dứt
+  - Mã thoát và cách tiến trình cha diễn giải kết quả
+  - exit(), _exit() và phạm vi dọn dẹp trước khi kết thúc
+  - 'wait(), waitpid() và waitid(): chờ, thăm dò và thu hồi tiến trình con'
+  - 'Đọc trạng thái thoát: kết thúc bằng mã hay bởi tín hiệu'
+  - SIGCHLD và tránh bỏ sót việc thu hồi nhiều tiến trình con
+  - Subreaper và trách nhiệm thu hồi khi cây tiến trình thay đổi
+  - Đóng tài nguyên, xử lý tiến trình con còn sống và giới hạn thời gian dừng
+  - Quan sát zombie mà không nhầm với tiến trình còn tiêu thụ CPU
+- level1: Mô hình luồng
+  level2:
+  - Luồng là gì và vì sao một tiến trình có thể có nhiều luồng
+  - Thanh ghi, con trỏ lệnh và stack riêng của từng luồng
+  - Heap dùng chung và dữ liệu cục bộ theo luồng
+  - Luồng người dùng và luồng do nhân hệ điều hành quản lý
+  - Các mô hình ánh xạ M:1, 1:1 và M:N
+  - NPTL trên Linux và cách nhận diện các tác vụ bằng PID/TID
+  - 'Tác vụ chờ nhiều và tác vụ tính toán nhiều: cơ sở chọn mô hình'
+  - Khi nào nên dùng luồng, tiến trình hoặc vòng lặp sự kiện
+- level1: Vòng đời luồng
+  level2:
+  - Tạo luồng bằng pthread_create và truyền dữ liệu đầu vào
+  - Kết thúc hàm luồng, pthread_exit và giá trị trả về
+  - 'pthread_join: chờ một luồng kết thúc và nhận kết quả'
+  - Luồng joinable, detached và trách nhiệm thu hồi tài nguyên
+  - Luồng chính kết thúc khác với toàn bộ tiến trình kết thúc
+  - Kích thước stack, guard page và giới hạn số luồng
+  - Quản lý vòng đời dữ liệu được truyền sang luồng
+  - 'Luồng native trên Windows: tạo, chờ và đóng handle'
+  - Nhận diện lỗi tạo luồng do cạn bộ nhớ hoặc chạm giới hạn hệ thống
+- level1: Chế độ thực thi
+  level2:
+  - 'Chế độ người dùng và chế độ nhân: quyền thực thi khác nhau'
+  - Lời gọi hệ thống đưa yêu cầu của tiến trình vào nhân như thế nào
+  - Ngắt phần cứng, ngoại lệ đồng bộ và bẫy vào nhân
+  - Ngắt bộ định thời hỗ trợ chia sẻ CPU và giành lại quyền chạy
+  - Đường đi từ một lời gọi chặn đến việc đánh thức luồng
+  - Chuyển chế độ khác chuyển ngữ cảnh và chuyển sang luồng khác
+  - Mã nhân đang chạy thay mặt tiến trình và công việc của luồng nhân
+  - Giới hạn quan sát từ không gian người dùng khi phân tích hoạt động của nhân
+- level1: Chuyển ngữ cảnh
+  level2:
+  - Những trạng thái CPU cần lưu và khôi phục khi đổi luồng
+  - Chuyển giữa hai luồng cùng tiến trình và giữa hai tiến trình
+  - Chuyển ngữ cảnh tự nguyện và không tự nguyện
+  - Hết lát thời gian, chờ khóa và chờ I/O dẫn tới chuyển ngữ cảnh
+  - Ảnh hưởng của cache, TLB và dữ liệu nóng sau khi chuyển
+  - Di chuyển luồng sang CPU khác và chi phí mất tính cục bộ
+  - Vì sao số lần chuyển ngữ cảnh cao chưa đủ để kết luận có lỗi
+  - Đo chi phí chuyển ngữ cảnh trong một thí nghiệm có kiểm soát
+- level1: Lập lịch CPU
+  level2:
+  - Bộ lập lịch chọn luồng sẵn sàng theo tiêu chí nào
+  - Hàng đợi sẵn sàng, lượt chạy và giành quyền CPU
+  - Lập lịch hợp tác và lập lịch có quyền thu hồi
+  - Thông lượng, độ trễ, thời gian đáp ứng và tính công bằng
+  - Các mô hình FCFS, SJF, Round Robin và hàng đợi nhiều mức
+  - Lập lịch trên nhiều lõi và cân bằng tải giữa các CPU
+  - Công bằng theo tỷ trọng trong chính sách lập lịch thông thường của Linux
+  - 'Affinity: CPU được phép chạy khác với lượng CPU được cấp'
+  - Lập lịch không bảo đảm thứ tự thực thi của các luồng trong mã nguồn
+- level1: Ưu tiên và thời hạn
+  level2:
+  - Mức ưu tiên ảnh hưởng khả năng được chạy như thế nào
+  - 'nice và renice: điều chỉnh tỷ trọng trong lớp lập lịch phù hợp'
+  - SCHED_OTHER, SCHED_FIFO, SCHED_RR và SCHED_DEADLINE trên Linux
+  - Thời gian thực cứng, mềm và giới hạn của bảo đảm thời hạn
+  - Ưu tiên cao có thể gây đói CPU cho tác vụ khác
+  - Đảo ngược ưu tiên khi luồng ưu tiên cao chờ khóa
+  - Kế thừa ưu tiên và trần ưu tiên trong giao thức khóa
+  - Lớp ưu tiên tiến trình và ưu tiên luồng trên Windows
+  - Quyền hạn, rủi ro và cách giới hạn thí nghiệm lập lịch thời gian thực
+- level1: Tín hiệu và điều khiển
+  level2:
+  - Tín hiệu POSIX là gì và những sự kiện thường tạo tín hiệu
+  - Hành động mặc định, bỏ qua và cài đặt hàm xử lý tín hiệu
+  - SIGINT, SIGTERM, SIGKILL, SIGSTOP và SIGCONT
+  - Tín hiệu gửi cho tiến trình hoặc cho một luồng cụ thể
+  - Mặt nạ tín hiệu, tín hiệu đang chờ và lựa chọn luồng tiếp nhận
+  - 'Tín hiệu chuẩn và tín hiệu thời gian thực: khả năng xếp hàng'
+  - sigaction, sigprocmask, pthread_sigmask và sigwait
+  - An toàn bất đồng bộ trong hàm xử lý tín hiệu
+  - EINTR, SA_RESTART và xử lý lời gọi bị ngắt
+  - Nhóm tiến trình, phiên và điều khiển tác vụ từ terminal
+  - Tắt chương trình có kiểm soát bằng thông báo và thời hạn chờ
+- level1: Giao tiếp liên tiến trình
+  level2:
+  - Chọn cơ chế IPC theo cách ly, kích thước dữ liệu và độ trễ
+  - 'Pipe vô danh: kết nối tiến trình có quan hệ và chiều truyền dữ liệu'
+  - Đóng đúng đầu pipe để nhận EOF và tránh treo khi chờ
+  - 'FIFO: pipe có tên và vòng đời hai đầu giao tiếp'
+  - Unix domain socket và giao tiếp hai chiều trên cùng máy
+  - 'Hàng đợi thông điệp POSIX và System V: mô hình trao đổi'
+  - Luồng byte, ranh giới thông điệp và thiết kế khuôn dạng dữ liệu
+  - Dữ liệu từng phần, bộ đệm đầy và điều tiết tốc độ bên gửi
+  - EOF, EPIPE, SIGPIPE và phát hiện đầu bên kia đã kết thúc
+  - Named pipe và cơ chế IPC tương ứng trên Windows
+- level1: Bộ nhớ chia sẻ
+  level2:
+  - Vì sao bộ nhớ chia sẻ giảm sao chép nhưng vẫn cần đồng bộ
+  - 'mmap: ánh xạ chia sẻ khác ánh xạ riêng'
+  - shm_open, ftruncate, mmap và vòng đời đối tượng POSIX shared memory
+  - Quyền sở hữu, khởi tạo một lần và gỡ bỏ vùng chia sẻ
+  - 'Bố trí dữ liệu dùng chung: không dựa vào địa chỉ con trỏ của tiến trình khác'
+  - Khóa và semaphore dùng chung giữa các tiến trình
+  - Xử lý tiến trình chết khi đang giữ tài nguyên chia sẻ
+  - Tính hiển thị trong bộ nhớ khác độ bền dữ liệu trên thiết bị lưu trữ
+  - Thiết kế bộ đệm vòng có giới hạn cho hai tiến trình
+- level1: Tính đúng đắn đồng thời
+  level2:
+  - Thao tác có vẻ đơn lẻ có thể gồm nhiều bước đọc–sửa–ghi
+  - 'Race condition và data race: hai khái niệm cần phân biệt'
+  - Đoạn tới hạn, dữ liệu dùng chung và bất biến cần bảo vệ
+  - Tính nguyên tử, tính hiển thị và thứ tự thực hiện
+  - Tính đúng đắn an toàn và khả năng tiếp tục tiến triển
+  - Xác định điểm tuyến tính hóa của một thao tác đồng thời
+  - Vì sao chạy đúng nhiều lần không chứng minh chương trình không có tranh chấp
+  - Rút nhỏ vùng chia sẻ bằng dữ liệu bất biến, sở hữu riêng và truyền thông điệp
+  - 'TOCTOU: kiểm tra điều kiện rồi sử dụng tài nguyên trong lúc trạng thái có thể đổi'
+- level1: Khóa và mutex
+  level2:
+  - Loại trừ tương hỗ và hợp đồng sử dụng mutex
+  - Chọn dữ liệu và bất biến mà một khóa bảo vệ
+  - Mutex chặn khác spinlock chờ bận
+  - 'trylock và khóa có thời hạn: xử lý khi chưa lấy được khóa'
+  - Khóa thường, khóa đệ quy và những lỗi dùng khóa phổ biến
+  - 'Độ hạt của khóa: một khóa lớn hay nhiều khóa nhỏ'
+  - Khóa đọc–ghi và điều kiện để có lợi hơn mutex
+  - Mutex robust và phục hồi khi chủ sở hữu chết
+  - 'futex trên Linux: đường nhanh ở không gian người dùng và hỗ trợ chờ từ nhân'
+  - Thu hồi khóa đúng cách trên mọi đường thoát và đường báo lỗi
+- level1: Điều kiện và semaphore
+  level2:
+  - Semaphore đếm và cách biểu diễn số tài nguyên sẵn có
+  - Semaphore nhị phân khác mutex có quyền sở hữu
+  - Biến điều kiện để chờ một mệnh đề trên dữ liệu dùng chung
+  - Vì sao phải kiểm tra lại điều kiện trong vòng lặp
+  - Đánh thức giả, mất thông báo và khoảng trống giữa kiểm tra với chờ
+  - 'signal và broadcast: đánh thức một hay nhiều luồng'
+  - Kết hợp mutex với biến điều kiện để bảo vệ hàng đợi
+  - Barrier để nhiều luồng gặp nhau tại một mốc thực thi
+  - Chờ có thời hạn và chọn đồng hồ phù hợp cho khoảng thời gian
+  - Bài toán bộ đệm có giới hạn với nhiều bên sản xuất và tiêu thụ
+- level1: Nguyên tử và thứ tự bộ nhớ
+  level2:
+  - Phép đọc–ghi nguyên tử khác một chuỗi thao tác nguyên tử
+  - Compare-and-swap, fetch-add và cập nhật có tranh chấp
+  - Hệ quả của tối ưu trình biên dịch và sắp xếp lại ở CPU
+  - Quan hệ happens-before nối việc ghi dữ liệu với việc đọc hợp lệ
+  - Acquire, release, relaxed và thứ tự nhất quán tuần tự
+  - Đồng bộ cache không tự tạo hợp đồng đồng bộ cho chương trình
+  - Vì sao volatile trong C/C++ không thay thế mutex hoặc kiểu nguyên tử
+  - Vấn đề ABA và vòng đời vùng nhớ trong thuật toán không khóa
+  - Phân biệt blocking, lock-free và wait-free
+  - Khi nào nên chọn thư viện đồng bộ đã được kiểm chứng
+- level1: Bế tắc và tiến triển
+  level2:
+  - Bốn điều kiện cần của deadlock và đồ thị chờ tài nguyên
+  - Chu kỳ chờ giữa nhiều khóa và cách áp đặt thứ tự khóa
+  - Bế tắc do gọi lại, chờ join hoặc chờ kết quả trong khi giữ khóa
+  - 'Phòng ngừa, tránh và phát hiện bế tắc: các hướng tiếp cận khác nhau'
+  - Thuật toán Banker trong mô hình cấp phát tài nguyên
+  - Thời hạn chờ hỗ trợ phát hiện nhưng không tự chứng minh hết bế tắc
+  - 'Livelock: các luồng vẫn hoạt động nhưng công việc không tiến triển'
+  - 'Starvation: tác vụ liên tục không nhận được tài nguyên'
+  - Lock convoy và thundering herd khi nhiều luồng cùng chờ
+  - Giảm tranh chấp bằng chia nhỏ sở hữu và giới hạn số tác vụ cạnh tranh
+- level1: Hợp tác và hủy tác vụ
+  level2:
+  - Phân rã công việc và xác định dữ liệu đi qua ranh giới luồng
+  - Thỏa thuận kết thúc giữa bên tạo việc và bên nhận việc
+  - Cờ dừng cần cơ chế đồng bộ để luồng khác quan sát được
+  - Hủy hợp tác và rủi ro của việc cưỡng bức kết thúc luồng
+  - 'pthread_cancel: kiểu hủy, điểm hủy và hàm dọn dẹp'
+  - Đánh thức tác vụ đang chờ khi có yêu cầu dừng
+  - Truyền lỗi và kết quả giữa các luồng mà không bỏ sót tài nguyên
+  - Đóng hàng đợi, ngừng nhận việc, chờ hoàn tất và hết thời hạn
+  - 'Xử lý công việc đang làm dở: hoàn tất, hủy hoặc bàn giao'
+  - Phạm vi vòng đời giúp tiến trình cha quản lý toàn bộ tác vụ con
+- level1: Nhóm luồng và tải
+  level2:
+  - Nhóm luồng tách vòng đời luồng khỏi vòng đời công việc
+  - Hàng đợi có giới hạn và chính sách khi hết chỗ
+  - Ước lượng số luồng cho công việc tính toán hoặc chờ nhiều
+  - 'Số luồng vượt số lõi: lợi ích và chi phí tùy loại công việc'
+  - Bế tắc khi tác vụ trong nhóm chờ tác vụ khác cùng nhóm
+  - Work stealing và phân phối những công việc nhỏ không đều
+  - Chi phí tạo luồng, tái sử dụng luồng và dữ liệu cục bộ bị giữ lại
+  - Điều tiết đầu vào để ngăn hàng đợi và độ trễ tăng không kiểm soát
+  - Nhóm tiến trình so với nhóm luồng khi cần cách ly lỗi
+  - 'Vòng lặp sự kiện, coroutine và luồng hệ điều hành: quan hệ giữa các lớp'
+- level1: Phân cấp và giới hạn
+  level2:
+  - Nhóm tiến trình, phiên và phạm vi gửi tín hiệu
+  - 'Job control: tác vụ tiền cảnh, nền và terminal điều khiển'
+  - Giới hạn tài nguyên theo tiến trình bằng getrlimit, setrlimit và ulimit
+  - RLIMIT_NPROC và cách hệ điều hành tính phạm vi áp dụng
+  - 'PID namespace: định danh khác nhau giữa bên trong và bên ngoài'
+  - Tiến trình PID 1 trong namespace và trách nhiệm xử lý tín hiệu, thu hồi
+  - 'cgroup v2: nhóm tiến trình để theo dõi và kiểm soát tài nguyên'
+  - cpu.weight, cpu.max và hiện tượng bị giới hạn thời gian CPU
+  - 'cpuset và pids.max: CPU được phép dùng và giới hạn số tác vụ'
+  - Windows Job Objects và quản lý vòng đời một nhóm tiến trình
+  - Giới hạn container khác khả năng CPU nhìn thấy từ máy chủ
+- level1: Quan sát trên Linux
+  level2:
+  - 'ps: đọc PID, PPID, TID, trạng thái và thời gian CPU'
+  - 'top và htop: chuyển giữa góc nhìn tiến trình với luồng'
+  - 'pstree: dựng quan hệ cha–con để tìm nguồn khởi chạy'
+  - '/proc/<pid>/status, stat và task: đối chiếu thông tin tiến trình, luồng'
+  - '/proc/<pid>/fd, cmdline và environ: quan sát tài nguyên trong phạm vi quyền được cấp'
+  - 'pidstat và vmstat: lấy mẫu CPU, chuyển ngữ cảnh và hàng đợi chạy'
+  - 'strace: theo dõi tạo tiến trình, lời gọi chờ và tín hiệu'
+  - 'perf stat, perf record và perf sched: đo sự kiện, mẫu CPU và lập lịch'
+  - 'taskset, chrt và prlimit: đọc cấu hình trước khi thay đổi có kiểm soát'
+  - 'gdb và pstack: xem ngăn xếp các luồng khi chương trình treo'
+  - Quyền ptrace, dữ liệu nhạy cảm và chi phí của công cụ quan sát
+- level1: Quan sát trên Windows
+  level2:
+  - 'Task Manager: đối chiếu tiến trình, luồng, CPU và tài nguyên'
+  - 'Resource Monitor: quan sát hoạt động và phân tích chuỗi chờ'
+  - 'Process Explorer: xem cây tiến trình, luồng và handle'
+  - 'Get-Process và Get-CimInstance: lấy thông tin tiến trình bằng PowerShell'
+  - 'PID và handle: nhận diện đối tượng và quản lý vòng đời tham chiếu'
+  - Wait Chain Traversal và đọc quan hệ chờ khi nghi ngờ bế tắc
+  - 'Windows Performance Recorder và Windows Performance Analyzer: phân tích CPU, luồng, lập lịch'
+  - 'WinDbg: đọc ngăn xếp luồng và dữ liệu chẩn đoán tiến trình'
+  - 'Stop-Process và cơ chế dừng có kiểm soát: hiểu tác động trước khi dùng'
+  - Đối chiếu kết quả Windows với mô hình chung mà không suy diễn hành vi POSIX
+- level1: Liên hệ với Java
+  level2:
+  - Tiến trình JVM, các luồng ứng dụng và các luồng nội bộ
+  - Luồng nền tảng Java và mối quan hệ với luồng hệ điều hành
+  - 'Luồng ảo trong Java 21: luồng Java không tương ứng một-một với luồng hệ điều hành'
+  - Trạng thái Thread.State khác trạng thái tiến trình, luồng do hệ điều hành báo
+  - Thread.start, join và interrupt dưới góc nhìn vòng đời tác vụ
+  - interrupt là yêu cầu hợp tác, không phải tín hiệu POSIX hay lệnh cưỡng bức dừng
+  - synchronized, Lock, volatile và kiểu nguyên tử thuộc mô hình bộ nhớ Java
+  - ExecutorService và giới hạn số luồng, hàng đợi khi xử lý công việc
+  - 'ProcessBuilder và Process: khởi chạy, đọc đầu ra, chờ và kết thúc tiến trình con'
+  - Tiến trình con bị chặn khi đầu ra đầy mà ứng dụng Java chưa đọc
+  - jcmd, jstack và đối chiếu định danh luồng với công cụ hệ điều hành
+- level1: Hiệu năng đa luồng
+  level2:
+  - Định luật Amdahl và giới hạn tăng tốc của phần công việc tuần tự
+  - Chọn độ hạt tác vụ để chi phí điều phối không lấn át tính toán
+  - True sharing và false sharing trên cùng dòng cache
+  - Tính cục bộ dữ liệu, NUMA và ảnh hưởng của di chuyển luồng
+  - Cạnh tranh khóa, thời gian giữ khóa và đoạn tới hạn nóng
+  - Chờ bận, đánh thức liên tục và lãng phí CPU
+  - Thông lượng cao khác độ trễ thấp, nhất là ở các phân vị cuối
+  - Lấy mẫu với khoảng đo đủ dài và phân biệt CPU time với wall-clock time
+  - 'Thiết kế phép đo: tải ổn định, khởi động, lặp lại và đối chứng'
+  - Tách nút thắt CPU, đồng bộ và I/O trước khi tăng số luồng
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quy trình từ triệu chứng đến giả thuyết, bằng chứng và phép kiểm chứng
+  - CPU cao do tính toán, vòng lặp bận hoặc quá nhiều tác vụ cạnh tranh
+  - 'CPU thấp nhưng chương trình chậm: chờ I/O, khóa hay giới hạn CPU'
+  - 'Nhiều luồng ở trạng thái chờ: khi nào bình thường, khi nào bất thường'
+  - Luồng tăng liên tục và cạn tài nguyên do không quản lý vòng đời
+  - Zombie tích tụ và tiến trình cha không thu hồi đúng cách
+  - 'Không dừng được bằng SIGTERM: kiểm tra mặt nạ, xử lý tín hiệu và trạng thái chờ'
+  - Chương trình treo khi chờ tiến trình con, pipe hoặc khóa
+  - Phân biệt deadlock, starvation, livelock và nghẽn tài nguyên
+  - 'Tiến trình bị kết thúc ngoài ý muốn: mã thoát, tín hiệu, OOM và nhật ký'
+  - Lưu mốc thời gian, ảnh chụp trạng thái và ngăn xếp để đối chiếu trước–sau
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng cây tiến trình và giải thích PID, PPID, TID bằng quan sát
+  - Thí nghiệm fork–exec–wait và chứng minh PID được giữ qua exec
+  - Tạo zombie trong môi trường kiểm soát rồi thu hồi đúng cách
+  - So sánh dữ liệu riêng của hai tiến trình với dữ liệu dùng chung giữa hai luồng
+  - Đo công việc tính toán khi thay đổi số luồng và số CPU được phép dùng
+  - Tạo tranh chấp bộ đếm rồi sửa bằng mutex và phép toán nguyên tử
+  - Xây hàng đợi có giới hạn bằng mutex và biến điều kiện
+  - Tạo bế tắc hai khóa, đọc ngăn xếp và sửa thứ tự lấy khóa
+  - Xây giao tiếp pipe có xử lý EOF và tiến trình con xuất nhiều dữ liệu
+  - Điều phối dừng nhiều tiến trình, luồng bằng tín hiệu và thời hạn
+  - Quan sát tác động của cpu.max và pids.max trong môi trường cô lập
+  - Lập hồ sơ hiệu năng và giải thích kết quả bằng bằng chứng hệ điều hành
+  - Bài tập chọn kiến trúc tiến trình, luồng hoặc vòng lặp sự kiện theo yêu cầu

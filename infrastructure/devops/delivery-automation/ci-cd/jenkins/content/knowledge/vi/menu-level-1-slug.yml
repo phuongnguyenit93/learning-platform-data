@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Cài đặt
+  slug: installation
+  index: 2
+- title: Quản trị cơ bản
+  slug: basic-administration
+  index: 3
+- title: Loại công việc
+  slug: job-types
+  index: 4
+- title: Kết nối mã nguồn
+  slug: source-control-integration
+  index: 5
+- title: Jenkinsfile
+  slug: jenkinsfile
+  index: 6
+- title: Declarative Pipeline
+  slug: declarative-pipeline
+  index: 7
+- title: Scripted và Groovy
+  slug: scripted-pipelines-and-groovy
+  index: 8
+- title: Tham số và môi trường
+  slug: parameters-and-environment
+  index: 9
+- title: Agent và công cụ
+  slug: agents-and-tools
+  index: 10
+- title: Workspace và tệp
+  slug: workspaces-and-files
+  index: 11
+- title: Xây dựng Java
+  slug: java-builds
+  index: 12
+- title: Kiểm thử và chất lượng
+  slug: testing-and-quality
+  index: 13
+- title: Gói đầu ra
+  slug: build-artifacts
+  index: 14
+- title: Thông tin bí mật
+  slug: credentials-and-secrets
+  index: 15
+- title: Kích hoạt pipeline
+  slug: pipeline-triggers
+  index: 16
+- title: Multibranch Pipeline
+  slug: multibranch-pipeline
+  index: 17
+- title: Điều phối thực thi
+  slug: execution-orchestration
+  index: 18
+- title: Song song và ma trận
+  slug: parallel-and-matrix
+  index: 19
+- title: Môi trường container
+  slug: container-environments
+  index: 20
+- title: Triển khai ứng dụng
+  slug: application-deployment
+  index: 21
+- title: Shared Library
+  slug: shared-library
+  index: 22
+- title: Cấu hình bằng mã
+  slug: configuration-as-code
+  index: 23
+- title: Quản lý plugin
+  slug: plugin-management
+  index: 24
+- title: Bảo mật
+  slug: security
+  index: 25
+- title: Theo dõi kết quả
+  slug: build-results
+  index: 26
+- title: Hiệu năng
+  slug: performance
+  index: 27
+- title: Vận hành Jenkins
+  slug: jenkins-operations
+  index: 28
+- title: Sao lưu và phục hồi
+  slug: backup-and-recovery
+  index: 29
+- title: Kiểm thử pipeline
+  slug: testing-pipeline
+  index: 30
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 31
+- title: Lỗi thường gặp
+  slug: common-pitfalls
+  index: 32
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 33

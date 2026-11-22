@@ -1,0 +1,7 @@
+# Cloud Fundamentals
+
+Cloud Fundamentals giới thiệu những nguyên lý nền tảng của điện toán đám mây: sử dụng tài nguyên tính toán, lưu trữ, mạng và dịch vụ qua mạng theo nhu cầu thay vì phải tự sở hữu toàn bộ phần cứng. Người học tìm hiểu các đặc tính như tự phục vụ, co giãn và đo lường mức sử dụng; đồng thời phân biệt IaaS, PaaS, SaaS và trách nhiệm vận hành tương ứng. Module tập trung vào cách tư duy và lựa chọn dịch vụ, không phụ thuộc một nhà cung cấp cloud cụ thể.
+
+Roadmap một cấp gồm tám mốc: từ khái niệm cloud computing, mô hình dịch vụ và mô hình triển khai đến region/availability zone, các năng lực compute, storage, network và dịch vụ được quản lý. Tiếp theo, bạn tìm hiểu tài nguyên, công cụ cấp phát, IAM cùng mô hình shared responsibility, rồi xem xét scalability, reliability, monitoring và kiểm soát chi phí theo mức sử dụng. Các nội dung tạo nền tảng để tiếp tục học kiến trúc, DevOps và dịch vụ chuyên sâu trên AWS, Azure hoặc Google Cloud.
+
+Module phù hợp với người đã biết khái niệm cơ bản về máy chủ, ứng dụng và mạng máy tính, kể cả khi chưa từng triển khai trên cloud. Sau khi hoàn thành, bạn có thể vẽ kiến trúc cloud đơn giản, giải thích lựa chọn IaaS/PaaS/SaaS, chỉ ra ranh giới trách nhiệm bảo mật và đề xuất những bước ban đầu để theo dõi độ tin cậy cũng như ngân sách của workload.

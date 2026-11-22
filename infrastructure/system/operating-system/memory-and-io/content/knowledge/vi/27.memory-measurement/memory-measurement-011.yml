@@ -1,0 +1,3 @@
+menuLevel1: Đo bộ nhớ
+menuLevel2: Đo cache miss, TLB miss, page fault bằng perf khi phần cứng hỗ trợ
+status: ''

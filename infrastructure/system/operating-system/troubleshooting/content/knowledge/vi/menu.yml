@@ -1,0 +1,482 @@
+menu:
+- level1: Tư duy chẩn đoán
+  level2:
+  - Troubleshooting là gì và mục tiêu của việc chẩn đoán hệ điều hành
+  - Phân biệt triệu chứng, nguyên nhân trực tiếp và nguyên nhân gốc
+  - Phân biệt lỗi chức năng, suy giảm hiệu năng và cạn tài nguyên
+  - Ứng dụng, runtime, hệ điều hành và phần cứng liên hệ như thế nào
+  - Xác định phạm vi một người dùng, một tiến trình, một máy hay toàn hệ thống
+  - Quan sát dữ liệu trước khi thay cấu hình hoặc khởi động lại
+  - Đặt giả thuyết có thể kiểm chứng thay vì đoán theo kinh nghiệm
+  - Tương quan không đồng nghĩa với quan hệ nhân quả
+  - Phân biệt tải cao hợp lệ với hành vi bất thường
+  - Thuật ngữ, kiến thức nền và lộ trình học chẩn đoán
+- level1: Quy trình xử lý sự cố
+  level2:
+  - Mô tả tác động, thời điểm bắt đầu và điều kiện xuất hiện
+  - Đánh giá mức nghiêm trọng và ưu tiên khôi phục chức năng
+  - Thu thập thông tin môi trường và thay đổi gần nhất
+  - Tái hiện lỗi và ghi lại các bước tối thiểu
+  - Lập dòng thời gian từ bằng chứng nhiều nguồn
+  - Khoanh vùng theo từng tầng và thu hẹp phạm vi tìm kiếm
+  - So sánh với thời điểm hoặc máy đang hoạt động bình thường
+  - Thay đổi một yếu tố và giữ khả năng đối chiếu
+  - Phân biệt giảm tác động tạm thời với sửa nguyên nhân gốc
+  - Lưu bằng chứng dễ mất trước khi can thiệp
+  - Xác định điều kiện dừng điều tra và chuyển giao chuyên môn
+  - Xác minh dịch vụ đã phục hồi từ góc nhìn người sử dụng
+- level1: Bản đồ hệ thống
+  level2:
+  - Xác định hệ điều hành, kernel, kiến trúc CPU và môi trường chạy
+  - Nhận diện máy vật lý, máy ảo, WSL và container
+  - Xác định PID, người dùng và dịch vụ sở hữu tiến trình
+  - Đường đi từ request đến tiến trình, tệp, socket và thiết bị
+  - Bản đồ phụ thuộc tới DNS, mạng, lưu trữ và dịch vụ ngoài
+  - Phân biệt CPU logic, bộ nhớ được cấp và tài nguyên khả dụng
+  - Filesystem, mount point và thiết bị lưu trữ bên dưới
+  - Địa chỉ IP, interface, route và không gian mạng
+  - Giới hạn tài nguyên theo tiến trình, phiên đăng nhập và nhóm tài nguyên
+  - Quyền quan sát và các dữ liệu không thấy được do thiếu đặc quyền
+  - Chọn điểm đo phù hợp với triệu chứng
+- level1: Công cụ Linux
+  level2:
+  - uname, thông tin bản phân phối và nhận diện môi trường
+  - ps, top, htop và quan sát tiến trình theo thời gian
+  - uptime, load average và giới hạn suy luận về CPU
+  - vmstat và mối liên hệ giữa CPU, bộ nhớ, I/O
+  - free và cách đọc bộ nhớ khả dụng
+  - pidstat, mpstat và phân tích theo tiến trình hoặc CPU
+  - iostat và số đo thiết bị lưu trữ
+  - df, du và kiểm kê dung lượng filesystem
+  - ss, ip và trạng thái mạng
+  - lsof và tài nguyên đang mở của tiến trình
+  - journalctl, dmesg và log hệ thống
+  - /proc, /sys và dữ liệu do kernel công bố
+  - Chọn khoảng lấy mẫu và tránh hiểu sai ảnh chụp tức thời
+- level1: Công cụ Windows
+  level2:
+  - Task Manager và nhận diện tiến trình hoặc tài nguyên bất thường
+  - Resource Monitor và đối chiếu CPU, bộ nhớ, đĩa, mạng
+  - Performance Monitor và bộ đếm hiệu năng theo thời gian
+  - Event Viewer và Windows Event Log
+  - PowerShell Get-Process, Get-Service và Get-WinEvent
+  - Get-Counter và thu thập số đo có thể đối chiếu
+  - Process Explorer và cây tiến trình, handle, DLL
+  - Process Monitor và theo dõi tệp, Registry, tiến trình
+  - TCPView, Get-NetTCPConnection và tài nguyên mạng
+  - Reliability Monitor và lịch sử lỗi hoặc cập nhật
+  - Phân biệt bộ công cụ có sẵn với công cụ cần cài thêm
+  - Quyền truy cập, kiến trúc tiến trình và giới hạn quan sát
+- level1: Công cụ macOS
+  level2:
+  - Activity Monitor và đọc CPU, bộ nhớ, năng lượng, đĩa, mạng
+  - Memory Pressure và khác biệt với chỉ số bộ nhớ trống
+  - ps, top, lsof và kiểm tra tiến trình
+  - vm_stat và số liệu bộ nhớ ảo
+  - Console, log show và log stream
+  - launchctl và trạng thái dịch vụ launchd
+  - sample, spindump và tiến trình không phản hồi
+  - fs_usage và theo dõi thao tác filesystem
+  - Công cụ mạng và phân biệt hành vi với Linux
+  - Quyền riêng tư, quyền quản trị và giới hạn truy cập dữ liệu chẩn đoán
+- level1: Log và bằng chứng
+  level2:
+  - Phân biệt log ứng dụng, runtime, dịch vụ và kernel
+  - Chọn khoảng thời gian và ngữ cảnh thay vì chỉ tìm từ ERROR
+  - Đồng bộ timestamp, múi giờ và định dạng thời gian
+  - Liên kết PID, tên dịch vụ, mã request và phiên khởi động
+  - Đọc chuỗi sự kiện trước và sau lỗi
+  - Phân biệt lỗi gốc với lỗi dây chuyền
+  - Log bị xoay vòng, ghi đè, trì hoãn hoặc mất
+  - Giới hạn tốc độ ghi log và tác động tới bằng chứng
+  - Thu thập trạng thái tiến trình, socket và tài nguyên cùng thời điểm
+  - Bảo vệ credential và dữ liệu cá nhân trong gói chẩn đoán
+  - Ghi lại câu lệnh, phiên bản công cụ và điều kiện thu thập
+  - Lưu bằng chứng đủ để người khác kiểm tra lại kết luận
+- level1: CPU và tải
+  level2:
+  - CPU utilization, load average, hàng đợi chạy và độ trễ
+  - User time, system time, idle và thời gian chờ liên quan I/O
+  - Phân biệt toàn máy bận với một core bị bão hòa
+  - Tiến trình dùng CPU cao và tiến trình gây nhiều công việc kernel
+  - Luồng bận liên tục, vòng lặp và tính toán hợp lệ
+  - Context switch, scheduler và nhiều luồng tranh chấp
+  - CPU steal trong máy ảo và giới hạn cách diễn giải
+  - CPU throttling do quota hoặc điều kiện phần cứng
+  - Affinity, số CPU khả dụng và tác động của cấu hình
+  - Interrupt, softirq và tải từ mạng hoặc thiết bị
+  - Chênh lệch số đo CPU giữa công cụ và môi trường
+  - Thu thập mẫu stack trước khi kết luận cần tăng CPU
+- level1: Tiến trình và luồng
+  level2:
+  - Nhận diện tiến trình treo, thoát, khởi động lại hoặc bị thay thế
+  - Cây tiến trình, tiến trình cha và tiến trình con
+  - Trạng thái chạy, ngủ, chờ I/O và dừng theo từng hệ điều hành
+  - Zombie, orphan và trách nhiệm thu hồi tiến trình
+  - Phân biệt tiến trình còn tồn tại với tiến trình còn phục vụ được
+  - Luồng chờ khóa, deadlock và starvation
+  - Số luồng tăng liên tục và cạn tài nguyên tạo luồng
+  - Lấy mẫu stack và nhận diện luồng gây nghẽn
+  - Signal, exit code và nguyên nhân tiến trình kết thúc
+  - Tiến trình không nhận tín hiệu dừng hoặc không thể kết thúc ngay
+  - Quyền sở hữu tiến trình và khác biệt giữa tài khoản chạy
+  - Rà soát tác vụ con còn sót sau khi dịch vụ dừng
+- level1: Bộ nhớ
+  level2:
+  - Bộ nhớ vật lý, bộ nhớ ảo và bộ nhớ đã cam kết
+  - Phân biệt used, free, available và bộ nhớ đệm
+  - RSS, VSS, PSS và giới hạn khi cộng bộ nhớ tiến trình
+  - Working set, private bytes và commit trên Windows
+  - Page fault nhẹ, page fault nặng và tác động độ trễ
+  - Swap, paging và hiện tượng thrashing
+  - Memory pressure và cạn bộ nhớ thực sự
+  - Rò rỉ bộ nhớ so với cache hoặc tải tăng hợp lệ
+  - Phân mảnh bộ nhớ và cấp phát thất bại
+  - OOM killer, giới hạn cgroup và tiến trình bị kết thúc
+  - Kernel memory, slab và bộ nhớ không thuộc heap ứng dụng
+  - Theo dõi xu hướng trước, trong và sau chu kỳ tải
+  - Chọn giảm tải, sửa rò rỉ hoặc điều chỉnh giới hạn theo bằng chứng
+- level1: I/O lưu trữ
+  level2:
+  - Đọc ghi logic của ứng dụng và I/O thực tới thiết bị
+  - IOPS, throughput, latency và queue depth
+  - I/O đồng bộ, bất đồng bộ và thao tác phải chờ bền vững
+  - Đọc ngẫu nhiên, ghi ngẫu nhiên và truy cập tuần tự
+  - Xác định tiến trình tạo tải I/O
+  - Phân biệt hàng đợi dài với thiết bị xử lý chậm
+  - Giới hạn suy luận từ utilization hoặc iowait riêng lẻ
+  - Page cache, writeback và độ trễ ghi bị dồn
+  - fsync, flush và yêu cầu dữ liệu bền vững
+  - Độ trễ do lưu trữ từ xa hoặc lớp ảo hóa
+  - Lỗi thiết bị, timeout và retry trong log kernel
+  - Đối chiếu số đo ứng dụng, filesystem và thiết bị
+- level1: Dung lượng và filesystem
+  level2:
+  - Filesystem đầy dung lượng và đầy inode
+  - df khác du khi nào và cách đối chiếu
+  - Tệp đã xóa nhưng tiến trình vẫn giữ mở
+  - Log, tệp tạm, cache và dump tăng ngoài dự kiến
+  - Sparse file, hard link và dung lượng thực sử dụng
+  - Quota, reserved space và giới hạn theo người dùng
+  - Mount sai nơi và dữ liệu ghi vào filesystem ngoài ý muốn
+  - Read-only filesystem và nguyên nhân chuyển sang chỉ đọc
+  - Lỗi metadata, hỏng dữ liệu và giới hạn của việc tiếp tục ghi
+  - Snapshot, volume và lớp lưu trữ làm lệch số đo
+  - Kiểm tra đường dẫn, symlink và khác biệt chữ hoa chữ thường
+  - Dọn dữ liệu theo quyền sở hữu và xác minh dung lượng được thu hồi
+- level1: Quyền và chính sách
+  level2:
+  - Permission denied và phân biệt với tệp không tồn tại
+  - Chủ sở hữu, nhóm và quyền trên từng thành phần đường dẫn
+  - Quyền đọc, ghi, thực thi và truy cập thư mục
+  - ACL và quyền hiệu lực trên Linux hoặc Windows
+  - UID, GID, service account và danh tính thực sự của tiến trình
+  - UAC, token truy cập và mức đặc quyền trên Windows
+  - SELinux, AppArmor và log từ chối theo chính sách
+  - Antivirus hoặc chính sách bảo vệ chặn tệp và tiến trình
+  - Quyền của service khác phiên đăng nhập tương tác
+  - Credential, secret, chứng chỉ và quyền truy cập vật liệu bảo mật
+  - Filesystem hoặc container chỉ đọc khác thiếu quyền như thế nào
+  - Khắc phục đúng phạm vi thay vì cấp quyền rộng để che nguyên nhân
+- level1: Kết nối mạng
+  level2:
+  - Khoanh vùng từ máy cục bộ tới đích theo từng chặng
+  - Interface, địa chỉ IP, subnet và default gateway
+  - Route được chọn và khác biệt đường đi hai chiều
+  - Ping thành công hoặc thất bại cho biết được điều gì
+  - Packet loss, latency, jitter và retransmission
+  - Firewall, rule hệ điều hành và chính sách mạng ngoài máy
+  - VPN, nhiều interface và route ưu tiên
+  - MTU, Path MTU Discovery và kết nối chỉ lỗi với dữ liệu lớn
+  - NAT, connection tracking và giới hạn trạng thái
+  - Proxy cấu hình trong môi trường hoặc ứng dụng
+  - Phân biệt băng thông đầy với kết nối có độ trễ cao
+  - Đối chiếu kết quả từ máy gặp lỗi và máy đang hoạt động
+- level1: Phân giải tên
+  level2:
+  - DNS resolution khác khả năng kết nối tới địa chỉ IP
+  - dig, nslookup và công cụ phân giải theo nền tảng
+  - Resolver của hệ điều hành khác công cụ truy vấn DNS trực tiếp
+  - hosts file, search domain và thứ tự nguồn phân giải
+  - DNS cache, TTL và dữ liệu cũ
+  - NXDOMAIN, timeout và lỗi máy chủ phân giải
+  - Phân giải A, AAAA và lựa chọn IPv4 hoặc IPv6
+  - Split DNS, VPN và tên nội bộ
+  - Container hoặc máy ảo dùng resolver khác máy chủ
+  - DNS trong runtime và bộ nhớ đệm của ứng dụng
+  - Tên phân giải được nhưng trỏ tới đích sai hoặc chưa sẵn sàng
+- level1: Cổng và socket
+  level2:
+  - Cổng lắng nghe, địa chỉ bind và tiến trình sở hữu socket
+  - ss, netstat, lsof và Get-NetTCPConnection theo nền tảng
+  - Connection refused khác connection timeout
+  - Kết nối thành công nhưng không nhận được dữ liệu
+  - Trạng thái SYN, ESTABLISHED, TIME_WAIT và CLOSE_WAIT
+  - Phân biệt kết nối hợp lệ với socket bị giữ ngoài dự kiến
+  - Giới hạn backlog và ứng dụng không accept kịp
+  - Cạn ephemeral port và nhiều kết nối ngắn
+  - Giới hạn file descriptor ảnh hưởng tới socket
+  - UDP không có kết nối và khó khăn khi xác nhận đích sẵn sàng
+  - Kiểm tra cả hai đầu trước khi kết luận lỗi mạng
+  - Tái sử dụng cổng và xung đột giữa các instance
+- level1: TLS và đường truy cập
+  level2:
+  - Khoanh vùng TCP thành công nhưng TLS handshake thất bại
+  - Chứng chỉ hết hạn, chưa có hiệu lực hoặc sai tên miền
+  - Chuỗi tin cậy và trust store theo hệ điều hành hoặc runtime
+  - Đồng hồ hệ thống ảnh hưởng kiểm tra chứng chỉ
+  - SNI, tên đích và thử kết nối trực tiếp bằng địa chỉ IP
+  - Phiên bản giao thức hoặc thuật toán không tương thích
+  - mTLS và lỗi xác thực chứng chỉ máy khách
+  - Reverse proxy, load balancer và điểm kết thúc TLS
+  - HTTP trả lỗi khác với không kết nối được ở tầng hệ điều hành
+  - Đối chiếu timeout, redirect và header qua nhiều tầng
+  - Thu thập bằng chứng handshake mà không làm lộ khóa hoặc credential
+- level1: Dịch vụ hệ thống
+  level2:
+  - Tiến trình chạy được thủ công nhưng dịch vụ không khởi động
+  - systemctl status, journalctl và vòng đời dịch vụ systemd
+  - Windows Services, Service Control Manager và mã lỗi dịch vụ
+  - launchd và dịch vụ nền trên macOS
+  - Working directory, tài khoản và biến môi trường của dịch vụ
+  - Quan hệ phụ thuộc và thứ tự khởi động
+  - Readiness, startup timeout và dịch vụ khởi động chậm
+  - Restart policy và vòng lặp khởi động lại
+  - Giới hạn tài nguyên được áp dụng riêng cho dịch vụ
+  - Tệp cấu hình, quyền đọc và đường dẫn executable
+  - Dịch vụ nhận lệnh stop nhưng tiến trình con còn tồn tại
+  - Kiểm chứng trạng thái sau khởi động lại hệ thống
+- level1: Khởi động và kernel
+  level2:
+  - Khoanh vùng lỗi trước và sau khi hệ điều hành được nạp
+  - Firmware, bootloader và chọn thiết bị khởi động
+  - Filesystem gốc không mount được và phụ thuộc lưu trữ
+  - Driver, kernel module và thiết bị không được nhận diện
+  - Log của phiên khởi động hiện tại và phiên trước
+  - Kernel panic, lỗi dừng Windows và dữ liệu chẩn đoán
+  - Khởi động chậm do dịch vụ, timeout hoặc thiết bị
+  - Chế độ phục hồi, safe mode và mục tiêu sử dụng
+  - Cấu hình boot thay đổi sau cập nhật
+  - Phân biệt mất nguồn, reset và shutdown có chủ đích
+  - Thu thập bằng chứng trước khi sửa cấu hình khởi động
+- level1: Shell và môi trường
+  level2:
+  - Command not found và thứ tự tìm executable trong PATH
+  - Cùng tên lệnh nhưng khác phiên bản hoặc đường dẫn
+  - Biến môi trường theo user, phiên shell, dịch vụ và container
+  - Working directory và đường dẫn tương đối
+  - Quoting, escaping và đối số bị shell diễn giải khác dự kiến
+  - Quyền thực thi, shebang và trình thông dịch không tồn tại
+  - Line ending, encoding và ký tự không hiển thị trong script
+  - PowerShell Execution Policy khác quyền truy cập tệp
+  - Locale, timezone và định dạng dữ liệu phụ thuộc môi trường
+  - Exit code, standard output và standard error
+  - Pipeline che mất lỗi hoặc thay đổi cách truyền dữ liệu
+  - Tái hiện lệnh bằng môi trường tối thiểu và ghi lại khác biệt
+- level1: Thư viện và cấu hình
+  level2:
+  - Executable tồn tại nhưng không chạy do thiếu dependency
+  - Shared library, DLL và đường dẫn nạp thư viện
+  - Sai kiến trúc CPU hoặc định dạng executable
+  - Xung đột phiên bản thư viện và ABI
+  - Thư viện được nạp thực tế khác với thư viện dự kiến
+  - Tệp cấu hình không được đọc hoặc bị nguồn khác ghi đè
+  - Cấu hình theo user khác cấu hình toàn máy
+  - Registry, tệp cấu hình và môi trường theo nền tảng
+  - Ứng dụng dùng cấu hình cũ do cache hoặc chưa khởi động lại
+  - Đối chiếu cấu hình hiệu lực với tệp cấu hình trên đĩa
+  - Phân biệt sửa dependency với thay toàn bộ môi trường
+- level1: Giới hạn tài nguyên
+  level2:
+  - Giới hạn mềm, giới hạn cứng và phạm vi áp dụng
+  - ulimit, limits và giới hạn của phiên thực sự chạy ứng dụng
+  - File descriptor, handle và tài nguyên đối tượng theo nền tảng
+  - Số tiến trình, số luồng và lỗi tạo tác vụ mới
+  - Không gian địa chỉ, stack và lỗi cấp phát
+  - cgroup, systemd resource control và quota container
+  - Windows Job Object và giới hạn theo nhóm tiến trình
+  - Quota lưu trữ, inode và giới hạn theo người dùng
+  - Giới hạn bộ nhớ khóa hoặc tài nguyên kernel theo nhu cầu ứng dụng
+  - Tăng giới hạn có thể chuyển điểm nghẽn sang đâu
+  - Kiểm tra rò rỉ trước khi quyết định tăng giới hạn
+  - Xác minh giới hạn mới đã áp dụng tới đúng tiến trình
+- level1: Thời gian và tác vụ định kỳ
+  level2:
+  - Đồng hồ hệ thống, timezone và timestamp trong log
+  - Đồng bộ thời gian và hiện tượng clock drift
+  - Thời gian thực khác đồng hồ đơn điệu khi đo độ trễ
+  - DST và tác vụ chạy lặp hoặc bị bỏ qua
+  - cron, systemd timer và Windows Task Scheduler
+  - Tác vụ định kỳ có môi trường khác shell tương tác
+  - Quyền đăng nhập, credential và đường dẫn của tác vụ
+  - Tác vụ chồng lấn, khóa chống chạy trùng và chạy quá lâu
+  - Máy ngủ, khởi động lại và lịch chạy bị lỡ
+  - Timeout nghiệp vụ hoặc chứng chỉ lỗi do sai thời gian
+  - Đối chiếu thời điểm phát sinh sự cố giữa nhiều máy
+- level1: Mount và lưu trữ mạng
+  level2:
+  - Mount point có tồn tại nhưng nguồn lưu trữ chưa sẵn sàng
+  - Thiết bị, volume và filesystem được mount sai nơi
+  - NFS, SMB và quyền truy cập từ xa
+  - Credential, ánh xạ danh tính và quyền hiệu lực
+  - Độ trễ mạng biểu hiện thành tiến trình chờ I/O
+  - Stale handle, kết nối bị gián đoạn và mount không phản hồi
+  - File locking giữa nhiều máy
+  - Tệp đã ghi nhưng chưa thấy do cache hoặc ngữ nghĩa chia sẻ
+  - Mapped drive trong phiên đăng nhập khác với dịch vụ Windows
+  - Mount namespace và đường dẫn nhìn thấy trong container
+  - Khôi phục kết nối mà vẫn bảo toàn trạng thái dữ liệu
+- level1: Máy ảo và WSL
+  level2:
+  - Phân biệt số đo guest với số đo host
+  - CPU oversubscription, steal time và tranh chấp trên host
+  - Bộ nhớ được cấp, ballooning và áp lực từ máy chủ vật lý
+  - Đĩa ảo, snapshot và độ trễ lưu trữ
+  - NAT, bridge và đường đi mạng của máy ảo
+  - Đồng hồ guest, suspend và resume
+  - Giới hạn I/O hoặc mạng do nền tảng ảo hóa
+  - WSL và ranh giới giữa môi trường Linux với Windows
+  - Hiệu năng truy cập tệp qua ranh giới filesystem của WSL
+  - DNS, VPN và kết nối giữa host với guest
+  - Thu thập bằng chứng ở cả host lẫn guest
+- level1: Container
+  level2:
+  - PID, mount, network namespace và góc nhìn tài nguyên
+  - Container lỗi khác tiến trình trên host lỗi như thế nào
+  - CPU quota, throttling và số CPU ứng dụng nhận biết
+  - Giới hạn RAM, OOM kill và exit status
+  - Volume, bind mount và quyền UID/GID
+  - Overlay filesystem và nơi dung lượng thực sự tăng
+  - DNS, service name và kết nối từ trong container
+  - Port publish, địa chỉ bind và localhost theo namespace
+  - Read-only filesystem, tệp tạm và quyền ghi
+  - PID 1, tín hiệu dừng và tiến trình con không được thu hồi
+  - Health check thất bại dù tiến trình vẫn tồn tại
+  - Log container, log ứng dụng và log kernel trên host
+  - Image, command, entrypoint và môi trường không khớp
+  - Phân biệt lỗi ứng dụng với lỗi node hoặc nền tảng điều phối
+- level1: Ứng dụng Java
+  level2:
+  - PID JVM, lệnh khởi động và Java thực sự đang được dùng
+  - CPU cao do mã ứng dụng, GC hoặc công việc kernel
+  - Ánh xạ native thread ID với luồng trong thread dump
+  - Thread pool bão hòa, deadlock và chờ kết nối
+  - Heap, Metaspace, direct memory và bộ nhớ tiến trình
+  - OutOfMemoryError khác tiến trình bị OOM killer kết thúc
+  - Không tạo được native thread và giới hạn hệ điều hành
+  - Too many open files và rò rỉ tệp hoặc socket
+  - JFR, jcmd, thread dump và heap dump theo mục tiêu chẩn đoán
+  - Attach thất bại do user, namespace hoặc quyền truy cập
+  - JVM fatal error, hs_err và thư viện native
+  - Container nhận biết tài nguyên và cấu hình JVM không phù hợp
+  - Phối hợp số đo JVM với CPU, bộ nhớ, I/O của hệ điều hành
+- level1: Crash và bản dump
+  level2:
+  - Phân biệt crash, treo, bị kill và kết thúc bình thường
+  - Exit code hoặc signal và giới hạn khi suy luận nguyên nhân
+  - Core dump trên Linux và điều kiện được tạo
+  - Windows Error Reporting, crash dump và loại dump
+  - Core dump bị chặn do giới hạn, quyền hoặc dung lượng
+  - Thu thập dump của tiến trình đang treo
+  - Symbol, phiên bản executable và thư viện dùng khi phân tích
+  - Stack trace, module lỗi và trạng thái luồng
+  - Dump của runtime khác dump của tiến trình native
+  - Chi phí dừng, dung lượng và dữ liệu nhạy cảm trong dump
+  - Đối chiếu dump với log và số đo cùng thời điểm
+  - Lưu hiện vật đủ để tái phân tích sau sự cố
+- level1: Truy vết nâng cao
+  level2:
+  - Khi số đo tổng hợp chưa đủ để kiểm chứng giả thuyết
+  - strace và phân tích system call trên Linux
+  - Đọc thời gian chờ, mã lỗi và đối số system call
+  - perf và lấy mẫu CPU hoặc sự kiện hiệu năng
+  - eBPF và điều kiện hỗ trợ của kernel, công cụ, quyền truy cập
+  - Process Monitor và lọc theo tiến trình hoặc đường dẫn
+  - ETW, Windows Performance Recorder và Windows Performance Analyzer
+  - sample, spindump và công cụ truy vết macOS
+  - Packet capture bằng tcpdump hoặc Wireshark theo câu hỏi cần trả lời
+  - Kết hợp trace của ứng dụng với trace hệ điều hành
+  - Giới hạn thời gian, bộ lọc và chi phí quan sát
+  - Phân biệt bằng chứng lấy mẫu với theo dõi mọi sự kiện
+- level1: Phần cứng và thiết bị
+  level2:
+  - Phân biệt lỗi phần cứng với bão hòa tài nguyên hợp lệ
+  - Nhiệt độ, công suất và CPU giảm xung
+  - Lỗi RAM, ECC và thông báo phần cứng trong log
+  - Tình trạng ổ đĩa, SMART và giới hạn của dự báo lỗi
+  - Lỗi đọc ghi, reset thiết bị và mất kết nối lưu trữ
+  - Driver, firmware và sự cố sau thay đổi
+  - Card mạng, link flapping và lỗi cổng kết nối
+  - Nguồn điện, pin và shutdown ngoài dự kiến
+  - Thiết bị ngoại vi ảnh hưởng khởi động hoặc hiệu năng
+  - Xác minh bằng kiểm tra chéo và tránh kết luận từ một chỉ số
+- level1: Phân tích hiệu năng
+  level2:
+  - Đặt mục tiêu độ trễ, thông lượng và mức tải
+  - Baseline theo thời gian, nhóm máy và loại công việc
+  - Utilization, saturation, errors trong mô hình USE
+  - Rate, errors, duration trong mô hình RED
+  - Trung bình, percentile và độ trễ đuôi
+  - Khoảng lấy mẫu che mất tải đột biến như thế nào
+  - Hàng đợi, mức đồng thời và thời gian chờ
+  - Tìm điểm nghẽn thay vì tăng đồng loạt mọi tài nguyên
+  - Phân biệt tăng nhu cầu với suy giảm năng lực
+  - Đối chiếu tài nguyên toàn máy với tiến trình và request
+  - Thiết kế phép đo trước và sau thay đổi
+  - Tránh dùng benchmark không giống tải vận hành để kết luận
+- level1: Thay đổi và hồi quy
+  level2:
+  - Liên kết sự cố với cập nhật phần mềm hoặc cấu hình gần nhất
+  - Chênh lệch phiên bản giữa các máy cùng vai trò
+  - Cập nhật kernel, driver và thư viện hệ thống
+  - Thay đổi tài khoản, quyền hoặc chính sách bảo mật
+  - Thay đổi DNS, route, firewall và proxy
+  - Thay đổi giới hạn tài nguyên hoặc cấu hình dịch vụ
+  - So sánh cấu hình hiệu lực thay vì chỉ so sánh tệp
+  - Canary, thử trên một máy và kiểm soát phạm vi ảnh hưởng
+  - Quay lui cấu hình khác quay lui dữ liệu hoặc lược đồ
+  - Xác nhận hồi quy bằng phép thử có thể lặp
+  - Lưu quyết định, người thực hiện và thời điểm thay đổi
+- level1: Khôi phục và kiểm chứng
+  level2:
+  - Chọn biện pháp giảm tác động theo tài nguyên đang nghẽn
+  - Khởi động lại tiến trình, dịch vụ hoặc máy theo phạm vi cần thiết
+  - Giải phóng dung lượng mà không làm mất dữ liệu cần giữ
+  - Khôi phục cấu hình hoặc phiên bản đã xác minh
+  - Loại máy lỗi khỏi luồng phục vụ trước khi can thiệp
+  - Kiểm tra chức năng, kết nối và dữ liệu sau phục hồi
+  - Kiểm tra số đo đã ổn định qua một chu kỳ tải phù hợp
+  - Theo dõi tác dụng phụ và điểm nghẽn mới
+  - Phân biệt phục hồi tạm thời với sự cố đã được xử lý dứt điểm
+  - Chuẩn bị điều kiện quay lui nếu biện pháp không hiệu quả
+  - Bàn giao trạng thái, phần còn chưa rõ và việc cần tiếp tục
+- level1: Nguyên nhân gốc
+  level2:
+  - Xây dựng kết luận từ dòng thời gian và bằng chứng
+  - Phân biệt nguyên nhân kích hoạt với điều kiện góp phần
+  - Five Whys, cây giả thuyết và giới hạn của từng cách
+  - Giải thích vì sao cơ chế phát hiện không báo sớm
+  - Phân biệt lỗi cá nhân với điều kiện hệ thống cho phép lỗi
+  - Hành động khắc phục có chủ sở hữu và tiêu chí hoàn thành
+  - Runbook theo triệu chứng và điều kiện áp dụng
+  - Chọn số đo, cảnh báo và baseline còn thiếu
+  - Kiểm chứng biện pháp ngăn tái diễn bằng tình huống tương đương
+  - Báo cáo điều đã biết, chưa biết và mức chắc chắn của kết luận
+  - Cập nhật tài liệu từ bài học có thể áp dụng lại
+- level1: Thực hành chẩn đoán
+  level2:
+  - Dựng môi trường thí nghiệm và ghi lại cấu hình ban đầu
+  - Điều tra CPU cao và phân biệt một core với toàn máy
+  - Tái hiện chờ khóa rồi đối chiếu stack và số đo CPU
+  - Phân biệt cache tăng, rò rỉ bộ nhớ và OOM
+  - Điều tra đĩa đầy do tệp đã xóa còn mở
+  - Phân biệt đầy inode với đầy dung lượng
+  - Chẩn đoán cạn file descriptor và kết nối không được đóng
+  - Tái hiện bind sai địa chỉ, trùng cổng và DNS sai
+  - Chẩn đoán dịch vụ chạy thủ công được nhưng chạy nền thất bại
+  - Điều tra tác vụ định kỳ sai môi trường hoặc đường dẫn
+  - Đối chiếu JVM heap với RSS và giới hạn container
+  - Phân tích lỗi quyền bằng đúng tài khoản chạy dịch vụ
+  - Lập dòng thời gian từ log nhiều nguồn
+  - Thử một biện pháp khắc phục và kiểm chứng trước–sau
+  - Viết báo cáo nguyên nhân gốc và runbook có bằng chứng

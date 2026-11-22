@@ -1,0 +1,451 @@
+menu:
+- level1: Tổng quan Terraform
+  level2:
+  - Terraform là gì và giải quyết bài toán quản lý hạ tầng như thế nào
+  - Phân biệt hạ tầng khai báo với thao tác cấp phát thủ công
+  - Mối quan hệ giữa cấu hình, trạng thái mong muốn, state và hạ tầng thực tế
+  - Vai trò của Terraform Core, provider, resource, data source và module
+  - Luồng làm việc từ viết cấu hình đến plan, apply và quản lý thay đổi
+  - Phân biệt Terraform với công cụ quản lý cấu hình và điều phối triển khai
+  - Nhận diện giới hạn của Terraform trong quản lý ứng dụng và dữ liệu nghiệp vụ
+  - Điều kiện tiên quyết và lộ trình thực hành Terraform an toàn
+- level1: Cài đặt và khởi động
+  level2:
+  - Cài đặt Terraform CLI và kiểm tra phiên bản đang sử dụng
+  - Chuẩn bị trình soạn thảo, phần mở rộng HCL và công cụ dòng lệnh
+  - Lựa chọn provider thực hành và chuẩn bị thông tin xác thực cần thiết
+  - Tạo cấu hình đầu tiên với tài nguyên thử nghiệm có thể dọn dẹp
+  - Thực hiện init, fmt, validate, plan và apply lần đầu
+  - Quan sát tệp được sinh ra và thay đổi sau khi chạy Terraform
+  - Thay đổi một thuộc tính rồi so sánh kết quả plan tiếp theo
+  - Hủy tài nguyên thực hành và xác minh không còn tài nguyên tính phí
+- level1: Cấu trúc cấu hình
+  level2:
+  - Phân biệt root module với child module trong một dự án
+  - Tổ chức các tệp .tf và hiểu cách Terraform nạp cấu hình trong thư mục
+  - Vai trò quy ước của main.tf, variables.tf, outputs.tf và versions.tf
+  - Sử dụng khối terraform để khai báo yêu cầu công cụ và provider
+  - Phân biệt tệp cấu hình .tf, tệp biến .tfvars và biểu diễn .tf.json
+  - Tổ chức thư mục examples, modules, tests và tài liệu sử dụng
+  - Quản lý .terraform, .terraform.lock.hcl, state và plan trong Git
+  - Xây dựng .gitignore phù hợp và tránh đưa thông tin nhạy cảm vào kho mã
+- level1: HCL và kiểu dữ liệu
+  level2:
+  - Cú pháp block, argument, label, comment và biểu thức trong HCL
+  - Phân biệt string, number, bool và giá trị null
+  - Phân biệt list, set, map, tuple và object
+  - Khai báo kiểu dữ liệu lồng nhau cho cấu hình hạ tầng
+  - Hiểu chuyển đổi kiểu tự động và các trường hợp không chuyển đổi được
+  - Phân biệt thuộc tính bắt buộc, thuộc tính tùy chọn và giá trị mặc định
+  - Xử lý giá trị chưa biết trước khi apply và phân biệt với null
+  - Viết chuỗi nhiều dòng, nội suy chuỗi và escape ký tự
+  - Thực hành đọc lỗi kiểu dữ liệu và xác định vị trí cấu hình sai
+- level1: Biểu thức và hàm
+  level2:
+  - Tham chiếu thuộc tính và kết hợp biểu thức trong cấu hình
+  - Sử dụng toán tử số học, so sánh, logic và biểu thức điều kiện
+  - Dùng for expression để biến đổi list, set và map
+  - Sử dụng splat expression và hiểu hình dạng kết quả
+  - Kết hợp các hàm xử lý chuỗi, số và tập hợp
+  - Dùng lookup, try, can và coalesce đúng mục đích
+  - Chuyển đổi dữ liệu với jsonencode, jsondecode, yamlencode và yamldecode
+  - Đọc tệp và kết xuất mẫu bằng file cùng templatefile
+  - Hiểu ảnh hưởng của hàm phụ thuộc thời gian hoặc dữ liệu thay đổi tới plan
+  - Kiểm tra biểu thức tương tác bằng terraform console
+- level1: Biến đầu vào
+  level2:
+  - Khai báo variable với type, description và default
+  - Truyền giá trị bằng terraform.tfvars và tệp .auto.tfvars
+  - Truyền giá trị qua -var, -var-file và biến môi trường TF_VAR
+  - Hiểu thứ tự ưu tiên của các nguồn giá trị biến
+  - Thiết kế biến object và map cho cấu hình nhiều tài nguyên
+  - Áp dụng validation để phát hiện giá trị đầu vào không hợp lệ
+  - Đánh dấu sensitive và hiểu giới hạn che giấu dữ liệu
+  - Phân biệt nullable với giá trị mặc định và dữ liệu bị bỏ trống
+  - Quản lý tệp biến theo môi trường mà không sao chép bí mật
+  - Thiết kế giao diện đầu vào dễ hiểu và hạn chế cấu hình khó kiểm soát
+- level1: Giá trị cục bộ và đầu ra
+  level2:
+  - Sử dụng locals để đặt tên cho biểu thức và giảm lặp
+  - Phân biệt local value với input variable và output value
+  - Tổng hợp quy tắc đặt tên, nhãn và cấu hình dùng chung bằng locals
+  - Khai báo output để công bố kết quả của root module và child module
+  - Đọc output dạng thông thường, -raw và -json
+  - Truyền output của module này làm input cho module khác
+  - Đánh dấu output nhạy cảm và kiểm soát nơi kết quả được ghi lại
+  - Thiết kế hợp đồng đầu ra ổn định cho người dùng module
+  - Tránh công bố toàn bộ đối tượng tài nguyên khi chỉ cần một số thuộc tính
+- level1: Provider và Registry
+  level2:
+  - Hiểu provider là lớp giao tiếp giữa Terraform với API bên ngoài
+  - Tìm provider trong Terraform Registry và đọc nguồn phát hành
+  - Khai báo required_providers với source và ràng buộc phiên bản
+  - Cấu hình provider và tách cấu hình khỏi thông tin xác thực
+  - Sử dụng nhiều cấu hình provider bằng alias
+  - Truyền provider vào child module và khai báo configuration_aliases
+  - Hiểu provider mặc định, provider kế thừa và giới hạn của module dùng nhiều provider
+  - Đọc schema, tài liệu resource và data source của provider
+  - Quản lý plugin cache, nguồn cài đặt và môi trường bị hạn chế mạng
+  - Kiểm tra độ tin cậy, checksum và chính sách sử dụng provider
+- level1: Tài nguyên và nguồn dữ liệu
+  level2:
+  - Khai báo resource và xác định tài nguyên do Terraform quản lý
+  - Phân biệt đối số cấu hình với thuộc tính do provider tính toán
+  - Đọc định danh tài nguyên và địa chỉ resource trong cấu hình
+  - Sử dụng data source để tra cứu dữ liệu có sẵn
+  - Phân biệt tạo mới tài nguyên với tham chiếu tài nguyên bên ngoài
+  - Hiểu thời điểm đọc data source trong plan và apply
+  - Kết hợp nhiều resource để mô tả một thành phần hạ tầng
+  - Nhận diện thuộc tính có thể sửa tại chỗ và thuộc tính yêu cầu thay thế
+  - Kiểm soát ranh giới sở hữu khi tài nguyên được quản lý bởi nhiều công cụ
+- level1: Đồ thị phụ thuộc
+  level2:
+  - Hiểu đồ thị phụ thuộc và lý do thứ tự viết tệp không quyết định thứ tự tạo
+  - Tạo phụ thuộc ngầm thông qua tham chiếu thuộc tính
+  - Sử dụng depends_on cho quan hệ không thể hiện bằng dữ liệu
+  - Phân biệt phụ thuộc giữa resource, data source và module
+  - Nhận diện phụ thuộc quá rộng làm nhiều giá trị chưa biết trong plan
+  - Đọc lỗi vòng phụ thuộc và tách cấu hình để loại bỏ vòng lặp
+  - Hiểu thực thi song song và các giới hạn do API hoặc phụ thuộc
+  - Sử dụng terraform graph để khảo sát quan hệ tài nguyên
+  - Thiết kế luồng dữ liệu rõ ràng thay cho phụ thuộc cưỡng ép không cần thiết
+- level1: Nhân bản và cấu hình động
+  level2:
+  - Sử dụng count để tạo nhiều instance của resource hoặc module
+  - Sử dụng for_each với map hoặc set có định danh ổn định
+  - Phân biệt count.index với each.key và each.value
+  - Đánh giá ảnh hưởng của thay đổi thứ tự danh sách tới địa chỉ tài nguyên
+  - Thiết kế khóa for_each ổn định và tránh dùng dữ liệu chưa biết
+  - Tạo tài nguyên có điều kiện và xử lý đầu ra khi tài nguyên không tồn tại
+  - Dùng dynamic block cho các nested block lặp lại
+  - Phân biệt dynamic block với resource hoặc module dùng for_each
+  - Biến đổi dữ liệu lồng nhau bằng flatten và for expression
+  - Giữ cấu hình dễ đọc khi số lượng biến thể tài nguyên tăng
+- level1: Vòng đời tài nguyên
+  level2:
+  - Hiểu các hành động tạo mới, cập nhật, thay thế và hủy trong plan
+  - Sử dụng create_before_destroy và đánh giá điều kiện tên hoặc dung lượng
+  - Dùng prevent_destroy và hiểu giới hạn bảo vệ khi cấu hình bị loại bỏ
+  - Sử dụng ignore_changes trong mô hình có thành phần quản lý bên ngoài
+  - Nhận diện rủi ro che khuất sai lệch khi bỏ qua quá nhiều thuộc tính
+  - Khai báo replace_triggered_by cho điều kiện thay thế phù hợp
+  - Phân biệt vòng đời tài nguyên với phụ thuộc thực thi
+  - Yêu cầu thay thế có kiểm soát bằng tùy chọn -replace
+  - Đánh giá ảnh hưởng thay thế tài nguyên tới dữ liệu, kết nối và thời gian gián đoạn
+  - Thiết kế quy trình phê duyệt riêng cho thay đổi có tính phá hủy
+- level1: Quy trình Terraform CLI
+  level2:
+  - Khởi tạo thư mục làm việc và tải phụ thuộc bằng terraform init
+  - Định dạng mã với terraform fmt và kiểm tra bằng terraform validate
+  - Tạo kế hoạch thay đổi với terraform plan
+  - Lưu kế hoạch bằng -out và áp dụng đúng tệp plan đã duyệt
+  - Đọc thông tin cấu hình, state và plan bằng terraform show
+  - Kiểm tra đầu ra, provider và workspace bằng các lệnh phù hợp
+  - Phân biệt terraform destroy với thay đổi cấu hình loại bỏ tài nguyên
+  - Hiểu chế độ không tương tác, -input=false và xử lý mã thoát
+  - Sử dụng -detailed-exitcode để phân biệt lỗi, không đổi và có thay đổi
+  - Hiểu mục đích và giới hạn của -target trong xử lý tình huống đặc biệt
+  - Quản lý thư mục làm việc, biến môi trường và tham số CLI trong script
+- level1: Đọc và duyệt kế hoạch
+  level2:
+  - Đọc ký hiệu thêm mới, sửa, hủy và thay thế trong plan
+  - Phân biệt thay đổi cấu hình với thay đổi phát hiện từ hạ tầng thực tế
+  - Hiểu giá trị known after apply và giới hạn suy luận trước khi thực thi
+  - Nhận diện thay đổi ngoài dự kiến do provider, giá trị mặc định hoặc biểu thức
+  - Kiểm tra thuộc tính nhạy cảm và dữ liệu có thể xuất hiện trong tệp plan
+  - Đánh giá tác động tới tên, địa chỉ mạng, dữ liệu và quyền truy cập
+  - Kiểm tra kế hoạch theo môi trường, tài khoản, vùng và phạm vi tài nguyên
+  - Đọc plan dạng JSON để hỗ trợ công cụ kiểm tra tự động
+  - Nhận diện plan lỗi thời và điều kiện cần tạo lại trước khi apply
+  - Xây dựng tiêu chí phê duyệt plan và lưu dấu vết người chấp thuận
+- level1: Terraform State
+  level2:
+  - Hiểu state là ánh xạ cấu hình tới tài nguyên thực tế
+  - Phân biệt state, cấu hình và bản sao lưu hạ tầng
+  - Đọc địa chỉ resource, module và instance trong state
+  - Liệt kê và xem đối tượng bằng terraform state list cùng state show
+  - Hiểu lineage, serial và vai trò nhận diện phiên bản state
+  - Nhận diện dữ liệu nhạy cảm có thể được lưu trong state
+  - Đọc state phục vụ điều tra và tránh sửa JSON trực tiếp
+  - Hiểu state có thể thay đổi dù không có tài nguyên được tạo mới
+  - Quản lý một đối tượng hạ tầng bằng một địa chỉ sở hữu rõ ràng
+  - Phân biệt mất state với tài nguyên thực tế đã bị xóa
+- level1: Backend và khóa state
+  level2:
+  - Phân biệt backend cục bộ với backend từ xa
+  - Lựa chọn backend theo khả năng lưu trữ, khóa và kiểm soát truy cập
+  - Khai báo backend và sử dụng partial configuration khi phù hợp
+  - Khởi tạo lại backend và phân biệt -reconfigure với -migrate-state
+  - Hiểu khóa state và điều kiện hỗ trợ của từng backend
+  - Xử lý tranh chấp khóa, thời gian chờ và tiến trình đang chạy
+  - Sử dụng force-unlock chỉ sau khi xác minh không còn tiến trình sở hữu
+  - Bảo vệ state bằng mã hóa, phân quyền, versioning và chính sách lưu giữ
+  - Quản lý thông tin xác thực backend tách biệt với provider
+  - Thực hành di chuyển state giữa backend và xác minh sau di chuyển
+- level1: Cộng tác theo nhóm
+  level2:
+  - Thiết lập kho Git cho cấu hình Terraform và quy tắc đóng góp
+  - Phân chia người viết cấu hình, người duyệt plan và người thực thi
+  - Đồng bộ phiên bản Terraform, provider và tệp lock giữa thành viên
+  - Ngăn hai người cùng apply lên một phạm vi hạ tầng
+  - Liên kết pull request với plan, thay đổi thực tế và yêu cầu công việc
+  - Quản lý quyền đọc state và quyền thay đổi tài nguyên độc lập
+  - Xử lý thay đổi khẩn cấp ngoài quy trình và đưa lại vào quản lý
+  - Duy trì runbook, trách nhiệm sở hữu và quy trình bàn giao
+  - Tránh xung đột khi nhiều root module cùng tác động một tài nguyên
+- level1: Xây dựng module
+  level2:
+  - Xác định khi nào cần tách child module và khi nào giữ cấu hình trực tiếp
+  - Thiết kế module theo một năng lực hạ tầng có ranh giới rõ
+  - Khai báo input, output và tài nguyên nội bộ của module
+  - Gọi module từ đường dẫn cục bộ, kho Git hoặc Registry
+  - Truyền dữ liệu và nối các module qua đầu vào cùng đầu ra
+  - Thiết kế giao diện module với kiểu dữ liệu và validation phù hợp
+  - Viết README, examples và hướng dẫn vòng đời sử dụng
+  - Thiết lập yêu cầu Terraform, provider và cách nhận cấu hình provider
+  - Thực hành đóng gói một thành phần hạ tầng thành module có thể tái sử dụng
+- level1: Thiết kế module nâng cao
+  level2:
+  - Phân biệt module cơ sở, module tổng hợp và root module theo môi trường
+  - Áp dụng dependency inversion bằng cách nhận dữ liệu thay vì tự tra cứu mọi thứ
+  - Tránh module quá nhiều cờ điều kiện và giao diện khó hiểu
+  - Quản lý nhiều tài khoản hoặc vùng bằng provider alias và module composition
+  - Thiết kế đầu ra ổn định và giới hạn phụ thuộc vào chi tiết nội bộ
+  - Sử dụng count, for_each và depends_on khi gọi module
+  - Quản lý module dùng nhiều provider và yêu cầu configuration_aliases
+  - Đánh giá tác động khi thay đổi cấu trúc hoặc địa chỉ tài nguyên trong module
+  - Kiểm thử tương thích và chuẩn bị hướng dẫn nâng cấp cho người dùng
+  - Phân phối module nội bộ với quy tắc sở hữu và chất lượng rõ ràng
+- level1: Môi trường và workspace
+  level2:
+  - Phân biệt môi trường ứng dụng với workspace của Terraform CLI
+  - Hiểu workspace tách state nhưng không tự tách thông tin xác thực
+  - Tạo, chọn, liệt kê và xóa CLI workspace đúng điều kiện
+  - Sử dụng thư mục hoặc root module riêng cho các môi trường
+  - So sánh tệp biến, workspace và tài khoản riêng theo yêu cầu cô lập
+  - Tách backend, state và quyền thực thi giữa development, staging, production
+  - Tránh suy luận mọi chính sách bảo mật chỉ từ terraform.workspace
+  - Chia state theo ranh giới sở hữu, vòng đời và phạm vi ảnh hưởng
+  - Trao đổi dữ liệu giữa các state bằng đầu ra hoặc cơ chế công bố phù hợp
+  - Đánh giá rủi ro quyền đọc rộng khi dùng terraform_remote_state
+- level1: Quản lý phiên bản
+  level2:
+  - Khai báo required_version cho Terraform CLI
+  - Lựa chọn ràng buộc phiên bản provider và module theo mức tương thích
+  - Hiểu .terraform.lock.hcl ghi nhận lựa chọn và checksum của provider
+  - Phân biệt khóa provider với cách cố định phiên bản module
+  - Cố định nguồn module Git bằng tag hoặc commit phù hợp
+  - Cập nhật phụ thuộc có kiểm soát bằng terraform init -upgrade
+  - Chuẩn bị checksum cho nhiều nền tảng thực thi
+  - Đọc hướng dẫn nâng cấp Terraform và thay đổi schema của provider
+  - Thử nghiệm nâng cấp trên phạm vi nhỏ trước môi trường quan trọng
+  - Chuẩn bị phương án khôi phục và đánh giá giới hạn hạ phiên bản state
+- level1: Nhập hạ tầng có sẵn
+  level2:
+  - Đánh giá phạm vi tài nguyên hiện có trước khi đưa vào Terraform
+  - Phân biệt import tài nguyên với tự động suy ra toàn bộ kiến trúc
+  - Xác định địa chỉ cấu hình và định danh import theo tài liệu provider
+  - Sử dụng terraform import và kiểm tra state sau thao tác
+  - Khai báo import block để mô tả việc nhập trong cấu hình
+  - Sử dụng chức năng sinh cấu hình khi phù hợp và rà soát kết quả
+  - Nhập tài nguyên nằm trong module hoặc có count, for_each
+  - Điều chỉnh cấu hình để plan không thay đổi ngoài mong muốn sau import
+  - Phân chia trách nhiệm khi nhập tài nguyên đang do công cụ khác quản lý
+  - Thực hành nhập theo lô nhỏ và lưu bằng chứng đối chiếu tài nguyên
+- level1: Tái cấu trúc an toàn
+  level2:
+  - Nhận diện khác biệt giữa đổi tên cấu hình và thay thế tài nguyên thật
+  - Sử dụng moved block để ghi nhận thay đổi địa chỉ tài nguyên
+  - Chuyển resource vào module và giữ ánh xạ tới tài nguyên hiện có
+  - Chuyển count sang for_each với kế hoạch ánh xạ từng instance
+  - Di chuyển địa chỉ bằng terraform state mv trong tình huống phù hợp
+  - Phân biệt bỏ quản lý bằng state rm hoặc removed block với hủy tài nguyên
+  - Tách hoặc hợp nhất state có khóa, sao lưu và kiểm chứng từng bước
+  - Xử lý thay đổi địa chỉ provider và lệnh state replace-provider
+  - Kiểm tra plan trước và sau tái cấu trúc để phát hiện thay đổi phá hủy
+  - Duy trì lịch sử di chuyển và hướng dẫn nâng cấp cho người dùng module
+- level1: Drift và đồng bộ
+  level2:
+  - Hiểu drift khi hạ tầng thực tế khác với cấu hình và state
+  - Nhận diện nguyên nhân từ sửa tay, dịch vụ bên ngoài và chính sách tự động
+  - Phân biệt plan thông thường với plan ở chế độ refresh-only
+  - Hiểu ảnh hưởng của -refresh=false tới độ tin cậy của kế hoạch
+  - Quyết định khôi phục cấu hình hay chấp nhận thay đổi bên ngoài
+  - Cập nhật cấu hình để ghi nhận thay đổi hợp lệ mà không che giấu sai lệch
+  - Phân biệt ignore_changes với cơ chế phát hiện drift
+  - Lập lịch kiểm tra drift và phân loại mức độ cần xử lý
+  - Đối chiếu tài nguyên bị xóa hoặc đổi ngoài Terraform trước khi apply lại
+- level1: Điều kiện và kiểm tra
+  level2:
+  - Phân biệt fmt, validate, validation, precondition, postcondition và check
+  - Viết validation cho ràng buộc dữ liệu đầu vào
+  - Áp dụng precondition cho điều kiện cần trước thao tác tài nguyên
+  - Áp dụng postcondition để kiểm tra kết quả sau khi đọc hoặc tạo
+  - Sử dụng check block và hiểu tính chất cảnh báo khi điều kiện không đạt
+  - Thiết kế thông báo lỗi có ngữ cảnh và hướng sửa cụ thể
+  - Xử lý điều kiện phụ thuộc dữ liệu chưa biết trước apply
+  - Phân biệt kiểm tra trong cấu hình với kiểm thử tích hợp và chính sách tổ chức
+  - Tránh kiểm tra trùng lặp hoặc tạo phụ thuộc không cần thiết
+- level1: Kiểm thử Terraform
+  level2:
+  - Xây dựng chiến lược kiểm thử từ kiểm tra tĩnh đến hạ tầng thực tế
+  - Tổ chức tệp .tftest.hcl và chạy terraform test
+  - Phân biệt test chạy plan với test tạo tài nguyên bằng apply
+  - Truyền biến và viết assertion cho hành vi quan trọng của module
+  - Kiểm thử đầu vào không hợp lệ và các trường hợp được kỳ vọng thất bại
+  - Sử dụng mock provider và override theo khả năng của phiên bản
+  - Thiết kế môi trường kiểm thử cô lập và thông tin xác thực tối thiểu
+  - Kết hợp công cụ lint, quét cấu hình và kiểm tra bảo mật khi phù hợp
+  - Kiểm tra kết quả cleanup và phát hiện tài nguyên kiểm thử còn sót
+  - Chọn kiểm thử có ý nghĩa thay vì chỉ lặp lại cấu trúc cấu hình
+- level1: Bảo mật và bí mật
+  level2:
+  - Nhận diện nơi bí mật có thể xuất hiện trong cấu hình, state, plan và log
+  - Phân biệt sensitive với mã hóa và bảo vệ dữ liệu thực tế
+  - Cấp thông tin xác thực qua danh tính workload hoặc kho bí mật phù hợp
+  - Ưu tiên thông tin xác thực ngắn hạn và giới hạn phạm vi thực thi
+  - Thiết kế quyền tối thiểu cho provider và quyền riêng cho backend
+  - Bảo vệ tệp .tfvars, plan artifacts, cache và thư mục .terraform
+  - Kiểm soát truy cập state và các đầu ra giữa root module
+  - Đánh giá mã module, provider và script bên ngoài trước khi thực thi
+  - Phòng tránh lộ bí mật qua output, provisioner và nhật ký gỡ lỗi
+  - Ứng phó khi token hoặc state bị lộ và kiểm tra phạm vi ảnh hưởng
+  - Quản lý dữ liệu tạm thời theo khả năng hỗ trợ của Terraform và provider
+- level1: Tích hợp CI/CD
+  level2:
+  - Thiết kế pipeline Terraform từ pull request đến thay đổi hạ tầng
+  - Chạy fmt, validate và kiểm thử trước khi tạo plan
+  - Tạo plan cho đúng commit, biến đầu vào, backend và môi trường
+  - Lưu plan artifact có kiểm soát truy cập và thời hạn sử dụng
+  - Yêu cầu phê duyệt và apply đúng kế hoạch đã được chấp thuận
+  - Sử dụng OIDC hoặc cơ chế danh tính liên kết cho thông tin xác thực ngắn hạn
+  - Phân quyền riêng cho job plan và job apply khi nền tảng cho phép
+  - Ngăn chạy đồng thời bằng khóa state và điều phối pipeline
+  - Xử lý pull request không tin cậy và tránh lộ bí mật cho mã bên ngoài
+  - Xử lý kế hoạch lỗi thời, job bị hủy và apply thất bại giữa chừng
+  - Lưu nhật ký, mã thoát và liên kết truy vết từ commit tới lần thực thi
+- level1: HCP Terraform và Enterprise
+  level2:
+  - Phân biệt Terraform CLI, HCP Terraform và Terraform Enterprise
+  - Hiểu workspace của nền tảng quản lý và khác biệt với CLI workspace
+  - Lựa chọn luồng làm việc qua VCS, CLI hoặc API
+  - Quản lý state từ xa và lựa chọn nơi thực thi Terraform
+  - Thiết lập variables, variable sets và quyền truy cập theo nhóm
+  - Quản lý vòng đời run, phê duyệt, hủy và tình huống chạy đồng thời
+  - Tổ chức module cùng provider nội bộ qua Registry phù hợp
+  - Hiểu vai trò agent trong kết nối mạng riêng
+  - Tích hợp kiểm tra chính sách, run tasks và đánh giá chi phí khi được hỗ trợ
+  - Xác minh điều kiện gói dịch vụ, phạm vi tính năng và trách nhiệm vận hành
+- level1: Chính sách và chi phí
+  level2:
+  - Phân biệt kiểm tra cấu hình với chính sách bắt buộc của tổ chức
+  - Xây dựng quy tắc về vùng triển khai, mã hóa, nhãn và tài nguyên cho phép
+  - Đánh giá policy as code với Sentinel hoặc công cụ tương đương
+  - Đặt vị trí kiểm tra chính sách trước khi phê duyệt apply
+  - Quản lý ngoại lệ, thời hạn và người chịu trách nhiệm phê duyệt
+  - Đọc ước tính chi phí và hiểu giới hạn so với hóa đơn thực tế
+  - Thiết lập nhãn phân bổ chi phí và quyền sở hữu tài nguyên
+  - Kiểm soát tài nguyên thực hành, lịch dọn dẹp và ngân sách
+  - Lưu bằng chứng tuân thủ và liên kết với thay đổi hạ tầng
+- level1: Mạng và kết nối
+  level2:
+  - Mô hình hóa mạng, subnet, tuyến đường và vùng triển khai bằng resource
+  - Thiết kế đầu vào CIDR và kiểm tra quan hệ giữa các dải mạng
+  - Quản lý tường lửa hoặc security group theo nguyên tắc quyền tối thiểu
+  - Tham chiếu tài nguyên mạng có sẵn qua data source
+  - Xuất đầu ra mạng để module máy chủ hoặc dịch vụ sử dụng
+  - Phân biệt quản lý tài nguyên mạng với kiểm chứng kết nối thực tế
+  - Nhận diện thay đổi mạng có thể ngắt quyền truy cập của tiến trình Terraform
+  - Thực hành thay đổi quy tắc kết nối với plan và bằng chứng kiểm tra
+- level1: Máy chủ và lưu trữ
+  level2:
+  - Mô hình hóa máy chủ, đĩa, nhóm máy và tài nguyên lưu trữ
+  - Lựa chọn image hoặc template và kiểm soát tính tái hiện
+  - Tách cấu hình tính toán khỏi dữ liệu cần lưu giữ lâu dài
+  - Quản lý quyền truy cập, danh tính dịch vụ và thông tin khởi tạo
+  - Thiết kế vòng đời đĩa, snapshot và bảo vệ dữ liệu khi thay thế
+  - Nhận diện tài nguyên có tên duy nhất hoặc giới hạn dung lượng khi tạo trước hủy sau
+  - Quản lý cấu hình dịch vụ dữ liệu mà không đưa dữ liệu nghiệp vụ vào state
+  - Thực hành thay đổi kích thước hoặc image và kiểm tra tác động thay thế
+  - Xác minh chi phí, tài nguyên còn sót và thứ tự dọn dẹp
+- level1: Khởi tạo và cấu hình máy
+  level2:
+  - Phân biệt cấp phát hạ tầng với cài đặt và quản lý cấu hình bên trong máy
+  - Sử dụng user data hoặc cloud-init cho khởi tạo phù hợp
+  - Kết xuất nội dung khởi tạo bằng templatefile có kiểm soát
+  - Nhận diện rủi ro đưa bí mật vào user data và template
+  - Hiểu provisioner là lựa chọn cần giới hạn thay vì cơ chế cấu hình mặc định
+  - Phân biệt local-exec, remote-exec và khối connection
+  - Đánh giá thời điểm chạy, lỗi thực thi và khả năng chạy lặp lại của provisioner
+  - Kết hợp Terraform với image bất biến hoặc công cụ quản lý cấu hình
+  - Kiểm tra máy đã sẵn sàng phục vụ thay vì chỉ dựa vào trạng thái tạo thành công
+- level1: Kubernetes và dịch vụ
+  level2:
+  - Phân định Terraform quản lý cụm với công cụ triển khai ứng dụng lên cụm
+  - Sử dụng provider phù hợp để quản lý Kubernetes hoặc dịch vụ bên ngoài
+  - Quản lý thông tin kết nối, danh tính và quyền truy cập API
+  - Phân chia vòng đời cụm với tài nguyên phụ thuộc bên trong cụm
+  - Nhận diện khó khăn khi provider cần kết nối tới hạ tầng chưa được tạo
+  - Kết hợp Terraform với Helm hoặc GitOps mà không tranh chấp quyền sở hữu
+  - Tách state hoặc giai đoạn thực thi theo ranh giới vòng đời hợp lý
+  - Kiểm tra thứ tự hủy để tránh mất API trước khi dọn tài nguyên phụ thuộc
+  - Đánh giá khi nào nên giao việc quản lý liên tục cho controller chuyên trách
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Đọc diagnostic của Terraform và tách lỗi cú pháp, kiểu, provider, API
+  - Chẩn đoán lỗi init, tải provider và tải module
+  - Điều tra lỗi xác thực, phân quyền, tài khoản và vùng triển khai
+  - Xử lý lỗi API giới hạn tần suất, timeout và tính nhất quán cuối cùng
+  - Điều tra apply thất bại sau khi một số tài nguyên đã được tạo
+  - Sử dụng TF_LOG và TF_LOG_PATH có kiểm soát dữ liệu nhạy cảm
+  - Đối chiếu địa chỉ tài nguyên trong lỗi với cấu hình và state
+  - Thu thập thông tin phiên bản, plan và log để tái hiện lỗi
+  - Nhận diện trường hợp cấu hình đúng nhưng provider có lỗi hoặc giới hạn
+  - Ghi nhận nguyên nhân, biện pháp sửa và kiểm chứng bằng plan mới
+- level1: Sao lưu và khôi phục
+  level2:
+  - Xác định dữ liệu cần sao lưu ngoài mã cấu hình Terraform
+  - Thiết lập sao lưu và versioning cho backend chứa state
+  - Đánh giá state hỏng, state mất và state không khớp hạ tầng
+  - Khôi phục bản state đã xác minh và kiểm tra lineage cùng serial
+  - Sử dụng state pull hoặc state push trong quy trình phục hồi có kiểm soát
+  - Xử lý khóa còn sót sau khi tiến trình dừng bất thường
+  - Đối soát tài nguyên và import lại khi không thể khôi phục state đầy đủ
+  - Phân biệt hoàn tác cấu hình với khôi phục dữ liệu và tài nguyên đã bị hủy
+  - Diễn tập phục hồi và ghi rõ giới hạn thời gian cùng dữ liệu có thể mất
+- level1: Hiệu năng và quy mô
+  level2:
+  - Đo thời gian init, refresh, plan và apply trước khi tối ưu
+  - Phân tích ảnh hưởng của số tài nguyên, data source và đồ thị phụ thuộc
+  - Điều chỉnh -parallelism theo giới hạn API và đặc điểm provider
+  - Sử dụng plugin cache và nguồn phụ thuộc ổn định trong CI
+  - Giảm phụ thuộc quá rộng và tra cứu dữ liệu lặp lại
+  - Chia state theo phạm vi sở hữu và vòng đời thay vì chỉ theo số lượng tài nguyên
+  - Thiết kế hợp đồng dữ liệu giữa các state để giảm liên kết chặt
+  - Quản lý timeout, retry và hạn mức dịch vụ theo tài liệu provider
+  - Đánh giá chi phí bảo trì khi tăng số module, workspace và pipeline
+- level1: Mẫu thiết kế và lỗi thường gặp
+  level2:
+  - Áp dụng module composition thay cho cây module lồng quá sâu
+  - Tổ chức tài nguyên dùng chung và tài nguyên riêng của từng môi trường
+  - Quản lý nhiều tài khoản hoặc nhiều vùng với ranh giới state rõ ràng
+  - Tránh hard-code thông tin môi trường, thông tin xác thực và định danh thay đổi
+  - Tránh một state quá rộng hoặc quá nhiều state phụ thuộc vòng lặp
+  - Tránh dùng timestamp hoặc giá trị không ổn định gây thay đổi liên tục
+  - Tránh lạm dụng -target, -auto-approve và ignore_changes
+  - Không xem việc apply thành công là bằng chứng dịch vụ đã hoạt động đúng
+  - Kiểm tra quyền sở hữu trước khi cùng quản lý tài nguyên bằng nhiều công cụ
+  - Xây dựng danh sách rà soát trước triển khai và trước hủy hạ tầng
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng dự án Terraform đầu tiên có biến, locals, output và tài liệu
+  - Tách cấu hình lặp thành module có examples và kiểm thử
+  - Cấp phát mạng cùng máy chủ và kiểm tra kết nối thực tế
+  - Thiết lập backend từ xa, khóa state và làm việc bằng pull request
+  - Tổ chức hai môi trường có state cùng quyền thực thi độc lập
+  - Nhập tài nguyên có sẵn rồi đưa plan về trạng thái không có thay đổi ngoài ý muốn
+  - Đổi tên và chuyển tài nguyên vào module mà không tái tạo hạ tầng
+  - Mô phỏng drift và lựa chọn khôi phục hoặc chấp nhận thay đổi có giải trình
+  - Xây dựng pipeline có kiểm thử, duyệt plan và apply đúng artifact
+  - Mô phỏng apply thất bại, khóa còn sót và phục hồi từ state đã sao lưu
+  - Rà soát bí mật, quyền truy cập, chi phí và dọn toàn bộ tài nguyên thực hành

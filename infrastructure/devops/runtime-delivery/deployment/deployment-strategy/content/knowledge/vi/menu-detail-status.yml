@@ -1,0 +1,2962 @@
+menu:
+- slug: strategy-overview
+  title: Tổng quan chiến lược
+  childs:
+  - slug: strategy-overview-001
+    title: Chiến lược triển khai là gì và vì sao ảnh hưởng trực tiếp tới rủi ro vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-002
+    title: Phân biệt triển khai phần mềm, phát hành tính năng và chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-003
+    title: Mối liên hệ giữa phiên bản ứng dụng, cấu hình, dữ liệu và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-004
+    title: Phân biệt chiến lược triển khai với pipeline CI/CD và công cụ điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-005
+    title: Nhận diện phạm vi ảnh hưởng khi nhiều phiên bản cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-006
+    title: Toàn cảnh Recreate, Rolling Update, Blue-Green, Canary và các kỹ thuật bổ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-007
+    title: Hiểu không gián đoạn là mục tiêu cần kiểm chứng thay vì thuộc tính mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-overview-008
+    title: Điều kiện tiên quyết và lộ trình học cách lựa chọn chiến lược triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: selection-criteria
+  title: Tiêu chí lựa chọn
+  childs:
+  - slug: selection-criteria-001
+    title: Xác định yêu cầu về thời gian gián đoạn và mức độ sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-002
+    title: Đánh giá mức chấp nhận rủi ro, phạm vi ảnh hưởng và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-003
+    title: Phân loại ứng dụng không trạng thái, có trạng thái và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-004
+    title: Đánh giá khả năng chạy đồng thời nhiều phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-005
+    title: Xác định năng lực điều phối lưu lượng và quan sát theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-006
+    title: Cân đối tài nguyên dự phòng, chi phí và thời gian hoàn thành triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-007
+    title: Phân tích yêu cầu tuân thủ, phê duyệt và cửa sổ bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-008
+    title: Lựa chọn chiến lược theo đặc điểm thay đổi thay vì dùng một mẫu cho mọi lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: selection-criteria-009
+    title: Lập ma trận quyết định và ghi rõ giả định cùng điều kiện loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-preparation
+  title: Chuẩn bị triển khai
+  childs:
+  - slug: deployment-preparation-001
+    title: Xác định đơn vị triển khai và danh tính bất biến của artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-002
+    title: Gắn phiên bản mã nguồn, cấu hình và artifact vào cùng hồ sơ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-003
+    title: Kiểm tra tính nhất quán giữa môi trường kiểm thử và môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-004
+    title: Xác minh quyền thực thi, kết nối, hạn mức và tài nguyên dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-005
+    title: Thiết lập tiêu chí bắt đầu, tạm dừng, hủy và hoàn thành triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-006
+    title: Chuẩn bị phiên bản quay lui, bản sao lưu và phương án bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-007
+    title: Kiểm tra khả năng tương thích API, schema và phụ thuộc trước thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-008
+    title: Phân công người thực thi, người phê duyệt và người ứng phó sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-preparation-009
+    title: Xây dựng checklist trước triển khai và lưu bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recreate-deployment
+  title: Triển khai Recreate
+  childs:
+  - slug: recreate-deployment-001
+    title: Hiểu cơ chế dừng phiên bản cũ rồi khởi chạy phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-002
+    title: Phân biệt Recreate với thay đổi đồng loạt không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-003
+    title: Xác định trường hợp chấp nhận gián đoạn hoặc không thể chạy hai phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-004
+    title: Lập kế hoạch cửa sổ bảo trì và truyền đạt ảnh hưởng tới người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-005
+    title: Ước lượng thời gian dừng từ shutdown, khởi động và kiểm tra sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-006
+    title: Xử lý yêu cầu đang chạy và ngăn nhận công việc mới trước khi dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-007
+    title: Kiểm chứng phiên bản mới trước khi mở lại truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-008
+    title: Xây dựng phương án khôi phục khi phiên bản mới không khởi động được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recreate-deployment-009
+    title: Đánh giá ưu điểm, giới hạn và các rủi ro dữ liệu của Recreate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rolling-deployment
+  title: Triển khai cuốn chiếu
+  childs:
+  - slug: rolling-deployment-001
+    title: Hiểu cơ chế thay từng nhóm instance bằng Rolling Update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-002
+    title: Chọn kích thước lô và thứ tự thay thế theo phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-003
+    title: Phân biệt dung lượng bổ sung với dung lượng được phép thiếu hụt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-004
+    title: Đảm bảo phiên bản cũ và mới tương thích trong thời gian cùng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-005
+    title: Chờ khởi động, làm nóng và kiểm tra sẵn sàng trước khi thay lô tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-006
+    title: Rút instance khỏi bộ cân bằng tải và xử lý kết nối đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-007
+    title: Theo dõi tiến độ, tạm dừng và tiếp tục triển khai từng lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-008
+    title: Xử lý một lô thất bại mà không làm lan rộng ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-009
+    title: Phối hợp Rolling Update với tự động mở rộng quy mô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rolling-deployment-010
+    title: Đánh giá thời gian hoàn thành và độ phức tạp khi quay lui nhiều lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: blue-green-deployment
+  title: Triển khai Blue-Green
+  childs:
+  - slug: blue-green-deployment-001
+    title: Hiểu hai môi trường Blue và Green cùng vai trò đang phục vụ hoặc dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-002
+    title: Chuẩn bị môi trường mới với artifact, cấu hình và phụ thuộc đúng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-003
+    title: Kiểm chứng môi trường mới trước khi nhận lưu lượng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-004
+    title: Lựa chọn điểm chuyển đổi tại load balancer, proxy hoặc cơ chế định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-005
+    title: Phân biệt chuyển lưu lượng nhanh với khả năng chuyển đổi nguyên tử thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-006
+    title: Xử lý kết nối dài, cache và phiên người dùng khi chuyển môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-007
+    title: Đánh giá việc dùng chung hoặc tách cơ sở dữ liệu giữa hai môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-008
+    title: Quay lại môi trường cũ và kiểm tra điều kiện tương thích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-009
+    title: Xác định thời gian giữ môi trường cũ trước khi thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: blue-green-deployment-010
+    title: Đánh giá chi phí, sai lệch cấu hình và giới hạn của Blue-Green
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: canary-deployment
+  title: Triển khai Canary
+  childs:
+  - slug: canary-deployment-001
+    title: Hiểu Canary là đưa phiên bản mới tới một phần lưu lượng hoặc nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-002
+    title: Chọn nhóm đối chứng và nhóm thử nghiệm có ý nghĩa vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-003
+    title: Phân biệt tỷ lệ số instance với tỷ lệ lưu lượng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-004
+    title: Định tuyến theo trọng số, người dùng, tenant hoặc thuộc tính yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-005
+    title: Chọn tỷ lệ ban đầu, thời gian quan sát và điều kiện tăng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-006
+    title: Xác định cỡ mẫu tối thiểu và xử lý hệ thống có ít lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-007
+    title: So sánh lỗi, độ trễ, tải và chỉ báo nghiệp vụ giữa hai phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-008
+    title: Nhận diện ảnh hưởng dùng chung cơ sở dữ liệu, cache hoặc dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-009
+    title: Dừng mở rộng, cô lập phiên bản mới và rút lưu lượng khi vượt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: canary-deployment-010
+    title: Xác nhận hoàn tất Canary và thu hồi phiên bản đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: progressive-delivery
+  title: Phát hành tăng dần
+  childs:
+  - slug: progressive-delivery-001
+    title: Hiểu progressive delivery là tăng phạm vi phát hành có kiểm soát bằng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-002
+    title: Thiết kế chuỗi giai đoạn thử nghiệm, mở rộng và xác nhận hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-003
+    title: Phân biệt tăng theo thời gian, tỷ lệ lưu lượng và nhóm đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-004
+    title: Kết hợp phân tích tự động với điểm phê duyệt thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-005
+    title: Xác định điều kiện giữ nguyên, tiếp tục, tạm dừng và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-006
+    title: Xử lý chỉ báo mâu thuẫn hoặc thiếu dữ liệu trong một giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-007
+    title: Thiết lập giới hạn thời gian và cơ chế tránh triển khai bị treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-008
+    title: Quản lý trạng thái quy trình khi người điều phối hoặc controller khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: progressive-delivery-009
+    title: Phân biệt phát hành tăng dần với A/B testing và mở rộng quy mô thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-routing
+  title: Điều phối lưu lượng
+  childs:
+  - slug: traffic-routing-001
+    title: Xác định điểm kiểm soát lưu lượng tại DNS, load balancer, gateway hoặc service mesh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-002
+    title: Phân biệt định tuyến theo trọng số với phân chia nhóm người dùng cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-003
+    title: Thiết lập tính nhất quán phiên bản bằng cookie, header hoặc định danh phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-004
+    title: Hiểu ảnh hưởng của DNS TTL, bộ nhớ đệm và bộ phân giải tới thời gian chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-005
+    title: Đánh giá cơ chế chọn backend trên từng yêu cầu hoặc từng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-006
+    title: Xử lý HTTP, gRPC, WebSocket và các kết nối tồn tại lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-007
+    title: Phối hợp đăng ký backend, kiểm tra sức khỏe và rút khỏi lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-008
+    title: Ngăn người dùng bên ngoài tự chọn đường đi thử nghiệm trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-009
+    title: Kiểm chứng lưu lượng thực tế bằng số liệu và dấu vết theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-routing-010
+    title: Xác định cơ chế khôi phục tuyến đường khi hệ thống định tuyến gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traffic-mirroring
+  title: Sao chép lưu lượng
+  childs:
+  - slug: traffic-mirroring-001
+    title: Hiểu shadow traffic và cơ chế gửi bản sao yêu cầu tới phiên bản thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-002
+    title: Phân biệt phản hồi phục vụ người dùng với phản hồi chỉ dùng để đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-003
+    title: Lựa chọn điểm sao chép và giới hạn tỷ lệ yêu cầu được nhân bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-004
+    title: Ngăn ghi dữ liệu, thanh toán hoặc gửi thông báo lặp do tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-005
+    title: Ẩn dữ liệu nhạy cảm và kiểm soát quyền truy cập luồng sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-006
+    title: So sánh phản hồi khi có thời gian, dữ liệu hoặc thứ tự xử lý khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-007
+    title: Cô lập tài nguyên để thử nghiệm không làm quá tải hệ thống đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-008
+    title: Phân biệt sao chép trực tiếp với phát lại lưu lượng đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traffic-mirroring-009
+    title: Nhận diện giới hạn kiểm chứng và điều kiện chuyển từ shadow sang phục vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: feature-flags
+  title: Cờ tính năng
+  childs:
+  - slug: feature-flags-001
+    title: Tách bật tính năng khỏi triển khai mã bằng cờ tính năng (feature flag)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-002
+    title: Phân biệt cờ phát hành, cờ vận hành, thử nghiệm và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-003
+    title: Phân biệt dark launch, Canary và shadow traffic theo phạm vi hành vi được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-004
+    title: Thiết kế nhóm đối tượng và tính nhất quán khi bật tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-005
+    title: Chọn giá trị mặc định an toàn khi dịch vụ quản lý cờ không truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-006
+    title: Sử dụng kill switch để tắt hành vi mới khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-007
+    title: Phối hợp nhiều cờ và kiểm soát số tổ hợp cần kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-008
+    title: Kiểm tra cả nhánh bật và tắt trong thời gian chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-009
+    title: Quản lý quyền đổi cờ, lịch sử thay đổi và phạm vi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-010
+    title: Đặt người sở hữu, thời hạn và kế hoạch loại bỏ cờ không còn dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: feature-flags-011
+    title: Phân biệt tắt cờ với quay lui artifact hoặc hoàn tác dữ liệu đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ab-testing
+  title: Thử nghiệm A/B
+  childs:
+  - slug: ab-testing-001
+    title: Phân biệt mục tiêu thử nghiệm sản phẩm với giảm rủi ro triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-002
+    title: Xác định giả thuyết, chỉ báo chính và chỉ báo bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-003
+    title: Chọn đơn vị phân nhóm là người dùng, phiên hoặc tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-004
+    title: Giữ nhóm thử nghiệm ổn định và tránh một người liên tục đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-005
+    title: Đánh giá cỡ mẫu, thời gian quan sát và sai lệch phân bổ nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-006
+    title: Nhận diện tác động mùa vụ, thay đổi đồng thời và ảnh hưởng giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-007
+    title: Thiết lập điều kiện dừng vì an toàn trước khi kết luận hiệu quả nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-008
+    title: Kết hợp A/B testing với Canary hoặc feature flag đúng vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ab-testing-009
+    title: Kết thúc thử nghiệm, lưu quyết định và dọn cấu hình thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ring-deployment
+  title: Triển khai theo vòng
+  childs:
+  - slug: ring-deployment-001
+    title: Hiểu triển khai theo vòng (ring deployment) và phạm vi từng nhóm nhận trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-002
+    title: Tổ chức vòng nội bộ, nhóm tự nguyện, nhóm đại diện và toàn bộ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-003
+    title: Xây dựng tiêu chí chọn nhóm để tránh chỉ thử trên đối tượng ít rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-004
+    title: Phân chia theo tenant, phân khúc khách hàng hoặc cụm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-005
+    title: Đặt điều kiện chuyển vòng và khoảng quan sát giữa các vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-006
+    title: Giữ phiên bản nhất quán trong một nhóm có phụ thuộc chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-007
+    title: Xử lý khách hàng cần cửa sổ triển khai hoặc phiên bản riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-008
+    title: Quản lý quyền ngoại lệ và giới hạn thời gian tồn tại của các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ring-deployment-009
+    title: So sánh triển khai theo vòng với Canary theo tỷ lệ lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-region-deployment
+  title: Triển khai đa vùng
+  childs:
+  - slug: multi-region-deployment-001
+    title: Phân biệt phạm vi triển khai theo instance, vùng sẵn sàng, vùng địa lý và cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-002
+    title: Thiết kế các đợt triển khai để giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-003
+    title: Chọn thứ tự vùng theo lưu lượng, mức quan trọng và khả năng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-004
+    title: Kiểm tra dung lượng chuyển tải khi một vùng tạm thời không phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-005
+    title: Đảm bảo tương thích giữa các vùng đang chạy phiên bản khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-006
+    title: Phối hợp thay đổi với sao chép dữ liệu và dịch vụ dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-007
+    title: Tạm dừng toàn bộ chiến dịch khi một vùng phát hiện sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-008
+    title: Phân biệt quay lui phiên bản với chuyển vùng để khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-deployment-009
+    title: Theo dõi độ lệch phiên bản và xác nhận hội tụ sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-compatibility
+  title: Tương thích phiên bản
+  childs:
+  - slug: version-compatibility-001
+    title: Thiết kế khả năng tương thích khi phiên bản N và N+1 cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-002
+    title: Giữ tương thích API giữa client, gateway và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-003
+    title: Quản lý thay đổi schema của sự kiện và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-004
+    title: Xử lý thay đổi định dạng cache, khóa cache và thời hạn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-005
+    title: Kiểm tra phiên đăng nhập hoặc token do phiên bản mới tạo có đọc được ở bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-006
+    title: Phân biệt thay đổi bổ sung với thay đổi phá vỡ hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-007
+    title: Phối hợp thứ tự nâng cấp producer, consumer và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-008
+    title: Định nghĩa khoảng tương thích và điều kiện kết thúc hỗ trợ phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-009
+    title: Kiểm thử hợp đồng và luồng giao tiếp giữa các tổ hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-compatibility-010
+    title: Nhận diện thay đổi không thể quay lui chỉ bằng đổi artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-migrations
+  title: Di chuyển cơ sở dữ liệu
+  childs:
+  - slug: database-migrations-001
+    title: Phân biệt triển khai ứng dụng với migration schema và chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-002
+    title: Áp dụng expand-migrate-contract để hỗ trợ hai phiên bản đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-003
+    title: Thêm trường hoặc bảng mới trước khi thay đổi hành vi đọc và ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-004
+    title: Tổ chức backfill có giới hạn tải, checkpoint và khả năng tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-005
+    title: Phân biệt đọc kép, ghi kép và rủi ro không nhất quán dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-006
+    title: Đánh giá khóa bảng, thời gian chạy và ảnh hưởng của thay đổi schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-007
+    title: Đặt thứ tự migration so với chuyển lưu lượng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-008
+    title: Trì hoãn xóa schema cũ cho tới khi hết khoảng quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-009
+    title: Xử lý migration lỗi hoặc chỉ hoàn tất một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-010
+    title: Phân biệt rollback mã nguồn, migration ngược và khôi phục từ bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-migrations-011
+    title: Kiểm chứng dữ liệu trước khi thu hẹp schema và kết thúc chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queues-background-jobs
+  title: Hàng đợi và tác vụ nền
+  childs:
+  - slug: queues-background-jobs-001
+    title: Nhận diện khác biệt giữa triển khai dịch vụ nhận HTTP và consumer hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-002
+    title: Chọn phạm vi thử nghiệm theo nhóm consumer, loại thông điệp hoặc phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-003
+    title: Đảm bảo producer và consumer khác phiên bản hiểu cùng hợp đồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-004
+    title: Ngừng nhận tác vụ mới và xử lý xong công việc đang thực thi trước khi dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-005
+    title: Kiểm soát ack, retry và khả năng xuất hiện tác vụ trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-006
+    title: Thiết kế xử lý lặp an toàn cho tác vụ có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-007
+    title: Theo dõi backlog, tuổi thông điệp, thông lượng và dead-letter queue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-008
+    title: Tránh hai phiên bản đồng thời chạy cùng lịch cron hoặc tác vụ độc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-009
+    title: Xử lý tác vụ dài và checkpoint khi phiên bản cũ cần được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queues-background-jobs-010
+    title: Quay lui consumer mà không làm mất khả năng xử lý thông điệp đã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-connections
+  title: Phiên và kết nối
+  childs:
+  - slug: sessions-connections-001
+    title: Phân biệt trạng thái trong tiến trình với trạng thái lưu ở dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-002
+    title: Đánh giá sticky session và khả năng chuyển phiên giữa các phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-003
+    title: Thiết kế graceful shutdown và thứ tự ngừng nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-004
+    title: Thiết lập thời gian drain, thời gian chờ và xử lý yêu cầu chưa hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-005
+    title: Phối hợp timeout của ứng dụng, proxy, load balancer và nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-006
+    title: Giữ an toàn cho giao dịch đang chạy khi instance bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-007
+    title: Xử lý WebSocket, gRPC stream và kết nối dài khi chuyển phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-008
+    title: Nhận diện retry làm lặp yêu cầu và kiểm soát bằng định danh phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-connections-009
+    title: Làm nóng connection pool, cache và thành phần khởi tạo trước khi nhận tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: health-checks
+  title: Kiểm tra sức khỏe
+  childs:
+  - slug: health-checks-001
+    title: Phân biệt startup, readiness, liveness và smoke test sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-002
+    title: Thiết kế điều kiện sẵn sàng phản ánh khả năng phục vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-003
+    title: Tránh kiểm tra phụ thuộc quá sâu làm nhiều instance đồng thời mất sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-004
+    title: Phân biệt tiến trình còn chạy với chức năng nghiệp vụ đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-005
+    title: Chọn ngưỡng thất bại, chu kỳ kiểm tra và thời gian khởi động phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-006
+    title: Đánh giá ảnh hưởng của kiểm tra sức khỏe tới việc rút hoặc nhận lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-007
+    title: Kiểm tra các đường đi quan trọng bằng yêu cầu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-008
+    title: Phối hợp readiness với warm-up và việc đăng ký backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: health-checks-009
+    title: Xác minh hành vi khi một phần phụ thuộc suy giảm thay vì mất hoàn toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-analysis
+  title: Quan sát và phân tích
+  childs:
+  - slug: observability-analysis-001
+    title: Gắn nhãn phiên bản, môi trường, vùng và nhóm thử nghiệm vào dữ liệu giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-002
+    title: Theo dõi tỷ lệ lỗi, độ trễ, lưu lượng và mức bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-003
+    title: Chọn chỉ báo nghiệp vụ đại diện cho tác động tới người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-004
+    title: So sánh phiên bản mới với nhóm đối chứng trong cùng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-005
+    title: Đọc phân vị độ trễ và tránh chỉ dựa vào giá trị trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-006
+    title: Phân tích log và trace để tìm lỗi chỉ xuất hiện ở phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-007
+    title: Thiết kế bảng theo dõi theo giai đoạn triển khai và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-008
+    title: Xử lý dữ liệu đến chậm, thiếu nhãn hoặc số mẫu quá nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-009
+    title: Nhận diện tín hiệu nhiễu do autoscaling, thay đổi tải hoặc phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-analysis-010
+    title: Liên hệ ngưỡng triển khai với SLO, ngân sách lỗi và mức chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates
+  title: Cổng kiểm soát
+  childs:
+  - slug: quality-gates-001
+    title: Xác định cổng kiểm soát trước, trong và sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-002
+    title: Thiết kế ngưỡng tuyệt đối và ngưỡng so sánh với đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-003
+    title: Đặt thời gian quan sát tối thiểu và số mẫu tối thiểu trước khi quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-004
+    title: Phân biệt điều kiện cảnh báo, tạm dừng và tự động hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-005
+    title: Xử lý dữ liệu không đủ mà không mặc định coi là triển khai an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-006
+    title: Kết hợp kết quả kiểm thử, chỉ báo hệ thống và kiểm tra nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-007
+    title: Thiết lập người phê duyệt, thời hạn và bằng chứng chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-008
+    title: Quản lý ngoại lệ có thời hạn và ghi nhận lý do vượt cổng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-009
+    title: Tránh tự động quay lui liên tục khi chỉ báo dao động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-010
+    title: Xác nhận thành công sau triển khai và bàn giao sang giám sát bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rollback-rollforward
+  title: Rollback và Roll-forward
+  childs:
+  - slug: rollback-rollforward-001
+    title: Phân biệt quay lui phiên bản với sửa tiếp trên phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-002
+    title: Xác định tín hiệu kích hoạt rollback và người có quyền quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-003
+    title: Chuẩn bị artifact cũ, cấu hình tương thích và khả năng cấp phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-004
+    title: Quay lui bằng đổi tuyến đường, thay instance hoặc khôi phục cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-005
+    title: Kiểm tra ảnh hưởng của dữ liệu do phiên bản mới đã ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-006
+    title: Chọn roll-forward khi quay lui không còn an toàn hoặc khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-007
+    title: Xử lý quay lui chỉ một phần trong hệ thống nhiều dịch vụ hoặc nhiều vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-008
+    title: Kiểm chứng dịch vụ đã phục hồi thay vì chỉ kiểm tra lệnh hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-009
+    title: Giữ bằng chứng, chặn phát hành lại bản lỗi và thông báo trạng thái xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-rollforward-010
+    title: Diễn tập rollback và đo thời gian phục hồi thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-secrets
+  title: Cấu hình và bí mật
+  childs:
+  - slug: configuration-secrets-001
+    title: Phân biệt thay đổi artifact với thay đổi cấu hình khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-002
+    title: Gắn phiên bản cấu hình với lần triển khai và giữ khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-003
+    title: Đánh giá cấu hình nạp lúc khởi động so với cập nhật động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-004
+    title: Giữ cấu hình tương thích khi hai phiên bản ứng dụng cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-005
+    title: Luân chuyển bí mật theo giai đoạn với khoảng chấp nhận giá trị cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-006
+    title: Phối hợp cập nhật chứng chỉ, khóa ký và thông tin kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-007
+    title: Kiểm tra phân phối cấu hình tới tất cả instance và phát hiện cập nhật một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-008
+    title: Quay lui cấu hình có kiểm soát mà không khôi phục bí mật đã bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-secrets-009
+    title: Ngăn đưa bí mật vào log triển khai, artifact hoặc cờ định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd-gitops
+  title: CI/CD và GitOps
+  childs:
+  - slug: cicd-gitops-001
+    title: Biểu diễn chiến lược bằng các giai đoạn có đầu vào và điều kiện chuyển rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-002
+    title: Phân biệt pipeline điều phối với bộ điều khiển duy trì trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-003
+    title: Chuyển cùng artifact đã kiểm chứng giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-004
+    title: Khóa hoặc điều phối các lần triển khai cùng tác động một phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-005
+    title: Quản lý hủy, tiếp tục và chạy lại quy trình sau khi bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-006
+    title: Lưu quyết định chuyển lưu lượng và kết quả phân tích cùng lần phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-007
+    title: Phối hợp phê duyệt thủ công với thao tác tự động có giới hạn quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-008
+    title: Đánh giá vòng reconcile có thể khôi phục cấu hình cũ sau thao tác khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-009
+    title: Đưa thay đổi xử lý sự cố trở lại nguồn cấu hình chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-gitops-010
+    title: Phân định kiến thức chiến lược với cấu hình chuyên sâu của từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-deployment
+  title: Triển khai Kubernetes
+  childs:
+  - slug: kubernetes-deployment-001
+    title: Ánh xạ Recreate và Rolling Update vào chiến lược của Deployment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-002
+    title: Hiểu maxSurge, maxUnavailable và khả năng cấp phát Pod thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-003
+    title: Phối hợp startup probe, readiness probe và minReadySeconds
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-004
+    title: Theo dõi tiến độ rollout và hiểu giới hạn của progress deadline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-005
+    title: Phân biệt rollout history, rollback ứng dụng và quay lui dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-006
+    title: Phối hợp termination grace period, preStop và rút endpoint khỏi lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-007
+    title: Hiểu phạm vi PodDisruptionBudget và phân biệt với giới hạn của Rolling Update
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-008
+    title: Xây dựng Blue-Green bằng workload riêng và cơ chế chọn backend phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-009
+    title: Phân biệt Canary theo số replica với Canary có trọng số định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-010
+    title: Nhận diện khi cần ingress, service mesh hoặc bộ điều khiển rollout bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-011
+    title: Đánh giá chiến lược riêng cho StatefulSet, DaemonSet và Job
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-deployment-012
+    title: Phối hợp HPA, scheduler và dung lượng cụm trong quá trình rollout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vms-servers
+  title: Máy ảo và máy chủ
+  childs:
+  - slug: vms-servers-001
+    title: Tổ chức nhóm máy chủ cũ và mới theo danh tính phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-002
+    title: Triển khai cuốn chiếu theo nhóm và rút máy khỏi bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-003
+    title: Sử dụng image bất biến thay cho chỉnh sửa thủ công thiếu khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-004
+    title: Thiết lập warm-up và kiểm tra máy mới trước khi phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-005
+    title: Thực hiện Blue-Green bằng hai nhóm máy và kiểm soát điểm chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-006
+    title: Phân biệt thay thế toàn bộ máy với cập nhật ứng dụng tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-007
+    title: Quản lý thứ tự nâng cấp khi dịch vụ có vai trò leader hoặc quorum
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-008
+    title: Xử lý máy không liên lạc được và trạng thái triển khai không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vms-servers-009
+    title: Thu hồi máy cũ sau khi xác minh hết kết nối và dữ liệu cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: serverless-deployment
+  title: Triển khai Serverless
+  childs:
+  - slug: serverless-deployment-001
+    title: Phân biệt phiên bản hàm, điểm gọi và cơ chế định tuyến của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-002
+    title: Triển khai tăng dần theo khả năng chia lưu lượng của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-003
+    title: Đánh giá ảnh hưởng cold start, concurrency và hạn mức thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-004
+    title: Kiểm tra tương thích giữa phiên bản hàm, cấu hình và nguồn sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-005
+    title: Phân biệt đường gọi đồng bộ với xử lý sự kiện bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-006
+    title: Xử lý retry, trùng lặp và thông điệp đang chờ khi đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-007
+    title: Quan sát tỷ lệ lỗi và thời gian xử lý theo phiên bản hoặc nhóm gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-008
+    title: Quay lui điểm gọi và kiểm tra sự kiện đã giao cho phiên bản mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: serverless-deployment-009
+    title: Xác minh giới hạn nền tảng trước khi áp dụng cùng chiến lược cho mọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-cost
+  title: Năng lực và chi phí
+  childs:
+  - slug: capacity-cost-001
+    title: Tính nhu cầu tài nguyên khi phiên bản cũ và mới cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-002
+    title: Đánh giá tải chuyển sang các instance còn lại trong từng lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-003
+    title: Dự trù CPU, bộ nhớ, kết nối, IP và hạn mức tài nguyên nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-004
+    title: Tính chi phí giữ môi trường Blue-Green và thời gian dự phòng quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-005
+    title: Đánh giá tải bổ sung từ shadow traffic, kiểm thử và làm nóng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-006
+    title: Phối hợp tự động mở rộng quy mô với các bước tăng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-007
+    title: Tránh thu hẹp nhóm đối chứng quá sớm làm mất khả năng quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-008
+    title: Kiểm soát tài nguyên thử nghiệm còn sót sau triển khai bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-cost-009
+    title: Cân đối thời gian quan sát, mức rủi ro và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strategy-testing
+  title: Kiểm thử chiến lược
+  childs:
+  - slug: strategy-testing-001
+    title: Thiết kế môi trường thực hành tái hiện được các giai đoạn triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-002
+    title: Kiểm thử hợp đồng giữa phiên bản cũ, phiên bản mới và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-003
+    title: Chạy kiểm thử tải để xác minh dung lượng khi giảm hoặc thay instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-004
+    title: Giả lập khởi động chậm, lỗi readiness và lỗi chỉ xuất hiện dưới tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-005
+    title: Kiểm tra yêu cầu đang chạy, phiên người dùng và kết nối dài khi thay phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-006
+    title: Thử nghiệm migration và backfill với dữ liệu có kích thước đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-007
+    title: Kiểm tra hệ thống phân tích khi thiếu số liệu hoặc mất nhóm đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-008
+    title: Diễn tập dừng giữa giai đoạn, tiếp tục quy trình và quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-009
+    title: Xác minh yêu cầu trùng lặp không tạo tác dụng phụ không mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-testing-010
+    title: Định nghĩa bằng chứng để kết luận chiến lược đáp ứng mục tiêu sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-controls
+  title: Bảo mật và kiểm soát
+  childs:
+  - slug: security-controls-001
+    title: Phân quyền tối thiểu cho thao tác triển khai, chuyển lưu lượng và đổi cờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-002
+    title: Xác minh nguồn gốc artifact và bảo vệ tính toàn vẹn trước phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-003
+    title: Phân tách môi trường và quyền truy cập của phiên bản thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-004
+    title: Bảo vệ nhóm thử nghiệm khỏi truy cập ngoài phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-005
+    title: Kiểm soát dữ liệu cá nhân trong shadow traffic và công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-006
+    title: Lưu dấu vết người phê duyệt, thao tác thực thi và thay đổi khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-007
+    title: Thiết lập thời hạn, giám sát và hậu kiểm khi sử dụng quyền ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-008
+    title: Xử lý phát hành bản vá bảo mật khi không thể chờ đủ chu kỳ thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-controls-009
+    title: Kiểm tra nghĩa vụ tuân thủ và lưu giữ bằng chứng theo yêu cầu tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-diagnostics
+  title: Sự cố và chẩn đoán
+  childs:
+  - slug: incident-diagnostics-001
+    title: Điều tra rollout bị kẹt do thiếu dung lượng hoặc phiên bản mới không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-002
+    title: Chẩn đoán tăng lỗi khi rút instance do drain và timeout không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-003
+    title: Tìm nguyên nhân người dùng vẫn tới phiên bản cũ sau chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-004
+    title: Điều tra tỷ lệ Canary thực tế lệch so với trọng số đã cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-005
+    title: Phát hiện nhóm thử nghiệm không đại diện hoặc không có đủ lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-006
+    title: Chẩn đoán lỗi chỉ xảy ra khi hai phiên bản cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-007
+    title: Xử lý backlog tăng sau khi thay consumer hoặc tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-008
+    title: Điều tra số liệu trung bình tốt nhưng một vùng hoặc tenant bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-009
+    title: Xử lý rollback thất bại vì schema, cấu hình hoặc bí mật không còn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-010
+    title: Ghi nhận dòng thời gian, nguyên nhân và biện pháp ngăn tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: strategy-coordination
+  title: Phối hợp chiến lược
+  childs:
+  - slug: strategy-coordination-001
+    title: Kết hợp Blue-Green với Canary trước khi chuyển toàn bộ lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-002
+    title: Kết hợp Rolling Update với cờ tính năng để tách rủi ro hạ tầng và hành vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-003
+    title: Thực hiện Canary trong từng vòng hoặc từng vùng của chiến dịch lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-004
+    title: Dùng shadow traffic để bổ sung bằng chứng trước giai đoạn phục vụ thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-005
+    title: Lựa chọn Recreate có kế hoạch cho thay đổi không hỗ trợ đa phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-006
+    title: Phối hợp triển khai ứng dụng với chuỗi expand-migrate-contract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-007
+    title: Thiết kế chiến lược riêng cho hệ thống nhiều dịch vụ có phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-008
+    title: So sánh các phương án theo mục tiêu, điều kiện, chi phí và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: strategy-coordination-009
+    title: Nhận diện thiết kế quá phức tạp so với nhu cầu và năng lực vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Đánh giá một dịch vụ mẫu và lập hồ sơ lựa chọn chiến lược triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Thực hiện Recreate có cửa sổ bảo trì và kiểm chứng thời gian gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Thực hiện Rolling Update dưới tải và đo lỗi khi thay từng lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Xây dựng hai môi trường Blue-Green và diễn tập đổi tuyến rồi quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Triển khai Canary với nhóm đối chứng, cổng phân tích và dừng tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Tách phát hành tính năng bằng feature flag và diễn tập kill switch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Sao chép lưu lượng thử nghiệm mà không tạo ghi dữ liệu hoặc thông báo lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Thực hiện thay đổi schema theo expand-migrate-contract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Triển khai theo vòng trên nhiều nhóm và dừng chiến dịch khi một nhóm lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Thay consumer dưới tải và xác minh backlog, tác vụ trùng lặp cùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: Mô phỏng lỗi rollout, thu thập bằng chứng và xác nhận phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-012
+    title: Hoàn tất báo cáo triển khai, dọn phiên bản cũ và bàn giao vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

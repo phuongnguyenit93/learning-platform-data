@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "DATABASE_ENGINE_TIME_SERIES_INFLUXDB"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Nắm cách tổ chức và truy vấn dữ liệu chuỗi thời gian trong InfluxDB cho metrics, cảm biến và sự kiện. Phân biệt tags, fields, timestamp, các thế hệ InfluxDB và ngôn ngữ truy vấn phù hợp; thực hành thu thập bằng Telegraf, lưu giữ dữ liệu, cảnh báo và tối ưu vận hành."
+  }
+}

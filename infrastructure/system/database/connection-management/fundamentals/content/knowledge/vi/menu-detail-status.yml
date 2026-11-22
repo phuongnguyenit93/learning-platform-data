@@ -1,0 +1,2326 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Kết nối cơ sở dữ liệu là gì và vì sao cần quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt cơ sở dữ liệu, hệ quản trị, trình điều khiển và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt kết nối, phiên làm việc, giao dịch và câu lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Chi phí thiết lập, duy trì và kết thúc một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: 'Những vấn đề quản lý kết nối cần giải quyết: độ trễ, giới hạn và độ tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Hành trình một yêu cầu từ ứng dụng đến cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: 'Các thành phần chính: trình điều khiển, DataSource, kho kết nối dùng lại (connection pool) và máy chủ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Ranh giới nội dung: quản lý kết nối với mô hình dữ liệu và tối ưu câu truy vấn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Kiến thức nền và thứ tự học các chủ đề trong module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-architecture
+  title: Kiến trúc kết nối
+  childs:
+  - slug: connection-architecture-001
+    title: Kênh truyền mạng, giao thức cơ sở dữ liệu và trình điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-002
+    title: Kết nối trực tiếp, kết nối qua proxy và kết nối qua pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-003
+    title: Kết nối vật lý và kết nối logic mà ứng dụng nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-004
+    title: Phiên phía máy chủ và tài nguyên gắn với mỗi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-005
+    title: Phân biệt pool phía ứng dụng với pool hoặc proxy phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-006
+    title: Một ứng dụng dùng nhiều nguồn dữ liệu và nhiều pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-007
+    title: 'Kết nối chặn luồng với kết nối không chặn luồng: phạm vi và khác biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-008
+    title: Trách nhiệm của ứng dụng, thư viện quản lý kết nối và hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-architecture-009
+    title: Đọc sơ đồ đường đi của kết nối trong một hệ thống nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-lifecycle
+  title: Vòng đời kết nối
+  childs:
+  - slug: connection-lifecycle-001
+    title: Các giai đoạn tạo, xác thực, sử dụng và đóng kết nối vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-002
+    title: Phân giải tên miền, mở socket và thương lượng giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-003
+    title: Thiết lập TLS, xác thực danh tính và khởi tạo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-004
+    title: Mượn kết nối, sử dụng và trả lại cho pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-005
+    title: Phân biệt đóng kết nối logic với đóng kết nối vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-006
+    title: Quyền sở hữu kết nối và trách nhiệm kết thúc vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-007
+    title: Thời gian rảnh, thời gian được mượn và tổng tuổi thọ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-008
+    title: 'Những đường thoát phải xử lý: thành công, lỗi, hủy và hết thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-lifecycle-009
+    title: Nhận diện trạng thái kết nối qua sơ đồ chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-configuration
+  title: Cấu hình kết nối
+  childs:
+  - slug: connection-configuration-001
+    title: 'Thành phần địa chỉ kết nối: giao thức, máy chủ, cổng và tên cơ sở dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-002
+    title: JDBC URL, tham số trình điều khiển và cấu hình DataSource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-003
+    title: Phân biệt tên cơ sở dữ liệu, catalog, schema và tài khoản đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-004
+    title: Phân biệt cấu hình dùng chung với cấu hình riêng từng hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-005
+    title: Quản lý cấu hình theo môi trường phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-006
+    title: Quy tắc ưu tiên cấu hình và cách xác định giá trị thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-007
+    title: Truyền bí mật qua biến môi trường hoặc kho quản lý bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-008
+    title: Kiểm tra giá trị cấu hình, đơn vị thời gian và giới hạn số lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-009
+    title: Kiểm tra kết nối ban đầu và chẩn đoán cấu hình sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-configuration-010
+    title: Ẩn mật khẩu và dữ liệu nhạy cảm khi ghi log cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jdbc-datasource
+  title: JDBC và DataSource
+  childs:
+  - slug: jdbc-datasource-001
+    title: Vai trò của JDBC API, JDBC driver và Connection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-002
+    title: 'DriverManager và DataSource: cách lấy kết nối và trách nhiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-003
+    title: DataSource như một hợp đồng cấp kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-004
+    title: Lấy kết nối trực tiếp và lấy kết nối thông qua pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-005
+    title: Connection, Statement, PreparedStatement và ResultSet trong vòng đời tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-006
+    title: Trách nhiệm của commit, rollback và close ở phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-007
+    title: Phân biệt kiểm tra isClosed với kiểm tra tính hợp lệ của kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-008
+    title: 'isValid và câu lệnh kiểm tra kết nối: mục đích và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-009
+    title: 'Wrapper, proxy và unwrap: nhận biết lớp kết nối đang sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jdbc-datasource-010
+    title: SQLException, SQLState và mã lỗi riêng của trình điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-management
+  title: Quản lý tài nguyên
+  childs:
+  - slug: resource-management-001
+    title: Xác định nơi mở kết nối và nơi chịu trách nhiệm đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-002
+    title: Phạm vi sử dụng kết nối trong một thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-003
+    title: Dùng try-with-resources để quản lý tài nguyên JDBC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-004
+    title: Thứ tự giải phóng ResultSet, Statement và Connection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-005
+    title: Bảo toàn lỗi ban đầu khi quá trình dọn dẹp cũng phát sinh lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-006
+    title: Quản lý tài nguyên khi chỉ đọc một phần kết quả truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-007
+    title: Kết quả đọc theo luồng và thời gian giữ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-008
+    title: Không trả kết quả phụ thuộc vào kết nối đã hết phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-009
+    title: Dọn dẹp khi luồng bị ngắt, tác vụ bị hủy hoặc yêu cầu kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-management-010
+    title: Phân biệt tài nguyên do ứng dụng sở hữu với tài nguyên do framework quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-state
+  title: Trạng thái phiên
+  childs:
+  - slug: session-state-001
+    title: Các trạng thái của Connection có thể thay đổi giữa những lần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-002
+    title: autoCommit và thời điểm hình thành ranh giới giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-003
+    title: Mức cô lập giao dịch trong phạm vi một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-004
+    title: Chế độ chỉ đọc và giới hạn bảo đảm của trình điều khiển hoặc máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-005
+    title: Catalog, schema và đường dẫn tìm kiếm đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-006
+    title: Biến phiên, múi giờ và các thiết lập riêng của hệ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-007
+    title: Bảng tạm, khóa phiên và tài nguyên tồn tại theo phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-008
+    title: Nguy cơ rò rỉ trạng thái khi tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-009
+    title: Trạng thái được pool khôi phục và trạng thái ứng dụng phải tự dọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-010
+    title: Kiểm tra trạng thái trước khi trả kết nối và khi mượn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transactions-connections
+  title: Giao dịch và kết nối
+  childs:
+  - slug: transactions-connections-001
+    title: Mối quan hệ giữa một giao dịch cục bộ và kết nối thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-002
+    title: Chọn ranh giới giao dịch và thời điểm cần lấy kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-003
+    title: Commit, rollback và giải phóng kết nối trên từng đường xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-004
+    title: Giao dịch chưa kết thúc khi kết nối được trả lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-005
+    title: Giao dịch kéo dài và thời gian chiếm giữ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-006
+    title: Tác vụ mạng hoặc xử lý chậm bên trong phạm vi giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-007
+    title: 'Savepoint với giao dịch độc lập: ảnh hưởng đến số kết nối cần dùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-008
+    title: Lỗi mạng khi commit và trường hợp không biết giao dịch đã hoàn tất hay chưa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-009
+    title: Nhiều nguồn dữ liệu và giới hạn của giao dịch trên một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transactions-connections-010
+    title: 'Ranh giới với quản lý giao dịch phân tán: nhận biết nhu cầu và chi phí'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pooling-principles
+  title: Nguyên lý pool
+  childs:
+  - slug: pooling-principles-001
+    title: Pool kết nối giải quyết vấn đề gì so với tạo kết nối cho từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-002
+    title: 'Các thành phần: kết nối rảnh, kết nối đang dùng và hàng chờ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-003
+    title: Quy trình mượn và trả một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-004
+    title: Tạo kết nối theo nhu cầu và làm nóng pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-005
+    title: Giới hạn số kết nối và cơ chế chờ khi pool đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-006
+    title: Kiểm tra kết nối trước khi cấp cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-007
+    title: Proxy kết nối và ý nghĩa của close khi sử dụng pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-008
+    title: Lợi ích, chi phí và những vấn đề pool không tự giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-009
+    title: Hợp đồng chung của pool và các lựa chọn triển khai cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pooling-principles-010
+    title: 'Ranh giới module: nguyên lý chung với cấu hình riêng của HikariCP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pool-lifecycle
+  title: Vòng đời pool
+  childs:
+  - slug: pool-lifecycle-001
+    title: Khởi tạo DataSource và thời điểm tạo pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-002
+    title: Khởi động ứng dụng khi cơ sở dữ liệu sẵn sàng hoặc chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-003
+    title: Duy trì kết nối rảnh và loại bỏ kết nối không còn dùng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-004
+    title: Phân biệt thời gian rảnh, tuổi thọ tối đa và kiểm tra định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-005
+    title: Kiểm tra kết nối khi mượn với kiểm tra nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-006
+    title: Keepalive và các giới hạn thời gian rảnh của hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-007
+    title: Thay thế kết nối cũ mà vẫn phục vụ yêu cầu đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-008
+    title: Đóng pool, ngừng cấp kết nối và xử lý kết nối đang được mượn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-009
+    title: Thay đổi cấu hình hoặc thông tin đăng nhập theo vòng đời pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pool-lifecycle-010
+    title: Tránh tạo nhiều pool ngoài ý muốn và tránh tạo pool theo từng yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-budgeting
+  title: Ngân sách kết nối
+  childs:
+  - slug: connection-budgeting-001
+    title: Giới hạn kết nối phía máy chủ và phần tài nguyên cần dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-002
+    title: Tổng số kết nối từ mọi ứng dụng, tác vụ nền và công cụ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-003
+    title: Ngân sách kết nối khi một dịch vụ có nhiều bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-004
+    title: Ngân sách riêng cho từng nguồn dữ liệu hoặc nhóm người thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-005
+    title: Mối quan hệ giữa thông lượng, thời gian giữ và số kết nối đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-006
+    title: Ước lượng bằng định luật Little cùng các giả định cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-007
+    title: Số kết nối tối đa, số kết nối rảnh và mục tiêu giữ sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-008
+    title: Vì sao tăng kích thước pool có thể làm hệ thống chậm hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-009
+    title: Dự phòng cho triển khai cuốn chiếu, tự động mở rộng và chuyển đổi máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-budgeting-010
+    title: Chọn giá trị ban đầu từ ngân sách rồi xác minh bằng tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-timeouts
+  title: Thời hạn chờ
+  childs:
+  - slug: connection-timeouts-001
+    title: Phân biệt thời hạn chờ từng bước với thời hạn hoàn tất toàn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-002
+    title: Thời gian chờ lấy kết nối từ pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-003
+    title: Thời gian chờ phân giải tên, kết nối TCP và xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-004
+    title: Thời gian chờ đọc hoặc ghi trên socket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-005
+    title: Thời gian chờ kiểm tra kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-006
+    title: Thời gian thực thi câu lệnh và thời gian chờ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-007
+    title: Thời hạn giao dịch và thời hạn yêu cầu phía ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-008
+    title: Thời gian rảnh phía cơ sở dữ liệu, proxy và thiết bị mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-009
+    title: Phân bổ ngân sách thời gian giữa các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-010
+    title: Phân biệt hết thời gian chờ với việc thao tác phía máy chủ đã dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-timeouts-011
+    title: Đơn vị, giá trị mặc định và cách xác minh hiệu lực từng cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-load-pressure
+  title: Đồng thời và áp lực tải
+  childs:
+  - slug: concurrency-load-pressure-001
+    title: Quyền sử dụng độc quyền một kết nối trong một thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-002
+    title: Rủi ro chia sẻ Connection giữa nhiều luồng hoặc tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-003
+    title: Số luồng xử lý với số kết nối sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-004
+    title: Hàng chờ tại ứng dụng, pool và cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-005
+    title: Giới hạn lượng công việc nhận vào và điều tiết ngược khi quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-006
+    title: Kết nối lồng nhau và nguy cơ chờ vòng khi pool đã đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-007
+    title: Tác vụ chạy song song trong cùng một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-008
+    title: Luồng ảo và giới hạn kết nối cơ sở dữ liệu vẫn cần quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-009
+    title: Phân chia ngân sách cho yêu cầu trực tuyến và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-010
+    title: Tính công bằng, thời gian chờ đuôi dài và yêu cầu bị bỏ đói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-load-pressure-011
+    title: Cách tránh biến pool thành nơi tích lũy hàng chờ không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: framework-integration
+  title: Tích hợp framework
+  childs:
+  - slug: framework-integration-001
+    title: DataSource do ứng dụng tạo với DataSource do framework quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-002
+    title: Tái sử dụng kết nối trong phạm vi giao dịch do framework điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-003
+    title: Đồng bộ ranh giới giao dịch với việc lấy và trả kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-004
+    title: 'JDBC trực tiếp, lớp trợ giúp JDBC và ORM: trách nhiệm quản lý kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-005
+    title: Persistence context của ORM với phiên kết nối cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-006
+    title: Lấy kết nối sớm hoặc muộn và ảnh hưởng đến thời gian chiếm giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-007
+    title: Mở phiên xuyên suốt yêu cầu web và nguy cơ giữ kết nối lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-008
+    title: Giao dịch lồng nhau hoặc giao dịch độc lập trong Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-009
+    title: Chuyển tác vụ sang luồng khác và giới hạn truyền ngữ cảnh giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: framework-integration-010
+    title: Tránh đóng thủ công kết nối do framework đang quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-failures
+  title: Lỗi kết nối
+  childs:
+  - slug: connection-failures-001
+    title: Phân loại lỗi theo giai đoạn tạo, mượn, sử dụng và trả kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-002
+    title: Sai địa chỉ, lỗi DNS, cổng không mở và dịch vụ chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-003
+    title: Lỗi xác thực, quyền truy cập và cấu hình TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-004
+    title: Pool hết kết nối với máy chủ hết hạn mức kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-005
+    title: Kết nối cũ đã bị đóng nhưng phía ứng dụng chưa phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-006
+    title: Đứt mạng, mất gói và kết nối chỉ còn hoạt động ở một phía
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-007
+    title: Cơ sở dữ liệu khởi động lại hoặc chủ động chấm dứt phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-008
+    title: Lỗi câu truy vấn với lỗi làm kết nối không còn sử dụng được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-009
+    title: Đọc chuỗi SQLException, SQLState và nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-failures-010
+    title: Quyết định trả lại, loại bỏ hoặc thay thế kết nối lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cancellation-retries
+  title: Hủy và thử lại
+  childs:
+  - slug: cancellation-retries-001
+    title: 'Hủy yêu cầu, ngắt luồng và hủy câu lệnh: các tín hiệu khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-002
+    title: Giới hạn của cancel, interrupt và thời hạn chờ phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-003
+    title: Rollback và dọn dẹp khi một thao tác bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-004
+    title: Điều kiện tái sử dụng kết nối sau lỗi hoặc hủy thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-005
+    title: Phân biệt thử lấy kết nối lại với chạy lại toàn bộ nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-006
+    title: Phân loại lỗi tạm thời và lỗi cần sửa cấu hình hoặc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-007
+    title: Tính lũy đẳng và nguy cơ ghi dữ liệu hai lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-008
+    title: Không xác định được kết quả commit và giới hạn thử lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-009
+    title: Giới hạn số lần thử, giãn cách tăng dần và thêm độ lệch ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cancellation-retries-010
+    title: Ngân sách thời gian thử lại và tránh khuếch đại tải khi có sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: leaks-connection-holding
+  title: Rò rỉ và chiếm giữ
+  childs:
+  - slug: leaks-connection-holding-001
+    title: Rò rỉ kết nối là gì và khác với một thao tác chạy lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-002
+    title: Quên close, bỏ sót nhánh lỗi và thoát sớm khỏi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-003
+    title: Giữ kết nối trong biến dùng chung hoặc truyền qua tầng không rõ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-004
+    title: Rò rỉ ResultSet, Statement và tài nguyên phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-005
+    title: Giữ kết nối trong lúc gọi dịch vụ khác hoặc chờ tương tác bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-006
+    title: Giao dịch rảnh nhưng chưa kết thúc và tác động đến tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-007
+    title: Cảnh báo giữ kết nối lâu với bằng chứng rò rỉ thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-008
+    title: Tìm điểm mượn và đường trả kết nối qua log hoặc dấu vết ngăn xếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-009
+    title: Sửa phạm vi sử dụng thay vì chỉ tăng kích thước pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: leaks-connection-holding-010
+    title: Kiểm chứng kết nối được hoàn trả sau thành công, lỗi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-routing
+  title: Định tuyến kết nối
+  childs:
+  - slug: connection-routing-001
+    title: Chọn nguồn dữ liệu trước khi mượn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-002
+    title: Định tuyến đọc và ghi trong hệ thống có bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-003
+    title: Tính nhất quán sau khi ghi và độ trễ của bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-004
+    title: Giữ cùng đích kết nối trong suốt một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-005
+    title: Pool riêng cho từng nguồn dữ liệu và chi phí tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-006
+    title: Nhiều người thuê dùng chung hoặc tách riêng pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-007
+    title: Đổi schema theo người thuê và yêu cầu khôi phục trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-008
+    title: Proxy cơ sở dữ liệu và tái sử dụng kết nối phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-009
+    title: 'Pool theo phiên với pool theo giao dịch: giới hạn của trạng thái phiên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-routing-010
+    title: Chuyển đổi máy chủ và trách nhiệm phối hợp của driver, pool và proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-security
+  title: Bảo mật kết nối
+  childs:
+  - slug: connection-security-001
+    title: Xác thực ứng dụng với cơ sở dữ liệu và nguyên tắc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-002
+    title: Mã hóa đường truyền bằng TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-003
+    title: Xác minh chứng chỉ, chuỗi tin cậy và tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-004
+    title: Phân biệt mã hóa đường truyền với xác minh đúng máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-005
+    title: Bảo vệ mật khẩu, chứng chỉ và khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-006
+    title: Giới hạn truy cập mạng đến cổng cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-007
+    title: Tách tài khoản theo ứng dụng, môi trường và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-008
+    title: Xoay vòng mật khẩu hoặc thông tin đăng nhập có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-009
+    title: Tuổi thọ kết nối hiện có khi thông tin xác thực thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-security-010
+    title: Ghi log và thu thập số liệu mà không làm lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: observability-001
+    title: 'Các chỉ số pool: tổng kết nối, đang dùng, rảnh và đang chờ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-002
+    title: Độ trễ lấy kết nối và thời gian giữ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-003
+    title: Số lần tạo mới, đóng, kiểm tra thất bại và hết thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-004
+    title: Quan sát phiên hoạt động, phiên rảnh và phiên đang chờ phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-005
+    title: Liên hệ mức sử dụng pool với thông lượng và độ trễ yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-006
+    title: Phân vị độ trễ và lý do giá trị trung bình chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-007
+    title: Log vòng đời kết nối và dấu vết yêu cầu xuyên các tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-008
+    title: Tách số liệu theo ứng dụng, pool, nguồn dữ liệu và bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-009
+    title: Thiết kế cảnh báo từ mức bão hòa và tác động đến yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-010
+    title: Phân biệt dấu hiệu từ số liệu với kết luận về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-diagnostics
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: incident-diagnostics-001
+    title: Thu thập mốc thời gian, cấu hình và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-002
+    title: Phân biệt không tạo được kết nối với không mượn được kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-003
+    title: Pool đầy do tải tăng, truy vấn chậm, chờ khóa hay rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-004
+    title: Kết nối lỗi sau một khoảng rảnh cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-005
+    title: Độ trễ tăng khi mở rộng ứng dụng hoặc tăng kích thước pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-006
+    title: Lỗi kết nối khi triển khai lại hoặc cơ sở dữ liệu khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-007
+    title: Đối chiếu chỉ số pool, phiên máy chủ, log và dấu vết luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-008
+    title: Tái hiện nguyên nhân bằng một thí nghiệm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-009
+    title: Biện pháp giảm ảnh hưởng tức thời và sửa nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-diagnostics-010
+    title: Ghi lại bằng chứng trước và sau khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connection-testing
+  title: Kiểm thử kết nối
+  childs:
+  - slug: connection-testing-001
+    title: Xác định điều cần chứng minh cho từng giai đoạn vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-002
+    title: Kiểm thử đơn vị quyền sở hữu và các nhánh dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-003
+    title: Kiểm thử tích hợp với cơ sở dữ liệu thực và giới hạn của đối tượng giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-004
+    title: Kiểm tra commit, rollback và việc hoàn trả kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-005
+    title: Kiểm tra trạng thái phiên có được khôi phục giữa hai người mượn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-006
+    title: Mô phỏng pool đầy và xác minh thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-007
+    title: Mô phỏng kết nối cũ, mất mạng và cơ sở dữ liệu khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-008
+    title: Kiểm tra hủy thao tác, lỗi giữa giao dịch và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-009
+    title: Kiểm thử đồng thời, tải tăng đột biến và chạy kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-010
+    title: Kiểm tra dừng ứng dụng không làm mất quyền sở hữu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connection-testing-011
+    title: Tiêu chí đánh giá bằng số kết nối, độ trễ, lỗi và khả năng hồi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-recovery
+  title: Triển khai và phục hồi
+  childs:
+  - slug: deployment-recovery-001
+    title: Tạo pool và kiểm tra phụ thuộc trong quá trình khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-002
+    title: Phân biệt kiểm tra ứng dụng còn sống với kiểm tra sẵn sàng nhận tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-003
+    title: Làm nóng pool và tránh nhiều bản sao cùng mở kết nối đột ngột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-004
+    title: Ngừng nhận việc mới, chờ việc đang chạy và đóng pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-005
+    title: Triển khai cuốn chiếu và tổng kết nối trong giai đoạn chồng lấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-006
+    title: Tự động mở rộng ứng dụng trong giới hạn của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-007
+    title: Kết nối trong container, môi trường có NAT và bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-008
+    title: Vòng đời ứng dụng ngắn hoặc không máy chủ và lựa chọn tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-009
+    title: Phục hồi sau khi mất cơ sở dữ liệu hoặc chuyển sang máy chủ dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-recovery-010
+    title: Thay đổi cấu hình, kiểm tra tác động và quay về cấu hình trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-tuning
+  title: Điều chỉnh hiệu năng
+  childs:
+  - slug: performance-tuning-001
+    title: Lập đường cơ sở cho thông lượng, độ trễ và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-002
+    title: Tách độ trễ tạo kết nối, chờ pool và thực thi công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-003
+    title: Giảm thời gian giữ kết nối trước khi tăng số kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-004
+    title: Điều chỉnh kích thước pool theo giới hạn xử lý của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-005
+    title: Điều chỉnh kết nối rảnh, tuổi thọ và lịch kiểm tra từ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-006
+    title: Cân bằng độ trễ khởi đầu với chi phí giữ sẵn kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-007
+    title: Ảnh hưởng của đọc kết quả lớn, xử lý theo lô và lịch chạy tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-008
+    title: Thay đổi một nhóm tham số có mục tiêu và đo lại dưới cùng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-009
+    title: Theo dõi phân vị cao, tỉ lệ lỗi và tài nguyên sau điều chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-tuning-010
+    title: Nhận diện giới hạn cần giải quyết ở câu truy vấn, máy chủ hoặc kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Vẽ vòng đời kết nối cho một yêu cầu đọc và một yêu cầu ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Viết ví dụ JDBC quản lý đầy đủ tài nguyên và nhánh lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Chứng minh khác biệt giữa đóng kết nối trực tiếp và trả kết nối cho pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Tái hiện rò rỉ trạng thái phiên giữa hai lượt mượn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tính ngân sách kết nối cho nhiều bản sao và triển khai cuốn chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Thiết lập ngân sách thời gian cho yêu cầu, pool và câu lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Tái hiện pool bão hòa do giữ kết nối trong lúc làm việc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Phân tích lỗi mất kết nối và chọn hành vi hủy hoặc thử lại phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Xây bảng theo dõi tối thiểu và điều tra một kịch bản sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Kiểm tra kết nối trước vận hành và xác định chủ đề chuyên sâu tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

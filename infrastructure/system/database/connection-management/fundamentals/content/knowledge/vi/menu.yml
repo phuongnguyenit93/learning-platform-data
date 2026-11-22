@@ -1,0 +1,301 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kết nối cơ sở dữ liệu là gì và vì sao cần quản lý
+  - Phân biệt cơ sở dữ liệu, hệ quản trị, trình điều khiển và ứng dụng
+  - Phân biệt kết nối, phiên làm việc, giao dịch và câu lệnh
+  - Chi phí thiết lập, duy trì và kết thúc một kết nối
+  - 'Những vấn đề quản lý kết nối cần giải quyết: độ trễ, giới hạn và độ tin cậy'
+  - Hành trình một yêu cầu từ ứng dụng đến cơ sở dữ liệu
+  - 'Các thành phần chính: trình điều khiển, DataSource, kho kết nối dùng lại (connection pool) và máy chủ'
+  - 'Ranh giới nội dung: quản lý kết nối với mô hình dữ liệu và tối ưu câu truy vấn'
+  - Kiến thức nền và thứ tự học các chủ đề trong module
+- level1: Kiến trúc kết nối
+  level2:
+  - Kênh truyền mạng, giao thức cơ sở dữ liệu và trình điều khiển
+  - Kết nối trực tiếp, kết nối qua proxy và kết nối qua pool
+  - Kết nối vật lý và kết nối logic mà ứng dụng nhận được
+  - Phiên phía máy chủ và tài nguyên gắn với mỗi kết nối
+  - Phân biệt pool phía ứng dụng với pool hoặc proxy phía máy chủ
+  - Một ứng dụng dùng nhiều nguồn dữ liệu và nhiều pool
+  - 'Kết nối chặn luồng với kết nối không chặn luồng: phạm vi và khác biệt'
+  - Trách nhiệm của ứng dụng, thư viện quản lý kết nối và hệ quản trị
+  - Đọc sơ đồ đường đi của kết nối trong một hệ thống nhiều tầng
+- level1: Vòng đời kết nối
+  level2:
+  - Các giai đoạn tạo, xác thực, sử dụng và đóng kết nối vật lý
+  - Phân giải tên miền, mở socket và thương lượng giao thức
+  - Thiết lập TLS, xác thực danh tính và khởi tạo phiên
+  - Mượn kết nối, sử dụng và trả lại cho pool
+  - Phân biệt đóng kết nối logic với đóng kết nối vật lý
+  - Quyền sở hữu kết nối và trách nhiệm kết thúc vòng đời
+  - Thời gian rảnh, thời gian được mượn và tổng tuổi thọ kết nối
+  - 'Những đường thoát phải xử lý: thành công, lỗi, hủy và hết thời gian'
+  - Nhận diện trạng thái kết nối qua sơ đồ chuyển trạng thái
+- level1: Cấu hình kết nối
+  level2:
+  - 'Thành phần địa chỉ kết nối: giao thức, máy chủ, cổng và tên cơ sở dữ liệu'
+  - JDBC URL, tham số trình điều khiển và cấu hình DataSource
+  - Phân biệt tên cơ sở dữ liệu, catalog, schema và tài khoản đăng nhập
+  - Phân biệt cấu hình dùng chung với cấu hình riêng từng hệ quản trị
+  - Quản lý cấu hình theo môi trường phát triển, kiểm thử và vận hành
+  - Quy tắc ưu tiên cấu hình và cách xác định giá trị thực tế
+  - Truyền bí mật qua biến môi trường hoặc kho quản lý bí mật
+  - Kiểm tra giá trị cấu hình, đơn vị thời gian và giới hạn số lượng
+  - Kiểm tra kết nối ban đầu và chẩn đoán cấu hình sai
+  - Ẩn mật khẩu và dữ liệu nhạy cảm khi ghi log cấu hình
+- level1: JDBC và DataSource
+  level2:
+  - Vai trò của JDBC API, JDBC driver và Connection
+  - 'DriverManager và DataSource: cách lấy kết nối và trách nhiệm'
+  - DataSource như một hợp đồng cấp kết nối
+  - Lấy kết nối trực tiếp và lấy kết nối thông qua pool
+  - Connection, Statement, PreparedStatement và ResultSet trong vòng đời tài nguyên
+  - Trách nhiệm của commit, rollback và close ở phía ứng dụng
+  - Phân biệt kiểm tra isClosed với kiểm tra tính hợp lệ của kết nối
+  - 'isValid và câu lệnh kiểm tra kết nối: mục đích và giới hạn'
+  - 'Wrapper, proxy và unwrap: nhận biết lớp kết nối đang sử dụng'
+  - SQLException, SQLState và mã lỗi riêng của trình điều khiển
+- level1: Quản lý tài nguyên
+  level2:
+  - Xác định nơi mở kết nối và nơi chịu trách nhiệm đóng
+  - Phạm vi sử dụng kết nối trong một thao tác nghiệp vụ
+  - Dùng try-with-resources để quản lý tài nguyên JDBC
+  - Thứ tự giải phóng ResultSet, Statement và Connection
+  - Bảo toàn lỗi ban đầu khi quá trình dọn dẹp cũng phát sinh lỗi
+  - Quản lý tài nguyên khi chỉ đọc một phần kết quả truy vấn
+  - Kết quả đọc theo luồng và thời gian giữ kết nối
+  - Không trả kết quả phụ thuộc vào kết nối đã hết phạm vi sử dụng
+  - Dọn dẹp khi luồng bị ngắt, tác vụ bị hủy hoặc yêu cầu kết thúc
+  - Phân biệt tài nguyên do ứng dụng sở hữu với tài nguyên do framework quản lý
+- level1: Trạng thái phiên
+  level2:
+  - Các trạng thái của Connection có thể thay đổi giữa những lần sử dụng
+  - autoCommit và thời điểm hình thành ranh giới giao dịch
+  - Mức cô lập giao dịch trong phạm vi một kết nối
+  - Chế độ chỉ đọc và giới hạn bảo đảm của trình điều khiển hoặc máy chủ
+  - Catalog, schema và đường dẫn tìm kiếm đối tượng
+  - Biến phiên, múi giờ và các thiết lập riêng của hệ quản trị
+  - Bảng tạm, khóa phiên và tài nguyên tồn tại theo phiên
+  - Nguy cơ rò rỉ trạng thái khi tái sử dụng kết nối
+  - Trạng thái được pool khôi phục và trạng thái ứng dụng phải tự dọn
+  - Kiểm tra trạng thái trước khi trả kết nối và khi mượn lại
+- level1: Giao dịch và kết nối
+  level2:
+  - Mối quan hệ giữa một giao dịch cục bộ và kết nối thực thi
+  - Chọn ranh giới giao dịch và thời điểm cần lấy kết nối
+  - Commit, rollback và giải phóng kết nối trên từng đường xử lý
+  - Giao dịch chưa kết thúc khi kết nối được trả lại
+  - Giao dịch kéo dài và thời gian chiếm giữ kết nối
+  - Tác vụ mạng hoặc xử lý chậm bên trong phạm vi giao dịch
+  - 'Savepoint với giao dịch độc lập: ảnh hưởng đến số kết nối cần dùng'
+  - Lỗi mạng khi commit và trường hợp không biết giao dịch đã hoàn tất hay chưa
+  - Nhiều nguồn dữ liệu và giới hạn của giao dịch trên một kết nối
+  - 'Ranh giới với quản lý giao dịch phân tán: nhận biết nhu cầu và chi phí'
+- level1: Nguyên lý pool
+  level2:
+  - Pool kết nối giải quyết vấn đề gì so với tạo kết nối cho từng yêu cầu
+  - 'Các thành phần: kết nối rảnh, kết nối đang dùng và hàng chờ'
+  - Quy trình mượn và trả một kết nối
+  - Tạo kết nối theo nhu cầu và làm nóng pool
+  - Giới hạn số kết nối và cơ chế chờ khi pool đầy
+  - Kiểm tra kết nối trước khi cấp cho ứng dụng
+  - Proxy kết nối và ý nghĩa của close khi sử dụng pool
+  - Lợi ích, chi phí và những vấn đề pool không tự giải quyết
+  - Hợp đồng chung của pool và các lựa chọn triển khai cụ thể
+  - 'Ranh giới module: nguyên lý chung với cấu hình riêng của HikariCP'
+- level1: Vòng đời pool
+  level2:
+  - Khởi tạo DataSource và thời điểm tạo pool
+  - Khởi động ứng dụng khi cơ sở dữ liệu sẵn sàng hoặc chưa sẵn sàng
+  - Duy trì kết nối rảnh và loại bỏ kết nối không còn dùng được
+  - Phân biệt thời gian rảnh, tuổi thọ tối đa và kiểm tra định kỳ
+  - Kiểm tra kết nối khi mượn với kiểm tra nền
+  - Keepalive và các giới hạn thời gian rảnh của hạ tầng
+  - Thay thế kết nối cũ mà vẫn phục vụ yêu cầu đang chạy
+  - Đóng pool, ngừng cấp kết nối và xử lý kết nối đang được mượn
+  - Thay đổi cấu hình hoặc thông tin đăng nhập theo vòng đời pool
+  - Tránh tạo nhiều pool ngoài ý muốn và tránh tạo pool theo từng yêu cầu
+- level1: Ngân sách kết nối
+  level2:
+  - Giới hạn kết nối phía máy chủ và phần tài nguyên cần dự phòng
+  - Tổng số kết nối từ mọi ứng dụng, tác vụ nền và công cụ quản trị
+  - Ngân sách kết nối khi một dịch vụ có nhiều bản sao
+  - Ngân sách riêng cho từng nguồn dữ liệu hoặc nhóm người thuê
+  - Mối quan hệ giữa thông lượng, thời gian giữ và số kết nối đồng thời
+  - Ước lượng bằng định luật Little cùng các giả định cần kiểm chứng
+  - Số kết nối tối đa, số kết nối rảnh và mục tiêu giữ sẵn
+  - Vì sao tăng kích thước pool có thể làm hệ thống chậm hơn
+  - Dự phòng cho triển khai cuốn chiếu, tự động mở rộng và chuyển đổi máy chủ
+  - Chọn giá trị ban đầu từ ngân sách rồi xác minh bằng tải thực tế
+- level1: Thời hạn chờ
+  level2:
+  - Phân biệt thời hạn chờ từng bước với thời hạn hoàn tất toàn yêu cầu
+  - Thời gian chờ lấy kết nối từ pool
+  - Thời gian chờ phân giải tên, kết nối TCP và xác thực
+  - Thời gian chờ đọc hoặc ghi trên socket
+  - Thời gian chờ kiểm tra kết nối
+  - Thời gian thực thi câu lệnh và thời gian chờ khóa
+  - Thời hạn giao dịch và thời hạn yêu cầu phía ứng dụng
+  - Thời gian rảnh phía cơ sở dữ liệu, proxy và thiết bị mạng
+  - Phân bổ ngân sách thời gian giữa các tầng
+  - Phân biệt hết thời gian chờ với việc thao tác phía máy chủ đã dừng
+  - Đơn vị, giá trị mặc định và cách xác minh hiệu lực từng cấu hình
+- level1: Đồng thời và áp lực tải
+  level2:
+  - Quyền sử dụng độc quyền một kết nối trong một thời điểm
+  - Rủi ro chia sẻ Connection giữa nhiều luồng hoặc tác vụ
+  - Số luồng xử lý với số kết nối sẵn có
+  - Hàng chờ tại ứng dụng, pool và cơ sở dữ liệu
+  - Giới hạn lượng công việc nhận vào và điều tiết ngược khi quá tải
+  - Kết nối lồng nhau và nguy cơ chờ vòng khi pool đã đầy
+  - Tác vụ chạy song song trong cùng một yêu cầu
+  - Luồng ảo và giới hạn kết nối cơ sở dữ liệu vẫn cần quản lý
+  - Phân chia ngân sách cho yêu cầu trực tuyến và tác vụ nền
+  - Tính công bằng, thời gian chờ đuôi dài và yêu cầu bị bỏ đói
+  - Cách tránh biến pool thành nơi tích lũy hàng chờ không kiểm soát
+- level1: Tích hợp framework
+  level2:
+  - DataSource do ứng dụng tạo với DataSource do framework quản lý
+  - Tái sử dụng kết nối trong phạm vi giao dịch do framework điều phối
+  - Đồng bộ ranh giới giao dịch với việc lấy và trả kết nối
+  - 'JDBC trực tiếp, lớp trợ giúp JDBC và ORM: trách nhiệm quản lý kết nối'
+  - Persistence context của ORM với phiên kết nối cơ sở dữ liệu
+  - Lấy kết nối sớm hoặc muộn và ảnh hưởng đến thời gian chiếm giữ
+  - Mở phiên xuyên suốt yêu cầu web và nguy cơ giữ kết nối lâu
+  - Giao dịch lồng nhau hoặc giao dịch độc lập trong Spring
+  - Chuyển tác vụ sang luồng khác và giới hạn truyền ngữ cảnh giao dịch
+  - Tránh đóng thủ công kết nối do framework đang quản lý
+- level1: Lỗi kết nối
+  level2:
+  - Phân loại lỗi theo giai đoạn tạo, mượn, sử dụng và trả kết nối
+  - Sai địa chỉ, lỗi DNS, cổng không mở và dịch vụ chưa sẵn sàng
+  - Lỗi xác thực, quyền truy cập và cấu hình TLS
+  - Pool hết kết nối với máy chủ hết hạn mức kết nối
+  - Kết nối cũ đã bị đóng nhưng phía ứng dụng chưa phát hiện
+  - Đứt mạng, mất gói và kết nối chỉ còn hoạt động ở một phía
+  - Cơ sở dữ liệu khởi động lại hoặc chủ động chấm dứt phiên
+  - Lỗi câu truy vấn với lỗi làm kết nối không còn sử dụng được
+  - Đọc chuỗi SQLException, SQLState và nguyên nhân gốc
+  - Quyết định trả lại, loại bỏ hoặc thay thế kết nối lỗi
+- level1: Hủy và thử lại
+  level2:
+  - 'Hủy yêu cầu, ngắt luồng và hủy câu lệnh: các tín hiệu khác nhau'
+  - Giới hạn của cancel, interrupt và thời hạn chờ phía máy khách
+  - Rollback và dọn dẹp khi một thao tác bị hủy
+  - Điều kiện tái sử dụng kết nối sau lỗi hoặc hủy thao tác
+  - Phân biệt thử lấy kết nối lại với chạy lại toàn bộ nghiệp vụ
+  - Phân loại lỗi tạm thời và lỗi cần sửa cấu hình hoặc dữ liệu
+  - Tính lũy đẳng và nguy cơ ghi dữ liệu hai lần
+  - Không xác định được kết quả commit và giới hạn thử lại an toàn
+  - Giới hạn số lần thử, giãn cách tăng dần và thêm độ lệch ngẫu nhiên
+  - Ngân sách thời gian thử lại và tránh khuếch đại tải khi có sự cố
+- level1: Rò rỉ và chiếm giữ
+  level2:
+  - Rò rỉ kết nối là gì và khác với một thao tác chạy lâu
+  - Quên close, bỏ sót nhánh lỗi và thoát sớm khỏi phương thức
+  - Giữ kết nối trong biến dùng chung hoặc truyền qua tầng không rõ sở hữu
+  - Rò rỉ ResultSet, Statement và tài nguyên phía máy chủ
+  - Giữ kết nối trong lúc gọi dịch vụ khác hoặc chờ tương tác bên ngoài
+  - Giao dịch rảnh nhưng chưa kết thúc và tác động đến tài nguyên
+  - Cảnh báo giữ kết nối lâu với bằng chứng rò rỉ thực sự
+  - Tìm điểm mượn và đường trả kết nối qua log hoặc dấu vết ngăn xếp
+  - Sửa phạm vi sử dụng thay vì chỉ tăng kích thước pool
+  - Kiểm chứng kết nối được hoàn trả sau thành công, lỗi và hủy
+- level1: Định tuyến kết nối
+  level2:
+  - Chọn nguồn dữ liệu trước khi mượn kết nối
+  - Định tuyến đọc và ghi trong hệ thống có bản sao
+  - Tính nhất quán sau khi ghi và độ trễ của bản sao
+  - Giữ cùng đích kết nối trong suốt một giao dịch
+  - Pool riêng cho từng nguồn dữ liệu và chi phí tài nguyên
+  - Nhiều người thuê dùng chung hoặc tách riêng pool
+  - Đổi schema theo người thuê và yêu cầu khôi phục trạng thái phiên
+  - Proxy cơ sở dữ liệu và tái sử dụng kết nối phía máy chủ
+  - 'Pool theo phiên với pool theo giao dịch: giới hạn của trạng thái phiên'
+  - Chuyển đổi máy chủ và trách nhiệm phối hợp của driver, pool và proxy
+- level1: Bảo mật kết nối
+  level2:
+  - Xác thực ứng dụng với cơ sở dữ liệu và nguyên tắc quyền tối thiểu
+  - Mã hóa đường truyền bằng TLS
+  - Xác minh chứng chỉ, chuỗi tin cậy và tên máy chủ
+  - Phân biệt mã hóa đường truyền với xác minh đúng máy chủ
+  - Bảo vệ mật khẩu, chứng chỉ và khóa riêng
+  - Giới hạn truy cập mạng đến cổng cơ sở dữ liệu
+  - Tách tài khoản theo ứng dụng, môi trường và mục đích sử dụng
+  - Xoay vòng mật khẩu hoặc thông tin đăng nhập có thời hạn
+  - Tuổi thọ kết nối hiện có khi thông tin xác thực thay đổi
+  - Ghi log và thu thập số liệu mà không làm lộ bí mật
+- level1: Quan sát hệ thống
+  level2:
+  - 'Các chỉ số pool: tổng kết nối, đang dùng, rảnh và đang chờ'
+  - Độ trễ lấy kết nối và thời gian giữ kết nối
+  - Số lần tạo mới, đóng, kiểm tra thất bại và hết thời gian chờ
+  - Quan sát phiên hoạt động, phiên rảnh và phiên đang chờ phía máy chủ
+  - Liên hệ mức sử dụng pool với thông lượng và độ trễ yêu cầu
+  - Phân vị độ trễ và lý do giá trị trung bình chưa đủ
+  - Log vòng đời kết nối và dấu vết yêu cầu xuyên các tầng
+  - Tách số liệu theo ứng dụng, pool, nguồn dữ liệu và bản sao
+  - Thiết kế cảnh báo từ mức bão hòa và tác động đến yêu cầu
+  - Phân biệt dấu hiệu từ số liệu với kết luận về nguyên nhân
+- level1: Chẩn đoán sự cố
+  level2:
+  - Thu thập mốc thời gian, cấu hình và phạm vi ảnh hưởng
+  - Phân biệt không tạo được kết nối với không mượn được kết nối
+  - Pool đầy do tải tăng, truy vấn chậm, chờ khóa hay rò rỉ
+  - Kết nối lỗi sau một khoảng rảnh cố định
+  - Độ trễ tăng khi mở rộng ứng dụng hoặc tăng kích thước pool
+  - Lỗi kết nối khi triển khai lại hoặc cơ sở dữ liệu khởi động lại
+  - Đối chiếu chỉ số pool, phiên máy chủ, log và dấu vết luồng
+  - Tái hiện nguyên nhân bằng một thí nghiệm có kiểm soát
+  - Biện pháp giảm ảnh hưởng tức thời và sửa nguyên nhân gốc
+  - Ghi lại bằng chứng trước và sau khi thay đổi
+- level1: Kiểm thử kết nối
+  level2:
+  - Xác định điều cần chứng minh cho từng giai đoạn vòng đời
+  - Kiểm thử đơn vị quyền sở hữu và các nhánh dọn dẹp
+  - Kiểm thử tích hợp với cơ sở dữ liệu thực và giới hạn của đối tượng giả
+  - Kiểm tra commit, rollback và việc hoàn trả kết nối
+  - Kiểm tra trạng thái phiên có được khôi phục giữa hai người mượn
+  - Mô phỏng pool đầy và xác minh thời gian chờ
+  - Mô phỏng kết nối cũ, mất mạng và cơ sở dữ liệu khởi động lại
+  - Kiểm tra hủy thao tác, lỗi giữa giao dịch và kết quả chưa xác định
+  - Kiểm thử đồng thời, tải tăng đột biến và chạy kéo dài
+  - Kiểm tra dừng ứng dụng không làm mất quyền sở hữu tài nguyên
+  - Tiêu chí đánh giá bằng số kết nối, độ trễ, lỗi và khả năng hồi phục
+- level1: Triển khai và phục hồi
+  level2:
+  - Tạo pool và kiểm tra phụ thuộc trong quá trình khởi động
+  - Phân biệt kiểm tra ứng dụng còn sống với kiểm tra sẵn sàng nhận tải
+  - Làm nóng pool và tránh nhiều bản sao cùng mở kết nối đột ngột
+  - Ngừng nhận việc mới, chờ việc đang chạy và đóng pool
+  - Triển khai cuốn chiếu và tổng kết nối trong giai đoạn chồng lấp
+  - Tự động mở rộng ứng dụng trong giới hạn của cơ sở dữ liệu
+  - Kết nối trong container, môi trường có NAT và bộ cân bằng tải
+  - Vòng đời ứng dụng ngắn hoặc không máy chủ và lựa chọn tái sử dụng kết nối
+  - Phục hồi sau khi mất cơ sở dữ liệu hoặc chuyển sang máy chủ dự phòng
+  - Thay đổi cấu hình, kiểm tra tác động và quay về cấu hình trước
+- level1: Điều chỉnh hiệu năng
+  level2:
+  - Lập đường cơ sở cho thông lượng, độ trễ và tài nguyên
+  - Tách độ trễ tạo kết nối, chờ pool và thực thi công việc
+  - Giảm thời gian giữ kết nối trước khi tăng số kết nối
+  - Điều chỉnh kích thước pool theo giới hạn xử lý của máy chủ
+  - Điều chỉnh kết nối rảnh, tuổi thọ và lịch kiểm tra từ bằng chứng
+  - Cân bằng độ trễ khởi đầu với chi phí giữ sẵn kết nối
+  - Ảnh hưởng của đọc kết quả lớn, xử lý theo lô và lịch chạy tác vụ nền
+  - Thay đổi một nhóm tham số có mục tiêu và đo lại dưới cùng điều kiện
+  - Theo dõi phân vị cao, tỉ lệ lỗi và tài nguyên sau điều chỉnh
+  - Nhận diện giới hạn cần giải quyết ở câu truy vấn, máy chủ hoặc kiến trúc
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ vòng đời kết nối cho một yêu cầu đọc và một yêu cầu ghi
+  - Viết ví dụ JDBC quản lý đầy đủ tài nguyên và nhánh lỗi
+  - Chứng minh khác biệt giữa đóng kết nối trực tiếp và trả kết nối cho pool
+  - Tái hiện rò rỉ trạng thái phiên giữa hai lượt mượn
+  - Tính ngân sách kết nối cho nhiều bản sao và triển khai cuốn chiếu
+  - Thiết lập ngân sách thời gian cho yêu cầu, pool và câu lệnh
+  - Tái hiện pool bão hòa do giữ kết nối trong lúc làm việc bên ngoài
+  - Phân tích lỗi mất kết nối và chọn hành vi hủy hoặc thử lại phù hợp
+  - Xây bảng theo dõi tối thiểu và điều tra một kịch bản sự cố
+  - Kiểm tra kết nối trước vận hành và xác định chủ đề chuyên sâu tiếp theo

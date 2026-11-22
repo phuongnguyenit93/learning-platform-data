@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: JDBC và DataSource
+  slug: jdbc-datasource
+  index: 1
+- title: Khởi tạo pool
+  slug: pool-initialization
+  index: 2
+- title: Cấu hình kết nối
+  slug: connection-configuration
+  index: 3
+- title: Vòng đời kết nối
+  slug: connection-lifecycle
+  index: 4
+- title: Cơ chế nội bộ
+  slug: internals
+  index: 5
+- title: Trạng thái phiên
+  slug: session-state
+  index: 6
+- title: Timeout
+  slug: timeouts
+  index: 7
+- title: Kiểm tra và bảo trì
+  slug: health-maintenance
+  index: 8
+- title: Rò rỉ tài nguyên
+  slug: connection-leaks
+  index: 9
+- title: Giao dịch JDBC
+  slug: jdbc-transactions
+  index: 10
+- title: Spring Boot
+  slug: spring-boot
+  index: 11
+- title: JPA và Hibernate
+  slug: jpa-hibernate
+  index: 12
+- title: Định cỡ pool
+  slug: pool-sizing
+  index: 13
+- title: Tối ưu hiệu năng
+  slug: performance-tuning
+  index: 14
+- title: Giám sát
+  slug: monitoring
+  index: 15
+- title: Quản trị pool
+  slug: pool-administration
+  index: 16
+- title: Nhiều nguồn dữ liệu
+  slug: multiple-datasources
+  index: 17
+- title: Hạ tầng kết nối
+  slug: connection-infrastructure
+  index: 18
+- title: Khả năng phục hồi
+  slug: resilience
+  index: 19
+- title: Bảo mật
+  slug: security
+  index: 20
+- title: Triển khai
+  slug: deployment
+  index: 21
+- title: Kiểm thử
+  slug: testing
+  index: 22
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 23
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 24

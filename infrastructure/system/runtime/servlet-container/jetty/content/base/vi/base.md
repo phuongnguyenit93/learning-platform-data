@@ -1,0 +1,7 @@
+# Runtime Servlet Container Jetty
+
+Eclipse Jetty là HTTP server và Servlet Container dành cho ứng dụng Java, có thể chạy độc lập để triển khai các web application dưới dạng WAR hoặc nhúng trực tiếp vào một chương trình Java. Jetty tiếp nhận kết nối qua `Connector`, chuyển request tới các `Handler` và có thể cung cấp môi trường Jakarta Servlet cho `Servlet`, `Filter` và `HttpSession`. Cách tổ chức này giúp người học phân biệt hạ tầng mạng của server với API chuẩn mà ứng dụng web sử dụng. Với Jetty 12, việc lựa chọn môi trường Java EE/Jakarta EE phải tương thích với API và dependency của ứng dụng.
+
+Roadmap một cấp gồm tám mốc: nhận diện kiến trúc Jetty; thiết lập `JETTY_HOME`, `JETTY_BASE` và module; tìm hiểu `Server`, `Connector` cùng cây `Handler`. Tiếp theo, người học thực hành servlet, filter và session; đóng gói WAR, chọn module triển khai phù hợp, cấu hình context path; rồi tạo embedded Jetty bằng Java. Hai mốc cuối tập trung vào HTTPS, HTTP/2, TLS, hoạt động của thread pool, giám sát và kiểm thử lỗi khi hệ thống nhận nhiều kết nối. Cấu hình bảo mật và tài nguyên cần phù hợp môi trường, không chỉ dựa trên việc ứng dụng đã chạy thành công.
+
+Module dành cho Java developer hoặc người vận hành backend đã hiểu HTTP, JVM và kiến thức web cơ bản. Sau khi hoàn thành, bạn có thể khởi động Jetty standalone, triển khai một WAR đúng phiên bản Servlet, chạy server embedded, kiểm tra luồng xử lý request và cấu hình HTTPS, đồng thời sử dụng log/JMX để tìm nguyên nhân lỗi triển khai, nghẽn luồng hay phản hồi chậm.

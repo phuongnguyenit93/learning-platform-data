@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-van-hanh-cloud
+  title: Mô hình vận hành Cloud
+  purpose: Xác định trách nhiệm, tài nguyên và quy trình cơ bản để quản lý workload cloud ổn định.
+  objectives:
+  - Phân biệt trách nhiệm cloud provider và đội vận hành
+  - Gắn owner, environment và tags cho tài nguyên
+  - Viết checklist vận hành và runbook cơ bản
+- id: tu-dong-hoa-quan-ly-thay-doi
+  title: Tự động hóa & quản lý thay đổi
+  purpose: Giảm sai sót thủ công bằng cấu hình như mã và thay đổi nhỏ có thể theo dõi, hoàn tác.
+  objectives:
+  - Áp dụng IaC cho môi trường có thể tái tạo
+  - Nhận diện configuration drift và cập nhật qua review
+  - Lập quy trình triển khai, kiểm tra và rollback
+- id: observability-slo
+  title: Observability & SLO
+  purpose: Theo dõi sức khỏe và trải nghiệm người dùng bằng telemetry gắn với mục tiêu dịch vụ.
+  objectives:
+  - Thu thập metrics, logs và traces liên quan
+  - Định nghĩa SLI và SLO cho workload mẫu
+  - Xây dashboard theo tín hiệu và tác động người dùng
+- id: alerting-incident-response
+  title: Alerting & Incident Response
+  purpose: Phát hiện sự cố có ý nghĩa và phối hợp xử lý theo mức độ ảnh hưởng thay vì tạo quá nhiều cảnh báo.
+  objectives:
+  - Thiết kế alert có ngưỡng và người nhận rõ ràng
+  - Mô tả on-call, escalation và quy trình ứng phó
+  - Tổ chức postmortem không đổ lỗi sau sự cố
+- id: capacity-resilience
+  title: Capacity & Resilience
+  purpose: Chủ động quản lý tải và khả năng chịu lỗi để workload đáp ứng nhu cầu khi lưu lượng biến động.
+  objectives:
+  - Đo mức dùng CPU, bộ nhớ và độ bão hòa
+  - Kiểm tra autoscaling, giới hạn và capacity headroom
+  - Xác định điểm lỗi đơn và thử kịch bản suy giảm
+- id: iam-security-operations
+  title: IAM & Security Operations
+  purpose: Duy trì quyền truy cập tối thiểu, cấu hình an toàn và khả năng phát hiện sai lệch trong vận hành.
+  objectives:
+  - Phân quyền theo vai trò và kiểm tra access định kỳ
+  - Theo dõi audit logs và cảnh báo hoạt động bất thường
+  - Lập kế hoạch vá lỗi, quản lý secret và kiểm tra compliance
+- id: backup-disaster-recovery
+  title: Backup & Disaster Recovery
+  purpose: Chuẩn bị khôi phục hệ thống và dữ liệu với các mục tiêu phù hợp nhu cầu kinh doanh.
+  objectives:
+  - Đặt RTO và RPO cho dịch vụ quan trọng
+  - Thiết kế lịch backup và chính sách lưu giữ
+  - Thử restore hoặc failover rồi ghi nhận kết quả
+- id: finops-cai-tien-lien-tuc
+  title: FinOps & cải tiến liên tục
+  purpose: Kiểm soát chi phí sử dụng tài nguyên và biến phản hồi vận hành thành hành động cải tiến định kỳ.
+  objectives:
+  - Phân bổ chi phí theo project hoặc owner và theo dõi budget
+  - Tìm tài nguyên dư thừa để right-size có kiểm chứng
+  - Review sự cố, thay đổi, SLO và chi phí để ưu tiên cải tiến

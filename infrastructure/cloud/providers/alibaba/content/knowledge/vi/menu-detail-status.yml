@@ -1,0 +1,3811 @@
+menu:
+- slug: alibaba-cloud-overview
+  title: Tổng quan Alibaba Cloud
+  childs:
+  - slug: alibaba-cloud-overview-001
+    title: Vai trò của Alibaba Cloud trong kiến trúc ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-002
+    title: Nhóm dịch vụ và mô hình trách nhiệm chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-003
+    title: Region, availability zone và phạm vi tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-004
+    title: Lựa chọn khu vực triển khai theo người dùng và yêu cầu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-005
+    title: Console, Cloud Shell, CLI và OpenAPI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-006
+    title: Resource ID, endpoint và quy ước đặt tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-007
+    title: Vòng đời tài nguyên và quan hệ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-008
+    title: Mô hình triển khai public cloud, hybrid cloud và multicloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: alibaba-cloud-overview-009
+    title: Lộ trình học Alibaba Cloud dành cho lập trình viên Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: accounts-resource-governance
+  title: Tài khoản và quản trị tài nguyên
+  childs:
+  - slug: accounts-resource-governance-001
+    title: Thiết lập tài khoản và bảo vệ thông tin khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-002
+    title: Bật MFA và phân tách tài khoản quản trị với tài khoản làm việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-003
+    title: Resource Directory và tổ chức nhiều tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-004
+    title: Thiết kế tài khoản cho môi trường phát triển, kiểm thử và sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-005
+    title: Resource Group, tag và quy ước phân loại tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-006
+    title: CloudSSO và quản lý truy cập tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-007
+    title: Chính sách kiểm soát trong Resource Directory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-008
+    title: ActionTrail và truy vết thao tác quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-009
+    title: Cloud Config và đánh giá cấu hình tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-resource-governance-010
+    title: Thiết kế landing zone và quy trình cấp tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ram-identity-access-management
+  title: Danh tính và phân quyền RAM
+  childs:
+  - slug: ram-identity-access-management-001
+    title: RAM user, RAM group và RAM role
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-002
+    title: Policy hệ thống và policy tùy chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-003
+    title: 'Cấu trúc policy: Action, Resource, Effect và Condition'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-004
+    title: Thiết kế quyền tối thiểu theo vai trò công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-005
+    title: Trust policy và quyền đảm nhận RAM role
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-006
+    title: STS AssumeRole và vòng đời thông tin xác thực tạm thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-007
+    title: Phân quyền truy cập tài nguyên giữa các tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-008
+    title: RAM role cho ECS và danh tính workload trên ACK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-009
+    title: Đăng nhập liên kết và tích hợp nhà cung cấp danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-010
+    title: Quản lý vòng đời AccessKey và thu hồi quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ram-identity-access-management-011
+    title: Phân tích lỗi AccessDenied và đánh giá quyền hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vpc-networking
+  title: Nền tảng mạng VPC
+  childs:
+  - slug: vpc-networking-001
+    title: VPC, vSwitch và phân bố subnet theo availability zone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-002
+    title: Lập kế hoạch CIDR và tránh chồng lấn địa chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-003
+    title: Route table, next hop và luồng định tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-004
+    title: Security Group, network ACL và nguyên tắc phân đoạn mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-005
+    title: Thiết kế lớp public, private và cô lập dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-006
+    title: Địa chỉ IP riêng, IP công cộng và Elastic IP Address
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-007
+    title: NAT Gateway với SNAT và DNAT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-008
+    title: VPC endpoint và truy cập dịch vụ qua PrivateLink
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-009
+    title: Kết nối IPv6 và triển khai dual stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-010
+    title: VPC Flow Log và phân tích luồng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vpc-networking-011
+    title: Ước lượng băng thông và chi phí truyền dữ liệu trong VPC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hybrid-inter-region-connectivity
+  title: Kết nối lai và liên vùng
+  childs:
+  - slug: hybrid-inter-region-connectivity-001
+    title: Lựa chọn VPC peering, CEN, VPN Gateway và Express Connect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-002
+    title: Kết nối nhiều VPC trong cùng region
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-003
+    title: Cloud Enterprise Network và Transit Router
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-004
+    title: Định tuyến giữa nhiều region và nhiều tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-005
+    title: VPN site-to-site với trung tâm dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-006
+    title: SSL VPN cho truy cập quản trị từ xa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-007
+    title: Express Connect và đường truyền riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-008
+    title: Thiết kế dự phòng đường truyền và tránh vòng lặp định tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-009
+    title: Kết hợp DNS và định tuyến cho môi trường hybrid
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-inter-region-connectivity-010
+    title: Đánh giá độ trễ, băng thông và yêu cầu kết nối xuyên khu vực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dns-load-balancing
+  title: DNS và cân bằng tải
+  childs:
+  - slug: dns-load-balancing-001
+    title: Alibaba Cloud DNS và quản lý bản ghi tên miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-002
+    title: PrivateZone và phân giải DNS trong mạng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-003
+    title: TTL, cache DNS và kế hoạch chuyển đổi tên miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-004
+    title: Lựa chọn CLB, ALB và NLB
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-005
+    title: Listener, backend server group và health check
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-006
+    title: ALB cho HTTP, HTTPS và định tuyến theo host hoặc path
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-007
+    title: NLB cho kết nối TCP, UDP và tải ở tầng truyền tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-008
+    title: Session persistence, connection draining và giới hạn kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-009
+    title: Kết thúc TLS và quản lý chứng chỉ trên load balancer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-010
+    title: Global Traffic Manager và định tuyến DNS theo tình trạng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dns-load-balancing-011
+    title: Thiết kế đường vào ứng dụng qua nhiều availability zone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: content-delivery-processing
+  title: Phân phối và xử lý nội dung
+  childs:
+  - slug: content-delivery-processing-001
+    title: CDN và mô hình phân phối nội dung từ origin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-002
+    title: Thiết kế cache key, TTL và quy tắc bỏ qua cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-003
+    title: Purge, prefetch và xử lý nội dung thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-004
+    title: Origin là OSS hoặc dịch vụ ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-005
+    title: HTTPS, URL signing và kiểm soát truy cập tại edge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-006
+    title: Tối ưu tăng tốc nội dung tĩnh và nội dung động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-007
+    title: Xử lý ảnh trên OSS và thiết kế biến thể hình ảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-008
+    title: Tổng quan dịch vụ xử lý video, phát trực tiếp và video theo yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: content-delivery-processing-009
+    title: Theo dõi cache hit ratio, origin traffic và chi phí CDN
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ecs-virtual-machines
+  title: Máy chủ ảo ECS
+  childs:
+  - slug: ecs-virtual-machines-001
+    title: Kiến trúc ECS và vòng đời một instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-002
+    title: Chọn instance family, CPU, RAM và kiến trúc bộ xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-003
+    title: Lựa chọn image công khai, image tùy chỉnh và image dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-004
+    title: Khởi tạo máy chủ bằng user data và cloud-init
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-005
+    title: Gắn vSwitch, Security Group và RAM role cho ECS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-006
+    title: Đăng nhập bằng SSH key và quản trị kết nối an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-007
+    title: Instance metadata và bảo vệ truy cập metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-008
+    title: Cấu hình hệ điều hành, đồng bộ thời gian và bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-009
+    title: Quản lý data disk, filesystem và mount trên ECS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-010
+    title: Thay đổi cấu hình, dừng máy và ảnh hưởng đến ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-011
+    title: Tạo image chuẩn và triển khai lại máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ecs-virtual-machines-012
+    title: Thiết kế nhóm ECS phục vụ ứng dụng qua load balancer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-scaling-selection
+  title: Co giãn và lựa chọn compute
+  childs:
+  - slug: compute-scaling-selection-001
+    title: Auto Scaling và thiết kế scaling group
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-002
+    title: Scaling configuration, launch template và image version
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-003
+    title: Co giãn theo lịch, theo ngưỡng và theo tải mục tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-004
+    title: Cooldown, warm-up và xử lý dao động số lượng instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-005
+    title: Scale-in an toàn và giải phóng công việc đang xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-006
+    title: Chọn cơ chế phân bổ instance qua nhiều availability zone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-007
+    title: Spot Instance và xử lý gián đoạn compute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-008
+    title: Elastic Container Instance cho tác vụ container độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-009
+    title: Lựa chọn ECS, ECI, ACK và serverless theo loại workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-scaling-selection-010
+    title: Đánh giá GPU và compute chuyên dụng cho xử lý theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: block-file-storage
+  title: Lưu trữ khối và tệp
+  childs:
+  - slug: block-file-storage-001
+    title: Phân biệt block storage, file storage và object storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-002
+    title: Cloud disk và các tiêu chí lựa chọn hiệu năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-003
+    title: IOPS, throughput, latency và giới hạn ở phía instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-004
+    title: Vòng đời cloud disk và chính sách giữ dữ liệu khi xóa ECS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-005
+    title: Mở rộng dung lượng disk và filesystem
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-006
+    title: Snapshot disk và tính nhất quán của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-007
+    title: Mã hóa cloud disk và quyền sử dụng khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-008
+    title: NAS, giao thức truy cập và mount target
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-009
+    title: Phân quyền tệp, truy cập đồng thời và khóa tệp trên NAS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-file-storage-010
+    title: Lựa chọn CPFS cho workload cần filesystem song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-storage-service
+  title: Object Storage Service
+  childs:
+  - slug: object-storage-service-001
+    title: OSS bucket, object, key và endpoint truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-002
+    title: Thiết kế bucket theo môi trường, tenant và khu vực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-003
+    title: Storage class và lựa chọn theo tần suất truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-004
+    title: Upload, download, multipart upload và tiếp tục truyền tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-005
+    title: Tính toàn vẹn dữ liệu và kiểm tra checksum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-006
+    title: Bucket policy, ACL và ngăn truy cập công khai ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-007
+    title: Presigned URL và cấp quyền tải lên hoặc tải xuống có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-008
+    title: CORS và upload trực tiếp từ trình duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-009
+    title: Versioning và khôi phục object bị ghi đè hoặc xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-010
+    title: Lifecycle rule và chuyển lớp lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-011
+    title: Replication giữa bucket và giữa region
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-012
+    title: Retention, WORM và bảo vệ dữ liệu khỏi sửa xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-013
+    title: Event notification và xử lý object theo sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-service-014
+    title: Access log, inventory và phân tích hoạt động bucket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ack-container-platform
+  title: Nền tảng container ACK
+  childs:
+  - slug: ack-container-platform-001
+    title: Kiến trúc ACK và trách nhiệm quản lý control plane
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-002
+    title: Lựa chọn mô hình cluster ACK theo workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-003
+    title: Lập kế hoạch VPC, địa chỉ Pod và địa chỉ Service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-004
+    title: Lựa chọn mạng container với Terway hoặc Flannel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-005
+    title: Node pool, loại instance và phân bố node qua availability zone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-006
+    title: Alibaba Cloud Container Registry và kho image riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-007
+    title: Quản lý quyền pull image và kết nối registry qua mạng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-008
+    title: Tích hợp RAM, RBAC và danh tính cho Pod
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-009
+    title: CSI driver và sử dụng cloud disk hoặc NAS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-010
+    title: Ingress và tích hợp ALB với ACK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ack-container-platform-011
+    title: Quản lý addon và tương thích phiên bản cluster
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: kubernetes-deployment-operations
+  title: Triển khai và vận hành Kubernetes
+  childs:
+  - slug: kubernetes-deployment-operations-001
+    title: Đóng gói ứng dụng thành Deployment và StatefulSet trên ACK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-002
+    title: Namespace, ResourceQuota và phân tách môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-003
+    title: Request, limit và bố trí tài nguyên cho Pod
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-004
+    title: Readiness, liveness, startup probe và graceful shutdown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-005
+    title: Topology spread, affinity và PodDisruptionBudget
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-006
+    title: HPA và co giãn node pool theo nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-007
+    title: Đánh giá ACK Serverless và compute theo Pod
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-008
+    title: Triển khai cấu hình và bí mật cho workload Kubernetes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-009
+    title: NetworkPolicy và giới hạn giao tiếp giữa các workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-010
+    title: Nâng cấp cluster, node drain và bảo trì không gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-011
+    title: Sao lưu manifest và dữ liệu bền vững của ứng dụng ACK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-deployment-operations-012
+    title: Helm, rollback và xử lý rollout thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-application-platforms
+  title: Serverless và nền tảng ứng dụng
+  childs:
+  - slug: serverless-application-platforms-001
+    title: Function Compute và mô hình thực thi theo sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-002
+    title: Trigger HTTP, OSS và lịch chạy cho Function Compute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-003
+    title: Java runtime, custom runtime và đóng gói function
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-004
+    title: Timeout, memory, concurrency và cold start của function
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-005
+    title: Kết nối function với VPC và dịch vụ dữ liệu riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-006
+    title: Quyền thực thi và quản lý bí mật trong function
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-007
+    title: Version, alias và phát hành function có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-008
+    title: Retry, lỗi thực thi và thiết kế function idempotent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-009
+    title: Serverless App Engine cho ứng dụng và tác vụ Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-010
+    title: Triển khai JAR hoặc container lên SAE và cấu hình co giãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-011
+    title: EDAS và lựa chọn nền tảng quản lý ứng dụng doanh nghiệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-application-platforms-012
+    title: So sánh chi phí và giới hạn vận hành giữa FC, SAE và ECS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: relational-databases
+  title: Cơ sở dữ liệu quan hệ
+  childs:
+  - slug: relational-databases-001
+    title: Lựa chọn ApsaraDB RDS, PolarDB và OceanBase
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-002
+    title: Chọn engine, phiên bản và cấu hình database instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-003
+    title: Mạng riêng, whitelist và tài khoản truy cập cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-004
+    title: RDS high availability và cơ chế chuyển đổi khi có lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-005
+    title: Read replica, read/write splitting và tính nhất quán khi đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-006
+    title: PolarDB và mô hình cluster cho workload quan hệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-007
+    title: OceanBase và các bài toán dữ liệu quan hệ phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-008
+    title: Connection limit, connection pool và database proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-009
+    title: Parameter group, charset, collation và múi giờ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-010
+    title: Backup, binlog và khôi phục cơ sở dữ liệu đến một thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-011
+    title: Slow query, execution plan và tối ưu chỉ mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-012
+    title: Mở rộng tài nguyên và thay đổi cấu hình database
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relational-databases-013
+    title: Nâng cấp engine và kiểm thử tính tương thích ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: caching-nosql-databases
+  title: Cache và cơ sở dữ liệu NoSQL
+  childs:
+  - slug: caching-nosql-databases-001
+    title: Lựa chọn cache, document store, wide-column và search engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-002
+    title: ApsaraDB for Redis, Tair và mô hình triển khai cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-003
+    title: TTL, eviction policy và kiểm soát dung lượng cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-004
+    title: Cache-aside và xử lý cache penetration, breakdown, avalanche
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-005
+    title: Redis cluster, hot key và thiết kế phân bố key
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-006
+    title: Cache failover, persistence và giới hạn độ bền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-007
+    title: ApsaraDB for MongoDB và lựa chọn replica set hoặc sharding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-008
+    title: Tablestore và thiết kế partition key cho dữ liệu truy cập lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-009
+    title: Lindorm và lưu trữ dữ liệu nhiều mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-010
+    title: Alibaba Cloud Elasticsearch và thiết kế chỉ mục tìm kiếm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-011
+    title: So sánh consistency, latency và khả năng mở rộng của NoSQL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-nosql-databases-012
+    title: Capacity planning và kiểm soát hotspot cho dịch vụ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-analytics-platforms
+  title: Nền tảng dữ liệu và phân tích
+  childs:
+  - slug: data-analytics-platforms-001
+    title: Thiết kế data lake trên OSS và phân lớp dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-002
+    title: Data Lake Formation và quản lý metadata của data lake
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-003
+    title: MaxCompute cho kho dữ liệu và xử lý theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-004
+    title: EMR và vận hành hệ sinh thái Spark hoặc Hadoop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-005
+    title: Realtime Compute for Apache Flink và pipeline streaming
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-006
+    title: Hologres cho phân tích tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-007
+    title: AnalyticDB và lựa chọn hệ thống truy vấn phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-008
+    title: DataWorks và điều phối workflow dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-009
+    title: Phân vùng, định dạng tệp và tối ưu truy vấn dữ liệu lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-010
+    title: Lineage, chất lượng dữ liệu và phân quyền khai thác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-platforms-011
+    title: Theo dõi SLA pipeline và chi phí xử lý dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-governance-migration
+  title: Quản trị và di chuyển dữ liệu
+  childs:
+  - slug: data-governance-migration-001
+    title: Data Transmission Service và lựa chọn migration hoặc synchronization
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-002
+    title: Đánh giá tương thích schema trước khi chuyển dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-003
+    title: Full load, CDC và kiểm soát độ trễ đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-004
+    title: Thiết kế quyền và kết nối mạng cho tác vụ DTS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-005
+    title: Đối soát số lượng bản ghi và tính toàn vẹn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-006
+    title: Cutover database và phương án rollback dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-007
+    title: Data Management Service và quản lý quyền thao tác dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-008
+    title: Duyệt thay đổi SQL và thực thi schema migration có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-009
+    title: Quản lý dữ liệu thử nghiệm và che dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-migration-010
+    title: Lưu trữ dài hạn và quy trình hủy dữ liệu theo chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: messaging-event-processing
+  title: Nhắn tin và xử lý sự kiện
+  childs:
+  - slug: messaging-event-processing-001
+    title: Lựa chọn Apache RocketMQ, Apache Kafka và RabbitMQ trên Alibaba Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-002
+    title: Managed message queue và lựa chọn mô hình queue hoặc topic
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-003
+    title: Thiết kế topic, queue, consumer group và subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-004
+    title: Endpoint riêng, xác thực và phân quyền broker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-005
+    title: Producer acknowledgement và độ bền của thông điệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-006
+    title: Consumer offset, retry và dead-letter queue
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-007
+    title: Thứ tự xử lý và phạm vi bảo đảm ordering
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-008
+    title: Delayed message và tác vụ chạy theo thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-009
+    title: Transactional message và mẫu transactional outbox
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-010
+    title: Idempotent consumer và xử lý thông điệp trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-011
+    title: Backpressure, backlog và mở rộng consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: messaging-event-processing-012
+    title: Retention, replay và khôi phục luồng xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: api-workflow-orchestration
+  title: API và điều phối ứng dụng
+  childs:
+  - slug: api-workflow-orchestration-001
+    title: API Gateway và quản lý vòng đời API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-002
+    title: Thiết kế authentication, authorization và quota cho API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-003
+    title: Kết nối API Gateway với backend trong VPC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-004
+    title: Version API, rate limit và bảo vệ backend quá tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-005
+    title: EventBridge và thiết kế event bus
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-006
+    title: Event rule, filter, transform và định tuyến sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-007
+    title: Event delivery, retry và xử lý đích nhận bị lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-008
+    title: CloudFlow và điều phối tác vụ nhiều bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-009
+    title: Saga, compensation và xử lý workflow thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: api-workflow-orchestration-010
+    title: Lựa chọn synchronous call, message queue và workflow
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-cloud-alibaba-microservices
+  title: Microservices với Spring Cloud Alibaba
+  childs:
+  - slug: spring-cloud-alibaba-microservices-001
+    title: Vai trò của Spring Cloud Alibaba trong hệ sinh thái Alibaba Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-002
+    title: Kiểm tra tương thích JDK, Spring Boot và Spring Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-003
+    title: Microservices Engine và lựa chọn dịch vụ quản lý microservices
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-004
+    title: Nacos cho service discovery và đăng ký instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-005
+    title: Nacos Config, namespace, group và quản lý thay đổi cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-006
+    title: Load balancing phía client và cập nhật danh sách instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-007
+    title: Sentinel và thiết kế flow control hoặc circuit breaking
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-008
+    title: Phối hợp timeout, retry và bulkhead giữa các dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-009
+    title: Seata và cân nhắc giao dịch phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-010
+    title: SchedulerX và xử lý tác vụ phân tán theo lịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-011
+    title: Gray release và định tuyến phiên bản microservice
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-cloud-alibaba-microservices-012
+    title: Quan sát phụ thuộc và xử lý lỗi dây chuyền trong microservices
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-sdk-openapi
+  title: SDK và OpenAPI cho Java
+  childs:
+  - slug: java-sdk-openapi-001
+    title: Chọn SDK Java theo sản phẩm và phiên bản API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-002
+    title: Khởi tạo OpenAPI client và cấu hình endpoint theo region
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-003
+    title: Credential provider và chuỗi tìm kiếm thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-004
+    title: Sử dụng RAM role, STS và tự làm mới credential
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-005
+    title: Cấu hình HTTP connection pool, connect timeout và read timeout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-006
+    title: Request signing và chẩn đoán sai lệch thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-007
+    title: Pagination, rate limit và kiểm soát số lượng API request
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-008
+    title: Retry với exponential backoff và jitter
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-009
+    title: Idempotency token và xử lý kết quả request chưa xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-010
+    title: API bất đồng bộ, polling và kiểm tra trạng thái tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-011
+    title: Phân loại lỗi SDK, HTTP status và lỗi nghiệp vụ dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-012
+    title: Request ID, log an toàn và che thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-sdk-openapi-013
+    title: Quản lý phiên bản dependency và kiểm thử lớp adapter cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-service-integration
+  title: Tích hợp dịch vụ trong Java
+  childs:
+  - slug: java-service-integration-001
+    title: Thiết kế interface ứng dụng và adapter cho dịch vụ Alibaba Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-002
+    title: Cấu hình Spring Boot theo môi trường và tài khoản cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-003
+    title: Upload tệp lớn lên OSS bằng streaming và multipart
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-004
+    title: Cấp URL tải tệp có thời hạn từ backend Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-005
+    title: Kết nối RDS hoặc PolarDB bằng JDBC và HikariCP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-006
+    title: Khôi phục kết nối Java sau database failover
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-007
+    title: Sử dụng Redis hoặc Tair với Spring Data Redis
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-008
+    title: Tích hợp RocketMQ producer và consumer trong ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-009
+    title: Kết nối Kafka hoặc RabbitMQ từ dịch vụ Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-010
+    title: Ghi sự kiện nghiệp vụ nhất quán với transactional outbox
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-011
+    title: Gọi dịch vụ cloud bất đồng bộ và giới hạn concurrency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-012
+    title: Kiểm thử tích hợp bằng môi trường cô lập và dọn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-service-integration-013
+    title: Xây dựng cấu hình mẫu không chứa AccessKey hoặc bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-deployment-optimization
+  title: Triển khai và tối ưu ứng dụng Java
+  childs:
+  - slug: java-deployment-optimization-001
+    title: Lựa chọn JDK và xây dựng image Java dùng cho sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-002
+    title: Chạy Spring Boot trên ECS với systemd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-003
+    title: Cấu hình JVM theo CPU và memory limit của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-004
+    title: Đánh giá GC, heap, metaspace và native memory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-005
+    title: Cấu hình thread pool và connection pool theo tài nguyên cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-006
+    title: Tối ưu thời gian khởi động và readiness của ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-007
+    title: Xử lý SIGTERM và đóng tài nguyên trước khi dừng instance hoặc Pod
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-008
+    title: Lấy thread dump, heap dump và bản ghi Java Flight Recorder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-009
+    title: Phân tích latency và phân biệt nghẽn JVM với nghẽn hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-010
+    title: Load test và xác định năng lực phục vụ của một instance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-deployment-optimization-011
+    title: Thiết kế health endpoint và chiến lược rollback bản Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ai-machine-learning
+  title: AI và machine learning
+  childs:
+  - slug: ai-machine-learning-001
+    title: Lựa chọn Model Studio, PAI và hạ tầng GPU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-002
+    title: Gọi mô hình qua DashScope từ ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-003
+    title: Streaming response, token budget và giới hạn lời gọi mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-004
+    title: Embedding và thiết kế pipeline RAG với dữ liệu trên cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-005
+    title: Phân quyền truy cập mô hình và bảo vệ dữ liệu đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-006
+    title: PAI cho huấn luyện, quản lý và triển khai mô hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-007
+    title: Lựa chọn inference endpoint và phương án co giãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-008
+    title: Đánh giá chất lượng, độ trễ và chi phí suy luận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-machine-learning-009
+    title: Quản lý phiên bản mô hình và quan sát lỗi ứng dụng AI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Thiết kế metrics, logs, traces và correlation ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-002
+    title: CloudMonitor và giám sát tài nguyên Alibaba Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-003
+    title: Simple Log Service và kiến trúc thu thập log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-004
+    title: Logstore, index, truy vấn và thời hạn lưu log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-005
+    title: Thu thập log ECS, container và ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-006
+    title: Managed Service for Prometheus và thu thập metric Kubernetes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-007
+    title: Dashboard Grafana và theo dõi chỉ số dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-008
+    title: ARMS và APM cho ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-009
+    title: OpenTelemetry và distributed tracing qua nhiều dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-010
+    title: Xây dựng SLI, SLO và cảnh báo theo tác động người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-011
+    title: Alert routing, escalation và giảm cảnh báo nhiễu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-012
+    title: Synthetic monitoring và kiểm tra hành trình người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-observability-013
+    title: Sampling, cardinality và tối ưu chi phí quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-application-security
+  title: Bảo vệ hạ tầng và ứng dụng
+  childs:
+  - slug: infrastructure-application-security-001
+    title: Threat modeling cho ứng dụng trên Alibaba Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-002
+    title: Security Center và quản lý tình trạng bảo mật máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-003
+    title: Đánh giá lỗ hổng image và quy trình xử lý bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-004
+    title: Bastionhost và kiểm soát phiên truy cập quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-005
+    title: Cloud Firewall và kiểm soát lưu lượng qua biên mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-006
+    title: WAF cho ứng dụng web và API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-007
+    title: Anti-DDoS và chuẩn bị phương án ứng phó tấn công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-008
+    title: Thiết kế defense in depth cho đường truy cập ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-009
+    title: Cô lập tenant và phân đoạn workload nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-010
+    title: Phát hiện hành vi bất thường từ log và audit trail
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-011
+    title: Ứng phó khi AccessKey hoặc tài khoản bị lộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-application-security-012
+    title: Quy trình đánh giá bảo mật trước khi đưa hệ thống vào sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-secrets-protection
+  title: Bảo vệ dữ liệu và bí mật
+  childs:
+  - slug: data-secrets-protection-001
+    title: KMS, khóa mã hóa và phân tách quyền quản lý khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-002
+    title: Envelope encryption và lựa chọn khóa do khách hàng quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-003
+    title: Secrets Manager và vòng đời bí mật ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-004
+    title: Xoay vòng database credential và cập nhật ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-005
+    title: TLS nội bộ, TLS công cộng và xác thực đầu cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-006
+    title: Quản lý chứng chỉ và tự động hóa gia hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-007
+    title: Phân loại dữ liệu và lựa chọn vị trí lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-008
+    title: Mã hóa dữ liệu trên OSS, cloud disk và database
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-009
+    title: Quản lý quyền giải mã và kiểm toán sử dụng khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-010
+    title: Masking, tokenization và bảo vệ dữ liệu trong log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-secrets-protection-011
+    title: Rà soát cấu hình, lưu bằng chứng và đối chiếu yêu cầu tuân thủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-as-code-automation
+  title: IaC và tự động hóa
+  childs:
+  - slug: infrastructure-as-code-automation-001
+    title: Alibaba Cloud CLI và lựa chọn profile thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-002
+    title: Resource Orchestration Service và vòng đời stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-003
+    title: Template ROS với parameter, output và dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-004
+    title: Terraform Alibaba Cloud provider và cấu hình xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-005
+    title: Terraform module cho VPC, ECS, OSS và database
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-006
+    title: Quản lý Terraform state, locking và quyền truy cập backend
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-007
+    title: Tách state theo môi trường và giới hạn phạm vi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-008
+    title: Import tài nguyên sẵn có và phát hiện configuration drift
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-009
+    title: Đọc plan, xử lý replacement và bảo vệ tài nguyên có dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-010
+    title: CloudOps Orchestration Service và tự động hóa runbook
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-011
+    title: Thiết kế automation idempotent và chịu được API throttling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-automation-012
+    title: Dọn môi trường thử nghiệm theo tag và kiểm tra phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-cd-gitops
+  title: CI/CD và GitOps
+  childs:
+  - slug: ci-cd-gitops-001
+    title: Thiết kế pipeline build, kiểm thử và triển khai lên Alibaba Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-002
+    title: Cấp quyền cho pipeline bằng danh tính tạm thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-003
+    title: Build container image, gắn version và đẩy lên ACR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-004
+    title: Quét dependency, image và kiểm soát nguồn gốc artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-005
+    title: Promote cùng artifact giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-006
+    title: Triển khai ứng dụng lên ECS, ACK hoặc SAE từ pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-007
+    title: GitOps cho ACK với cấu hình được quản lý trong Git
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-008
+    title: Rolling update, blue-green và canary deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-009
+    title: Phối hợp database migration với phát hành ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-gitops-010
+    title: Cổng kiểm tra, rollback tự động và xác nhận sau triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-change-management
+  title: Vận hành và quản lý thay đổi
+  childs:
+  - slug: operations-change-management-001
+    title: Xây dựng inventory tài nguyên và bản đồ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-002
+    title: Runbook vận hành theo cảnh báo và loại sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-003
+    title: Lập lịch bảo trì và đánh giá ảnh hưởng thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-004
+    title: Quản lý quota, giới hạn dịch vụ và nhu cầu tăng hạn mức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-005
+    title: Quản lý vòng đời phiên bản, image và cấu hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-006
+    title: Tự động hóa vá lỗi và kiểm tra sau bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-007
+    title: Quản lý drift giữa cấu hình khai báo và tài nguyên thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-008
+    title: Incident command, nhật ký sự cố và postmortem
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-change-management-009
+    title: Bàn giao vận hành và tiêu chí sẵn sàng hỗ trợ sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-recovery
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-recovery-001
+    title: Xác định RPO, RTO và phạm vi cần bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-002
+    title: Phân biệt snapshot, replication và backup độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-003
+    title: Cloud Backup và lập chính sách bảo vệ workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-004
+    title: Sao lưu ECS, NAS và dữ liệu ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-005
+    title: Sao lưu database nhất quán với nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-006
+    title: Bảo vệ bản sao lưu bằng tài khoản và quyền riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-007
+    title: Bản sao lưu khác region và giới hạn băng thông sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-008
+    title: Khôi phục toàn hệ thống hoặc khôi phục từng thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-009
+    title: Kiểm tra tính toàn vẹn và diễn tập phục hồi định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-recovery-010
+    title: Quản lý retention, chi phí backup và bằng chứng khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability-design
+  title: Thiết kế độ tin cậy
+  childs:
+  - slug: reliability-design-001
+    title: Phân tích failure domain và điểm lỗi đơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-002
+    title: Thiết kế stateless và tách trạng thái khỏi compute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-003
+    title: Kiến trúc nhiều availability zone cho ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-004
+    title: Active-passive và active-active giữa nhiều region
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-005
+    title: Thiết kế DR cho lớp mạng, ứng dụng và dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-006
+    title: Timeout budget, retry budget và chống retry storm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-007
+    title: Graceful degradation và ưu tiên chức năng cốt lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-008
+    title: Capacity headroom và kế hoạch đáp ứng tải tăng đột biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-009
+    title: Chaos testing và diễn tập lỗi dịch vụ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-design-010
+    title: Đánh đổi consistency, availability, latency và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-management
+  title: Quản lý chi phí
+  childs:
+  - slug: cost-management-001
+    title: Mô hình pay-as-you-go, subscription và cam kết sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-002
+    title: Đọc hóa đơn và phân biệt chi phí tài nguyên với truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-003
+    title: Phân bổ chi phí theo tài khoản, Resource Group và tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-004
+    title: Thiết lập budget, cảnh báo và phát hiện chi phí bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-005
+    title: Rightsizing ECS, database và node pool ACK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-006
+    title: Kết hợp Auto Scaling và lịch tắt môi trường ngoài giờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-007
+    title: So sánh cam kết sử dụng với nhu cầu và mức độ biến động tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-008
+    title: Tối ưu OSS lifecycle, snapshot và dữ liệu lưu lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-009
+    title: Tối ưu chi phí NAT, load balancer, CDN và egress
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-010
+    title: Ước lượng chi phí FC, SAE và workload container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-011
+    title: Lập TCO và kiểm chứng chi phí trước khi mở rộng hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-migration
+  title: Di chuyển hệ thống lên Alibaba Cloud
+  childs:
+  - slug: cloud-migration-001
+    title: Khảo sát ứng dụng, dependency và hạ tầng hiện tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-002
+    title: Lựa chọn rehost, replatform hoặc refactor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-003
+    title: Lập migration wave theo ràng buộc phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-004
+    title: Server Migration Center và chuyển máy chủ lên ECS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-005
+    title: Di chuyển file, object và kiểm tra tính toàn vẹn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-006
+    title: Di chuyển container và cấu hình sang ACK
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-007
+    title: Phối hợp migration ứng dụng với pipeline chuyển database
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-008
+    title: Diễn tập cutover, chuyển DNS và đánh giá downtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-009
+    title: Kiểm thử hiệu năng, bảo mật và chi phí sau migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-migration-010
+    title: Rollback migration và ngừng hạ tầng cũ có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-troubleshooting
+  title: Khắc phục sự cố
+  childs:
+  - slug: cloud-troubleshooting-001
+    title: Xây dựng cây chẩn đoán theo triệu chứng và lớp dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-002
+    title: 'Không truy cập được ECS: định tuyến, Security Group và dịch vụ hệ điều hành'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-003
+    title: Lỗi DNS hoặc TLS trên đường truy cập ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-004
+    title: Load balancer báo backend unhealthy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-005
+    title: ECS hết CPU, bộ nhớ hoặc dung lượng disk
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-006
+    title: OSS trả lỗi chữ ký, thời hạn URL hoặc quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-007
+    title: Java SDK gặp throttling, timeout hoặc lỗi endpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-008
+    title: Database hết kết nối, tăng lock hoặc chậm truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-009
+    title: Redis mất kết nối, hot key hoặc tăng cache miss
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-010
+    title: Message backlog tăng và consumer xử lý lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-011
+    title: ACK có Pod Pending, CrashLoopBackOff hoặc lỗi kéo image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-012
+    title: Function Compute tăng cold start hoặc vượt giới hạn concurrency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-013
+    title: Microservice mất đăng ký, cấu hình lỗi hoặc circuit breaker mở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-014
+    title: Khoanh vùng latency bằng metrics, logs và traces
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-troubleshooting-015
+    title: Thu thập Request ID và chuẩn bị hồ sơ hỗ trợ kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-projects
+  title: Dự án thực hành tổng hợp
+  childs:
+  - slug: capstone-projects-001
+    title: Dựng landing zone tối thiểu với tài khoản, RAM và ngân sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-002
+    title: Triển khai Spring Boot trên ECS với ALB và RDS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-003
+    title: Xây dịch vụ quản lý tệp bằng OSS và URL có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-004
+    title: Triển khai microservices trên ACK với Nacos và Sentinel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-005
+    title: Xây luồng đơn hàng bất đồng bộ với RocketMQ và outbox
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-006
+    title: Tạo pipeline xử lý tệp bằng OSS, EventBridge và Function Compute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-007
+    title: Tích hợp trợ lý RAG Java với Model Studio và dữ liệu riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-008
+    title: Tự động hóa hạ tầng và phát hành ứng dụng qua Terraform và GitOps
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-009
+    title: Thiết lập SLO và diễn tập phục hồi sau lỗi availability zone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-projects-010
+    title: Đánh giá kiến trúc cuối khóa theo bảo mật, độ tin cậy và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

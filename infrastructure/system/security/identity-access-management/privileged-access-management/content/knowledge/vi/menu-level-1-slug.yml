@@ -1,0 +1,148 @@
+menu:
+- title: Khái niệm PAM
+  slug: pam-overview
+  index: 0
+- title: Danh tính đặc quyền
+  slug: privileged-identities
+  index: 1
+- title: Tài khoản đặc quyền
+  slug: privileged-accounts
+  index: 2
+- title: Least privilege
+  slug: least-privilege
+  index: 3
+- title: JIT và JEA
+  slug: just-in-time-and-just-enough-access
+  index: 4
+- title: Discovery
+  slug: discovery
+  index: 5
+- title: Inventory và ownership
+  slug: inventory-ownership
+  index: 6
+- title: Governance
+  slug: governance
+  index: 7
+- title: Kiến trúc PAM
+  slug: pam-architecture
+  index: 8
+- title: Onboarding
+  slug: onboarding
+  index: 9
+- title: Vault
+  slug: credential-vault
+  index: 10
+- title: Credential management
+  slug: credential-management
+  index: 11
+- title: Password rotation
+  slug: password-rotation
+  index: 12
+- title: Session management
+  slug: session-management
+  index: 13
+- title: Remote access
+  slug: remote-access
+  index: 14
+- title: Approval workflow
+  slug: approval-workflow
+  index: 15
+- title: MFA
+  slug: multi-factor-authentication
+  index: 16
+- title: Authentication
+  slug: authentication
+  index: 17
+- title: Authorization
+  slug: authorization
+  index: 18
+- title: Admin workstation
+  slug: admin-workstation
+  index: 19
+- title: Tiering
+  slug: access-tiering
+  index: 20
+- title: Break-glass
+  slug: break-glass
+  index: 21
+- title: Service account
+  slug: service-account
+  index: 22
+- title: Application privilege
+  slug: application-privilege
+  index: 23
+- title: Cloud PAM
+  slug: cloud-pam
+  index: 24
+- title: Kubernetes PAM
+  slug: kubernetes-pam
+  index: 25
+- title: Database PAM
+  slug: database-pam
+  index: 26
+- title: Network PAM
+  slug: network-pam
+  index: 27
+- title: Endpoint PAM
+  slug: endpoint-pam
+  index: 28
+- title: Windows PAM
+  slug: windows-pam
+  index: 29
+- title: Linux PAM
+  slug: linux-pam
+  index: 30
+- title: SSH và key
+  slug: ssh-keys
+  index: 31
+- title: API và automation
+  slug: api-automation
+  index: 32
+- title: Secrets integration
+  slug: secrets-integration
+  index: 33
+- title: Audit logging
+  slug: audit-logging
+  index: 34
+- title: Command analytics
+  slug: command-analytics
+  index: 35
+- title: Monitoring
+  slug: monitoring
+  index: 36
+- title: Threat detection
+  slug: threat-detection
+  index: 37
+- title: Incident response
+  slug: incident-response
+  index: 38
+- title: Backup và khôi phục
+  slug: backup-and-recovery
+  index: 39
+- title: High availability
+  slug: high-availability
+  index: 40
+- title: Vendor access
+  slug: vendor-access
+  index: 41
+- title: DevOps và CI/CD
+  slug: devops-ci-cd
+  index: 42
+- title: Compliance
+  slug: compliance
+  index: 43
+- title: Metrics
+  slug: metrics
+  index: 44
+- title: Testing
+  slug: testing
+  index: 45
+- title: Migration
+  slug: migration
+  index: 46
+- title: Anti-pattern
+  slug: pam-antipatterns
+  index: 47
+- title: Checklist production
+  slug: production-checklist
+  index: 48

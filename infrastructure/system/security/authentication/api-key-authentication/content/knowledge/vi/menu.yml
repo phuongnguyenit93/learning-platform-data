@@ -1,0 +1,546 @@
+menu:
+- level1: Khái niệm API key
+  level2:
+  - API key là gì
+  - API key dùng để làm gì
+  - API key so với password
+  - API key so với session
+  - API key so với OAuth token
+  - API key so với mTLS
+  - API key cho client nào
+  - API key bảo vệ endpoint nào
+  - Giới hạn của API key
+  - Không dùng API key một mình cho tài nguyên giá trị cao
+- level1: Authentication và authorization
+  level2:
+  - API key xác định client
+  - API key có phải danh tính người dùng không
+  - Authentication bằng API key
+  - Authorization sau khi nhận key
+  - Scope của API key
+  - Quota của API key
+  - Tenant của API key
+  - Owner của API key
+  - Audit actor và key
+  - Kết hợp API key với user identity
+- level1: Loại API key
+  level2:
+  - Public API key
+  - Private API key
+  - Publishable key
+  - Secret API key
+  - Server-to-server key
+  - Partner key
+  - Developer key
+  - Test key
+  - Production key
+  - Read-only key
+  - Write key
+- level1: Chủ thể và consumer
+  level2:
+  - API provider
+  - API consumer
+  - Application client
+  - Service client
+  - Human developer
+  - Machine workload
+  - Third-party integration
+  - Partner organization
+  - Key owner
+  - Key administrator
+  - Resource owner
+- level1: Vòng đời key
+  level2:
+  - Create key
+  - Approve key
+  - Issue key
+  - Deliver key
+  - Activate key
+  - Use key
+  - Rotate key
+  - Suspend key
+  - Revoke key
+  - Expire key
+  - Destroy key
+  - Audit lifecycle
+- level1: Cấp phát
+  level2:
+  - Key request
+  - Business justification
+  - Client registration
+  - Identity verification
+  - Owner assignment
+  - Environment selection
+  - Scope selection
+  - Quota selection
+  - Approval workflow
+  - One-time reveal
+  - Issue metadata
+- level1: Sinh key
+  level2:
+  - Cryptographically secure randomness
+  - Độ dài key
+  - Entropy
+  - Unpredictable key
+  - Prefix để nhận diện
+  - Checksum tùy chọn
+  - Không dùng ID tuần tự
+  - Không dùng dữ liệu người dùng
+  - Không dùng key mặc định
+  - Kiểm tra key trước phát hành
+- level1: Định dạng và nhận diện
+  level2:
+  - Key prefix
+  - Key identifier
+  - Secret portion
+  - Version identifier
+  - Environment marker
+  - Tenant marker
+  - Character set
+  - Case sensitivity
+  - Constant-time comparison
+  - Không để key chứa PII
+  - Key fingerprint
+- level1: Truyền key
+  level2:
+  - TLS bắt buộc
+  - HTTPS endpoint
+  - Không truyền qua URL
+  - Không truyền qua query string
+  - Header cho API key
+  - Request body khi phù hợp
+  - Không gửi qua email thường
+  - Provision qua kênh an toàn
+  - Không hiển thị lại plaintext
+  - Kiểm tra proxy và gateway
+- level1: Header và scheme
+  level2:
+  - X-API-Key header
+  - Authorization header
+  - Bearer-like scheme
+  - Custom authentication scheme
+  - Header canonicalization
+  - Header duplicate handling
+  - Header whitespace
+  - Header size limit
+  - Header forwarding
+  - Xóa key khỏi downstream log
+- level1: Lưu trữ client
+  level2:
+  - Secret manager cho client
+  - Server-side secret storage
+  - Không hardcode trong source
+  - Không commit vào Git
+  - Không lưu trong image
+  - Không lưu trong URL
+  - Environment variable có rủi ro
+  - File permission
+  - In-memory handling
+  - Không lưu trong browser localStorage
+- level1: Lưu trữ server
+  level2:
+  - Hash API key khi có thể
+  - Lookup bằng key identifier
+  - Vault storage
+  - Encrypted database
+  - Tách key metadata và secret
+  - Encryption at rest
+  - Access control cho key store
+  - Backup key store
+  - Key store audit
+  - Không log plaintext key
+- level1: Scope
+  level2:
+  - Scope theo endpoint
+  - Scope theo HTTP method
+  - Scope theo resource
+  - Scope theo action
+  - Scope read-only
+  - Scope write
+  - Scope admin
+  - Scope theo tenant
+  - Scope theo environment
+  - Scope theo IP
+  - Scope theo thời gian
+- level1: Quota và rate limit
+  level2:
+  - Quota theo key
+  - Rate limit theo key
+  - Burst limit
+  - Daily quota
+  - Monthly quota
+  - 429 Too Many Requests
+  - RateLimit headers
+  - Quota reset
+  - Fairness giữa consumer
+  - Chi phí theo usage
+- level1: Enforce endpoint
+  level2:
+  - Require key cho endpoint bảo vệ
+  - Check key trên mọi request
+  - Global middleware
+  - API gateway enforcement
+  - Service-side enforcement
+  - Defense in depth
+  - Public endpoint exception
+  - Health endpoint policy
+  - Management endpoint policy
+  - Không chỉ ẩn endpoint
+- level1: Request validation
+  level2:
+  - Key có tồn tại
+  - Key có active không
+  - Key có đúng environment
+  - Key có đúng tenant
+  - Key có scope phù hợp
+  - Key có hết hạn
+  - Key có bị revoke
+  - Client có bị suspend
+  - Request có đúng method
+  - Request có đúng resource
+- level1: Replay và request integrity
+  level2:
+  - Bearer key replay risk
+  - Request timestamp
+  - Nonce
+  - Request ID
+  - Replay window
+  - HMAC request signing
+  - Canonical method
+  - Canonical path
+  - Canonical query
+  - Canonical body
+  - Signature verification
+- level1: HMAC signing
+  level2:
+  - Shared secret signing
+  - Key identifier trong header
+  - Canonical request
+  - Timestamp header
+  - Nonce header
+  - Constant-time HMAC compare
+  - Algorithm selection
+  - Không dùng algorithm từ client
+  - Signature failure
+  - Key rotation khi signing
+- level1: TLS
+  level2:
+  - TLS cho API key
+  - Certificate validation
+  - Không tắt hostname verification
+  - mTLS defense in depth
+  - TLS termination tại gateway
+  - Forwarded identity
+  - End-to-end TLS
+  - TLS version policy
+  - Certificate rotation
+  - Kiểm tra downgrade
+- level1: Rotation
+  level2:
+  - Rotation theo lịch
+  - Rotation khi nghi bị lộ
+  - Dual active key
+  - Grace period
+  - Client migration
+  - Server accept old and new
+  - Promote key mới
+  - Revoke key cũ
+  - Kiểm thử rotation
+  - Không rotate gây downtime
+- level1: Revocation
+  level2:
+  - Revoke key bị lộ
+  - Revoke key không dùng
+  - Revoke client
+  - Revoke theo tenant
+  - Immediate denial
+  - Revocation list
+  - Distributed revocation
+  - Cache invalidation
+  - Audit revoke action
+  - Thông báo consumer
+- level1: Expiration
+  level2:
+  - Key expiration
+  - TTL của key
+  - Expiration theo environment
+  - Expiration theo scope
+  - Cảnh báo sắp hết hạn
+  - Renewal approval
+  - Không gia hạn vô hạn
+  - Expired key response
+  - Auto-disable khi hết hạn
+  - Cleanup key metadata
+- level1: Multi-key migration
+  level2:
+  - Tạo key mới trước thu hồi
+  - Client giữ hai key
+  - Key version trong config
+  - Canary client
+  - Migration window
+  - Theo dõi old key usage
+  - Cutover theo consumer
+  - Rollback cutover
+  - Revoke sau migration
+  - Đối soát key còn dùng
+- level1: Client SDK
+  level2:
+  - SDK nhận API key
+  - SDK không log key
+  - SDK gửi đúng header
+  - SDK xử lý 401
+  - SDK xử lý 403
+  - SDK xử lý 429
+  - SDK retry có kiểm soát
+  - SDK timeout
+  - SDK không gửi key nhầm host
+  - SDK rotation config
+- level1: Server validation
+  level2:
+  - Lookup key
+  - Hash compare
+  - Validate metadata
+  - Resolve client
+  - Resolve owner
+  - Resolve scope
+  - Resolve quota
+  - Resolve tenant
+  - Resolve policy
+  - Cache lookup an toàn
+- level1: Gateway
+  level2:
+  - API gateway auth
+  - Gateway key validation
+  - Gateway rate limit
+  - Gateway quota
+  - Gateway key mapping
+  - Gateway redact log
+  - Gateway forward client context
+  - Gateway rotation
+  - Gateway revoke propagation
+  - Gateway fail-closed
+- level1: Microservices
+  level2:
+  - Key ở edge service
+  - Forward không cần thiết
+  - Downstream service identity
+  - Đổi API key thành service token
+  - Internal API policy
+  - Key scope theo service
+  - Không chia sẻ một key mọi service
+  - Service-to-service audit
+  - Internal key rotation
+  - Lateral movement giảm thiểu
+- level1: Multi-tenant
+  level2:
+  - Tenant-bound key
+  - Tenant scope
+  - Cross-tenant denial
+  - Tenant admin key
+  - Platform key
+  - Tenant quota
+  - Tenant key rotation
+  - Tenant offboarding
+  - Tenant key audit
+  - Tenant isolation test
+- level1: Third-party
+  level2:
+  - Partner onboarding
+  - Partner key approval
+  - Contract scope
+  - Partner IP restriction
+  - Partner quota
+  - Partner rotation agreement
+  - Partner breach contact
+  - Partner revoke
+  - Partner usage audit
+  - Partner offboarding
+- level1: Browser và mobile
+  level2:
+  - API key trong browser risk
+  - Public key có giới hạn
+  - Không đặt secret key trong frontend
+  - Mobile app key extraction
+  - App attestation
+  - Backend-for-frontend
+  - Short-lived token thay key
+  - Origin không phải authorization
+  - Key exposure qua source map
+  - Không tin key trong client binary
+- level1: CI/CD
+  level2:
+  - Key trong pipeline
+  - Secret masking
+  - OIDC thay static key
+  - Build key scope
+  - Deploy key scope
+  - Environment protection
+  - Fork pipeline leakage
+  - Rotation CI key
+  - Audit pipeline usage
+  - Không chia sẻ key giữa pipeline
+- level1: Leakage prevention
+  level2:
+  - Secret scanning
+  - Quét Git history
+  - Quét artifact
+  - Quét container image
+  - Quét log
+  - Quét URL
+  - Quét crash report
+  - Quét support ticket
+  - Redaction
+  - Credential exposure alert
+- level1: Logging
+  level2:
+  - Log key identifier không log secret
+  - Log client identity
+  - Log endpoint
+  - Log outcome
+  - Log status code
+  - Log scope decision
+  - Log quota rejection
+  - Log revoke usage
+  - Correlation ID
+  - Data minimization trong log
+- level1: Monitoring
+  level2:
+  - Key usage volume
+  - Key usage location
+  - Key usage time
+  - New user agent
+  - New ASN hoặc IP
+  - Scope violation
+  - Rate spike
+  - Repeated 401
+  - Repeated 403
+  - Expired key attempts
+  - Revoked key attempts
+- level1: Abuse prevention
+  level2:
+  - Credential stuffing với API key
+  - Key enumeration
+  - Key brute force
+  - Replay attack
+  - Quota abuse
+  - Scraping
+  - Resource farming
+  - Unexpected method
+  - Unexpected geography
+  - Client suspension
+  - Adaptive rate limiting
+- level1: Incident response
+  level2:
+  - Declare key exposure
+  - Xác định key bị ảnh hưởng
+  - Xác định consumer
+  - Revoke key (bổ sung 2)
+  - Issue replacement key
+  - Rotate dependent secret
+  - Xóa key khỏi log và artifact
+  - Điều tra usage history
+  - Thông báo stakeholder
+  - Post-incident review
+- level1: Error handling
+  level2:
+  - 401 thiếu key
+  - 401 key không hợp lệ
+  - 403 scope không đủ
+  - 429 quota vượt
+  - Không phân biệt key tồn tại
+  - Không lộ validation detail
+  - Consistent response body
+  - Không retry 401 vô hạn
+  - Audit error
+  - Alert error bất thường
+- level1: Data protection
+  level2:
+  - Không đưa key vào URL
+  - Không đưa key vào analytics
+  - Không đưa key vào tracing
+  - Mask key trong exception
+  - Mask key trong support bundle
+  - Encrypt key at rest
+  - Protect backup
+  - Access control key metadata
+  - Key deletion
+  - Privacy của client metadata
+- level1: Testing
+  level2:
+  - Test missing key
+  - Test malformed key
+  - Test wrong key
+  - Test expired key
+  - Test revoked key
+  - Test wrong scope
+  - Test wrong tenant
+  - Test rate limit
+  - Test replay
+  - Test rotation
+  - Test log redaction
+  - Test gateway bypass
+- level1: Governance
+  level2:
+  - API key policy
+  - Key owner policy
+  - Naming convention
+  - Environment policy
+  - Scope approval
+  - Quota approval
+  - Rotation SLA
+  - Revocation SLA
+  - Exception process
+  - Vendor policy
+  - Evidence retention
+- level1: Metrics
+  level2:
+  - Active key count
+  - Expired key count
+  - Revoked key count
+  - Key age
+  - Rotation compliance
+  - 401 rate
+  - 403 rate
+  - 429 rate
+  - Unknown key attempts
+  - Key leakage findings
+  - Consumer migration progress
+- level1: Architecture patterns
+  level2:
+  - Gateway-managed key
+  - Service-managed key
+  - Vault-backed key
+  - HMAC signed request
+  - Short-lived exchange token
+  - Key plus mTLS
+  - Key plus IP allowlist
+  - Key plus quota
+  - Key plus tenant policy
+  - Zero trust API access
+- level1: Anti-pattern
+  level2:
+  - Key trong query string
+  - Key hardcode trong source
+  - Một key dùng mọi môi trường
+  - Một key dùng mọi consumer
+  - Key không expiration
+  - Không có revoke
+  - Không có rate limit
+  - Tin client tự khai scope
+  - Log plaintext key
+  - Dùng API key cho user password login
+  - Chỉ bảo vệ bằng UI
+- level1: Checklist production
+  level2:
+  - Đã định nghĩa consumer
+  - Đã gán owner
+  - Đã giới hạn scope
+  - Đã giới hạn quota
+  - Đã bắt buộc TLS
+  - Đã không truyền key qua URL
+  - Đã lưu key an toàn
+  - Đã log không lộ secret
+  - Đã có rotation
+  - Đã có revoke khẩn cấp
+  - Đã có leak scanning
+  - Đã kiểm thử 401 403 429

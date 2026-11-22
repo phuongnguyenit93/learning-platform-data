@@ -1,0 +1,392 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Grafana Alloy là gì và giải quyết vấn đề thu thập telemetry nào
+  - Vị trí của Alloy giữa ứng dụng, hệ thống lưu trữ và Grafana
+  - 'Bốn loại tín hiệu: metrics, logs, traces và profiles'
+  - Phân biệt thu thập, xử lý, vận chuyển, lưu trữ và trực quan hóa
+  - Quan hệ giữa Alloy, OpenTelemetry Collector và hệ sinh thái Prometheus
+  - 'Các đích nhận dữ liệu: Mimir, Loki, Tempo, Pyroscope và backend tương thích'
+  - Mô hình kéo và đẩy dữ liệu trong một hệ thống quan sát
+  - 'Thuật ngữ cốt lõi: component, target, receiver, processor và exporter'
+  - Lộ trình học và kiến thức nền về HTTP, Linux, Docker, Kubernetes
+- level1: Cài đặt và khởi chạy
+  level2:
+  - Chọn phiên bản, nền tảng và kiến trúc CPU phù hợp
+  - Cài đặt Alloy trên Linux và quản lý bằng systemd
+  - Cài đặt Alloy trên Windows và cấu hình Windows Service
+  - Cài đặt Alloy trên macOS và chạy dịch vụ
+  - Chạy Alloy từ binary độc lập
+  - Chạy Alloy bằng Docker hoặc Podman
+  - Cấu trúc thư mục cấu hình, dữ liệu và quyền truy cập
+  - Sử dụng alloy run, tham số dòng lệnh và biến môi trường
+  - Kiểm tra phiên bản, khởi động, dừng và đọc nhật ký dịch vụ
+- level1: Pipeline đầu tiên
+  level2:
+  - Chuẩn bị môi trường thử nghiệm Alloy và các backend cục bộ
+  - Thu thập metrics của chính Alloy và gửi đến Prometheus
+  - Đọc một tệp log và chuyển đến Loki
+  - Nhận trace OTLP thử nghiệm và chuyển đến Tempo
+  - Mở giao diện Alloy và lần theo luồng dữ liệu
+  - Kiểm tra dữ liệu đầu cuối bằng truy vấn tại backend
+  - Phân biệt lỗi khởi động, lỗi kết nối và dữ liệu chưa được tạo
+- level1: Cú pháp cấu hình
+  level2:
+  - Tệp .alloy, mã hóa UTF-8 và cách đọc một thư mục cấu hình
+  - Block, thuộc tính, nhãn component và block lồng nhau
+  - Quy tắc định danh, chú thích và trình bày cấu hình
+  - Chuỗi thường, chuỗi thô và ký tự cần escape
+  - Giá trị số, boolean, null và chuyển đổi kiểu
+  - Danh sách, đối tượng và truy cập phần tử
+  - Biểu diễn thời lượng, kích thước và giá trị đặc thù theo schema
+  - Phân biệt cú pháp Alloy, YAML Collector và YAML Helm
+  - Định dạng và kiểm tra cấu hình bằng alloy fmt, alloy validate
+- level1: Biểu thức và thư viện
+  level2:
+  - Tham chiếu giá trị được component công bố qua exports
+  - Toán tử số học, so sánh, logic và biểu thức điều kiện
+  - Gọi hàm và kiểm tra kiểu dữ liệu đầu vào
+  - Đọc biến môi trường bằng sys.env
+  - Đọc tệp và sử dụng local.file khi cần theo dõi thay đổi
+  - Xử lý chuỗi, danh sách và đối tượng bằng thư viện chuẩn
+  - Giải mã JSON và trích xuất dữ liệu bằng json_path
+  - Giá trị dự phòng, null và coalesce trong cấu hình
+  - Xử lý giá trị nhạy cảm và giới hạn của việc che giấu secret
+- level1: Mô hình component
+  level2:
+  - Phân biệt arguments, exports và dữ liệu telemetry truyền qua component
+  - Định danh component và tạo nhiều instance cùng loại
+  - Nối prometheus, loki, otelcol và pyroscope đúng kiểu dữ liệu
+  - Sử dụng forward_to, receiver, input và output theo từng họ component
+  - Đồ thị phụ thuộc cấu hình và thứ tự đánh giá biểu thức
+  - Vòng đời component khi khởi động, cập nhật và dừng
+  - Tách nhánh, hợp nhánh và gửi dữ liệu đến nhiều đích
+  - Trạng thái sức khỏe component và giới hạn của tín hiệu healthy
+- level1: Tái sử dụng cấu hình
+  level2:
+  - Tách trách nhiệm giữa nguồn thu thập, xử lý và đích nhận
+  - Khai báo component tùy chỉnh bằng declare
+  - Thiết kế đầu vào bằng argument và giá trị mặc định
+  - Công bố giá trị qua export và quản lý phạm vi tên
+  - Tổ chức module dùng chung cho nhiều dịch vụ
+  - Nhập module bằng import.file, import.string, import.git và import.http
+  - Cố định phiên bản module và kiểm soát nguồn cấu hình từ xa
+  - Tạo nhiều instance bằng foreach và giới hạn experimental
+  - Thiết kế quy ước tên và tránh xung đột giữa các pipeline
+- level1: Khám phá mục tiêu
+  level2:
+  - Target là tập nhãn mô tả nguồn dữ liệu cần thu thập
+  - Khai báo target tĩnh và đối chiếu với khám phá động
+  - Đọc danh sách target bằng discovery.file và discovery.http
+  - Khám phá DNS và dịch vụ Consul
+  - Khám phá container bằng discovery.docker
+  - Khám phá Kubernetes theo pod, service, endpoints và node
+  - Giới hạn namespace, selector và phạm vi truy vấn Kubernetes
+  - Khám phá hạ tầng AWS, Azure và Google Cloud theo nhu cầu
+  - Khám phá tiến trình bằng discovery.process cho profiling
+  - Chu kỳ làm mới, lỗi API và mục tiêu biến mất
+- level1: Nhãn và relabeling
+  level2:
+  - Phân biệt nhãn target, nhãn mẫu metrics và thuộc tính tài nguyên
+  - Vai trò của __address__, __meta_*, __tmp* và nhãn nội bộ
+  - Lọc và chuẩn hóa target bằng discovery.relabel
+  - Sử dụng source_labels, separator, regex, replacement và target_label
+  - Chọn target bằng keep, drop, keepequal và dropequal
+  - Đổi tên và chọn nhãn bằng replace, labelmap, labelkeep và labeldrop
+  - Phân biệt discovery.relabel, prometheus.relabel và loki.relabel
+  - Thiết kế nhãn service, environment, cluster, namespace và instance
+  - Nguy cơ tăng số chuỗi dữ liệu và mất định danh sau relabeling
+- level1: Thu thập metrics
+  level2:
+  - Mô hình dữ liệu Prometheus và định danh một chuỗi thời gian
+  - Thu thập endpoint bằng prometheus.scrape
+  - Cấu hình đường dẫn metrics, scheme, tham số và xác thực
+  - Scrape interval, timeout và ngân sách thời gian thu thập
+  - Counter, gauge, histogram và summary trong dữ liệu thu được
+  - Histogram truyền thống, native histogram và khả năng tương thích
+  - Điều khiển nhãn job, instance, honor_labels và timestamp
+  - Giới hạn mẫu, số target và kích thước dữ liệu thu thập
+  - Lọc metrics trước khi gửi bằng prometheus.relabel
+  - Thu nhận Prometheus Remote Write bằng prometheus.receive_http
+  - Đánh giá up, scrape duration và nguyên nhân scrape thất bại
+- level1: Tích hợp exporter
+  level2:
+  - Phân biệt exporter tích hợp, exporter độc lập và endpoint ứng dụng
+  - Thu thập hệ điều hành Linux bằng prometheus.exporter.unix
+  - Thu thập Windows bằng prometheus.exporter.windows
+  - Thu thập container bằng prometheus.exporter.cadvisor
+  - Theo dõi tiến trình bằng prometheus.exporter.process
+  - Kiểm tra HTTP, TCP và DNS bằng prometheus.exporter.blackbox
+  - Kết nối exporter MySQL, PostgreSQL, Redis và Kafka
+  - Thu thập thiết bị SNMP và tiếp nhận StatsD
+  - Kết nối CloudWatch, Azure Monitor và Google Cloud theo quyền API
+  - Thu thập database_observability và phân biệt với metrics exporter
+- level1: Gửi metrics
+  level2:
+  - Thiết kế đường gửi bằng prometheus.remote_write
+  - Chọn endpoint Prometheus, Mimir hoặc Grafana Cloud
+  - Vai trò của Write-Ahead Log trong đường gửi metrics
+  - Vị trí dữ liệu, lưu trữ bền vững và khôi phục WAL
+  - Batch, queue, shard và giới hạn tốc độ gửi
+  - Timeout, retry, backoff và phản hồi HTTP 429
+  - External labels và write_relabel_config ở từng endpoint
+  - Gửi nhiều đích và đánh giá khả năng ảnh hưởng lẫn nhau
+  - Định danh replica và cơ chế khử trùng lặp tại backend tương thích
+  - Theo dõi backlog, dữ liệu quá cũ và lỗi out-of-order
+- level1: Thu thập logs
+  level2:
+  - Nguồn log, dòng log, timestamp và tập nhãn stream
+  - Theo dõi tệp bằng loki.source.file
+  - Khám phá tệp bằng file_match và local.file_match
+  - Vị trí đọc, tail_from_end và tiếp tục sau khi khởi động lại
+  - Log rotation, truncate, tệp nén và thay đổi đường dẫn
+  - Thu thập journald bằng loki.source.journal
+  - Thu thập Windows Event Log bằng loki.source.windowsevent
+  - Thu thập container bằng loki.source.docker
+  - Đọc log pod qua Kubernetes API hoặc tệp trên node
+  - Thu nhận syslog và Loki Push API
+  - Thu thập Kubernetes events, Kafka và các nguồn log đám mây
+  - Chọn loki.source.* hoặc otelcol.receiver.filelog theo đường dữ liệu
+- level1: Xử lý logs
+  level2:
+  - Mô hình loki.process và thứ tự thực thi các stage
+  - Phân biệt nội dung dòng, extracted values, labels và structured metadata
+  - Phân tích JSON, logfmt, regex và pattern
+  - Giải mã định dạng Docker và CRI
+  - Ghép log nhiều dòng và stack trace Java bằng stage.multiline
+  - Chuẩn hóa timestamp, múi giờ và xử lý lỗi phân tích thời gian
+  - Gán nhãn tĩnh, nhãn động và loại bỏ nhãn không cần thiết
+  - Giữ trường có nhiều giá trị khác nhau trong structured metadata
+  - Biến đổi nội dung bằng stage.template, stage.replace và stage.output
+  - Lọc có điều kiện bằng stage.match và stage.drop
+  - Giới hạn tốc độ, lấy mẫu và cắt ngắn dòng log
+  - Che dữ liệu nhạy cảm và kiểm chứng dữ liệu sau xử lý
+  - Tạo metrics từ log bằng stage.metrics và đường scrape tương ứng
+- level1: Gửi logs
+  level2:
+  - Kết nối loki.write với Loki hoặc Grafana Cloud
+  - Cấu hình endpoint, xác thực và tenant của log
+  - Kích thước batch, thời gian chờ và timeout gửi log
+  - Hàng đợi, WAL tùy chọn và khả năng phục hồi theo cấu hình
+  - Retry, backoff và hành vi khi hết số lần thử
+  - Giới hạn stream, nhãn và dữ liệu bị backend từ chối
+  - Gửi log nhiều đích và đánh giá ảnh hưởng của đích chậm
+  - Kiểm tra log trùng, log thiếu và thứ tự timestamp
+- level1: Pipeline OpenTelemetry
+  level2:
+  - Resource, instrumentation scope và mô hình dữ liệu OTLP
+  - Nhận OTLP gRPC và OTLP HTTP bằng otelcol.receiver.otlp
+  - Địa chỉ lắng nghe, cổng, đường dẫn và giới hạn bản tin
+  - Tách output metrics, logs và traces đến đúng pipeline
+  - Bảo vệ bộ nhớ bằng otelcol.processor.memory_limiter
+  - Gom batch bằng otelcol.processor.batch và lựa chọn thứ tự xử lý
+  - Gửi dữ liệu bằng otelcol.exporter.otlp và otelcol.exporter.otlphttp
+  - Xác thực exporter, TLS và metadata theo yêu cầu backend
+  - Hàng đợi gửi, retry và otelcol.storage.file ở mức public preview
+  - Kiểm tra dữ liệu thử nghiệm bằng otelcol.exporter.debug
+  - Tiếp nhận định dạng Jaeger, Zipkin và hệ sinh thái khác khi cần
+- level1: Biến đổi OpenTelemetry
+  level2:
+  - Bổ sung thông tin môi trường bằng otelcol.processor.resourcedetection
+  - Gắn metadata Kubernetes bằng otelcol.processor.k8sattributes
+  - Sửa thuộc tính bằng otelcol.processor.attributes
+  - Lọc telemetry bằng otelcol.processor.filter
+  - Ngữ cảnh, đường dẫn và điều kiện trong ngôn ngữ OTTL
+  - Biến đổi metrics, logs và spans bằng otelcol.processor.transform
+  - Xử lý lỗi OTTL và kiểm thử dữ liệu không đúng định dạng
+  - Loại bỏ dữ liệu nhạy cảm bằng otelcol.processor.redaction
+  - Chuyển delta và cumulative theo ngữ nghĩa metrics và backend
+  - Bảo toàn định danh metrics, trace_id và span_id khi biến đổi
+- level1: Tracing và lấy mẫu
+  level2:
+  - Ranh giới giữa instrumentation ứng dụng và thu thập trace tại Alloy
+  - Trace, span, quan hệ cha con và context propagation
+  - Nhận và gửi traces đến Tempo hoặc backend OTLP tương thích
+  - Phân biệt lấy mẫu tại ứng dụng, head sampling và tail sampling
+  - Lấy mẫu xác suất bằng otelcol.processor.probabilistic_sampler
+  - Giữ trace theo lỗi, độ trễ và thuộc tính bằng tail_sampling
+  - Decision wait, giới hạn trace chờ và span đến muộn
+  - Gửi các span cùng trace về cùng instance xử lý
+  - Cân bằng tải theo trace bằng otelcol.exporter.loadbalancing
+  - Đánh giá tác động lấy mẫu đến tính đầy đủ và chi phí trace
+- level1: Liên kết tín hiệu
+  level2:
+  - Chuẩn hóa danh tính dịch vụ giữa metrics, logs, traces và profiles
+  - Liên kết log với trace qua trace_id và span_id
+  - Exemplar trong metrics và điều kiện truy vết đến trace
+  - Tạo metrics từ spans bằng otelcol.connector.spanmetrics
+  - Dựng quan hệ dịch vụ bằng otelcol.connector.servicegraph
+  - Chuyển Prometheus sang OTLP và OTLP sang Prometheus
+  - Tiếp nhận Loki logs vào OTLP và gửi OTLP logs đến Loki
+  - Giới hạn chuyển đổi nhãn, thuộc tính và ngữ nghĩa giữa các định dạng
+  - Ranh giới cấu hình Alloy và cấu hình liên kết trong Grafana
+- level1: Profiling liên tục
+  level2:
+  - Continuous profiling là gì và bổ sung gì cho metrics và traces
+  - Định dạng profile, kiểu profile và nhãn nhận diện dịch vụ
+  - Thu thập endpoint profiling bằng pyroscope.scrape
+  - Thu nhận profile qua pyroscope.receive_http
+  - Thu thập tiến trình Linux bằng pyroscope.ebpf
+  - Thu thập JVM bằng pyroscope.java và async-profiler
+  - Khám phá tiến trình, PID namespace và quyền profiling
+  - Chuẩn hóa nhãn bằng pyroscope.relabel và gửi bằng pyroscope.write
+  - Tần suất lấy mẫu, chi phí và giới hạn theo hệ điều hành
+  - Kiểm chứng profile tại Pyroscope và liên kết với dữ liệu ứng dụng
+- level1: Java và Spring Boot
+  level2:
+  - Chọn đường thu thập Micrometer Prometheus hoặc OpenTelemetry
+  - Thu thập Spring Boot Actuator bằng prometheus.scrape
+  - Nhận OTLP từ OpenTelemetry Java Agent qua Alloy
+  - Phân biệt xuất metrics OTLP và scrape để tránh ghi trùng dữ liệu
+  - Chuẩn hóa service.name, service.namespace và môi trường triển khai
+  - Xử lý JSON log, MDC, trace_id và stack trace nhiều dòng
+  - Kết hợp JVM metrics, traces và profiles để điều tra độ trễ
+  - Giám sát MySQL, PostgreSQL, Redis và Kafka của ứng dụng
+  - Thu thập tự động bằng beyla.ebpf và giới hạn hỗ trợ
+  - Xác minh quan hệ dữ liệu bằng yêu cầu HTTP thử nghiệm
+- level1: Docker và Kubernetes
+  level2:
+  - Quản lý cấu hình, volume và mạng trong Docker Compose
+  - Mount log, dữ liệu Alloy và Docker socket theo đúng quyền
+  - Cài đặt Kubernetes bằng Helm chart grafana/alloy
+  - Phân biệt values.yaml của Helm và config.alloy của runtime
+  - Chọn DaemonSet, Deployment hoặc StatefulSet theo nguồn dữ liệu
+  - Quản lý ConfigMap, Secret và cấu hình reload
+  - ServiceAccount, RBAC và quyền đọc tài nguyên Kubernetes
+  - Thu thập metrics theo ServiceMonitor, PodMonitor và Probe
+  - Thu thập log pod theo node và theo Kubernetes API
+  - Bổ sung metadata Kubernetes và tránh thu thập lặp
+  - Cấu hình resource requests, limits và persistent volume
+  - Readiness, liveness và kết thúc pod an toàn cho pipeline
+- level1: Kiến trúc triển khai
+  level2:
+  - Chọn Alloy chạy trên host, sidecar hoặc dịch vụ tập trung
+  - Phối hợp tầng agent thu thập gần nguồn và tầng gateway
+  - Giữ dữ liệu cục bộ trên host và xử lý tập trung tại gateway
+  - Tách workload metrics, logs, traces và profiles khi cần
+  - Thiết kế tuyến truyền trong nhiều cluster, vùng và mạng riêng
+  - Dùng Alloy làm lớp proxy hoặc tổng hợp dữ liệu
+  - Phân tách tenant và phạm vi ảnh hưởng giữa các nhóm
+  - Xác định component có trạng thái và yêu cầu định tuyến riêng
+  - Đánh giá độ trễ, kết nối, chi phí và điểm lỗi của từng mô hình
+- level1: Clustering và mở rộng
+  level2:
+  - Cơ chế gossip, consistent hashing và quyền sở hữu target
+  - Bật clustering ở runtime và ở component có hỗ trợ
+  - Khám phá peer, định danh node và địa chỉ được quảng bá
+  - Yêu cầu cấu hình đồng nhất và cùng tập target giữa các peer
+  - Phân phối prometheus.scrape và các component có clustering
+  - Gia nhập, rời cluster và phân phối lại target
+  - Kiểm soát khởi động đồng thời và nguy cơ scrape trùng
+  - Phân biệt clustering, nhiều replica và khử trùng lặp ở backend
+  - Phân biệt chia tải pull với cân bằng tải OTLP push
+  - Mở rộng tail sampling và service graph theo khóa định tuyến
+  - Giám sát trạng thái cluster và xử lý chia cắt mạng
+- level1: Độ tin cậy
+  level2:
+  - Xác định yêu cầu mất dữ liệu, trễ dữ liệu và phục hồi
+  - Phân biệt WAL metrics, vị trí đọc log và hàng đợi exporter
+  - Thiết kế đĩa bền vững và thời gian chịu gián đoạn backend
+  - Áp lực ngược, queue đầy và dữ liệu bị từ chối
+  - Phân loại lỗi có thể retry và lỗi dữ liệu cần sửa
+  - Kiểm soát bộ nhớ và ảnh hưởng khi backend chậm
+  - Khôi phục sau mất mạng, tiến trình dừng và ổ đĩa đầy
+  - Shutdown, drain và giới hạn phục hồi của component có trạng thái
+  - Sao lưu cấu hình, quản lý dữ liệu trạng thái và diễn tập khôi phục
+- level1: Bảo mật
+  level2:
+  - Lập ranh giới tin cậy cho nguồn gửi, Alloy và backend
+  - Giới hạn địa chỉ lắng nghe của UI, HTTP server và receiver
+  - Cấu hình TLS, mTLS và kiểm tra chứng chỉ theo component
+  - Xác thực bằng basic auth, bearer token và OAuth2 khi được hỗ trợ
+  - Lấy secret từ tệp, môi trường, Kubernetes Secret và Vault
+  - Luân chuyển thông tin xác thực và kiểm tra hành vi reload
+  - Quyền tối thiểu cho tệp log, journald, Docker và Kubernetes API
+  - Đánh giá quyền nâng cao của eBPF và profiling JVM
+  - Lọc, che và loại bỏ thông tin cá nhân trước khi rời nguồn
+  - Cô lập tenant, kiểm soát egress và bảo vệ đường quản trị
+  - Giới hạn dữ liệu nhạy cảm trong live debugging và support bundle
+- level1: Hiệu năng và chi phí
+  level2:
+  - Đo tốc độ mẫu metrics, log, span và profile đầu vào
+  - Ước lượng CPU, bộ nhớ, đĩa và băng thông theo workload
+  - Đo số chuỗi hoạt động và số tổ hợp nhãn
+  - Giảm cardinality mà vẫn bảo toàn danh tính dữ liệu
+  - Điều chỉnh scrape interval, timeout và giới hạn thu thập
+  - Đánh đổi kích thước batch, độ trễ và mức dùng bộ nhớ
+  - Đo chi phí regex, OTTL, multiline và sampling
+  - Tối ưu hàng đợi, nén và kết nối gửi dữ liệu
+  - Tách workload và chọn tiêu chí mở rộng từ số liệu thực tế
+  - Kiểm soát chi phí backend bằng lọc và lấy mẫu có kiểm chứng
+- level1: Giám sát Alloy
+  level2:
+  - Thu thập telemetry của Alloy bằng prometheus.exporter.self
+  - Đọc /metrics, /-/ready và /-/healthy đúng mục đích
+  - Giám sát controller, component và lỗi đánh giá cấu hình
+  - Theo dõi target scrape, lượng dữ liệu nhận và tốc độ gửi
+  - Theo dõi queue, retry, dropped data và backlog
+  - Cấu hình logging và tracing của chính Alloy
+  - Sử dụng dashboard và alert từ Alloy mixin
+  - Thiết kế cảnh báo dữ liệu ngừng chảy dù tiến trình còn chạy
+  - Tách đường giám sát Alloy khỏi pipeline đang được giám sát
+  - Xây dựng chỉ số độ trễ và tính đầy đủ đầu cuối
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quy trình lần theo nguồn, xử lý, vận chuyển và backend
+  - Đọc đồ thị component, arguments, exports và health trong Alloy UI
+  - Bật livedebugging và quan sát dữ liệu tại component được hỗ trợ
+  - Sửa lỗi cú pháp, sai kiểu, tham chiếu và component không tồn tại
+  - Điều tra target rỗng, scrape timeout và lỗi xác thực
+  - Điều tra metrics trùng, out-of-order và thiếu nhãn
+  - Điều tra mất log do vị trí đọc, rotation và multiline
+  - Điều tra logs bị từ chối do timestamp, tenant hoặc stream
+  - Điều tra OTLP sai giao thức, endpoint và cấu hình TLS
+  - Điều tra trace thiếu span, sampling và định tuyến sai
+  - Điều tra tăng bộ nhớ, queue đầy, WAL lớn và đĩa chậm
+  - Phân tích tài nguyên bằng pprof và tạo support bundle
+- level1: Quản lý cấu hình
+  level2:
+  - Lưu cấu hình bằng Git và tách các môi trường triển khai
+  - Kiểm tra alloy fmt và alloy validate trong CI
+  - Kiểm tra khả năng kết nối và dữ liệu đầu cuối ngoài validate
+  - Kiểm thử bộ dữ liệu mẫu cho relabeling, log parsing và OTTL
+  - Phân phối cấu hình bằng Helm, GitOps và công cụ quản lý máy chủ
+  - Nạp lại cấu hình và xử lý cấu hình mới không hợp lệ
+  - Tách dữ liệu remote.* khỏi cơ chế nạp lại toàn cấu hình
+  - Quản lý cấu hình từ xa bằng remotecfg và Grafana Fleet Management
+  - Triển khai canary, so sánh kết quả và quay lại cấu hình trước
+  - Quản lý schema, phiên bản component và thay đổi tương thích
+- level1: Di chuyển và nâng cấp
+  level2:
+  - Kiểm kê pipeline, trạng thái và yêu cầu trước khi di chuyển
+  - Chuyển từ Grafana Agent Static sang Alloy
+  - Chuyển từ Grafana Agent Flow và Agent Operator
+  - Chuyển cấu hình Prometheus sang pipeline Alloy
+  - Chuyển Promtail sang Alloy và bảo toàn vị trí đọc log
+  - Chọn chuyển YAML Collector sang Alloy hoặc dùng OTel Engine
+  - Sử dụng alloy convert và rà soát cảnh báo chuyển đổi
+  - Chạy song song có kiểm soát và tránh ghi trùng telemetry
+  - Đọc release notes, mức ổn định và component bị thay thế
+  - Nâng cấp canary, đối chiếu dữ liệu và kiểm tra khả năng rollback
+- level1: OpenTelemetry Engine
+  level2:
+  - Phân biệt Default Engine và OpenTelemetry Engine trong Alloy
+  - Chạy cấu hình Collector YAML bằng alloy otel
+  - Receivers, processors, exporters và service.pipelines trong YAML
+  - Kiểm tra component thực sự được đóng gói theo phiên bản
+  - Tích hợp pipeline Default Engine qua Alloy Engine extension
+  - Chọn CLI, Helm hoặc service installation cho OTel Engine
+  - Quản lý từ xa bằng alloy otel-supervisor và OpAMP
+  - Đánh giá giới hạn public preview và điều kiện sử dụng
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng hệ quan sát cục bộ cho Spring Boot với Alloy và bộ LGTM
+  - Thu thập metrics, logs, traces và profiles cho cùng một dịch vụ
+  - Chuẩn hóa nhãn và thuộc tính để lần từ lỗi HTTP đến trace và log
+  - Xây pipeline Kubernetes gồm metrics ứng dụng và log pod
+  - Thiết kế agent và gateway cho hệ thống nhiều dịch vụ
+  - Triển khai tail sampling giữ lại trace lỗi và trace chậm
+  - Thực nghiệm backend ngừng hoạt động và kiểm tra dữ liệu phục hồi
+  - Giảm cardinality, dung lượng log và chi phí gửi có đo lường
+  - Di chuyển một cấu hình cũ và đối chiếu dữ liệu trước sau
+  - Hoàn thiện cấu hình production, cảnh báo và sổ tay vận hành

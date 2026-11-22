@@ -1,0 +1,3 @@
+menuLevel1: API Zipkin
+menuLevel2: GET /api/v2/trace/{traceId} để lấy một trace
+status: ''

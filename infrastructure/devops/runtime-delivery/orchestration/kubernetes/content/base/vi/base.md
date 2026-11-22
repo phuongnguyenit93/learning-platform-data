@@ -1,0 +1,7 @@
+# DevOps Runtime Delivery Orchestration Kubernetes
+
+Kubernetes là nền tảng điều phối container giúp triển khai, mở rộng và duy trì ứng dụng theo trạng thái mong muốn (*desired state*). Thay vì quản lý từng container trên một máy, người vận hành khai báo tài nguyên như Pod, Deployment và Service; các controller sẽ liên tục điều chỉnh trạng thái thực tế của cluster. Module **DevOps Runtime Delivery Orchestration Kubernetes** giới thiệu những khái niệm và thao tác cốt lõi để đưa ứng dụng container vào môi trường chạy có thể quản lý.
+
+Lộ trình gồm tám mốc: kiến trúc cluster và kubectl, Pod cùng manifest YAML, Deployment và rollout, Service/networking, ConfigMap/Secret, lưu trữ bền vững, health probes và tài nguyên, cuối cùng là bảo mật cùng chẩn đoán sự cố. Nội dung nhấn mạnh mối liên hệ giữa các thành phần khi triển khai một ứng dụng thực tế; đồng thời phân biệt việc workload đang chạy với việc ứng dụng sẵn sàng phục vụ lưu lượng.
+
+Module dành cho lập trình viên, DevOps và platform engineer đã quen Docker, YAML, dòng lệnh và mạng cơ bản. Sau khi học, bạn có thể tự triển khai một ứng dụng lên cluster thử nghiệm, cấu hình kết nối và dữ liệu, cập nhật hoặc rollback phiên bản, đặt giới hạn tài nguyên, áp dụng quyền truy cập tối thiểu và dùng kubectl để tìm nguyên nhân một lần triển khai gặp lỗi.

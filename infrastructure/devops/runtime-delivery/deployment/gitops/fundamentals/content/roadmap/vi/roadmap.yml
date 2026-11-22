@@ -1,0 +1,55 @@
+roadmap:
+- id: nguyen-ly-gitops
+  title: Nguyên lý GitOps
+  purpose: Hiểu cách GitOps quản lý trạng thái hệ thống theo nguyên lý khai báo và đối soát liên tục.
+  objectives:
+  - Giải thích desired state khai báo và lịch sử phiên bản.
+  - Phân biệt tự động pull/reconcile với triển khai push.
+- id: git-lam-nguon-su-that
+  title: Git làm nguồn sự thật
+  purpose: Tổ chức và kiểm soát thay đổi cấu hình triển khai qua Git.
+  objectives:
+  - Đặt manifest trong repo cấu hình phù hợp.
+  - Đề xuất quy trình branch, pull request và review.
+- id: manifest-moi-truong
+  title: Manifest & Môi trường
+  purpose: Biểu diễn ứng dụng và khác biệt môi trường bằng cấu hình có thể tái sử dụng.
+  objectives:
+  - Tạo manifest Kubernetes đơn giản.
+  - Dùng Kustomize hoặc Helm cho dev/staging/production.
+- id: ci-ket-hop-gitops
+  title: CI kết hợp GitOps
+  purpose: Tách bước build/test khỏi bước triển khai dựa trên trạng thái khai báo.
+  objectives:
+  - Mô tả CI tạo và kiểm tra image có tag/digest rõ ràng.
+  - Cập nhật phiên bản image trong Git qua pull request.
+- id: gitops-controller
+  title: GitOps Controller
+  purpose: Hiểu vai trò agent trong cluster và các thành phần quản lý ứng dụng.
+  objectives:
+  - Nêu nhiệm vụ Git source và controller của Flux/Argo CD.
+  - Liên kết một Application hoặc Kustomization với repo.
+- id: sync-drift-health
+  title: Sync, Drift & Health
+  purpose: Quan sát sự lệch nhau giữa desired state và trạng thái đang chạy.
+  objectives:
+  - Giải thích trạng thái Synced/OutOfSync và Health.
+  - Mô phỏng drift và kiểm chứng cơ chế reconciliation.
+- id: promotion-khoi-phuc
+  title: Promotion & Khôi phục
+  purpose: Phát hành thay đổi theo môi trường và khôi phục bằng lịch sử cấu hình.
+  objectives:
+  - Đề xuất luồng promotion qua pull request.
+  - Revert commit gây lỗi và xác nhận ứng dụng trở lại trạng thái mong muốn.
+- id: secrets-quyen-truy-cap
+  title: Secrets & Quyền truy cập
+  purpose: Bảo vệ thông tin nhạy cảm và hạn chế quyền của bộ điều khiển triển khai.
+  objectives:
+  - Không lưu secret dạng rõ trong Git.
+  - Nêu cách dùng SOPS/secret manager và RBAC tối thiểu.
+- id: giam-sat-van-hanh
+  title: Giám sát & Vận hành
+  purpose: Xây dựng khả năng phát hiện, phản ứng và kiểm soát thay đổi GitOps.
+  objectives:
+  - Theo dõi lỗi đồng bộ, drift và sức khỏe ứng dụng.
+  - Phân biệt auto-sync, self-heal và pruning trước khi bật.

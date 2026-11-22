@@ -1,0 +1,51 @@
+roadmap:
+- id: vai-tro-vault-va-bi-mat
+  title: Vai trò Vault và bí mật
+  purpose: Hiểu những vấn đề Vault giải quyết trong việc bảo vệ và cấp phát bí mật.
+  objectives:
+  - Phân biệt lưu trữ bí mật, cấp bí mật động và dịch vụ mã hóa.
+  - Liên hệ xác thực, chính sách và truy cập bí mật.
+- id: kien-truc-va-khoi-tao
+  title: Kiến trúc và khởi tạo
+  purpose: Nắm ranh giới bảo vệ trước khi cấu hình máy chủ Vault.
+  objectives:
+  - Phân biệt chế độ phát triển với máy chủ được bảo vệ bằng TLS.
+  - Mô tả kho lưu trữ, hàng rào mã hóa và trạng thái seal/unseal.
+- id: xac-thuc-va-quyen-truy-cap
+  title: Xác thực và quyền truy cập
+  purpose: Cho đúng danh tính thực hiện đúng thao tác trên bí mật.
+  objectives:
+  - Chọn phương thức xác thực cho người dùng và ứng dụng.
+  - Thiết kế chính sách theo đường dẫn với quyền tối thiểu.
+  - Phân biệt token quản trị gốc với token ứng dụng.
+- id: bi-mat-tinh-voi-kv
+  title: Bí mật tĩnh với KV
+  purpose: Quản lý giá trị bí mật và lịch sử thay đổi của chúng.
+  objectives:
+  - Phân biệt KV v1 với KV v2.
+  - Mô tả phiên bản, khôi phục và xóa vĩnh viễn trong KV v2.
+- id: bi-mat-dong-va-thoi-han-cap
+  title: Bí mật động và thời hạn cấp
+  purpose: Cấp thông tin xác thực theo nhu cầu và giới hạn thời gian sử dụng.
+  objectives:
+  - Phân biệt bí mật động với bí mật lưu sẵn.
+  - Liên hệ lease, TTL, gia hạn và thu hồi với hệ thống đích.
+- id: ma-hoa-va-cap-chung-chi
+  title: Mã hóa và cấp chứng chỉ
+  purpose: Nhận biết năng lực Vault vượt ngoài lưu trữ giá trị bí mật.
+  objectives:
+  - Giải thích Transit mã hóa mà không lưu dữ liệu ứng dụng.
+  - Mô tả PKI cấp và quản lý chứng chỉ ngắn hạn.
+- id: tich-hop-va-vong-doi-ung-dung
+  title: Tích hợp và vòng đời ứng dụng
+  purpose: Đưa bí mật đến ứng dụng và cập nhật đúng khi có thay đổi.
+  objectives:
+  - So sánh gọi API với dùng Vault Agent.
+  - Thiết kế xác thực tự động, gia hạn và nạp lại thông tin xác thực.
+- id: van-hanh-va-kiem-chung
+  title: Vận hành và kiểm chứng
+  purpose: Giữ Vault sẵn sàng, có thể khôi phục và kiểm tra được truy cập.
+  objectives:
+  - Theo dõi nhật ký kiểm toán (audit log) và bảo vệ dữ liệu nhạy cảm.
+  - Mô tả tính sẵn sàng cao, sao lưu và phục hồi theo cơ chế lưu trữ.
+  - Kiểm thử thiếu quyền, hết hạn, thu hồi và sự cố kết nối.

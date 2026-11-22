@@ -1,0 +1,2101 @@
+menu:
+- slug: devops-mindset
+  title: Tư duy DevOps
+  childs:
+  - slug: devops-mindset-001
+    title: DevOps và bài toán phối hợp phát triển với vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-002
+    title: Giá trị khách hàng và trách nhiệm chung xuyên suốt vòng đời phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-003
+    title: Văn hóa, tự động hóa, tinh gọn, đo lường và chia sẻ trong CALMS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-004
+    title: 'Ba cách tư duy: tối ưu luồng công việc, rút ngắn phản hồi và học hỏi liên tục'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-005
+    title: Tư duy hệ thống và hệ quả của việc tối ưu riêng từng bộ phận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-006
+    title: Mối liên hệ giữa DevOps, Agile, Lean, SRE và Platform Engineering
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-007
+    title: Phân biệt năng lực DevOps với chức danh, công cụ và cơ cấu tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devops-mindset-008
+    title: 'Nhận diện ngộ nhận: tự động hóa mọi thứ, bỏ kiểm soát và chạy theo công nghệ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: value-stream
+  title: Luồng giá trị
+  childs:
+  - slug: value-stream-001
+    title: Vòng đời thay đổi từ nhu cầu đến phản hồi sau khi đưa vào sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-002
+    title: Lập bản đồ luồng giá trị và xác định các bước tạo giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-003
+    title: Nhận diện thời gian chờ, bàn giao, làm lại và điểm nghẽn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-004
+    title: Chia nhỏ thay đổi để giảm kích thước lô và rút ngắn vòng phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-005
+    title: Giới hạn công việc đang làm và quản lý hàng đợi công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-006
+    title: Xác định tiêu chí hoàn thành chung cho phát triển, kiểm thử và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-007
+    title: Ảnh hưởng của kiến trúc, phụ thuộc và hợp đồng giao tiếp đến khả năng phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-008
+    title: Thu thập phản hồi từ người dùng và vận hành để điều chỉnh ưu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: team-collaboration
+  title: Phối hợp đội ngũ
+  childs:
+  - slug: team-collaboration-001
+    title: Quyền sở hữu dịch vụ và trách nhiệm từ phát triển đến vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-002
+    title: Phân định vai trò, quyền quyết định và đầu mối phối hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-003
+    title: An toàn tâm lý, minh bạch thông tin và văn hóa học từ sai sót
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-004
+    title: Thống nhất mục tiêu giữa phát triển, kiểm thử, vận hành và bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-005
+    title: 'Tài liệu dùng chung: README, sơ đồ hệ thống, ADR và runbook'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-006
+    title: Review thay đổi, lập trình kết hợp và chia sẻ kiến thức vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-007
+    title: Quản lý yêu cầu, phụ thuộc liên nhóm và cam kết bàn giao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-008
+    title: Cổng tự phục vụ và nền tảng nội bộ giúp giảm công việc chờ hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: systems-fundamentals
+  title: Nền tảng hệ thống
+  childs:
+  - slug: systems-fundamentals-001
+    title: 'Linux cơ bản: tiến trình, dịch vụ, tín hiệu và mã thoát'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-002
+    title: Tệp, thư mục, quyền truy cập và danh tính thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-003
+    title: CPU, bộ nhớ, ổ đĩa và cách nhận diện giới hạn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-004
+    title: Địa chỉ IP, cổng, DNS và đường đi của một yêu cầu mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-005
+    title: HTTP, HTTPS, chứng chỉ TLS và vòng đời kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-006
+    title: Proxy, reverse proxy, cân bằng tải và tường lửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-007
+    title: Lưu trữ bền vững, hệ thống tệp và khác biệt giữa trạng thái tạm với trạng thái lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: systems-fundamentals-008
+    title: Đọc log hệ thống và dùng công cụ dòng lệnh để chẩn đoán lỗi cơ bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: source-control
+  title: Quản lý mã nguồn
+  childs:
+  - slug: source-control-001
+    title: 'Git cơ bản: repository, commit, branch, tag và remote'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-002
+    title: Commit nhỏ, thông điệp rõ ràng và truy vết yêu cầu thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-003
+    title: Lựa chọn chiến lược nhánh theo nhu cầu tích hợp và phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-004
+    title: Trunk-based development và vai trò của nhánh tồn tại ngắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-005
+    title: Pull request, code review và điều kiện bảo vệ nhánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-006
+    title: Merge, rebase, giải quyết xung đột và đồng bộ thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-007
+    title: Revert, phục hồi thay đổi và xử lý bí mật bị đưa vào repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: source-control-008
+    title: Quản lý phiên bản mã nguồn cho ứng dụng, pipeline, cấu hình và hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: build-and-dependencies
+  title: Build và phụ thuộc
+  childs:
+  - slug: build-and-dependencies-001
+    title: Quy trình build từ mã nguồn đến gói phần mềm có thể triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-002
+    title: Quản lý phiên bản runtime, trình biên dịch và công cụ build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-003
+    title: Khai báo phụ thuộc, khóa phiên bản và kiểm soát phụ thuộc bắc cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-004
+    title: Build có thể tái lập và hạn chế khác biệt giữa máy cá nhân với CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-005
+    title: Cache build, cache phụ thuộc và điều kiện vô hiệu hóa cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-006
+    title: Kho phụ thuộc nội bộ, proxy và xử lý gián đoạn nguồn tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-007
+    title: Kiểm tra định dạng, phân tích tĩnh và phản hồi lỗi build sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: build-and-dependencies-008
+    title: Cập nhật phụ thuộc có kiểm thử và kiểm soát thay đổi không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: software-artifacts
+  title: Hiện vật phần mềm
+  childs:
+  - slug: software-artifacts-001
+    title: Phân biệt mã nguồn, gói phát hành, binary và container image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-002
+    title: Đặt phiên bản, gắn tag và liên kết hiện vật với commit nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-003
+    title: Kho lưu trữ hiện vật, registry và quyền tải lên hoặc tải xuống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-004
+    title: Tính bất biến của hiện vật và rủi ro khi ghi đè phiên bản đã phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-005
+    title: Build một lần và chuyển cùng hiện vật qua các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-006
+    title: Checksum, digest và kiểm tra tính toàn vẹn trước triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-007
+    title: Lưu metadata build, nguồn gốc hiện vật và bằng chứng kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-artifacts-008
+    title: Chính sách lưu giữ, dọn dẹp và bảo đảm còn hiện vật để rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Thiết kế kiểm thử theo rủi ro và chi phí phản hồi ở từng giai đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-002
+    title: Kiểm thử đơn vị, tích hợp và đầu cuối trong tháp kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-003
+    title: Kiểm thử hợp đồng giữa dịch vụ và khả năng tương thích API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-004
+    title: Smoke test, kiểm thử hồi quy và tiêu chí chấp nhận thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-005
+    title: Quản lý dữ liệu kiểm thử, môi trường cô lập và tính xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-006
+    title: 'Kiểm thử không ổn định: nhận diện, xử lý và tránh bỏ qua lỗi lâu dài'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-007
+    title: Kiểm thử hiệu năng, tải và giới hạn vận hành trước phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-008
+    title: Kết hợp shift-left với kiểm chứng sau triển khai và phản hồi thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: continuous-integration
+  title: Tích hợp liên tục
+  childs:
+  - slug: continuous-integration-001
+    title: 'Nguyên tắc CI: tích hợp thường xuyên và giữ nhánh chính có thể sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-002
+    title: Pipeline dạng mã và cấu trúc stage, job, step, runner
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-003
+    title: Sự kiện kích hoạt pipeline và lựa chọn kiểm tra theo loại thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-004
+    title: Tổ chức luồng checkout, build, kiểm thử và xuất hiện vật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-005
+    title: Chạy song song, tái sử dụng cache và tối ưu thời gian phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-006
+    title: Runner cô lập, quyền tối thiểu và xử lý mã nguồn không tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-007
+    title: Quality gate và điều kiện chặn hợp nhất khi kiểm tra thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-integration-008
+    title: Phân loại lỗi pipeline, phân công xử lý và tránh phụ thuộc vào chạy lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: continuous-delivery
+  title: Phân phối liên tục
+  childs:
+  - slug: continuous-delivery-001
+    title: Phân biệt continuous delivery với continuous deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-002
+    title: Thiết kế pipeline đưa hiện vật đã kiểm chứng đến trạng thái sẵn sàng phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-003
+    title: Chuyển hiện vật giữa môi trường theo bằng chứng và điều kiện rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-004
+    title: Tách thông số môi trường khỏi hiện vật đã build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-005
+    title: Phê duyệt theo rủi ro và tự động hóa các kiểm tra có thể kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-006
+    title: Quản lý phụ thuộc, thứ tự triển khai và khả năng tương thích giữa phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-007
+    title: Quản lý đồng thời, khóa triển khai và ngăn pipeline cũ ghi đè bản mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: continuous-delivery-008
+    title: Thiết kế đường xử lý khi triển khai thất bại hoặc pipeline bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-and-release
+  title: Triển khai và phát hành
+  childs:
+  - slug: deployment-and-release-001
+    title: Phân biệt đưa phiên bản lên môi trường với mở tính năng cho người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-002
+    title: Lựa chọn recreate, rolling update, blue-green và canary theo rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-003
+    title: Feature flag, nhóm người dùng thử và quản lý vòng đời cờ tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-004
+    title: 'Kiểm tra trước triển khai: cấu hình, tài nguyên và khả năng tương thích'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-005
+    title: Smoke test, synthetic check và xác minh sau triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-006
+    title: Theo dõi tín hiệu sức khỏe và đặt điều kiện dừng phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-007
+    title: Lựa chọn rollback hoặc roll forward khi mã nguồn và dữ liệu đã thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-and-release-008
+    title: Release note, lịch sử triển khai và truyền thông thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: configuration-and-environments
+  title: Cấu hình và môi trường
+  childs:
+  - slug: configuration-and-environments-001
+    title: Vai trò của môi trường phát triển, kiểm thử, staging và production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-002
+    title: Giảm chênh lệch môi trường và nhận diện giới hạn của staging
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-003
+    title: Phân tách cấu hình theo môi trường và kiểm tra hợp lệ trước khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-004
+    title: Biến môi trường, tệp cấu hình và thứ tự ưu tiên giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-005
+    title: Quản lý bí mật tập trung và tránh lộ qua log hoặc hiện vật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-006
+    title: Cấp phát, luân chuyển, thu hồi bí mật và danh tính workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-007
+    title: Môi trường tạm theo thay đổi và cơ chế dọn dẹp tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: configuration-and-environments-008
+    title: Truy vết phiên bản cấu hình, phát hiện sai lệch và phục hồi cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-as-code
+  title: Hạ tầng dạng mã
+  childs:
+  - slug: infrastructure-as-code-001
+    title: IaC và lợi ích của việc quản lý hạ tầng bằng mã có phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-002
+    title: Mô hình khai báo, mô hình mệnh lệnh và trạng thái mong muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-003
+    title: Luồng plan, review, apply và xác minh sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-004
+    title: State, lưu trữ từ xa, khóa trạng thái và kiểm soát truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-005
+    title: Module tái sử dụng, biến đầu vào và phân tách môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-006
+    title: Tính lặp an toàn, phát hiện drift và xử lý thay đổi thủ công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-007
+    title: Kiểm thử IaC, phân tích chính sách và kiểm tra tác động tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-as-code-008
+    title: Import tài nguyên có sẵn và giới hạn phục hồi khi thay đổi hạ tầng thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-automation
+  title: Tự động hóa vận hành
+  childs:
+  - slug: operations-automation-001
+    title: Chọn công việc tự động hóa theo tần suất, rủi ro và giá trị phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-002
+    title: Phân biệt cấp phát hạ tầng, quản lý cấu hình và điều phối tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-003
+    title: Viết tác vụ có đầu vào rõ ràng, mã thoát và thông báo lỗi hữu ích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-004
+    title: Tính lặp an toàn và kiểm tra điều kiện trước khi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-005
+    title: Timeout, retry có giới hạn, backoff và tránh lặp thao tác gây hại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-006
+    title: Dry run, triển khai theo lô nhỏ và giới hạn phạm vi ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-007
+    title: Kiểm thử, review và lưu log cho tác vụ tự động hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-automation-008
+    title: Cơ chế ngắt, khôi phục và bàn giao thao tác khi tự động hóa thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: containers
+  title: Container
+  childs:
+  - slug: containers-001
+    title: Container, image, registry và khác biệt với máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-002
+    title: Đóng gói ứng dụng với Dockerfile và ngữ cảnh build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-003
+    title: Layer, cache và multi-stage build để tạo image gọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-004
+    title: Chọn base image, khóa phiên bản và cập nhật bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-005
+    title: Chạy với người dùng ít quyền và xử lý tín hiệu dừng đúng cách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-006
+    title: Cấu hình mạng, volume và dữ liệu cần lưu bền vững
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-007
+    title: Giới hạn CPU, bộ nhớ và cách đưa log ra hệ thống thu thập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-008
+    title: Chạy nhiều thành phần ở máy cá nhân và kiểm tra sức khỏe container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-orchestration
+  title: Điều phối container
+  childs:
+  - slug: container-orchestration-001
+    title: Bài toán scheduling, tự phục hồi và mở rộng khi có nhiều container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-002
+    title: 'Kubernetes cơ bản: cluster, node, pod và control plane'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-003
+    title: Deployment, ReplicaSet và quản lý số bản sao ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-004
+    title: Service, DNS nội bộ và tiếp nhận lưu lượng từ bên ngoài cluster
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-005
+    title: ConfigMap, Secret và nguyên tắc bảo vệ cấu hình nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-006
+    title: Startup probe, readiness probe, liveness probe và tác động khi cấu hình sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-007
+    title: Resource request, resource limit và nguyên tắc autoscaling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-orchestration-008
+    title: Theo dõi rollout, đọc event và chẩn đoán pod không sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-infrastructure
+  title: Hạ tầng đám mây
+  childs:
+  - slug: cloud-infrastructure-001
+    title: IaaS, PaaS, SaaS và mô hình trách nhiệm chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-002
+    title: Region, availability zone và các miền lỗi cần tính đến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-003
+    title: Mạng ảo, subnet, định tuyến và phân tách truy cập công khai với nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-004
+    title: Danh tính, vai trò, service account và quyền truy cập tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-005
+    title: Máy ảo, container, serverless và tiêu chí chọn cách chạy ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-006
+    title: Lưu trữ đối tượng, block storage và cơ sở dữ liệu được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-007
+    title: Load balancer, autoscaling và khả năng chịu lỗi cơ bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-infrastructure-008
+    title: Hạn mức, gắn nhãn tài nguyên và cân nhắc phụ thuộc nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-and-migrations
+  title: Dữ liệu và migration
+  childs:
+  - slug: data-and-migrations-001
+    title: Đặc thù trạng thái dữ liệu trong triển khai và phục hồi dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-002
+    title: Quản lý phiên bản schema và lịch sử chạy migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-003
+    title: Expand-contract để duy trì tương thích trong thời gian chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-004
+    title: Tách thay đổi schema, backfill dữ liệu và thay đổi mã ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-005
+    title: Đánh giá khóa bảng, thời gian chạy và tác động tải khi migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-006
+    title: Kiểm thử migration trên dữ liệu đại diện và che dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-007
+    title: Xác minh dữ liệu sau triển khai và xử lý migration thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-migrations-008
+    title: Giới hạn rollback dữ liệu và lựa chọn sửa tiếp hoặc phục hồi từ bản sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability
+  title: Khả năng quan sát
+  childs:
+  - slug: observability-001
+    title: Phân biệt monitoring với observability và đặt câu hỏi cần trả lời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-002
+    title: Log có cấu trúc, mức log và liên kết sự kiện bằng correlation ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-003
+    title: Metric, nhãn, cardinality và cách chọn tín hiệu hữu ích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-004
+    title: Distributed tracing và truyền ngữ cảnh qua các thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-005
+    title: Instrument ứng dụng và liên kết telemetry với phiên bản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-006
+    title: Dashboard theo trải nghiệm người dùng, lưu lượng, lỗi và độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-007
+    title: Cảnh báo có thể hành động và giảm nhiễu thông báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-008
+    title: Thu thập, lấy mẫu, lưu giữ telemetry và bảo vệ dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Đặt mục tiêu độ tin cậy theo hành trình quan trọng của người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-002
+    title: SLI, SLO, SLA và cách phân biệt phạm vi cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-003
+    title: Chọn cửa sổ đo và định nghĩa sự kiện thành công hoặc thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-004
+    title: Error budget và quyết định cân bằng tốc độ thay đổi với độ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-005
+    title: Cảnh báo theo mức tiêu hao error budget và mức ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-006
+    title: Timeout, retry, circuit breaker và ngăn lỗi lan truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-007
+    title: Graceful degradation, dự phòng và loại bỏ điểm lỗi đơn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-008
+    title: Thử nghiệm khả năng chịu lỗi trong phạm vi được kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: routine-operations
+  title: Vận hành thường nhật
+  childs:
+  - slug: routine-operations-001
+    title: Danh mục dịch vụ, người sở hữu và các phụ thuộc vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-002
+    title: Runbook cho kiểm tra sức khỏe, khởi động, dừng và thao tác thường gặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-003
+    title: Readiness review trước khi tiếp nhận dịch vụ vào vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-004
+    title: Lịch trực, bàn giao ca và tuyến escalation rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-005
+    title: Quản lý bản vá, vòng đời chứng chỉ và ngày hết hạn phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-006
+    title: Bảo trì định kỳ, kiểm tra tài nguyên và dọn dẹp có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-007
+    title: Phân biệt công việc tạo giá trị với toil và ghi nhận việc lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: routine-operations-008
+    title: Kiểm soát truy cập production và ghi nhận thao tác vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: incident-management
+  title: Quản lý sự cố
+  childs:
+  - slug: incident-management-001
+    title: Phát hiện sự cố, đánh giá ảnh hưởng và phân loại mức độ nghiêm trọng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-002
+    title: Khai báo sự cố, huy động người xử lý và chỉ định người điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-003
+    title: Phân vai xử lý kỹ thuật, ghi nhận diễn biến và truyền thông
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-004
+    title: Ưu tiên giảm ảnh hưởng bằng rollback, chuyển tải hoặc tắt tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-005
+    title: Chẩn đoán dựa trên giả thuyết, telemetry và thay đổi gần nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-006
+    title: Cập nhật trạng thái cho bên liên quan và xác minh dịch vụ đã phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-007
+    title: Postmortem không đổ lỗi và phân tích các yếu tố góp phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-management-008
+    title: Theo dõi hành động khắc phục, cập nhật runbook và diễn tập lại tình huống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Phân biệt tính sẵn sàng cao, sao lưu và phục hồi sau thảm họa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-002
+    title: Xác định RPO, RTO và ưu tiên phục hồi theo nhu cầu nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-003
+    title: 'Phạm vi sao lưu: dữ liệu, cấu hình, metadata và thành phần phụ thuộc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-004
+    title: Chiến lược sao lưu, lưu giữ và tách bản sao khỏi miền lỗi chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-005
+    title: Mã hóa, phân quyền và bảo vệ bản sao trước xóa hoặc ghi đè
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-006
+    title: Kiểm tra tính toàn vẹn và diễn tập phục hồi thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-007
+    title: Lập kế hoạch khôi phục dịch vụ theo thứ tự phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-008
+    title: Đo thời gian phục hồi, kiểm chứng dữ liệu và cập nhật kế hoạch sau diễn tập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: devsecops
+  title: Bảo mật xuyên suốt
+  childs:
+  - slug: devsecops-001
+    title: DevSecOps và trách nhiệm bảo mật chung trong vòng đời phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-002
+    title: Mô hình đe dọa cơ bản và xác định bề mặt tấn công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-003
+    title: Phân quyền tối thiểu, tách nhiệm vụ và quản lý danh tính máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-004
+    title: Quét mã nguồn, kiểm tra động, phụ thuộc, image và hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-005
+    title: Phát hiện bí mật bị lộ và quy trình thu hồi thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-006
+    title: SBOM, nguồn gốc build, ký hiện vật và xác minh trước khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-007
+    title: Phân loại lỗ hổng theo khả năng khai thác, mức ảnh hưởng và thời hạn xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: devsecops-008
+    title: Bảo vệ pipeline, runner và kho hiện vật trước tấn công chuỗi cung ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: change-governance
+  title: Quản trị thay đổi
+  childs:
+  - slug: change-governance-001
+    title: Phân loại thay đổi thông thường, tiêu chuẩn và khẩn cấp theo rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-002
+    title: Thiết kế chính sách phê duyệt phù hợp với tác động của thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-003
+    title: Truy vết từ yêu cầu đến commit, kiểm thử, hiện vật và lần triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-004
+    title: Lưu bằng chứng tự động để phục vụ kiểm tra và đánh giá nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-005
+    title: Policy as code và kiểm soát điều kiện trước build hoặc triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-006
+    title: Quản lý ngoại lệ với người chịu trách nhiệm và thời hạn rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-007
+    title: Quy trình hotfix, quyền truy cập khẩn cấp và rà soát sau thực hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-governance-008
+    title: Cân bằng kiểm soát, tốc độ phản hồi và chi phí vận hành quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: measurement-and-improvement
+  title: Đo lường và cải tiến
+  childs:
+  - slug: measurement-and-improvement-001
+    title: Chọn chỉ số theo kết quả người dùng và mục tiêu của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-002
+    title: Chỉ số DORA và cách thống nhất định nghĩa dữ liệu phân phối phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-003
+    title: Đo thời gian chờ, thời gian xử lý và điểm nghẽn trong luồng giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-004
+    title: Theo dõi thời gian phản hồi CI, độ ổn định kiểm thử và tỷ lệ làm lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-005
+    title: Kết hợp tốc độ phân phối với độ tin cậy và chất lượng trải nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-006
+    title: Tránh dùng chỉ số để xếp hạng cá nhân hoặc khuyến khích tối ưu sai mục tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-007
+    title: Retrospective, giả thuyết cải tiến và thí nghiệm với thay đổi nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-and-improvement-008
+    title: Đo kết quả trước và sau, chuẩn hóa điều hiệu quả và chia sẻ bài học
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-and-capacity
+  title: Chi phí và năng lực
+  childs:
+  - slug: cost-and-capacity-001
+    title: Liên hệ chi phí hạ tầng, hiệu năng và mục tiêu độ tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-002
+    title: Nhận diện chi phí compute, lưu trữ, truyền dữ liệu và telemetry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-003
+    title: Phân bổ chi phí theo dịch vụ, môi trường và chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-004
+    title: Ngân sách, cảnh báo chi phí và phát hiện tài nguyên bị bỏ quên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-005
+    title: Rightsizing, lịch tắt môi trường và giới hạn tài nguyên phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-006
+    title: Dự báo tải, headroom và giới hạn của autoscaling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-007
+    title: Kiểm thử năng lực và xử lý điểm nghẽn trước các đợt tăng tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-capacity-008
+    title: Đánh giá lợi ích tự động hóa theo chi phí xây dựng, duy trì và công việc tiết kiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: capstone-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-project-001
+    title: Chọn ứng dụng mẫu, hành trình người dùng và mục tiêu phân phối đáng tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-002
+    title: Tổ chức Git, quy tắc review và pipeline CI có kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-003
+    title: Đóng gói hiện vật bất biến, lưu registry và truy vết về commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-004
+    title: Khai báo hạ tầng, cấu hình môi trường và quản lý bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-005
+    title: Thiết lập CD, phát hành từng bước và kiểm chứng sau triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-006
+    title: Bổ sung dashboard, cảnh báo và mục tiêu độ tin cậy cho dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-007
+    title: Diễn tập lỗi, rollback, phục hồi dữ liệu và viết postmortem
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: capstone-project-008
+    title: Tổng kết số liệu, rà soát bảo mật và lập kế hoạch cải tiến tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

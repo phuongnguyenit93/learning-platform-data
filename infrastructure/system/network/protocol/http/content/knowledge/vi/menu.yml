@@ -1,0 +1,392 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - HTTP là gì và vai trò trong giao tiếp giữa các hệ thống
+  - 'Mô hình client–server: yêu cầu, phản hồi và tài nguyên'
+  - HTTP, Web, Internet và REST khác nhau như thế nào
+  - Tính không lưu trạng thái của HTTP và trạng thái trong ứng dụng
+  - Ngữ nghĩa HTTP và cách truyền thông điệp là hai lớp khác nhau
+  - DNS, TCP, TLS và QUIC tham gia vào một lần truy cập web như thế nào
+  - Client, origin server, proxy, gateway và cache trong đường đi yêu cầu
+  - Tiến trình từ HTTP/1.0, HTTP/1.1 đến HTTP/2 và HTTP/3
+  - Lộ trình học từ quan sát một yêu cầu đến phân tích lỗi thực tế
+- level1: Tài nguyên và URI
+  level2:
+  - 'Tài nguyên và biểu diễn: cùng một tài nguyên có thể có nhiều nội dung'
+  - 'URI, URL và URN: ý nghĩa và phạm vi sử dụng'
+  - 'Cấu trúc URL: scheme, authority, host, port, path, query và fragment'
+  - URL tuyệt đối, tham chiếu tương đối và cách xác định URL cơ sở
+  - Fragment được xử lý tại client và không nằm trong đích yêu cầu HTTP
+  - Percent-encoding, Unicode và khác biệt giữa ký tự với byte
+  - Dấu gạch chéo, đoạn đường dẫn và chuẩn hóa URL
+  - Query parameter, giá trị lặp và ý nghĩa do ứng dụng quy định
+  - Origin theo scheme, host, port và sự khác biệt với site
+  - Host, :authority và xác định dịch vụ đích theo phiên bản HTTP
+- level1: Chu trình trao đổi
+  level2:
+  - Từ nhập URL đến phân giải DNS, kết nối và gửi yêu cầu
+  - 'Vòng đời yêu cầu: tiếp nhận, xử lý và tạo phản hồi'
+  - Yêu cầu độc lập, nhiều yêu cầu liên quan và phiên đăng nhập
+  - Thông điệp yêu cầu, phản hồi tạm thời và phản hồi cuối cùng
+  - Header, nội dung và trailer xuất hiện ở thời điểm nào
+  - Lỗi DNS, lỗi kết nối, lỗi TLS và phản hồi lỗi HTTP
+  - Thông tin được quan sát ở từng chặng khi có trung gian
+  - Client hủy yêu cầu và công việc còn chạy trên server
+  - Đọc sơ đồ tuần tự để xác định nơi phát sinh độ trễ hoặc lỗi
+- level1: Thông điệp HTTP
+  level2:
+  - 'Cấu trúc thông điệp HTTP/1.1: dòng mở đầu, header, dòng trống và body'
+  - 'Request line: phương thức, request target và phiên bản'
+  - 'Status line: phiên bản, mã trạng thái và lý do phản hồi'
+  - 'Các dạng request target: origin-form, absolute-form, authority-form và asterisk-form'
+  - Tên trường không phân biệt hoa thường và giới hạn của quy tắc này
+  - Header lặp, giá trị dạng danh sách và trường hợp cần xử lý riêng
+  - Ranh giới thông điệp và điều kiện một thông điệp được xem là đầy đủ
+  - Body khác biểu diễn dữ liệu và dữ liệu truyền trên đường dây như thế nào
+  - Yêu cầu hoặc phản hồi không có body theo ngữ cảnh
+  - Vì sao HTTP/2 và HTTP/3 giữ ngữ nghĩa nhưng thay cách biểu diễn trên đường truyền
+- level1: Phương thức
+  level2:
+  - Ngữ nghĩa phương thức và sự độc lập với tên đường dẫn
+  - 'Safe và idempotent: hai thuộc tính khác nhau của phương thức'
+  - 'GET: đọc biểu diễn và những hiểu nhầm về tác dụng phụ'
+  - 'HEAD: lấy metadata và quan hệ với phản hồi GET'
+  - 'POST: gửi dữ liệu để xử lý và các dạng kết quả'
+  - 'PUT: tạo hoặc thay thế trạng thái tại URI đích'
+  - 'PATCH: cập nhật từng phần và tính idempotent phụ thuộc thao tác'
+  - 'DELETE: ngữ nghĩa xóa và phản hồi khi tài nguyên đã vắng mặt'
+  - OPTIONS, Allow và khả năng giao tiếp của tài nguyên
+  - 'CONNECT: thiết lập đường hầm qua proxy'
+  - 'TRACE: chẩn đoán đường đi và lý do thường bị hạn chế'
+  - 'Content trong GET, HEAD và DELETE: giới hạn ngữ nghĩa và tương thích'
+  - 405, 501 và phân biệt phương thức không được phép với không được hỗ trợ
+- level1: Mã trạng thái
+  level2:
+  - Năm nhóm 1xx–5xx và cách client diễn giải kết quả
+  - 100 Continue, 101 Switching Protocols và 103 Early Hints
+  - 200 OK và lựa chọn biểu diễn trả về
+  - 201 Created, Location và tài nguyên mới được tạo
+  - '202 Accepted: đã tiếp nhận chưa đồng nghĩa hoàn tất'
+  - 204 No Content, 205 Reset Content và quy tắc nội dung phản hồi
+  - 206 Partial Content và 304 Not Modified trong các luồng đặc biệt
+  - '301, 302, 303, 307 và 308: tác động tới phương thức và địa chỉ đích'
+  - '400, 404, 405 và 422: yêu cầu không hợp lệ theo các nguyên nhân khác nhau'
+  - '401, 403 và 407: xác thực, quyền truy cập và xác thực proxy'
+  - '409, 412 và 428: xung đột trạng thái và điều kiện cập nhật'
+  - '408, 413, 414, 415, 416 và 431: giới hạn yêu cầu'
+  - 429 và Retry-After khi client gửi quá nhiều yêu cầu
+  - '500, 501, 502, 503 và 504: lỗi tại server hoặc các chặng trung gian'
+  - Phân biệt mã HTTP chuẩn, mã lỗi nghiệp vụ và thông báo lỗi do thư viện tự tạo
+- level1: Trường HTTP
+  level2:
+  - 'Header và trailer: vai trò metadata trong trao đổi HTTP'
+  - Trường đầu cuối và trường chỉ có ý nghĩa trên một chặng
+  - Host, Date, Server, User-Agent, Via và thông tin định danh giao tiếp
+  - Content-Type, Content-Length và Content-Encoding mô tả những khía cạnh nào
+  - Accept và các trường yêu cầu thương lượng biểu diễn
+  - Location, Content-Location và Referer có mục đích khác nhau ra sao
+  - Connection, Upgrade và các ràng buộc theo phiên bản HTTP
+  - Giới hạn số lượng, kích thước và ký tự hợp lệ của trường
+  - Trường chuẩn, trường mở rộng và quy ước khi định nghĩa trường riêng
+  - Chọn metadata phù hợp và tránh đặt dữ liệu nhạy cảm vào header
+- level1: Biểu diễn dữ liệu
+  level2:
+  - Media type, subtype và tham số của Content-Type
+  - application/json, text/plain và text/html trong trao đổi dữ liệu
+  - Bảng mã, charset, UTF-8 và lỗi hiển thị tiếng Việt
+  - Nội dung nhị phân, application/octet-stream và tải tệp
+  - 'Content-Disposition: inline, attachment và tên tệp'
+  - 'Content-Encoding: gzip, br và giải mã nội dung'
+  - Phân biệt mã hóa ký tự, nén nội dung, mã hóa bảo mật và Base64
+  - Độ dài nội dung tính bằng byte và ảnh hưởng của nén hoặc Unicode
+  - Metadata biểu diễn khi phản hồi không mang body
+- level1: Thương lượng nội dung
+  level2:
+  - Thương lượng chủ động và lựa chọn biểu diễn tại server
+  - Accept, media range, wildcard và trọng số q
+  - Accept-Language, thẻ ngôn ngữ và lựa chọn ngôn ngữ phản hồi
+  - Accept-Encoding và lựa chọn thuật toán nén
+  - Content-Language và mô tả ngôn ngữ của biểu diễn
+  - Vary và mối liên hệ giữa thương lượng với cache
+  - 406 Not Acceptable và chính sách khi không có biểu diễn phù hợp
+  - Thương lượng theo header, URL hoặc tham số và các đánh đổi
+  - Kiểm thử các tổ hợp lựa chọn để tránh trả nhầm biểu diễn
+- level1: Nội dung yêu cầu
+  level2:
+  - Body yêu cầu và cách chọn Content-Type tương ứng
+  - 'JSON: cấu trúc dữ liệu, lỗi cú pháp và lỗi kiểm tra hợp lệ'
+  - application/x-www-form-urlencoded và quy tắc mã hóa biểu mẫu
+  - 'multipart/form-data: boundary, part và metadata từng phần'
+  - Tải nhiều tệp và giới hạn kích thước theo yêu cầu hoặc từng tệp
+  - Truyền body theo luồng và trường hợp chưa biết trước độ dài
+  - 'Expect: 100-continue để thương lượng trước khi gửi body lớn'
+  - Content-Type không được hỗ trợ và phản hồi 415
+  - Phân biệt dữ liệu trong path, query, header và body
+  - Kiểm tra nội dung thực tế thay vì chỉ tin tên tệp hoặc Content-Type
+- level1: Chuyển hướng
+  level2:
+  - Chuyển hướng phía HTTP và chuyển trang do HTML hoặc JavaScript
+  - Location tuyệt đối hoặc tương đối và cách xác định đích tiếp theo
+  - Chuyển hướng vĩnh viễn và tạm thời
+  - Giữ hoặc đổi phương thức khi theo 301, 302, 303, 307 và 308
+  - Post/Redirect/Get và tránh gửi lại biểu mẫu khi làm mới trang
+  - Chuỗi chuyển hướng, vòng lặp và giới hạn số lần theo
+  - Cookie, Authorization và thay đổi origin khi chuyển hướng
+  - Chuyển HTTP sang HTTPS và nguy cơ chuyển ngược về HTTP
+  - Ảnh hưởng của cache tới việc kiểm tra hoặc thay đổi chuyển hướng
+- level1: Bộ nhớ đệm
+  level2:
+  - Cache riêng, cache dùng chung và các vị trí lưu phản hồi
+  - Cache key và vai trò của phương thức, URI cùng biến thể
+  - Điều kiện lưu phản hồi và điều kiện được tái sử dụng
+  - Độ mới (freshness), tuổi phản hồi và thời gian hết hạn
+  - Cache-Control max-age, s-maxage và Expires
+  - Date, Age và đánh giá phản hồi đã nằm trong cache bao lâu
+  - no-cache khác no-store như thế nào
+  - private, public và phản hồi có Authorization hoặc Cookie
+  - Vary và tránh trộn các biểu diễn khác nhau
+  - Revalidation, phản hồi cũ và must-revalidate
+  - stale-while-revalidate, stale-if-error và phục vụ dữ liệu cũ có kiểm soát
+  - Cache trình duyệt, cache proxy và CDN không phải cùng một lớp
+  - Vô hiệu hóa cache, URL có phiên bản và thay đổi tài nguyên
+  - Cache poisoning, cache dữ liệu cá nhân và sai lầm về query string
+- level1: Yêu cầu có điều kiện
+  level2:
+  - 'Validator: ETag và Last-Modified đại diện cho điều gì'
+  - Strong ETag, weak ETag và phạm vi so sánh
+  - If-None-Match và xác thực lại cache bằng 304
+  - If-Modified-Since và giới hạn của thời gian sửa đổi
+  - If-Match để tránh ghi đè cập nhật của người khác
+  - If-Unmodified-Since và điều kiện dựa trên thời gian
+  - Phản hồi 412 Precondition Failed và yêu cầu điều kiện bằng 428
+  - Thứ tự đánh giá khi có nhiều trường điều kiện
+  - Tạo tài nguyên có điều kiện và ví dụ cạnh tranh cập nhật
+- level1: Yêu cầu theo vùng
+  level2:
+  - Range và yêu cầu một phần biểu diễn theo byte
+  - Accept-Ranges và cách xác định hỗ trợ tải từng phần
+  - 206, Content-Range và kích thước toàn bộ biểu diễn
+  - Một vùng, nhiều vùng và multipart/byteranges
+  - If-Range và tránh ghép các phần thuộc phiên bản khác nhau
+  - 416 Range Not Satisfiable và giới hạn vùng không hợp lệ
+  - Tải tiếp tệp, phát nội dung đa phương tiện và lưu cache từng phần
+  - Biểu diễn nén, byte range và nguy cơ giả định sai vị trí dữ liệu
+- level1: Cookie và phiên
+  level2:
+  - Cookie khác session và trạng thái đăng nhập như thế nào
+  - Set-Cookie trong phản hồi và Cookie trong yêu cầu
+  - Cookie theo host, Domain, Path và phạm vi gửi
+  - Max-Age, Expires, cookie phiên và vòng đời lưu trữ
+  - Secure, HttpOnly và giới hạn bảo vệ của từng thuộc tính
+  - SameSite Strict, Lax, None và quan hệ với yêu cầu khác site
+  - 'Site khác origin: các tình huống dễ nhầm khi gửi cookie'
+  - Nhiều Set-Cookie, cookie trùng tên và khác phạm vi
+  - Xóa cookie bằng đúng phạm vi đã tạo
+  - Session ID, session fixation và thay định danh sau đăng nhập
+  - 'Cookie bị chặn hoặc không gửi: cách kiểm tra theo ngữ cảnh trình duyệt'
+- level1: Xác thực
+  level2:
+  - Xác thực, phân quyền và trạng thái đăng nhập là các khái niệm khác nhau
+  - WWW-Authenticate, Authorization và mô hình challenge–response
+  - Basic Authentication và vì sao Base64 không bảo mật mật khẩu
+  - 'Bearer token: cách gửi, bảo vệ và giới hạn của HTTP'
+  - Digest Authentication ở mức nhận diện cơ chế và giới hạn áp dụng
+  - 401 và 403 trong thiết kế phản hồi truy cập
+  - 407, Proxy-Authenticate và Proxy-Authorization
+  - Cookie phiên và bearer token khác nhau ở cơ chế vận chuyển thông tin
+  - Cache, log, URL và nguy cơ để lộ thông tin xác thực
+  - OAuth 2.0, OpenID Connect và JWT thuộc lớp nào so với HTTP
+- level1: Origin và CORS
+  level2:
+  - Same-origin policy và phạm vi bảo vệ của trình duyệt
+  - Origin header, nguồn yêu cầu và phản hồi mà JavaScript được phép đọc
+  - Yêu cầu được gửi trực tiếp và yêu cầu cần preflight
+  - OPTIONS preflight, Access-Control-Request-Method và Access-Control-Request-Headers
+  - Access-Control-Allow-Origin, Allow-Methods và Allow-Headers
+  - Access-Control-Allow-Credentials và điều kiện gửi thông tin xác thực
+  - Wildcard, origin cụ thể và giới hạn khi dùng credentials
+  - Access-Control-Expose-Headers và header mà JavaScript đọc được
+  - Access-Control-Max-Age và vòng đời lưu preflight
+  - 'Vary: Origin và tính đúng đắn của cache dùng chung'
+  - CORS khác xác thực, phân quyền và phòng chống CSRF
+  - Vì sao curl gọi được nhưng trình duyệt báo lỗi CORS
+- level1: HTTPS
+  level2:
+  - HTTPS kết hợp HTTP với TLS như thế nào
+  - Danh tính máy chủ, chứng chỉ và chuỗi tin cậy
+  - SNI, ALPN và lựa chọn tên máy chủ hoặc phiên bản HTTP
+  - Mã hóa đường truyền không che toàn bộ metadata giao tiếp
+  - TLS termination và đường đi mã hóa khi có reverse proxy
+  - HTTPS qua CONNECT và các đầu cuối thực hiện bắt tay TLS
+  - HSTS và tác động tới lần truy cập HTTP sau đó
+  - Mixed content và tài nguyên HTTP bên trong trang HTTPS
+  - mTLS và quan hệ với xác thực ở lớp HTTP
+  - Ranh giới học HTTPS trong module HTTP và phần cơ chế TLS chuyên sâu
+- level1: Trung gian HTTP
+  level2:
+  - Forward proxy, reverse proxy, gateway và tunnel trong mô hình HTTP
+  - Ngữ nghĩa đầu cuối và việc tạo nhiều chặng kết nối
+  - Via và nhận diện các trung gian trên đường đi
+  - Forwarded, X-Forwarded-For và thông tin nguồn do proxy truyền
+  - Trust proxy và nguy cơ tin header do client giả mạo
+  - Host, scheme công khai và tạo URL khi đứng sau reverse proxy
+  - Chuyển đổi phiên bản giao thức giữa client, proxy và origin
+  - Biến đổi nội dung, no-transform và tính toàn vẹn biểu diễn
+  - Lỗi 502, 503 và 504 phải được gắn với đúng chặng phát sinh
+  - Ranh giới HTTP proxy với NAT, cân bằng tải và API gateway
+- level1: Kết nối
+  level2:
+  - Kết nối mạng và yêu cầu HTTP có vòng đời độc lập như thế nào
+  - Persistent connection và tái sử dụng kết nối
+  - HTTP/1.0, HTTP/1.1 và ý nghĩa khác nhau của keep-alive
+  - Connection pool và giới hạn kết nối theo origin
+  - TCP keepalive khác HTTP keep-alive như thế nào
+  - Đóng kết nối chủ động, kết nối hết hạn và stale connection
+  - Connect timeout, read timeout, idle timeout và deadline tổng
+  - Client hoặc server ngắt kết nối khi body chưa hoàn chỉnh
+  - Số yêu cầu đồng thời, số kết nối và số luồng không đồng nghĩa
+  - Tương tác giữa vòng đời kết nối ở client, proxy và upstream
+- level1: HTTP/1.1
+  level2:
+  - Định dạng văn bản và trình tự phân tích thông điệp
+  - Host bắt buộc và phục vụ nhiều tên miền trên cùng máy chủ
+  - Content-Length và xác định chính xác số byte nội dung
+  - 'Transfer-Encoding: chunked, chunk cuối và trailer'
+  - Thứ tự xác định độ dài body và trường hợp kết thúc bằng đóng kết nối
+  - Content-Encoding khác Transfer-Encoding như thế nào
+  - Persistent connection và yêu cầu đọc hết hoặc xử lý phần body còn lại
+  - HTTP pipelining và chặn đầu hàng do thứ tự phản hồi
+  - 'Connection: close, Upgrade và chuyển đổi giao thức'
+  - Ranh giới phân tích thông điệp và lỗi không thống nhất giữa các chặng
+- level1: HTTP/2
+  level2:
+  - Binary framing và vì sao ngữ nghĩa HTTP vẫn được giữ
+  - Connection, stream, frame và stream ID
+  - HEADERS, DATA, SETTINGS, RST_STREAM và GOAWAY
+  - Pseudo-header :method, :scheme, :authority, :path và :status
+  - HPACK và cơ chế nén danh sách trường
+  - Ghép nhiều luồng trên một kết nối và phản hồi xen kẽ
+  - Flow control ở mức kết nối và mức luồng
+  - Chặn đầu hàng ở TCP dù HTTP đã ghép nhiều luồng
+  - Giới hạn luồng đồng thời, ưu tiên và phân phối tài nguyên
+  - ALPN, h2, h2c và khác biệt giữa các cách thiết lập
+  - Trường bị cấm theo từng chặng và chuyển đổi sang HTTP/1.1
+  - Nhận diện server push và sự khác biệt về khả năng hỗ trợ của client
+- level1: HTTP/3
+  level2:
+  - HTTP/3 chạy trên QUIC thay cho TCP như thế nào
+  - Quan hệ giữa QUIC, UDP, TLS và các luồng tin cậy
+  - Ánh xạ yêu cầu, phản hồi và luồng điều khiển lên QUIC
+  - QPACK và vấn đề nén trường khi các luồng truyền độc lập
+  - Giảm chặn đầu hàng giữa các luồng và những giới hạn còn lại
+  - Thiết lập kết nối, tái sử dụng phiên và rủi ro phát lại với 0-RTT
+  - Connection ID, đổi địa chỉ mạng và connection migration
+  - Khám phá hỗ trợ HTTP/3 qua Alt-Svc và DNS HTTPS
+  - UDP bị chặn, fallback và lý do kết nối vẫn dùng HTTP/2
+  - So sánh HTTP/1.1, HTTP/2 và HTTP/3 theo tầng truyền và đơn vị đồng thời
+  - Phân biệt tính năng có trong chuẩn với khả năng hỗ trợ thực tế của triển khai
+- level1: Truyền luồng
+  level2:
+  - Streaming khác gửi một phản hồi có độ dài cố định như thế nào
+  - TTFB, flush và thời điểm client nhận từng phần dữ liệu
+  - Buffering ở ứng dụng, thư viện, proxy và trình duyệt
+  - Backpressure, client chậm và giới hạn tài nguyên
+  - 'Server-Sent Events: text/event-stream, định dạng sự kiện và kết nối lại'
+  - 'WebSocket: bắt tay HTTP, nâng cấp và giao thức hai chiều sau đó'
+  - WebSocket qua các phiên bản HTTP và sự phụ thuộc vào khả năng hỗ trợ
+  - Long polling và so sánh với SSE hoặc WebSocket
+  - 'gRPC: HTTP/2, trailer, trạng thái và các dạng streaming'
+  - Heartbeat, idle timeout và phát hiện kết nối dài đã mất
+  - Tải tệp lớn và xử lý lỗi khi header hoặc một phần body đã gửi
+- level1: An toàn HTTP
+  level2:
+  - Ranh giới tin cậy của URL, header, cookie và body
+  - HTTP request smuggling do cách phân tích thông điệp không thống nhất
+  - Response splitting, CRLF injection và kiểm tra giá trị trường
+  - Host header injection và tạo liên kết bằng host không đáng tin
+  - Chuẩn hóa URL, path traversal và nhiều lần giải mã
+  - Open redirect và kiểm tra đích chuyển hướng
+  - CSRF và mối liên hệ giữa cookie, SameSite và yêu cầu thay đổi trạng thái
+  - XSS và vai trò của Content-Type, CSP, HttpOnly
+  - X-Content-Type-Options và ngăn diễn giải sai kiểu nội dung
+  - Clickjacking, frame-ancestors và X-Frame-Options
+  - Cache poisoning, cache deception và nội dung riêng tư
+  - Giới hạn kích thước, tốc độ, thời gian chờ và yêu cầu gửi chậm
+  - Thông tin nhạy cảm trong URL, Referer, log và thông báo lỗi
+- level1: Thiết kế giao tiếp
+  level2:
+  - Ánh xạ thao tác ứng dụng sang phương thức và tài nguyên HTTP
+  - Chọn mã trạng thái phù hợp với kết quả thực tế
+  - Phân biệt lỗi giao thức, lỗi kiểm tra dữ liệu và lỗi nghiệp vụ
+  - Thiết kế phản hồi lỗi có cấu trúc bằng Problem Details
+  - Pagination, filtering và sorting ở lớp ứng dụng
+  - PUT, PATCH và ngăn mất cập nhật bằng điều kiện
+  - 202 Accepted, theo dõi tác vụ bất đồng bộ và giới hạn của polling
+  - Thao tác idempotent và khóa chống lặp cho yêu cầu có tác dụng phụ
+  - Phiên bản API, tương thích biểu diễn và thương lượng nội dung
+  - Những gì HTTP quy định và những gì cần thỏa thuận trong hợp đồng API
+- level1: Độ tin cậy
+  level2:
+  - Phân bổ deadline qua nhiều chặng thay vì cộng timeout tùy ý
+  - Thử lại theo phương thức, trạng thái gửi dữ liệu và loại lỗi
+  - Không nhận được phản hồi không đồng nghĩa thao tác chưa được thực hiện
+  - Replay body, yêu cầu truyền luồng và giới hạn tự động gửi lại
+  - Backoff, jitter, số lần thử và ngân sách thử lại
+  - Retry-After với 429 hoặc 503 và hành vi phía client
+  - Thử lại ở nhiều lớp và nguy cơ khuếch đại tải
+  - Hủy yêu cầu, deadline propagation và giải phóng tài nguyên
+  - Ngắt kết nối giữa phản hồi và giới hạn khôi phục
+  - Kiểm soát đồng thời, hàng đợi và trả lỗi khi quá tải
+- level1: Hiệu năng
+  level2:
+  - Phân rã thời gian DNS, TCP, TLS, gửi yêu cầu và chờ phản hồi
+  - TTFB, tổng thời gian tải và độ trễ người dùng quan sát
+  - Tái sử dụng kết nối và giảm chi phí thiết lập
+  - Ghép nhiều luồng, số kết nối và cạnh tranh tài nguyên
+  - Nén header, nén body và chi phí CPU
+  - Cache, yêu cầu có điều kiện và giảm lượng dữ liệu truyền
+  - Số lượng yêu cầu, kích thước biểu diễn và đánh đổi khi gộp nội dung
+  - Ảnh hưởng của mất gói, RTT và băng thông tới từng phiên bản HTTP
+  - Đo p50, p95, p99, tỷ lệ lỗi và thông lượng dưới tải đại diện
+  - So sánh hiệu năng bằng cùng điều kiện thay vì chỉ dựa vào phiên bản giao thức
+- level1: Quan sát và chẩn đoán
+  level2:
+  - Đọc một bản ghi yêu cầu bằng phương thức, URI, trạng thái và thời gian
+  - Request ID, correlation ID và trace context qua nhiều dịch vụ
+  - Phân biệt thời gian tại client, proxy và origin server
+  - 'Developer Tools: Network, timing, initiator, cookie và cache'
+  - 'curl: xem header, body, phương thức, chuyển hướng và chi tiết kết nối'
+  - openssl s_client và kiểm tra TLS hoặc ALPN khi HTTP chưa thành công
+  - 'Wireshark hoặc tcpdump: quan sát dữ liệu rõ và giới hạn với HTTPS'
+  - Phân biệt body rỗng hợp lệ với body bị thiếu do ngắt kết nối
+  - Chẩn đoán sai Content-Type, charset, nén hoặc Content-Length
+  - Chẩn đoán vòng lặp redirect, cookie không gửi và lỗi CORS
+  - Chẩn đoán 502, 503, 504 và timeout theo từng chặng
+  - Che dữ liệu nhạy cảm trước khi chia sẻ log, HAR hoặc lệnh tái hiện
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử ngữ nghĩa phương thức, mã trạng thái và trường phản hồi
+  - Kiểm thử thương lượng nội dung, Unicode và biểu diễn nhị phân
+  - Kiểm thử cache, validator và các tình huống cập nhật đồng thời
+  - Kiểm thử range, tải tiếp và phản hồi không có nội dung
+  - Kiểm thử cookie, xác thực và CORS bằng đúng ngữ cảnh client
+  - Kiểm thử với HTTP/1.1, HTTP/2 và HTTP/3 khi hệ thống hỗ trợ
+  - Mô phỏng mạng chậm, ngắt kết nối, timeout và retry
+  - Kiểm thử giới hạn kích thước, tải đồng thời và thông điệp không hợp lệ
+  - Đối chiếu hành vi trực tiếp với hành vi qua proxy để phát hiện sai khác
+- level1: Thực hành
+  level2:
+  - Phân tích trọn một lần tải trang từ URL đến phản hồi cuối cùng
+  - Tạo yêu cầu GET, HEAD, POST, PUT, PATCH và DELETE rồi đối chiếu ngữ nghĩa
+  - Quan sát phản hồi 201, 202, 204 và các trường metadata tương ứng
+  - So sánh 301, 302, 303, 307 và 308 với yêu cầu POST
+  - Gửi JSON, biểu mẫu, multipart và tệp nhị phân bằng công cụ client
+  - Xây dựng thí nghiệm cache HIT, hết hạn và xác thực lại bằng ETag
+  - Mô phỏng hai client cập nhật cạnh tranh bằng If-Match
+  - Tải một phần tệp và tải tiếp bằng Range cùng If-Range
+  - Kiểm tra Domain, Path, Secure, HttpOnly và SameSite của cookie
+  - Tái hiện preflight CORS và giải thích khác biệt với lệnh curl
+  - So sánh kết nối, luồng và dữ liệu truyền của các phiên bản HTTP
+  - Quan sát streaming, SSE và tác động của proxy buffering
+  - Tạo timeout rồi kiểm chứng retry có làm lặp tác dụng phụ hay không
+  - 'Bài tập tổng hợp: thiết kế, kiểm thử và chẩn đoán một giao tiếp HTTP hoàn chỉnh'

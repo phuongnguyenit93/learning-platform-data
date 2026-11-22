@@ -1,0 +1,51 @@
+roadmap:
+- id: nen-tang-danh-tinh-workload
+  title: Nền tảng danh tính workload
+  purpose: Hiểu vì sao phần mềm đang chạy cần danh tính độc lập với địa chỉ mạng.
+  objectives:
+  - Phân biệt danh tính workload với người dùng, máy chủ và địa chỉ IP.
+  - Phân biệt chuẩn SPIFFE với hệ thống SPIRE.
+- id: spiffe-id-va-mien-tin-cay
+  title: SPIFFE ID và miền tin cậy
+  purpose: Thiết kế cách định danh workload và xác định ranh giới tin cậy.
+  objectives:
+  - Phân tích cấu trúc SPIFFE ID và miền tin cậy (trust domain).
+  - Xây dựng quy ước định danh phù hợp với các workload.
+- id: svid-va-du-lieu-tin-cay
+  title: SVID và dữ liệu tin cậy
+  purpose: Hiểu bằng chứng danh tính và dữ liệu dùng để xác minh bằng chứng đó.
+  objectives:
+  - Phân biệt X.509-SVID với JWT-SVID.
+  - Giải thích vai trò tập dữ liệu tin cậy (trust bundle).
+- id: kien-truc-spire
+  title: Kiến trúc SPIRE
+  purpose: Nắm luồng phối hợp giữa các thành phần trước khi cấu hình danh tính.
+  objectives:
+  - Phân biệt trách nhiệm SPIRE Server với SPIRE Agent.
+  - Mô tả vai trò bộ cắm (plugin) trong kiến trúc SPIRE.
+- id: chung-thuc-va-dang-ky-workload
+  title: Chứng thực và đăng ký workload
+  purpose: Gắn danh tính được cấp với bằng chứng về môi trường và tiến trình thực tế.
+  objectives:
+  - Phân biệt chứng thực nút với chứng thực workload.
+  - Liên hệ thuộc tính lựa chọn (selector), mục đăng ký và SPIFFE ID.
+- id: cap-va-su-dung-danh-tinh
+  title: Cấp và sử dụng danh tính
+  purpose: Đưa danh tính tự động vào giao tiếp giữa các workload.
+  objectives:
+  - Mô tả nhận và cập nhật SVID qua Workload API.
+  - Mô tả xác thực mTLS bằng X.509-SVID và xác thực bằng JWT-SVID.
+- id: lien-ket-cac-mien-tin-cay
+  title: Liên kết các miền tin cậy
+  purpose: Xác minh danh tính khi workload giao tiếp qua nhiều miền tin cậy.
+  objectives:
+  - Giải thích liên kết miền (federation) và trao đổi trust bundle.
+  - Kiểm tra SPIFFE ID, miền tin cậy và audience theo loại SVID.
+  - Tách xác thực danh tính khỏi quyết định phân quyền.
+- id: van-hanh-va-kiem-chung
+  title: Vận hành và kiểm chứng
+  purpose: Kiểm chứng khả năng cấp, thay mới và bảo vệ danh tính trong vận hành.
+  objectives:
+  - Kiểm thử selector sai, danh tính giả và SVID hết hạn.
+  - Theo dõi cấp lại SVID, luân chuyển dữ liệu tin cậy và sự cố Agent/Server.
+  - Bảo vệ điểm truy cập Workload API và khóa riêng.

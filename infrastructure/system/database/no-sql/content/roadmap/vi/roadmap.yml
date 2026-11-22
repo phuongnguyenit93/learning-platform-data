@@ -1,0 +1,49 @@
+roadmap:
+- id: tu-duy-nosql
+  title: Tư duy NoSQL
+  purpose: Hiểu bài toán NoSQL giải quyết và các tiêu chí lựa chọn ban đầu.
+  objectives:
+  - Phân biệt NoSQL, SQL và một hệ quản trị cụ thể.
+  - Nêu một bài toán nên cân nhắc NoSQL cùng các đánh đổi.
+- id: mo-hinh-du-lieu
+  title: Mô hình dữ liệu
+  purpose: Nhận diện cách tổ chức dữ liệu phù hợp từng kiểu nhu cầu truy cập.
+  objectives:
+  - Phân biệt khóa–giá trị, tài liệu, cột rộng và đồ thị.
+  - Chọn mô hình sơ bộ cho một tập yêu cầu đọc/ghi.
+- id: thiet-ke-theo-truy-van
+  title: Thiết kế theo truy vấn
+  purpose: Gắn cấu trúc lưu trữ với những truy vấn ứng dụng thực sự cần.
+  objectives:
+  - Xác định khóa truy cập, nhóm dữ liệu và cách phân vùng dự kiến.
+  - Giải thích lựa chọn nhúng, tham chiếu hoặc lặp dữ liệu theo truy vấn.
+- id: truy-cap-va-giao-dich
+  title: Truy cập và giao dịch
+  purpose: Giữ tính đúng khi đọc, ghi và cập nhật dữ liệu đồng thời.
+  objectives:
+  - Thực hiện CRUD và cập nhật có điều kiện trên một hệ được chọn.
+  - Xác định phạm vi nguyên tử, giao dịch và cách thử lại an toàn.
+- id: phan-tan-va-nhat-quan
+  title: Phân tán và nhất quán
+  purpose: Hiểu tác động của phân phối dữ liệu và lỗi mạng đến kết quả đọc/ghi.
+  objectives:
+  - Phân biệt sao chép, phân mảnh và các mức nhất quán.
+  - Giải thích CAP khi có phân hoạch mạng và nhận diện khả năng đọc dữ liệu cũ.
+- id: hieu-nang-va-mo-rong
+  title: Hiệu năng và mở rộng
+  purpose: Đo giới hạn thực tế và chọn cách cải thiện theo tải sử dụng.
+  objectives:
+  - Đo độ trễ phân vị và thông lượng trên tải đại diện.
+  - Phát hiện khóa nóng, truy vấn quét rộng và đánh đổi khi thêm chỉ mục.
+- id: van-hanh-va-bao-ve
+  title: Vận hành và bảo vệ
+  purpose: Bảo vệ dữ liệu và chuẩn bị cho lỗi vận hành.
+  objectives:
+  - Xác định quyền tối thiểu, bảo vệ kết nối và kiểm tra đầu vào.
+  - Thực hiện sao lưu/khôi phục thử và chọn chỉ số cảnh báo.
+- id: danh-gia-giai-phap
+  title: Đánh giá giải pháp
+  purpose: Kết hợp các tiêu chí để chọn giải pháp phù hợp một bài toán cụ thể.
+  objectives:
+  - So sánh hai phương án theo truy vấn, tính đúng, hiệu năng và chi phí vận hành.
+  - Xây dựng thử nghiệm nhỏ và trình bày lựa chọn bằng số liệu.

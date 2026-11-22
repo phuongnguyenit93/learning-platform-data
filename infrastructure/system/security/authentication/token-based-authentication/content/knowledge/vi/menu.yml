@@ -1,0 +1,345 @@
+menu:
+- level1: Tổng quan token
+  level2:
+  - Xác thực bằng token là gì và bài toán cần giải quyết
+  - Từ kiểm tra thông tin đăng nhập đến cấp bằng chứng truy cập
+  - Phân biệt xác thực danh tính và cho phép truy cập tài nguyên
+  - So sánh token, mật khẩu, API key và mã định danh phiên
+  - Token là dữ liệu đại diện quyền hoặc ngữ cảnh, không tự bảo đảm an toàn
+  - Lợi ích, giới hạn và các trường hợp nên dùng token
+  - Quan hệ giữa token, phiên đăng nhập và đăng nhập một lần
+  - 'Các ngộ nhận: token luôn là JWT, luôn không trạng thái hoặc luôn được mã hóa'
+  - Lộ trình học và kiến thức HTTP, mật mã, xác thực cần có
+- level1: Vai trò và ranh giới
+  level2:
+  - Chủ thể, người dùng, ứng dụng khách và danh tính máy
+  - Bên phát hành token, bên xác minh và máy chủ tài nguyên
+  - Người dùng trình duyệt so với ứng dụng chạy phía máy chủ
+  - Ứng dụng công khai và ứng dụng có khả năng giữ bí mật
+  - Phân biệt máy chủ xác thực, nhà cung cấp danh tính và API
+  - Ranh giới tin cậy giữa thiết bị, ứng dụng và dịch vụ
+  - Vòng đời yêu cầu từ đăng nhập đến truy cập tài nguyên
+  - Mô hình kẻ tấn công và tài sản cần bảo vệ
+  - Xác định bên nào được tin cậy cho từng loại token
+- level1: Phân loại token
+  level2:
+  - Token truy cập, token làm mới và token định danh
+  - Token tham chiếu dạng opaque và token tự chứa thông tin
+  - Token mang quyền sở hữu (bearer) và token ràng buộc người gửi
+  - Token có chữ ký, token có mã hóa và token dùng khóa đối xứng
+  - Token người dùng, token ứng dụng và token của workload
+  - Token dùng một lần, token nhiều lần và token tồn tại ngắn
+  - Token đặt trong cookie và token gửi qua header
+  - Định dạng token, cơ chế truyền và giao thức cấp token là các lựa chọn độc lập
+  - Chọn loại token theo yêu cầu thu hồi, phân tán và bảo mật
+- level1: Luồng xác thực
+  level2:
+  - Kiểm tra thông tin đăng nhập trước khi phát hành token
+  - Xác thực đa yếu tố và xác thực tăng cường khi cần
+  - Cấp token, trả kết quả và khởi tạo ngữ cảnh đăng nhập
+  - Gửi token trong yêu cầu tới tài nguyên được bảo vệ
+  - Xác minh token và ánh xạ tới chủ thể có liên quan
+  - Đánh giá quyền truy cập sau khi token được chấp nhận
+  - Xử lý token thiếu, sai, hết hạn hoặc đã bị thu hồi
+  - Làm mới quyền truy cập và xác thực lại
+  - Phân biệt lỗi đăng nhập, lỗi token và lỗi phân quyền
+- level1: Phát hành token
+  level2:
+  - Điều kiện cấp token và xác định chủ thể yêu cầu
+  - Giới hạn ứng dụng khách, tài nguyên đích và quyền được yêu cầu
+  - Sinh giá trị ngẫu nhiên bằng nguồn ngẫu nhiên mật mã
+  - Độ khó đoán, không gian giá trị và nguy cơ va chạm
+  - Gán thời điểm phát hành, thời hạn và mã định danh cần thiết
+  - Giới hạn quyền được cấp theo chính sách và sự chấp thuận
+  - Chống phát hành trùng khi yêu cầu được gửi lại
+  - Giới hạn tốc độ và giám sát điểm cấp token
+  - Không để phản hồi phát hành token bị lưu đệm hoặc ghi nhật ký ngoài ý muốn
+- level1: Nội dung token
+  level2:
+  - Claim là gì và cách diễn giải thông tin về chủ thể
+  - Bên phát hành (issuer) và tài nguyên nhận token (audience)
+  - Định danh chủ thể ổn định và định danh theo từng ứng dụng
+  - Thời điểm phát hành, có hiệu lực và hết hạn
+  - Mã token, mã phiên và quan hệ với giao dịch xác thực
+  - Scope, quyền, vai trò và giới hạn việc nhúng quyền vào token
+  - Ngữ cảnh xác thực, mức bảo đảm và thời điểm xác thực gần nhất
+  - Claim tiêu chuẩn, claim riêng và quản trị lược đồ dữ liệu
+  - Giảm dữ liệu cá nhân, bí mật và thông tin dễ bị suy diễn
+  - Xác thực ý nghĩa claim theo đúng loại token và giao thức
+- level1: Token tham chiếu
+  level2:
+  - Cấu trúc token opaque và quan hệ với bản ghi phía máy chủ
+  - Tra cứu trạng thái token bằng kho dữ liệu tập trung
+  - Lưu bản băm token khi không cần khôi phục giá trị gốc
+  - Định danh token phục vụ tìm kiếm mà không làm lộ bí mật
+  - Kiểm tra trạng thái qua điểm introspection
+  - Xác thực dịch vụ gọi introspection và giới hạn dữ liệu trả về
+  - Bộ nhớ đệm kết quả, thời hạn đệm và độ trễ thu hồi
+  - Ưu điểm về thu hồi, thay đổi quyền và giảm lộ thông tin
+  - Chi phí độ trễ, khả dụng và bảo vệ kho trạng thái
+- level1: Token tự chứa
+  level2:
+  - Mô hình xác minh cục bộ không cần tra cứu từng yêu cầu
+  - JWT và cấu trúc header, payload, chữ ký
+  - Phân biệt mã hóa Base64url, chữ ký JWS và mã hóa JWE
+  - Đọc được payload không đồng nghĩa token đã bị sửa đổi hợp lệ
+  - Nhận diện loại token và tránh sử dụng sai ngữ cảnh
+  - Từ chối thuật toán hoặc cấu trúc không được cấu hình cho phép
+  - Giới hạn kích thước, lồng token và độ phức tạp khi phân tích
+  - Ưu điểm về phân tán và chi phí của quyền hoặc trạng thái bị cũ
+  - Khi nào cần kết hợp xác minh cục bộ với trạng thái phía máy chủ
+- level1: Mật mã và khóa
+  level2:
+  - Chữ ký số và mã xác thực thông điệp khác nhau như thế nào
+  - Khóa đối xứng so với cặp khóa bất đối xứng
+  - Tách quyền ký token khỏi quyền xác minh token
+  - Danh sách thuật toán được phép và tránh nhầm loại khóa
+  - Nhận diện khóa bằng kid và quản lý tập khóa tin cậy
+  - Phân phối khóa công khai bằng JWKS từ nguồn được cấu hình
+  - Bộ nhớ đệm khóa, khóa chưa biết và giới hạn việc tải lại
+  - Luân chuyển khóa với khoảng chồng lấp phù hợp
+  - Bảo vệ khóa riêng bằng kho bí mật, KMS hoặc HSM
+  - Thu hồi khóa, xử lý khóa bị lộ và ảnh hưởng tới token đã phát hành
+- level1: Truyền token
+  level2:
+  - Gửi bearer token qua Authorization header
+  - Cookie xác thực và quan hệ với cơ chế tự động gửi của trình duyệt
+  - Vì sao cần tránh token trong URL, tham số truy vấn và lịch sử duyệt web
+  - Rủi ro token xuất hiện trong Referer, nhật ký và công cụ quan sát
+  - Yêu cầu HTTPS và xác minh danh tính máy chủ
+  - Chuyển hướng HTTP và nguy cơ chuyển tiếp token sang máy chủ khác
+  - Token trong WebSocket, kết nối dài và cơ chế thương lượng riêng
+  - Giới hạn kích thước header, cookie và token
+  - Chuẩn hóa điểm nhận token và xử lý khi có nhiều nguồn token
+- level1: Kiểm tra token
+  level2:
+  - Tách phân tích cú pháp, xác minh mật mã và kiểm tra chính sách
+  - Kiểm tra loại token trước khi diễn giải nội dung
+  - Kiểm tra chữ ký bằng khóa và thuật toán được tin cậy
+  - Kiểm tra issuer và audience bằng giá trị mong đợi
+  - Kiểm tra exp, nbf và các ràng buộc thời gian liên quan
+  - Kiểm tra chủ thể, scope và claim bắt buộc theo hợp đồng
+  - Kiểm tra ràng buộc ứng dụng khách hoặc người gửi khi có
+  - Kiểm tra thu hồi và trạng thái tài khoản theo mức rủi ro
+  - Không dùng claim chưa xác minh để đưa ra quyết định bảo mật
+  - Xử lý token sai một cách nhất quán và không tiết lộ chi tiết nhạy cảm
+- level1: Xác thực và phân quyền
+  level2:
+  - Token hợp lệ chưa đủ để cho phép mọi thao tác
+  - Phân biệt quyền được cấp trong token và quyền thực tế tại thời điểm truy cập
+  - Ánh xạ scope tới hành động được API hỗ trợ
+  - Kết hợp vai trò, thuộc tính và chính sách truy cập
+  - Kiểm tra quyền trên đối tượng và quyền sở hữu dữ liệu
+  - Giới hạn theo tenant, môi trường và tài nguyên đích
+  - Giảm quyền khi chuyển tiếp hoặc trao đổi token
+  - Xác thực tăng cường cho tác vụ nhạy cảm
+  - Ngăn API tự suy diễn danh tính từ claim không có hợp đồng tin cậy
+- level1: Thời hạn token
+  level2:
+  - Chọn thời hạn theo rủi ro, trải nghiệm và khả năng thu hồi
+  - Thời hạn token truy cập so với thời hạn đăng nhập tổng thể
+  - Thời hạn tuyệt đối và thời gian không hoạt động
+  - Đồng bộ đồng hồ và giới hạn sai lệch thời gian
+  - Xử lý token chưa có hiệu lực hoặc đã hết hạn
+  - Làm mới chủ động trước hết hạn và tránh làm mới quá sớm
+  - Yêu cầu đang chạy khi token hết hạn
+  - Phiên và kết nối dài sau thời điểm token hết hạn
+  - Thay đổi thời hạn theo loại tài khoản và mức bảo đảm xác thực
+- level1: Làm mới token
+  level2:
+  - Vai trò của refresh token và lý do không gửi nó tới API tài nguyên
+  - Điều kiện cấp refresh token theo loại ứng dụng và giao thức
+  - Lưu giữ refresh token an toàn hơn token truy cập ngắn hạn
+  - Kiểm tra ứng dụng khách và ngữ cảnh khi làm mới
+  - Luân chuyển refresh token và quan hệ giữa các thế hệ
+  - Phát hiện tái sử dụng refresh token đã được thay thế
+  - Thu hồi nhóm token liên quan khi có dấu hiệu bị đánh cắp
+  - Giải quyết yêu cầu làm mới đồng thời từ nhiều tab hoặc luồng
+  - Xử lý mất phản hồi, gửi lại yêu cầu và trạng thái không xác định
+  - Khi nào cần đăng nhập lại thay vì tiếp tục làm mới
+- level1: Thu hồi và đăng xuất
+  level2:
+  - Thu hồi token, vô hiệu phiên và kết thúc đăng nhập khác nhau thế nào
+  - Thu hồi theo token, phiên, thiết bị, ứng dụng hoặc người dùng
+  - Xóa token trên thiết bị so với vô hiệu hóa khả năng sử dụng
+  - Danh sách từ chối và lưu trạng thái thu hồi
+  - Dùng phiên bản bảo mật hoặc mốc vô hiệu hóa của chủ thể
+  - Đánh đổi giữa token ngắn hạn và thu hồi gần thời gian thực
+  - Thu hồi refresh token và các token truy cập đã được cấp
+  - Đăng xuất tại ứng dụng và đăng xuất ở nhà cung cấp danh tính
+  - Đổi mật khẩu, khóa tài khoản và sự kiện buộc xác thực lại
+  - Kiểm tra hoàn tất thu hồi trên các vùng và dịch vụ
+- level1: Phiên và trạng thái
+  level2:
+  - Token là thông tin xác thực còn phiên là ngữ cảnh duy trì tương tác
+  - Phiên phía máy chủ và cookie chứa mã phiên opaque
+  - Token tự chứa và những trạng thái hệ thống vẫn cần lưu
+  - Kết hợp phiên ứng dụng với token truy cập dịch vụ
+  - Quản lý nhiều thiết bị và nhiều phiên đồng thời
+  - Liên kết token với phiên xác thực gốc
+  - Rủi ro cố định phiên và thay token sau khi đổi mức đặc quyền
+  - Xử lý tài khoản bị vô hiệu hóa khi token còn hạn
+  - So sánh chi phí và khả năng kiểm soát của các mô hình trạng thái
+- level1: Ứng dụng web
+  level2:
+  - Mô hình ứng dụng phía máy chủ, SPA và Backend for Frontend
+  - Phân chia nơi giữ token giữa trình duyệt và máy chủ
+  - So sánh bộ nhớ tiến trình, localStorage, sessionStorage và cookie
+  - Thuộc tính cookie HttpOnly, Secure và SameSite
+  - Giới hạn phạm vi Domain, Path và thời hạn cookie
+  - XSS, CSRF và các rủi ro khác nhau theo nơi lưu token
+  - CORS, nguồn tin cậy và yêu cầu có thông tin xác thực
+  - Đồng bộ đăng nhập, làm mới và đăng xuất giữa nhiều tab
+  - Chuyển hướng sau đăng nhập và tránh làm lộ token
+  - Cân bằng khả năng khôi phục giao diện với giảm thời gian token nằm trên trình duyệt
+- level1: Ứng dụng thiết bị
+  level2:
+  - Token trong ứng dụng di động, máy tính và công cụ dòng lệnh
+  - Dùng trình duyệt hệ thống cho luồng đăng nhập bên ngoài
+  - Chuyển kết quả đăng nhập qua deep link hoặc loopback redirect
+  - Bảo vệ luồng chuyển hướng khỏi giả mạo và chiếm mã
+  - Lưu token bằng kho thông tin xác thực do hệ điều hành cung cấp
+  - Không coi bí mật nhúng trong ứng dụng phân phối là bí mật an toàn
+  - Token khi thiết bị bị mất, bị can thiệp hoặc được nhiều người dùng chung
+  - Làm mới nền, khóa thiết bị và yêu cầu xác thực lại
+  - Luồng đăng nhập cho thiết bị có khả năng nhập liệu hạn chế
+- level1: Giao tiếp dịch vụ
+  level2:
+  - Xác thực ứng dụng và danh tính workload không có người dùng
+  - Token của dịch vụ so với token đại diện người dùng
+  - Nhận token bằng danh tính máy thay cho bí mật dài hạn
+  - Chọn audience riêng cho từng dịch vụ nhận
+  - Truyền tiếp token người dùng và nguy cơ lan rộng phạm vi tin cậy
+  - Trao đổi token và ủy quyền qua nhiều chặng
+  - Tách người được đại diện khỏi dịch vụ đang thực hiện yêu cầu
+  - Token cho tác vụ nền, hàng đợi và xử lý bất đồng bộ
+  - Giới hạn tuổi thọ, quyền và phạm vi môi trường của token dịch vụ
+  - Kiểm soát token trong service mesh, cổng API và công cụ vận hành
+- level1: OAuth và OIDC
+  level2:
+  - OAuth quản lý ủy quyền còn OIDC bổ sung thông tin xác thực danh tính
+  - Quan hệ giữa access token, refresh token và ID token
+  - Vì sao không dùng ID token làm token truy cập API
+  - Authorization Code và vai trò của PKCE
+  - Phân biệt state, nonce và mã xác thực
+  - Xác thực ứng dụng khách tại điểm nhận token
+  - Client Credentials cho giao tiếp ứng dụng với ứng dụng
+  - Device Authorization cho thiết bị bị giới hạn giao diện
+  - Scope, sự chấp thuận và audience trong thiết kế API
+  - Phân biệt hợp đồng giao thức với lựa chọn định dạng JWT hoặc opaque
+- level1: Ràng buộc người gửi
+  level2:
+  - Giới hạn của bearer token khi bất kỳ ai giữ token đều có thể sử dụng
+  - Chứng minh sở hữu khóa và liên kết token với người gửi
+  - Ràng buộc token bằng mTLS
+  - DPoP và bằng chứng theo từng yêu cầu HTTP
+  - Kiểm tra phương thức, URL, thời gian và định danh bằng chứng
+  - Chống phát lại bằng chứng và quản lý nonce khi áp dụng
+  - Bảo vệ khóa trên ứng dụng khách và vòng đời khóa ràng buộc
+  - Luân chuyển khóa, thay thiết bị và xử lý mất khóa
+  - Giới hạn bảo vệ khi cả token và khóa riêng đều bị chiếm
+  - Chọn cơ chế ràng buộc theo khả năng của ứng dụng và hạ tầng
+- level1: Mối đe dọa token
+  level2:
+  - Đánh cắp token qua XSS, tiện ích trình duyệt hoặc thiết bị bị chiếm
+  - Giả mạo yêu cầu khi trình duyệt tự động gửi cookie
+  - Phát lại token và tái sử dụng thông tin xác thực bị lộ
+  - Nhầm loại token, nhầm audience và nhầm bên phát hành
+  - Nhầm thuật toán, tin khóa không hợp lệ và giả mạo chữ ký
+  - Chèn nguồn khóa từ xa và nguy cơ truy cập tài nguyên ngoài ý muốn
+  - Lộ token qua URL, nhật ký, mã nguồn, ảnh chụp và báo cáo lỗi
+  - Quyền vượt mức, token tồn tại quá lâu và thu hồi không hiệu quả
+  - Tấn công điểm phát hành, introspection và tải khóa bằng lưu lượng lớn
+  - Biện pháp phòng vệ theo từng điểm trong luồng token
+- level1: Kiến trúc phân tán
+  level2:
+  - Xác minh tại cổng API so với xác minh tại từng dịch vụ
+  - Ranh giới tin cậy khi chuyển danh tính qua header nội bộ
+  - Ngăn giả mạo header danh tính và truy cập trực tiếp vào dịch vụ
+  - Bộ nhớ đệm khóa, introspection và quyền truy cập
+  - Độ trễ nhất quán của trạng thái thu hồi giữa các vùng
+  - Phân phối sự kiện thay đổi tài khoản và thay đổi quyền
+  - Chọn hành vi khi không truy cập được bên phát hành hoặc kho trạng thái
+  - Giới hạn phụ thuộc dây chuyền và ngăn sự cố lan rộng
+  - Thiết kế token cho nhiều API mà không mở rộng audience tùy tiện
+  - Quy mô lưu trữ, băng thông và chi phí xác minh mật mã
+- level1: Đa bên và đa tenant
+  level2:
+  - Xác định tenant từ ngữ cảnh được tin cậy
+  - Ràng buộc token với tenant, tài nguyên và môi trường
+  - Tránh trùng định danh chủ thể giữa các bên phát hành
+  - Quản lý danh sách issuer được tin cậy một cách tường minh
+  - Khám phá cấu hình nhà cung cấp danh tính và kiểm tra nguồn cấu hình
+  - Tách khóa, chính sách và dữ liệu của các tenant khi cần
+  - Ngăn token thử nghiệm được dùng trong môi trường sản xuất
+  - Liên kết tài khoản, thay đổi email và định danh chủ thể ổn định
+  - Kiểm soát đăng nhập liên kết và truy cập xuyên tổ chức
+- level1: Nhật ký và riêng tư
+  level2:
+  - 'Những sự kiện cần ghi: phát hành, làm mới, từ chối và thu hồi'
+  - Không ghi token đầy đủ, mật khẩu hoặc khóa ký vào nhật ký
+  - Định danh tham chiếu an toàn để tương quan sự kiện
+  - Phân loại dữ liệu cá nhân trong claim và phản hồi introspection
+  - Giới hạn thu thập, thời hạn lưu và quyền truy cập dữ liệu
+  - Theo dõi hoạt động theo phiên mà không biến token thành công cụ theo dõi ngoài mục đích
+  - Liên kết yêu cầu qua dịch vụ bằng mã tương quan phù hợp
+  - Thiết kế thông báo lỗi cho người dùng và chi tiết chẩn đoán nội bộ
+  - Bằng chứng kiểm toán về thay đổi chính sách và khóa
+- level1: Vận hành token
+  level2:
+  - Theo dõi tỷ lệ phát hành, làm mới, từ chối và hết hạn
+  - Phân biệt lỗi ứng dụng, lệch đồng hồ, lỗi khóa và lỗi cấu hình
+  - Cảnh báo tái sử dụng refresh token và thay đổi hành vi truy cập
+  - Lập kế hoạch luân chuyển khóa và kiểm tra tương thích trước triển khai
+  - Triển khai thay đổi claim, thuật toán và issuer không gián đoạn
+  - Quản lý lược đồ token và tương thích giữa các phiên bản dịch vụ
+  - Giới hạn tốc độ, chống lạm dụng và bảo vệ tài nguyên xác minh
+  - Sao lưu, khôi phục và bảo vệ trạng thái token cần thiết
+  - Đánh giá chỉ số an toàn cùng độ trễ và tỷ lệ đăng nhập thành công
+- level1: Ứng phó sự cố
+  level2:
+  - Phân loại sự cố lộ token truy cập, refresh token và khóa ký
+  - Xác định chủ thể, ứng dụng, tenant và phạm vi tài nguyên bị ảnh hưởng
+  - Thu hồi có mục tiêu và buộc xác thực lại khi cần
+  - Khóa hoặc thay thông tin xác thực của ứng dụng khách bị chiếm
+  - Luân chuyển khóa ký và xử lý token đã phát hành
+  - Điều chỉnh bộ nhớ đệm và phân phối trạng thái thu hồi khẩn cấp
+  - Bảo toàn bằng chứng mà không thu thập thêm bí mật
+  - Khôi phục truy cập hợp lệ và kiểm tra nguy cơ tái diễn
+  - Cập nhật thiết kế, quy trình và kịch bản diễn tập sau sự cố
+- level1: Thiết kế hệ thống
+  level2:
+  - Thu thập yêu cầu về người dùng, ứng dụng, tài nguyên và mức rủi ro
+  - Chọn mô hình phiên, JWT, opaque hoặc kết hợp
+  - Thiết kế hợp đồng claim, audience và scope tối thiểu
+  - Chọn nơi lưu token theo loại ứng dụng khách
+  - Xác định thời hạn, làm mới, thu hồi và trải nghiệm đăng xuất
+  - Thiết kế phân quyền tách biệt với xác minh token
+  - Xác định ranh giới tin cậy, cơ chế khóa và phụ thuộc vận hành
+  - Chuyển đổi từ mật khẩu gửi mỗi lần hoặc token dài hạn
+  - Lập kế hoạch tương thích, triển khai từng bước và quay lui
+  - Rà soát thiết kế bằng mô hình mối đe dọa và tiêu chí nghiệm thu
+- level1: Kiểm thử token
+  level2:
+  - Kiểm thử token hợp lệ, thiếu, rỗng, sai định dạng và bị sửa
+  - Kiểm thử chữ ký sai, thuật toán bị cấm và khóa chưa được tin cậy
+  - Kiểm thử issuer, audience, loại token và claim bắt buộc
+  - Kiểm thử hết hạn, chưa có hiệu lực và sai lệch đồng hồ
+  - Kiểm thử quyền trên tài nguyên và cách ly tenant
+  - Kiểm thử làm mới đồng thời, luân chuyển và phát hiện tái sử dụng
+  - Kiểm thử thu hồi, đăng xuất và tài khoản bị vô hiệu hóa
+  - Kiểm thử không làm lộ token qua phản hồi, chuyển hướng và nhật ký
+  - Kiểm thử lỗi mạng, lỗi kho trạng thái và luân chuyển khóa
+  - Kiểm thử tải, giới hạn kích thước và đầu vào độc hại
+- level1: Bài tập thực hành
+  level2:
+  - Vẽ luồng đăng nhập và truy cập API bằng token
+  - Thiết kế danh mục claim và phân biệt dữ liệu cần giữ phía máy chủ
+  - So sánh cùng một bài toán với token opaque và JWT
+  - Mô phỏng xác minh token theo từng bước và phân loại lỗi
+  - Xây dựng chính sách thời hạn, làm mới và thu hồi cho ứng dụng mẫu
+  - Phân tích nơi lưu token cho web, di động và dịch vụ nền
+  - Mô phỏng token bị lộ và lập kế hoạch thu hồi
+  - Diễn tập luân chuyển khóa và trạng thái bộ nhớ đệm không đồng nhất
+  - Đánh giá thiết kế nhiều dịch vụ, nhiều tenant và nhiều thiết bị
+  - Lập checklist nghiệm thu và giải thích các đánh đổi bảo mật

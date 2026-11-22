@@ -1,0 +1,286 @@
+menu:
+- title: Business Logic Foundations
+  slug: business-logic-foundations
+  index: 0
+- title: Security Objectives
+  slug: security-objectives
+  index: 1
+- title: Business Assets
+  slug: business-assets
+  index: 2
+- title: Actor Model
+  slug: actor-model
+  index: 3
+- title: Trust Boundaries
+  slug: trust-boundaries
+  index: 4
+- title: Abuse Cases
+  slug: abuse-cases
+  index: 5
+- title: Threat Modeling
+  slug: threat-modeling
+  index: 6
+- title: Security Invariants
+  slug: security-invariants
+  index: 7
+- title: Domain State
+  slug: domain-state
+  index: 8
+- title: State Transitions
+  slug: state-transitions
+  index: 9
+- title: Workflow Security
+  slug: workflow-security
+  index: 10
+- title: Approval Workflows
+  slug: approval-workflows
+  index: 11
+- title: Separation of Duties
+  slug: separation-of-duties
+  index: 12
+- title: Authorization Rules
+  slug: authorization-rules
+  index: 13
+- title: Permission Semantics
+  slug: permission-semantics
+  index: 14
+- title: Role Design
+  slug: role-design
+  index: 15
+- title: Tenant Isolation
+  slug: tenant-isolation
+  index: 16
+- title: Object Ownership
+  slug: object-ownership
+  index: 17
+- title: Business Input Rules
+  slug: business-input-rules
+  index: 18
+- title: Parameter Tampering
+  slug: parameter-tampering
+  index: 19
+- title: Mass Assignment
+  slug: mass-assignment
+  index: 20
+- title: Client Trust
+  slug: client-trust
+  index: 21
+- title: HTTP Method Semantics
+  slug: http-method-semantics
+  index: 22
+- title: API Business Rules
+  slug: api-business-rules
+  index: 23
+- title: Batch Operations
+  slug: batch-operations
+  index: 24
+- title: Pagination Security
+  slug: pagination-security
+  index: 25
+- title: Search Rules
+  slug: search-rules
+  index: 26
+- title: Sorting Rules
+  slug: sorting-rules
+  index: 27
+- title: Export Security
+  slug: export-security
+  index: 28
+- title: Import Security
+  slug: import-security
+  index: 29
+- title: File Business Rules
+  slug: file-business-rules
+  index: 30
+- title: Concurrency Rules
+  slug: concurrency-rules
+  index: 31
+- title: Race Conditions
+  slug: race-conditions
+  index: 32
+- title: TOCTOU Defense
+  slug: toctou-defense
+  index: 33
+- title: Idempotency
+  slug: idempotency
+  index: 34
+- title: Replay Protection
+  slug: replay-protection
+  index: 35
+- title: Transactions
+  slug: transactions
+  index: 36
+- title: Distributed Consistency
+  slug: distributed-consistency
+  index: 37
+- title: Database Constraints
+  slug: database-constraints
+  index: 38
+- title: Monetary Rules
+  slug: monetary-rules
+  index: 39
+- title: Currency Handling
+  slug: currency-handling
+  index: 40
+- title: Rounding Rules
+  slug: rounding-rules
+  index: 41
+- title: Pricing Rules
+  slug: pricing-rules
+  index: 42
+- title: Discounts
+  slug: discounts
+  index: 43
+- title: Promotions
+  slug: promotions
+  index: 44
+- title: Coupons
+  slug: coupons
+  index: 45
+- title: Inventory Rules
+  slug: inventory-rules
+  index: 46
+- title: Order Security
+  slug: order-security
+  index: 47
+- title: Fulfillment Rules
+  slug: fulfillment-rules
+  index: 48
+- title: Payment Rules
+  slug: payment-rules
+  index: 49
+- title: Refund Rules
+  slug: refund-rules
+  index: 50
+- title: Chargeback Rules
+  slug: chargeback-rules
+  index: 51
+- title: Credit Rules
+  slug: credit-rules
+  index: 52
+- title: Subscription Rules
+  slug: subscription-rules
+  index: 53
+- title: Entitlement Rules
+  slug: entitlement-rules
+  index: 54
+- title: Quota Management
+  slug: quota-management
+  index: 55
+- title: Rate Policies
+  slug: rate-policies
+  index: 56
+- title: Resource Allocation
+  slug: resource-allocation
+  index: 57
+- title: Time Based Rules
+  slug: time-based-rules
+  index: 58
+- title: Approval Limits
+  slug: approval-limits
+  index: 59
+- title: Delegation
+  slug: delegation
+  index: 60
+- title: Impersonation
+  slug: impersonation
+  index: 61
+- title: Emergency Actions
+  slug: emergency-actions
+  index: 62
+- title: Background Jobs
+  slug: background-jobs
+  index: 63
+- title: Schedulers
+  slug: schedulers
+  index: 64
+- title: Message Security
+  slug: message-security
+  index: 65
+- title: Webhooks
+  slug: webhooks
+  index: 66
+- title: Partner Integrations
+  slug: partner-integrations
+  index: 67
+- title: External Trust
+  slug: external-trust
+  index: 68
+- title: Notification Rules
+  slug: notification-rules
+  index: 69
+- title: Email Business Rules
+  slug: email-business-rules
+  index: 70
+- title: Support Operations
+  slug: support-operations
+  index: 71
+- title: Administrative Controls
+  slug: administrative-controls
+  index: 72
+- title: Fraud Detection
+  slug: fraud-detection
+  index: 73
+- title: Anomaly Detection
+  slug: anomaly-detection
+  index: 74
+- title: Abuse Controls
+  slug: abuse-controls
+  index: 75
+- title: Rate Limit Abuse
+  slug: rate-limit-abuse
+  index: 76
+- title: Privacy Rules
+  slug: privacy-rules
+  index: 77
+- title: Consent Rules
+  slug: consent-rules
+  index: 78
+- title: Auditability
+  slug: auditability
+  index: 79
+- title: Observability
+  slug: observability
+  index: 80
+- title: Error Semantics
+  slug: error-semantics
+  index: 81
+- title: User Experience
+  slug: user-experience
+  index: 82
+- title: Testing Strategy
+  slug: testing-strategy
+  index: 83
+- title: Property Testing
+  slug: property-testing
+  index: 84
+- title: Security Testing
+  slug: security-testing
+  index: 85
+- title: Load Testing
+  slug: load-testing
+  index: 86
+- title: Failure Testing
+  slug: failure-testing
+  index: 87
+- title: Incident Response
+  slug: incident-response
+  index: 88
+- title: Compliance
+  slug: compliance
+  index: 89
+- title: Documentation
+  slug: documentation
+  index: 90
+- title: Spring Security Integration
+  slug: spring-security-integration
+  index: 91
+- title: Implementation Patterns
+  slug: implementation-patterns
+  index: 92
+- title: Deployment Operations
+  slug: deployment-operations
+  index: 93
+- title: Security Checklists
+  slug: security-checklists
+  index: 94

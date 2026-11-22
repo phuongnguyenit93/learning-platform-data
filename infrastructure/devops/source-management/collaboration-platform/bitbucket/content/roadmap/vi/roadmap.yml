@@ -1,0 +1,57 @@
+roadmap:
+- id: bitbucket-workspace
+  title: Bitbucket & workspace
+  purpose: Hiểu vai trò Bitbucket Cloud trong quản lý Git và cộng tác theo nhóm.
+  objectives:
+  - Phân biệt workspace, project và repository.
+  - Mô tả quy trình commit → pull request → merge.
+  - Nhận diện khác biệt Bitbucket Cloud và Data Center.
+- id: tao-repo-lam-viec-voi-git
+  title: Tạo repo & làm việc với Git
+  purpose: Khởi tạo kho mã nguồn và thực hiện các thao tác đồng bộ cơ bản.
+  objectives:
+  - Tạo repository private trong project phù hợp.
+  - Clone, commit, push và pull qua Git.
+  - Xác định nhánh mặc định và lịch sử commit.
+- id: quyen-truy-cap-xac-thuc
+  title: Quyền truy cập & xác thực
+  purpose: Giới hạn quyền đối với mã nguồn và kết nối an toàn từ máy người dùng hoặc hệ thống tự động.
+  objectives:
+  - Phân biệt quyền Read, Write và Admin.
+  - Cấp quyền theo nhóm với nguyên tắc ít quyền.
+  - Cấu hình SSH hoặc access token với scope phù hợp.
+- id: nhanh-quy-trinh-cong-tac
+  title: Nhánh & quy trình cộng tác
+  purpose: Tách thay đổi khỏi nhánh chính để phát triển song song và giảm xung đột.
+  objectives:
+  - Tạo feature branch cho một thay đổi nhỏ.
+  - Đồng bộ nhánh với main và xử lý merge conflict.
+  - Chọn quy ước tên nhánh và cách tích hợp thường xuyên.
+- id: pull-request-code-review
+  title: Pull Request & code review
+  purpose: Tạo vòng phản hồi có kiểm soát trước khi hợp nhất thay đổi vào nhánh chung.
+  objectives:
+  - Mở pull request với mô tả, reviewer và diff rõ ràng.
+  - Thực hiện comment, request changes và approve.
+  - So sánh merge commit, squash và các chiến lược merge.
+- id: branch-restrictions-merge-checks
+  title: Branch restrictions & merge checks
+  purpose: Bảo vệ nhánh quan trọng và thiết lập điều kiện chất lượng cho thao tác merge.
+  objectives:
+  - Cấu hình giới hạn push/merge vào nhánh chính.
+  - Thiết lập điều kiện review, task và build status.
+  - Phân biệt cảnh báo với cưỡng chế theo gói Bitbucket.
+- id: bitbucket-pipelines
+  title: Bitbucket Pipelines
+  purpose: Tự động build và kiểm thử mã nguồn khi có commit hoặc pull request.
+  objectives:
+  - Tạo bitbucket-pipelines.yml tại gốc repository.
+  - Thiết lập bước build/test và đọc pipeline logs.
+  - Sử dụng secured variables thay vì đưa secret vào Git.
+- id: webhooks-van-hanh
+  title: Webhooks & vận hành
+  purpose: Kết nối Bitbucket với hệ thống bên ngoài và theo dõi luồng thay đổi từ mã nguồn đến CI.
+  objectives:
+  - Cấu hình webhook cho sự kiện push hoặc pull request.
+  - Xác minh webhook bằng secret và chữ ký HMAC.
+  - Theo dõi lỗi pipeline, merge checks và lịch sử thay đổi.

@@ -1,0 +1,7 @@
+# Security Identity Access Management Identity Lifecycle
+
+Identity Lifecycle là quá trình quản lý danh tính số và quyền truy cập từ khi một người hoặc workload bắt đầu cần sử dụng hệ thống, qua những lần thay đổi vai trò, đến khi không còn nhu cầu truy cập. Trong quản trị Identity and Access Management (IAM), mô hình Joiner–Mover–Leaver (JML) giúp giảm rủi ro tài khoản bỏ quên, quyền tích lũy và thu hồi chậm. Mục tiêu là cấp đúng quyền cho đúng chủ thể vào đúng thời điểm, có nguồn dữ liệu đáng tin cậy, người chịu trách nhiệm và dấu vết kiểm toán.
+
+Module phù hợp với người đã biết authentication, authorization, role/group, SSO và khái niệm Identity Provider. Lộ trình bắt đầu bằng các trạng thái của danh tính, nguồn HR/IdP và quản lý owner; tiếp theo thực hành thiết kế luồng onboarding, cập nhật quyền khi chuyển vai trò và tự động provisioning bằng SCIM. Người học tiếp tục xây dựng cơ chế access review, quyền có thời hạn, xử lý offboarding và đối soát dữ liệu giữa danh bạ trung tâm với các ứng dụng đích. Các nguyên tắc tương tự áp dụng cho tài khoản nhà thầu và service identity, với chính sách quản lý riêng.
+
+Sau khi hoàn thành, bạn có thể vẽ quy trình JML cho một tổ chức nhỏ, xác định điều kiện tạo, sửa, vô hiệu hóa và thu hồi quyền, mô tả cách đồng bộ identity đến ứng dụng và lập checklist kiểm toán. Khi triển khai thực tế cần đặc biệt chú ý tốc độ thu hồi truy cập, token hoặc phiên còn hiệu lực, tài khoản ngoại lệ và chính sách lưu giữ dữ liệu; vô hiệu hóa tài khoản không nhất thiết đồng nghĩa xóa dữ liệu của người dùng.

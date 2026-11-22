@@ -1,0 +1,351 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Jenkins là gì và giữ vai trò nào trong quy trình CI/CD
+  - Phân biệt tự động hóa tích hợp, bàn giao và triển khai liên tục
+  - Luồng từ thay đổi mã nguồn đến kết quả kiểm thử và gói đầu ra
+  - Thuật ngữ controller, agent, node, executor, job và build
+  - Phân biệt một lần chạy pipeline với một bản phát hành
+  - Jenkins quản lý điều phối còn công cụ bên ngoài thực hiện công việc như thế nào
+  - Phạm vi module và lộ trình xây dựng một pipeline Java xuyên suốt
+- level1: Kiến trúc
+  level2:
+  - Controller điều phối cấu hình, hàng đợi và lịch sử thực thi
+  - Agent cung cấp môi trường thực hiện các bước công việc
+  - Quan hệ giữa node, executor, nhãn và workspace
+  - Phân biệt tiến trình controller với tiến trình của tác vụ
+  - Vòng đời một công việc từ hàng đợi đến khi có executor phù hợp
+  - Phân biệt dữ liệu tại JENKINS_HOME với dữ liệu workspace
+  - Luồng kết nối giữa Jenkins, hệ thống Git, kho gói và môi trường đích
+  - Nhận diện ranh giới tin cậy giữa controller, agent và mã nguồn được chạy
+- level1: Cài đặt
+  level2:
+  - Đối chiếu yêu cầu Java, hệ điều hành và tài nguyên của phiên bản Jenkins
+  - Chọn cách cài bằng gói hệ thống, WAR hoặc container theo môi trường
+  - Chuẩn bị môi trường Jenkins cục bộ để thực hành
+  - Khởi động lần đầu và thiết lập tài khoản quản trị
+  - Lưu dữ liệu Jenkins bền vững khi sử dụng container
+  - Cấu hình địa chỉ truy cập và cổng dịch vụ
+  - Kiểm tra quyền đọc ghi thư mục cùng tài nguyên cần thiết
+  - Xác nhận cài đặt bằng một công việc chạy thử có kết quả quan sát được
+- level1: Quản trị cơ bản
+  level2:
+  - Làm quen trang quản trị, danh sách job và lịch sử build
+  - Cấu hình URL gốc và thông tin hệ thống cần thiết
+  - Quản lý người dùng và quyền truy cập ban đầu
+  - Thiết lập công cụ dùng chung và kiểm tra đường dẫn thực thi
+  - Tổ chức job bằng thư mục và quy ước tên
+  - Quy định lưu giữ lịch sử build và dữ liệu đầu ra
+  - Phân biệt cấu hình toàn cục với cấu hình riêng của job
+  - Kiểm tra tác động trước khi thay đổi cấu hình dùng chung
+- level1: Loại công việc
+  level2:
+  - Tạo Freestyle job để hiểu các bước thực thi cơ bản
+  - Phân biệt Freestyle job với Pipeline job
+  - Chọn Pipeline script trực tiếp hoặc Pipeline script from SCM
+  - Nhận diện vai trò của Multibranch Pipeline
+  - Phân biệt job, lần build, stage và step
+  - Đọc trạng thái thành công, thất bại, không ổn định và bị hủy
+  - Chạy job thủ công và đọc nguyên nhân kích hoạt
+  - Chuyển một job cấu hình thủ công sang pipeline được lưu trong Git
+- level1: Kết nối mã nguồn
+  level2:
+  - Kết nối repository Git và cấp quyền đọc phù hợp
+  - Chọn nhánh, commit và đường dẫn Jenkinsfile
+  - Phân biệt lấy Jenkinsfile với checkout mã để xây dựng
+  - Kiểm soát phiên bản mã nguồn thực sự được checkout
+  - Làm việc với repository riêng tư và chứng chỉ truy cập
+  - Quản lý checkout nhiều repository khi bài toán cần
+  - Xử lý thay đổi nhánh, submodule và tệp lớn theo khả năng công cụ
+  - Truy vết kết quả build về commit và repository gốc
+- level1: Jenkinsfile
+  level2:
+  - Jenkinsfile là gì và vì sao nên được quản lý cùng mã nguồn
+  - Phân biệt Declarative Pipeline với Scripted Pipeline
+  - Tổ chức các giai đoạn checkout, build, test và đóng gói
+  - Xác định đầu vào, đầu ra và phụ thuộc của từng giai đoạn
+  - Giữ Jenkinsfile mô tả điều phối thay vì chứa toàn bộ nghiệp vụ xây dựng
+  - Đặt quy ước tên stage và thông báo để người đọc theo dõi được
+  - Kiểm tra cú pháp và khả năng tương thích trước khi đưa pipeline vào dùng
+- level1: Declarative Pipeline
+  level2:
+  - Cấu trúc pipeline, agent, stages, stage và steps
+  - Khai báo environment, parameters và tools
+  - Sử dụng options để kiểm soát hành vi của lần chạy
+  - Đặt điều kiện thực thi bằng when
+  - Xử lý kết quả bằng post ở phạm vi pipeline hoặc stage
+  - Phân chia agent toàn cục với agent cho từng stage
+  - Tổ chức các stage con khi cần nhóm công việc
+  - Dùng script để thực hiện phần logic cần Groovy
+  - Phân biệt chỉ thị Declarative với step do Jenkins hoặc plugin cung cấp
+- level1: Scripted và Groovy
+  level2:
+  - Cấu trúc node, stage và luồng điều khiển trong Scripted Pipeline
+  - Dùng biến, điều kiện, vòng lặp và hàm hỗ trợ trong phạm vi cần thiết
+  - Hiểu cơ chế tiếp tục thực thi của Pipeline CPS
+  - Nhận diện dữ liệu cần được tuần tự hóa khi pipeline tạm dừng
+  - Tránh giữ đối tượng không phù hợp qua điểm tạm dừng
+  - Hiểu giới hạn của @NonCPS và việc gọi pipeline step
+  - Nhận diện lỗi do kết hợp closure hoặc phương thức không tương thích CPS
+  - Chọn mức dùng Groovy phù hợp để pipeline vẫn dễ đọc và bảo trì
+- level1: Tham số và môi trường
+  level2:
+  - Khai báo tham số chuỗi, lựa chọn và giá trị boolean
+  - Phân biệt params với biến môi trường env
+  - Xác định phạm vi và thứ tự ghi đè biến môi trường
+  - Truyền cấu hình vào công cụ xây dựng mà không sửa mã nguồn
+  - Kiểm tra tham số đầu vào trước khi thực hiện thao tác
+  - Xử lý chuỗi, dấu nháy và khoảng trắng khi chạy lệnh
+  - Phân biệt cấu hình không nhạy cảm với thông tin bí mật
+  - Ngăn tham số người dùng biến thành lệnh shell ngoài dự kiến
+- level1: Agent và công cụ
+  level2:
+  - Thêm agent và kiểm tra kết nối từ controller
+  - Phân biệt cách kết nối agent qua SSH với kết nối do agent khởi tạo
+  - Chọn node theo nhãn thay vì dựa vào tên máy cố định
+  - Cấu hình số executor theo tải công việc và tài nguyên
+  - Chuẩn bị JDK, Git và công cụ xây dựng trên agent
+  - Phân biệt môi trường Linux và Windows khi viết pipeline
+  - Quản lý agent cố định với agent tạm thời
+  - Xử lý agent bị mất kết nối trong lúc thực thi
+  - Giới hạn quyền hệ điều hành và dữ liệu mà agent có thể truy cập
+- level1: Workspace và tệp
+  level2:
+  - Xác định vị trí workspace của job trên từng agent
+  - Phân biệt đường dẫn tương đối trong workspace với đường dẫn hệ thống
+  - Đọc ghi tệp bằng các step phù hợp
+  - Quản lý workspace khi nhiều lần build chạy đồng thời
+  - Dùng stash và unstash để chuyển lượng dữ liệu phù hợp giữa các stage
+  - Phân biệt stash với lưu trữ artifact dài hạn
+  - Dọn workspace mà không xóa nhầm dữ liệu dùng chung
+  - Không giả định tệp cục bộ vẫn tồn tại khi pipeline đổi agent
+- level1: Xây dựng Java
+  level2:
+  - Chuẩn bị ứng dụng Java mẫu và cấu trúc repository cho CI
+  - Dùng Gradle Wrapper hoặc Maven Wrapper để cố định công cụ dự án
+  - Chọn JDK theo yêu cầu của dự án và kiểm tra phiên bản thực tế
+  - Tách biên dịch, kiểm thử và đóng gói theo nhu cầu phản hồi
+  - Quản lý tham số build cùng cấu hình theo môi trường
+  - Tận dụng cache phụ thuộc mà vẫn kiểm soát tính đúng của đầu ra
+  - Xây dựng dự án nhiều module và xác định phạm vi tác động
+  - Thu thập JAR và siêu dữ liệu phiên bản từ đúng lần build
+  - Chẩn đoán khác biệt giữa kết quả trên máy phát triển và agent
+- level1: Kiểm thử và chất lượng
+  level2:
+  - Chạy kiểm thử đơn vị và xuất kết quả theo định dạng phù hợp
+  - Công bố báo cáo JUnit và đối chiếu số kiểm thử đã chạy
+  - Tách kiểm thử tích hợp cần dịch vụ phụ thuộc
+  - Quản lý dữ liệu thử và tài nguyên sau khi kiểm thử kết thúc
+  - Tổng hợp độ bao phủ và phân tích tĩnh khi dự án có yêu cầu
+  - Quy định điều kiện dừng dựa trên kết quả kiểm tra
+  - Phân biệt lỗi kiểm thử với lỗi hạ tầng thực thi
+  - Xử lý kiểm thử không ổn định mà không che mất lỗi thật
+  - Giữ báo cáo gắn với commit và gói đã được kiểm tra
+- level1: Gói đầu ra
+  level2:
+  - Lưu artifact từ workspace bằng đường dẫn có kiểm soát
+  - Phân biệt archiveArtifacts với xuất bản vào kho gói chuyên dụng
+  - Định danh đầu ra bằng phiên bản, commit và mã băm
+  - Truy vết artifact qua fingerprint khi sử dụng khả năng này
+  - Đưa JAR hoặc container image vào kho bằng danh tính phù hợp
+  - Giữ cùng một gói đã kiểm chứng khi chuyển môi trường
+  - Quy định thời hạn giữ artifact và khả năng khôi phục
+  - Kiểm tra gói đã được xuất bản thay vì chỉ dựa vào mã thoát của lệnh
+- level1: Thông tin bí mật
+  level2:
+  - Phân biệt mật khẩu, token, khóa SSH và tệp bí mật
+  - Tạo credential và tham chiếu bằng định danh
+  - Giới hạn phạm vi credential theo hệ thống hoặc thư mục phù hợp
+  - Truyền bí mật vào bước thực thi bằng cơ chế binding
+  - Tránh nội suy Groovy làm lộ bí mật vào đối số hoặc thông báo
+  - Hiểu giới hạn của che giá trị bí mật trong console log
+  - Ngăn bí mật đi vào artifact, workspace công khai hoặc cache
+  - Luân chuyển và thu hồi bí mật đang được pipeline sử dụng
+  - Kiểm soát việc cấp credential cho mã nguồn từ nhánh hoặc đóng góp không tin cậy
+- level1: Kích hoạt pipeline
+  level2:
+  - Kích hoạt thủ công với bộ tham số xác định
+  - Kích hoạt từ webhook của nền tảng Git
+  - Phân biệt webhook với thăm dò thay đổi mã nguồn
+  - Lập lịch bằng biểu thức cron và phân bố thời điểm chạy
+  - Liên kết lần chạy với sự kiện, nhánh và commit tương ứng
+  - Chẩn đoán webhook không đến hoặc bị nhận lặp
+  - Xử lý thay đổi dồn dập và tránh chạy thừa khi phù hợp
+  - Giới hạn quyền cho API hoặc hệ thống bên ngoài kích hoạt job
+- level1: Multibranch Pipeline
+  level2:
+  - Tự khám phá nhánh có Jenkinsfile bằng Multibranch Pipeline
+  - Phân biệt quét nhánh với thực thi một lần build
+  - Xử lý branch và pull request theo khả năng tích hợp SCM
+  - Đặt quy tắc phát hiện, loại trừ và dọn nhánh đã xóa
+  - Phân biệt mã ứng viên với mã đã được hợp nhất khi kiểm thử
+  - Thiết kế điều kiện build, kiểm thử và xuất bản theo nhánh
+  - Xác định nguồn Jenkinsfile được tin cậy khi chạy đóng góp bên ngoài
+  - Ngăn thay đổi trong pull request truy cập bí mật hoặc quyền triển khai
+  - Quản lý lịch sử và tài nguyên khi số nhánh tăng
+- level1: Điều phối thực thi
+  level2:
+  - Giới hạn thời gian chạy bằng timeout theo phạm vi phù hợp
+  - Dùng retry cho lỗi có thể phục hồi mà không lặp tác dụng phụ ngoài ý muốn
+  - Chờ quyết định bằng input và giới hạn người được phép quyết định
+  - Xử lý ngoại lệ với try, catch, finally hoặc catchError
+  - Phân biệt kết quả step, stage và toàn bộ build
+  - Kiểm soát lần chạy đồng thời bằng tùy chọn của job
+  - Tuần tự hóa truy cập tài nguyên dùng chung bằng cơ chế khóa phù hợp
+  - Xử lý yêu cầu hủy và bảo đảm công việc dọn dẹp cần thiết
+- level1: Song song và ma trận
+  level2:
+  - Chia công việc độc lập thành các nhánh parallel
+  - Chọn phạm vi song song theo giới hạn executor và tài nguyên
+  - Tạo ma trận kiểm thử theo JDK, hệ điều hành hoặc cấu hình
+  - Loại tổ hợp không cần thiết và giữ ma trận có thể quản lý
+  - Quy định hành vi khi một nhánh song song thất bại
+  - Tránh ghi đè workspace, cổng dịch vụ hoặc báo cáo dùng chung
+  - Tổng hợp kết quả từ nhiều nhánh về cùng lần build
+  - Cân bằng tốc độ phản hồi với chi phí và độ ổn định
+- level1: Môi trường container
+  level2:
+  - Phân biệt chạy Jenkins trong container với chạy step trong container
+  - Dùng môi trường container để kiểm soát bộ công cụ build
+  - Quản lý workspace, mount và quyền tệp giữa host với container
+  - Đối chiếu danh tính ảnh dùng để build bằng tag hoặc digest
+  - Xác thực với registry khi kéo hoặc đẩy ảnh
+  - Đánh giá quyền truy cập Docker daemon và socket từ agent
+  - Nhận diện vai trò của agent tạm thời trên Kubernetes khi dùng tích hợp phù hợp
+  - Quản lý mạng, tài nguyên và dọn dẹp container sau công việc
+  - Phân biệt cache container với dữ liệu đầu ra cần lưu bền vững
+- level1: Triển khai ứng dụng
+  level2:
+  - Xác định điều kiện để một gói đủ khả năng triển khai
+  - Tách tạo gói với triển khai cùng gói qua các môi trường
+  - Tham chiếu chính xác phiên bản hoặc digest của gói đầu vào
+  - Quản lý quyền triển khai và cấu hình theo môi trường
+  - Ngăn hai pipeline đồng thời thay đổi một đích triển khai
+  - Xác minh phiên bản cùng luồng nghiệp vụ sau triển khai
+  - Thiết kế quay lui theo tương thích mã, dữ liệu và cấu hình
+  - Chỉ công bố kết quả dựa trên tình trạng thực tế đã kiểm tra
+- level1: Shared Library
+  level2:
+  - Nhận diện logic lặp đáng tách thành thư viện pipeline
+  - Tổ chức thư viện với vars, src và resources
+  - Nạp thư viện và cố định phiên bản phù hợp
+  - Thiết kế hàm dùng chung có đầu vào, đầu ra và lỗi rõ ràng
+  - Phân biệt thư viện được tin cậy với mã chịu giới hạn sandbox
+  - Quản lý thay đổi hợp đồng khi nhiều repository cùng sử dụng
+  - Kiểm thử thư viện trước khi cập nhật các pipeline phụ thuộc
+  - Tránh thư viện dùng chung trở thành bộ khung che giấu toàn bộ luồng chạy
+- level1: Cấu hình bằng mã
+  level2:
+  - Phân biệt Jenkinsfile, cấu hình job và cấu hình hệ thống
+  - Nhận diện vai trò của Jenkins Configuration as Code khi được sử dụng
+  - Quản lý cấu hình khai báo trong Git với quy trình rà soát
+  - Tách bí mật khỏi nội dung cấu hình được lưu trong repository
+  - Kiểm tra khả năng hỗ trợ của từng plugin đối với cấu hình bằng mã
+  - Khởi tạo job bằng cơ chế khai báo phù hợp khi có nhu cầu
+  - Kiểm tra thay đổi trong môi trường thử trước khi áp dụng
+  - Phát hiện sai lệch giữa cấu hình đang chạy và cấu hình đã quản lý
+- level1: Quản lý plugin
+  level2:
+  - Phân biệt tính năng Jenkins lõi với tính năng do plugin cung cấp
+  - Chọn plugin từ nhu cầu cụ thể của pipeline
+  - Kiểm tra phụ thuộc và tương thích với phiên bản Jenkins
+  - Quản lý danh sách cùng phiên bản plugin để tái tạo môi trường
+  - Thử nâng cấp plugin trên bản sao hoặc môi trường kiểm chứng
+  - Đánh giá tác động khi vô hiệu hóa hoặc gỡ plugin
+  - Theo dõi tình trạng bảo trì và thông báo bảo mật liên quan
+  - Giảm phụ thuộc không cần thiết và tránh cài plugin trùng chức năng
+- level1: Bảo mật
+  level2:
+  - Phân biệt xác thực danh tính với phân quyền thao tác
+  - Thiết kế quyền tối thiểu cho người dùng, nhóm và hệ thống tự động
+  - Giới hạn quyền sửa job, Jenkinsfile, thư viện và cấu hình hệ thống
+  - Hiểu phạm vi Script Security, sandbox và phê duyệt script
+  - Phân biệt giới hạn Groovy với quyền của lệnh chạy trên agent
+  - Bảo vệ URL truy cập, kết nối TLS và bề mặt quản trị
+  - Quản lý API token cùng vòng đời tài khoản tự động
+  - Tách công việc không tin cậy khỏi agent và bí mật có quyền cao
+  - Kiểm tra bản vá bảo mật và lập kế hoạch cập nhật theo môi trường
+- level1: Theo dõi kết quả
+  level2:
+  - Đọc console log theo stage và theo thời điểm xảy ra lỗi
+  - Liên kết build với commit, tham số, agent và artifact
+  - Công bố báo cáo để người phát triển thấy rõ nguyên nhân thất bại
+  - Thiết kế thông báo theo kết quả cần hành động
+  - Giới hạn dữ liệu và bí mật xuất hiện trong thông báo
+  - Theo dõi tỷ lệ thất bại, thời gian chạy và thời gian chờ
+  - Phân biệt lỗi dự án với lỗi hệ thống Jenkins khi tổng hợp số liệu
+- level1: Hiệu năng
+  level2:
+  - Đo thời gian từng stage trước khi tối ưu
+  - Phân biệt thiếu executor với thiếu CPU, bộ nhớ hoặc I/O
+  - Giảm công việc không cần thiết và phản hồi sớm khi điều kiện không đạt
+  - Thiết kế cache có khóa phù hợp và cơ chế vô hiệu hóa
+  - Đánh giá chi phí stash, artifact lớn và truyền dữ liệu giữa agent
+  - Giảm logic Groovy và dữ liệu lớn được giữ trên controller
+  - Quản lý số lần chạy, lịch sử và workspace để giới hạn tăng trưởng
+  - Đánh giá hiệu quả song song bằng tài nguyên thực tế
+- level1: Vận hành Jenkins
+  level2:
+  - Kiểm tra sức khỏe controller, agent và hàng đợi
+  - Theo dõi dung lượng JENKINS_HOME cùng nơi lưu artifact
+  - Quản lý kết nối mạng tới Git, kho phụ thuộc và hệ thống triển khai
+  - Dừng nhận công việc mới để bảo trì có kiểm soát
+  - Lập kế hoạch nâng cấp Jenkins, Java và plugin cùng phụ thuộc
+  - Kiểm tra khả năng tiếp tục pipeline sau khi khởi động lại
+  - Hiểu mức bền vững dữ liệu pipeline và giới hạn khôi phục của từng bước
+  - Ghi lại thay đổi quản trị và quy trình ứng phó sự cố
+- level1: Sao lưu và phục hồi
+  level2:
+  - Xác định cấu hình, dữ liệu job và tài nguyên cần sao lưu
+  - Phân biệt dữ liệu có thể tái tạo với dữ liệu phải bảo vệ
+  - Bảo vệ khóa mã hóa và dữ liệu bí mật cần thiết để khôi phục credential
+  - Giữ bản sao lưu nhất quán với trạng thái hệ thống
+  - Quy định mục tiêu mất dữ liệu và thời gian phục hồi
+  - Khôi phục Jenkins trong môi trường kiểm chứng
+  - Đối chiếu cấu hình, quyền và plugin sau khi khôi phục
+  - Chạy pipeline thử mà không vô tình triển khai hoặc thông báo tới hệ thống thật
+- level1: Kiểm thử pipeline
+  level2:
+  - Kiểm tra cú pháp Declarative Pipeline trước khi hợp nhất
+  - Kiểm thử logic Groovy và thư viện dùng chung theo khả năng công cụ
+  - Tạo repository mẫu cho kiểm thử tích hợp pipeline
+  - Giả lập lỗi checkout, build, kiểm thử và xuất bản artifact
+  - Kiểm thử timeout, retry, hủy và lỗi giữa chừng
+  - Kiểm tra nhánh không tin cậy không nhận credential có quyền cao
+  - Kiểm tra kết quả sau chạy lại để phát hiện tác dụng phụ trùng
+  - Đối chiếu bằng chứng với commit và gói thực sự được xử lý
+- level1: Xử lý sự cố
+  level2:
+  - Job chờ lâu do nhãn agent không khớp hoặc thiếu executor
+  - Agent mất kết nối và công việc bị gián đoạn
+  - Lỗi checkout, credential hoặc quyền truy cập repository
+  - Sai JDK, công cụ không tồn tại và khác biệt PATH
+  - Lỗi quyền tệp, đường dẫn hoặc workspace còn dữ liệu cũ
+  - Lỗi NotSerializableException và vấn đề liên quan Pipeline CPS
+  - Lệnh thành công nhưng Jenkins ghi nhận kết quả không như dự kiến
+  - Báo cáo kiểm thử hoặc artifact không được tìm thấy
+  - Webhook không kích hoạt hoặc pipeline chạy nhiều lần
+  - Triển khai đã xảy ra nhưng pipeline mất kết nối trước khi ghi nhận kết quả
+- level1: Lỗi thường gặp
+  level2:
+  - Chạy mọi công việc xây dựng trực tiếp trên controller
+  - Lưu bí mật trong Jenkinsfile hoặc in biến môi trường ra log
+  - Cho rằng che log là đủ để bảo vệ credential trước mã không tin cậy
+  - Phụ thuộc máy agent có cấu hình thủ công không được ghi lại
+  - Trộn nghiệp vụ xây dựng lớn vào Groovy của Jenkinsfile
+  - Retry toàn bộ stage có tác dụng phụ mà không xác minh trạng thái thực
+  - Dùng chung workspace hoặc tài nguyên mà không xử lý cạnh tranh
+  - Xây dựng lại gói sau kiểm thử rồi triển khai mà không kiểm chứng lại
+  - Đánh dấu thành công chỉ vì lệnh triển khai trả về mã thoát bằng không
+- level1: Thực hành tổng hợp
+  level2:
+  - Cài Jenkins thực hành với dữ liệu bền vững và agent riêng
+  - Xây dựng Jenkinsfile cho ứng dụng Java bằng Gradle hoặc Maven
+  - Tự động checkout, kiểm thử và lưu JAR theo commit
+  - Công bố báo cáo JUnit và kiểm tra điều kiện chất lượng
+  - Tạo Multibranch Pipeline có kiểm soát quyền cho pull request
+  - Chạy kiểm thử song song và xử lý tài nguyên dùng chung
+  - Xuất bản container image rồi truyền digest cho bước triển khai
+  - Tách logic dùng chung thành thư viện có phiên bản
+  - Diễn tập pipeline bị hủy, chạy lại và khôi phục triển khai
+  - Sao lưu Jenkins, phục hồi trong môi trường thử và xác minh pipeline

@@ -1,0 +1,7 @@
+# Security Cryptography Fundamentals
+
+Mật mã học ứng dụng giúp bảo vệ dữ liệu khỏi việc bị đọc trái phép, bị sửa đổi hoặc bị giả mạo. Để sử dụng đúng, lập trình viên cần phân biệt các mục tiêu như **confidentiality**, **integrity** và **authenticity**, cũng như vai trò riêng của mã hóa, hàm băm, mã xác thực thông điệp và chữ ký số. Một thuật toán mạnh vẫn có thể tạo hệ thống thiếu an toàn nếu khóa bị lộ, nonce bị tái sử dụng hoặc ứng dụng không kiểm tra chứng thư và lỗi xác thực.
+
+Module dành cho người học Java/backend và bảo mật ứng dụng đã có kiến thức cơ bản về lập trình, HTTP và quản lý dữ liệu. Lộ trình bắt đầu từ threat model, nguồn ngẫu nhiên mật mã, secret key và nonce; tiếp theo là mã hóa đối xứng có xác thực như AES-GCM, hash/HMAC/HKDF, cơ chế khóa công khai và key exchange. Bạn sẽ tìm hiểu chữ ký số, PKI/chứng thư X.509, cách lưu mật khẩu bằng password hashing có salt, và cách TLS 1.3 kết hợp các kỹ thuật này để bảo vệ dữ liệu trên đường truyền. Cuối cùng là quản lý vòng đời khóa, giới hạn quyền truy cập và kiểm thử tích hợp bằng thư viện đã được đánh giá.
+
+Hãy thực hành với ứng dụng thử nghiệm: dùng thư viện mật mã chuẩn để mã hóa/giải mã một thông điệp bằng AEAD, xác nhận sửa một byte ciphertext sẽ bị từ chối, thử xác minh chữ ký và lưu mật khẩu qua hàm băm thích hợp. Sau đó kiểm tra TLS và đề xuất cách giữ khóa ngoài source code. Kết thúc module, bạn có thể chọn cơ chế mật mã đúng mục tiêu, phát hiện các sai lầm phổ biến khi sử dụng khóa/nonce và tránh tự thiết kế thuật toán hoặc giao thức bảo mật.

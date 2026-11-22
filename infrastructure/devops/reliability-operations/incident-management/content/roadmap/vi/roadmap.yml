@@ -1,0 +1,57 @@
+roadmap:
+- id: san-sang-on-call-quy-trinh
+  title: Sẵn sàng On-call & Quy trình
+  purpose: Chuẩn bị trách nhiệm, quy trình và công cụ để phản ứng nhanh trước sự cố vận hành.
+  objectives:
+  - Phân biệt event, incident và problem
+  - Thiết lập lịch on-call, runbook và kênh liên lạc
+  - Nêu tiêu chí kích hoạt quy trình incident
+- id: phat-hien-phan-loai
+  title: Phát hiện & Phân loại
+  purpose: Đánh giá mức độ ảnh hưởng thực tế để ưu tiên ứng phó thay vì chỉ dựa trên tín hiệu kỹ thuật.
+  objectives:
+  - Tiếp nhận alert hoặc báo cáo từ người dùng
+  - Xác định phạm vi, thời điểm và mức độ ảnh hưởng
+  - Phân loại severity theo impact và urgency
+- id: incident-command-escalation
+  title: Incident Command & Escalation
+  purpose: Làm rõ quyền điều phối và phân công để tránh chồng chéo khi nhiều nhóm cùng xử lý.
+  objectives:
+  - Chỉ định Incident Commander và responder
+  - Phân vai vận hành, truyền thông và hỗ trợ
+  - Kích hoạt escalation hoặc handoff khi cần
+- id: phoi-hop-truyen-thong
+  title: Phối hợp & Truyền thông
+  purpose: Giữ một nguồn thông tin chung và cập nhật đúng đối tượng trong suốt sự cố.
+  objectives:
+  - Tạo incident channel và state document
+  - Ghi lại timeline, quyết định và thay đổi
+  - Cập nhật trạng thái định kỳ cho stakeholder
+- id: dieu-tra-giam-thieu
+  title: Điều tra & Giảm thiểu
+  purpose: Giảm tác động tới người dùng trước khi tìm đầy đủ nguyên nhân gốc rễ.
+  objectives:
+  - Kiểm tra metrics, logs, traces và thay đổi gần nhất
+  - Chọn rollback, failover hoặc workaround phù hợp
+  - Ghi nhận rủi ro và hiệu quả từng hành động
+- id: khoi-phuc-dong-su-co
+  title: Khôi phục & Đóng sự cố
+  purpose: Xác nhận dịch vụ đã ổn định và chuyển giao các công việc còn lại sau ứng cứu.
+  objectives:
+  - Kiểm tra tín hiệu sức khỏe và hành trình người dùng
+  - Xác minh hết business impact trước khi resolve
+  - Chốt timeline, thông báo và các nhiệm vụ còn tồn
+- id: blameless-postmortem
+  title: Blameless Postmortem
+  purpose: Rút kinh nghiệm một cách hệ thống mà không quy lỗi cá nhân nhằm giảm tái diễn.
+  objectives:
+  - Viết báo cáo impact, nguyên nhân và diễn biến
+  - Đánh giá yếu tố kỹ thuật, quy trình và phối hợp
+  - Gán owner, deadline cho corrective actions
+- id: dien-tap-cai-tien
+  title: Diễn tập & Cải tiến
+  purpose: Duy trì khả năng ứng cứu qua luyện tập, đo lường và theo dõi hành động cải tiến.
+  objectives:
+  - Diễn tập incident giả lập và bàn giao ca trực
+  - Đo thời gian phát hiện, ứng phó và phục hồi
+  - Theo dõi hành động hậu kiểm và cập nhật runbook

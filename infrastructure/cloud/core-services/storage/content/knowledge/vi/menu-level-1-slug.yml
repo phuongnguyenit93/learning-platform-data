@@ -1,0 +1,103 @@
+menu:
+  - title: "Nền tảng cloud storage"
+    slug: cloud-storage-fundamentals
+    index: 0
+  - title: "Kiến trúc lưu trữ phân tán"
+    slug: distributed-storage-architecture
+    index: 1
+  - title: "Tính nhất quán và truy cập đồng thời"
+    slug: consistency-and-concurrency
+    index: 2
+  - title: "Object storage"
+    slug: object-storage
+    index: 3
+  - title: "Block storage"
+    slug: block-storage
+    index: 4
+  - title: "File storage"
+    slug: file-storage
+    index: 5
+  - title: "Lưu trữ cho container và workload tạm"
+    slug: container-and-ephemeral-storage
+    index: 6
+  - title: "Thiết kế dữ liệu và metadata"
+    slug: data-and-metadata-design
+    index: 7
+  - title: "Giao thức truy cập và truyền dữ liệu"
+    slug: data-access-and-transfer-protocols
+    index: 8
+  - title: "Danh tính và phân quyền"
+    slug: identity-and-access-management
+    index: 9
+  - title: "Kết nối mạng cho lưu trữ"
+    slug: storage-networking
+    index: 10
+  - title: "Mã hóa và quản lý khóa"
+    slug: encryption-and-key-management
+    index: 11
+  - title: "Quản trị và bảo vệ dữ liệu"
+    slug: data-governance-and-protection
+    index: 12
+  - title: "Tính toàn vẹn dữ liệu"
+    slug: data-integrity
+    index: 13
+  - title: "Phiên bản và vòng đời dữ liệu"
+    slug: versioning-and-data-lifecycle
+    index: 14
+  - title: "Sao lưu và phục hồi"
+    slug: backup-and-recovery
+    index: 15
+  - title: "Khả dụng và khôi phục thảm họa"
+    slug: availability-and-disaster-recovery
+    index: 16
+  - title: "Hiệu năng và hoạch định năng lực"
+    slug: performance-and-capacity-planning
+    index: 17
+  - title: "Chi phí và tối ưu tài nguyên"
+    slug: cost-and-resource-optimization
+    index: 18
+  - title: "Quan sát và vận hành"
+    slug: observability-and-operations
+    index: 19
+  - title: "Tự động hóa hạ tầng lưu trữ"
+    slug: storage-infrastructure-automation
+    index: 20
+  - title: "Di chuyển và lưu trữ hybrid"
+    slug: migration-and-hybrid-storage
+    index: 21
+  - title: "Amazon S3"
+    slug: amazon-s3
+    index: 22
+  - title: "Block và file storage trên AWS"
+    slug: aws-block-and-file-storage
+    index: 23
+  - title: "Azure Blob Storage"
+    slug: azure-blob-storage
+    index: 24
+  - title: "Block và file storage trên Azure"
+    slug: azure-block-and-file-storage
+    index: 25
+  - title: "Google Cloud Storage"
+    slug: google-cloud-storage
+    index: 26
+  - title: "Block và file storage trên Google Cloud"
+    slug: google-cloud-block-and-file-storage
+    index: 27
+  - title: "Tích hợp storage trong Java"
+    slug: java-storage-integration
+    index: 28
+  - title: "Luồng upload và download trong Java"
+    slug: java-upload-and-download
+    index: 29
+  - title: "Độ tin cậy của tích hợp storage"
+    slug: storage-integration-reliability
+    index: 30
+  - title: "Kiểm thử giải pháp lưu trữ"
+    slug: storage-solution-testing
+    index: 31
+  - title: "Mẫu thiết kế ứng dụng dùng storage"
+    slug: storage-application-patterns
+    index: 32
+  - title: "Thực hành tổng hợp"
+    slug: integrated-storage-labs
+    index: 33

@@ -1,0 +1,79 @@
+menu:
+- title: Nền tảng
+  slug: foundations
+  index: 0
+- title: Mục đích sử dụng
+  slug: usage-purposes
+  index: 1
+- title: Kiểm kê telemetry
+  slug: telemetry-inventory
+  index: 2
+- title: Chính sách dữ liệu
+  slug: data-policies
+  index: 3
+- title: Hợp đồng telemetry
+  slug: telemetry-contracts
+  index: 4
+- title: Kiến trúc kiểm soát
+  slug: control-architecture
+  index: 5
+- title: Thu thập tại nguồn
+  slug: source-collection
+  index: 6
+- title: Tối thiểu hóa logs
+  slug: log-minimization
+  index: 7
+- title: Tối thiểu hóa traces
+  slug: trace-minimization
+  index: 8
+- title: Tối thiểu hóa metrics
+  slug: metric-minimization
+  index: 9
+- title: Ngữ cảnh và định danh
+  slug: context-identifiers
+  index: 10
+- title: HTTP và thông điệp
+  slug: http-messages
+  index: 11
+- title: Lấy mẫu có mục đích
+  slug: purposeful-sampling
+  index: 12
+- title: Tổng hợp và độ chi tiết
+  slug: aggregation-granularity
+  index: 13
+- title: Giới hạn và ngân sách
+  slug: limits-budgets
+  index: 14
+- title: OpenTelemetry SDK
+  slug: opentelemetry-sdk
+  index: 15
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 16
+- title: Collector và OTTL
+  slug: collector-ottl
+  index: 17
+- title: Truyền và lưu trữ
+  slug: transport-storage
+  index: 18
+- title: Chế độ chẩn đoán
+  slug: diagnostic-mode
+  index: 19
+- title: Bảo toàn chất lượng
+  slug: quality-preservation
+  index: 20
+- title: Kiểm thử và bằng chứng
+  slug: testing-evidence
+  index: 21
+- title: Hiệu năng và sự cố
+  slug: performance-incidents
+  index: 22
+- title: Giám sát liên tục
+  slug: continuous-monitoring
+  index: 23
+- title: Quản trị thay đổi
+  slug: change-governance
+  index: 24
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 25

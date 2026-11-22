@@ -1,0 +1,271 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phân loại dữ liệu (data classification) là gì trong hệ thống quan sát
+  - Vì sao dữ liệu kỹ thuật vẫn có thể cần được bảo vệ
+  - 'Các thành phần: tài sản dữ liệu, nhóm dữ liệu, mức nhạy cảm, nhãn và chính sách'
+  - Phân biệt nhận diện dữ liệu, quyết định phân loại và gắn nhãn
+  - Phân biệt phân loại theo bảo vệ dữ liệu với phân nhóm nghiệp vụ
+  - Phân biệt mức nhạy cảm với mức log và mức nghiêm trọng của sự cố
+  - Quan hệ giữa phân loại, kiểm soát truy cập, làm sạch dữ liệu và lưu giữ
+  - Ví dụ phân loại một bản ghi tổng hợp từ trường dữ liệu đến yêu cầu xử lý
+  - Lộ trình từ kiểm kê dữ liệu đến kiểm chứng chính sách toàn tuyến
+- level1: Kiểm kê và nguồn gốc
+  level2:
+  - Lập bản đồ nhật ký (logs), chỉ số (metrics), truy vết (traces) và hồ sơ hiệu năng (profiles)
+  - Kiểm kê nơi tạo, nơi thu nhận, nơi xử lý và nơi lưu telemetry
+  - Nhận diện dữ liệu gốc, dữ liệu tổng hợp và bản sao
+  - Kiểm kê nội dung trong chỉ mục, bộ đệm, hàng đợi và tệp tạm
+  - Theo dõi bản xuất, cảnh báo, dashboard và dữ liệu gửi cho bên thứ ba
+  - Ghi nhận dịch vụ, môi trường, tenant và chủ sở hữu dữ liệu
+  - Lập danh mục lược đồ, đường dẫn trường và mục đích sử dụng
+  - Theo dõi nguồn gốc và các phép biến đổi dữ liệu (data lineage)
+  - Phát hiện nguồn dữ liệu mới hoặc luồng chưa có trong danh mục
+- level1: Nhóm dữ liệu
+  level2:
+  - Thông tin nhận dạng trực tiếp như họ tên, email và số điện thoại
+  - Định danh gián tiếp và các thuộc tính có thể kết hợp để nhận dạng
+  - Mật khẩu, khóa API, access token, cookie và mã phiên
+  - Dữ liệu tài chính, sức khỏe và các nhóm cần yêu cầu xử lý riêng
+  - Thông tin nghiệp vụ như giao dịch, giá, hợp đồng và hành vi khách hàng
+  - Thông tin hạ tầng như địa chỉ mạng, topology và tên tài nguyên nội bộ
+  - Mã nguồn, câu truy vấn, đường dẫn tệp và chi tiết lỗi
+  - Dữ liệu đã che, băm hoặc token hóa và rủi ro còn lại
+  - Dữ liệu tổng hợp phục vụ kiểm thử và dữ liệu được phép công khai
+  - Xây dựng nhóm dữ liệu riêng theo ngữ cảnh tổ chức
+- level1: Mức nhạy cảm
+  level2:
+  - Xây dựng thang phân cấp dựa trên nhu cầu bảo vệ của tổ chức
+  - Ví dụ các mức Công khai, Nội bộ, Nhạy cảm và Hạn chế
+  - Định nghĩa tiêu chí, ví dụ và yêu cầu xử lý cho từng mức
+  - Phân biệt loại thông tin với mức nhạy cảm được gán
+  - Phân biệt mức nhạy cảm, độ tin cậy nhận diện và rủi ro phơi lộ
+  - Quy định trạng thái chưa biết, chưa đánh giá và không phân loại được
+  - Xác định điều kiện nâng mức hoặc hạ mức phân loại
+  - Tránh coi tên mức của một công cụ là hệ phân cấp chung cho mọi hệ thống
+- level1: Ngữ cảnh và tác động
+  level2:
+  - Đánh giá tác động khi dữ liệu bị tiết lộ, sửa sai hoặc mất khả dụng
+  - Phân biệt tính bí mật, tính toàn vẹn và tính sẵn sàng của telemetry
+  - Đánh giá cùng một giá trị trong các mục đích và ngữ cảnh khác nhau
+  - Quan hệ giữa khả năng nhận dạng, khả năng liên kết và mức nhạy cảm
+  - Phân tích rủi ro khi kết hợp nhiều trường hoặc nhiều nguồn quan sát
+  - Xem xét quy mô tập dữ liệu, tần suất và độ chi tiết thời gian
+  - Chuyển yêu cầu tổ chức hoặc hợp đồng đã xác nhận thành tiêu chí phân loại
+  - Đánh giá rủi ro còn lại mà không coi nhãn phân loại là bảo đảm an toàn
+- level1: Độ hạt phân loại
+  level2:
+  - 'Lựa chọn đơn vị phân loại: giá trị, trường, bản ghi, luồng hoặc tập dữ liệu'
+  - Phân biệt phân loại theo lược đồ với kiểm tra từng giá trị thực tế
+  - Phân loại trường lồng nhau, mảng, map và tên khóa động
+  - Xử lý một bản ghi chứa nhiều nhóm dữ liệu và nhiều mức nhạy cảm
+  - Thiết kế quy tắc kế thừa nhãn từ trường lên bản ghi hoặc tập dữ liệu
+  - Xử lý giá trị thiếu, null, chuỗi rỗng và trường chưa biết
+  - Đánh giá trường có nội dung thay đổi theo từng sự kiện
+  - Giữ khả năng truy nguyên quyết định mà không sao chép dữ liệu nhạy cảm
+- level1: Mô hình nhãn
+  level2:
+  - Thiết kế từ vựng kiểm soát cho nhóm dữ liệu và mức nhạy cảm
+  - Tách nhãn về chủ sở hữu, mục đích, tenant và phạm vi được chia sẻ
+  - Định nghĩa mã nhãn ổn định và tên hiển thị theo ngôn ngữ
+  - Biểu diễn quyết định phân loại bằng metadata có cấu trúc
+  - Ghi nhận nguồn quyết định, phiên bản quy tắc và thời điểm đánh giá
+  - Phân biệt nhãn do nguồn tự khai báo với nhãn đã được kiểm chứng
+  - Quy định nhiều nhãn, nhãn xung đột và thứ tự ưu tiên
+  - Ngăn nhãn hoặc tên trường phân loại tự chứa thông tin cần bảo vệ
+  - Quản lý nhãn không hợp lệ, không được hỗ trợ hoặc đã ngừng sử dụng
+- level1: Nhận diện dữ liệu
+  level2:
+  - Nhận diện dựa trên tên trường, đường dẫn và lược đồ
+  - Nhận diện dựa trên mẫu nội dung và biểu thức chính quy
+  - Dùng từ điển, danh sách thuật ngữ và bộ nhận diện riêng cho nghiệp vụ
+  - Kết hợp ngữ cảnh xung quanh với kiểu dữ liệu và nguồn phát
+  - Vai trò và giới hạn của kiểm tra định dạng hoặc checksum
+  - Vai trò và giới hạn của độ ngẫu nhiên khi tìm chuỗi nghi là bí mật
+  - Chuẩn hóa Unicode, kiểu chữ và cách mã hóa trước khi kiểm tra
+  - Xử lý văn bản tự do, nội dung nhiều dòng và chuỗi chứa dữ liệu có cấu trúc
+  - Phân loại thủ công, theo quy tắc và có mô hình hỗ trợ
+  - Lựa chọn phát hiện trực tiếp trên luồng hoặc quét dữ liệu đã lưu
+- level1: Chất lượng nhận diện
+  level2:
+  - Phân biệt nhận diện nhầm (false positive) và bỏ sót (false negative)
+  - Đánh giá precision, recall và độ bao phủ theo từng nhóm dữ liệu
+  - Hiểu điểm tin cậy hoặc mức likelihood mà không xem là xác suất đã được hiệu chuẩn
+  - Chọn ngưỡng nhận diện theo tác động của từng loại sai sót
+  - Phân biệt không phát hiện với đã chứng minh không có dữ liệu nhạy cảm
+  - Giới hạn của lấy mẫu khi đánh giá một tập telemetry lớn
+  - Xây dựng bộ dữ liệu tổng hợp và kết quả chuẩn để đánh giá
+  - Rà soát thủ công các trường hợp mơ hồ mà không mở rộng quyền xem dữ liệu
+  - Xử lý lỗi phân tích, hết thời gian và dữ liệu chưa được quét đầy đủ
+- level1: Nhật ký
+  level2:
+  - Phân loại nội dung body, thuộc tính và metadata tài nguyên của log
+  - Tách mức nhạy cảm khỏi severity và loại sự kiện
+  - Nhận diện dữ liệu trong tham số thông điệp và văn bản ghép chuỗi
+  - Phân loại stack trace, thông tin ngoại lệ và chuỗi nguyên nhân
+  - Kiểm kê dữ liệu trong ngữ cảnh chẩn đoán (MDC) và thuộc tính bổ sung
+  - Xử lý log có cấu trúc, JSON lồng nhau và chuỗi chứa JSON
+  - Phân biệt nhu cầu xử lý của log ứng dụng, access log và audit log
+  - Nhận diện dữ liệu trong stdout, tệp xoay vòng và nhật ký thư viện
+  - Kiểm soát việc phân loại bản sao log ở các appender và đích nhận khác nhau
+- level1: Chỉ số
+  level2:
+  - Phân loại tên phép đo, mô tả và thuộc tính điểm đo
+  - Nhận diện định danh người dùng hoặc giao dịch trong nhãn metrics
+  - Phân biệt rủi ro lộ dữ liệu với số lượng tổ hợp nhãn (cardinality)
+  - Đánh giá khả năng suy ra thông tin nghiệp vụ từ số đo tổng hợp
+  - Đánh giá nhóm có ít thành viên và mức chi tiết của phép phân nhóm
+  - Phân loại exemplars và liên kết sang dữ liệu traces
+  - Phân loại chuỗi sinh từ recording rule và các phép tổng hợp
+  - Giới hạn metadata phân loại để không làm tăng cardinality không kiểm soát
+- level1: Truy vết và hồ sơ
+  level2:
+  - Phân loại tên span, thuộc tính, sự kiện và thông tin ngoại lệ
+  - Xem xét trace ID, span ID và định danh nghiệp vụ theo khả năng liên kết
+  - Đánh giá nội dung HTTP, database và messaging do instrumentation thu thập
+  - Phân loại baggage và ngữ cảnh được truyền qua nhiều dịch vụ
+  - Phân biệt dữ liệu chỉ được xuất thành telemetry với dữ liệu được truyền trên yêu cầu
+  - Đánh giá trace chứa dữ liệu từ nhiều dịch vụ hoặc nhiều phạm vi bảo vệ
+  - Phân loại hồ sơ hiệu năng, nhãn luồng và thông tin tiến trình
+  - Xem xét tên hàm, đường dẫn mã nguồn và metadata ký hiệu gỡ lỗi
+  - Đánh giá snapshot biến và dữ liệu chẩn đoán chi tiết trước khi thu thập
+- level1: Giao thức và nội dung
+  level2:
+  - Nhận diện dữ liệu trong HTTP header, cookie và thông tin xác thực
+  - Phân loại thành phần đường dẫn, query string và URL có chữ ký
+  - Đánh giá request body và response body theo kiểu nội dung
+  - Phân loại SQL, tham số truy vấn và chuỗi kết nối
+  - Nhận diện dữ liệu trong header, metadata và payload của message
+  - Xử lý gRPC metadata và nội dung lỗi tích hợp
+  - Phân loại tên máy, địa chỉ IP, nhãn container và Kubernetes metadata
+  - Đánh giá dữ liệu mã hóa, nén hoặc không thể phân tích bằng bộ nhận diện hiện có
+- level1: Luồng phân loại
+  level2:
+  - Phân công nhận diện và gắn nhãn tại ứng dụng, agent hoặc gateway
+  - Chọn điểm phân loại trước khi dữ liệu vượt ranh giới tin cậy
+  - Phân biệt kiểm tra trước khi xuất với quét phát hiện sau khi đã lưu
+  - Thiết kế thứ tự phân tích, chuẩn hóa, phân loại, bảo vệ và xuất
+  - Tách bằng chứng quyết định khỏi nội dung nhạy cảm đã được xử lý
+  - Xác định quy tắc khi nhiều nguồn nhãn hoặc bộ nhận diện bất đồng
+  - Xử lý dữ liệu chưa phân loại bằng chặn, cách ly hoặc chính sách mặc định
+  - Ngăn đường xuất phụ, log gỡ lỗi và cơ chế thử lại bỏ qua chính sách
+  - Xác định hành vi khi bộ phân loại lỗi hoặc không tải được cấu hình
+- level1: OpenTelemetry
+  level2:
+  - Phân biệt thuộc tính semantic conventions với nhãn quản trị do tổ chức định nghĩa
+  - Thiết kế namespace riêng và lược đồ nhãn phân loại có phiên bản
+  - Chọn phạm vi resource, log, span hoặc datapoint phù hợp với độ hạt quyết định
+  - Dùng transform processor và OTTL cho quy tắc kiểm tra hoặc gắn nhãn có hỗ trợ
+  - Phân biệt xử lý theo quy tắc với dịch vụ nhận diện dữ liệu chuyên dụng
+  - Đối chiếu phiên bản, bản phân phối và khả năng của từng processor
+  - Phối hợp nhãn phân loại với lọc, làm sạch và định tuyến telemetry
+  - Đánh giá error_mode và đường dữ liệu chưa được áp dụng chính sách
+  - Kiểm chứng nhãn và yêu cầu bảo vệ trên mọi exporter
+- level1: Java và Spring Boot
+  level2:
+  - Lập hợp đồng telemetry và phân loại các trường ngay khi thiết kế
+  - Thiết kế đối tượng nhật ký chỉ chứa dữ liệu được phép thu thập
+  - Vai trò và giới hạn của annotation phân loại do ứng dụng tự định nghĩa
+  - Kiểm soát Jackson, toString và các đường tuần tự hóa khác nhau
+  - Truyền metadata phân loại qua SLF4J, MDC và ngữ cảnh bất đồng bộ có kiểm soát
+  - Phân loại dữ liệu trong filter, interceptor, HTTP client và exception handler
+  - Phân biệt telemetry do ứng dụng viết với dữ liệu Java agent tự động tạo
+  - Ngăn metadata phân loại làm thay đổi dữ liệu hoặc logic nghiệp vụ
+  - Kiểm chứng các trường mới, thư viện mới và cấu hình tự động thu thập
+- level1: Bảo vệ theo phân loại
+  level2:
+  - Xây dựng ma trận từ nhóm dữ liệu và mức nhạy cảm đến yêu cầu xử lý
+  - Quyết định dữ liệu không thu thập, cần loại bỏ hoặc được phép giữ
+  - Ánh xạ phân loại sang che dữ liệu, xóa trường và lọc sự kiện
+  - Ánh xạ phân loại sang quyền truy cập và phân tách nơi lưu
+  - Ánh xạ phân loại sang thời hạn lưu giữ và yêu cầu xóa
+  - Quy định đích xuất, phạm vi chia sẻ và vị trí xử lý được phép
+  - Phối hợp mã hóa đường truyền và mã hóa lưu trữ với quyền sử dụng dữ liệu
+  - Thiết kế điểm thực thi chính sách thay vì chỉ hiển thị nhãn
+  - Xử lý xung đột chính sách và dữ liệu vượt khả năng bảo vệ của đích nhận
+  - Kiểm chứng hiệu lực bảo vệ sau khi nhãn đã được gắn
+- level1: Dữ liệu dẫn xuất
+  level2:
+  - Kế thừa phân loại khi sao chép, trích xuất hoặc đổi định dạng
+  - Đánh giá lại sau khi che, xóa trường, băm hoặc token hóa
+  - Phân biệt dữ liệu dùng định danh thay thế với dữ liệu đã ẩn danh
+  - Đánh giá mức nhạy cảm sau tổng hợp, lấy mẫu hoặc giảm độ phân giải
+  - Nhận diện rủi ro tăng lên khi nối nhiều tập dữ liệu
+  - Phân loại báo cáo, dashboard và cảnh báo được tạo từ telemetry
+  - Xác định điều kiện và thẩm quyền phê duyệt hạ mức phân loại
+  - Duy trì nguồn gốc, phiên bản quy tắc và bằng chứng cho quyết định mới
+- level1: Tenant và chia sẻ
+  level2:
+  - Phân biệt định danh tenant với mức nhạy cảm của dữ liệu
+  - Thiết lập nguồn đáng tin cậy cho tenant và nhãn quản trị
+  - Ngăn nguồn phát giả nhãn mức thấp để đi qua đường xuất ít bảo vệ
+  - Xử lý nhãn bị thiếu, bị thay đổi hoặc bị loại bỏ giữa các hệ thống
+  - Kiểm soát truy vấn, xuất dữ liệu và liên kết giữa nhiều tenant
+  - Quản lý chia sẻ với nhà cung cấp quan sát và bên hỗ trợ
+  - Đánh giá việc gửi mẫu hoặc dữ liệu thô tới dịch vụ phân loại bên ngoài
+  - Bảo vệ thông tin phân loại khi bản thân metadata có thể tiết lộ nghiệp vụ
+- level1: Hiệu năng và giới hạn
+  level2:
+  - Đo độ trễ, thông lượng, CPU và bộ nhớ của quá trình nhận diện
+  - Chọn tập bộ nhận diện phù hợp thay vì quét mọi mẫu trên mọi trường
+  - Giới hạn kích thước nội dung, độ sâu lồng nhau và thời gian xử lý
+  - Phân biệt đối sánh xác định với nhận diện cần dịch vụ bên ngoài
+  - Đánh giá chi phí xử lý trực tiếp trên luồng và quét định kỳ
+  - Dùng bộ nhớ đệm có kiểm soát mà không lưu thêm dữ liệu nhạy cảm
+  - Đánh giá phần dữ liệu chưa được quét khi áp dụng lấy mẫu hoặc giới hạn
+  - Thiết kế trạng thái chưa xác định và hành vi an toàn khi quá tải
+- level1: Kiểm thử
+  level2:
+  - Xây dựng bộ dữ liệu tổng hợp có nhãn chuẩn cho từng nhóm thông tin
+  - Kiểm thử cùng kiểu dữ liệu trong các ngữ cảnh có mức nhạy cảm khác nhau
+  - Kiểm thử Unicode, nhiều dòng, trường lồng nhau và các dạng mã hóa
+  - Đánh giá nhận diện nhầm, bỏ sót và độ bao phủ theo từng loại telemetry
+  - Kiểm thử nhãn thiếu, nhãn sai, nhãn giả và xung đột nguồn quyết định
+  - Kiểm thử kế thừa nhãn qua sao chép, tổng hợp và kết hợp dữ liệu
+  - Kiểm thử điểm thực thi chính sách trên tất cả đường xuất
+  - Kiểm thử ranh giới tenant và các trường hợp truy cập không được phép
+  - Kiểm thử lỗi bộ nhận diện, dữ liệu quá lớn và hết thời gian
+  - Kiểm thử hồi quy khi đổi lược đồ, quy tắc hoặc instrumentation
+  - Kiểm chứng kết quả phân loại không bị ghi lại kèm dữ liệu thô không cần thiết
+- level1: Quản lý thay đổi
+  level2:
+  - Quản lý lược đồ nhãn và quy tắc bằng cấu hình có phiên bản
+  - Rà soát dữ liệu chịu tác động trước khi thêm hoặc sửa bộ nhận diện
+  - Kiểm tra khả năng tương thích giữa nguồn phát, collector và backend
+  - Triển khai thử với dữ liệu tổng hợp hoặc phạm vi được kiểm soát
+  - Phối hợp thay đổi nhãn với thay đổi quyền, định tuyến và lưu giữ
+  - Phân loại lại dữ liệu lịch sử khi tiêu chí hoặc mục đích thay đổi
+  - Di chuyển nhãn cũ sang nhãn mới mà không làm mất yêu cầu bảo vệ
+  - Thiết kế quay lui và ghi nhận phiên bản quyết định đã áp dụng
+  - Phát hiện trường mới và độ lệch lược đồ sau phát hành
+- level1: Giám sát và xử lý
+  level2:
+  - Theo dõi tỷ lệ dữ liệu có nhãn hợp lệ, chưa biết và không xử lý được
+  - Theo dõi độ bao phủ theo dịch vụ, tín hiệu, môi trường và tenant
+  - Phát hiện thay đổi bất thường về nhóm dữ liệu hoặc mức nhạy cảm
+  - Giám sát lỗi nhận diện và độ trễ thực thi chính sách
+  - Thiết kế chỉ số, cảnh báo và báo cáo không chứa mẫu dữ liệu nhạy cảm
+  - Điều tra trường hợp nhãn đúng nhưng dữ liệu vẫn đến đích không phù hợp
+  - Khoanh vùng tác động khi phân loại sai hoặc bỏ sót dữ liệu
+  - Đánh giá lại, xử lý bản sao liên quan và bổ sung kiểm thử hồi quy
+- level1: Quản trị phân loại
+  level2:
+  - Phân định chủ sở hữu dữ liệu, người quản lý danh mục và nhóm vận hành
+  - Quy định thẩm quyền phê duyệt tiêu chí, ngoại lệ và hạ mức phân loại
+  - Lưu lý do, bằng chứng và lịch sử của quyết định phân loại
+  - Rà soát định kỳ danh mục, bộ nhận diện và yêu cầu xử lý
+  - Quản lý ngoại lệ có phạm vi, chủ sở hữu và thời hạn đánh giá lại
+  - Hướng dẫn nhóm phát triển phân loại khi tạo trường telemetry mới
+  - Phân biệt nhãn nội bộ với kết luận về đáp ứng yêu cầu pháp lý
+  - Đánh giá hiệu quả bằng chất lượng quyết định và mức thực thi chính sách
+- level1: Thực hành tổng hợp
+  level2:
+  - Kiểm kê luồng telemetry của một hệ thống Spring Boot nhiều dịch vụ
+  - Thiết kế bảng nhóm dữ liệu, mức nhạy cảm và tiêu chí gán nhãn
+  - Phân loại một tập logs, metrics và traces tổng hợp có trường hợp mơ hồ
+  - Xây dựng lược đồ nhãn và hợp đồng telemetry cho các trường đã phân loại
+  - Áp dụng quy tắc gắn nhãn và bảo vệ trên một pipeline thử nghiệm
+  - Đánh giá precision, recall và phần dữ liệu chưa được kiểm tra
+  - Kiểm chứng giả nhãn, lỗi nhận diện và ranh giới tenant
+  - Đánh giá lại dashboard hoặc tập dữ liệu sau khi tổng hợp và kết hợp
+  - Hoàn thiện danh mục, ma trận xử lý và bảng kiểm vận hành

@@ -1,0 +1,7 @@
+# Observability Telemetry Governance: Sanitization Masking
+
+Masking trong telemetry là quá trình che hoặc thay thế các giá trị nhạy cảm trước khi chúng được lưu trữ, chia sẻ hoặc hiển thị trong hệ thống quan sát. Khi ứng dụng phát sinh logs, traces và metrics, token, email, thông tin định danh hay dữ liệu từ URL có thể vô tình đi vào bản ghi. Mục tiêu của module là giảm nguy cơ lộ dữ liệu mà vẫn giữ đủ ngữ cảnh để phát hiện và điều tra sự cố.
+
+Lộ trình dành cho người phát triển ứng dụng và vận hành nền tảng observability. Bạn bắt đầu từ việc nhận diện dữ liệu cần bảo vệ, xây dựng chính sách cho từng trường và phân biệt masking với filtering hoặc redaction. Tiếp theo, bạn thực hành cách che toàn phần, che một phần hay dùng giá trị thay thế phù hợp; áp dụng trên log body, span attributes và metric labels, rồi triển khai quy tắc trong OpenTelemetry Collector bằng các processor thích hợp.
+
+Sau khi hoàn thành, bạn có thể thiết kế và kiểm thử pipeline telemetry giảm rò rỉ dữ liệu, phát hiện trường hợp che thiếu hoặc che nhầm và đánh giá ảnh hưởng của masking lên khả năng tương quan, phân tích và hiệu năng. Nguyên tắc ưu tiên là hạn chế thu thập dữ liệu nhạy cảm ngay từ nguồn; masking là lớp bảo vệ bổ sung khi cần giữ lại telemetry.

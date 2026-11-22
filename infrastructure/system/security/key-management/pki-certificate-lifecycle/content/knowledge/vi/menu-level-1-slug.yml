@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan PKI
+  slug: overview-pki
+  index: 0
+- title: Nền tảng mật mã
+  slug: cryptographic-foundations
+  index: 1
+- title: Cấu trúc X.509
+  slug: x509-structure
+  index: 2
+- title: Phần mở rộng
+  slug: certificate-extensions
+  index: 3
+- title: Tên và danh tính
+  slug: names-and-identities
+  index: 4
+- title: Định dạng và công cụ
+  slug: formats-and-tools
+  index: 5
+- title: Mô hình tin cậy
+  slug: trust-model
+  index: 6
+- title: Kiến trúc CA
+  slug: ca-architecture
+  index: 7
+- title: Chính sách PKI
+  slug: pki-policies
+  index: 8
+- title: Bảo vệ khóa
+  slug: key-protection
+  index: 9
+- title: Kiểm kê chứng thư
+  slug: certificate-inventory
+  index: 10
+- title: Yêu cầu cấp phát
+  slug: certificate-requests
+  index: 11
+- title: Xác minh và cấp phát
+  slug: validation-and-issuance
+  index: 12
+- title: Đăng ký tự động
+  slug: automated-enrollment
+  index: 13
+- title: Triển khai chứng thư
+  slug: certificate-deployment
+  index: 14
+- title: Xác minh chứng thư
+  slug: certificate-validation
+  index: 15
+- title: TLS và mTLS
+  slug: tls-and-mtls
+  index: 16
+- title: Thu hồi chứng thư
+  slug: certificate-revocation
+  index: 17
+- title: Gia hạn và đổi khóa
+  slug: renewal-and-key-rotation
+  index: 18
+- title: Hết hạn và ngừng dùng
+  slug: expiration-and-retirement
+  index: 19
+- title: Sự cố PKI
+  slug: pki-incidents
+  index: 20
+- title: Web PKI công cộng
+  slug: public-web-pki
+  index: 21
+- title: PKI nội bộ
+  slug: internal-pki
+  index: 22
+- title: Workload và thiết bị
+  slug: workloads-and-devices
+  index: 23
+- title: Ứng dụng chữ ký
+  slug: digital-signature-applications
+  index: 24
+- title: Tự động hóa vận hành
+  slug: operations-automation
+  index: 25
+- title: Tấn công PKI
+  slug: pki-attacks
+  index: 26
+- title: Kiểm thử PKI
+  slug: pki-testing
+  index: 27
+- title: Giám sát và kiểm toán
+  slug: monitoring-and-auditing
+  index: 28
+- title: Sẵn sàng và khôi phục
+  slug: availability-and-recovery
+  index: 29
+- title: Di trú mật mã
+  slug: cryptographic-migration
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 31

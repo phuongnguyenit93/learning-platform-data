@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-backstage
+  title: Tổng quan Backstage
+  purpose: Hiểu vai trò của Backstage như một cổng nhà phát triển thống nhất công cụ, tài liệu và metadata phần mềm.
+  objectives:
+  - Nêu vấn đề Backstage giải quyết trong platform engineering
+  - Phân biệt app, backend và plugin
+  - Mô tả luồng truy cập service qua developer portal
+- id: khoi-tao-cau-hinh
+  title: Khởi tạo & cấu hình
+  purpose: Thiết lập Backstage chạy được và nắm các điểm cấu hình nền tảng.
+  objectives:
+  - Khởi tạo và chạy ứng dụng Backstage cục bộ
+  - Nhận diện frontend, backend và app-config.yaml
+  - Cấu hình tích hợp mã nguồn trong môi trường phát triển
+- id: software-catalog
+  title: Software Catalog
+  purpose: Tổ chức thông tin dịch vụ, chủ sở hữu và quan hệ giữa các thành phần để dễ khám phá.
+  objectives:
+  - Khai báo một entity bằng catalog-info.yaml
+  - Phân biệt Component, API, Resource, System và Group
+  - Đăng ký và kiểm tra ownership, relations
+- id: software-templates
+  title: Software Templates
+  purpose: Chuẩn hóa quy trình tạo dự án bằng các mẫu tự phục vụ có thể tái sử dụng.
+  objectives:
+  - Định nghĩa template với tham số đầu vào
+  - Lắp ghép các bước scaffolder và action
+  - Thử tạo component và đăng ký vào Catalog
+- id: techdocs
+  title: TechDocs
+  purpose: Đưa tài liệu kỹ thuật theo quy trình docs-as-code vào cùng nơi khám phá phần mềm.
+  objectives:
+  - Tạo tài liệu Markdown và mkdocs.yml
+  - Gắn TechDocs vào entity trong Catalog
+  - Giải thích build và publish tài liệu
+- id: plugins-tich-hop
+  title: Plugins & tích hợp
+  purpose: Mở rộng portal bằng plugin, kết nối dịch vụ hạ tầng và công cụ phát triển.
+  objectives:
+  - Phân biệt plugin frontend và backend
+  - Tích hợp một plugin vào entity page
+  - Nhận diện điểm mở rộng và cấu hình kết nối ngoài
+- id: xac-thuc-phan-quyen
+  title: Xác thực & phân quyền
+  purpose: Đảm bảo người dùng được nhận diện và các hành động nhạy cảm được kiểm soát.
+  objectives:
+  - Cấu hình sign-in provider phù hợp
+  - Phân biệt authentication và authorization
+  - Áp dụng permission policy cho thao tác trong portal
+- id: trien-khai-van-hanh
+  title: Triển khai & vận hành
+  purpose: Duy trì portal đáng tin cậy, an toàn và dễ sử dụng trong môi trường sản xuất.
+  objectives:
+  - Phân biệt cấu hình dev và production
+  - Chuẩn bị database, secret và quy trình triển khai
+  - Theo dõi log, lỗi và phản hồi của người dùng

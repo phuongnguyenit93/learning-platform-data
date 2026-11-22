@@ -1,0 +1,5 @@
+# Database Engine — Key-Value Redis
+
+Redis là một hệ quản trị dữ liệu theo khóa, hỗ trợ nhiều cấu trúc dữ liệu như String, Hash, List, Set, Sorted Set và Streams. Redis thường được sử dụng cho cache, bộ đếm, bảng xếp hạng và xử lý sự kiện, nhờ khả năng truy cập dữ liệu nhanh và các lệnh phù hợp từng cấu trúc. Tuy nhiên, lựa chọn kiểu dữ liệu, thời hạn tồn tại của khóa và cách lưu dữ liệu bền vững cần dựa trên yêu cầu của từng ứng dụng.
+
+Module này dành cho người đã quen khái niệm cơ sở dữ liệu và muốn thực hành Redis từ căn bản. Bạn sẽ thao tác bằng Redis CLI, tổ chức khóa và TTL, làm việc với các kiểu dữ liệu, phân biệt Streams với Pub/Sub, rồi tìm hiểu cache, quản lý bộ nhớ, transaction, pipeline, persistence và mở rộng bằng replication/cluster. Kết thúc lộ trình, bạn có thể thiết kế một bài toán Redis đơn giản, nhận diện các đánh đổi về bộ nhớ và độ bền, đồng thời có cơ sở để vận hành và bảo vệ Redis phù hợp.

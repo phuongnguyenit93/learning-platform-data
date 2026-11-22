@@ -1,0 +1,3 @@
+menuLevel1: Quản lý nonce và IV
+menuLevel2: Không tái sử dụng nonce với cùng khóa trong AES-GCM
+status: ''

@@ -1,0 +1,67 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Tín hiệu telemetry
+  slug: telemetry-signals
+  index: 1
+- title: Hợp đồng dữ liệu
+  slug: data-contracts
+  index: 2
+- title: Thu thập dữ liệu
+  slug: data-collection
+  index: 3
+- title: Mô hình triển khai
+  slug: deployment-models
+  index: 4
+- title: Truyền tải dữ liệu
+  slug: data-transport
+  index: 5
+- title: Xử lý dữ liệu
+  slug: data-processing
+  index: 6
+- title: Tương quan dữ liệu
+  slug: data-correlation
+  index: 7
+- title: Định tuyến dữ liệu
+  slug: data-routing
+  index: 8
+- title: Lấy mẫu dữ liệu
+  slug: sampling
+  index: 9
+- title: Điều tiết luồng
+  slug: flow-control
+  index: 10
+- title: Bộ đệm và lưu bền
+  slug: buffering-durability
+  index: 11
+- title: Ngữ nghĩa giao nhận
+  slug: delivery-semantics
+  index: 12
+- title: Khả năng chịu lỗi
+  slug: fault-tolerance
+  index: 13
+- title: Bảo mật pipeline
+  slug: pipeline-security
+  index: 14
+- title: Quản trị dữ liệu
+  slug: data-governance
+  index: 15
+- title: Chất lượng dữ liệu
+  slug: data-quality
+  index: 16
+- title: Hiệu năng và chi phí
+  slug: performance-cost
+  index: 17
+- title: Giám sát pipeline
+  slug: pipeline-monitoring
+  index: 18
+- title: Cấu hình và thay đổi
+  slug: configuration-changes
+  index: 19
+- title: Kiểm thử và sự cố
+  slug: testing-troubleshooting
+  index: 20
+- title: Thiết kế thực hành
+  slug: practical-design
+  index: 21

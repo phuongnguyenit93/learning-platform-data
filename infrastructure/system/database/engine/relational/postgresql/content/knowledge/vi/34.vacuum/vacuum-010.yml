@@ -1,0 +1,3 @@
+menuLevel1: VACUUM
+menuLevel2: REINDEX, REINDEX CONCURRENTLY và xử lý phình chỉ mục
+status: WRITTEN

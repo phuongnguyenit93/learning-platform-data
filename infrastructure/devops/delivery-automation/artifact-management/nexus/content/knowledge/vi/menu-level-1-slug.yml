@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Sản phẩm và phiên bản
+  slug: products-versions
+  index: 1
+- title: Kiến trúc và dữ liệu
+  slug: architecture-data
+  index: 2
+- title: Cài đặt
+  slug: installation
+  index: 3
+- title: Quản trị ban đầu
+  slug: initial-administration
+  index: 4
+- title: Mô hình repository
+  slug: repository-model
+  index: 5
+- title: Lưu trữ
+  slug: storage
+  index: 6
+- title: Kho Maven
+  slug: maven-repositories
+  index: 7
+- title: Maven client
+  slug: maven-clients
+  index: 8
+- title: Gradle
+  slug: gradle
+  index: 9
+- title: Quy trình xuất bản
+  slug: publishing-workflow
+  index: 10
+- title: Proxy và cache
+  slug: proxy-caching
+  index: 11
+- title: Group và định tuyến
+  slug: grouping-routing
+  index: 12
+- title: npm
+  slug: npm
+  index: 13
+- title: Container
+  slug: container-registries
+  index: 14
+- title: Python và NuGet
+  slug: python-nuget
+  index: 15
+- title: Định dạng mở rộng
+  slug: extensible-formats
+  index: 16
+- title: Kho Raw
+  slug: raw-repositories
+  index: 17
+- title: Xác thực
+  slug: authentication
+  index: 18
+- title: Phân quyền
+  slug: authorization
+  index: 19
+- title: Chuỗi cung ứng
+  slug: supply-chain-security
+  index: 20
+- title: Mạng và TLS
+  slug: networking-tls
+  index: 21
+- title: API và tự động hóa
+  slug: api-automation
+  index: 22
+- title: CI/CD
+  slug: ci-cd
+  index: 23
+- title: Quản lý phát hành
+  slug: release-management
+  index: 24
+- title: Chính sách lưu giữ
+  slug: retention-policies
+  index: 25
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 26
+- title: Hiệu năng
+  slug: performance
+  index: 27
+- title: Sao lưu và phục hồi
+  slug: backup-recovery
+  index: 28
+- title: Nâng cấp và di chuyển
+  slug: upgrades-migration
+  index: 29
+- title: Tính sẵn sàng
+  slug: availability
+  index: 30
+- title: Xử lý lỗi
+  slug: troubleshooting
+  index: 31
+- title: Kiểm chứng
+  slug: verification
+  index: 32
+- title: Thực hành
+  slug: hands-on-labs
+  index: 33

@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-du-lieu
+  title: Phạm vi & dữ liệu
+  purpose: Xác định ranh giới hệ thống, tài sản cần bảo vệ và yêu cầu bảo mật gắn với mục tiêu nghiệp vụ.
+  objectives:
+  - Phân loại dữ liệu, tài sản và đối tượng sử dụng
+  - Vẽ phạm vi hệ thống cùng trust boundaries
+  - Xác định mục tiêu bí mật, toàn vẹn, sẵn sàng
+- id: threat-modeling-abuse-cases
+  title: Threat Modeling & Abuse Cases
+  purpose: Rút ra nhu cầu bảo vệ từ cách hệ thống có thể bị lạm dụng và mức rủi ro thực tế.
+  objectives:
+  - Mô tả data flow và bề mặt tấn công
+  - Viết ít nhất hai abuse cases cho nghiệp vụ
+  - Ưu tiên rủi ro theo khả năng và tác động
+- id: chuan-hoa-yeu-cau
+  title: Chuẩn hóa yêu cầu
+  purpose: Chuyển rủi ro thành yêu cầu có thể kiểm thử, đồng thời chọn chuẩn tham chiếu phù hợp.
+  objectives:
+  - Tra cứu nhóm yêu cầu trong OWASP ASVS 5.0
+  - Viết security user story kèm acceptance criteria
+  - Gán mức ưu tiên, chủ sở hữu và nguồn yêu cầu
+- id: identity-access-control
+  title: Identity & Access Control
+  purpose: Mô tả yêu cầu về danh tính, phiên và phân quyền trước khi chọn framework triển khai.
+  objectives:
+  - Định nghĩa authentication, session và yêu cầu MFA
+  - Lập ma trận role–resource–action theo least privilege
+  - Viết ca kiểm thử từ chối truy cập đối tượng khác
+- id: du-lieu-ma-hoa
+  title: Dữ liệu & Mã hóa
+  purpose: Bảo vệ thông tin nhạy cảm trong lưu trữ, truyền tải và vòng đời sử dụng.
+  objectives:
+  - Đặt yêu cầu TLS cho truyền dữ liệu nhạy cảm
+  - Quy định mã hóa lưu trữ và quản lý/rotation key
+  - Xác định retention, masking và xóa dữ liệu
+- id: api-tich-hop
+  title: API & Tích hợp
+  purpose: Thiết kế yêu cầu an toàn tại ranh giới HTTP/API và các dịch vụ bên ngoài.
+  objectives:
+  - Quy định validation, output encoding và giới hạn payload
+  - Yêu cầu kiểm soát truy cập từng object/API action
+  - Đánh giá quyền và độ tin cậy của tích hợp bên thứ ba
+- id: logging-kha-dung
+  title: Logging & Khả dụng
+  purpose: Đặt ra hành vi quan sát và ứng phó tối thiểu khi có sự cố, lỗi hoặc lạm dụng.
+  objectives:
+  - Xác định sự kiện bảo mật cần log và cảnh báo
+  - Cấm ghi secret/PII nhạy cảm vào log
+  - Đặt yêu cầu rate limit, backup và khôi phục
+- id: acceptance-traceability
+  title: Acceptance & Traceability
+  purpose: Biến bộ yêu cầu thành tiêu chí kiểm chứng và duy trì khi thiết kế hoặc rủi ro thay đổi.
+  objectives:
+  - Liên kết risk → requirement → control → test
+  - Kiểm thử pass/fail và lưu bằng chứng theo phiên bản
+  - Review yêu cầu khi đổi API, dữ liệu hoặc kiến trúc

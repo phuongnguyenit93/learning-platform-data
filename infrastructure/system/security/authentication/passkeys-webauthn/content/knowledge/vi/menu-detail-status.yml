@@ -1,0 +1,2758 @@
+menu:
+- slug: passkey-overview
+  title: Tổng quan passkey
+  childs:
+  - slug: passkey-overview-001
+    title: Passkey là gì và vấn đề của xác thực bằng mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-002
+    title: Quan hệ giữa passkey, WebAuthn, FIDO2 và CTAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-003
+    title: Thông tin xác thực khóa công khai (public-key credential) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-004
+    title: Phân biệt đăng nhập không mật khẩu và xác thực nhiều yếu tố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-005
+    title: Khả năng chống lừa đảo và giới hạn của phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-006
+    title: So sánh passkey với mật khẩu, OTP, liên kết đăng nhập và khóa bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-007
+    title: Các bên tham gia trong một lần tạo hoặc sử dụng passkey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-008
+    title: Lợi ích, đánh đổi và tình huống ứng dụng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: passkey-overview-009
+    title: Lộ trình học và kiến thức nền cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptographic-foundations
+  title: Nền tảng mật mã
+  childs:
+  - slug: cryptographic-foundations-001
+    title: Cặp khóa công khai và khóa riêng trong xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-002
+    title: Ký thử thách thay cho gửi bí mật dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-003
+    title: Hàm băm, chữ ký số và xác minh thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-004
+    title: Nguồn ngẫu nhiên và tính không thể đoán của challenge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-005
+    title: Thuật toán chữ ký và đàm phán khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-006
+    title: Phân biệt xác thực bằng chữ ký với mã hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-007
+    title: Khóa riêng được lưu giữ và bảo vệ ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-008
+    title: Khóa công khai phía máy chủ và hậu quả khi dữ liệu bị sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-009
+    title: Vì sao TLS vẫn cần thiết khi đã có xác thực khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fido-ecosystem
+  title: Hệ sinh thái FIDO
+  childs:
+  - slug: fido-ecosystem-001
+    title: WebAuthn quy định giao tiếp giữa ứng dụng web và nền tảng khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-002
+    title: CTAP quy định giao tiếp với bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-003
+    title: FIDO2 kết hợp vai trò của WebAuthn và CTAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-004
+    title: Quan hệ với FIDO U2F và thông tin xác thực cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-005
+    title: Bộ xác thực tích hợp, khóa bảo mật rời và thiết bị di động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-006
+    title: Nhà cung cấp passkey và kho thông tin xác thực của nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-007
+    title: Vai trò của tiêu chuẩn, chứng nhận và kiểm thử tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-008
+    title: Phân biệt yêu cầu của tiêu chuẩn với chính sách riêng của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fido-ecosystem-009
+    title: Theo dõi phiên bản tiêu chuẩn mà không giả định mọi thiết bị đều hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-roles-and-flows
+  title: Vai trò và luồng tin cậy
+  childs:
+  - slug: trust-roles-and-flows-001
+    title: Bên sử dụng xác thực (Relying Party) và tài khoản người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-002
+    title: Trình duyệt, ứng dụng khách, hệ điều hành và bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-003
+    title: Nhà cung cấp danh tính và ứng dụng sử dụng đăng nhập liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-004
+    title: Luồng dữ liệu giữa máy chủ, trình duyệt và bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-005
+    title: Ranh giới tin cậy của mã giao diện và máy chủ xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-006
+    title: Bên nào tạo challenge, giữ khóa và kiểm tra chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-007
+    title: Phân biệt danh tính tài khoản với việc mở khóa thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-008
+    title: Mô hình đe dọa khi thiết bị, tài khoản hoặc ứng dụng bị chiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-roles-and-flows-009
+    title: Giới hạn bảo đảm khi một thành phần nằm ngoài phạm vi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: credential-types
+  title: Loại thông tin xác thực
+  childs:
+  - slug: credential-types-001
+    title: Thông tin xác thực có thể khám phá (discoverable credential)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-002
+    title: Thông tin xác thực không thể khám phá và danh sách allowCredentials
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-003
+    title: Quan hệ giữa resident key và discoverable credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-004
+    title: Passkey gắn với thiết bị và passkey có thể đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-005
+    title: Bộ xác thực nền tảng và bộ xác thực dùng qua nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-006
+    title: Đăng nhập có tên tài khoản và đăng nhập không cần nhập tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-007
+    title: Một tài khoản có nhiều credential và một thiết bị chứa nhiều tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-008
+    title: Credential ID, user handle và khóa công khai có vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-types-009
+    title: Chọn loại credential theo nhu cầu và mức độ bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rp-id-and-origin
+  title: RP ID và origin
+  childs:
+  - slug: rp-id-and-origin-001
+    title: RP ID xác định phạm vi sử dụng thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-002
+    title: Origin bao gồm giao thức, tên máy chủ và cổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-003
+    title: Quan hệ và điều kiện hợp lệ giữa RP ID với origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-004
+    title: RP ID hash trong dữ liệu được bộ xác thực ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-005
+    title: Giới hạn tin cậy đối với tên miền con và tên miền dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-006
+    title: Môi trường phát triển, thử nghiệm và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-007
+    title: Đổi tên miền và ảnh hưởng tới passkey đã đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-008
+    title: Nhúng trong iframe, chính sách quyền và yêu cầu xuyên origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-009
+    title: Ứng dụng gốc và cơ chế liên kết với tên miền khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rp-id-and-origin-010
+    title: Ngăn cấu hình origin quá rộng hoặc nhận origin từ đầu vào không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authenticators
+  title: Bộ xác thực
+  childs:
+  - slug: authenticators-001
+    title: Bộ xác thực nền tảng, khóa bảo mật USB và thiết bị NFC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-002
+    title: Giao tiếp qua USB, NFC, BLE và phương thức hybrid
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-003
+    title: Lưu khóa trong phần cứng bảo vệ so với kho phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-004
+    title: Mã PIN của bộ xác thực và mã mở khóa thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-005
+    title: Sinh trắc học dùng để xác minh cục bộ người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-006
+    title: Giới hạn dung lượng lưu credential và khả năng quản lý thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-007
+    title: Mất thiết bị, đặt lại bộ xác thực và hệ quả với credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-008
+    title: Nhận diện khả năng thiết bị mà không suy đoán từ hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authenticators-009
+    title: Lựa chọn bộ xác thực theo tính di động, khả dụng và mức độ bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-presence-and-verification
+  title: Hiện diện và xác minh
+  childs:
+  - slug: user-presence-and-verification-001
+    title: Hiện diện của người dùng (User Presence) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-002
+    title: Xác minh người dùng (User Verification) là gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-003
+    title: Khác biệt giữa chạm khóa, nhập PIN và xác minh sinh trắc học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-004
+    title: Chính sách required, preferred và discouraged cho userVerification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-005
+    title: Cờ UP và UV trong authenticator data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-006
+    title: Kiểm tra UV phía máy chủ theo chính sách thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-007
+    title: Đăng nhập không mật khẩu và sử dụng khóa như yếu tố bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-008
+    title: Giới hạn khi suy ra mức bảo đảm hoặc số yếu tố từ một lần xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-presence-and-verification-009
+    title: Khả năng tiếp cận khi người dùng không sử dụng được sinh trắc học
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: challenges-and-transactions
+  title: Challenge và giao dịch
+  childs:
+  - slug: challenges-and-transactions-001
+    title: Sinh challenge bằng nguồn ngẫu nhiên mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-002
+    title: Liên kết challenge với thao tác đăng ký hoặc đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-003
+    title: Thời hạn challenge và chính sách sử dụng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-004
+    title: Ràng buộc giao dịch với phiên hoặc ngữ cảnh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-005
+    title: Lưu challenge phía máy chủ và lựa chọn mô hình không trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-006
+    title: Giải quyết nhiều tab, nhiều thiết bị và nhiều yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-007
+    title: Xử lý hết hạn, hủy thao tác và yêu cầu được gửi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-008
+    title: Không cho phản hồi của luồng này được dùng trong luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: challenges-and-transactions-009
+    title: Ngăn phát lại và tránh ghi challenge như bằng chứng xác thực độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registration-flow
+  title: Luồng đăng ký
+  childs:
+  - slug: registration-flow-001
+    title: Điều kiện xác thực tài khoản trước khi thêm credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-002
+    title: Tạo PublicKeyCredentialCreationOptions ở máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-003
+    title: Thông tin rp, user, challenge và pubKeyCredParams
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-004
+    title: Lựa chọn authenticatorSelection và chính sách residentKey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-005
+    title: Loại trừ credential đã tồn tại bằng excludeCredentials
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-006
+    title: Chọn attestation và các extension thực sự cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-007
+    title: Gọi navigator.credentials.create() và xử lý tương tác người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-008
+    title: Nhận credential mới và gửi dữ liệu tới máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-flow-009
+    title: Hoàn tất đăng ký có kiểm tra và thông báo phương thức đăng nhập mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: registration-verification
+  title: Kiểm tra đăng ký
+  childs:
+  - slug: registration-verification-001
+    title: Phân tích clientDataJSON và kiểm tra loại thao tác webauthn.create
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-002
+    title: Đối chiếu challenge với giao dịch đăng ký còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-003
+    title: Kiểm tra origin và thông tin ngữ cảnh xuyên origin khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-004
+    title: Phân tích attestationObject và authenticator data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-005
+    title: Kiểm tra RP ID hash, cờ UP và yêu cầu UV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-006
+    title: Trích xuất credential ID và khóa công khai theo định dạng COSE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-007
+    title: Kiểm tra thuật toán đã được cho phép và khóa có cấu trúc hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-008
+    title: Kiểm tra attestation theo chính sách thay vì mặc định tin mọi chứng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-009
+    title: Ngăn gắn nhầm credential vào tài khoản hoặc ghi trùng credential ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: registration-verification-010
+    title: Lưu kết quả đăng ký nguyên tử và vô hiệu hóa challenge đã dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-model
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-model-001
+    title: Quan hệ giữa tài khoản và danh sách credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-002
+    title: Lưu credential ID dưới dạng nhị phân hoặc mã hóa nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-003
+    title: Lưu khóa công khai, thuật toán và thông tin cần cho xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-004
+    title: User handle ổn định, khó suy đoán và tránh chứa dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-005
+    title: Bộ đếm chữ ký và ý nghĩa của giá trị ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-006
+    title: Thông tin transport, tên hiển thị và thời điểm sử dụng gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-007
+    title: Backup Eligibility và Backup State trong dữ liệu credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-008
+    title: Chính sách lưu AAGUID, attestation và dữ liệu thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-009
+    title: Trạng thái hoạt động, vô hiệu hóa và xóa credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-010
+    title: Bảo vệ tính toàn vẹn dữ liệu và ràng buộc duy nhất trong lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authentication-flow
+  title: Luồng đăng nhập
+  childs:
+  - slug: authentication-flow-001
+    title: Tạo PublicKeyCredentialRequestOptions ở máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-002
+    title: Lựa chọn rpId, challenge, timeout và userVerification
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-003
+    title: Đăng nhập theo tài khoản với allowCredentials
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-004
+    title: Đăng nhập không nhập tên bằng discoverable credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-005
+    title: Gọi navigator.credentials.get() và chọn thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-006
+    title: Nhận authenticator assertion từ trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-007
+    title: Gửi clientDataJSON, authenticatorData, chữ ký và userHandle tới máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-008
+    title: Xác định tài khoản từ credential hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-009
+    title: Thiết lập phiên đăng nhập sau khi hoàn thành kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authentication-flow-010
+    title: Xử lý người dùng hủy, không có credential và cần thử phương thức khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assertion-verification
+  title: Kiểm tra assertion
+  childs:
+  - slug: assertion-verification-001
+    title: Kiểm tra credential ID thuộc phạm vi và tài khoản phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-002
+    title: Kiểm tra loại thao tác webauthn.get trong clientDataJSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-003
+    title: Đối chiếu challenge, thời hạn và trạng thái giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-004
+    title: Kiểm tra origin, RP ID hash và ngữ cảnh ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-005
+    title: Kiểm tra cờ hiện diện và xác minh người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-006
+    title: Xác minh chữ ký trên authenticatorData kết hợp hàm băm clientDataJSON
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-007
+    title: Kiểm tra userHandle khi được trả về và xử lý thiếu theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-008
+    title: Đánh giá signCount cùng giới hạn của bộ xác thực có đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-009
+    title: Kiểm tra cờ sao lưu theo chính sách được thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assertion-verification-010
+    title: Cập nhật trạng thái an toàn khi có yêu cầu xác thực đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: webauthn-formats
+  title: Định dạng WebAuthn
+  childs:
+  - slug: webauthn-formats-001
+    title: ArrayBuffer, dữ liệu nhị phân và chuyển đổi Base64url
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-002
+    title: Phân biệt id, rawId và credential ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-003
+    title: Cấu trúc clientDataJSON và dữ liệu cần giữ nguyên để xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-004
+    title: Cấu trúc authenticator data và các trường có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-005
+    title: Cờ UP, UV, BE, BS, AT và ED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-006
+    title: CBOR trong attestationObject và dữ liệu khóa COSE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-007
+    title: Chuyển đổi khóa công khai sang định dạng thư viện xác minh hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-008
+    title: Phân biệt dữ liệu được ký, dữ liệu do ứng dụng gắn thêm và gợi ý transport
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: webauthn-formats-009
+    title: Giới hạn kích thước, kiểu dữ liệu và xử lý dữ liệu bị cắt hoặc không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attestation
+  title: Attestation
+  childs:
+  - slug: attestation-001
+    title: Chứng thực bộ xác thực nhằm trả lời câu hỏi gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-002
+    title: Phân biệt attestation với chữ ký đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-003
+    title: Các lựa chọn chứng thực và quan hệ với trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-004
+    title: Mô hình chứng thực không có, tự chứng thực và chứng thực theo chuỗi tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-005
+    title: AAGUID, đặc tính bộ xác thực và giới hạn suy luận thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-006
+    title: Kiểm tra định dạng, chữ ký và chuỗi chứng thư khi chính sách yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-007
+    title: Metadata bộ xác thực và cập nhật trạng thái tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-008
+    title: Chứng thực doanh nghiệp và phạm vi triển khai có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-009
+    title: Đánh đổi giữa kiểm soát thiết bị, khả năng tương thích và quyền riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attestation-010
+    title: Thiết kế xử lý khi attestation thiếu hoặc không được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ctap-and-fido2
+  title: CTAP và FIDO2
+  childs:
+  - slug: ctap-and-fido2-001
+    title: Vai trò của CTAP trong tạo credential và lấy assertion
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-002
+    title: Phát hiện khả năng bộ xác thực và lựa chọn giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-003
+    title: Tương tác với bộ xác thực qua USB và NFC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-004
+    title: PIN, xác minh người dùng và quyền thao tác với bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-005
+    title: Quản lý discoverable credential trên thiết bị khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-006
+    title: Khả năng tương thích với bộ xác thực U2F
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-007
+    title: Thời gian chờ, xác nhận vật lý và lỗi giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-008
+    title: Ranh giới trách nhiệm giữa ứng dụng WebAuthn và tầng CTAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ctap-and-fido2-009
+    title: Vì sao ứng dụng web thường không tự triển khai giao thức CTAP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: synced-passkeys
+  title: Passkey đồng bộ
+  childs:
+  - slug: synced-passkeys-001
+    title: Passkey gắn thiết bị so với credential có khả năng sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-002
+    title: Vai trò của tài khoản hệ sinh thái và nhà cung cấp passkey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-003
+    title: Đồng bộ khóa giữa các thiết bị được người dùng cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-004
+    title: Bảo vệ dữ liệu đồng bộ và mô hình tin cậy của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-005
+    title: Ý nghĩa và cách dùng cờ BE, BS phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-006
+    title: Vì sao bộ đếm chữ ký không luôn tăng theo một chuỗi toàn cục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-007
+    title: Thiết bị mới, khôi phục kho passkey và thay đổi ngữ cảnh rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-008
+    title: Giới hạn kiểm soát của RP đối với quá trình đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-009
+    title: Chính sách chấp nhận passkey đồng bộ theo mức độ nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: synced-passkeys-010
+    title: Phân biệt đồng bộ passkey với đăng ký nhiều credential độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cross-device-authentication
+  title: Đăng nhập liên thiết bị
+  childs:
+  - slug: cross-device-authentication-001
+    title: Đăng nhập trên một thiết bị bằng passkey nằm trên thiết bị khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-002
+    title: Luồng hybrid và vai trò của mã QR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-003
+    title: Kiểm tra sự gần nhau của thiết bị khi cơ chế yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-004
+    title: Phân biệt kênh hỗ trợ kết nối với dữ liệu xác thực được ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-005
+    title: Xác nhận trên điện thoại và trả kết quả về thiết bị đang đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-006
+    title: Khác biệt giữa dùng passkey liên thiết bị và sao chép passkey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-007
+    title: Giới hạn mạng, Bluetooth và chính sách thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-008
+    title: Rủi ro lừa người dùng quét mã và quy trình xác nhận an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cross-device-authentication-009
+    title: Thiết kế hướng dẫn, xử lý lỗi và lựa chọn phương thức thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: login-user-experience
+  title: Trải nghiệm đăng nhập
+  childs:
+  - slug: login-user-experience-001
+    title: Đăng nhập có nút bấm rõ ràng và đăng nhập bằng gợi ý tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-002
+    title: Conditional mediation và lựa chọn credential theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-003
+    title: Tự động điền với autocomplete phù hợp cho WebAuthn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-004
+    title: Chọn tài khoản khi một thiết bị có nhiều credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-005
+    title: Phát hiện khả năng nền tảng thay vì đoán theo tên trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-006
+    title: Đặt tên credential và hướng dẫn đăng ký dễ hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-007
+    title: Phân biệt người dùng hủy với lỗi kỹ thuật hoặc không đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-008
+    title: Hỗ trợ khóa bảo mật ngoài khi bộ xác thực tích hợp không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-009
+    title: Khả năng tiếp cận, ngôn ngữ và hỗ trợ thiết bị dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-user-experience-010
+    title: Tránh thông báo lỗi làm lộ tài khoản có tồn tại hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: credential-lifecycle
+  title: Vòng đời credential
+  childs:
+  - slug: credential-lifecycle-001
+    title: Thêm passkey mới vào tài khoản đang được xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-002
+    title: Yêu cầu xác thực tăng cường trước khi thêm phương thức đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-003
+    title: Liệt kê, đặt tên và xem lịch sử sử dụng credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-004
+    title: Đăng ký nhiều bộ xác thực để có phương án dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-005
+    title: Vô hiệu hóa credential phía RP khi thiết bị bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-006
+    title: Phân biệt xóa tại RP với xóa trong kho passkey của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-007
+    title: Thay thiết bị, đặt lại bộ xác thực và thay nhà cung cấp passkey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-008
+    title: Đối soát trạng thái credential khi nền tảng hỗ trợ cơ chế cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-009
+    title: Đóng tài khoản và hủy liên kết credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: credential-lifecycle-010
+    title: Thông báo thay đổi phương thức xác thực và kiểm tra hành vi bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: account-recovery
+  title: Khôi phục tài khoản
+  childs:
+  - slug: account-recovery-001
+    title: Vì sao khôi phục là một phần của thiết kế xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-002
+    title: Dự phòng bằng nhiều passkey hoặc nhiều loại bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-003
+    title: Mã khôi phục và cách cấp, lưu giữ, sử dụng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-004
+    title: Khôi phục thông qua tài khoản hệ sinh thái so với khôi phục tại RP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-005
+    title: Quy trình hỗ trợ thủ công và kiểm tra danh tính người yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-006
+    title: Giới hạn email, SMS và mật khẩu dự phòng theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-007
+    title: Tránh để phương thức yếu hơn vô hiệu hóa lợi ích chống lừa đảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-008
+    title: Thời gian chờ, thông báo và cơ chế phản đối thay đổi đáng ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-009
+    title: Thu hồi phiên, credential cũ và khôi phục quyền truy cập có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: account-recovery-010
+    title: Diễn tập mất toàn bộ thiết bị và kiểm tra trải nghiệm khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-and-authorization
+  title: Phiên và phân quyền
+  childs:
+  - slug: sessions-and-authorization-001
+    title: Assertion chứng minh một lần xác thực, không phải phiên đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-002
+    title: Tạo và bảo vệ cookie phiên hoặc token sau xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-003
+    title: Giữ ngữ cảnh thời điểm xác thực và kết quả UV
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-004
+    title: Xác thực lại cho đổi phương thức đăng nhập và giao dịch nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-005
+    title: Đăng xuất ứng dụng không đồng nghĩa xóa passkey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-006
+    title: Thu hồi credential không tự chấm dứt mọi phiên đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-007
+    title: Kiểm tra quyền truy cập và quyền sở hữu dữ liệu sau đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-008
+    title: Chuyển kết quả xác thực qua nhà cung cấp danh tính trong SSO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-and-authorization-009
+    title: Ràng buộc thao tác nhạy cảm với mục đích giao dịch khi thiết kế yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threats-and-defenses
+  title: Mối đe dọa và phòng vệ
+  childs:
+  - slug: threats-and-defenses-001
+    title: Lừa đảo tên miền và cơ chế ràng buộc RP ID, origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-002
+    title: Phát lại assertion và challenge bị dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-003
+    title: Gắn credential của kẻ tấn công vào tài khoản nạn nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-004
+    title: Đánh cắp phiên sau khi xác thực thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-005
+    title: XSS, mã độc trên thiết bị và giao diện ứng dụng bị can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-006
+    title: Chiếm tài khoản đồng bộ passkey hoặc quy trình khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-007
+    title: Lạm dụng tên miền con và cấu hình origin được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-008
+    title: Can thiệp dữ liệu khóa công khai và ánh xạ tài khoản trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-009
+    title: Tấn công từ chối dịch vụ và khai thác bộ phân tích dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threats-and-defenses-010
+    title: Biện pháp phòng vệ theo từng ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: privacy
+  title: Quyền riêng tư
+  childs:
+  - slug: privacy-001
+    title: Sinh trắc học cục bộ và dữ liệu mà RP thực sự nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-002
+    title: Giảm dữ liệu cá nhân trong user handle và tên tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-003
+    title: Giới hạn khả năng theo dõi bằng credential giữa các RP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-004
+    title: Attestation, nhận diện thiết bị và nguy cơ suy diễn danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-005
+    title: Không lưu dữ liệu sinh trắc học hoặc khóa riêng tại máy chủ RP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-006
+    title: Quản lý nhật ký chứa credential ID và thông tin thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-007
+    title: Thời hạn lưu, quyền truy cập và xóa dữ liệu xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-008
+    title: Thông báo cho người dùng về passkey, đồng bộ và phương thức dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: privacy-009
+    title: Thiết kế phân tích sử dụng mà không thu thập dữ liệu quá mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: enterprise-context
+  title: Bối cảnh doanh nghiệp
+  childs:
+  - slug: enterprise-context-001
+    title: Lựa chọn mức bảo đảm theo vai trò và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-002
+    title: Khóa bảo mật do tổ chức cấp và thiết bị người dùng tự quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-003
+    title: Chính sách credential gắn thiết bị và credential có đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-004
+    title: Chứng thực doanh nghiệp và kiểm soát loại bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-005
+    title: Liên kết xác thực với quản lý thiết bị và tín hiệu rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-006
+    title: Tiếp nhận nhân sự, thay đổi vai trò và thu hồi khi nghỉ việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-007
+    title: Quản trị viên đặc quyền và cơ chế dự phòng khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-008
+    title: Thiết bị dùng chung, nhân viên tuyến đầu và môi trường hạn chế kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: enterprise-context-009
+    title: Phối hợp passkey với SSO, MFA và chính sách truy cập có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-architecture
+  title: Kiến trúc ứng dụng
+  childs:
+  - slug: application-architecture-001
+    title: Tách điểm khởi tạo và hoàn tất cho đăng ký, đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-002
+    title: Thiết kế kho challenge và kho credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-003
+    title: Lựa chọn thư viện WebAuthn theo khả năng xác minh và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-004
+    title: Giữ phần xác minh bảo mật ở máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-005
+    title: Định nghĩa hợp đồng dữ liệu nhị phân giữa giao diện và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-006
+    title: Xử lý CSRF và trạng thái giao dịch khi quản lý credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-007
+    title: Triển khai qua reverse proxy, cân bằng tải và nhiều miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-008
+    title: Đảm bảo nhất quán khi cập nhật credential và bộ đếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-009
+    title: Đa tenant, nhiều RP ID và cách ly danh sách origin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-architecture-010
+    title: Thiết kế API lỗi, giới hạn tốc độ và khả năng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-and-extensibility
+  title: Tích hợp và mở rộng
+  childs:
+  - slug: integration-and-extensibility-001
+    title: WebAuthn trên web so với API passkey của ứng dụng gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-002
+    title: Liên kết ứng dụng di động với tên miền được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-003
+    title: Đồng nhất tài khoản giữa web, ứng dụng và nhà cung cấp danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-004
+    title: Kiểm tra hỗ trợ trình duyệt, hệ điều hành và bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-005
+    title: Extension của WebAuthn và nguyên tắc chỉ bật khi có nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-006
+    title: Kết quả extension cần được kiểm tra theo đúng ngữ nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-007
+    title: PRF và bài toán dẫn xuất vật liệu khóa khi nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-008
+    title: Giới hạn tương thích của extension giữa các bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-and-extensibility-009
+    title: Thiết kế giảm chức năng có kiểm soát khi tính năng tùy chọn vắng mặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-migration
+  title: Triển khai và chuyển đổi
+  childs:
+  - slug: deployment-and-migration-001
+    title: Khảo sát phương thức đăng nhập và khôi phục hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-002
+    title: Xác định nhóm người dùng và kịch bản thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-003
+    title: Bổ sung passkey song song với phương thức hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-004
+    title: Chọn thời điểm gợi ý tạo passkey sau lần đăng nhập đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-005
+    title: Chuyển từ yếu tố bổ sung sang đăng nhập không mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-006
+    title: Xây dựng chính sách dự phòng và điều kiện loại bỏ mật khẩu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-007
+    title: Đào tạo đội hỗ trợ và nội dung hướng dẫn người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-008
+    title: Theo dõi tỷ lệ đăng ký, đăng nhập thành công và bỏ dở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-009
+    title: Kế hoạch xử lý không tương thích và quay lui từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-migration-010
+    title: Đánh giá rủi ro trước khi mở rộng tới tài khoản nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-and-incidents
+  title: Vận hành và sự cố
+  childs:
+  - slug: operations-and-incidents-001
+    title: Nhật ký đăng ký, xác thực, thêm, xóa và vô hiệu hóa credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-002
+    title: Tương quan sự kiện mà không ghi dữ liệu xác thực không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-003
+    title: Chẩn đoán lỗi challenge, origin, RP ID, UV và chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-004
+    title: Phân tích tỷ lệ lỗi theo nền tảng với dữ liệu được giảm định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-005
+    title: Theo dõi bất thường signCount mà không áp dụng máy móc cho passkey đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-006
+    title: Xử lý mất thiết bị, credential đáng ngờ và phiên bị chiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-007
+    title: Ứng phó khi metadata bộ xác thực thay đổi trạng thái tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-008
+    title: Sao lưu và khôi phục kho credential cùng cấu hình chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-009
+    title: Thay đổi tên miền, thư viện và chính sách có kiểm tra tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-and-incidents-010
+    title: Diễn tập sự cố và cải tiến quy trình khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-practice
+  title: Kiểm thử và thực hành
+  childs:
+  - slug: testing-and-practice-001
+    title: Vẽ luồng đăng ký và đăng nhập với các ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-002
+    title: Thực hành bằng bộ xác thực ảo và bộ xác thực thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-003
+    title: Phân tích clientDataJSON, authenticator data và khóa COSE mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-004
+    title: Kiểm thử challenge sai, hết hạn và bị sử dụng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-005
+    title: Kiểm thử origin, RP ID, loại thao tác và chữ ký không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-006
+    title: Kiểm thử UP, UV, signCount và cờ sao lưu theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-007
+    title: Kiểm thử đăng nhập có tên, không tên và nhiều tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-008
+    title: Kiểm thử nhiều tab, yêu cầu đồng thời và đồng bộ nhiều thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-009
+    title: Kiểm thử mất thiết bị, thu hồi credential và phiên còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-010
+    title: Kiểm thử khả năng tiếp cận, phương thức dự phòng và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-011
+    title: Lập ma trận tương thích trình duyệt, nền tảng và bộ xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-practice-012
+    title: Thiết kế hệ thống mẫu và lập tiêu chí nghiệm thu bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

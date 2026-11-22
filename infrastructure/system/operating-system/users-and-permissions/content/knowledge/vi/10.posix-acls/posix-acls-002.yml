@@ -1,0 +1,3 @@
+menuLevel1: ACL POSIX
+menuLevel2: Đọc ACL bằng getfacl và nhận diện dấu cộng trong ls -l
+status: ""

@@ -1,0 +1,358 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Hệ thống tệp là gì và giải quyết vấn đề tổ chức dữ liệu như thế nào
+  - Phân biệt tệp, hệ thống tệp, định dạng tệp và cơ sở dữ liệu
+  - Mô hình từ ứng dụng đến hệ điều hành, hệ thống tệp và thiết bị lưu trữ
+  - Phân biệt tên tệp, đối tượng tệp, nội dung và siêu dữ liệu
+  - Cây thư mục và không gian tên của hệ thống tệp
+  - 'Các nhóm thao tác: tạo, mở, đọc, ghi, đóng, đổi tên và xóa'
+  - Tính bền vững, tính nguyên tử và tính nhất quán khác nhau ra sao
+  - Phân biệt giao diện hệ thống tệp với cách dữ liệu được lưu bên dưới
+  - Hệ thống tệp cục bộ, trên mạng, trong bộ nhớ và hệ thống tệp ảo
+  - Lộ trình học và môi trường thực hành an toàn trên dữ liệu thử nghiệm
+- level1: Tệp và thư mục
+  level2:
+  - Tệp thông thường và cách hệ điều hành nhìn nội dung như chuỗi byte
+  - Thư mục và các mục liên kết tên với đối tượng tệp
+  - Tệp văn bản, tệp nhị phân và vai trò của ứng dụng diễn giải dữ liệu
+  - Phần mở rộng, kiểu nội dung và nhận diện định dạng tệp
+  - Tệp ẩn và quy ước hiển thị theo nền tảng
+  - Tệp thiết bị, ống có tên và Unix domain socket trong không gian tên
+  - 'Hệ thống tệp ảo: /proc, /sys và dữ liệu được cung cấp khi truy cập'
+  - Tệp tạm, thư mục tạm và vòng đời dữ liệu trung gian
+  - Cây thư mục chuẩn, thư mục người dùng và vị trí dữ liệu ứng dụng
+  - Phân biệt tổ chức thư mục theo mục đích với cấu trúc vật lý của dữ liệu
+- level1: Đường dẫn
+  level2:
+  - Đường dẫn tuyệt đối, tương đối và thư mục làm việc hiện tại
+  - Thư mục gốc, thành phần đường dẫn và ký hiệu . cùng ..
+  - Dấu phân cách, ký tự đặc biệt và quy tắc đặt tên theo nền tảng
+  - Phân biệt chữ hoa và chữ thường trong tra cứu tên tệp
+  - Unicode, chuẩn hóa tên và các tên nhìn giống nhau
+  - Quá trình phân giải đường dẫn qua từng thư mục
+  - Quyền tìm kiếm trên thư mục và ảnh hưởng đến truy cập đường dẫn
+  - Đường dẫn chuẩn hóa về mặt cú pháp và đường dẫn sau phân giải liên kết
+  - 'Đường dẫn Windows: ký tự ổ đĩa, đường dẫn UNC và dạng phụ thuộc ổ hiện tại'
+  - Giới hạn độ dài đường dẫn, độ dài tên và độ sâu cây thư mục
+  - Tên dành riêng, dấu chấm cuối và khác biệt khi chuyển dữ liệu giữa nền tảng
+  - Đường dẫn không còn tồn tại và thay đổi không gian tên trong lúc truy cập
+- level1: Siêu dữ liệu
+  level2:
+  - Siêu dữ liệu tệp gồm những gì và được quản lý ở đâu
+  - Inode, mã định danh tệp và sự tách biệt giữa tên với đối tượng
+  - Loại tệp, kích thước logic và lượng lưu trữ thực tế
+  - Chủ sở hữu, nhóm sở hữu và thông tin kiểm soát truy cập
+  - Thời gian truy cập, sửa nội dung, đổi siêu dữ liệu và tạo tệp
+  - Số liên kết và vòng đời của đối tượng tệp
+  - Thuộc tính mở rộng (extended attributes) và các trường hợp sử dụng
+  - 'Thuộc tính nền tảng: ẩn, chỉ đọc và các cờ đặc thù hệ thống tệp'
+  - Đọc siêu dữ liệu của liên kết so với đối tượng mà liên kết trỏ tới
+  - Độ phân giải thời gian và khác biệt siêu dữ liệu giữa các hệ thống tệp
+  - Bảo toàn siêu dữ liệu khi sao chép, di chuyển, đóng gói và khôi phục
+- level1: Liên kết
+  level2:
+  - Liên kết cứng (hard link) và nhiều tên cho cùng một đối tượng tệp
+  - Liên kết tượng trưng (symbolic link) và cách lưu đường dẫn đích
+  - So sánh liên kết cứng, liên kết tượng trưng và bản sao độc lập
+  - Liên kết tượng trưng tương đối và tuyệt đối
+  - Liên kết hỏng, chuỗi liên kết và vòng lặp khi phân giải
+  - Giới hạn liên kết cứng theo hệ thống tệp và loại đối tượng
+  - Đọc, ghi, đổi tên và xóa khi có nhiều liên kết
+  - Tùy chọn theo hoặc không theo liên kết trong duyệt cây thư mục
+  - Junction, reparse point và shortcut trên Windows
+  - Rủi ro bảo mật và tính khả chuyển khi đóng gói dữ liệu chứa liên kết
+- level1: Mở và quản lý tệp
+  level2:
+  - Thao tác mở tệp và lựa chọn quyền đọc, ghi hoặc đọc ghi
+  - Tạo mới, tạo độc quyền, mở để nối cuối và cắt ngắn nội dung
+  - File descriptor trên Unix và file handle trên Windows
+  - Bảng descriptor của tiến trình và đối tượng mô tả lần mở tệp
+  - Hai lần mở độc lập so với các descriptor cùng tham chiếu một lần mở
+  - Vị trí đọc ghi và trạng thái gắn với lần mở tệp
+  - Kế thừa, sao chép descriptor và kiểm soát đóng khi thực thi chương trình mới
+  - Đóng tệp, giải phóng tài nguyên và giới hạn số tệp đang mở
+  - Rò rỉ descriptor và cách xác định tài nguyên chưa được giải phóng
+  - Luồng vào ra chuẩn và chuyển hướng đến tệp
+  - Mở tệp tương đối với descriptor thư mục và vai trò của họ thao tác *at
+  - Khác biệt giữa đóng tài nguyên thành công và bảo đảm dữ liệu bền vững
+- level1: Đọc và ghi
+  level2:
+  - Đọc tuần tự, đọc ngẫu nhiên và lựa chọn mẫu truy cập
+  - Kết thúc tệp, kết quả đọc ngắn và xử lý đọc từng phần
+  - Ghi ngắn, thao tác bị ngắt và vòng lặp hoàn tất việc ghi
+  - Dịch chuyển vị trí, đọc ghi tại vị trí chỉ định và chia sẻ con trỏ
+  - Ghi đè, chèn dữ liệu ở cấp ứng dụng và giới hạn của mô hình chuỗi byte
+  - Nối cuối tệp và giới hạn bảo đảm khi nhiều bên cùng ghi
+  - Cắt ngắn, mở rộng tệp và dữ liệu trong vùng chưa được ghi
+  - Tệp thưa (sparse file), vùng trống và thao tác tạo vùng trống
+  - Bộ đệm của thư viện ứng dụng và bộ đệm của hệ điều hành
+  - Đọc ghi nhị phân, mã hóa văn bản và chuyển đổi ký tự xuống dòng
+  - Lỗi trả về trong lúc ghi, đồng bộ hoặc đóng tệp
+- level1: Thao tác không gian tên
+  level2:
+  - Tạo tệp, tạo thư mục và kiểm tra tồn tại an toàn
+  - Tạo cây thư mục và xử lý các thành phần đã tồn tại
+  - Liệt kê thư mục, thứ tự kết quả và dữ liệu thay đổi trong khi duyệt
+  - Duyệt cây có đệ quy, giới hạn độ sâu và xử lý liên kết
+  - Đổi tên trong cùng hệ thống tệp và ý nghĩa nguyên tử đối với tên
+  - Di chuyển giữa các hệ thống tệp bằng sao chép rồi xóa
+  - Sao chép nội dung, siêu dữ liệu và chính sách với liên kết
+  - Thay thế tệp đích và các khác biệt khi tệp đang được mở
+  - Xóa một tên tệp và thời điểm dữ liệu thực sự được giải phóng
+  - Xóa thư mục rỗng, xóa đệ quy và kiểm soát phạm vi
+  - Ngữ nghĩa tệp đã mở khi tên bị xóa hoặc đổi
+  - Thiết kế thao tác có thể thử lại khi chỉ hoàn tất một phần
+- level1: Quyền truy cập
+  level2:
+  - Mô hình chủ sở hữu, nhóm và các bên còn lại trên Unix
+  - Quyền đọc, ghi, thực thi trên tệp thông thường
+  - Quyền đọc, ghi, tìm kiếm trên thư mục và các tổ hợp thường nhầm
+  - Quyền của thư mục cha đối với tạo, đổi tên và xóa mục con
+  - Umask và quyền khởi tạo của tệp, thư mục mới
+  - Setuid, setgid, sticky bit và phạm vi tác động
+  - Danh sách kiểm soát truy cập (ACL) và quyền hiệu lực
+  - Kế thừa quyền, ACL mặc định và ảnh hưởng khi sao chép hoặc di chuyển
+  - Mô hình ACL Windows và khác biệt với quyền Unix
+  - Thuộc tính chỉ đọc, hệ thống tệp chỉ đọc và quyền truy cập
+  - Nhãn bảo mật SELinux/AppArmor và các lớp từ chối ngoài quyền cơ bản
+- level1: Bảo mật tệp
+  level2:
+  - Nguyên tắc đặc quyền tối thiểu đối với dữ liệu ứng dụng
+  - Thoát khỏi thư mục cho phép bằng đường dẫn (path traversal)
+  - Tấn công qua liên kết tượng trưng và thay đổi đối tượng giữa kiểm tra với sử dụng
+  - Tạo tệp tạm an toàn và tránh tên có thể dự đoán
+  - Xác minh đích truy cập trong môi trường có dữ liệu không đáng tin cậy
+  - 'Giải nén an toàn: đường dẫn thoát thư mục, liên kết và ghi đè'
+  - Bảo vệ bí mật trong tệp cấu hình, log và bản sao lưu
+  - Mã hóa toàn thiết bị, mã hóa hệ thống tệp và mã hóa từng tệp
+  - Giới hạn của xóa tệp, ghi đè và xóa an toàn trên SSD hoặc hệ thống CoW
+  - Kiểm tra tính toàn vẹn bằng checksum và giới hạn so với xác thực nguồn
+  - Nhật ký kiểm toán truy cập và theo dõi thay đổi quyền
+- level1: Khóa và đồng thời
+  level2:
+  - Các kiểu tranh chấp khi nhiều tiến trình truy cập cùng tệp
+  - Khóa mang tính tư vấn (advisory lock) và cơ chế bắt buộc ở nơi được hỗ trợ
+  - Khóa toàn tệp, khóa vùng byte và khóa chia sẻ hoặc độc quyền
+  - Khác biệt về phạm vi khóa theo tiến trình, lần mở tệp và descriptor
+  - Hành vi chờ, thử khóa không chờ và xử lý hết thời gian
+  - Giải phóng khóa khi đóng tệp hoặc khi tiến trình kết thúc
+  - Khóa tệp trên Unix và cơ chế chia sẻ khi mở tệp trên Windows
+  - Vì sao kiểm tra tồn tại rồi tạo tệp vẫn có thể xảy ra tranh chấp
+  - Thiết kế giao thức phối hợp bằng tệp khóa và tạo độc quyền
+  - Giới hạn của khóa trên hệ thống tệp mạng
+  - Phân biệt khóa, tính nguyên tử của một thao tác và giao dịch nhiều thao tác
+- level1: Tổ chức lưu trữ
+  level2:
+  - Thiết bị khối, phân vùng, volume và lớp hệ thống tệp
+  - Định dạng hệ thống tệp và khác biệt với chia phân vùng
+  - Sector, khối logic, khối cấp phát và đơn vị truyền dữ liệu
+  - Superblock, thông tin volume và vùng siêu dữ liệu
+  - Bảng inode hoặc cấu trúc bản ghi tệp tương đương
+  - Cấu trúc thư mục và liên kết đến bản ghi tệp
+  - Vùng dữ liệu, vùng trống và thông tin quản lý cấp phát
+  - Mã định danh volume, nhãn và nhận diện thiết bị ổn định
+  - Vai trò của lớp volume logic, RAID và thiết bị lưu trữ bên dưới
+  - SSD, HDD và các đặc tính ảnh hưởng đến cách truy cập tệp
+  - Hệ thống tệp trong bộ nhớ và sự khác biệt với lưu trữ bền vững
+- level1: Cấp phát dữ liệu
+  level2:
+  - Cấp phát liên tục, theo chuỗi và qua cấu trúc chỉ mục
+  - Khối trực tiếp, khối gián tiếp và giới hạn kích thước tệp
+  - Extent và ánh xạ các dải khối liên tục
+  - Bitmap, danh sách vùng trống và lựa chọn nơi cấp phát
+  - Cấp phát trễ và cấp phát trước cho tệp
+  - Phân mảnh nội bộ, phân mảnh bên ngoài và ảnh hưởng thực tế
+  - Tệp thưa, vùng chưa khởi tạo và khối đã cấp phát
+  - Nén dữ liệu và quan hệ giữa kích thước logic với dung lượng chiếm chỗ
+  - Khử trùng lặp dữ liệu và chi phí quản lý tham chiếu
+  - TRIM/discard và cách thông báo vùng dữ liệu không còn dùng cho thiết bị
+  - Giới hạn kích thước tệp, số lượng tệp và quy mô volume
+- level1: Tra cứu và lập chỉ mục
+  level2:
+  - Lớp hệ thống tệp ảo (VFS) và giao diện chung của hệ điều hành
+  - Đối tượng dentry, inode và quan hệ trong quá trình phân giải đường dẫn
+  - Tìm tên trong thư mục bằng danh sách, bảng băm hoặc cây
+  - Cây B/B+ và vai trò trong tra cứu siêu dữ liệu
+  - Bộ đệm tra cứu tên và bộ đệm kết quả không tồn tại
+  - Phân giải qua điểm gắn kết và ranh giới giữa các hệ thống tệp
+  - Chi phí tra cứu đường dẫn sâu và thư mục chứa nhiều mục
+  - Mã định danh tệp ổn định, tái sử dụng định danh và giới hạn nhận diện
+  - Tìm theo tên, tìm theo thuộc tính và lập chỉ mục tìm kiếm ở cấp ứng dụng
+- level1: Bộ nhớ đệm và I/O
+  level2:
+  - Page cache và quan hệ với dữ liệu tệp trên thiết bị
+  - Đường đọc khi dữ liệu đã có hoặc chưa có trong bộ nhớ đệm
+  - Trang bẩn, ghi lùi (writeback) và thời điểm đẩy dữ liệu
+  - Đọc trước (read-ahead) và ảnh hưởng của truy cập tuần tự
+  - Áp lực bộ nhớ và thu hồi bộ nhớ đệm tệp
+  - Phân biệt flush ở thư viện với fsync, fdatasync và cơ chế tương ứng
+  - Đồng bộ dữ liệu tệp và đồng bộ thay đổi của thư mục
+  - Direct I/O, yêu cầu căn chỉnh và giới hạn tùy hệ thống
+  - Memory-mapped file và quan hệ với cơ chế đọc ghi thông thường
+  - Ánh xạ dùng chung, ánh xạ riêng và giới hạn khi đồng bộ thay đổi
+  - Hủy ánh xạ, đóng descriptor và vòng đời tài nguyên liên quan
+  - Lỗi I/O bất đồng bộ và bảo đảm thực tế của thiết bị lưu trữ
+- level1: Nhất quán và phục hồi
+  level2:
+  - Trạng thái không nhất quán khi mất điện hoặc dừng đột ngột
+  - Phân biệt nhất quán cấu trúc, toàn vẹn dữ liệu và độ bền thao tác
+  - Thứ tự ghi dữ liệu, siêu dữ liệu và vai trò của hàng rào ghi
+  - Journaling và cách ghi nhận thay đổi trước khi áp dụng
+  - Nhật ký siêu dữ liệu và nhật ký dữ liệu
+  - Copy-on-write (CoW) và cập nhật cấu trúc bằng bản sao mới
+  - Checksum dữ liệu, checksum siêu dữ liệu và phát hiện hỏng âm thầm
+  - Phát lại nhật ký, kiểm tra hệ thống tệp và các giới hạn sửa chữa
+  - Mẫu ghi tệp tạm, đồng bộ rồi đổi tên để cập nhật an toàn
+  - Vì sao đổi tên nguyên tử chưa tự bảo đảm bền vững sau sự cố
+  - Giới hạn giao dịch khi cập nhật nhiều tệp có quan hệ
+  - Kiểm thử gián đoạn thao tác và đối chiếu trạng thái sau khôi phục
+- level1: Gắn kết hệ thống tệp
+  level2:
+  - Mount, unmount và đưa một hệ thống tệp vào cây thư mục
+  - Điểm gắn kết và dữ liệu thư mục bị che khuất bên dưới
+  - Mount theo thiết bị, UUID hoặc nhãn volume
+  - Tùy chọn chỉ đọc, noexec, nosuid, nodev và giới hạn bảo vệ
+  - 'Chính sách cập nhật thời gian truy cập: atime, relatime và các biến thể'
+  - Bind mount và cung cấp lại cùng dữ liệu tại đường dẫn khác
+  - Mount namespace và các cách nhìn khác nhau về cây gắn kết
+  - Thiết bị đang bận, descriptor còn mở và tháo gắn kết an toàn
+  - Tự động gắn kết khi khởi động và theo nhu cầu truy cập
+  - Ổ rời, tháo thiết bị an toàn và xử lý mất kết nối
+  - Kiểm tra dung lượng, loại hệ thống tệp và tùy chọn gắn kết thực tế
+- level1: Các hệ thống tệp
+  level2:
+  - 'Tiêu chí so sánh: ngữ nghĩa, giới hạn, độ tin cậy và công cụ vận hành'
+  - FAT32 và exFAT trong trao đổi dữ liệu, thiết bị rời
+  - Họ ext và các đặc điểm tiêu biểu của ext4
+  - XFS và tổ chức dữ liệu, siêu dữ liệu cho quy mô lớn
+  - 'Btrfs: subvolume, CoW, checksum và snapshot'
+  - 'ZFS: storage pool, dataset và cơ chế bảo vệ dữ liệu'
+  - 'NTFS: bản ghi MFT, luồng dữ liệu thay thế và tính năng chính'
+  - ReFS và phạm vi tính năng phụ thuộc môi trường Windows
+  - 'APFS: container, volume, chia sẻ dung lượng và clone'
+  - tmpfs và các hệ thống tệp dùng bộ nhớ
+  - ISO 9660, UDF và hệ thống tệp cho ảnh hoặc phương tiện chỉ đọc
+  - Khác biệt tính năng theo phiên bản, trình điều khiển và tùy chọn định dạng
+  - Lựa chọn hệ thống tệp theo nhu cầu thay vì chỉ theo kết quả benchmark
+- level1: Ảnh chụp và bản sao
+  level2:
+  - Snapshot và góc nhìn dữ liệu tại một thời điểm
+  - Snapshot cấp khối, cấp hệ thống tệp và cấp ứng dụng
+  - Clone, reflink và bản sao chia sẻ khối dữ liệu
+  - Khi nào dữ liệu được tách riêng trong cơ chế CoW
+  - Snapshot chỉ đọc, snapshot có thể ghi và phạm vi thay đổi
+  - Tính nhất quán sau sự cố và tính nhất quán của ứng dụng
+  - Quan hệ giữa snapshot, dữ liệu đang mở và cơ chế tạm ngừng ghi
+  - Dung lượng giữ lại bởi snapshot và ảnh hưởng khi xóa tệp
+  - Khôi phục một tệp, quay lui volume và rủi ro đối với dữ liệu mới
+  - Gửi nhận snapshot và sao chép tăng dần
+  - Phân biệt snapshot cục bộ với bản sao lưu độc lập
+- level1: Dung lượng và hạn ngạch
+  level2:
+  - Dung lượng tổng, đã dùng, còn trống và phần dự trữ
+  - Khác biệt giữa df, du và các cách tính dung lượng
+  - Kích thước biểu kiến, khối cấp phát và ảnh hưởng của tệp thưa
+  - Hết inode khi dung lượng dữ liệu vẫn còn
+  - Tệp đã xóa nhưng còn mở và dung lượng chưa được giải phóng
+  - Liên kết cứng, reflink, snapshot và tránh đếm dung lượng trùng
+  - Hạn ngạch theo người dùng, nhóm, dự án hoặc dataset
+  - Giới hạn mềm, giới hạn cứng và thời gian ân hạn
+  - Tác động của nén, khử trùng lặp và siêu dữ liệu đến báo cáo dung lượng
+  - Lập kế hoạch dung lượng, tăng trưởng tệp và cảnh báo sớm
+  - Dọn dẹp dữ liệu an toàn khi volume gần đầy
+- level1: Hệ thống tệp mạng
+  level2:
+  - Mô hình máy khách, máy chủ và truy cập tệp qua mạng
+  - NFS và các vấn đề ngữ nghĩa cần nhận diện
+  - SMB và chia sẻ tệp trong môi trường đa nền tảng
+  - Độ trễ mạng, bộ nhớ đệm và khả năng thấy thay đổi từ máy khác
+  - Mô hình nhất quán, kiểm tra lại thuộc tính và dữ liệu cũ
+  - Khóa, lease hoặc cơ chế tương tự để phối hợp truy cập
+  - Ánh xạ định danh người dùng, quyền và thông tin xác thực
+  - Mất kết nối, lỗi thao tác, thử lại và kết quả chưa xác định
+  - Đổi tên, đồng bộ và giới hạn bảo đảm của hệ thống tệp từ xa
+  - 'Hệ thống tệp phân tán: phân chia dữ liệu, sao chép và miền lỗi'
+  - Phân biệt hệ thống tệp, lưu trữ khối và lưu trữ đối tượng
+  - Chọn nơi lưu dữ liệu ứng dụng theo yêu cầu nhất quán và độ bền
+- level1: Môi trường cách ly
+  level2:
+  - Chroot, namespace và giới hạn của việc thay đổi góc nhìn đường dẫn
+  - Hệ thống tệp trong container và quan hệ với máy chủ
+  - 'Overlay filesystem: lớp dưới, lớp trên và góc nhìn hợp nhất'
+  - Copy-up, whiteout và ngữ nghĩa sửa hoặc xóa tệp trong lớp phủ
+  - Bind mount, volume và dữ liệu tồn tại qua vòng đời container
+  - Quyền sở hữu, ánh xạ UID/GID và truy cập từ môi trường cách ly
+  - Root filesystem chỉ đọc và tách riêng dữ liệu cần ghi
+  - FUSE và triển khai hệ thống tệp ở không gian người dùng
+  - Giới hạn hiệu năng, quyền và tính năng khi dùng FUSE
+  - Ổ đĩa máy ảo và các lớp hệ thống tệp lồng nhau
+  - Chia sẻ tệp giữa Windows, Linux, WSL và các giới hạn cần kiểm tra
+- level1: Sao lưu và khôi phục
+  level2:
+  - Xác định dữ liệu cần sao lưu và mục tiêu mất dữ liệu, thời gian khôi phục
+  - Sao lưu toàn bộ, tăng dần và vi sai
+  - Sao lưu ở mức tệp, mức khối và ảnh hệ thống
+  - Lấy bản sao nhất quán khi ứng dụng vẫn đang hoạt động
+  - Bảo toàn quyền, chủ sở hữu, thời gian, ACL và thuộc tính mở rộng
+  - Bảo toàn liên kết, tệp thưa và đối tượng đặc biệt
+  - Lưu trữ nhiều phiên bản và chính sách giữ bản sao
+  - Bản sao ngoại tuyến, khác vị trí và bảo vệ trước mã độc tống tiền
+  - Checksum, kiểm tra bản sao và diễn tập phục hồi
+  - Khôi phục tệp bị xóa và giới hạn khi dữ liệu đã bị ghi đè hoặc discard
+  - Phân biệt công cụ sửa hệ thống tệp với công cụ phục hồi dữ liệu
+  - Đóng gói dữ liệu bằng archive và các mất mát ngữ nghĩa có thể xảy ra
+- level1: Hiệu năng
+  level2:
+  - Độ trễ, thông lượng, IOPS và chi phí thao tác siêu dữ liệu
+  - Ảnh hưởng của kích thước tệp, kích thước yêu cầu và mẫu truy cập
+  - Tệp nhỏ số lượng lớn so với tệp lớn ít đối tượng
+  - Chi phí mở đóng, tra cứu tên và duyệt thư mục
+  - Đo với bộ nhớ đệm nóng, lạnh và dữ liệu vượt dung lượng RAM
+  - Ảnh hưởng của đồng bộ thường xuyên và yêu cầu độ bền
+  - Tác động của journaling, CoW, snapshot, nén và mã hóa
+  - Phân mảnh và trường hợp cần hoặc không nên chống phân mảnh
+  - Cấp phát trước, ghi theo lô và tổ chức thư mục phù hợp tải
+  - Thiết kế benchmark có kiểm soát, dữ liệu đại diện và kết quả lặp lại
+  - Phân biệt nút thắt ứng dụng, hệ thống tệp, thiết bị và mạng
+- level1: Giám sát thay đổi
+  level2:
+  - Theo dõi tạo, sửa, đổi tên, xóa và thay đổi siêu dữ liệu
+  - inotify, fanotify và phạm vi theo dõi trên Linux
+  - ReadDirectoryChangesW và các cơ chế theo dõi trên Windows
+  - FSEvents, kqueue và các cơ chế theo dõi trên hệ Unix liên quan
+  - Sự kiện bị gộp, trùng, mất hoặc tràn hàng đợi
+  - Theo dõi đệ quy và các thư mục mới xuất hiện
+  - Nhận diện đổi tên so với xóa rồi tạo lại
+  - Kết hợp sự kiện với quét lại để tái lập trạng thái đúng
+  - Nhật ký thay đổi, kiểm toán bảo mật và quan sát ứng dụng khác nhau ra sao
+  - Thiết kế trình theo dõi tệp có thể khôi phục sau gián đoạn
+- level1: Chẩn đoán sự cố
+  level2:
+  - Đọc thông báo lỗi, mã lỗi và xác định lớp gây lỗi
+  - Không tìm thấy tệp dù tên hiển thị có vẻ đúng
+  - 'Permission denied: kiểm tra toàn đường dẫn, ACL và nhãn bảo mật'
+  - 'No space left: phân biệt hết khối, hết inode, hạn ngạch và phần dự trữ'
+  - Read-only filesystem và các nguyên nhân chuyển sang chỉ đọc
+  - Too many open files và kiểm tra giới hạn cùng descriptor đang giữ
+  - Device or resource busy khi tháo gắn kết hoặc thay đổi tài nguyên
+  - Liên kết hỏng, vòng lặp liên kết và đường dẫn quá dài
+  - Tệp mất hoặc thay đổi sau đổi tên, xoay log và cập nhật nguyên tử
+  - Đọc dữ liệu cũ trên hệ thống tệp mạng hoặc bộ nhớ đệm ứng dụng
+  - Lỗi I/O, dấu hiệu hỏng dữ liệu và thứ tự bảo toàn chứng cứ
+  - 'Công cụ quan sát: stat, find, lsof, lsblk, findmnt và công cụ tương ứng Windows'
+  - Quy trình cô lập nguyên nhân bằng thao tác tái hiện tối thiểu
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ mô hình từ đường dẫn đến đối tượng tệp và khối dữ liệu
+  - Quan sát inode, hard link, symbolic link và vòng đời tệp đã mở
+  - Thử nghiệm quyền tệp, quyền thư mục, umask và ACL
+  - So sánh đọc ghi tuần tự, ngẫu nhiên, nối cuối và tệp thưa
+  - Xây dựng thao tác cập nhật cấu hình bằng tệp tạm và đổi tên
+  - Tái hiện tranh chấp tạo tệp, ghi đồng thời và phối hợp bằng khóa
+  - Đo khác biệt giữa ghi vào bộ đệm và ghi kèm đồng bộ bền vững
+  - Thực hành mount ảnh đĩa thử nghiệm và kiểm tra giới hạn hệ thống tệp
+  - Giải thích chênh lệch dung lượng do tệp mở, snapshot và khối chia sẻ
+  - Sao lưu, xóa dữ liệu thử nghiệm rồi kiểm chứng quá trình khôi phục
+  - Tái hiện thao tác thất bại và lập báo cáo chẩn đoán có chứng cứ
+  - Thiết kế thư mục dữ liệu ứng dụng đa nền tảng, có bảo mật và kế hoạch phục hồi

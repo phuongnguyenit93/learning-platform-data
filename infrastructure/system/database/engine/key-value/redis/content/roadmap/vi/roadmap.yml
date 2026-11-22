@@ -1,0 +1,55 @@
+roadmap:
+- id: tong-quan-redis
+  title: Tổng quan Redis
+  purpose: Hiểu cách Redis lưu dữ liệu theo khóa và những tình huống sử dụng phù hợp.
+  objectives:
+  - Giải thích mô hình key-value và cách Redis truy cập dữ liệu.
+  - Phân biệt ứng dụng cache, counter và lưu dữ liệu tạm.
+- id: lenh-va-quan-ly-key
+  title: Lệnh và quản lý key
+  purpose: Làm quen thao tác Redis qua CLI và vòng đời của một khóa.
+  objectives:
+  - Thực hiện PING, SET, GET, DEL và kiểm tra TYPE.
+  - Đặt quy ước tên khóa và dùng TTL, EXPIRE để giới hạn thời gian sống.
+- id: kieu-du-lieu-co-ban
+  title: Kiểu dữ liệu cơ bản
+  purpose: Chọn kiểu dữ liệu đúng thay vì dùng một chuỗi cho mọi bài toán.
+  objectives:
+  - Thao tác String, Hash và List với lệnh tương ứng.
+  - Đánh giá kiểu dữ liệu cho hồ sơ, bộ đếm và hàng đợi đơn giản.
+- id: set-va-sorted-set
+  title: Set và Sorted Set
+  purpose: Sử dụng tập hợp để biểu diễn tính duy nhất và thứ tự theo điểm.
+  objectives:
+  - Thực hiện SADD, SISMEMBER và các phép toán tập hợp.
+  - Tạo bảng xếp hạng nhỏ bằng ZADD và ZRANGE.
+- id: streams-va-pub-sub
+  title: Streams và Pub/Sub
+  purpose: Phân biệt luồng sự kiện lưu lại với kênh gửi thông điệp trực tiếp.
+  objectives:
+  - Tạo và đọc sự kiện bằng XADD, XREAD.
+  - Giải thích khác biệt Streams và Pub/Sub về lưu trữ thông điệp.
+- id: cache-va-bo-nho
+  title: Cache và bộ nhớ
+  purpose: Quản lý dữ liệu hết hạn và giới hạn bộ nhớ để tránh cache tăng vô hạn.
+  objectives:
+  - Thiết kế ví dụ cache với TTL phù hợp.
+  - Phân biệt expiration với eviction và nêu rủi ro cache miss.
+- id: atomicity-va-pipeline
+  title: Atomicity và Pipeline
+  purpose: Hiểu cách phối hợp nhiều lệnh khi có nhiều client và độ trễ mạng.
+  objectives:
+  - Thực hành MULTI/EXEC và WATCH cho cập nhật có điều kiện.
+  - Dùng pipelining để giảm round-trip, phân biệt với transaction.
+- id: luu-tru-va-do-ben
+  title: Lưu trữ và độ bền
+  purpose: Chọn cách khôi phục dữ liệu phù hợp với yêu cầu hệ thống.
+  objectives:
+  - So sánh RDB, AOF và trường hợp không cần persistence.
+  - Giải thích đánh đổi hiệu năng, khôi phục và khả năng mất dữ liệu.
+- id: replication-va-van-hanh
+  title: Replication và vận hành
+  purpose: Nhận biết các giới hạn khi mở rộng Redis và bảo vệ môi trường sử dụng.
+  objectives:
+  - Giải thích replica, Redis Cluster và phân vùng dữ liệu.
+  - Quan sát INFO/memory, áp dụng nguyên tắc ACL tối thiểu.

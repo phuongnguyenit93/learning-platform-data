@@ -1,0 +1,64 @@
+roadmap:
+- id: alertmanager-notification-flow
+  title: Alertmanager & Notification Flow
+  purpose: Hiểu vai trò của Alertmanager giữa nguồn phát cảnh báo và hệ thống nhận thông báo.
+  objectives:
+  - Vẽ luồng Prometheus rules → Alertmanager → receiver.
+  - Phân biệt alert labels, annotations và trạng thái firing/resolved.
+  - Giải thích deduplication, grouping, routing và notification.
+- id: labels-alert-payload
+  title: Labels & Alert Payload
+  purpose: Chuẩn hóa metadata để định tuyến và tổng hợp cảnh báo chính xác.
+  objectives:
+  - Thiết kế labels như alertname, severity, service, team và environment.
+  - Đặt annotations có mô tả, impact và runbook URL.
+  - Tránh labels biến thiên cao gây phân mảnh nhóm cảnh báo.
+- id: configuration-routing-tree
+  title: Configuration & Routing Tree
+  purpose: Khai báo route gốc và nhánh xử lý theo điều kiện cảnh báo.
+  objectives:
+  - Viết alertmanager.yml với global, route và receivers.
+  - Dùng matchers để chuyển cảnh báo theo team, service hoặc severity.
+  - Hiểu kế thừa receiver/group settings và thứ tự các child route.
+- id: grouping-dedup-timing
+  title: Grouping, Dedup & Timing
+  purpose: Giảm số thông báo bằng cách nhóm cảnh báo liên quan và điều chỉnh thời điểm gửi.
+  objectives:
+  - Cấu hình group_by, group_wait, group_interval và repeat_interval.
+  - Phân biệt grouping với deduplication theo fingerprint.
+  - Đánh giá độ trễ gửi và nguy cơ notification storm.
+- id: inhibition-silences
+  title: Inhibition & Silences
+  purpose: Giảm nhiễu khi có sự cố gốc hoặc khi bảo trì có kế hoạch.
+  objectives:
+  - Viết inhibition rule để chặn cảnh báo thứ cấp khi alert gốc firing.
+  - Tạo silence có matcher, người tạo, lý do và thời hạn.
+  - Kiểm tra thời điểm hết hạn và tránh mute nhầm cảnh báo quan trọng.
+- id: receivers-notification-templates
+  title: Receivers & Notification Templates
+  purpose: Gửi cảnh báo đến đúng kênh với nội dung dễ hành động.
+  objectives:
+  - Cấu hình email, webhook hoặc receiver tích hợp phù hợp.
+  - Dùng template hiển thị summary, description, labels và runbook.
+  - Bảo vệ token, webhook URL và thông tin nhạy cảm trong cấu hình.
+- id: ha-reliable-delivery
+  title: HA & Reliable Delivery
+  purpose: Duy trì tiếp nhận và phân phối cảnh báo khi một Alertmanager instance gặp lỗi.
+  objectives:
+  - Triển khai nhiều instance với peer clustering phù hợp.
+  - Hiểu replication của silences và notification state.
+  - Kiểm thử restart, partition và hành vi gửi lặp trong HA.
+- id: validation-reload-troubleshooting
+  title: Validation, Reload & Troubleshooting
+  purpose: Thay đổi cấu hình có kiểm soát và xử lý lỗi route hoặc notification.
+  objectives:
+  - Dùng amtool check-config trước khi áp dụng cấu hình.
+  - Reload cấu hình và kiểm tra log khi parse hoặc delivery lỗi.
+  - Truy vết matcher, receiver, inhibition và trạng thái silence.
+- id: testing-alert-operations
+  title: Testing & Alert Operations
+  purpose: Kiểm thử end-to-end và liên tục cải thiện chất lượng thông báo.
+  objectives:
+  - Tạo alert mẫu để xác nhận route, group, inhibit và receiver.
+  - Kiểm tra firing/resolved, lặp thông báo và tích hợp webhook.
+  - Theo dõi notification failures, queue/retries và rà soát quy tắc định kỳ.

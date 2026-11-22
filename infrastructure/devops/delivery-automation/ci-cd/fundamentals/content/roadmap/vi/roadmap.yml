@@ -1,0 +1,57 @@
+roadmap:
+- id: ci-cd-vong-doi
+  title: CI/CD & vòng đời
+  purpose: Hiểu các khái niệm cốt lõi để phân biệt tích hợp liên tục với các cách phân phối và triển khai phần mềm.
+  objectives:
+  - Phân biệt CI, continuous delivery và continuous deployment
+  - Mô tả luồng commit → build → test → deploy
+  - Nêu lợi ích phản hồi sớm và phát hành lô nhỏ
+- id: git-pipeline-triggers
+  title: Git & Pipeline Triggers
+  purpose: Quy định khi nào pipeline chạy và ngăn việc triển khai không mong muốn từ thay đổi chưa được kiểm chứng.
+  objectives:
+  - Kích hoạt CI khi push và pull/merge request
+  - Phân biệt pipeline cho branch, tag và lịch chạy
+  - Thiết lập kiểm tra bắt buộc trước khi merge
+- id: pipeline-as-code
+  title: Pipeline as Code
+  purpose: Mô hình hóa tự động hóa thành cấu hình có thể review, version và chạy lặp lại trên runner.
+  objectives:
+  - Tạo YAML pipeline có jobs, stages và steps
+  - Giải thích runner, dependency và thực thi song song
+  - Phân tích log khi một job thất bại
+- id: build-kiem-thu
+  title: Build & Kiểm thử
+  purpose: Tạo vòng phản hồi tự động để phát hiện lỗi trước khi đưa thay đổi sang bước phát hành.
+  objectives:
+  - Thiết lập môi trường build với công cụ xác định phiên bản
+  - Chạy unit test và integration test trong pipeline
+  - Xuất báo cáo kiểm thử và xử lý build thất bại
+- id: quality-security-gates
+  title: Quality & Security Gates
+  purpose: Chặn thay đổi không đạt yêu cầu mà vẫn giảm rủi ro lộ thông tin và quyền truy cập quá mức.
+  objectives:
+  - Đặt ngưỡng quality gate cho test và phân tích mã
+  - Quản lý secrets và quyền runner theo nguyên tắc tối thiểu
+  - Không cấp credential triển khai cho pull request không tin cậy
+- id: artifacts-truy-xuat-nguon-goc
+  title: Artifacts & Truy xuất nguồn gốc
+  purpose: Đóng gói kết quả build một lần và theo dõi mối liên hệ giữa mã nguồn và phiên bản phát hành.
+  objectives:
+  - Phân biệt cache, pipeline artifact và package registry
+  - Gắn artifact với commit, version và checksum
+  - Giải thích build provenance và kiểm tra tính toàn vẹn
+- id: deploy-rollback
+  title: Deploy & Rollback
+  purpose: Đưa cùng artifact qua các môi trường có kiểm soát và có phương án khôi phục khi phát hành lỗi.
+  objectives:
+  - Phân biệt staging và production cùng quyền phê duyệt
+  - Thực hiện deploy tự động hoặc sau bước approval
+  - Thiết kế health check, rollback và fix-forward
+- id: theo-doi-cai-tien
+  title: Theo dõi & Cải tiến
+  purpose: Quan sát kết quả pipeline và dùng chỉ số để cải thiện cả tốc độ lẫn độ tin cậy khi phát hành.
+  objectives:
+  - Theo dõi tỷ lệ thành công, thời gian chạy và flaky tests
+  - Giải thích change lead time, deployment frequency và change fail rate
+  - Phân tích failed deployment recovery và deployment rework

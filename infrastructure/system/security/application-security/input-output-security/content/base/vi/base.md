@@ -1,0 +1,7 @@
+# Security Application Security Input Output Security
+
+Input/Output Security là tập hợp biện pháp kiểm soát dữ liệu khi đi vào và đi ra khỏi ứng dụng. Dữ liệu từ form, HTTP API, tệp, message hay dịch vụ bên ngoài đều có thể sai cấu trúc, vượt giới hạn hoặc chứa nội dung được hệ thống khác diễn giải như mã. Bảo mật tốt đòi hỏi xác định rõ trust boundary, kiểm tra đầu vào theo hợp đồng và sử dụng kỹ thuật bảo vệ đầu ra đúng ngữ cảnh; kiểm tra input không thể thay thế output encoding, và encoding cũng không thay thế validation hay phân quyền.
+
+Module dành cho người đã biết Java, HTTP/JSON, API và các thành phần web cơ bản. Lộ trình bắt đầu bằng việc vẽ luồng dữ liệu và quy tắc allowlist, sau đó xử lý parsing, canonicalization, giới hạn kích thước payload và validation phía server bằng Jakarta Bean Validation. Các mốc tiếp theo tập trung vào output encoding cho HTML, thuộc tính, URL và JavaScript, sanitization khi cần hiển thị rich HTML và vai trò phòng vệ bổ sung của Content Security Policy. Người học cũng xây dựng API response tối thiểu, thiết lập Content-Type, các HTTP header phù hợp và xử lý lỗi/log mà không làm rò rỉ dữ liệu nhạy cảm.
+
+Sau khi hoàn thành, bạn có thể thiết kế request DTO có ràng buộc rõ ràng, viết kiểm thử dữ liệu bất thường, chọn cách xuất dữ liệu an toàn theo ngữ cảnh và rà soát response/error handling của một ứng dụng Java. Khi triển khai thực tế, hãy giữ các phép kiểm tra ở server, giới hạn tài nguyên xử lý input và kiểm chứng hành vi trong browser hoặc client thực tế thay vì dựa vào một bộ lọc chung cho mọi tình huống.

@@ -1,0 +1,3 @@
+menuLevel1: Kích hoạt systemd
+menuLevel2: Dịch vụ người dùng với systemctl --user và user manager
+status: ""

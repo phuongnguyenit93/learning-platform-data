@@ -1,0 +1,163 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: browser-security-overview
+  index: 0
+- title: Mô hình bảo mật web
+  slug: web-security-model
+  index: 1
+- title: Origin
+  slug: origin
+  index: 2
+- title: Same-origin policy
+  slug: same-origin-policy
+  index: 3
+- title: Site và origin
+  slug: sites-origins
+  index: 4
+- title: Navigation
+  slug: navigation
+  index: 5
+- title: URL và encoding
+  slug: urls-encoding
+  index: 6
+- title: CORS
+  slug: cors
+  index: 7
+- title: CORS nâng cao
+  slug: advanced-cors
+  index: 8
+- title: Cookie
+  slug: cookie
+  index: 9
+- title: Cookie security
+  slug: cookie-security
+  index: 10
+- title: Session trên browser
+  slug: browser-sessions
+  index: 11
+- title: CSRF
+  slug: csrf
+  index: 12
+- title: XSS và DOM
+  slug: xss-dom
+  index: 13
+- title: Output encoding
+  slug: output-encoding
+  index: 14
+- title: DOM security
+  slug: dom-security
+  index: 15
+- title: CSP
+  slug: csp
+  index: 16
+- title: CSP nâng cao
+  slug: advanced-csp
+  index: 17
+- title: Trusted Types
+  slug: trusted-types
+  index: 18
+- title: Clickjacking
+  slug: clickjacking
+  index: 19
+- title: Iframe
+  slug: iframe
+  index: 20
+- title: postMessage
+  slug: postmessage
+  index: 21
+- title: Cross-origin isolation
+  slug: cross-origin-isolation
+  index: 22
+- title: Security headers
+  slug: security-headers
+  index: 23
+- title: HSTS và TLS
+  slug: hsts-tls
+  index: 24
+- title: Mixed content
+  slug: mixed-content
+  index: 25
+- title: Resource integrity
+  slug: resource-integrity
+  index: 26
+- title: Permissions
+  slug: permissions
+  index: 27
+- title: Permissions Policy
+  slug: permissions-policy
+  index: 28
+- title: Storage
+  slug: storage
+  index: 29
+- title: Storage security
+  slug: storage-security
+  index: 30
+- title: Service worker
+  slug: service-worker
+  index: 31
+- title: PWA
+  slug: pwa
+  index: 32
+- title: Fetch và XMLHttpRequest
+  slug: fetch-xmlhttprequest
+  index: 33
+- title: WebSocket
+  slug: websocket
+  index: 34
+- title: WebRTC
+  slug: webrtc
+  index: 35
+- title: Authentication browser
+  slug: browser-authentication
+  index: 36
+- title: Browser token security
+  slug: browser-token-security
+  index: 37
+- title: Privacy
+  slug: privacy
+  index: 38
+- title: Referrer và URL leak
+  slug: referrer-url-leaks
+  index: 39
+- title: Browser cache
+  slug: browser-cache
+  index: 40
+- title: Download và file
+  slug: downloads-files
+  index: 41
+- title: Content type
+  slug: content-type
+  index: 42
+- title: Browser extension
+  slug: browser-extension
+  index: 43
+- title: Developer tools
+  slug: developer-tools
+  index: 44
+- title: Error và report
+  slug: error-reporting
+  index: 45
+- title: Kiểm thử
+  slug: testing
+  index: 46
+- title: Kiểm thử nâng cao
+  slug: advanced-testing
+  index: 47
+- title: Vận hành
+  slug: operations
+  index: 48
+- title: Giám sát
+  slug: monitoring
+  index: 49
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 50
+- title: Kiến trúc
+  slug: security-architecture
+  index: 51
+- title: Case study
+  slug: case-study
+  index: 52
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 53

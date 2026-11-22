@@ -1,0 +1,2095 @@
+menu:
+- slug: foundations
+  title: Nền tảng
+  childs:
+  - slug: foundations-001
+    title: Tối thiểu hóa dữ liệu telemetry là gì và vì sao cần thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-002
+    title: Quan hệ giữa mục đích quan sát, dữ liệu cần thiết và dữ liệu dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-003
+    title: 'Các chiều tối thiểu hóa: loại dữ liệu, số trường, độ chi tiết, tần suất và thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-004
+    title: Vai trò của logs, traces, metrics và profiles trong việc lựa chọn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-005
+    title: Phân biệt giảm dữ liệu với chỉ giảm chi phí hoặc kích thước lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-006
+    title: Phân biệt tối thiểu hóa với phân loại, redaction, masking và kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-007
+    title: Vì sao lấy mẫu, nén hoặc băm định danh không tự bảo đảm tối thiểu hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: foundations-008
+    title: Lộ trình học từ nhu cầu chẩn đoán đến chính sách và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: usage-purposes
+  title: Mục đích sử dụng
+  childs:
+  - slug: usage-purposes-001
+    title: Xác định câu hỏi vận hành trước khi bổ sung trường telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-002
+    title: Phân tích nhu cầu phát hiện lỗi, điều tra sự cố và đo hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-003
+    title: Chọn tín hiệu tối thiểu cho SLI, SLO và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-004
+    title: Phân biệt dữ liệu cần thường xuyên với dữ liệu chỉ cần khi điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-005
+    title: Đánh giá mức cần thiết của định danh người dùng, phiên và thông tin nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-006
+    title: Lập ma trận mục đích–tín hiệu–trường dữ liệu–người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-007
+    title: Xác định tiêu chí chứng minh một trường dữ liệu vẫn còn hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: usage-purposes-008
+    title: Nhận diện thói quen thu thập mọi thứ để dự phòng nhưng không có mục đích cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: telemetry-inventory
+  title: Kiểm kê telemetry
+  childs:
+  - slug: telemetry-inventory-001
+    title: Lập danh mục nguồn phát, loại tín hiệu, trường dữ liệu và nơi tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-002
+    title: Theo dõi dữ liệu từ mã nguồn, thư viện và cơ chế tự động đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-003
+    title: Khám phá cấu trúc thực tế bằng dữ liệu giả lập hoặc mẫu được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-004
+    title: Đo số sự kiện, số thuộc tính, độ dài giá trị và dung lượng phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-005
+    title: Kiểm kê số tổ hợp giá trị thuộc tính (cardinality) theo dịch vụ và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-006
+    title: Tìm dữ liệu trùng lặp giữa log, span, metric và hệ thống thu thập song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-007
+    title: Tìm trường không được truy vấn, dashboard bỏ hoang và luồng dữ liệu không có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-008
+    title: Kiểm kê bản sao trong tệp, bộ đệm, hàng đợi, kho dữ liệu và tệp xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-inventory-009
+    title: Đánh giá rủi ro định danh trực tiếp và khả năng kết hợp các trường để nhận diện cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-policies
+  title: Chính sách dữ liệu
+  childs:
+  - slug: data-policies-001
+    title: Định nghĩa tập dữ liệu tối thiểu theo từng mục đích quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-002
+    title: Thiết kế danh sách trường được phép thay vì mặc định thu thập mọi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-003
+    title: Quyết định loại bỏ, tổng quát hóa, tổng hợp hoặc chỉ thu thập có điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-004
+    title: Quy định dữ liệu nhạy cảm và bí mật không được đưa vào telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-005
+    title: Xử lý trường chưa biết, thuộc tính tùy biến và khóa sinh động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-006
+    title: Thiết kế chính sách theo dịch vụ, môi trường và nhóm khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-007
+    title: Xác định thứ tự ưu tiên giữa nhu cầu chẩn đoán và giới hạn bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-008
+    title: Quy định ngoại lệ có người chịu trách nhiệm, phạm vi và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-policies-009
+    title: Phân biệt yêu cầu tối thiểu hóa với chính sách lưu giữ và nghĩa vụ kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: telemetry-contracts
+  title: Hợp đồng telemetry
+  childs:
+  - slug: telemetry-contracts-001
+    title: Định nghĩa cấu trúc sự kiện, tên trường, kiểu dữ liệu và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-002
+    title: Chọn thuộc tính bắt buộc, tùy chọn và bị cấm trong từng loại tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-003
+    title: Sử dụng quy ước ngữ nghĩa phù hợp mà không bật mọi thuộc tính tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-004
+    title: Quy định miền giá trị hữu hạn cho nhãn và thuộc tính dùng để phân nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-005
+    title: Quy định độ dài, kích thước, độ sâu và số phần tử được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-006
+    title: Quản lý phiên bản cấu trúc và xử lý trường mới phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-007
+    title: Thiết kế nhãn trạng thái để phân biệt thiếu dữ liệu với bị loại bỏ có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telemetry-contracts-008
+    title: Kiểm tra hợp đồng telemetry bằng mã và cấu hình trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: control-architecture
+  title: Kiến trúc kiểm soát
+  childs:
+  - slug: control-architecture-001
+    title: Ưu tiên không tạo dữ liệu không cần thiết ngay tại nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-002
+    title: Phân chia trách nhiệm giữa ứng dụng, SDK, agent, gateway và kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-003
+    title: So sánh chặn trước thu thập với loại bỏ sau khi đã truyền hoặc lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-004
+    title: Đặt bước tối thiểu hóa trước điểm xuất và ranh giới chia sẻ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-005
+    title: Phối hợp nhiều lớp kiểm soát mà không tạo cấu hình mâu thuẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-006
+    title: Xác định thứ tự làm giàu, tối thiểu hóa, lấy mẫu, định tuyến và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-007
+    title: Rà soát đường xuất phụ, pipeline phân nhánh và chế độ dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-architecture-008
+    title: Ngăn bước xử lý phía sau bổ sung lại dữ liệu đã bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-collection
+  title: Thu thập tại nguồn
+  childs:
+  - slug: source-collection-001
+    title: Chọn điểm đo đạc theo câu hỏi vận hành thay vì ghi mọi thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-002
+    title: Tắt instrumentation và loại sự kiện không phục vụ mục đích đã xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-003
+    title: Giới hạn phạm vi tự động thu thập header, body, tham số và đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-004
+    title: Thiết kế API ghi telemetry chỉ nhận các trường được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-005
+    title: Tránh dựng chuỗi hoặc tuần tự hóa dữ liệu chỉ để loại bỏ ở bước sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-006
+    title: Kiểm soát dữ liệu do thư viện bên thứ ba và tác vụ nền phát ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-007
+    title: Giảm dữ liệu lặp ở vòng lặp, tác vụ định kỳ và các lần thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-collection-008
+    title: Giới hạn dữ liệu profile, thông tin tiến trình và đường dẫn tệp theo nhu cầu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-minimization
+  title: Tối thiểu hóa logs
+  childs:
+  - slug: log-minimization-001
+    title: Chọn mức log và loại sự kiện theo môi trường và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-002
+    title: Dùng mã sự kiện và trường có cấu trúc thay cho thông điệp dài chứa dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-003
+    title: Chọn tập trường tối thiểu cho một bản ghi lỗi hoặc một giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-004
+    title: Tránh ghi toàn bộ DTO, entity, Map và đối tượng request/response
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-005
+    title: Giảm bản ghi lặp, lỗi lặp và log thành công không có giá trị phân biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-006
+    title: Giới hạn ngăn xếp lời gọi, chuỗi nguyên nhân và chi tiết lỗi theo tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-007
+    title: Kiểm soát log nhiều dòng, dữ liệu nhị phân và nội dung tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-008
+    title: Giảm dữ liệu trong MDC mà vẫn giữ liên kết chẩn đoán cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-minimization-009
+    title: Giữ đủ sự kiện an ninh và kiểm toán theo yêu cầu đã được xác định riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-minimization
+  title: Tối thiểu hóa traces
+  childs:
+  - slug: trace-minimization-001
+    title: Chọn ranh giới span có giá trị thay vì tạo span cho mọi lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-002
+    title: Giữ tên span ổn định và tránh nhúng định danh hoặc dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-003
+    title: Chọn thuộc tính span phục vụ phân tích độ trễ và nguyên nhân lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-004
+    title: Giới hạn sự kiện span, liên kết, thuộc tính sự kiện và thông báo trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-005
+    title: Giảm span lặp trong vòng lặp, kiểm tra sức khỏe và tác vụ tần suất cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-006
+    title: Kiểm soát dữ liệu ngoại lệ và nội dung truy vấn được tự động gắn vào trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-007
+    title: Bảo toàn quan hệ cha–con khi loại bỏ span hoặc thay đổi điểm đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-008
+    title: Phối hợp dữ liệu trace với log để tránh ghi lặp cùng một chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-minimization-009
+    title: Rà soát thuộc tính resource và scope áp dụng cho nhiều span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metric-minimization
+  title: Tối thiểu hóa metrics
+  childs:
+  - slug: metric-minimization-001
+    title: Chọn phép đo gắn với câu hỏi vận hành và loại bỏ instrument không dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-002
+    title: Thiết kế nhãn có miền giá trị hữu hạn và tránh định danh người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-003
+    title: Phân biệt số giá trị của một nhãn với tổng số tổ hợp thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-004
+    title: Dùng mẫu tuyến đường và nhóm kết quả thay cho URL hoặc thông điệp lỗi tự do
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-005
+    title: Chọn thuộc tính trước khi tạo chuỗi thời gian thay vì xóa muộn ở kho dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-006
+    title: Đánh giá xung đột định danh và nhu cầu tổng hợp khi loại bỏ nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-007
+    title: Chọn loại phép đo và độ chi tiết histogram phù hợp với nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-008
+    title: Điều chỉnh chu kỳ thu thập mà không bỏ lỡ biến động cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-009
+    title: Rà soát exemplar vì thuộc tính đã bị lọc khỏi chuỗi vẫn có thể đi kèm exemplar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metric-minimization-010
+    title: Phân biệt giới hạn cardinality với chính sách loại bỏ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-identifiers
+  title: Ngữ cảnh và định danh
+  childs:
+  - slug: context-identifiers-001
+    title: Chọn ngữ cảnh dịch vụ, phiên bản và môi trường thực sự cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-002
+    title: Phân biệt Trace ID, Span ID với định danh người dùng và phiên đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-003
+    title: Giữ mã tương quan theo phạm vi cần thiết và đánh giá khả năng liên kết dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-004
+    title: Giới hạn baggage và thông tin lan truyền giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-005
+    title: Rà soát địa chỉ IP, vị trí và định danh thiết bị trước khi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-006
+    title: Tổng quát hóa thông tin địa lý hoặc thời gian khi chi tiết gốc không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-007
+    title: Đánh giá định danh đã băm và dữ liệu thay bằng mã đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-identifiers-008
+    title: Ngăn định danh nhạy cảm xuất hiện trong tên trường, tên tệp hoặc nhãn metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-messages
+  title: HTTP và thông điệp
+  childs:
+  - slug: http-messages-001
+    title: Chọn danh sách header cần thu thập cho HTTP client và server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-002
+    title: Dùng http.route thay cho đường dẫn chứa định danh cụ thể khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-003
+    title: Giới hạn tham số URL, query string và URL ký số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-004
+    title: Thu thập mô tả cấu trúc hoặc kích thước payload thay cho toàn bộ nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-005
+    title: Kiểm soát request body, response body, multipart và nội dung tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-006
+    title: Giữ mẫu câu truy vấn SQL thay vì giá trị bind và dữ liệu trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-007
+    title: Giới hạn dữ liệu trong lời gọi RPC, truy vấn GraphQL và lệnh truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-008
+    title: Chọn metadata thông điệp thay cho toàn bộ payload trong hệ thống hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-messages-009
+    title: Rà soát bản sao dữ liệu trong retry, dead-letter queue và công cụ phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: purposeful-sampling
+  title: Lấy mẫu có mục đích
+  childs:
+  - slug: purposeful-sampling-001
+    title: Phân biệt giảm số bản ghi với giảm trường dữ liệu trong từng bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-002
+    title: Lấy mẫu từ đầu (head sampling) và mức dữ liệu được tránh tạo hoặc xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-003
+    title: Lấy mẫu sau khi thu thập (tail sampling) và dữ liệu vẫn phải xử lý trước quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-004
+    title: Chọn xác suất lấy mẫu dựa trên lưu lượng và mục đích quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-005
+    title: Phối hợp quyết định lấy mẫu giữa các dịch vụ trong cùng một trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-006
+    title: Ưu tiên trace lỗi hoặc chậm và giới hạn của dữ liệu đã bị loại ở bước trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-007
+    title: Kiểm soát thiên lệch khi suy luận tỷ lệ lỗi hoặc phân bố độ trễ từ mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-008
+    title: Đặt giới hạn tài nguyên và xem xét span đến muộn khi lấy mẫu theo đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: purposeful-sampling-009
+    title: Giữ đầy đủ các loại sự kiện bắt buộc theo chính sách thay vì lấy mẫu đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: aggregation-granularity
+  title: Tổng hợp và độ chi tiết
+  childs:
+  - slug: aggregation-granularity-001
+    title: Thay sự kiện chi tiết bằng số đếm, phân bố hoặc thống kê khi đủ đáp ứng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-002
+    title: Chọn khoảng thời gian tổng hợp và độ phân giải phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-003
+    title: Nhóm giá trị liên tục hoặc nhạy cảm thành các miền có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-004
+    title: Giữ cấu trúc truy vấn hoặc loại thao tác thay cho giá trị nghiệp vụ cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-005
+    title: Phân biệt tổng hợp số đo với xóa nhãn trên các điểm dữ liệu đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-006
+    title: Bảo toàn phép đếm, đơn vị và ngữ nghĩa thời gian khi tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-007
+    title: Đánh giá nguy cơ nhận diện từ nhóm có ít phần tử hoặc thuộc tính quá chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: aggregation-granularity-008
+    title: Xác định thông tin chẩn đoán bị mất khi thay dữ liệu gốc bằng bản tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: limits-budgets
+  title: Giới hạn và ngân sách
+  childs:
+  - slug: limits-budgets-001
+    title: Đặt ngân sách số trường và kích thước cho từng bản ghi hoặc span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-002
+    title: Giới hạn độ dài giá trị, số phần tử và độ sâu dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-003
+    title: Đặt ngân sách số tổ hợp nhãn cho metric theo dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-004
+    title: Giới hạn tần suất sự kiện và lưu lượng telemetry theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-005
+    title: Phân biệt giới hạn lưu lượng với lấy mẫu và kiểm soát tính cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-006
+    title: Định nghĩa hành vi khi vượt giới hạn thay vì cắt hoặc bỏ dữ liệu tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-007
+    title: Ưu tiên tín hiệu quan trọng khi ngân sách có hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-008
+    title: Đánh giá giới hạn cắt chuỗi vì phần dữ liệu còn lại vẫn có thể nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: limits-budgets-009
+    title: Theo dõi số lần vượt giới hạn và tránh biến giới hạn kỹ thuật thành thước đo quyền riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry-sdk
+  title: OpenTelemetry SDK
+  childs:
+  - slug: opentelemetry-sdk-001
+    title: Cấu hình phạm vi instrumentation và tập thuộc tính được thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-002
+    title: Chọn sampler phù hợp trong quá trình tạo span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-003
+    title: Áp dụng giới hạn span, sự kiện, liên kết và thuộc tính theo khả năng SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-004
+    title: Thiết kế Metric View để chọn instrument, thuộc tính và phép tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-005
+    title: Kiểm soát exemplar riêng với bộ lọc thuộc tính của luồng metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-006
+    title: Giới hạn dữ liệu log và thuộc tính resource tại điểm cấu hình thích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-007
+    title: Kiểm tra thời điểm processor chạy so với ghi nhận, lưu đệm và export
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-sdk-008
+    title: Xác minh API, cấu hình và hành vi thực tế theo ngôn ngữ và phiên bản SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-spring-boot
+  title: Java và Spring Boot
+  childs:
+  - slug: java-spring-boot-001
+    title: Thiết kế DTO telemetry chỉ chứa các trường được duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-002
+    title: Tránh ghi toàn bộ đối tượng qua toString(), record hoặc mã sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-003
+    title: Kiểm soát trường log trong SLF4J và Logback mà không phụ thuộc vào mức log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-004
+    title: Chọn điểm xử lý request và response trong filter hoặc interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-005
+    title: Giới hạn dữ liệu từ exception handler và lỗi kiểm tra đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-006
+    title: Rà soát Java agent, cấu hình tự động đo đạc và thuộc tính tùy biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-007
+    title: Kiểm soát tag của Micrometer và thuộc tính tùy biến trong Observation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-008
+    title: Giới hạn dữ liệu ở tác vụ bất đồng bộ, bộ lập lịch và dịch vụ xử lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-009
+    title: Kiểm tra thông tin được công bố qua endpoint quản trị và công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-spring-boot-010
+    title: Xác nhận đầu ra log, metric và OTLP bằng ứng dụng mẫu có dữ liệu giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collector-ottl
+  title: Collector và OTTL
+  childs:
+  - slug: collector-ottl-001
+    title: Chọn attributes, resource, filter hoặc transform processor theo loại kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-002
+    title: Áp dụng danh sách khóa được phép trên resource và từng loại tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-003
+    title: Phân biệt xóa thuộc tính với loại bỏ toàn bộ log record, span hoặc metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-004
+    title: Chọn ngữ cảnh và đường dẫn OTTL cho log, span, sự kiện và điểm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-005
+    title: Xử lý trường lồng nhau, kiểu dữ liệu khác nhau và thuộc tính không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-006
+    title: Tổng quát hóa giá trị và giữ miền giá trị hữu hạn bằng quy tắc biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-007
+    title: Phối hợp tối thiểu hóa với lấy mẫu và tổng hợp theo thứ tự đã kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-008
+    title: Rà soát connector, pipeline phân nhánh và exporter tránh dữ liệu đi vòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-009
+    title: Ngăn debug exporter hoặc log lỗi processor ghi lại dữ liệu nguyên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-ottl-010
+    title: Kiểm tra khả năng hỗ trợ và thay đổi hành vi theo bản phân phối, phiên bản Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transport-storage
+  title: Truyền và lưu trữ
+  childs:
+  - slug: transport-storage-001
+    title: Chỉ gửi tập dữ liệu cần thiết cho từng nơi nhận và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-002
+    title: Giảm việc gửi cùng dữ liệu đến nhiều nền tảng hoặc nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-003
+    title: Kiểm soát bản sao trong queue, spool, bộ đệm bền vững và vùng cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-004
+    title: Xử lý tối thiểu hóa trước khi dữ liệu vượt ranh giới tổ chức hoặc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-005
+    title: Phối hợp thời gian lưu giữ với mức chi tiết và mục đích của dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-006
+    title: Xem xét giảm độ phân giải hoặc tổng hợp khi dữ liệu không còn cần chi tiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-007
+    title: Rà soát dữ liệu trong dashboard, cảnh báo, báo cáo và gói hỗ trợ kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transport-storage-008
+    title: Giới hạn dữ liệu trong bản sao lưu, tệp xuất và dữ liệu đưa sang môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-mode
+  title: Chế độ chẩn đoán
+  childs:
+  - slug: diagnostic-mode-001
+    title: Thiết kế cơ chế tăng mức chi tiết có phạm vi và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-002
+    title: Chỉ bật thu thập bổ sung cho dịch vụ hoặc tình huống điều tra cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-003
+    title: Giữ nguyên ranh giới dữ liệu bị cấm khi bật debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-004
+    title: Đặt giới hạn lưu lượng, số bản ghi và kích thước dữ liệu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-005
+    title: Tự hết hạn cấu hình tạm và xác nhận đã quay về chính sách thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-006
+    title: Phê duyệt, ghi nhận người bật và mục đích sử dụng dữ liệu bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-007
+    title: Kiểm soát gói chẩn đoán, profile và tệp dump trước khi chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-mode-008
+    title: Đánh giá kết quả điều tra để tránh biến ngoại lệ tạm thời thành thu thập thường trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-preservation
+  title: Bảo toàn chất lượng
+  childs:
+  - slug: quality-preservation-001
+    title: Xây dựng kịch bản chẩn đoán làm tiêu chuẩn đánh giá trước và sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-002
+    title: Kiểm tra khả năng phát hiện lỗi hiếm và sự cố có thời gian ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-003
+    title: Đánh giá khả năng liên kết log–trace–metric sau khi bỏ bớt trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-004
+    title: Kiểm tra cảnh báo, truy vấn, dashboard và phép tính SLI/SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-005
+    title: Đánh giá ảnh hưởng của lấy mẫu đối với số đếm, tỷ lệ và phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-006
+    title: Kiểm tra mất khả năng phân nhóm hoặc xung đột dữ liệu khi loại nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-007
+    title: Phân biệt dữ liệu bị bỏ theo chính sách với mất dữ liệu do lỗi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-preservation-008
+    title: Chọn điểm cân bằng bằng bằng chứng thay vì chỉ tối ưu phần trăm giảm dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-evidence
+  title: Kiểm thử và bằng chứng
+  childs:
+  - slug: testing-evidence-001
+    title: Tạo bộ dữ liệu giả lập thể hiện dữ liệu cần giữ và dữ liệu phải loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-002
+    title: Kiểm thử hợp đồng về trường, kiểu dữ liệu và miền giá trị được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-003
+    title: Kiểm thử đầu vào có khóa mới, dữ liệu lồng nhau và giá trị quá giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-004
+    title: Kiểm tra dữ liệu nhạy cảm không tồn tại trong nội dung, thuộc tính và exemplar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-005
+    title: Kiểm thử trực tiếp đầu ra SDK và từng processor trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-006
+    title: Kiểm thử xuyên suốt từ ứng dụng đến kho dữ liệu và các đường xuất phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-007
+    title: Kiểm tra bộ đệm, retry, phát lại và cấu hình dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-008
+    title: Kiểm thử hồi quy truy vấn chẩn đoán và tính đúng của metric sau biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-009
+    title: So sánh dữ liệu trước và sau bằng số trường, độ chi tiết, lưu lượng và mục đích được đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-evidence-010
+    title: Tích hợp cổng kiểm tra trong CI và lưu bằng chứng không chứa dữ liệu thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-incidents
+  title: Hiệu năng và sự cố
+  childs:
+  - slug: performance-incidents-001
+    title: Đo chi phí tạo, tuần tự hóa, truyền và xử lý telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-002
+    title: So sánh hiệu quả giảm tại nguồn với loại bỏ ở collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-003
+    title: Kiểm tra tải cao, cardinality tăng đột biến và hàng đợi đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-004
+    title: Xử lý thiếu tài nguyên mà không tự chuyển sang xuất dữ liệu nguyên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-005
+    title: Quy định hành vi khi cấu hình không hợp lệ hoặc biến đổi dữ liệu thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-006
+    title: Kiểm tra khởi động lại, mất kết nối và phát lại dữ liệu đã lưu đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-007
+    title: Khôi phục phiên bản chính sách mà không tái bật thu thập không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-008
+    title: Phân biệt lượng dữ liệu giảm có chủ đích với mất tín hiệu do sự cố pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-monitoring
+  title: Giám sát liên tục
+  childs:
+  - slug: continuous-monitoring-001
+    title: Theo dõi số bản ghi, số trường, kích thước và lưu lượng theo nguồn phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-002
+    title: Theo dõi số chuỗi thời gian và mức tăng cardinality
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-003
+    title: Phát hiện cấu trúc telemetry thay đổi hoặc xuất hiện trường chưa được duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-004
+    title: Đo tỷ lệ trường dư thừa, bản ghi trùng và dữ liệu không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-005
+    title: Theo dõi lần vượt ngân sách, lỗi biến đổi và lượng dữ liệu bị loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-006
+    title: Cảnh báo khi quy tắc ngừng hoạt động hoặc đường xuất không áp dụng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-007
+    title: Rà soát log và metric của chính bộ kiểm soát để tránh phát sinh dữ liệu dư thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-008
+    title: Đối chiếu mức giảm dữ liệu với chất lượng chẩn đoán và chi phí thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-governance
+  title: Quản trị thay đổi
+  childs:
+  - slug: change-governance-001
+    title: Phân công chủ sở hữu mục đích, hợp đồng dữ liệu và cấu hình thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-002
+    title: Quản lý chính sách bằng phiên bản và quy trình duyệt thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-003
+    title: Triển khai thử trên phạm vi hẹp và so sánh chất lượng tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-004
+    title: Phát hiện lệch cấu hình giữa dịch vụ, môi trường và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-005
+    title: Rà soát lại trường dữ liệu khi thay đổi sản phẩm hoặc nâng cấp thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-006
+    title: Thu hồi trường, dashboard và luồng xuất không còn mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-007
+    title: Quản lý ngoại lệ, thời hạn và bằng chứng kiểm tra định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-008
+    title: Ghi nhận dữ liệu còn thu thập, lý do cần thiết và rủi ro còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-governance-009
+    title: Phối hợp với phân loại, lưu giữ, kiểm soát truy cập và yêu cầu tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Lập danh mục và ma trận mục đích cho telemetry của một API nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế hợp đồng log tối thiểu cho ứng dụng Java/Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Giảm thuộc tính trace và kiểm chứng vẫn điều tra được lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thiết kế nhãn metric hữu hạn và kiểm tra dữ liệu đi kèm exemplar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: So sánh lấy mẫu từ đầu, lấy mẫu theo đuôi và thu thập đầy đủ có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Cấu hình Collector và OTTL để áp dụng chính sách trên nhiều tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thử tình huống debug tạm thời, vượt ngân sách và processor thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Đánh giá tổng thể bằng bộ kiểm thử, chất lượng chẩn đoán và lượng dữ liệu giảm được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

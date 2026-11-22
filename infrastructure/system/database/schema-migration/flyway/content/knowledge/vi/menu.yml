@@ -1,0 +1,383 @@
+menu:
+- level1: Tổng quan Flyway
+  level2:
+  - Flyway là gì và bài toán quản lý thay đổi lược đồ cơ sở dữ liệu
+  - Quan hệ giữa migration, mã nguồn ứng dụng và trạng thái cơ sở dữ liệu
+  - Từ tập lệnh SQL chạy thủ công đến quy trình migration có kiểm soát
+  - 'Các thành phần: migration, bộ thực thi và bảng lịch sử'
+  - 'Luồng học: tạo migration, kiểm tra, triển khai và xử lý sự cố'
+  - Phạm vi Flyway và ranh giới với ORM, công cụ so sánh lược đồ, sao lưu
+  - 'Các mô hình triển khai: khi khởi động ứng dụng, tác vụ riêng và CI/CD'
+  - Lựa chọn phiên bản, ấn bản và đối chiếu tính năng theo giấy phép
+- level1: Kiến thức nền
+  level2:
+  - Cơ sở dữ liệu, schema, catalog và đối tượng được quản lý
+  - DDL, DML và tác động của thay đổi cấu trúc lên dữ liệu
+  - Khóa, giao dịch và giới hạn hoàn tác DDL theo hệ quản trị
+  - Khóa chính, khóa ngoại, chỉ mục và ràng buộc toàn vẹn
+  - Quyền sở hữu đối tượng, tài khoản triển khai và tài khoản ứng dụng
+  - Thứ tự phụ thuộc giữa bảng, view, hàm và thủ tục
+  - Đường cơ sở, sai lệch lược đồ và khả năng tái tạo môi trường
+  - Tiền điều kiện trước khi áp dụng migration lên dữ liệu thực
+- level1: Môi trường thực hành
+  level2:
+  - Chọn hệ quản trị và cố định phiên bản để thực hành
+  - Khởi tạo cơ sở dữ liệu riêng bằng Docker Compose
+  - Chuẩn bị JDBC driver và mô-đun hỗ trợ cơ sở dữ liệu phù hợp
+  - Cài đặt và xác minh Flyway Command-line
+  - Kết nối cơ sở dữ liệu bằng URL, người dùng và thông tin xác thực
+  - Tổ chức thư mục migration và tệp cấu hình ban đầu
+  - Tách môi trường thực hành khỏi môi trường có dữ liệu cần bảo vệ
+  - Xác minh kết nối, schema đích và quyền trước lần chạy đầu
+- level1: Migration đầu tiên
+  level2:
+  - Khởi tạo migration tạo bảng đầu tiên
+  - Kiểm tra migration được phát hiện trước khi thực thi
+  - Chạy migrate và quan sát thay đổi trên cơ sở dữ liệu
+  - Đọc bảng lịch sử sau lần migrate đầu tiên
+  - Chạy migrate lần nữa khi không có migration mới
+  - Thêm migration thay đổi bảng và quan sát thứ tự chạy
+  - Tái tạo cơ sở dữ liệu trống từ cùng bộ migration
+  - Đối chiếu mã nguồn, nhật ký thực thi và lược đồ thực tế
+- level1: Loại migration
+  level2:
+  - 'Migration có phiên bản (versioned): mục đích và vòng đời'
+  - 'Migration lặp lại (repeatable): mục đích và điều kiện chạy lại'
+  - 'Migration hoàn tác (undo): mục đích và điều kiện hỗ trợ'
+  - 'Migration đường cơ sở (baseline migration): mục đích và điều kiện hỗ trợ'
+  - Phân biệt lệnh baseline với baseline migration
+  - 'Migration SQL và migration Java: tiêu chí lựa chọn'
+  - Phụ thuộc và thứ tự giữa các loại migration
+  - Lựa chọn loại migration cho bảng, dữ liệu tham chiếu, view và thủ tục
+- level1: Quy tắc đặt tên
+  level2:
+  - 'Cấu trúc tên: tiền tố, phiên bản, dấu phân cách và mô tả'
+  - Phiên bản số, nhiều thành phần và quy tắc so sánh
+  - Chiến lược đánh số tuần tự và dấu thời gian
+  - Tiền tố và hậu tố cho migration SQL
+  - Đặt tên repeatable migration không có số phiên bản
+  - Đặt tên undo migration tương ứng với migration tiến
+  - Tên migration Java và quy tắc nhận diện lớp
+  - Xử lý trùng phiên bản, tên sai và tệp bị bỏ qua
+  - Quy ước mô tả dễ đọc, ổn định và phù hợp lịch sử Git
+- level1: Vị trí và tài nguyên
+  level2:
+  - Cấu hình locations trên filesystem và classpath
+  - Tổ chức nhiều thư mục và kiểm soát phạm vi quét
+  - Migration trong tài nguyên ứng dụng và gói JAR
+  - Mã hóa tệp, ký tự Unicode và dấu xuống dòng
+  - Thứ tự migration độc lập với thứ tự liệt kê tệp
+  - Tách tài nguyên theo hệ quản trị và tránh nạp nhầm
+  - Đóng gói migration cùng phiên bản phát hành
+  - Chẩn đoán migration không được tìm thấy trong môi trường triển khai
+- level1: Lịch sử migration
+  level2:
+  - Vai trò và cấu trúc bảng flyway_schema_history
+  - Ý nghĩa các trường phiên bản, mô tả, loại và tên tập lệnh
+  - Checksum, người thực thi, thời gian và kết quả thực thi
+  - Thứ tự cài đặt và quan hệ với phiên bản migration
+  - Đọc các trạng thái migration qua lệnh info
+  - Phân biệt Pending, Success, Failed và trạng thái bất thường
+  - Trạng thái Missing, Future, Out of Order và repeatable lỗi thời
+  - Tùy chỉnh tên và schema chứa bảng lịch sử
+  - Giới hạn của bảng lịch sử khi xác minh lược đồ thực tế
+- level1: Lệnh cốt lõi
+  level2:
+  - 'info: xem migration và trạng thái cơ sở dữ liệu'
+  - 'migrate: áp dụng migration còn chờ theo cấu hình'
+  - 'validate: đối chiếu migration với lịch sử đã ghi'
+  - 'baseline: ghi nhận mốc ban đầu cho cơ sở dữ liệu hiện hữu'
+  - 'repair: điều chỉnh siêu dữ liệu lịch sử trong phạm vi cho phép'
+  - 'clean: xóa đối tượng trong phạm vi schema được cấu hình'
+  - 'undo: hoàn tác migration khi phiên bản và giấy phép hỗ trợ'
+  - Kiểm tra tham số, kết quả đầu ra và mã thoát của lệnh
+  - Thiết kế thứ tự kiểm tra và thực thi cho quy trình vận hành
+- level1: Cấu hình Flyway
+  level2:
+  - Các nguồn cấu hình và thứ tự ưu tiên theo công cụ sử dụng
+  - Tệp cấu hình TOML và cấu hình properties theo phiên bản Flyway
+  - Biến môi trường, tham số dòng lệnh và giá trị mặc định
+  - url, user, password và cấu hình kết nối JDBC
+  - schemas, defaultSchema, createSchemas và table
+  - locations, encoding và các quy tắc đặt tên migration
+  - target, outOfOrder, baselineVersion và baselineDescription
+  - validateOnMigrate, cleanDisabled và các lựa chọn an toàn
+  - Quản lý cấu hình dùng chung và phần khác biệt theo môi trường
+  - Kiểm tra cấu hình hiệu lực và tránh lộ thông tin xác thực
+- level1: Thiết kế migration SQL
+  level2:
+  - Mỗi migration là một thay đổi có mục đích và ranh giới rõ ràng
+  - Tạo và thay đổi bảng theo thứ tự phụ thuộc
+  - Thêm cột, giá trị mặc định và ràng buộc NOT NULL
+  - Đổi tên cột, đổi kiểu dữ liệu và kiểm tra dữ liệu tương thích
+  - Tạo khóa ngoại, unique constraint và check constraint
+  - Tạo, thay đổi và xóa chỉ mục
+  - Quản lý view, hàm, thủ tục và trigger
+  - Tách DDL, chuyển đổi dữ liệu và thao tác vận hành khi cần
+  - Giới hạn của IF EXISTS và IF NOT EXISTS trong việc phát hiện sai lệch
+  - Rà soát tập lệnh theo tính xác định, tác động và khả năng phục hồi
+- level1: Giao dịch và khóa
+  level2:
+  - Ranh giới giao dịch khi Flyway thực thi migration
+  - Khả năng giao dịch DDL và hành vi tự commit theo hệ quản trị
+  - Migration gồm câu lệnh được phép và không được phép trong giao dịch
+  - Cấu hình executeInTransaction theo phạm vi và phiên bản hỗ trợ
+  - 'group và mixed: mục đích, điều kiện sử dụng và giới hạn'
+  - Khóa phối hợp giữa các tiến trình Flyway chạy đồng thời
+  - Khóa DDL và tác động đến truy vấn của ứng dụng
+  - Thời gian chờ khóa, thời gian chờ câu lệnh và thời gian chờ kết nối
+  - Phân biệt rollback giao dịch với khôi phục dữ liệu sau triển khai
+- level1: Kiểm tra và checksum
+  level2:
+  - Checksum được dùng để phát hiện thay đổi migration đã áp dụng
+  - Quy tắc giữ bất biến migration đã phát hành
+  - Phân biệt chỉnh sửa migration chưa chạy và migration đã chạy
+  - Lỗi checksum mismatch và cách xác định nguồn thay đổi
+  - Migration bị thiếu, đổi tên hoặc trùng phiên bản
+  - Validation với repeatable migration và giá trị placeholder
+  - Cấu hình ignoreMigrationPatterns theo trường hợp được phép
+  - Cấu hình validateMigrationNaming và phát hiện tên không hợp lệ
+  - Đối chiếu lịch sử nhiều môi trường trước khi xử lý lỗi
+  - Phân biệt kiểm tra lịch sử với phát hiện sai lệch lược đồ
+- level1: Baseline và hệ thống cũ
+  level2:
+  - Đánh giá cơ sở dữ liệu hiện hữu trước khi đưa vào Flyway
+  - Kiểm kê lược đồ, dữ liệu và thay đổi ngoài quản lý
+  - Chọn baselineVersion và quy ước phiên bản tiếp theo
+  - Thực hiện baseline tường minh và kiểm tra lịch sử
+  - 'baselineOnMigrate: hành vi, điều kiện và nguy cơ chọn nhầm đích'
+  - Tạo bộ migration khởi tạo cho môi trường trống
+  - Baseline migration và rút ngắn chuỗi khởi tạo theo khả năng hỗ trợ
+  - Đối chiếu môi trường có baseline với môi trường dựng mới
+  - Kế hoạch tiếp nhận hệ thống cũ mà vẫn giữ dữ liệu và dấu vết
+- level1: Repeatable migration
+  level2:
+  - Khi nào dùng repeatable thay cho versioned migration
+  - Thứ tự repeatable sau các versioned migration còn chờ
+  - Thứ tự giữa các repeatable migration và phụ thuộc đối tượng
+  - Checksum thay đổi và điều kiện repeatable chạy lại
+  - Viết tập lệnh có thể thực thi lặp lại an toàn
+  - Quản lý view, hàm và thủ tục bằng repeatable migration
+  - Dữ liệu tham chiếu và nguy cơ ghi đè thay đổi hợp lệ
+  - Placeholder và chủ đích buộc repeatable thực thi lại
+  - Chẩn đoán repeatable chạy lại ngoài dự kiến
+- level1: Placeholder và tập lệnh
+  level2:
+  - Cơ chế thay thế placeholder trong migration SQL
+  - Placeholder dùng chung và giá trị riêng theo môi trường
+  - Tiền tố, hậu tố và lựa chọn bật tắt thay thế placeholder
+  - Placeholder do Flyway cung cấp và phạm vi hỗ trợ
+  - Phân biệt placeholder với bind parameter của JDBC
+  - Quy tắc trích dẫn identifier, literal và giá trị đặc biệt
+  - Tránh đưa bí mật hoặc dữ liệu không tin cậy vào tập lệnh
+  - Tệp cấu hình riêng cho từng tập lệnh theo phiên bản hỗ trợ
+  - Giữ khả năng kiểm tra và truy vết khi migration có tham số
+- level1: Migration Java
+  level2:
+  - Lý do chọn Java khi chuyển đổi dữ liệu khó diễn đạt bằng SQL
+  - Tạo migration với BaseJavaMigration và migrate(Context)
+  - Sử dụng JDBC Connection do Flyway cung cấp
+  - Vòng đời kết nối, tài nguyên JDBC và quyền điều khiển giao dịch
+  - Đọc và cập nhật dữ liệu theo lô với giới hạn bộ nhớ
+  - Tính xác định và phụ thuộc bên ngoài của migration Java
+  - Checksum migration Java và chiến lược phát hiện thay đổi
+  - Đóng gói, phát hiện lớp và quản lý thư viện phụ thuộc
+  - Kiểm thử migration Java trên cơ sở dữ liệu mục tiêu
+  - Giới hạn khi gọi dịch vụ ngoài hoặc tái sử dụng logic ứng dụng
+- level1: Callbacks và mở rộng
+  level2:
+  - Callback là gì và các sự kiện trong vòng đời Flyway
+  - Callback SQL và quy ước đặt tên theo sự kiện
+  - Callback Java và đăng ký bằng API
+  - Thứ tự, phạm vi giao dịch và tác động khi callback thất bại
+  - Phân biệt callback với migration có phiên bản
+  - Ứng dụng callback cho kiểm tra trước chạy và ghi nhận sau chạy
+  - Tránh thay đổi nghiệp vụ ẩn trong callback
+  - 'Custom resolver và executor: nhu cầu, chi phí và phạm vi hỗ trợ'
+  - Kiểm thử phần mở rộng khi nâng cấp Flyway
+- level1: Công cụ tích hợp
+  level2:
+  - Chạy migration bằng Flyway Command-line
+  - Tích hợp Flyway Maven Plugin và vòng đời Maven
+  - Tích hợp Flyway Gradle Plugin và cấu hình tác vụ
+  - 'Sử dụng Flyway Java API: configure, load và migrate'
+  - Đọc kết quả info, validate và migrate bằng Java API
+  - Chạy Flyway bằng container và gắn tài nguyên migration
+  - Tách classpath của plugin khỏi classpath ứng dụng
+  - Giữ nhất quán phiên bản và cấu hình giữa các công cụ
+  - Lựa chọn một điểm thực thi chính để tránh chạy chồng
+- level1: Spring Boot
+  level2:
+  - Cơ chế Spring Boot tự cấu hình Flyway theo phiên bản sử dụng
+  - Khai báo thư viện Flyway, JDBC driver và mô-đun cơ sở dữ liệu
+  - Cấu hình spring.flyway và nguồn dữ liệu được sử dụng
+  - Migration trên classpath với db/migration
+  - Tách tài khoản migration khỏi tài khoản chạy ứng dụng
+  - Quan hệ giữa Flyway, JPA và Hibernate ddl-auto
+  - Quan hệ với schema.sql, data.sql và thứ tự khởi tạo dữ liệu
+  - Cấu hình theo profile cho phát triển, kiểm thử và triển khai
+  - Điều khiển thời điểm chạy bằng FlywayMigrationStrategy
+  - Khởi động nhiều bản ứng dụng và phối hợp migration
+  - Khi nào chuyển migration ra khỏi quy trình khởi động ứng dụng
+- level1: Khác biệt hệ quản trị
+  level2:
+  - Ma trận hỗ trợ hệ quản trị, driver và phiên bản Flyway
+  - 'PostgreSQL: schema, search_path và câu lệnh ngoài giao dịch'
+  - 'MySQL và MariaDB: DDL tự commit, định danh và cú pháp tập lệnh'
+  - 'SQL Server: schema, batch separator và phụ thuộc đối tượng'
+  - 'Oracle: schema, quyền, sequence và khối PL/SQL'
+  - H2 trong kiểm thử và khác biệt so với cơ sở dữ liệu triển khai
+  - Khác biệt về viết hoa, trích dẫn và độ dài tên đối tượng
+  - Khác biệt về collation, múi giờ và kiểu dữ liệu
+  - Tổ chức migration theo từng hệ quản trị mà vẫn giữ lộ trình rõ ràng
+  - Xác minh hành vi trên đúng phiên bản cơ sở dữ liệu mục tiêu
+- level1: Nhiều schema và tenant
+  level2:
+  - Một cơ sở dữ liệu nhiều schema và phạm vi quản lý của Flyway
+  - Chọn schema mặc định và nơi đặt bảng lịch sử
+  - Một bảng lịch sử chung hay nhiều lịch sử độc lập
+  - Khởi tạo schema và quyền của tài khoản migration
+  - Tenant dùng schema riêng và tenant dùng database riêng
+  - Điều phối thứ tự migration cho nhiều tenant
+  - Phát hiện tenant chậm phiên bản và trạng thái triển khai một phần
+  - Giới hạn đồng thời, khóa và tải khi cập nhật nhiều tenant
+  - Phân biệt nhiều tenant với nhiều datasource trong ứng dụng
+  - Kiểm tra để không chạy migration nhầm schema hoặc tenant
+- level1: Chuyển đổi dữ liệu
+  level2:
+  - Phân biệt dữ liệu tham chiếu, dữ liệu mẫu và dữ liệu nghiệp vụ
+  - Dữ liệu khởi tạo theo môi trường và nguy cơ lẫn dữ liệu mẫu
+  - Backfill cho cột mới mà vẫn duy trì hoạt động ứng dụng
+  - Chia lô cập nhật và giới hạn giao dịch kéo dài
+  - Tiêu chí đặt backfill trong Flyway hoặc tác vụ vận hành riêng
+  - Thiết kế tác vụ dữ liệu có thể tiếp tục sau gián đoạn
+  - Đối chiếu số lượng, tính đầy đủ và ràng buộc sau chuyển đổi
+  - Giảm ghi đè và bảo vệ dữ liệu do người dùng tạo
+  - Dữ liệu nhạy cảm trong migration và dữ liệu kiểm thử
+- level1: Nhánh và phát hành
+  level2:
+  - Phối hợp nhiều người cùng tạo migration
+  - Xung đột phiên bản khi hợp nhất nhánh
+  - Quy tắc đổi số cho migration chưa phát hành
+  - Nhánh tồn tại lâu và migration đến muộn
+  - 'outOfOrder: mục đích, điều kiện bật và hệ quả lịch sử'
+  - 'target: kiểm soát mốc migration của đợt phát hành'
+  - Hotfix cơ sở dữ liệu và đồng bộ ngược vào nhánh chính
+  - Giữ bộ migration nhất quán giữa các nhánh phát hành
+  - Tiêu chí review migration trong pull request
+  - Quản lý migration đã ngừng dùng mà không làm mất lịch sử
+- level1: Kiểm thử migration
+  level2:
+  - Kiểm thử dựng mới cơ sở dữ liệu từ toàn bộ migration
+  - Kiểm thử nâng cấp từ phiên bản phát hành trước
+  - Kiểm thử với dữ liệu đại diện và ràng buộc thực tế
+  - JUnit và Testcontainers cho migration trên hệ quản trị mục tiêu
+  - Kiểm tra bảng, cột, chỉ mục và ràng buộc sau migration
+  - Kiểm thử repeatable, migration Java và callback
+  - Kiểm thử lỗi giữa chừng và giới hạn hoàn tác giao dịch
+  - Kiểm thử chạy đồng thời và phối hợp nhiều tiến trình
+  - Kiểm thử tương thích ứng dụng trước và sau thay đổi
+  - Giữ môi trường kiểm thử độc lập và tái tạo được
+- level1: CI/CD
+  level2:
+  - Kiểm tra tên, phiên bản và nội dung migration trong CI
+  - Dựng cơ sở dữ liệu tạm và chạy migration trong pipeline
+  - Đóng gói một bộ migration bất biến cho mỗi bản phát hành
+  - Triển khai cùng một gói qua các môi trường
+  - Tách bước validate, phê duyệt, migrate và kiểm tra sau chạy
+  - Chọn migration job, init container hoặc bước triển khai riêng
+  - Điều phối một tác vụ migration khi có nhiều bản ứng dụng
+  - Quản lý bí mật và quyền truy cập cơ sở dữ liệu trong pipeline
+  - Mã thoát, nhật ký và điều kiện dừng phát hành
+  - Ngăn triển khai khi lịch sử, checksum hoặc đích kết nối bất thường
+- level1: Triển khai an toàn
+  level2:
+  - Đánh giá tác động DDL trước khi chạy trên môi trường thật
+  - Expand–contract cho thay đổi lược đồ nhiều giai đoạn
+  - Tương thích giữa ứng dụng cũ, ứng dụng mới và lược đồ chuyển tiếp
+  - Thêm cột và backfill trước khi siết ràng buộc
+  - Đổi tên hoặc thay kiểu cột qua các bước chuyển tiếp
+  - Tạo chỉ mục với lựa chọn giảm khóa theo hệ quản trị
+  - Blue–green, rolling deployment và thứ tự đổi lược đồ
+  - Tách thay đổi phá vỡ tương thích khỏi đợt phát hành thường
+  - Cửa sổ bảo trì, ngưỡng thời gian chờ và điều kiện dừng
+  - Kiểm tra sau triển khai trước khi loại bỏ cấu trúc cũ
+- level1: Lỗi và phục hồi
+  level2:
+  - Phân loại lỗi cấu hình, kết nối, xác thực và quyền
+  - Lỗi cú pháp, phụ thuộc đối tượng và dữ liệu vi phạm ràng buộc
+  - Migration thất bại trên hệ quản trị có giao dịch DDL
+  - Migration thất bại khi DDL đã áp dụng một phần
+  - Đối chiếu lược đồ thực tế với lịch sử trước khi can thiệp
+  - Quyết định sửa tiến, chạy lại hoặc khôi phục từ sao lưu
+  - repair thay đổi lịch sử và giới hạn đối với đối tượng cơ sở dữ liệu
+  - Điều kiện kiểm tra và phê duyệt trước khi dùng repair
+  - Xử lý tiến trình bị ngắt, mất kết nối và chờ khóa kéo dài
+  - Ghi nhận nguyên nhân, bằng chứng và các bước phục hồi
+- level1: Rollback và clean
+  level2:
+  - Phân biệt rollback ứng dụng, rollback giao dịch và rollback lược đồ
+  - Forward-fix bằng migration mới thay cho sửa migration đã phát hành
+  - 'Undo migration: điều kiện hỗ trợ và giới hạn phục hồi'
+  - Thay đổi không thể hoàn tác và dữ liệu đã bị xóa
+  - Sao lưu, khôi phục theo thời điểm và kiểm chứng phương án
+  - Kế hoạch quay lui khi lược đồ vẫn phải phục vụ ứng dụng cũ
+  - clean xóa gì trong phạm vi schema được cấu hình
+  - cleanDisabled và chặn thao tác phá hủy ở môi trường thật
+  - Sử dụng clean trong môi trường dùng một lần có kiểm soát
+  - Diễn tập phục hồi trước thay đổi có rủi ro cao
+- level1: Bảo mật và kiểm toán
+  level2:
+  - Nguyên tắc đặc quyền tối thiểu cho tài khoản migration
+  - Tách quyền DDL của triển khai khỏi quyền DML của ứng dụng
+  - Quản lý mật khẩu, biến môi trường và kho bí mật
+  - Kết nối TLS, chứng thư và xác minh máy chủ
+  - Không ghi bí mật hoặc dữ liệu nhạy cảm vào log
+  - Review và bảo vệ chuỗi cung ứng của tập lệnh migration
+  - Truy vết migration tới commit, người phê duyệt và bản phát hành
+  - Bảo vệ bảng lịch sử và kiểm soát thay đổi thủ công
+  - Bằng chứng kiểm toán từ lịch sử Flyway và hệ thống triển khai
+- level1: Giám sát và hiệu năng
+  level2:
+  - Đọc log để xác định migration, thời gian và lỗi
+  - Theo dõi thời lượng migration và phát hiện chậm bất thường
+  - Theo dõi khóa, truy vấn chờ và tải cơ sở dữ liệu
+  - Đặt giới hạn thời gian theo loại thao tác và quy mô dữ liệu
+  - Ước lượng backfill, tạo chỉ mục và thay đổi bảng lớn
+  - Giảm thời gian giữ khóa bằng cách tách migration hợp lý
+  - Kiểm tra trạng thái sau triển khai qua info và kiểm tra lược đồ
+  - Cảnh báo migration thất bại và phát hành bị chặn
+  - Lưu bằng chứng vận hành để so sánh giữa các môi trường
+- level1: Nâng cấp Flyway
+  level2:
+  - Chọn và cố định phiên bản Flyway cho ứng dụng và pipeline
+  - Đọc hướng dẫn nâng cấp và thay đổi phá vỡ tương thích
+  - Kiểm tra tương thích Java, Spring Boot, JDBC driver và cơ sở dữ liệu
+  - Thay đổi cấu hình, mô-đun cơ sở dữ liệu và cách đóng gói
+  - Kiểm tra các tính năng phụ thuộc ấn bản hoặc giấy phép
+  - Thử nâng cấp trên bản sao cơ sở dữ liệu có lịch sử thực
+  - Đối chiếu validate, info, checksum và callback sau nâng cấp
+  - Kế hoạch triển khai và phương án phục hồi khi nâng cấp công cụ
+- level1: Chẩn đoán thường gặp
+  level2:
+  - Không phát hiện migration do vị trí, tên tệp hoặc classpath
+  - Migration bị bỏ qua vì target, baseline hoặc phiên bản hiện tại
+  - Lệch checksum sau thay đổi tệp, placeholder hoặc quy trình đóng gói
+  - Bảng lịch sử tồn tại ở schema khác với dự kiến
+  - Migration báo thành công nhưng đối tượng không ở đích mong muốn
+  - Khác biệt kết quả giữa CLI, Maven, Gradle và Spring Boot
+  - Migration chạy được cục bộ nhưng thất bại trong container hoặc CI
+  - Khóa kéo dài hoặc nhiều tiến trình cùng khởi động
+  - Quy trình thu thập cấu hình đã che bí mật, lịch sử và log để điều tra
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng bộ migration tạo lược đồ và dữ liệu tham chiếu
+  - Viết repeatable migration quản lý view có phụ thuộc
+  - Tiếp nhận cơ sở dữ liệu cũ bằng baseline có kiểm chứng
+  - Giải quyết xung đột phiên bản khi hợp nhất hai nhánh
+  - Mô phỏng lỗi giữa chừng và phục hồi theo hành vi DDL
+  - Chuyển đổi cột bằng expand–contract và backfill
+  - Tích hợp Spring Boot, Testcontainers và pipeline migration
+  - Triển khai nhiều schema hoặc tenant với lịch sử rõ ràng
+  - Diễn tập phát hành, quan sát lỗi và phục hồi dữ liệu
+  - Danh sách kiểm tra hoàn tất từ phát triển đến vận hành

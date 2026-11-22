@@ -1,0 +1,389 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Fluentd là gì và bài toán tập trung log trong hệ thống quan sát
+  - Lớp ghi log thống nhất và đường đi từ ứng dụng đến nơi lưu trữ
+  - Phân biệt thu thập, xử lý, chuyển tiếp, lưu trữ và truy vấn log
+  - Vai trò của log, metric và trace; phạm vi tích hợp của Fluentd
+  - Phân biệt Fluentd, Fluent Bit, Logstash và OpenTelemetry Collector
+  - Khi nào chọn Fluentd và khi nào cần công cụ khác
+  - Kiến thức nền về Linux, mạng, JSON, container và hệ thống phân tán
+  - Lộ trình học từ một luồng log đến hệ thống vận hành thực tế
+- level1: Kiến trúc
+  level2:
+  - Mô hình sự kiện gồm tag, thời gian và bản ghi
+  - Cấu trúc bản ghi, kiểu dữ liệu và các trường lồng nhau
+  - Chu trình sự kiện qua input, filter, router, buffer và output
+  - Tiến trình supervisor, worker và vòng đời của plugin
+  - 'Phân loại plugin: input, parser, filter, output, formatter, buffer, storage, service discovery, metrics'
+  - Phân biệt plugin lõi, plugin đóng gói sẵn và plugin cộng đồng
+  - Xử lý đồng bộ, có bộ đệm và bất đồng bộ ở đầu ra
+  - Phân biệt trạng thái đọc tệp, trạng thái plugin và bộ đệm đầu ra
+  - Mô hình agent tại máy nguồn, bộ tổng hợp tập trung và nhiều tầng
+  - Ranh giới trách nhiệm giữa Fluentd, ứng dụng và hệ thống lưu trữ
+- level1: Cài đặt
+  level2:
+  - Lựa chọn phiên bản Fluentd, Ruby và kênh phân phối được hỗ trợ
+  - Cài Fluent Package trên Linux và quản lý dịch vụ systemd
+  - Cài đặt trên Windows và các khác biệt về dịch vụ, đường dẫn, tín hiệu
+  - Cài bằng RubyGems và quản lý môi trường thực thi
+  - Chạy Fluentd bằng container với phiên bản image cố định
+  - Phân biệt Fluent Package với td-agent trong tài liệu cũ
+  - Cài đặt, liệt kê và khóa phiên bản plugin bằng fluent-gem hoặc Bundler
+  - Chuẩn bị thư mục cấu hình, log nội bộ, pos_file và bộ đệm
+  - Cấp quyền đọc nguồn log và quyền ghi dữ liệu trạng thái
+  - Chạy cấu hình tối thiểu, gửi log bằng fluent-cat và kiểm tra stdout
+- level1: Cấu hình
+  level2:
+  - Cấu trúc fluentd.conf và các khối source, filter, match, label, system
+  - Tham số chung @type, @id, @label và @log_level
+  - Kiểu giá trị, đơn vị thời gian, kích thước và quy tắc trích dẫn
+  - Tách cấu hình bằng @include và kiểm soát thứ tự nạp tệp
+  - Nội suy biến môi trường và biểu thức Ruby trong cấu hình
+  - Phạm vi sử dụng placeholder và sự khác biệt với nội suy cấu hình
+  - Vai trò các khối parse, format, extract, inject, buffer và transport
+  - Cấu hình lưu trạng thái với storage theo khả năng của plugin
+  - Cấu hình YAML và khác biệt so với cú pháp fluentd.conf
+  - Kiểm tra cú pháp với --dry-run và nhận diện tham số không hợp lệ
+  - Đặt @id ổn định và tổ chức cấu hình theo môi trường
+- level1: Định tuyến
+  level2:
+  - Thiết kế không gian tag theo dịch vụ, môi trường và loại log
+  - Quy tắc khớp tag bằng dấu chấm, *, ** và các mẫu kết hợp
+  - Thứ tự filter và match trong chuỗi xử lý
+  - Quy tắc chọn match đầu tiên và lỗi bị bắt bởi match quá rộng
+  - Tách luồng xử lý bằng label và chuyển hướng với @label
+  - Chuyển luồng bằng relabel và trở về bộ định tuyến gốc với @ROOT
+  - Gửi đến nhiều đích bằng copy và các khối store
+  - Cô lập biến đổi giữa các nhánh copy và lựa chọn copy_mode
+  - Đổi tag theo nội dung bằng plugin rewrite_tag_filter
+  - Xử lý sự kiện lỗi qua @ERROR theo khả năng phát lỗi của plugin
+  - Nhận diện sự kiện không khớp, vòng lặp định tuyến và log tự thu thập
+- level1: Đọc tệp
+  level2:
+  - Thu thập log văn bản bằng input tail
+  - Chọn path, exclude_path và phạm vi tệp theo mẫu
+  - Theo dõi vị trí đọc bằng pos_file và yêu cầu không dùng chung
+  - read_from_head và hành vi khi phát hiện tệp mới hoặc khởi động lại
+  - Theo dõi inode và xử lý luân chuyển log kiểu rename
+  - Rủi ro mất hoặc lặp log với copytruncate
+  - Phối hợp follow_inodes, rotate_wait và refresh_interval
+  - Thu thập từ nhiều tệp và giữ đường dẫn nguồn bằng path_key
+  - Mã hóa ký tự, chuyển đổi UTF-8 và dòng dữ liệu không hợp lệ
+  - Giới hạn dòng đọc, tốc độ đọc và kích thước một dòng log
+  - Đọc tệp bị chặn khi bộ đệm đầy và giới hạn giữ log tại nguồn
+  - Bảo toàn pos_file khi triển khai lại, sao lưu và thay đổi đường dẫn
+  - Chẩn đoán lỗi quyền đọc, tệp bị xóa và vị trí đọc không còn phù hợp
+- level1: Mạng và hệ thống
+  level2:
+  - Nhận sự kiện theo giao thức Forward bằng input forward
+  - Nhận dữ liệu HTTP và kiểm soát phương thức, định dạng, kích thước
+  - Nhận log TCP và xác định ranh giới bản tin
+  - Nhận log UDP và giới hạn về độ tin cậy, kích thước gói
+  - Thu thập Syslog và phân biệt định dạng RFC 3164 với RFC 5424
+  - Phối hợp parser với từng loại input mạng
+  - Thiết lập bind, cổng, timeout và giới hạn kết nối theo plugin
+  - Gắn thông tin máy gửi và kiểm soát dữ liệu do bên gửi cung cấp
+  - Thu thập qua exec và Unix socket theo đặc điểm nguồn
+  - Thu thập systemd journal bằng plugin và quản lý vị trí đọc
+  - Thu thập Windows Event Log bằng plugin tương thích
+  - Tạo dữ liệu mẫu bằng input dummy để thử luồng xử lý
+- level1: Phân tích cú pháp
+  level2:
+  - Vai trò parser tại đầu vào và filter parser trong chuỗi xử lý
+  - Đọc log JSON và phân biệt JSON hợp lệ với cấu trúc bản ghi mong muốn
+  - Phân tích văn bản bằng regexp và nhóm bắt có tên
+  - Đọc các định dạng CSV, TSV, LTSV và dữ liệu phân tách
+  - Sử dụng parser Apache, Nginx và Syslog theo định dạng nguồn
+  - Giữ nguyên thông điệp bằng parser none
+  - Phân tích JSON nằm trong trường message của một bản ghi khác
+  - Chuyển kiểu bằng types và xử lý giá trị rỗng theo parser
+  - Giữ dữ liệu gốc với reserve_data, reserve_time và các tùy chọn liên quan
+  - Truy cập trường lồng nhau bằng record accessor ở plugin có hỗ trợ
+  - Xử lý lỗi phân tích và tuyến lỗi bằng emit_invalid_record_to_error
+  - Xây dựng bộ mẫu log đúng, sai và biên để kiểm chứng parser
+- level1: Thời gian
+  level2:
+  - Phân biệt thời gian sự kiện, thời gian tiếp nhận và thời gian đến đích
+  - Đọc timestamp với time_key, time_type và time_format
+  - Xử lý múi giờ, UTC và độ lệch đồng hồ giữa các máy
+  - Giữ trường thời gian gốc với keep_time_key khi cần
+  - Độ chính xác dưới giây và kiểu thời gian Fluent::EventTime
+  - Hành vi khi thiếu timestamp hoặc không phân tích được thời gian
+  - Phân vùng theo thời gian và ảnh hưởng của sự kiện đến muộn
+  - Kiểm tra timestamp xuyên suốt từ nguồn đến nơi lưu trữ
+- level1: Log nhiều dòng
+  level2:
+  - Nhận diện sự kiện nhiều dòng và ranh giới bắt đầu bản ghi
+  - Phân tích stack trace Java bằng parser multiline của in_tail
+  - Thiết kế format_firstline và các mẫu formatN
+  - Đẩy bản ghi chưa hoàn tất bằng multiline_flush_interval
+  - Xử lý dòng xuất hiện trước dòng đầu và bản ghi bị cắt
+  - Phân biệt ghép dòng tại in_tail với phân tích trường đã chứa xuống dòng
+  - Ghép nhiều sự kiện sau đầu vào bằng plugin concat
+  - Tách luồng ghép theo nguồn để tránh trộn log giữa các container
+  - Xử lý log bị chia đoạn và kiểm soát bộ nhớ khi ghép dòng
+- level1: Lọc dữ liệu
+  level2:
+  - Lọc bản ghi bằng plugin grep
+  - Kết hợp regexp, exclude và các điều kiện and, or
+  - Lọc theo mức độ log, dịch vụ, môi trường và trường lồng nhau
+  - Xử lý trường thiếu, null và giá trị không đúng kiểu khi lọc
+  - Loại bỏ bản ghi không cần thiết trước các bước xử lý tốn tài nguyên
+  - Giảm dữ liệu bằng lấy mẫu thông qua plugin phù hợp
+  - Giữ lại lỗi và sự kiện quan trọng khi áp dụng chính sách giảm log
+  - Đo lượng dữ liệu bị loại và kiểm thử quy tắc lọc ngoài ý muốn
+- level1: Biến đổi và làm giàu
+  level2:
+  - Thêm, thay đổi và xóa trường bằng record_transformer
+  - Chọn trường với keep_keys, remove_keys và renew_record
+  - Giữ kiểu dữ liệu với auto_typecast và nhận diện giới hạn
+  - Dùng enable_ruby có kiểm soát về hiệu năng và an toàn
+  - Chuẩn hóa tên trường, mức độ log và thông tin dịch vụ
+  - Thêm hostname, môi trường triển khai và thuộc tính nguồn
+  - Làm giàu từ dữ liệu tra cứu bằng plugin phù hợp
+  - Giữ trace_id, span_id, request_id và thông tin tương quan
+  - Quản lý phiên bản cấu trúc bản ghi và thay đổi tương thích
+  - Kiểm soát xung đột tên trường, ghi đè dữ liệu và kích thước bản ghi
+- level1: Xuất dữ liệu
+  level2:
+  - Chọn output theo giao thức, độ tin cậy và khả năng của đích
+  - Phân biệt đầu ra không có bộ đệm và đầu ra có bộ đệm
+  - Kiểm tra dữ liệu bằng output stdout và loại bỏ có chủ đích bằng null
+  - Ghi log bằng output file và tổ chức đường dẫn đầu ra
+  - Định dạng JSON, MessagePack và văn bản theo khả năng formatter
+  - Sử dụng khối format và inject để bổ sung tag hoặc thời gian
+  - Trích xuất thời gian hoặc tag với extract ở plugin có hỗ trợ
+  - Thiết kế chia lô, nén và giới hạn kích thước yêu cầu
+  - Gửi qua output HTTP và xử lý mã phản hồi theo plugin
+  - Đánh giá hành vi thành công một phần và lỗi theo từng bản ghi
+- level1: Bộ đệm
+  level2:
+  - 'Vai trò bộ đệm và vòng đời chunk: tạo, đưa vào hàng đợi, gửi, xác nhận'
+  - So sánh bộ đệm memory, file và điều kiện lưu bền
+  - Tách đường dẫn bộ đệm theo plugin, worker và phiên bản triển khai
+  - Chia chunk theo tag, time và khóa bản ghi
+  - Mối liên hệ giữa chunk key, placeholder và đường dẫn đầu ra
+  - Phân vùng theo timekey, timekey_wait và múi giờ
+  - Đặt chunk_limit_size, chunk_limit_records và chunk_full_threshold
+  - Giới hạn tổng dung lượng bằng total_limit_size và số chunk chờ
+  - Chọn flush_mode, flush_interval và flush_thread_count
+  - Nén chunk và đánh đổi CPU, bộ nhớ, dung lượng đĩa
+  - Xử lý đầy bộ đệm bằng throw_exception, block hoặc drop_oldest_chunk
+  - Tính dung lượng đệm theo lưu lượng, thời gian gián đoạn và hệ số an toàn
+  - Kiểm tra khả năng tiếp tục gửi sau khi tiến trình khởi động lại
+  - Giới hạn của bộ đệm tệp khi đĩa hỏng, hết chỗ hoặc mất volume
+  - Tách tầng tiếp nhận và xử lý bằng output buffer kết hợp label
+- level1: Thử lại và lỗi
+  level2:
+  - Phân biệt lỗi có thể thử lại với lỗi không thể khôi phục bằng thử lại
+  - Thử lại theo chu kỳ và exponential_backoff
+  - Phối hợp retry_wait, retry_max_interval và retry_randomize
+  - Giới hạn thử lại bằng retry_timeout và retry_max_times
+  - retry_forever và nguy cơ tích lũy dữ liệu trong gián đoạn kéo dài
+  - Xử lý timeout và gửi lại chunk chưa được xác nhận
+  - Dùng secondary khi đầu ra chính thất bại kéo dài
+  - Kiểm tra tương thích chunk giữa output chính và secondary
+  - Lưu chunk lỗi bằng secondary_file hoặc cơ chế backup
+  - Phân biệt @ERROR, secondary và hàng đợi cách ly tự thiết kế
+  - Khôi phục chunk được bảo toàn khi hết lượt thử lại theo phiên bản Fluentd
+  - Quản lý dữ liệu cách ly, thời hạn lưu và quy trình nạp lại
+- level1: Giao thức Forward
+  level2:
+  - Các chế độ bản tin, MessagePack và tương thích giao thức Forward
+  - Kết nối out_forward với in_forward
+  - Thiết kế danh sách server, trọng số và máy dự phòng standby
+  - Theo dõi tình trạng nút bằng heartbeat và cơ chế phát hiện lỗi
+  - Cấu hình require_ack_response và ack_response_timeout
+  - Ý nghĩa ACK ở nút nhận và giới hạn xác nhận đến đích cuối
+  - Rủi ro bản ghi trùng khi mất ACK hoặc hết thời gian chờ
+  - Thiết lập TLS và xác minh chứng chỉ giữa các nút
+  - Xác thực bằng shared_key và tài khoản theo cấu hình security
+  - Nén dữ liệu và điều chỉnh timeout kết nối, gửi, nhận
+  - Khám phá máy đích qua service_discovery và DNS
+  - Tích hợp Fluent Bit chuyển tiếp dữ liệu đến Fluentd
+  - Kiểm chứng chuyển máy đích khi một bộ tổng hợp gặp sự cố
+- level1: Đích lưu trữ
+  level2:
+  - Đánh giá plugin đích theo phiên bản, bảo trì và mô hình xác nhận
+  - Gửi Elasticsearch bằng plugin và thiết kế index, mapping, định danh
+  - Tích hợp OpenSearch bằng plugin tương thích với phiên bản máy chủ
+  - Gửi Loki và chọn nhãn có số giá trị khác nhau được kiểm soát
+  - Gửi Kafka và thiết kế topic, khóa phân vùng, thứ tự trong phân vùng
+  - Lưu trữ S3 hoặc kho tương thích bằng plugin và phân vùng đối tượng
+  - Tích hợp dịch vụ log đám mây với giới hạn quyền và hạn mức
+  - Xử lý giới hạn tốc độ, phản hồi quá tải và giới hạn kích thước của đích
+  - Phân biệt chính sách giữ log của hệ thống lưu trữ với dung lượng buffer
+  - Đối soát dữ liệu giữa bản ghi Fluentd gửi và bản ghi đích chấp nhận
+- level1: Java và Spring Boot
+  level2:
+  - Chọn log JSON ra stdout, tệp hoặc gửi trực tiếp từ ứng dụng
+  - Thiết kế cấu trúc log với Logback hoặc Log4j2
+  - Thu thập log Spring Boot từ tệp mà không phụ thuộc appender Fluentd
+  - Thu thập stdout của ứng dụng chạy trong container
+  - Phân tích stack trace và giữ đầy đủ chuỗi nguyên nhân ngoại lệ
+  - Đưa dữ liệu MDC và mã tương quan vào bản ghi log
+  - Liên kết log với trace qua trace_id và span_id
+  - Kiểm soát dữ liệu nhạy cảm trong request, header và thông báo lỗi
+  - Đánh giá appender gửi Forward về tương thích, bất đồng bộ và bộ đệm
+  - Kiểm chứng ảnh hưởng của sự cố pipeline đến ứng dụng phát log
+- level1: Docker
+  level2:
+  - Xây dựng image Fluentd với danh sách plugin và phiên bản cố định
+  - Gắn cấu hình, dữ liệu nguồn, pos_file và buffer bằng volume
+  - Chạy không đặc quyền và xử lý quyền UID, GID của volume
+  - Thu thập log qua Docker logging driver Fluentd
+  - So sánh logging driver với đọc tệp hoặc cơ chế thu thập khác
+  - Cấu hình bất đồng bộ của logging driver và giới hạn lưu đệm phía Docker
+  - Tổ chức môi trường thử nghiệm nhiều dịch vụ bằng Docker Compose
+  - Kiểm tra hành vi khi collector dừng, container bị tạo lại hoặc mất volume
+- level1: Kubernetes
+  level2:
+  - Chọn DaemonSet, sidecar hoặc bộ tổng hợp dùng Deployment, StatefulSet
+  - Đọc log container từ đường dẫn node và xử lý symlink
+  - Phân biệt định dạng Docker JSON với CRI
+  - Ghép log chia đoạn theo runtime trước khi phân tích nội dung ứng dụng
+  - Làm giàu pod, namespace, container và label bằng plugin metadata
+  - Cấp RBAC tối thiểu cho việc đọc metadata Kubernetes
+  - Quản lý bộ nhớ đệm metadata và lỗi kết nối Kubernetes API
+  - Tổ chức ConfigMap, Secret và cập nhật cấu hình có kiểm chứng
+  - Bảo toàn pos_file, buffer với hostPath hoặc volume phù hợp
+  - Thiết lập requests, limits và xử lý OOMKilled, eviction
+  - Kiểm tra sức khỏe và phân biệt sẵn sàng nhận log với gửi log thành công
+  - Triển khai nhiều bộ tổng hợp và bảo vệ trạng thái cục bộ
+  - Ứng xử khi pod đổi node, node hỏng hoặc cụm nâng cấp
+  - Tránh thu thập log Fluentd lặp vô hạn và trùng dữ liệu giữa agent
+- level1: Bảo mật
+  level2:
+  - Xác định ranh giới tin cậy từ nguồn log đến hệ thống lưu trữ
+  - Hạn chế bind, cổng công khai và truy cập mạng đến Fluentd
+  - Mã hóa đường truyền bằng TLS và xác thực hai chiều khi được hỗ trợ
+  - Quản lý chứng chỉ, thời hạn và quy trình thay chứng chỉ
+  - Quản lý thông tin xác thực qua môi trường, tệp bảo mật và Secret
+  - Giới hạn quyền đọc log, ghi buffer và quyền truy cập tại đích
+  - Lọc, che và loại bỏ dữ liệu nhạy cảm trước khi gửi
+  - Đánh giá dữ liệu nhạy cảm còn lưu trong log nguồn, buffer và bản cách ly
+  - Kiểm soát dữ liệu không tin cậy, biểu thức chính quy và Ruby nhúng
+  - Đánh giá chuỗi cung ứng image, gem và plugin bên thứ ba
+  - Bảo vệ monitor_agent, endpoint metric và giao diện RPC
+  - Cô lập dữ liệu giữa các nhóm sử dụng và kiểm tra nhật ký thay đổi
+- level1: Đảm bảo dữ liệu
+  level2:
+  - Phân biệt at-most-once, at-least-once và điều kiện áp dụng
+  - Đánh giá độ tin cậy theo từng chặng thay vì suy diễn từ một ACK
+  - Vì sao bộ đệm và ACK không tự tạo bảo đảm exactly-once toàn hệ thống
+  - Tạo định danh sự kiện và khử trùng lặp tại đích
+  - Giới hạn thứ tự khi có nhiều nguồn, chunk, luồng gửi và worker
+  - Điểm có thể mất dữ liệu ở nguồn, mạng, bộ đệm và hệ thống lưu trữ
+  - Đối chiếu pos_file với trạng thái đã gửi và dữ liệu đã được đích ghi nhận
+  - Thiết kế nạp lại dữ liệu với timestamp và định danh được giữ nguyên
+  - Xác định tiêu chí chấp nhận về mất log, trùng log và độ trễ
+- level1: Mở rộng hệ thống
+  level2:
+  - Thiết kế lớp agent và lớp bộ tổng hợp độc lập
+  - Cân bằng tải và dự phòng cho nhiều bộ tổng hợp
+  - Tăng số worker bằng workers trong system
+  - Giới hạn tương thích đa worker của từng loại plugin
+  - Gán in_tail hoặc plugin không hỗ trợ đa worker vào worker cụ thể
+  - Tách pos_file, đường dẫn buffer và đường dẫn xuất giữa các worker
+  - Phân vùng luồng dữ liệu theo dịch vụ hoặc nhóm sử dụng
+  - Cô lập nguồn có lưu lượng lớn và đích có tốc độ xử lý thấp
+  - Lựa chọn chỉ số mở rộng ngoài mức sử dụng CPU
+  - Đánh giá tăng giảm số nút khi chunk vẫn lưu trên đĩa cục bộ
+- level1: Hiệu năng
+  level2:
+  - Đo thông lượng, độ trễ đầu cuối và mức sử dụng tài nguyên
+  - Tạo bộ dữ liệu đo hiệu năng có kích thước và định dạng thực tế
+  - Xác định điểm nghẽn ở parser, filter, buffer, mạng hoặc đích
+  - Tối ưu regexp, số bước biến đổi và mã Ruby trên mỗi bản ghi
+  - Đánh giá số giá trị tag, chunk key và số chunk nhỏ
+  - Điều chỉnh kích thước lô, số luồng gửi và chu kỳ flush
+  - Đánh đổi thông lượng với độ trễ và khả năng giữ thứ tự
+  - Đo CPU, bộ nhớ Ruby, thu gom rác và giới hạn container
+  - Đo IOPS, dung lượng đĩa, file descriptor và băng thông mạng
+  - Phân tích áp lực ngược từ đích chậm lan về từng loại input
+  - Dự toán tài nguyên và chi phí theo lưu lượng bình thường, đột biến, phục hồi
+- level1: Giám sát
+  level2:
+  - Quan sát log nội bộ của Fluentd theo mức độ và @id plugin
+  - Đọc trạng thái plugin qua input monitor_agent
+  - Xuất metric bằng plugin prometheus và prometheus_output_monitor
+  - Đo tốc độ nhận, tốc độ gửi, lỗi parser và sự kiện bị loại
+  - Theo dõi số chunk chờ, dung lượng buffer và số lần thử lại
+  - Theo dõi đĩa, bộ nhớ, CPU, số tệp mở và số lần tiến trình khởi động lại
+  - Đo độ trễ đầu cuối bằng timestamp và sự kiện kiểm tra định kỳ
+  - Phân biệt đếm sự kiện qua plugin với đích đã lưu bền thành công
+  - Kiểm soát số giá trị nhãn metric để tránh tăng tải giám sát
+  - Xây dựng bảng theo dõi sức khỏe pipeline bằng Prometheus và Grafana
+  - Cảnh báo buffer tăng, đích gián đoạn, lỗi xử lý và nguy cơ đầy đĩa
+  - Thiết kế SLI, SLO và ngưỡng cảnh báo dựa trên tác động thực tế
+- level1: Vận hành
+  level2:
+  - Quản lý cấu hình và danh sách plugin bằng hệ thống kiểm soát phiên bản
+  - Thẩm định thay đổi cấu hình bằng kiểm tra tự động trước triển khai
+  - Phân biệt khởi động lại, nạp lại cấu hình và thay đổi system
+  - Xử lý tín hiệu dừng, flush và nạp lại theo hệ điều hành, phiên bản
+  - Giới hạn hỗ trợ của zero-downtime restart theo loại input
+  - Source Only Mode và bộ đệm tiếp nhận tạm thời trong quá trình khởi động
+  - Lập kế hoạch dừng có kiểm soát với bộ đệm memory và file
+  - Triển khai thử trên nhóm nhỏ và đối chiếu dữ liệu trước mở rộng
+  - Nâng cấp Fluentd, Fluent Package, Ruby và plugin theo ma trận tương thích
+  - Di chuyển từ td-agent và nhận diện cấu hình v0.12 trong hệ thống cũ
+  - Sao lưu cấu hình, pos_file và dữ liệu buffer một cách nhất quán
+  - Hoàn tác triển khai mà không làm hỏng trạng thái hoặc đọc lại ngoài ý muốn
+  - Quản lý thay đổi thông tin xác thực và thời hạn chứng chỉ
+  - Lập quy trình phục hồi sau sự cố máy chủ, volume hoặc đích lưu trữ
+- level1: Xử lý sự cố
+  level2:
+  - Chẩn đoán Fluentd không khởi động do cú pháp hoặc plugin bị thiếu
+  - Chẩn đoán không có log từ nguồn bằng kiểm tra từng chặng
+  - Xử lý tag không khớp, sai label và thứ tự match
+  - Xử lý pattern not match, JSON lỗi và timestamp sai
+  - Xử lý log nhiều dòng bị tách, ghép sai hoặc chờ quá lâu
+  - Xử lý log thiếu hoặc trùng sau luân chuyển tệp và khởi động lại
+  - Chẩn đoán BufferOverflowError và BufferChunkOverflowError
+  - Chẩn đoán slow flush, retry kéo dài và kết nối đích bị từ chối
+  - Xử lý lỗi TLS, xác thực, DNS và heartbeat
+  - Khôi phục dung lượng đĩa mà không tự ý xóa chunk chưa gửi
+  - Phân biệt chunk backup, chunk được bảo toàn và dữ liệu có thể nạp lại
+  - Chẩn đoán OOM, CPU cao, rò rỉ tài nguyên và lỗi plugin
+  - Lập hồ sơ sự cố từ mẫu log, cấu hình tối thiểu và metric liên quan
+- level1: Kiểm thử
+  level2:
+  - Kiểm tra cấu hình và phụ thuộc plugin trong môi trường tái lập
+  - Kiểm thử parser, filter và định tuyến bằng tập mẫu đầu vào, đầu ra
+  - Kiểm thử plugin Ruby với Fluent::Test::Driver và công cụ phù hợp
+  - Kiểm thử tích hợp nguồn, Fluentd và đích có bộ đệm bền
+  - Đối chiếu Unicode, kiểu dữ liệu, timestamp và trường bị loại
+  - Kiểm tra dữ liệu nhạy cảm ở mọi đầu ra và đường lỗi
+  - Mô phỏng đích chậm, lỗi phản hồi, mất kết nối và mất ACK
+  - Mô phỏng đầy đĩa, hết bộ nhớ, dừng đột ngột và volume bị mất
+  - Kiểm thử luân chuyển tệp, khởi động lại và tiếp tục đọc từ pos_file
+  - Đo mất, trùng, sai thứ tự và độ trễ bằng mã sự kiện duy nhất
+  - Kiểm thử nâng cấp, hoàn tác và khả năng đọc dữ liệu buffer cũ
+  - Thiết lập tiêu chí nghiệm thu và lưu bằng chứng kiểm thử đầu cuối
+- level1: Phát triển plugin
+  level2:
+  - Khi nào cần plugin riêng và khi nào chỉ cần cấu hình
+  - Cấu trúc gem và quy tắc đặt tên plugin Fluentd
+  - Đăng ký plugin và khai báo tham số bằng API Fluent::Plugin
+  - Các mốc vòng đời configure, start, stop, shutdown và close
+  - Phát triển input để phát sự kiện qua router
+  - Phát triển filter để biến đổi và xử lý bản ghi lỗi
+  - Phát triển output và phân biệt process, write với try_write
+  - Quản lý commit, rollback và phân loại lỗi ở output bất đồng bộ
+  - Tái sử dụng plugin helper cho timer, server, parser và storage
+  - Khai báo khả năng đa worker và bảo đảm an toàn truy cập trạng thái
+  - Kiểm thử, đo hiệu năng, đóng gói và công bố ma trận tương thích
+- level1: Bài thực hành
+  level2:
+  - Xây dựng luồng file JSON đến stdout và kiểm chứng từng trường
+  - Thu thập access log Nginx với parser, lọc và chuẩn hóa
+  - Thu thập Spring Boot với JSON, MDC và stack trace nhiều dòng
+  - Dựng agent và bộ tổng hợp Forward có TLS, ACK và file buffer
+  - Gửi đồng thời đến nơi tìm kiếm và kho lưu trữ dài hạn
+  - Thu thập Kubernetes với CRI, ghép dòng và metadata pod
+  - Bổ sung metric, bảng theo dõi và cảnh báo nguy cơ đầy buffer
+  - Diễn tập đích ngừng hoạt động rồi phục hồi và đối soát dữ liệu
+  - Diễn tập nâng cấp hoặc hoàn tác với trạng thái đọc và chunk còn tồn
+  - Thiết kế pipeline hoàn chỉnh với mục tiêu độ trễ, bảo mật và khả năng phục hồi

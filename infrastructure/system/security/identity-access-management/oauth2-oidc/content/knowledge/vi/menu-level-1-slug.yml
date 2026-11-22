@@ -1,0 +1,112 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Vai trò và ranh giới
+  slug: roles-and-boundaries
+  index: 1
+- title: Client và đăng ký
+  slug: client-registration
+  index: 2
+- title: Endpoint và metadata
+  slug: endpoints-and-metadata
+  index: 3
+- title: Token và mã
+  slug: tokens-and-codes
+  index: 4
+- title: Scope và tài nguyên
+  slug: scopes-and-resources
+  index: 5
+- title: Authorization Code
+  slug: authorization-code
+  index: 6
+- title: PKCE, state và nonce
+  slug: pkce-state-nonce
+  index: 7
+- title: Redirect và callback
+  slug: redirect-callback
+  index: 8
+- title: Luồng OIDC
+  slug: oidc-flows
+  index: 9
+- title: Xác minh ID token
+  slug: id-token-validation
+  index: 10
+- title: Claim và danh tính
+  slug: claims-and-identity
+  index: 11
+- title: UserInfo và consent
+  slug: userinfo-and-consent
+  index: 12
+- title: Đăng nhập và phiên
+  slug: login-and-sessions
+  index: 13
+- title: Xác thực client
+  slug: client-authentication
+  index: 14
+- title: Machine-to-machine
+  slug: machine-to-machine
+  index: 15
+- title: Thiết bị và CLI
+  slug: devices-and-cli
+  index: 16
+- title: Refresh token
+  slug: refresh-token
+  index: 17
+- title: Resource server
+  slug: resource-server
+  index: 18
+- title: JWT và JWKS
+  slug: jwt-and-jwks
+  index: 19
+- title: Phân quyền API
+  slug: api-authorization
+  index: 20
+- title: Thu hồi token
+  slug: token-revocation
+  index: 21
+- title: Đăng xuất OIDC
+  slug: oidc-logout
+  index: 22
+- title: Ứng dụng trình duyệt
+  slug: browser-applications
+  index: 23
+- title: Ứng dụng di động
+  slug: mobile-applications
+  index: 24
+- title: Bảo vệ yêu cầu
+  slug: request-protection
+  index: 25
+- title: Token Exchange
+  slug: token-exchange
+  index: 26
+- title: Ràng buộc người gửi
+  slug: sender-constrained-tokens
+  index: 27
+- title: Chuẩn và hệ cũ
+  slug: standards-and-legacy-systems
+  index: 28
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 29
+- title: Riêng tư và tài khoản
+  slug: privacy-and-accounts
+  index: 30
+- title: Nhiều tenant
+  slug: multi-tenancy
+  index: 31
+- title: Thiết kế tích hợp
+  slug: integration-design
+  index: 32
+- title: Vận hành
+  slug: operations
+  index: 33
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 34
+- title: Kiểm thử
+  slug: testing
+  index: 35
+- title: Thực hành
+  slug: practice
+  index: 36

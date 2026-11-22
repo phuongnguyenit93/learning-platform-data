@@ -1,0 +1,49 @@
+roadmap:
+- id: attack-surface-pham-vi
+  title: Attack Surface & Phạm vi
+  purpose: Hiểu bề mặt tấn công là những thành phần có thể bị tương tác hoặc khai thác trong phạm vi hệ thống.
+  objectives:
+  - '- Phân biệt attack surface với lỗ hổng bảo mật và threat model.'
+  - '- Xác định phạm vi ứng dụng, môi trường và trách nhiệm đánh giá.'
+- id: asset-interface-inventory
+  title: Asset & Interface Inventory
+  purpose: Lập danh mục những tài sản và giao diện cần bảo vệ trước khi đánh giá rủi ro.
+  objectives:
+  - '- Kiểm kê domain, host, API, dịch vụ, endpoint quản trị và cloud resource.'
+  - '- Ghi owner, môi trường, mức phơi lộ và trạng thái sử dụng.'
+- id: entry-points-data-flows
+  title: Entry Points & Data Flows
+  purpose: Tìm các điểm mà dữ liệu hoặc lệnh đi vào hệ thống và cách chúng lan truyền qua các thành phần.
+  objectives:
+  - '- Liệt kê HTTP endpoints, webhook, upload, message consumer và admin UI.'
+  - '- Vẽ luồng dữ liệu từ client đến service, database và bên thứ ba.'
+- id: trust-boundary-quyen-truy-cap
+  title: Trust Boundary & Quyền truy cập
+  purpose: Nhận diện các điểm giao giữa vùng tin cậy khác nhau để ưu tiên kiểm soát danh tính, phân quyền.
+  objectives:
+  - '- Đánh dấu Internet, network segment và trust boundary trên sơ đồ.'
+  - '- Kiểm tra authentication, authorization tại các điểm qua ranh giới.'
+- id: public-exposure-api
+  title: Public Exposure & API
+  purpose: Đánh giá rủi ro từ các thành phần có thể bị truy cập ngoài ý muốn.
+  objectives:
+  - '- Rà soát public port, API version cũ, debug endpoint và cấu hình CORS.'
+  - '- Phân biệt điểm vào công khai hợp lệ với tài nguyên lộ ngoài dự kiến.'
+- id: dependencies-config
+  title: Dependencies & Config
+  purpose: Đưa dịch vụ tích hợp, phần mềm phụ thuộc và cấu hình triển khai vào bản đồ phơi lộ.
+  objectives:
+  - '- Liệt kê third-party API, thư viện, secret và quyền service account.'
+  - '- Nhận diện default setting, cấu hình sai và dependency hết hỗ trợ.'
+- id: danh-gia-giam-surface
+  title: Đánh giá & Giảm Surface
+  purpose: Ưu tiên vùng rủi ro cao và loại bỏ các điểm tiếp xúc không cần thiết.
+  objectives:
+  - '- Xếp hạng theo exposure, độ nhạy dữ liệu và tác động kinh doanh.'
+  - '- Đề xuất đóng cổng, giới hạn quyền, tách mạng và vô hiệu hóa endpoint cũ.'
+- id: kiem-chung-giam-sat-thay-doi
+  title: Kiểm chứng & Giám sát thay đổi
+  purpose: Giữ bản đồ attack surface đúng với hệ thống đang chạy và kiểm tra các biện pháp giảm thiểu.
+  objectives:
+  - '- Thực hiện discovery/scan có ủy quyền trong phạm vi định sẵn.'
+  - '- So sánh surface trước-sau release và theo dõi asset chưa có owner.'

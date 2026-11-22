@@ -1,0 +1,676 @@
+menu:
+- level1: Recovery Foundations
+  level2:
+  - Account recovery purpose and boundaries
+  - Recovery versus authentication
+  - Recovery versus authorization
+  - Recovery as a security control
+  - Recovery as a high-risk transaction
+  - Recovery assumptions and guarantees
+  - Recovery terminology for learners
+- level1: Recovery Terminology
+  level2:
+  - Account owner definition
+  - Claimant and verifier roles
+  - Recovery factor meaning
+  - Proofing evidence meaning
+  - Recovery channel meaning
+  - Recovery ceremony meaning
+  - Recovery completion meaning
+- level1: Account State Model
+  level2:
+  - Active account state
+  - Locked account state
+  - Suspended account state
+  - Pending verification state
+  - Compromised account state
+  - Deleted account state
+  - Recovery hold state
+- level1: Recovery Threat Model
+  level2:
+  - Stolen credential attacker
+  - Compromised mailbox attacker
+  - SIM swap attacker
+  - Malware assisted attacker
+  - Insider abuse attacker
+  - Automated guessing attacker
+  - Social engineering attacker
+- level1: Recovery Policy
+  level2:
+  - Policy ownership and review
+  - Minimum recovery assurance
+  - Factor strength ordering
+  - High value account rules
+  - Privileged account restrictions
+  - Recovery policy exceptions
+  - Policy version rollout
+- level1: Recovery Journey
+  level2:
+  - Recovery journey entry points
+  - Recovery journey decision tree
+  - Recovery journey state transitions
+  - Recovery journey interruption
+  - Recovery journey resumption
+  - Recovery journey completion screen
+  - Recovery journey failure screen
+- level1: Eligibility Rules
+  level2:
+  - Eligible account conditions
+  - Ineligible account conditions
+  - Verified contact requirement
+  - Recent authentication requirement
+  - Account age restrictions
+  - Pending change restrictions
+  - Recovery cooldown eligibility
+- level1: Recovery Discovery
+  level2:
+  - Finding a recovery route
+  - Discovering registered channels
+  - Discovering trusted devices
+  - Discovering recovery contacts
+  - Avoiding channel disclosure
+  - Generic discovery responses
+  - Discovery result consistency
+- level1: Identifier Handling
+  level2:
+  - Username lookup during recovery
+  - Email identifier normalization
+  - Phone identifier normalization
+  - Case folding rules
+  - Unicode identifier handling
+  - Identifier alias policy
+  - Identifier privacy protection
+- level1: Initiation Requests
+  level2:
+  - Recovery request payload
+  - Recovery request correlation
+  - Recovery request idempotency
+  - Recovery request validation
+  - Recovery request rejection
+  - Recovery request cancellation
+  - Recovery request replay handling
+- level1: Email Link Recovery
+  level2:
+  - Email link recovery flow
+  - Recovery link composition
+  - Recovery link destination
+  - Recovery link expiration
+  - Recovery link single use
+  - Recovery link confirmation
+  - Recovery link revocation
+- level1: Email Delivery
+  level2:
+  - Recovery email template
+  - Recovery email sender identity
+  - Recovery email delivery timing
+  - Recovery email retry policy
+  - Recovery email bounce handling
+  - Recovery email provider failure
+  - Recovery email delivery telemetry
+- level1: OTP Recovery
+  level2:
+  - One time password generation
+  - One time password presentation
+  - One time password expiration
+  - One time password attempt budget
+  - One time password resend rules
+  - One time password verification
+  - One time password invalidation
+- level1: SMS Voice Recovery
+  level2:
+  - SMS recovery channel
+  - Voice call recovery channel
+  - Telephony delivery risks
+  - Short code and sender policy
+  - Phone number ownership signal
+  - Carrier change detection
+  - Telephony fallback restrictions
+- level1: Authenticator Recovery
+  level2:
+  - Authenticator application loss
+  - Authenticator seed replacement
+  - Time based code recovery
+  - Counter based code recovery
+  - Authenticator enrollment proof
+  - Authenticator reset approval
+  - Authenticator recovery audit
+- level1: Backup Code Recovery
+  level2:
+  - Backup code purpose
+  - Backup code generation
+  - Backup code display
+  - Backup code storage
+  - Backup code consumption
+  - Backup code regeneration
+  - Backup code exhaustion
+- level1: Security Questions
+  level2:
+  - Security question weaknesses
+  - Guessable answer analysis
+  - Answer normalization risks
+  - Question answer storage
+  - Question answer attempt limits
+  - Legacy question migration
+  - Removing knowledge questions
+- level1: Password Reset
+  level2:
+  - Password reset eligibility
+  - Password reset form
+  - Password reset policy
+  - Password reset confirmation
+  - Password history enforcement
+  - Password reset session
+  - Password reset completion
+- level1: Username Recovery
+  level2:
+  - Username recovery request
+  - Username recovery disclosure
+  - Multiple username handling
+  - Username delivery message
+  - Username recovery throttling
+  - Username recovery verification
+  - Username recovery audit
+- level1: Email Address Recovery
+  level2:
+  - Lost email address workflow
+  - New email address proof
+  - Old email address notification
+  - Email address change delay
+  - Email address change reversal
+  - Email address collision handling
+  - Email address recovery evidence
+- level1: Phone Number Recovery
+  level2:
+  - Lost phone number workflow
+  - New phone number proof
+  - Old phone number notification
+  - Phone number change delay
+  - Phone number change reversal
+  - Phone number collision handling
+  - Phone number recovery evidence
+- level1: Device Loss Recovery
+  level2:
+  - Lost device response
+  - Stolen device response
+  - Trusted device removal
+  - Device key replacement
+  - Device inventory review
+  - Remote sign out action
+  - Device recovery evidence
+- level1: Passkey Recovery
+  level2:
+  - Passkey loss scenarios
+  - Platform passkey recovery
+  - Roaming authenticator recovery
+  - Passkey synchronization trust
+  - Credential replacement ceremony
+  - Passkey account binding
+  - Passkey recovery limitations
+- level1: MFA Recovery
+  level2:
+  - MFA factor inventory
+  - Lost primary factor
+  - Lost secondary factor
+  - MFA bypass eligibility
+  - MFA bypass duration
+  - MFA re enrollment
+  - MFA recovery notification
+- level1: Session Continuity
+  level2:
+  - Pre recovery session handling
+  - In progress recovery session
+  - Post recovery session issuance
+  - Session rotation after reset
+  - Session invalidation scope
+  - Remembered device treatment
+  - Cross device recovery
+- level1: Reauthentication
+  level2:
+  - Reauthentication trigger
+  - Reauthentication factor selection
+  - Recent authentication window
+  - Reauthentication failure
+  - Reauthentication retry
+  - Reauthentication after recovery
+  - Reauthentication evidence
+- level1: Step Up Verification
+  level2:
+  - Step up verification purpose
+  - Step up assurance levels
+  - Step up factor selection
+  - Step up challenge creation
+  - Step up challenge completion
+  - Step up challenge timeout
+  - Step up recovery fallback
+- level1: Identity Proofing
+  level2:
+  - Identity proofing levels
+  - Identity proofing evidence
+  - Identity proofing decision
+  - Identity proofing provider
+  - Identity proofing confidence
+  - Identity proofing rejection
+  - Identity proofing retention
+- level1: Document Verification
+  level2:
+  - Identity document capture
+  - Document authenticity checks
+  - Document liveness checks
+  - Document data extraction
+  - Document mismatch handling
+  - Document verification vendor
+  - Document evidence deletion
+- level1: Knowledge Based Proofing
+  level2:
+  - Knowledge proofing scope
+  - Public knowledge risk
+  - Private knowledge risk
+  - Knowledge answer scoring
+  - Knowledge proofing attempt limits
+  - Knowledge proofing fallback
+  - Knowledge proofing deprecation
+- level1: Social Signals
+  level2:
+  - Trusted contact recovery
+  - Social proof selection
+  - Contact invitation security
+  - Contact response integrity
+  - Contact privacy boundaries
+  - Contact abuse prevention
+  - Social proof expiration
+- level1: Recovery Tokens
+  level2:
+  - Recovery token purpose
+  - Recovery token format
+  - Recovery token entropy
+  - Recovery token length
+  - Recovery token parsing
+  - Recovery token comparison
+  - Recovery token error handling
+- level1: Token Lifecycle
+  level2:
+  - Token creation event
+  - Token activation event
+  - Token consumption event
+  - Token expiration event
+  - Token revocation event
+  - Token replacement event
+  - Token lifecycle audit
+- level1: Token Binding
+  level2:
+  - Binding token to account
+  - Binding token to transaction
+  - Binding token to device
+  - Binding token to channel
+  - Binding token to browser
+  - Binding token to client context
+  - Binding token to risk decision
+- level1: Token Storage
+  level2:
+  - Hashed token storage
+  - Token lookup strategy
+  - Token record separation
+  - Token database access
+  - Token storage encryption
+  - Token cleanup schedule
+  - Token storage incident response
+- level1: Cryptographic Design
+  level2:
+  - Randomness source selection
+  - Hash algorithm selection
+  - Message authentication design
+  - Key management boundary
+  - Cryptographic key rotation
+  - Constant time comparison
+  - Cryptographic failure handling
+- level1: Link Security
+  level2:
+  - Secure recovery link scheme
+  - Link leakage in referrer
+  - Link leakage in history
+  - Link leakage in logs
+  - Link leakage in analytics
+  - Link forwarding behavior
+  - Link preview protection
+- level1: Browser Security
+  level2:
+  - Recovery page origin
+  - Recovery page framing
+  - Recovery page script policy
+  - Recovery page storage
+  - Recovery page cache policy
+  - Recovery page navigation
+  - Recovery page autofill
+- level1: API Security
+  level2:
+  - Recovery API resource model
+  - Recovery API authentication
+  - Recovery API authorization
+  - Recovery API request limits
+  - Recovery API error contract
+  - Recovery API versioning
+  - Recovery API compatibility
+- level1: CSRF Protection
+  level2:
+  - Cross site request forgery risk
+  - CSRF token for recovery
+  - Same site cookie policy
+  - Origin validation
+  - Referer validation
+  - Cross origin recovery calls
+  - CSRF test coverage
+- level1: Phishing Resistance
+  level2:
+  - Recovery message authenticity
+  - Lookalike domain defense
+  - Anti phishing user guidance
+  - Trusted origin display
+  - Out of band confirmation
+  - Phishing report handling
+  - Phishing resistant factors
+- level1: Replay Defense
+  level2:
+  - Recovery request replay
+  - Challenge response replay
+  - Link replay attempt
+  - OTP replay attempt
+  - Device replay attempt
+  - Replay detection state
+  - Replay incident response
+- level1: Abuse Prevention
+  level2:
+  - Automated recovery abuse
+  - Enumeration abuse
+  - Notification flooding
+  - Channel exhaustion abuse
+  - Referral abuse
+  - Support channel abuse
+  - Abuse response escalation
+- level1: Rate Limiting
+  level2:
+  - Per account rate limit
+  - Per identifier rate limit
+  - Per network rate limit
+  - Per device rate limit
+  - Per recovery token limit
+  - Distributed limiter state
+  - Rate limit user feedback
+- level1: Risk Based Recovery
+  level2:
+  - Recovery risk score
+  - Risk signal weighting
+  - Risk threshold policy
+  - Low risk recovery
+  - Medium risk recovery
+  - High risk recovery
+  - Risk decision explanation
+- level1: Fraud Signals
+  level2:
+  - Impossible travel signal
+  - New device signal
+  - New network signal
+  - Recent credential change signal
+  - Mailbox compromise signal
+  - Phone takeover signal
+  - Fraud signal retention
+- level1: Privacy Boundaries
+  level2:
+  - Account existence privacy
+  - Contact detail privacy
+  - Recovery evidence privacy
+  - Support agent privacy
+  - Provider data minimization
+  - Sensitive log redaction
+  - Privacy request handling
+- level1: User Messaging
+  level2:
+  - Generic recovery response
+  - Failure message wording
+  - Success message wording
+  - Security warning wording
+  - Contact change notification
+  - Recovery delay notification
+  - Compromise notification
+- level1: Accessibility
+  level2:
+  - Keyboard recovery flow
+  - Screen reader recovery flow
+  - Visible focus treatment
+  - Error announcement
+  - Timeout announcement
+  - Alternative verification method
+  - Accessible document capture
+- level1: Internationalization
+  level2:
+  - Localized recovery emails
+  - Localized recovery errors
+  - Localized date handling
+  - Localized phone formatting
+  - Localized legal notices
+  - Translation consistency
+  - Right to left recovery layout
+- level1: Recovery UX
+  level2:
+  - Recovery form simplicity
+  - Progressive disclosure
+  - Recovery progress indicator
+  - Safe retry experience
+  - Recovery timeout experience
+  - Recovery cancellation experience
+  - Recovery completion guidance
+- level1: Data Model
+  level2:
+  - Recovery request entity
+  - Recovery challenge entity
+  - Recovery factor entity
+  - Recovery evidence entity
+  - Recovery decision entity
+  - Recovery notification entity
+  - Recovery audit entity
+- level1: Persistence
+  level2:
+  - Transactional recovery writes
+  - Consistency of recovery state
+  - Concurrent recovery attempts
+  - Database constraint design
+  - Expired record cleanup
+  - Recovery record migration
+  - Recovery data partitioning
+- level1: Notifications
+  level2:
+  - Recovery initiation notification
+  - Recovery completion notification
+  - Recovery failure notification
+  - Factor change notification
+  - Security contact notification
+  - Notification deduplication
+  - Notification delivery status
+- level1: Audit Logging
+  level2:
+  - Recovery event taxonomy
+  - Recovery actor recording
+  - Recovery outcome recording
+  - Audit event integrity
+  - Audit event retention
+  - Audit access control
+  - Audit investigation workflow
+- level1: Observability
+  level2:
+  - Recovery metrics collection
+  - Recovery trace correlation
+  - Recovery structured logging
+  - Recovery dashboard design
+  - Recovery alert thresholds
+  - Provider dependency monitoring
+  - Observability data privacy
+- level1: Support Recovery
+  level2:
+  - Support recovery intake
+  - Support identity verification
+  - Support agent boundaries
+  - Support evidence checklist
+  - Support approval workflow
+  - Support denial workflow
+  - Support action audit
+- level1: Administrative Recovery
+  level2:
+  - Administrator recovery scope
+  - Administrator factor override
+  - Administrator dual control
+  - Administrator approval expiry
+  - Administrator session security
+  - Administrator notification
+  - Administrator action review
+- level1: Recovery Approval
+  level2:
+  - Approval request creation
+  - Approval reviewer selection
+  - Approval evidence review
+  - Approval separation of duties
+  - Approval expiration
+  - Approval rejection
+  - Approval decision audit
+- level1: Account Merge
+  level2:
+  - Account merge eligibility
+  - Account ownership proof
+  - Credential conflict resolution
+  - Factor conflict resolution
+  - Profile data reconciliation
+  - Merge rollback strategy
+  - Account merge audit
+- level1: Data Preservation
+  level2:
+  - Preserving user profile data
+  - Preserving authorization data
+  - Preserving audit history
+  - Preserving user preferences
+  - Preserving recovery evidence
+  - Handling orphaned records
+  - Data deletion after recovery
+- level1: Backup Restore
+  level2:
+  - Recovery data backup
+  - Recovery data encryption
+  - Backup access control
+  - Restore validation
+  - Restore replay protection
+  - Recovery disaster procedure
+  - Backup recovery audit
+- level1: Multi Tenant Recovery
+  level2:
+  - Tenant recovery policy
+  - Tenant isolation
+  - Tenant contact configuration
+  - Tenant factor configuration
+  - Tenant support boundaries
+  - Tenant notification routing
+  - Tenant recovery audit
+- level1: Distributed Systems
+  level2:
+  - Recovery state across services
+  - Idempotent distributed commands
+  - Cross service consistency
+  - Distributed lock strategy
+  - Clock skew handling
+  - Partial failure handling
+  - Recovery reconciliation
+- level1: Microservice Boundaries
+  level2:
+  - Identity service responsibility
+  - Factor service responsibility
+  - Notification service responsibility
+  - Risk service responsibility
+  - Audit service responsibility
+  - Support service responsibility
+  - Recovery orchestration boundary
+- level1: Event Driven Recovery
+  level2:
+  - Recovery initiated event
+  - Challenge issued event
+  - Verification passed event
+  - Password changed event
+  - Factor replaced event
+  - Recovery completed event
+  - Recovery event ordering
+- level1: Testing Strategy
+  level2:
+  - Recovery unit tests
+  - Recovery integration tests
+  - Recovery contract tests
+  - Recovery browser tests
+  - Recovery provider tests
+  - Recovery regression suite
+  - Recovery test data
+- level1: Security Testing
+  level2:
+  - Enumeration security test
+  - Token guessing security test
+  - Replay security test
+  - Rate limit security test
+  - Session invalidation test
+  - Privilege escalation test
+  - Sensitive logging test
+- level1: Chaos Failure Testing
+  level2:
+  - Email provider outage test
+  - SMS provider outage test
+  - Database outage test
+  - Clock skew failure test
+  - Duplicate event failure test
+  - Network timeout failure test
+  - Recovery retry storm test
+- level1: Incident Response
+  level2:
+  - Recovery compromise detection
+  - Emergency recovery shutdown
+  - Token mass revocation
+  - Forced factor reset
+  - Affected user notification
+  - Forensic evidence preservation
+  - Post incident recovery review
+- level1: Compliance
+  level2:
+  - Recovery control mapping
+  - Evidence retention policy
+  - User consent requirements
+  - Data protection obligations
+  - Audit readiness
+  - Regional recovery constraints
+  - Compliance exception handling
+- level1: Metrics
+  level2:
+  - Recovery initiation rate
+  - Recovery completion rate
+  - Recovery failure rate
+  - Recovery abandonment rate
+  - Recovery abuse rate
+  - Provider delivery rate
+  - Recovery time measurement
+- level1: Documentation
+  level2:
+  - Recovery flow documentation
+  - Recovery policy documentation
+  - Recovery API documentation
+  - Recovery support runbook
+  - Recovery incident runbook
+  - Recovery threat documentation
+  - Recovery change log
+- level1: Spring Security Integration
+  level2:
+  - Spring Security recovery boundary
+  - SecurityContext after recovery
+  - PasswordEncoder integration
+  - SessionRegistry integration
+  - Remember me treatment
+  - Authentication event listeners
+  - Spring Security test support
+- level1: Deployment Operations
+  level2:
+  - Recovery configuration management
+  - Secret injection for recovery
+  - Provider credential rotation
+  - Feature flag rollout
+  - Blue green recovery deployment
+  - Rollback after recovery defect
+  - Production recovery checklist

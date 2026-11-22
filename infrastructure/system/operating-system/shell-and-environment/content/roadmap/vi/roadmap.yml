@@ -1,0 +1,57 @@
+roadmap:
+- id: shell-command-line
+  title: Shell & Command Line
+  purpose: Hiểu shell là giao diện tương tác và môi trường thực thi lệnh để điều khiển hệ điều hành.
+  objectives:
+  - Phân biệt shell, terminal và command interpreter
+  - Nhận diện builtin, executable và command options
+  - Dùng help/man để tra cứu cú pháp và exit status
+- id: dieu-huong-file-operations
+  title: Điều hướng & File Operations
+  purpose: Thao tác filesystem và kết hợp công cụ dòng lệnh để xử lý công việc thường ngày.
+  objectives:
+  - Dùng pwd, cd, ls và đường dẫn tuyệt đối/tương đối
+  - Quản lý file/thư mục với cp, mv, rm, mkdir
+  - Nhận biết wildcard và xử lý tên file có khoảng trắng
+- id: quoting-expansion
+  title: Quoting & Expansion
+  purpose: Hiểu shell phân tích và mở rộng lệnh trước khi thực thi để tránh sai đối số hoặc lỗi bảo mật.
+  objectives:
+  - Phân biệt single quote, double quote và escaping
+  - Dùng variable, command và arithmetic expansion
+  - Nhận diện word splitting, globbing và cách bảo vệ dữ liệu đầu vào
+- id: pipelines-redirection
+  title: Pipelines & Redirection
+  purpose: Kết nối các lệnh và điều khiển luồng dữ liệu qua standard input, output và error.
+  objectives:
+  - Dùng pipe, tee và chuỗi lệnh có điều kiện
+  - Chuyển hướng stdin, stdout và stderr
+  - Dùng grep, sort, cut, awk hoặc PowerShell pipeline
+- id: environment-variables-path
+  title: Environment Variables & PATH
+  purpose: Quản lý cấu hình tiến trình và hiểu cách biến môi trường được truyền tới chương trình con.
+  objectives:
+  - 'Đọc, đặt và export biến trong Bash hoặc $Env: của PowerShell'
+  - Phân biệt shell variable với process environment
+  - Thiết lập PATH, HOME, locale và biến theo phiên
+- id: shell-startup-profiles
+  title: Shell Startup & Profiles
+  purpose: Tùy chỉnh môi trường đăng nhập và tương tác mà vẫn kiểm soát được thứ tự nạp cấu hình.
+  objectives:
+  - Phân biệt login/non-login và interactive/non-interactive shell
+  - Nhận diện /etc/profile, ~/.profile, ~/.bashrc và PowerShell profile
+  - Kiểm tra tác động cấu hình lên PATH và child processes
+- id: scripting-process-control
+  title: Scripting & Process Control
+  purpose: Tự động hóa tác vụ lặp lại bằng script có luồng điều khiển, trạng thái thoát và xử lý lỗi rõ ràng.
+  objectives:
+  - Viết script với biến, điều kiện, vòng lặp và function
+  - Nhận tham số, kiểm tra exit code và xử lý lỗi
+  - Quản lý job, signal và tiến trình foreground/background
+- id: an-toan-troubleshooting
+  title: An toàn & Troubleshooting
+  purpose: Giữ script dễ bảo trì, hạn chế lạm dụng quyền và chẩn đoán lỗi môi trường có hệ thống.
+  objectives:
+  - Áp dụng quyền tối thiểu và bảo vệ secret trong environment
+  - Dùng ShellCheck và chế độ debug/trace phù hợp
+  - Chẩn đoán lỗi PATH, permission, quoting và khác biệt shell

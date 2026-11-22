@@ -1,0 +1,3 @@
+menuLevel1: Inventory
+menuLevel2: Kiểm tra inventory bằng ansible-inventory --list, --graph và --host
+status: ''

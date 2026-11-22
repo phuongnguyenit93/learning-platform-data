@@ -1,0 +1,3 @@
+menuLevel1: Ghi log
+menuLevel2: Luồng ghi log tới syslog, stdout và hệ thống thu thập tập trung
+status: ''

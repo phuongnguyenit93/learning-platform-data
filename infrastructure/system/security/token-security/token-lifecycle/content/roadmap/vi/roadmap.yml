@@ -1,0 +1,49 @@
+roadmap:
+- id: mo-hinh-vong-doi
+  title: Mô hình vòng đời
+  purpose: Hiểu các trạng thái và mục đích của token.
+  objectives:
+  - Phân biệt token truy cập, token làm mới và token dùng một lần.
+  - Vẽ trạng thái từ cấp phát đến hết hạn hoặc thu hồi.
+- id: cap-phat-va-thoi-han
+  title: Cấp phát và thời hạn
+  purpose: Giới hạn hiệu lực của token ngay khi tạo.
+  objectives:
+  - Gắn token với chủ thể, mục đích và đối tượng nhận.
+  - Chọn thời hạn, phạm vi quyền và điều kiện cấp lại.
+- id: luu-giu-va-su-dung
+  title: Lưu giữ và sử dụng
+  purpose: Hạn chế rò rỉ token trong thời gian còn hiệu lực.
+  objectives:
+  - Chọn nơi lưu phù hợp và truyền token qua TLS.
+  - Ngăn lộ token qua URL, nhật ký và bản sao không cần thiết.
+- id: xac-minh-va-het-han
+  title: Xác minh và hết hạn
+  purpose: Chỉ chấp nhận token còn hợp lệ tại thời điểm sử dụng.
+  objectives:
+  - Kiểm tra chữ ký hoặc trạng thái máy chủ cùng giới hạn thời gian.
+  - Tiêu thụ token dùng một lần một cách nguyên tử.
+- id: lam-moi-va-xoay-vong
+  title: Làm mới và xoay vòng
+  purpose: Duy trì truy cập mà vẫn giới hạn khả năng lạm dụng.
+  objectives:
+  - Xoay refresh token và phát hiện việc dùng lại.
+  - Giới hạn thời gian phiên và xử lý làm mới đồng thời.
+- id: thu-hoi-va-dang-xuat
+  title: Thu hồi và đăng xuất
+  purpose: Chấm dứt quyền truy cập theo yêu cầu hoặc khi có rủi ro.
+  objectives:
+  - Phân biệt xóa token phía máy khách, kết thúc phiên và thu hồi.
+  - Chọn cơ chế thu hồi cho token tham chiếu và token tự chứa.
+- id: dong-bo-he-phan-tan
+  title: Đồng bộ hệ phân tán
+  purpose: Giữ quyết định hiệu lực nhất quán giữa các thành phần.
+  objectives:
+  - Kiểm soát lệch đồng hồ và độ trễ bộ nhớ đệm.
+  - Phối hợp xoay khóa ký và khóa xác minh theo thời hạn token.
+- id: kiem-thu-va-ung-pho
+  title: Kiểm thử và ứng phó
+  purpose: Kiểm chứng chuyển trạng thái và xử lý sự cố token.
+  objectives:
+  - Thử hết hạn, dùng lại, thu hồi và lỗi làm mới.
+  - Giám sát bất thường và diễn tập xử lý rò rỉ mà không ghi token.

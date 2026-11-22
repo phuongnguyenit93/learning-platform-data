@@ -1,0 +1,145 @@
+menu:
+- title: Authorization là gì
+  slug: authorization-overview
+  index: 0
+- title: Mô hình nền tảng
+  slug: foundational-model
+  index: 1
+- title: Subject và principal
+  slug: subjects-and-principals
+  index: 2
+- title: Resource (bổ sung 2)
+  slug: resources
+  index: 3
+- title: Action (bổ sung 2)
+  slug: actions
+  index: 4
+- title: Policy decision
+  slug: policy-decision
+  index: 5
+- title: PEP PDP PAP PIP
+  slug: pep-pdp-pap-pip
+  index: 6
+- title: Least privilege
+  slug: least-privilege
+  index: 7
+- title: Deny by default
+  slug: deny-by-default
+  index: 8
+- title: Fail-safe
+  slug: fail-safe
+  index: 9
+- title: Authorization lifecycle
+  slug: authorization-lifecycle
+  index: 10
+- title: Request lifecycle
+  slug: request-lifecycle
+  index: 11
+- title: RBAC nền tảng
+  slug: rbac-basics
+  index: 12
+- title: Permission model
+  slug: permission-model
+  index: 13
+- title: ABAC nền tảng
+  slug: abac-basics
+  index: 14
+- title: Context-aware access
+  slug: context-aware-access
+  index: 15
+- title: Object-level
+  slug: object-level
+  index: 16
+- title: Function-level
+  slug: function-level
+  index: 17
+- title: Field-level
+  slug: field-level
+  index: 18
+- title: Relationship-based
+  slug: relationship-based
+  index: 19
+- title: Tenant isolation
+  slug: tenant-isolation
+  index: 20
+- title: Ownership
+  slug: ownership
+  index: 21
+- title: Separation of duties
+  slug: separation-of-duties
+  index: 22
+- title: Delegation
+  slug: delegation
+  index: 23
+- title: Impersonation
+  slug: impersonation
+  index: 24
+- title: Server-side enforcement
+  slug: server-side-enforcement
+  index: 25
+- title: API authorization
+  slug: api-authorization
+  index: 26
+- title: Web authorization
+  slug: web-authorization
+  index: 27
+- title: Message và event
+  slug: messaging-and-events
+  index: 28
+- title: Microservices
+  slug: microservices
+  index: 29
+- title: Data access
+  slug: data-access
+  index: 30
+- title: High-risk action
+  slug: high-risk-action
+  index: 31
+- title: Error handling
+  slug: error-handling
+  index: 32
+- title: Logging
+  slug: logging
+  index: 33
+- title: Audit
+  slug: audit
+  index: 34
+- title: Caching
+  slug: caching
+  index: 35
+- title: Session và token
+  slug: sessions-and-tokens
+  index: 36
+- title: Policy management
+  slug: policy-management
+  index: 37
+- title: Policy language
+  slug: policy-language
+  index: 38
+- title: Authorization testing
+  slug: authorization-testing
+  index: 39
+- title: Threat modeling
+  slug: threat-modeling
+  index: 40
+- title: Common flaws
+  slug: common-flaws
+  index: 41
+- title: Performance
+  slug: performance
+  index: 42
+- title: Availability
+  slug: availability
+  index: 43
+- title: Cloud và infrastructure
+  slug: cloud-and-infrastructure
+  index: 44
+- title: CI/CD
+  slug: cicd
+  index: 45
+- title: Governance
+  slug: governance
+  index: 46
+- title: Checklist production
+  slug: production-checklist
+  index: 47

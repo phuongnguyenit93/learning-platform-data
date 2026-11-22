@@ -1,0 +1,57 @@
+roadmap:
+- id: ansible-dieu-khien
+  title: Ansible & điều khiển
+  purpose: Hiểu cách Ansible tự động hóa cấu hình nhiều máy từ control node mà không cần cài agent riêng.
+  objectives:
+  - Phân biệt control node và managed node
+  - Mô tả cơ chế kết nối SSH và privilege escalation
+  - Cài đặt Ansible và chạy lệnh kiểm tra phiên bản
+- id: inventory-ket-noi
+  title: Inventory & kết nối
+  purpose: Quản lý danh sách máy đích, nhóm máy và thông số kết nối theo môi trường.
+  objectives:
+  - Tạo inventory với host và group
+  - Sử dụng host_vars và group_vars cơ bản
+  - Kiểm tra kết nối bằng ansible ping và --list-hosts
+- id: playbook-modules
+  title: Playbook & modules
+  purpose: Diễn đạt trạng thái cấu hình mong muốn bằng YAML và thực thi các task có thể lặp lại.
+  objectives:
+  - Viết playbook gồm plays và tasks
+  - Dùng module package, file, copy và service
+  - Chạy playbook và đọc kết quả ok, changed, failed
+- id: bien-templates
+  title: Biến & templates
+  purpose: Tùy biến cấu hình theo từng nhóm máy mà không sao chép toàn bộ playbook.
+  objectives:
+  - Khai báo vars và sử dụng Ansible facts
+  - Tạo file cấu hình bằng Jinja2 template
+  - Giải thích ưu tiên biến ở các phạm vi phổ biến
+- id: dieu-kien-handlers
+  title: Điều kiện & handlers
+  purpose: Điều khiển task theo trạng thái thực tế và chỉ kích hoạt tác vụ phụ khi cần.
+  objectives:
+  - Dùng when và loop trong task
+  - Định nghĩa handler với notify
+  - Kiểm tra tính idempotent khi chạy lại playbook
+- id: roles-collections
+  title: Roles & collections
+  purpose: Đóng gói logic tự động hóa để dễ tái sử dụng, kiểm thử và chia sẻ.
+  objectives:
+  - Tổ chức tasks, handlers, templates trong role
+  - Gọi role từ playbook và truyền biến
+  - Khai báo collections trong requirements.yml
+- id: vault-dac-quyen
+  title: Vault & đặc quyền
+  purpose: Bảo vệ dữ liệu nhạy cảm và giới hạn tác động của quyền thực thi khi quản lý máy chủ.
+  objectives:
+  - Mã hóa biến hoặc tệp bằng ansible-vault
+  - Dùng become có kiểm soát và no_log cho bí mật
+  - Tránh đưa mật khẩu hoặc khóa vào kho mã nguồn dạng rõ
+- id: kiem-chung-van-hanh
+  title: Kiểm chứng & vận hành
+  purpose: Phát hiện thay đổi ngoài dự kiến và duy trì cấu hình ổn định qua nhiều lần triển khai.
+  objectives:
+  - Chạy --syntax-check, --check và --diff
+  - Giới hạn triển khai bằng --limit và serial
+  - Đánh giá kết quả, xử lý lỗi và quản lý playbook bằng Git

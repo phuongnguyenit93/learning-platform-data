@@ -1,0 +1,64 @@
+roadmap:
+- id: iam-digital-identity
+  title: IAM & Digital Identity
+  purpose: Hiểu các thành phần quản lý danh tính và quyền truy cập trong hệ thống.
+  objectives:
+  - Phân biệt identity, principal, account và resource.
+  - Phân biệt Authentication (AuthN) với Authorization (AuthZ).
+  - Vẽ luồng user → IdP → ứng dụng → tài nguyên.
+- id: authentication-mfa
+  title: Authentication & MFA
+  purpose: Xác minh danh tính bằng cơ chế phù hợp với mức rủi ro.
+  objectives:
+  - Nhận diện password, passkey và các yếu tố xác thực.
+  - Thiết lập MFA cho tài khoản thử nghiệm.
+  - Giải thích phishing-resistant MFA và rủi ro khôi phục tài khoản.
+- id: sso-federation
+  title: SSO & Federation
+  purpose: Hiểu cách đăng nhập qua nhà cung cấp danh tính và chia sẻ thông tin xác thực.
+  objectives:
+  - Phân biệt Identity Provider và Relying Party/Service Provider.
+  - Giải thích SSO, OpenID Connect và liên hệ OAuth 2.0.
+  - Phân biệt ID token dùng nhận diện với access token dùng cấp quyền.
+- id: rbac-abac-scope
+  title: RBAC, ABAC & Scope
+  purpose: Xác định quyền theo vai trò, thuộc tính và phạm vi tài nguyên.
+  objectives:
+  - Thiết kế role Reader, Editor và Admin cho ứng dụng mẫu.
+  - So sánh RBAC với ABAC theo bộ thuộc tính truy cập.
+  - Thử chặn thao tác trên tài nguyên không thuộc quyền.
+- id: iam-policy-least-privilege
+  title: IAM Policy & Least Privilege
+  purpose: Cấp quyền tối thiểu và xử lý chính sách cho phép hoặc từ chối.
+  objectives:
+  - Viết policy gồm principal, action, resource và condition.
+  - Phân biệt allow với explicit deny trong hệ thống mẫu.
+  - Kiểm tra quyền bị mở quá rộng hoặc cấp vĩnh viễn.
+- id: provisioning-lifecycle
+  title: Provisioning & Lifecycle
+  purpose: Quản lý cấp mới, thay đổi và thu hồi quyền trong suốt vòng đời tài khoản.
+  objectives:
+  - Mô tả joiner, mover và leaver trong tổ chức.
+  - Giải thích provisioning/deprovisioning qua SCIM.
+  - Thử khóa tài khoản và xác nhận quyền truy cập bị thu hồi.
+- id: service-identity-privilege
+  title: Service Identity & Privilege
+  purpose: Bảo vệ danh tính máy và tài khoản đặc quyền khỏi lộ credential.
+  objectives:
+  - Phân biệt user account, service account và workload identity.
+  - Dùng role hoặc temporary credential thay cho key dài hạn khi phù hợp.
+  - Giải thích cấp quyền tạm thời và tách nhiệm vụ quản trị.
+- id: audit-access-review
+  title: Audit & Access Review
+  purpose: Phát hiện lạm dụng và xác nhận quyền vẫn đúng với nhu cầu thực tế.
+  objectives:
+  - Ghi nhận login, thay đổi policy và truy cập nhạy cảm.
+  - Lập bảng định kỳ rà soát membership và privileged role.
+  - Xác định owner và bằng chứng thu hồi quyền không còn cần thiết.
+- id: iam-lab-security-testing
+  title: IAM Lab & Security Testing
+  purpose: Kết hợp các khái niệm thành luồng truy cập có thể kiểm chứng.
+  objectives:
+  - Cấu hình IdP thử nghiệm, MFA, nhóm và vai trò.
+  - Kiểm tra các case allow, deny và truy cập chéo tài khoản.
+  - Mô phỏng nhân sự rời nhóm rồi xác minh quyền đã bị thu hồi.

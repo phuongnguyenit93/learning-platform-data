@@ -1,0 +1,57 @@
+roadmap:
+- id: gcp-cau-truc-tai-nguyen
+  title: GCP & cấu trúc tài nguyên
+  purpose: Hiểu cách Google Cloud tổ chức dịch vụ và quản lý tài nguyên theo dự án, vị trí và phạm vi quản trị.
+  objectives:
+  - Phân biệt organization, folder và project
+  - Chọn region và zone theo yêu cầu ứng dụng
+  - Tạo project, bật API và liên kết billing
+- id: iam-service-accounts
+  title: IAM & Service Accounts
+  purpose: Quản lý danh tính và quyền truy cập theo nguyên tắc tối thiểu để bảo vệ tài nguyên.
+  objectives:
+  - Phân biệt principal, role và permission
+  - Gán IAM role ở đúng cấp tài nguyên
+  - Sử dụng service account cho workload
+- id: vpc-networking
+  title: VPC & Networking
+  purpose: Thiết kế kết nối mạng riêng cho workload, kiểm soát luồng truy cập và phạm vi mạng.
+  objectives:
+  - Phân biệt VPC toàn cục với subnet theo region
+  - Thiết lập firewall rule và đường kết nối
+  - Giải thích truy cập qua load balancer hoặc Cloud NAT
+- id: compute-engine
+  title: Compute Engine
+  purpose: Triển khai và quản lý máy ảo khi ứng dụng cần quyền kiểm soát hệ điều hành và hạ tầng.
+  objectives:
+  - Tạo VM với machine type, image và disk
+  - Kết nối, bảo vệ và theo dõi instance
+  - Phân biệt VM với dịch vụ compute quản lý cao hơn
+- id: cloud-run-gke
+  title: Cloud Run & GKE
+  purpose: Lựa chọn nền tảng chạy container phù hợp giữa serverless và Kubernetes được quản lý.
+  objectives:
+  - Triển khai container thành Cloud Run service
+  - Mô tả cluster, node và workload trên GKE
+  - So sánh vận hành, autoscaling và mức kiểm soát
+- id: storage-databases
+  title: Storage & Databases
+  purpose: Chọn dịch vụ lưu trữ cho tệp đối tượng và dữ liệu quan hệ dựa trên nhu cầu truy cập.
+  objectives:
+  - Tạo bucket và quản lý object trên Cloud Storage
+  - Sử dụng Cloud SQL cho database quan hệ
+  - Phân biệt object storage với managed database
+- id: pub-sub-cloud-build
+  title: Pub/Sub & Cloud Build
+  purpose: Kết nối các thành phần bằng sự kiện và tự động hóa quy trình build, kiểm thử và triển khai.
+  objectives:
+  - Mô tả topic, publisher và subscription Pub/Sub
+  - Tạo pipeline build và kiểm thử bằng Cloud Build
+  - Phân biệt giao tiếp bất đồng bộ với HTTP request
+- id: observability-chi-phi
+  title: Observability & Chi phí
+  purpose: Theo dõi sức khỏe workload và chi tiêu để vận hành cloud bền vững, có kiểm soát.
+  objectives:
+  - Tạo metrics, dashboard và alert trên Cloud Monitoring
+  - Theo dõi chi phí bằng billing report và budget alert
+  - Giải thích budget alert không mặc định chặn chi tiêu

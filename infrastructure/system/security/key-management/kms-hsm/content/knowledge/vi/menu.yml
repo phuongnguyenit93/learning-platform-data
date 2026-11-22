@@ -1,0 +1,322 @@
+menu:
+- level1: 1. Tổng quan KMS và HSM
+  level2:
+  - 1.1. Quản lý khóa là gì và vì sao thuật toán mạnh vẫn cần bảo vệ khóa
+  - 1.2. Dịch vụ quản lý khóa (KMS) và mô-đun bảo mật phần cứng (HSM)
+  - 1.3. Vai trò của KMS, HSM, kho bí mật và hạ tầng khóa công khai
+  - 1.4. Khóa, vật liệu khóa, đối tượng khóa và siêu dữ liệu quản lý
+  - 1.5. Phân biệt lưu khóa với thực hiện phép toán mà không xuất khóa
+  - 1.6. Quan hệ giữa ứng dụng, danh tính gọi, chính sách và ranh giới mật mã
+  - 1.7. Các mô hình KMS dùng HSM, HSM độc lập và dịch vụ HSM được quản lý
+  - 1.8. Giới hạn bảo vệ và những rủi ro KMS/HSM không tự giải quyết
+  - 1.9. Lộ trình từ nền tảng khóa đến thiết kế, tích hợp và vận hành
+- level1: 2. Nền tảng mật mã
+  level2:
+  - 2.1. Khóa đối xứng, cặp khóa bất đối xứng và mục đích sử dụng
+  - 2.2. Mã hóa, giải mã, ký, xác minh và mã xác thực thông điệp
+  - 2.3. Hàm băm, khóa HMAC và sự khác nhau giữa băm với mã hóa
+  - 2.4. Độ mạnh khóa, thuật toán, tham số và thời gian cần bảo vệ dữ liệu
+  - 2.5. Nguồn ngẫu nhiên mật mã và yêu cầu khi sinh khóa
+  - 2.6. Nonce, IV, salt và vật liệu công khai đi kèm phép toán
+  - 2.7. Mã hóa có xác thực (AEAD) và dữ liệu xác thực bổ sung (AAD)
+  - 2.8. Phân tách khóa theo mục đích và tránh dùng một khóa cho nhiều giao thức
+  - 2.9. Dẫn xuất khóa, thỏa thuận khóa và khác biệt với vận chuyển khóa
+- level1: 3. Mô hình đe dọa
+  level2:
+  - 3.1. Đánh cắp khóa từ mã nguồn, tệp cấu hình, bộ nhớ và bản sao lưu
+  - 3.2. Lạm dụng quyền gọi giải mã hoặc ký mà không cần lấy được khóa
+  - 3.3. Chiếm tài khoản quản trị, sửa chính sách và nâng quyền gián tiếp
+  - 3.4. Thay thế khóa, tráo siêu dữ liệu và tấn công ranh giới tích hợp
+  - 3.5. Nguy cơ vật lý, kênh kề và giả mạo thiết bị đối với HSM
+  - 3.6. Mất khóa, hủy nhầm và mất khả năng giải mã dữ liệu
+  - 3.7. Lạm dụng chuỗi cung ứng, firmware và công cụ quản trị
+  - 3.8. Đánh giá tác động theo loại khóa, hệ thống và phạm vi dữ liệu
+  - 3.9. Phân biệt bảo vệ tính bí mật khóa với bảo vệ tính hợp lệ của yêu cầu
+- level1: 4. Hệ phân cấp khóa
+  level2:
+  - 4.1. Khóa gốc tin cậy và các tầng bảo vệ vật liệu khóa
+  - 4.2. Khóa mã hóa dữ liệu (DEK) và khóa mã hóa khóa (KEK)
+  - 4.3. Khóa chủ quản lý và quan hệ với các phiên bản vật liệu khóa
+  - 4.4. Khóa ký, khóa HMAC, khóa bọc và khóa dẫn xuất
+  - 4.5. Định danh khóa, bí danh, phiên bản và tham chiếu ổn định
+  - 4.6. Phân chia khóa theo khách hàng, ứng dụng, môi trường và loại dữ liệu
+  - 4.7. Giới hạn phạm vi ảnh hưởng khi một khóa hoặc quyền bị lộ
+  - 4.8. Mối liên hệ giữa hệ phân cấp khóa và cấu trúc tổ chức
+  - 4.9. Đánh đổi giữa số lượng khóa, khả năng quản trị và mức cách ly
+- level1: 5. Kiến trúc KMS
+  level2:
+  - 5.1. Mặt phẳng quản trị khóa và mặt phẳng thực hiện phép toán
+  - 5.2. Kho siêu dữ liệu, bộ thực thi mật mã và hệ thống kiểm toán
+  - 5.3. Đường đi của yêu cầu từ xác thực đến cấp quyền và xử lý mật mã
+  - 5.4. Ranh giới giữa dịch vụ KMS và HSM ở tầng bên dưới
+  - 5.5. KMS tại chỗ, KMS đám mây và mô hình kết hợp
+  - 5.6. Kiến trúc nhiều khách hàng và cơ chế cách ly
+  - 5.7. Phạm vi vùng, khu vực, tài khoản và tổ chức
+  - 5.8. Tính nhất quán của trạng thái khóa và chính sách giữa các thành phần
+  - 5.9. Phụ thuộc vào mạng, danh tính và nền tảng vận hành
+- level1: 6. Kiến trúc HSM
+  level2:
+  - 6.1. Ranh giới mật mã và những thành phần được bảo vệ bên trong
+  - 6.2. HSM dạng thiết bị mạng, thẻ cắm, thiết bị cục bộ và dịch vụ đám mây
+  - 6.3. Bộ xử lý mật mã, bộ sinh số ngẫu nhiên và vùng lưu khóa
+  - 6.4. Đối tượng khóa, thuộc tính sử dụng và quyền xuất vật liệu khóa
+  - 6.5. Phân vùng logic và cách ly ứng dụng hoặc đơn vị sử dụng
+  - 6.6. Vai trò quản trị, cán bộ mật mã và người sử dụng khóa
+  - 6.7. Xác thực phiên làm việc và bảo vệ kênh giữa máy khách với HSM
+  - 6.8. Các trạng thái vận hành, khởi tạo, khóa và đưa ra khỏi sử dụng
+  - 6.9. Giới hạn năng lực và những khác biệt phải xác minh theo thiết bị
+- level1: 7. Bảo vệ phần cứng
+  level2:
+  - 7.1. Chống can thiệp vật lý, phát hiện can thiệp và phản ứng của thiết bị
+  - 7.2. Bảo vệ vật liệu khóa trong bộ nhớ và vùng lưu trữ bên trong
+  - 7.3. Khởi động an toàn, firmware được xác thực và cập nhật có kiểm soát
+  - 7.4. Bảo vệ cổng quản trị, cổng bảo trì và thông tin chẩn đoán
+  - 7.5. Rủi ro kênh kề và vai trò của biện pháp triển khai vật lý
+  - 7.6. Xác minh nguồn gốc thiết bị, bàn giao và chuỗi kiểm soát
+  - 7.7. Chế độ vận hành an toàn và cấu hình ảnh hưởng đến phạm vi bảo đảm
+  - 7.8. Phân biệt chứng nhận thuật toán với đánh giá toàn mô-đun
+  - 7.9. Kiểm tra phạm vi, phiên bản và điều kiện của tuyên bố bảo mật
+- level1: 8. Vòng đời khóa
+  level2:
+  - 8.1. Các trạng thái tạo, kích hoạt, đang dùng, ngừng dùng và hủy
+  - 8.2. Thời hạn dùng để bảo vệ dữ liệu và thời hạn cần giữ để xử lý dữ liệu cũ
+  - 8.3. Chủ sở hữu, người quản trị và trách nhiệm tại từng giai đoạn
+  - 8.4. Siêu dữ liệu về nguồn gốc, mục đích, thuật toán và thời hạn
+  - 8.5. Phân biệt vô hiệu hóa, thu hồi, hết hạn và hủy vật liệu khóa
+  - 8.6. Quan hệ giữa vòng đời khóa với dữ liệu, chữ ký và bản sao lưu
+  - 8.7. Điều kiện chuyển trạng thái và kiểm soát thay đổi
+  - 8.8. Danh mục khóa, phát hiện khóa mồ côi và phụ thuộc không còn chủ sở hữu
+  - 8.9. Lưu bằng chứng vòng đời mà không làm lộ vật liệu khóa
+- level1: 9. Sinh và đưa khóa vào
+  level2:
+  - 9.1. Sinh khóa bên trong ranh giới KMS hoặc HSM
+  - 9.2. Lựa chọn thuật toán, kích thước và thuộc tính ngay khi tạo
+  - 9.3. Khóa không thể xuất và các điều kiện ngoại lệ cần kiểm tra
+  - 9.4. Nhập khóa bên ngoài bằng cơ chế bọc khóa
+  - 9.5. Xác minh nguồn gốc, tính toàn vẹn và đối tượng nhận khi nhập
+  - 9.6. Bảo vệ vật liệu khóa tạm trên đường tạo và nhập
+  - 9.7. Xác định thời hạn của khóa nhập và khả năng nhập lại
+  - 9.8. Xử lý tạo dở dang, yêu cầu lặp và khóa bị tạo thừa
+  - 9.9. Kiểm chứng khóa hoạt động bằng dữ liệu thử không nhạy cảm
+- level1: 10. Quyền sở hữu và kiểm soát
+  level2:
+  - 10.1. Khóa do nhà cung cấp quản lý và khóa do khách hàng quản lý
+  - 10.2. Mang khóa của tổ chức vào dịch vụ (BYOK) và ranh giới kiểm soát
+  - 10.3. Giữ khóa ở hệ thống bên ngoài (HYOK) và quản lý khóa ngoài
+  - 10.4. Phân biệt quyền sở hữu vật liệu khóa với quyền phê duyệt phép toán
+  - 10.5. Khả năng nhìn thấy, vô hiệu hóa, xuất và hủy khóa trong từng mô hình
+  - 10.6. Giới hạn độc lập với nhà cung cấp khi dữ liệu và quyền dùng khóa vẫn ở đám mây
+  - 10.7. Yêu cầu chủ quyền dữ liệu, vị trí lưu và phạm vi pháp lý
+  - 10.8. Đánh đổi về khả dụng, độ trễ, chi phí và trách nhiệm vận hành
+  - 10.9. Tiêu chí lựa chọn mô hình theo mức độ nhạy cảm và khả năng phục hồi
+- level1: 11. Danh tính và cấp quyền
+  level2:
+  - 11.1. Xác thực ứng dụng, người quản trị và tác vụ tự động
+  - 11.2. Tách quyền quản trị khóa khỏi quyền mã hóa, giải mã hoặc ký
+  - 11.3. Chính sách theo khóa, danh tính, hành động và điều kiện ngữ cảnh
+  - 11.4. Ủy quyền cho dịch vụ sử dụng khóa và giới hạn quyền được chuyển tiếp
+  - 11.5. Quyền tạm thời, thời hạn ủy quyền và thu hồi quyền
+  - 11.6. Điều kiện theo môi trường, tài nguyên và ngữ cảnh mã hóa
+  - 11.7. Ngăn truy cập chéo khách hàng và lạm dụng vai trò dùng chung
+  - 11.8. Ngăn leo thang quyền thông qua sửa chính sách hoặc tạo ủy quyền
+  - 11.9. Phân tách nhiệm vụ, nhiều người phê duyệt và quyền khẩn cấp
+  - 11.10. Rà soát quyền và kiểm chứng các trường hợp phải bị từ chối
+- level1: 12. Mã hóa phong bì
+  level2:
+  - 12.1. Luồng sinh DEK, mã hóa dữ liệu và bọc DEK bằng KEK
+  - 12.2. Vì sao xử lý dữ liệu lớn bên ngoài KMS thường phù hợp hơn
+  - 12.3. Lưu bản mã, DEK đã bọc, định danh khóa và tham số mã hóa
+  - 12.4. Luồng mở DEK và giải mã tại bên được cấp quyền
+  - 12.5. Gắn ngữ cảnh mã hóa với đối tượng, khách hàng và mục đích
+  - 12.6. Ngữ cảnh và AAD có thể cần được bảo vệ tính toàn vẹn dù không phải bí mật
+  - 12.7. Ngăn tráo DEK đã bọc hoặc bản mã giữa các tài nguyên
+  - 12.8. Tái bọc DEK so với giải mã và mã hóa lại toàn bộ dữ liệu
+  - 12.9. Bộ nhớ đệm DEK, giới hạn thời gian và phạm vi tái sử dụng
+  - 12.10. Giới hạn bảo vệ khi ứng dụng đã nhận DEK dạng rõ
+- level1: 13. Mã hóa và xác thực
+  level2:
+  - 13.1. Chọn phép toán và kiểu khóa tương thích với yêu cầu
+  - 13.2. Mã hóa trực tiếp qua dịch vụ và giới hạn kích thước dữ liệu
+  - 13.3. Quản lý nonce, IV, nhãn xác thực và siêu dữ liệu thuật toán
+  - 13.4. Ràng buộc ngữ cảnh giải mã với tài nguyên được cấp quyền
+  - 13.5. Xử lý bản mã bị sửa, thiếu siêu dữ liệu hoặc sai phiên bản khóa
+  - 13.6. Phân biệt lỗi không đủ quyền với lỗi dữ liệu không hợp lệ
+  - 13.7. Chống biến giao diện giải mã thành nguồn tiết lộ thông tin
+  - 13.8. HMAC trong KMS/HSM và giới hạn của việc chia sẻ quyền xác thực
+  - 13.9. Thiết kế định dạng bản mã có khả năng nâng cấp và di chuyển
+- level1: 14. Ký và xác minh
+  level2:
+  - 14.1. Khóa riêng ký trong KMS/HSM và phân phối khóa công khai
+  - 14.2. Phân biệt ký dữ liệu với ký giá trị băm
+  - 14.3. Chọn thuật toán, định dạng chữ ký và tham số tương thích
+  - 14.4. Chuẩn hóa dữ liệu cần ký và tránh diễn giải khác nhau
+  - 14.5. Kiểm soát ai được ký, được ký nội dung gì và với mục đích nào
+  - 14.6. Giới hạn của quyền ký khi tài khoản gọi bị xâm nhập
+  - 14.7. Gắn phiên bản khóa, chứng thư hoặc định danh khóa vào dữ liệu ký
+  - 14.8. Luân chuyển khóa ký và tiếp tục xác minh chữ ký cũ
+  - 14.9. Đóng dấu thời gian, lưu bằng chứng và yêu cầu xác minh lâu dài
+  - 14.10. Ứng dụng trong ký tạo phẩm, tài liệu, token và cập nhật phần mềm
+- level1: 15. Giao diện tích hợp
+  level2:
+  - 15.1. API dịch vụ từ xa và thư viện máy khách của KMS
+  - '15.2. PKCS #11 và mô hình đối tượng, phiên, cơ chế mật mã'
+  - 15.3. KMIP trong quản lý khóa và yêu cầu tương thích thực tế
+  - 15.4. Tích hợp qua giao diện mật mã của hệ điều hành
+  - 15.5. Tác nhân, proxy và cổng kết nối HSM
+  - 15.6. Xác thực kết nối, chứng thư máy khách và quản lý thông tin đăng nhập
+  - 15.7. Giới hạn thuật toán, kiểu khóa và khả năng giữa các giao diện
+  - 15.8. Ánh xạ lỗi, thời gian chờ và xử lý yêu cầu lặp
+  - 15.9. Kiểm thử tương thích thay vì giả định mọi nhà cung cấp hoạt động giống nhau
+- level1: 16. Tích hợp ứng dụng
+  level2:
+  - 16.1. Thiết kế giao diện sử dụng khóa không phụ thuộc trực tiếp vào nhà cung cấp
+  - 16.2. Tham chiếu khóa bằng định danh và quản lý thay đổi bí danh
+  - 16.3. Kiểm soát kích thước, định dạng và phân loại dữ liệu gửi đến dịch vụ
+  - 16.4. Bảo vệ DEK dạng rõ, bộ nhớ đệm và dữ liệu sau giải mã
+  - 16.5. Phân tách môi trường phát triển, kiểm thử và sản xuất
+  - 16.6. Danh tính khối lượng công việc thay cho thông tin xác thực cố định
+  - 16.7. Nhóm kết nối, phiên HSM và xử lý tiến trình khởi động lại
+  - 16.8. Quan sát lỗi mà không ghi dữ liệu rõ hoặc vật liệu khóa
+  - 16.9. Thiết kế kiểm thử với mô phỏng và môi trường mật mã thật
+  - 16.10. Kiểm soát thao tác ký hoặc giải mã theo mục đích nghiệp vụ
+- level1: 17. Tích hợp hạ tầng
+  level2:
+  - 17.1. Mã hóa kho đối tượng, ổ đĩa, cơ sở dữ liệu và bản sao lưu
+  - 17.2. Mã hóa phía ứng dụng so với mã hóa do dịch vụ lưu trữ thực hiện
+  - 17.3. Ranh giới quyền khi dịch vụ được quản lý gọi KMS thay ứng dụng
+  - 17.4. Kiểm soát khóa cho nhiều khách hàng hoặc nhiều tổ chức
+  - 17.5. Tích hợp hệ thống cấp chứng thư và bảo vệ khóa CA
+  - 17.6. Tích hợp đường ống ký phần mềm và kiểm soát tạo phẩm được ký
+  - 17.7. KMS/HSM trong môi trường tại chỗ, đám mây và kết hợp
+  - 17.8. Thiết kế phụ thuộc khi khởi động hệ thống cần giải mã cấu hình
+  - 17.9. Giới hạn của mã hóa lưu trữ trước truy cập hợp lệ bị lạm dụng
+- level1: 18. Nghi thức quản trị HSM
+  level2:
+  - 18.1. Khởi tạo thiết bị, miền bảo mật và phân vùng
+  - 18.2. Thiết lập vai trò, thông tin xác thực và phân tách nhiệm vụ
+  - 18.3. Kiểm soát nhiều người và phê duyệt theo ngưỡng M trên N
+  - 18.4. Phân biệt chia giữ thông tin khôi phục với chữ ký ngưỡng và MPC
+  - 18.5. Tổ chức nghi thức sinh khóa gốc hoặc khóa có mức bảo vệ cao
+  - 18.6. Ghi nhận người tham gia, thiết bị, bước thực hiện và bằng chứng
+  - 18.7. Bảo quản thẻ, thiết bị xác thực và phần thông tin khôi phục
+  - 18.8. Xử lý người giữ phần thông tin thay đổi vai trò hoặc không còn sẵn sàng
+  - 18.9. Diễn tập khôi phục có kiểm soát và tránh lộ bí mật quản trị
+  - 18.10. Quy trình kết thúc nghi thức và kiểm tra trạng thái an toàn
+- level1: 19. Luân chuyển và phiên bản
+  level2:
+  - 19.1. Luân chuyển khóa chủ, thay phiên bản vật liệu và thay định danh khóa
+  - 19.2. Phân biệt luân chuyển KEK, DEK và khóa ký
+  - 19.3. Giữ khả năng giải mã dữ liệu cũ trong thời hạn cần thiết
+  - 19.4. Tái bọc DEK để đổi tầng bảo vệ mà không xử lý lại toàn bộ dữ liệu
+  - 19.5. Mã hóa lại dữ liệu khi thuật toán, DEK hoặc phạm vi tin cậy thay đổi
+  - 19.6. Luân chuyển theo lịch và theo sự kiện nghi bị xâm nhập
+  - 19.7. Chuyển khóa đang dùng qua bí danh và kiểm soát tác động đồng thời
+  - 19.8. Thời gian cùng tồn tại của khóa ký cũ và mới
+  - 19.9. Đối soát tiến độ chuyển đổi và phát hiện dữ liệu còn phụ thuộc khóa cũ
+  - 19.10. Quay lui an toàn và giới hạn khi khóa cũ không còn đáng tin
+- level1: 20. Vô hiệu hóa và hủy
+  level2:
+  - 20.1. Ngừng phép toán mới trong khi giữ khả năng xử lý dữ liệu lịch sử
+  - 20.2. Vô hiệu hóa khóa và xử lý bộ nhớ đệm còn giữ vật liệu đã mở
+  - 20.3. Thu hồi quyền sử dụng khóa so với hủy vật liệu khóa
+  - 20.4. Thời gian chờ hủy, phê duyệt và khả năng khôi phục trước hạn
+  - 20.5. Xác minh không còn dữ liệu, chữ ký hoặc bản sao lưu cần khóa
+  - 20.6. Hủy khóa trong nhiều bản sao, phân vùng và khu vực
+  - 20.7. Xóa khả năng giải mã bằng hủy khóa và các điều kiện giới hạn
+  - 20.8. Đưa HSM ra khỏi sử dụng, xóa vật liệu và xử lý thiết bị
+  - 20.9. Lưu bằng chứng hủy và kiểm chứng yêu cầu sử dụng bị từ chối
+- level1: 21. Sao lưu và khôi phục
+  level2:
+  - 21.1. Sao lưu vật liệu khóa, siêu dữ liệu, chính sách và cấu hình HSM
+  - 21.2. Bọc bản sao lưu và bảo vệ khóa hoặc miền cần để khôi phục
+  - 21.3. Tách địa điểm, người giữ và quyền tiếp cận vật liệu khôi phục
+  - 21.4. Điều kiện tương thích giữa thiết bị nguồn và thiết bị đích
+  - 21.5. Khôi phục khi mất thiết bị, hỏng cụm hoặc mất toàn bộ khu vực
+  - 21.6. Phân biệt sao chép trực tuyến với bản sao lưu chống xóa nhầm
+  - 21.7. Tránh khôi phục quyền đã thu hồi hoặc tái kích hoạt khóa đã ngừng dùng
+  - 21.8. Kiểm chứng khả năng giải mã và ký sau khôi phục
+  - 21.9. Xác định RPO, RTO và kiểm tra định kỳ quy trình phục hồi
+  - 21.10. Xử lý mất đồng thời khóa dữ liệu và vật liệu khôi phục
+- level1: 22. Khả dụng và hiệu năng
+  level2:
+  - 22.1. Cụm HSM, dự phòng KMS và phân phối tải
+  - 22.2. Nhân bản khóa, chính sách và trạng thái giữa các điểm phục vụ
+  - 22.3. Độ trễ theo mạng, thuật toán, kích thước dữ liệu và loại phép toán
+  - 22.4. Hạn mức yêu cầu, năng lực phần cứng và tắc nghẽn phiên
+  - 22.5. Thử lại có giới hạn, điều tiết lưu lượng và tránh tải đột biến
+  - '22.6. Lưu tạm vật liệu hoặc kết quả: lợi ích và chi phí bảo mật'
+  - 22.7. Lựa chọn từ chối an toàn khi không thể truy cập hệ thống khóa
+  - 22.8. Kiểm thử tải, chuyển đổi dự phòng và lỗi từng thành phần
+  - 22.9. Đánh đổi giữa nhiều khu vực với chủ quyền, nhất quán và chi phí
+  - 22.10. Giám sát mức sử dụng và dự báo năng lực theo tăng trưởng
+- level1: 23. Kiểm toán và giám sát
+  level2:
+  - 23.1. Nhật ký tạo, nhập, sửa chính sách, sử dụng, luân chuyển và hủy khóa
+  - 23.2. Liên kết danh tính, định danh khóa, tài nguyên và mục đích phép toán
+  - 23.3. Phát hiện giải mã hàng loạt, ký bất thường và dùng khóa ngoài ngữ cảnh
+  - 23.4. Theo dõi thay đổi quyền, chế độ bảo mật và firmware
+  - 23.5. Phát hiện khóa mồ côi, phiên bản quá hạn và lịch hủy bất thường
+  - 23.6. Bảo vệ tính toàn vẹn, đồng bộ thời gian và thời hạn lưu nhật ký
+  - 23.7. Tránh ghi vật liệu khóa, dữ liệu rõ hoặc ngữ cảnh nhạy cảm vào log
+  - 23.8. Tách quyền xem bằng chứng khỏi quyền sử dụng khóa
+  - 23.9. Đối soát yêu cầu ứng dụng với bằng chứng KMS và HSM
+  - 23.10. Chỉ số vận hành về lỗi, độ trễ, hạn mức và khả năng kiểm toán
+- level1: 24. Ứng phó sự cố
+  level2:
+  - 24.1. Phân biệt lộ vật liệu khóa, lộ quyền sử dụng và xâm nhập thiết bị
+  - 24.2. Khoanh vùng tài khoản, chính sách, khóa và dữ liệu bị ảnh hưởng
+  - 24.3. Tạm dừng ký hoặc giải mã trái phép và kiểm soát gián đoạn
+  - 24.4. Luân chuyển, tái bọc hoặc mã hóa lại theo loại sự cố
+  - 24.5. Xử lý chữ ký đáng ngờ và thông báo thay đổi khóa xác minh
+  - 24.6. Thay thế HSM hoặc tái lập miền tin cậy khi cần
+  - 24.7. Bảo toàn bằng chứng trước khi xóa trạng thái hoặc đưa thiết bị ra khỏi dùng
+  - 24.8. Khôi phục khi hủy nhầm, mất khóa hoặc lỗi quản trị
+  - 24.9. Xác nhận quyền cũ bị chặn và dữ liệu hợp lệ vẫn xử lý được
+  - 24.10. Rút kinh nghiệm và cập nhật chính sách, kiến trúc cùng quy trình
+- level1: 25. Tuân thủ và quản trị
+  level2:
+  - 25.1. Chính sách quản lý khóa và phân công trách nhiệm tổ chức
+  - 25.2. Ánh xạ yêu cầu kinh doanh, hợp đồng và quy định vào kiểm soát khóa
+  - 25.3. Đánh giá chứng nhận mô-đun theo cấu hình và phạm vi triển khai
+  - 25.4. Yêu cầu lưu trú khóa, dữ liệu và bằng chứng vận hành
+  - 25.5. Quản lý thay đổi firmware, thuật toán và cấu hình được phê duyệt
+  - 25.6. Rà soát nhà cung cấp, quyền quản trị và trách nhiệm hỗ trợ
+  - 25.7. Quản lý ngoại lệ, chấp nhận rủi ro và thời hạn khắc phục
+  - 25.8. Chuẩn bị kiểm toán bằng hồ sơ vòng đời và bằng chứng thực tế
+  - 25.9. Đánh giá tổng chi phí sở hữu và năng lực con người
+- level1: 26. Di chuyển và nâng cấp
+  level2:
+  - 26.1. Kiểm kê định dạng bản mã, khóa và phụ thuộc nhà cung cấp
+  - 26.2. Đánh giá khả năng xuất khóa và giới hạn do thuộc tính bảo vệ
+  - 26.3. Chuyển giữa HSM, KMS hoặc mô hình đám mây và tại chỗ
+  - 26.4. Tái bọc hoặc mã hóa lại khi không thể chuyển vật liệu khóa
+  - 26.5. Chuyển đổi thuật toán và thiết kế khả năng thay đổi mật mã
+  - 26.6. Di chuyển khóa ký cùng dữ liệu xác minh và chứng thư liên quan
+  - 26.7. Chạy song song, kiểm chứng dữ liệu cũ và giới hạn thời gian chuyển tiếp
+  - 26.8. Ngăn thay đổi bí danh hoặc định dạng làm mất khả năng giải mã
+  - 26.9. Ngừng hệ thống cũ sau khi đối soát toàn bộ dữ liệu và bản sao
+  - 26.10. Lập kế hoạch dài hạn cho thuật toán và yêu cầu bảo vệ mới
+- level1: 27. Sai lầm và đánh đổi
+  level2:
+  - 27.1. Cho rằng có HSM thì tài khoản gọi ký hoặc giải mã luôn an toàn
+  - 27.2. Gộp quyền quản trị khóa và quyền sử dụng khóa vào một vai trò
+  - 27.3. Dùng một khóa cho nhiều khách hàng, môi trường hoặc mục đích
+  - 27.4. Đưa dữ liệu lớn qua KMS mà không đánh giá mã hóa phong bì
+  - 27.5. Tái sử dụng nonce hoặc thiếu ràng buộc ngữ cảnh với tài nguyên
+  - 27.6. Hủy khóa theo tuổi mà không kiểm tra dữ liệu phụ thuộc
+  - 27.7. Coi tự động luân chuyển là tự động mã hóa lại toàn bộ dữ liệu cũ
+  - 27.8. Chỉ sao chép cụm mà không có phương án chống xóa nhầm
+  - 27.9. Dựa vào nhãn chứng nhận mà bỏ qua cấu hình và phạm vi đánh giá
+  - 27.10. Đánh đổi giữa tính không thể xuất, khả năng di chuyển và phục hồi
+- level1: 28. Kiểm thử và thực hành
+  level2:
+  - 28.1. Lập sơ đồ tài nguyên, ranh giới tin cậy và hệ phân cấp khóa
+  - 28.2. Thiết kế ma trận quyền quản trị, mã hóa, giải mã và ký
+  - 28.3. Thực hành mã hóa phong bì với siêu dữ liệu và ngữ cảnh xác thực
+  - 28.4. Kiểm chứng truy cập chéo khách hàng và ngữ cảnh sai bị từ chối
+  - 28.5. Thực hành ký, đổi khóa và xác minh chữ ký từ phiên bản cũ
+  - 28.6. Luân chuyển KEK, tái bọc DEK và kiểm chứng dữ liệu cũ
+  - 28.7. Mô phỏng mất KMS, hết hạn phiên HSM và vượt hạn mức
+  - 28.8. Diễn tập sao lưu, phục hồi và chuyển đổi dự phòng
+  - 28.9. Diễn tập lộ quyền giải mã hoặc lịch hủy khóa ngoài dự kiến
+  - 28.10. Xây dựng tiêu chí nghiệm thu và hồ sơ quyết định kiến trúc

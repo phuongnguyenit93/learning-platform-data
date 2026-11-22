@@ -1,0 +1,2251 @@
+menu:
+- slug: repository-fundamentals
+  title: Nền tảng kho mã
+  childs:
+  - slug: repository-fundamentals-001
+    title: 'Monorepo và polyrepo: khái niệm, đặc trưng và phạm vi áp dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-002
+    title: Phân biệt kho mã, dự án, module, thư viện, dịch vụ và đơn vị triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-003
+    title: Phân biệt chiến lược kho mã với kiến trúc monolith và microservices
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-004
+    title: Độc lập giữa ranh giới kho mã, nhịp phát hành và cách triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-005
+    title: Luồng thay đổi từ chỉnh sửa mã đến build, kiểm thử và giao phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-006
+    title: Lợi ích và đánh đổi về khả năng quan sát mã, tự chủ nhóm và phối hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-007
+    title: Các ngộ nhận về tái sử dụng mã, thay đổi nguyên tử và khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-fundamentals-008
+    title: Dấu hiệu chiến lược kho mã hiện tại không còn phù hợp với tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository-selection-criteria
+  title: Tiêu chí lựa chọn
+  childs:
+  - slug: repository-selection-criteria-001
+    title: Thu thập bối cảnh sản phẩm, quy mô nhóm, công nghệ và vòng đời hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-002
+    title: Đánh giá mức độ thay đổi cùng nhau giữa các thành phần và nhóm sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-003
+    title: So sánh nhu cầu tự chủ với chi phí phối hợp và chuẩn hóa toàn tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-004
+    title: Đánh giá yêu cầu bảo mật, chia sẻ mã với đối tác và giới hạn truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-005
+    title: Phân tích ảnh hưởng của nhịp phát hành, phụ thuộc và yêu cầu tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-006
+    title: Đánh giá năng lực nền tảng build, CI/CD và nguồn lực vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-007
+    title: Xây dựng ma trận quyết định có trọng số, giả định và bằng chứng kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-selection-criteria-008
+    title: Ghi nhận quyết định kiến trúc, điều kiện xem xét lại và chi phí đảo chiều
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-boundaries
+  title: Ranh giới kiến trúc
+  childs:
+  - slug: architecture-boundaries-001
+    title: Xác định miền nghiệp vụ và bounded context trước khi chia kho mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-002
+    title: Ánh xạ ranh giới trách nhiệm nhóm vào module, dịch vụ và thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-003
+    title: Phân biệt liên kết mã nguồn, liên kết build, liên kết phát hành và liên kết lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-004
+    title: Dùng lịch sử thay đổi cùng nhau để phát hiện ranh giới chưa hợp lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-005
+    title: Thiết lập API công khai và giới hạn truy cập vào phần triển khai nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-006
+    title: Nhận diện phụ thuộc vòng và kiến trúc phân tán nhưng vẫn phải phát hành đồng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-007
+    title: Kiểm soát ranh giới bằng quy tắc import, kiến trúc và hướng phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-boundaries-008
+    title: Điều chỉnh ranh giới khi nhóm, miền nghiệp vụ và sản phẩm thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: code-ownership
+  title: Sở hữu mã nguồn
+  childs:
+  - slug: code-ownership-001
+    title: Thiết lập bản đồ chủ sở hữu cho thư mục, module, kho mã và thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-002
+    title: Phân định trách nhiệm giữa nhóm sản phẩm, nhóm nền tảng và nhóm bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-003
+    title: Thiết kế CODEOWNERS, tuyến review và cơ chế thay thế khi chủ sở hữu vắng mặt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-004
+    title: Phân biệt quyền phê duyệt thay đổi với quyền đọc và ghi kho mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-005
+    title: Xác định người chịu trách nhiệm khi thay đổi ảnh hưởng nhiều thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-006
+    title: Thiết lập cam kết hỗ trợ cho thành phần dùng chung và phụ thuộc nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-007
+    title: Quản lý mã chưa có chủ sở hữu, nhóm giải thể và bàn giao trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: code-ownership-008
+    title: Đo thời gian chờ review, điểm nghẽn sở hữu và mức tập trung kiến thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monorepo-structure
+  title: Cấu trúc monorepo
+  childs:
+  - slug: monorepo-structure-001
+    title: Tổ chức thư mục theo miền nghiệp vụ, ứng dụng và thư viện dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-002
+    title: Thiết kế workspace và khai báo danh tính ổn định cho từng dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-003
+    title: Tách cấu hình cấp gốc với cấu hình build và kiểm thử của từng thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-004
+    title: Quản lý mã ứng dụng, hạ tầng, tài liệu, mã sinh và công cụ nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-005
+    title: Đặt quy tắc đặt tên, đường dẫn, dependency và phạm vi API của module
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-006
+    title: Giới hạn thư mục dùng chung để tránh phụ thuộc tùy tiện giữa các miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-007
+    title: Bố trí vùng thử nghiệm, dự án ngừng dùng và tài sản có vòng đời riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-structure-008
+    title: Ví dụ cấu trúc monorepo Java gồm nhiều dịch vụ, thư viện và cấu hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: polyrepo-structure
+  title: Cấu trúc polyrepo
+  childs:
+  - slug: polyrepo-structure-001
+    title: Chọn đơn vị tách kho theo miền nghiệp vụ, sản phẩm, dịch vụ hoặc thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-002
+    title: Thiết lập quy ước tên kho và danh mục tra cứu chủ sở hữu, tài liệu, trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-003
+    title: 'Xác định nội dung chuẩn của mỗi kho: mã, build, kiểm thử và cấu hình phát hành'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-004
+    title: Thiết kế kho thư viện, kho hợp đồng và kho mẫu phục vụ nhiều nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-005
+    title: Chọn vị trí lưu hạ tầng và cấu hình triển khai theo trách nhiệm vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-006
+    title: Tổ chức môi trường làm việc khi một tính năng cần sửa nhiều kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-007
+    title: Quản lý vòng đời tạo mới, chuyển quyền sở hữu, lưu trữ và ngừng sử dụng kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-structure-008
+    title: Ví dụ hệ thống Java đa kho với registry nội bộ và danh mục dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hybrid-repository-models
+  title: Mô hình kết hợp
+  childs:
+  - slug: hybrid-repository-models-001
+    title: Monorepo theo miền kết hợp polyrepo giữa các miền nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-002
+    title: Tách nền tảng dùng chung khỏi kho sản phẩm theo vòng đời và quyền sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-003
+    title: Kết hợp mã nguồn mở, mã nội bộ và mã đối tác theo yêu cầu truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-004
+    title: Phân biệt mô hình kho kết hợp với cơ chế Git submodule và subtree
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-005
+    title: Đánh giá chi phí đồng bộ, ghim phiên bản và trải nghiệm làm việc với submodule
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-006
+    title: Thiết kế giao diện và cơ chế phát hành qua ranh giới các nhóm kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-007
+    title: Kiểm soát sao chép mã và đồng bộ hai chiều giữa các kho liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-repository-models-008
+    title: Xác định điều kiện giữ mô hình kết hợp hoặc chuyển sang cấu trúc khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependency-graphs
+  title: Đồ thị phụ thuộc
+  childs:
+  - slug: dependency-graphs-001
+    title: Lập đồ thị phụ thuộc mã nguồn, build, công cụ, kiểm thử và artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-002
+    title: Phân biệt phụ thuộc trực tiếp, bắc cầu và phụ thuộc ngược để xác định tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-003
+    title: Ghi nhận phụ thuộc ẩn qua cấu hình, tài nguyên, mã sinh và biến môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-004
+    title: Phân biệt đồ thị build với quan hệ gọi dịch vụ và phụ thuộc dữ liệu lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-005
+    title: Phát hiện phụ thuộc vòng và giới hạn phụ thuộc xuyên miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-006
+    title: Ánh xạ tệp thay đổi tới dự án và tập thành phần chịu ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-007
+    title: Cập nhật đồ thị khi thêm, đổi tên, di chuyển hoặc xóa thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-graphs-008
+    title: Kiểm chứng độ đầy đủ của đồ thị và xử lý phụ thuộc không thể suy ra tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: shared-libraries
+  title: Thư viện dùng chung
+  childs:
+  - slug: shared-libraries-001
+    title: Lựa chọn tái sử dụng qua mã nguồn, package, artifact hoặc API dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-002
+    title: Phân biệt thư viện kỹ thuật dùng chung với logic nghiệp vụ cần giữ ranh giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-003
+    title: Quản lý dependency nội bộ và bên ngoài bằng BOM, constraints và lockfile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-004
+    title: Đánh giá một phiên bản chung và nhiều phiên bản dependency cùng tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-005
+    title: Thiết kế registry nội bộ, tọa độ artifact và chính sách lưu giữ phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-006
+    title: Thiết lập quyền sở hữu, tài liệu sử dụng và cam kết tương thích của thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-007
+    title: Tự động đề xuất cập nhật dependency và theo dõi mức tiếp nhận của các kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-libraries-008
+    title: Loại bỏ thư viện lỗi thời, fork nội bộ và bản sao mã dùng chung mất kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-and-change-management
+  title: Phiên bản và thay đổi
+  childs:
+  - slug: versioning-and-change-management-001
+    title: So sánh đánh phiên bản đồng bộ và đánh phiên bản độc lập theo thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-002
+    title: Áp dụng quy tắc phiên bản ngữ nghĩa theo hợp đồng và loại người tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-003
+    title: Xác định phiên bản phát hành từ thay đổi mã, dependency và nội dung artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-004
+    title: Thiết kế tag, changelog và ghi chú phát hành cho nhiều thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-005
+    title: Phân biệt commit nguyên tử trong monorepo với cập nhật đồng thời ở môi trường chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-006
+    title: Điều phối thay đổi nhiều kho bằng chuỗi pull request và thứ tự phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-007
+    title: Duy trì nhánh hỗ trợ, bản vá và truy vết các phiên bản đang được sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-change-management-008
+    title: Quản lý deprecation, thời hạn nâng cấp và thay đổi phá vỡ tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: selective-builds
+  title: Build có chọn lọc
+  childs:
+  - slug: selective-builds-001
+    title: Xác định tập build chịu ảnh hưởng từ diff, đồ thị phụ thuộc và mục tiêu build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-002
+    title: Chọn mốc so sánh theo merge base, nhánh đích và lần kiểm tra thành công phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-003
+    title: Lan truyền tác động tới thành phần tiêu thụ và tác vụ phụ thuộc bắc cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-004
+    title: Xử lý thay đổi cấu hình gốc, toolchain, lockfile, plugin và mã sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-005
+    title: Tính tác động khi thêm, đổi tên, di chuyển hoặc xóa tệp và dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-006
+    title: Phân biệt lọc pipeline theo đường dẫn với tính đầy đủ của tập cần build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-007
+    title: Chạy build đầy đủ khi thiếu lịch sử Git, thiếu mốc hoặc không xác định được tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selective-builds-008
+    title: Đối chiếu build chọn lọc với build đầy đủ để phát hiện trường hợp bỏ sót
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: caching-and-reproducibility
+  title: Cache và tái lập
+  childs:
+  - slug: caching-and-reproducibility-001
+    title: Thiết kế build có đầu vào khai báo rõ và kết quả tái lập được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-002
+    title: Xây dựng khóa cache từ mã nguồn, dependency, toolchain và môi trường liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-003
+    title: Phân biệt dependency cache, task cache, artifact và kết quả kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-004
+    title: Lựa chọn cache cục bộ, cache từ xa và chính sách chia sẻ giữa các nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-005
+    title: Kiểm soát quyền ghi cache và ngăn kết quả từ nguồn không tin cậy được tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-006
+    title: Vô hiệu hóa cache khi thay đổi đầu vào ẩn hoặc phát hiện kết quả không chính xác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-007
+    title: Tối ưu song song, chia nhỏ tác vụ và cấp tài nguyên theo đồ thị build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: caching-and-reproducibility-008
+    title: Đo tỷ lệ cache hit, thời gian truyền dữ liệu và chi phí lưu trữ cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: testing-strategy
+  title: Chiến lược kiểm thử
+  childs:
+  - slug: testing-strategy-001
+    title: Phân bổ unit test, integration test, contract test và end-to-end test theo rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-002
+    title: Chọn kiểm thử chịu ảnh hưởng dựa trên mã, dependency và hợp đồng thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-003
+    title: Kiểm tra thành phần tiêu thụ khi thư viện hoặc cấu hình dùng chung thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-004
+    title: Thiết kế ma trận tương thích cho nhiều phiên bản dịch vụ và thư viện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-005
+    title: Quản lý dữ liệu thử nghiệm, môi trường tạm thời và tài nguyên kiểm thử dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-006
+    title: Chia test thành các phần chạy song song và xử lý test chậm hoặc thiếu ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-007
+    title: Kết hợp kiểm thử trước merge với kiểm thử đầy đủ định kỳ và sau tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: testing-strategy-008
+    title: Đánh giá độ tin cậy của test chọn lọc bằng lỗi lọt, mức bao phủ và thời gian phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monorepo-ci
+  title: CI cho monorepo
+  childs:
+  - slug: monorepo-ci-001
+    title: Thiết kế pipeline phát hiện thay đổi, lập kế hoạch và chạy tác vụ theo đồ thị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-002
+    title: Tách kiểm tra toàn kho với build và kiểm thử riêng của từng dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-003
+    title: Dùng pipeline động, mẫu dùng chung và cấu hình mở rộng theo thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-004
+    title: Thiết kế trạng thái kiểm tra bắt buộc khi một thành phần không có thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-005
+    title: Dùng merge queue để kiểm tra thay đổi trên trạng thái tích hợp dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-006
+    title: Hủy tác vụ lỗi thời, giới hạn đồng thời và phân bổ runner giữa các nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-007
+    title: Cô lập pull request không tin cậy khỏi secret, cache ghi được và quyền phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monorepo-ci-008
+    title: Khoanh vùng lỗi pipeline dùng chung và duy trì phản hồi nhanh cho người phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: polyrepo-ci
+  title: CI cho polyrepo
+  childs:
+  - slug: polyrepo-ci-001
+    title: Chuẩn hóa pipeline qua template, workflow tái sử dụng và phiên bản cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-002
+    title: Phát hiện consumer bị ảnh hưởng khi producer hoặc thư viện phát hành phiên bản mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-003
+    title: Thiết kế sự kiện liên kho với xác thực, chống lặp và khả năng truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-004
+    title: Điều phối chuỗi build producer, xuất bản artifact và kiểm thử consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-005
+    title: Kiểm thử thay đổi nhiều kho bằng artifact tạm thời và tập phiên bản được ghim
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-006
+    title: Quản lý danh tính máy, token phạm vi hẹp và quyền kích hoạt pipeline liên kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-007
+    title: Xử lý retry, timeout và khôi phục khi chuỗi pipeline liên kho thất bại một phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: polyrepo-ci-008
+    title: Phát hiện lệch chuẩn pipeline và triển khai cập nhật cấu hình trên nhiều kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: releases-and-deployments
+  title: Phát hành và triển khai
+  childs:
+  - slug: releases-and-deployments-001
+    title: Xác định đơn vị phát hành và triển khai độc lập với đơn vị lưu trữ mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-002
+    title: Build artifact một lần và quảng bá cùng artifact qua các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-003
+    title: Truy vết commit, phiên bản dependency, kết quả CI và artifact đã triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-004
+    title: Điều phối thứ tự phát hành khi nhiều thành phần có quan hệ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-005
+    title: Thiết kế release manifest ghi nhận tập phiên bản của một hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-006
+    title: Áp dụng feature flag, canary và phát hành từng phần để giảm phạm vi ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-007
+    title: Thiết kế rollback theo thành phần và xử lý ràng buộc tương thích khi quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: releases-and-deployments-008
+    title: Tổ chức bản vá khẩn cấp, phê duyệt phát hành và kiểm tra sau triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: contracts-and-data
+  title: Hợp đồng và dữ liệu
+  childs:
+  - slug: contracts-and-data-001
+    title: Quản lý phiên bản API, sự kiện và schema dữ liệu qua ranh giới kho mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-002
+    title: Đặt nguồn chuẩn cho hợp đồng và xác định trách nhiệm cập nhật producer, consumer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-003
+    title: Kiểm tra tương thích lùi, tương thích tiến và giới hạn của contract test
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-004
+    title: Áp dụng expand-contract cho thay đổi API, sự kiện và cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-005
+    title: Quản lý mã client được sinh tự động và đồng bộ phiên bản với hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-006
+    title: Lập trình tự migration dữ liệu khi các dịch vụ nâng cấp không đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-007
+    title: Kiểm thử trạng thái nhiều phiên bản cùng hoạt động trong quá trình chuyển tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-and-data-008
+    title: Loại bỏ hợp đồng cũ dựa trên bằng chứng sử dụng và cam kết với nhóm tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository-access-control
+  title: Phân quyền truy cập
+  childs:
+  - slug: repository-access-control-001
+    title: Ánh xạ yêu cầu đọc, ghi, review, quản trị và phát hành cho từng nhóm người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-002
+    title: Phân biệt CODEOWNERS và bảo vệ nhánh với cơ chế kiểm soát quyền đọc mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-003
+    title: Đánh giá giới hạn phân quyền theo thư mục của nền tảng lưu trữ đang dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-004
+    title: Thiết kế ranh giới kho khi mã cần cách ly theo khách hàng, đối tác hoặc mức nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-005
+    title: Quản lý tài khoản dịch vụ, ứng dụng tích hợp và quyền truy cập liên kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-006
+    title: Bảo vệ nhánh, tag, môi trường triển khai và quyền vượt qua quy tắc kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-007
+    title: Thực hiện cấp quyền, thu hồi quyền và rà soát truy cập theo vòng đời nhân sự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-access-control-008
+    title: Kiểm toán truy cập mã, thay đổi quyền và các đường vượt ranh giới dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: software-supply-chain-security
+  title: Bảo mật chuỗi cung ứng
+  childs:
+  - slug: software-supply-chain-security-001
+    title: Mô hình hóa rủi ro từ mã nguồn, dependency, runner, cache và registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-002
+    title: Quét secret, lỗ hổng và giấy phép theo phạm vi thành phần chịu ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-003
+    title: Tách secret khỏi kho mã và giới hạn thông tin nhạy cảm trong log CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-004
+    title: Ghim dependency, công cụ và workflow theo định danh có thể kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-005
+    title: Sinh SBOM, thông tin nguồn gốc build và chữ ký cho artifact phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-006
+    title: Kiểm tra chính sách bảo mật trước khi xuất bản package và triển khai hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-007
+    title: Đánh giá phạm vi ảnh hưởng khi thư viện, tài khoản hoặc pipeline dùng chung bị xâm phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-security-008
+    title: Thu hồi thông tin xác thực, cô lập artifact và điều phối vá lỗi trên nhiều thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: team-collaboration
+  title: Phối hợp nhóm
+  childs:
+  - slug: team-collaboration-001
+    title: Thiết kế luồng đề xuất, review và triển khai thay đổi xuyên ranh giới sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-002
+    title: Chia thay đổi lớn thành các bước nhỏ có khả năng tích hợp và kiểm chứng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-003
+    title: Quản lý nhánh ngắn hạn, trunk-based development và xung đột khi nhiều nhóm cùng sửa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-004
+    title: Thiết lập thời hạn phản hồi review, cơ chế hỗ trợ và xử lý bất đồng kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-005
+    title: Điều phối thay đổi API và thư viện bằng đề xuất kỹ thuật, lịch nâng cấp và deprecation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-006
+    title: Cho phép đóng góp chéo nhóm với hướng dẫn rõ và trách nhiệm phê duyệt phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-007
+    title: Giảm hàng chờ tích hợp, phụ thuộc lịch phát hành và họp điều phối lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: team-collaboration-008
+    title: Theo dõi tác động của cấu trúc tổ chức tới khả năng tự chủ và tốc độ giao phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository-governance
+  title: Quản trị kho mã
+  childs:
+  - slug: repository-governance-001
+    title: Thiết lập chuẩn tối thiểu cho cấu trúc, metadata, tài liệu và kiểm tra chất lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-002
+    title: Quản lý quy tắc kiến trúc và chính sách kho mã dưới dạng cấu hình có phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-003
+    title: Phân định tiêu chuẩn bắt buộc, phần nhóm tự chọn và cơ chế ngoại lệ có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-004
+    title: Duy trì template kho và nâng cấp dự án đã tạo khi template thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-005
+    title: Chuẩn hóa định dạng, lint và phân tích tĩnh theo ngôn ngữ và thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-006
+    title: Quản lý thay đổi hàng loạt bằng codemod, tự động tạo pull request và kiểm tra tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-007
+    title: Kiểm soát vòng đời dự án từ khởi tạo đến chuyển chủ sở hữu và lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-governance-008
+    title: Rà soát lệch chuẩn, nợ bảo trì và hiệu quả thực tế của các chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: developer-experience
+  title: Trải nghiệm phát triển
+  childs:
+  - slug: developer-experience-001
+    title: Thiết kế quy trình onboarding từ cấp quyền đến chạy được tác vụ đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-002
+    title: Chuẩn hóa toolchain, phiên bản JDK và môi trường phát triển có thể tái tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-003
+    title: Hỗ trợ IDE nhập đúng module và tìm kiếm mã trên một hoặc nhiều kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-004
+    title: Chạy build, kiểm thử và kiểm tra định dạng cục bộ tương ứng với CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-005
+    title: Tổ chức workspace nhiều kho và liên kết thư viện cục bộ khi phát triển tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-006
+    title: Giảm thời gian tải dependency, lập chỉ mục và khởi động môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-007
+    title: Cung cấp tài liệu khám phá thành phần, ví dụ sử dụng và kênh hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: developer-experience-008
+    title: Thu thập phản hồi về thao tác lặp lại, thời gian chờ và trở ngại thường gặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: git-scalability
+  title: Mở rộng Git
+  childs:
+  - slug: git-scalability-001
+    title: Đo kích thước lịch sử, số tệp, tần suất commit và chi phí clone, fetch, checkout
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-002
+    title: Áp dụng sparse checkout và partial clone theo nhu cầu truy cập mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-003
+    title: Đánh giá shallow clone đối với merge base và tính chính xác của build chọn lọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-004
+    title: Quản lý tệp lớn, dữ liệu nhị phân và Git LFS theo vòng đời tài sản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-005
+    title: Giới hạn mã sinh, đầu ra build và dependency được đưa vào lịch sử Git
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-006
+    title: Xử lý đổi tên thư mục lớn, xung đột thường xuyên và thay đổi hàng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-007
+    title: Lập kế hoạch bảo trì lịch sử và đánh giá hệ quả trước khi viết lại commit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-scalability-008
+    title: Thiết kế sao lưu, khôi phục và ứng phó khi nền tảng Git gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tools-and-platforms
+  title: Công cụ và nền tảng
+  childs:
+  - slug: tools-and-platforms-001
+    title: Xây dựng bộ tiêu chí chọn công cụ theo đồ thị build, ngôn ngữ và quy mô tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-002
+    title: Thiết kế Maven multi-module, reactor và quản lý phiên bản bằng BOM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-003
+    title: Thiết kế Gradle multi-project, composite build và quy ước build dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-004
+    title: Đánh giá Bazel, Pants, Nx và Turborepo theo hệ sinh thái và nhu cầu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-005
+    title: Tích hợp nền tảng Git với CI/CD, registry, catalog và hệ thống định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-006
+    title: Đánh giá hỗ trợ build chọn lọc, remote cache và thực thi phân tán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-007
+    title: Thử nghiệm công cụ bằng dự án đại diện, tải CI thực tế và tình huống lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-platforms-008
+    title: So sánh chi phí vận hành, khả năng chuyển đổi và rủi ro phụ thuộc nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: metrics-and-costs
+  title: Đo lường và chi phí
+  childs:
+  - slug: metrics-and-costs-001
+    title: Thiết lập số liệu nền về lead time, tần suất triển khai và tỷ lệ thay đổi gây lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-002
+    title: Đo thời gian phản hồi CI, thời gian chờ runner và thời gian phục hồi sau lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-003
+    title: Theo dõi số kho hoặc thành phần phải thay đổi để hoàn thành một tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-004
+    title: Đo độ trễ nâng cấp dependency, lượng phiên bản tồn tại và mức lệch cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-005
+    title: Đo thời gian review, onboarding và mức gián đoạn do phối hợp xuyên nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-006
+    title: Tính chi phí runner, cache, registry, lưu trữ Git và công sức đội nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-007
+    title: Phân tích theo phân vị, loại thay đổi và nhóm để tránh kết luận từ số trung bình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-and-costs-008
+    title: So sánh trước và sau bằng mục tiêu rõ, nhóm đối chứng phù hợp và dữ liệu định tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-planning
+  title: Lập kế hoạch chuyển đổi
+  childs:
+  - slug: migration-planning-001
+    title: Kiểm kê kho, chủ sở hữu, dependency, pipeline, quyền truy cập và hệ thống đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-002
+    title: Xác định mục tiêu, phạm vi thí điểm và tiêu chí thành công có thể đo lường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-003
+    title: Lập bản đồ cấu trúc đích, đơn vị phát hành và quyền sở hữu sau chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-004
+    title: Phân loại thành phần theo độ kết dính, độ nhạy cảm và rủi ro phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-005
+    title: Chọn chuyển đổi từng phần hoặc đồng loạt dựa trên khả năng duy trì giao phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-006
+    title: Lập kế hoạch bảo toàn lịch sử, định danh artifact, tag và liên kết công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-007
+    title: Thiết kế giai đoạn cùng tồn tại, nguồn ghi chính và cơ chế tránh sửa lệch hai nơi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-planning-008
+    title: Chuẩn bị diễn tập, truyền thông, tiêu chí dừng và phương án quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-to-monorepo
+  title: Hợp nhất vào monorepo
+  childs:
+  - slug: migration-to-monorepo-001
+    title: Chọn nhóm kho cần hợp nhất theo miền nghiệp vụ và tần suất thay đổi cùng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-002
+    title: Ánh xạ đường dẫn đích và xử lý trùng tên dự án, tag, cấu hình và tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-003
+    title: Chọn cách nhập lịch sử Git và ghi nhận ánh xạ commit khi định danh thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-004
+    title: Chuyển dependency nội bộ sang cấu trúc workspace mà vẫn giữ hợp đồng phát hành cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-005
+    title: Hợp nhất toolchain, đồ thị build, kiểm thử và pipeline theo từng nhóm thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-006
+    title: Chuyển quyền truy cập, CODEOWNERS, bảo vệ nhánh và quyền phát hành sang mô hình đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-007
+    title: Cắt chuyển nguồn ghi chính, cập nhật liên kết và đưa kho cũ về trạng thái lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-monorepo-008
+    title: Xác minh build, lịch sử, truy vết artifact và khả năng triển khai sau hợp nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-to-polyrepo
+  title: Tách sang polyrepo
+  childs:
+  - slug: migration-to-polyrepo-001
+    title: Chọn ranh giới tách theo quyền sở hữu, tính tự chủ và nhu cầu cách ly truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-002
+    title: Loại bỏ phụ thuộc vòng, truy cập mã nội bộ và giả định đường dẫn chung trước khi tách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-003
+    title: Đóng gói thư viện, hợp đồng và công cụ dùng chung thành dependency có phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-004
+    title: Trích xuất lịch sử liên quan và kiểm tra mã nhạy cảm còn tồn tại trong lịch sử kho mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-005
+    title: Khởi tạo build, kiểm thử, quyền truy cập và pipeline độc lập cho từng kho mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-006
+    title: Thiết lập registry, cập nhật dependency tự động và kiểm thử tương thích liên kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-007
+    title: Chuyển luồng đóng góp, nguồn ghi chính, tài liệu và trách nhiệm vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-to-polyrepo-008
+    title: Xác minh khả năng phát hành độc lập và xử lý các liên kết còn trỏ về monorepo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: post-migration-operations
+  title: Vận hành sau chuyển đổi
+  childs:
+  - slug: post-migration-operations-001
+    title: Theo dõi lead time, lỗi tích hợp và chi phí CI trong giai đoạn ổn định ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-002
+    title: Đối soát quyền truy cập, chủ sở hữu và các tích hợp bị bỏ sót khi cắt chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-003
+    title: Điều tra sai lệch build chọn lọc, cache và kiểm thử sau khi đổi cấu trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-004
+    title: Xử lý dependency trôi phiên bản, artifact thất lạc và liên kết tài liệu hỏng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-005
+    title: Điều chỉnh tài nguyên runner, chính sách cache và giới hạn đồng thời theo tải mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-006
+    title: Diễn tập khôi phục kho, phục hồi pipeline và rollback phát hành trong mô hình mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-007
+    title: Dọn cơ chế chuyển tiếp, token, bản sao mã và luồng đồng bộ đã hết mục đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: post-migration-operations-008
+    title: Đánh giá mục tiêu chuyển đổi và cập nhật quyết định kiến trúc theo bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: decision-making-practice
+  title: Thực hành quyết định
+  childs:
+  - slug: decision-making-practice-001
+    title: Chọn chiến lược kho cho nhóm nhỏ phát triển nhiều dịch vụ Java có phụ thuộc chặt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-002
+    title: Thiết kế kho cho nhiều nhóm tự chủ với nhịp phát hành và công nghệ khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-003
+    title: Xử lý yêu cầu chia sẻ một phần mã cho đối tác và cách ly mã nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-004
+    title: Thiết kế build chọn lọc cho thay đổi thư viện, cấu hình gốc và thành phần bị xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-005
+    title: Lập kế hoạch thay đổi API ảnh hưởng nhiều consumer trong monorepo và polyrepo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-006
+    title: Diễn tập khôi phục khi cache sai, pipeline dùng chung lỗi hoặc phát hành liên kho thất bại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-007
+    title: Xây dựng phương án chuyển đổi từng bước kèm chi phí, tiêu chí dừng và quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: decision-making-practice-008
+    title: Hoàn thiện hồ sơ quyết định gồm ma trận lựa chọn, sơ đồ sở hữu và kế hoạch đo lường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

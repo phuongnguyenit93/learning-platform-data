@@ -1,0 +1,2899 @@
+menu:
+- slug: logging-overview
+  title: Tổng quan
+  childs:
+  - slug: logging-overview-001
+    title: Logging là gì và bản ghi log phản ánh sự kiện nào của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-002
+    title: Vì sao cần log trong phát triển, vận hành và điều tra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-003
+    title: Quan hệ giữa log, metric, trace và khả năng quan sát hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-004
+    title: Phân biệt sự kiện thực tế, bản ghi sự kiện và dòng văn bản xuất ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-005
+    title: Luồng từ câu lệnh ghi log đến nơi tìm kiếm và phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-006
+    title: Phân biệt logging, in ra màn hình, debugging và thu thập số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-007
+    title: Mục đích khác nhau của log ứng dụng, truy cập, bảo mật và kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-008
+    title: 'Giới hạn của log: dữ liệu thiếu, sai thời gian, bị mất hoặc không đáng tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-009
+    title: Phạm vi nền tảng và vai trò của các công cụ lưu trữ, phân tích chuyên biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-overview-010
+    title: Lộ trình học từ thiết kế một bản ghi đến quan sát toàn bộ luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: event-design
+  title: Thiết kế sự kiện
+  childs:
+  - slug: event-design-001
+    title: Bắt đầu từ câu hỏi cần trả lời khi vận hành hoặc điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-002
+    title: Chọn các mốc nghiệp vụ, thay đổi trạng thái và ranh giới tích hợp cần ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-003
+    title: Xác định ai thực hiện, hành động gì, đối tượng nào và kết quả ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-004
+    title: Tên sự kiện ổn định và phân biệt loại sự kiện với thông điệp mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-005
+    title: Định danh yêu cầu, tác vụ, thực thể và sự kiện cho các mục đích khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-006
+    title: Ghi kết quả thành công, thất bại, bị từ chối hoặc chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-007
+    title: Phân biệt ý định thực hiện, bắt đầu xử lý và hoàn tất thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-008
+    title: Thời điểm ghi log so với commit, rollback và tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-009
+    title: Một sự kiện có ích so với ghi lại mọi bước thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-010
+    title: Xác định nơi chịu trách nhiệm ghi để tránh thiếu hoặc lặp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: event-design-011
+    title: Vì sao log ứng dụng không tự trở thành nguồn dữ liệu nghiệp vụ chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-levels
+  title: Mức độ log
+  childs:
+  - slug: log-levels-001
+    title: Ý nghĩa của TRACE, DEBUG, INFO, WARN và ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-002
+    title: FATAL và các mức độ chỉ xuất hiện trong một số hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-003
+    title: Chọn mức độ theo kết quả, khả năng phục hồi và ảnh hưởng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-004
+    title: Phân biệt mức độ nghiêm trọng với độ chi tiết của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-005
+    title: Ngưỡng ghi log và thứ tự mức độ trong từng thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-006
+    title: Không đồng nhất mã HTTP, ngoại lệ hoặc retry với một mức log cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-007
+    title: Cảnh báo có thể xử lý và tác hại của cảnh báo lặp vô ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-008
+    title: Lỗi dự kiến, lỗi bất thường và trách nhiệm của tầng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-009
+    title: Thống nhất cách dùng mức độ giữa các nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-010
+    title: Ánh xạ mức độ khi thu thập log từ nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-011
+    title: Mức độ không xác định và bảo toàn giá trị gốc khi chuẩn hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-levels-012
+    title: Điều chỉnh độ chi tiết tạm thời mà vẫn kiểm soát phạm vi và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: useful-messages
+  title: Thông điệp hữu ích
+  childs:
+  - slug: useful-messages-001
+    title: Viết thông điệp mô tả sự kiện và kết quả bằng từ ngữ rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-002
+    title: Thêm ngữ cảnh đủ để điều tra mà không phải đọc toàn bộ mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-003
+    title: Giữ mẫu thông điệp ổn định và đưa dữ liệu biến đổi thành trường riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-004
+    title: Mã sự kiện, mã lỗi và thông tin hỗ trợ tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-005
+    title: Giá trị đầu vào liên quan, đầu ra tóm tắt và nguyên nhân thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-006
+    title: Đơn vị đo, kiểu dữ liệu và tên trường tránh gây hiểu nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-007
+    title: Phân biệt thông tin quan sát được với suy đoán về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-008
+    title: Giới hạn nội dung lớn, danh sách dài và biểu diễn đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-009
+    title: Vì sao thông điệp kiểu started, failed hoặc unknown đơn lẻ thường thiếu giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-010
+    title: Ngôn ngữ thông điệp, thuật ngữ thống nhất và khả năng hỗ trợ nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: useful-messages-011
+    title: Thiết kế log vẫn dễ hiểu khi tách khỏi dòng đứng trước hoặc sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: structured-logs
+  title: Log có cấu trúc
+  childs:
+  - slug: structured-logs-001
+    title: Log văn bản tự do, bán cấu trúc và có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-002
+    title: JSON, JSON Lines và nguyên tắc xác định ranh giới bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-003
+    title: Phân biệt đối tượng JSON hợp lệ với một chuỗi chứa JSON lồng bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-004
+    title: Lược đồ trường chung cho thời gian, mức độ, sự kiện, dịch vụ và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-005
+    title: Chuỗi, số, boolean, null và bảo toàn kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-006
+    title: Trường tùy chọn, giá trị thiếu và giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-007
+    title: Đặt tên trường, cấu trúc lồng và xử lý xung đột tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-008
+    title: Ký tự đặc biệt, xuống dòng, Unicode và mã hóa văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-009
+    title: Phiên bản lược đồ và tương thích khi thêm, đổi hoặc bỏ trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-010
+    title: Kiểm tra kích thước bản ghi và hành vi khi dữ liệu bị cắt ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-011
+    title: Phân biệt structured logging với việc nối nhiều cặp key=value thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: structured-logs-012
+    title: Mô hình LogRecord của OpenTelemetry và cách biểu diễn dữ liệu từ nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: timestamps-ordering
+  title: Thời gian và thứ tự
+  childs:
+  - slug: timestamps-ordering-001
+    title: Thời điểm sự kiện xảy ra, được quan sát và được tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-002
+    title: Timestamp của nguồn và ObservedTimestamp trong mô hình log chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-003
+    title: UTC, múi giờ, độ lệch múi giờ và biểu diễn thời gian rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-004
+    title: Đơn vị giây, mili giây, micro giây và nano giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-005
+    title: Độ chính xác biểu diễn khác với độ chính xác của đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-006
+    title: Đồng bộ thời gian và ảnh hưởng của clock skew giữa máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-007
+    title: Đo thời lượng bằng đồng hồ đơn điệu và phân biệt với thời gian hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-008
+    title: Thứ tự ghi trên một luồng, nhiều luồng và nhiều máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-009
+    title: Log đến muộn, bị đệm và xuất hiện không theo thứ tự xảy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-010
+    title: Định danh, số thứ tự và quan hệ nhân quả khi timestamp chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: timestamps-ordering-011
+    title: Cửa sổ tìm kiếm và lý do cần mở rộng khoảng thời gian khi điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-context
+  title: Ngữ cảnh thực thi
+  childs:
+  - slug: execution-context-001
+    title: Ngữ cảnh dùng chung cho các log trong một yêu cầu hoặc tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-002
+    title: Request ID, correlation ID, trace ID và span ID khác nhau ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-003
+    title: Thuộc tính dịch vụ, môi trường, phiên bản và instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-004
+    title: Ngữ cảnh nghiệp vụ, tenant và nguyên tắc hạn chế dữ liệu nhận dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-005
+    title: Mapped Diagnostic Context (MDC) và khả năng gắn trường vào log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-006
+    title: Vòng đời thêm, sử dụng, xóa và khôi phục ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-007
+    title: Rò ngữ cảnh khi tái sử dụng luồng trong thread pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-008
+    title: Truyền ngữ cảnh qua executor, callback và chuỗi xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-009
+    title: Giới hạn của ngữ cảnh gắn với luồng trong reactive và virtual thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-010
+    title: Kiểm tra định danh do bên ngoài truyền vào trước khi dùng làm ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-context-011
+    title: Ngữ cảnh của tác vụ nền và sự kiện không thuộc yêu cầu HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-correlation
+  title: Liên kết tín hiệu
+  childs:
+  - slug: signal-correlation-001
+    title: Liên kết log với trace bằng trace ID và span ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-002
+    title: Log nằm trong span đang hoạt động và log ngoài phạm vi span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-003
+    title: Phân biệt mức TRACE của logger với tín hiệu distributed trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-004
+    title: Liên kết theo tài nguyên, dịch vụ, phiên bản và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-005
+    title: Dùng metric để phát hiện triệu chứng rồi tìm log trong khoảng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-006
+    title: Đi từ trace lỗi hoặc chậm đến các log cùng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-007
+    title: Giới hạn liên kết khi trace bị lấy mẫu hoặc không được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-008
+    title: Chuẩn hóa định dạng mã định danh giữa ứng dụng và nơi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-009
+    title: Không thay thế log bằng span event một cách máy móc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-010
+    title: Kiểm chứng liên kết xuyên dịch vụ, tác vụ bất đồng bộ và hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: errors-exceptions
+  title: Lỗi và ngoại lệ
+  childs:
+  - slug: errors-exceptions-001
+    title: Ghi ngoại lệ cùng thông điệp mô tả thao tác thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-002
+    title: Truyền đối tượng Throwable thay vì chỉ ghi getMessage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-003
+    title: Stack trace, chuỗi nguyên nhân và suppressed exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-004
+    title: Chọn tầng ghi ngoại lệ và tránh log rồi ném lại ở mọi tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-005
+    title: Phân biệt nơi phát sinh lỗi với nơi quyết định cách xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-006
+    title: Ghi retry, số lần thử và kết quả cuối mà không tạo bão log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-007
+    title: Ngoại lệ bị xử lý, bị chuyển đổi và lỗi không được bắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-008
+    title: Ghi timeout, hủy tác vụ và lỗi phụ thuộc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-009
+    title: Tóm tắt lỗi lặp theo loại, nguyên nhân và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-010
+    title: Giữ stack trace nhiều dòng thành một bản ghi khi thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: errors-exceptions-011
+    title: Che dữ liệu nhạy cảm có thể nằm trong thông điệp ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-architecture
+  title: Kiến trúc logging
+  childs:
+  - slug: logging-architecture-001
+    title: Logging API, facade, provider và implementation khác nhau ra sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-002
+    title: Logger và quy tắc đặt tên theo thành phần hoặc package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-003
+    title: Logger gốc, quan hệ phân cấp và kế thừa mức độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-004
+    title: Appender hoặc handler và trách nhiệm chuyển bản ghi đến đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-005
+    title: Layout, encoder và trách nhiệm định dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-006
+    title: Filter, ngưỡng tại đích xuất và quy tắc định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-007
+    title: Luồng xử lý từ kiểm tra mức độ đến tạo sự kiện rồi xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-008
+    title: Additivity, kế thừa appender và nguyên nhân log bị lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-009
+    title: Phân biệt mức logger với bộ lọc tại appender
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-010
+    title: Vòng đời khởi tạo, thay cấu hình và đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-architecture-011
+    title: Phân biệt logging trong thư viện dùng chung với cấu hình của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-logging
+  title: Logging trong Java
+  childs:
+  - slug: java-logging-001
+    title: Vai trò của java.util.logging, SLF4J, Logback và Log4j 2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-002
+    title: Chọn một provider phù hợp khi sử dụng SLF4J
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-003
+    title: Tương thích phiên bản giữa API, provider và thư viện phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-004
+    title: Bridge giữa các API logging và nguy cơ tạo vòng chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-005
+    title: Khai báo logger và lựa chọn tên logger có thể quản lý bằng cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-006
+    title: Tham số hóa thông điệp bằng placeholder thay vì nối chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-007
+    title: Đánh giá biểu thức đối số vẫn có thể xảy ra khi mức log bị tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-008
+    title: Kiểm tra isDebugEnabled hoặc dùng Supplier khi API hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-009
+    title: Fluent API của SLF4J 2 và các trường key-value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-010
+    title: Marker và mục đích phân loại ngoài mức độ nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-011
+    title: Ghi Throwable đúng overload và kiểm chứng stack trace thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-logging-012
+    title: Giới hạn của System.out, System.err và printStackTrace trong ứng dụng cần quản trị log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration
+  title: Cấu hình
+  childs:
+  - slug: configuration-001
+    title: Phân biệt cấu hình mặc định, cấu hình ứng dụng và cấu hình môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-002
+    title: Mức của logger gốc và mức riêng cho package hoặc thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-003
+    title: Khai báo appender, encoder, filter và tham chiếu giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-004
+    title: Cấu hình console, tệp và nhiều đích xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-005
+    title: Chọn tệp cấu hình và xác định cấu hình thực sự được nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-006
+    title: Logging trong Spring Boot và thời điểm khởi tạo trước ApplicationContext
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-007
+    title: Quan hệ giữa logging.level, logging.config và cấu hình native của framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-008
+    title: Tách cấu hình phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-009
+    title: Định dạng có cấu trúc và khả năng hỗ trợ tùy phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-010
+    title: Đổi mức log lúc chạy và yêu cầu xác thực, giới hạn phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-011
+    title: Phát hiện lỗi cú pháp, appender không hoạt động và cấu hình bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-012
+    title: Quản lý thay đổi cấu hình có thể kiểm tra và quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: output-destinations-formats
+  title: Đích xuất và định dạng
+  childs:
+  - slug: output-destinations-formats-001
+    title: Console, stdout, stderr và ý nghĩa của từng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-002
+    title: Ghi tệp cục bộ, system journal và đích xuất qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-003
+    title: Tách nội dung bản ghi khỏi phương tiện vận chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-004
+    title: Định dạng dễ đọc cho con người và định dạng dễ xử lý bằng máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-005
+    title: Mẫu hiển thị thời gian, mức độ, logger, luồng và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-006
+    title: Thông tin vị trí mã nguồn và chi phí thu thập caller data
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-007
+    title: Màu sắc, ký tự điều khiển và tính tương thích với bộ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-008
+    title: UTF-8, bộ ký tự mặc định và dữ liệu tiếng Việt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-009
+    title: Buffering, flush và sự khác biệt với ghi bền vững lên thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-010
+    title: Quyền truy cập đích xuất, lỗi kết nối và hành vi khi ghi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: output-destinations-formats-011
+    title: Tránh ghi trùng cùng bản ghi qua nhiều đường thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sync-async-logging
+  title: Đồng bộ và bất đồng bộ
+  childs:
+  - slug: sync-async-logging-001
+    title: Ghi log đồng bộ và thời gian chờ trên luồng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-002
+    title: Logging bất đồng bộ bằng hàng đợi và luồng xử lý nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-003
+    title: Khác biệt giữa tham số hóa thông điệp, đánh giá lười và xuất bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-004
+    title: Kích thước hàng đợi, tốc độ phát sinh và tốc độ tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-005
+    title: 'Hàng đợi đầy: chờ, loại bỏ hoặc chuyển sang cơ chế khác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-006
+    title: Chính sách loại bỏ theo mức độ và các bản ghi có thể bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-007
+    title: Chụp ngữ cảnh, thời gian, dữ liệu khả biến và vị trí gọi trước khi chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-008
+    title: Thứ tự bản ghi khi nhiều luồng cùng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-009
+    title: Flush khi dừng, thời gian chờ đóng và giới hạn khi tiến trình bị dừng cưỡng bức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-010
+    title: Đo thông lượng cùng độ trễ ứng dụng và độ trễ log xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sync-async-logging-011
+    title: Phân biệt thread-safe, không mất dữ liệu và ghi bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: log-files-rotation
+  title: Tệp và xoay vòng
+  childs:
+  - slug: log-files-rotation-001
+    title: Tệp đang ghi, tệp lưu trữ và mục đích của log rotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-002
+    title: Xoay vòng theo thời gian, kích thước hoặc kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-003
+    title: Đặt tên tệp lưu trữ, nén và giới hạn tổng dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-004
+    title: Giữ tệp đang mở sau đổi tên và tương tác với tiến trình thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-005
+    title: Đánh đổi của rename-and-create và copytruncate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-006
+    title: Phối hợp rotation do ứng dụng quản lý với công cụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-007
+    title: Quyền thư mục, chủ sở hữu và khởi tạo lại tệp sau rotation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-008
+    title: Tiến trình đồng thời ghi cùng tệp và các giới hạn an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-009
+    title: Tệp bị xóa nhưng còn mở và dung lượng chưa được giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-010
+    title: Dung lượng đầy, inode cạn và ảnh hưởng đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: log-files-rotation-011
+    title: Phân biệt rotation, retention, archive và backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collection-pipelines
+  title: Thu thập và pipeline
+  childs:
+  - slug: collection-pipelines-001
+    title: Các chặng phát sinh, đọc, phân tích cú pháp, xử lý, chuyển tiếp và lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-002
+    title: Thu thập từ tệp, stdout/stderr, journal hoặc giao thức xuất trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-003
+    title: Agent trên máy, sidecar và gateway tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-004
+    title: Đọc tiếp từ offset hoặc checkpoint khi collector khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-005
+    title: Theo dõi tệp qua rotation và nhận diện tệp mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-006
+    title: Ghép stack trace hoặc bản ghi nhiều dòng trước khi xử lý tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-007
+    title: Phân tích cú pháp, chuẩn hóa trường và bổ sung siêu dữ liệu nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-008
+    title: Lọc, che dữ liệu nhạy cảm và định tuyến theo mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-009
+    title: Gom lô, nén, hàng đợi và cơ chế thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-010
+    title: Phân biệt chấp nhận bản ghi với đã lưu và có thể tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-011
+    title: OTLP Logs, syslog và các giao thức cần ánh xạ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-012
+    title: Vai trò của Elasticsearch, Loki và các backend khác trong bức tranh tổng thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-pipelines-013
+    title: Giới hạn của pipeline khi nguồn dữ liệu thay đổi định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: containers-distributed-logging
+  title: Container và phân tán
+  childs:
+  - slug: containers-distributed-logging-001
+    title: Xem log như luồng sự kiện trong ứng dụng theo mô hình Twelve-Factor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-002
+    title: Quan hệ giữa stdout/stderr, container runtime và tệp log trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-003
+    title: Thu thập theo node, theo sidecar hoặc xuất trực tiếp từ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-004
+    title: Gắn thông tin cluster, namespace, pod, container và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-005
+    title: Tách vòng đời dữ liệu log khỏi vòng đời container, pod và node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-006
+    title: Xem log hiện tại, log lần chạy trước và giới hạn dữ liệu còn được giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-007
+    title: Rotation của runtime và trách nhiệm của từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-008
+    title: Nhiều replica, tên instance thay đổi và tìm log theo danh tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-009
+    title: Thứ tự, trùng lặp và dữ liệu đến muộn giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-010
+    title: Giới hạn bộ đệm, tài nguyên node và ảnh hưởng khi backend gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-distributed-logging-011
+    title: Quyền đọc log trong môi trường nhiều nhóm và nhiều tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: search-analysis
+  title: Tìm kiếm và phân tích
+  childs:
+  - slug: search-analysis-001
+    title: Bắt đầu bằng thời gian, môi trường và dịch vụ bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-002
+    title: Tìm theo trường có cấu trúc so với tìm từ khóa trong thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-003
+    title: Kết hợp mức độ, loại sự kiện, mã lỗi và mã định danh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-004
+    title: Biểu thức chính quy, ký tự đặc biệt và giới hạn của tìm kiếm văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-005
+    title: Dựng dòng thời gian của một yêu cầu hoặc tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-006
+    title: Nhóm sự kiện theo mẫu để nhận diện lỗi lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-007
+    title: Đếm, tính tốc độ và so sánh xu hướng từ tập log phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-008
+    title: Phân biệt số dòng log, số sự kiện, số lần thử và số yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-009
+    title: Lọc theo phiên bản triển khai để điều tra hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-010
+    title: Đối chiếu sự kiện trước và sau lỗi thay vì chỉ xem dòng ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-011
+    title: Ảnh hưởng của sampling, log bị mất và độ trễ tiếp nhận đến kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: search-analysis-012
+    title: Ghi lại truy vấn, thời gian, bằng chứng và giới hạn của điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: noise-reduction
+  title: Giảm nhiễu
+  childs:
+  - slug: noise-reduction-001
+    title: Nhận diện log giá trị thấp, log lặp và log không có người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-002
+    title: Chọn sự kiện cần giữ thay vì tăng mức ghi trên toàn ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-003
+    title: Lọc theo thành phần, loại sự kiện và mức độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-004
+    title: Giới hạn tốc độ ghi cho sự kiện lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-005
+    title: Gộp sự kiện tương tự và báo cáo số bản ghi bị lược bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-006
+    title: Lấy mẫu ngẫu nhiên, định kỳ hoặc theo định danh yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-007
+    title: Giữ ngữ cảnh của một yêu cầu khi lấy mẫu nhiều bản ghi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-008
+    title: Ưu tiên dữ liệu cần điều tra và xác định các sự kiện không được lấy mẫu tùy mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-009
+    title: Đánh đổi giữa giảm khối lượng với khả năng phát hiện lỗi hiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-010
+    title: Phân biệt lấy mẫu log với lấy mẫu trace và giới hạn liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: noise-reduction-011
+    title: Đánh giá hiệu quả giảm nhiễu bằng tình huống điều tra thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-cost
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-cost-001
+    title: Chi phí kiểm tra mức độ, tạo bản ghi, định dạng và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-002
+    title: Cấp phát bộ nhớ, boxing, toString và tuần tự hóa đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-003
+    title: Thông điệp bị tắt vẫn gây tốn kém do tính đối số hoặc tạo stack trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-004
+    title: Chi phí thông tin vị trí gọi, stack trace dài và nội dung dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-005
+    title: I/O đồng bộ, tranh chấp khóa và áp lực lên hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-006
+    title: Bão log khi lỗi dây chuyền và ảnh hưởng đến độ trễ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-007
+    title: Ước lượng dung lượng theo số sự kiện, kích thước và thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-008
+    title: Chi phí tiếp nhận, lập chỉ mục, lưu trữ và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-009
+    title: Độ đa dạng giá trị trường và khác biệt chi phí giữa các backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-010
+    title: Đo cả lượng log bị mất, độ trễ xuất hiện và tác động đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-cost-011
+    title: So sánh cấu hình với tải đại diện thay vì chỉ đo logger trong vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: An toàn dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Xác định dữ liệu cần ghi, dữ liệu cần hạn chế và dữ liệu phải loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Không ghi mật khẩu, token, khóa bí mật và nội dung xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Dữ liệu cá nhân trong URL, header, payload và thông điệp ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Che, loại bỏ, rút gọn hoặc thay định danh theo mục tiêu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Giới hạn của băm định danh và mã hóa đối với nguy cơ nhận diện lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: Log injection qua xuống dòng, ký tự điều khiển và dữ liệu không đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Dùng cấu trúc, escaping và kiểm tra dữ liệu để bảo toàn ranh giới bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Xử lý log an toàn khi hiển thị trên web, xuất CSV hoặc chia sẻ báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Quyền ghi, quyền đọc và phân tách dữ liệu giữa môi trường, nhóm, tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-010
+    title: Bảo vệ dữ liệu khi truyền và khi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-011
+    title: Giảm quyền của agent, collector và tài khoản truy cập backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-012
+    title: Kiểm soát dữ liệu trong bản sao lưu, bản xuất và nội dung hỗ trợ sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-013
+    title: Bảo vệ tính toàn vẹn và phát hiện sửa hoặc xóa log trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-014
+    title: Kiểm chứng thông tin nhạy cảm không xuất hiện sau thay đổi mã hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Xác định yêu cầu chấp nhận mất log theo từng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-002
+    title: Các điểm có thể mất dữ liệu từ ứng dụng đến nơi lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-003
+    title: Bộ đệm trong bộ nhớ, hàng đợi bền vững và giới hạn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-004
+    title: Giao nhiều nhất một lần, ít nhất một lần và phạm vi bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-005
+    title: Vì sao retry có thể tạo bản ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-006
+    title: Định danh sự kiện và loại trùng khi có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-007
+    title: Áp lực ngược khi bên nhận chậm và ảnh hưởng đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-008
+    title: Mạng gián đoạn, backend lỗi và chính sách thử lại có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-009
+    title: Cô lập bản ghi không hợp lệ thay vì chặn toàn pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-010
+    title: Phân biệt được tiếp nhận, đã ghi bền vững và có thể tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-011
+    title: Ứng xử khi hệ thống logging lỗi theo yêu cầu vận hành hoặc kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-012
+    title: Thoát có kiểm soát, flush và các tình huống vẫn không bảo đảm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reliability-013
+    title: Thử nghiệm mất điện, dừng tiến trình hoặc hết dung lượng trên môi trường thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-lifecycle
+  title: Vòng đời dữ liệu
+  childs:
+  - slug: data-lifecycle-001
+    title: Chọn thời gian giữ log theo mục đích điều tra và yêu cầu áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-002
+    title: Dữ liệu đang truy vấn, dữ liệu lưu trữ dài hạn và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-003
+    title: Phân tầng lưu trữ và đánh đổi chi phí với thời gian truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-004
+    title: Retention tại nguồn, collector, kho tập trung và bản sao xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-005
+    title: Rotation không tự bảo đảm toàn bộ chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-006
+    title: Xóa dữ liệu, hết hạn và kiểm tra các bản sao còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-007
+    title: Lược đồ thay đổi và khả năng đọc log của phiên bản ứng dụng cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-008
+    title: Archive, nén và phục hồi dữ liệu để điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-009
+    title: Phân công chủ sở hữu cho lược đồ, cấu hình và thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-010
+    title: Theo dõi dung lượng tăng trưởng và xác minh chính sách dọn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-lifecycle-011
+    title: Kiểm soát việc chia sẻ bằng chứng, truy cập và ghi nhận truy cập log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-tests
+  title: Kiểm thử logging
+  childs:
+  - slug: logging-tests-001
+    title: Định nghĩa yêu cầu nội dung log cho các tình huống quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-002
+    title: Thu bản ghi trong kiểm thử bằng appender hoặc đích xuất dành riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-003
+    title: Kiểm tra mức độ, logger, mã sự kiện và trường ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-004
+    title: Kiểm tra sự hiện diện của Throwable và chuỗi nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-005
+    title: Kiểm tra cấu trúc JSON, kiểu trường và tương thích lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-006
+    title: Tránh kiểm thử quá phụ thuộc vào câu chữ, thời gian hoặc thứ tự không bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-007
+    title: Kiểm tra dữ liệu nhạy cảm không bị ghi ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-008
+    title: Kiểm thử MDC được dọn sạch và truyền đúng khi dùng thread pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-009
+    title: Kiểm thử rotation, collector khởi động lại và tiếp tục từ checkpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-010
+    title: Kiểm thử hàng đợi đầy, backend gián đoạn và dừng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-011
+    title: Đối chiếu bản ghi tại nguồn với kết quả tìm kiếm đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-tests-012
+    title: Đánh giá tính hữu ích bằng một bài điều tra từ log đã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-monitoring
+  title: Giám sát pipeline
+  childs:
+  - slug: pipeline-monitoring-001
+    title: Số bản ghi phát sinh, thu thập, từ chối, loại bỏ và lưu thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-002
+    title: Độ trễ từ thời điểm sự kiện đến khi có thể tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-003
+    title: Độ đầy hàng đợi, lượng dữ liệu tồn và tốc độ giải phóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-004
+    title: Lỗi phân tích cú pháp, thiếu trường và xung đột kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-005
+    title: Lỗi kết nối, số lần thử lại và tài nguyên của agent hoặc collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-006
+    title: Dung lượng, inode và tăng trưởng tệp log trên nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-007
+    title: Tỷ lệ dữ liệu theo dịch vụ, mức độ và loại sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-008
+    title: Kiểm tra đầu cuối bằng sự kiện thử có định danh biết trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-009
+    title: Cảnh báo theo triệu chứng mất dữ liệu hoặc chậm tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-010
+    title: Không dùng duy nhất chính pipeline đang lỗi để báo lỗi của nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-monitoring-011
+    title: Phân biệt hệ thống không có sự kiện với hệ thống đã ngừng thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không có log: kiểm tra nhánh mã, mức hiệu lực và cấu hình được nạp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Log bị lặp do additivity, nhiều appender hoặc nhiều đường thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Thiếu stack trace do dùng sai API hoặc bộ thu thập tách dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Thiếu correlation ID do ngữ cảnh không được thiết lập hoặc truyền tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Nhầm yêu cầu do MDC cũ còn lại trên luồng tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Sai timestamp, đơn vị, múi giờ hoặc thứ tự hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: JSON hỏng, ký tự tiếng Việt sai và bản ghi bị cắt ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Mất log sau rotation, khởi động lại, thay pod hoặc dừng cưỡng bức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Ứng dụng chậm vì ghi log đồng bộ hoặc hàng đợi bị đầy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Không tìm thấy log đã gửi do thời gian, bộ lọc, quyền hoặc độ trễ lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Hết dung lượng và tệp đã xóa vẫn còn bị tiến trình giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Bão log sau sự cố và cách giảm tải mà vẫn giữ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Quy trình cô lập chặng hỏng bằng bản ghi thử và số liệu đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Thiết kế bộ sự kiện để điều tra một luồng xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Chuyển log văn bản rời rạc sang bản ghi có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Chuẩn hóa mức độ và loại bỏ thông điệp không đủ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Ghi ngoại lệ một lần tại tầng phù hợp và giữ đầy đủ nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Theo dõi một yêu cầu xuyên các log bằng correlation ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Truyền và dọn MDC qua thread pool với các yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Liên kết log với trace và đối chiếu khi trace không được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Cấu hình console, tệp xoay vòng và xác minh không ghi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: So sánh logging đồng bộ, bất đồng bộ và chính sách khi đầy hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Dựng pipeline thử nghiệm rồi kiểm chứng dữ liệu sau rotation hoặc khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Thử dữ liệu chứa xuống dòng, Unicode và trường nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Mô phỏng backend gián đoạn rồi đo mất, trùng và độ trễ log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Điều tra sự cố từ dữ liệu đã sinh và lập dòng thời gian có chứng cứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Hoàn thiện quy ước logging, tiêu chí kiểm thử và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

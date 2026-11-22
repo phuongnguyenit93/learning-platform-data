@@ -1,0 +1,124 @@
+menu:
+- title: Tư duy NoSQL
+  slug: no-sql-foundations
+  index: 0
+- title: Yêu cầu và tải dữ liệu
+  slug: workload-requirements
+  index: 1
+- title: Các mô hình dữ liệu
+  slug: data-models
+  index: 2
+- title: Khóa và định danh
+  slug: keys-and-identifiers
+  index: 3
+- title: Mô hình khóa–giá trị
+  slug: key-value-model
+  index: 4
+- title: Mô hình tài liệu
+  slug: document-model
+  index: 5
+- title: Mô hình cột rộng
+  slug: wide-column-model
+  index: 6
+- title: Mô hình đồ thị
+  slug: graph-model
+  index: 7
+- title: Mô hình chuyên biệt
+  slug: specialized-models
+  index: 8
+- title: Thiết kế theo truy vấn
+  slug: query-driven-design
+  index: 9
+- title: Nhóm dữ liệu và bất biến
+  slug: aggregates-and-invariants
+  index: 10
+- title: Quan hệ và lặp dữ liệu
+  slug: relations-and-denormalization
+  index: 11
+- title: Kiểu dữ liệu và schema
+  slug: types-and-schema
+  index: 12
+- title: Vòng đời dữ liệu
+  slug: data-lifecycle
+  index: 13
+- title: CRUD và truy vấn
+  slug: crud-and-queries
+  index: 14
+- title: Chỉ mục và đường truy cập
+  slug: indexes-and-access-paths
+  index: 15
+- title: Lưu trữ và độ bền
+  slug: storage-and-durability
+  index: 16
+- title: Giao dịch và nguyên tử
+  slug: transactions-and-atomicity
+  index: 17
+- title: Cập nhật đồng thời
+  slug: concurrent-updates
+  index: 18
+- title: Các mô hình nhất quán
+  slug: consistency-models
+  index: 19
+- title: CAP và các đánh đổi
+  slug: cap-and-tradeoffs
+  index: 20
+- title: Sao chép và quorum
+  slug: replication-and-quorums
+  index: 21
+- title: Phân mảnh và định tuyến
+  slug: sharding-and-routing
+  index: 22
+- title: Cân bằng và điểm nóng
+  slug: rebalancing-and-hotspots
+  index: 23
+- title: Đồng thuận và quyền ghi
+  slug: consensus-and-write-authority
+  index: 24
+- title: Lỗi phân tán và retry
+  slug: failure-handling-and-retries
+  index: 25
+- title: Xung đột và đồng bộ
+  slug: conflict-resolution
+  index: 26
+- title: Tích hợp và kiến trúc
+  slug: integration-architecture
+  index: 27
+- title: Kết nối Java
+  slug: java-integration
+  index: 28
+- title: Bộ nhớ đệm dữ liệu
+  slug: data-caching
+  index: 29
+- title: Sự kiện và CDC
+  slug: events-and-cdc
+  index: 30
+- title: Hiệu năng và đo tải
+  slug: performance-benchmarking
+  index: 31
+- title: Quan sát và chẩn đoán
+  slug: observability-and-diagnosis
+  index: 32
+- title: Bảo mật dữ liệu
+  slug: data-security
+  index: 33
+- title: Vận hành cụm
+  slug: cluster-operations
+  index: 34
+- title: Sao lưu và phục hồi
+  slug: backup-and-recovery
+  index: 35
+- title: Di chuyển và thay đổi
+  slug: data-migration-and-evolution
+  index: 36
+- title: Kiểm thử tính đúng
+  slug: correctness-testing
+  index: 37
+- title: Kiểm thử lỗi và tải
+  slug: fault-and-load-testing
+  index: 38
+- title: Đánh giá và lựa chọn
+  slug: evaluation-and-selection
+  index: 39
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 40

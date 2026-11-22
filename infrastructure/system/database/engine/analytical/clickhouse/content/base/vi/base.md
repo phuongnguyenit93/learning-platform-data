@@ -1,0 +1,7 @@
+# Database Engine Analytical Clickhouse
+
+ClickHouse là hệ quản trị cơ sở dữ liệu hướng cột, tối ưu cho *online analytical processing* (OLAP): đọc, lọc và tổng hợp lượng lớn dữ liệu để phục vụ báo cáo, phân tích sự kiện hoặc dashboard gần thời gian thực. Khác với cơ sở dữ liệu OLTP thường phục vụ giao dịch nhỏ, ClickHouse ưu tiên truy vấn phân tích trên dữ liệu được nạp theo lô hoặc luồng. Module dành cho người đã biết SQL, Java và các khái niệm bảng, chỉ mục, phân vùng ở mức cơ bản.
+
+Lộ trình bắt đầu từ việc khởi chạy ClickHouse, tạo bảng với họ engine `MergeTree` và chọn kiểu dữ liệu, khóa sắp xếp `ORDER BY` cùng `PARTITION BY`. Người học tiếp tục nạp CSV/JSON hoặc dữ liệu từ Java, thực hành SQL phân tích, kiểm tra `EXPLAIN` và các thống kê đọc dữ liệu để tối ưu truy vấn. Sau đó, module giới thiệu *incremental materialized views* nhằm chuyển một phần chi phí tính toán sang lúc nạp, sử dụng TTL để quản lý vòng đời và theo dõi hệ thống qua các bảng `system.*`.
+
+Sau khi hoàn thành, bạn có thể tạo một tập dữ liệu phân tích nhỏ, viết truy vấn tổng hợp, giải thích tác động của `ORDER BY` lên tốc độ đọc và triển khai một phép tổng hợp tự động bằng materialized view. Cần lưu ý khóa chính trong ClickHouse chủ yếu hỗ trợ truy vấn bằng chỉ mục thưa, không tự đảm bảo tính duy nhất như khóa chính trong nhiều hệ OLTP; việc thêm các bản ghi nhỏ liên tục, thay đổi dữ liệu thường xuyên hoặc để số lượng data parts tăng cao đều cần được đánh giá theo đặc tính engine.

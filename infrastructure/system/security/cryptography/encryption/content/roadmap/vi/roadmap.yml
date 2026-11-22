@@ -1,0 +1,55 @@
+roadmap:
+- id: muc-tieu-thuat-ngu
+  title: Mục tiêu & Thuật ngữ
+  purpose: Hiểu mục đích bảo mật dữ liệu và phạm vi mà mã hóa có thể bảo vệ.
+  objectives:
+  - Phân biệt plaintext, ciphertext, key và thuật toán.
+  - Phân biệt encryption với hashing, MAC và chữ ký số.
+- id: ma-hoa-doi-xung
+  title: Mã hóa đối xứng
+  purpose: Chọn mã hóa dùng khóa bí mật để xử lý dữ liệu hiệu quả.
+  objectives:
+  - Giải thích cơ chế và ứng dụng của AES.
+  - Phân biệt AES-128/256 và tránh ECB cho dữ liệu nhiều khối.
+- id: aead-nonce
+  title: AEAD & Nonce
+  purpose: Bảo vệ cả bí mật lẫn tính toàn vẹn của dữ liệu được mã hóa.
+  objectives:
+  - Sử dụng AES-GCM hoặc ChaCha20-Poly1305 ở mức khái niệm.
+  - Giải thích authentication tag, AAD và lỗi dùng lại nonce với cùng khóa.
+- id: ma-hoa-bat-doi-xung
+  title: Mã hóa bất đối xứng
+  purpose: Hiểu vai trò của cặp khóa công khai/bí mật trong trao đổi an toàn.
+  objectives:
+  - Phân biệt public key và private key, nêu ví dụ RSA-OAEP.
+  - Giải thích vì sao không dùng RSA để mã hóa trực tiếp tệp lớn.
+- id: trao-doi-khoa-hybrid
+  title: Trao đổi khóa & Hybrid
+  purpose: Kết hợp mã hóa bất đối xứng và đối xứng theo mô hình thực tế.
+  objectives:
+  - Mô tả mã hóa khóa dữ liệu bằng public key/KEM.
+  - Vẽ luồng trao khóa và mã hóa dữ liệu bằng AEAD.
+- id: vong-doi-khoa
+  title: Vòng đời khóa
+  purpose: Hạn chế lộ khóa và kiểm soát khả năng giải mã trong toàn bộ hệ thống.
+  objectives:
+  - Mô tả tạo khóa an toàn, lưu trong KMS/HSM và phân quyền.
+  - Lập kế hoạch rotation, backup, thu hồi và xử lý lộ khóa.
+- id: du-lieu-nghi-truyen-tai
+  title: Dữ liệu nghỉ & Truyền tải
+  purpose: Áp dụng mã hóa đúng vị trí cho dữ liệu lưu trữ và lưu thông.
+  objectives:
+  - Phân biệt encryption at rest với TLS in transit.
+  - Thiết kế luồng bảo vệ khóa và dữ liệu nhạy cảm trong dịch vụ.
+- id: thuc-hanh-java-jca
+  title: Thực hành Java JCA
+  purpose: Sử dụng thư viện mã hóa chuẩn thay vì tự phát minh thuật toán.
+  objectives:
+  - Dùng KeyGenerator, SecureRandom và Cipher AES/GCM/NoPadding.
+  - Lưu IV, ciphertext, tag đúng cách và giải mã với cùng AAD.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & Vận hành
+  purpose: Phát hiện lỗi triển khai và đánh giá giới hạn an toàn của giải pháp.
+  objectives:
+  - Test round-trip, dữ liệu bị sửa và sai khóa/AAD.
+  - Rà soát thuật toán cũ, khả năng xoay khóa và log không lộ bí mật.

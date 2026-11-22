@@ -1,0 +1,576 @@
+menu:
+- level1: Nền tảng yêu cầu bảo mật
+  level2:
+  - Security requirement là gì
+  - Khác biệt giữa security requirement và security control
+  - Yêu cầu chức năng và phi chức năng
+  - Bảo mật trong vòng đời phát triển
+  - Security requirement từ business risk
+  - Bảo mật như một quality attribute
+  - Người dùng, tài sản và trust boundary
+  - Tính bảo mật, toàn vẹn và sẵn sàng
+  - Khi nào yêu cầu bảo mật cần định lượng
+  - Traceability từ rủi ro đến kiểm thử
+- level1: Bối cảnh và phạm vi
+  level2:
+  - Xác định system boundary
+  - Xác định asset boundary
+  - Xác định actor
+  - Xác định privileged actor
+  - Xác định external dependency
+  - Xác định data flow
+  - Xác định trust boundary
+  - Xác định môi trường triển khai
+  - Xác định dữ liệu xử lý
+  - Xác định trách nhiệm của từng component
+  - Out-of-scope và rủi ro còn lại
+- level1: Mục tiêu bảo mật
+  level2:
+  - Confidentiality
+  - Integrity
+  - Availability
+  - Authenticity
+  - Accountability
+  - Non-repudiation
+  - Privacy
+  - Resilience
+  - Least privilege
+  - Defense in depth
+  - Fail secure
+  - Secure by default
+- level1: Phân loại tài sản
+  level2:
+  - Tài sản dữ liệu
+  - Tài sản định danh
+  - Tài sản bí mật
+  - Tài sản tiền và giao dịch
+  - Tài sản cấu hình
+  - Tài sản khóa mật mã
+  - Tài sản log và audit
+  - Tài sản hạ tầng
+  - Tài sản phần mềm
+  - Tài sản của bên thứ ba
+  - Chủ sở hữu và người quản lý asset
+- level1: Phân loại dữ liệu
+  level2:
+  - Dữ liệu công khai
+  - Dữ liệu nội bộ
+  - Dữ liệu bí mật
+  - Dữ liệu cá nhân
+  - Dữ liệu nhạy cảm
+  - Dữ liệu tài chính
+  - Dữ liệu xác thực
+  - Dữ liệu định danh thiết bị
+  - Dữ liệu cần lưu giữ
+  - Dữ liệu cần xóa
+  - Data classification và security control
+- level1: Rủi ro và mức đảm bảo
+  level2:
+  - Risk là gì
+  - Threat, vulnerability và impact
+  - Likelihood và impact
+  - Risk appetite
+  - Risk owner
+  - Residual risk
+  - Low, medium và high assurance
+  - Chọn mức kiểm soát theo rủi ro
+  - Yêu cầu tối thiểu và yêu cầu tăng cường
+  - Security exception
+  - Chấp nhận hoặc chuyển giao rủi ro
+- level1: Threat modeling
+  level2:
+  - Threat modeling là gì
+  - Asset-based threat modeling
+  - Data flow diagram
+  - Trust boundary trong DFD
+  - STRIDE
+  - Abuse case
+  - Misuse case
+  - Threat actor
+  - Attack path
+  - Mitigation requirement
+  - Threat model review
+  - Cập nhật threat model khi thay đổi thiết kế
+- level1: Security architecture
+  level2:
+  - Security architecture requirement
+  - Defense in depth
+  - Separation of duties
+  - Least privilege architecture
+  - Zero trust boundary
+  - Isolation giữa tenant
+  - Isolation giữa service
+  - Security boundary của API
+  - Secure failure mode
+  - Security dependency
+  - Architecture decision record
+  - Security design review
+- level1: Yêu cầu xác thực
+  level2:
+  - Authentication requirement
+  - Định danh duy nhất
+  - Credential policy
+  - Mật khẩu và passphrase
+  - Multi-factor authentication
+  - Step-up authentication
+  - Password reset
+  - Account recovery
+  - Login failure handling
+  - Credential stuffing defense
+  - Brute-force defense
+  - Authentication event logging
+  - External identity provider
+- level1: Yêu cầu authorization
+  level2:
+  - Authorization requirement
+  - Authentication khác authorization
+  - Deny by default
+  - Least privilege
+  - RBAC
+  - ABAC
+  - ReBAC
+  - Resource ownership
+  - Object-level authorization
+  - Function-level authorization
+  - Field-level authorization
+  - Authorization decision point
+  - Authorization cache
+  - Kiểm tra authorization ở server
+- level1: Quản trị identity
+  level2:
+  - User lifecycle
+  - Provisioning account
+  - Deprovisioning account
+  - Disable account
+  - Privileged account
+  - Service account
+  - Machine identity
+  - Role assignment
+  - Role review
+  - Separation of duties
+  - Identity federation
+  - Directory synchronization
+  - Identity proofing
+- level1: Session management
+  level2:
+  - Session requirement
+  - Session identifier entropy
+  - Session fixation
+  - Session hijacking
+  - Session timeout
+  - Idle timeout
+  - Absolute timeout
+  - Concurrent session policy
+  - Logout và session invalidation
+  - Cookie Secure
+  - Cookie HttpOnly
+  - Cookie SameSite
+  - Session rotation sau login
+  - Session storage protection
+- level1: Token và credential
+  level2:
+  - Access token
+  - Refresh token
+  - Token audience
+  - Token issuer
+  - Token expiry
+  - Token rotation
+  - Token revocation
+  - Token replay
+  - Token storage
+  - Bearer token leakage
+  - API key lifecycle
+  - Credential không nằm trong source code
+  - Credential không nằm trong log
+- level1: Input validation
+  level2:
+  - Input validation requirement
+  - Allowlist validation
+  - Denylist và giới hạn
+  - Type validation
+  - Length validation
+  - Range validation
+  - Format validation
+  - Canonicalization
+  - Encoding validation
+  - Business input validation
+  - File name validation
+  - Header validation
+  - Reject invalid input sớm
+  - Validation ở boundary đáng tin
+- level1: Injection defense
+  level2:
+  - SQL injection
+  - NoSQL injection
+  - Command injection
+  - LDAP injection
+  - Expression injection
+  - Template injection
+  - Header injection
+  - Path traversal
+  - Parameterized query
+  - Safe API thay cho string concatenation
+  - Input encoding và injection
+  - Kiểm thử payload độc hại
+- level1: Output encoding
+  level2:
+  - Output encoding requirement
+  - Contextual encoding
+  - HTML encoding
+  - JavaScript encoding
+  - CSS encoding
+  - URL encoding
+  - JSON encoding
+  - XML encoding
+  - Stored XSS
+  - Reflected XSS
+  - DOM-based XSS
+  - Safe serialization
+  - Encode tại output boundary
+- level1: API security
+  level2:
+  - API security requirement
+  - API authentication
+  - API authorization
+  - Object-level authorization
+  - Function-level authorization
+  - Mass assignment
+  - Excessive data exposure
+  - Request size limit
+  - Rate limit
+  - Pagination limit
+  - Idempotency key
+  - API versioning
+  - Error response contract
+  - API inventory
+- level1: HTTP security
+  level2:
+  - HTTPS bắt buộc
+  - TLS version
+  - Certificate validation
+  - HSTS
+  - Content-Security-Policy
+  - X-Content-Type-Options
+  - Referrer-Policy
+  - Permissions-Policy
+  - CORS policy
+  - CSRF protection
+  - Clickjacking defense
+  - HTTP method policy
+  - Request smuggling defense
+  - Proxy trust boundary
+- level1: Cryptography
+  level2:
+  - Yêu cầu dùng cryptography
+  - Chọn thuật toán được phê duyệt
+  - Encryption at rest
+  - Encryption in transit
+  - Authenticated encryption
+  - Hashing mật khẩu
+  - Password salt
+  - Key derivation
+  - Digital signature
+  - Message authentication code
+  - Randomness an toàn
+  - Không tự phát minh thuật toán
+  - Không dùng thuật toán lỗi thời
+- level1: Key management
+  level2:
+  - Cryptographic key lifecycle
+  - Key generation
+  - Key storage
+  - Key access control
+  - Key rotation
+  - Key versioning
+  - Key revocation
+  - Key backup
+  - Key recovery
+  - Key destruction
+  - KMS và HSM
+  - Data encryption key
+  - Key encryption key
+  - Audit sử dụng key
+- level1: Data protection
+  level2:
+  - Data protection requirement
+  - Data minimization
+  - Purpose limitation
+  - Data masking
+  - Data tokenization
+  - Data pseudonymization
+  - Data anonymization
+  - Sensitive field encryption
+  - Backup protection
+  - Cache protection
+  - Search index protection
+  - Copy và export control
+  - Data retention
+  - Secure deletion
+- level1: Privacy requirement
+  level2:
+  - Privacy by design
+  - Consent requirement
+  - Notice requirement
+  - Data subject access
+  - Data correction
+  - Data deletion
+  - Data portability
+  - Purpose tracking
+  - Privacy impact assessment
+  - Cross-border data transfer
+  - Third-party processor
+  - Privacy audit trail
+  - PII trong telemetry
+- level1: Error handling
+  level2:
+  - Secure error handling
+  - Không lộ stack trace
+  - Không lộ secret trong lỗi
+  - Không lộ database detail
+  - Error code ổn định
+  - Error message cho client
+  - Error message cho operator
+  - Fail closed
+  - Fail open có kiểm soát
+  - Exception classification
+  - Error boundary
+  - Lỗi xác thực và lỗi authorization
+  - Lỗi validation và business error
+- level1: Logging và audit
+  level2:
+  - Security logging requirement
+  - Authentication success
+  - Authentication failure
+  - Authorization failure
+  - Input validation failure
+  - Session anomaly
+  - Credential change
+  - Key rotation
+  - Privilege change
+  - Administrative action
+  - Data export
+  - Security configuration change
+  - Audit record integrity
+  - Audit record retention
+  - Không log secret và PII dư thừa
+- level1: Monitoring và detection
+  level2:
+  - Security monitoring requirement
+  - Alert theo authentication anomaly
+  - Alert theo authorization failure
+  - Alert theo brute force
+  - Alert theo privilege escalation
+  - Alert theo data export
+  - Alert theo configuration drift
+  - Alert theo malware signal
+  - Correlation giữa các event
+  - Detection use case
+  - False positive handling
+  - Security dashboard
+  - Time synchronization
+  - Incident evidence
+- level1: Availability và resilience
+  level2:
+  - Availability requirement
+  - Graceful degradation
+  - Resource limit
+  - Rate limiting
+  - Concurrency limit
+  - Timeout
+  - Circuit breaker
+  - Bulkhead
+  - Queue protection
+  - Retry budget
+  - Load shedding
+  - Denial-of-service defense
+  - Dependency failure
+  - Backup và restore
+  - Recovery time objective
+  - Recovery point objective
+- level1: Business logic security
+  level2:
+  - Business logic abuse
+  - Workflow state transition
+  - Server-side state validation
+  - Price và quantity validation
+  - Replay protection
+  - Race condition
+  - TOCTOU
+  - Transaction integrity
+  - Double spending defense
+  - Limit bypass
+  - Approval workflow
+  - Four-eyes principle
+  - Idempotent business operation
+- level1: File và resource security
+  level2:
+  - File upload requirement
+  - File type validation
+  - File size limit
+  - Content inspection
+  - Filename normalization
+  - Storage ngoài web root
+  - Virus scanning
+  - Archive extraction safety
+  - Path traversal defense
+  - Resource ownership
+  - Download authorization
+  - Temporary file cleanup
+  - Static resource policy
+- level1: Communication security
+  level2:
+  - Service-to-service authentication
+  - Mutual TLS
+  - Certificate rotation
+  - Secure message transport
+  - Message integrity
+  - Message confidentiality
+  - Replay protection cho message
+  - Webhook signature
+  - Webhook timestamp
+  - Outbound request allowlist
+  - SSRF defense
+  - DNS rebinding defense
+  - Third-party integration security
+- level1: Configuration security
+  level2:
+  - Secure default configuration
+  - Configuration validation
+  - Environment-specific secret
+  - Secret không nằm trong repository
+  - Secure feature flag
+  - Debug mode production
+  - Actuator endpoint exposure
+  - CORS configuration
+  - TLS configuration
+  - Dependency configuration
+  - Configuration drift
+  - Configuration change approval
+  - Startup security check
+- level1: Dependency và supply chain
+  level2:
+  - Dependency inventory
+  - Software Bill of Materials
+  - Dependency vulnerability
+  - Version pinning
+  - Transitive dependency
+  - Package integrity
+  - Artifact signature
+  - Build provenance
+  - CI pipeline protection
+  - Plugin security
+  - Container image security
+  - Base image update
+  - Malicious package defense
+  - License và security review
+- level1: Secure development
+  level2:
+  - Security coding standard
+  - Secure design review
+  - Peer review security
+  - Static analysis
+  - Dependency scanning
+  - Secret scanning
+  - Dynamic application testing
+  - Interactive application testing
+  - Fuzz testing
+  - Penetration testing
+  - Security regression test
+  - Security acceptance criteria
+  - Defect severity và SLA
+  - Security champion
+- level1: Verification framework
+  level2:
+  - OWASP ASVS
+  - Mục tiêu của ASVS
+  - Chọn mức verification
+  - ASVS làm security baseline
+  - Yêu cầu kiến trúc và thiết kế
+  - Yêu cầu authentication
+  - Yêu cầu session management
+  - Yêu cầu access control
+  - Yêu cầu validation và encoding
+  - Yêu cầu cryptography
+  - Yêu cầu error handling và logging
+  - Yêu cầu data protection
+  - Yêu cầu communication security
+  - Yêu cầu configuration
+  - Mapping requirement sang test
+- level1: Risk management và compliance
+  level2:
+  - NIST Risk Management Framework
+  - Prepare
+  - Categorize
+  - Select
+  - Implement
+  - Assess
+  - Authorize
+  - Monitor
+  - Control baseline
+  - Control tailoring
+  - Evidence collection
+  - Compliance requirement
+  - Exception và compensating control
+  - Compliance không thay thế threat modeling
+- level1: Requirement lifecycle
+  level2:
+  - Thu thập security requirement
+  - Phỏng vấn stakeholder
+  - Abuse case workshop
+  - Ưu tiên requirement
+  - Viết requirement kiểm chứng được
+  - Acceptance criteria
+  - Traceability matrix
+  - Review requirement
+  - Phê duyệt requirement
+  - Theo dõi thay đổi
+  - Retire requirement
+  - Đánh giá residual risk
+- level1: Kiểm thử yêu cầu
+  level2:
+  - Test case từ security requirement
+  - Positive security test
+  - Negative security test
+  - Boundary test
+  - Abuse case test
+  - Authentication test
+  - Authorization test
+  - Input validation test
+  - Session test
+  - Cryptography test
+  - Logging test
+  - Resilience test
+  - Privacy test
+  - Regression test
+  - Evidence của verification
+- level1: Vận hành và incident
+  level2:
+  - Incident response requirement
+  - Phát hiện incident
+  - Phân loại incident
+  - Containment
+  - Eradication
+  - Recovery
+  - Forensics evidence
+  - Notification requirement
+  - Vulnerability disclosure
+  - Security patch SLA
+  - Post-incident review
+  - Cập nhật threat model sau incident
+  - Cập nhật requirement sau incident
+- level1: Thực hành tổng hợp
+  level2:
+  - Viết security baseline cho REST API
+  - Viết requirement cho authentication
+  - Viết requirement cho authorization
+  - Lập data flow diagram
+  - Lập threat model bằng STRIDE
+  - Mapping ASVS vào backlog
+  - Thiết kế session policy
+  - Thiết kế input validation policy
+  - Thiết kế audit logging policy
+  - Thiết kế key lifecycle
+  - Thiết kế backup và recovery requirement
+  - Viết security acceptance criteria
+  - Thực hiện security requirement review
+  - Checklist production security readiness

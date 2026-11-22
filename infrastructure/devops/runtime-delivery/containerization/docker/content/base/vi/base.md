@@ -1,0 +1,7 @@
+# DevOps Runtime Delivery Containerization Docker
+
+**Docker** là nền tảng đóng gói ứng dụng và các phụ thuộc của nó thành image, sau đó chạy image dưới dạng container có môi trường thực thi nhất quán. Docker hỗ trợ quy trình phát triển, kiểm thử và triển khai nhờ cơ chế quản lý image, lớp lưu trữ, mạng, tài nguyên và vòng đời container. Học phần tập trung vào sử dụng Docker Engine và Docker CLI để đóng gói, chạy và vận hành một dịch vụ đơn lẻ; các công cụ điều phối nhiều container được học ở module riêng.
+
+Lộ trình gồm **8 mốc**: kiến trúc Docker; chạy và quản lý container; viết Dockerfile; tối ưu multi-stage build và cache; networking cùng port mapping; lưu trữ bằng volumes; bảo mật và giới hạn tài nguyên; cuối cùng là debug và phân phối image. Người học thực hành với ứng dụng Java mẫu, kiểm tra khả năng truy cập dịch vụ, dữ liệu bền vững và kết quả xây dựng image ở các phiên bản khác nhau.
+
+Học phần phù hợp với developer hoặc DevOps engineer đã biết Linux/terminal, ứng dụng backend và khái niệm mạng cơ bản. Sau khi hoàn thành, bạn có thể tự viết Dockerfile, build và chạy container, khắc phục lỗi phổ biến, giảm bề mặt tấn công, giữ dữ liệu ngoài container và xuất bản image có kiểm soát để dùng trong quy trình CI/CD.

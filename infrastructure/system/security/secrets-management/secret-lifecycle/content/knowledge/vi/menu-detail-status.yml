@@ -1,0 +1,2500 @@
+menu:
+- slug: secrets-overview
+  title: 1. Tổng quan bí mật
+  childs:
+  - slug: secrets-overview-001
+    title: 1.1. Bí mật bảo mật (secret) là gì và vì sao cần quản lý toàn bộ vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-002
+    title: 1.2. Phân biệt bí mật, cấu hình công khai, danh tính và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-003
+    title: 1.3. Mật khẩu, API key, thông tin kết nối, khóa riêng và bí mật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-004
+    title: 1.4. Phân biệt giá trị bí mật với định danh, đường dẫn và siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-005
+    title: 1.5. Quan hệ giữa bí mật, thông tin xác thực, token và chứng thư số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-006
+    title: 1.6. Bí mật tĩnh, bí mật động và thông tin xác thực ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-007
+    title: '1.7. Các vai trò: chủ sở hữu, đơn vị cấp phát, kho quản lý và bên sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-overview-008
+    title: 1.8. Lộ trình từ tạo bí mật đến sử dụng, luân chuyển, thu hồi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-model
+  title: 2. Mô hình đe dọa
+  childs:
+  - slug: threat-model-001
+    title: 2.1. Đánh cắp bí mật từ mã nguồn, tệp cấu hình và lịch sử phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-002
+    title: 2.2. Rò rỉ qua nhật ký, dòng lệnh, biến môi trường và báo cáo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-003
+    title: 2.3. Xâm nhập máy chạy ứng dụng, máy phát triển và tác vụ CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-004
+    title: 2.4. Lạm dụng quyền đọc bí mật và truy cập nội bộ trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-005
+    title: 2.5. Bí mật dùng chung, quyền quá rộng và phạm vi ảnh hưởng khi bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-006
+    title: 2.6. Bí mật hết hạn hoặc luân chuyển sai gây gián đoạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-007
+    title: 2.7. Giả mạo kho bí mật, đầu độc giá trị và sửa đổi siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-008
+    title: 2.8. Thông tin xác thực còn tồn tại sau khi người dùng hoặc dịch vụ bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-009
+    title: 2.9. Xác định tài sản, ranh giới tin cậy và đường tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-lifecycle-model
+  title: 3. Mô hình vòng đời
+  childs:
+  - slug: secret-lifecycle-model-001
+    title: 3.1. Các trạng thái tạo mới, đang dùng, chờ thay thế, hết hạn, thu hồi và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-002
+    title: 3.2. Sự kiện chuyển trạng thái và điều kiện hoàn thành mỗi giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-003
+    title: 3.3. Quan hệ giữa bí mật gốc, phiên bản, bản sao và bí mật dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-004
+    title: 3.4. Phân biệt hết hạn, vô hiệu hóa, thu hồi, xóa mềm và hủy vĩnh viễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-005
+    title: 3.5. Đường đi của bí mật từ bên cấp phát đến hệ thống kiểm chứng và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-006
+    title: 3.6. Phân biệt trạng thái trong kho quản lý với hiệu lực thực tế tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-007
+    title: 3.7. Thời điểm tạo, thời điểm có hiệu lực, lần sử dụng cuối và thời hạn tối đa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-008
+    title: 3.8. Chủ sở hữu và trách nhiệm tại từng bước của vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-lifecycle-model-009
+    title: 3.9. Thiết kế quá trình chuyển trạng thái có thể theo dõi và thực hiện lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inventory-and-discovery
+  title: 4. Kiểm kê và khám phá
+  childs:
+  - slug: inventory-and-discovery-001
+    title: 4.1. Xây dựng danh mục bí mật theo ứng dụng, môi trường và hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-002
+    title: 4.2. Phát hiện bí mật trong kho mã, cấu hình, máy chủ và dịch vụ đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-003
+    title: 4.3. Theo dõi nơi lưu bản sao, nơi sử dụng và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-004
+    title: 4.4. Nhận diện bí mật không rõ chủ sở hữu, không sử dụng và tồn tại quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-005
+    title: 4.5. Phân loại theo quyền hạn, mức nhạy cảm và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-006
+    title: 4.6. Thu thập siêu dữ liệu mà không ghi lại giá trị bí mật vào danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-007
+    title: 4.7. Định danh ổn định, nhãn, đường dẫn và quy tắc đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-008
+    title: 4.8. Xác minh kết quả phát hiện và xử lý cảnh báo nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-and-discovery-009
+    title: 4.9. Duy trì danh mục khi hệ thống, nhóm phụ trách và môi trường thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policies-and-ownership
+  title: 5. Chính sách và sở hữu
+  childs:
+  - slug: policies-and-ownership-001
+    title: 5.1. Xác định người sở hữu nghiệp vụ, người vận hành và bên sử dụng bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-002
+    title: 5.2. Quy định loại bí mật được phép dùng và nơi được phép lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-003
+    title: 5.3. Quyền tối thiểu, phân tách nhiệm vụ và nguyên tắc không dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-004
+    title: 5.4. Chính sách thời hạn, luân chuyển và điều kiện thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-005
+    title: 5.5. Phân tách bí mật giữa phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-006
+    title: 5.6. Quy trình phê duyệt, cấp quyền tạm thời và truy cập khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-007
+    title: 5.7. Quản lý ngoại lệ với thời hạn, lý do và biện pháp bù trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-ownership-008
+    title: 5.8. Tiêu chí tiếp nhận, bàn giao và ngừng quản lý một bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-generation
+  title: 6. Tạo bí mật
+  childs:
+  - slug: secret-generation-001
+    title: 6.1. Nguồn ngẫu nhiên mật mã và yêu cầu về độ khó dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-002
+    title: 6.2. Độ dài, bảng ký tự và ràng buộc của hệ thống tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-003
+    title: 6.3. Tạo độc lập cho từng ứng dụng, môi trường và phạm vi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-004
+    title: 6.4. Tránh bí mật mặc định, giá trị suy đoán được và tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-005
+    title: 6.5. Tạo tại kho quản lý, hệ thống đích hoặc nền tảng phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-006
+    title: 6.6. Bảo vệ giá trị ngay khi tạo và hạn chế người có thể nhìn thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-007
+    title: 6.7. Xử lý lỗi tạo dở dang, tạo trùng và yêu cầu tạo lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-008
+    title: 6.8. Gắn siêu dữ liệu, chủ sở hữu và thời hạn ngay từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-generation-009
+    title: 6.9. Kiểm chứng bí mật được chấp nhận mà không làm lộ trong bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-bootstrap
+  title: 7. Khởi tạo tin cậy
+  childs:
+  - slug: trust-bootstrap-001
+    title: 7.1. Bài toán bí mật đầu tiên để truy cập kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-002
+    title: 7.2. Ưu tiên danh tính nền tảng và danh tính khối lượng công việc khi khả thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-003
+    title: 7.3. Liên kết danh tính giữa hệ thống chạy ứng dụng và kho quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-004
+    title: 7.4. Xác minh môi trường thực thi trước khi cấp bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-005
+    title: 7.5. Mã đăng ký một lần và thông tin khởi tạo có thời hạn ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-006
+    title: 7.6. Chống phát lại, sao chép thông tin đăng ký và tái sử dụng ngoài môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-007
+    title: 7.7. Khởi tạo cho máy chủ, container, tác vụ tự động và thiết bị biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-008
+    title: 7.8. Xử lý máy mới, cài đặt lại và khôi phục sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-bootstrap-009
+    title: 7.9. Loại bỏ hoặc vô hiệu hóa thông tin khởi tạo sau khi hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: management-architecture
+  title: 8. Kiến trúc quản lý
+  childs:
+  - slug: management-architecture-001
+    title: 8.1. Các thành phần kho bí mật, bộ cấp phát, bộ luân chuyển và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-002
+    title: 8.2. Tách mặt phẳng quản trị khỏi đường đọc bí mật của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-003
+    title: 8.3. Kho tập trung, kho phân tán và mô hình liên kết nhiều kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-004
+    title: 8.4. Ranh giới giữa secret manager, vault, KMS và HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-005
+    title: 8.5. Phân vùng theo tổ chức, ứng dụng, môi trường và khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-006
+    title: 8.6. Tích hợp với hệ thống cấp phát và kiểm chứng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-007
+    title: 8.7. Quản lý phiên bản, nhãn phiên bản đang dùng và chuyển đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-008
+    title: 8.8. Giảm điểm lỗi đơn và giới hạn phạm vi ảnh hưởng của tài khoản quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-architecture-009
+    title: 8.9. Tiêu chí chọn giải pháp theo khả năng tích hợp và yêu cầu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-and-protection
+  title: 9. Lưu trữ và bảo vệ
+  childs:
+  - slug: storage-and-protection-001
+    title: 9.1. Mã hóa bí mật khi lưu và bảo vệ các khóa dùng để mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-002
+    title: 9.2. Mã hóa phong bì và phân tách quyền đọc dữ liệu với quyền dùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-003
+    title: 9.3. Bảo vệ cấu hình, siêu dữ liệu và chính sách truy cập của kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-004
+    title: 9.4. Giới hạn lưu văn bản thuần trên đĩa và trong bộ nhớ tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-005
+    title: 9.5. Kiểm soát bản chụp, tệp hoán đổi, bản dump và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-006
+    title: 9.6. Tính toàn vẹn, xác thực nguồn và phát hiện thay đổi trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-007
+    title: 9.7. Tách biệt khách hàng, môi trường và miền tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-008
+    title: 9.8. Quản lý khóa gốc, mở khóa kho và trách nhiệm phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-and-protection-009
+    title: 9.9. Giới hạn của mã hóa khi ứng dụng hoặc người vận hành đã được quyền đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-and-access
+  title: 10. Danh tính và cấp quyền
+  childs:
+  - slug: identity-and-access-001
+    title: 10.1. Xác thực người dùng, ứng dụng và tác vụ tự động với kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-002
+    title: 10.2. Cấp quyền theo ứng dụng, đường dẫn, loại thao tác và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-003
+    title: 10.3. Phân biệt quyền xem siêu dữ liệu, đọc giá trị, tạo, sửa và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-004
+    title: 10.4. Ràng buộc quyền với danh tính dịch vụ thay cho danh tính máy dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-005
+    title: 10.5. Điều kiện theo thời gian, mạng, sức khỏe thiết bị và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-006
+    title: 10.6. Giới hạn quyền của bộ luân chuyển tại kho và tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-007
+    title: 10.7. Ngăn leo thang quyền thông qua sửa chính sách hoặc thay giá trị bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-008
+    title: 10.8. Cấp quyền vừa đủ, có thời hạn và phê duyệt thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-and-access-009
+    title: 10.9. Rà soát quyền và chấm dứt quyền khi thay đổi người hoặc hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-distribution
+  title: 11. Phân phối bí mật
+  childs:
+  - slug: secret-distribution-001
+    title: 11.1. Phân biệt mô hình bên sử dụng tự lấy với mô hình hệ thống chủ động đẩy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-002
+    title: 11.2. Phân phối qua API, tác nhân, sidecar và tệp gắn vào môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-003
+    title: 11.3. Xác thực đầu cuối và mã hóa kênh truyền bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-004
+    title: 11.4. Giới hạn đối tượng nhận, phạm vi phân phối và số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-005
+    title: 11.5. Cấp bí mật đúng thời điểm và tránh đưa vào tạo phẩm triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-006
+    title: 11.6. Tệp tạm, quyền truy cập tệp và dọn dẹp sau khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-007
+    title: '11.7. Biến môi trường: ưu điểm, hạn chế và bề mặt rò rỉ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-008
+    title: 11.8. Thông báo thay đổi phiên bản và cơ chế tải lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-distribution-009
+    title: 11.9. Xử lý phân phối thất bại, gửi lặp và bên nhận ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-usage
+  title: 12. Sử dụng khi chạy
+  childs:
+  - slug: runtime-usage-001
+    title: 12.1. Lấy bí mật lúc khởi động hay theo nhu cầu và các đánh đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-002
+    title: 12.2. Giới hạn thời gian bí mật tồn tại trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-003
+    title: 12.3. Tránh sao chép, hiển thị và đưa giá trị vào thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-004
+    title: 12.4. Đóng gói thao tác sử dụng thay vì cho phép đọc giá trị rộng rãi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-005
+    title: 12.5. Tải lại thông tin xác thực trong tiến trình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-006
+    title: 12.6. Quan hệ với nhóm kết nối, phiên đăng nhập và kết nối tồn tại lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-007
+    title: 12.7. Quản lý bộ nhớ đệm theo thời hạn và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-008
+    title: 12.8. Kiểm soát đồng thời khi nhiều luồng cùng yêu cầu bí mật mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-009
+    title: 12.9. Xử lý lỗi xác thực và lỗi kho mà không tạo vòng lặp gây quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-usage-010
+    title: 12.10. Giới hạn khả năng xóa bí mật trong bộ nhớ của từng môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-secrets-and-ttl
+  title: 13. Bí mật động và thời hạn
+  childs:
+  - slug: dynamic-secrets-and-ttl-001
+    title: 13.1. Cấp thông tin xác thực riêng cho từng bên sử dụng hoặc từng phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-002
+    title: 13.2. Hợp đồng thuê (lease), thời hạn hiệu lực và giới hạn thời gian tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-003
+    title: 13.3. Phân biệt gia hạn lease với tạo thông tin xác thực mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-004
+    title: 13.4. Tự động vô hiệu hóa tại hệ thống đích khi lease kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-005
+    title: 13.5. Quan hệ giữa lease, danh tính bên yêu cầu và phiên truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-006
+    title: 13.6. Thông tin xác thực ngắn hạn cho cơ sở dữ liệu và dịch vụ đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-007
+    title: 13.7. Giới hạn quyền của tài khoản chịu trách nhiệm cấp bí mật động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-008
+    title: 13.8. Dọn thông tin xác thực mồ côi khi thu hồi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-secrets-and-ttl-009
+    title: 13.9. Xử lý sai lệch đồng hồ, khởi động lại và mất kết nối khi gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rotation-design
+  title: 14. Thiết kế luân chuyển
+  childs:
+  - slug: rotation-design-001
+    title: 14.1. Mục tiêu luân chuyển và rủi ro mà luân chuyển không tự giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-002
+    title: 14.2. Luân chuyển theo thời gian, theo sự kiện và khi nghi bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-003
+    title: 14.3. Phân biệt đổi giá trị với thu hồi giá trị cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-004
+    title: 14.4. Luân chuyển một thông tin xác thực và mô hình hai thông tin xen kẽ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-005
+    title: 14.5. Khoảng thời gian chấp nhận đồng thời phiên bản cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-006
+    title: 14.6. Thứ tự cập nhật hệ thống đích, kho quản lý và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-007
+    title: 14.7. Điều kiện thành công, thời gian chờ và bằng chứng đã chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-008
+    title: 14.8. Giới hạn tốc độ, tải hệ thống và phân tán lịch luân chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-009
+    title: 14.9. Kế hoạch quay lui và giới hạn quay lui khi bí mật cũ đã bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-design-010
+    title: 14.10. Xử lý hệ thống chỉ hỗ trợ một giá trị bí mật đang có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rotation-operations
+  title: 15. Vận hành luân chuyển
+  childs:
+  - slug: rotation-operations-001
+    title: 15.1. Chuẩn bị quyền, kiểm tra kết nối và xác nhận phụ thuộc trước khi đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-002
+    title: 15.2. Tạo phiên bản mới và áp dụng thay đổi tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-003
+    title: 15.3. Kiểm chứng thông tin mới bằng thao tác quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-004
+    title: 15.4. Phân phối từng phần và theo dõi mức tiếp nhận ở bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-005
+    title: 15.5. Làm mới nhóm kết nối, tiến trình và phiên tồn tại lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-006
+    title: 15.6. Xác nhận hết phụ thuộc vào giá trị cũ trước khi thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-007
+    title: 15.7. Khóa đồng thời và chống hai tác vụ luân chuyển chồng chéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-008
+    title: 15.8. Thực hiện lại an toàn sau lỗi ở từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-009
+    title: 15.9. Đối soát phiên bản khi kho, hệ thống đích và ứng dụng không đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rotation-operations-010
+    title: 15.10. Cảnh báo, xử lý luân chuyển quá hạn và xác nhận hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: revocation-and-expiration
+  title: 16. Thu hồi và hết hạn
+  childs:
+  - slug: revocation-and-expiration-001
+    title: '16.1. Các điều kiện thu hồi: bị lộ, đổi quyền, ngừng dịch vụ và kết thúc hợp đồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-002
+    title: 16.2. Vô hiệu hóa bí mật tại nơi kiểm chứng thay vì chỉ xóa khỏi kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-003
+    title: 16.3. Thu hồi phiên, token hoặc kết nối được tạo từ bí mật cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-004
+    title: 16.4. Độ trễ truyền thay đổi, bộ nhớ đệm và cửa sổ tiếp tục truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-005
+    title: 16.5. Phân biệt vô hiệu hóa có thể khôi phục với thu hồi không thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-006
+    title: 16.6. Thu hồi bí mật dùng chung mà vẫn kiểm soát gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-007
+    title: 16.7. Thu hồi theo danh tính, nhóm bí mật hoặc toàn bộ một môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-008
+    title: 16.8. Đối soát các hệ thống đích không hỗ trợ thu hồi tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: revocation-and-expiration-009
+    title: 16.9. Kiểm chứng giá trị cũ đã mất hiệu lực bằng ca kiểm thử từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retirement-and-destruction
+  title: 17. Ngừng dùng và hủy
+  childs:
+  - slug: retirement-and-destruction-001
+    title: 17.1. Xác nhận bí mật không còn bên sử dụng hoặc phụ thuộc hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-002
+    title: 17.2. Chuyển trạng thái ngừng dùng và chặn tạo phụ thuộc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-003
+    title: 17.3. Xóa bản sao trong cấu hình, hệ thống triển khai và kho trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-004
+    title: 17.4. Xóa mềm, thời gian chờ khôi phục và hủy vĩnh viễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-005
+    title: 17.5. Xử lý lịch sử phiên bản, bản sao lưu và bản chụp không thể sửa trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-006
+    title: 17.6. Phân biệt xóa dữ liệu với hủy khả năng giải mã khi thiết kế hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-007
+    title: 17.7. Giữ bằng chứng kiểm toán mà không giữ giá trị bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-008
+    title: 17.8. Loại bỏ danh tính, quyền và lịch tự động gắn với bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retirement-and-destruction-009
+    title: 17.9. Xác nhận ngừng dùng sau khi dịch vụ, tài khoản hoặc môi trường bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-code-and-cicd
+  title: 18. Mã nguồn và CI/CD
+  childs:
+  - slug: source-code-and-cicd-001
+    title: 18.1. Ngăn đưa bí mật vào mã nguồn, cấu hình mẫu và tệp được theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-002
+    title: 18.2. Quét bí mật trước khi commit, khi nhận thay đổi và trong lịch sử kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-003
+    title: 18.3. Xử lý bí mật đã commit bằng thu hồi hoặc luân chuyển trước khi dọn lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-004
+    title: 18.4. Cấp danh tính ngắn hạn cho tác vụ build và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-005
+    title: 18.5. Phân tách bí mật theo kho mã, nhánh, môi trường và tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-006
+    title: 18.6. Kiểm soát thay đổi từ nguồn không đáng tin và tác vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-007
+    title: 18.7. Ngăn rò rỉ qua đầu ra lệnh, tạo phẩm, bộ nhớ đệm và báo cáo kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-008
+    title: 18.8. Giới hạn quyền của runner và làm sạch môi trường sau tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-009
+    title: 18.9. Phê duyệt truy cập bí mật sản xuất trong đường ống triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-and-cicd-010
+    title: 18.10. Giới hạn của che giá trị tự động trong nhật ký CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-and-config
+  title: 19. Hạ tầng và cấu hình
+  childs:
+  - slug: infrastructure-and-config-001
+    title: 19.1. Bí mật trong công cụ hạ tầng dưới dạng mã và tệp trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-002
+    title: 19.2. Tham chiếu bí mật theo định danh thay vì sao chép giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-003
+    title: 19.3. Quản lý cấu hình triển khai, tham số và tạo phẩm bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-004
+    title: 19.4. Bí mật trong image container, các lớp image và lịch sử build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-005
+    title: 19.5. Phân phối trong môi trường container và nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-006
+    title: 19.6. Kiểm soát mount, quyền tệp, namespace và tài khoản chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-007
+    title: 19.7. Làm mới bí mật mà không để cấu hình cũ khôi phục lại giá trị trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-008
+    title: 19.8. Bảo vệ công cụ quản lý cấu hình và tài khoản tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-and-config-009
+    title: 19.9. Đối soát lệch cấu hình giữa khai báo, kho và môi trường thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: developer-environments
+  title: 20. Con người và môi trường phát triển
+  childs:
+  - slug: developer-environments-001
+    title: 20.1. Kho bí mật cho nhóm phát triển và nguyên tắc không gửi qua tin nhắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-002
+    title: 20.2. Danh tính cá nhân thay cho tài khoản chung khi hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-003
+    title: 20.3. Tách dữ liệu và bí mật thử nghiệm khỏi thông tin sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-004
+    title: 20.4. Tệp cấu hình cục bộ, lịch sử shell và trình quản lý thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-005
+    title: 20.5. Máy phát triển, IDE, tiện ích mở rộng và công cụ hỗ trợ lập trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-006
+    title: 20.6. Cấp quyền tạm thời để gỡ lỗi với ghi nhận và phê duyệt phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-007
+    title: 20.7. Chia sẻ bí mật một lần và giới hạn của liên kết hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-008
+    title: 20.8. Xử lý clipboard, ảnh chụp màn hình và bản ghi phiên hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: developer-environments-009
+    title: 20.9. Thu hồi quyền và bí mật khi chuyển nhóm, mất thiết bị hoặc nghỉ việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logging-and-leak-prevention
+  title: 21. Nhật ký và chống rò rỉ
+  childs:
+  - slug: logging-and-leak-prevention-001
+    title: 21.1. Thiết kế nhật ký theo sự kiện và định danh bí mật, không theo giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-002
+    title: 21.2. Che dữ liệu tại nguồn trước khi chuyển đến hệ thống thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-003
+    title: 21.3. Lọc header, chuỗi kết nối, tham số URL và nội dung lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-004
+    title: 21.4. Bảo vệ stack trace, core dump, heap dump và công cụ gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-005
+    title: 21.5. Phát hiện rò rỉ trong nhật ký, tạo phẩm và dữ liệu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-006
+    title: 21.6. Giới hạn của so khớp giá trị khi bí mật bị mã hóa hoặc biến đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-007
+    title: 21.7. Kiểm soát quyền đọc, xuất và thời hạn lưu giữ nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-008
+    title: 21.8. Xử lý nhật ký đã chứa bí mật mà vẫn giữ bằng chứng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logging-and-leak-prevention-009
+    title: 21.9. Kiểm chứng bộ lọc không làm mất khả năng chẩn đoán cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auditing-and-monitoring
+  title: 22. Kiểm toán và giám sát
+  childs:
+  - slug: auditing-and-monitoring-001
+    title: 22.1. Ghi nhận ai tạo, đọc, thay đổi, luân chuyển và thu hồi bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-002
+    title: 22.2. Liên kết yêu cầu đọc với danh tính, ứng dụng, phiên bản và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-003
+    title: 22.3. Phát hiện đọc hàng loạt, truy cập bất thường và sử dụng sau khi ngừng dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-004
+    title: 22.4. Theo dõi bí mật quá hạn, luân chuyển lỗi và lease không được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-005
+    title: 22.5. Giám sát thay đổi chính sách, tài khoản quản trị và chức năng kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-006
+    title: 22.6. Bảo vệ tính toàn vẹn, thời gian và tính liên tục của bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-007
+    title: 22.7. Đo độ bao phủ danh mục, tỷ lệ bí mật tĩnh và số bản sao ngoài quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-008
+    title: 22.8. Đo thời gian thu hồi, thời gian luân chuyển và tỷ lệ cập nhật thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-and-monitoring-009
+    title: 22.9. Rà soát quyền và xuất minh chứng mà không xuất giá trị bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-and-recovery
+  title: 23. Khả dụng và phục hồi
+  childs:
+  - slug: availability-and-recovery-001
+    title: 23.1. Xác định hậu quả khi kho bí mật hoặc hệ thống cấp phát không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-002
+    title: 23.2. Dự phòng, sao chép và lựa chọn nhất quán giữa các khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-003
+    title: 23.3. Giới hạn thời gian dùng giá trị lưu tạm khi không thể truy cập kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-004
+    title: 23.4. Đánh đổi giữa tiếp tục phục vụ và ngăn dùng thông tin đã bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-005
+    title: 23.5. Tránh phụ thuộc vòng giữa kho bí mật và các hệ thống cần khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-006
+    title: 23.6. Kiểm soát số lần thử lại, thời gian chờ và tải đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-007
+    title: 23.7. Sao lưu cấu hình, dữ liệu mã hóa, chính sách và vật liệu khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-008
+    title: 23.8. Khôi phục từ bản sao mà không tái kích hoạt bí mật đã bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-009
+    title: 23.9. Thử diễn tập khôi phục và kiểm chứng quyền tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-010
+    title: 23.10. Truy cập khẩn cấp có kiểm soát và đánh giá sau khi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-exposure-response
+  title: 24. Ứng phó bí mật bị lộ
+  childs:
+  - slug: secret-exposure-response-001
+    title: 24.1. Xác nhận loại bí mật, phạm vi quyền và mức độ phơi lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-002
+    title: 24.2. Khoanh vùng nơi rò rỉ và ngăn tiếp tục phát tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-003
+    title: 24.3. Ưu tiên thu hồi hoặc luân chuyển dựa trên nguy cơ và tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-004
+    title: 24.4. Truy tìm hoạt động lạm dụng từ thời điểm có thể đã bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-005
+    title: 24.5. Xử lý token, phiên và bí mật dẫn xuất còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-006
+    title: 24.6. Điều phối thay đổi trên các bên sử dụng và theo dõi gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-007
+    title: 24.7. Ứng phó khi tài khoản quản trị hoặc kho bí mật bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-008
+    title: 24.8. Bảo toàn bằng chứng và loại bỏ giá trị khỏi nơi lưu không được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-009
+    title: 24.9. Xác nhận không còn sử dụng giá trị cũ và lập kế hoạch theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-exposure-response-010
+    title: 24.10. Phân tích nguyên nhân và bổ sung kiểm soát phòng ngừa tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-specific-secrets
+  title: 25. Bí mật theo hệ thống
+  childs:
+  - slug: system-specific-secrets-001
+    title: 25.1. Mật khẩu cơ sở dữ liệu và luân chuyển khi có nhóm kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-002
+    title: 25.2. API key của đối tác với giới hạn số khóa và thời gian chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-003
+    title: 25.3. Thông tin xác thực đám mây và lựa chọn danh tính tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-004
+    title: 25.4. Tài khoản dịch vụ của ứng dụng cũ và phụ thuộc khó thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-005
+    title: 25.5. Khóa riêng chứng thư với yêu cầu gia hạn và bảo vệ danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-006
+    title: 25.6. Bí mật ký token với khoảng chấp nhận nhiều phiên bản khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-007
+    title: 25.7. Bí mật webhook và HMAC với xác minh, chống phát lại và đổi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-008
+    title: 25.8. Mật khẩu quản trị thiết bị và tài khoản khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-specific-secrets-009
+    title: '25.9. Bí mật mã hóa dữ liệu: khác biệt giữa đổi thông tin truy cập và đổi khóa dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-testing
+  title: 26. Kiểm thử vòng đời
+  childs:
+  - slug: lifecycle-testing-001
+    title: 26.1. Kiểm thử tạo, đọc, cập nhật, luân chuyển, hết hạn và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-002
+    title: 26.2. Ca kiểm thử từ chối theo danh tính, môi trường và thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-003
+    title: 26.3. Kiểm chứng bí mật không xuất hiện trong nhật ký hoặc tạo phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-004
+    title: 26.4. Giả lập lỗi ở từng bước của quy trình luân chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-005
+    title: 26.5. Kiểm thử đồng thời, gửi lặp và khởi động lại giữa quá trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-006
+    title: 26.6. Kiểm thử phiên bản cũ và mới trong thời gian chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-007
+    title: 26.7. Kiểm thử mất kho, lỗi mạng, lệch đồng hồ và gia hạn thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-008
+    title: 26.8. Diễn tập thu hồi khẩn cấp và đo cửa sổ còn truy cập được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-009
+    title: 26.9. Kiểm thử sao lưu, khôi phục và dọn thông tin xác thực mồ côi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-testing-010
+    title: 26.10. Tiêu chí nghiệm thu bằng hành vi thực tế tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-and-operations
+  title: 27. Chuyển đổi và vận hành
+  childs:
+  - slug: migration-and-operations-001
+    title: 27.1. Đánh giá hiện trạng và ưu tiên bí mật có nguy cơ cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-002
+    title: 27.2. Đưa bí mật đang tồn tại vào quản lý mà không tạo thêm bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-003
+    title: 27.3. Chuyển từ cấu hình tĩnh sang tham chiếu và danh tính động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-004
+    title: 27.4. Triển khai từng nhóm ứng dụng với quan sát và khả năng quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-005
+    title: 27.5. Chuẩn hóa hợp đồng tích hợp và trách nhiệm của nhóm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-006
+    title: 27.6. Quản lý hạn mức, chi phí đọc, chi phí cấp phát và tải luân chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-007
+    title: 27.7. Đánh giá nhà cung cấp, khả năng xuất siêu dữ liệu và phương án chuyển kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-008
+    title: 27.8. Quy trình vận hành thường ngày và xử lý ngoại lệ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-and-operations-009
+    title: 27.9. Lộ trình giảm bí mật dài hạn và loại bỏ thông tin xác thực không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: 28. Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: 28.1. Coi việc đưa bí mật vào kho là đã hoàn thành quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: 28.2. Xóa khỏi kho nhưng không vô hiệu hóa tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: 28.3. Đổi giá trị trong kho trước khi hệ thống đích chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: 28.4. Thu hồi phiên bản cũ khi các bên sử dụng chưa cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: 28.5. Dùng một bí mật cho nhiều ứng dụng hoặc nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: 28.6. Lưu bí mật trong image, tệp trạng thái hoặc biến được ghi ra nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: 28.7. Tin rằng mã hóa lưu trữ hoặc che nhật ký ngăn được mọi dạng rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: 28.8. Lưu tạm không có thời hạn và khôi phục bí mật đã hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: 28.9. Cấp quyền luân chuyển quá rộng hoặc dùng bí mật gốc lâu dài để cấp bí mật khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: 28.10. Luân chuyển theo lịch nhưng thiếu kiểm chứng và phản ứng khi bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scenarios-and-exercises
+  title: 29. Tình huống và thực hành
+  childs:
+  - slug: scenarios-and-exercises-001
+    title: 29.1. Lập danh mục bí mật và sơ đồ nơi lưu, nơi sử dụng, nơi kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-002
+    title: 29.2. Thiết kế trạng thái vòng đời và ma trận trách nhiệm cho một ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-003
+    title: 29.3. Xây dựng chính sách đọc và quản trị theo quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-004
+    title: 29.4. Mô phỏng cấp bí mật động với thời hạn và thu hồi tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-005
+    title: 29.5. Thiết kế luân chuyển không gián đoạn cho nhiều bản sao ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-006
+    title: 29.6. Xử lý một bên sử dụng mất kết nối trong thời gian đổi bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-007
+    title: 29.7. Diễn tập API key bị lộ trong kho mã và xác nhận giá trị cũ bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-008
+    title: 29.8. Khôi phục kho từ bản sao lưu và đối soát hiệu lực tại hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-009
+    title: 29.9. Ngừng một dịch vụ và dọn toàn bộ quyền, bí mật cùng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scenarios-and-exercises-010
+    title: 29.10. Hoàn thiện hồ sơ kiến trúc, tiêu chí nghiệm thu và chỉ số vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: rui-ro-lo-du-lieu
+  title: Rủi ro lộ dữ liệu
+  purpose: Nhận diện nơi telemetry có thể làm lộ dữ liệu nhạy cảm.
+  objectives:
+  - Chỉ ra dữ liệu nhạy cảm trong logs, traces và metrics.
+  - Nhận diện rủi ro ở attributes, log body và URL.
+  - Giải thích vì sao cần xóa trước khi xuất telemetry.
+- id: phan-loai-pham-vi
+  title: Phân loại & phạm vi
+  purpose: Xác định chính xác dữ liệu cần loại bỏ và ngữ cảnh cần giữ.
+  objectives:
+  - Phân biệt PII, token, mật khẩu và bí mật hệ thống.
+  - Lập danh sách trường được phép giữ lại.
+  - Chỉ ra các điểm thu thập và nơi nhận dữ liệu.
+- id: chinh-sach-redaction
+  title: Chính sách Redaction
+  purpose: Định nghĩa quy tắc xóa dữ liệu nhất quán giữa các nguồn.
+  objectives:
+  - Phân biệt xóa trường với che giá trị và loại bỏ sự kiện.
+  - Quy định trường cấm, trường được giữ và ngoại lệ.
+  - Ưu tiên loại bỏ dữ liệu nhạy cảm không cần thiết.
+- id: redaction-theo-truong
+  title: Redaction theo trường
+  purpose: Loại bỏ các thuộc tính có cấu trúc dựa trên khóa và ngữ cảnh.
+  objectives:
+  - Xác định khóa nhạy cảm trong resource, span và log attributes.
+  - Viết quy tắc xóa trường hoặc dùng allowlist.
+  - Giữ lại các trường cần cho truy vết an toàn.
+- id: redaction-theo-mau
+  title: Redaction theo mẫu
+  purpose: Xử lý chuỗi tự do có thể chứa bí mật ngoài các trường cố định.
+  objectives:
+  - Nhận diện token và định danh trong thông điệp log, URL.
+  - Áp dụng mẫu phù hợp cho nội dung tự do.
+  - Kiểm tra bỏ sót và xóa nhầm khi dùng biểu thức chính quy.
+- id: thuc-thi-trong-pipeline
+  title: Thực thi trong pipeline
+  purpose: Áp dụng redaction trước khi dữ liệu đi tới nơi lưu trữ hoặc bên thứ ba.
+  objectives:
+  - Đặt redaction tại nguồn hoặc Collector trước exporter.
+  - Chọn processor redaction, attributes hoặc transform theo nhu cầu.
+  - Kiểm tra thứ tự xử lý và phạm vi từng tín hiệu.
+- id: kiem-thu-chong-ro-ri
+  title: Kiểm thử chống rò rỉ
+  purpose: Xác nhận quy tắc loại bỏ đúng thông tin nhạy cảm mà vẫn giữ dữ liệu vận hành cần thiết.
+  objectives:
+  - Dùng dữ liệu giả có PII và secret để kiểm thử.
+  - Đối chiếu log, span và metric sau xử lý.
+  - Kiểm tra trường lồng nhau, mẫu lạ và sự cố cấu hình.
+- id: van-hanh-ra-soat
+  title: Vận hành & rà soát
+  purpose: Duy trì hiệu lực của chính sách khi ứng dụng và cấu trúc telemetry thay đổi.
+  objectives:
+  - Theo dõi lỗi xử lý bằng chỉ số không chứa bí mật.
+  - Rà soát thay đổi schema và quy tắc redaction.
+  - Kiểm tra định kỳ dữ liệu đầu ra để phát hiện rò rỉ.

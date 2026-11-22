@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-versioning
+  title: Tổng quan Versioning
+  purpose: Hiểu vì sao cần nhận diện rõ phiên bản mã nguồn, bản build và bản phát hành.
+  objectives:
+  - Phân biệt commit SHA, Git tag và artifact version.
+  - Mô tả đường đi từ thay đổi mã đến release có phiên bản.
+- id: semantic-versioning
+  title: Semantic Versioning
+  purpose: Áp dụng quy tắc MAJOR.MINOR.PATCH khi công bố thay đổi phần mềm.
+  objectives:
+  - Chọn MAJOR cho thay đổi API không tương thích.
+  - Phân biệt MINOR tương thích và PATCH sửa lỗi tương thích.
+- id: pre-release-metadata
+  title: Pre-release & Metadata
+  purpose: Sử dụng nhãn trước phát hành và metadata mà không nhầm với phiên bản ổn định.
+  objectives:
+  - Đọc phiên bản như 2.1.0-rc.1+build.7.
+  - Giải thích pre-release có thứ tự thấp hơn bản chính thức và metadata không đổi thứ tự.
+- id: api-compatibility
+  title: API Compatibility
+  purpose: Đánh giá tác động nâng phiên bản tới ứng dụng và thư viện phụ thuộc.
+  objectives:
+  - Phân loại breaking change, tính năng mới và sửa lỗi.
+  - Đề xuất cảnh báo deprecation hoặc hướng dẫn migration.
+- id: commits-changelog
+  title: Commits & Changelog
+  purpose: Tạo lịch sử thay đổi dễ hiểu cho người sử dụng và công cụ tự động.
+  objectives:
+  - Viết thông điệp feat, fix và BREAKING CHANGE.
+  - Tổng hợp thay đổi vào changelog hoặc release notes.
+- id: git-tags-releases
+  title: Git Tags & Releases
+  purpose: Gắn phiên bản với commit xác định và quản lý mốc phát hành.
+  objectives:
+  - Tạo annotated Git tag cho bản release.
+  - Phân biệt Git tag với release notes và release assets.
+- id: artifact-image-versions
+  title: Artifact & Image Versions
+  purpose: Bảo đảm package và container image truy xuất được đúng bản cần triển khai.
+  objectives:
+  - Nhận diện version trong Maven artifact và SNAPSHOT.
+  - Phân biệt container tag với digest; tránh ghi đè bản phát hành.
+- id: tu-dong-hoa-versioning
+  title: Tự động hóa Versioning
+  purpose: Kết nối quy tắc tăng phiên bản với pipeline build, publish và triển khai.
+  objectives:
+  - Phác thảo pipeline kiểm thử, gắn tag và publish artifact.
+  - Xác minh traceability, chống publish trùng và rollback theo bản.

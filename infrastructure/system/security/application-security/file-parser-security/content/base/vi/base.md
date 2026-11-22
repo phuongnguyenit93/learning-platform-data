@@ -1,0 +1,5 @@
+# Security Application Security — File Parser Security
+
+File Parser Security là tập hợp nguyên tắc bảo vệ ứng dụng khi đọc, giải mã và trích xuất dữ liệu từ tệp, đặc biệt là tệp do người dùng hoặc hệ thống bên ngoài cung cấp. Một tệp có vẻ đúng phần mở rộng vẫn có thể chứa cấu trúc bất thường, đường dẫn thoát thư mục, XML tham chiếu tài nguyên ngoài hoặc dữ liệu gây tiêu hao CPU và bộ nhớ. Vì vậy, kiểm tra upload đơn thuần chưa đủ: cần bảo vệ cả quá trình parse, giải nén, xử lý kết quả và lưu trữ.
+
+Module dành cho người đã biết lập trình backend, định dạng tệp cơ bản và nguyên tắc kiểm tra đầu vào. Bạn sẽ nhận diện ranh giới tin cậy, xác minh loại tệp, đặt giới hạn tài nguyên, phòng tránh path traversal khi giải nén, cấu hình XML parser an toàn và loại bỏ deserialization không đáng tin cậy. Lộ trình tiếp tục với xác thực dữ liệu đầu ra, cô lập tiến trình xử lý, cập nhật thư viện và kiểm thử bằng tệp lỗi hoặc fuzzing. Sau khi học, bạn có thể thiết kế một luồng đọc tệp theo nguyên tắc **defense in depth**, từ chối an toàn khi phát hiện rủi ro và theo dõi các lỗi cần khắc phục.

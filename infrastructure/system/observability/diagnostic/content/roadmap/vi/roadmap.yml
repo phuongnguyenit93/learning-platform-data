@@ -1,0 +1,49 @@
+roadmap:
+- id: nhan-dien-su-co
+  title: Nhận diện sự cố
+  purpose: Xác định triệu chứng, tác động và mức ưu tiên trước khi điều tra.
+  objectives:
+  - Mô tả triệu chứng và phạm vi ảnh hưởng
+  - Xác lập thời điểm bắt đầu và độ ưu tiên
+- id: chon-tin-hieu
+  title: Chọn tín hiệu
+  purpose: Chọn dữ liệu quan sát phù hợp để giải thích vấn đề.
+  objectives:
+  - Phân biệt vai trò metrics, logs và traces
+  - Xác định dịch vụ, môi trường và khoảng thời gian
+- id: phan-tich-metrics
+  title: Phân tích Metrics
+  purpose: Phát hiện xu hướng bất thường và khoanh vùng thành phần nghi vấn.
+  objectives:
+  - Đối chiếu latency, traffic, errors, saturation với baseline
+  - Phân tích số liệu theo dịch vụ và thời điểm
+- id: dieu-tra-logs
+  title: Điều tra Logs
+  purpose: Tìm các sự kiện và lỗi cụ thể liên quan đến triệu chứng.
+  objectives:
+  - Lọc log theo thời gian, mức độ và dịch vụ
+  - Liên kết sự kiện bằng request ID hoặc trace ID
+- id: phan-tich-traces
+  title: Phân tích Traces
+  purpose: Theo dấu yêu cầu qua các dịch vụ để tìm điểm chậm hoặc lỗi.
+  objectives:
+  - Đọc trace, span, trạng thái và thời lượng
+  - Xác định thao tác chậm hoặc dependency lỗi
+- id: tuong-quan-tin-hieu
+  title: Tương quan tín hiệu
+  purpose: Ghép nhiều nguồn telemetry thành một chuỗi sự kiện nhất quán.
+  objectives:
+  - Liên kết biến động metrics với logs và traces
+  - Phân biệt tương quan với nguyên nhân
+- id: kiem-chung-nguyen-nhan
+  title: Kiểm chứng nguyên nhân
+  purpose: Đặt giả thuyết và kiểm tra bằng chứng để tìm nguyên nhân gốc.
+  objectives:
+  - Xếp ưu tiên giả thuyết theo dữ liệu thực tế
+  - Dùng kiểm tra có kiểm soát để xác nhận hoặc bác bỏ
+- id: xac-minh-phuc-hoi
+  title: Xác minh phục hồi
+  purpose: Đánh giá kết quả khắc phục và rút kinh nghiệm chẩn đoán.
+  objectives:
+  - Đối chiếu tín hiệu và SLI trước/sau khắc phục
+  - Ghi nguyên nhân, bằng chứng và hành động phòng ngừa

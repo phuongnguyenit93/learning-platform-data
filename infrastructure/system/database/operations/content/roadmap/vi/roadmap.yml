@@ -1,0 +1,57 @@
+roadmap:
+- id: khoi-tao-cau-hinh
+  title: Khởi tạo & cấu hình
+  purpose: Thiết lập database nhất quán, kiểm tra kết nối và ghi nhận cấu hình vận hành.
+  objectives:
+  - Cấu hình database instance và tham số cơ bản
+  - Kiểm tra service, port và kết nối ứng dụng
+  - Lập checklist cấu hình cho từng môi trường
+- id: truy-cap-bao-mat
+  title: Truy cập & bảo mật
+  purpose: Giới hạn người và ứng dụng có thể truy cập hoặc thay đổi dữ liệu.
+  objectives:
+  - Cấp role và privilege theo nguyên tắc tối thiểu
+  - Kiểm tra xác thực, TLS và network access
+  - Thử thu hồi quyền của một tài khoản
+- id: giam-sat-canh-bao
+  title: Giám sát & cảnh báo
+  purpose: Phát hiện sớm sự cố về tài nguyên, truy vấn và phiên kết nối.
+  objectives:
+  - Theo dõi CPU, I/O, disk và connection count
+  - Quan sát slow query, lock và transaction dài
+  - Thiết lập ngưỡng cảnh báo có thể kiểm chứng
+- id: backup-restore
+  title: Backup & Restore
+  purpose: Bảo vệ dữ liệu trước lỗi thao tác và hư hỏng, xác minh khả năng khôi phục.
+  objectives:
+  - Phân biệt logical và physical backup
+  - Lập lịch backup theo RPO và retention
+  - Thực hành restore và kiểm tra dữ liệu
+- id: replication-ha
+  title: Replication & HA
+  purpose: Duy trì dịch vụ khi một nút gặp lỗi và hiểu giới hạn nhất quán dữ liệu.
+  objectives:
+  - So sánh synchronous và asynchronous replication
+  - Đo replication lag và nhận biết lỗi replica
+  - Thử failover trên môi trường kiểm thử
+- id: bao-tri-nang-cap
+  title: Bảo trì & nâng cấp
+  purpose: Duy trì khả năng hoạt động và tính tương thích khi database thay đổi.
+  objectives:
+  - Lên lịch patch và upgrade có phương án lui
+  - Thực hành bảo trì index và statistics
+  - Kiểm tra tác động của schema migration
+- id: hieu-nang-dung-luong
+  title: Hiệu năng & dung lượng
+  purpose: Phân tích điểm nghẽn và dự báo nhu cầu tài nguyên thay vì tăng cấu hình tùy ý.
+  objectives:
+  - Đọc EXPLAIN cho truy vấn chậm
+  - Đánh giá pool kết nối và mức sử dụng I/O
+  - Dự báo tốc độ tăng dữ liệu, disk và tải
+- id: su-co-dien-tap-dr
+  title: Sự cố & diễn tập DR
+  purpose: Chuẩn bị quy trình xử lý và phục hồi có thể lặp lại khi dịch vụ suy giảm.
+  objectives:
+  - Viết runbook cho lỗi kết nối, lock và disk đầy
+  - Phân loại sự cố theo RPO/RTO mục tiêu
+  - Diễn tập phục hồi rồi ghi nhận bài học

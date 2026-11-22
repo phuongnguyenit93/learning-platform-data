@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Khởi tạo
+  slug: getting-started
+  index: 2
+- title: Cấu hình
+  slug: configuration
+  index: 3
+- title: Software Catalog
+  slug: software-catalog
+  index: 4
+- title: Mô hình hệ thống
+  slug: system-model
+  index: 5
+- title: Nạp dữ liệu
+  slug: data-ingestion
+  index: 6
+- title: Vòng đời entity
+  slug: entity-lifecycle
+  index: 7
+- title: Tổ chức và danh tính
+  slug: organizations-and-identities
+  index: 8
+- title: Tích hợp SCM
+  slug: scm-integration
+  index: 9
+- title: Xác thực
+  slug: authentication
+  index: 10
+- title: Phân quyền
+  slug: authorization
+  index: 11
+- title: Giao diện catalog
+  slug: catalog-ui
+  index: 12
+- title: Software Templates
+  slug: software-templates
+  index: 13
+- title: Quy trình Scaffolder
+  slug: scaffolder-workflows
+  index: 14
+- title: Custom actions
+  slug: custom-actions
+  index: 15
+- title: TechDocs
+  slug: tech-docs
+  index: 16
+- title: Vận hành TechDocs
+  slug: techdocs-operations
+  index: 17
+- title: API Catalog
+  slug: api-catalog
+  index: 18
+- title: Tìm kiếm
+  slug: search
+  index: 19
+- title: Tích hợp DevOps
+  slug: devops-integrations
+  index: 20
+- title: Hệ sinh thái plugin
+  slug: plugin-ecosystem
+  index: 21
+- title: Plugin frontend
+  slug: plugin-frontend
+  index: 22
+- title: Plugin backend
+  slug: plugin-backend
+  index: 23
+- title: Mở rộng backend
+  slug: backend-extensions
+  index: 24
+- title: Lưu trữ và lịch tác vụ
+  slug: storage-and-scheduled-tasks
+  index: 25
+- title: Bảo mật
+  slug: security
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 28
+- title: Triển khai
+  slug: deployment
+  index: 29
+- title: Quan sát và hiệu năng
+  slug: observability-and-performance
+  index: 30
+- title: Nâng cấp
+  slug: upgrades
+  index: 31
+- title: Quản trị nền tảng
+  slug: platform-governance
+  index: 32
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 33
+- title: Thực hành
+  slug: hands-on-exercise
+  index: 34

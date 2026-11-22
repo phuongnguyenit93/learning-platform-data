@@ -1,0 +1,7 @@
+# Database Replication Distribution — Sao chép và phân phối dữ liệu
+
+Replication là cơ chế duy trì các bản sao dữ liệu trên nhiều nút để tăng tính sẵn sàng, hỗ trợ một số nhu cầu mở rộng đọc và giảm tác động khi máy chủ gặp sự cố. Trong mô hình phổ biến, primary nhận thao tác ghi, còn replica nhận và áp dụng thay đổi. Tuy nhiên, bản sao có thể chậm hơn nguồn; replication không tự thay thế backup, và việc phân tán dữ liệu không đồng nghĩa với chia nhỏ dữ liệu bằng sharding.
+
+Module dành cho người đã nắm cơ sở dữ liệu quan hệ, giao dịch, truy vấn SQL và kiến thức mạng căn bản. Lộ trình đi từ vai trò primary/replica, cách đồng bộ và bất đồng bộ, đến physical/logical replication với ví dụ PostgreSQL. Người học tiếp tục phân tích độ trễ sao chép, lựa chọn điểm đọc và các mức bảo đảm nhất quán, sau đó tìm hiểu failover, election/quorum và nguy cơ split-brain. Phần sharding giúp phân biệt sao chép nguyên bộ dữ liệu với phân vùng dữ liệu theo khóa để mở rộng ngang.
+
+Ở phần cuối, bạn sẽ quan sát replication lag, thử kịch bản mất kết nối hoặc mất primary, kiểm tra dữ liệu sau khôi phục và liên hệ với mục tiêu RPO/RTO. Hoàn thành module, bạn có thể đọc sơ đồ kiến trúc replication, nhận biết đánh đổi về độ trễ, nhất quán, khả dụng và đề xuất cách kiểm chứng hệ thống phân tán cơ bản.

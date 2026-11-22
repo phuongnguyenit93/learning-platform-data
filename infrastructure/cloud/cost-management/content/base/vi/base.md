@@ -1,0 +1,7 @@
+# Cloud Cost Management
+
+Cloud Cost Management là quá trình đo lường, phân bổ, dự báo và tối ưu chi phí sử dụng dịch vụ đám mây. Do mô hình tính phí phụ thuộc vào tài nguyên, thời gian chạy, lưu trữ và lưu lượng mạng, chi phí có thể tăng ngoài dự kiến nếu thiếu giám sát và trách nhiệm sở hữu. Module này giới thiệu tư duy FinOps, kết hợp công việc của kỹ sư, vận hành và tài chính để quản lý chi tiêu dựa trên dữ liệu và giá trị kinh doanh, thay vì chỉ cắt giảm tài nguyên bằng mọi giá.
+
+Người học nên biết các nhóm dịch vụ cloud cơ bản như compute, storage, database và networking. Lộ trình bắt đầu từ cơ chế billing, cách ước tính chi phí và phân tích báo cáo; sau đó tổ chức tag/label để phân bổ chi phí theo đội nhóm, thiết lập budget, forecast và cảnh báo bất thường. Các mốc cuối đi vào tối ưu mức sử dụng bằng rightsizing, loại bỏ tài nguyên nhàn rỗi, lịch chạy theo nhu cầu và cân nhắc chính sách giá On-Demand, Reserved hoặc Savings Plans, đồng thời theo dõi cost per unit.
+
+Sau khi hoàn thành, bạn có thể lập bảng ước tính sơ bộ, tìm nguyên nhân biến động chi phí, đề xuất phương án giảm lãng phí và xây dựng nhịp rà soát chi phí định kỳ. Khi thực hành trên AWS, Azure hoặc Google Cloud, cần đối chiếu cách tính phí từng nhà cung cấp; budget và cảnh báo thường không đồng nghĩa với giới hạn chi tiêu cứng, còn lựa chọn cam kết dài hạn cần dựa trên dữ liệu sử dụng thực tế.

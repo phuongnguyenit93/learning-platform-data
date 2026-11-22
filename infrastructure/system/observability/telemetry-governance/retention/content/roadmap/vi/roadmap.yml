@@ -1,0 +1,54 @@
+roadmap:
+- id: muc-tieu-luu-giu
+  title: Mục tiêu lưu giữ
+  purpose: Xác định lý do cần giữ telemetry và giới hạn thời gian hữu ích cho điều tra, vận hành.
+  objectives:
+  - Phân biệt retention với sampling và backup.
+  - Xác định nhu cầu tra cứu theo thời gian của các nhóm sử dụng.
+- id: phan-loai-du-lieu
+  title: Phân loại dữ liệu
+  purpose: Tách logs, metrics, traces và mức độ nhạy cảm để áp dụng thời hạn phù hợp.
+  objectives:
+  - Phân nhóm theo loại tín hiệu và độ nhạy cảm.
+  - Nhận diện dữ liệu cần chính sách riêng theo môi trường hoặc tenant.
+- id: chinh-sach-retention
+  title: Chính sách retention
+  purpose: Định nghĩa quy tắc thời hạn lưu giữ cùng trách nhiệm và ngoại lệ rõ ràng.
+  objectives:
+  - Đặt thời hạn giữ cho từng nhóm dữ liệu.
+  - Xác định phạm vi áp dụng và người phụ trách.
+  - Nêu điều kiện phê duyệt ngoại lệ.
+- id: tang-luu-tru-archive
+  title: Tầng lưu trữ & archive
+  purpose: Cân bằng tốc độ truy vấn, khả năng khôi phục và chi phí lưu giữ.
+  objectives:
+  - Phân biệt hot, warm/cold và archive.
+  - Thiết kế thời điểm chuyển tầng và hết hạn.
+- id: cau-hinh-theo-backend
+  title: Cấu hình theo backend
+  purpose: Áp dụng retention bằng cơ chế phù hợp với từng kho telemetry.
+  objectives:
+  - Nhận diện retention time/size của Prometheus.
+  - Giải thích Loki Compactor và Tempo block retention.
+  - Liên hệ Elasticsearch ILM với delete phase.
+- id: xoa-ngoai-le
+  title: Xóa & ngoại lệ
+  purpose: Hiểu thời điểm xóa thực tế và xử lý trường hợp bắt buộc giữ dữ liệu.
+  objectives:
+  - Phân biệt hết hạn với xóa vật lý bất đồng bộ.
+  - Kiểm tra retention của bản sao lưu và archive.
+  - Xử lý yêu cầu lưu giữ đặc biệt theo phê duyệt.
+- id: dung-luong-chi-phi
+  title: Dung lượng & chi phí
+  purpose: Định lượng tác động của chính sách lên tài nguyên và ngân sách.
+  objectives:
+  - Ước lượng dung lượng từ lưu lượng ingest và thời hạn.
+  - Đánh giá chi phí theo tầng lưu trữ.
+  - Theo dõi tăng trưởng để điều chỉnh chính sách.
+- id: giam-sat-kiem-toan
+  title: Giám sát & kiểm toán
+  purpose: Xác nhận retention chạy đúng và phát hiện dữ liệu tồn tại quá hạn.
+  objectives:
+  - Kiểm tra dữ liệu hết hạn không còn truy vấn được.
+  - Theo dõi job xóa, lỗi và độ trễ dọn dẹp.
+  - Lưu bằng chứng kiểm toán và thay đổi chính sách.

@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiểm kê và nguồn gốc
+  slug: data-inventory-lineage
+  index: 1
+- title: Nhóm dữ liệu
+  slug: data-categories
+  index: 2
+- title: Mức nhạy cảm
+  slug: sensitivity-levels
+  index: 3
+- title: Ngữ cảnh và tác động
+  slug: context-impact
+  index: 4
+- title: Độ hạt phân loại
+  slug: classification-granularity
+  index: 5
+- title: Mô hình nhãn
+  slug: label-model
+  index: 6
+- title: Nhận diện dữ liệu
+  slug: data-identification
+  index: 7
+- title: Chất lượng nhận diện
+  slug: identification-quality
+  index: 8
+- title: Nhật ký
+  slug: logs
+  index: 9
+- title: Chỉ số
+  slug: metrics
+  index: 10
+- title: Truy vết và hồ sơ
+  slug: traces-profiles
+  index: 11
+- title: Giao thức và nội dung
+  slug: protocols-content
+  index: 12
+- title: Luồng phân loại
+  slug: classification-workflow
+  index: 13
+- title: OpenTelemetry
+  slug: opentelemetry
+  index: 14
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 15
+- title: Bảo vệ theo phân loại
+  slug: classification-protection
+  index: 16
+- title: Dữ liệu dẫn xuất
+  slug: derived-data
+  index: 17
+- title: Tenant và chia sẻ
+  slug: tenants-sharing
+  index: 18
+- title: Hiệu năng và giới hạn
+  slug: performance-limits
+  index: 19
+- title: Kiểm thử
+  slug: testing
+  index: 20
+- title: Quản lý thay đổi
+  slug: change-management
+  index: 21
+- title: Giám sát và xử lý
+  slug: monitoring-remediation
+  index: 22
+- title: Quản trị phân loại
+  slug: classification-governance
+  index: 23
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 24

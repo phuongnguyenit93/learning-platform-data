@@ -1,0 +1,2491 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: GitLab là gì và giải quyết vấn đề nào trong quản lý mã nguồn và cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Mối liên hệ giữa Git, GitLab, kho mã cục bộ và kho mã từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: người dùng, namespace, group, project, repository và merge request'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Vòng đời một thay đổi: issue → branch → commit → merge request → review → merge'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt GitLab.com, GitLab Self-Managed và GitLab Dedicated
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Đối chiếu gói dịch vụ, phiên bản và quyền truy cập trước khi sử dụng tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Phạm vi quản lý mã nguồn và cộng tác; điểm kết nối với CI/CD và quản lý phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình thực hành và kiến thức Git cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accounts
+  title: Tài khoản
+  childs:
+  - slug: accounts-001
+    title: Tạo tài khoản, xác minh email và thiết lập hồ sơ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-002
+    title: Phân biệt username, tên hiển thị, email tài khoản và danh tính tác giả commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-003
+    title: Đăng nhập, đăng xuất và quản lý phiên truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-004
+    title: Thiết lập xác thực hai yếu tố và lưu phương án khôi phục tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-005
+    title: Nhận diện tài khoản cá nhân, tài khoản dịch vụ và tài khoản tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-006
+    title: Đăng nhập bằng SSO và tác động của chính sách tổ chức đến quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-007
+    title: Thiết lập múi giờ, ngôn ngữ, tùy chọn giao diện và thông báo cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-008
+    title: Bảo vệ tài khoản khi thay đổi thiết bị, mất khóa hoặc nghỉ khỏi tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: navigation
+  title: Điều hướng
+  childs:
+  - slug: navigation-001
+    title: Nhận diện trang cá nhân, trang group, trang project và các khu vực chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-002
+    title: Tìm và chuyển nhanh giữa project, group và công việc được giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-003
+    title: Theo dõi hoạt động, dự án quan tâm và thay đổi liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-004
+    title: Sử dụng danh sách To-Do để quản lý việc cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-005
+    title: Tìm kiếm trong project hoặc group và nhận biết phạm vi kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-006
+    title: Tìm mã nguồn, đường dẫn tệp, commit, issue và merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-007
+    title: Phân biệt tìm kiếm văn bản, tìm theo bộ lọc và khả năng tìm kiếm nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: navigation-008
+    title: Sử dụng liên kết cố định, mã tham chiếu và phím tắt để cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: group
+  title: Group
+  childs:
+  - slug: group-001
+    title: Thiết kế namespace cho cá nhân, nhóm sản phẩm và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-002
+    title: Tạo group, subgroup và phân chia cấu trúc quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-003
+    title: Phân biệt quyền ở group, subgroup và project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-004
+    title: Kế thừa thành viên, thiết lập và chính sách trong cây group
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-005
+    title: Chọn mức hiển thị group và hiểu tác động đến khả năng tìm thấy nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-006
+    title: Chia sẻ quyền giữa các group và kiểm soát truy cập gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-007
+    title: Đổi tên, đổi đường dẫn hoặc chuyển group và đánh giá các liên kết bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-008
+    title: Chọn cấu trúc group phù hợp với quyền sở hữu và ranh giới cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: project
+  title: Project
+  childs:
+  - slug: project-001
+    title: Tạo project từ kho rỗng, mẫu dự án hoặc nguồn nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-002
+    title: Phân biệt project và repository; xác định dữ liệu nằm ngoài lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-003
+    title: Thiết lập tên, slug, mô tả, mức hiển thị và nhánh mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-004
+    title: Khởi tạo README, .gitignore và giấy phép theo nhu cầu dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-005
+    title: Bật hoặc tắt các khả năng cộng tác cần thiết của project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-006
+    title: Quản lý chủ sở hữu, thông tin liên hệ và quy ước vận hành project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-007
+    title: Đổi đường dẫn hoặc chuyển namespace và cập nhật remote, tích hợp, liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-008
+    title: 'Lưu trữ, khôi phục hoặc xóa project: quyền hạn, tác động và biện pháp phòng nhầm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: project-009
+    title: Đánh giá giới hạn dung lượng và hạn mức của project trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permissions
+  title: Phân quyền
+  childs:
+  - slug: permissions-001
+    title: Hiểu vai trò truy cập và áp dụng nguyên tắc đặc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-002
+    title: Thêm thành viên trực tiếp, mời qua group và kiểm tra nguồn cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-003
+    title: Phân biệt khả năng xem mã, tạo nhánh, đề xuất thay đổi và quản trị thiết lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-004
+    title: Thiết lập thời hạn truy cập cho cộng tác viên và người dùng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-005
+    title: Nhận diện quyền kế thừa và quyền hiệu lực khi một người có nhiều nguồn truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-006
+    title: Quản lý quyền cho nhóm nội bộ, nhà thầu và cộng tác viên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-007
+    title: Rà soát truy cập khi thay đổi nhóm, chuyển vai trò hoặc kết thúc hợp tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-008
+    title: Kiểm tra vai trò tùy chỉnh và điều kiện gói dịch vụ khi cần phân quyền đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-009
+    title: Chẩn đoán trường hợp có quyền project nhưng không thực hiện được thao tác cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: git-connectivity
+  title: Kết nối Git
+  childs:
+  - slug: git-connectivity-001
+    title: Chọn HTTPS hoặc SSH để kết nối kho mã từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-002
+    title: Tạo khóa SSH, bảo vệ khóa riêng và đăng ký khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-003
+    title: Kiểm tra dấu vân tay máy chủ và xác minh kết nối SSH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-004
+    title: Xác thực Git qua HTTPS và sử dụng trình quản lý thông tin đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-005
+    title: Clone repository, kiểm tra remote và cấu hình danh tính commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-006
+    title: Push lần đầu, lấy thay đổi từ xa và đồng bộ nhánh làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-007
+    title: Quản lý nhiều tài khoản hoặc nhiều máy chủ GitLab trên cùng thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-008
+    title: Xử lý thay đổi URL remote khi project được chuyển hoặc đổi tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-connectivity-009
+    title: Chẩn đoán lỗi xác thực, quyền truy cập và kết nối mạng khi dùng Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repositories
+  title: Kho mã
+  childs:
+  - slug: repositories-001
+    title: Đọc cây thư mục và chuyển giữa nhánh, tag hoặc commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-002
+    title: Xem nội dung tệp, lịch sử thay đổi và người sửa bằng blame
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-003
+    title: Đọc diff giữa các commit, nhánh hoặc tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-004
+    title: Phân biệt liên kết theo nhánh với permalink theo commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-005
+    title: Tạo, sửa, đổi tên và xóa tệp trực tiếp trên giao diện web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-006
+    title: Chọn nhánh và tạo merge request khi chỉnh sửa tệp qua web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-007
+    title: Sử dụng Web IDE cho thay đổi nhiều tệp và kiểm tra phạm vi trước khi commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-008
+    title: Tải ảnh chụp mã nguồn và phân biệt với clone đầy đủ lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repositories-009
+    title: Nhận diện metadata, nội dung nhị phân và tệp sinh tự động khi duyệt kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: commit
+  title: Commit
+  childs:
+  - slug: commit-001
+    title: Đọc commit SHA, tác giả, người tạo commit và quan hệ commit cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-002
+    title: Viết thông điệp commit rõ mục đích và liên kết đến issue hoặc merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-003
+    title: Chia thay đổi thành commit dễ xem xét và giữ lịch sử có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-004
+    title: Kiểm tra chữ ký commit hoặc tag và phân biệt với quyền phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-005
+    title: Thiết lập ký commit theo cơ chế được GitLab hỗ trợ trong môi trường đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-006
+    title: Nhận diện tác động của amend, rebase và push lại đến một nhánh đã chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-007
+    title: Áp dụng cherry-pick hoặc revert qua GitLab và kiểm tra thay đổi phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-008
+    title: Chẩn đoán commit không liên kết đúng tài khoản hoặc không được xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: commit-009
+    title: Tránh đưa thông tin bí mật, tệp không cần thiết và dữ liệu cá nhân vào commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branches-tags
+  title: Nhánh và tag
+  childs:
+  - slug: branches-tags-001
+    title: Tạo nhánh từ nhánh mặc định, tag hoặc commit cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-002
+    title: Đặt tên nhánh theo mục đích và liên kết nhánh với công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-003
+    title: Theo dõi độ lệch nhánh và đồng bộ trước khi đề xuất hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-004
+    title: Thiết lập nhánh mặc định và đánh giá tác động khi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-005
+    title: Bảo vệ nhánh và quy định ai được push, merge hoặc force push
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-006
+    title: Đối chiếu branch rules, protected branches và điều kiện khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-007
+    title: Tạo tag, phân biệt tag nhẹ với annotated tag và xem mã tại tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-008
+    title: Bảo vệ tag để kiểm soát danh tính và quyền tạo mốc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-009
+    title: Dọn nhánh đã hợp nhất và tránh xóa nhánh còn phục vụ cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-tags-010
+    title: Liên hệ chiến lược nhánh với chính sách GitLab mà không thay thế thiết kế chiến lược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fork
+  title: Fork
+  childs:
+  - slug: fork-001
+    title: Phân biệt fork, clone và nhánh trong cùng repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-002
+    title: Tạo fork và xác định quan hệ với project gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-003
+    title: Thiết lập remote upstream và đồng bộ fork với nguồn gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-004
+    title: Tạo merge request từ fork sang project đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-005
+    title: Kiểm tra quyền sửa nhánh nguồn của người duy trì khi cộng tác qua fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-006
+    title: Đánh giá mức hiển thị, quyền truy cập và rủi ro dữ liệu khi fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-007
+    title: Phân biệt yêu cầu xác thực và bối cảnh kiểm tra cho thay đổi từ fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-008
+    title: Chọn mô hình fork hoặc shared repository cho cộng tác viên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: merge-request
+  title: Merge request
+  childs:
+  - slug: merge-request-001
+    title: Hiểu merge request là đơn vị đề xuất, thảo luận và kiểm soát thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-002
+    title: Chọn nhánh nguồn, nhánh đích và kiểm tra phạm vi diff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-003
+    title: Viết tiêu đề, mô tả, bối cảnh và tiêu chí hoàn tất rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-004
+    title: Sử dụng mẫu mô tả merge request và danh sách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-005
+    title: Gắn issue, label, milestone và người chịu trách nhiệm phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-006
+    title: Phân biệt assignee, reviewer, tác giả và người có quyền merge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-007
+    title: Sử dụng trạng thái Draft và chuyển sang sẵn sàng xem xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-008
+    title: Cập nhật merge request bằng commit mới và theo dõi phiên bản diff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-009
+    title: Đóng, mở lại và xác định vòng đời merge request khi công việc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merge-request-010
+    title: Chia merge request lớn thành các đề xuất nhỏ và quản lý phụ thuộc giữa chúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: review
+  title: Review
+  childs:
+  - slug: review-001
+    title: Chuẩn bị review từ mục tiêu thay đổi, phạm vi ảnh hưởng và tiêu chí chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-002
+    title: Đọc diff theo tệp, theo dòng và theo phiên bản thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-003
+    title: Nhận xét trực tiếp trên mã và phân biệt thảo luận với bình luận thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-004
+    title: Gom nhận xét thành một lượt review và gửi phản hồi có bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-005
+    title: Đưa gợi ý chỉnh sửa mã và kiểm tra trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-006
+    title: Phản hồi, giải quyết hoặc mở lại luồng thảo luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-007
+    title: Theo dõi tệp đã xem và rà lại phần thay đổi sau khi tác giả cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-008
+    title: Phân biệt yêu cầu sửa, đồng thuận kỹ thuật và phê duyệt chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-009
+    title: 'Quy ước giao tiếp review: lý do, mức độ ảnh hưởng và trách nhiệm xử lý'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-010
+    title: Tổ chức review cho thay đổi nhiều nhóm hoặc có dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: approvals
+  title: Phê duyệt
+  childs:
+  - slug: approvals-001
+    title: Phân biệt quyền merge, approval và điều kiện hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-002
+    title: Thiết kế quy tắc phê duyệt theo người, nhóm và loại thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-003
+    title: Kiểm tra điều kiện gói dịch vụ cho quy tắc approval cần áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-004
+    title: Kiểm soát tự phê duyệt và phê duyệt của người tham gia tạo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-005
+    title: Xử lý hiệu lực phê duyệt khi merge request có commit mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-006
+    title: Định nghĩa CODEOWNERS và ánh xạ đường dẫn với nhóm chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-007
+    title: Kiểm tra cú pháp, quy tắc khớp và kết quả nhận diện Code Owner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-008
+    title: Kết hợp CODEOWNERS, bảo vệ nhánh và điều kiện phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: approvals-009
+    title: Kiểm tra phê duyệt bắt buộc, ngoại lệ và quyền bỏ qua trong môi trường thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: merging
+  title: Hợp nhất
+  childs:
+  - slug: merging-001
+    title: Chọn merge commit, fast-forward hoặc phương thức hợp nhất phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-002
+    title: Quyết định squash commit và tác động đến lịch sử truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-003
+    title: Rebase nhánh nguồn và kiểm tra lại nội dung trước khi merge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-004
+    title: Phát hiện xung đột và chọn cách giải quyết trên web hoặc tại máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-005
+    title: Giải quyết xung đột cục bộ, chạy kiểm tra và cập nhật merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-006
+    title: 'Kiểm tra điều kiện merge: quyền, approval, thảo luận và kết quả kiểm tra'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-007
+    title: Sử dụng auto-merge theo khả năng của môi trường và điều kiện đã cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-008
+    title: Nhận diện merge train, merged results pipeline và điều kiện sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-009
+    title: Xử lý nhánh đích thay đổi trong khi merge request đang được xem xét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: merging-010
+    title: Kiểm tra kết quả sau merge, dọn nhánh nguồn và phục hồi bằng revert khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: issue
+  title: Issue
+  childs:
+  - slug: issue-001
+    title: Phân biệt issue, merge request và các loại work item trong môi trường GitLab
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-002
+    title: Tạo issue với vấn đề, bối cảnh, tiêu chí chấp nhận và thông tin tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-003
+    title: Sử dụng mẫu issue để chuẩn hóa báo lỗi, yêu cầu và đề xuất kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-004
+    title: Phân công người xử lý, đặt thời hạn và theo dõi trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-005
+    title: Thảo luận, đính kèm minh chứng và cập nhật tiến độ công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-006
+    title: Liên kết issue với commit, nhánh và merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-007
+    title: Sử dụng tham chiếu đóng issue và kiểm tra điều kiện tự động đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-008
+    title: Liên kết issue liên quan, phụ thuộc hoặc chặn nhau theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-009
+    title: Quản lý issue bảo mật hoặc confidential và kiểm tra quyền xem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: issue-010
+    title: Đóng, mở lại, di chuyển và xử lý issue trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: planning
+  title: Lập kế hoạch
+  childs:
+  - slug: planning-001
+    title: Thiết kế label theo loại việc, mức ưu tiên và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-002
+    title: Phân biệt label cấp group, label cấp project và scoped label
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-003
+    title: Tổ chức milestone và theo dõi phạm vi công việc của một mốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-004
+    title: Xây dựng issue board từ bộ lọc, danh sách và quy ước trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-005
+    title: Theo dõi người phụ trách, thời hạn và công việc tồn đọng trên board
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-006
+    title: Nhận diện epic, iteration và quan hệ phân cấp công việc theo gói dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-007
+    title: Sử dụng weight, ước lượng và theo dõi thời gian khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-008
+    title: Lưu bộ lọc và chia sẻ góc nhìn công việc giữa các thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: planning-009
+    title: Phân biệt trạng thái công việc, tiến độ milestone và trạng thái mã đã hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: documentation
+  title: Tài liệu
+  childs:
+  - slug: documentation-001
+    title: Sử dụng GitLab Flavored Markdown trong issue, merge request và tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-002
+    title: Viết liên kết, bảng, khối mã và danh sách kiểm tra dễ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-003
+    title: Tham chiếu người dùng, nhóm, issue, merge request và commit đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-004
+    title: Sử dụng quick actions và kiểm tra quyền trước khi thay đổi metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-005
+    title: Tổ chức README, CONTRIBUTING, quy tắc ứng xử và hướng dẫn báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-006
+    title: Quản lý wiki của project và phân biệt wiki với tài liệu trong repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-007
+    title: Chia sẻ snippets và kiểm soát mức hiển thị của đoạn mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-008
+    title: Sử dụng tệp đính kèm, hình ảnh và sơ đồ mà không lộ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-009
+    title: Xây dựng mẫu issue và merge request trong kho mã để quản lý bằng review
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: documentation-010
+    title: Nhận diện GitLab Pages như điểm xuất bản tài liệu và ranh giới với cấu hình CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notifications
+  title: Thông báo
+  childs:
+  - slug: notifications-001
+    title: Chọn mức thông báo theo tài khoản, group và project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-002
+    title: Theo dõi hoặc hủy theo dõi một issue hay merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-003
+    title: Sử dụng mention và yêu cầu review để gọi đúng người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-004
+    title: Phân biệt email, To-Do và hoạt động hiển thị trong GitLab
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-005
+    title: Quản lý yêu cầu review, việc được giao và thảo luận chưa giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-006
+    title: Thiết lập quy ước thời gian phản hồi và bàn giao giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-007
+    title: Giảm thông báo dư thừa và xử lý trường hợp bỏ sót thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-008
+    title: Kiểm tra quyền truy cập trước khi chia sẻ liên kết trong thông báo hoặc kênh nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tokens-keys
+  title: Token và khóa
+  childs:
+  - slug: tokens-keys-001
+    title: Phân biệt mật khẩu, SSH key, access token, deploy key và deploy token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-002
+    title: Chọn personal, project hoặc group access token theo chủ thể cần đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-003
+    title: Giới hạn scope, quyền hiệu lực và thời hạn của token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-004
+    title: Phân biệt token cho API với thông tin xác thực Git qua HTTPS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-005
+    title: Cấp deploy key cho nhu cầu đọc hoặc ghi kho mã có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-006
+    title: Sử dụng deploy token và kiểm tra phạm vi tài nguyên được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-007
+    title: Lưu giữ token an toàn và tránh đưa thông tin xác thực vào URL hoặc lịch sử lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-008
+    title: Xoay vòng, thu hồi và kiểm tra ảnh hưởng khi token hoặc khóa hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-009
+    title: Tách danh tính tự động hóa khỏi tài khoản của nhân viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tokens-keys-010
+    title: Kiểm kê thông tin xác thực và xử lý sự cố token hoặc khóa bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-policies
+  title: Chính sách mã
+  childs:
+  - slug: code-policies-001
+    title: Chuẩn hóa quy ước commit, tên nhánh và yêu cầu trước khi push
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-002
+    title: Nhận diện push rules, phạm vi áp dụng và điều kiện gói dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-003
+    title: Kết hợp nhánh được bảo vệ với mô hình quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-004
+    title: Quản lý quyền force push, xóa nhánh và sửa lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-005
+    title: Quy định chữ ký commit và kiểm tra danh tính người đóng góp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-006
+    title: Ngăn đưa thông tin bí mật vào kho mã bằng quy trình và kiểm tra phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-007
+    title: 'Xử lý bí mật đã lọt vào Git: thu hồi trước, đánh giá lịch sử và phối hợp làm sạch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-008
+    title: Xác định dữ liệu nhạy cảm trong issue, log, attachment và phần thảo luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-policies-009
+    title: Kiểm tra hiệu lực chính sách bằng tài khoản có vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-checks
+  title: Kiểm tra tích hợp
+  childs:
+  - slug: integration-checks-001
+    title: Đọc trạng thái pipeline và kết quả kiểm tra ngay trong merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-002
+    title: Phân biệt kiểm tra thất bại, chưa chạy, bị bỏ qua và đang chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-003
+    title: Xác định nguồn tạo pipeline và commit mà kết quả kiểm tra đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-004
+    title: Kiểm tra báo cáo kiểm thử, độ bao phủ và artifact phục vụ review khi có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-005
+    title: Hiểu tác động của thiết lập yêu cầu pipeline thành công trước khi merge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-006
+    title: Nhận diện khác biệt giữa kiểm tra nhánh nguồn và kết quả hợp nhất dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-007
+    title: Đánh giá rủi ro kiểm tra thay đổi từ fork trước khi cấp quyền hoặc dùng bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-008
+    title: Phối hợp với nhóm CI/CD khi điều kiện merge không phản ánh đúng chất lượng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-checks-009
+    title: Phân định cấu hình pipeline, runner và triển khai sang nội dung GitLab CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-integrations
+  title: Tích hợp hệ thống
+  childs:
+  - slug: system-integrations-001
+    title: Phân biệt tích hợp có sẵn, webhook và lời gọi API chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-002
+    title: Chọn sự kiện webhook cho push, issue hoặc merge request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-003
+    title: Cấu hình endpoint, bí mật xác thực và phạm vi sự kiện webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-004
+    title: Kiểm tra payload, nhật ký gửi và kết quả nhận của hệ thống đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-005
+    title: Xử lý sự kiện trùng lặp, gửi lại và thứ tự đến trong hệ thống nhận webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-006
+    title: Kết nối công cụ theo dõi công việc hoặc kênh trao đổi theo nhu cầu nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-007
+    title: Kiểm soát dữ liệu mã nguồn và thông tin nhạy cảm đi qua tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-008
+    title: Phân quyền, thay đổi chủ sở hữu và thu hồi một tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-integrations-009
+    title: Chẩn đoán webhook thất bại do xác thực, mạng hoặc lỗi bên nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: api-cli
+  title: API và CLI
+  childs:
+  - slug: api-cli-001
+    title: Chọn REST API, GraphQL hoặc GitLab CLI theo nhu cầu tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-002
+    title: Xác định API endpoint của GitLab.com hoặc máy chủ GitLab riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-003
+    title: Xác thực lời gọi API và phân biệt scope với quyền trên tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-004
+    title: Tham chiếu tài nguyên bằng ID hoặc đường dẫn và xử lý mã hóa URL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-005
+    title: Đọc project, thành viên, nhánh, issue và merge request qua API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-006
+    title: Xử lý phân trang, giới hạn tốc độ và lỗi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-007
+    title: Tạo issue hoặc merge request bằng công cụ tự động với phạm vi quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-008
+    title: Sử dụng GitLab CLI cho quy trình issue, merge request và review thường ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-009
+    title: Thiết kế thao tác lặp lại an toàn và ghi nhật ký không chứa thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: api-cli-010
+    title: Kiểm tra phiên bản API, tài liệu máy chủ và tương thích công cụ trước khi dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-files
+  title: Dữ liệu lớn
+  childs:
+  - slug: large-files-001
+    title: Nhận diện nguyên nhân kho mã tăng dung lượng và lịch sử khó tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-002
+    title: Phân biệt tệp trong Git, Git LFS, attachment và artifact của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-003
+    title: Thiết lập Git LFS cho loại tệp lớn và kiểm tra quy tắc theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-004
+    title: Kiểm tra tải lên, tải xuống và quyền truy cập đối tượng LFS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-005
+    title: Đánh giá hạn mức lưu trữ và băng thông trước khi đưa dữ liệu lớn vào kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-006
+    title: Sử dụng shallow clone hoặc partial clone phù hợp với môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-007
+    title: Dọn tệp không cần thiết và đánh giá rủi ro trước khi viết lại lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-008
+    title: Phối hợp làm sạch dữ liệu giữa repository, fork, bản clone và hệ thống sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration
+  title: Di chuyển
+  childs:
+  - slug: migration-001
+    title: Khảo sát mã nguồn, issue, merge request, thành viên và tích hợp trước khi di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-002
+    title: Phân biệt chuyển namespace, nhập repository và nhập hoặc xuất project
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-003
+    title: Chọn công cụ nhập theo nền tảng nguồn và phiên bản GitLab đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-004
+    title: Kiểm tra dữ liệu được hỗ trợ khi export/import và các thành phần cần chuyển riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-005
+    title: Nhập lịch sử Git, nhánh, tag và Git LFS có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-006
+    title: Thiết lập repository mirroring và chọn chiều đồng bộ theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-007
+    title: Xử lý quyền, xác thực, độ trễ và xung đột khi mirror repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-008
+    title: Cập nhật remote, webhook, liên kết tài liệu và thông tin xác thực sau di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-009
+    title: Đối chiếu số lượng, lịch sử, quyền và liên kết công việc sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-010
+    title: Lập phương án chuyển giao và quay lại khi đợt di chuyển chưa đạt yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: group-administration
+  title: Quản trị nhóm
+  childs:
+  - slug: group-administration-001
+    title: Chuẩn hóa thiết lập project bằng mẫu và quy ước chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-002
+    title: Thiết kế quy trình tiếp nhận dự án và thành viên mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-003
+    title: Rà soát chủ sở hữu, vai trò và tài khoản không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-004
+    title: Theo dõi sự kiện audit theo phạm vi và điều kiện gói dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-005
+    title: Phân biệt nhật ký hoạt động, audit event và bằng chứng phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-006
+    title: Đo thời gian chờ review, tuổi merge request và tồn đọng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-007
+    title: Diễn giải chỉ số cộng tác theo bối cảnh thay vì đánh giá cá nhân bằng số commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-008
+    title: Xây dựng chính sách lưu giữ dữ liệu và lưu trữ project đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-009
+    title: Phân biệt clone, project export và bản sao lưu đầy đủ của hệ thống GitLab
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: group-administration-010
+    title: Phối hợp quản trị GitLab Self-Managed về nâng cấp, sao lưu và sự cố dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không clone hoặc push được: kiểm tra URL, kết nối, danh tính và quyền'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Push bị từ chối: phân biệt nhánh được bảo vệ, push rule và lịch sử phân kỳ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Merge request sai nhánh đích, thiếu commit hoặc chứa thay đổi ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Merge request không thể merge dù đã có người phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Xung đột xuất hiện lại sau khi rebase hoặc sau cập nhật nhánh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: CODEOWNERS hoặc approval rule không áp dụng như dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Người dùng không thấy project, issue bảo mật hoặc nội dung được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Token hết hạn, SSH key không khớp và danh tính tài khoản bị nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Thông báo, webhook hoặc tích hợp ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Thu thập bằng chứng và bàn giao sự cố mà không làm lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Khởi tạo group và project cho một nhóm có nhiều vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Kết nối repository bằng SSH hoặc HTTPS và xác minh quyền thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Thiết lập nhánh mặc định, bảo vệ nhánh và mẫu cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Thực hiện luồng issue → branch → commit → merge request hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Review bằng nhận xét theo dòng, gợi ý sửa và giải quyết thảo luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Thiết lập phê duyệt và Code Owner phù hợp với tính năng đang có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Giải quyết xung đột, hợp nhất thay đổi và xác minh lịch sử sau merge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Đóng góp qua fork và kiểm tra quyền đối với người dùng bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Tích hợp webhook hoặc API trong môi trường thử nghiệm có quyền hạn chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Diễn tập thu hồi quyền, thay token và xử lý một thay đổi cần revert
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-011
+    title: Đối chiếu quy trình cộng tác cuối cùng với yêu cầu bảo mật và truy vết của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

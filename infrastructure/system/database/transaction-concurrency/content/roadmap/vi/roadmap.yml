@@ -1,0 +1,49 @@
+roadmap:
+- id: transaction-acid
+  title: Transaction & ACID
+  purpose: Hiểu ranh giới giao dịch và ý nghĩa của tính nhất quán khi nhiều thao tác cùng cập nhật dữ liệu.
+  objectives:
+  - Giải thích bốn thuộc tính ACID bằng ví dụ.
+  - Dùng BEGIN, COMMIT và ROLLBACK cho một giao dịch.
+- id: bat-thuong-dong-thoi
+  title: Bất thường đồng thời
+  purpose: Nhận diện các kết quả sai lệch có thể xảy ra khi nhiều transaction chạy xen kẽ.
+  objectives:
+  - Mô phỏng dirty read, non-repeatable read và phantom read.
+  - Giải thích lost update hoặc write skew qua lịch thực thi.
+- id: isolation-levels
+  title: Isolation Levels
+  purpose: Biết chọn mức cô lập dựa trên yêu cầu đúng đắn và khả năng chạy đồng thời.
+  objectives:
+  - Phân biệt Read Committed, Repeatable Read và Serializable.
+  - Quan sát khác biệt giữa hai transaction ở các mức cô lập.
+- id: mvcc-snapshot
+  title: MVCC & Snapshot
+  purpose: Hiểu cách phiên bản dữ liệu giúp transaction đọc ảnh chụp nhất quán.
+  objectives:
+  - Giải thích vai trò của phiên bản hàng và snapshot.
+  - So sánh hành vi đọc dưới MVCC với thao tác khóa.
+- id: locking-contention
+  title: Locking & Contention
+  purpose: Kiểm soát truy cập cạnh tranh và hiểu chi phí chờ khóa.
+  objectives:
+  - Phân biệt khóa bảng và khóa hàng.
+  - Dùng SELECT ... FOR UPDATE cho tình huống cập nhật cạnh tranh.
+- id: deadlock-timeout
+  title: Deadlock & Timeout
+  purpose: Phát hiện tình huống giao dịch chờ lẫn nhau và giảm rủi ro kẹt khóa.
+  objectives:
+  - Tạo ví dụ deadlock với hai transaction.
+  - Chọn thứ tự khóa nhất quán và xử lý timeout phù hợp.
+- id: xung-dot-retry
+  title: Xung đột & Retry
+  purpose: Xử lý lỗi cạnh tranh mà vẫn bảo vệ quy tắc nghiệp vụ.
+  objectives:
+  - Nhận biết lỗi serialization failure hoặc deadlock cần retry.
+  - Thiết kế retry có giới hạn và thao tác an toàn khi thử lại.
+- id: quan-sat-thuc-hanh
+  title: Quan sát & Thực hành
+  purpose: Kiểm tra được hành vi đồng thời trong tình huống gần thực tế.
+  objectives:
+  - Dùng pg_locks hoặc công cụ tương đương để quan sát khóa.
+  - Chạy kịch bản hai phiên giao dịch và giải thích kết quả.

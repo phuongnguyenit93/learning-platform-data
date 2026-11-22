@@ -1,0 +1,3 @@
+menuLevel1: HTTP/1.1
+menuLevel2: Xử lý streaming thay vì gom toàn bộ body vào bộ nhớ
+status: ''

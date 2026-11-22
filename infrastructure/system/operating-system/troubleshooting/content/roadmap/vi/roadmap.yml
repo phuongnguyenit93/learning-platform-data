@@ -1,0 +1,49 @@
+roadmap:
+- id: khoanh-vung-su-co
+  title: Khoanh vùng sự cố
+  purpose: Nhận diện triệu chứng, thời điểm và mức độ ảnh hưởng để xác định hướng điều tra.
+  objectives:
+  - Mô tả lỗi, phạm vi và thời gian xuất hiện
+  - Xếp mức ưu tiên và chọn giả thuyết ban đầu
+- id: nhat-ky-bang-chung
+  title: Nhật ký & bằng chứng
+  purpose: Thu thập dữ liệu hệ thống trước khi thay đổi cấu hình hoặc dịch vụ.
+  objectives:
+  - Tra cứu log bằng journalctl hoặc Event Viewer
+  - Liên kết thông báo lỗi với thời điểm sự cố
+- id: tien-trinh-dich-vu
+  title: Tiến trình & dịch vụ
+  purpose: Phân biệt lỗi tiến trình với lỗi của bộ quản lý dịch vụ.
+  objectives:
+  - Kiểm tra PID, trạng thái và tiến trình bất thường
+  - Xem trạng thái dịch vụ và lý do khởi động thất bại
+- id: cpu-bo-nho
+  title: CPU & bộ nhớ
+  purpose: Khoanh vùng các nút thắt về tài nguyên tính toán và bộ nhớ.
+  objectives:
+  - Đọc CPU load, RAM, swap và mức dùng theo process
+  - Phân biệt thiếu tài nguyên với tải tăng tạm thời
+- id: dia-he-thong-tep
+  title: Đĩa & hệ thống tệp
+  purpose: Phát hiện vấn đề về dung lượng, I/O và quyền truy cập tệp.
+  objectives:
+  - Kiểm tra dung lượng, inode và điểm mount
+  - Xác định lỗi đọc/ghi, I/O hoặc permission denied
+- id: mang-dns
+  title: Mạng & DNS
+  purpose: Tách lỗi hệ điều hành khỏi lỗi kết nối và phân giải tên.
+  objectives:
+  - Kiểm tra IP, route, socket và cổng lắng nghe
+  - Phân biệt lỗi DNS, timeout và connection refused
+- id: khoi-dong-cau-hinh
+  title: Khởi động & cấu hình
+  purpose: Tìm lỗi phát sinh khi boot hoặc sau thay đổi cấu hình hệ thống.
+  objectives:
+  - Kiểm tra boot log và các dịch vụ phụ thuộc
+  - Đối chiếu thay đổi gần nhất và trạng thái quyền
+- id: khac-phuc-xac-minh
+  title: Khắc phục & xác minh
+  purpose: Thử thay đổi có kiểm soát và xác nhận hệ thống hoạt động ổn định trở lại.
+  objectives:
+  - Kiểm tra giả thuyết và ghi lại bằng chứng trước/sau
+  - Xác nhận phục hồi và tổng kết biện pháp phòng ngừa

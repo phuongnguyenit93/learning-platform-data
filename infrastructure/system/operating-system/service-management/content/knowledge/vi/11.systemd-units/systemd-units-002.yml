@@ -1,0 +1,3 @@
+menuLevel1: Unit systemd
+menuLevel2: Chọn Type=simple, exec, forking, oneshot, notify hoặc dbus
+status: ""

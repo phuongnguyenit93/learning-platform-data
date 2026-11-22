@@ -1,0 +1,64 @@
+roadmap:
+- id: prometheus-time-series-model
+  title: Prometheus & Time Series Model
+  purpose: Hiểu cách Prometheus thu thập và lưu metrics thành chuỗi thời gian có nhãn.
+  objectives:
+  - Phân biệt metric, sample, timestamp và time series.
+  - Giải thích label set định danh duy nhất một series.
+  - Nhận diện pull-based scraping và Prometheus targets.
+- id: metrics-types-naming
+  title: Metrics, Types & Naming
+  purpose: Chọn loại metric và quy ước đặt tên phù hợp để dữ liệu dễ tổng hợp.
+  objectives:
+  - Phân biệt counter, gauge, histogram và summary.
+  - Đặt tên theo đại lượng cùng đơn vị cơ sở.
+  - Tránh label cardinality cao như user ID hoặc email.
+- id: instrumentation-exporters
+  title: Instrumentation & Exporters
+  purpose: Phơi bày metrics hữu ích từ ứng dụng và hệ thống qua endpoint scrape.
+  objectives:
+  - Thêm instrumentation bằng client library hoặc exporter.
+  - Cung cấp endpoint /metrics và kiểm tra exposition format.
+  - Phân biệt application metrics với scrape/target health metrics.
+- id: scraping-service-discovery
+  title: Scraping & Service Discovery
+  purpose: Cấu hình cách Prometheus tìm target và lấy mẫu theo chu kỳ.
+  objectives:
+  - Viết scrape_configs với job_name, targets và scrape_interval.
+  - Dùng static hoặc dynamic service discovery phù hợp.
+  - Thử relabeling và xác minh target health trong /targets.
+- id: promql-fundamentals
+  title: PromQL Fundamentals
+  purpose: Truy vấn và tổng hợp time series để trả lời câu hỏi vận hành.
+  objectives:
+  - Dùng instant selector, range vector và label matchers.
+  - Thực hành rate(), sum(), avg() và aggregation by/without.
+  - Phân biệt phép toán giữa series và xử lý khoảng thời gian.
+- id: recording-alerting-rules
+  title: Recording & Alerting Rules
+  purpose: Chuẩn hóa truy vấn lặp lại và định nghĩa điều kiện cảnh báo.
+  objectives:
+  - Viết recording rule cho biểu thức tổng hợp thường dùng.
+  - Tạo alert rule với for, labels và annotations.
+  - Kiểm tra file rule bằng promtool trước khi reload.
+- id: dashboards-metric-interpretation
+  title: Dashboards & Metric Interpretation
+  purpose: Chuyển truy vấn thành biểu đồ giúp phát hiện xu hướng và bất thường.
+  objectives:
+  - Tạo dashboard từ PromQL theo latency, traffic, errors và saturation.
+  - Phân biệt rate, increase và histogram quantile.
+  - Diễn giải khoảng trống dữ liệu, stale series và scrape failure.
+- id: tsdb-retention-remote-write
+  title: TSDB, Retention & Remote Write
+  purpose: Quản lý lưu trữ cục bộ và lựa chọn mở rộng dữ liệu metrics.
+  objectives:
+  - Hiểu block, WAL và local TSDB lifecycle.
+  - Cấu hình retention theo thời gian và dung lượng đĩa.
+  - Giải thích Remote Write/Read và giới hạn lưu trữ single-node.
+- id: operations-scale-troubleshooting
+  title: Operations, Scale & Troubleshooting
+  purpose: Vận hành Prometheus ổn định qua giám sát, kiểm thử và tối ưu tải.
+  objectives:
+  - Theo dõi scrape duration, sample ingestion và rule evaluation.
+  - Chẩn đoán high cardinality, slow query và missed rule iterations.
+  - Thử backup, reload cấu hình và kiểm tra tài nguyên khi tăng tải.

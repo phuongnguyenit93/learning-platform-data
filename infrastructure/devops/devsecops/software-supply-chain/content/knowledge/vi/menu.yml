@@ -1,0 +1,410 @@
+menu:
+- level1: Tổng quan chuỗi cung ứng
+  level2:
+  - Chuỗi cung ứng phần mềm là gì và vì sao vượt ra ngoài mã nguồn của ứng dụng
+  - Mối liên hệ giữa người phát triển, nhà cung cấp, hệ thống build và bên sử dụng
+  - Nhận diện đầu vào, quá trình biến đổi, thành phẩm phần mềm (artifact) và điểm tiêu thụ
+  - Phân biệt bảo mật mã nguồn với bảo vệ toàn bộ chuỗi tạo và phân phối phần mềm
+  - Vai trò của SBOM, provenance, attestation, chữ ký và chính sách xác minh
+  - Phân biệt tính toàn vẹn, tính xác thực, nguồn gốc và mức độ an toàn
+  - Ranh giới với quét phụ thuộc, bảo mật pipeline, container và quản lý bí mật
+  - Lộ trình xây dựng khả năng truy vết từ commit đến phần mềm đang chạy
+- level1: Bản đồ tài sản và niềm tin
+  level2:
+  - Kiểm kê kho mã, gói phụ thuộc, công cụ build và dịch vụ tích hợp
+  - Vẽ luồng dữ liệu từ máy phát triển qua CI tới registry và môi trường chạy
+  - Xác định chủ sở hữu cùng danh tính thực thi ở từng giai đoạn
+  - Phân loại đầu vào trực tiếp, phụ thuộc bắc cầu và tài nguyên tải động
+  - Nhận diện ranh giới tin cậy giữa tổ chức, dịch vụ và môi trường
+  - Phân biệt thành phần dùng lúc build, lúc kiểm thử và lúc chạy
+  - Liên kết artifact với ứng dụng, khách hàng và môi trường đang sử dụng
+  - Xác định tài sản quan trọng, phạm vi ảnh hưởng và điểm kiểm soát ưu tiên
+  - Kiểm kê dữ liệu bằng chứng và nơi lưu giữ trong toàn bộ vòng đời
+- level1: Mô hình đe dọa
+  level2:
+  - Phân tích đường tấn công từ tài khoản nhà phát triển tới artifact phát hành
+  - Nhận diện typosquatting, dependency confusion và chiếm quyền namespace
+  - Đánh giá rủi ro tài khoản người bảo trì hoặc nhà phát hành bị chiếm quyền
+  - Nhận diện mã độc trong bản cập nhật, script cài đặt và công cụ build
+  - Phân tích đầu vào không tin cậy tác động tới CI hoặc lệnh build
+  - Nhận diện đầu độc cache, thay thế artifact và chỉnh sửa metadata
+  - Đánh giá rủi ro hệ thống build hoặc khóa ký bị xâm nhập
+  - Phân biệt tấn công rollback, đóng băng cập nhật và giả mạo nguồn phát hành
+  - Xác định giả định tin cậy và giới hạn của mỗi biện pháp bảo vệ
+  - Thiết kế tình huống kiểm chứng trong môi trường thực hành được cô lập
+- level1: Bảo vệ nguồn mã
+  level2:
+  - Xác định kho mã chuẩn và quyền tạo thay đổi có thể đi tới phát hành
+  - Bảo vệ nhánh, review bắt buộc và quy tắc phê duyệt thay đổi nhạy cảm
+  - Kiểm soát thay đổi tệp build, workflow và cấu hình ký artifact
+  - Phân biệt commit đã ký với commit đã được đánh giá và chấp thuận
+  - Liên kết thay đổi mã với người thực hiện, yêu cầu công việc và lần build
+  - Quản lý quyền bot, ứng dụng tích hợp và người cộng tác bên ngoài
+  - Bảo vệ tag hoặc tham chiếu dùng làm nguồn phát hành
+  - Phát hiện nguồn được build khác với nguồn mà người duyệt đã xem
+  - Quản lý submodule, mã sinh và thành phần sao chép vào kho mã
+- level1: Tiếp nhận phụ thuộc
+  level2:
+  - Xác định nhu cầu trước khi thêm thư viện hoặc công cụ bên ngoài
+  - Đánh giá nguồn phát hành, người bảo trì và lịch sử duy trì dự án
+  - Kiểm tra tên gói, namespace và kho nguồn để tránh nhận nhầm thành phần
+  - Đánh giá quyền, script cài đặt và tác vụ thực thi khi sử dụng phụ thuộc
+  - Phân biệt độ phổ biến với bằng chứng về chất lượng và bảo mật
+  - Xem xét tình trạng duy trì, phương án thay thế và trách nhiệm nội bộ
+  - Thiết lập quy trình tiếp nhận gói mới theo mức rủi ro
+  - Quản lý bản vá nội bộ, fork và quan hệ với dự án gốc
+  - Đặt người sở hữu và điều kiện loại bỏ phụ thuộc không còn cần thiết
+- level1: Định danh và phiên bản
+  level2:
+  - Phân biệt tên gói, phiên bản, nguồn tải và danh tính nội dung
+  - Sử dụng định danh như Package URL và hiểu phạm vi khớp thành phần
+  - Phân biệt tag có thể thay đổi với mã băm nội dung (digest)
+  - Cố định phiên bản phụ thuộc và kiểm soát khoảng phiên bản được phép
+  - Vai trò của lockfile trong lựa chọn phụ thuộc trực tiếp và bắc cầu
+  - Phân biệt khóa phiên bản với xác minh checksum hoặc chữ ký
+  - Nhận diện artifact cùng phiên bản nhưng có nội dung khác nhau
+  - Liên kết định danh nguồn, build, package và image trong hồ sơ phát hành
+  - Quản lý phiên bản bị thu hồi, thay thế hoặc không còn được hỗ trợ
+- level1: Phân giải và nguồn tải
+  level2:
+  - Hiểu thứ tự tìm gói và lựa chọn repository của trình quản lý phụ thuộc
+  - Tách nguồn nội bộ với nguồn công khai để hạn chế dependency confusion
+  - Thiết lập allowlist nguồn tải, mirror hoặc proxy có kiểm soát
+  - Xác minh checksum và xử lý sai khác trước khi tiếp tục build
+  - Kiểm soát phụ thuộc bắc cầu và thay đổi đồ thị phân giải
+  - Quản lý cache để tránh nhận lại dữ liệu bị đầu độc hoặc không rõ nguồn
+  - Hạn chế tải script, binary hoặc công cụ không được khai báo
+  - Phân biệt build ngoại tuyến với build đã kiểm soát đầy đủ nguồn đầu vào
+  - Giữ bằng chứng nguồn tải và nội dung thực tế đã được sử dụng
+  - Xử lý tình huống nguồn tải gián đoạn mà không bỏ qua kiểm tra tin cậy
+- level1: Nền tảng build
+  level2:
+  - Kiểm kê compiler, SDK, plugin, runner và image môi trường build
+  - Tách môi trường build khỏi máy cá nhân và môi trường production
+  - Sử dụng worker tạm thời hoặc làm sạch theo mô hình rủi ro
+  - Giới hạn quyền hệ điều hành, truy cập mạng và tài nguyên của job
+  - Cô lập job không tin cậy khỏi khóa ký và thông tin xác thực phát hành
+  - Kiểm soát image runner cùng bản cập nhật công cụ build
+  - Phân tách đầu vào, thư mục làm việc, cache và artifact đầu ra
+  - Thu thập log và metadata đủ để truy vết mà không lộ bí mật
+  - Đánh giá nền tảng build được quản lý bên ngoài và trách nhiệm nhà cung cấp
+  - Nhận diện rủi ro tin cậy vào compiler hoặc công cụ đã bị xâm nhập
+- level1: Build khép kín và tái lập
+  level2:
+  - Phân biệt build khép kín (hermetic), build xác định và build tái lập
+  - Khai báo đầy đủ nguồn mã, phụ thuộc, công cụ và tham số đầu vào
+  - Kiểm soát truy cập mạng và đầu vào ngoài khai báo trong quá trình build
+  - Xử lý thời gian, đường dẫn, locale, thứ tự tệp và dữ liệu ngẫu nhiên
+  - Quản lý khác biệt hệ điều hành, kiến trúc và phiên bản công cụ
+  - Tái build độc lập và so sánh artifact theo phạm vi được xác định
+  - Điều tra khác biệt nội dung thay vì chỉ so sánh tên hoặc phiên bản
+  - Phân biệt kết quả build tái lập với bằng chứng phần mềm không có mã độc
+  - Đánh giá chi phí và giới hạn thực tế khi áp dụng cho từng hệ thống
+- level1: Bảo vệ luồng CI/CD
+  level2:
+  - Xác định đầu vào có thể bị điều khiển qua pull request hoặc nguồn sự kiện
+  - Cố định phiên bản action, plugin và thành phần pipeline bên ngoài
+  - Phân tách kiểm thử mã không tin cậy với build và phát hành chính thức
+  - Ngăn dùng artifact hoặc cache từ nhánh không tin cậy cho bản phát hành
+  - Giới hạn token, quyền ghi kho mã và quyền truy cập registry của từng job
+  - Kiểm soát thay đổi workflow và tệp cấu hình phát hành
+  - Liên kết artifact được duyệt với đúng commit và lần chạy pipeline
+  - Ngăn build lại bằng đầu vào khác sau khi người dùng đã phê duyệt
+  - Lưu bằng chứng chuyển giao giữa các giai đoạn và xử lý lần chạy lại
+  - Phân định bảo đảm chuỗi cung ứng với cấu hình bảo mật CI chuyên sâu
+- level1: Danh tính và quyền thực thi
+  level2:
+  - Phân biệt danh tính người dùng, service account và workload
+  - Sử dụng thông tin xác thực ngắn hạn thay cho bí mật tồn tại lâu khi phù hợp
+  - Hiểu OIDC federation và điều kiện tin cậy của issuer, subject, audience
+  - Ràng buộc quyền phát hành với đúng repository, nhánh và môi trường
+  - Phân tách quyền tạo artifact, ký, phê duyệt và công bố
+  - Kiểm soát token dùng cho tải phụ thuộc so với token dùng để phát hành
+  - Quản lý quyền ứng dụng tích hợp và bot tự động cập nhật
+  - Luân chuyển, thu hồi và kiểm tra dấu vết sử dụng thông tin xác thực
+  - Đánh giá rủi ro khi một danh tính có thể thay đổi cả artifact lẫn bằng chứng
+- level1: Nền tảng SBOM
+  level2:
+  - Hiểu bảng kê thành phần phần mềm (SBOM) và mục đích sử dụng
+  - Phân biệt manifest phụ thuộc, lockfile và SBOM của sản phẩm phát hành
+  - Xác định phạm vi SBOM nguồn mã, build, package, container và runtime
+  - Mô tả thành phần, phiên bản, định danh và quan hệ phụ thuộc
+  - Phân biệt thành phần trực tiếp, bắc cầu, đóng gói kèm và thư viện hệ thống
+  - Làm quen với mô hình SPDX và CycloneDX mà không trộn lẫn schema
+  - Liên kết SBOM với artifact cụ thể bằng định danh nội dung
+  - Nhận diện dữ liệu thiếu, thành phần không xác định và giới hạn khả năng bao phủ
+  - Phân biệt có SBOM với đã xác minh chất lượng hoặc mức an toàn của sản phẩm
+- level1: Tạo và quản lý SBOM
+  level2:
+  - Chọn điểm sinh SBOM trong quá trình build hoặc phân tích artifact
+  - Thu thập thành phần từ trình quản lý phụ thuộc và gói được đóng thực tế
+  - Bao phủ mã vendored, binary nhúng và thành phần không có manifest
+  - Mô tả quan hệ giữa ứng dụng, thư viện, hệ điều hành và image nền
+  - Chuẩn hóa tên, phiên bản và định danh để hạn chế trùng lặp
+  - Bổ sung nguồn, công cụ tạo, thời điểm và phạm vi phân tích
+  - Xuất SBOM theo schema cùng phiên bản được hệ thống tiêu thụ hỗ trợ
+  - Lưu SBOM cùng hồ sơ phát hành và duy trì liên kết với artifact
+  - Quản lý quyền chia sẻ khi SBOM chứa thông tin nội bộ nhạy cảm
+  - Giữ SBOM lịch sử để tra cứu sản phẩm đang được sử dụng
+- level1: Kiểm chứng SBOM
+  level2:
+  - Kiểm tra cấu trúc, trường bắt buộc và quan hệ tham chiếu trong SBOM
+  - Đối chiếu thành phần khai báo với nội dung artifact thực tế
+  - Phát hiện phiên bản sai, định danh mơ hồ hoặc thành phần bị bỏ sót
+  - Phân biệt phụ thuộc lúc build với phụ thuộc có trong sản phẩm
+  - Kiểm tra digest, chữ ký và nguồn phát hành của SBOM
+  - So sánh hai SBOM để phát hiện thay đổi ngoài dự kiến
+  - Đánh giá độ mới của dữ liệu và khả năng tái tạo quy trình sinh
+  - Kiểm tra mất thông tin khi chuyển đổi giữa các định dạng
+  - Định nghĩa tiêu chí chấp nhận SBOM theo nhu cầu tiêu thụ
+  - Xử lý SBOM không hợp lệ mà vẫn giữ lại bằng chứng điều tra
+- level1: Lỗ hổng và VEX
+  level2:
+  - Liên kết thành phần trong SBOM với dữ liệu cảnh báo lỗ hổng
+  - Phân biệt phiên bản bị ảnh hưởng với khả năng khai thác trong sản phẩm cụ thể
+  - Đánh giá tác động bằng ngữ cảnh triển khai, đường thực thi và mức quan trọng
+  - Hiểu tuyên bố khả năng bị ảnh hưởng (VEX) và vai trò của bên phát hành
+  - Đọc trạng thái affected, not_affected, fixed và under_investigation
+  - Xem xét lý do cùng bằng chứng của tuyên bố không bị ảnh hưởng
+  - Liên kết VEX với đúng sản phẩm, phiên bản, thành phần và cảnh báo
+  - Làm quen OpenVEX cùng khả năng biểu diễn VEX của các định dạng liên quan
+  - Quản lý độ mới, người xác nhận và thay đổi trạng thái VEX
+  - Ngăn dùng VEX không đáng tin cậy để bỏ qua cảnh báo tự động
+  - Phân định quản lý bằng chứng chuỗi cung ứng với quét phụ thuộc chuyên sâu
+- level1: Nguồn gốc artifact
+  level2:
+  - Hiểu bằng chứng nguồn gốc (provenance) của artifact và quá trình tạo
+  - Xác định subject, nguồn mã, vật liệu đầu vào và danh tính hệ thống build (builder)
+  - Ghi nhận tham số build cùng tham chiếu tới cấu hình thực thi
+  - Phân biệt metadata do job tự khai với dữ liệu do nền tảng build thu thập
+  - Ràng buộc provenance với digest của đúng artifact đầu ra
+  - Liên kết artifact trung gian với sản phẩm cuối qua nhiều bước biến đổi
+  - Quản lý dữ liệu nhạy cảm và phạm vi thông tin được công bố
+  - Phân biệt provenance đầy đủ với provenance có thể được tin cậy
+  - Xác minh bằng chứng đối với nguồn mã và builder đã được chấp thuận
+  - Truy vết từ phần mềm đang chạy về commit cùng lần build tương ứng
+- level1: Khung bảo đảm SLSA
+  level2:
+  - Hiểu mục tiêu của SLSA trong nâng cao tính toàn vẹn chuỗi cung ứng
+  - Đọc mô hình yêu cầu và phạm vi bảo đảm của phiên bản SLSA áp dụng
+  - Phân biệt đạt yêu cầu build với phần mềm không có lỗ hổng
+  - Đánh giá yêu cầu về provenance, nền tảng build và mức cô lập
+  - Xác định bằng chứng cần thu thập cho từng yêu cầu liên quan
+  - Phân biệt tuyên bố tự đánh giá với kết quả xác minh có căn cứ
+  - Ánh xạ thực hành hiện có vào khoảng thiếu của hệ thống
+  - Lập lộ trình nâng mức bảo đảm theo rủi ro và năng lực vận hành
+  - Kiểm tra lại phạm vi bảo đảm khi nền tảng build hoặc quy trình thay đổi
+- level1: Chứng thực và in-toto
+  level2:
+  - Hiểu chứng thực (attestation) là tuyên bố có cấu trúc về một đối tượng phần mềm
+  - Phân biệt subject, predicate và danh tính bên tạo tuyên bố
+  - Làm quen in-toto Statement và cách liên kết bằng chứng với artifact
+  - Hiểu vai trò của DSSE trong bao gói cùng xác minh dữ liệu được ký
+  - Phân biệt provenance, SBOM và kết quả kiểm thử dưới dạng các loại bằng chứng
+  - Mô tả các bước tạo sản phẩm và bên có quyền xác nhận từng bước
+  - Kiểm tra loại predicate, schema và chính sách tin cậy tương ứng
+  - Ngăn tráo đối tượng, tái dùng bằng chứng cho artifact khác hoặc thiếu bước bắt buộc
+  - Quản lý nhiều attestation cho một artifact và xử lý tuyên bố mâu thuẫn
+  - Nhận diện giới hạn khi bên tạo tuyên bố hoặc nền tảng thu thập bị xâm nhập
+- level1: Digest và chữ ký
+  level2:
+  - Phân biệt checksum, hàm băm mật mã và chữ ký số
+  - Sử dụng digest để kiểm tra nội dung không bị thay đổi
+  - Hiểu chữ ký xác nhận quan hệ giữa dữ liệu với danh tính hoặc khóa
+  - 'Xác định chính xác đối tượng cần ký: artifact, manifest hay attestation'
+  - Phân biệt chữ ký tách rời với chữ ký được lưu kèm định dạng
+  - Kiểm tra chuỗi tin cậy thay vì chỉ kiểm tra phép toán chữ ký thành công
+  - Xác minh digest trước và sau sao chép giữa các kho lưu trữ
+  - Hiểu chữ ký hợp lệ không thay thế kiểm tra lỗ hổng hoặc chính sách nguồn
+  - Giữ khả năng xác minh lâu dài cho các phiên bản đã phát hành
+  - Xử lý sai chữ ký, sai digest và thiếu bằng chứng theo chính sách rõ ràng
+- level1: Quản lý khóa và tin cậy
+  level2:
+  - Xác định chủ sở hữu, mục đích và phạm vi sử dụng của khóa ký
+  - Lưu khóa bằng cơ chế phù hợp như KMS hoặc HSM
+  - Phân tách khóa theo môi trường, sản phẩm hoặc cấp độ quan trọng
+  - Quản lý cấp quyền ký và kiểm tra dấu vết sử dụng
+  - Thiết kế phân phối khóa công khai hoặc trust root tới bên xác minh
+  - Luân chuyển khóa mà vẫn xác minh được sản phẩm lịch sử
+  - Đánh giá thời hạn chứng chỉ và bằng chứng thời điểm ký
+  - Thu hồi khóa bị lộ và xác định artifact có thể bị ảnh hưởng
+  - Kiểm soát thay đổi trust root và yêu cầu phê duyệt
+  - Chuẩn bị phương án xác minh khi dịch vụ ký hoặc dịch vụ danh tính gián đoạn
+- level1: Sigstore và ký không khóa
+  level2:
+  - Hiểu vai trò của Cosign, Fulcio và Rekor trong hệ sinh thái Sigstore
+  - Phân biệt ký bằng khóa quản lý sẵn với ký không khóa lưu giữ lâu dài
+  - Liên kết chứng chỉ ngắn hạn với danh tính OIDC của người dùng hoặc workload
+  - Ký artifact hoặc attestation bằng công cụ phù hợp với loại đối tượng
+  - Xác minh issuer, danh tính được phép và digest của artifact
+  - Hiểu vai trò nhật ký minh bạch và bằng chứng ghi nhận chữ ký
+  - Đánh giá metadata có thể xuất hiện công khai khi dùng dịch vụ minh bạch
+  - Quản lý bundle cùng dữ liệu cần thiết cho xác minh ngoại tuyến
+  - Xử lý chứng chỉ hết hạn dựa trên bằng chứng và mô hình xác minh được áp dụng
+  - Nhận diện giới hạn tin cậy khi danh tính hoặc pipeline được cấp quyền bị chiếm
+- level1: Registry và phân phối
+  level2:
+  - Xác định kho phân phối chuẩn cho package, image và binary
+  - Phân tách quyền tải, công bố, thay thế và xóa artifact
+  - Ngăn ghi đè phiên bản phát hành hoặc thay đổi tag ngoài quy trình
+  - Sao chép artifact giữa môi trường mà giữ định danh nội dung
+  - Lưu và truy xuất SBOM, chữ ký cùng attestation liên quan
+  - Kiểm tra chính sách lưu giữ, garbage collection và bằng chứng không còn được tham chiếu
+  - Bảo vệ mirror, proxy và cache khỏi nội dung chưa được xác minh
+  - Quản lý artifact bị cách ly, bị thu hồi hoặc không còn được phép dùng
+  - Giữ khả năng truy vết artifact đã phân phối tới khách hàng hoặc môi trường
+  - Kiểm tra tính toàn vẹn sau upload, download và chuyển kho
+- level1: Cập nhật phần mềm an toàn
+  level2:
+  - Phân biệt xác minh artifact riêng lẻ với bảo vệ toàn bộ cơ chế cập nhật
+  - Hiểu mục tiêu của The Update Framework trong quản lý metadata tin cậy
+  - Làm quen vai trò root, targets, snapshot và timestamp
+  - Phân tích cơ chế chống thay thế nội dung, rollback và đóng băng cập nhật
+  - Quản lý thời hạn metadata, số phiên bản và tình huống đồng hồ sai lệch
+  - Đánh giá phân quyền hoặc ủy quyền ký cho các nhóm sản phẩm
+  - Lập kế hoạch thay đổi trust root và phục hồi khi khóa bị xâm nhập
+  - Kiểm tra client không chấp nhận bản cập nhật ngoài chính sách
+  - Phân biệt mô hình bảo vệ cập nhật với chiến lược triển khai ứng dụng
+- level1: Chính sách xác minh
+  level2:
+  - Xác định điểm kiểm soát trước tiếp nhận, phát hành và triển khai
+  - Viết chính sách cho nguồn mã, builder, danh tính ký và artifact được phép
+  - Ràng buộc quyết định với digest thay vì chỉ tên hoặc tag
+  - Kiểm tra đủ loại bằng chứng và mức độ mới theo yêu cầu
+  - Phân biệt xác minh định dạng, chữ ký và nội dung tuyên bố
+  - Chọn hành vi từ chối hoặc cho phép có điều kiện khi thiếu bằng chứng
+  - Quản lý ngoại lệ có người sở hữu, phạm vi và thời hạn
+  - Thử chính sách ở chế độ quan sát trước khi áp dụng bắt buộc
+  - Lưu kết quả đánh giá, phiên bản chính sách và lý do quyết định
+  - Bảo vệ bộ xác minh, nguồn chính sách và gốc tin cậy của bên tiêu thụ
+  - Ngăn việc thay đổi chính sách và thay đổi artifact cùng vượt qua một điểm yếu
+- level1: Từ phát hành đến triển khai
+  level2:
+  - Liên kết commit, lần build, phiên bản phát hành và cấu hình triển khai
+  - Chuyển cùng artifact đã kiểm chứng giữa các môi trường
+  - Xác minh bằng chứng ngay tại điểm tiêu thụ thay vì chỉ lúc upload
+  - Kiểm soát image hoặc package thực tế được tải sau khi chính sách đã duyệt
+  - Đánh giá rủi ro khoảng thời gian giữa kiểm tra và sử dụng artifact
+  - Tích hợp kiểm tra vào pipeline, GitOps hoặc admission theo nền tảng
+  - Ngăn công cụ tự động quay lại artifact đã bị thu hồi
+  - Theo dõi phiên bản đang chạy để xác định phạm vi cảnh báo mới
+  - Quản lý rollback tới bản cũ vẫn phải đáp ứng chính sách an toàn
+  - Giữ hồ sơ phát hành đủ để phục vụ điều tra và thu hồi sản phẩm
+- level1: Container và OCI
+  level2:
+  - Kiểm kê base image, package hệ điều hành và thư viện ứng dụng trong image
+  - Phân biệt image tag, manifest, manifest index và digest
+  - Cố định image nền và quản lý cập nhật theo nguồn được chấp thuận
+  - Xác định đối tượng ký cho image nhiều nền tảng và từng artifact liên quan
+  - Sinh SBOM cho image thực tế được phân phối
+  - Liên kết provenance với build context, Dockerfile và đầu ra image
+  - Phân biệt bằng chứng của base image với bằng chứng của image ứng dụng
+  - Lưu chữ ký hoặc attestation qua khả năng hỗ trợ của registry OCI
+  - Xác minh artifact sau khi sao chép giữa các registry
+  - Phân định chuỗi cung ứng container với cấu hình bảo mật runtime chuyên sâu
+- level1: Chuỗi cung ứng Java
+  level2:
+  - Kiểm kê JDK, Maven, Gradle, wrapper và plugin tham gia build
+  - Xác minh nguồn cùng checksum của Maven Wrapper hoặc Gradle Wrapper
+  - Phân biệt phụ thuộc ứng dụng với plugin, annotation processor và công cụ build
+  - Quản lý repository nội bộ, Maven Central và thứ tự phân giải
+  - Áp dụng cơ chế khóa phiên bản hoặc xác minh phụ thuộc theo công cụ
+  - Đánh giá rủi ro phiên bản động, SNAPSHOT và artifact có thể thay đổi
+  - Sinh SBOM từ đồ thị phụ thuộc và đối chiếu với JAR được đóng gói
+  - Bao phủ thư viện được shaded, relocated hoặc nhúng trong executable JAR
+  - Kết nối commit, JDK, tham số build và digest của JAR trong provenance
+  - Ký, phân phối và xác minh JAR hoặc image chứa ứng dụng Java
+  - Tái build và điều tra khác biệt do metadata, timestamp hoặc môi trường
+- level1: Khác biệt hệ sinh thái
+  level2:
+  - So sánh danh tính gói, lockfile và nguồn tải giữa các hệ sinh thái
+  - Nhận diện script vòng đời và phụ thuộc công cụ trong hệ sinh thái npm
+  - Phân biệt source distribution, wheel và quá trình build package Python
+  - Đánh giá cơ chế checksum, proxy và module trong hệ sinh thái Go
+  - Kiểm kê thư viện native, compiler và công cụ tạo mã
+  - Quản lý gói hệ điều hành và thành phần cài ngoài trình quản lý ứng dụng
+  - Nhận diện mã được tải hoặc plugin được nạp trong thời gian chạy
+  - Xây dựng quy tắc dùng chung nhưng giữ kiểm soát đặc thù từng hệ sinh thái
+  - Kiểm tra tính tương thích của dữ liệu SBOM và công cụ xác minh
+- level1: Nhà cung cấp và nguồn mở
+  level2:
+  - Xác định trách nhiệm của nhà cung cấp và bên sử dụng phần mềm
+  - Yêu cầu bằng chứng phù hợp như SBOM, provenance và chính sách phát hành
+  - Kiểm tra bằng chứng nhà cung cấp thay vì chấp nhận tuyên bố chung
+  - Đánh giá dịch vụ build, registry và tích hợp do bên ngoài vận hành
+  - Quản lý phần mềm đóng mã nguồn và thành phần không thể tự rebuild
+  - Theo dõi mức phụ thuộc vào một người bảo trì, nhà cung cấp hoặc nền tảng
+  - Tổ chức đầu mối báo cáo lỗ hổng và phối hợp cập nhật
+  - Hỗ trợ dự án nguồn mở quan trọng và duy trì phương án thay thế
+  - Xác định điều kiện ngừng sử dụng hoặc chuyển giao khi nguồn cung gián đoạn
+- level1: Giấy phép và dữ liệu thành phần
+  level2:
+  - Thu thập thông tin giấy phép cùng nguồn gốc của từng thành phần
+  - Phân biệt dữ liệu giấy phép khai báo với kết quả cần được rà soát
+  - Sử dụng định danh SPDX để chuẩn hóa thông tin khi phù hợp
+  - Nhận diện thành phần thiếu giấy phép hoặc có thông tin không nhất quán
+  - Liên kết điều kiện sử dụng với phạm vi phân phối sản phẩm
+  - Quản lý thông báo bản quyền, tệp giấy phép và tài liệu đi kèm
+  - Tách kiểm tra kỹ thuật với quyết định chấp thuận của bộ phận có trách nhiệm
+  - Lưu bằng chứng, ngoại lệ và lịch sử thay đổi thông tin thành phần
+- level1: Quan sát và chỉ số
+  level2:
+  - Theo dõi tỷ lệ artifact có SBOM, provenance và chữ ký được xác minh
+  - Đo chất lượng, độ mới và khả năng bao phủ của bằng chứng
+  - Kiểm kê phụ thuộc chưa có người sở hữu hoặc không rõ nguồn tải
+  - Theo dõi artifact đang chạy không đáp ứng chính sách hiện hành
+  - Đo thời gian xác định ảnh hưởng khi xuất hiện cảnh báo thành phần
+  - Theo dõi ngoại lệ quá hạn và nguyên nhân bỏ qua cổng kiểm soát
+  - Giám sát thay đổi danh tính phát hành, trust root và quyền truy cập
+  - Liên kết sự kiện từ kho mã, CI, dịch vụ ký và registry
+  - Tránh dùng số lượng bằng chứng để thay thế đánh giá hiệu lực kiểm soát
+- level1: Ứng phó sự cố chuỗi cung ứng
+  level2:
+  - Phân loại sự cố từ phụ thuộc độc hại, build bị xâm nhập và khóa ký bị lộ
+  - Cô lập nguồn phát hành hoặc danh tính bị ảnh hưởng
+  - Bảo toàn log, artifact, SBOM và attestation phục vụ điều tra
+  - Truy vấn đồ thị thành phần để xác định sản phẩm cùng môi trường bị tác động
+  - Thu hồi hoặc cách ly artifact và ngăn tiếp tục phân phối
+  - Xử lý khóa hoặc chứng chỉ bị xâm nhập theo mô hình tin cậy
+  - Build lại trên môi trường sạch với nguồn đầu vào đã xác minh
+  - Đánh giá bản vá, thay thế phụ thuộc và khả năng tái nhiễm
+  - Phối hợp thông tin với nhà cung cấp cùng bên sử dụng theo quy trình được giao
+  - Xác minh phục hồi trước khi mở lại quyền ký hoặc công bố
+  - Cập nhật mô hình đe dọa và kiểm soát sau khi kết thúc sự cố
+- level1: Quản trị và lộ trình áp dụng
+  level2:
+  - Phân công trách nhiệm cho nhóm phát triển, nền tảng, bảo mật và sản phẩm
+  - Xác định mức kiểm soát theo mức quan trọng của từng phần mềm
+  - Đánh giá hiện trạng và ưu tiên khoảng thiếu có phạm vi ảnh hưởng lớn
+  - Ánh xạ thực hành vào khung quản trị như NIST SSDF khi phù hợp
+  - Tổ chức chính sách nguồn mở, phát hành và tiếp nhận phần mềm bên ngoài
+  - Thiết lập quy trình ngoại lệ, đánh giá định kỳ và yêu cầu bằng chứng
+  - Đào tạo cách đọc SBOM, xác minh chữ ký và xử lý lỗi chính sách
+  - Cân đối chi phí lưu trữ, thời gian build và độ phức tạp vận hành
+  - Đánh giá kết quả bằng tình huống kiểm chứng thay vì chỉ hoàn thành checklist
+  - Quản lý thay đổi schema, công cụ và chuẩn áp dụng theo phiên bản
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Thiết kế luồng commit, build cô lập, ký, lưu bằng chứng và phát hành
+  - Tách vùng tin cậy của pull request, build chính thức và công bố sản phẩm
+  - Thiết lập kho phụ thuộc nội bộ cùng chính sách kiểm soát nguồn
+  - Xây dựng kho bằng chứng liên kết theo digest và phiên bản phát hành
+  - Đặt bộ xác minh tại pipeline cùng môi trường tiêu thụ
+  - Thiết kế luồng từ chối, cách ly và ngoại lệ có thời hạn
+  - Bảo đảm bản sao hoặc mirror không làm mất liên kết chữ ký và attestation
+  - Xử lý gián đoạn registry, dịch vụ ký hoặc dịch vụ xác minh
+  - Đánh giá kiến trúc theo các tình huống mất một thành phần tin cậy
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập bản đồ chuỗi cung ứng của một ứng dụng và chỉ ra các ranh giới tin cậy
+  - Kiểm kê phụ thuộc trực tiếp, bắc cầu và công cụ build của dự án mẫu
+  - Cố định đầu vào cùng checksum và phát hiện thay đổi ngoài dự kiến
+  - Sinh SBOM rồi đối chiếu với nội dung artifact được đóng gói
+  - Tạo provenance gắn đúng commit, builder và digest đầu ra
+  - Ký artifact rồi xác minh cả danh tính lẫn nội dung được ký
+  - Tạo attestation và kiểm tra chính sách từ chối đối tượng không khớp
+  - Đưa artifact cùng bằng chứng qua registry rồi xác minh sau tải xuống
+  - Tra cứu ảnh hưởng một cảnh báo thành phần và lập VEX có căn cứ
+  - Mô phỏng đầu độc artifact trong môi trường cô lập và kiểm chứng điểm chặn
+  - Diễn tập thu hồi khóa, cách ly bản phát hành và rebuild trên môi trường sạch
+  - Bàn giao hồ sơ truy vết từ commit đến triển khai cùng tiêu chí duy trì

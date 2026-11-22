@@ -1,0 +1,7 @@
+# DevOps Platform Engineering Fundamentals — Nền tảng kỹ thuật dành cho developer
+
+Platform Engineering là cách thiết kế, xây dựng và vận hành các năng lực dùng chung để đội phát triển có thể tạo, kiểm thử, triển khai và quản lý phần mềm dễ dàng hơn. Thay vì bắt mỗi nhóm tự kết nối nhiều công cụ hoặc mở ticket cho những công việc lặp lại, đội platform cung cấp quy trình tự phục vụ (*self-service*) cùng các lựa chọn mặc định phù hợp. Platform Engineering bổ trợ cho DevOps và SRE, không thay thế trách nhiệm cộng tác và vận hành của các nhóm phát triển.
+
+Module dành cho người đã biết Git, CI/CD, khái niệm hạ tầng và quy trình phát hành cơ bản. Lộ trình bắt đầu từ giá trị của Platform Engineering và tư duy *platform as a product*: developer là người dùng nội bộ, còn nhu cầu và phản hồi của họ quyết định thứ tự ưu tiên. Bạn sẽ tìm hiểu Internal Developer Platform (IDP), sự khác biệt giữa IDP và developer portal, cách xây *golden paths* với templates, automation và các năng lực chia sẻ như CI/CD, secrets, hạ tầng, observability.
+
+Ở phần cuối, bạn sẽ cân nhắc guardrails, ranh giới trách nhiệm, tài liệu và trải nghiệm developer, rồi học cách đánh giá mức độ sử dụng và hiệu quả nền tảng. Hoàn thành module, bạn có thể phác thảo một hành trình self-service nhỏ, mô tả các thành phần cần thiết và đề xuất cách cải tiến platform bằng dữ liệu cùng phản hồi người dùng.

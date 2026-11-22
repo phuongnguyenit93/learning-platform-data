@@ -1,0 +1,7 @@
+# Security Authentication Api Key Authentication
+
+API key là một chuỗi bí mật mà client gửi kèm yêu cầu để dịch vụ nhận diện ứng dụng, theo dõi quyền sử dụng hoặc áp dụng chính sách truy cập. Cơ chế này thường gặp trong tích hợp server-to-server và các API dành cho developer. Tuy nhiên, khả năng của API key khác nhau giữa các nền tảng: API key đơn thuần không mặc nhiên chứng minh danh tính người dùng cuối, và việc biết key không được xem là đủ để vượt qua kiểm tra authorization đối với dữ liệu nhạy cảm.
+
+Module dành cho người đã biết HTTP, HTTPS, request header và luồng gọi API cơ bản. Lộ trình bắt đầu từ vai trò và giới hạn của API key, quy trình sinh/cấp phát và truyền khóa an toàn, rồi chuyển sang kiểm tra key tại server hoặc API gateway. Các phần tiếp theo tập trung vào hạn chế phạm vi sử dụng, quản lý key như một secret, áp dụng quota và monitoring, cuối cùng là rotation, revoke và phản ứng khi bị lộ. Ví dụ có thể đối chiếu AWS API Gateway, Google Cloud API Keys và Azure API Management nhưng luôn phụ thuộc khả năng hỗ trợ của từng dịch vụ.
+
+Sau khi hoàn thành, bạn có thể mô tả một luồng dùng API key, lập quy trình cấp phát và thu hồi, kiểm tra trường hợp key thiếu/sai/bị khóa, hạn chế rủi ro lộ thông tin trong mã nguồn hoặc log, đồng thời phân biệt kiểm soát quota với xác thực và phân quyền. Thực hành trên API thử nghiệm, không đưa khóa thật vào repository hoặc tài liệu công khai.

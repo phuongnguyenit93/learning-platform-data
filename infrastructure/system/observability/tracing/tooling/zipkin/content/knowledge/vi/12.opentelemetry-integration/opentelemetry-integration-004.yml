@@ -1,0 +1,3 @@
+menuLevel1: Tích hợp OpenTelemetry
+menuLevel2: Cấu hình Collector nhận OTLP và xuất trace tới Zipkin
+status: ''

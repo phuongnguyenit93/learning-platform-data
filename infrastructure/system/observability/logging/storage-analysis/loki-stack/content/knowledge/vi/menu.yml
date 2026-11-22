@@ -1,0 +1,406 @@
+menu:
+- level1: Nền tảng Loki
+  level2:
+  - Grafana Loki là gì và giải quyết bài toán lưu trữ, phân tích nhật ký nào
+  - Vai trò của Loki, Grafana và bộ thu thập trong một Loki Stack
+  - Luồng từ ứng dụng phát nhật ký đến người dùng tra cứu
+  - Chỉ mục theo nhãn và khác biệt với chỉ mục toàn văn
+  - Điểm mạnh, giới hạn và phạm vi sử dụng phù hợp của Loki
+  - Phân biệt lưu trữ nhật ký, số đo và dấu vết phân tán
+  - Tự vận hành Loki và sử dụng dịch vụ quản lý
+  - Các thuật ngữ cần nắm trước khi triển khai và viết truy vấn
+- level1: Kiến trúc Loki
+  level2:
+  - Phân biệt đường ghi và đường đọc dữ liệu
+  - 'Distributor: tiếp nhận, kiểm tra và phân phối bản ghi'
+  - 'Ingester: quản lý luồng, gom khối dữ liệu và ghi xuống lưu trữ'
+  - Nhật ký ghi trước (WAL) và giới hạn bảo đảm khi tiến trình gặp lỗi
+  - 'Ring: thành viên cụm, phân vùng trách nhiệm và sao chép'
+  - 'Querier: đọc dữ liệu đang tiếp nhận và dữ liệu đã lưu'
+  - 'Query frontend và query scheduler: chia việc, xếp lịch và điều phối truy vấn'
+  - 'Index gateway: phục vụ tra cứu chỉ mục'
+  - 'Compactor: hợp nhất chỉ mục và thực thi chính sách lưu giữ'
+  - 'Ruler: đánh giá quy tắc tạo số đo và cảnh báo'
+  - 'Gateway: định tuyến yêu cầu và ranh giới tích hợp bảo vệ truy cập'
+  - Quan hệ giữa các thành phần và chế độ triển khai
+- level1: Mô hình dữ liệu
+  level2:
+  - 'Bản ghi nhật ký: thời điểm, nội dung và thông tin đi kèm'
+  - Luồng nhật ký (log stream) và tập nhãn xác định luồng
+  - Một thay đổi nhãn tạo ra một luồng khác
+  - Khối dữ liệu (chunk), nén và khoảng thời gian chứa bản ghi
+  - 'Chỉ mục (index): tìm khối dữ liệu từ nhãn và thời gian'
+  - Thời điểm sự kiện và thời điểm hệ thống tiếp nhận
+  - Bản ghi đến muộn, không theo thứ tự và có cùng thời điểm
+  - Phân biệt bản ghi trùng, bản ghi được gửi lại và bản ghi có nội dung giống nhau
+  - Đơn vị sử dụng (tenant) và ranh giới dữ liệu độc lập
+  - Quan hệ giữa mô hình dữ liệu, chi phí ghi và chi phí truy vấn
+- level1: Thiết kế nhãn
+  level2:
+  - Nhãn được lập chỉ mục (index labels) và mục đích sử dụng
+  - 'Chọn nhãn theo nguồn phát: dịch vụ, môi trường, cụm và vùng'
+  - Quy ước tên nhãn và giá trị nhất quán giữa các nguồn
+  - Số loại giá trị nhãn (cardinality) và tổ hợp tạo luồng
+  - Nhãn ổn định và nhãn thay đổi theo từng yêu cầu
+  - Vì sao trace ID, request ID và user ID không phù hợp làm nhãn chỉ mục
+  - Đường dẫn đầy đủ, mã phiên bản chạy và nguy cơ bùng nổ luồng
+  - Nhận dạng service_name và đối chiếu dữ liệu thực tế
+  - Phân biệt nhãn nguồn, nhãn nội bộ và trường trích xuất khi truy vấn
+  - Đổi, giữ hoặc loại nhãn bằng quy tắc relabeling
+  - Đánh giá số luồng hoạt động và hiệu quả thiết kế nhãn
+  - Thay đổi chiến lược nhãn khi dữ liệu cũ vẫn còn được lưu
+- level1: Siêu dữ liệu
+  level2:
+  - Siêu dữ liệu có cấu trúc (structured metadata) là gì
+  - Phân biệt nhãn chỉ mục, metadata có cấu trúc và nội dung bản ghi
+  - Chọn nơi đặt mã trace, mã yêu cầu và định danh phiên bản chạy
+  - Điều kiện về schema và loại chỉ mục để sử dụng structured metadata
+  - Gắn metadata tại nguồn thu thập và qua dữ liệu OpenTelemetry
+  - Lọc metadata khi truy vấn mà không phân tích lại nội dung
+  - Giới hạn kích thước, số trường và chi phí dữ liệu đi kèm
+  - Phân biệt metadata được lưu và nhãn được trích xuất tại thời điểm truy vấn
+  - Thiết kế bộ trường chung cho điều tra và liên kết tín hiệu
+- level1: Khởi tạo môi trường
+  level2:
+  - Chốt phiên bản Loki, Alloy, Grafana và tài liệu tương ứng
+  - Chọn mô hình một tiến trình cho môi trường học tập
+  - Dựng Loki, Alloy và Grafana bằng Docker Compose
+  - Tạo nguồn nhật ký mẫu có dữ liệu bình thường, lỗi và độ trễ
+  - Mạng container, tên dịch vụ và đường truy cập từ máy chủ
+  - Cấu trúc tệp cấu hình Loki và các nhóm thiết lập chính
+  - Phân biệt cấu hình Loki YAML và cấu hình thành phần của Alloy
+  - Đường dẫn dữ liệu, quyền ghi và lưu trữ bền vững cho môi trường cục bộ
+  - Kiểm tra cấu hình và phát hiện thiết lập không được hỗ trợ
+  - Kiểm tra trạng thái sẵn sàng và bản ghi đầu tiên
+  - Kết nối nguồn dữ liệu Loki trong Grafana
+  - Khởi động lại và kiểm chứng dữ liệu còn có thể tra cứu
+- level1: Thu thập với Alloy
+  level2:
+  - Mô hình thành phần và luồng chuyển tiếp dữ liệu trong Grafana Alloy
+  - Phát hiện nguồn (discovery), xác định đích đọc và xử lý metadata
+  - local.file_match và lựa chọn tập tệp cần theo dõi
+  - loki.source.file và cơ chế đọc tiếp từ vị trí đã lưu
+  - loki.source.docker và thu thập nhật ký container
+  - discovery.relabel và chuẩn hóa nhãn nguồn
+  - loki.process và chuỗi bước xử lý bản ghi
+  - loki.write và gửi dữ liệu đến Loki
+  - Cấu hình điểm nhận, tenant, TLS và thông tin xác thực
+  - Trạng thái đọc, thư mục dữ liệu và khả năng tiếp tục sau khởi động lại
+  - Quan sát đồ thị thành phần, trạng thái lỗi và số liệu của Alloy
+  - Giới hạn trách nhiệm giữa bộ thu thập và máy chủ Loki
+- level1: Xử lý đầu vào
+  level2:
+  - Thứ tự các bước trong chuỗi xử lý và ảnh hưởng tới kết quả
+  - Phân tích nhật ký JSON và logfmt
+  - Trích xuất bằng biểu thức chính quy khi nguồn không có cấu trúc
+  - Gộp nhiều dòng thành một sự kiện và xử lý stack trace Java
+  - Giải mã định dạng nhật ký Docker và CRI
+  - Đọc timestamp, định dạng thời gian và múi giờ
+  - Chuẩn hóa mức độ nhật ký và các trường dùng chung
+  - Tạo nhãn chỉ mục và structured metadata từ trường đã trích xuất
+  - Chọn lại nội dung đầu ra sau xử lý
+  - Lọc theo điều kiện, loại bản ghi và kiểm soát dữ liệu bị bỏ
+  - Che bí mật và dữ liệu cá nhân trước khi gửi
+  - Xử lý lỗi phân tích, trường thiếu và bản ghi sai định dạng
+  - Thử chuỗi xử lý bằng bộ dữ liệu đại diện trước khi áp dụng
+- level1: Nguồn nhật ký
+  level2:
+  - Tệp đang ghi, đổi tên tệp và xoay vòng nhật ký (log rotation)
+  - Trường hợp truncate, tệp bị xóa và mất vị trí đọc
+  - Thu thập stdout và stderr của container
+  - Nhật ký hệ điều hành qua journal hoặc syslog
+  - Nhật ký máy chủ web, reverse proxy và cổng API
+  - Nhật ký ứng dụng, cơ sở dữ liệu và tác vụ nền
+  - Tiếp nhận từ bộ chuyển tiếp hoặc giao thức trung gian
+  - Vai trò của Fluent Bit, Vector và OpenTelemetry Collector khi tích hợp Loki
+  - Chọn thu thập gần nguồn hay qua cổng tập trung
+  - Nguy cơ gửi trùng khi nhiều bộ thu thập theo dõi cùng một nguồn
+- level1: Nhật ký Java
+  level2:
+  - Từ SLF4J và Logback đến tệp hoặc stdout được Alloy thu thập
+  - Thiết kế nhật ký JSON cho ứng dụng Spring Boot
+  - Các trường thời gian, mức độ, logger, luồng và thông điệp
+  - Thông tin dịch vụ, môi trường và phiên bản ứng dụng
+  - Đưa trace ID và span ID vào nhật ký qua ngữ cảnh ghi log
+  - Phân biệt trường trong nội dung với nhãn chỉ mục của Loki
+  - Ngoại lệ nhiều dòng và lựa chọn một bản ghi có cấu trúc
+  - Ngữ cảnh bất đồng bộ và trường hợp mất thông tin liên kết
+  - Kiểm soát kích thước bản ghi, dữ liệu nhạy cảm và lượng nhật ký
+  - Kiểm chứng từ yêu cầu HTTP đến bản ghi tìm được trong Grafana
+- level1: Nhật ký Kubernetes
+  level2:
+  - Luồng nhật ký từ container đến bộ thu thập và Loki
+  - Chọn đọc tệp tại node hoặc đọc qua Kubernetes API
+  - discovery.kubernetes và metadata của workload
+  - loki.source.kubernetes và lựa chọn phạm vi thu thập
+  - Namespace, cluster, workload và container trong chiến lược nhãn
+  - 'Pod name và container ID: cân nhắc dùng structured metadata'
+  - Triển khai Alloy theo DaemonSet hoặc mô hình phù hợp với nguồn
+  - RBAC, ServiceAccount, volume và quyền truy cập nguồn nhật ký
+  - Pod thay thế, container khởi động lại và vị trí đọc
+  - Đọc dữ liệu CRI bị chia đoạn và sự kiện ứng dụng nhiều dòng
+  - Phân biệt nhật ký container với Kubernetes Events
+  - Tránh bỏ sót hoặc thu thập lặp khi thay đổi bộ thu thập
+- level1: API và OpenTelemetry
+  level2:
+  - Loki Push API và cấu trúc tập luồng được gửi
+  - Timestamp và kiểu biểu diễn dữ liệu theo định dạng API
+  - Gửi trực tiếp để kiểm chứng đường tiếp nhận
+  - Truy vấn tức thời và truy vấn theo khoảng qua HTTP API
+  - Giới hạn kết quả, chiều thời gian và luồng theo dõi trực tiếp
+  - 'LogCLI: tra cứu và theo dõi nhật ký từ dòng lệnh'
+  - Native OTLP over HTTP và vai trò của otlphttp exporter
+  - Ánh xạ LogRecord, tài nguyên và phạm vi thư viện sang dữ liệu Loki
+  - Chọn thuộc tính OpenTelemetry làm nhãn hoặc structured metadata
+  - Chuẩn hóa tên thuộc tính khi chuyển sang mô hình Loki
+  - Yêu cầu structured metadata khi tiếp nhận OTLP
+  - Tenant và xác thực trên yêu cầu ghi hoặc đọc
+  - Phân biệt lỗi payload, lỗi quyền, giới hạn lưu lượng và lỗi máy chủ
+- level1: Lưu trữ và TSDB
+  level2:
+  - Lưu trữ nội dung và chỉ mục trong kiến trúc Loki
+  - TSDB index và quan hệ với object storage
+  - 'schema_config: thời điểm áp dụng, schema và loại chỉ mục'
+  - Đối chiếu schema với phiên bản Loki và tính năng cần dùng
+  - 'Object storage: bucket, endpoint, vùng và thông tin xác thực'
+  - Lưu trữ tệp cục bộ cho môi trường thử nghiệm và các giới hạn
+  - Phân biệt thư mục WAL, bộ đệm, chỉ mục cục bộ và dữ liệu lâu dài
+  - Tạo, đóng, nén và đẩy chunk xuống kho lưu trữ
+  - Quyền truy cập kho lưu trữ và kiểm chứng đọc, ghi
+  - Độ trễ, lỗi object storage và ảnh hưởng tới ghi hoặc truy vấn
+  - Thay đổi schema theo mốc thời gian và bảo toàn khả năng đọc dữ liệu cũ
+  - Nhận diện cấu hình BoltDB hoặc Table Manager cũ khi bảo trì hệ thống
+- level1: Lưu giữ và xóa
+  level2:
+  - Chính sách lưu giữ (retention) và mục tiêu vận hành
+  - Vai trò Compactor trong thực thi retention
+  - Thời hạn chung, theo tenant và theo tập nhãn
+  - Chu kỳ xử lý và độ trễ trước khi dữ liệu thực sự được xóa
+  - Marker xóa và trạng thái cần bảo toàn khi Compactor khởi động lại
+  - Phân biệt xóa theo retention và yêu cầu xóa có điều kiện
+  - Cấu hình và kiểm soát quyền gửi yêu cầu xóa
+  - Quan hệ giữa retention của Loki và lifecycle của object storage
+  - Kiểm chứng chính sách bằng dữ liệu thử nghiệm có mốc thời gian rõ ràng
+  - Rủi ro mất dữ liệu do cấu hình xóa hoặc vòng đời bucket không phù hợp
+- level1: LogQL cơ bản
+  level2:
+  - 'Cấu trúc truy vấn LogQL: chọn luồng và chuỗi xử lý'
+  - Bộ chọn luồng (stream selector) theo tập nhãn
+  - Toán tử nhãn =, !=, =~ và !~
+  - Ngữ nghĩa khớp biểu thức chính quy ở nhãn và ở nội dung
+  - Lọc dòng chứa hoặc không chứa chuỗi với |= và !=
+  - Lọc dòng bằng biểu thức chính quy với |~ và !~
+  - Lọc mẫu dòng bằng |> và !> khi phiên bản hỗ trợ
+  - Kết hợp nhiều bộ lọc và ảnh hưởng của thứ tự
+  - Chuỗi ký tự, dấu nháy và ký tự cần escape
+  - Chọn khoảng thời gian tìm kiếm và nhận biết dữ liệu ngoài khoảng
+  - Phân biệt không có bản ghi với truy vấn không đúng nhãn
+  - Thu hẹp phạm vi trước khi phân tích nội dung
+- level1: LogQL phân tích trường
+  level2:
+  - Phân biệt phân tích tại lúc thu thập và tại lúc truy vấn
+  - Bộ phân tích json và lựa chọn các trường cần trích xuất
+  - Bộ phân tích logfmt và dữ liệu có trường không đồng nhất
+  - Bộ phân tích pattern và các phần nội dung cần giữ
+  - Bộ phân tích regexp và nhóm bắt có tên
+  - Lọc theo nhãn được trích xuất sau bước phân tích
+  - Điều kiện số, thời lượng và kích thước dữ liệu
+  - Kết hợp điều kiện AND, OR và thứ tự ưu tiên
+  - 'line_format: trình bày lại nội dung kết quả'
+  - 'label_format: tạo hoặc đổi nhãn trong chuỗi truy vấn'
+  - 'drop và keep: kiểm soát nhãn trong kết quả truy vấn'
+  - Nhãn lỗi __error__ và cách nhận diện lỗi phân tích hoặc chuyển kiểu
+  - Xung đột tên trường, nhãn đã tồn tại và dữ liệu thiếu
+- level1: Số đo từ nhật ký
+  level2:
+  - Phân biệt truy vấn bản ghi và truy vấn tạo chuỗi số đo
+  - Cửa sổ thời gian và vector khoảng trong LogQL
+  - 'count_over_time: đếm bản ghi trong một khoảng'
+  - 'rate: tốc độ phát sinh bản ghi theo thời gian'
+  - 'bytes_over_time và bytes_rate: lượng dữ liệu nhật ký'
+  - absent_over_time và phát hiện nguồn ngừng phát dữ liệu
+  - Tổng hợp bằng sum, avg, min, max và count
+  - Nhóm kết quả với by và without
+  - topk, bottomk và xác định nguồn nổi bật
+  - 'unwrap: chuyển trường trích xuất thành giá trị số'
+  - Tổng hợp giá trị với các hàm *_over_time
+  - quantile_over_time và phân vị của giá trị lấy từ nhật ký
+  - Lọc lỗi __error__ trước khi dùng giá trị đã chuyển đổi
+  - Phân biệt số bản ghi, số yêu cầu và số sự kiện nghiệp vụ
+- level1: LogQL nâng cao
+  level2:
+  - Toán tử số học, so sánh và phép kết hợp tập kết quả
+  - Phân biệt scalar, vector tức thời và vector khoảng
+  - Ghép chuỗi số đo theo nhãn với on và ignoring
+  - Quan hệ một–nhiều và group_left hoặc group_right
+  - Tính tỷ lệ lỗi với tử số, mẫu số và tập nhãn tương thích
+  - Giá trị bằng không, không có chuỗi và phép chia không hợp lệ
+  - offset và đối chiếu các giai đoạn thời gian
+  - Phân biệt cửa sổ tính toán, bước truy vấn và khoảng hiển thị
+  - Lỗi vượt giới hạn số chuỗi sau phân tích hoặc tổng hợp
+  - Giới hạn suy luận khi nhật ký bị lọc, lấy mẫu hoặc thu thập thiếu
+- level1: Khám phá với Grafana
+  level2:
+  - Cấu hình nguồn dữ liệu Loki, endpoint và tenant
+  - Phân biệt kết nối từ máy chủ Grafana và từ trình duyệt
+  - Kiểm tra kết nối, quyền và header cần thiết
+  - 'Grafana Explore: chọn nguồn và khoảng thời gian'
+  - Trình dựng truy vấn và trình soạn LogQL
+  - Xem trường, nhãn, mức độ và chi tiết từng bản ghi
+  - Xem ngữ cảnh trước hoặc sau một bản ghi
+  - Theo dõi nhật ký trực tiếp (live tail) và giới hạn sử dụng
+  - Tra cứu theo dịch vụ với Logs Drilldown khi được hỗ trợ
+  - Chia sẻ truy vấn, đường liên kết và mốc thời gian điều tra
+  - Nhận biết giới hạn hiển thị và kết quả bị cắt ngắn
+- level1: Dashboard và liên kết
+  level2:
+  - Chọn panel nhật ký, chuỗi thời gian, bảng và thống kê
+  - Biến dashboard theo môi trường, dịch vụ và tập nhãn
+  - Chuỗi biến phụ thuộc và tránh truy vấn quá rộng
+  - Biến thời gian, cửa sổ tính toán và bước truy vấn của Grafana
+  - Hiển thị lượng lỗi, nguồn lỗi và xu hướng dữ liệu
+  - Tách bộ lọc giao diện với biến đổi dữ liệu ở phía máy chủ
+  - Từ số đo tổng hợp chuyển tới tập bản ghi tương ứng
+  - Derived fields và liên kết từ trace ID sang hệ truy vết
+  - Liên kết nhật ký, số đo và trace trong cùng giai đoạn điều tra
+  - Định danh nghiệp vụ và liên kết nhiều dịch vụ mà không tăng nhãn chỉ mục
+  - Quản lý nguồn dữ liệu và dashboard bằng provisioning
+  - Kiểm tra quyền truy cập khi chia sẻ dashboard và đường dẫn điều tra
+- level1: Quy tắc và cảnh báo
+  level2:
+  - Điều kiện nào từ nhật ký phù hợp để tạo cảnh báo
+  - Phân biệt Grafana-managed alert rules và quy tắc của Loki Ruler
+  - 'Alerting rules: biểu thức, thời gian duy trì và nhãn cảnh báo'
+  - 'Recording rules: tính trước số đo từ truy vấn nhật ký'
+  - Remote write và nơi lưu chuỗi số đo được Ruler tạo ra
+  - Tổ chức nhóm quy tắc và chu kỳ đánh giá
+  - Cảnh báo tỷ lệ lỗi, số lỗi và thiếu nhật ký theo thời gian
+  - Xử lý dữ liệu thiếu, kết quả rỗng và lỗi truy vấn
+  - Luồng từ kết quả đánh giá tới Alertmanager hoặc nơi gửi thông báo
+  - Quyền, cách lưu và quản lý cấu hình quy tắc
+  - Kiểm thử và giới hạn chi phí truy vấn khi tăng số quy tắc
+- level1: Bảo mật và tenant
+  level2:
+  - Chế độ một tenant và nhiều tenant trong Loki
+  - Ý nghĩa auth_enabled và phân biệt với xác thực danh tính người dùng
+  - 'X-Scope-OrgID: định danh tenant trên đường ghi và đường đọc'
+  - Reverse proxy xác thực và nguồn xác định tenant đáng tin cậy
+  - Ngăn phía khách tự giả mạo tenant bằng header
+  - TLS, mTLS và bảo vệ giao tiếp giữa các thành phần
+  - Quản lý thông tin xác thực cho Alloy, Grafana và object storage
+  - Phân quyền đọc, ghi, quản trị và thao tác xóa
+  - Cô lập lưu lượng, hạn mức và tài nguyên giữa các tenant
+  - Truy vấn nhiều tenant và giới hạn quyền truy cập
+  - Che dữ liệu cá nhân, bí mật và thông tin trong URL hoặc payload
+  - Nhật ký kiểm toán và chính sách lưu giữ phù hợp với dữ liệu
+- level1: Triển khai vận hành
+  level2:
+  - Chọn monolithic hoặc distributed theo tải và năng lực vận hành
+  - 'Simple Scalable Deployment: nhận diện mô hình đang bị loại bỏ và kế hoạch chuyển đổi'
+  - Phân biệt cấu hình máy chủ Loki, Helm values và tài nguyên Kubernetes
+  - Chốt phiên bản chart, image và đối chiếu nguồn chart được duy trì
+  - Triển khai bằng Helm với object storage bên ngoài
+  - Phân bổ CPU, bộ nhớ và đĩa theo vai trò thành phần
+  - PersistentVolume cho dữ liệu cục bộ cần bảo toàn
+  - Readiness, liveness và kiểm tra khả năng xử lý thực tế
+  - Gateway, ingress, DNS và đường truy cập nội bộ hoặc bên ngoài
+  - Phân bố thành phần theo node, vùng lỗi và yêu cầu sẵn sàng
+  - Quản lý cấu hình, secrets và thay đổi triển khai bằng Git
+- level1: Sẵn sàng và mở rộng
+  level2:
+  - Sao chép dữ liệu, quorum và đánh đổi khi một thành phần gặp lỗi
+  - Ring, cơ chế khám phá thành viên và xử lý thành viên không khỏe
+  - Replication factor và số bản sao cần cho thiết kế đã chọn
+  - Phân bố theo vùng lỗi và giới hạn lỗi có thể chịu được
+  - Khởi động lại ingester, phục hồi WAL và đẩy dữ liệu có kiểm soát
+  - Mở rộng đường ghi và cân bằng trách nhiệm giữa các ingester
+  - Mở rộng đường đọc, hàng đợi và khả năng chạy truy vấn song song
+  - Luồng quá nóng và giới hạn tốc độ theo luồng
+  - Tách tải giữa tenant và tránh một bên chiếm hết tài nguyên
+  - Kiểm tra hành vi khi object storage, mạng hoặc một node gặp sự cố
+  - Phân biệt có bản sao, sao lưu và khả năng khôi phục sau thảm họa
+- level1: Hiệu năng và chi phí
+  level2:
+  - Ước tính dữ liệu ghi, số luồng hoạt động và thời hạn lưu
+  - Giới hạn tiếp nhận chung, theo tenant và theo luồng
+  - Gom lô, nén và đánh đổi bộ nhớ với độ trễ tại Alloy
+  - Thử lại, giãn cách gửi và phản ứng khi Loki trả giới hạn
+  - Giảm số luồng và tránh nhiều chunk nhỏ
+  - Chọn nhãn và khoảng thời gian trước khi lọc nội dung
+  - Đặt bộ lọc rẻ trước bộ phân tích hoặc biểu thức tốn chi phí
+  - Trích xuất có chọn lọc và tránh biểu thức chính quy không cần thiết
+  - Chia truy vấn, chia đoạn xử lý và kiểm soát mức song song
+  - 'Bộ đệm kết quả và bộ đệm chunk: lợi ích, giới hạn và chi phí'
+  - 'Bộ lọc Bloom: vai trò tăng tốc và điều kiện hỗ trợ theo phiên bản'
+  - Giới hạn lượng dữ liệu quét, thời gian chờ và số chuỗi kết quả
+  - Đọc thống kê truy vấn để xác định nút thắt
+  - Tổng hợp chi phí lưu trữ, yêu cầu object storage và truyền dữ liệu
+- level1: Giám sát Loki Stack
+  level2:
+  - Theo dõi chính Loki, Alloy, Grafana và các phụ thuộc lưu trữ
+  - Tốc độ bản ghi hoặc byte được nhận, gửi và bị loại
+  - Lỗi tiếp nhận, lỗi xác thực và vượt hạn mức
+  - Số luồng hoạt động, bộ nhớ ingester và tình trạng WAL
+  - Chunk được tạo, đẩy thành công hoặc thất bại
+  - Độ trễ, tỷ lệ lỗi và hàng đợi truy vấn
+  - Hiệu quả bộ đệm và lượng dữ liệu truy vấn phải đọc
+  - Tình trạng Compactor, retention và quy tắc Ruler
+  - Loki Canary và kiểm chứng dữ liệu đi qua toàn bộ hệ thống
+  - Dashboard vận hành, cảnh báo và tài liệu ứng phó
+  - Điểm kiểm tra độc lập khi hệ thống nhật ký bị gián đoạn
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Không thấy nhật ký: khoanh vùng từ nguồn đến Grafana'
+  - Alloy không phát hiện tệp, không có quyền hoặc đọc sai vị trí
+  - Lỗi gộp nhiều dòng và sai timestamp hoặc múi giờ
+  - Lỗi thiếu tenant, sai thông tin xác thực hoặc TLS
+  - Bản ghi bị từ chối do quá cũ, quá xa tương lai hoặc ngoài cửa sổ cho phép
+  - Bản ghi vượt kích thước và nhãn hoặc metadata không hợp lệ
+  - HTTP 429 và phân biệt giới hạn tenant với giới hạn luồng
+  - Gửi lặp, trùng nguồn thu thập và hiểu nhầm thứ tự hiển thị
+  - Truy vấn không có kết quả do sai nhãn, tenant hoặc khoảng thời gian
+  - Lỗi __error__, chuyển kiểu và giới hạn chuỗi số đo
+  - Truy vấn chậm, hết thời gian hoặc bị hủy
+  - Lỗi ring, object storage, thiếu đĩa hoặc thiếu bộ nhớ
+  - Dữ liệu biến mất sau khởi động lại hoặc sau chính sách retention
+- level1: Kiểm thử và nghiệm thu
+  level2:
+  - Thiết kế bộ nhật ký mẫu và kết quả mong đợi
+  - Kiểm tra chuỗi xử lý với JSON, dòng lỗi và ngoại lệ nhiều dòng
+  - Đối chiếu nhãn chỉ mục, metadata và nội dung sau thu thập
+  - Kiểm tra LogQL với trường thiếu, dữ liệu sai và kết quả rỗng
+  - Kiểm tra số đo từ nhật ký bằng dữ liệu có thể tính tay
+  - Kiểm tra xoay vòng tệp, khởi động lại Alloy và việc đọc tiếp
+  - Kiểm tra mất kết nối, thử lại và giới hạn tiếp nhận
+  - Kiểm tra cách ly tenant, quyền và che dữ liệu nhạy cảm
+  - Kiểm tra dữ liệu gần đây, dữ liệu đã lưu và độ trễ xuất hiện
+  - Kiểm thử tải ghi, tải đọc và tải hỗn hợp
+  - Nghiệm thu dashboard, cảnh báo, retention và tài liệu vận hành
+- level1: Nâng cấp và chuyển đổi
+  level2:
+  - Đọc thay đổi không tương thích và lập ma trận phiên bản
+  - Sao lưu cấu hình, quy tắc, dashboard và thông tin vận hành
+  - Phạm vi sao lưu object storage và dữ liệu trạng thái cục bộ
+  - Thử phục hồi và xác nhận khả năng truy vấn dữ liệu đã lưu
+  - Chuyển schema hoặc loại chỉ mục theo lịch áp dụng phù hợp
+  - Nâng cấp từng phần và đối chiếu độ tương thích đọc, ghi
+  - Điều kiện quay lui và giới hạn khi dữ liệu mới đã được tạo
+  - 'Promtail đã hết vòng đời: phạm vi bảo trì và lộ trình thay thế'
+  - Chuyển cấu hình Promtail sang Alloy và kiểm tra kết quả chuyển đổi
+  - Bảo toàn vị trí đọc, nhãn, timestamp và hành vi xử lý khi đổi bộ thu thập
+  - Đối chiếu số liệu giám sát và dashboard sau chuyển đổi
+  - Chuyển khỏi Simple Scalable Deployment sang mô hình được hỗ trợ
+  - Chạy đối chiếu trước khi cắt chuyển và tránh thu thập lặp
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng Loki, Alloy và Grafana để tra cứu nhật ký một ứng dụng Java
+  - Thiết kế nhãn và structured metadata cho nhiều dịch vụ
+  - Thu thập JSON và stack trace mà không làm mất ranh giới sự kiện
+  - Xây bộ truy vấn điều tra lỗi, độ trễ và giao dịch nghiệp vụ
+  - Tạo dashboard từ nhật ký và liên kết sang trace
+  - Cảnh báo tỷ lệ lỗi và nguồn ngừng gửi nhật ký
+  - Triển khai nguồn Kubernetes với quyền và metadata phù hợp
+  - Điều tra luồng quá nóng hoặc truy vấn quét quá nhiều dữ liệu
+  - Diễn tập khởi động lại, mất kết nối, phục hồi và retention
+  - Chuyển một cấu hình Promtail cũ sang Alloy có kiểm chứng
+  - Rà soát thiết kế Loki Stack theo độ tin cậy, bảo mật và chi phí

@@ -1,0 +1,49 @@
+roadmap:
+- id: vai-tro-service-mesh
+  title: Vai trò Service Mesh
+  purpose: Hiểu cách mesh quản lý giao tiếp giữa các microservices.
+  objectives:
+  - Phân biệt service mesh với API Gateway.
+  - Nêu lợi ích về bảo mật, độ tin cậy và quan sát.
+- id: control-data-plane
+  title: Control & Data Plane
+  purpose: Nắm hai lớp kiến trúc cốt lõi của service mesh.
+  objectives:
+  - Phân biệt control plane và data plane.
+  - Giải thích cách cấu hình được phân phối đến proxy.
+- id: proxy-mesh-topology
+  title: Proxy & Mesh Topology
+  purpose: Hiểu đường đi request và các cách đặt proxy.
+  objectives:
+  - Vẽ luồng giao tiếp giữa hai workload qua proxy.
+  - So sánh sidecar với ambient ở mức khái niệm.
+- id: discovery-routing
+  title: Discovery & Routing
+  purpose: Điều khiển việc tìm đích và phân phối request.
+  objectives:
+  - Mô tả service discovery và load balancing.
+  - Thiết kế rule phân luồng theo phiên bản (canary).
+- id: resilience-policies
+  title: Resilience Policies
+  purpose: Giảm tác động của lỗi mạng và dịch vụ phụ thuộc.
+  objectives:
+  - Phân biệt timeout, retry và circuit breaking.
+  - Đánh giá rủi ro retry với request không idempotent.
+- id: mtls-authorization
+  title: mTLS & Authorization
+  purpose: Bảo vệ kết nối và quản lý quyền giữa các workload.
+  objectives:
+  - Giải thích danh tính workload và mutual TLS.
+  - Mô tả quy tắc cho phép/từ chối service-to-service.
+- id: mesh-observability
+  title: Mesh Observability
+  purpose: Theo dõi chất lượng và quan hệ giao tiếp giữa dịch vụ.
+  objectives:
+  - Đọc metrics độ trễ, lưu lượng và lỗi.
+  - Liên hệ access logs và distributed traces với request.
+- id: trien-khai-chan-doan
+  title: Triển khai & Chẩn đoán
+  purpose: Vận dụng kiến thức mesh trên hệ thống thử nghiệm.
+  objectives:
+  - Mô tả đưa workload vào mesh và kiểm tra proxy.
+  - Chẩn đoán sai routing, mTLS hoặc cấu hình chưa đồng bộ.

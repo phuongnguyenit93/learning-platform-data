@@ -1,0 +1,7 @@
+# DevOps Platform Engineering Internal Developer Platform
+
+Internal Developer Platform (IDP) là tập hợp các năng lực và công cụ được tích hợp thành trải nghiệm thống nhất, giúp đội phát triển tự thực hiện các công việc phổ biến như tạo dịch vụ, cấp phát hạ tầng và triển khai phần mềm. IDP không đồng nghĩa với một developer portal: portal có thể là giao diện để khám phá và sử dụng nền tảng, còn IDP bao gồm cả quy trình, tự động hóa và những năng lực vận hành phía sau. Mục tiêu là giảm gánh nặng kỹ thuật lặp lại mà vẫn giữ quyền chủ động cần thiết cho các đội sản phẩm.
+
+Roadmap một cấp gồm tám mốc, đi từ tư duy platform-as-a-product và khảo sát nhu cầu đến kiến trúc nền tảng, golden paths, self-service provisioning và software catalog. Các mốc tiếp theo đưa bảo mật và guardrails vào trải nghiệm mặc định, xây dựng cơ chế vận hành đáng tin cậy và đánh giá hiệu quả qua mức độ sử dụng, trải nghiệm lập trình viên cùng chỉ số giao hàng phần mềm.
+
+Module phù hợp với kỹ sư DevOps, platform engineer, SRE hoặc người phát triển ứng dụng đã biết CI/CD, cloud và Infrastructure as Code cơ bản. Sau khi học, bạn có thể phác thảo một IDP tối thiểu theo nhu cầu thực, xác định các năng lực và ranh giới trách nhiệm, thiết kế một golden path tự phục vụ, đồng thời lập kế hoạch đo lường và cải tiến liên tục.

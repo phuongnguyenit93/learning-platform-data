@@ -1,0 +1,85 @@
+menu:
+- title: 1. Tổng quan SSO
+  slug: sso-overview
+  index: 0
+- title: 2. Danh tính và tin cậy
+  slug: identity-trust
+  index: 1
+- title: 3. Bức tranh giao thức
+  slug: protocol-landscape
+  index: 2
+- title: 4. Kiến trúc SAML 2.0
+  slug: saml-2-architecture
+  index: 3
+- title: 5. Metadata và cấu hình
+  slug: metadata-configuration
+  index: 4
+- title: 6. Yêu cầu xác thực
+  slug: authentication-requests
+  index: 5
+- title: 7. Assertion và phản hồi
+  slug: assertions-responses
+  index: 6
+- title: 8. Bindings và mã hóa thông điệp
+  slug: bindings-message-encoding
+  index: 7
+- title: 9. Đăng nhập từ SP
+  slug: sp-initiated-login
+  index: 8
+- title: 10. Đăng nhập từ IdP
+  slug: idp-initiated-login
+  index: 9
+- title: 11. Kiểm chứng bắt buộc
+  slug: mandatory-validation
+  index: 10
+- title: 12. Chữ ký XML
+  slug: xml-signatures
+  index: 11
+- title: 13. Mã hóa assertion
+  slug: assertion-encryption
+  index: 12
+- title: 14. An toàn xử lý XML
+  slug: secure-xml-processing
+  index: 13
+- title: 15. Định danh và liên kết tài khoản
+  slug: identifiers-account-linking
+  index: 14
+- title: 16. Thuộc tính và cấp quyền
+  slug: attributes-authorization
+  index: 15
+- title: 17. MFA và mức bảo đảm
+  slug: mfa-assurance
+  index: 16
+- title: 18. Phiên và trình duyệt
+  slug: sessions-browsers
+  index: 17
+- title: 19. Đăng xuất liên kết
+  slug: single-logout
+  index: 18
+- title: 20. Vòng đời khóa và metadata
+  slug: key-metadata-lifecycle
+  index: 19
+- title: 21. Liên kết nhiều tổ chức
+  slug: organization-federation
+  index: 20
+- title: 22. Triển khai và tích hợp
+  slug: deployment-integration
+  index: 21
+- title: 23. Khả dụng và vận hành
+  slug: availability-operations
+  index: 22
+- title: 24. Quan sát và xử lý lỗi
+  slug: observability-troubleshooting
+  index: 23
+- title: 25. Tấn công và phòng vệ
+  slug: attacks-defenses
+  index: 24
+- title: 26. Vòng đời tài khoản và quyền riêng tư
+  slug: accounts-privacy
+  index: 25
+- title: 27. Kiểm thử và chuyển đổi
+  slug: testing-migration
+  index: 26
+- title: 28. Tình huống và thực hành
+  slug: scenarios-practice
+  index: 27

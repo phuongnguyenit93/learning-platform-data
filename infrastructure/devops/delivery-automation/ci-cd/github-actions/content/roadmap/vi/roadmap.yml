@@ -1,0 +1,49 @@
+roadmap:
+- id: ci-cd-github-actions
+  title: CI/CD & GitHub Actions
+  purpose: Hiểu cách tự động hóa build, test và phát hành trực tiếp từ repository trên GitHub.
+  objectives:
+  - '- Phân biệt continuous integration, delivery và deployment.'
+  - '- Giải thích workflow, run, job, step và action.'
+- id: workflow-yaml-triggers
+  title: Workflow YAML & Triggers
+  purpose: Khai báo pipeline ngắn gọn và xác định đúng sự kiện kích hoạt.
+  objectives:
+  - '- Tạo file .github/workflows/*.yml với on và jobs.'
+  - '- Cấu hình push, pull_request và workflow_dispatch.'
+- id: jobs-steps-runners
+  title: Jobs, Steps & Runners
+  purpose: Tổ chức các công việc có thứ tự phụ thuộc và chọn môi trường thực thi phù hợp.
+  objectives:
+  - '- Sử dụng runs-on, steps, needs và if.'
+  - '- Phân biệt GitHub-hosted runner với self-hosted runner.'
+- id: actions-matrix-reuse
+  title: Actions, Matrix & Reuse
+  purpose: Tái sử dụng thành phần sẵn có và kiểm thử nhiều cấu hình mà không lặp YAML.
+  objectives:
+  - '- Dùng actions/checkout, setup-java và strategy.matrix.'
+  - '- Tạo hoặc gọi reusable workflow qua workflow_call.'
+- id: java-ci-build-test
+  title: 'Java CI: Build & Test'
+  purpose: Tạo pipeline kiểm tra chất lượng mỗi lần cập nhật mã Java.
+  objectives:
+  - '- Cài JDK và chạy Maven build, unit test trên pull request.'
+  - '- Xem trạng thái job và cấu hình required status check.'
+- id: cache-artifacts
+  title: Cache & Artifacts
+  purpose: Tối ưu thời gian build và lưu đầu ra để dùng tại các giai đoạn tiếp theo.
+  objectives:
+  - '- Cache dependency Maven với key phù hợp.'
+  - '- Upload, download và phân biệt artifact với cache.'
+- id: cd-environments
+  title: CD & Environments
+  purpose: Tổ chức triển khai có kiểm soát từ artifact đã kiểm thử sang các môi trường.
+  objectives:
+  - '- Xây dựng job publish/deploy phụ thuộc kết quả CI.'
+  - '- Dùng environment, approval và concurrency khi phát hành.'
+- id: security-diagnostics
+  title: Security & Diagnostics
+  purpose: Giảm rủi ro lộ quyền truy cập và phát hiện lỗi khi pipeline chạy không như mong đợi.
+  objectives:
+  - '- Giới hạn GITHUB_TOKEN, quản lý secrets và dùng OIDC.'
+  - '- Pin action đáng tin cậy; đọc logs và rerun job thất bại.'

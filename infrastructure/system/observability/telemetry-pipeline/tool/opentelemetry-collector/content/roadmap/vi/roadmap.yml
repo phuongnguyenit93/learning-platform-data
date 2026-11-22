@@ -1,0 +1,43 @@
+roadmap:
+- id: vai-tro-collector
+  title: Vai trò Collector
+  purpose: Hiểu Collector tiếp nhận, xử lý và chuyển tiếp telemetry giữa ứng dụng và backend.
+  objectives:
+  - Giải thích vai trò Collector với logs, metrics, traces.
+  - Vẽ luồng ứng dụng → Collector → backend.
+- id: receivers-otlp
+  title: Receivers & OTLP
+  purpose: Nắm cách Collector nhận các tín hiệu từ nguồn phát sinh.
+  objectives:
+  - Nhận biết receiver và giao thức OTLP.
+  - Chọn receiver phù hợp cho nguồn telemetry.
+- id: processors
+  title: Processors
+  purpose: Biết xử lý, làm giàu và kiểm soát lượng dữ liệu trước khi xuất.
+  objectives:
+  - Giải thích lọc, batch và memory limiter.
+  - Chọn thứ tự processor theo mục tiêu xử lý.
+- id: exporters
+  title: Exporters
+  purpose: Hiểu cách gửi telemetry từ Collector đến đích quan sát.
+  objectives:
+  - Cấu hình exporter cho một backend.
+  - Phân biệt receiver đầu vào và exporter đầu ra.
+- id: cau-hinh-pipelines
+  title: Cấu hình Pipelines
+  purpose: Ghép các component thành pipeline hoạt động cho từng tín hiệu.
+  objectives:
+  - Viết YAML với receivers, processors, exporters và service.pipelines.
+  - Chạy pipeline mẫu và xác nhận dữ liệu đầu ra.
+- id: agent-gateway
+  title: Agent & Gateway
+  purpose: Chọn cách triển khai Collector theo vị trí nguồn và tải xử lý.
+  objectives:
+  - So sánh mô hình agent và gateway.
+  - Phác thảo luồng triển khai phù hợp một hệ thống.
+- id: giam-sat-xu-ly-loi
+  title: Giám sát & Xử lý lỗi
+  purpose: Phát hiện sớm vấn đề cấu hình, nghẽn luồng và mất dữ liệu.
+  objectives:
+  - Theo dõi telemetry nội bộ và trạng thái Collector.
+  - Khoanh vùng lỗi nhận, xử lý hoặc xuất dữ liệu.

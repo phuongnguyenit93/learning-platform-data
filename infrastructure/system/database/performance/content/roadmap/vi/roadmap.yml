@@ -1,0 +1,55 @@
+roadmap:
+- id: do-hieu-nang-nen
+  title: Đo hiệu năng nền
+  purpose: Thiết lập số đo ban đầu và xác định truy vấn nào ảnh hưởng nhiều nhất tới ứng dụng.
+  objectives:
+  - Đo latency, throughput và tỷ lệ truy vấn chậm với tải đại diện.
+  - Xác định một truy vấn trọng điểm và ghi lại kết quả trước tối ưu.
+- id: doc-execution-plan
+  title: Đọc Execution Plan
+  purpose: Hiểu cách bộ tối ưu chọn đường truy cập và thực thi truy vấn.
+  objectives:
+  - Đọc EXPLAIN và nhận biết scan, join, sort trong kế hoạch.
+  - So sánh estimated rows, actual rows và thời gian chạy.
+- id: thiet-ke-index
+  title: Thiết kế Index
+  purpose: Tăng tốc truy cập dữ liệu bằng index phù hợp, tránh tạo index dư thừa.
+  objectives:
+  - Chọn index cho điều kiện lọc, join và sắp xếp thông dụng.
+  - Đo tác động của index đến SELECT và chi phí ghi dữ liệu.
+- id: toi-uu-sql
+  title: Tối ưu SQL
+  purpose: Giảm số hàng và lượng dữ liệu cần xử lý trong mỗi truy vấn.
+  objectives:
+  - Viết lại lọc, join, aggregation và phân trang khi cần.
+  - Loại bỏ dữ liệu thừa và kiểm tra lại kế hoạch thực thi.
+- id: statistics-maintenance
+  title: Statistics & Maintenance
+  purpose: Giữ thông tin thống kê đủ chính xác để bộ tối ưu chọn kế hoạch hợp lý.
+  objectives:
+  - Giải thích vai trò của ANALYZE và thống kê phân bố dữ liệu.
+  - Nhận diện khi bảng lớn hoặc dữ liệu thay đổi gây lệch ước lượng.
+- id: khoa-tranh-chap
+  title: Khóa & Tranh chấp
+  purpose: Hiểu vì sao nhiều giao dịch đồng thời có thể làm tăng độ trễ.
+  objectives:
+  - Phát hiện truy vấn chờ khóa hoặc transaction kéo dài.
+  - Đề xuất thu ngắn giao dịch và giảm tranh chấp cập nhật.
+- id: ket-noi-cache
+  title: Kết nối & Cache
+  purpose: Kiểm soát số kết nối và lựa chọn cache theo đặc điểm tải.
+  objectives:
+  - Nhận biết dấu hiệu cạn connection pool hoặc kết nối quá nhiều.
+  - Phân biệt cache phía ứng dụng với buffer cache của DB.
+- id: cpu-ram-i-o
+  title: CPU, RAM & I/O
+  purpose: Liên hệ tài nguyên máy chủ với tốc độ đọc, ghi và sắp xếp dữ liệu.
+  objectives:
+  - Theo dõi CPU, memory, disk I/O và truy vấn ghi ra đĩa tạm.
+  - Đánh giá cấu hình bộ nhớ dựa trên quan sát thực tế.
+- id: giam-sat-benchmark
+  title: Giám sát & Benchmark
+  purpose: Đánh giá cải tiến trên cùng điều kiện tải và theo dõi hồi quy.
+  objectives:
+  - Dùng thống kê truy vấn để tìm nhóm SQL tiêu tốn tài nguyên.
+  - Chạy lại benchmark, so sánh trước/sau và ghi nhận đánh đổi.

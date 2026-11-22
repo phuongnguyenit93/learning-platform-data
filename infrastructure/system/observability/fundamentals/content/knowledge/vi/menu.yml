@@ -1,0 +1,346 @@
+menu:
+- level1: Bức tranh tổng quan
+  level2:
+  - Khả năng quan sát (observability) là gì và vì sao hệ thống cần có
+  - Suy luận trạng thái bên trong từ những dữ liệu hệ thống phát ra
+  - Phân biệt observability, giám sát (monitoring) và dữ liệu đo từ xa (telemetry)
+  - Vì sao nhiều log hoặc nhiều dashboard chưa bảo đảm hiểu được hệ thống
+  - Quan hệ giữa khả năng quan sát, độ tin cậy và trải nghiệm người dùng
+  - Những vấn đề khó tái hiện trong hệ thống nhiều thành phần
+  - Các thuật ngữ nền tảng và cách chúng liên kết với nhau
+  - Phạm vi nền tảng và thứ tự học trước khi đi sâu vào từng công cụ
+- level1: Tư duy đặt câu hỏi
+  level2:
+  - Bắt đầu từ câu hỏi vận hành thay vì danh sách dữ liệu muốn thu
+  - Phân biệt triệu chứng, tác động, nguyên nhân và điều kiện góp phần
+  - Tách quan sát thực tế khỏi giả thuyết và kết luận
+  - Dữ liệu nào giúp xác nhận hoặc bác bỏ một giả thuyết
+  - Câu hỏi đã dự kiến trước và câu hỏi mới xuất hiện khi có sự cố
+  - Phân tích theo thời gian, dịch vụ, phiên bản và nhóm yêu cầu
+  - Tương quan không tự chứng minh quan hệ nhân quả
+  - Nhận diện khoảng trống dữ liệu và giới hạn của điều có thể kết luận
+  - Chọn phép kiểm chứng tiếp theo dựa trên bằng chứng đang có
+- level1: Góc nhìn người dùng
+  level2:
+  - Xác định hành trình và thao tác quan trọng đối với người sử dụng
+  - Hệ thống đang chạy khác người dùng hoàn thành được công việc
+  - Định nghĩa yêu cầu thành công, thất bại và chậm theo nghiệp vụ
+  - Đo từ phía người dùng khác đo từ bên trong dịch vụ
+  - Giám sát hộp đen và hộp trắng bổ sung cho nhau
+  - Giám sát người dùng thực (RUM) và kiểm tra tổng hợp (synthetic monitoring)
+  - Phân biệt kết quả nghiệp vụ với chỉ số kỹ thuật hỗ trợ
+  - Chọn điểm đo tại ranh giới phản ánh đúng trải nghiệm cần bảo vệ
+  - Vẽ phụ thuộc dịch vụ để biết hành trình có thể thất bại ở đâu
+- level1: Bản đồ dữ liệu
+  level2:
+  - 'Số liệu đo (metrics): tóm tắt định lượng theo thời gian'
+  - 'Nhật ký (logs): ghi lại sự kiện cùng thông tin mô tả'
+  - 'Truy vết (traces): nối các thao tác của một luồng công việc'
+  - 'Hồ sơ thực thi (profiles): phân bố chi phí trong mã đang chạy'
+  - Sự kiện triển khai, cấu hình và thay đổi hạ tầng tạo bối cảnh điều tra
+  - Các dạng dữ liệu trả lời những câu hỏi khác nhau
+  - Kết hợp nhiều dạng dữ liệu thay vì xem chúng là các kho tách biệt
+  - Thông tin bị mất khi chỉ lưu dữ liệu tổng hợp
+  - Chọn dạng dữ liệu theo độ chi tiết, phạm vi thời gian và chi phí
+- level1: Số liệu đo
+  level2:
+  - Phép đo, công cụ đo và chuỗi thời gian là các khái niệm khác nhau
+  - Tên, đơn vị, thời điểm và thuộc tính nhận diện một phép đo
+  - Bộ đếm tích lũy và cách diễn giải tốc độ thay đổi
+  - Giá trị tức thời để quan sát trạng thái tăng hoặc giảm
+  - Phân bố thời lượng, histogram và các khoảng giá trị
+  - Trung bình, trung vị và phân vị cao mô tả những khía cạnh khác nhau
+  - Vì sao không lấy trung bình các phân vị từ nhiều instance
+  - Tổng hợp theo thời gian và theo nhóm dịch vụ có thể che mất bất thường
+  - Counter reset, dữ liệu thiếu và khoảng lấy mẫu
+  - Phân biệt số lần thử, số yêu cầu và số công việc hoàn tất khi thiết kế bộ đếm
+- level1: Nhật ký sự kiện
+  level2:
+  - Một sự kiện log hữu ích cần thời gian, mức độ, nguồn và thông điệp
+  - Log văn bản khác log có cấu trúc
+  - Mức DEBUG, INFO, WARN, ERROR và ý nghĩa vận hành
+  - Ghi quyết định nghiệp vụ và thay đổi trạng thái ở ranh giới phù hợp
+  - Định danh yêu cầu, dịch vụ và lỗi giúp tìm lại bối cảnh
+  - Giữ ngoại lệ cùng stack trace mà không tạo nhiều sự kiện rời rạc
+  - Phân biệt thời điểm phát sinh với thời điểm hệ thống nhận log
+  - Trùng sự kiện, thiếu sự kiện và log bị đảo thứ tự
+  - Nhật ký vận hành khác nhật ký kiểm toán về mục đích và yêu cầu sử dụng
+  - Giới hạn dữ liệu nhạy cảm, kích thước và mức chi tiết của log
+- level1: Truy vết phân tán
+  level2:
+  - Trace, span và quan hệ giữa toàn bộ công việc với một thao tác
+  - Trace ID, span ID và quan hệ cha–con
+  - Thời điểm bắt đầu, thời lượng, thuộc tính và sự kiện trên span
+  - Span phía gọi, phía nhận và các ranh giới giao tiếp
+  - Đọc chuỗi thao tác tuần tự, song song và bất đồng bộ
+  - Phân biệt thời gian của span cha với tổng thời gian các span con
+  - Nhận diện đường công việc quyết định độ trễ cuối cùng
+  - Ghi nhận lỗi và phân biệt nơi lỗi phát sinh với nơi lỗi lan tới
+  - Trace chưa đầy đủ, span đến muộn và giới hạn khi thiếu instrumentation
+  - Truy vết bổ sung điều gì mà log riêng từng dịch vụ khó thể hiện
+- level1: Hồ sơ thực thi
+  level2:
+  - Profiling giúp trả lời phần mã nào đang tiêu tốn tài nguyên
+  - Phân biệt đo CPU, thời gian thực, cấp phát bộ nhớ và thời gian chờ
+  - Ngăn xếp lời gọi và cách đọc biểu đồ flame graph
+  - Thời gian tự xử lý khác thời gian bao gồm các hàm được gọi
+  - Lấy mẫu ngăn xếp khác ghi lại mọi lần gọi hàm
+  - Profiling liên tục và profiling phục vụ điều tra có phạm vi
+  - Nối thông tin profile với phiên bản, thời gian và ngữ cảnh yêu cầu
+  - Giới hạn suy luận và chi phí của phép đo hồ sơ thực thi
+- level1: Định danh và ngữ cảnh
+  level2:
+  - Định danh dịch vụ, instance, phiên bản và môi trường triển khai
+  - Mã yêu cầu nghiệp vụ khác trace ID và span ID
+  - Ngữ cảnh cần được nối qua lời gọi nội bộ và ranh giới mạng
+  - Inject, extract và phạm vi tồn tại của ngữ cảnh
+  - traceparent, tracestate và vai trò của W3C Trace Context
+  - Nhận diện các dạng truyền ngữ cảnh khác như B3
+  - Đổi luồng, reactive và hàng đợi thông điệp có thể làm đứt ngữ cảnh
+  - Baggage, thuộc tính span và giới hạn dữ liệu nhạy cảm được phép truyền
+  - Khôi phục ngữ cảnh đúng phạm vi để tránh dùng nhầm cho yêu cầu khác
+  - Giới hạn tin cậy đối với định danh và metadata nhận từ bên ngoài
+- level1: Thiết kế đo đạc
+  level2:
+  - Gắn phép đo tại điểm vào, điểm ra và ranh giới tài nguyên
+  - Đo tự động khác bổ sung phép đo thủ công trong mã
+  - Vai trò API đo đạc, SDK, agent và thư viện tích hợp
+  - Đo thao tác nghiệp vụ bên cạnh thao tác hạ tầng
+  - Xác định một sự kiện được đếm lúc bắt đầu hay lúc hoàn tất
+  - Đóng span, bộ đo thời gian và phạm vi ngữ cảnh trên mọi đường thoát
+  - Tránh đếm hai lần hoặc tạo span trùng do nhiều lớp tích hợp
+  - Đảm bảo lỗi của hệ thống đo không làm hỏng chức năng chính
+  - Đặt giới hạn bộ đệm, thời hạn gửi và cách ứng xử khi quá tải
+  - Thiết kế hợp đồng đo đạc có thể kiểm thử và quản lý phiên bản
+- level1: Quy ước dữ liệu
+  level2:
+  - Đặt tên metric, sự kiện và thao tác theo ý nghĩa ổn định
+  - Chọn đơn vị đo và tránh trộn giây, mili giây, byte hoặc phần trăm
+  - Thuộc tính dùng phân nhóm khác nội dung chi tiết của từng yêu cầu
+  - Số lượng giá trị khác nhau (cardinality) và số tổ hợp chuỗi thời gian
+  - Vì sao user ID, request ID và URL động dễ làm chi phí tăng mạnh
+  - Dùng tên tuyến xử lý thay URL cụ thể khi phù hợp
+  - Nhận diện tài nguyên khác nhận diện thao tác đang được đo
+  - Quy ước ngữ nghĩa dùng chung giữa dịch vụ và ngôn ngữ
+  - Đổi tên, kiểu dữ liệu hoặc ý nghĩa trường cần lộ trình tương thích
+  - Kiểm soát trường tùy biến và trách nhiệm sở hữu schema
+- level1: Đường ống dữ liệu
+  level2:
+  - Luồng dữ liệu từ nguồn phát tới thu thập, xử lý, lưu trữ và truy vấn
+  - 'Thu dữ liệu kiểu kéo và kiểu đẩy: mô hình vận hành khác nhau'
+  - Agent gần ứng dụng khác collector hoặc gateway tập trung
+  - Vai trò receiver, processor và exporter trong một đường ống
+  - Gửi theo lô, nén và bộ đệm để giảm chi phí truyền
+  - Hàng đợi bền vững, xác nhận tiếp nhận và khả năng phát lại
+  - Thử lại, giới hạn thời gian và nguy cơ mất hoặc trùng dữ liệu
+  - Điều tiết ngược khi bên nhận chậm và cách bảo vệ ứng dụng
+  - Phân tuyến theo loại dữ liệu, môi trường và đích lưu trữ
+  - Tách đường ghi dữ liệu khỏi đường tìm kiếm và hiển thị
+  - Giới hạn của bảo đảm giao nhận từ đầu nguồn đến kết quả truy vấn
+- level1: Thời gian và chất lượng
+  level2:
+  - Đồng hồ thực, đồng hồ đơn điệu và phép đo khoảng thời gian
+  - Múi giờ, UTC, độ chính xác và quy ước timestamp
+  - Đồng hồ lệch giữa máy làm khó việc dựng lại trình tự
+  - Thời điểm sự kiện, thu nhận và có thể truy vấn là các mốc khác nhau
+  - Độ trễ dữ liệu và cửa sổ quan sát chưa hoàn chỉnh
+  - Phân biệt không có dữ liệu với giá trị bằng không
+  - Tính đầy đủ, hợp lệ, nhất quán và khả năng truy nguồn
+  - Phát hiện thiếu nhãn, sai đơn vị, định danh không ổn định hoặc schema đổi
+  - Kiểm đếm dữ liệu qua từng chặng để nhận diện nơi bị mất
+  - Giới hạn suy luận khi dữ liệu thiếu, đến muộn hoặc bị ghi trùng
+- level1: Lấy mẫu và tổng hợp
+  level2:
+  - Lấy mẫu, lọc và tổng hợp làm mất những loại thông tin nào
+  - Lấy mẫu tại đầu yêu cầu và quyết định sau khi thu thập trace
+  - Giữ quyết định lấy mẫu nhất quán trên toàn đường đi
+  - Giữ trace lỗi hoặc chậm và nguy cơ tạo tập dữ liệu thiên lệch
+  - Phân biệt tỷ lệ chọn trace với tỷ lệ giữ từng sự kiện độc lập
+  - Histogram, tổng hợp định kỳ và giảm độ phân giải lịch sử
+  - Cửa sổ ngắn phát hiện nhanh nhưng nhạy nhiễu hơn cửa sổ dài
+  - Không suy ra tỷ lệ lỗi toàn hệ thống từ mẫu được chọn theo lỗi
+  - Chọn thời hạn lưu khác nhau theo mức chi tiết và giá trị điều tra
+  - Đánh giá dữ liệu còn đủ để trả lời câu hỏi sau khi đã giảm bớt
+- level1: Chỉ số vận hành
+  level2:
+  - 'Bốn tín hiệu nền tảng: độ trễ, lưu lượng, lỗi và mức bão hòa'
+  - 'RED cho dịch vụ xử lý yêu cầu: tốc độ, lỗi và thời lượng'
+  - 'USE cho tài nguyên: mức sử dụng, bão hòa và lỗi'
+  - Phân biệt tài nguyên sử dụng cao với tài nguyên đã nghẽn
+  - Thời gian chờ hàng đợi khác thời gian xử lý
+  - Tỷ lệ lỗi phải có mẫu số và phạm vi đo tương ứng
+  - Đo từ phía gọi và phía nhận để nhận diện khác biệt trải nghiệm
+  - Độ mới dữ liệu, lượng tồn đọng và tốc độ xử lý cho công việc bất đồng bộ
+  - Lần thành công gần nhất, thời lượng và kết quả cho công việc theo lô
+  - Chỉ số nghiệp vụ giúp xác nhận người dùng đạt kết quả mong muốn
+- level1: Mục tiêu độ tin cậy
+  level2:
+  - 'SLI, SLO và SLA: phép đo, mục tiêu và cam kết có vai trò khác nhau'
+  - Chọn chỉ báo từ hành trình quan trọng của người dùng
+  - Định nghĩa sự kiện tốt, tổng sự kiện hợp lệ và các loại trừ
+  - Đo khả dụng theo yêu cầu khác đo theo khoảng thời gian
+  - Đặt mục tiêu độ trễ theo tỷ lệ yêu cầu đạt ngưỡng
+  - Độ mới, tính đúng đắn và tính đầy đủ cho hệ thống xử lý dữ liệu
+  - Chọn cửa sổ đánh giá cố định hoặc trượt
+  - Phân đoạn theo khu vực, tuyến xử lý hoặc nhóm người dùng khi cần
+  - Tránh mục tiêu chỉ phản ánh hạ tầng mà bỏ qua kết quả dịch vụ
+  - Đánh giá sai lệch khi ít lưu lượng, thiếu dữ liệu hoặc có retry
+  - Thống nhất chủ sở hữu, nguồn dữ liệu và cách tính SLO
+- level1: Ngân sách lỗi
+  level2:
+  - Ngân sách lỗi là phần không đạt mục tiêu được phép trong một kỳ
+  - Liên hệ giữa mục tiêu SLO, số sự kiện hợp lệ và ngân sách còn lại
+  - Tốc độ tiêu thụ ngân sách lỗi (burn rate)
+  - Phân biệt tỷ lệ lỗi tức thời với mức tiêu thụ trong kỳ
+  - Đánh đổi độ tin cậy, tốc độ thay đổi và chi phí
+  - Dùng chính sách ngân sách lỗi để ưu tiên công việc cải thiện
+  - Tác động của thay đổi mẫu số, phạm vi hoặc cách định nghĩa sự kiện tốt
+  - Giới hạn khi dùng một con số tổng hợp cho nhiều hành trình khác nhau
+- level1: Thiết kế cảnh báo
+  level2:
+  - Cảnh báo phải chỉ ra vấn đề có tác động và hành động cần thực hiện
+  - Phân biệt cảnh báo cần phản ứng ngay với công việc có thể xử lý sau
+  - Cảnh báo theo triệu chứng người dùng và theo nguyên nhân kỹ thuật
+  - Ngưỡng tĩnh, ngưỡng theo bối cảnh và giới hạn phát hiện bất thường
+  - Cửa sổ đánh giá, khoảng chờ và điều kiện phục hồi
+  - Cảnh báo theo burn rate và kết hợp nhiều cửa sổ thời gian
+  - Lưu lượng thấp, dữ liệu mất và trường hợp không có yêu cầu
+  - Nhóm, khử trùng, tạm ngưng và chặn thông báo phụ thuộc
+  - Định tuyến theo người sở hữu và kế hoạch chuyển cấp
+  - Thông báo cần phạm vi, thời điểm, mức độ, liên kết và hướng xử lý
+  - Đo độ chính xác, khả năng bỏ sót, thời gian phát hiện và mức nhiễu
+- level1: Dashboard và trực quan
+  level2:
+  - Mỗi dashboard cần người xem và câu hỏi sử dụng rõ ràng
+  - Tách tổng quan trải nghiệm, sức khỏe dịch vụ và tài nguyên
+  - Chọn biểu đồ cho xu hướng, phân bố, so sánh và quan hệ
+  - Đặt đơn vị, thang đo, nhãn và cửa sổ thời gian nhất quán
+  - Tổng hợp và độ phân giải có thể làm biến mất sự cố ngắn
+  - Hiển thị lưu lượng bên cạnh tỷ lệ lỗi và phân vị độ trễ
+  - Đánh dấu thời điểm triển khai, cấu hình và sự kiện vận hành
+  - Điều hướng từ số liệu tổng quan tới trace, log và profile phù hợp
+  - Phân biệt giá trị bằng không, không có dữ liệu và dữ liệu đã cũ
+  - Kiểm chứng dashboard bằng dữ liệu thật thay vì chỉ đánh giá hình thức
+- level1: Tương quan và điều tra
+  level2:
+  - Tiếp nhận triệu chứng và xác định thời gian, phạm vi, mức tác động
+  - Chốt bối cảnh dịch vụ, phiên bản và thay đổi gần nhất
+  - Bắt đầu từ chỉ số tổng quan rồi thu hẹp theo thuộc tính
+  - Từ bất thường số liệu tới trace đại diện bằng định danh hoặc exemplar
+  - Từ trace tới log để đọc chi tiết quyết định và ngoại lệ
+  - Từ đoạn xử lý chậm tới profile để kiểm tra chi phí trong mã
+  - So sánh trường hợp tốt với trường hợp lỗi trong cùng điều kiện
+  - Đặt giả thuyết, tìm bằng chứng trái chiều và chọn phép kiểm chứng
+  - Phân biệt khôi phục dịch vụ với xác minh nguyên nhân gốc
+  - Ghi lại dòng thời gian, bằng chứng và mức chắc chắn của kết luận
+  - Nhận diện điều chưa biết thay vì khẳng định từ một dạng dữ liệu duy nhất
+- level1: Hệ thống phân tán
+  level2:
+  - Ranh giới mạng và lỗi một phần làm việc quan sát khó hơn
+  - Timeout, retry và hủy yêu cầu tạo ra những góc nhìn khác nhau
+  - Một thao tác nghiệp vụ có thể gồm nhiều lần thử kỹ thuật
+  - Fan-out, fan-in và các nhánh song song ảnh hưởng độ trễ cuối cùng
+  - Hàng đợi thông điệp tách thời gian gửi, chờ và xử lý
+  - Nhiều nguồn đầu vào và liên kết span khác một quan hệ cha–con
+  - Đồng hồ lệch làm thứ tự timestamp khác thứ tự nhân quả
+  - Trace thiếu và dịch vụ chưa được đo tạo các khoảng mù
+  - Phân biệt quan sát dịch vụ, container, node và toàn bộ hành trình
+  - Giới hạn suy luận từ service map và quan hệ gọi được ghi nhận
+  - Nhận diện quá tải lan truyền qua lỗi, hàng đợi và thời gian chờ
+- level1: Góc nhìn Java và JVM
+  level2:
+  - Phân biệt tiến trình JVM, ứng dụng và dịch vụ được triển khai
+  - CPU, heap, GC, luồng và bộ nhớ ngoài heap trong bức tranh tài nguyên
+  - 'Nhóm luồng và nhóm kết nối: số đang dùng, hàng đợi và thời gian chờ'
+  - Điểm vào HTTP, lời gọi ra ngoài và thao tác cơ sở dữ liệu cần theo dõi
+  - Nhật ký có cấu trúc cùng MDC và định danh yêu cầu
+  - Micrometer, Observation và OpenTelemetry nằm ở những lớp nào
+  - Java agent, thư viện tích hợp và phép đo bổ sung trong mã
+  - JFR, thread dump và heap dump bổ sung bằng chứng gì
+  - Đo hệ thống Java bất đồng bộ mà không giả định yêu cầu gắn với một luồng
+  - Điểm kiểm tra sống và sẵn sàng khác bằng chứng dịch vụ đạt SLO
+- level1: Hệ sinh thái công cụ
+  level2:
+  - Phân biệt chuẩn dữ liệu, thư viện đo, collector, backend và giao diện
+  - OpenTelemetry hỗ trợ tạo, thu và xuất dữ liệu; backend chịu trách nhiệm lưu, truy vấn
+  - Micrometer và cầu nối tracing trong hệ sinh thái ứng dụng Java
+  - Prometheus trong thu thập, lưu và truy vấn số liệu đo
+  - Loki hoặc Elasticsearch trong các kiến trúc lưu và tìm kiếm log
+  - Jaeger, Zipkin hoặc Tempo trong kiến trúc truy vết
+  - Grafana và Kibana ở lớp khám phá, trình bày dữ liệu theo nguồn tương thích
+  - Chọn công cụ theo câu hỏi, khả năng tích hợp và năng lực vận hành
+  - Chuẩn hóa giao thức không đồng nghĩa mọi công cụ giữ nguyên toàn bộ ngữ nghĩa
+  - Phân biệt nền tảng tự quản lý với dịch vụ được quản lý
+- level1: Hiệu năng và chi phí
+  level2:
+  - Chi phí đo trong ứng dụng khác chi phí truyền, lưu trữ và truy vấn
+  - Ước lượng lưu lượng từ số yêu cầu, số sự kiện và kích thước bản ghi
+  - Số tổ hợp thuộc tính ảnh hưởng bộ nhớ, số chuỗi và dung lượng
+  - Độ chi tiết span, mức log và độ phân giải số liệu ảnh hưởng giá trị điều tra
+  - Đánh đổi giữa đầy đủ dữ liệu, độ trễ, thời hạn lưu và chi phí
+  - Chọn lọc tại nguồn khác loại bỏ sau khi đã truyền và lưu
+  - Kiểm soát chi phí truy vấn rộng hoặc phân tích thường xuyên
+  - Định mức dữ liệu theo dịch vụ với trách nhiệm sở hữu rõ ràng
+  - Đo chi phí tăng thêm dưới tải trước khi mở rộng phép đo
+  - Giảm dữ liệu không có người sử dụng mà vẫn bảo toàn câu hỏi quan trọng
+- level1: Bảo mật và riêng tư
+  level2:
+  - Nhận diện mật khẩu, token, nội dung yêu cầu và thông tin cá nhân trong telemetry
+  - Không thu, che hoặc loại bỏ dữ liệu nhạy cảm tại ranh giới phù hợp
+  - Phân quyền gửi, đọc, tìm kiếm và quản trị dữ liệu quan sát
+  - Mã hóa kết nối và quản lý thông tin xác thực của các thành phần
+  - Tách môi trường và phạm vi dữ liệu giữa các tổ chức hoặc nhóm
+  - Metadata truyền qua mạng có thể vượt khỏi ranh giới tin cậy
+  - Giới hạn kích thước và xử lý dữ liệu quan sát nhận từ nguồn không tin cậy
+  - Thời hạn lưu, xóa dữ liệu và kiểm soát quyền xuất kết quả
+  - Nhật ký truy cập cùng trách nhiệm quản lý nền tảng quan sát
+- level1: Kiểm thử khả năng quan sát
+  level2:
+  - Định nghĩa kết quả cần quan sát như một tiêu chí của tính năng
+  - Kiểm thử tên phép đo, đơn vị, thuộc tính và số lần ghi nhận
+  - Kiểm thử ngữ cảnh qua HTTP, đổi luồng và thông điệp
+  - Xác nhận lỗi có đủ bối cảnh nhưng không chứa dữ liệu nhạy cảm
+  - Kiểm thử từ nguồn phát tới khả năng tìm lại dữ liệu
+  - Đo độ trễ và độ đầy đủ với lưu lượng đại diện
+  - Giả lập collector chậm, backend ngừng hoặc hàng đợi đầy
+  - Thử cảnh báo với dữ liệu đúng, sai, thiếu và lưu lượng thấp
+  - Thực hành sự cố có kiểm soát để tìm khoảng mù trước khi vận hành
+  - Ngăn hồi quy telemetry khi đổi thư viện, schema hoặc phiên bản ứng dụng
+- level1: Vận hành nền tảng
+  level2:
+  - Quan sát chính hệ thống quan sát bằng chỉ số và kiểm tra độc lập
+  - Theo dõi dữ liệu nhận, xử lý, gửi, bị bỏ và còn trong hàng đợi
+  - Giám sát độ mới của dữ liệu để phát hiện đường thu thập bị đứt
+  - Năng lực chịu tải, mở rộng và các miền lỗi của collector, backend
+  - Khôi phục sau gián đoạn và đối soát dữ liệu bị thiếu hoặc phát lại
+  - Quản lý cấu hình, quy tắc, dashboard và schema bằng phiên bản
+  - Kiểm chứng thay đổi từng phần trước khi áp dụng rộng
+  - Giữ phương án kiểm tra tối thiểu khi giao diện hoặc backend chính hỏng
+  - Kiểm tra quyền truy cập, dung lượng và thời hạn lưu định kỳ
+  - Đo thời gian phát hiện, xác định phạm vi và khôi phục cùng giới hạn của các số trung bình
+- level1: Tổ chức và cải tiến
+  level2:
+  - Phân chia trách nhiệm giữa đội sản phẩm và đội nền tảng
+  - Dịch vụ cần người sở hữu dữ liệu, SLO, dashboard và cảnh báo
+  - Quy trình sẵn sàng vận hành cho một dịch vụ mới
+  - Tài liệu xử lý sự cố (runbook) nối cảnh báo với hành động kiểm chứng
+  - Rút kinh nghiệm sau sự cố (postmortem) để bổ sung dữ liệu còn thiếu
+  - Đánh giá phép đo theo câu hỏi trả lời được và thời gian tìm bằng chứng
+  - Loại bỏ cảnh báo vô ích, dashboard cũ và thuộc tính không còn dùng
+  - Lộ trình cải tiến từ một hành trình quan trọng tới nhiều dịch vụ
+  - Không dùng số lượng metric, log hoặc dashboard làm thước đo đầy đủ về mức trưởng thành
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ một hành trình người dùng và bản đồ các dịch vụ phụ thuộc
+  - Chuyển câu hỏi vận hành thành kế hoạch thu metrics, logs, traces và profiles
+  - Thiết kế số liệu lưu lượng, lỗi và độ trễ cho một API
+  - So sánh trung bình với phân vị khi một nhóm yêu cầu bị chậm
+  - Nối log và trace bằng định danh qua hai dịch vụ
+  - Làm mất ngữ cảnh khi đổi luồng rồi chứng minh cách khôi phục
+  - Đặt SLI, SLO và ngân sách lỗi từ yêu cầu trải nghiệm cụ thể
+  - Thiết kế cảnh báo có tác động, phạm vi và hướng xử lý rõ ràng
+  - Tạo độ trễ, lỗi và nghẽn hàng đợi để thực hành điều tra theo giả thuyết
+  - So sánh dữ liệu đầy đủ với dữ liệu đã lấy mẫu hoặc tổng hợp
+  - Ngắt đường thu thập để phân biệt dịch vụ khỏe với dữ liệu quan sát bị mất
+  - Đánh giá cardinality, chi phí và nguy cơ lộ dữ liệu trong một thiết kế
+  - Viết báo cáo điều tra có bằng chứng, giới hạn kết luận và kế hoạch cải tiến

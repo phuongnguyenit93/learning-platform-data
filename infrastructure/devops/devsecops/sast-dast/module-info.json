@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "DEVSECOPS_SAST_DAST"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Phân biệt phân tích bảo mật tĩnh SAST với kiểm thử động DAST và biết chọn kỹ thuật phù hợp để phát hiện lỗ hổng trong mã nguồn lẫn ứng dụng đang chạy. Thực hành đọc, xác minh kết quả, xử lý cảnh báo sai và đưa các phép kiểm tra vào CI/CD với công cụ như Semgrep, CodeQL, ZAP."
+  }
+}

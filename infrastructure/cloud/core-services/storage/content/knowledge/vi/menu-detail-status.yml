@@ -1,0 +1,2515 @@
+menu:
+- slug: cloud-storage-fundamentals
+  title: Nền tảng cloud storage
+  childs:
+  - slug: cloud-storage-fundamentals-001
+    title: Vai trò của lưu trữ trong kiến trúc đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-fundamentals-002
+    title: Phân biệt object, block và file storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-fundamentals-003
+    title: Lưu trữ bền vững, lưu trữ tạm và ranh giới vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-fundamentals-004
+    title: Dung lượng, thông lượng, IOPS và độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-fundamentals-005
+    title: Độ bền dữ liệu, tính sẵn sàng và SLA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-fundamentals-006
+    title: Storage class, access tier và mô hình tính phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-storage-fundamentals-007
+    title: Chọn loại lưu trữ theo yêu cầu ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: distributed-storage-architecture
+  title: Kiến trúc lưu trữ phân tán
+  childs:
+  - slug: distributed-storage-architecture-001
+    title: Control plane và data plane của dịch vụ lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-storage-architecture-002
+    title: Phân vùng dữ liệu, placement và miền lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-storage-architecture-003
+    title: Nhân bản dữ liệu và erasure coding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-storage-architecture-004
+    title: Quorum và đánh đổi giữa nhất quán với khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-storage-architecture-005
+    title: Vai trò của metadata service và data node
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-storage-architecture-006
+    title: Read repair, tái cân bằng và khôi phục bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-storage-architecture-007
+    title: Giới hạn tài nguyên, quota và mở rộng dung lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: consistency-and-concurrency
+  title: Tính nhất quán và truy cập đồng thời
+  childs:
+  - slug: consistency-and-concurrency-001
+    title: Read-after-write, overwrite và delete consistency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-002
+    title: Phân biệt tính nhất quán của GET, LIST và metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-003
+    title: Atomicity của thao tác đơn lẻ và giới hạn giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-004
+    title: Conditional request với ETag và generation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-005
+    title: Optimistic concurrency và xử lý lost update
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-006
+    title: Lease, khóa phân tán và giới hạn phối hợp qua storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-and-concurrency-007
+    title: Thiết kế idempotency cho thao tác ghi và xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-storage
+  title: Object storage
+  childs:
+  - slug: object-storage-001
+    title: Bucket, container, object và key
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-002
+    title: Namespace phẳng, prefix và mô hình thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-003
+    title: PUT, GET, HEAD, LIST, COPY và DELETE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-004
+    title: Phân trang khi liệt kê object số lượng lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-005
+    title: Metadata hệ thống, metadata tùy chỉnh và object tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-006
+    title: Range request và đọc từng phần object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-007
+    title: Multipart upload, hoàn tất và hủy phiên tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-008
+    title: Giới hạn kích thước, tốc độ yêu cầu và thao tác hàng loạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-009
+    title: Object storage và khác biệt với hệ thống tệp POSIX
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: block-storage
+  title: Block storage
+  childs:
+  - slug: block-storage-001
+    title: Volume, block device và filesystem
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-002
+    title: Volume mạng và ổ đĩa cục bộ của máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-003
+    title: Cấp phát, gắn, tháo và định dạng volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-004
+    title: Chế độ truy cập một máy và nhiều máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-005
+    title: Loại ổ đĩa, provisioned IOPS và throughput
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-006
+    title: Snapshot nhất quán theo crash và theo ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-007
+    title: Mở rộng volume và filesystem an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-storage-008
+    title: TRIM, mã hóa volume và xóa dữ liệu trên block storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: file-storage
+  title: File storage
+  childs:
+  - slug: file-storage-001
+    title: Filesystem dùng chung và mô hình mount
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-002
+    title: Giao thức NFS, SMB và khác biệt ngữ nghĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-003
+    title: Quyền POSIX, ACL và ánh xạ danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-004
+    title: File locking, cache phía client và đồng bộ ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-005
+    title: Thư mục, inode, small file và giới hạn metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-006
+    title: Thông lượng, độ trễ và lựa chọn performance tier
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-007
+    title: Snapshot filesystem và phục hồi tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: file-storage-008
+    title: File storage cho workload chia sẻ và ứng dụng kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-and-ephemeral-storage
+  title: Lưu trữ cho container và workload tạm
+  childs:
+  - slug: container-and-ephemeral-storage-001
+    title: Writable layer, temporary volume và persistent volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-ephemeral-storage-002
+    title: PersistentVolume, PersistentVolumeClaim và StorageClass
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-ephemeral-storage-003
+    title: CSI driver và quy trình cấp phát volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-ephemeral-storage-004
+    title: Access mode, volume binding và topology
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-ephemeral-storage-005
+    title: Reclaim policy và rủi ro mất dữ liệu khi xóa workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-ephemeral-storage-006
+    title: Snapshot, clone và mở rộng volume trong Kubernetes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-ephemeral-storage-007
+    title: Chọn object, block hoặc file cho workload container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-and-metadata-design
+  title: Thiết kế dữ liệu và metadata
+  childs:
+  - slug: data-and-metadata-design-001
+    title: Đặt tên bucket, container và tài nguyên lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-002
+    title: Thiết kế object key theo tenant, thời gian và miền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-003
+    title: Prefix partitioning, hotspot và phân bố tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-004
+    title: Lựa chọn định dạng, nén và kích thước object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-005
+    title: Gộp small file và tối ưu dữ liệu phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-006
+    title: Thiết kế metadata và tag phục vụ tìm kiếm, quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-007
+    title: Manifest, catalog tham chiếu và xử lý object mồ côi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-and-metadata-design-008
+    title: Quy ước phiên bản định dạng và khả năng tương thích dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-access-and-transfer-protocols
+  title: Giao thức truy cập và truyền dữ liệu
+  childs:
+  - slug: data-access-and-transfer-protocols-001
+    title: REST API, SDK và công cụ dòng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-002
+    title: Endpoint, region và lựa chọn đường truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-003
+    title: Ký request, clock skew và thời hạn xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-004
+    title: URL ký trước và quyền truy cập có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-005
+    title: Upload trực tiếp từ trình duyệt và cấu hình CORS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-006
+    title: Tải tiếp sau gián đoạn và truyền dữ liệu song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-007
+    title: Copy phía dịch vụ và chuyển dữ liệu giữa vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-access-and-transfer-protocols-008
+    title: Batch operation, storage gateway và truyền dữ liệu ngoại tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-and-access-management
+  title: Danh tính và phân quyền
+  childs:
+  - slug: identity-and-access-management-001
+    title: Shared responsibility trong bảo mật lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-002
+    title: Identity policy, resource policy và ACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-003
+    title: Thiết kế least privilege theo thao tác và prefix
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-004
+    title: Service identity, workload identity và credential chain
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-005
+    title: Quản lý truy cập public và ngăn công khai ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-006
+    title: Cô lập tenant và phân tách môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-007
+    title: Truy cập liên tài khoản, liên dự án và liên subscription
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-management-008
+    title: Kiểm tra quyền hiệu lực và điều tra lỗi Access Denied
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-networking
+  title: Kết nối mạng cho lưu trữ
+  childs:
+  - slug: storage-networking-001
+    title: Public endpoint, private endpoint và service endpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-networking-002
+    title: Định tuyến và phân giải DNS cho truy cập riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-networking-003
+    title: Firewall, network rule và giới hạn nguồn truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-networking-004
+    title: TLS, chứng chỉ và chính sách truyền dữ liệu an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-networking-005
+    title: Truy cập từ mạng doanh nghiệp qua kết nối hybrid
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-networking-006
+    title: Đường truyền liên vùng và ảnh hưởng của data egress
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-networking-007
+    title: CDN, origin access và cache nội dung từ object storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: encryption-and-key-management
+  title: Mã hóa và quản lý khóa
+  childs:
+  - slug: encryption-and-key-management-001
+    title: Mã hóa khi truyền và khi lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-002
+    title: Khóa do nhà cung cấp quản lý và khóa do khách hàng quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-003
+    title: Envelope encryption và tích hợp dịch vụ quản lý khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-004
+    title: Phân quyền sử dụng khóa và quan hệ với quyền storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-005
+    title: Client-side encryption và quản lý metadata mã hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-006
+    title: Luân chuyển khóa, thay khóa và mã hóa lại dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-007
+    title: Khóa bị vô hiệu hóa, bị xóa và kịch bản phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-008
+    title: Lưu trữ bí mật truy cập và ngăn rò rỉ credential
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-governance-and-protection
+  title: Quản trị và bảo vệ dữ liệu
+  childs:
+  - slug: data-governance-and-protection-001
+    title: Phân loại dữ liệu và gắn nhãn mức độ nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-002
+    title: Data residency, vị trí lưu trữ và luồng sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-003
+    title: Retention policy và thời hạn lưu giữ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-004
+    title: WORM, object lock và legal hold
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-005
+    title: Phân biệt khóa lưu giữ với quyền xóa object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-006
+    title: Soft delete, bảo vệ chống xóa và phòng chống ransomware
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-007
+    title: Audit trail cho truy cập, thay đổi quyền và thao tác quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-governance-and-protection-008
+    title: Quy trình xóa dữ liệu và kiểm chứng phạm vi xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-integrity
+  title: Tính toàn vẹn dữ liệu
+  childs:
+  - slug: data-integrity-001
+    title: Checksum khi upload, download và lưu trữ lâu dài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integrity-002
+    title: Phân biệt checksum, ETag và định danh phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integrity-003
+    title: Kiểm tra toàn vẹn cho multipart upload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integrity-004
+    title: Phát hiện dữ liệu thiếu, trùng và bị hỏng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integrity-005
+    title: Xác minh sau copy, replication và migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integrity-006
+    title: Đối soát bằng inventory, manifest và checksum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-integrity-007
+    title: Thiết kế quy trình sửa chữa dữ liệu có bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: versioning-and-data-lifecycle
+  title: Phiên bản và vòng đời dữ liệu
+  childs:
+  - slug: versioning-and-data-lifecycle-001
+    title: Versioning và định danh từng phiên bản object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-data-lifecycle-002
+    title: Delete marker, phiên bản cũ và khôi phục object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-data-lifecycle-003
+    title: Lifecycle rule theo tuổi dữ liệu, prefix và tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-data-lifecycle-004
+    title: Chuyển storage class và điều kiện lưu trữ tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-data-lifecycle-005
+    title: Archive tier, thời gian phục hồi và quy trình rehydrate
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-data-lifecycle-006
+    title: Dọn phiên bản cũ và multipart upload chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: versioning-and-data-lifecycle-007
+    title: Kiểm tra xung đột giữa lifecycle, retention và replication
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Phân biệt backup, snapshot, versioning và replication
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-002
+    title: Xác định RPO, RTO và phạm vi dữ liệu cần bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-003
+    title: Full backup, incremental backup và consistency group
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-004
+    title: Quiesce ứng dụng và tạo bản sao nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-005
+    title: Lịch backup, retention và backup vault
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-006
+    title: Sao lưu tách tài khoản và bảo vệ bản sao bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-007
+    title: Khôi phục tệp, object, volume và toàn bộ workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-008
+    title: Diễn tập restore và xác minh dữ liệu sau phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: availability-and-disaster-recovery
+  title: Khả dụng và khôi phục thảm họa
+  childs:
+  - slug: availability-and-disaster-recovery-001
+    title: Thiết kế lưu trữ theo zone, region và miền lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-002
+    title: Replication đồng bộ và bất đồng bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-003
+    title: Sao chép object và bảo toàn metadata, phiên bản, quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-004
+    title: Theo dõi replication lag và xử lý replication failure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-005
+    title: Thiết kế active-passive và active-active cho dữ liệu lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-006
+    title: Failover, failback và kiểm soát xung đột dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-007
+    title: Lập runbook khôi phục khi mất zone hoặc region
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: availability-and-disaster-recovery-008
+    title: Đánh giá giới hạn SLA và kiểm chứng mục tiêu phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-and-capacity-planning
+  title: Hiệu năng và hoạch định năng lực
+  childs:
+  - slug: performance-and-capacity-planning-001
+    title: Xác định workload theo kích thước, tần suất và kiểu truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-002
+    title: Đọc tuần tự, đọc ngẫu nhiên và tác động đến loại storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-003
+    title: Benchmark IOPS, throughput và độ trễ theo percentile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-004
+    title: Tối ưu kích thước request, batch và mức song song
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-005
+    title: Connection pool, keep-alive và khoảng cách mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-006
+    title: Read cache, write buffer và giới hạn tính đúng đắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-007
+    title: Throttling, burst credit và giới hạn phía client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-008
+    title: Phát hiện hotspot và nghẽn tại network, disk hoặc metadata
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-and-capacity-planning-009
+    title: Lập kế hoạch tăng trưởng và headroom dung lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-and-resource-optimization
+  title: Chi phí và tối ưu tài nguyên
+  childs:
+  - slug: cost-and-resource-optimization-001
+    title: Tính tổng chi phí capacity, request, retrieval và egress
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-002
+    title: So sánh access tier theo mô hình truy cập thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-003
+    title: Chi phí versioning, snapshot, backup và replication
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-004
+    title: Phí archive retrieval, thời gian lưu tối thiểu và xóa sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-005
+    title: Dọn volume không gắn, snapshot cũ và object không sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-006
+    title: Phân bổ chi phí theo tenant, nhóm và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-007
+    title: Budget, cảnh báo bất thường và kiểm soát tăng trưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-and-resource-optimization-008
+    title: Đánh giá tiết kiệm chi phí cùng yêu cầu hiệu năng và phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-operations
+  title: Quan sát và vận hành
+  childs:
+  - slug: observability-and-operations-001
+    title: Metric dung lượng, số object, request và lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-002
+    title: Metric latency, IOPS, throughput và saturation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-003
+    title: Access log, audit log và liên kết request ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-004
+    title: Theo dõi thao tác storage trong distributed tracing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-005
+    title: Dashboard SLI và cảnh báo theo SLO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-006
+    title: Storage inventory và phát hiện sai lệch cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-007
+    title: Điều tra lỗi timeout, throttling và dịch vụ không sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-008
+    title: Điều tra lỗi quyền, khóa mã hóa và kết nối mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-operations-009
+    title: Runbook vận hành, escalation và hậu kiểm sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-infrastructure-automation
+  title: Tự động hóa hạ tầng lưu trữ
+  childs:
+  - slug: storage-infrastructure-automation-001
+    title: Khai báo bucket, volume và filesystem bằng hạ tầng dưới dạng mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-infrastructure-automation-002
+    title: Tái sử dụng cấu hình theo môi trường và region
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-infrastructure-automation-003
+    title: Quản lý policy, lifecycle, encryption và replication bằng mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-infrastructure-automation-004
+    title: Tham chiếu khóa và danh tính mà không nhúng bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-infrastructure-automation-005
+    title: Import tài nguyên hiện có và phát hiện configuration drift
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-infrastructure-automation-006
+    title: Kiểm soát thay đổi phá hủy và bảo vệ dữ liệu khi teardown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-infrastructure-automation-007
+    title: Policy as code và kiểm tra cấu hình storage trong CI/CD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: migration-and-hybrid-storage
+  title: Di chuyển và lưu trữ hybrid
+  childs:
+  - slug: migration-and-hybrid-storage-001
+    title: Khảo sát nguồn dữ liệu, quyền, dung lượng và cửa sổ chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-002
+    title: Chọn online transfer, offline transfer hoặc storage gateway
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-003
+    title: Lập kế hoạch mapping đường dẫn, metadata và quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-004
+    title: Di chuyển theo lô và đồng bộ phần thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-005
+    title: Giới hạn băng thông, retry và theo dõi tiến độ migration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-006
+    title: Đối soát dữ liệu nguồn đích trước cutover
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-007
+    title: Cutover, rollback và ngừng sử dụng kho nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: migration-and-hybrid-storage-008
+    title: Đánh giá tương thích khi chuyển giữa các nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: amazon-s3
+  title: Amazon S3
+  childs:
+  - slug: amazon-s3-001
+    title: Bucket region, object key và các kiểu endpoint của S3
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-002
+    title: S3 storage class và lựa chọn theo access pattern
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-003
+    title: S3 IAM, bucket policy, access point và Block Public Access
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-004
+    title: S3 versioning, lifecycle và Object Lock
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-005
+    title: S3 multipart upload, checksum và presigned URL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-006
+    title: S3 replication, inventory và Batch Operations
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-007
+    title: S3 event notification và xử lý sự kiện object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: amazon-s3-008
+    title: Tích hợp S3 với CDN, private network và access logging
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aws-block-and-file-storage
+  title: Block và file storage trên AWS
+  childs:
+  - slug: aws-block-and-file-storage-001
+    title: Chọn Amazon EBS, instance store, EFS hoặc FSx
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-block-and-file-storage-002
+    title: Loại EBS volume và cấu hình IOPS, throughput
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-block-and-file-storage-003
+    title: EBS snapshot, mã hóa và mở rộng volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-block-and-file-storage-004
+    title: 'Amazon EFS: mount target, access point và chế độ hiệu năng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-block-and-file-storage-005
+    title: EFS lifecycle, truy cập NFS và quản lý quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-block-and-file-storage-006
+    title: Chọn biến thể Amazon FSx theo filesystem của workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-block-and-file-storage-007
+    title: Sao lưu, quan sát và phục hồi EBS, EFS, FSx
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: azure-blob-storage
+  title: Azure Blob Storage
+  childs:
+  - slug: azure-blob-storage-001
+    title: Storage account, blob container và phân cấp tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-002
+    title: Block blob, append blob và page blob
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-003
+    title: Access tier và mô hình redundancy của Azure Storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-004
+    title: Microsoft Entra ID, Azure RBAC và shared access signature
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-005
+    title: Azure Blob versioning, soft delete và immutable storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-006
+    title: Azure Blob lifecycle, archive và rehydration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-007
+    title: Block upload, checksum và copy blob
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-blob-storage-008
+    title: Blob event, private endpoint và monitoring
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: azure-block-and-file-storage
+  title: Block và file storage trên Azure
+  childs:
+  - slug: azure-block-and-file-storage-001
+    title: Chọn Azure Managed Disks, Azure Files hoặc Azure NetApp Files
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-block-and-file-storage-002
+    title: Managed disk tier, hiệu năng và lựa chọn redundancy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-block-and-file-storage-003
+    title: Snapshot, disk encryption và mở rộng Managed Disks
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-block-and-file-storage-004
+    title: Azure Files qua SMB, NFS và xác thực truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-block-and-file-storage-005
+    title: Azure File Sync và lưu trữ hybrid
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-block-and-file-storage-006
+    title: 'Azure Data Lake Storage: hierarchical namespace và ACL'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-block-and-file-storage-007
+    title: Backup, phục hồi và quan sát disk, file, data lake
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: google-cloud-storage
+  title: Google Cloud Storage
+  childs:
+  - slug: google-cloud-storage-001
+    title: Bucket location, object generation và metageneration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-002
+    title: Storage class, Autoclass và lifecycle management
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-003
+    title: Cloud Storage IAM, uniform bucket-level access và public access prevention
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-004
+    title: Signed URL, signed policy và resumable upload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-005
+    title: Versioning, soft delete, retention policy và object hold
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-006
+    title: Checksum, precondition và thao tác compose object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-007
+    title: Cloud Storage notification và xử lý thay đổi object
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-storage-008
+    title: Private access, audit log và quan sát Cloud Storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: google-cloud-block-and-file-storage
+  title: Block và file storage trên Google Cloud
+  childs:
+  - slug: google-cloud-block-and-file-storage-001
+    title: Chọn Persistent Disk, Hyperdisk, Local SSD hoặc Filestore
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-block-and-file-storage-002
+    title: Loại block storage và cấu hình hiệu năng theo workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-block-and-file-storage-003
+    title: Gắn disk, resize và quản lý vòng đời dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-block-and-file-storage-004
+    title: Snapshot schedule, consistency và phục hồi disk
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-block-and-file-storage-005
+    title: Filestore tier, NFS mount và quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-block-and-file-storage-006
+    title: Thiết kế zone, region và khả năng phục hồi cho disk, file
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-block-and-file-storage-007
+    title: Backup, giám sát và kiểm soát chi phí disk, Filestore
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-storage-integration
+  title: Tích hợp storage trong Java
+  childs:
+  - slug: java-storage-integration-001
+    title: Thiết kế storage interface và ranh giới phụ thuộc nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-002
+    title: Khởi tạo AWS SDK for Java, Azure SDK và Google Cloud client
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-003
+    title: Cấu hình region, endpoint và credential provider
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-004
+    title: Vòng đời client, connection pool và giải phóng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-005
+    title: Phân biệt API đồng bộ, bất đồng bộ và reactive
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-006
+    title: Stream dữ liệu với InputStream, OutputStream và NIO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-007
+    title: Xử lý metadata, content type và content disposition
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-008
+    title: Ánh xạ lỗi SDK thành lỗi nghiệp vụ có ngữ cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-storage-integration-009
+    title: Tích hợp cấu hình storage trong ứng dụng Spring Boot
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-upload-and-download
+  title: Luồng upload và download trong Java
+  childs:
+  - slug: java-upload-and-download-001
+    title: Thiết kế API khởi tạo upload và cấp URL ký trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-002
+    title: Upload trực tiếp qua backend và kiểm soát kích thước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-003
+    title: Multipart upload song song và dọn phiên upload dang dở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-004
+    title: Resumable upload và khôi phục sau gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-005
+    title: Download theo luồng và hỗ trợ HTTP Range
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-006
+    title: Backpressure, hủy tác vụ và giới hạn bộ nhớ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-007
+    title: Kiểm tra checksum và conditional request trong mã Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-008
+    title: Kiểm tra loại tệp, cách ly nội dung và luồng quét mã độc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-upload-and-download-009
+    title: Phân quyền download theo tenant và ngăn lộ object key
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-integration-reliability
+  title: Độ tin cậy của tích hợp storage
+  childs:
+  - slug: storage-integration-reliability-001
+    title: Thiết lập connect timeout, read timeout và tổng thời hạn tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-002
+    title: Phân loại lỗi có thể retry và không thể retry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-003
+    title: Exponential backoff, jitter và retry budget
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-004
+    title: Idempotency key và xử lý kết quả ghi không xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-005
+    title: Giới hạn đồng thời, bulkhead và circuit breaker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-006
+    title: Nhận sự kiện storage theo cơ chế ít nhất một lần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-007
+    title: Khử trùng lặp, xử lý sai thứ tự và chống vòng lặp sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-008
+    title: Phối hợp ghi object với metadata tham chiếu trong ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-integration-reliability-009
+    title: Bù trừ thao tác dở dang và thu gom object mồ côi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-solution-testing
+  title: Kiểm thử giải pháp lưu trữ
+  childs:
+  - slug: storage-solution-testing-001
+    title: Unit test qua storage interface và fake implementation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-002
+    title: Integration test với emulator hoặc môi trường cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-003
+    title: Giới hạn của emulator so với dịch vụ cloud thật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-004
+    title: Contract test cho metadata, versioning và conditional write
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-005
+    title: Kiểm thử quyền truy cập, URL hết hạn và tenant isolation
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-006
+    title: Kiểm thử lỗi mạng, timeout, retry và hủy multipart
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-007
+    title: Load test với phân bố kích thước object và tải thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-008
+    title: Kiểm thử restore, failover và đối soát toàn vẹn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-solution-testing-009
+    title: Dọn tài nguyên kiểm thử và giới hạn chi phí môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-application-patterns
+  title: Mẫu thiết kế ứng dụng dùng storage
+  childs:
+  - slug: storage-application-patterns-001
+    title: Kho tệp đa tenant với quyền truy cập theo người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-002
+    title: Phân phối ảnh, video và tài liệu qua object storage với CDN
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-003
+    title: Pipeline nhập liệu và xử lý bất đồng bộ theo sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-004
+    title: Lưu log, dữ liệu phân tích và vùng dữ liệu raw, curated
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-005
+    title: Vùng trao đổi dữ liệu qua filesystem dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-006
+    title: Lưu trữ nội dung bất biến theo checksum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-007
+    title: Thiết kế lớp storage đa cloud và giới hạn tính di động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-application-patterns-008
+    title: Review kiến trúc theo bảo mật, hiệu năng, chi phí và phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-storage-labs
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-storage-labs-001
+    title: Lập ma trận chọn object, block và file cho các workload mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-002
+    title: Thiết kế bucket riêng tư với mã hóa, lifecycle và audit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-003
+    title: Xây dịch vụ Java upload, download và URL ký trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-004
+    title: Bổ sung multipart, checksum và kiểm soát ghi đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-005
+    title: Tích hợp sự kiện storage với xử lý idempotent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-006
+    title: Di chuyển bộ dữ liệu mẫu và lập báo cáo đối soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-007
+    title: Diễn tập khôi phục dữ liệu sau xóa nhầm và mất vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-storage-labs-008
+    title: Đo tải, tính chi phí và hoàn thiện runbook vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

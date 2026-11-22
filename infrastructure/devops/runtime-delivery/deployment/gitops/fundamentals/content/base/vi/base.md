@@ -1,0 +1,5 @@
+# DevOps Runtime Delivery — Deployment GitOps Fundamentals
+
+GitOps là phương pháp vận hành và triển khai hệ thống dựa trên trạng thái mong muốn được khai báo, lưu phiên bản và kiểm soát qua Git. Một agent trong môi trường chạy tự động lấy cấu hình rồi liên tục so sánh trạng thái thực tế với cấu hình mong muốn để đối soát. Nhờ đó, việc triển khai có lịch sử thay đổi, dễ review và ít phụ thuộc vào các thao tác thủ công trực tiếp trên hệ thống.
+
+Module dành cho người đã biết Git, CI/CD và Kubernetes cơ bản. Bạn sẽ học cách tổ chức manifest theo môi trường, phối hợp CI với quy trình cập nhật cấu hình trong Git, hiểu vai trò GitOps controller qua Argo CD hoặc Flux và quan sát sync, drift, health. Phần tiếp theo tập trung vào promotion, khôi phục bằng commit, bảo vệ secrets, phân quyền và giám sát các lần đối soát. Sau lộ trình, bạn có thể mô tả và triển khai thử một quy trình GitOps đơn giản, đồng thời phân biệt được việc quay lại cấu hình cũ với các cơ chế rollback cụ thể của công cụ.

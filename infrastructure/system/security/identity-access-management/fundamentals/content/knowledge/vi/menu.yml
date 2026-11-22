@@ -1,0 +1,574 @@
+menu:
+- level1: Nền tảng IAM
+  level2:
+  - Identity and Access Management là gì
+  - Identity, authentication và authorization
+  - Access control khác authorization như thế nào
+  - Human identity và workload identity
+  - Account, principal và subject
+  - Resource và protected operation
+  - Identity boundary và trust boundary
+  - IAM trong kiến trúc ứng dụng
+  - IAM như một security control plane
+  - Khi nào cần tập trung hóa IAM
+- level1: Mô hình định danh
+  level2:
+  - Digital identity
+  - Claimed identity
+  - Verified identity
+  - Authenticated identity
+  - Federated identity
+  - Local identity
+  - External identity
+  - Anonymous identity
+  - Pseudonymous identity
+  - Identity attributes
+  - Identity uniqueness
+  - Identity correlation
+- level1: Actor và vai trò
+  level2:
+  - Subject
+  - User
+  - Administrator
+  - Operator
+  - Service
+  - Device
+  - Credential Service Provider
+  - Identity Provider
+  - Relying Party
+  - Resource owner
+  - Policy administrator
+  - Policy decision point
+  - Policy enforcement point
+- level1: Identity assurance
+  level2:
+  - Identity Assurance Level
+  - Authentication Assurance Level
+  - Federation Assurance Level
+  - IAL1
+  - IAL2
+  - IAL3
+  - AAL1
+  - AAL2
+  - AAL3
+  - FAL1
+  - FAL2
+  - FAL3
+  - Chọn assurance theo impact
+  - Risk-based assurance
+- level1: Identity proofing
+  level2:
+  - Identity proofing là gì
+  - Applicant và subscriber
+  - Identity evidence
+  - Evidence validation
+  - Attribute validation
+  - Attribute verification
+  - Remote unattended proofing
+  - Remote attended proofing
+  - In-person proofing
+  - Enrollment
+  - Fraud detection
+  - Proofing failure
+  - Privacy trong identity proofing
+- level1: Identity lifecycle
+  level2:
+  - Identity creation
+  - Identity enrollment
+  - Identity activation
+  - Identity update
+  - Identity suspension
+  - Identity reactivation
+  - Identity deactivation
+  - Identity deletion
+  - Identity archival
+  - Identity merge
+  - Identity duplicate
+  - Identity recovery
+  - Lifecycle state transition
+- level1: Account lifecycle
+  level2:
+  - Account provisioning
+  - Account activation
+  - Account ownership
+  - Account attribute change
+  - Account lock
+  - Account disable
+  - Account deletion
+  - Dormant account
+  - Orphan account
+  - Shared account
+  - Break-glass account
+  - Account review
+  - Account recertification
+- level1: Authenticator và credential
+  level2:
+  - Authenticator là gì
+  - Credential là gì
+  - Knowledge factor
+  - Possession factor
+  - Inherence factor
+  - Password
+  - One-time password
+  - Security key
+  - Passkey
+  - Client certificate
+  - Authenticator binding
+  - Authenticator replacement
+  - Authenticator loss
+  - Authenticator revocation
+- level1: Authentication
+  level2:
+  - Authentication process
+  - Credential verification
+  - Multi-factor authentication
+  - Step-up authentication
+  - Risk-based authentication
+  - Adaptive authentication
+  - Reauthentication
+  - Authentication failure
+  - Account lockout
+  - Brute-force protection
+  - Credential stuffing defense
+  - User enumeration defense
+  - Authentication event
+- level1: Password authentication
+  level2:
+  - Password policy
+  - Password length
+  - Password complexity
+  - Password hashing
+  - Password salt
+  - Password breach check
+  - Password change
+  - Password reset
+  - Password recovery
+  - Temporary password
+  - Password reuse
+  - Password compromise
+  - Không lưu password plaintext
+  - Thông báo lỗi đăng nhập an toàn
+- level1: MFA và recovery
+  level2:
+  - MFA enrollment
+  - MFA challenge
+  - MFA factor binding
+  - MFA backup factor
+  - MFA recovery code
+  - MFA device loss
+  - MFA reset
+  - MFA fatigue
+  - Phishing-resistant MFA
+  - Step-up sau sự kiện rủi ro
+  - Recovery không làm yếu assurance
+  - Audit thay đổi MFA
+- level1: Session management
+  level2:
+  - Session là gì
+  - Session identifier
+  - Session secret
+  - Session fixation
+  - Session hijacking
+  - Session timeout
+  - Idle timeout
+  - Absolute timeout
+  - Session rotation
+  - Logout
+  - Concurrent session
+  - Reauthentication
+  - Session store
+  - Session cookie
+- level1: Authorization fundamentals
+  level2:
+  - Authorization decision
+  - Permission
+  - Privilege
+  - Role
+  - Policy
+  - Resource ownership
+  - Action và operation
+  - Subject-resource-action
+  - Deny by default
+  - Least privilege
+  - Need to know
+  - Every request authorization
+  - Server-side enforcement
+- level1: RBAC
+  level2:
+  - Role-Based Access Control
+  - Role assignment
+  - Permission assignment
+  - Role hierarchy
+  - Static separation of duties
+  - Dynamic separation of duties
+  - Default role
+  - Privileged role
+  - Temporary role
+  - Role explosion
+  - Role review
+  - Role mining
+  - RBAC trong ứng dụng
+- level1: ABAC và policy
+  level2:
+  - Attribute-Based Access Control
+  - Subject attributes
+  - Resource attributes
+  - Action attributes
+  - Environment attributes
+  - Policy condition
+  - Policy combination
+  - Policy conflict
+  - Policy evaluation
+  - Policy versioning
+  - Policy decision point
+  - Policy enforcement point
+  - ABAC và context
+- level1: ReBAC và ownership
+  level2:
+  - Relationship-Based Access Control
+  - Relationship giữa subject và resource
+  - Resource owner
+  - Organization membership
+  - Team membership
+  - Parent-child resource
+  - Delegated access
+  - Shared resource
+  - Inherited permission
+  - Revocation của delegated access
+  - Direct object authorization
+  - ReBAC và multi-tenant
+- level1: Access control model
+  level2:
+  - ACL
+  - Capability
+  - Policy list
+  - Centralized authorization
+  - Distributed authorization
+  - Coarse-grained access
+  - Fine-grained access
+  - Field-level access
+  - Row-level access
+  - Object-level access
+  - Function-level access
+  - Network-level access
+  - Defense in depth cho authorization
+- level1: Identity attributes
+  level2:
+  - Stable subject identifier
+  - Display name
+  - Email attribute
+  - Group attribute
+  - Role attribute
+  - Tenant attribute
+  - Department attribute
+  - Assurance attribute
+  - Credential status
+  - Attribute source
+  - Attribute authority
+  - Attribute freshness
+  - Attribute conflict
+  - Attribute privacy
+- level1: Directory và identity store
+  level2:
+  - Identity store
+  - User directory
+  - Group directory
+  - LDAP directory
+  - Database identity store
+  - External directory
+  - Directory schema
+  - Unique identifier
+  - Directory synchronization
+  - Read replica
+  - Identity store backup
+  - Identity store availability
+  - Identity store access control
+- level1: Provisioning và deprovisioning
+  level2:
+  - Joiner process
+  - Mover process
+  - Leaver process
+  - Manual provisioning
+  - Automated provisioning
+  - Just-in-time provisioning
+  - Just-in-time deprovisioning
+  - Account disable on exit
+  - Role change propagation
+  - Provisioning failure
+  - Reconciliation
+  - Approval workflow
+  - Provisioning audit
+- level1: Identity governance
+  level2:
+  - Identity governance là gì
+  - Access request
+  - Access approval
+  - Access review
+  - Access certification
+  - Entitlement catalog
+  - Segregation of duties
+  - Privileged access review
+  - Inactive access review
+  - Exception management
+  - Governance evidence
+  - Owner accountability
+  - Periodic recertification
+- level1: Federation fundamentals
+  level2:
+  - Identity federation là gì
+  - Identity Provider
+  - Relying Party
+  - Service Provider
+  - Federation assertion
+  - Federation protocol
+  - Trust relationship
+  - Federation metadata
+  - Single Sign-On
+  - Single Logout
+  - Attribute release
+  - Federation assurance
+  - Federation failure
+- level1: OAuth và OIDC overview
+  level2:
+  - OAuth 2.0 là gì
+  - OpenID Connect là gì
+  - Resource owner
+  - Client
+  - Authorization server
+  - Resource server
+  - Authorization code
+  - Access token
+  - ID token
+  - Refresh token
+  - Scope
+  - Claim
+  - PKCE
+  - Nonce
+  - State parameter
+- level1: SAML và assertion
+  level2:
+  - SAML là gì
+  - SAML identity provider
+  - SAML service provider
+  - SAML assertion
+  - Authentication statement
+  - Attribute statement
+  - NameID
+  - Metadata exchange
+  - Assertion signature
+  - Audience restriction
+  - Assertion lifetime
+  - Replay protection
+  - Single Logout
+- level1: Token và claim
+  level2:
+  - Token là gì
+  - Opaque token
+  - Self-contained token
+  - Token issuer
+  - Token audience
+  - Token subject
+  - Token scope
+  - Token role
+  - Token expiration
+  - Token revocation
+  - Token introspection
+  - Token replay
+  - Claim validation
+  - Không tin claim chưa kiểm chứng
+- level1: Workload identity
+  level2:
+  - Workload identity là gì
+  - Service identity
+  - Machine identity
+  - Application identity
+  - Pod identity
+  - Cloud workload identity
+  - Service-to-service authentication
+  - Short-lived credential
+  - Identity attestation
+  - Workload identity federation
+  - Identity rotation
+  - Workload decommissioning
+  - Human identity khác workload identity
+- level1: Service account
+  level2:
+  - Service account là gì
+  - Service account owner
+  - Service account scope
+  - Service account credential
+  - Non-interactive authentication
+  - Service account rotation
+  - Service account disable
+  - Shared service account
+  - Service account privilege
+  - Service account audit
+  - Machine-to-machine access
+  - Break-glass service account
+- level1: Privileged access
+  level2:
+  - Privileged access là gì
+  - Privileged account
+  - Privileged role
+  - Just-in-time privilege
+  - Just-enough administration
+  - Privilege elevation
+  - Approval trước elevation
+  - Session recording
+  - Privileged credential vault
+  - Emergency access
+  - Privilege review
+  - Admin action audit
+  - Tách tài khoản admin và user
+- level1: Multi-tenant IAM
+  level2:
+  - Tenant isolation
+  - Tenant identifier
+  - Tenant membership
+  - Tenant administrator
+  - Cross-tenant access
+  - Tenant-scoped role
+  - Tenant-scoped policy
+  - Tenant-scoped token
+  - Tenant data boundary
+  - Tenant onboarding
+  - Tenant offboarding
+  - Tenant migration
+  - Kiểm thử cross-tenant access
+- level1: Zero Trust và IAM
+  level2:
+  - Zero Trust identity principle
+  - Never trust always verify
+  - Continuous verification
+  - Explicit identity context
+  - Device context
+  - Network context
+  - Risk context
+  - Least privilege access
+  - Micro-perimeter
+  - Policy enforcement gần resource
+  - Identity signal
+  - Continuous access evaluation
+- level1: IAM security controls
+  level2:
+  - Deny by default
+  - Least privilege
+  - Separation of duties
+  - Defense in depth
+  - Strong authentication
+  - Short-lived credential
+  - Credential rotation
+  - Authorization on every request
+  - Audit security event
+  - Rate limit authentication
+  - Protect recovery flow
+  - Fail closed
+  - Secure default
+- level1: Logging và audit IAM
+  level2:
+  - Login success
+  - Login failure
+  - MFA event
+  - Password change
+  - Password reset
+  - Role assignment
+  - Permission change
+  - Privilege elevation
+  - Token issuance
+  - Token revocation
+  - Account disable
+  - Federation failure
+  - Authorization denial
+  - Audit integrity
+  - Audit retention
+- level1: IAM observability
+  level2:
+  - Authentication rate
+  - Authentication failure rate
+  - MFA challenge rate
+  - Account lockout rate
+  - Authorization denial rate
+  - Privilege elevation count
+  - Token issuance latency
+  - Directory latency
+  - Provisioning backlog
+  - Federation error rate
+  - Identity store health
+  - Alert theo anomaly
+  - Correlation ID trong IAM
+- level1: Privacy và identity
+  level2:
+  - Data minimization
+  - Identity attribute minimization
+  - Purpose limitation
+  - Consent cho attribute
+  - Attribute release policy
+  - PII trong token
+  - PII trong log
+  - Identity proofing privacy
+  - Account deletion
+  - Identity retention
+  - Pseudonymous identifier
+  - Cross-border identity data
+  - Privacy audit
+- level1: IAM architecture
+  level2:
+  - Centralized IAM
+  - Decentralized IAM
+  - Identity plane
+  - Policy plane
+  - Application plane
+  - Authentication boundary
+  - Authorization boundary
+  - Token trust boundary
+  - Directory boundary
+  - Federation boundary
+  - Failure domain của IAM
+  - Availability của IdP
+  - Fallback khi IAM unavailable
+- level1: IAM testing
+  level2:
+  - Authentication test
+  - MFA test
+  - Session test
+  - Authorization matrix test
+  - Object-level authorization test
+  - Role escalation test
+  - Tenant isolation test
+  - Token validation test
+  - Token replay test
+  - Federation assertion test
+  - Provisioning test
+  - Deprovisioning test
+  - Recovery flow test
+  - Audit event test
+- level1: Standards và assurance
+  level2:
+  - NIST SP 800-63
+  - Identity Assurance Level
+  - Authentication Assurance Level
+  - Federation Assurance Level
+  - OWASP Authentication Cheat Sheet
+  - OWASP Authorization Cheat Sheet
+  - OWASP Session Management Cheat Sheet
+  - ASVS authentication
+  - ASVS access control
+  - ASVS session management
+  - Security control mapping
+  - Risk-based IAM assurance
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế identity model cho ứng dụng
+  - Thiết kế user lifecycle
+  - Thiết kế authentication flow
+  - Thiết kế MFA recovery
+  - Thiết kế authorization matrix
+  - Thiết kế RBAC cho admin
+  - Thiết kế ABAC theo tenant
+  - Thiết kế service account
+  - Thiết kế SSO boundary
+  - Thiết kế token validation
+  - Thiết kế access review
+  - Thiết kế IAM audit dashboard
+  - Mô phỏng user offboarding
+  - Checklist production IAM readiness

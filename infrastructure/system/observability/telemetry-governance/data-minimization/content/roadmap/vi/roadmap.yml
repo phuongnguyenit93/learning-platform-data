@@ -1,0 +1,49 @@
+roadmap:
+- id: muc-dich-thu-thap
+  title: Mục đích thu thập
+  purpose: Xác định giá trị quan sát cần đạt để chỉ giữ telemetry phục vụ chẩn đoán và vận hành.
+  objectives:
+  - Nêu câu hỏi vận hành mà telemetry cần trả lời.
+  - Đặt tiêu chí giữ hoặc loại từng tín hiệu.
+- id: kiem-ke-phan-loai
+  title: Kiểm kê & Phân loại
+  purpose: Biết dữ liệu nào đi qua logs, metrics và traces, đồng thời nhận diện rủi ro thông tin nhạy cảm.
+  objectives:
+  - Kiểm kê nguồn và luồng xuất telemetry.
+  - Phân loại PII, token, nội dung nghiệp vụ và dữ liệu kỹ thuật.
+  - Xác định chủ sở hữu dữ liệu.
+- id: thu-thap-toi-thieu
+  title: Thu thập tối thiểu
+  purpose: Ngăn dữ liệu không cần thiết xuất hiện ngay từ bước instrumentation.
+  objectives:
+  - Thiết kế danh sách attribute được phép thu thập.
+  - Loại bỏ payload, định danh cá nhân và trường dư thừa.
+  - Ưu tiên dữ liệu tổng hợp hoặc ít chi tiết hơn.
+- id: loc-che-du-lieu
+  title: Lọc & Che dữ liệu
+  purpose: Giảm rủi ro rò rỉ trong pipeline trước khi dữ liệu tới backend.
+  objectives:
+  - Áp dụng filter, redaction hoặc transform trong Collector.
+  - Kiểm tra việc loại bỏ token, email và trường nhạy cảm.
+  - Nhận biết giới hạn của hashing đối với định danh dễ đoán.
+- id: giam-khoi-luong
+  title: Giảm khối lượng
+  purpose: Kiểm soát chi phí và tải xử lý bằng cách hạn chế telemetry không thiết yếu.
+  objectives:
+  - Điều chỉnh trace sampling theo mục tiêu chẩn đoán.
+  - Giảm log dư thừa và hạn chế cardinality của metric tags.
+  - Đo tác động của quy tắc giảm dữ liệu.
+- id: luu-tru-truy-cap
+  title: Lưu trữ & Truy cập
+  purpose: Giới hạn thời gian lưu và phạm vi sử dụng dữ liệu telemetry sau khi thu thập.
+  objectives:
+  - Chọn retention phù hợp nhu cầu vận hành.
+  - Phân quyền xem, truy vấn và xuất dữ liệu.
+  - Kiểm tra đích nhận và luồng chia sẻ dữ liệu.
+- id: kiem-thu-ra-soat
+  title: Kiểm thử & Rà soát
+  purpose: Duy trì tính hiệu quả của chính sách giảm dữ liệu qua thay đổi hệ thống.
+  objectives:
+  - Dùng dữ liệu thử để phát hiện trường nhạy cảm còn lọt qua.
+  - Theo dõi khối lượng, cardinality và lỗi xử lý.
+  - Định kỳ rà soát chính sách và lưu bằng chứng kiểm tra.

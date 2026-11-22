@@ -1,0 +1,324 @@
+menu:
+- level1: Tổng quan Zipkin
+  level2:
+  - Zipkin là gì và giúp trả lời câu hỏi nào về một yêu cầu phân tán
+  - 'Trace, span và ngữ cảnh truy vết: các khái niệm trước khi dùng công cụ'
+  - Vì sao nhật ký riêng từng dịch vụ chưa đủ để lần theo một yêu cầu
+  - Vai trò của Zipkin bên cạnh hệ thống nhật ký và số liệu đo
+  - Phân biệt Zipkin Server, thư viện tạo span và giao thức truyền dữ liệu
+  - Hành trình một yêu cầu qua nhiều dịch vụ và cách Zipkin biểu diễn
+  - Khả năng, giới hạn và phạm vi sử dụng Zipkin
+  - Kiến thức nền và thứ tự học từ chạy thử đến vận hành
+- level1: Kiến trúc hệ thống
+  level2:
+  - Luồng dữ liệu từ ứng dụng đến bộ thu, kho lưu trữ, API và giao diện
+  - Thành phần đo đạc tạo span; reporter gửi span đã hoàn tất
+  - Truyền định danh trong yêu cầu khác gửi dữ liệu span ngoài luồng xử lý
+  - Vai trò của collector trong giải mã, kiểm tra và chuyển span tới kho lưu trữ
+  - Đường ghi span khác đường tìm kiếm và đọc trace
+  - Độ trễ thu nhận, lập chỉ mục và khả năng xuất hiện muộn trên giao diện
+  - Ranh giới lỗi giữa ứng dụng nghiệp vụ và hệ thống tracing
+  - Zipkin là dịch vụ độc lập và giới hạn của cách nhúng server vào ứng dụng
+- level1: Cài đặt và cấu hình
+  level2:
+  - Chọn phiên bản Zipkin, yêu cầu Java và tài liệu cấu hình tương ứng
+  - Chạy Zipkin bằng Docker với cổng dịch vụ được ánh xạ rõ ràng
+  - Chạy bản JAR độc lập và kiểm tra tiến trình khởi động
+  - So sánh bản đầy đủ với Zipkin Slim theo thành phần được đóng gói
+  - Truy cập giao diện, kiểm tra /health và nhận diện phiên bản qua /info
+  - Cấu hình bằng biến môi trường, tham số chạy và tệp cấu hình
+  - Địa chỉ localhost trong máy chủ, container và mạng Docker
+  - Dùng Docker Compose cho môi trường học có Zipkin và dịch vụ mẫu
+  - Ghim phiên bản image, tách cấu hình môi trường và lưu cách tái hiện
+- level1: Trace đầu tiên
+  level2:
+  - Chuẩn bị hai dịch vụ có một lời gọi HTTP liên tiếp
+  - Đặt tên dịch vụ và cấu hình địa chỉ nhận span
+  - Tạo yêu cầu mẫu rồi chờ span được gửi khỏi ứng dụng
+  - Tìm trace vừa tạo bằng dịch vụ và khoảng thời gian
+  - Mở trace để nhận diện span gốc, span con và lời gọi từ xa
+  - Đối chiếu trace ID giữa đầu vào, nhật ký và giao diện Zipkin
+  - Chủ động tạo độ trễ hoặc lỗi để thấy dữ liệu thay đổi
+  - Đọc JSON span mẫu và nối từng trường với kết quả hiển thị
+- level1: Mô hình span
+  level2:
+  - 'traceId, id và parentId: định danh và quan hệ cha–con'
+  - Trace ID 64 bit, 128 bit và quy tắc biểu diễn hexadecimal
+  - Tên span, thời điểm bắt đầu và thời lượng thực hiện
+  - Đơn vị microsecond của timestamp, duration và khác biệt với tham số truy vấn
+  - Các loại span CLIENT, SERVER, PRODUCER và CONSUMER
+  - localEndpoint, remoteEndpoint và cách nhận diện hai đầu giao tiếp
+  - Tags biểu diễn thuộc tính; annotations đánh dấu sự kiện theo thời gian
+  - Span nội bộ, span gốc và trường hợp chưa nhận được span cha
+  - Shared span và mô hình hai span riêng cho phía gọi, phía nhận
+  - Trường debug, shared và tương thích dữ liệu Zipkin v2
+  - 'Vòng đời span: tạo, đưa vào ngữ cảnh, kết thúc và báo cáo'
+- level1: Lan truyền ngữ cảnh
+  level2:
+  - Ngữ cảnh truy vết gồm gì và vì sao phải truyền qua ranh giới dịch vụ
+  - 'Inject và extract: ghi, đọc ngữ cảnh tại phía gửi và phía nhận'
+  - 'B3 nhiều header: X-B3-TraceId, X-B3-SpanId và thông tin liên quan'
+  - B3 một header b3 và quy tắc ưu tiên khi có nhiều dạng mã hóa
+  - Trạng thái lấy mẫu chưa quyết định, chấp nhận, từ chối và debug
+  - Quan hệ giữa định danh được truyền và cấu trúc span được tạo
+  - B3 khác W3C Trace Context; vai trò của bộ truyền ngữ cảnh tương thích
+  - Ngữ cảnh tracing khác dữ liệu baggage và thuộc tính nghiệp vụ
+  - Proxy, gateway và thư viện HTTP có thể làm mất header như thế nào
+  - Kiểm tra định danh đi qua nhiều dịch vụ mà không tạo trace mới ngoài ý muốn
+- level1: Lấy mẫu trace
+  level2:
+  - Vì sao lấy mẫu và những thông tin có thể bị bỏ lỡ
+  - Lấy mẫu tại đầu yêu cầu và duy trì quyết định qua các dịch vụ
+  - Lấy mẫu theo xác suất và giới hạn số lượng theo thời gian
+  - Lấy mẫu tại tracer khác cấu hình lấy mẫu ở collector
+  - Quyết định không lấy mẫu vẫn có thể đi cùng ngữ cảnh được truyền
+  - Debug sampling và cách giới hạn quyền buộc ghi trace
+  - Giới hạn của lấy mẫu đầu vào khi muốn giữ mọi yêu cầu chậm hoặc lỗi
+  - Lấy mẫu sau khi thu thập cần thành phần xử lý phù hợp ngoài Zipkin thông thường
+  - Chọn tỷ lệ theo môi trường, lưu lượng và chi phí lưu trữ
+  - Không suy ra tỷ lệ lỗi hoặc phân vị toàn hệ thống từ tập trace được chọn tùy ý
+- level1: Tích hợp Brave
+  level2:
+  - Vai trò của Tracing, Tracer và cấu hình tên dịch vụ trong Brave
+  - Tạo span mới, span con và nối với ngữ cảnh nhận được
+  - Đặt span hiện tại bằng scope và khôi phục ngữ cảnh sau xử lý
+  - Phân biệt kết thúc scope với kết thúc vòng đời span
+  - Gắn thẻ, đánh dấu sự kiện và ghi nhận lỗi
+  - Chọn thư viện instrumentation sẵn có trước khi tự bọc lời gọi
+  - Kết nối AsyncZipkinSpanHandler với sender gửi tới Zipkin
+  - Đóng thành phần tracing và gửi nốt dữ liệu khi ứng dụng dừng
+  - Tránh span trùng khi cùng thao tác đã được đo tự động
+- level1: Spring Boot và Micrometer
+  level2:
+  - Quan hệ giữa Observation, Micrometer Tracing, Brave và Zipkin
+  - Chọn dependency và bridge theo dòng phiên bản Spring Boot đang dùng
+  - Tích hợp Brave với Actuator và Zipkin reporter trong Spring Boot 3
+  - Cấu hình tên ứng dụng, địa chỉ nhận span và xác suất lấy mẫu
+  - Đọc cấu hình tracing hiệu lực thay vì giả định các giá trị mặc định
+  - Tạo observation hoặc span thủ công cho thao tác nghiệp vụ cần theo dõi
+  - Trace ID và span ID trong MDC để liên kết nhật ký
+  - Dùng HTTP client từ builder được tự cấu hình để giữ instrumentation
+  - Ngăn xung đột khi dùng đồng thời agent, bridge và thư viện đo tự động
+  - Phân biệt hướng dẫn Spring Cloud Sleuth cũ với Micrometer Tracing
+- level1: Giao tiếp đồng bộ
+  level2:
+  - Theo dõi lời gọi HTTP đi vào và đi ra giữa các dịch vụ
+  - Chọn tên span theo tuyến xử lý thay vì URL chứa định danh động
+  - Phản ánh mã phản hồi, ngoại lệ và lỗi mạng bằng metadata phù hợp
+  - 'Theo dõi retry: phân biệt lần thử với toàn bộ thao tác nghiệp vụ'
+  - Quan sát timeout và khoảng thời gian chờ dịch vụ phía sau
+  - Đo truy vấn cơ sở dữ liệu bằng instrumentation có hỗ trợ
+  - Nhận diện thời gian chờ kết nối khác thời gian thực thi truy vấn
+  - Tránh ghi toàn bộ câu SQL, tham số hoặc nội dung yêu cầu nhạy cảm
+  - Gateway, proxy và dịch vụ chưa được đo tạo khoảng trống trong trace
+- level1: Bất đồng bộ và thông điệp
+  level2:
+  - Truyền ngữ cảnh khi chuyển tác vụ sang executor hoặc nhóm luồng
+  - Vì sao ThreadLocal không tự theo công việc qua mọi ranh giới bất đồng bộ
+  - Khôi phục và đóng scope đúng cách để tránh ngữ cảnh bị dùng nhầm
+  - Theo dõi chuỗi reactive mà không giả định một yêu cầu luôn ở một luồng
+  - Đưa ngữ cảnh vào header thông điệp và lấy lại ở bên tiêu thụ
+  - Span PRODUCER, CONSUMER và thời gian chờ trong hàng đợi
+  - Retry, gửi lại và tiêu thụ theo lô ảnh hưởng cấu trúc trace
+  - Xử lý fan-out, fan-in và nhiều nguồn cha khi ánh xạ sang mô hình Zipkin
+  - Tác vụ chạy theo lịch và lựa chọn tạo trace gốc mới
+  - Hoàn tất span theo vòng đời công việc thay vì lúc gửi tác vụ
+- level1: Tích hợp OpenTelemetry
+  level2:
+  - Phân biệt OTLP, định dạng Zipkin v2 và bộ xuất dữ liệu
+  - 'Các đường tích hợp: gửi Zipkin v2, qua OpenTelemetry Collector hoặc module OTLP'
+  - Tình trạng ngừng phát triển Zipkin exporter của OpenTelemetry SDK và hướng chuyển đổi
+  - Cấu hình Collector nhận OTLP và xuất trace tới Zipkin
+  - 'zipkin-otel: điều kiện dùng module, giao thức hỗ trợ và trạng thái thử nghiệm'
+  - Xác minh image, module và endpoint trước khi gửi OTLP trực tiếp
+  - Ánh xạ resource, attributes, events và status sang dữ liệu Zipkin
+  - Giới hạn biểu diễn span links và dữ liệu đa tín hiệu
+  - Bảo toàn trace ID và ngữ cảnh khi các dịch vụ dùng thư viện tracing khác nhau
+  - Kiểm chứng tương thích phiên bản thay vì suy từ việc cùng dùng OpenTelemetry
+- level1: Đặt tên và gắn thẻ
+  level2:
+  - Quy ước tên dịch vụ ổn định giữa các phiên bản và bản sao
+  - Tên span mô tả thao tác với số lượng giá trị khác nhau có kiểm soát
+  - Chọn tags để tìm trace theo môi trường, tuyến xử lý và loại lỗi
+  - Phân biệt tên dịch vụ với địa chỉ instance và thuộc tính triển khai
+  - Giữ khóa và ý nghĩa metadata nhất quán giữa các dịch vụ
+  - Giới hạn số lượng, kích thước tags và annotations
+  - Loại bỏ mật khẩu, token và thông tin cá nhân trước khi xuất dữ liệu
+  - Tự hoàn thành khóa, giá trị tag và giới hạn cấu hình tìm kiếm
+- level1: Gửi và thu nhận span
+  level2:
+  - Gửi span theo lô để giảm chi phí kết nối và mã hóa
+  - Hàng đợi reporter, chu kỳ gửi và giới hạn bộ đệm
+  - POST /api/v2/spans với JSON hoặc Protobuf đúng Content-Type
+  - Thời hạn kết nối, thời hạn gửi và tác động khi Zipkin không phản hồi
+  - Xử lý lỗi gửi, chính sách thử lại và nguy cơ span bị mất hoặc trùng
+  - Phản hồi chấp nhận dữ liệu chưa bảo đảm trace đã xuất hiện khi tìm kiếm
+  - Lựa chọn HTTP hoặc transport qua hệ thống thông điệp theo bản phân phối
+  - Kafka, RabbitMQ và vai trò bộ đệm giữa ứng dụng với collector
+  - Theo dõi span bị bỏ do hàng đợi đầy, dữ liệu lỗi hoặc kho lưu trữ hỏng
+  - Gửi nốt dữ liệu khi dừng và giới hạn bảo đảm khi tiến trình bị tắt đột ngột
+- level1: Tìm kiếm trên giao diện
+  level2:
+  - Chọn dịch vụ, tên span và cửa sổ thời gian cần điều tra
+  - Lọc trace bằng tags và annotations trong khả năng truy vấn của Zipkin
+  - Lọc theo thời lượng tối thiểu, tối đa và giới hạn số kết quả
+  - Tìm trực tiếp bằng trace ID khi đã có định danh trong nhật ký
+  - Đọc danh sách kết quả theo thời lượng, dịch vụ và thông tin lỗi
+  - Mở chi tiết span để xem endpoints, tags và sự kiện
+  - Điều chỉnh vùng thời gian để quan sát chuỗi span dài hoặc nhiều nhánh
+  - Chia sẻ liên kết trace và giới hạn khi dữ liệu đã hết hạn lưu
+  - Phân biệt không có dữ liệu với bộ lọc, cửa sổ thời gian hoặc danh sách gợi ý chưa phù hợp
+- level1: Phân tích trace
+  level2:
+  - Đọc quan hệ cha–con cùng thời điểm bắt đầu và kết thúc
+  - Phân biệt lời gọi tuần tự, song song và các nhánh tách ra
+  - Tìm chuỗi công việc quyết định thời gian đáp ứng
+  - Thời lượng span cha không bằng tổng thời lượng mọi span con
+  - Ước lượng thời gian tự xử lý khi các span con có thể chồng lấn
+  - Phân biệt xử lý phía gọi, phía nhận, độ trễ mạng và thời gian chưa được đo
+  - Lần theo lỗi gốc thay vì chỉ nhìn span ngoài cùng bị báo lỗi
+  - Nhận diện retry lặp lại, gọi quá nhiều dịch vụ và mẫu truy vấn N+1
+  - Đồng hồ lệch, timestamp bất thường và giới hạn của việc hiệu chỉnh hiển thị
+  - Trace thiếu, span đến muộn và giới hạn suy luận từ ảnh chụp chưa đầy đủ
+  - Đối chiếu trace chậm với trace bình thường trước khi kết luận nguyên nhân
+- level1: API Zipkin
+  level2:
+  - Phân biệt API thu nhận span với API truy vấn dữ liệu
+  - GET /api/v2/services để lấy tên dịch vụ
+  - GET /api/v2/spans với serviceName để lấy tên span
+  - GET /api/v2/traces và các tham số tìm kiếm
+  - 'annotationQuery: điều kiện tag, annotation và phép kết hợp được hỗ trợ'
+  - GET /api/v2/trace/{traceId} để lấy một trace
+  - GET /api/v2/dependencies để lấy quan hệ phụ thuộc trong khoảng thời gian
+  - API tự hoàn thành tags và cấu hình cho phép tự hoàn thành
+  - Quy đổi endTs, lookback và duration đúng đơn vị
+  - Giới hạn kết quả, truy vấn không khớp và lỗi HTTP cần xử lý
+  - Dùng curl hoặc HTTP client để lưu trace JSON phục vụ điều tra và kiểm chứng
+- level1: Lựa chọn lưu trữ
+  level2:
+  - Bộ nhớ tạm phù hợp chạy thử và giới hạn khi tiến trình khởi động lại
+  - Kho lưu trữ bền vững và ảnh hưởng tới tìm kiếm, dung lượng, vận hành
+  - Chọn backend theo lưu lượng span, thời hạn lưu và năng lực quản trị
+  - STORAGE_TYPE và cách xác nhận backend thực tế đang sử dụng
+  - Mô hình ghi span, chỉ mục truy vấn và dữ liệu đồ thị phụ thuộc
+  - Chính sách lưu giữ khác bản sao dự phòng và khả năng khôi phục
+  - Tính nhất quán khi đọc, span đến muộn và thời gian lập chỉ mục
+  - Khả năng hỗ trợ backend phụ thuộc phiên bản Zipkin và bản phân phối
+- level1: Elasticsearch và OpenSearch
+  level2:
+  - Chọn phiên bản Elasticsearch hoặc OpenSearch tương thích với Zipkin
+  - Kết nối backend bằng ES_HOSTS và cấu hình thông tin xác thực phù hợp
+  - Tổ chức chỉ mục theo thời gian và tiền tố để tách dữ liệu
+  - Quyền tạo chỉ mục, index template và lỗi ánh xạ dữ liệu
+  - Số shard, replica và đánh đổi giữa ghi dữ liệu với truy vấn
+  - Xây chính sách xóa chỉ mục theo thời hạn lưu
+  - Giới hạn thời gian, kết nối và truy vấn khi backend chịu tải cao
+  - Đánh giá dung lượng theo span, chỉ mục và số bản sao
+  - Sao lưu, khôi phục và kiểm tra dữ liệu sau khi backend được phục hồi
+- level1: Cassandra và MySQL
+  level2:
+  - Đặc điểm backend Cassandra và yêu cầu tương thích phiên bản
+  - Keyspace, schema và cấu hình kết nối Cassandra
+  - TTL, chiến lược lưu giữ và tác động của dữ liệu hết hạn trong Cassandra
+  - Kiểm tra khả năng truy vấn và việc tổng hợp phụ thuộc khi dùng Cassandra
+  - Nhận diện MySQL storage dạng legacy trong tài liệu Zipkin
+  - Điều kiện cân nhắc MySQL và giới hạn của backend kế thừa
+  - Khởi tạo schema, cấu hình kết nối và quyền truy cập cơ sở dữ liệu
+  - Chọn backend bằng nhu cầu thực tế thay vì coi các lựa chọn tương đương
+- level1: Đồ thị phụ thuộc
+  level2:
+  - Đồ thị dịch vụ trả lời câu hỏi gì khác một trace riêng lẻ
+  - Cách quan hệ CLIENT–SERVER và PRODUCER–CONSUMER tạo liên kết dịch vụ
+  - Vai trò tên dịch vụ và remoteEndpoint trong nhận diện bên phụ thuộc
+  - Phân biệt dữ liệu span với các liên kết đã được tổng hợp
+  - zipkin-dependencies và công việc tổng hợp cho backend cần xử lý riêng
+  - Chọn ngày xử lý theo UTC và khoảng thời gian truy vấn tương ứng
+  - Lập lịch, chạy lại và kiểm chứng kết quả tổng hợp
+  - Vì sao tìm được trace nhưng đồ thị vẫn trống hoặc thiếu liên kết
+  - Giới hạn của đồ thị khi lấy mẫu, thiếu instrumentation hoặc thiếu span
+- level1: Triển khai thực tế
+  level2:
+  - Tách cấu hình môi trường học, kiểm thử và vận hành
+  - Đóng gói Zipkin với backend bên ngoài và cấu hình được quản lý
+  - Triển khai container hoặc Kubernetes với tài nguyên được giới hạn
+  - Kiểm tra sẵn sàng, kiểm tra sống và phụ thuộc vào kho lưu trữ
+  - Cân bằng tải nhiều instance Zipkin dùng chung backend
+  - Định tuyến API nhận span, API truy vấn và giao diện qua reverse proxy
+  - Cấu hình địa chỉ truy cập bên ngoài, đường dẫn và CORS phù hợp
+  - Dừng có kiểm soát khi cập nhật hoặc thay thế instance
+  - Quản lý cấu hình, thông tin xác thực và phương án phục hồi triển khai
+- level1: An toàn dữ liệu
+  level2:
+  - Nhận diện thông tin nhạy cảm có thể xuất hiện trong tags, sự kiện và lỗi
+  - Lọc hoặc che dữ liệu ngay tại instrumentation trước khi gửi
+  - Bảo vệ kết nối ứng dụng–collector và Zipkin–kho lưu trữ bằng TLS
+  - Kiểm soát truy cập giao diện, API tìm kiếm và API nhận span ở lớp phù hợp
+  - Phân biệt xác thực người dùng với giới hạn nguồn được phép gửi dữ liệu
+  - Giới hạn kích thước yêu cầu, tốc độ gửi và khả năng lạm dụng debug sampling
+  - Không xem tags hoặc tiền tố tên dịch vụ là ranh giới cách ly người dùng
+  - Tách môi trường, phân quyền backend và xác định thời hạn lưu dữ liệu
+  - Ngăn truy cập công khai ngoài ý muốn tới endpoint quản trị và chẩn đoán
+- level1: Giám sát và mở rộng
+  level2:
+  - Dùng /health, /metrics và /prometheus để theo dõi Zipkin
+  - Đo số thông điệp, span nhận được, span lỗi và span bị bỏ theo transport
+  - Theo dõi reporter tại ứng dụng để phát hiện mất dữ liệu trước collector
+  - Quan sát độ trễ ghi, độ trễ truy vấn và lỗi của backend
+  - Ước lượng lưu lượng từ số yêu cầu, tỷ lệ lấy mẫu và số span mỗi trace
+  - Giới hạn heap, bộ đệm và kích thước lô theo tải thực tế
+  - Mở rộng collector khác mở rộng khả năng lưu trữ và tìm kiếm
+  - Giới hạn truy vấn tốn kém bằng cửa sổ thời gian và số kết quả
+  - Phân tích sức ép lên backend trước khi tăng số instance Zipkin
+  - Đặt cảnh báo về mất span và dữ liệu đến trễ theo mục tiêu vận hành
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Không thấy trace: kiểm tra instrumentation, sampling, reporter và collector theo thứ tự'
+  - 'Sai endpoint hoặc giao thức: phân biệt /api/v2/spans với đường nhận OTLP'
+  - Ứng dụng trong container gọi localhost sai ngữ cảnh mạng
+  - 'Trace bị tách: thiếu header hoặc cấu hình propagation không tương thích'
+  - Span mất liên kết khi đổi luồng, dùng reactive hoặc chuyển qua thông điệp
+  - Span trùng do đo tự động và đo thủ công chồng lên nhau
+  - Span không xuất hiện vì chưa kết thúc hoặc chưa được gửi khỏi hàng đợi
+  - Trace ID có trong nhật ký nhưng trace không được lấy mẫu hoặc đã hết hạn lưu
+  - Dữ liệu đã được nhận nhưng truy vấn sai thời gian, tên dịch vụ hoặc đơn vị
+  - Lỗi backend, quyền tạo chỉ mục, schema và giới hạn kết nối
+  - Đồ thị phụ thuộc trống do thiếu tổng hợp hoặc thiếu metadata phía từ xa
+  - Kiểm tra dữ liệu thô, log và số liệu đo trước khi thay đổi cấu hình
+- level1: Kiểm thử tracing
+  level2:
+  - Kiểm thử span được tạo đúng tên, loại và quan hệ cha–con
+  - Kiểm thử propagation qua HTTP và ranh giới bất đồng bộ
+  - Xác nhận lỗi, tags và annotations phản ánh đúng tình huống
+  - Giữ dữ liệu kiểm thử tách khỏi tên dịch vụ và kho lưu trữ vận hành
+  - Kiểm thử tích hợp với Zipkin thật và truy vấn bằng API
+  - Chờ có điều kiện khi xác minh dữ liệu gửi bất đồng bộ
+  - Giả lập collector hoặc backend ngừng hoạt động để đánh giá tác động
+  - Kiểm thử dừng ứng dụng có gửi nốt dữ liệu trong thời hạn
+  - Đo chi phí instrumentation, reporter và tỷ lệ lấy mẫu dưới tải
+  - Xác minh không có dữ liệu nhạy cảm trong span được xuất
+- level1: Nâng cấp và chuyển đổi
+  level2:
+  - Lập ma trận phiên bản giữa Zipkin, reporter, tracer và backend
+  - Đọc thay đổi cấu hình, định dạng và phạm vi hỗ trợ trước khi nâng cấp
+  - Tách dữ liệu Zipkin v1 kế thừa khỏi thiết kế dựa trên Zipkin v2
+  - Chuyển từ Spring Cloud Sleuth sang Micrometer Tracing theo phiên bản Spring Boot
+  - Chuyển Zipkin exporter của OpenTelemetry SDK sang đường OTLP hoặc Collector
+  - Thử đổi B3 với W3C Trace Context mà không làm đứt trace giữa các dịch vụ
+  - Đánh giá dữ liệu bị biến đổi hoặc mất khi đổi tracer và mô hình span
+  - Chạy kiểm chứng song song, so sánh dữ liệu và chuẩn bị cách quay lại
+  - Nâng cấp kho lưu trữ khác chuyển dữ liệu lịch sử giữa hai backend
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng hai dịch vụ Spring Boot gửi trace tới Zipkin bằng Brave
+  - Bổ sung lời gọi cơ sở dữ liệu và lần theo yêu cầu từ đầu đến cuối
+  - Thêm độ trễ có kiểm soát để tìm nút thắt trên dòng thời gian
+  - Tạo lỗi phía sau, retry và timeout rồi đối chiếu từng span
+  - Làm mất header B3 có chủ đích và khôi phục tính liên tục của trace
+  - Chuyển tác vụ sang executor rồi sửa lỗi mất ngữ cảnh
+  - Theo dõi đường đi thông điệp từ bên gửi đến bên tiêu thụ
+  - So sánh các tỷ lệ lấy mẫu bằng số span thực nhận và chi phí
+  - Gửi OTLP qua Collector hoặc module phù hợp rồi kiểm chứng dữ liệu trong Zipkin
+  - Chuyển từ bộ nhớ tạm sang backend bền vững và kiểm tra sau khởi động lại
+  - Tạo đồ thị phụ thuộc bằng công việc tổng hợp và đối chiếu trace
+  - Ngắt backend, quan sát span bị mất và đánh giá khả năng phục hồi
+  - Viết quy trình điều tra một yêu cầu chậm dựa trên trace, log và số liệu đo

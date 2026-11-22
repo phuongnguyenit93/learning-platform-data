@@ -1,0 +1,674 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Security token là gì và giải quyết bài toán nào?
+  - Token khác session và cookie như thế nào?
+  - Authentication và authorization liên quan ra sao?
+  - Issuer, subject, client và resource server
+  - Token được tạo, truyền, kiểm tra và hết hạn
+  - Access token, refresh token và identity token
+  - Bearer token và trách nhiệm bảo vệ người giữ token
+  - Token trong ứng dụng web, mobile và service-to-service
+  - Khi token giúp giảm state phía server
+  - Giới hạn của việc coi token là bằng chứng vĩnh viễn
+  - Lộ trình từ khái niệm token đến vận hành an toàn
+- level1: Mô hình tin cậy
+  level2:
+  - Ai phát hành token và ai xác minh token?
+  - Trust boundary giữa client, authorization server và resource server
+  - Issuer identity và định danh ổn định
+  - Resource server tin cậy key hoặc introspection endpoint nào?
+  - Audience giới hạn nơi token được chấp nhận
+  - Client authentication khác user authentication
+  - Delegation và token đại diện cho ai?
+  - Confused deputy trong hệ thống token
+  - Trust chain và nguồn gốc metadata
+  - Không tin token chỉ vì token có hình thức hợp lệ
+  - Thu hồi niềm tin khi issuer hoặc key bị xâm phạm
+- level1: Authentication
+  level2:
+  - Xác minh danh tính người dùng
+  - Authentication factor và token sau đăng nhập
+  - Session establishment và token issuance
+  - Mật khẩu không được đặt trực tiếp trong token
+  - Multi-factor authentication và token assurance
+  - Authentication context trong identity token
+  - Client credential authentication
+  - Service account và machine identity
+  - Authentication failure và thông tin trả về
+  - Step-up authentication
+  - Reauthentication khi hành động nhạy cảm
+  - Phân biệt authentication thành công với authorization được phép
+- level1: Authorization
+  level2:
+  - Quyết định principal được làm gì
+  - Role, permission, scope và claim
+  - Authorization theo resource và action
+  - Least privilege cho token
+  - Policy evaluation tại resource server
+  - Từ chối mặc định khi không có policy
+  - Authorization theo tenant
+  - Authorization theo thời điểm hoặc context
+  - Quyền được delegated từ user sang client
+  - Token không nên chứa quyền vượt resource
+  - Kiểm tra quyền ở boundary của từng API
+  - Audit quyết định authorization
+- level1: Token types
+  level2:
+  - Access token và phạm vi sử dụng
+  - Refresh token và mục đích đổi access token
+  - Identity token và thông tin đăng nhập
+  - Bearer token
+  - Proof-of-possession token
+  - Opaque token
+  - Self-contained token
+  - One-time token
+  - Verification token cho email hoặc password reset
+  - API key khác token xác thực như thế nào?
+  - Signed token và encrypted token
+  - Chọn loại token theo rủi ro và yêu cầu kiểm tra
+- level1: Token format
+  level2:
+  - Token có cấu trúc và token chỉ là chuỗi ngẫu nhiên
+  - Header, payload và signature ở token có cấu trúc
+  - Claim name và claim value
+  - Base64url không phải mã hóa bí mật
+  - Opaque identifier và dữ liệu phía server
+  - Kích thước token và giới hạn header
+  - Token encoding và charset
+  - Không đặt dữ liệu nhạy cảm trong token dễ đọc
+  - Canonical representation trước khi ký
+  - Token format version
+  - Parser chặt chẽ và input không hợp lệ
+- level1: Claims
+  level2:
+  - Claim biểu diễn sự kiện hoặc thuộc tính nào?
+  - Registered, public và private claim
+  - Subject và định danh principal
+  - Issuer và nguồn phát hành
+  - Audience và resource server
+  - Issued-at, expiration và not-before
+  - Scope claim
+  - Role hoặc authority claim
+  - Client ID và authorized party
+  - Authentication time và authentication method
+  - Tenant hoặc organization claim
+  - Claim optional và claim bắt buộc
+  - Không coi claim là dữ liệu luôn mới nhất
+- level1: Scope
+  level2:
+  - Scope biểu diễn quyền được cấp
+  - Scope consent và scope policy
+  - Scope theo resource server
+  - Scope theo thao tác đọc, ghi hoặc quản trị
+  - Scope mặc định và scope yêu cầu
+  - Scope quá rộng và nguy cơ over-privilege
+  - Scope thay đổi theo client
+  - Scope trong access token
+  - Kiểm tra scope tại endpoint
+  - Mapping scope sang authority
+  - Scope versioning
+  - Audit việc cấp và sử dụng scope
+- level1: Audience
+  level2:
+  - Audience giới hạn nơi token được dùng
+  - Một token cho một resource hay nhiều resource?
+  - Audience validation
+  - Audience thiếu hoặc không khớp
+  - Audience alias và migration
+  - Token substitution giữa hai API
+  - Confused deputy do bỏ qua audience
+  - Audience của identity token khác access token
+  - Proxy và gateway có thay đổi audience không?
+  - Kiểm thử đúng, sai và nhiều audience
+  - Không dùng issuer thay cho audience
+- level1: Token issuance
+  level2:
+  - Điều kiện để phát hành token
+  - Client authentication trước khi cấp token
+  - User consent và policy
+  - Điểm cuối cấp token
+  - Thời điểm bắt đầu hiệu lực
+  - Cấp token tối thiểu theo yêu cầu
+  - Gắn scope và audience được phép
+  - Ghi metadata issuance
+  - Không phát token khi authentication chưa hoàn tất
+  - Xử lý request cấp token lặp lại
+  - Giới hạn tốc độ token issuance
+  - Bảo vệ endpoint phát hành
+- level1: Token validation
+  level2:
+  - Validation token ở resource server
+  - Kiểm tra chữ ký hoặc trạng thái opaque token
+  - Kiểm tra issuer
+  - Kiểm tra audience
+  - Kiểm tra expiration và not-before
+  - Kiểm tra algorithm được cho phép
+  - Kiểm tra token type và usage
+  - Kiểm tra scope và authority
+  - Kiểm tra client hoặc subject khi cần
+  - Validation failure và response an toàn
+  - Không chỉ decode token rồi tin nội dung
+  - Cache kết quả validation và rủi ro stale
+- level1: Bearer security
+  level2:
+  - Bearer token có thể dùng bởi bất kỳ ai giữ được token
+  - Không đưa bearer token vào URL
+  - Authorization header và scheme Bearer
+  - Bảo vệ TLS trên đường truyền
+  - Không log bearer token
+  - Redact token trong exception và trace
+  - Giới hạn thời gian sống
+  - Audience và scope giảm tác động khi lộ
+  - Phát hiện reuse bất thường
+  - Token ràng buộc người gửi
+  - Thu hồi sau khi nghi ngờ lộ token
+- level1: Refresh token
+  level2:
+  - Mục đích của refresh token
+  - Refresh token rotation
+  - Refresh token reuse detection
+  - Refresh token expiry
+  - Refresh token family
+  - Refresh token lưu phía client
+  - Refresh token trong browser và mobile
+  - Refresh token cho confidential client
+  - Thu hồi token làm mới
+  - Đổi refresh token khi đăng xuất
+  - Replay token làm mới
+  - Không dùng refresh token để gọi resource API
+- level1: Token storage
+  level2:
+  - Lưu access token trong memory
+  - Cookie HttpOnly và Secure
+  - SameSite và CSRF
+  - Web storage và nguy cơ XSS
+  - Refresh token rotation trong browser
+  - Mobile secure storage
+  - Server-side session store
+  - Token trong secret manager
+  - Mã hóa token khi lưu
+  - Xóa token khi logout hoặc revoke
+  - Không lưu token trong log hoặc analytics
+  - Chọn storage theo threat model
+- level1: Token transport
+  level2:
+  - Authorization header
+  - Cookie transport
+  - Form body trong token endpoint
+  - TLS và certificate validation
+  - Token qua reverse proxy
+  - Header forwarding giữa gateway và service
+  - Không truyền token qua query string
+  - Giới hạn kích thước header
+  - CORS và token transport
+  - WebSocket hoặc SSE token
+  - Token trong message broker
+  - Xóa token khỏi URL referrer
+- level1: OAuth2 roles
+  level2:
+  - Resource owner
+  - Client
+  - Vai trò authorization server
+  - Vai trò resource server
+  - User-agent và redirect
+  - Confidential client và public client
+  - First-party và third-party client
+  - Delegation giữa client và resource
+  - Điểm cuối authorization
+  - Điểm cuối token
+  - Introspection endpoint
+  - Điểm cuối revoke
+  - Metadata endpoint
+  - Quan hệ giữa role và trust boundary
+- level1: OAuth2 flows
+  level2:
+  - Authorization Code flow
+  - Authorization Code with PKCE
+  - Client Credentials flow
+  - Device Authorization Grant
+  - Refresh Token Grant
+  - Resource Owner Password Credentials as legacy pattern
+  - Implicit flow and why it is discouraged
+  - Redirect URI and exact matching
+  - State parameter
+  - Code verifier and code challenge
+  - Đổi token giữa các audience
+  - Choosing flow by client type
+- level1: Authorization Code
+  level2:
+  - Authorization request parameters
+  - Client ID and redirect URI
+  - Response type code
+  - Scope and state
+  - User authentication at authorization endpoint
+  - User consent
+  - Authorization code lifetime
+  - Code exchange at token endpoint
+  - Client authentication at token endpoint
+  - Code replay protection
+  - Redirect URI validation
+  - Error response from authorization endpoint
+- level1: PKCE
+  level2:
+  - Proof Key for Code Exchange
+  - Code verifier entropy
+  - Code challenge methods
+  - S256 transformation
+  - PKCE request and token exchange
+  - Code challenge binding
+  - Public client protection
+  - PKCE and confidential client
+  - Verifier storage in the client
+  - Missing or mismatched verifier
+  - Downgrade and plain method policy
+  - Kiểm thử PKCE success và failure
+- level1: Client credentials
+  level2:
+  - Machine-to-machine token request
+  - Client authentication methods
+  - Client scope and audience
+  - Service identity without end user
+  - Client credential rotation
+  - Least privilege service scope
+  - Token caching for service calls
+  - Client secret protection
+  - Private key authentication
+  - Audience restriction
+  - Không dùng client credentials để đại diện user tùy ý
+- level1: Device authorization
+  level2:
+  - Device authorization endpoint
+  - User code và verification URI
+  - Device code lifetime
+  - Polling interval
+  - Slow down response
+  - User completes authentication on another device
+  - Device client without browser
+  - Token request after approval
+  - Device code reuse
+  - Device code denial và expiration
+  - Scope consent trên device
+  - Bảo vệ display code khỏi người khác
+- level1: OpenID Connect
+  level2:
+  - OpenID Connect mở rộng OAuth2 cho identity
+  - ID token khác access token
+  - OpenID scope
+  - UserInfo endpoint
+  - Nonce bảo vệ replay trong OIDC
+  - Authentication request
+  - Authentication response
+  - Subject identifier
+  - Claims trong ID token
+  - ACR và AMR
+  - Discovery metadata
+  - JWKS metadata
+  - Không gửi ID token đến resource API thay access token
+- level1: Consent
+  level2:
+  - Consent là quyết định cấp quyền
+  - Scope hiển thị cho user
+  - Consent trước và sau authentication
+  - First-party consent
+  - Third-party consent
+  - Incremental authorization
+  - Consent revocation
+  - Ghi nhận consent version
+  - Thay đổi scope yêu cầu consent lại
+  - Không dùng consent thay cho authorization policy
+  - Bảo vệ UI consent khỏi giả mạo
+- level1: Introspection
+  level2:
+  - Introspection endpoint cho opaque token
+  - Resource server gửi token để kiểm tra
+  - Active và inactive response
+  - Client authentication cho introspection
+  - Response claims từ introspection
+  - Caching introspection result
+  - Token revocation phản ánh qua introspection
+  - Timeout và fallback
+  - Không cache quá lâu trạng thái active
+  - Bảo vệ endpoint introspection
+  - Phân biệt introspection với local signature validation
+- level1: Revocation
+  level2:
+  - Điểm cuối thu hồi token
+  - Thu hồi access token
+  - Thu hồi refresh token
+  - Token family revocation
+  - Logout và revocation khác nhau
+  - Revocation propagation
+  - Opaque token và trạng thái server
+  - Self-contained token và giới hạn thu hồi tức thời
+  - Admin revoke sau incident
+  - Audit revoke action
+  - Idempotent revoke request
+  - Kiểm thử token trước và sau revoke
+- level1: Logout
+  level2:
+  - Logout local và logout tại authorization server
+  - Xóa token phía client
+  - Session termination
+  - RP-initiated logout
+  - Front-channel và back-channel logout
+  - Refresh token revoke khi logout
+  - Logout một thiết bị hay mọi thiết bị
+  - Logout sau đổi mật khẩu
+  - Logout khi token bị nghi lộ
+  - Redirect sau logout
+  - Không coi redirect là bằng chứng logout thành công
+- level1: Cryptography
+  level2:
+  - Hash, MAC và digital signature
+  - Symmetric và asymmetric key
+  - Signing khác encryption
+  - Randomness và entropy
+  - Key length và algorithm policy
+  - Algorithm agility
+  - Signature verification
+  - Constant-time comparison
+  - Nonce trong giao thức mật mã
+  - Key compromise
+  - Không tự thiết kế crypto protocol
+  - Phụ thuộc thư viện crypto được kiểm chứng
+- level1: Key management
+  level2:
+  - Tạo signing key
+  - Key storage
+  - Key rotation
+  - Key identifier
+  - JWKS và public key distribution
+  - Active và retired key
+  - Grace period khi xoay key
+  - Key revocation
+  - HSM hoặc KMS
+  - Backup và recovery key
+  - Phân quyền sử dụng private key
+  - Audit key operation
+- level1: Token encryption
+  level2:
+  - Khi token cần confidentiality
+  - JWS và JWE ở mức khái niệm
+  - Sign rồi encrypt và encrypt rồi sign
+  - Key dùng cho encryption
+  - Recipient và key agreement
+  - Token size khi mã hóa
+  - Validation thứ tự chữ ký và mã hóa
+  - Không mã hóa thay cho authorization
+  - Kiểm tra algorithm policy
+  - Xử lý token không giải mã được
+  - Khi opaque token đơn giản hơn encrypted token
+- level1: Replay protection
+  level2:
+  - Replay token là gì?
+  - Replay access token
+  - Replay authorization code
+  - Phát hiện replay token làm mới
+  - Nonce và state
+  - Token binding
+  - Ràng buộc người gửi để chống replay
+  - Short lifetime
+  - JTI và replay cache
+  - Detect reuse
+  - Concurrent request với cùng token
+  - Trade-off giữa replay protection và phân tán
+- level1: Threats
+  level2:
+  - Token theft
+  - Token leakage qua log
+  - Token leakage qua URL
+  - Token substitution
+  - Issuer confusion
+  - Audience confusion
+  - Algorithm confusion
+  - Key confusion
+  - Replay
+  - Phishing redirect
+  - Open redirect
+  - Session fixation
+  - XSS đánh cắp token
+  - CSRF khi dùng cookie token
+  - Over-privileged scope
+- level1: Browser security
+  level2:
+  - Cookie-based token và CSRF
+  - Authorization header và XSS
+  - SameSite behavior
+  - CORS preflight
+  - Redirect URI trong browser app
+  - PKCE cho public browser client
+  - CSP giảm nguy cơ token theft
+  - Referrer-Policy
+  - History và token URL
+  - Service worker và token storage
+  - Logout tab và nhiều tab
+  - Không nhúng secret client vào JavaScript
+- level1: Resource server
+  level2:
+  - Resource server nhận access token
+  - BearerTokenAuthenticationFilter
+  - Đọc token từ Authorization header
+  - JwtDecoder và opaque token introspection
+  - AuthenticationManagerResolver
+  - SecurityContext sau khi token hợp lệ
+  - Mapping claims thành authorities
+  - Audience và issuer validation
+  - 401 và 403 khác nhau thế nào?
+  - Chặn request trước controller
+  - Stateless resource server
+  - Resource server với nhiều issuer
+- level1: Authorization server
+  level2:
+  - Authorization server phát hành token
+  - Registered client
+  - Client authentication
+  - Authorization endpoint
+  - Token endpoint
+  - Consent service
+  - Authorization service
+  - Token generator
+  - Signing key và key endpoint
+  - Refresh token handling
+  - Revocation và introspection
+  - Phân tách authorization server với resource server
+- level1: Spring Security authorities
+  level2:
+  - GrantedAuthority từ scope
+  - SCOPE_ prefix
+  - ROLE_ prefix và khác biệt với scope
+  - JwtAuthenticationToken
+  - OpaqueTokenAuthentication
+  - Principal và subject
+  - Claim mapping
+  - Custom authorities converter
+  - Method security với token authority
+  - Request matcher theo scope
+  - Tenant authority
+  - Không cấp quyền từ claim chưa được xác minh
+- level1: Method security
+  level2:
+  - '@PreAuthorize với token authority'
+  - '@Secured và role mapping'
+  - '@PostAuthorize'
+  - Permission evaluator
+  - Domain object authorization
+  - Method security sau authentication
+  - SpEL và dữ liệu người dùng
+  - Kiểm tra object ownership
+  - Deny by default
+  - Không chỉ bảo vệ controller
+  - Kiểm thử bảo vệ method bằng token
+  - Audit quyết định tại method boundary
+- level1: API gateway
+  level2:
+  - Gateway xác minh hay chuyển tiếp token
+  - Token relay
+  - Forward access token tới downstream
+  - Audience khi relay token
+  - Gateway authorization và resource authorization
+  - Header stripping
+  - Downstream trust gateway
+  - End-to-end identity propagation
+  - Token exchange ở gateway
+  - Gateway cache và token lifetime
+  - Không tin header identity từ client
+  - Audit gateway decision
+- level1: Service to service
+  level2:
+  - Service token cho machine identity
+  - Cấp token bằng thông tin xác thực service
+  - Workload identity
+  - mTLS
+  - Token exchange giữa service
+  - Audience theo downstream service
+  - Scope theo service action
+  - Token caching và refresh
+  - Retry không làm lộ token
+  - Credential rotation
+  - Service account isolation
+  - Không dùng user token làm service secret tùy tiện
+- level1: Token exchange
+  level2:
+  - Đổi token cho audience khác
+  - Delegation token
+  - Actor và subject
+  - Giảm scope khi exchange
+  - Token exchange trong gateway
+  - Token exchange giữa các microservices
+  - Xác minh quyền đổi token
+  - Ngăn token exchange chain vô hạn
+  - Audit exchange
+  - Expiration token mới
+  - Không mở rộng quyền trong exchange
+- level1: Multi-tenant
+  level2:
+  - Tenant claim và tenant boundary
+  - Tenant trong token có đáng tin không?
+  - Tenant resolution từ issuer và audience
+  - Cross-tenant token rejection
+  - Tenant-specific scope
+  - Tenant-specific signing key
+  - Tenant deactivation
+  - Token sau tenant membership change
+  - Cache validation theo tenant
+  - Admin token và tenant isolation
+  - Kiểm thử cross-tenant access
+- level1: Testing token security
+  level2:
+  - Test token hợp lệ và không hợp lệ
+  - Test expired token
+  - Test issuer mismatch
+  - Test audience mismatch
+  - Test signature mismatch
+  - Test missing scope
+  - Test wrong token type
+  - Test revoked refresh token
+  - Test PKCE mismatch
+  - Test replay
+  - Test malformed claim
+  - Test 401 và 403
+  - Test method security
+  - Test multi-tenant isolation
+- level1: Integration testing
+  level2:
+  - Mock authorization server
+  - WireMock discovery và JWKS
+  - Testcontainers cho identity provider
+  - Test resource server với JWT
+  - Test resource server với opaque token
+  - Test client credential flow
+  - Test authorization code flow
+  - Test TLS
+  - Test clock skew
+  - Test key rotation
+  - Test logout và revoke
+  - Dọn token và key sau test
+- level1: Observability
+  level2:
+  - Metric token issuance
+  - Metric validation success và failure
+  - Metric 401, 403 và 5xx
+  - Metric introspection latency
+  - Metric refresh reuse detection
+  - Audit consent và revoke
+  - Log issuer, client ID và subject có kiểm soát
+  - Không log raw token
+  - Trace token exchange
+  - Alert signature failure tăng
+  - Alert token theft indicators
+  - Dashboard scope usage
+- level1: Operations
+  level2:
+  - Rotate signing keys
+  - Rotate client secrets
+  - Rotate refresh token storage
+  - Revoke sau incident
+  - Disable client
+  - Disable user hoặc tenant
+  - Key endpoint availability
+  - Introspection endpoint availability
+  - Clock synchronization
+  - TLS certificate expiry
+  - Rate limit token endpoint
+  - Backup token metadata
+  - Incident response cho token compromise
+- level1: Compliance
+  level2:
+  - Data minimization trong token
+  - Retention token metadata
+  - Consent record
+  - Audit access token usage
+  - Privacy của subject identifier
+  - Pseudonymous subject
+  - Delete user và token
+  - Regulatory evidence
+  - Key access audit
+  - Separation of duties
+  - Không lưu token lâu hơn nhu cầu
+  - Đánh giá nhà cung cấp identity
+- level1: Lỗi thường gặp
+  level2:
+  - Đặt password hoặc secret vào access token
+  - Tin token chỉ vì decode được
+  - Bỏ qua issuer hoặc audience
+  - Dùng ID token gọi API
+  - Đặt token trong URL
+  - Log Authorization header
+  - Dùng local storage mà không xét XSS
+  - Không dùng PKCE cho public client
+  - Token lifetime quá dài
+  - Scope quá rộng
+  - Không xoay key
+  - Không revoke refresh token reuse
+  - Trả 403 khi chưa authentication
+  - Dùng user token vô thời hạn cho service
+- level1: Quyết định thiết kế
+  level2:
+  - Chọn JWT hay opaque token
+  - Chọn local validation hay introspection
+  - Chọn cookie hay Authorization header
+  - Chọn session hay stateless token
+  - Chọn một issuer hay nhiều issuer
+  - Chọn scope hay role claim
+  - Chọn key rotation schedule
+  - Chọn lifetime theo risk
+  - Chọn token exchange hay relay
+  - Chọn gateway enforcement hay service enforcement
+  - Ghi threat model và giới hạn quyết định
+- level1: Dự án thực hành
+  level2:
+  - Xây authorization server phát hành access token
+  - Đăng ký confidential và public client
+  - Thực hiện authorization code với PKCE
+  - Tạo resource server kiểm tra issuer và audience
+  - Ánh xạ scope thành authority
+  - Bảo vệ endpoint bằng method security
+  - Thêm refresh token rotation
+  - Thêm introspection và revoke
+  - Xử lý key rotation qua JWKS
+  - Bổ sung multi-tenant authorization
+  - Viết test token theft, replay và scope
+  - Thêm metric và audit an toàn
+  - Mô phỏng incident rồi thực hiện revoke
+  - Viết tài liệu vận hành và giới hạn bảo mật

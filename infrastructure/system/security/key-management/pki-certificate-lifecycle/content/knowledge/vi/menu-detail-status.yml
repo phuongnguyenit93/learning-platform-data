@@ -1,0 +1,3265 @@
+menu:
+- slug: overview-pki
+  title: Tổng quan PKI
+  childs:
+  - slug: overview-pki-001
+    title: PKI là gì và bài toán liên kết danh tính với khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-002
+    title: Chứng thư số bảo đảm điều gì và không bảo đảm điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-003
+    title: Phân biệt khóa, chứng thư, danh tính và quan hệ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-004
+    title: Các thành phần CA, RA, chủ thể, bên xác minh và kho công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-005
+    title: Luồng từ yêu cầu cấp chứng thư đến sử dụng và ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-006
+    title: 'Public PKI và Private PKI: phạm vi tin cậy cùng mục đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-007
+    title: Quan hệ giữa PKI, TLS, chữ ký số và xác thực bằng chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-008
+    title: 'Bản đồ vòng đời: phát hiện, cấp phát, triển khai, gia hạn, thu hồi và hủy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-pki-009
+    title: Khi nào cần PKI và khi nào nên chọn cơ chế khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptographic-foundations
+  title: Nền tảng mật mã
+  childs:
+  - slug: cryptographic-foundations-001
+    title: Mã hóa đối xứng và bất đối xứng trong hệ thống PKI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-002
+    title: Cặp khóa công khai, khóa riêng và quyền kiểm soát danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-003
+    title: Hàm băm và chữ ký số trong chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-004
+    title: Ký chứng thư khác gì với mã hóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-005
+    title: RSA, đường cong elliptic và các họ thuật toán chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-006
+    title: Thuật toán khóa chủ thể và thuật toán CA ký chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-007
+    title: Entropy, nguồn ngẫu nhiên và sinh khóa an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-008
+    title: Kích thước khóa, mức an toàn và thời hạn bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-009
+    title: Crypto agility và lý do phải quản lý thuật toán theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-foundations-010
+    title: Phân biệt tính toàn vẹn, xác thực, bí mật và bằng chứng pháp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: x509-structure
+  title: Cấu trúc X.509
+  childs:
+  - slug: x509-structure-001
+    title: Cấu trúc chứng thư X.509 và vai trò của ASN.1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-002
+    title: Phần TBSCertificate, thuật toán chữ ký và giá trị chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-003
+    title: Version, serial number và phạm vi duy nhất của số sê-ri
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-004
+    title: Issuer và Subject trong chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-005
+    title: Thời hạn notBefore, notAfter và ảnh hưởng của đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-006
+    title: SubjectPublicKeyInfo và thông tin khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-007
+    title: Extensions trong chứng thư X.509 v3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-008
+    title: OID và cách đọc tên thuộc tính hoặc phần mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-009
+    title: Critical extension và hành vi của bên xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-010
+    title: Phân biệt chứng thư CA với chứng thư đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-structure-011
+    title: Tự ký không đồng nghĩa với tự động được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-extensions
+  title: Phần mở rộng
+  childs:
+  - slug: certificate-extensions-001
+    title: 'Basic Constraints: CA flag và giới hạn độ dài đường dẫn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-002
+    title: Key Usage và các thao tác khóa được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-003
+    title: Extended Key Usage và ràng buộc mục đích chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-004
+    title: Subject Alternative Name và các dạng danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-005
+    title: Subject Key Identifier và Authority Key Identifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-006
+    title: Name Constraints và phạm vi tên mà CA được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-007
+    title: Certificate Policies và định danh chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-008
+    title: Policy Constraints, Policy Mappings và Inhibit Any Policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-009
+    title: Authority Information Access và thông tin truy xuất issuer hoặc OCSP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-010
+    title: CRL Distribution Points và Freshest CRL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-011
+    title: TLS Feature và yêu cầu hỗ trợ khi dùng Must-Staple
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-extensions-012
+    title: Phần mở rộng tùy chỉnh và rủi ro tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: names-and-identities
+  title: Tên và danh tính
+  childs:
+  - slug: names-and-identities-001
+    title: Distinguished Name và các thuộc tính trong Subject
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-002
+    title: SAN dạng DNS name, IP address, URI và email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-003
+    title: Tên miền quốc tế, IDNA và cách so sánh tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-004
+    title: Hostname verification khác với xác minh chữ ký chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-005
+    title: Wildcard certificate và phạm vi khớp tên được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-006
+    title: Vì sao không mặc nhiên dùng Common Name thay cho SAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-007
+    title: Thiết kế danh tính cho người dùng, máy chủ, thiết bị và workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-008
+    title: Định danh ổn định và thuộc tính có thể thay đổi theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-009
+    title: Chứng thư nhiều tên và phạm vi ảnh hưởng khi khóa bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: names-and-identities-010
+    title: Danh tính không mặc nhiên quyết định quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: formats-and-tools
+  title: Định dạng và công cụ
+  childs:
+  - slug: formats-and-tools-001
+    title: 'DER và PEM: cùng dữ liệu nhưng khác cách biểu diễn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-002
+    title: Chứng thư, chuỗi chứng thư và tệp khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-003
+    title: PKCS#10 cho yêu cầu cấp chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-004
+    title: PKCS#7 và CMS trong đóng gói chứng thư hoặc dữ liệu ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-005
+    title: PKCS#8 và biểu diễn khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-006
+    title: PKCS#12, PFX và gói chứa khóa cùng chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-007
+    title: Tên đuôi tệp không đủ để xác định nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-008
+    title: Đọc nội dung chứng thư và CSR bằng OpenSSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-009
+    title: Đối chiếu khóa công khai để kiểm tra chứng thư khớp khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-010
+    title: Chuyển đổi định dạng mà không làm lộ hoặc làm mất khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: formats-and-tools-011
+    title: Kiểm tra quyền tệp và bảo vệ tệp xuất khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-model
+  title: Mô hình tin cậy
+  childs:
+  - slug: trust-model-001
+    title: Trust anchor và nguồn hình thành quyết định tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-002
+    title: Trust store khác với tập chứng thư máy chủ gửi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-003
+    title: Chuỗi root, intermediate và leaf certificate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-004
+    title: Chữ ký hợp lệ khác với đường dẫn chứng thực được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-005
+    title: Trust store của hệ điều hành, trình duyệt và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-006
+    title: Đường dẫn thay thế và trường hợp nhiều root cùng tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-007
+    title: Cross-signing và quan hệ tin cậy giữa các hệ phân cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-008
+    title: Phân phối, cập nhật và loại bỏ trust anchor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-009
+    title: Certificate pinning, public key pinning và rủi ro vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-model-010
+    title: Ranh giới tin cậy giữa đối tác, tổ chức và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ca-architecture
+  title: Kiến trúc CA
+  childs:
+  - slug: ca-architecture-001
+    title: Root CA, issuing CA và registration authority
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-002
+    title: Root CA ngoại tuyến và CA cấp phát trực tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-003
+    title: Mô hình một tầng, hai tầng và nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-004
+    title: Tách CA theo môi trường, mục đích và mức độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-005
+    title: Thiết kế thời hạn và ràng buộc giữa CA cha với CA con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-006
+    title: Phân quyền vận hành CA và tách biệt nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-007
+    title: Mô hình CA tập trung, phân cấp và dịch vụ CA được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-008
+    title: Kho công bố chứng thư CA, CRL và dịch vụ trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-009
+    title: Hạ tầng quản trị tách khỏi hạ tầng cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ca-architecture-010
+    title: Giới hạn ảnh hưởng khi một issuing CA bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pki-policies
+  title: Chính sách PKI
+  childs:
+  - slug: pki-policies-001
+    title: Certificate Policy và Certification Practice Statement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-002
+    title: Hồ sơ chứng thư theo từng mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-003
+    title: Yêu cầu nhận dạng và mức bảo đảm trước khi cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-004
+    title: Chính sách thuật toán, kích thước khóa và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-005
+    title: Chính sách tên, SAN, Key Usage và Extended Key Usage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-006
+    title: Vai trò chủ sở hữu, người phê duyệt và người vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-007
+    title: Tách nhiệm vụ và cơ chế nhiều người kiểm soát thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-008
+    title: Quy định gia hạn, cấp lại, thu hồi và ngừng CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-009
+    title: Yêu cầu lưu trữ bằng chứng, nhật ký và dữ liệu kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-policies-010
+    title: Ánh xạ yêu cầu tuân thủ theo lĩnh vực và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-protection
+  title: Bảo vệ khóa
+  childs:
+  - slug: key-protection-001
+    title: Sinh khóa tại chủ thể hay sinh tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-002
+    title: Khóa xuất được và khóa không xuất được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-003
+    title: HSM, TPM, secure element và kho khóa của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-004
+    title: Bảo vệ khóa CA khác với khóa của chứng thư đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-005
+    title: Key ceremony và ghi nhận bằng chứng sinh khóa CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-006
+    title: Kiểm soát truy cập, phân quyền tối thiểu và truy vết dùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-007
+    title: Sao lưu, khôi phục và bảo vệ bản sao khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-008
+    title: Phân biệt sao lưu khóa với key escrow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-009
+    title: Luân chuyển người quản trị và quản lý vật liệu khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-010
+    title: Truyền hoặc nhập khóa an toàn khi không tránh được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-011
+    title: Hủy khóa và xác minh không còn bản sao ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-protection-012
+    title: Đánh giá tác động khi mất khóa hoặc nghi ngờ khóa bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-inventory
+  title: Kiểm kê chứng thư
+  childs:
+  - slug: certificate-inventory-001
+    title: Lập danh mục chứng thư và khóa trên toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-002
+    title: Phát hiện chứng thư từ máy chủ, thiết bị, kho mã và nền tảng đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-003
+    title: Thu thập issuer, serial, SAN, thời hạn và dấu vân tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-004
+    title: Ánh xạ chứng thư với khóa, dịch vụ, endpoint và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-005
+    title: Chủ sở hữu kỹ thuật, chủ sở hữu nghiệp vụ và người nhận cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-006
+    title: Theo dõi nguồn cấp phát, hồ sơ và cơ chế tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-007
+    title: Phân loại chứng thư đang dùng, dự phòng, mồ côi và không rõ chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-008
+    title: Theo dõi chuỗi phụ thuộc khi một chứng thư phục vụ nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-009
+    title: Trạng thái vòng đời và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-010
+    title: Đối chiếu tài sản thực tế với CMDB hoặc nguồn danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-inventory-011
+    title: Không lưu khóa riêng như một trường dữ liệu kiểm kê thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-requests
+  title: Yêu cầu cấp phát
+  childs:
+  - slug: certificate-requests-001
+    title: Quy trình đăng ký danh tính và khởi tạo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-002
+    title: Tạo cặp khóa trước khi tạo CSR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-003
+    title: Nội dung và chữ ký của CSR PKCS#10
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-004
+    title: Proof of possession và giới hạn của chữ ký CSR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-005
+    title: Thuộc tính được yêu cầu khác với thuộc tính CA chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-006
+    title: Kiểm tra Subject, SAN và khóa công khai trong CSR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-007
+    title: Xác thực người hoặc hệ thống gửi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-008
+    title: Ủy quyền yêu cầu thay mặt chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-009
+    title: Ngăn yêu cầu vượt quyền đối với tên và mục đích chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-010
+    title: Phê duyệt thủ công, tự động và lưu vết bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-requests-011
+    title: Liên kết mã yêu cầu với chứng thư sau cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: validation-and-issuance
+  title: Xác minh và cấp phát
+  childs:
+  - slug: validation-and-issuance-001
+    title: Xác minh quyền kiểm soát tên miền hoặc tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-002
+    title: Xác minh danh tính tổ chức, cá nhân và thiết bị theo hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-003
+    title: DV, OV, EV và giới hạn ý nghĩa của từng loại xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-004
+    title: Áp dụng hồ sơ chứng thư thay vì sao chép mọi yêu cầu từ CSR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-005
+    title: Kiểm tra SAN, Key Usage, Extended Key Usage và thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-006
+    title: Sinh serial, thiết lập thời hạn và chọn CA cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-007
+    title: Kiểm tra chất lượng chứng thư trước và sau khi ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-008
+    title: Bảo vệ API hoặc giao diện ký chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-009
+    title: Giới hạn cấp phát, phát hiện bất thường và ngăn lạm dụng CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-010
+    title: Phân phối chứng thư cùng chuỗi CA cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: validation-and-issuance-011
+    title: Lưu bằng chứng phê duyệt, phát hành và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-enrollment
+  title: Đăng ký tự động
+  childs:
+  - slug: automated-enrollment-001
+    title: Bài toán tự động hóa đăng ký và gia hạn chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-002
+    title: 'ACME: account, order, authorization, challenge và certificate'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-003
+    title: HTTP-01, DNS-01, TLS-ALPN-01 và điều kiện triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-004
+    title: Bảo vệ khóa tài khoản ACME và quyền truy cập DNS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-005
+    title: External Account Binding khi CA yêu cầu liên kết tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-006
+    title: EST trong đăng ký và tái đăng ký chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-007
+    title: SCEP và các ràng buộc khi dùng cho thiết bị hoặc hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-008
+    title: CMP trong quản lý vòng đời chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-009
+    title: Phân biệt giao thức đăng ký với chính sách cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-010
+    title: Bootstrap danh tính ban đầu cho chủ thể chưa có chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-011
+    title: Idempotency, retry và tránh tạo yêu cầu cấp phát trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-enrollment-012
+    title: Thu hồi quyền đăng ký khi thiết bị hoặc dịch vụ ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-deployment
+  title: Triển khai chứng thư
+  childs:
+  - slug: certificate-deployment-001
+    title: Đưa chứng thư, chuỗi CA và khóa đến đúng thành phần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-002
+    title: Kiểm tra chứng thư khớp khóa riêng trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-003
+    title: Thứ tự chuỗi chứng thư được cấu hình trên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-004
+    title: Chứng thư trung gian bị thiếu và khả năng tương thích của máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-005
+    title: Quyền truy cập tệp, volume và kho khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-006
+    title: Cập nhật nguyên tử để tránh trạng thái chứng thư và khóa không đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-007
+    title: Reload cấu hình, restart và triển khai không gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-008
+    title: Phân phối đồng bộ trên cụm, CDN, proxy và bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-009
+    title: Kiểm tra endpoint thực tế sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-010
+    title: Rollback an toàn khi chứng thư mới gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-deployment-011
+    title: Gỡ vật liệu cũ sau khoảng chuyển tiếp được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-validation
+  title: Xác minh chứng thư
+  childs:
+  - slug: certificate-validation-001
+    title: Phân biệt xây dựng đường dẫn với xác minh đường dẫn chứng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-002
+    title: Chọn trust anchor từ cấu hình tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-003
+    title: Kiểm tra chữ ký trên từng liên kết trong chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-004
+    title: Kiểm tra thời hạn của chứng thư và CA trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-005
+    title: Basic Constraints, path length và quyền ký chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-006
+    title: Name Constraints và xử lý phần mở rộng critical
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-007
+    title: Key Usage, Extended Key Usage và mục đích ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-008
+    title: Chính sách chứng thư và điều kiện chấp nhận của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-009
+    title: Khớp tên dịch vụ hoặc danh tính mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-010
+    title: Kiểm tra trạng thái thu hồi theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-011
+    title: Xử lý nhiều đường dẫn và chuỗi thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-012
+    title: Giới hạn tải chứng thư qua AIA và rủi ro truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-013
+    title: Không tự thêm chứng thư lạ vào trust store để xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-014
+    title: Thiết kế lỗi xác minh rõ ràng và từ chối an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-and-mtls
+  title: TLS và mTLS
+  childs:
+  - slug: tls-and-mtls-001
+    title: Vai trò chứng thư trong bắt tay TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-002
+    title: Xác thực máy chủ và kiểm tra tên dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-003
+    title: Chứng thư khóa công khai khác với khóa phiên mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-004
+    title: Xác thực hai chiều và yêu cầu chứng thư phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-005
+    title: Chọn CA tin cậy riêng cho máy chủ và máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-006
+    title: TLS termination và ranh giới xác thực qua proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-007
+    title: Chuyển danh tính chứng thư vào ứng dụng mà không cho giả mạo header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-008
+    title: Chứng minh giữ khóa riêng khác với gửi một tệp chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-009
+    title: SNI, máy chủ ảo và chọn chứng thư theo tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-010
+    title: Phiên TLS đang tồn tại và thời điểm cấu hình chứng thư mới có tác dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-mtls-011
+    title: Phân biệt lỗi chuỗi chứng thư với lỗi phiên bản hoặc bộ thuật toán TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-revocation
+  title: Thu hồi chứng thư
+  childs:
+  - slug: certificate-revocation-001
+    title: Thu hồi trước hạn và những trường hợp cần kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-002
+    title: 'CRL: cấu trúc, số phiên bản, thời điểm cập nhật và phân phối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-003
+    title: Delta CRL và phối hợp với CRL đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-004
+    title: 'OCSP: trạng thái good, revoked, unknown và giới hạn diễn giải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-005
+    title: Ủy quyền ký phản hồi OCSP và xác minh phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-006
+    title: OCSP stapling và trách nhiệm cập nhật của máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-007
+    title: Độ mới, bộ nhớ đệm và cửa sổ sử dụng phản hồi cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-008
+    title: Soft fail, hard fail và đánh đổi giữa bảo mật với tính sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-009
+    title: Chứng thư ngắn hạn và giới hạn thay thế cơ chế thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-010
+    title: Reason codes, thời điểm thu hồi và bằng chứng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-011
+    title: Thu hồi chứng thư CA và ảnh hưởng lên chứng thư con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-revocation-012
+    title: Đo độ trễ từ quyết định thu hồi đến khi bên xác minh thực sự từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: renewal-and-key-rotation
+  title: Gia hạn và đổi khóa
+  childs:
+  - slug: renewal-and-key-rotation-001
+    title: Phân biệt renew, reissue, rekey và rotate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-002
+    title: Gia hạn với khóa cũ và cấp chứng thư với khóa mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-003
+    title: Chọn thời điểm bắt đầu gia hạn và khoảng chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-004
+    title: Kiểm tra lại quyền kiểm soát danh tính trước khi gia hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-005
+    title: Gia hạn tự động theo chính sách của từng CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-006
+    title: Xử lý retry, giới hạn cấp phát và lỗi tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-007
+    title: Phân phối chứng thư mới đến tất cả thành phần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-008
+    title: Xác minh chứng thư mới đã phục vụ trên endpoint thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-009
+    title: Thu hồi hoặc loại bỏ chứng thư cũ theo lý do thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-010
+    title: Đồng bộ thay đổi khóa với cấu hình pinning và trust store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-011
+    title: Gia hạn CA trung gian và cập nhật chuỗi phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: renewal-and-key-rotation-012
+    title: Tránh gia hạn thành công trên CA nhưng triển khai thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expiration-and-retirement
+  title: Hết hạn và ngừng dùng
+  childs:
+  - slug: expiration-and-retirement-001
+    title: Ảnh hưởng khi leaf certificate hoặc CA trung gian hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-002
+    title: Theo dõi notAfter từ endpoint thay vì chỉ từ tệp nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-003
+    title: Ngưỡng cảnh báo nhiều mức và tuyến chuyển giao trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-004
+    title: Chứng thư mồ côi, hệ thống cũ và tài sản ít được truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-005
+    title: Ứng phó khẩn cấp khi chứng thư đã hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-006
+    title: Loại bỏ chứng thư khi dịch vụ, tài khoản hoặc thiết bị ngừng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-007
+    title: Lưu trữ chứng thư công khai và bằng chứng phục vụ kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-008
+    title: Hủy khóa riêng và các bản sao sao lưu hết nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-009
+    title: Ngừng issuing CA và root CA theo kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expiration-and-retirement-010
+    title: Duy trì thông tin thu hồi, bằng chứng và nghĩa vụ lưu trữ sau ngừng CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pki-incidents
+  title: Sự cố PKI
+  childs:
+  - slug: pki-incidents-001
+    title: Phân loại khóa bị lộ, cấp sai, hết hạn và mất dịch vụ CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-002
+    title: Cô lập khóa hoặc tài khoản cấp phát bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-003
+    title: Xác định chứng thư, dịch vụ và chủ thể chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-004
+    title: Thu hồi khẩn cấp và phát hành chứng thư thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-005
+    title: Ứng phó khi khóa CA trung gian hoặc root CA bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-006
+    title: Phối hợp cập nhật trust store và loại bỏ CA không còn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-007
+    title: Xử lý CA cấp sai tên hoặc sai thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-008
+    title: Giữ bằng chứng, nhật ký và chuỗi thời gian sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-009
+    title: Thông báo các bên liên quan theo quy trình tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-010
+    title: Khôi phục hoạt động và xác minh từ góc nhìn máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-incidents-011
+    title: Rà soát nguyên nhân và diễn tập kịch bản tương tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: public-web-pki
+  title: Web PKI công cộng
+  childs:
+  - slug: public-web-pki-001
+    title: Root program và vai trò kho tin cậy công cộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-002
+    title: Yêu cầu công khai đối với CA và hồ sơ chứng thư TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-003
+    title: CAA và kiểm soát CA được phép cấp cho tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-004
+    title: Certificate Transparency và mục tiêu phát hiện cấp phát bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-005
+    title: Precertificate, SCT và chứng thư đã ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-006
+    title: Theo dõi CT để phát hiện tên miền hoặc chứng thư ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-007
+    title: Rủi ro công khai tên trong SAN qua log CT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-008
+    title: Cross-signing và tương thích với máy khách cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-009
+    title: Chứng thư wildcard và phạm vi quản lý khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-010
+    title: DV, OV, EV không thay thế đánh giá độ an toàn nội dung website
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: public-web-pki-011
+    title: Theo dõi thay đổi chính sách thời hạn, thuật toán và chương trình tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internal-pki
+  title: PKI nội bộ
+  childs:
+  - slug: internal-pki-001
+    title: Thiết kế miền tin cậy cho mạng và dịch vụ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-002
+    title: Private CA không tự động được máy khách tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-003
+    title: Phân phối root CA qua quản trị thiết bị hoặc cấu hình tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-004
+    title: Hồ sơ chứng thư cho máy chủ, người dùng và máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-005
+    title: Tách root sản xuất khỏi môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-006
+    title: Ràng buộc quyền đăng ký và tránh mẫu chứng thư quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-007
+    title: Kiểm soát chứng thư cho đối tác hoặc hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-008
+    title: Quản lý thiết bị mất kết nối và kết nối không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-009
+    title: Khả năng mở rộng khi cấp phát nhiều chứng thư ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-pki-010
+    title: Giới hạn tin cậy chéo và ngăn một CA nội bộ trở thành quyền cấp vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workloads-and-devices
+  title: Workload và thiết bị
+  childs:
+  - slug: workloads-and-devices-001
+    title: Danh tính chứng thư cho máy ảo, container và tiến trình dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-002
+    title: Workload ngắn hạn và nhu cầu cấp phát tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-003
+    title: Chứng thư cho thiết bị IoT, mạng và thiết bị người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-004
+    title: Bootstrap thiết bị bằng thông tin hoặc phần cứng tin cậy ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-005
+    title: Liên kết khóa với TPM, secure element hoặc attestation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-006
+    title: Service mesh và phân phối chứng thư theo danh tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-007
+    title: SPIFFE X.509-SVID trong bối cảnh danh tính workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-008
+    title: Chứng thư thiết bị khác với danh tính người đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-009
+    title: Thay thiết bị, chuyển chủ sở hữu và ngừng thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workloads-and-devices-010
+    title: Thu hồi quyền cấp phát khi workload hoặc thiết bị không còn hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: digital-signature-applications
+  title: Ứng dụng chữ ký
+  childs:
+  - slug: digital-signature-applications-001
+    title: PKI cho ký mã và xác minh nguồn phát hành phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-002
+    title: Ký mã khác với bảo đảm phần mềm không có hành vi độc hại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-003
+    title: Chứng thư ký tài liệu và điều kiện xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-004
+    title: S/MIME và chứng thư cho email
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-005
+    title: Time-stamping và vai trò bên cung cấp dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-006
+    title: Chữ ký hợp lệ ở hiện tại và bằng chứng hiệu lực tại thời điểm ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-007
+    title: Dữ liệu thu hồi và xác minh chữ ký dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-008
+    title: Tách khóa ký mã, ký tài liệu và xác thực TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: digital-signature-applications-009
+    title: Giới hạn giữa bảo đảm kỹ thuật với giá trị pháp lý theo ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-automation
+  title: Tự động hóa vận hành
+  childs:
+  - slug: operations-automation-001
+    title: Thiết kế bộ điều khiển vòng đời theo trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-002
+    title: Tích hợp CA API với hệ thống quản lý chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-003
+    title: ACME client, bộ lập lịch và hệ thống phân phối cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-004
+    title: Vai trò cert-manager trong môi trường Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-005
+    title: Quyền tối thiểu cho bộ điều khiển, DNS API và kho bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-006
+    title: Quản lý chứng thư tại cloud load balancer, CDN và API gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-007
+    title: Luồng chứng thư tự quản lý và chứng thư nền tảng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-008
+    title: Đối chiếu cấp phát, triển khai và kiểm tra endpoint thành một quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-009
+    title: Tính lặp lại an toàn, khóa tác vụ và xử lý công việc đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-010
+    title: Ngăn khóa hoặc gói PKCS#12 rò rỉ qua CI/CD và kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-automation-011
+    title: Phê duyệt chính sách bằng mã với dấu vết thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pki-attacks
+  title: Tấn công PKI
+  childs:
+  - slug: pki-attacks-001
+    title: Khóa riêng bị đánh cắp và giả mạo chủ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-002
+    title: Cấp phát trái phép do xác thực hoặc ủy quyền yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-003
+    title: CSR độc hại và yêu cầu SAN hoặc quyền sử dụng vượt phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-004
+    title: Chứng thư CA bị tạo nhầm từ hồ sơ đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-005
+    title: Trust anchor bị cài thêm hoặc trust store bị sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-006
+    title: Bỏ qua kiểm tra tên, EKU hoặc phần mở rộng critical
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-007
+    title: Nhầm chuỗi, đường dẫn thay thế và tin cậy chéo ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-008
+    title: Lạm dụng AIA, CRL, OCSP hoặc địa chỉ truy xuất để tấn công mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-009
+    title: Phản hồi trạng thái cũ và rủi ro do xử lý lỗi thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-010
+    title: Tấn công hạ cấp thuật toán và khóa không đáp ứng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-011
+    title: Lạm dụng quyền DNS hoặc tài khoản ACME
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-012
+    title: Lộ khóa qua bản sao lưu, ảnh máy, nhật ký và gói triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-attacks-013
+    title: Cạn tài nguyên do chuỗi dài, dữ liệu bất thường hoặc yêu cầu cấp phát lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pki-testing
+  title: Kiểm thử PKI
+  childs:
+  - slug: pki-testing-001
+    title: Bộ chứng thư mẫu cho luồng hợp lệ và các trường hợp bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-002
+    title: Chữ ký sai, sai issuer, chuỗi thiếu và root không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-003
+    title: Chứng thư chưa hiệu lực, hết hạn và đồng hồ lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-004
+    title: SAN không khớp tên, wildcard sai và dạng địa chỉ IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-005
+    title: Key Usage, Extended Key Usage và Basic Constraints không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-006
+    title: Name Constraints, path length và critical extension không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-007
+    title: Khóa không khớp chứng thư và thuật toán ngoài chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-008
+    title: CRL, OCSP và stapling lỗi hoặc hết độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-009
+    title: Gia hạn đồng thời, giới hạn CA và lỗi phân phối chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-010
+    title: Xoay root hoặc intermediate trên tập máy khách khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-011
+    title: Kiểm thử mTLS với chứng thư máy khách không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-012
+    title: Kiểm tra liên thông bằng OpenSSL và máy khách độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-013
+    title: Kiểm tra không lộ khóa riêng trong log, tệp tạm và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-testing-014
+    title: Diễn tập sự cố cấp sai, lộ khóa và phục hồi CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-and-auditing
+  title: Giám sát và kiểm toán
+  childs:
+  - slug: monitoring-and-auditing-001
+    title: Chỉ số cấp phát, gia hạn, lỗi xác minh và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-002
+    title: Độ phủ kiểm kê và tỷ lệ chứng thư có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-003
+    title: Chỉ số thời gian còn hiệu lực và tỷ lệ gia hạn thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-004
+    title: Giám sát endpoint phục vụ đúng chứng thư và đúng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-005
+    title: Theo dõi sự kiện sử dụng khóa CA và thay đổi chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-006
+    title: Phát hiện cấp phát bất thường theo tên, chủ thể và tần suất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-007
+    title: Nhật ký có khả năng truy vết và chống sửa đổi trái phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-008
+    title: Bảo vệ dữ liệu cá nhân và bí mật trong bằng chứng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-009
+    title: Đối chiếu CSR, phê duyệt, serial và bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-010
+    title: Kiểm toán quyền truy cập, key ceremony và bản sao khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-and-auditing-011
+    title: Báo cáo rủi ro tồn đọng cùng trách nhiệm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-and-recovery
+  title: Sẵn sàng và khôi phục
+  childs:
+  - slug: availability-and-recovery-001
+    title: Phân biệt tính sẵn sàng của CA với dịch vụ xác minh chứng thư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-002
+    title: Triển khai dự phòng cho issuing CA và dịch vụ đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-003
+    title: Dịch vụ CRL, OCSP và kho công bố không phụ thuộc một điểm lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-004
+    title: Đồng bộ dữ liệu CA, số sê-ri và trạng thái cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-005
+    title: Sao lưu cơ sở dữ liệu, cấu hình và khóa được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-006
+    title: Khôi phục thảm họa với RPO, RTO và kiểm thử thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-007
+    title: Root CA ngoại tuyến và kế hoạch truy cập khi cần thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-008
+    title: Giới hạn tải, hàng đợi và năng lực ký của HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-009
+    title: Gián đoạn mạng, lỗi DNS và hệ thống chạy tách mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-and-recovery-010
+    title: Khôi phục mà không làm mất lịch sử thu hồi hoặc quyền kiểm soát khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptographic-migration
+  title: Di trú mật mã
+  childs:
+  - slug: cryptographic-migration-001
+    title: Đánh giá phụ thuộc trước khi thay CA, root hoặc thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-002
+    title: Đổi trust anchor theo các giai đoạn chồng lấn có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-003
+    title: Di trú khóa RSA sang ECC theo khả năng hỗ trợ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-004
+    title: Chuyển CA tự quản lý sang CA được quản lý hoặc ngược lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-005
+    title: Di trú chứng thư và khóa khi thay HSM hoặc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-006
+    title: Loại bỏ thuật toán, khóa và hồ sơ không còn đáp ứng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-007
+    title: Rút ngắn thời hạn chứng thư và yêu cầu tự động hóa đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-008
+    title: Chuẩn bị cho mật mã hậu lượng tử qua kiểm kê và khả năng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-009
+    title: Thử nghiệm tương thích, kích thước và hiệu năng trước di trú
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptographic-migration-010
+    title: Tiêu chí hoàn tất, rollback và hủy vật liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Đọc một chứng thư và dựng bản đồ khóa, danh tính, issuer, thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Tạo PKI thử nghiệm với root và issuing CA tách biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Thiết kế hồ sơ chứng thư máy chủ và máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Tạo CSR, kiểm tra yêu cầu và phát hành chứng thư trong môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Triển khai TLS và mTLS rồi xác minh từ một máy khách độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Mô phỏng chuỗi thiếu, SAN sai và chứng thư không được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Tự động cấp phát và gia hạn bằng một giao thức đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Diễn tập thu hồi chứng thư và kiểm tra hành vi bên xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Thiết kế danh mục chứng thư cùng cảnh báo hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Xoay intermediate hoặc root với khoảng chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Diễn tập mất khóa, lộ khóa và khôi phục dịch vụ CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Rà soát thiết kế PKI bằng mô hình đe dọa, chính sách và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

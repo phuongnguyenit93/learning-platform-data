@@ -1,0 +1,7 @@
+# Observability — Alerting Fundamentals
+
+**Alerting** chuyển tín hiệu quan sát được từ hệ thống thành thông báo khi một điều kiện có ý nghĩa vận hành xảy ra. Một cảnh báo tốt giúp người trực nhận ra tác động tới dịch vụ, biết mức độ ưu tiên và có bước xử lý tiếp theo; cảnh báo quá nhạy hoặc thiếu ngữ cảnh lại tạo nhiễu và khiến sự cố thật dễ bị bỏ qua. Vì vậy, thiết kế alert cần bắt đầu từ trải nghiệm người dùng và mục tiêu độ tin cậy, thay vì chỉ đặt ngưỡng cho mọi metric.
+
+Module dành cho người đã có kiến thức cơ bản về metrics, logging, monitoring và vận hành ứng dụng. Lộ trình đi từ khái niệm alert, SLI/SLO và severity đến cách viết Prometheus alerting rules bằng PromQL, gắn labels/annotations và kiểm thử rule. Tiếp theo, bạn sẽ cấu hình Alertmanager để phân nhóm, định tuyến và gửi thông báo qua receiver phù hợp; hiểu các cơ chế **grouping, deduplication, silence và inhibition** để giảm thông báo trùng hoặc cảnh báo phụ trong một sự cố lớn. Các ví dụ cũng nhấn mạnh nội dung cảnh báo cần có service, môi trường, mức độ ảnh hưởng và liên kết runbook.
+
+Phần thực hành tập trung vào kiểm thử rule/config trước khi triển khai, quan sát trạng thái firing/resolved và xử lý lỗi giao thông báo. Sau module, bạn có thể thiết kế một luồng từ metric đến alert và notification, chọn điều kiện phù hợp với SLO, giảm flapping/noise và rà soát cảnh báo định kỳ để hệ thống chỉ gọi người trực khi có hành động thực sự cần thiết.

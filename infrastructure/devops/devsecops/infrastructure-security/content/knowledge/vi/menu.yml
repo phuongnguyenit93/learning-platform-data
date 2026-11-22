@@ -1,0 +1,414 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Bảo mật hạ tầng là gì và bảo vệ những thành phần nào
+  - Vai trò của bảo mật hạ tầng trong DevOps và DevSecOps
+  - Mối quan hệ giữa tính bí mật, toàn vẹn và sẵn sàng
+  - Tài sản, danh tính, ranh giới tin cậy và bề mặt tấn công
+  - Mô hình bảo vệ nhiều lớp và đặc quyền tối thiểu
+  - Nguyên tắc không tin cậy mặc định (Zero Trust)
+  - Trách nhiệm bảo mật trong môi trường tại chỗ, đám mây và kết hợp
+  - Ranh giới với bảo mật ứng dụng, container và chuỗi cung ứng
+  - Kiến thức cần có và lộ trình học bảo mật hạ tầng
+- level1: Mô hình đe dọa
+  level2:
+  - Lập sơ đồ kiến trúc, luồng dữ liệu và ranh giới tin cậy
+  - Xác định tác nhân đe dọa, mục tiêu và điều kiện tấn công
+  - Phân tích đe dọa hạ tầng theo STRIDE
+  - Xâm nhập ban đầu qua dịch vụ công khai và thông tin xác thực
+  - Leo thang đặc quyền và di chuyển ngang trong mạng
+  - Chiếm quyền mặt phẳng quản trị và tài khoản đám mây
+  - Rò rỉ dữ liệu, phá hoại và mã hóa tống tiền
+  - Rủi ro từ nhà cung cấp, kênh quản trị và phụ thuộc bên ngoài
+  - Xây dựng kịch bản tấn công và ánh xạ biện pháp kiểm soát
+  - Ưu tiên xử lý theo khả năng khai thác và tác động nghiệp vụ
+- level1: Tài sản và rủi ro
+  level2:
+  - Kiểm kê máy chủ, thiết bị mạng và tài nguyên đám mây
+  - Khám phá tài nguyên không được quản lý và hạ tầng bị bỏ quên
+  - Gắn chủ sở hữu, môi trường và mức độ quan trọng cho tài sản
+  - Phân loại dữ liệu và xác định vị trí lưu trữ, truyền tải
+  - Quản lý tên miền, địa chỉ IP, chứng chỉ và cổng dịch vụ
+  - Lập bản đồ phụ thuộc và phạm vi ảnh hưởng khi bị xâm nhập
+  - Đánh giá rủi ro và lập danh sách ưu tiên khắc phục
+  - Quản lý ngoại lệ, chấp nhận rủi ro và thời hạn xử lý
+  - Đồng bộ kho tài sản với triển khai, thay đổi và hủy tài nguyên
+- level1: Chuẩn và trách nhiệm
+  level2:
+  - Phân định trách nhiệm giữa nền tảng, vận hành và bảo mật
+  - Xây dựng cấu hình bảo mật tối thiểu theo loại tài sản
+  - Áp dụng CIS Benchmarks theo bối cảnh và khả năng tương thích
+  - Ánh xạ biện pháp kiểm soát với NIST CSF và yêu cầu tổ chức
+  - Phân tách môi trường phát triển, kiểm thử và sản xuất
+  - Tách nhiệm vụ, phê duyệt và kiểm soát thay đổi nhạy cảm
+  - Thiết kế mức bảo vệ theo phân loại dữ liệu và rủi ro
+  - Quản lý ngoại lệ có chủ sở hữu, lý do và ngày hết hạn
+  - Đo lường mức tuân thủ và lưu bằng chứng kiểm soát
+- level1: Danh tính người dùng
+  level2:
+  - Phân biệt xác thực, phân quyền và kiểm toán truy cập
+  - Quản lý tập trung danh tính và vòng đời tài khoản
+  - Đăng nhập một lần (SSO) và liên kết danh tính
+  - Xác thực đa yếu tố và phương thức chống lừa đảo
+  - Thiết kế vai trò theo RBAC và điều kiện theo ABAC
+  - Phạm vi quyền, kế thừa và đánh giá quyền hiệu lực
+  - Ngăn quyền quá rộng, quyền không sử dụng và tài khoản dùng chung
+  - Thu hồi phiên, thông tin xác thực và quyền khi thay đổi nhân sự
+  - Rà soát quyền định kỳ và phát hiện tài khoản bất thường
+  - Điều kiện truy cập theo thiết bị, vị trí và mức rủi ro
+- level1: Truy cập đặc quyền
+  level2:
+  - Nhận diện tài khoản quản trị và đường truy cập nhạy cảm
+  - Quản lý truy cập đặc quyền (PAM) và tách tài khoản quản trị
+  - Cấp quyền đúng lúc (JIT) và giới hạn thời gian sử dụng
+  - Truy cập qua bastion, máy trung chuyển và proxy quản trị
+  - Quản trị SSH an toàn với khóa, chứng chỉ và xác minh máy chủ
+  - Quản trị RDP và PowerShell từ xa an toàn
+  - Kiểm soát sudo, lệnh quản trị và nâng quyền có phê duyệt
+  - Ghi nhận phiên quản trị và bảo vệ dữ liệu kiểm toán
+  - Thiết kế tài khoản truy cập khẩn cấp và quy trình sử dụng
+  - Thu hồi quyền khẩn cấp và kiểm thử khả năng khôi phục truy cập
+- level1: Danh tính máy
+  level2:
+  - Tài khoản dịch vụ, danh tính máy và danh tính khối lượng công việc
+  - Ưu tiên danh tính ngắn hạn thay cho khóa truy cập tĩnh
+  - Liên kết danh tính khối lượng công việc qua OIDC
+  - Ràng buộc đối tượng nhận, chủ thể và điều kiện tin cậy
+  - Phân quyền tối thiểu cho tiến trình tự động hóa hạ tầng
+  - Ngăn mạo danh và lạm dụng quyền ủy nhiệm
+  - Quản lý vòng đời khóa, token và thông tin xác thực máy
+  - Giới hạn danh tính trên máy dùng chung và môi trường nhiều bên thuê
+  - Phát hiện thông tin xác thực bị lộ và thu hồi quyền hiệu lực
+  - Kiểm toán quyền của bộ điều khiển, tác vụ nền và công cụ quản trị
+- level1: Kiến trúc mạng
+  level2:
+  - Phân vùng mạng theo môi trường, độ tin cậy và chức năng
+  - Thiết kế mạng riêng, mạng con và vùng phi quân sự (DMZ)
+  - Phân biệt lưu lượng vào ra và lưu lượng nội bộ
+  - Phân đoạn chi tiết để hạn chế di chuyển ngang
+  - Định tuyến, bảng định tuyến và nguy cơ mở đường truy cập ngoài ý muốn
+  - Phòng thủ IPv4, IPv6 và tránh khoảng trống giữa hai giao thức
+  - Tách mạng quản trị, mạng dữ liệu và mạng sao lưu
+  - Kết nối mạng tại chỗ với đám mây qua VPN hoặc đường truyền riêng
+  - Định tuyến bất đối xứng, NAT và tác động đến kiểm soát bảo mật
+  - Thiết kế dự phòng mạng mà vẫn duy trì ranh giới bảo vệ
+- level1: Kiểm soát lưu lượng
+  level2:
+  - Tường lửa có trạng thái, không trạng thái và nguyên tắc mặc định từ chối
+  - Thiết kế quy tắc theo nguồn, đích, cổng và mục đích
+  - Phân biệt tường lửa máy chủ, nhóm bảo mật và ACL mạng
+  - Kiểm soát lưu lượng ra ngoài và phát hiện kênh rò rỉ dữ liệu
+  - Proxy đi ra, danh sách đích cho phép và giới hạn truy cập Internet
+  - Bảo vệ dịch vụ công khai qua reverse proxy và bộ cân bằng tải
+  - Vai trò và giới hạn của WAF trong bảo vệ hạ tầng
+  - Phòng chống DDoS, giới hạn tốc độ và bảo vệ tài nguyên
+  - Kiểm soát cổng quản trị và dịch vụ chỉ dùng nội bộ
+  - Rà soát quy tắc trùng lặp, quá rộng và không còn sử dụng
+  - Kiểm thử khả năng kết nối hợp lệ và luồng bị chặn
+- level1: DNS và thời gian
+  level2:
+  - Phân biệt DNS công khai, DNS nội bộ và trình phân giải
+  - Bảo vệ tài khoản đăng ký tên miền và vòng đời tên miền
+  - Phân quyền thay đổi bản ghi và lưu lịch sử kiểm toán DNS
+  - Ngăn trình phân giải mở và giới hạn truy vấn đệ quy
+  - Vai trò và giới hạn của DNSSEC
+  - DNS riêng, phân tách vùng tên và nguy cơ lộ tên nội bộ
+  - Phát hiện tên miền độc hại và đường hầm DNS
+  - Kiểm soát DNS mã hóa trong chính sách lưu lượng ra ngoài
+  - Bảo vệ đồng bộ thời gian và giới hạn nguồn NTP
+  - Tác động của sai lệch thời gian đến xác thực, chứng chỉ và nhật ký
+- level1: Máy chủ Linux
+  level2:
+  - Giảm gói cài đặt, dịch vụ và cổng mở trên máy chủ
+  - Quản lý người dùng, nhóm, sudo và tài khoản hệ thống
+  - Quyền tệp, ACL, quyền đặc biệt và kiểm soát thư mục nhạy cảm
+  - Cấu hình SSH an toàn và hạn chế đăng nhập quản trị trực tiếp
+  - Cô lập tiến trình và dịch vụ với các cơ chế của systemd
+  - Áp dụng SELinux hoặc AppArmor theo nhu cầu vận hành
+  - Cấu hình kernel, sysctl và giới hạn tài nguyên phù hợp
+  - Bảo vệ tác vụ định kỳ, tiến trình nền và tệp cấu hình
+  - Thu thập nhật ký xác thực, audit và thay đổi hệ thống
+  - Giám sát toàn vẹn tệp và phát hiện cơ chế duy trì truy cập
+  - Kiểm chứng cấu hình Linux theo chuẩn bảo mật đã chọn
+- level1: Máy chủ Windows
+  level2:
+  - Cài đặt tối thiểu và loại bỏ vai trò không cần thiết
+  - Bảo vệ tài khoản quản trị cục bộ và quản lý mật khẩu riêng từng máy
+  - Áp dụng chính sách bảo mật qua Group Policy
+  - Bảo vệ RDP, WinRM và các giao thức quản trị từ xa
+  - Quyền NTFS, chia sẻ SMB và hạn chế giao thức cũ
+  - Kiểm soát dịch vụ, tác vụ định kỳ và thực thi PowerShell
+  - Tường lửa máy chủ, bảo vệ đầu cuối và chính sách ứng dụng
+  - Bảo vệ thông tin xác thực và hạn chế đánh cắp phiên
+  - Phân tầng quản trị và bảo vệ thành phần Active Directory
+  - Thu thập Windows Event Logs và phát hiện thay đổi nhạy cảm
+  - Kiểm chứng cấu hình Windows theo chuẩn bảo mật đã chọn
+- level1: Phần cứng và ảo hóa
+  level2:
+  - An ninh vật lý, phòng máy và kiểm soát truy cập thiết bị
+  - Chuỗi khởi động tin cậy, Secure Boot và TPM
+  - Quản lý firmware, BIOS và cấu hình bảo vệ nền tảng
+  - Cô lập giao diện quản trị ngoài băng và bộ điều khiển máy chủ
+  - Bảo vệ hypervisor và giao diện quản lý máy ảo
+  - Tách biệt máy ảo, mạng ảo và kho lưu trữ dùng chung
+  - Quản lý mẫu máy ảo, ảnh hệ điều hành và snapshot
+  - Giới hạn chia sẻ thiết bị và rủi ro vượt ranh giới cô lập
+  - Bảo vệ dữ liệu khi di chuyển, thanh lý và tái sử dụng thiết bị
+- level1: Cấu hình và bản vá
+  level2:
+  - Xây dựng ảnh hệ điều hành chuẩn và cấu hình được phê duyệt
+  - Quản lý cấu hình nhất quán bằng tự động hóa
+  - Phát hiện sai lệch giữa cấu hình thực tế và cấu hình chuẩn
+  - Quản lý bản vá theo mức rủi ro, phạm vi và thời hạn
+  - Kiểm thử bản vá trên môi trường đại diện trước khi triển khai
+  - Triển khai cuốn chiếu, kiểm tra sức khỏe và quay lui an toàn
+  - Xử lý lỗ hổng nghiêm trọng ngoài lịch bảo trì
+  - Quản lý hệ điều hành hết hỗ trợ và kế hoạch thay thế
+  - Tái tạo máy chủ bất biến thay cho sửa đổi thủ công kéo dài
+  - Xác minh bản vá và cấu hình sau khi tái khởi động
+- level1: Nền tảng đám mây
+  level2:
+  - Mô hình trách nhiệm chia sẻ giữa IaaS, PaaS và SaaS
+  - Tổ chức tài khoản, subscription và project theo ranh giới bảo mật
+  - Thiết kế vùng nền tảng đám mây (landing zone)
+  - Bảo vệ tài khoản gốc và danh tính quản trị tổ chức
+  - Liên kết danh tính và phân quyền xuyên tài khoản
+  - Thiết lập chính sách cấp tổ chức và giới hạn vùng triển khai
+  - Tách mặt phẳng quản trị khỏi mặt phẳng dữ liệu
+  - Ưu tiên điểm cuối riêng và kiểm soát dịch vụ công khai
+  - Ghi nhật ký kiểm toán tập trung và bảo vệ quyền cấu hình
+  - Kiểm soát hạn ngạch, tài nguyên bỏ quên và lạm dụng chi phí
+- level1: Cấu hình đám mây
+  level2:
+  - Phát hiện cấu hình sai với quản lý tư thế bảo mật đám mây (CSPM)
+  - Rà soát quyền hiệu lực với quản lý quyền đám mây (CIEM)
+  - Ngăn kho dữ liệu, cơ sở dữ liệu và máy ảo công khai ngoài ý muốn
+  - Bảo vệ dịch vụ metadata và danh tính gắn với máy chủ
+  - Giảm tác động SSRF đến thông tin xác thực hạ tầng
+  - Kiểm soát mở rộng quyền qua vai trò, chính sách và dịch vụ được ủy quyền
+  - Phát hiện tài nguyên tạo ngoài quy trình được phê duyệt
+  - Khắc phục cấu hình sai tự động với điều kiện an toàn
+  - Đánh giá đường tấn công kết hợp danh tính, mạng và dữ liệu
+  - Đối chiếu kiểm soát giữa AWS, Azure và Google Cloud
+- level1: Mã hóa và khóa
+  level2:
+  - Xác định dữ liệu cần mã hóa khi truyền và khi lưu trữ
+  - Phân biệt mã hóa ổ đĩa, mã hóa dịch vụ và mã hóa ứng dụng
+  - Quản lý vòng đời khóa từ tạo, sử dụng đến hủy
+  - Chọn dịch vụ quản lý khóa (KMS) hoặc thiết bị HSM
+  - Mã hóa phong bì và phân tách khóa dữ liệu với khóa bao bọc
+  - Phân tách quyền quản trị khóa và quyền sử dụng khóa
+  - Luân chuyển, vô hiệu hóa và thu hồi khóa
+  - Sao lưu, khôi phục và bảo đảm tính sẵn sàng của khóa
+  - Kiểm toán thao tác khóa và phát hiện sử dụng bất thường
+  - Đánh giá tác động khi mất khóa hoặc khóa bị lộ
+- level1: TLS và chứng chỉ
+  level2:
+  - Mô hình PKI, tổ chức phát hành và chuỗi tin cậy
+  - Phân biệt chứng chỉ công khai, chứng chỉ nội bộ và chứng chỉ tự ký
+  - Thiết kế TLS cho điểm cuối công khai và kết nối nội bộ
+  - Xác thực hai chiều (mTLS) và danh tính dịch vụ
+  - Kiểm tra tên máy chủ, chuỗi tin cậy và kho chứng chỉ
+  - Tự động cấp phát, gia hạn và triển khai chứng chỉ
+  - Bảo vệ khóa riêng và phân quyền phát hành chứng chỉ
+  - Thu hồi chứng chỉ và giới hạn hiệu lực của cơ chế thu hồi
+  - Giám sát hết hạn, cấu hình TLS sai và chứng chỉ bất thường
+  - Xử lý sự cố chứng chỉ mà vẫn giữ kiểm tra xác thực
+- level1: Bí mật hạ tầng
+  level2:
+  - Phân loại mật khẩu, token, khóa API và thông tin kết nối
+  - Thiết kế kho bí mật tập trung và phạm vi truy cập
+  - Cấp phát bí mật cho máy chủ và công cụ quản trị an toàn
+  - Ưu tiên thông tin xác thực động có thời hạn ngắn
+  - Luân chuyển bí mật mà không gián đoạn dịch vụ
+  - Ngăn lộ bí mật qua biến môi trường, tham số và nhật ký
+  - Kiểm soát bí mật trong tệp cấu hình, ảnh máy và bản sao lưu
+  - Thu hồi, thay thế và điều tra khi bí mật bị lộ
+  - Kiểm toán truy cập kho bí mật và phát hiện sử dụng bất thường
+  - Bảo đảm khả năng hoạt động khi kho bí mật không sẵn sàng
+- level1: Lưu trữ và dữ liệu
+  level2:
+  - Phân biệt rủi ro của lưu trữ đối tượng, khối và tệp
+  - Phân quyền truy cập dữ liệu theo danh tính và tài nguyên
+  - Chặn truy cập công khai và hạn chế liên kết chia sẻ có thời hạn
+  - Mã hóa dữ liệu, snapshot và bản sao nhân bản
+  - Bảo vệ chia sẻ NFS, SMB và kho lưu trữ dùng chung
+  - Phiên bản hóa, khóa lưu giữ và chống sửa xóa dữ liệu
+  - Kiểm soát sao chép dữ liệu giữa vùng và giữa tài khoản
+  - Chính sách lưu giữ, xóa dữ liệu và hủy tài nguyên an toàn
+  - Ghi nhận truy cập dữ liệu và phát hiện tải xuống bất thường
+  - Quản lý dữ liệu nhạy cảm trong môi trường ngoài sản xuất
+- level1: Dịch vụ dữ liệu
+  level2:
+  - Giới hạn bề mặt truy cập của cơ sở dữ liệu và bộ nhớ đệm
+  - Tách danh tính quản trị, ứng dụng và sao lưu
+  - Sử dụng xác thực tập trung hoặc thông tin xác thực ngắn hạn
+  - Bảo vệ kết nối cơ sở dữ liệu bằng TLS và kiểm tra chứng chỉ
+  - Phân quyền tối thiểu và hạn chế thao tác quản trị từ xa
+  - Bảo mật cấu hình cho cơ sở dữ liệu được quản lý
+  - Cô lập hệ thống hàng đợi, luồng sự kiện và dịch vụ tìm kiếm
+  - Bảo vệ bản sao, snapshot, tệp xuất và điểm cuối giám sát
+  - Quản lý cập nhật, thời gian bảo trì và cấu hình dự phòng
+  - Thu thập nhật ký truy cập và kiểm toán thay đổi dữ liệu nhạy cảm
+- level1: Hạ tầng dưới dạng mã
+  level2:
+  - Vai trò của hạ tầng dưới dạng mã (IaC) trong kiểm soát bảo mật
+  - Mô tả kiến trúc và cấu hình bảo mật có thể kiểm chứng
+  - Phân tách môi trường, biến cấu hình và quyền triển khai
+  - Rà soát thay đổi mạng, danh tính và quyền dữ liệu trước khi áp dụng
+  - Phân tích tĩnh IaC để phát hiện cấu hình không an toàn
+  - Kiểm tra kế hoạch thay đổi và nhận diện thao tác phá hủy
+  - Bảo vệ máy thực thi tự động hóa và danh tính triển khai hạ tầng
+  - Kiểm thử hạ tầng trong môi trường cô lập
+  - Phát hiện tài nguyên ngoài mã nguồn và đưa vào quản lý
+  - Hủy môi trường thử nghiệm an toàn và xác minh tài nguyên còn sót
+- level1: Trạng thái Terraform
+  level2:
+  - Phân biệt cấu hình, kế hoạch và trạng thái Terraform
+  - Dữ liệu nhạy cảm có thể xuất hiện trong state và plan
+  - Bảo vệ kho trạng thái từ xa bằng mã hóa và phân quyền
+  - Khóa trạng thái và kiểm soát thao tác đồng thời
+  - Tách trạng thái theo môi trường và ranh giới quyền
+  - Giới hạn truy cập trạng thái từ xa và đầu ra dùng chung
+  - Bảo vệ tệp kế hoạch, bản sao trạng thái và nhật ký thực thi
+  - Lưu phiên bản trạng thái và phục hồi sau lỗi
+  - Quản lý import, di chuyển và thay đổi địa chỉ tài nguyên an toàn
+  - Xử lý trạng thái bị lộ và luân chuyển bí mật liên quan
+- level1: Chính sách bằng mã
+  level2:
+  - Phân biệt chính sách phát hiện, cảnh báo và ngăn chặn
+  - Biểu diễn ràng buộc bảo mật bằng mã có kiểm thử
+  - Đánh giá cấu hình và kế hoạch hạ tầng bằng OPA và Rego
+  - Viết quy tắc cho cổng mở, mã hóa, quyền truy cập và nhãn tài sản
+  - Áp dụng chính sách tại cấp tổ chức, triển khai và vận hành
+  - Kiểm thử quy tắc với trường hợp hợp lệ và vi phạm
+  - Triển khai chính sách theo giai đoạn để giảm gián đoạn
+  - Quản lý ngoại lệ có thời hạn và điều kiện rõ ràng
+  - Ngăn bỏ qua chính sách và bảo vệ quyền sửa quy tắc
+  - Theo dõi vi phạm và cung cấp hướng dẫn khắc phục
+- level1: Hạ tầng Kubernetes
+  level2:
+  - Ranh giới bảo mật giữa cụm, nút và khối lượng công việc
+  - Bảo vệ API server và giới hạn đường truy cập quản trị
+  - Xác thực tập trung và phân quyền RBAC cho quản trị cụm
+  - Bảo vệ etcd, bản sao lưu và dữ liệu bí mật của cụm
+  - Cô lập nút, mạng quản trị và giao diện kubelet
+  - Phân đoạn lưu lượng bằng NetworkPolicy và kiểm chứng thực thi
+  - Kiểm soát quyền cấu hình ingress, load balancer và DNS cụm
+  - Quản lý danh tính đám mây của bộ điều khiển và nút
+  - Bảo vệ công cụ mở rộng, webhook và quyền quản trị nền tảng
+  - Thu thập audit log và phát hiện thay đổi nhạy cảm trong cụm
+  - Cập nhật, khôi phục và đánh giá giới hạn cô lập nhiều bên thuê
+- level1: Nhật ký và kiểm toán
+  level2:
+  - Chọn nguồn nhật ký từ danh tính, máy chủ, mạng và đám mây
+  - Tập trung nhật ký với kênh truyền được xác thực và mã hóa
+  - Đồng bộ thời gian và chuẩn hóa trường dữ liệu
+  - Phân tách quyền sinh, đọc và quản trị nhật ký
+  - Bảo vệ tính toàn vẹn và chống xóa nhật ký trái phép
+  - Che dữ liệu nhạy cảm và ngăn ghi thông tin xác thực
+  - Thiết lập thời gian lưu giữ theo rủi ro và yêu cầu điều tra
+  - Kiểm tra độ bao phủ, độ trễ và khoảng trống thu thập
+  - Tương quan nhật ký giữa danh tính, tài nguyên và kết nối mạng
+  - Bảo vệ chính hệ thống thu thập và lưu trữ nhật ký
+- level1: Phát hiện đe dọa
+  level2:
+  - Phân biệt sự kiện, cảnh báo và sự cố bảo mật
+  - Xây dựng trường hợp phát hiện dựa trên mô hình đe dọa
+  - Phát hiện đăng nhập bất thường và lạm dụng tài khoản đặc quyền
+  - Phát hiện thay đổi chính sách danh tính và mở dịch vụ công khai
+  - Phát hiện di chuyển ngang và kết nối điều khiển từ xa
+  - Phát hiện vô hiệu hóa nhật ký và cơ chế bảo vệ
+  - Phát hiện rò rỉ dữ liệu và lạm dụng tài nguyên tính toán
+  - Kết hợp SIEM, NDR, EDR và tín hiệu bảo mật đám mây
+  - Giảm cảnh báo sai bằng ngữ cảnh tài sản và hoạt động hợp lệ
+  - Viết hướng dẫn xử lý cảnh báo và kiểm thử quy tắc phát hiện
+  - Theo dõi độ bao phủ và thời gian phát hiện
+- level1: Lỗ hổng và phơi lộ
+  level2:
+  - Phân biệt lỗ hổng phần mềm, cấu hình sai và đường truy cập nguy hiểm
+  - Khám phá bề mặt tấn công công khai từ bên ngoài
+  - Quét lỗ hổng có xác thực và quản lý phạm vi được phép
+  - Đánh giá ảnh hệ điều hành, máy chủ và thiết bị mạng
+  - Ưu tiên theo mức ảnh hưởng, khả năng khai thác và mức phơi lộ
+  - Phân biệt điểm CVSS với rủi ro thực tế của tài sản
+  - Xác minh kết quả, xử lý cảnh báo sai và ghi nhận ngoại lệ
+  - Phối hợp vá lỗi, cô lập và biện pháp giảm thiểu tạm thời
+  - Đặt thời hạn khắc phục và theo dõi trách nhiệm xử lý
+  - Quét xác nhận sau khắc phục và phát hiện tái xuất hiện
+  - Báo cáo xu hướng rủi ro và tài sản chưa được đánh giá
+- level1: Ứng phó sự cố
+  level2:
+  - Chuẩn bị vai trò, đầu mối và quyền xử lý khẩn cấp
+  - Phân loại mức độ sự cố và xác định phạm vi ảnh hưởng
+  - Bảo toàn bằng chứng, mốc thời gian và chuỗi bàn giao
+  - Cô lập máy chủ, danh tính và phân đoạn mạng bị xâm nhập
+  - Thu hồi phiên, khóa và token với thứ tự hạn chế gián đoạn
+  - Ứng phó khi tài khoản quản trị đám mây bị chiếm quyền
+  - Ứng phó khi dữ liệu công khai hoặc bị sao chép trái phép
+  - Ứng phó khi máy chủ bị mã hóa tống tiền
+  - Loại bỏ cơ chế duy trì truy cập và tái tạo từ nguồn tin cậy
+  - Khôi phục dịch vụ và tăng cường giám sát sau sự cố
+  - Phân tích nguyên nhân và cập nhật biện pháp phòng ngừa
+- level1: Sao lưu và phục hồi
+  level2:
+  - Xác định RPO, RTO và phụ thuộc cần phục hồi
+  - Phân tách miền tin cậy của hệ thống chính và hệ thống sao lưu
+  - Thiết kế bản sao bất biến hoặc ngoại tuyến chống mã hóa tống tiền
+  - Mã hóa bản sao và bảo vệ khóa phục hồi
+  - Giới hạn quyền tạo, đọc, xóa và thay đổi chính sách sao lưu
+  - Kiểm thử khôi phục dữ liệu và tính toàn vẹn bản sao
+  - Khôi phục danh tính, DNS, mạng và dịch vụ quản lý khóa
+  - Phục hồi sau khi cả mặt phẳng quản trị bị xâm nhập
+  - Diễn tập thảm họa và ghi nhận kết quả RPO, RTO thực tế
+  - Hủy bản sao hết hạn theo chính sách lưu giữ
+- level1: Vận hành an toàn
+  level2:
+  - Đưa kiểm soát bảo mật vào vòng đời tạo và hủy tài nguyên
+  - Rà soát thay đổi nhạy cảm và triển khai ngoài giờ
+  - Quản lý truy cập nhà cung cấp và hỗ trợ từ xa
+  - Kiểm soát công cụ quản trị, máy trạm và tài khoản vận hành
+  - Đánh giá tác động trước khi tự động khắc phục
+  - Cân bằng bảo mật với tính sẵn sàng và khả năng bảo trì
+  - Quản lý tài nguyên tạm thời và môi trường thử nghiệm
+  - Thu hồi quyền, xóa dữ liệu và xác minh khi ngừng dịch vụ
+  - Xử lý bàn giao trách nhiệm và cập nhật tài liệu vận hành
+  - Đo thời gian khắc phục, tỷ lệ sai lệch và mức bao phủ kiểm soát
+- level1: Kiểm chứng và tuân thủ
+  level2:
+  - Lập ma trận yêu cầu, biện pháp kiểm soát và bằng chứng
+  - Phân biệt kiểm tra cấu hình, đánh giá tuân thủ và kiểm thử xâm nhập
+  - Xây dựng kiểm thử dương và kiểm thử từ chối truy cập
+  - Xác minh quyền hiệu lực và đường kết nối xuyên vùng tin cậy
+  - Kiểm thử tình huống mất khóa, hết hạn chứng chỉ và thu hồi quyền
+  - Diễn tập mô phỏng tấn công trong môi trường được phép
+  - Kiểm chứng khả năng phát hiện và ứng phó theo kịch bản
+  - Tự động thu thập bằng chứng không làm lộ bí mật
+  - Quản lý phát hiện kiểm toán và xác minh đóng vấn đề
+  - Rà soát rủi ro còn lại sau khi đạt chuẩn cấu hình
+- level1: Hạ tầng kết hợp
+  level2:
+  - Xác định ranh giới bảo mật giữa tại chỗ và đám mây
+  - Liên kết danh tính và hạn chế lan truyền quyền xuyên môi trường
+  - Phân đoạn mạng kết hợp và kiểm soát tuyến kết nối
+  - Quản lý DNS, thời gian và chứng chỉ xuyên môi trường
+  - Chuẩn hóa nhật ký, kiểm kê tài sản và chính sách tối thiểu
+  - Phân tách khóa, bí mật và quyền dữ liệu theo miền quản trị
+  - Đánh giá khác biệt ngữ nghĩa quyền giữa các nhà cung cấp
+  - Kiểm soát luồng dữ liệu xuyên vùng và vị trí lưu trữ
+  - Thiết kế phục hồi khi liên kết mạng hoặc nhà cung cấp gián đoạn
+  - Tránh cấu hình theo mẫu chung làm mất kiểm soát đặc thù nền tảng
+- level1: Bài thực hành
+  level2:
+  - Thiết lập phòng thực hành cô lập, giới hạn chi phí và quyền thao tác
+  - Lập mô hình đe dọa cho một hệ thống nhiều tầng
+  - Thiết kế phân vùng mạng và kiểm chứng luồng cho phép, từ chối
+  - Cấu hình máy chủ Linux theo chuẩn và kiểm tra sai lệch
+  - Thiết lập danh tính ngắn hạn và đường quản trị có kiểm toán
+  - Bảo vệ kho trạng thái Terraform và phát hiện IaC không an toàn
+  - Viết chính sách chặn tài nguyên công khai và quyền quá rộng
+  - Triển khai TLS, luân chuyển chứng chỉ và xử lý hết hạn
+  - Tập trung nhật ký và phát hiện thay đổi quyền quản trị
+  - Diễn tập lộ khóa, cô lập tài nguyên và khôi phục từ bản sao
+  - Hoàn thiện hồ sơ kiến trúc, bằng chứng kiểm soát và rủi ro còn lại
+  - Thu hồi thông tin xác thực và dọn sạch tài nguyên sau thực hành

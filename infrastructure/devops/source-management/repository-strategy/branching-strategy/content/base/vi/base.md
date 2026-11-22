@@ -1,0 +1,7 @@
+# DevOps Source Management Repository Strategy Branching Strategy
+
+*Branching strategy* là cách một nhóm quy định việc tạo, duy trì, kiểm tra và hợp nhất các nhánh Git để nhiều người cùng phát triển phần mềm mà vẫn bảo vệ mã nguồn chính. Lựa chọn chiến lược không chỉ là đặt tên `main`, `develop` hay `feature/*`: nó quyết định tốc độ tích hợp, mức xung đột, phạm vi kiểm thử và cách xử lý nhiều phiên bản đang phát hành. Module này dành cho người đã biết Git cơ bản, commit, remote, pull/merge request và muốn xây dựng quy trình cộng tác phù hợp với CI/CD.
+
+Lộ trình bắt đầu từ vòng đời branch và cách so sánh các mô hình **GitHub Flow**, **trunk-based development** và **GitFlow**. Tiếp đó, người học thực hành tạo feature branch, gửi pull request nhỏ, giữ nhánh tồn tại ngắn, sử dụng feature flag để tích hợp sớm hoặc dùng release/hotfix branch khi cần duy trì phiên bản. Các mốc sau giải thích khác biệt giữa merge, squash, rebase, cách xử lý conflict, cấu hình branch protection, code review và CI status checks trước khi cho phép merge vào nhánh quan trọng.
+
+Hoàn thành module, bạn có thể vẽ và giải thích luồng nhánh cho một nhóm Java, chọn workflow dựa trên chu kỳ phát hành thay vì theo thói quen, xử lý một thay đổi từ PR đến release tag và thiết lập quy tắc quản trị khả thi. Không có một mô hình tốt nhất cho mọi dự án: ưu tiên nhánh dễ kiểm soát, tích hợp thường xuyên, lịch sử rõ ràng và các kiểm tra tự động để tránh phát hành mã chưa được xác minh.

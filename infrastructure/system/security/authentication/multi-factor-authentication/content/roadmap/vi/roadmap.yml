@@ -1,0 +1,43 @@
+roadmap:
+- id: hieu-dung-mfa
+  title: Hiểu đúng MFA
+  purpose: Hiểu vì sao cần nhiều yếu tố độc lập để bảo vệ tài khoản.
+  objectives:
+  - Phân biệt yếu tố kiến thức, sở hữu và sinh trắc học.
+  - Phân biệt MFA, xác thực hai bước và đăng nhập không mật khẩu.
+- id: phuong-thuc-xac-thuc
+  title: Phương thức xác thực
+  purpose: Nhận diện cách hoạt động và giới hạn của các phương thức MFA phổ biến.
+  objectives:
+  - So sánh TOTP, mã qua SMS và thông báo xác nhận trên thiết bị.
+  - Giải thích vì sao mã dùng một lần vẫn có thể bị lừa lấy và chuyển tiếp.
+- id: mfa-chong-lua-dao
+  title: MFA chống lừa đảo
+  purpose: Hiểu cách xác thực mật mã giảm nguy cơ đăng nhập vào trang giả.
+  objectives:
+  - Mô tả vai trò của FIDO2/WebAuthn và khóa bảo mật trong chống lừa đảo.
+  - Xác định khi nào khóa kết hợp PIN hoặc sinh trắc học đáp ứng nhiều yếu tố.
+- id: dang-ky-phuong-tien
+  title: Đăng ký phương tiện
+  purpose: Gắn phương tiện xác thực với đúng tài khoản ngay từ đầu.
+  objectives:
+  - Mô tả bước xác minh trước khi thêm hoặc thay phương tiện xác thực.
+  - Lập phương án đăng ký dự phòng và thông báo khi có thay đổi.
+- id: luong-va-chinh-sach
+  title: Luồng và chính sách
+  purpose: Thiết kế yêu cầu MFA phù hợp với thao tác và mức rủi ro.
+  objectives:
+  - Vẽ luồng đăng nhập, xác thực tăng cường và từ chối khi thiếu yếu tố.
+  - Xác định giới hạn thử sai, thời hạn và cơ chế chống dùng lại mã xác thực.
+- id: khoi-phuc-va-thu-hoi
+  title: Khôi phục và thu hồi
+  purpose: Duy trì khả năng truy cập mà không tạo đường bỏ qua MFA.
+  objectives:
+  - Thiết kế xử lý mất thiết bị, mã khôi phục và thay phương tiện an toàn.
+  - Xác định khi cần thu hồi phương tiện, kết thúc phiên và thông báo người dùng.
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng luồng MFA và theo dõi các dấu hiệu bị tấn công.
+  objectives:
+  - Kiểm thử mã hết hạn, phát lại, bỏ qua MFA và lạm dụng quy trình khôi phục.
+  - Đề xuất cảnh báo cho xác nhận dồn dập, đăng nhập bất thường và thay đổi phương tiện.

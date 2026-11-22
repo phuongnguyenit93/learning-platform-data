@@ -1,0 +1,325 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Alertmanager là gì và giải quyết vấn đề nào trong hệ thống quan sát
+  - Vị trí của Alertmanager giữa nguồn cảnh báo, kênh thông báo và người trực
+  - Phân biệt cảnh báo, nhóm cảnh báo, thông báo và sự cố
+  - Vai trò của định tuyến, gom nhóm, khử trùng lặp, ức chế và tạm tắt
+  - Ranh giới trách nhiệm giữa Prometheus, Alertmanager và nền tảng quản lý sự cố
+  - Phân biệt Prometheus Alertmanager với Alertmanager tích hợp trong Grafana
+  - Kiến thức đầu vào và trình tự học từ một máy đến cụm sẵn sàng cao
+- level1: Dữ liệu cảnh báo
+  level2:
+  - 'Cấu trúc một cảnh báo: labels, annotations, startsAt, endsAt và generatorURL'
+  - Nhãn định danh và dấu vân tay (fingerprint) của cảnh báo
+  - Thông tin mô tả, liên kết xử lý và ngữ cảnh trong annotations
+  - Thiết kế nhãn alertname, severity, team, service, environment và cluster
+  - Ảnh hưởng của việc đổi nhãn và cập nhật annotations đến danh tính cảnh báo
+  - Biểu diễn thời gian RFC3339, múi giờ và đồng bộ đồng hồ
+  - Trạng thái firing và resolved dưới góc nhìn Alertmanager
+  - Nhãn có nhiều giá trị khác nhau và nguy cơ bùng nổ số lượng cảnh báo
+  - Chuẩn hóa dữ liệu giữa nhiều nguồn và kiểm tra nhãn bắt buộc ở nguồn gửi
+- level1: Luồng xử lý
+  level2:
+  - Theo dấu một cảnh báo từ tiếp nhận đến kênh thông báo
+  - Quan hệ giữa bộ định tuyến, nhóm tổng hợp và chuỗi xử lý thông báo
+  - Phân biệt khử trùng lặp cảnh báo đầu vào và khử trùng lặp thông báo
+  - Các điểm chờ, kiểm tra ức chế, kiểm tra tạm tắt và quyết định gửi
+  - Vì sao một cảnh báo đang firing có thể chưa phát sinh thông báo
+  - Vòng đời nhóm khi có cảnh báo mới, cảnh báo kết thúc hoặc cả hai
+  - Vai trò của lịch sử gửi trong quyết định lặp lại thông báo
+  - Giới hạn đảm bảo giao nhận khi có lỗi mạng, khởi động lại và lỗi kênh nhận
+- level1: Khởi chạy
+  level2:
+  - Lựa chọn bản phát hành và kiểm tra tương thích của Alertmanager với amtool
+  - Chạy bằng tệp thực thi và quản lý tiến trình bằng systemd
+  - Chạy bằng Docker với cấu hình, mẫu thông báo và dữ liệu được gắn ngoài
+  - Dựng môi trường Docker Compose gồm Prometheus, Alertmanager và webhook thử nghiệm
+  - Cổng HTTP, cổng liên lạc cụm và địa chỉ lắng nghe
+  - Tham số khởi động cho tệp cấu hình, thư mục dữ liệu và nhật ký
+  - Kiểm tra giao diện, trạng thái sẵn sàng và thông báo đầu tiên
+  - Tách cấu hình môi trường thử nghiệm với cấu hình vận hành thực tế
+- level1: Kết nối Prometheus
+  level2:
+  - Khai báo alerting.alertmanagers trong cấu hình Prometheus
+  - Khai báo đích tĩnh và khám phá các máy Alertmanager
+  - Phân biệt thời gian đánh giá quy tắc, for, keep_firing_for và thời gian gửi thông báo
+  - Vai trò của external_labels và alert_relabel_configs trước khi gửi
+  - Chuẩn hóa nhãn replica để khử trùng lặp từ các Prometheus dự phòng
+  - Gửi cảnh báo đến mọi thành viên Alertmanager thay vì cân bằng tải giữa các thành viên
+  - Cấu hình đường dẫn, TLS và xác thực cho kết nối Prometheus đến Alertmanager
+  - Kiểm tra cảnh báo đã kích hoạt, đích gửi và lỗi giao nhận phía Prometheus
+  - Kiểm chứng đường đi đầy đủ bằng một quy tắc thử nghiệm có kiểm soát
+- level1: Cấu hình
+  level2:
+  - Bố cục alertmanager.yml và vai trò của các khối cấu hình chính
+  - Phân biệt tham số dòng lệnh, cấu hình có thể nạp lại và cấu hình web
+  - Cấu hình mặc định trong global và giá trị riêng của từng bộ nhận
+  - Liên kết route, receivers, inhibit_rules, time_intervals và templates
+  - Kiểu thời lượng, chuỗi, danh sách và lỗi thụt dòng YAML thường gặp
+  - Đường dẫn tương đối, tệp bí mật và quyền truy cập của tiến trình
+  - Phạm vi của resolve_timeout đối với nguồn gửi không cung cấp endsAt
+  - Kiểm tra hợp lệ trước khi nạp lại và hành vi khi cấu hình mới bị từ chối
+  - Đối chiếu phiên bản, trường đã ngừng khuyến nghị và tính năng cần bật riêng
+- level1: Bộ so khớp
+  level2:
+  - Bộ so khớp nhãn (matcher) trong định tuyến, tạm tắt và ức chế
+  - Toán tử bằng, khác, khớp và không khớp biểu thức chính quy
+  - Kết hợp nhiều điều kiện theo phép AND và biểu diễn lựa chọn OR
+  - Biểu thức chính quy RE2 và phạm vi khớp toàn bộ giá trị
+  - Nhãn thiếu, giá trị rỗng và tác động đến kết quả so khớp
+  - Phân biệt đặt dấu nháy ở lớp YAML với đặt dấu nháy trong matcher
+  - Ký tự đặc biệt, dấu gạch chéo ngược và giá trị Unicode
+  - Chuyển từ match và match_re sang danh sách matchers
+  - Kiểm tra tương thích bộ phân tích UTF-8 và chế độ được phiên bản hỗ trợ
+- level1: Định tuyến
+  level2:
+  - Cây định tuyến và yêu cầu tuyến gốc tiếp nhận mọi cảnh báo
+  - Thứ tự duyệt tuyến con và lựa chọn nhánh theo bộ nhãn
+  - Kế thừa receiver, group_by và thời gian từ tuyến cha
+  - Tuyến dự phòng khi không có tuyến con nào khớp
+  - continue và việc tiếp tục xét các tuyến anh em
+  - Gửi nhiều nhóm phụ trách hoặc nhiều kênh mà vẫn kiểm soát thông báo trùng
+  - Định tuyến theo nhóm phụ trách, dịch vụ, môi trường và mức nghiêm trọng
+  - Phân biệt một receiver có nhiều tích hợp với nhiều tuyến cùng khớp
+  - Tuyến lồng nhau và lỗi tuyến tổng quát che khuất tuyến cụ thể
+  - Tuyến tạm ngừng theo thời gian và ảnh hưởng đến các tuyến phía sau
+  - Thiết kế tuyến loại bỏ có chủ đích và kiểm soát nguy cơ mất thông báo
+  - Mô phỏng cây định tuyến bằng các bộ nhãn và bộ nhận kỳ vọng
+- level1: Gom nhóm và thời gian
+  level2:
+  - Nhóm tổng hợp hình thành theo tuyến và các nhãn group_by
+  - Chọn khóa gom nhóm để cân bằng ngữ cảnh sự cố và số lượng thông báo
+  - Khác biệt giữa group_by rỗng và giá trị đặc biệt ba dấu chấm
+  - group_wait và thời điểm gửi thông báo đầu tiên của nhóm
+  - group_interval và chu kỳ kiểm tra thay đổi trong nhóm hiện có
+  - repeat_interval và việc nhắc lại khi tập cảnh báo không đổi
+  - Dòng thời gian khi cảnh báo mới đến trước và sau lần gửi đầu
+  - Dòng thời gian khi một phần hoặc toàn bộ cảnh báo đã resolved
+  - Cảnh báo kết thúc trước group_wait và tác động của cảnh báo chập chờn
+  - Quan hệ giữa group_interval, repeat_interval và thời gian lưu lịch sử
+  - Độ trễ kênh nhận, thời hạn xử lý và nguy cơ hủy lần gửi
+  - Chọn cấu hình thời gian theo độ khẩn cấp và kiểm chứng bằng dòng thời gian
+- level1: Bộ nhận
+  level2:
+  - Receiver là gì và cách tham chiếu tên receiver từ tuyến
+  - Một receiver chứa một hoặc nhiều cấu hình tích hợp
+  - Thiết lập riêng cho từng tích hợp và phạm vi của send_resolved
+  - Phân biệt địa chỉ nhận, thông tin xác thực và nội dung thông báo
+  - Kế thừa cấu hình HTTP dùng chung và ghi đè theo tích hợp
+  - Hành vi khi một tích hợp lỗi còn tích hợp khác gửi thành công
+  - Giới hạn tốc độ, thời gian chờ và khả năng gửi lại của từng loại tích hợp
+  - Chọn bộ nhận thử nghiệm để kiểm chứng mà không làm phiền người trực
+- level1: Kênh thông báo
+  level2:
+  - 'Gửi email qua SMTP: máy chủ, người gửi, người nhận và TLS'
+  - Xác thực SMTP và thiết kế tiêu đề, nội dung HTML hoặc văn bản
+  - Tích hợp Slack bằng cấu hình được phiên bản hỗ trợ
+  - 'Tích hợp Telegram: token, chat_id và định dạng nội dung'
+  - Tích hợp PagerDuty và liên kết với quy trình trực xử lý sự cố
+  - Tích hợp Microsoft Teams và kiểm tra tương thích định dạng webhook
+  - Tra cứu các tích hợp bổ sung theo phiên bản và nhu cầu tổ chức
+  - Giới hạn kích thước, cắt ngắn nội dung và khác biệt định dạng giữa các kênh
+  - Kiểm chứng thông báo firing và resolved trên từng kênh đã chọn
+- level1: Webhook
+  level2:
+  - Vai trò của webhook chung trong việc kết nối hệ thống nhận tùy chỉnh
+  - Cấu trúc JSON của thông báo và danh sách cảnh báo trong nhóm
+  - Phân biệt groupLabels, commonLabels, commonAnnotations và nhãn từng cảnh báo
+  - Khóa nhóm groupKey, trạng thái nhóm và ngữ cảnh receiver
+  - Giới hạn max_alerts và xử lý thông tin cảnh báo bị cắt bớt
+  - Mã trạng thái HTTP, lỗi tạm thời và hành vi gửi lại cần kiểm chứng
+  - Thiết kế bên nhận xử lý lặp an toàn khi nhận lại cùng thông báo
+  - Thiết kế bên nhận lưu bền trước khi xác nhận tiếp nhận
+  - TLS, xác thực, thời gian chờ và bảo vệ dữ liệu trong webhook
+  - Mô phỏng bên nhận chậm, lỗi hoặc gián đoạn bằng dịch vụ thử nghiệm
+- level1: Mẫu thông báo
+  level2:
+  - Vai trò của Go template trong nội dung thông báo Alertmanager
+  - Phân biệt mẫu thông báo Alertmanager với mẫu trong quy tắc Prometheus
+  - 'Cấu trúc dữ liệu mẫu: Receiver, Status, Alerts và ExternalURL'
+  - GroupLabels, CommonLabels và CommonAnnotations trong nội dung chung
+  - Duyệt Alerts.Firing, Alerts.Resolved và đọc trường của từng cảnh báo
+  - Biến, điều kiện, vòng lặp, pipeline và định nghĩa mẫu dùng lại
+  - Sắp xếp nhãn và sử dụng các hàm hỗ trợ chuỗi hoặc thời gian
+  - Xử lý nhãn hoặc annotations thiếu và tránh nội dung rỗng
+  - Thoát ký tự HTML, Markdown và văn bản theo kênh đích
+  - Đưa liên kết dashboard, nguồn cảnh báo và hướng dẫn xử lý vào thông báo
+  - Tổ chức tệp mẫu và kiểm thử kết quả dựng mẫu với dữ liệu đầu vào
+- level1: Ức chế
+  level2:
+  - Ức chế (inhibition) là gì và khi nào áp dụng quan hệ nguyên nhân với hệ quả
+  - Xác định cảnh báo nguồn và cảnh báo đích của quy tắc ức chế
+  - source_matchers, target_matchers và phạm vi của equal
+  - Ảnh hưởng của nhãn thiếu hoặc rỗng trong các nhãn yêu cầu bằng nhau
+  - Kiểm soát trường hợp một cảnh báo đồng thời khớp nguồn và đích
+  - Ức chế cảnh báo mức thấp khi cảnh báo nghiêm trọng cùng phạm vi đang firing
+  - Ức chế theo cluster, dịch vụ hoặc phụ thuộc mà không che sự cố độc lập
+  - Quan hệ giữa thời điểm cảnh báo nguồn đến và group_wait của nhóm đích
+  - Kiểm chứng khi cảnh báo nguồn kết thúc và đích được phép thông báo trở lại
+- level1: Tạm tắt
+  level2:
+  - Tạm tắt (silence) là gì và khác ức chế hoặc lịch tắt định kỳ thế nào
+  - Phạm vi so khớp và yêu cầu an toàn khi tạo một silence
+  - Thời điểm bắt đầu, kết thúc và các trạng thái pending, active, expired
+  - Tạo silence từ bộ nhãn cảnh báo trên giao diện web
+  - Tác giả, lý do, mã thay đổi và thời hạn phục vụ truy vết
+  - Xem trước phạm vi ảnh hưởng để tránh tạm tắt quá rộng
+  - Cập nhật, kéo dài và cho silence hết hiệu lực sớm
+  - Silence hết hạn khi cảnh báo vẫn firing và thời điểm thông báo trở lại
+  - Tạm tắt thông báo trong bảo trì và phân biệt với xác nhận đã tiếp nhận sự cố
+- level1: Khung thời gian
+  level2:
+  - Định nghĩa time_intervals để biểu diễn khung hoạt động hoặc tạm ngừng
+  - mute_time_intervals và active_time_intervals ở từng tuyến
+  - Giới hạn trên tuyến gốc và các trường thời gian không kế thừa
+  - Khai báo giờ, ngày trong tuần, ngày trong tháng, tháng và năm
+  - Múi giờ IANA, thay đổi giờ mùa hè và sai lệch lịch trực
+  - Biểu diễn khoảng qua nửa đêm, ngày nghỉ và lịch bảo trì định kỳ
+  - Kết hợp nhiều khung thời gian và xử lý tuyến không hoạt động
+  - Kiểm chứng continue và tuyến dự phòng khi ngoài giờ làm việc
+- level1: Web UI và API
+  level2:
+  - Đọc danh sách cảnh báo, nhóm cảnh báo và trạng thái bị chặn thông báo
+  - Lọc cảnh báo theo nhãn, bộ nhận và trạng thái trên giao diện
+  - Xem trạng thái máy, cụm và cấu hình đang có hiệu lực
+  - Phạm vi API v2 và cách tra hợp đồng OpenAPI theo phiên bản
+  - Đọc cảnh báo và nhóm qua /api/v2/alerts và /api/v2/alerts/groups
+  - Đọc trạng thái hoặc danh sách bộ nhận qua API v2
+  - Tạo, đọc, cập nhật và kết thúc silence qua API
+  - Gửi cảnh báo thử nghiệm qua POST /api/v2/alerts
+  - Trách nhiệm gửi định kỳ và thông báo kết thúc của nguồn gửi tùy chỉnh
+  - Kiểm tra /-/healthy, /-/ready và nạp lại bằng POST /-/reload
+  - Xử lý lỗi yêu cầu, đường dẫn tiền tố và quyền truy cập khi tự động hóa
+- level1: amtool
+  level2:
+  - Cài đặt amtool và chọn phiên bản tương thích với máy Alertmanager
+  - Cấu hình địa chỉ máy đích, tác giả và định dạng đầu ra
+  - Truy vấn cảnh báo bằng matcher và đọc thông tin trạng thái
+  - Tạo, tìm kiếm, cập nhật và cho silence hết hiệu lực có kiểm soát
+  - Kiểm tra alertmanager.yml bằng amtool check-config
+  - Hiển thị cây tuyến bằng amtool config routes
+  - Kiểm tra bộ nhận kỳ vọng bằng amtool config routes test
+  - Dựng thử nội dung thông báo bằng amtool template render
+  - Dùng mã thoát và đầu ra có cấu trúc trong quy trình tự động
+- level1: Sẵn sàng cao
+  level2:
+  - Mô hình nhiều máy Alertmanager và mục tiêu tiếp tục gửi khi có lỗi
+  - Thành viên cụm, gossip và trạng thái hội tụ dần
+  - 'Trạng thái được chia sẻ: silence và lịch sử thông báo'
+  - Phân biệt đồng bộ trạng thái cụm với phân phối cảnh báo đầu vào
+  - Thiết lập cluster.listen-address, cluster.peer và cluster.advertise-address
+  - Kết nối giữa các máy qua cổng cụm và giao thức được cấu hình
+  - Độ chờ theo thành viên và phối hợp khử trùng lặp thông báo
+  - Chờ hội tụ khi khởi động hoặc gia nhập lại cụm
+  - Lỗi phân hoạch mạng và đánh đổi ưu tiên gửi thay vì bỏ sót
+  - Giới hạn của khử trùng lặp và khả năng vẫn có thông báo lặp
+  - Đồng nhất cấu hình, mẫu thông báo và đồng hồ giữa các máy
+  - Chọn số máy, miền lỗi và diễn tập mất một thành viên
+- level1: Lưu trữ
+  level2:
+  - 'Phân loại dữ liệu: cảnh báo trong bộ nhớ, silence và lịch sử gửi'
+  - Thư mục dữ liệu, tệp trạng thái và cơ chế khôi phục sau khởi động
+  - Tác động khi mất ổ đĩa, mất toàn cụm hoặc nguồn cảnh báo ngừng gửi
+  - Thời gian lưu dữ liệu và ảnh hưởng đến thông báo lặp hoặc silence hết hạn
+  - Dung lượng, quyền ghi và ổ lưu trữ riêng cho từng máy
+  - Thiết kế sao lưu, kiểm tra khả năng phục hồi và giới hạn của bản sao
+  - Phục hồi khi thay máy và phối hợp với trạng thái từ các máy còn lại
+  - Giới hạn cảnh báo hoặc silence theo phiên bản và cách kiểm chứng tác động
+- level1: Bảo mật
+  level2:
+  - 'Bề mặt truy cập: giao diện, API, nạp cấu hình và cổng liên lạc cụm'
+  - Cấu hình HTTPS và xác thực cơ bản bằng tệp cấu hình web
+  - Bảo vệ truy cập bằng reverse proxy và chính sách mạng phù hợp
+  - TLS phía máy khách khi gửi đến receiver và kết nối với Prometheus
+  - Lưu token, mật khẩu và khóa qua tệp bí mật hoặc cơ chế quản lý bí mật
+  - Luân chuyển thông tin xác thực và kiểm tra khả năng nạp cấu hình mới
+  - Phân quyền thay đổi định tuyến, tạo silence và quản trị cấu hình
+  - Ngăn lộ thông tin nhạy cảm trong nhãn, annotations, nhật ký và thông báo
+  - Kiểm soát địa chỉ đích, proxy và kết nối ra ngoài của tiến trình
+  - Bảo vệ lưu lượng giữa các thành viên theo khả năng phiên bản triển khai
+- level1: Kubernetes
+  level2:
+  - Triển khai Alertmanager bằng StatefulSet và ổ dữ liệu bền vững
+  - Dịch vụ khám phá thành viên, địa chỉ quảng bá và cổng liên lạc cụm
+  - Readiness, liveness, tài nguyên và phân bố Pod theo miền lỗi
+  - Quản lý bằng Prometheus Operator và tài nguyên Alertmanager
+  - Cấp alertmanager.yaml bằng Kubernetes Secret
+  - AlertmanagerConfig và việc chọn tài nguyên theo nhãn hoặc namespace
+  - Ranh giới namespace và cách Operator ghép cấu hình định tuyến
+  - Nạp lại cấu hình, tệp mẫu và bí mật được gắn vào Pod
+  - Phân biệt quy tắc PrometheusRule với cấu hình xử lý thông báo
+  - Nâng cấp cuốn chiếu và kiểm chứng hoạt động khi Pod bị thay thế
+- level1: Giám sát
+  level2:
+  - Thu thập /metrics của từng máy Alertmanager bằng Prometheus
+  - Theo dõi số cảnh báo, số nhóm và tốc độ thay đổi dữ liệu đầu vào
+  - Theo dõi lần gửi, lỗi gửi và độ trễ theo tích hợp
+  - Theo dõi thành viên cụm và dấu hiệu kết nối không ổn định
+  - Theo dõi kết quả nạp cấu hình và phát hiện cấu hình chưa được áp dụng
+  - Theo dõi tài nguyên tiến trình, dung lượng dữ liệu và lỗi lưu trạng thái
+  - Thiết kế dashboard để lần theo từ nguồn gửi đến kênh nhận
+  - Cảnh báo cho chính hệ thống Alertmanager bằng đường báo độc lập
+  - Kiểm tra cảnh báo sống (Watchdog) và phát hiện chuỗi thông báo bị đứt
+  - Xác định mục tiêu độ trễ thông báo và giới hạn đo lường từ phía Alertmanager
+  - Đọc nhật ký theo thành phần và bật chẩn đoán chi tiết có thời hạn
+- level1: Kiểm thử
+  level2:
+  - Lập ma trận nhãn đầu vào, tuyến, bộ nhận và kết quả kỳ vọng
+  - Kiểm tra cấu hình tĩnh và tương thích matcher trong quy trình CI
+  - Kiểm thử tuyến khớp, không khớp, nhiều nhánh và tuyến dự phòng
+  - Kiểm thử nội dung mẫu với nhãn thiếu, Unicode và nhóm lớn
+  - Kiểm thử group_wait, group_interval và repeat_interval bằng dòng thời gian
+  - Kiểm thử cảnh báo firing, resolved và trạng thái hỗn hợp trong một nhóm
+  - Kiểm thử quan hệ ức chế và phạm vi silence bằng trường hợp đối chứng
+  - Kiểm thử lịch ở biên ngày, múi giờ và ngoài giờ hoạt động
+  - Kiểm thử lỗi kênh nhận, thời gian chờ và gửi lại bằng webhook giả lập
+  - Diễn tập khởi động lại, mất máy và phân hoạch mạng của cụm
+  - Lưu bằng chứng đầu vào, API, nhật ký và thông báo để đối chiếu kết quả
+- level1: Xử lý sự cố
+  level2:
+  - Cây chẩn đoán khi có cảnh báo trong Prometheus nhưng không có thông báo
+  - Không nhận được cảnh báo do cấu hình đích, nhãn hoặc kết nối đầu vào
+  - Sai bộ nhận do matcher, thứ tự tuyến, kế thừa hoặc continue
+  - Chậm gửi do gom nhóm, lịch hoạt động hoặc thời gian chờ cụm
+  - Không gửi vì silence hoặc quy tắc ức chế ngoài dự kiến
+  - Thông báo trùng do nhãn replica, nhóm không ổn định hoặc cụm bị chia cắt
+  - Thiếu thông báo resolved do nguồn gửi, send_resolved hoặc thời điểm kiểm tra
+  - Lỗi dựng mẫu, trường thiếu và nội dung bị cắt theo giới hạn kênh nhận
+  - Lỗi SMTP, chứng chỉ TLS, thông tin xác thực hoặc giới hạn tốc độ
+  - Không gia nhập cụm do địa chỉ quảng bá, DNS hoặc chính sách mạng
+  - Nạp lại thất bại, gắn sai tệp và cấu hình khác nhau giữa các máy
+  - Mất trạng thái sau khởi động lại và phục hồi từ dữ liệu hoặc máy còn lại
+- level1: Quản lý thay đổi
+  level2:
+  - Quản lý cấu hình và tệp mẫu bằng Git với người chịu trách nhiệm rõ ràng
+  - Tách giá trị môi trường và bí mật khỏi cấu hình được kiểm soát phiên bản
+  - Đánh giá ảnh hưởng khi đổi nhãn, group_by, tuyến hoặc receiver
+  - Chuỗi kiểm tra cấu hình, thử tuyến, dựng mẫu và phê duyệt thay đổi
+  - Triển khai cấu hình đồng nhất và xác minh nạp lại trên từng máy
+  - Kế hoạch quay lui khi sai tuyến hoặc ngừng gửi thông báo
+  - Nâng cấp phiên bản, chuyển trường cũ và kiểm chứng tương thích tích hợp
+  - Hồ sơ thay đổi và kiểm tra lại sau triển khai bằng cảnh báo thử nghiệm
+- level1: Thiết kế vận hành
+  level2:
+  - Thiết kế thông báo theo hành động cần làm và nhóm chịu trách nhiệm
+  - Quy ước mức nghiêm trọng và ánh xạ đến kênh nhận
+  - Giảm nhiễu bằng nhãn ổn định, gom nhóm và ức chế đúng phạm vi
+  - Phối hợp lịch trực, lịch thông báo và nền tảng điều phối người trực
+  - Phân biệt lặp thông báo với chuyển cấp xử lý sự cố
+  - Chuẩn hóa liên kết hướng dẫn xử lý và thông tin cần để bắt đầu điều tra
+  - Quy trình bảo trì có silence hữu hạn và kiểm tra sau bảo trì
+  - Đánh giá chất lượng theo thông báo hữu ích, trùng lặp và sự cố bị bỏ sót
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng chuỗi Prometheus đến Alertmanager đến webhook trong Docker Compose
+  - Phân tuyến hai dịch vụ theo nhóm phụ trách và mức nghiêm trọng
+  - Gom một đợt lỗi nhiều máy thành nhóm thông báo có đủ ngữ cảnh
+  - Quan sát dòng thời gian gửi đầu, cập nhật nhóm và nhắc lại
+  - Ức chế cảnh báo hệ quả khi một phụ thuộc chung bị lỗi
+  - Tạo silence bảo trì và xác minh thông báo sau khi silence hết hạn
+  - Thiết lập lịch trong giờ, ngoài giờ và tuyến dự phòng
+  - Viết mẫu thông báo có danh sách firing, resolved và liên kết hướng dẫn
+  - Dựng cụm nhiều máy và diễn tập mất thành viên hoặc lỗi kênh nhận
+  - Thay đổi cấu hình qua kiểm tra tự động, nạp lại và quay lui
+  - Hoàn thiện cấu hình vận hành cùng ma trận kiểm thử và hồ sơ chẩn đoán

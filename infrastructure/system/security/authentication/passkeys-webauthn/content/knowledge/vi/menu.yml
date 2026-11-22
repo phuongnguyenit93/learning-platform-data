@@ -1,0 +1,359 @@
+menu:
+- level1: Tổng quan passkey
+  level2:
+  - Passkey là gì và vấn đề của xác thực bằng mật khẩu
+  - Quan hệ giữa passkey, WebAuthn, FIDO2 và CTAP
+  - Thông tin xác thực khóa công khai (public-key credential) là gì
+  - Phân biệt đăng nhập không mật khẩu và xác thực nhiều yếu tố
+  - Khả năng chống lừa đảo và giới hạn của phạm vi bảo vệ
+  - So sánh passkey với mật khẩu, OTP, liên kết đăng nhập và khóa bảo mật
+  - Các bên tham gia trong một lần tạo hoặc sử dụng passkey
+  - Lợi ích, đánh đổi và tình huống ứng dụng phù hợp
+  - Lộ trình học và kiến thức nền cần có
+- level1: Nền tảng mật mã
+  level2:
+  - Cặp khóa công khai và khóa riêng trong xác thực
+  - Ký thử thách thay cho gửi bí mật dùng chung
+  - Hàm băm, chữ ký số và xác minh thông điệp
+  - Nguồn ngẫu nhiên và tính không thể đoán của challenge
+  - Thuật toán chữ ký và đàm phán khả năng hỗ trợ
+  - Phân biệt xác thực bằng chữ ký với mã hóa dữ liệu
+  - Khóa riêng được lưu giữ và bảo vệ ở đâu
+  - Khóa công khai phía máy chủ và hậu quả khi dữ liệu bị sửa
+  - Vì sao TLS vẫn cần thiết khi đã có xác thực khóa công khai
+- level1: Hệ sinh thái FIDO
+  level2:
+  - WebAuthn quy định giao tiếp giữa ứng dụng web và nền tảng khách
+  - CTAP quy định giao tiếp với bộ xác thực
+  - FIDO2 kết hợp vai trò của WebAuthn và CTAP
+  - Quan hệ với FIDO U2F và thông tin xác thực cũ
+  - Bộ xác thực tích hợp, khóa bảo mật rời và thiết bị di động
+  - Nhà cung cấp passkey và kho thông tin xác thực của nền tảng
+  - Vai trò của tiêu chuẩn, chứng nhận và kiểm thử tương thích
+  - Phân biệt yêu cầu của tiêu chuẩn với chính sách riêng của sản phẩm
+  - Theo dõi phiên bản tiêu chuẩn mà không giả định mọi thiết bị đều hỗ trợ
+- level1: Vai trò và luồng tin cậy
+  level2:
+  - Bên sử dụng xác thực (Relying Party) và tài khoản người dùng
+  - Trình duyệt, ứng dụng khách, hệ điều hành và bộ xác thực
+  - Nhà cung cấp danh tính và ứng dụng sử dụng đăng nhập liên kết
+  - Luồng dữ liệu giữa máy chủ, trình duyệt và bộ xác thực
+  - Ranh giới tin cậy của mã giao diện và máy chủ xác minh
+  - Bên nào tạo challenge, giữ khóa và kiểm tra chữ ký
+  - Phân biệt danh tính tài khoản với việc mở khóa thiết bị
+  - Mô hình đe dọa khi thiết bị, tài khoản hoặc ứng dụng bị chiếm
+  - Giới hạn bảo đảm khi một thành phần nằm ngoài phạm vi tin cậy
+- level1: Loại thông tin xác thực
+  level2:
+  - Thông tin xác thực có thể khám phá (discoverable credential)
+  - Thông tin xác thực không thể khám phá và danh sách allowCredentials
+  - Quan hệ giữa resident key và discoverable credential
+  - Passkey gắn với thiết bị và passkey có thể đồng bộ
+  - Bộ xác thực nền tảng và bộ xác thực dùng qua nhiều thiết bị
+  - Đăng nhập có tên tài khoản và đăng nhập không cần nhập tên
+  - Một tài khoản có nhiều credential và một thiết bị chứa nhiều tài khoản
+  - Credential ID, user handle và khóa công khai có vai trò khác nhau
+  - Chọn loại credential theo nhu cầu và mức độ bảo đảm
+- level1: RP ID và origin
+  level2:
+  - RP ID xác định phạm vi sử dụng thông tin xác thực
+  - Origin bao gồm giao thức, tên máy chủ và cổng
+  - Quan hệ và điều kiện hợp lệ giữa RP ID với origin
+  - RP ID hash trong dữ liệu được bộ xác thực ký
+  - Giới hạn tin cậy đối với tên miền con và tên miền dùng chung
+  - Môi trường phát triển, thử nghiệm và sản xuất
+  - Đổi tên miền và ảnh hưởng tới passkey đã đăng ký
+  - Nhúng trong iframe, chính sách quyền và yêu cầu xuyên origin
+  - Ứng dụng gốc và cơ chế liên kết với tên miền khi được hỗ trợ
+  - Ngăn cấu hình origin quá rộng hoặc nhận origin từ đầu vào không tin cậy
+- level1: Bộ xác thực
+  level2:
+  - Bộ xác thực nền tảng, khóa bảo mật USB và thiết bị NFC
+  - Giao tiếp qua USB, NFC, BLE và phương thức hybrid
+  - Lưu khóa trong phần cứng bảo vệ so với kho phần mềm
+  - Mã PIN của bộ xác thực và mã mở khóa thiết bị
+  - Sinh trắc học dùng để xác minh cục bộ người sử dụng
+  - Giới hạn dung lượng lưu credential và khả năng quản lý thiết bị
+  - Mất thiết bị, đặt lại bộ xác thực và hệ quả với credential
+  - Nhận diện khả năng thiết bị mà không suy đoán từ hệ điều hành
+  - Lựa chọn bộ xác thực theo tính di động, khả dụng và mức độ bảo đảm
+- level1: Hiện diện và xác minh
+  level2:
+  - Hiện diện của người dùng (User Presence) là gì
+  - Xác minh người dùng (User Verification) là gì
+  - Khác biệt giữa chạm khóa, nhập PIN và xác minh sinh trắc học
+  - Chính sách required, preferred và discouraged cho userVerification
+  - Cờ UP và UV trong authenticator data
+  - Kiểm tra UV phía máy chủ theo chính sách thực tế
+  - Đăng nhập không mật khẩu và sử dụng khóa như yếu tố bổ sung
+  - Giới hạn khi suy ra mức bảo đảm hoặc số yếu tố từ một lần xác thực
+  - Khả năng tiếp cận khi người dùng không sử dụng được sinh trắc học
+- level1: Challenge và giao dịch
+  level2:
+  - Sinh challenge bằng nguồn ngẫu nhiên mật mã
+  - Liên kết challenge với thao tác đăng ký hoặc đăng nhập
+  - Thời hạn challenge và chính sách sử dụng một lần
+  - Ràng buộc giao dịch với phiên hoặc ngữ cảnh yêu cầu
+  - Lưu challenge phía máy chủ và lựa chọn mô hình không trạng thái
+  - Giải quyết nhiều tab, nhiều thiết bị và nhiều yêu cầu đồng thời
+  - Xử lý hết hạn, hủy thao tác và yêu cầu được gửi lại
+  - Không cho phản hồi của luồng này được dùng trong luồng khác
+  - Ngăn phát lại và tránh ghi challenge như bằng chứng xác thực độc lập
+- level1: Luồng đăng ký
+  level2:
+  - Điều kiện xác thực tài khoản trước khi thêm credential
+  - Tạo PublicKeyCredentialCreationOptions ở máy chủ
+  - Thông tin rp, user, challenge và pubKeyCredParams
+  - Lựa chọn authenticatorSelection và chính sách residentKey
+  - Loại trừ credential đã tồn tại bằng excludeCredentials
+  - Chọn attestation và các extension thực sự cần thiết
+  - Gọi navigator.credentials.create() và xử lý tương tác người dùng
+  - Nhận credential mới và gửi dữ liệu tới máy chủ
+  - Hoàn tất đăng ký có kiểm tra và thông báo phương thức đăng nhập mới
+- level1: Kiểm tra đăng ký
+  level2:
+  - Phân tích clientDataJSON và kiểm tra loại thao tác webauthn.create
+  - Đối chiếu challenge với giao dịch đăng ký còn hiệu lực
+  - Kiểm tra origin và thông tin ngữ cảnh xuyên origin khi áp dụng
+  - Phân tích attestationObject và authenticator data
+  - Kiểm tra RP ID hash, cờ UP và yêu cầu UV
+  - Trích xuất credential ID và khóa công khai theo định dạng COSE
+  - Kiểm tra thuật toán đã được cho phép và khóa có cấu trúc hợp lệ
+  - Kiểm tra attestation theo chính sách thay vì mặc định tin mọi chứng thực
+  - Ngăn gắn nhầm credential vào tài khoản hoặc ghi trùng credential ID
+  - Lưu kết quả đăng ký nguyên tử và vô hiệu hóa challenge đã dùng
+- level1: Mô hình dữ liệu
+  level2:
+  - Quan hệ giữa tài khoản và danh sách credential
+  - Lưu credential ID dưới dạng nhị phân hoặc mã hóa nhất quán
+  - Lưu khóa công khai, thuật toán và thông tin cần cho xác minh
+  - User handle ổn định, khó suy đoán và tránh chứa dữ liệu cá nhân
+  - Bộ đếm chữ ký và ý nghĩa của giá trị ban đầu
+  - Thông tin transport, tên hiển thị và thời điểm sử dụng gần nhất
+  - Backup Eligibility và Backup State trong dữ liệu credential
+  - Chính sách lưu AAGUID, attestation và dữ liệu thiết bị
+  - Trạng thái hoạt động, vô hiệu hóa và xóa credential
+  - Bảo vệ tính toàn vẹn dữ liệu và ràng buộc duy nhất trong lưu trữ
+- level1: Luồng đăng nhập
+  level2:
+  - Tạo PublicKeyCredentialRequestOptions ở máy chủ
+  - Lựa chọn rpId, challenge, timeout và userVerification
+  - Đăng nhập theo tài khoản với allowCredentials
+  - Đăng nhập không nhập tên bằng discoverable credential
+  - Gọi navigator.credentials.get() và chọn thông tin xác thực
+  - Nhận authenticator assertion từ trình duyệt
+  - Gửi clientDataJSON, authenticatorData, chữ ký và userHandle tới máy chủ
+  - Xác định tài khoản từ credential hợp lệ
+  - Thiết lập phiên đăng nhập sau khi hoàn thành kiểm tra
+  - Xử lý người dùng hủy, không có credential và cần thử phương thức khác
+- level1: Kiểm tra assertion
+  level2:
+  - Kiểm tra credential ID thuộc phạm vi và tài khoản phù hợp
+  - Kiểm tra loại thao tác webauthn.get trong clientDataJSON
+  - Đối chiếu challenge, thời hạn và trạng thái giao dịch
+  - Kiểm tra origin, RP ID hash và ngữ cảnh ứng dụng
+  - Kiểm tra cờ hiện diện và xác minh người dùng
+  - Xác minh chữ ký trên authenticatorData kết hợp hàm băm clientDataJSON
+  - Kiểm tra userHandle khi được trả về và xử lý thiếu theo ngữ cảnh
+  - Đánh giá signCount cùng giới hạn của bộ xác thực có đồng bộ
+  - Kiểm tra cờ sao lưu theo chính sách được thiết kế
+  - Cập nhật trạng thái an toàn khi có yêu cầu xác thực đồng thời
+- level1: Định dạng WebAuthn
+  level2:
+  - ArrayBuffer, dữ liệu nhị phân và chuyển đổi Base64url
+  - Phân biệt id, rawId và credential ID
+  - Cấu trúc clientDataJSON và dữ liệu cần giữ nguyên để xác minh
+  - Cấu trúc authenticator data và các trường có điều kiện
+  - Cờ UP, UV, BE, BS, AT và ED
+  - CBOR trong attestationObject và dữ liệu khóa COSE
+  - Chuyển đổi khóa công khai sang định dạng thư viện xác minh hỗ trợ
+  - Phân biệt dữ liệu được ký, dữ liệu do ứng dụng gắn thêm và gợi ý transport
+  - Giới hạn kích thước, kiểu dữ liệu và xử lý dữ liệu bị cắt hoặc không hợp lệ
+- level1: Attestation
+  level2:
+  - Chứng thực bộ xác thực nhằm trả lời câu hỏi gì
+  - Phân biệt attestation với chữ ký đăng nhập
+  - Các lựa chọn chứng thực và quan hệ với trải nghiệm người dùng
+  - Mô hình chứng thực không có, tự chứng thực và chứng thực theo chuỗi tin cậy
+  - AAGUID, đặc tính bộ xác thực và giới hạn suy luận thiết bị
+  - Kiểm tra định dạng, chữ ký và chuỗi chứng thư khi chính sách yêu cầu
+  - Metadata bộ xác thực và cập nhật trạng thái tin cậy
+  - Chứng thực doanh nghiệp và phạm vi triển khai có kiểm soát
+  - Đánh đổi giữa kiểm soát thiết bị, khả năng tương thích và quyền riêng tư
+  - Thiết kế xử lý khi attestation thiếu hoặc không được chấp nhận
+- level1: CTAP và FIDO2
+  level2:
+  - Vai trò của CTAP trong tạo credential và lấy assertion
+  - Phát hiện khả năng bộ xác thực và lựa chọn giao thức
+  - Tương tác với bộ xác thực qua USB và NFC
+  - PIN, xác minh người dùng và quyền thao tác với bộ xác thực
+  - Quản lý discoverable credential trên thiết bị khi được hỗ trợ
+  - Khả năng tương thích với bộ xác thực U2F
+  - Thời gian chờ, xác nhận vật lý và lỗi giao tiếp
+  - Ranh giới trách nhiệm giữa ứng dụng WebAuthn và tầng CTAP
+  - Vì sao ứng dụng web thường không tự triển khai giao thức CTAP
+- level1: Passkey đồng bộ
+  level2:
+  - Passkey gắn thiết bị so với credential có khả năng sao lưu
+  - Vai trò của tài khoản hệ sinh thái và nhà cung cấp passkey
+  - Đồng bộ khóa giữa các thiết bị được người dùng cho phép
+  - Bảo vệ dữ liệu đồng bộ và mô hình tin cậy của nhà cung cấp
+  - Ý nghĩa và cách dùng cờ BE, BS phía máy chủ
+  - Vì sao bộ đếm chữ ký không luôn tăng theo một chuỗi toàn cục
+  - Thiết bị mới, khôi phục kho passkey và thay đổi ngữ cảnh rủi ro
+  - Giới hạn kiểm soát của RP đối với quá trình đồng bộ
+  - Chính sách chấp nhận passkey đồng bộ theo mức độ nhạy cảm
+  - Phân biệt đồng bộ passkey với đăng ký nhiều credential độc lập
+- level1: Đăng nhập liên thiết bị
+  level2:
+  - Đăng nhập trên một thiết bị bằng passkey nằm trên thiết bị khác
+  - Luồng hybrid và vai trò của mã QR
+  - Kiểm tra sự gần nhau của thiết bị khi cơ chế yêu cầu
+  - Phân biệt kênh hỗ trợ kết nối với dữ liệu xác thực được ký
+  - Xác nhận trên điện thoại và trả kết quả về thiết bị đang đăng nhập
+  - Khác biệt giữa dùng passkey liên thiết bị và sao chép passkey
+  - Giới hạn mạng, Bluetooth và chính sách thiết bị
+  - Rủi ro lừa người dùng quét mã và quy trình xác nhận an toàn
+  - Thiết kế hướng dẫn, xử lý lỗi và lựa chọn phương thức thay thế
+- level1: Trải nghiệm đăng nhập
+  level2:
+  - Đăng nhập có nút bấm rõ ràng và đăng nhập bằng gợi ý tự động
+  - Conditional mediation và lựa chọn credential theo khả năng hỗ trợ
+  - Tự động điền với autocomplete phù hợp cho WebAuthn
+  - Chọn tài khoản khi một thiết bị có nhiều credential
+  - Phát hiện khả năng nền tảng thay vì đoán theo tên trình duyệt
+  - Đặt tên credential và hướng dẫn đăng ký dễ hiểu
+  - Phân biệt người dùng hủy với lỗi kỹ thuật hoặc không đủ điều kiện
+  - Hỗ trợ khóa bảo mật ngoài khi bộ xác thực tích hợp không khả dụng
+  - Khả năng tiếp cận, ngôn ngữ và hỗ trợ thiết bị dùng chung
+  - Tránh thông báo lỗi làm lộ tài khoản có tồn tại hay không
+- level1: Vòng đời credential
+  level2:
+  - Thêm passkey mới vào tài khoản đang được xác thực
+  - Yêu cầu xác thực tăng cường trước khi thêm phương thức đăng nhập
+  - Liệt kê, đặt tên và xem lịch sử sử dụng credential
+  - Đăng ký nhiều bộ xác thực để có phương án dự phòng
+  - Vô hiệu hóa credential phía RP khi thiết bị bị mất
+  - Phân biệt xóa tại RP với xóa trong kho passkey của người dùng
+  - Thay thiết bị, đặt lại bộ xác thực và thay nhà cung cấp passkey
+  - Đối soát trạng thái credential khi nền tảng hỗ trợ cơ chế cập nhật
+  - Đóng tài khoản và hủy liên kết credential
+  - Thông báo thay đổi phương thức xác thực và kiểm tra hành vi bất thường
+- level1: Khôi phục tài khoản
+  level2:
+  - Vì sao khôi phục là một phần của thiết kế xác thực
+  - Dự phòng bằng nhiều passkey hoặc nhiều loại bộ xác thực
+  - Mã khôi phục và cách cấp, lưu giữ, sử dụng một lần
+  - Khôi phục thông qua tài khoản hệ sinh thái so với khôi phục tại RP
+  - Quy trình hỗ trợ thủ công và kiểm tra danh tính người yêu cầu
+  - Giới hạn email, SMS và mật khẩu dự phòng theo mức rủi ro
+  - Tránh để phương thức yếu hơn vô hiệu hóa lợi ích chống lừa đảo
+  - Thời gian chờ, thông báo và cơ chế phản đối thay đổi đáng ngờ
+  - Thu hồi phiên, credential cũ và khôi phục quyền truy cập có kiểm soát
+  - Diễn tập mất toàn bộ thiết bị và kiểm tra trải nghiệm khôi phục
+- level1: Phiên và phân quyền
+  level2:
+  - Assertion chứng minh một lần xác thực, không phải phiên đăng nhập
+  - Tạo và bảo vệ cookie phiên hoặc token sau xác thực
+  - Giữ ngữ cảnh thời điểm xác thực và kết quả UV
+  - Xác thực lại cho đổi phương thức đăng nhập và giao dịch nhạy cảm
+  - Đăng xuất ứng dụng không đồng nghĩa xóa passkey
+  - Thu hồi credential không tự chấm dứt mọi phiên đang tồn tại
+  - Kiểm tra quyền truy cập và quyền sở hữu dữ liệu sau đăng nhập
+  - Chuyển kết quả xác thực qua nhà cung cấp danh tính trong SSO
+  - Ràng buộc thao tác nhạy cảm với mục đích giao dịch khi thiết kế yêu cầu
+- level1: Mối đe dọa và phòng vệ
+  level2:
+  - Lừa đảo tên miền và cơ chế ràng buộc RP ID, origin
+  - Phát lại assertion và challenge bị dùng lại
+  - Gắn credential của kẻ tấn công vào tài khoản nạn nhân
+  - Đánh cắp phiên sau khi xác thực thành công
+  - XSS, mã độc trên thiết bị và giao diện ứng dụng bị can thiệp
+  - Chiếm tài khoản đồng bộ passkey hoặc quy trình khôi phục
+  - Lạm dụng tên miền con và cấu hình origin được phép
+  - Can thiệp dữ liệu khóa công khai và ánh xạ tài khoản trên máy chủ
+  - Tấn công từ chối dịch vụ và khai thác bộ phân tích dữ liệu
+  - Biện pháp phòng vệ theo từng ranh giới tin cậy
+- level1: Quyền riêng tư
+  level2:
+  - Sinh trắc học cục bộ và dữ liệu mà RP thực sự nhận được
+  - Giảm dữ liệu cá nhân trong user handle và tên tài khoản
+  - Giới hạn khả năng theo dõi bằng credential giữa các RP
+  - Attestation, nhận diện thiết bị và nguy cơ suy diễn danh tính
+  - Không lưu dữ liệu sinh trắc học hoặc khóa riêng tại máy chủ RP
+  - Quản lý nhật ký chứa credential ID và thông tin thiết bị
+  - Thời hạn lưu, quyền truy cập và xóa dữ liệu xác thực
+  - Thông báo cho người dùng về passkey, đồng bộ và phương thức dự phòng
+  - Thiết kế phân tích sử dụng mà không thu thập dữ liệu quá mức
+- level1: Bối cảnh doanh nghiệp
+  level2:
+  - Lựa chọn mức bảo đảm theo vai trò và tài nguyên
+  - Khóa bảo mật do tổ chức cấp và thiết bị người dùng tự quản lý
+  - Chính sách credential gắn thiết bị và credential có đồng bộ
+  - Chứng thực doanh nghiệp và kiểm soát loại bộ xác thực
+  - Liên kết xác thực với quản lý thiết bị và tín hiệu rủi ro
+  - Tiếp nhận nhân sự, thay đổi vai trò và thu hồi khi nghỉ việc
+  - Quản trị viên đặc quyền và cơ chế dự phòng khẩn cấp
+  - Thiết bị dùng chung, nhân viên tuyến đầu và môi trường hạn chế kết nối
+  - Phối hợp passkey với SSO, MFA và chính sách truy cập có điều kiện
+- level1: Kiến trúc ứng dụng
+  level2:
+  - Tách điểm khởi tạo và hoàn tất cho đăng ký, đăng nhập
+  - Thiết kế kho challenge và kho credential
+  - Lựa chọn thư viện WebAuthn theo khả năng xác minh và bảo trì
+  - Giữ phần xác minh bảo mật ở máy chủ
+  - Định nghĩa hợp đồng dữ liệu nhị phân giữa giao diện và máy chủ
+  - Xử lý CSRF và trạng thái giao dịch khi quản lý credential
+  - Triển khai qua reverse proxy, cân bằng tải và nhiều miền
+  - Đảm bảo nhất quán khi cập nhật credential và bộ đếm
+  - Đa tenant, nhiều RP ID và cách ly danh sách origin
+  - Thiết kế API lỗi, giới hạn tốc độ và khả năng quan sát
+- level1: Tích hợp và mở rộng
+  level2:
+  - WebAuthn trên web so với API passkey của ứng dụng gốc
+  - Liên kết ứng dụng di động với tên miền được tin cậy
+  - Đồng nhất tài khoản giữa web, ứng dụng và nhà cung cấp danh tính
+  - Kiểm tra hỗ trợ trình duyệt, hệ điều hành và bộ xác thực
+  - Extension của WebAuthn và nguyên tắc chỉ bật khi có nhu cầu
+  - Kết quả extension cần được kiểm tra theo đúng ngữ nghĩa
+  - PRF và bài toán dẫn xuất vật liệu khóa khi nền tảng hỗ trợ
+  - Giới hạn tương thích của extension giữa các bộ xác thực
+  - Thiết kế giảm chức năng có kiểm soát khi tính năng tùy chọn vắng mặt
+- level1: Triển khai và chuyển đổi
+  level2:
+  - Khảo sát phương thức đăng nhập và khôi phục hiện có
+  - Xác định nhóm người dùng và kịch bản thí điểm
+  - Bổ sung passkey song song với phương thức hiện tại
+  - Chọn thời điểm gợi ý tạo passkey sau lần đăng nhập đáng tin cậy
+  - Chuyển từ yếu tố bổ sung sang đăng nhập không mật khẩu
+  - Xây dựng chính sách dự phòng và điều kiện loại bỏ mật khẩu
+  - Đào tạo đội hỗ trợ và nội dung hướng dẫn người dùng
+  - Theo dõi tỷ lệ đăng ký, đăng nhập thành công và bỏ dở
+  - Kế hoạch xử lý không tương thích và quay lui từng phần
+  - Đánh giá rủi ro trước khi mở rộng tới tài khoản nhạy cảm
+- level1: Vận hành và sự cố
+  level2:
+  - Nhật ký đăng ký, xác thực, thêm, xóa và vô hiệu hóa credential
+  - Tương quan sự kiện mà không ghi dữ liệu xác thực không cần thiết
+  - Chẩn đoán lỗi challenge, origin, RP ID, UV và chữ ký
+  - Phân tích tỷ lệ lỗi theo nền tảng với dữ liệu được giảm định danh
+  - Theo dõi bất thường signCount mà không áp dụng máy móc cho passkey đồng bộ
+  - Xử lý mất thiết bị, credential đáng ngờ và phiên bị chiếm
+  - Ứng phó khi metadata bộ xác thực thay đổi trạng thái tin cậy
+  - Sao lưu và khôi phục kho credential cùng cấu hình chính sách
+  - Thay đổi tên miền, thư viện và chính sách có kiểm tra tương thích
+  - Diễn tập sự cố và cải tiến quy trình khôi phục
+- level1: Kiểm thử và thực hành
+  level2:
+  - Vẽ luồng đăng ký và đăng nhập với các ranh giới tin cậy
+  - Thực hành bằng bộ xác thực ảo và bộ xác thực thật
+  - Phân tích clientDataJSON, authenticator data và khóa COSE mẫu
+  - Kiểm thử challenge sai, hết hạn và bị sử dụng lại
+  - Kiểm thử origin, RP ID, loại thao tác và chữ ký không hợp lệ
+  - Kiểm thử UP, UV, signCount và cờ sao lưu theo chính sách
+  - Kiểm thử đăng nhập có tên, không tên và nhiều tài khoản
+  - Kiểm thử nhiều tab, yêu cầu đồng thời và đồng bộ nhiều thiết bị
+  - Kiểm thử mất thiết bị, thu hồi credential và phiên còn tồn tại
+  - Kiểm thử khả năng tiếp cận, phương thức dự phòng và thông báo lỗi
+  - Lập ma trận tương thích trình duyệt, nền tảng và bộ xác thực
+  - Thiết kế hệ thống mẫu và lập tiêu chí nghiệm thu bảo mật

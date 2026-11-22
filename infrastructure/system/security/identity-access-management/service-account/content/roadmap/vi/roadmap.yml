@@ -1,0 +1,50 @@
+roadmap:
+- id: mo-hinh-tai-khoan-dich-vu
+  title: Mô hình tài khoản dịch vụ
+  purpose: Hiểu danh tính dành cho phần mềm và tác vụ tự động.
+  objectives:
+  - Phân biệt tài khoản dịch vụ với tài khoản người dùng.
+  - Nhận diện quan hệ giữa tài khoản, thông tin xác thực và tiến trình chạy.
+- id: thiet-ke-danh-tinh
+  title: Thiết kế danh tính
+  purpose: Tổ chức tài khoản theo trách nhiệm và phạm vi sử dụng.
+  objectives:
+  - Tách danh tính theo dịch vụ, môi trường và mức tin cậy.
+  - Ghi nhận chủ sở hữu, mục đích và nơi sử dụng tài khoản.
+- id: cap-quyen-toi-thieu
+  title: Cấp quyền tối thiểu
+  purpose: Giới hạn tài nguyên và hành động mà dịch vụ được phép sử dụng.
+  objectives:
+  - Xác định quyền cần thiết từ tác vụ thực tế.
+  - Ràng buộc quyền theo tài nguyên và kiểm tra quyền thừa.
+- id: phuong-thuc-xac-thuc
+  title: Phương thức xác thực
+  purpose: Chọn cách chứng minh danh tính phù hợp với nền tảng.
+  objectives:
+  - So sánh mật khẩu, khóa, chứng chỉ và token.
+  - Đánh giá danh tính được quản lý và thông tin xác thực ngắn hạn.
+- id: gan-danh-tinh-khi-chay
+  title: Gắn danh tính khi chạy
+  purpose: Bảo đảm dịch vụ dùng đúng tài khoản trong môi trường thực thi.
+  objectives:
+  - Gắn tài khoản với dịch vụ, tác vụ hoặc pipeline.
+  - Kiểm tra danh tính thực tế và quyền truy cập khi chạy.
+- id: uy-quyen-va-mao-danh
+  title: Ủy quyền và mạo danh
+  purpose: Kiểm soát ai có thể sử dụng danh tính của tài khoản dịch vụ.
+  objectives:
+  - Phân biệt quyền của tài khoản với quyền sử dụng danh tính đó.
+  - Giới hạn mạo danh (impersonation), ủy quyền và nguy cơ nâng quyền.
+- id: quan-ly-vong-doi
+  title: Quản lý vòng đời
+  purpose: Duy trì tài khoản và thông tin xác thực trong suốt thời gian sử dụng.
+  objectives:
+  - Xoay vòng thông tin xác thực và kiểm chứng tính liên tục.
+  - Thu hồi, vô hiệu hóa và loại bỏ tài khoản không còn dùng.
+- id: kiem-chung-va-kiem-toan
+  title: Kiểm chứng và kiểm toán
+  purpose: Xác minh quyền hiệu lực và truy vết việc sử dụng tài khoản.
+  objectives:
+  - Thử truy cập được phép và bị từ chối.
+  - Truy vết bên gọi, danh tính thực thi và thay đổi quyền.
+  - Lập quy trình ứng phó khi tài khoản hoặc khóa bị lộ.

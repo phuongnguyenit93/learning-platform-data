@@ -1,0 +1,276 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Maven Central là gì và giữ vai trò nào trong chuỗi cung ứng Java
+  - Phân biệt Apache Maven, Maven Central và Central Publisher Portal
+  - Vai trò của người phát hành và người sử dụng thư viện
+  - Phân biệt kho công khai, kho nội bộ, bộ nhớ đệm và kho cục bộ
+  - Luồng từ mã nguồn đến gói phần mềm (artifact) được ứng dụng tải về
+  - Phân biệt quản lý artifact với lưu mã nguồn và triển khai ứng dụng
+  - Lộ trình từ tìm thư viện đến xuất bản và kiểm chứng một phiên bản
+- level1: Định danh artifact
+  level2:
+  - Tọa độ groupId, artifactId và version trong hệ sinh thái Maven
+  - Vai trò của packaging, phần mở rộng và classifier
+  - Phân biệt JAR chính, sources JAR và Javadoc JAR
+  - Ánh xạ tọa độ sang đường dẫn theo Maven Repository Layout
+  - Phân biệt namespace, groupId và tên package Java
+  - Quy ước phiên bản và ý nghĩa của release so với SNAPSHOT
+  - Vai trò của POM và maven-metadata.xml trong phân giải artifact
+  - Chọn tọa độ ổn định và tránh giả định có thể đổi tên một bản phát hành
+- level1: Tra cứu artifact
+  level2:
+  - Tìm thư viện theo tên, tọa độ và phiên bản trên Central
+  - Đọc thông tin dự án, người phát hành và liên kết mã nguồn
+  - Xác định phiên bản, kiểu đóng gói và các tệp đi kèm
+  - Kiểm tra POM và danh sách phụ thuộc trước khi sử dụng
+  - Phân biệt trang tìm kiếm, địa chỉ tải artifact và API xuất bản
+  - Phân biệt Maven Central với trang tổng hợp thông tin của bên thứ ba
+  - Đánh giá mức phù hợp của thư viện mà không coi việc có mặt trên Central là bảo chứng chất lượng
+- level1: Sử dụng với Maven
+  level2:
+  - Khai báo dependency bằng tọa độ trong pom.xml
+  - Hiểu vai trò của Central trong cấu hình kho của Maven
+  - Phân biệt repositories, pluginRepositories và distributionManagement
+  - Phân biệt tải phụ thuộc, cài vào kho cục bộ và xuất bản lên kho từ xa
+  - Đọc cây phụ thuộc để nhận diện các thư viện được kéo theo
+  - Quản lý phiên bản bằng dependencyManagement và BOM
+  - Ảnh hưởng của settings.xml, mirror và proxy đến nguồn tải thực tế
+  - Xác minh dự án dùng được artifact ngoài môi trường máy người phát hành
+- level1: Sử dụng với Gradle
+  level2:
+  - Khai báo mavenCentral trong repositories
+  - Phân biệt nơi phân giải thư viện với nơi phân giải plugin Gradle
+  - Quản lý kho tập trung qua dependencyResolutionManagement
+  - Khai báo phụ thuộc và lựa chọn cấu hình api, implementation phù hợp
+  - Đọc báo cáo dependencies và dependencyInsight
+  - Quản lý phiên bản bằng platform, constraints hoặc version catalog
+  - Lọc nội dung kho để giới hạn tọa độ được tìm tại từng nguồn
+  - Phân biệt mavenLocal với Maven Central khi kiểm chứng bản phát hành
+  - Nhận diện ảnh hưởng của cache và chế độ offline đến kết quả kiểm chứng
+- level1: Phụ thuộc và siêu dữ liệu
+  level2:
+  - Phụ thuộc trực tiếp, phụ thuộc bắc cầu và vai trò của siêu dữ liệu (metadata)
+  - Vai trò của scope, optional và exclusions trong POM
+  - Phân biệt quản lý phiên bản với khai báo một phụ thuộc thực sự
+  - Hiểu sự khác nhau khi Maven và Gradle chọn phiên bản xung đột
+  - Phân biệt POM với Gradle Module Metadata
+  - Giữ thông tin phụ thuộc đúng với API và nhu cầu chạy của thư viện
+  - Tránh đưa phụ thuộc chỉ dùng cho kiểm thử hoặc build vào hợp đồng người dùng
+  - Kiểm chứng metadata bằng dự án Maven và Gradle độc lập
+- level1: Chuẩn bị thư viện
+  level2:
+  - Xác định artifact nào phù hợp để phân phối công khai
+  - Phân biệt JAR thư viện với JAR thực thi Spring Boot chứa cấu trúc lồng
+  - Thiết lập phiên bản Java đích và kiểm chứng khả năng tương thích
+  - Tạo JAR nguồn và JAR Javadoc có nội dung phù hợp
+  - Xử lý lỗi tạo Javadoc trước khi bước vào quy trình xuất bản
+  - Kiểm tra tài nguyên, cấu hình và tệp không được phép đưa vào gói
+  - Chạy kiểm thử và rà soát API công khai của phiên bản dự kiến
+  - Phân biệt build thành công với sẵn sàng phát hành cho người dùng bên ngoài
+- level1: POM xuất bản
+  level2:
+  - Khai báo tọa độ và packaging đúng với thành phần được phát hành
+  - Cung cấp tên, mô tả và URL dự án
+  - Khai báo thông tin giấy phép phù hợp với dự án
+  - Khai báo nhà phát triển và thông tin SCM
+  - Đối chiếu yêu cầu metadata hiện hành của Maven Central
+  - Kiểm tra POM được sinh thay vì chỉ nhìn cấu hình build đầu vào
+  - Phân biệt POM cha, POM tổng hợp và POM dùng để quản lý phụ thuộc
+  - Loại bỏ đường dẫn nội bộ, tọa độ cục bộ và thông tin không thể truy cập công khai
+  - Giữ nguồn thông tin xuất bản nhất quán giữa Maven, Gradle và tài liệu phát hành
+- level1: Tài khoản và namespace
+  level2:
+  - Đăng ký Central Publisher Portal và xác định danh tính người phát hành
+  - Chọn namespace dựa trên quyền sở hữu thay vì tên mong muốn
+  - Xác minh namespace bằng quyền kiểm soát tên miền
+  - Xác minh namespace gắn với tài khoản lưu mã theo phương thức được hỗ trợ
+  - Phân biệt quyền quản lý tổ chức với quyền xuất bản vào namespace
+  - Kiểm tra trạng thái xác minh và quyền trước khi gửi artifact
+  - Quản lý thành viên và bàn giao quyền phát hành khi người phụ trách thay đổi
+  - Duy trì thông tin liên hệ và bằng chứng sở hữu của dự án
+- level1: Token xuất bản
+  level2:
+  - Phân biệt đăng nhập Portal với thông tin xác thực dành cho công cụ
+  - Tạo và sử dụng Portal user token theo hướng dẫn hiện hành
+  - Ánh xạ token vào server id của Maven hoặc cấu hình plugin Gradle
+  - Phân biệt token xuất bản với khóa riêng dùng ký artifact
+  - Lưu token trong kho bí mật CI thay vì mã nguồn hoặc POM
+  - Thu hồi, thay thế token và kiểm tra các pipeline chịu ảnh hưởng
+  - Ngăn token xuất hiện trong log, lệnh chẩn đoán và gói artifact
+- level1: Ký và toàn vẹn
+  level2:
+  - Vai trò của chữ ký GPG/PGP đối với artifact xuất bản
+  - Phân biệt khóa công khai, khóa riêng và cụm mật khẩu bảo vệ
+  - Tạo chữ ký tách rời dạng asc cho các tệp cần ký
+  - Công bố khóa công khai và kiểm tra khả năng xác minh chữ ký
+  - Phân biệt chữ ký xác định người ký với checksum phát hiện tệp thay đổi
+  - Đối chiếu thuật toán checksum và quy tắc tệp đi kèm theo yêu cầu Central
+  - Kiểm chứng chữ ký bằng tệp cuối cùng sẽ được tải lên
+  - Quản lý khóa dùng trong CI và kế hoạch thay khóa
+  - 'Hiểu giới hạn của chữ ký: không tự chứng minh thư viện an toàn hoặc không có lỗi'
+- level1: Gói triển khai
+  level2:
+  - Deployment bundle là gì và chứa những thành phần nào
+  - Tổ chức đường dẫn trong gói theo Maven Repository Layout
+  - Đóng gói artifact chính, POM, sources, Javadoc và tệp đi kèm
+  - Phân biệt yêu cầu cho thành phần JAR với thành phần packaging pom
+  - Kiểm tra tọa độ, tên tệp và phiên bản nhất quán trong toàn bộ gói
+  - Phát hiện thiếu chữ ký, checksum sai và tệp ngoài dự kiến
+  - Gộp nhiều thành phần liên quan vào một lần triển khai khi phù hợp
+  - Đối chiếu giới hạn định dạng và dung lượng trước khi tải lên
+- level1: Xuất bản với Maven
+  level2:
+  - Vai trò của central-publishing-maven-plugin trong quy trình Portal
+  - Cấu hình plugin và ghim phiên bản đã được kiểm chứng
+  - Liên kết publishingServerId với thông tin xác thực trong settings.xml
+  - Kết hợp bước tạo sources, Javadoc và ký với bước xuất bản
+  - Hiểu plugin tạo checksum và những yêu cầu vẫn phải tự chuẩn bị
+  - Tạo cấu hình phát hành riêng và kiểm tra các pha thực thi
+  - Phân biệt tải lên để thẩm định với tự động công khai bằng autoPublish
+  - Chờ trạng thái phù hợp để pipeline không báo thành công quá sớm
+  - Đọc kết quả triển khai và lưu deployment id phục vụ đối chiếu
+- level1: Xuất bản với Gradle
+  level2:
+  - Vai trò của maven-publish trong tạo publication và metadata
+  - Khai báo MavenPublication từ thành phần Java phù hợp
+  - Cấu hình thông tin POM, sourcesJar và javadocJar
+  - Kết hợp signing với các publication cần phát hành
+  - Chọn công cụ hỗ trợ Central Portal và kiểm tra đơn vị duy trì
+  - Phân biệt plugin cộng đồng với công cụ được Sonatype trực tiếp hỗ trợ
+  - Phân biệt API upload bundle với xuất bản bằng giao thức kho Maven
+  - Kiểm tra gói và metadata trong kho thử nghiệm cục bộ trước khi tải lên
+  - Ghim phiên bản plugin và kiểm tra tương thích với Gradle cùng JDK
+- level1: Portal và API
+  level2:
+  - Xuất bản bằng cách tải deployment bundle qua giao diện Portal
+  - Vai trò của Publisher API trong tích hợp công cụ và pipeline
+  - Xác thực API bằng Portal user token theo giao thức được công bố
+  - Tải bundle và lưu deployment id do dịch vụ trả về
+  - Phân biệt USER_MANAGED với AUTOMATIC khi gửi deployment
+  - Theo dõi trạng thái và đọc chi tiết lỗi validation
+  - Yêu cầu công khai deployment đã hợp lệ hoặc hủy deployment chưa công khai
+  - Kiểm tra trạng thái thực khi tải lên lỗi hoặc mất phản hồi trước khi thử lại
+- level1: Vòng đời triển khai
+  level2:
+  - Phân biệt bundle đã tải lên, đã được thẩm định và đã công khai
+  - Hiểu các trạng thái PENDING, VALIDATING và VALIDATED
+  - Hiểu các trạng thái PUBLISHING, PUBLISHED và FAILED
+  - Chọn điểm kiểm soát trước khi artifact không còn có thể sửa
+  - Kiểm thử bản triển khai chưa công khai bằng cơ chế được Portal hỗ trợ
+  - Sửa lỗi bằng một deployment mới khi gói chưa đạt yêu cầu
+  - Phân biệt hủy deployment chưa phát hành với xóa một phiên bản trên Central
+  - Thiết kế lần chạy lại CI dựa trên deployment và tọa độ đã có
+- level1: Kiểm chứng phát hành
+  level2:
+  - Xác nhận trạng thái công khai trước khi thông báo phát hành
+  - Phân biệt artifact truy cập được với thông tin đã xuất hiện trên trang tìm kiếm
+  - Tải artifact từ đúng kho bằng tọa độ đầy đủ
+  - Kiểm tra nội dung JAR, POM, nguồn và tài liệu sau xuất bản
+  - Xác minh checksum và chữ ký của tệp thực tế tải về
+  - Dùng dự án tiêu thụ độc lập để kiểm tra API và phụ thuộc bắc cầu
+  - Loại trừ ảnh hưởng của mavenLocal và cache cũ khi thử nghiệm
+  - Liên kết phiên bản với commit, tag và ghi chú phát hành
+- level1: SNAPSHOT và release
+  level2:
+  - Phân biệt bản thử nghiệm thay đổi được với release bất biến
+  - Phân biệt Maven Central release repository với dịch vụ Central Portal Snapshots
+  - Bật khả năng xuất bản SNAPSHOT cho namespace theo yêu cầu dịch vụ
+  - Cấu hình nơi xuất bản và nơi tải SNAPSHOT trong Maven hoặc Gradle
+  - Hiểu metadata và các bản SNAPSHOT có dấu thời gian
+  - Phân biệt kiểm chứng release với quy trình SNAPSHOT không có cùng mức validation
+  - Đối chiếu chính sách lưu giữ SNAPSHOT và ảnh hưởng đến khả năng dựng lại
+  - Ngăn phụ thuộc SNAPSHOT ngoài ý muốn trong phiên bản phát hành ổn định
+- level1: Đa mô-đun và BOM
+  level2:
+  - Xác định mô-đun nào được công khai và mô-đun nào chỉ phục vụ nội bộ
+  - Giữ tọa độ và quan hệ phụ thuộc đúng giữa các mô-đun
+  - Xuất bản POM cha và kiểm tra khả năng phân giải từ máy sạch
+  - Xuất bản BOM để phối hợp phiên bản của một nhóm thư viện
+  - Phân biệt POM tổng hợp build với BOM dành cho người sử dụng
+  - Chọn phiên bản dùng chung hoặc độc lập và ghi rõ hệ quả
+  - Kiểm tra chữ ký, metadata và gói đi kèm cho từng loại publication
+  - Xử lý lần phát hành nhiều mô-đun mà không giả định mọi bước luôn thành công cùng nhau
+- level1: Tích hợp CI/CD
+  level2:
+  - Tách build kiểm thử khỏi công việc có quyền xuất bản
+  - Xác định tác nhân phát hành từ tag hoặc yêu cầu thủ công đã được kiểm soát
+  - Kiểm tra tương ứng giữa tag, version và commit nguồn
+  - Cung cấp token và khóa ký qua cơ chế bí mật của CI
+  - Giới hạn quyền và tránh cấp bí mật cho mã chưa được tin cậy
+  - Tạo một bộ artifact đã kiểm chứng để sử dụng xuyên suốt lần phát hành
+  - Điều phối các lần chạy để không cùng xuất bản một tọa độ
+  - Lưu deployment id, checksum và kết quả thẩm định để truy vết
+  - Chỉ chốt trạng thái thành công sau các kiểm tra xuất bản và tiêu thụ cần thiết
+  - Thiết kế phục hồi pipeline khi tiến trình CI dừng giữa chừng
+- level1: An toàn chuỗi cung ứng
+  level2:
+  - Kiểm tra nguồn gốc thư viện, tọa độ và tên có khả năng gây nhầm lẫn
+  - Giới hạn kho và phạm vi groupId để giảm rủi ro nhầm nguồn phụ thuộc
+  - Quản lý phiên bản được chọn và tránh phụ thuộc thay đổi ngoài dự kiến
+  - Phân biệt khóa phụ thuộc với xác minh nội dung tệp
+  - Kiểm tra lỗ hổng và thông tin thành phần mà không coi đó là bảo đảm tuyệt đối
+  - Liên kết artifact với nguồn, kết quả build và danh mục thành phần phần mềm
+  - Rà soát tệp công khai để phát hiện bí mật hoặc dữ liệu nội bộ
+  - Chuẩn bị phản ứng khi khóa ký, token hoặc tài khoản phát hành bị lộ
+- level1: Vận hành và hạn mức
+  level2:
+  - Phân biệt lỗi tải phụ thuộc với lỗi gửi bản phát hành
+  - Sử dụng cache và repository manager khi nhu cầu tải tăng
+  - Tránh tải lặp và truy vấn diện rộng không cần thiết
+  - Xử lý giới hạn tốc độ và lỗi 429 bằng chính sách thử lại có kiểm soát
+  - Theo dõi giới hạn xuất bản và mức sử dụng theo chính sách hiện hành
+  - Giảm tệp đính kèm trùng mà vẫn giữ đầy đủ thành phần bắt buộc
+  - Chẩn đoán sự cố mạng, TLS, proxy và định tuyến kho
+  - Theo dõi trạng thái dịch vụ và chuẩn bị thông tin khi cần hỗ trợ
+- level1: Chuyển đổi OSSRH
+  level2:
+  - Nhận diện cấu hình OSSRH cũ và lý do cần chuyển sang Central Portal
+  - Phân biệt OSSRH đã ngừng hoạt động với OSSRH Staging API tương thích của Portal
+  - Kiểm tra namespace và quyền đã chuyển sang Portal
+  - Thay thông tin xác thực OSSRH bằng Portal user token
+  - Chọn xuất bản trực tiếp qua Portal hoặc cơ chế tương thích được hỗ trợ
+  - Rà soát plugin, địa chỉ dịch vụ và các bước close hoặc release kiểu cũ
+  - Đối chiếu bước chuyển deployment khi dùng công cụ chỉ gửi tệp theo giao thức Maven
+  - Kiểm chứng quy trình release và SNAPSHOT riêng sau khi chuyển đổi
+- level1: Chẩn đoán lỗi
+  level2:
+  - Xử lý 401 hoặc 403 do token, quyền hay namespace không phù hợp
+  - Phân biệt lỗi xác minh namespace với lỗi metadata của artifact
+  - Sửa thiếu name, description, URL, licenses, developers hoặc SCM
+  - Sửa thiếu sources, Javadoc hoặc chữ ký theo loại thành phần
+  - Chẩn đoán chữ ký không khớp hoặc khóa công khai không thể xác minh
+  - Sửa checksum sai, đường dẫn bundle sai và tọa độ không nhất quán
+  - Xử lý xung đột khi phiên bản đã tồn tại và không thể ghi đè
+  - Phân tích deployment ở trạng thái FAILED và tránh đoán lỗi từ một thông báo ngắn
+  - Chẩn đoán artifact chưa tải được bằng cách phân biệt kho, cache và chỉ mục tìm kiếm
+  - Xử lý phụ thuộc bắc cầu không phân giải được dù JAR chính đã xuất bản
+  - Chuẩn bị bản tái hiện lỗi và log đã che bí mật
+- level1: Sai lầm thường gặp
+  level2:
+  - Coi mvn install hoặc publishToMavenLocal là đã xuất bản lên Maven Central
+  - Dùng groupId không có quyền hoặc nhầm nó với tên package bắt buộc
+  - Đăng JAR thực thi thay cho artifact thư viện có cấu trúc phù hợp
+  - Chỉ kiểm tra JAR chính mà bỏ qua POM và phụ thuộc bắc cầu
+  - Cho rằng plugin upload tự tạo đủ nguồn, Javadoc và chữ ký
+  - Dùng hướng dẫn OSSRH cũ như quy trình Portal hiện hành
+  - Đồng nhất VALIDATED với PUBLISHED
+  - Thử tải lên lại khi chưa kiểm tra deployment trước có được tiếp nhận hay không
+  - Cho rằng có thể sửa hoặc xóa release công khai để dùng lại cùng phiên bản
+  - Kiểm chứng bằng cache cục bộ nên bỏ sót lỗi của người sử dụng thật
+- level1: Thực hành
+  level2:
+  - 'Bài tập định hướng: lần theo một tọa độ từ trang tìm kiếm đến các tệp artifact'
+  - 'Bài tập Maven: dùng thư viện và giải thích cây phụ thuộc'
+  - 'Bài tập Gradle: phân giải cùng thư viện và kiểm tra metadata được dùng'
+  - 'Bài tập đóng gói: tạo JAR chính, sources, Javadoc và POM của thư viện Java'
+  - 'Bài tập kiểm chứng: phát hiện metadata hoặc phụ thuộc xuất bản sai'
+  - 'Bài tập chữ ký: ký và xác minh gói thử nghiệm trong môi trường cục bộ'
+  - 'Bài tập bundle: kiểm tra layout, tọa độ và bộ tệp trước khi tải lên'
+  - 'Bài tập quy trình: mô phỏng các trạng thái deployment và điểm cần kiểm soát'
+  - 'Bài tập CI/CD: thiết kế pipeline có phân quyền, chống chạy trùng và đọc lại trạng thái'
+  - 'Bài tập đa mô-đun: kiểm chứng POM cha hoặc BOM bằng dự án tiêu thụ độc lập'
+  - 'Bài tập xử lý lỗi: phân tích tình huống token sai, phiên bản trùng hoặc thiếu artifact'
+  - 'Bài tập tổng hợp: lập kế hoạch phát hành và kiểm chứng thư viện qua Maven Central'
+  - Tiêu chí tự đánh giá độ đúng của metadata, khả năng tiêu thụ và khả năng truy vết
+  - Câu hỏi ôn tập và tình huống giải thích lựa chọn quy trình xuất bản

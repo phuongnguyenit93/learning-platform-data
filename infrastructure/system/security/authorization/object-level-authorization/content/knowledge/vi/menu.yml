@@ -1,0 +1,309 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Phân quyền cấp đối tượng là gì và giải quyết vấn đề nào
+  - Phân biệt xác thực, phân quyền chức năng và phân quyền đối tượng
+  - Chủ thể, đối tượng, hành động và ngữ cảnh truy cập
+  - Quyền cấp đối tượng, cấp trường dữ liệu và cấp bản ghi
+  - 'Ví dụ xuyên suốt: người dùng, tài liệu, dự án và tổ chức'
+  - Các bất biến bảo mật cần giữ trong mọi đường truy cập
+  - Ranh giới với IAM, RBAC, ABAC và quản lý danh tính
+  - Lộ trình học và kiến thức nền cần có
+- level1: Mô hình đe dọa
+  level2:
+  - 'BOLA và IDOR: bản chất, biểu hiện và mối liên hệ'
+  - Leo thang đặc quyền theo chiều ngang và chiều dọc
+  - Đối tượng nhạy cảm, tác nhân tấn công và tài sản cần bảo vệ
+  - Bề mặt tấn công qua đường dẫn, tham số, nội dung và tiêu đề yêu cầu
+  - Đường truy cập thay thế qua API cũ, xuất dữ liệu và tác vụ nền
+  - Ranh giới tin cậy giữa máy khách, dịch vụ và kho dữ liệu
+  - Nhầm lẫn quyền hạn của dịch vụ trung gian (confused deputy)
+  - Lập sơ đồ luồng dữ liệu và các kịch bản lạm dụng
+- level1: Định danh đối tượng
+  level2:
+  - ID đối tượng, khóa tự nhiên, khóa tổng hợp và không gian tên
+  - ID tuần tự, UUID và giới hạn của việc che giấu định danh
+  - Chuẩn hóa định danh trước khi tra cứu và đánh giá quyền
+  - Liên kết định danh bên ngoài với đối tượng nội bộ
+  - Định danh cha–con và nguy cơ thay thế tài nguyên
+  - Đối tượng đã xóa, bí danh và nguy cơ tái sử dụng ID
+  - Phân biệt biết định danh với có quyền truy cập
+- level1: Ngữ cảnh chủ thể
+  level2:
+  - Xác định người dùng hiện tại từ nguồn xác thực đáng tin cậy
+  - Thuộc tính chủ thể và giới hạn tin cậy dữ liệu máy khách gửi
+  - Tách người gọi, người dùng cuối và danh tính dịch vụ
+  - Quyền của service account đối với từng đối tượng
+  - Truy cập ẩn danh, công khai và người dùng đã đăng nhập
+  - Giả danh và truy cập thay mặt người khác có kiểm soát
+  - Kiểm tra độ mới của trạng thái tài khoản và tư cách thành viên
+- level1: Hành động và phạm vi
+  level2:
+  - 'Xây dựng từ vựng hành động: xem, sửa, xóa, chia sẻ và quản trị'
+  - Ánh xạ thao tác nghiệp vụ thành quyền cần kiểm tra
+  - Phân biệt quyền trên bộ sưu tập với quyền trên từng phần tử
+  - Quyền tạo mới và quyền gắn đối tượng vào tài nguyên cha
+  - Quyền theo trạng thái nghiệp vụ và giai đoạn xử lý
+  - Quyền đọc nội dung, siêu dữ liệu, lịch sử và dữ liệu dẫn xuất
+  - Phạm vi quyền tối thiểu và các tổ hợp quyền nguy hiểm
+- level1: Mô hình chính sách
+  level2:
+  - Mặc định từ chối và kiểm tra quyền trên mọi yêu cầu
+  - Đặc quyền tối thiểu và kiểm tra đầy đủ mọi đường truy cập
+  - Biểu diễn điều kiện cho phép bằng chủ thể–hành động–đối tượng–ngữ cảnh
+  - Quy tắc cho phép, từ chối và cách giải quyết xung đột
+  - 'Phối hợp nhiều chính sách: điều kiện đồng thời và điều kiện thay thế'
+  - Xử lý thuộc tính thiếu, giá trị không xác định và lỗi đánh giá
+  - Chính sách theo thời gian, địa điểm và mức độ tin cậy
+  - Tách quy tắc nghiệp vụ khỏi cơ chế thực thi quyền
+  - Phiên bản chính sách và khả năng giải thích quyết định
+- level1: Quyền sở hữu
+  level2:
+  - Mô hình đối tượng thuộc người dùng, nhóm hoặc tổ chức
+  - Người tạo, chủ sở hữu và người được giao xử lý
+  - Gán chủ sở hữu từ ngữ cảnh đáng tin cậy khi tạo mới
+  - Kiểm tra quyền sở hữu khi đọc, sửa và xóa
+  - Chuyển quyền sở hữu và các quyền phát sinh cần thu hồi
+  - Đồng sở hữu và quyền trên tài nguyên dùng chung
+  - Giới hạn của quy tắc chỉ kiểm tra owner_id
+- level1: Vai trò và thuộc tính
+  level2:
+  - Vai trò toàn hệ thống và vai trò trong một đối tượng
+  - Áp dụng RBAC cho dự án, thư mục và không gian làm việc
+  - Áp dụng ABAC theo thuộc tính chủ thể và đối tượng
+  - Nguồn gốc, độ mới và tính toàn vẹn của thuộc tính
+  - Phân loại dữ liệu và điều kiện truy cập theo độ nhạy cảm
+  - Tách nhiệm vụ và ngăn tự phê duyệt thao tác nhạy cảm
+  - Tránh bùng nổ vai trò và các ngoại lệ khó kiểm soát
+- level1: Quan hệ và kế thừa
+  level2:
+  - Phân quyền theo quan hệ (ReBAC) và bộ ba quan hệ
+  - Tư cách thành viên nhóm và quyền thông qua nhóm lồng nhau
+  - Kế thừa quyền từ tổ chức, dự án, thư mục đến đối tượng
+  - Quyền trực tiếp, quyền kế thừa và ngoại lệ cục bộ
+  - Chặn kế thừa và xử lý xung đột trên cây tài nguyên
+  - Chu trình quan hệ, độ sâu và giới hạn duyệt đồ thị
+  - Di chuyển đối tượng giữa các nhánh có chính sách khác nhau
+  - Quyền trên quan hệ liên kết và tài nguyên dùng chung nhiều cha
+- level1: Chia sẻ và ủy quyền
+  level2:
+  - Danh sách kiểm soát truy cập (ACL) trên từng đối tượng
+  - Mời cộng tác và xác nhận đúng danh tính người nhận
+  - Chia sẻ nội bộ, chia sẻ ngoài tổ chức và chia sẻ công khai
+  - Ủy quyền có giới hạn và ngăn cấp quyền vượt quyền đang có
+  - Liên kết chia sẻ và URL có chữ ký như một dạng quyền năng
+  - Giới hạn hành động, đối tượng, thời hạn và số lần sử dụng
+  - Thu hồi quyền chia sẻ và xử lý liên kết đã phát hành
+  - Ngăn lan truyền quyền qua tái chia sẻ và sao chép liên kết
+- level1: Cách ly tenant
+  level2:
+  - Tenant là ranh giới dữ liệu và ranh giới phân quyền
+  - Ràng buộc chủ thể, tenant và đối tượng trong cùng quyết định
+  - Không tin tenant_id từ URL, tiêu đề hoặc nội dung yêu cầu
+  - Người dùng thuộc nhiều tenant và thao tác chuyển ngữ cảnh
+  - Định danh trùng giữa tenant và khóa truy vấn tổng hợp
+  - Chia sẻ xuyên tenant và các ngoại lệ được khai báo rõ
+  - Quản trị toàn hệ thống và truy cập hỗ trợ xuyên tenant
+  - Ngăn rò rỉ tenant qua tác vụ nền, bộ nhớ đệm và tìm kiếm
+- level1: Kiến trúc kiểm soát
+  level2:
+  - Điểm thực thi (PEP), điểm quyết định (PDP) và nguồn thuộc tính (PIP)
+  - Kiểm tra tại cổng API, dịch vụ và tầng truy cập dữ liệu
+  - Giới hạn của việc chỉ kiểm tra quyền tại giao diện hoặc API Gateway
+  - Chính sách tập trung, phân tán và mô hình kết hợp
+  - Hợp đồng quyết định quyền và dữ liệu tối thiểu cần truyền
+  - Ngăn bỏ sót kiểm tra qua các đường gọi nội bộ
+  - Quyền người dùng và quyền dịch vụ trong chuỗi gọi
+  - Ranh giới trách nhiệm giữa đội sản phẩm và nền tảng
+- level1: Thiết kế API
+  level2:
+  - Kiểm tra quyền cho từng endpoint và từng HTTP method
+  - Ràng buộc định danh trong path, query và request body
+  - Tra cứu có phạm vi quyền thay vì tải đối tượng tùy ý
+  - Phân biệt chưa xác thực, không đủ quyền và không tồn tại
+  - Chính sách sử dụng 401, 403 và 404 để hạn chế tiết lộ
+  - Tải xuống, xem trước, lịch sử và endpoint phụ của đối tượng
+  - API phiên bản cũ, endpoint nội bộ và đường truy cập tương đương
+  - Tài liệu hóa quyền truy cập trong hợp đồng API
+- level1: Truy vấn tập dữ liệu
+  level2:
+  - Giới hạn tập kết quả theo quyền ngay trong truy vấn
+  - Vì sao lọc sau phân trang gây sai dữ liệu và rò rỉ thông tin
+  - Phân trang, sắp xếp và con trỏ có ràng buộc phạm vi quyền
+  - Tìm kiếm, bộ lọc và truy vấn nâng cao trên dữ liệu được phép
+  - Đếm, tổng hợp, thống kê và thông tin tồn tại của đối tượng
+  - Quyền đối với bộ sưu tập rỗng và tài nguyên mới phát sinh
+  - Đồng bộ tăng dần và con trỏ không được vượt phạm vi quyền
+  - Quyền trên dữ liệu xuất toàn bộ và báo cáo kết hợp
+- level1: Ghi và cập nhật
+  level2:
+  - Kiểm tra quyền trên trạng thái hiện tại và trạng thái sau thay đổi
+  - Gán owner_id, tenant_id và thuộc tính bảo mật phía máy chủ
+  - Ngăn mass assignment làm thay đổi quyền hoặc chủ sở hữu
+  - Kiểm soát PATCH, cập nhật từng phần và trường không được phép
+  - Quyền riêng cho xóa mềm, khôi phục và xóa vĩnh viễn
+  - Kiểm tra chuyển trạng thái như phê duyệt, khóa và xuất bản
+  - Chuyển đối tượng sang nhóm, tenant hoặc tài nguyên cha khác
+  - Giao dịch nguyên tử giữa thay đổi dữ liệu và thay đổi quyền
+- level1: Quan hệ lồng nhau
+  level2:
+  - Kiểm tra đối tượng con thực sự thuộc đối tượng cha trong yêu cầu
+  - Quyền trên cha không mặc nhiên cho phép mọi thao tác trên con
+  - Quyền tạo, gắn, tháo và thay thế quan hệ liên kết
+  - Kiểm tra cả hai đầu khi liên kết các đối tượng
+  - Ngăn tham chiếu trực tiếp đến đối tượng con ngoài phạm vi
+  - Dữ liệu nhúng, mở rộng quan hệ và truy vấn nhiều tầng
+  - Tài nguyên dẫn xuất và quyền truy cập tài nguyên nguồn
+- level1: Thao tác hàng loạt
+  level2:
+  - Kiểm tra quyền cho từng đối tượng trong một yêu cầu batch
+  - Lựa chọn từ chối toàn bộ hoặc xử lý một phần có chủ đích
+  - Phản hồi từng phần mà không tiết lộ đối tượng bị từ chối
+  - Ngăn chèn ID ngoài phạm vi vào danh sách thao tác
+  - Giới hạn kích thước batch và chi phí đánh giá quyền
+  - Tính nguyên tử, retry và idempotency trong thao tác nhiều đối tượng
+  - Nhập, xuất và di chuyển dữ liệu hàng loạt có kiểm soát
+- level1: GraphQL và RPC
+  level2:
+  - Kiểm tra quyền tại resolver và các trường truy cập đối tượng
+  - Node lookup, global ID và truy vấn trực tiếp bằng định danh
+  - Quan hệ lồng nhau, alias và nhiều thao tác trong một truy vấn
+  - DataLoader và bộ nhớ đệm gắn với đúng ngữ cảnh người dùng
+  - Quyền trên từng thông điệp và tài nguyên trong RPC
+  - Subscription, WebSocket và luồng dữ liệu thời gian thực
+  - Kiểm tra lại quyền khi kết nối kéo dài hoặc quan hệ thay đổi
+- level1: Tác vụ bất đồng bộ
+  level2:
+  - Mang ngữ cảnh người yêu cầu qua hàng đợi một cách đáng tin cậy
+  - Tách quyền tiếp nhận công việc và quyền thực thi công việc
+  - Quyền chụp tại thời điểm gửi và quyền hiện hành khi xử lý
+  - Thu hồi quyền trong thời gian công việc chờ thực thi
+  - Retry, dead-letter queue và phát lại sự kiện không vượt quyền
+  - Dịch vụ tiêu thụ sự kiện và phạm vi đối tượng được xử lý
+  - Webhook và tích hợp bên thứ ba gắn với đối tượng cụ thể
+  - Kiểm tra quyền khi nhận kết quả, báo cáo và thông báo
+- level1: Tệp và kho đối tượng
+  level2:
+  - Phân quyền qua siêu dữ liệu thay vì chỉ dựa vào đường dẫn tệp
+  - Ánh xạ quyền ứng dụng với bucket, key và ACL của kho lưu trữ
+  - 'URL ký sẵn: phạm vi, thời hạn và nguy cơ sử dụng lại'
+  - Upload trực tiếp, thay thế tệp và xác nhận quyền sau upload
+  - Download, preview, thumbnail và các bản sao dẫn xuất
+  - CDN, bộ nhớ đệm công khai và nội dung cần kiểm soát truy cập
+  - Di chuyển, sao chép và xóa tệp cùng với quyền liên quan
+  - Ngăn truy cập trực tiếp kho lưu trữ để bỏ qua ứng dụng
+- level1: Dữ liệu và tìm kiếm
+  level2:
+  - Bộ lọc truy vấn, view và kiểm soát truy cập cấp dòng
+  - Row-Level Security và vai trò của nó trong phòng vệ nhiều lớp
+  - Ngữ cảnh quyền trên kết nối và nguy cơ rò rỉ qua connection pool
+  - Đặc quyền tài khoản cơ sở dữ liệu và đường truy cập vượt kiểm soát
+  - Quyền trên chỉ mục tìm kiếm và dữ liệu đã phi chuẩn hóa
+  - Đồng bộ thay đổi quyền sang bản sao đọc và chỉ mục
+  - Dữ liệu phân tích, bản sao lưu và bản xuất ngoài hệ thống
+- level1: Vòng đời quyền
+  level2:
+  - Cấp quyền, thay đổi quyền và thu hồi quyền theo sự kiện nghiệp vụ
+  - Người dùng rời nhóm, rời tổ chức hoặc bị vô hiệu hóa
+  - Xóa đối tượng, khôi phục và xử lý quyền mồ côi
+  - Sao chép, nhân bản và tạo đối tượng từ mẫu
+  - Thay đổi phân loại dữ liệu và hiệu lực quyền hiện có
+  - Quyền tạm thời, thời điểm bắt đầu và thời điểm hết hạn
+  - Rà soát định kỳ quyền trực tiếp, quyền kế thừa và chia sẻ ngoài
+  - Quyền đối với dữ liệu đã tải xuống và giới hạn thu hồi
+- level1: Nhất quán và bộ nhớ đệm
+  level2:
+  - Khoảng cách thời gian giữa kiểm tra và sử dụng quyền (TOCTOU)
+  - Kiểm tra quyền và thao tác dữ liệu trong cùng giao dịch
+  - Đọc lạc hậu từ replica và chính sách nhất quán sau thu hồi
+  - Khóa cache theo chủ thể, tenant, đối tượng, hành động và chính sách
+  - Thời hạn cache, vô hiệu hóa và truyền sự kiện thay đổi quyền
+  - Quyền trong phiên hoặc token và giới hạn của thông tin đã cấp
+  - Ngăn kết quả đánh giá quyền bị dùng lại sai ngữ cảnh
+- level1: Hiệu năng và khả dụng
+  level2:
+  - Đo độ trễ và chi phí của từng lần đánh giá quyền
+  - Đánh giá theo lô và tránh truy vấn quyền kiểu N+1
+  - Chỉ mục dữ liệu phục vụ kiểm tra sở hữu, thành viên và quan hệ
+  - Tính toán trước tập quyền và chi phí cập nhật khi có thay đổi
+  - Giới hạn tài nguyên cho truy vấn chính sách và duyệt quan hệ
+  - Timeout, lỗi PDP và hành vi từ chối an toàn
+  - Cân bằng độ mới của quyền, khả dụng và yêu cầu nghiệp vụ
+- level1: Kênh rò rỉ
+  level2:
+  - Thông báo lỗi và phản hồi khác nhau làm lộ sự tồn tại
+  - Thời gian phản hồi, kích thước dữ liệu và kênh suy đoán
+  - Rò rỉ qua số đếm, facet, autocomplete và kết quả tổng hợp
+  - Siêu dữ liệu, lịch sử phiên bản và nội dung xem trước
+  - Liên kết trong email, thông báo đẩy và thông báo trong ứng dụng
+  - Nhật ký, trace và công cụ theo dõi vô tình chứa dữ liệu đối tượng
+  - Phân quyền thuộc tính và tối thiểu hóa dữ liệu trả về
+  - Giới hạn tần suất hỗ trợ giảm dò quét nhưng không thay thế kiểm tra quyền
+- level1: Quản trị đặc quyền
+  level2:
+  - Tách quyền quản trị nền tảng và quyền đọc dữ liệu khách hàng
+  - Truy cập hỗ trợ theo yêu cầu, theo thời hạn và theo lý do
+  - Phê duyệt bổ sung cho hành động nhạy cảm hoặc phạm vi lớn
+  - Truy cập khẩn cấp (break-glass) và dấu vết kiểm toán
+  - Giả danh có hiển thị rõ chủ thể thực và chủ thể được đại diện
+  - Kiểm soát công cụ quản trị, script vận hành và API nội bộ
+  - Rà soát ngoại lệ và ngăn quyền đặc biệt trở thành cửa hậu
+- level1: Chiến lược kiểm thử
+  level2:
+  - Ma trận chủ thể–đối tượng–hành động–tenant–trạng thái
+  - Kiểm thử cho phép và từ chối với cùng một tài nguyên
+  - Hai tài khoản cùng vai trò và hai tenant độc lập
+  - 'Thay ID tại mọi vị trí: path, query, body và quan hệ lồng nhau'
+  - Kiểm thử danh sách, tìm kiếm, batch, xuất dữ liệu và endpoint phụ
+  - Kiểm thử chia sẻ, kế thừa, ủy quyền và chuyển chủ sở hữu
+  - Kiểm thử thu hồi quyền, cache lạc hậu và kết nối kéo dài
+  - Kiểm thử cạnh tranh dữ liệu và lỗi thành phần quyết định quyền
+  - Kiểm thử trường nhạy cảm, siêu dữ liệu và thông tin tồn tại
+  - Dữ liệu kiểm thử tách biệt và bằng chứng kết quả mong đợi
+- level1: Kiểm chứng tự động
+  level2:
+  - Unit test chính sách bằng bảng quyết định và ca biên
+  - Integration test điểm thực thi và điều kiện truy vấn dữ liệu
+  - Property-based testing cho bất biến cách ly và đặc quyền tối thiểu
+  - Kiểm thử biến đổi khi đổi người dùng, tenant hoặc chủ sở hữu
+  - Mutation testing để phát hiện kiểm tra quyền bị bỏ sót
+  - Rà soát mã, phân tích tĩnh và dò tìm đường truy cập thiếu kiểm tra
+  - Tự động hóa kiểm thử hồi quy trong quy trình CI/CD
+- level1: Nhật ký và giám sát
+  level2:
+  - Ghi ai yêu cầu hành động nào trên đối tượng nào và kết quả
+  - Ghi phiên bản chính sách, nguồn quyền và lý do quyết định
+  - Liên kết người dùng cuối, dịch vụ trung gian và correlation ID
+  - Che giấu dữ liệu nhạy cảm và giới hạn quyền xem nhật ký
+  - Phát hiện dò ID, truy cập chéo tenant và tăng đột biến từ chối
+  - Theo dõi thay đổi ACL, quyền quản trị và chia sẻ công khai
+  - Chỉ số chất lượng chính sách, độ trễ và độ trễ thu hồi
+  - Lưu giữ dấu vết và tái hiện quyết định phục vụ kiểm toán
+- level1: Ứng phó sự cố
+  level2:
+  - Xác định phạm vi đối tượng, chủ thể và tenant bị ảnh hưởng
+  - Phân biệt truy cập trái phép, tiết lộ dữ liệu và sửa đổi dữ liệu
+  - Vô hiệu hóa đường truy cập lỗi và thu hồi quyền liên quan
+  - Vô hiệu hóa cache, URL ký sẵn và quyền chia sẻ còn hiệu lực
+  - Bảo toàn bằng chứng và truy vết các đường truy cập tương đương
+  - Khôi phục dữ liệu, xác minh bản vá và kiểm thử hồi quy
+  - Rút kinh nghiệm và cập nhật mô hình đe dọa
+- level1: Quy trình triển khai
+  level2:
+  - Lập danh mục tài nguyên và ma trận quyền trước khi xây API
+  - Chọn mô hình quyền theo nhu cầu sở hữu, nhóm và chia sẻ
+  - Định nghĩa bất biến và tiêu chí chấp nhận bảo mật
+  - Rà soát thiết kế và mã cho mọi đường truy cập đối tượng
+  - Di trú ACL và chính sách mà không mở rộng quyền ngoài ý muốn
+  - Shadow evaluation, triển khai theo giai đoạn và so sánh quyết định
+  - Rollback chính sách, quản lý thay đổi và bằng chứng kiểm toán
+- level1: Tình huống thực hành
+  level2:
+  - 'Ứng dụng ghi chú cá nhân: sửa ID và kiểm tra quyền sở hữu'
+  - 'Không gian làm việc nhiều tenant: thành viên và vai trò cục bộ'
+  - 'Kho tài liệu phân cấp: kế thừa, di chuyển và ngoại lệ quyền'
+  - 'Chia sẻ tài liệu: liên kết có thời hạn và thu hồi quyền'
+  - 'Hệ thống phê duyệt: trạng thái nghiệp vụ và tách nhiệm vụ'
+  - 'API tìm kiếm và batch: kết quả có phạm vi quyền'
+  - 'Xuất báo cáo bất đồng bộ: quyền thay đổi khi tác vụ đang chờ'
+  - Phân tích một lỗi BOLA từ mô hình đe dọa đến kiểm thử hồi quy

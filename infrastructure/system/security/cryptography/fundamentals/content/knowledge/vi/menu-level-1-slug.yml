@@ -1,0 +1,106 @@
+menu:
+- title: Nền tảng mật mã
+  slug: cryptography-foundations
+  index: 0
+- title: Thuật ngữ cốt lõi
+  slug: core-terminology
+  index: 1
+- title: Mô hình đối xứng
+  slug: symmetric-cryptography
+  index: 2
+- title: Mô hình bất đối xứng
+  slug: asymmetric-cryptography
+  index: 3
+- title: Hash function
+  slug: hash-function
+  index: 4
+- title: Message authentication
+  slug: message-authentication
+  index: 5
+- title: Digital signature
+  slug: digital-signature
+  index: 6
+- title: Randomness
+  slug: randomness
+  index: 7
+- title: Key và key space
+  slug: keys-keyspace
+  index: 8
+- title: Key lifecycle
+  slug: key-lifecycle
+  index: 9
+- title: Block cipher
+  slug: block-cipher
+  index: 10
+- title: Authenticated encryption
+  slug: authenticated-encryption
+  index: 11
+- title: Stream cipher
+  slug: stream-cipher
+  index: 12
+- title: Asymmetric encryption
+  slug: asymmetric-encryption
+  index: 13
+- title: Key agreement
+  slug: key-agreement
+  index: 14
+- title: Key derivation
+  slug: key-derivation
+  index: 15
+- title: Password cryptography
+  slug: password-cryptography
+  index: 16
+- title: Certificate và PKI
+  slug: certificates-pki
+  index: 17
+- title: TLS và secure channel
+  slug: tls-secure-channels
+  index: 18
+- title: Cryptographic protocol
+  slug: cryptographic-protocol
+  index: 19
+- title: Key management
+  slug: key-management
+  index: 20
+- title: Mật mã cho dữ liệu
+  slug: data-encryption
+  index: 21
+- title: Mật mã cho message
+  slug: message-cryptography
+  index: 22
+- title: Mật mã cho password và token
+  slug: password-token-cryptography
+  index: 23
+- title: JCA trong Java
+  slug: jca-java
+  index: 24
+- title: Cipher API
+  slug: cipher-api
+  index: 25
+- title: Signature và MAC API
+  slug: signature-mac-api
+  index: 26
+- title: KeyStore và provider
+  slug: keystores-providers
+  index: 27
+- title: Algorithm selection
+  slug: algorithm-selection
+  index: 28
+- title: Failure và side channel
+  slug: failure-side-channels
+  index: 29
+- title: Mật mã và hiệu năng
+  slug: crypto-performance
+  index: 30
+- title: Mật mã hậu lượng tử
+  slug: post-quantum-cryptography
+  index: 31
+- title: Kiểm thử cryptography
+  slug: cryptography-testing
+  index: 32
+- title: Chuẩn và assurance
+  slug: standards-assurance
+  index: 33
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 34

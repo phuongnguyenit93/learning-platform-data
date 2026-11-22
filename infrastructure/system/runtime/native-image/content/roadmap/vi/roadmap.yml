@@ -1,0 +1,57 @@
+roadmap:
+- id: native-image-trade-offs
+  title: Native Image & trade-offs
+  purpose: Hiểu cách GraalVM biên dịch ứng dụng Java thành executable theo phân tích tĩnh và đánh giá khi nào nên dùng.
+  objectives:
+  - Giải thích ahead-of-time compilation và closed-world assumption
+  - So sánh startup, memory và portability với JVM mode
+  - Nhận diện giới hạn dynamic loading, reflection và classpath
+- id: build-environment-tooling
+  title: Build Environment & Tooling
+  purpose: Chuẩn bị JDK, Native Image và build plugin tương thích để tạo binary có thể tái lập.
+  objectives:
+  - Cài GraalVM JDK và kiểm tra native-image
+  - Cấu hình Native Build Tools cho Maven hoặc Gradle
+  - Chọn target OS/architecture và môi trường build phù hợp
+- id: spring-aot-application-hints
+  title: Spring AOT & Application Hints
+  purpose: Chuẩn bị ứng dụng Spring Boot bằng xử lý AOT trước khi GraalVM phân tích và biên dịch.
+  objectives:
+  - Giải thích Spring AOT tạo source, proxy và hint
+  - Chạy AOT-processed app trên JVM để phát hiện lỗi sớm
+  - Rà soát các cấu hình runtime động không tương thích
+- id: reachability-metadata
+  title: Reachability Metadata
+  purpose: Đăng ký những thành phần được truy cập động mà static analysis không tự phát hiện đầy đủ.
+  objectives:
+  - Phân biệt reflection, resource, proxy, serialization và JNI metadata
+  - Đặt reachability-metadata.json trong META-INF/native-image
+  - Ưu tiên hint có điều kiện và kiểm tra dependency metadata
+- id: tracing-agent-compatibility
+  title: Tracing Agent & Compatibility
+  purpose: Tìm các truy cập động còn thiếu bằng cách chạy luồng đại diện và kiểm tra thư viện bên thứ ba.
+  objectives:
+  - Chạy Native Image tracing agent qua test hoặc app flow
+  - Review, tinh gọn metadata được agent sinh ra
+  - Kiểm tra reachability metadata của dependency trước khi tự viết
+- id: class-initialization
+  title: Class Initialization
+  purpose: Quyết định phần khởi tạo nào diễn ra lúc build và lúc chạy để tránh lỗi trạng thái hoặc môi trường.
+  objectives:
+  - Phân biệt build-time và runtime initialization
+  - Kiểm tra static state, clock, random, file và environment access
+  - Chỉ cấu hình initialize-at-build-time khi an toàn
+- id: build-test-package
+  title: Build, Test & Package
+  purpose: Tạo executable/container và kiểm thử các điểm khác biệt giữa JVM, AOT và native runtime.
+  objectives:
+  - Build native binary bằng Maven/Gradle hoặc Buildpacks
+  - Chạy test AOT trên JVM và native tests có chọn lọc
+  - Xác nhận resource, startup, signal và cấu hình runtime
+- id: optimize-operate
+  title: Optimize & Operate
+  purpose: Đánh giá hiệu năng thực tế và xử lý lỗi metadata trước khi đưa native image vào production.
+  objectives:
+  - Đo startup, RSS, throughput và thời gian build
+  - Phân tích missing-registration và lỗi tương thích thư viện
+  - Tối ưu binary, CI cache và image theo target triển khai

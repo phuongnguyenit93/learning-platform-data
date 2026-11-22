@@ -1,0 +1,3 @@
+menuLevel1: SELinux và AppArmor
+menuLevel2: Khôi phục nhãn bằng restorecon và khai báo nhãn bền vững bằng semanage fcontext
+status: ""

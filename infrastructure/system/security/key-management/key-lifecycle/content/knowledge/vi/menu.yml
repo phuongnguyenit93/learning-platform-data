@@ -1,0 +1,311 @@
+menu:
+- level1: Mô hình vòng đời
+  level2:
+  - Vòng đời khóa từ lúc hoạch định đến khi hủy
+  - Các điểm chuyển trạng thái và điều kiện chuyển
+  - Tài sản, dữ liệu và dịch vụ được khóa bảo vệ
+  - Phân biệt key material, key object và key version
+  - 'Luồng kiểm soát: tạo, dùng, xoay vòng, thu hồi và hủy'
+- level1: Mục tiêu bảo vệ
+  level2:
+  - Bí mật, toàn vẹn, xác thực và chống chối bỏ
+  - Yêu cầu bảo mật theo loại dữ liệu và nghiệp vụ
+  - Cân bằng giữa khả dụng, khôi phục và giới hạn phơi lộ
+  - Nguyên tắc đặc quyền tối thiểu và phân tách trách nhiệm
+  - Khả năng kiểm toán và chứng minh kiểm soát
+- level1: Phạm vi khóa
+  level2:
+  - Khóa mã hóa dữ liệu và khóa mã hóa khóa
+  - Khóa ký, khóa xác minh và khóa xác thực
+  - Khóa đối xứng và cặp khóa bất đối xứng
+  - Khóa tĩnh, khóa phiên và khóa dẫn xuất
+  - Ranh giới giữa cryptographic key, secret và credential
+  - Mối liên hệ với KMS, HSM, PKI và secrets manager
+- level1: Mô hình đe dọa
+  level2:
+  - Tài sản cần bảo vệ và hậu quả khi mất khóa
+  - Kẻ tấn công, năng lực truy cập và đường tấn công
+  - Rủi ro khi khóa bị lộ, bị sửa hoặc không khả dụng
+  - Rủi ro từ nội bộ, nhà cung cấp và chuỗi cung ứng
+  - Yêu cầu online, offline và giới hạn vùng tin cậy
+  - Cách dùng đánh giá rủi ro để chọn kiểm soát
+- level1: Vai trò và trách nhiệm
+  level2:
+  - Chủ sở hữu khóa, người quản thủ và người vận hành
+  - Dịch vụ sử dụng khóa và bên kiểm toán
+  - Phân tách nhiệm vụ khi tạo, phê duyệt và hủy khóa
+  - Quy trình phê duyệt và quyền vận hành khẩn cấp
+  - Liên kết khóa với chủ sở hữu, hệ thống và môi trường
+  - Thu hồi quyền khi nhân sự hoặc dịch vụ rời hệ thống
+- level1: Trạng thái khóa
+  level2:
+  - Pre-activation và điều kiện trước khi được dùng
+  - Active và phạm vi thao tác được phép
+  - Suspended khi cần tạm dừng có khả năng khôi phục
+  - Deactivated khi ngừng bảo vệ dữ liệu mới
+  - Compromised khi nghi ngờ hoặc xác nhận bị lộ
+  - Destroyed và bằng chứng kết thúc vòng đời
+  - Archived khi cần giữ khả năng giải mã hoặc xác minh
+- level1: Chính sách vòng đời
+  level2:
+  - Mục đích sử dụng và thuật toán được phép
+  - Mức bảo vệ, nơi lưu trữ và cách phân phối
+  - Cryptoperiod, giới hạn sử dụng và tiêu chí xoay vòng
+  - Điều kiện đình chỉ, thu hồi, nghỉ hưu và hủy
+  - Yêu cầu sao lưu, khôi phục và khắc phục sự cố
+  - Ngoại lệ, người phê duyệt và thời hạn xem xét
+- level1: Sinh khóa
+  level2:
+  - Sinh bằng nguồn ngẫu nhiên mật mã an toàn
+  - Chọn thuật toán, độ dài và tham số phù hợp
+  - Sinh trong KMS hoặc HSM khi cần giữ khóa trong biên bảo vệ
+  - Entropy, DRBG và kiểm tra chất lượng đầu ra
+  - Không hardcode, không tự tạo khóa từ mật khẩu tùy tiện
+  - Tách độc lập các khóa cho các mục đích khác nhau
+  - Domain separation cho khóa dẫn xuất và nhiều ngữ cảnh
+- level1: Đăng ký siêu dữ liệu
+  level2:
+  - Định danh duy nhất, alias và số phiên bản
+  - Chủ sở hữu, mục đích, môi trường và phân loại dữ liệu
+  - Thuật toán, độ dài, ngày tạo và ngày kích hoạt
+  - Trạng thái, cryptoperiod và ngày hết hạn
+  - Quan hệ phụ thuộc giữa DEK, KEK và dữ liệu
+  - Nhãn, tenant, vùng triển khai và thuộc tính tìm kiếm
+  - Siêu dữ liệu bất biến cần được ghi vào nhật ký
+- level1: Lưu trữ và bảo vệ
+  level2:
+  - KMS, HSM, vault và ranh giới bảo vệ khóa
+  - Giảm tối đa thời gian khóa tồn tại ở dạng rõ
+  - Tách nơi lưu khóa khỏi nơi lưu dữ liệu được mã hóa
+  - Bảo vệ khóa khi nằm trong bộ nhớ, cache và tiến trình
+  - Kiểm soát việc xuất khóa và sao chép key material
+  - Bảo vệ backup, bản sao, replica và môi trường dự phòng
+  - Không đưa khóa vào log, exception, metric hoặc trace
+- level1: Phân phối khóa
+  level2:
+  - Phân biệt key transport, key wrapping và key agreement
+  - Kênh phân phối phải được xác thực và bảo vệ toàn vẹn
+  - Xác định đúng danh tính bên nhận và mục đích nhận khóa
+  - Bootstrap trust và xử lý khóa gốc ban đầu
+  - Dual control và split knowledge khi phân phối nhạy cảm
+  - Xác minh khóa nhận được trước khi kích hoạt
+  - Ưu tiên khóa phiên thay vì gửi khóa dài hạn
+- level1: Kích hoạt và sử dụng
+  level2:
+  - Phê duyệt kích hoạt và kiểm tra trạng thái hiện tại
+  - Ủy quyền riêng cho từng thao tác encrypt, decrypt hoặc sign
+  - Ràng buộc mục đích, tài nguyên, tenant và môi trường
+  - Giới hạn tần suất, số lần dùng và kích thước dữ liệu
+  - Dùng context hoặc AAD để ràng buộc ciphertext với ngữ cảnh
+  - Quản lý nonce, IV và điều kiện không được tái sử dụng
+  - Tách quyền ký khỏi quyền giải mã
+  - Xử lý lỗi mà không tạo oracle hoặc làm lộ key material
+- level1: Cryptoperiod
+  level2:
+  - Cryptoperiod theo thời gian và theo số lần sử dụng
+  - Cryptoperiod theo sự kiện, thay đổi nhân sự hoặc môi trường
+  - Ảnh hưởng của thuật toán, độ mạnh và độ nhạy dữ liệu
+  - Giới hạn dữ liệu được bảo vệ bởi một khóa
+  - Phân biệt thời gian dùng để tạo mới và thời gian dùng để đọc cũ
+  - Tiêu chí rút ngắn cryptoperiod khi có dấu hiệu rủi ro
+  - Ghi rõ cơ sở rủi ro thay vì chọn lịch xoay vòng tùy ý
+- level1: Xoay vòng khóa
+  level2:
+  - Xoay vòng định kỳ, theo sử dụng và theo sự kiện
+  - Xoay vòng thủ công, tự động và có phê duyệt
+  - Tạo key material mới thay vì chỉ đổi tên hoặc alias
+  - Dual-read và new-write trong giai đoạn chuyển tiếp
+  - Rewrap DEK và re-encrypt dữ liệu khác nhau thế nào
+  - Rollback an toàn khi phiên bản mới không hoạt động
+  - Job xoay vòng idempotent và chịu được chạy lặp
+  - Xác minh độ phủ trước khi ngừng phiên bản cũ
+- level1: Phiên bản và tương thích
+  level2:
+  - Phân biệt key ID, key version và alias ổn định
+  - Đưa phiên bản khóa vào metadata của ciphertext
+  - Chỉ cho phép phiên bản cũ giải mã hoặc xác minh khi cần
+  - Tương thích ngược giữa các bản triển khai
+  - Hợp đồng API cho resolver và key provider
+  - Xử lý cache, stale key và đồng bộ phiên bản
+  - Tránh mơ hồ khi nhiều khóa cùng alias tồn tại
+- level1: Sao lưu và khôi phục
+  level2:
+  - Chính sách backup key material và điều kiện được phép
+  - Backup phải được mã hóa và kiểm tra toàn vẹn
+  - Split knowledge, quorum và dual control cho thao tác nhạy cảm
+  - Phê duyệt restore và giới hạn phạm vi khôi phục
+  - Kiểm kê bản sao trước và sau khi khôi phục
+  - Kiểm thử restore định kỳ thay vì chỉ kiểm tra backup thành công
+  - RPO, RTO và ảnh hưởng đến việc giải mã dữ liệu
+  - Không tạo backup khóa dạng rõ hoặc không có thời hạn
+- level1: Kiểm soát truy cập
+  level2:
+  - IAM theo vai trò, tài nguyên và thao tác cụ thể
+  - Least privilege cho dịch vụ gọi KMS hoặc HSM
+  - Điều kiện truy cập theo tenant, vùng và môi trường
+  - Tách quyền quản trị control plane khỏi data plane
+  - Just-in-time access và quyền break-glass có kiểm soát
+  - Recertification định kỳ cho người và service identity
+  - Không dùng chung tài khoản hoặc quyền quản trị toàn cục
+- level1: Nhật ký và kiểm toán
+  level2:
+  - Ghi tạo, kích hoạt, sử dụng, xoay vòng và hủy
+  - Ghi actor, target, thời điểm, lý do và mã yêu cầu
+  - Nhật ký tập trung, chống sửa và giới hạn quyền đọc
+  - Liên kết sự kiện key service với log ứng dụng
+  - Chính sách lưu giữ, truy vấn và bảo vệ dữ liệu audit
+  - Kiểm toán cả thao tác thành công lẫn thất bại
+  - Lưu bằng chứng phê duyệt và ngoại lệ cùng sự kiện
+- level1: Giám sát vận hành
+  level2:
+  - Đường cơ sở về tần suất và nơi sử dụng khóa
+  - Phát hiện địa lý, dịch vụ hoặc tenant sử dụng bất thường
+  - Cảnh báo giải mã, ký hoặc xuất khóa tăng đột biến
+  - Phát hiện dùng khóa đã đình chỉ hoặc hết cryptoperiod
+  - Theo dõi lỗi, độ trễ, quota và trạng thái phụ thuộc
+  - Phát hiện trôi dạt chủ sở hữu và metadata
+  - Dashboard, SLO và runbook xử lý cảnh báo
+- level1: Xử lý khóa bị lộ
+  level2:
+  - Dấu hiệu nhận biết khóa bị lộ hoặc bị dùng trái phép
+  - 'Containment: cô lập, đình chỉ và chặn thao tác mới'
+  - Bảo toàn bằng chứng và xác định phạm vi ảnh hưởng
+  - Đánh giá ciphertext, chữ ký và dữ liệu đã bị tác động
+  - Tạo khóa thay thế và chuyển đổi dữ liệu cần thiết
+  - Thông báo bên liên quan theo chính sách sự cố
+  - Post-incident review và cập nhật kiểm soát
+- level1: Đình chỉ và thu hồi
+  level2:
+  - Khác nhau giữa suspend, revoke và deactivate
+  - Công tắc khẩn cấp để chặn sử dụng khóa
+  - Độ trễ khi trạng thái lan truyền qua cache và replica
+  - Quyền đọc dữ liệu cũ sau khi chặn dữ liệu mới
+  - Điều kiện và cấp phê duyệt để mở lại khóa
+  - Xác minh mọi consumer đã nhận trạng thái mới
+  - Ghi nhận lý do, thời điểm và bằng chứng thu hồi
+- level1: Ngừng sử dụng
+  level2:
+  - Chặn khóa bảo vệ dữ liệu mới
+  - Cho phép giải mã hoặc xác minh trong thời hạn chuyển đổi
+  - Lập danh sách consumer và dependency còn tồn tại
+  - Di chuyển dữ liệu trước ngày nghỉ hưu
+  - Giữ public key cần thiết để xác minh dữ liệu lưu trữ
+  - Tiêu chí kết thúc giai đoạn tương thích
+  - Thông báo end-of-life và kế hoạch dọn dẹp
+- level1: Hủy và zeroization
+  level2:
+  - Phê duyệt hủy và kiểm tra legal hold trước khi xóa
+  - Zeroize key material trong KMS, HSM và bộ nhớ
+  - Xử lý bản backup, replica, cache, escrow và bản sao
+  - Giới hạn của cryptographic erasure
+  - Lệnh hủy HSM và kiểm tra kết quả thực tế
+  - Bằng chứng hủy, người thực hiện và thời điểm
+  - Đánh giá khả năng khôi phục sau khi hủy
+  - Không hủy khóa khi dữ liệu còn nghĩa vụ giải mã
+- level1: Di chuyển và chuyển đổi
+  level2:
+  - Chuyển sang thuật toán, độ dài hoặc provider mới
+  - Chuyển giữa KMS, HSM và vùng triển khai
+  - Re-encryption và rewrapping theo từng loại dữ liệu
+  - Staged rollout, dual compatibility và cutover
+  - Kiểm tra tính toàn vẹn sau chuyển đổi
+  - Rollback, retry và xử lý dữ liệu chuyển dở
+  - Dọn khóa cũ sau khi xác nhận toàn bộ phạm vi
+- level1: KMS và HSM
+  level2:
+  - Khả năng và giới hạn của managed KMS
+  - Khi nào cần HSM và quyền kiểm soát phần cứng
+  - Tách control plane khỏi data plane
+  - Import, export và policy giữ khóa trong biên bảo vệ
+  - Quorum, dual control và thao tác quản trị nhạy cảm
+  - HA, multi-region và phụ thuộc nhà cung cấp
+  - Đánh giá lock-in, portability và kế hoạch thoát
+- level1: Envelope encryption
+  level2:
+  - DEK mã hóa dữ liệu và KEK bảo vệ DEK
+  - Luồng sinh, mã hóa, wrap và lưu wrapped DEK
+  - Luồng lấy DEK, unwrap và giải mã có kiểm soát
+  - Rewrap DEK khi xoay KEK
+  - AAD gắn ciphertext với tenant, bản ghi và phiên bản
+  - Không dùng master key để mã hóa trực tiếp toàn bộ dữ liệu
+  - Tác động hiệu năng, batch và giới hạn dịch vụ
+  - Thiết kế khi một bản ghi chứa nhiều phiên bản khóa
+- level1: Thiết kế ứng dụng
+  level2:
+  - Key provider abstraction và key resolver
+  - Đưa key version vào metadata thay vì suy đoán
+  - Chính sách cache khóa và thời gian tồn tại trong bộ nhớ
+  - Fail closed khi không xác định được trạng thái khóa
+  - Timeout, retry, circuit breaker và giới hạn gọi dịch vụ
+  - Luồng xoay vòng không làm gián đoạn đọc dữ liệu hợp lệ
+  - Idempotency cho thao tác cấp phát và chuyển đổi
+  - Không ghi key material vào log, exception hoặc trace
+- level1: CI/CD và triển khai
+  level2:
+  - Không lưu khóa hoặc secret trong repository
+  - Workload identity thay cho credential tĩnh
+  - Tách khóa giữa local, test, staging và production
+  - Quyền deploy, migrate và rotate theo pipeline
+  - Gate phê duyệt trước thay đổi vòng đời nhạy cảm
+  - Kiểm tra trạng thái khóa sau triển khai
+  - Rollback ứng dụng không làm mất khả năng đọc dữ liệu
+  - Audit đầy đủ các thao tác do automation thực hiện
+- level1: Thực hành Java
+  level2:
+  - JCA/JCE và vai trò của provider
+  - SecureRandom và sinh khóa trong ứng dụng
+  - SecretKey, PrivateKey, PublicKey và vòng đời đối tượng
+  - KeyStore, PKCS#12 và bảo vệ material cục bộ
+  - AES-GCM, nonce và quản lý AAD đúng cách
+  - RSA-OAEP, chữ ký và ràng buộc mục đích sử dụng
+  - Giảm bản sao nhạy cảm trong String, byte array và heap
+  - Tích hợp client KMS hoặc HSM qua lớp trừu tượng
+- level1: Kiểm thử và diễn tập
+  level2:
+  - Unit test cho trạng thái và điều kiện chuyển
+  - Integration test với KMS, HSM hoặc provider giả lập
+  - Test xoay vòng, rewrap và đọc dữ liệu cũ
+  - Test backup, restore và lỗi mất phụ thuộc
+  - Test đình chỉ, thu hồi và tình huống compromise
+  - Test race condition khi nhiều instance cùng xoay vòng
+  - Negative test cho quyền sai, phiên bản sai và nonce lặp
+  - Diễn tập sự cố và đo thời gian khôi phục
+- level1: Quản trị và tuân thủ
+  level2:
+  - Kiểm kê khóa, owner, mục đích và trạng thái
+  - Rà soát chính sách và cryptoperiod định kỳ
+  - Mapping yêu cầu kiểm soát với bằng chứng vận hành
+  - Quản lý ngoại lệ, thời hạn và người chịu trách nhiệm
+  - Đánh giá nhà cung cấp và điều khoản khôi phục
+  - Recertification quyền truy cập và dependency
+  - 'Chỉ số chất lượng: khóa mồ côi, hết hạn và không có owner'
+  - Chuẩn bị hồ sơ cho kiểm toán và điều tra
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Dịch vụ quản lý khóa tập trung và các consumer
+  - Ranh giới tin cậy giữa ứng dụng, KMS và dữ liệu
+  - Kiến trúc multi-tenant và cách cô lập tenant
+  - Multi-region, failover và quyền sử dụng khi mất vùng
+  - Luồng tạo, sử dụng, xoay vòng và hủy trên sơ đồ
+  - Runbook vận hành thường ngày và khẩn cấp
+  - Điểm đo để chứng minh trạng thái vòng đời
+- level1: Anti-pattern
+  level2:
+  - Hardcode khóa trong mã nguồn hoặc cấu hình
+  - Dùng cùng một khóa cho mọi môi trường và mục đích
+  - Cryptoperiod không giới hạn hoặc không có tiêu chí xoay vòng
+  - Đổi alias nhưng không thay key material
+  - Xóa khóa trước khi hoàn tất chuyển đổi dữ liệu
+  - Backup khóa dạng rõ hoặc lưu cùng dữ liệu mã hóa
+  - Log request, exception hoặc dump chứa key material
+  - Cho phép mọi dịch vụ xuất hoặc giải mã khóa tùy ý
+  - Không có key version trong ciphertext hoặc metadata
+- level1: Checklist triển khai
+  level2:
+  - 'Checklist thiết kế: mục đích, owner, thuật toán và trạng thái'
+  - 'Checklist triển khai: quyền, metadata, audit và cảnh báo'
+  - 'Checklist vận hành: xoay vòng, backup, restore và recertification'
+  - 'Checklist sự cố: containment, thay thế và đánh giá ảnh hưởng'
+  - 'Checklist nghỉ hưu: migration, compatibility và hủy'
+  - 'Checklist bằng chứng: log, phê duyệt, kết quả test và biên bản'
+  - Câu hỏi review trước khi đưa khóa vào production

@@ -1,0 +1,57 @@
+roadmap:
+- id: tong-quan-proxy
+  title: Tổng quan Proxy
+  purpose: Hiểu vai trò của proxy như một điểm trung gian giữa client và server.
+  objectives:
+  - Vẽ luồng Client → Proxy → Server
+  - Giải thích cách proxy nhận và chuyển tiếp yêu cầu
+  - Nêu lợi ích và chi phí khi đặt proxy vào luồng mạng
+- id: forward-reverse-proxy
+  title: Forward & Reverse Proxy
+  purpose: Phân biệt hai mô hình proxy theo phía được đại diện và mục đích sử dụng.
+  objectives:
+  - Mô tả forward proxy đại diện phía client
+  - Mô tả reverse proxy đứng trước máy chủ
+  - Chọn mô hình cho ví dụ kiểm soát truy cập hoặc công bố dịch vụ
+- id: proxy-l4-l7
+  title: Proxy L4 & L7
+  purpose: Hiểu phạm vi xử lý của proxy theo tầng giao thức.
+  objectives:
+  - Phân biệt chuyển tiếp TCP với định tuyến HTTP
+  - So sánh thông tin sẵn có ở L4 và L7
+  - Chọn tầng proxy cho tình huống cơ bản
+- id: routing-http-headers
+  title: Routing & HTTP Headers
+  purpose: Nắm cách proxy lựa chọn đích và duy trì ngữ cảnh request khi chuyển tiếp.
+  objectives:
+  - Định tuyến theo host hoặc path đến upstream
+  - Giải thích Host, Forwarded và X-Forwarded-*
+  - Nhận biết nguy cơ tin sai header do client tự gửi
+- id: load-balancing-health
+  title: Load Balancing & Health
+  purpose: Phân phối lưu lượng và giảm tác động khi một upstream gặp lỗi.
+  objectives:
+  - So sánh round-robin và least-connections
+  - Giải thích tác dụng của health checks
+  - Mô tả xử lý khi một backend không sẵn sàng
+- id: tls-access-control
+  title: TLS & Access Control
+  purpose: Bảo vệ các kết nối và áp dụng ranh giới truy cập tại proxy.
+  objectives:
+  - Phân biệt TLS termination với mã hóa đến backend
+  - Kiểm tra certificate và luồng HTTP/HTTPS
+  - Nêu ví dụ ACL hoặc giới hạn lưu lượng tại proxy
+- id: caching-timeouts
+  title: Caching & Timeouts
+  purpose: Điều chỉnh hiệu năng và hành vi lỗi trong quá trình chuyển tiếp.
+  objectives:
+  - Phân biệt cache, buffering và compression
+  - Giải thích connect/read timeout và giới hạn retry
+  - Xác định rủi ro retry với request không idempotent
+- id: logs-troubleshooting
+  title: Logs & Troubleshooting
+  purpose: Dùng tín hiệu proxy để tìm vị trí lỗi và đánh giá chất lượng lưu lượng.
+  objectives:
+  - Đọc status code, latency và upstream status
+  - Phân biệt 502, 503, 504 theo ngữ cảnh
+  - Khoanh vùng lỗi client, proxy hoặc backend

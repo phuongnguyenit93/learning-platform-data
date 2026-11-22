@@ -1,0 +1,43 @@
+roadmap:
+- id: scim-trong-iam
+  title: SCIM trong IAM
+  purpose: Hiểu vai trò của SCIM trong tự động hóa cấp phát và vòng đời danh tính.
+  objectives:
+  - Vẽ quan hệ giữa nguồn danh tính, SCIM client và hệ thống nhận cấp phát.
+  - Phân biệt cấp phát tài khoản với đăng nhập SSO và phân quyền tại ứng dụng.
+- id: tai-nguyen-va-anh-xa
+  title: Tài nguyên và ánh xạ
+  purpose: Thống nhất cách biểu diễn và nhận diện người dùng, nhóm giữa các hệ thống.
+  objectives:
+  - Đọc cấu trúc User, Group, thuộc tính và phần mở rộng schema.
+  - Phân biệt id, externalId và userName; thiết kế đối sánh tránh trùng tài khoản khi đổi tên.
+- id: giao-thuc-cap-phat
+  title: Giao thức cấp phát
+  purpose: Hiểu cách yêu cầu SCIM tạo, đọc và thay đổi tài nguyên.
+  objectives:
+  - Mô tả vai trò của GET, POST, PUT, PATCH, DELETE và phản hồi lỗi SCIM.
+  - Xác nhận tính năng được hỗ trợ qua ServiceProviderConfig trước khi tích hợp.
+- id: vong-doi-tai-khoan
+  title: Vòng đời tài khoản
+  purpose: Chuyển sự kiện nhân sự thành thay đổi tài khoản và quyền có kiểm soát.
+  objectives:
+  - Thiết kế luồng gia nhập, chuyển vị trí và rời tổ chức, gồm cập nhật thành viên nhóm.
+  - Phân biệt active=false với xóa tài khoản; xác minh thu hồi quyền và phiên tại ứng dụng đích.
+- id: dong-bo-tin-cay
+  title: Đồng bộ tin cậy
+  purpose: Giữ dữ liệu nguồn và đích nhất quán khi có lỗi hoặc cập nhật đồng thời.
+  objectives:
+  - Dùng truy vấn lọc và phân trang để đối soát dữ liệu khi hệ thống hỗ trợ.
+  - Thiết kế thử lại tránh tạo trùng, xử lý xung đột và dùng ETag/If-Match khi được hỗ trợ.
+- id: bao-mat-tich-hop
+  title: Bảo mật tích hợp
+  purpose: Ngăn kết nối cấp phát bị lạm dụng để sửa danh tính hoặc quyền truy cập.
+  objectives:
+  - Xác định yêu cầu TLS, xác thực kết nối, phạm vi quyền và tách biệt tổ chức.
+  - Thiết kế bảo vệ, luân chuyển thông tin xác thực và giới hạn dữ liệu cá nhân được đồng bộ.
+- id: kiem-thu-va-giam-sat
+  title: Kiểm thử và giám sát
+  purpose: Chứng minh thay đổi vòng đời được áp dụng đúng và phát hiện đồng bộ thất bại.
+  objectives:
+  - Lập kiểm thử tạo mới, đổi tên, thay nhóm, vô hiệu hóa và yêu cầu lặp lại.
+  - Đề xuất ghi vết, cảnh báo lỗi, đối soát định kỳ và xử lý tài khoản mồ côi.

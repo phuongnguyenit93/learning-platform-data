@@ -1,0 +1,561 @@
+menu:
+- level1: Nền tảng key management
+  level2:
+  - Key management là gì
+  - Vì sao thuật toán mạnh vẫn cần quản lý key
+  - Key material và key metadata
+  - Key management system
+  - Cryptographic key lifecycle
+  - Key management policy
+  - Key Management Practices Statement
+  - Mục tiêu bảo mật của key
+  - Key owner và key custodian
+  - Ranh giới giữa key management và secrets management
+- level1: Thuật ngữ cốt lõi
+  level2:
+  - Key
+  - Key pair
+  - Secret key
+  - Public key
+  - Private key
+  - Keying material
+  - Key identifier
+  - Key version
+  - Key length
+  - Key state
+  - Cryptoperiod
+  - Key compromise
+  - Key revocation
+  - Key destruction
+- level1: Phân loại key
+  level2:
+  - Data encryption key
+  - Key encryption key
+  - Root key
+  - Wrapping key
+  - Transport key
+  - Authentication key
+  - Signing key
+  - Verification key
+  - Key agreement key
+  - Session key
+  - Ephemeral key
+  - Static key
+  - Master key
+  - Derived key
+- level1: Mật mã đối xứng
+  level2:
+  - Symmetric encryption
+  - AES
+  - AES-GCM
+  - AES-CTR
+  - ChaCha20-Poly1305
+  - Authenticated encryption
+  - Encryption key và decryption key
+  - Initialization vector
+  - Nonce
+  - Nonce uniqueness
+  - Associated data
+  - Không dùng ECB cho dữ liệu nhạy cảm
+  - Chọn key size
+  - Giới hạn dữ liệu theo key
+- level1: Mật mã bất đối xứng
+  level2:
+  - Asymmetric cryptography
+  - RSA
+  - Elliptic-curve cryptography
+  - EdDSA
+  - ECDSA
+  - Key agreement
+  - Key transport
+  - Public key encryption
+  - Private key protection
+  - Key pair generation
+  - Hybrid encryption
+  - HPKE
+  - Public key distribution
+  - Giới hạn sử dụng private key
+- level1: Hash và MAC
+  level2:
+  - Cryptographic hash
+  - SHA-256
+  - SHA-3
+  - Hash integrity check
+  - Hash không phải encryption
+  - HMAC
+  - Message authentication code
+  - MAC key
+  - Hash password và password hashing khác nhau
+  - Collision resistance
+  - Preimage resistance
+  - Chọn hash theo mục đích
+  - Không dùng hash nhanh cho password
+- level1: Chữ ký số
+  level2:
+  - Digital signature
+  - Signing key
+  - Verification key
+  - Signature generation
+  - Signature verification
+  - Integrity và authenticity
+  - Non-repudiation
+  - Signature key lifecycle
+  - Key compromise và signature validity
+  - Lưu trữ public verification key
+  - Timestamp của chữ ký
+  - Ký artifact và release
+  - Kiểm tra algorithm parameters
+- level1: KDF và mật khẩu
+  level2:
+  - Key derivation function
+  - KDF từ secret
+  - PBKDF2
+  - scrypt
+  - Argon2
+  - Password salt
+  - Work factor
+  - Memory hardness
+  - Pepper
+  - Password reset và key derivation
+  - Đổi passphrase không nhất thiết đổi DEK
+  - Không dùng password làm encryption key trực tiếp
+  - Xóa secret trung gian khỏi memory
+- level1: Secure randomness
+  level2:
+  - Cryptographically secure random
+  - SecureRandom trong Java
+  - Entropy
+  - Seed
+  - Random key generation
+  - Random IV
+  - Random nonce
+  - Random token
+  - Predictable randomness
+  - Entropy starvation
+  - Không dùng Math.random cho security
+  - Kiểm thử randomness đúng cách
+  - Nguồn random của nền tảng
+- level1: Key establishment
+  level2:
+  - Key establishment là gì
+  - Key agreement
+  - Key transport
+  - Diffie-Hellman
+  - ECDH
+  - KEM
+  - Encapsulation
+  - Decapsulation
+  - Shared secret
+  - Ephemeral key agreement
+  - Authenticated key agreement
+  - Forward secrecy
+  - Replay trong key establishment
+  - Xác thực peer trước khi dùng shared key
+- level1: Key lifecycle
+  level2:
+  - Pre-activation state
+  - Active state
+  - Suspended state
+  - Deactivated state
+  - Compromised state
+  - Destroyed state
+  - Generate key
+  - Register key
+  - Activate key
+  - Use key
+  - Suspend key
+  - Revoke key
+  - Archive key
+  - Destroy key
+  - Chuyển trạng thái có kiểm soát
+- level1: Key inventory
+  level2:
+  - Key inventory là gì
+  - Key identifier
+  - Key owner
+  - Key custodian
+  - Algorithm
+  - Key length
+  - Creation time
+  - Activation time
+  - Expiration time
+  - Purpose
+  - Environment
+  - Service sử dụng key
+  - Version và predecessor
+  - Inventory completeness
+  - Phát hiện key không có owner
+- level1: Key policy
+  level2:
+  - Cryptographic policy
+  - Key naming policy
+  - Key generation policy
+  - Key storage policy
+  - Key usage policy
+  - Cryptoperiod policy
+  - Rotation policy
+  - Revocation policy
+  - Backup policy
+  - Destruction policy
+  - Emergency compromise policy
+  - Policy exception
+  - Policy review
+  - Mapping policy sang control
+- level1: Vai trò và trách nhiệm
+  level2:
+  - Key owner
+  - Key custodian
+  - Security administrator
+  - Cryptographic officer
+  - Application owner
+  - Developer responsibility
+  - Operator responsibility
+  - Auditor responsibility
+  - Separation of duties
+  - Dual control
+  - Quorum approval
+  - Break-glass access
+  - Access review
+  - Thu hồi quyền của nhân sự rời tổ chức
+- level1: Key generation
+  level2:
+  - Sinh key trong cryptographic module
+  - Sinh key bằng CSPRNG
+  - Sinh key đối xứng
+  - Sinh key pair
+  - Key generation parameters
+  - Key generation ceremony
+  - Independent keys
+  - Không sinh key từ từ khóa dễ đoán
+  - Không hard-code key
+  - Ghi nhận nguồn và thời điểm tạo
+  - Kiểm tra key sau generation
+  - Generated key và imported key
+- level1: Key storage
+  level2:
+  - Bảo vệ key khi lưu trữ
+  - In-memory key
+  - File key storage
+  - Database key storage
+  - Keystore
+  - KMS
+  - HSM
+  - Virtual HSM
+  - Secret manager
+  - Key tách khỏi ciphertext
+  - Không lưu key trong source code
+  - Không lưu key trong log
+  - Permission của key file
+  - Access audit cho key storage
+- level1: Envelope encryption
+  level2:
+  - Envelope encryption là gì
+  - Data encryption key
+  - Key encryption key
+  - DEK encryption
+  - DEK wrapping
+  - KEK tách khỏi DEK
+  - Lưu key ID cùng ciphertext
+  - Decrypt bằng key version
+  - Re-wrap DEK khi rotate KEK
+  - Re-encrypt data khi rotate DEK
+  - Envelope metadata
+  - Envelope integrity
+  - Envelope encryption trong database
+  - Envelope encryption trong object storage
+- level1: Key distribution
+  level2:
+  - Phân phối key an toàn
+  - Provisioning key cho service
+  - Secure channel
+  - Authenticated distribution
+  - Key import
+  - Key export
+  - Key wrapping khi vận chuyển
+  - Key distribution giữa region
+  - Key distribution giữa tenant
+  - Không gửi key qua plaintext channel
+  - Kiểm tra recipient
+  - Ghi audit việc phân phối
+  - Thu hồi sau khi phân phối sai
+- level1: Key use
+  level2:
+  - Key usage restriction
+  - Encryption key chỉ dùng để encrypt
+  - Signing key chỉ dùng để sign
+  - Key purpose metadata
+  - Key usage count
+  - Key usage limit
+  - Nonce uniqueness theo key
+  - Concurrent key use
+  - Không dùng lại key sai mục đích
+  - Tách key theo môi trường
+  - Tách key theo tenant
+  - Tách key theo data class
+  - Access decision trước crypto operation
+- level1: Cryptoperiod và rotation
+  level2:
+  - Cryptoperiod là gì
+  - Rotation theo thời gian
+  - Rotation theo số lần sử dụng
+  - Rotation khi nghi ngờ compromise
+  - Rotation khi nhân sự thay đổi
+  - Rotation khi thuật toán suy yếu
+  - Write với key mới
+  - Read với key cũ
+  - Gradual rotation
+  - Re-encryption
+  - Re-wrapping
+  - Giữ key cũ để decrypt dữ liệu cũ
+  - Xác định thời điểm destroy key cũ
+  - Kiểm thử rotation trước production
+- level1: Revocation và compromise
+  level2:
+  - Key compromise là gì
+  - Dấu hiệu compromise
+  - Emergency revocation
+  - Suspend key
+  - Revoke key
+  - Replace key
+  - Ảnh hưởng đến ciphertext cũ
+  - Ảnh hưởng đến signature cũ
+  - Ảnh hưởng đến certificate
+  - Xác định phạm vi bị ảnh hưởng
+  - Thông báo sự cố key
+  - Forensics sau compromise
+  - Post-compromise rotation
+  - Cập nhật inventory sau revocation
+- level1: Backup và recovery
+  level2:
+  - Key backup là gì
+  - Khi nào cần backup key
+  - Backup storage độc lập
+  - Backup encryption
+  - Key recovery
+  - Key restore
+  - Key escrow
+  - Không escrow signing key tùy tiện
+  - Recovery authorization
+  - Quorum cho key recovery
+  - Kiểm thử restore
+  - RPO của key material
+  - RTO của key recovery
+  - Không backup key không còn cần thiết
+- level1: Key destruction
+  level2:
+  - Key destruction là gì
+  - Zeroization
+  - Xóa key khỏi memory
+  - Xóa key khỏi disk
+  - Xóa key khỏi backup
+  - Destroy key trong KMS
+  - Destroy DEK
+  - Destroy KEK
+  - Certificate revocation trước destruction
+  - Xác nhận destruction
+  - Destruction evidence
+  - Không destroy key còn cần decrypt
+  - Data deletion và key destruction
+  - Crypto erasure
+- level1: Certificate và public key
+  level2:
+  - Certificate là gì
+  - Public key certificate
+  - Certificate Authority
+  - Certificate chain
+  - Trust store
+  - Key store
+  - Certificate issuance
+  - Certificate renewal
+  - Certificate revocation
+  - CRL
+  - OCSP
+  - Hostname verification
+  - Certificate pinning
+  - Certificate và private key lifecycle
+- level1: Java KeyStore
+  level2:
+  - KeyStore trong Java
+  - PKCS12
+  - JKS
+  - JCEKS
+  - PKCS11
+  - KeyStore entry
+  - PrivateKeyEntry
+  - SecretKeyEntry
+  - TrustedCertificateEntry
+  - KeyStore password
+  - Key password
+  - TrustStore
+  - Load và save KeyStore
+  - Quản lý KeyStore trong deployment
+- level1: Java Cryptography Architecture
+  level2:
+  - JCA là gì
+  - Security provider
+  - SecureRandom
+  - MessageDigest
+  - Signature
+  - Cipher
+  - Mac
+  - KDF
+  - KEM
+  - KeyFactory
+  - SecretKeyFactory
+  - KeyPairGenerator
+  - KeyGenerator
+  - KeyAgreement
+  - CertificateFactory
+- level1: Algorithm và provider
+  level2:
+  - Algorithm selection
+  - Provider selection
+  - Algorithm name
+  - Transformation
+  - Algorithm parameters
+  - Key size
+  - Provider capability
+  - Provider update
+  - FIPS mode
+  - Deprecated algorithm
+  - Algorithm agility
+  - Crypto policy của JDK
+  - Kiểm tra provider runtime
+  - Không phụ thuộc behavior không chuẩn
+- level1: Password và cryptographic key
+  level2:
+  - Password không phải encryption key
+  - Password hashing
+  - Password verification
+  - Salt và pepper
+  - Password-derived key
+  - Key derivation từ passphrase
+  - Credential storage
+  - Credential rotation
+  - Encryption key storage
+  - Tách password policy và key policy
+  - Không log password
+  - Không đưa password vào backup plaintext
+- level1: Secrets và key
+  level2:
+  - Secret là gì
+  - Khác biệt secret và key
+  - API credential
+  - Database password
+  - Signing secret
+  - Encryption key
+  - Token signing key
+  - Secret manager
+  - Dynamic secret
+  - Secret lease
+  - Secret rotation
+  - Secret revocation
+  - Secret access audit
+  - Khi nào chuyển secret sang KMS
+- level1: Access control cho key
+  level2:
+  - Key access policy
+  - Machine identity truy cập key
+  - Human access vào key
+  - Role-based key access
+  - Attribute-based key access
+  - Read key permission
+  - Use key permission
+  - Export key permission
+  - Rotate key permission
+  - Destroy key permission
+  - Break-glass key access
+  - Just-in-time access
+  - Access review
+  - Deny mặc định
+- level1: Audit và monitoring
+  level2:
+  - Key management audit
+  - Key created event
+  - Key accessed event
+  - Key used event
+  - Key rotated event
+  - Key revoked event
+  - Key destroyed event
+  - Failed key access
+  - Unexpected export
+  - Unexpected region access
+  - Audit record integrity
+  - Audit retention
+  - Alert khi key bị lạm dụng
+  - Liên kết audit với incident
+- level1: Automation và vận hành
+  level2:
+  - Automated key rotation
+  - Automated certificate renewal
+  - Key provisioning pipeline
+  - Key deployment pipeline
+  - Key version rollout
+  - Dual-read rotation
+  - Rollback rotation
+  - Rotation scheduler
+  - Rotation failure handling
+  - Drift detection
+  - Runbook key compromise
+  - Runbook key recovery
+  - Runbook certificate expiry
+  - Operator approval
+- level1: Kiểm thử key management
+  level2:
+  - Test key generation
+  - Test key storage
+  - Test key access denial
+  - Test encryption và decryption
+  - Test signature verification
+  - Test key rotation
+  - Test old key decryption
+  - Test key revocation
+  - Test key recovery
+  - Test key destruction
+  - Test certificate renewal
+  - Test provider compatibility
+  - Test failure khi KMS unavailable
+  - Test audit event
+- level1: Chuẩn và assurance
+  level2:
+  - NIST SP 800-57
+  - Key lifecycle theo NIST
+  - Key management policy theo NIST
+  - OWASP Key Management Cheat Sheet
+  - OWASP Cryptographic Storage Cheat Sheet
+  - ASVS cryptography requirements
+  - FIPS 140 boundary
+  - Compliance evidence
+  - Risk-based cryptoperiod
+  - Control objective và implementation
+  - Security review của key system
+  - Mapping policy sang test
+- level1: Thiết kế case study
+  level2:
+  - Thiết kế encryption cho database
+  - Thiết kế envelope encryption
+  - Thiết kế key rotation không downtime
+  - Thiết kế key compromise response
+  - Thiết kế certificate lifecycle
+  - Thiết kế KMS integration
+  - Thiết kế HSM boundary
+  - Thiết kế multi-tenant key
+  - Thiết kế multi-region key
+  - Thiết kế key recovery
+  - Thiết kế audit cho key usage
+  - Thiết kế Java KeyStore deployment
+- level1: Thực hành tổng hợp
+  level2:
+  - Sinh AES key bằng SecureRandom
+  - Mã hóa bằng AES-GCM
+  - Lưu ciphertext kèm key version
+  - Bọc DEK bằng KEK
+  - Đọc key từ KeyStore
+  - Ký và xác minh dữ liệu
+  - Xoay key với write-new read-old
+  - Thu hồi key bị compromise
+  - Khôi phục key từ backup
+  - Xóa key an toàn
+  - Viết key management policy
+  - Lập key inventory
+  - Checklist production key readiness

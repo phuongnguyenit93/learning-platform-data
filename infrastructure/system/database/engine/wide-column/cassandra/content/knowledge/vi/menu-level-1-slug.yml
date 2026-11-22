@@ -1,0 +1,142 @@
+menu:
+- title: Tư duy Cassandra
+  slug: cassandra-foundations
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Công cụ và kết nối
+  slug: tools-and-connections
+  index: 2
+- title: Kiến trúc cụm
+  slug: cluster-architecture
+  index: 3
+- title: Token và sao chép
+  slug: tokens-and-replication
+  index: 4
+- title: Nhất quán đọc/ghi
+  slug: read-write-consistency
+  index: 5
+- title: Keyspace và schema
+  slug: keyspaces-and-schema
+  index: 6
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 7
+- title: Khóa và phân vùng
+  slug: keys-and-partitions
+  index: 8
+- title: Thiết kế theo truy vấn
+  slug: query-driven-design
+  index: 9
+- title: Quan hệ và dữ liệu lặp
+  slug: relations-and-denormalization
+  index: 10
+- title: SELECT và phân trang
+  slug: select-and-paging
+  index: 11
+- title: Ghi và xóa bằng CQL
+  slug: cql-writes-and-deletes
+  index: 12
+- title: Timestamp và TTL
+  slug: timestamps-and-ttl
+  index: 13
+- title: Collection và UDT
+  slug: collections-and-udt
+  index: 14
+- title: BATCH và counter
+  slug: batches-and-counters
+  index: 15
+- title: LWT và đồng thời
+  slug: lwt-and-concurrency
+  index: 16
+- title: Chỉ mục
+  slug: indexes
+  index: 17
+- title: CQL nâng cao
+  slug: advanced-cql
+  index: 18
+- title: Đường ghi và độ bền
+  slug: write-path-and-durability
+  index: 19
+- title: Đường đọc và bộ đệm
+  slug: read-path-and-caching
+  index: 20
+- title: SSTable và compaction
+  slug: sstables-and-compaction
+  index: 21
+- title: Tombstone và thu hồi
+  slug: tombstones-and-reclamation
+  index: 22
+- title: Đồng bộ bản sao
+  slug: replica-synchronization
+  index: 23
+- title: Repair
+  slug: replica-repair
+  index: 24
+- title: Thay đổi topology
+  slug: topology-changes
+  index: 25
+- title: Nhiều trung tâm dữ liệu
+  slug: multi-datacenter-deployment
+  index: 26
+- title: Quan sát hệ thống
+  slug: cluster-observability
+  index: 27
+- title: Tracing và chẩn đoán
+  slug: tracing-and-diagnosis
+  index: 28
+- title: Tối ưu truy vấn
+  slug: query-tuning
+  index: 29
+- title: Tối ưu tài nguyên
+  slug: resource-tuning
+  index: 30
+- title: Công cụ vận hành
+  slug: operational-tools
+  index: 31
+- title: Sao lưu và phục hồi
+  slug: backup-and-recovery
+  index: 32
+- title: Bảo mật
+  slug: database-security
+  index: 33
+- title: Di chuyển và schema
+  slug: data-migration-and-schema
+  index: 34
+- title: Nâng cấp và tương thích
+  slug: upgrades-and-compatibility
+  index: 35
+- title: Java driver cơ bản
+  slug: java-driver-basics
+  index: 36
+- title: Truy vấn từ Java
+  slug: java-query-execution
+  index: 37
+- title: Retry và lỗi Java
+  slug: java-retries-and-errors
+  index: 38
+- title: Bất đồng bộ và reactive
+  slug: async-and-reactive
+  index: 39
+- title: Spring Boot và Spring Data
+  slug: spring-boot-and-spring-data
+  index: 40
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 41
+- title: Đo tải và lỗi phân tán
+  slug: load-and-fault-testing
+  index: 42
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 43
+- title: Tự động hóa vận hành
+  slug: operations-automation
+  index: 44
+- title: Kiến trúc ứng dụng
+  slug: application-architecture
+  index: 45
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 46

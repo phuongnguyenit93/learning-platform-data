@@ -1,0 +1,57 @@
+roadmap:
+- id: filesystem-directory-hierarchy
+  title: Filesystem & Directory Hierarchy
+  purpose: Hiểu cách hệ điều hành tổ chức dữ liệu thành tệp và thư mục dưới một cây đường dẫn thống nhất.
+  objectives:
+  - Phân biệt file, directory và filesystem
+  - Nhận diện các thư mục chính trong Linux
+  - Giải thích đường dẫn tuyệt đối và tương đối
+- id: vfs-inode-metadata
+  title: VFS, Inode & Metadata
+  purpose: Nắm lớp VFS và metadata giúp Linux làm việc với nhiều loại filesystem qua cùng một giao diện.
+  objectives:
+  - Phân biệt VFS, superblock, inode và dentry
+  - Giải thích tên tệp được ánh xạ tới inode
+  - Tra cứu metadata bằng stat và ls -i
+- id: paths-links-file-operations
+  title: Paths, Links & File Operations
+  purpose: Thao tác tệp và liên kết đúng cách, hiểu tác động của hard link và symbolic link lên dữ liệu.
+  objectives:
+  - Thực hành create, copy, move và remove
+  - So sánh hard link với symbolic link
+  - Giải thích open file descriptor khi tệp bị xóa
+- id: devices-partitions-filesystem-types
+  title: Devices, Partitions & Filesystem Types
+  purpose: Nhận diện thiết bị lưu trữ, phân vùng và loại filesystem trước khi tạo hoặc sử dụng filesystem.
+  objectives:
+  - Liệt kê thiết bị bằng lsblk và blkid
+  - Phân biệt partition, block device và filesystem
+  - So sánh ext4, XFS, Btrfs và tmpfs ở mức cơ bản
+- id: mounting-etc-fstab
+  title: Mounting & /etc/fstab
+  purpose: Gắn filesystem vào cây thư mục và cấu hình mount tự động với tham số phù hợp.
+  objectives:
+  - Dùng mount, umount và findmnt
+  - Đọc UUID, mount point, options trong /etc/fstab
+  - Kiểm tra mount options và thứ tự khởi động
+- id: ext4-journaling-integrity
+  title: ext4, Journaling & Integrity
+  purpose: Hiểu cấu trúc lưu trữ và journaling để nắm cách filesystem bảo vệ tính nhất quán sau sự cố.
+  objectives:
+  - Mô tả block, block group, inode và journal ext4
+  - Phân biệt metadata với file data
+  - Giải thích fsck và giới hạn khi kiểm tra filesystem đang mount
+- id: capacity-inodes-quotas
+  title: Capacity, Inodes & Quotas
+  purpose: Theo dõi dung lượng và số inode để phát hiện tình trạng hết chỗ dù thiết bị vẫn còn block trống.
+  objectives:
+  - Dùng df -h và df -i kiểm tra capacity
+  - Phân tích dung lượng thư mục bằng du
+  - Nhận diện inode exhaustion và quota
+- id: troubleshooting-recovery
+  title: Troubleshooting & Recovery
+  purpose: Điều tra lỗi truy cập hoặc lỗi lưu trữ có hệ thống và bảo vệ dữ liệu trước khi sửa filesystem.
+  objectives:
+  - Kiểm tra mount, kernel logs và lỗi I/O
+  - Chẩn đoán read-only mount, no space và corruption
+  - Lập kế hoạch backup, unmount và kiểm tra an toàn

@@ -1,0 +1,3 @@
+menuLevel1: Capabilities Linux
+menuLevel2: Quan sát capabilities của tệp và tiến trình bằng getcap, getpcaps, capsh
+status: ""

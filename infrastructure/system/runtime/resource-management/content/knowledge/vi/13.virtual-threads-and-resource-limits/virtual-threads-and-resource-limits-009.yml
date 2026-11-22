@@ -1,0 +1,3 @@
+menuLevel1: Virtual thread và giới hạn tài nguyên đi kèm
+menuLevel2: Tránh chuyển object pool theo thread sang số lượng thread rất lớn
+status: ""

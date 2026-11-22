@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan Flyway
+  slug: flyway-overview
+  index: 0
+- title: Kiến thức nền
+  slug: prerequisites
+  index: 1
+- title: Môi trường thực hành
+  slug: migration-lab
+  index: 2
+- title: Migration đầu tiên
+  slug: first-migration
+  index: 3
+- title: Loại migration
+  slug: migration-types
+  index: 4
+- title: Quy tắc đặt tên
+  slug: migration-naming
+  index: 5
+- title: Vị trí và tài nguyên
+  slug: locations-resources
+  index: 6
+- title: Lịch sử migration
+  slug: migration-history
+  index: 7
+- title: Lệnh cốt lõi
+  slug: core-commands
+  index: 8
+- title: Cấu hình Flyway
+  slug: flyway-configuration
+  index: 9
+- title: Thiết kế migration SQL
+  slug: sql-migration-design
+  index: 10
+- title: Giao dịch và khóa
+  slug: transactions-locking
+  index: 11
+- title: Kiểm tra và checksum
+  slug: validation-checksums
+  index: 12
+- title: Baseline và hệ thống cũ
+  slug: baselining-legacy-systems
+  index: 13
+- title: Repeatable migration
+  slug: repeatable-migrations
+  index: 14
+- title: Placeholder và tập lệnh
+  slug: placeholders-scripts
+  index: 15
+- title: Migration Java
+  slug: java-migrations
+  index: 16
+- title: Callbacks và mở rộng
+  slug: callbacks-extensions
+  index: 17
+- title: Công cụ tích hợp
+  slug: tool-integrations
+  index: 18
+- title: Spring Boot
+  slug: spring-boot
+  index: 19
+- title: Khác biệt hệ quản trị
+  slug: database-vendor-differences
+  index: 20
+- title: Nhiều schema và tenant
+  slug: multiple-schemas-tenants
+  index: 21
+- title: Chuyển đổi dữ liệu
+  slug: data-migration
+  index: 22
+- title: Nhánh và phát hành
+  slug: branching-releases
+  index: 23
+- title: Kiểm thử migration
+  slug: migration-testing
+  index: 24
+- title: CI/CD
+  slug: ci-cd
+  index: 25
+- title: Triển khai an toàn
+  slug: safe-deployment
+  index: 26
+- title: Lỗi và phục hồi
+  slug: error-recovery
+  index: 27
+- title: Rollback và clean
+  slug: rollback-clean
+  index: 28
+- title: Bảo mật và kiểm toán
+  slug: security-auditing
+  index: 29
+- title: Giám sát và hiệu năng
+  slug: monitoring-performance
+  index: 30
+- title: Nâng cấp Flyway
+  slug: upgrading-flyway
+  index: 31
+- title: Chẩn đoán thường gặp
+  slug: common-troubleshooting
+  index: 32
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 33

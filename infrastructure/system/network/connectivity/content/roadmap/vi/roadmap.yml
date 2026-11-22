@@ -1,0 +1,49 @@
+roadmap:
+- id: buc-tranh-ket-noi
+  title: Bức tranh kết nối
+  purpose: Hình dung hành trình dữ liệu từ thiết bị đến dịch vụ đích.
+  objectives:
+  - Vẽ đường đi client → mạng → server.
+  - Phân biệt phạm vi LAN và Internet.
+- id: giao-dien-mang
+  title: Giao diện mạng
+  purpose: Nắm điều kiện để thiết bị tham gia một mạng có dây hoặc không dây.
+  objectives:
+  - Nhận diện network interface, link và địa chỉ MAC.
+  - Kiểm tra trạng thái kết nối của một giao diện.
+- id: dia-chi-ip-subnet
+  title: Địa chỉ IP & subnet
+  purpose: Biết cách thiết bị xác định mạng nội bộ và địa chỉ đích.
+  objectives:
+  - Giải thích IP, subnet mask và CIDR cơ bản.
+  - Phân biệt đích cùng subnet với khác subnet.
+- id: gateway-routing
+  title: Gateway & routing
+  purpose: Hiểu cách lưu lượng rời mạng cục bộ để đến mạng khác.
+  objectives:
+  - Xác định default gateway của thiết bị.
+  - Đọc route để dự đoán next hop.
+- id: dns-cong-dich-vu
+  title: DNS & cổng dịch vụ
+  purpose: Liên hệ tên miền, địa chỉ IP và cổng để truy cập đúng dịch vụ.
+  objectives:
+  - Kiểm tra tên miền phân giải ra IP nào.
+  - Xác định host, port và giao thức cần kết nối.
+- id: nat-firewall
+  title: NAT & firewall
+  purpose: Nhận biết các thành phần có thể thay đổi hoặc giới hạn luồng kết nối.
+  objectives:
+  - Mô tả địa chỉ private/public và NAT cơ bản.
+  - Xác định chiều lưu lượng bị firewall chặn.
+- id: kiem-tra-ket-noi
+  title: Kiểm tra kết nối
+  purpose: Dùng phép thử đơn giản để khoanh vùng nơi kết nối thất bại.
+  objectives:
+  - Kiểm tra IP, route, DNS bằng công cụ hệ thống.
+  - So sánh kết quả ping, traceroute và thử cổng.
+- id: thuc-hanh-dau-cuoi
+  title: Thực hành đầu cuối
+  purpose: Kết hợp các kiến thức để xác minh một đường kết nối hoàn chỉnh.
+  objectives:
+  - Kiểm tra client → gateway → Internet → dịch vụ.
+  - Giải thích nguyên nhân lỗi từ bằng chứng thu được.

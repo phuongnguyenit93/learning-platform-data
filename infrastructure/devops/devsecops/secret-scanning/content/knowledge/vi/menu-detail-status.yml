@@ -1,0 +1,2323 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Bí mật xác thực là gì và vì sao không được lưu trong mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Quét bí mật bị lộ giải quyết vấn đề gì trong DevSecOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt bí mật, dữ liệu nhạy cảm, định danh công khai và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt quét bí mật với SAST, quét phụ thuộc và quản lý bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vòng đời từ tạo bí mật đến sử dụng, phát hiện, thu hồi và thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của lập trình viên, nhóm nền tảng, bảo mật và chủ sở hữu bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Giới hạn của công cụ quét và trách nhiệm của con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risk-model
+  title: Mô hình rủi ro
+  childs:
+  - slug: risk-model-001
+    title: Tài sản cần bảo vệ và phạm vi ảnh hưởng khi thông tin xác thực bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-model-002
+    title: Đường đi của bí mật từ máy lập trình viên đến kho mã và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-model-003
+    title: Kịch bản lộ bí mật qua commit, pull request, fork và bản sao kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-model-004
+    title: Kịch bản lộ bí mật qua nhật ký, gói phát hành và ảnh container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-model-005
+    title: Kho mã riêng tư vẫn có thể làm lộ bí mật như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-model-006
+    title: Phân biệt bí mật bị công khai, đã bị sử dụng và chưa xác định tình trạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-model-007
+    title: Xác định ranh giới quét, nguồn dữ liệu và trách nhiệm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-identification
+  title: Nhận diện bí mật
+  childs:
+  - slug: secret-identification-001
+    title: Mật khẩu và chuỗi kết nối cơ sở dữ liệu có thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-002
+    title: Khóa API, mã truy cập cá nhân và mã thông báo dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-003
+    title: Thông tin xác thực đám mây và thông tin xác thực tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-004
+    title: Khóa riêng SSH, TLS và khóa ký cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-005
+    title: Thông tin xác thực registry, kho gói và hệ thống CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-006
+    title: Webhook, URL có thông tin xác thực và URL ký sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-007
+    title: Cookie phiên, mã thông báo phiên và thông tin đăng nhập ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-008
+    title: Bí mật trong cấu hình thử nghiệm, dữ liệu mẫu và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-identification-009
+    title: Phân biệt chứng thư, khóa công khai, mã băm và khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scanning-scope
+  title: Bề mặt quét
+  childs:
+  - slug: scanning-scope-001
+    title: Mã nguồn, tệp ẩn, tệp cấu hình và thư mục chưa được theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-002
+    title: Tệp .env, cấu hình ứng dụng và cấu hình dành cho từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-003
+    title: Dockerfile, Compose, manifest Kubernetes và Helm values
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-004
+    title: Mã hạ tầng, tệp biến và tệp trạng thái Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-005
+    title: Script tự động hóa, notebook và bộ sưu tập yêu cầu API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-006
+    title: Tài liệu, ví dụ lệnh, issue và nội dung thảo luận kỹ thuật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-007
+    title: Nhật ký xây dựng, kết quả kiểm thử, báo cáo và tệp lưu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-008
+    title: Gói phát hành, gói phụ thuộc nội bộ và tệp nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-scope-009
+    title: Ảnh container, các lớp ảnh và dấu vết trong quá trình xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: git-history
+  title: Lịch sử Git
+  childs:
+  - slug: git-history-001
+    title: Khác biệt giữa quét cây tệp hiện tại và quét lịch sử commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-002
+    title: Commit, nhánh, thẻ và các tham chiếu trong phạm vi quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-003
+    title: Bí mật đã xóa khỏi phiên bản hiện tại nhưng còn trong lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-004
+    title: Ảnh hưởng của shallow clone và thiếu tham chiếu đến độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-005
+    title: Quét phần thay đổi so với quét toàn bộ kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-006
+    title: Xử lý merge commit, rebase và thay đổi tên hoặc đường dẫn tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-007
+    title: Phạm vi của submodule, Git LFS và nội dung nằm ngoài kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-008
+    title: Fork, mirror và bản sao ngoài phạm vi kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-009
+    title: Quản lý tiến độ quét khi lịch sử lớn hoặc bị viết lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: detection-mechanisms
+  title: Cơ chế phát hiện
+  childs:
+  - slug: detection-mechanisms-001
+    title: Nhận diện theo mẫu định dạng và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-002
+    title: Nhận diện theo tiền tố, độ dài và cấu trúc của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-003
+    title: Độ hỗn loạn của chuỗi và giới hạn khi dùng entropy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-004
+    title: Kết hợp từ khóa, ngữ cảnh dòng và tên tệp để tăng độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-005
+    title: Phát hiện thông tin xác thực theo cặp có quan hệ với nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-006
+    title: Phát hiện khối khóa nhiều dòng và định dạng khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-007
+    title: Chuỗi được mã hóa, chuỗi bị tách và giới hạn của giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-008
+    title: Phân biệt kết quả khớp mẫu với bí mật còn hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-009
+    title: Điểm mù khi chỉ dựa vào mẫu đã biết hoặc entropy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-rules
+  title: Quy tắc tùy chỉnh
+  childs:
+  - slug: custom-rules-001
+    title: Xác định nhu cầu tạo quy tắc cho bí mật nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-002
+    title: Thu thập mẫu giả lập đại diện và mô tả định dạng bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-003
+    title: Thiết kế biểu thức chính quy có ranh giới và ngữ cảnh rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-004
+    title: Chọn nhóm bắt dữ liệu và phần bí mật cần che trong kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-005
+    title: Kết hợp từ khóa, entropy và điều kiện loại trừ có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-006
+    title: Tạo tập mẫu phải phát hiện và tập mẫu không được báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-007
+    title: Kiểm thử hiệu năng quy tắc và tránh biểu thức gây tốn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-008
+    title: Quản lý phiên bản, chủ sở hữu và quy trình duyệt thay đổi quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-rules-009
+    title: Đánh giá tác động của quy tắc mới trước khi bật chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: So sánh công cụ cục bộ, công cụ CI và dịch vụ tích hợp kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: Đánh giá tập quy tắc, phạm vi lịch sử và khả năng tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Đánh giá xác minh hiệu lực, che dữ liệu và định dạng báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: Đánh giá hỗ trợ monorepo, nhiều kho mã và quét tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Đánh giá mô hình quyền truy cập và dữ liệu gửi ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Đánh giá chi phí, giấy phép, vận hành và khả năng chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Xây dựng bộ tình huống thử nghiệm để so sánh độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Phối hợp nhiều công cụ và kiểm soát cảnh báo trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gitleaks
+  title: Gitleaks
+  childs:
+  - slug: gitleaks-001
+    title: Vai trò của Gitleaks trong quét kho mã và hệ thống CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-002
+    title: Cài đặt, cố định phiên bản và kiểm tra nguồn phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-003
+    title: Quét tệp làm việc và quét lịch sử theo mục đích kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-004
+    title: Đọc báo cáo để xác định quy tắc, đường dẫn và vị trí phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-005
+    title: Cấu hình quy tắc, phạm vi quét và chính sách che bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-006
+    title: Quản lý baseline và ngoại lệ mà không bỏ qua phát hiện mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-007
+    title: Tích hợp vào kiểm tra cục bộ và cổng kiểm soát CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitleaks-008
+    title: Kiểm chứng hành vi sau khi nâng cấp công cụ hoặc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trufflehog
+  title: TruffleHog
+  childs:
+  - slug: trufflehog-001
+    title: Vai trò của TruffleHog và các nguồn quét cần đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-002
+    title: Cài đặt, cố định phiên bản và cấp quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-003
+    title: Quét nguồn dữ liệu đã được cho phép trong phạm vi thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-004
+    title: Phân biệt phát hiện theo bộ nhận diện và kết quả xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-005
+    title: Kiểm soát kết nối mạng và quyền cho phép xác minh bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-006
+    title: Đọc kết quả có cấu trúc và che thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-007
+    title: Xử lý giới hạn tốc độ, lỗi nguồn quét và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trufflehog-008
+    title: Tích hợp vào CI và kiểm thử cấu hình bằng bí mật giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: detect-secrets
+  title: detect-secrets
+  childs:
+  - slug: detect-secrets-001
+    title: Vai trò của detect-secrets trong kiểm soát bí mật của dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-002
+    title: Cài đặt và cố định phiên bản công cụ cùng các plugin sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-003
+    title: Tạo baseline ban đầu và hiểu dữ liệu baseline lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-004
+    title: Rà soát phát hiện để phân loại bí mật và kết quả báo nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-005
+    title: Cấu hình bộ phát hiện, bộ lọc và phạm vi tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-006
+    title: Tích hợp kiểm tra trước commit vào quy trình của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-007
+    title: Cập nhật baseline qua rà soát thay vì chấp nhận hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detect-secrets-008
+    title: Đánh giá giới hạn khi dùng baseline cho quét lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-platforms
+  title: Nền tảng kho mã
+  childs:
+  - slug: repository-platforms-001
+    title: Phạm vi của GitHub secret scanning và push protection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-002
+    title: Phạm vi của GitLab secret detection và kiểm soát khi đẩy mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-003
+    title: Kiểm tra điều kiện gói dịch vụ, quyền và tính năng trước triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-004
+    title: Cấu hình phạm vi bật quét theo tổ chức, nhóm và kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-005
+    title: Chính sách chặn đẩy mã và quy trình ngoại lệ có phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-006
+    title: Quản lý cảnh báo, phân công người xử lý và lịch sử thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-007
+    title: Tích hợp API, webhook và hệ thống tiếp nhận cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-platforms-008
+    title: Đối chiếu độ bao phủ giữa tính năng nền tảng và công cụ độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-scanning
+  title: Kiểm tra cục bộ
+  childs:
+  - slug: local-scanning-001
+    title: Quét dự án trước khi tạo commit và trước khi đẩy mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-002
+    title: Chọn quét vùng đã stage hay toàn bộ cây tệp theo mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-003
+    title: Tích hợp pre-commit hook và quản lý cấu hình dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-004
+    title: Phản hồi dễ hiểu cho lập trình viên mà không in lại bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-005
+    title: Thiết lập công cụ cho dự án mới và môi trường phát triển chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-006
+    title: Nhận diện trường hợp hook bị bỏ qua hoặc không được cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-007
+    title: Kiểm tra bổ sung trong IDE và giới hạn của phản hồi cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-scanning-008
+    title: Thực hành sửa thay đổi trước khi bí mật đi vào lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: cicd-integration-001
+    title: Chọn thời điểm quét ở pull request, nhánh chính và lịch định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-002
+    title: Thiết kế quét phần thay đổi kết hợp quét toàn bộ theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-003
+    title: Lấy đúng lịch sử, nhánh gốc và phạm vi so sánh trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-004
+    title: Chạy bộ quét với quyền tối thiểu và cấu hình được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-005
+    title: Bảo vệ quy trình khi kiểm tra đóng góp từ fork không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-006
+    title: Ngăn thay đổi pull request tự vô hiệu hóa quy tắc hoặc cổng chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-007
+    title: Phân biệt phát hiện bí mật với lỗi công cụ và lỗi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-008
+    title: Thiết kế mã thoát, điều kiện thất bại và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-009
+    title: Lưu báo cáo an toàn và kiểm soát thời hạn lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-010
+    title: Áp dụng mẫu tích hợp cho GitHub Actions, GitLab CI và Jenkins
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-repository-scanning
+  title: Quét ngoài kho mã
+  childs:
+  - slug: external-repository-scanning-001
+    title: Quét đầu ra xây dựng trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-002
+    title: Quét nội dung giải nén và kiểm soát giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-003
+    title: Quét ảnh container cùng các lớp có thể còn chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-004
+    title: Quét nhật ký và báo cáo mà không tạo thêm bản sao dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-005
+    title: Kiểm soát quét tệp nhị phân, nội dung mã hóa và định dạng không hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-006
+    title: Quét kho lưu trữ nội bộ bằng tài khoản chỉ đọc theo phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-007
+    title: Xác định phần dữ liệu chưa được kiểm tra trong báo cáo độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-repository-scanning-008
+    title: Lập lịch quét lại khi nguồn dữ liệu hoặc quy tắc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-validation
+  title: Xác minh hiệu lực
+  childs:
+  - slug: secret-validation-001
+    title: Phân biệt kiểm tra định dạng, xác minh hiệu lực và đánh giá quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-002
+    title: Điều kiện được phép gửi yêu cầu xác minh đến nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-003
+    title: Nguy cơ gây tác động khi thử sử dụng thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-004
+    title: Kiểm soát lưu lượng ra ngoài, giới hạn tốc độ và nhật ký xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-005
+    title: Xử lý kết quả còn hiệu lực, hết hiệu lực và chưa thể xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-006
+    title: Bí mật hết hiệu lực vẫn có thể cung cấp thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-007
+    title: Không suy diễn bí mật an toàn chỉ vì xác minh thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-validation-008
+    title: Ghi nhận bằng chứng tối thiểu mà không lưu giá trị bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-reporting
+  title: Báo cáo an toàn
+  childs:
+  - slug: secure-reporting-001
+    title: Thông tin tối thiểu của một phát hiện có thể xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-002
+    title: Xác định kho mã, commit, tệp, dòng và quy tắc phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-003
+    title: Che giá trị bí mật trong terminal, báo cáo và giao diện CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-004
+    title: Sinh dấu vân tay phục vụ đối chiếu mà không phát tán bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-005
+    title: Xuất JSON, CSV hoặc SARIF theo khả năng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-006
+    title: Chuẩn hóa kết quả từ nhiều công cụ thành mô hình thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-007
+    title: Bảo vệ đường dẫn, đoạn ngữ cảnh và siêu dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-reporting-008
+    title: Kiểm soát người xem, thời hạn lưu và xóa báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-triage
+  title: Phân loại cảnh báo
+  childs:
+  - slug: alert-triage-001
+    title: Phân biệt bí mật thật, báo nhầm và dữ liệu mẫu có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-002
+    title: Đánh giá mức độ nghiêm trọng theo quyền, môi trường và phạm vi lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-003
+    title: Ưu tiên bí mật sản xuất, quyền quản trị và kho mã công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-004
+    title: Xử lý thông tin xác thực tạm thời hoặc chưa xác định chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-005
+    title: Gộp phát hiện trùng theo bí mật, vị trí và chuỗi sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-006
+    title: Phân công người xử lý và thời hạn phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-007
+    title: Quản lý trạng thái từ phát hiện đến xác nhận đã khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-triage-008
+    title: Điều kiện mở lại cảnh báo và xử lý phát hiện tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: baselines-and-exceptions
+  title: Baseline và ngoại lệ
+  childs:
+  - slug: baselines-and-exceptions-001
+    title: Mục đích của baseline khi tiếp nhận kho mã đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-002
+    title: Phân biệt ghi nhận nợ tồn đọng với chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-003
+    title: Ngăn phát hiện mới bị che khuất bởi baseline cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-004
+    title: Tạo allowlist theo dấu vân tay, quy tắc hoặc đường dẫn hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-005
+    title: Nguy cơ của ngoại lệ quá rộng và loại trừ toàn bộ thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-006
+    title: Yêu cầu lý do, chủ sở hữu và ngày hết hạn ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-007
+    title: Rà soát định kỳ baseline, dữ liệu mẫu và ngoại lệ hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baselines-and-exceptions-008
+    title: Kiểm tra ảnh hưởng khi thay đổi đường dẫn hoặc viết lại lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secret-leak-response
+  title: Ứng phó lộ bí mật
+  childs:
+  - slug: secret-leak-response-001
+    title: Tiếp nhận cảnh báo và xác nhận phạm vi mà không phát tán bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-002
+    title: Ưu tiên thu hồi hoặc vô hiệu hóa bí mật đã lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-003
+    title: Thay thế bí mật và cập nhật các hệ thống phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-004
+    title: Kiểm tra dấu vết sử dụng trái phép và phạm vi quyền bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-005
+    title: Bảo toàn bằng chứng tối thiểu phục vụ điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-006
+    title: Phối hợp chủ sở hữu dịch vụ, nhà cung cấp và nhóm ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-007
+    title: Xác nhận dịch vụ hoạt động sau khi thay thế thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-008
+    title: Đóng sự cố bằng bằng chứng thu hồi, quét lại và theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secret-leak-response-009
+    title: Rút kinh nghiệm và bổ sung biện pháp ngăn tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: git-history-cleanup
+  title: Làm sạch lịch sử
+  childs:
+  - slug: git-history-cleanup-001
+    title: Vì sao xóa tệp hoặc commit mới không đủ để thu hồi bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-002
+    title: Điều kiện cần cân nhắc trước khi viết lại lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-003
+    title: Lập kế hoạch xử lý các nhánh, thẻ và tham chiếu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-004
+    title: Dùng git-filter-repo trong môi trường được phép để loại bỏ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-005
+    title: Phối hợp cập nhật bản sao làm việc sau khi viết lại lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-006
+    title: Xử lý fork, mirror, cache, bản phát hành và bản sao lưu còn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-007
+    title: Quét lại và xác minh phạm vi đã làm sạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-history-cleanup-008
+    title: Giới hạn của làm sạch lịch sử và yêu cầu thu hồi bí mật độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recurrence-prevention
+  title: Ngăn ngừa tái diễn
+  childs:
+  - slug: recurrence-prevention-001
+    title: Thay bí mật trong mã nguồn bằng tham chiếu cấu hình an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-002
+    title: Phân biệt vai trò của quét bí mật và hệ thống quản lý bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-003
+    title: Dùng danh tính ứng dụng (workload identity) và thông tin xác thực ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-004
+    title: Giảm quyền và phạm vi sử dụng để giới hạn tác động khi bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-005
+    title: Bảo vệ tệp môi trường và hiểu giới hạn của .gitignore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-006
+    title: Dùng dữ liệu giả lập rõ ràng cho tài liệu và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-007
+    title: Truyền bí mật khi xây dựng mà không ghi vào lớp ảnh hoặc nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recurrence-prevention-008
+    title: Rà soát mẫu dự án, script và quy trình gây lặp lại lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scanner-security
+  title: Bảo mật bộ quét
+  childs:
+  - slug: scanner-security-001
+    title: Đánh giá quyền mà bộ quét cần khi đọc kho mã và nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-002
+    title: Bảo vệ thông tin xác thực dùng để vận hành bộ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-003
+    title: Cô lập tiến trình và hạn chế quyền đọc ghi trên máy chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-004
+    title: Kiểm soát cấu hình, plugin và bản phân phối của công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-005
+    title: Ngăn rò rỉ qua log gỡ lỗi, bộ nhớ đệm và thư mục tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-006
+    title: Bảo vệ báo cáo khi gửi sang hệ thống tiếp nhận bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-007
+    title: Quy định vị trí xử lý dữ liệu và điều kiện dùng dịch vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-security-008
+    title: Ứng phó khi máy quét hoặc tài khoản tích hợp bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: control-policies
+  title: Chính sách kiểm soát
+  childs:
+  - slug: control-policies-001
+    title: Xác định tiêu chuẩn bí mật bị cấm trong mã và tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-002
+    title: Chọn điều kiện cảnh báo, chặn và yêu cầu rà soát thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-003
+    title: Áp dụng cổng kiểm soát theo mức độ nghiêm trọng và bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-004
+    title: Tách quyền duyệt ngoại lệ khỏi người tạo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-005
+    title: Thiết lập quy trình xử lý khẩn cấp và kiểm tra sau ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-006
+    title: Quy định thời hạn xử lý và trách nhiệm của chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-007
+    title: Lưu dấu vết quyết định phục vụ kiểm toán và điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-008
+    title: Quản lý thay đổi chính sách, thông báo và thời gian chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: organization-rollout
+  title: Triển khai diện rộng
+  childs:
+  - slug: organization-rollout-001
+    title: Kiểm kê kho mã, nguồn dữ liệu và mức độ ưu tiên triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-002
+    title: Quét ban đầu để đo tồn đọng trước khi bật chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-003
+    title: Triển khai thí điểm rồi mở rộng theo mức độ sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-004
+    title: Tổ chức cấu hình dùng chung và phần tùy chỉnh của từng dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-005
+    title: Xử lý monorepo, kho mã lưu trữ và kho mã không có chủ sở hữu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-006
+    title: Phân bổ nguồn lực xử lý nợ tồn đọng và hỗ trợ nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-007
+    title: Đồng bộ quyền, cấu hình và tình trạng bật quét ở nhiều kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-rollout-008
+    title: Phát hiện cấu hình lệch chuẩn và kho mã chưa được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-reliability
+  title: Hiệu năng và độ tin cậy
+  childs:
+  - slug: performance-and-reliability-001
+    title: Đo thời gian quét theo kích thước kho mã và chiều dài lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-002
+    title: Thiết kế quét tăng dần mà vẫn có kiểm tra toàn bộ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-003
+    title: Phân chia công việc quét song song và tránh bỏ sót nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-004
+    title: Giới hạn kích thước tệp, độ sâu giải nén và tài nguyên tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-005
+    title: Xử lý timeout, lỗi kết nối và giới hạn tốc độ nguồn quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-006
+    title: Đánh dấu quét không đầy đủ thay vì báo không có bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-007
+    title: Theo dõi kết quả lỗi và khôi phục công việc quét có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-reliability-008
+    title: Kiểm tra nguy cơ kết quả cũ khi dùng cache hoặc checkpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-and-metrics
+  title: Kiểm thử và đo lường
+  childs:
+  - slug: testing-and-metrics-001
+    title: Xây dựng kho mã thử nghiệm bằng bí mật giả lập an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-002
+    title: Thiết kế ca kiểm thử cho lịch sử, nhánh, tệp xóa và mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-003
+    title: Kiểm thử quy tắc với tập đúng, tập sai và trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-004
+    title: Đo độ chính xác (precision), độ bao phủ phát hiện (recall) và giới hạn của tập dữ liệu đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-005
+    title: Theo dõi độ bao phủ kho mã, nguồn dữ liệu và lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-006
+    title: Theo dõi thời gian phát hiện, phản hồi và thu hồi bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-007
+    title: Đo tỷ lệ báo nhầm, ngoại lệ và phát hiện tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-008
+    title: Kiểm thử hồi quy sau nâng cấp công cụ và tập quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-and-metrics-009
+    title: Diễn tập cảnh báo đến khắc phục mà không dùng bí mật sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Khắc phục sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Quét không có kết quả do chọn sai phạm vi hoặc thiếu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Bộ quét bỏ qua tệp do ignore, allowlist hoặc giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Cảnh báo nhiễu từ mã băm, dữ liệu ngẫu nhiên và khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Phát hiện bị bỏ sót do mẫu chưa hỗ trợ hoặc ngữ cảnh không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Xác minh hiệu lực thất bại do quyền, mạng hoặc giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Pipeline thành công dù bộ quét lỗi hoặc chưa chạy hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Cảnh báo lặp lại sau khi đã sửa do nhánh, cache hoặc bản sao khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Báo cáo làm lộ bí mật và cách cô lập, thay thế thông tin bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: guided-labs
+  title: Thực hành có hướng dẫn
+  childs:
+  - slug: guided-labs-001
+    title: Dựng kho mã thử nghiệm và bộ dữ liệu giả lập có phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-002
+    title: Phát hiện bí mật trong tệp hiện tại và commit đã xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-003
+    title: Tích hợp kiểm tra trước commit và kiểm tra pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-004
+    title: Viết quy tắc cho định dạng bí mật nội bộ giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-005
+    title: Tạo baseline, xử lý báo nhầm và kiểm chứng ngoại lệ hẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-006
+    title: Quét gói phát hành và ảnh container trong môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-007
+    title: Mô phỏng thu hồi, thay thế và quét lại sau cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-008
+    title: So sánh kết quả hai công cụ trên cùng bộ tình huống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-labs-009
+    title: Thu thập bằng chứng hoàn thành mà không lưu bí mật thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-scenarios
+  title: Tình huống tổng hợp
+  childs:
+  - slug: integrated-scenarios-001
+    title: Tiếp nhận kho mã cũ có nhiều phát hiện tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-002
+    title: Ngăn bí mật mới đi vào nhánh chính từ đóng góp bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-003
+    title: Xử lý khóa đám mây giả lập bị lộ qua nhật ký CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-004
+    title: Xử lý bí mật đã xóa khỏi mã nhưng còn trong các lớp ảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-005
+    title: Triển khai quy tắc mới gây tăng mạnh số lượng cảnh báo nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-006
+    title: Thiết kế chương trình quét bí mật cho nhiều nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-007
+    title: Đánh giá đánh đổi giữa độ bao phủ, độ nhiễu và tốc độ phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-008
+    title: Checklist tự đánh giá và tiêu chí hoàn thành quy trình quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

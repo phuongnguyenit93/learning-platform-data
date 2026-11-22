@@ -1,0 +1,3 @@
+menuLevel1: Lưu trữ dữ liệu với volume, bind mount và tmpfs
+menuLevel2: Dùng tmpfs cho dữ liệu tạm và cân nhắc việc dùng bộ nhớ hoặc swap
+status: ""

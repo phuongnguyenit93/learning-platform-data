@@ -1,0 +1,7 @@
+# Cloud Security Governance
+
+Cloud Security Governance là cách tổ chức xác định trách nhiệm, chính sách, kiểm soát và bằng chứng để sử dụng hạ tầng đám mây an toàn, nhất quán. Do nhà cung cấp và khách hàng chia sẻ trách nhiệm bảo mật theo từng loại dịch vụ, quản trị không chỉ là cấu hình firewall hay bật mã hóa: nó còn bao gồm quản lý rủi ro, quyền truy cập, dữ liệu, tuân thủ và quy trình xử lý sự cố.
+
+Module dành cho người đã biết các khái niệm cloud cơ bản và muốn xây dựng nền tảng quản trị bảo mật trên AWS, Azure, Google Cloud hoặc môi trường nhiều nhà cung cấp. Lộ trình bắt đầu từ mô hình trách nhiệm và đánh giá rủi ro, chuyển sang chính sách, bộ kiểm soát và guardrails ở cấp tổ chức. Sau đó, người học áp dụng nguyên tắc quyền tối thiểu, quản trị mã hóa và bí mật, tập trung nhật ký và kiểm tra tư thế bảo mật, trước khi lập kế hoạch ứng phó và phục hồi.
+
+Qua tám mốc, bạn có thể phác thảo bộ chính sách bảo mật đám mây, gán chủ sở hữu kiểm soát, nhận diện cấu hình vi phạm và thiết lập chu trình giám sát, kiểm toán, cải tiến liên tục. Các khuôn khổ như NIST CSF và Cloud Controls Matrix là tài liệu đối chiếu để lựa chọn kiểm soát theo bối cảnh; không có một checklist duy nhất phù hợp cho mọi tổ chức.

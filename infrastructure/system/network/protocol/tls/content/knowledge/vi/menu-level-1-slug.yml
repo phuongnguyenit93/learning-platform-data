@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan TLS
+  slug: tls-overview
+  index: 0
+- title: Nền tảng mật mã
+  slug: cryptography-foundations
+  index: 1
+- title: Phiên bản TLS
+  slug: tls-versions
+  index: 2
+- title: Kiến trúc giao thức
+  slug: protocol-architecture
+  index: 3
+- title: Chứng chỉ X.509
+  slug: x509-certificates
+  index: 4
+- title: PKI và chuỗi tin cậy
+  slug: pki-trust-chains
+  index: 5
+- title: Xác minh chứng chỉ
+  slug: certificate-validation
+  index: 6
+- title: Tham số mật mã
+  slug: cipher-suites
+  index: 7
+- title: Bắt tay TLS 1.2
+  slug: tls12-handshake
+  index: 8
+- title: Bắt tay TLS 1.3
+  slug: tls13-handshake
+  index: 9
+- title: Khóa và bản ghi
+  slug: keys-records
+  index: 10
+- title: Phiên và 0-RTT
+  slug: sessions-zero-rtt
+  index: 11
+- title: SNI và ALPN
+  slug: sni-alpn
+  index: 12
+- title: Xác thực hai chiều
+  slug: mutual-tls
+  index: 13
+- title: Vòng đời chứng chỉ
+  slug: certificate-lifecycle
+  index: 14
+- title: Mô hình triển khai
+  slug: deployment-models
+  index: 15
+- title: TLS với giao thức khác
+  slug: tls-protocol-integrations
+  index: 16
+- title: Tấn công và phòng vệ
+  slug: attacks-defenses
+  index: 17
+- title: Cấu hình an toàn
+  slug: secure-configuration
+  index: 18
+- title: Hiệu năng TLS
+  slug: tls-performance
+  index: 19
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 20
+- title: OpenSSL và curl
+  slug: openssl-curl
+  index: 21
+- title: Phân tích Wireshark
+  slug: wireshark-analysis
+  index: 22
+- title: TLS với Java
+  slug: java-tls
+  index: 23
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 24

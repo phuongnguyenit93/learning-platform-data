@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-devops
+  title: Tư duy DevOps
+  purpose: Hiểu DevOps là cách phối hợp xuyên vòng đời phần mềm, không chỉ là bộ công cụ.
+  objectives:
+  - Mô tả luồng Plan–Code–Build–Test–Release–Operate
+  - Nhận diện điểm nghẽn giữa Dev, QA và Ops
+  - Đề xuất một vòng phản hồi ngắn cho nhóm
+- id: git-collaboration
+  title: Git & Collaboration
+  purpose: Quản lý thay đổi nguồn và review minh bạch trước khi tích hợp.
+  objectives:
+  - Tạo branch, commit và merge một thay đổi nhỏ
+  - Mở pull request với mô tả và reviewer
+  - Giải quyết conflict hoặc phản hồi review
+- id: ci-quality-gates
+  title: CI & Quality Gates
+  purpose: Tự động hóa build và kiểm thử để phát hiện lỗi sớm khi mã thay đổi.
+  objectives:
+  - Thiết lập pipeline chạy khi push hoặc PR
+  - Thêm bước build, unit test và lint
+  - Đọc kết quả job và xử lý một lần thất bại
+- id: artifacts-containers
+  title: Artifacts & Containers
+  purpose: Tạo đầu ra triển khai có phiên bản và nhất quán giữa các môi trường.
+  objectives:
+  - Phân biệt source, artifact và container image
+  - Build Docker image cho ứng dụng mẫu
+  - Tag image và kiểm tra ứng dụng chạy được
+- id: cd-release
+  title: CD & Release
+  purpose: Đưa phiên bản đã kiểm thử đến môi trường đích có kiểm soát.
+  objectives:
+  - Phân biệt continuous delivery và deployment
+  - Thiết kế luồng staging, approval và production
+  - Thử rollback khi bản phát hành lỗi
+- id: iac-configuration
+  title: IaC & Configuration
+  purpose: Quản lý hạ tầng, cấu hình bằng tệp có thể review và tái lập.
+  objectives:
+  - Giải thích declarative infrastructure as code
+  - Đọc plan/diff của một thay đổi Terraform
+  - Tách config môi trường và secrets khỏi mã
+- id: observability-reliability
+  title: Observability & Reliability
+  purpose: Theo dõi chất lượng dịch vụ từ góc nhìn người dùng để phản ứng sớm với sự cố.
+  objectives:
+  - Phân biệt logs, metrics và traces
+  - Chọn SLI và đặt cảnh báo có hành động
+  - Viết runbook ngắn cho một lỗi dịch vụ
+- id: security-feedback
+  title: Security & Feedback
+  purpose: Tích hợp bảo mật từ sớm và đo hiệu quả cải tiến quy trình DevOps.
+  objectives:
+  - Áp dụng least privilege cho pipeline và secrets
+  - Bổ sung bước kiểm tra dependency hoặc image
+  - Theo dõi lead time, deployment frequency và failure rate

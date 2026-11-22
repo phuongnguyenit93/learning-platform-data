@@ -1,0 +1,7 @@
+# Security Token Security Opaque Token
+
+Opaque token là loại token mà ứng dụng nhận token không thể tự suy ra danh tính hoặc quyền truy cập từ cấu trúc chuỗi của nó. Trong OAuth 2.0, opaque access token thường đóng vai trò mã tham chiếu không thể đoán tới dữ liệu do Authorization Server quản lý. Resource Server có thể sử dụng cơ chế token introspection theo RFC 7662 để kiểm tra token còn hiệu lực và lấy các thuộc tính cần thiết như scope, thời hạn hoặc đối tượng được phép truy cập. Khái niệm opaque nói về khả năng diễn giải token, không đồng nghĩa với một định dạng cố định hay bảo đảm token tự nó an toàn.
+
+Roadmap một cấp gồm tám mốc: phân biệt opaque token và JWT, tìm hiểu cách phát hành và lưu giữ mã bí mật, thực hiện introspection, áp dụng scope và audience để quyết định quyền truy cập. Tiếp đó, người học quản lý expiration và revocation, tích hợp Spring Security Resource Server, đánh giá caching, timeout và khả năng sẵn sàng của Authorization Server. Mốc cuối kiểm thử các tình huống token hết hạn, bị thu hồi, sai quyền hoặc sai đối tượng, đồng thời so sánh chi phí vận hành với mô hình xác thực JWT cục bộ.
+
+Module phù hợp với người đã biết HTTP, REST API, OAuth 2.0 cơ bản và lập trình Java hoặc Spring Security. Sau khi hoàn thành, bạn có thể giải thích luồng xác thực opaque bearer token, cấu hình Resource Server gọi introspection, đặt kiểm soát quyền phù hợp và nêu rõ đánh đổi giữa khả năng thu hồi gần thời gian thực với độ trễ, độ sẵn sàng và thời gian lưu cache.

@@ -1,0 +1,49 @@
+roadmap:
+- id: alerting-fundamentals
+  title: Alerting Fundamentals
+  purpose: Hiểu mục tiêu cảnh báo vận hành và phân biệt symptom với nguyên nhân.
+  objectives:
+  - Giải thích metric, threshold, alert state và notification.
+  - Phân biệt alert hữu ích với cảnh báo chỉ để quan sát.
+- id: sli-slo-severity
+  title: SLI, SLO & Severity
+  purpose: Gắn cảnh báo với trải nghiệm dịch vụ và mức độ ảnh hưởng người dùng.
+  objectives:
+  - Chọn SLI về availability hoặc latency cho một service.
+  - Xác định SLO, error budget và severity phù hợp.
+- id: prometheus-alert-rules
+  title: Prometheus Alert Rules
+  purpose: Chuyển tín hiệu metric thành điều kiện cảnh báo có thời gian duy trì.
+  objectives:
+  - Viết alerting rule bằng PromQL và đặt for/labels/annotations.
+  - Kiểm tra rule bằng promtool và unit test.
+- id: labels-alert-design
+  title: Labels & Alert Design
+  purpose: Chuẩn hóa metadata để phân nhóm và định tuyến đúng người nhận.
+  objectives:
+  - Thiết kế labels service, team, environment và severity.
+  - Viết summary/description có context và runbook link.
+- id: alertmanager-routing
+  title: Alertmanager Routing
+  purpose: Điều phối cảnh báo tới đúng nhóm, kênh và lịch trực.
+  objectives:
+  - Cấu hình route tree, matchers, group_by và receiver.
+  - Thiết lập group_wait, group_interval và repeat_interval.
+- id: silence-inhibition-dedup
+  title: Silence, Inhibition & Dedup
+  purpose: Giảm thông báo trùng và che bớt cảnh báo phụ khi có sự cố lớn.
+  objectives:
+  - Phân biệt deduplication, grouping, silence và inhibition.
+  - Dùng maintenance silence và inhibit rule theo dependency.
+- id: notifications-noise-control
+  title: Notifications & Noise Control
+  purpose: Đảm bảo thông báo có thể hành động và không gây quá tải người trực.
+  objectives:
+  - Cấu hình email, webhook hoặc tích hợp on-call.
+  - Điều chỉnh threshold, routing và notification để giảm flapping.
+- id: testing-operations
+  title: Testing & Operations
+  purpose: Kiểm chứng cấu hình và duy trì chất lượng hệ thống cảnh báo.
+  objectives:
+  - Test Prometheus rules và Alertmanager config trước deploy.
+  - Theo dõi firing/resolved, delivery failure và rà soát alert định kỳ.

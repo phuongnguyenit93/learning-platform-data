@@ -1,0 +1,7 @@
+# Runtime Application Server
+
+Runtime Application Server là môi trường chạy ứng dụng doanh nghiệp, cung cấp các dịch vụ nền tảng như quản lý vòng đời thành phần, kết nối tài nguyên, giao dịch, bảo mật, messaging và quản trị runtime. Khác với servlet container tập trung vào thành phần web, application server thường tích hợp nhiều năng lực của Jakarta EE hoặc MicroProfile để ứng dụng sử dụng qua các API và resource do container quản lý. WildFly và Payara là hai ví dụ phổ biến trong hệ sinh thái Java.
+
+Module dành cho người đã biết Java, web application, HTTP, database và các khái niệm triển khai ứng dụng cơ bản. Lộ trình đi từ vai trò application server và runtime mode, qua cài đặt, cấu trúc cấu hình, packaging WAR/EAR và triển khai. Tiếp đó người học thực hành datasource/JNDI, transaction và các managed services, thiết lập bảo mật, rồi tìm hiểu domain administration, clustering, high availability và quan sát hoạt động qua log/metrics.
+
+Sau khi hoàn thành, bạn có thể khởi chạy một server thử nghiệm, triển khai ứng dụng, cấp datasource, giải thích cách ứng dụng dùng dịch vụ do container quản lý và chẩn đoán lỗi cơ bản. Bạn cũng có thể phân biệt quản lý một instance độc lập với quản trị tập trung nhiều instance, đồng thời nhận diện các yêu cầu về quyền, TLS, failover và nâng cấp an toàn. Chi tiết cấu hình phụ thuộc từng sản phẩm và phiên bản; hãy kiểm tra mức hỗ trợ Jakarta EE/MicroProfile cũng như tương thích Java trước khi chọn runtime.

@@ -1,0 +1,97 @@
+menu:
+  - title: "Tổng quan chi phí đám mây"
+    slug: cloud-cost-overview
+    index: 0
+  - title: "Tài chính và mô hình định giá"
+    slug: finance-and-pricing-models
+    index: 1
+  - title: "Tổ chức thực hành FinOps"
+    slug: finops-organization
+    index: 2
+  - title: "Thu thập dữ liệu chi phí"
+    slug: cost-data-collection
+    index: 3
+  - title: "Chuẩn hóa và kiểm soát dữ liệu"
+    slug: data-normalization-and-quality
+    index: 4
+  - title: "Phân bổ chi phí và gắn nhãn"
+    slug: cost-allocation-and-tagging
+    index: 5
+  - title: "Báo cáo và minh bạch chi phí"
+    slug: cost-reporting-and-transparency
+    index: 6
+  - title: "Kinh tế đơn vị và giá trị"
+    slug: unit-economics-and-value
+    index: 7
+  - title: "Ngân sách và dự báo"
+    slug: budgeting-and-forecasting
+    index: 8
+  - title: "Giám sát và bất thường chi phí"
+    slug: cost-monitoring-and-anomalies
+    index: 9
+  - title: "Kiến trúc hiệu quả về chi phí"
+    slug: cost-efficient-architecture
+    index: 10
+  - title: "Tối ưu tài nguyên tính toán"
+    slug: compute-cost-optimization
+    index: 11
+  - title: "Tối ưu Kubernetes và container"
+    slug: kubernetes-container-cost-optimization
+    index: 12
+  - title: "Tối ưu serverless và tích hợp"
+    slug: serverless-integration-cost-optimization
+    index: 13
+  - title: "Tối ưu lưu trữ và sao lưu"
+    slug: storage-and-backup-cost-optimization
+    index: 14
+  - title: "Tối ưu cơ sở dữ liệu"
+    slug: database-cost-optimization
+    index: 15
+  - title: "Tối ưu dữ liệu và phân tích"
+    slug: data-analytics-cost-optimization
+    index: 16
+  - title: "Tối ưu mạng và phân phối nội dung"
+    slug: network-content-delivery-optimization
+    index: 17
+  - title: "Chi phí quan sát và bảo mật"
+    slug: observability-and-security-costs
+    index: 18
+  - title: "Tối ưu AI và máy học"
+    slug: ai-and-ml-cost-optimization
+    index: 19
+  - title: "Cam kết sử dụng và chiết khấu"
+    slug: commitments-and-discounts
+    index: 20
+  - title: "Hợp đồng, giấy phép và Marketplace"
+    slug: contracts-licensing-and-marketplace
+    index: 21
+  - title: "Quản lý chi phí AWS"
+    slug: aws-cost-management
+    index: 22
+  - title: "Quản lý chi phí Azure"
+    slug: azure-cost-management
+    index: 23
+  - title: "Quản lý chi phí Google Cloud"
+    slug: google-cloud-cost-management
+    index: 24
+  - title: "Chi phí môi trường lai và đa đám mây"
+    slug: hybrid-and-multicloud-costs
+    index: 25
+  - title: "Chính sách và kiểm soát chi phí"
+    slug: cost-policies-and-controls
+    index: 26
+  - title: "Tự động hóa quản lý chi phí"
+    slug: cost-management-automation
+    index: 27
+  - title: "Đối soát và thanh toán nội bộ"
+    slug: reconciliation-and-internal-billing
+    index: 28
+  - title: "Vận hành và cải tiến FinOps"
+    slug: finops-operations-and-improvement
+    index: 29
+  - title: "Thực hành theo tình huống"
+    slug: scenario-based-practice
+    index: 30
+  - title: "Dự án quản lý chi phí tổng hợp"
+    slug: cost-management-capstone
+    index: 31

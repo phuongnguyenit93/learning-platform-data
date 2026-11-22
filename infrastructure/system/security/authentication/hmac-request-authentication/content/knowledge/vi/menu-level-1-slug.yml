@@ -1,0 +1,148 @@
+menu:
+- title: Tổng quan HMAC request auth
+  slug: hmac-authentication-overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 1
+- title: Mô hình client server
+  slug: client-server-model
+  index: 2
+- title: HMAC
+  slug: hmac
+  index: 3
+- title: JCA Mac API
+  slug: jca-mac-api
+  index: 4
+- title: Hash algorithm
+  slug: hash-algorithm
+  index: 5
+- title: Request signature
+  slug: request-signature
+  index: 6
+- title: Request components
+  slug: request-components
+  index: 7
+- title: Canonical request
+  slug: canonical-request
+  index: 8
+- title: HTTP method
+  slug: http-method
+  index: 9
+- title: URL và path
+  slug: urls-paths
+  index: 10
+- title: Query canonicalization
+  slug: query-canonicalization
+  index: 11
+- title: Header canonicalization
+  slug: header-canonicalization
+  index: 12
+- title: Body canonicalization
+  slug: body-canonicalization
+  index: 13
+- title: Encoding chữ ký
+  slug: signature-encoding
+  index: 14
+- title: Ký request
+  slug: signing-requests
+  index: 15
+- title: Xác minh request
+  slug: verifying-requests
+  index: 16
+- title: Constant-time comparison
+  slug: constant-time-comparison
+  index: 17
+- title: Timestamp
+  slug: timestamp
+  index: 18
+- title: Nonce
+  slug: nonce
+  index: 19
+- title: Replay protection
+  slug: replay-protection
+  index: 20
+- title: Idempotency
+  slug: idempotency
+  index: 21
+- title: Authorization header
+  slug: authorization-header
+  index: 22
+- title: Key identifier
+  slug: key-identifier
+  index: 23
+- title: Secret management
+  slug: secret-management
+  index: 24
+- title: Credential lifecycle
+  slug: credential-lifecycle
+  index: 25
+- title: Key rotation
+  slug: key-rotation
+  index: 26
+- title: Multi-client
+  slug: multi-client
+  index: 27
+- title: Multi-tenant
+  slug: multi-tenant
+  index: 28
+- title: Spring Security
+  slug: spring-security
+  index: 29
+- title: Custom authentication filter
+  slug: custom-authentication-filter
+  index: 30
+- title: Spring MVC integration
+  slug: spring-mvc-integration
+  index: 31
+- title: Spring WebFlux integration
+  slug: spring-web-flux-integration
+  index: 32
+- title: Gateway và proxy
+  slug: gateways-proxies
+  index: 33
+- title: Error semantics
+  slug: error-semantics
+  index: 34
+- title: Security logging
+  slug: security-logging
+  index: 35
+- title: Monitoring
+  slug: monitoring
+  index: 36
+- title: Performance
+  slug: performance
+  index: 37
+- title: Testing HMAC
+  slug: testing-hmac
+  index: 38
+- title: Contract testing
+  slug: contract-testing
+  index: 39
+- title: Security testing
+  slug: security-testing
+  index: 40
+- title: Algorithm agility
+  slug: algorithm-agility
+  index: 41
+- title: Incident response
+  slug: incident-response
+  index: 42
+- title: Operations
+  slug: operations
+  index: 43
+- title: Migration
+  slug: migration
+  index: 44
+- title: Anti-pattern HMAC
+  slug: anti-pattern-hmac
+  index: 45
+- title: Thiết kế HMAC system
+  slug: hmac-system-design
+  index: 46
+- title: Dự án thực hành
+  slug: practice-project
+  index: 47
+- title: Tổng kết HMAC authentication
+  slug: hmac-authentication-summary
+  index: 48

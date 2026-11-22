@@ -1,0 +1,5488 @@
+menu:
+- slug: oracle-overview
+  title: Tổng quan
+  childs:
+  - slug: oracle-overview-001
+    title: Oracle Database là gì và vai trò trong hệ thống ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-002
+    title: Bài toán lưu trữ quan hệ, tính toàn vẹn và xử lý giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-003
+    title: Phân biệt Oracle Database, SQL, PL/SQL và ứng dụng Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-004
+    title: 'Bản đồ thuật ngữ: database, instance, service, schema, CDB và PDB'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-005
+    title: Luồng từ yêu cầu ứng dụng đến câu lệnh SQL và dữ liệu trên đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-006
+    title: Phân biệt tải giao dịch OLTP, phân tích OLAP và tải hỗn hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-007
+    title: Vai trò và ranh giới công việc của lập trình viên, DBA và người vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-008
+    title: Phiên bản, bản phát hành, Release Update và tham số COMPATIBLE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-009
+    title: Đối chiếu edition, tính năng, option và management pack trước khi sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-overview-010
+    title: Trình tự học từ môi trường thực hành đến ứng dụng và vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practice-environment
+  title: Môi trường thực hành
+  childs:
+  - slug: practice-environment-001
+    title: Chọn bản Oracle phù hợp với bài thực hành và giới hạn tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-002
+    title: Chuẩn bị máy ảo hoặc container, bộ nhớ, dung lượng và cổng mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-003
+    title: Cài đặt và khởi tạo database bằng công cụ phù hợp với bản Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-004
+    title: Cấu trúc thư mục ORACLE_HOME, ORACLE_BASE và vùng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-005
+    title: Cấu hình biến môi trường ORACLE_SID, PATH và TNS_ADMIN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-006
+    title: Tạo PDB, tài khoản thực hành, tablespace và hạn mức lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-007
+    title: Thiết kế bộ dữ liệu mẫu có quan hệ, dữ liệu NULL và dữ liệu biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-008
+    title: Lưu dữ liệu bền vững, sao lưu cấu hình và tái tạo môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-009
+    title: Kiểm tra phiên bản, trạng thái database, PDB và listener
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-environment-010
+    title: Tách môi trường phát triển, kiểm thử và vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tools-and-connections
+  title: Công cụ và kết nối
+  childs:
+  - slug: tools-and-connections-001
+    title: Thực hiện câu lệnh và script bằng SQL*Plus, SQLcl và SQL Developer
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-002
+    title: Phân biệt kết nối cục bộ, kết nối mạng và xác thực hệ điều hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-003
+    title: Listener, đăng ký dịch vụ và luồng thiết lập kết nối Oracle Net
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-004
+    title: Phân biệt SID, SERVICE_NAME và tên kết nối TNS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-005
+    title: Cú pháp Easy Connect và connect descriptor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-006
+    title: Cấu hình tnsnames.ora, sqlnet.ora và listener.ora
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-007
+    title: 'Kiểm tra kết nối theo từng lớp: DNS, TCP, listener và database service'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-008
+    title: Quản lý biến bind, biến thay thế và dấu kết thúc SQL/PLSQL trong script
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-009
+    title: Điều khiển autocommit, hiển thị kết quả và ghi nhật ký bằng SPOOL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-010
+    title: Bộ ký tự, mã hóa và tham số phiên khi kết nối từ công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-011
+    title: Nguyên tắc cấu hình timeout, mã hóa đường truyền và quản lý mật khẩu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tools-and-connections-012
+    title: Đọc mã lỗi ORA và phân biệt lỗi kết nối với lỗi xác thực
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-architecture
+  title: Kiến trúc
+  childs:
+  - slug: database-architecture-001
+    title: Phân biệt database vật lý, instance và các đối tượng logic
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-002
+    title: Luồng parse, bind, execute và fetch của một câu lệnh SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-003
+    title: Tiến trình người dùng, server process và background process
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-004
+    title: Dedicated server, shared server và mô hình phục vụ phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-005
+    title: 'Bộ nhớ SGA: buffer cache, shared pool, redo log buffer và các vùng bổ sung'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-006
+    title: Bộ nhớ PGA, vùng làm việc và xử lý sắp xếp hoặc băm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-007
+    title: DBWn, LGWR, CKPT, SMON, PMON và vai trò phối hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-008
+    title: Datafile, control file, online redo log và archived redo log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-009
+    title: SCN, checkpoint và quan hệ giữa redo, undo, dữ liệu đã commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-010
+    title: Logical read, physical read, dirty buffer và cơ chế ghi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-011
+    title: Hard parse, soft parse, shared cursor và library cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-architecture-012
+    title: Đọc kiến trúc từ các dynamic performance view phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-management
+  title: Lưu trữ
+  childs:
+  - slug: storage-management-001
+    title: Quan hệ giữa tablespace, datafile, segment, extent và data block
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-002
+    title: Block header, row piece, row chaining và row migration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-003
+    title: Locally managed tablespace và tự động quản lý không gian segment
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-004
+    title: Tablespace SYSTEM, SYSAUX, USERS, TEMP và UNDO
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-005
+    title: Tạo tablespace, cấu hình autoextend và kiểm soát MAXSIZE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-006
+    title: Phân biệt smallfile, bigfile và Oracle Managed Files
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-007
+    title: Phân bổ extent, high water mark và ảnh hưởng đến thao tác quét
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-008
+    title: Giải phóng không gian bằng shrink, move và tổ chức lại segment
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-009
+    title: Table compression, đánh đổi CPU/dung lượng và điều kiện tính năng/giấy phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-010
+    title: Temporary segment, sort spill và quản lý dung lượng TEMP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-011
+    title: Undo segment, undo retention và nhu cầu đọc nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-012
+    title: Tổng quan ASM, disk group, redundancy và ranh giới với filesystem
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-management-013
+    title: Theo dõi dung lượng, xu hướng tăng trưởng và cảnh báo đầy đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multitenant-architecture
+  title: CDB và PDB
+  childs:
+  - slug: multitenant-architecture-001
+    title: Mô hình multitenant và quan hệ giữa CDB root, seed và PDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-002
+    title: Container hiện tại, CON_ID và chuyển container đúng phạm vi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-003
+    title: Common user, local user, common role và local role
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-004
+    title: Phạm vi tham số và metadata ở CDB so với PDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-005
+    title: Tạo, mở, đóng PDB và lưu trạng thái mở
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-006
+    title: Service của PDB và định tuyến kết nối ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-007
+    title: Clone, plug, unplug và kiểm tra điều kiện tương thích PDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-008
+    title: Phân quyền và giới hạn tài nguyên giữa các PDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-009
+    title: Tra cứu CDB_*, DBA_*, ALL_* và USER_* trong môi trường multitenant
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multitenant-architecture-010
+    title: Ranh giới sao lưu, phục hồi và bảo trì CDB/PDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema-metadata
+  title: Schema và metadata
+  childs:
+  - slug: schema-metadata-001
+    title: Quan hệ giữa user, schema và quyền sở hữu đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-002
+    title: Tên đối tượng, định danh có dấu ngoặc kép và phân biệt chữ hoa chữ thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-003
+    title: Phân giải tên theo schema, CURRENT_SCHEMA và synonym
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-004
+    title: Data dictionary, static dictionary view và dynamic performance view
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-005
+    title: Phạm vi dữ liệu trong USER_*, ALL_* và DBA_*
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-006
+    title: Tra cứu bảng, cột, ràng buộc, chỉ mục và thống kê
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-007
+    title: Tra cứu mã PL/SQL, lỗi biên dịch và trạng thái INVALID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-008
+    title: Quan hệ phụ thuộc giữa đối tượng và cơ chế invalidation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-009
+    title: Trích xuất DDL bằng DBMS_METADATA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-metadata-010
+    title: Ghi chú bảng/cột và quy ước đặt tên phục vụ tài liệu hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-types
+  title: Kiểu dữ liệu
+  childs:
+  - slug: data-types-001
+    title: Chọn kiểu dữ liệu theo miền giá trị, độ chính xác và nhu cầu truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-002
+    title: NUMBER, precision, scale và sai số khi chuyển sang số dấu phẩy động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-003
+    title: BINARY_FLOAT, BINARY_DOUBLE và những giá trị số đặc biệt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-004
+    title: CHAR, VARCHAR2, NCHAR và NVARCHAR2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-005
+    title: Ngữ nghĩa độ dài BYTE/CHAR và lưu trữ tiếng Việt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-006
+    title: Giới hạn kích thước chuỗi, MAX_STRING_SIZE và tương thích phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-007
+    title: DATE, TIMESTAMP và các kiểu dữ liệu có múi giờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-008
+    title: INTERVAL YEAR TO MONTH và INTERVAL DAY TO SECOND
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-009
+    title: RAW, ROWID, UROWID và cách sử dụng đúng mục đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-010
+    title: CLOB, NCLOB, BLOB và BFILE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-011
+    title: NULL, chuỗi rỗng và logic ba giá trị trong Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-012
+    title: Chuyển kiểu tường minh, chuyển kiểu ngầm định và lỗi mất dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-013
+    title: Phân biệt BOOLEAN trong PL/SQL và SQL theo phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-types-014
+    title: Kiểu dữ liệu người dùng, object type và collection type
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: date-time-and-nls
+  title: Ngày giờ và NLS
+  childs:
+  - slug: date-time-and-nls-001
+    title: NLS_DATABASE_PARAMETERS, NLS_INSTANCE_PARAMETERS và NLS_SESSION_PARAMETERS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-002
+    title: NLS_DATE_FORMAT, NLS_TIMESTAMP_FORMAT và nguy cơ phụ thuộc cấu hình phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-003
+    title: Literal ngày giờ và mẫu định dạng (format model) tường minh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-004
+    title: SYSDATE, SYSTIMESTAMP, CURRENT_DATE và CURRENT_TIMESTAMP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-005
+    title: SESSIONTIMEZONE, DBTIMEZONE và chuẩn hóa thời điểm giữa hệ thống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-006
+    title: TIMESTAMP WITH TIME ZONE và TIMESTAMP WITH LOCAL TIME ZONE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-007
+    title: Cộng trừ ngày giờ, khoảng thời gian và quy tắc cuối tháng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-008
+    title: Lọc theo khoảng thời gian nửa mở và tránh mất dữ liệu trong ngày
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-009
+    title: Múi giờ mùa hè, vùng giờ và cập nhật timezone file
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-010
+    title: NLS_NUMERIC_CHARACTERS, NLS_SORT và NLS_COMP khi xử lý dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: date-time-and-nls-011
+    title: Collation, so sánh tiếng Việt và lựa chọn quy tắc tìm kiếm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tables-and-constraints
+  title: Bảng và ràng buộc
+  childs:
+  - slug: tables-and-constraints-001
+    title: Chuyển miền dữ liệu và quan hệ nghiệp vụ thành bảng Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-002
+    title: CREATE TABLE, giá trị DEFAULT và cột bắt buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-003
+    title: PRIMARY KEY, UNIQUE và quan hệ với chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-004
+    title: FOREIGN KEY, quan hệ cha con và lựa chọn hành vi khi xóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-005
+    title: CHECK, NOT NULL và giới hạn của kiểm tra dữ liệu khai báo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-006
+    title: NULL trong ràng buộc UNIQUE, CHECK và khóa ghép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-007
+    title: ENABLE, DISABLE, VALIDATE, NOVALIDATE và RELY
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-008
+    title: DEFERRABLE và kiểm tra ràng buộc tại thời điểm commit
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-009
+    title: 'ALTER TABLE: thêm, đổi, xóa cột và chuyển đổi dữ liệu'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-010
+    title: Cột ảo, cột identity và các chế độ sinh giá trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-011
+    title: CREATE TABLE AS SELECT và những thuộc tính cần kiểm tra sau khi sao chép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-012
+    title: Phân biệt DELETE, TRUNCATE, DROP và PURGE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-013
+    title: Global/private temporary table, vòng đời dữ liệu và điều kiện phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tables-and-constraints-014
+    title: Index-organized table, external table và lựa chọn cấu trúc bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: select-basics
+  title: SELECT cơ bản
+  childs:
+  - slug: select-basics-001
+    title: Cấu trúc SELECT và thứ tự xử lý logic các mệnh đề
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-002
+    title: Chọn cột, biểu thức, bí danh và sử dụng DUAL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-003
+    title: WHERE, toán tử so sánh và kết hợp AND, OR, NOT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-004
+    title: IN, BETWEEN, LIKE và ký tự đại diện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-005
+    title: IS NULL, IS NOT NULL và kết quả UNKNOWN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-006
+    title: DISTINCT và chi phí loại bỏ dữ liệu trùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-007
+    title: ORDER BY, thứ tự NULL và yêu cầu sắp xếp xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-008
+    title: ROWNUM và lỗi giới hạn kết quả trước khi sắp xếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-009
+    title: OFFSET, FETCH FIRST, WITH TIES và phân trang
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-010
+    title: Biến bind, literal và phân biệt giá trị với tên đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-011
+    title: Đọc kết quả rỗng, giá trị NULL và số dòng bị nhân bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: select-basics-012
+    title: Giải thích và kiểm chứng một truy vấn bằng dữ liệu tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: functions-and-expressions
+  title: Hàm và biểu thức
+  childs:
+  - slug: functions-and-expressions-001
+    title: Biểu thức số học, thứ tự ưu tiên và xử lý phép chia
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-002
+    title: 'Hàm số: ROUND, TRUNC, MOD, CEIL và FLOOR'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-003
+    title: 'Hàm chuỗi: SUBSTR, INSTR, LENGTH, TRIM và REPLACE'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-004
+    title: Nối chuỗi, padding và xử lý CHAR có khoảng trắng cuối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-005
+    title: UPPER, LOWER, INITCAP và ảnh hưởng bộ ký tự
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-006
+    title: REGEXP_LIKE, REGEXP_SUBSTR, REGEXP_REPLACE và giới hạn sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-007
+    title: TO_CHAR, TO_NUMBER, TO_DATE và TO_TIMESTAMP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-008
+    title: CAST, format model và kiểm soát chuyển đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-009
+    title: CASE dạng đơn giản và CASE dạng điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-010
+    title: DECODE và khác biệt cần chú ý khi so sánh NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-011
+    title: NVL, NVL2, COALESCE, NULLIF và lựa chọn kiểu kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-012
+    title: 'Hàm ngày tháng: ADD_MONTHS, MONTHS_BETWEEN, LAST_DAY và EXTRACT'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-013
+    title: LEAST, GREATEST và ảnh hưởng của NULL hoặc chuyển kiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: functions-and-expressions-014
+    title: LISTAGG, tràn độ dài kết quả và khác biệt theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregation-and-set-operations
+  title: Gom nhóm và tập hợp
+  childs:
+  - slug: aggregation-and-set-operations-001
+    title: COUNT(*), COUNT(cột), SUM, AVG, MIN và MAX
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-002
+    title: Ảnh hưởng của NULL và tập rỗng đến hàm tổng hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-003
+    title: GROUP BY, khóa nhóm ghép và biểu thức nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-004
+    title: Phân biệt WHERE và HAVING
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-005
+    title: Conditional aggregation bằng CASE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-006
+    title: ROLLUP, CUBE và GROUPING SETS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-007
+    title: GROUPING, GROUPING_ID và phân biệt dòng tổng với NULL dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-008
+    title: UNION, UNION ALL, INTERSECT và MINUS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-009
+    title: Điều kiện tương thích kiểu dữ liệu giữa các nhánh tập hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-010
+    title: ORDER BY, độ ưu tiên và xử lý trùng trong truy vấn tập hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregation-and-set-operations-011
+    title: Kiểm chứng số lượng dòng và tổng hợp sau khi kết nối nhiều bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: joins-and-subqueries
+  title: JOIN và truy vấn con
+  childs:
+  - slug: joins-and-subqueries-001
+    title: INNER JOIN theo khóa đơn, khóa ghép và điều kiện nhiều cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-002
+    title: LEFT, RIGHT và FULL OUTER JOIN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-003
+    title: CROSS JOIN, self join và nguy cơ nhân số dòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-004
+    title: Vị trí điều kiện trong ON/WHERE và ảnh hưởng đến OUTER JOIN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-005
+    title: ANSI JOIN và cú pháp Oracle (+) trong mã cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-006
+    title: Scalar subquery và điều kiện trả về tối đa một dòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-007
+    title: Single-row, multi-row và correlated subquery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-008
+    title: EXISTS, NOT EXISTS và kiểm tra quan hệ tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-009
+    title: IN, NOT IN và bẫy NULL trong truy vấn con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-010
+    title: Inline view và phân tách các bước xử lý truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-011
+    title: WITH và tái sử dụng khối truy vấn có tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-012
+    title: LATERAL, CROSS APPLY và OUTER APPLY theo phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: joins-and-subqueries-013
+    title: Chọn JOIN hay truy vấn con dựa trên ngữ nghĩa và kế hoạch thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: advanced-queries
+  title: Truy vấn nâng cao
+  childs:
+  - slug: advanced-queries-001
+    title: Truy vấn cây bằng START WITH và CONNECT BY
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-002
+    title: LEVEL, PRIOR, CONNECT_BY_ROOT và SYS_CONNECT_BY_PATH
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-003
+    title: Phát hiện vòng lặp bằng NOCYCLE và CONNECT_BY_ISCYCLE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-004
+    title: Recursive subquery factoring, SEARCH và CYCLE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-005
+    title: PIVOT, UNPIVOT và chuyển đổi dạng dữ liệu báo cáo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-006
+    title: Top-N toàn cục và Top-N trong từng nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-007
+    title: Phân trang bằng khóa tiếp nối và điều kiện thứ tự ổn định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-008
+    title: Xử lý khoảng trống, dãy liên tiếp và dữ liệu thiếu kỳ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-009
+    title: MODEL clause và bài toán tính toán trên tập ô
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-010
+    title: MATCH_RECOGNIZE và nhận dạng mẫu theo chuỗi sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-011
+    title: SQL động theo nhu cầu lọc và nguyên tắc giữ an toàn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-queries-012
+    title: Thiết kế truy vấn báo cáo có tổng phụ, xếp hạng và dữ liệu thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: analytic-functions
+  title: Hàm phân tích
+  childs:
+  - slug: analytic-functions-001
+    title: Phân biệt hàm tổng hợp và hàm phân tích theo cửa sổ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-002
+    title: Cấu trúc OVER, PARTITION BY và ORDER BY
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-003
+    title: ROW_NUMBER, RANK và DENSE_RANK
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-004
+    title: LAG, LEAD và so sánh với dòng trước hoặc dòng sau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-005
+    title: FIRST_VALUE, LAST_VALUE, NTH_VALUE và phạm vi cửa sổ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-006
+    title: Khung ROWS/RANGE, khung mặc định và các dòng đồng hạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-007
+    title: SUM/AVG chạy dồn và trung bình trượt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-008
+    title: COUNT phân tích, RATIO_TO_REPORT và tỷ trọng trong nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-009
+    title: NTILE, CUME_DIST, PERCENT_RANK và phân bố dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-010
+    title: KEEP (DENSE_RANK FIRST/LAST) trong phép tổng hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-011
+    title: IGNORE NULLS, RESPECT NULLS và lấp dữ liệu theo chuỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-012
+    title: Tách bước lọc kết quả phân tích và kiểm tra cú pháp theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: analytic-functions-013
+    title: Chi phí sắp xếp, kích thước phân vùng và kiểm chứng kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-manipulation
+  title: Thay đổi dữ liệu
+  childs:
+  - slug: data-manipulation-001
+    title: INSERT một dòng, nhiều dòng và INSERT từ SELECT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-002
+    title: INSERT ALL, INSERT FIRST và chèn có điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-003
+    title: UPDATE một bảng, cập nhật nhiều cột và cập nhật từ truy vấn con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-004
+    title: DELETE theo điều kiện và xóa dữ liệu quan hệ cha con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-005
+    title: MERGE để đồng bộ dữ liệu và điều kiện khớp nguồn/đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-006
+    title: Nguồn MERGE trùng khóa và tính xác định của thao tác đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-007
+    title: RETURNING INTO để lấy giá trị sau INSERT, UPDATE hoặc DELETE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-008
+    title: Sinh khóa bằng sequence, identity và lấy khóa vừa tạo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-009
+    title: Default, trigger và ràng buộc trong vòng đời thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-010
+    title: LOG ERRORS và tách dòng lỗi khi nạp dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-011
+    title: Xử lý dữ liệu trùng bằng ràng buộc và thao tác có thể thực hiện lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-manipulation-012
+    title: Ảnh hưởng của DML đến undo, redo, chỉ mục và khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions
+  title: Giao dịch
+  childs:
+  - slug: transactions-001
+    title: Đơn vị công việc nghiệp vụ và các thuộc tính ACID trong Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-002
+    title: Thời điểm bắt đầu, kết thúc và ranh giới của một giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-003
+    title: COMMIT, ROLLBACK và khả năng quan sát dữ liệu giữa các phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-004
+    title: SAVEPOINT và hoàn tác một phần giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-005
+    title: Tính nguyên tử ở mức câu lệnh và mức giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-006
+    title: Implicit commit của DDL và tác động đến script triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-007
+    title: Autocommit phía công cụ/JDBC và nguy cơ chia nhỏ giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-008
+    title: Undo, MVCC và tính nhất quán khi đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-009
+    title: READ COMMITTED và ảnh chụp dữ liệu tại từng câu lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-010
+    title: SERIALIZABLE, READ ONLY và khác biệt về tính nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-011
+    title: SCN và mối quan hệ giữa commit với yêu cầu phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-012
+    title: Thiết kế giao dịch ngắn, kiểm soát lỗi và quy tắc retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: locking-and-concurrency
+  title: Khóa và đồng thời
+  childs:
+  - slug: locking-and-concurrency-001
+    title: Khóa dòng, khóa bảng, enqueue và latch/mutex
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-002
+    title: Đọc nhất quán, thao tác ghi và các tình huống phải chờ nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-003
+    title: SELECT FOR UPDATE và phạm vi dòng bị khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-004
+    title: NOWAIT, WAIT, SKIP LOCKED và mô hình nhận việc từ bảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-005
+    title: Lost update và khóa lạc quan bằng cột phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-006
+    title: Khóa ngoại thiếu chỉ mục và tranh chấp trên dữ liệu cha con
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-007
+    title: Deadlock, nguyên nhân theo thứ tự khóa và phạm vi rollback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-008
+    title: Blocking session, chuỗi chờ và truy tìm giao dịch gây nghẽn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-009
+    title: Hot block, ITL và tranh chấp khi cập nhật tập trung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-010
+    title: ORA-08177 và thử lại giao dịch SERIALIZABLE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-011
+    title: ORA-01555 và quan hệ giữa thời gian truy vấn với undo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: locking-and-concurrency-012
+    title: Mô phỏng hai phiên để kiểm chứng tính cô lập và cơ chế khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: schema-objects
+  title: Đối tượng schema
+  childs:
+  - slug: schema-objects-001
+    title: Tạo view và sử dụng view làm ranh giới truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-002
+    title: View có thể cập nhật, key-preserved table và WITH CHECK OPTION
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-003
+    title: Materialized view và lựa chọn ON DEMAND hoặc ON COMMIT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-004
+    title: Complete refresh, fast refresh và materialized view log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-005
+    title: Query rewrite và điều kiện tương thích, thống kê, tính năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-006
+    title: 'Sequence: NEXTVAL, CURRVAL, CACHE, ORDER và khoảng trống khóa'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-007
+    title: Identity so với sequence và chiến lược sinh khóa cho ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-008
+    title: Private synonym, public synonym và rủi ro phân giải sai đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-009
+    title: Database link, fixed/current user và phạm vi quyền truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-010
+    title: Object type, nested table, VARRAY và quan hệ với bảng thông thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-011
+    title: Đối tượng INVALID, biên dịch lại và theo dõi dependency
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: schema-objects-012
+    title: Lựa chọn bảng, view, materialized view hoặc kết quả truy vấn trực tiếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: indexes
+  title: Chỉ mục
+  childs:
+  - slug: indexes-001
+    title: Cấu trúc B-tree và cơ chế tìm kiếm theo khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-002
+    title: Unique/nonunique index và quan hệ với ràng buộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-003
+    title: Composite index, cột dẫn đầu và thứ tự các cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-004
+    title: Index range scan, unique scan, full scan và fast full scan
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-005
+    title: Index skip scan và điều kiện bộ tối ưu cân nhắc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-006
+    title: Function-based index và yêu cầu biểu thức truy vấn tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-007
+    title: Bitmap index, đặc điểm tải phân tích và tranh chấp cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-008
+    title: NULL trong B-tree và ảnh hưởng đến lựa chọn thiết kế chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-009
+    title: Clustering factor, selectivity và số block cần truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-010
+    title: Reverse key index, khóa tăng dần và khả năng truy vấn theo khoảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-011
+    title: Invisible index và thử nghiệm thay đổi kế hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-012
+    title: Trạng thái UNUSABLE, rebuild, coalesce và chi phí bảo trì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-013
+    title: Chỉ mục phủ truy vấn, đánh đổi tốc độ đọc/ghi và tránh tạo dư thừa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: partitioning
+  title: Phân vùng
+  childs:
+  - slug: partitioning-001
+    title: Mục tiêu phân vùng và điều kiện phiên bản/edition/giấy phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-002
+    title: Range, list, hash và interval partitioning
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-003
+    title: Composite partitioning và lựa chọn subpartition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-004
+    title: Khóa phân vùng theo thời gian, khách hàng hoặc miền dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-005
+    title: Partition pruning tĩnh và động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-006
+    title: Local/global index và tác động của bảo trì partition
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-007
+    title: ADD, DROP, TRUNCATE, SPLIT, MERGE và MOVE PARTITION
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-008
+    title: EXCHANGE PARTITION để nạp hoặc luân chuyển dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-009
+    title: Partition-wise join và tổ chức truy vấn theo vùng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-010
+    title: Thống kê theo partition và incremental statistics
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-011
+    title: Lưu trữ theo vòng đời dữ liệu và chiến lược xóa dữ liệu cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: partitioning-012
+    title: Kiểm chứng lợi ích phân vùng bằng kế hoạch và tải thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: plsql-basics
+  title: PL/SQL cơ bản
+  childs:
+  - slug: plsql-basics-001
+    title: Vai trò PL/SQL và ranh giới với SQL hoặc mã ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-002
+    title: Anonymous block, DECLARE, BEGIN, EXCEPTION và END
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-003
+    title: Biến, hằng, phạm vi, khối lồng nhau và che khuất tên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-004
+    title: Kiểu số, chuỗi, ngày giờ và BOOLEAN trong PL/SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-005
+    title: Gán giá trị, biểu thức và xử lý NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-006
+    title: IF, ELSIF, CASE và nhánh điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-007
+    title: LOOP, WHILE, FOR, EXIT và CONTINUE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-008
+    title: '%TYPE, %ROWTYPE và liên kết khai báo với schema'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-009
+    title: RECORD và mô hình dữ liệu nhiều trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-010
+    title: Associative array, nested table và VARRAY trong PL/SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-011
+    title: Collection method, chỉ số thưa và phần tử chưa khởi tạo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-012
+    title: DBMS_OUTPUT, biến bind và chạy block từ công cụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-basics-013
+    title: Quy ước tên, tổ chức khối và viết mã PL/SQL dễ bảo trì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: plsql-data-access
+  title: PL/SQL và dữ liệu
+  childs:
+  - slug: plsql-data-access-001
+    title: SELECT INTO và các lỗi NO_DATA_FOUND hoặc TOO_MANY_ROWS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-002
+    title: DML trong PL/SQL và đọc SQL%ROWCOUNT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-003
+    title: Implicit cursor và các thuộc tính SQL%FOUND/NOTFOUND/ISOPEN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-004
+    title: 'Explicit cursor: khai báo, mở, fetch và đóng'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-005
+    title: Cursor FOR LOOP, cursor có tham số và phạm vi tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-006
+    title: REF CURSOR, SYS_REFCURSOR và trả tập kết quả cho ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-007
+    title: Khóa dòng bằng cursor FOR UPDATE và WHERE CURRENT OF
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-008
+    title: SQL tĩnh, SQL động và tiêu chí lựa chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-009
+    title: EXECUTE IMMEDIATE, USING và RETURNING INTO
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-010
+    title: DBMS_SQL khi số cột hoặc số biến bind chưa biết trước
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-011
+    title: Bind theo vị trí/tên và khác biệt giữa SQL động với block PL/SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: plsql-data-access-012
+    title: Chống SQL injection trong SQL động và sử dụng DBMS_ASSERT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: procedures-and-packages
+  title: Thủ tục và package
+  childs:
+  - slug: procedures-and-packages-001
+    title: CREATE PROCEDURE, CREATE FUNCTION và lựa chọn đơn vị chương trình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-002
+    title: Tham số IN, OUT, IN OUT và giá trị mặc định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-003
+    title: Overloading, named notation và positional notation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-004
+    title: Phạm vi tác dụng của NOCOPY và xử lý tham số khi phát sinh lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-005
+    title: Package specification, package body và giao diện công khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-006
+    title: Thành phần riêng, trạng thái package và quá trình khởi tạo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-007
+    title: Trạng thái package qua phiên và ảnh hưởng của connection pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-008
+    title: AUTHID DEFINER, AUTHID CURRENT_USER và kiểm tra quyền thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-009
+    title: Gọi function trong SQL, tính thuần và giới hạn tác dụng phụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-010
+    title: Quyền EXECUTE, quyền trực tiếp và vai trò khi biên dịch PL/SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-011
+    title: Phụ thuộc đối tượng, thay đổi chữ ký và biên dịch lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: procedures-and-packages-012
+    title: Thiết kế API cơ sở dữ liệu, ranh giới giao dịch và hợp đồng lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: exceptions-and-triggers
+  title: Lỗi và trigger
+  childs:
+  - slug: exceptions-and-triggers-001
+    title: Exception định sẵn, exception tự định nghĩa và PRAGMA EXCEPTION_INIT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-002
+    title: RAISE, RAISE_APPLICATION_ERROR và bảo toàn thông tin nguyên nhân
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-003
+    title: SQLCODE, SQLERRM, FORMAT_ERROR_STACK và FORMAT_ERROR_BACKTRACE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-004
+    title: WHEN OTHERS, truyền tiếp lỗi và tránh che giấu giao dịch thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-005
+    title: BEFORE, AFTER, row-level và statement-level trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-006
+    title: :OLD, :NEW và xử lý INSERT/UPDATE/DELETE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-007
+    title: INSTEAD OF trigger cho thao tác thay đổi dữ liệu qua view
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-008
+    title: Mutating table và lựa chọn compound trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-009
+    title: Thứ tự thực thi, trigger lồng nhau và tác động ngoài dự kiến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-010
+    title: DDL/database event trigger và ranh giới quyền quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-011
+    title: PRAGMA AUTONOMOUS_TRANSACTION cho nhật ký và rủi ro mất nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exceptions-and-triggers-012
+    title: Khi nên dùng constraint, mã ứng dụng hoặc trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: advanced-plsql
+  title: PL/SQL nâng cao
+  childs:
+  - slug: advanced-plsql-001
+    title: Chi phí chuyển ngữ cảnh giữa SQL và PL/SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-002
+    title: BULK COLLECT, LIMIT và giới hạn bộ nhớ PGA
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-003
+    title: FORALL, INDICES OF và VALUES OF với collection thưa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-004
+    title: SAVE EXCEPTIONS, SQL%BULK_EXCEPTIONS và xử lý lỗi từng phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-005
+    title: SQL xử lý theo tập hợp so với vòng lặp và bulk processing
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-006
+    title: PRAGMA UDF, function gọi từ SQL và điều kiện hỗ trợ theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-007
+    title: Pipelined table function và tiêu thụ dữ liệu dạng luồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-008
+    title: RESULT_CACHE, điều kiện phù hợp và phụ thuộc dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-009
+    title: DETERMINISTIC và trách nhiệm bảo đảm tính xác định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-010
+    title: Conditional compilation, cảnh báo và tham số biên dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-011
+    title: Native compilation, tối ưu PL/SQL và đo trước khi thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-012
+    title: DBMS_PROFILER, DBMS_HPROF và truy tìm đoạn mã tốn thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: advanced-plsql-013
+    title: Quản lý quyền, tài nguyên và tính có thể kiểm thử của package
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: large-objects
+  title: LOB và dữ liệu lớn
+  childs:
+  - slug: large-objects-001
+    title: LOB locator, dữ liệu in-row/out-of-row và vòng đời tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-002
+    title: SecureFiles, BasicFiles và điều kiện lựa chọn cơ chế lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-003
+    title: Đọc ghi CLOB/BLOB bằng DBMS_LOB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-004
+    title: Temporary LOB, tạo/giải phóng và kiểm soát dung lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-005
+    title: Streaming dữ liệu lớn thay vì tải toàn bộ vào bộ nhớ ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-006
+    title: Chuyển đổi CLOB/BLOB, charset và xử lý tiếng Việt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-007
+    title: BFILE, DIRECTORY object và truy cập file phía máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-008
+    title: Compression, deduplication, encryption của LOB và điều kiện tính năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-009
+    title: Giao dịch, khóa và tính nhất quán khi cập nhật LOB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: large-objects-010
+    title: Đo dung lượng, truy vấn metadata và xử lý rò rỉ temporary LOB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: json-and-xml
+  title: JSON và XML
+  childs:
+  - slug: json-and-xml-001
+    title: Lưu JSON trong VARCHAR2/CLOB/BLOB và kiểm tra IS JSON
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-002
+    title: Kiểu JSON gốc và khác biệt theo phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-003
+    title: SQL/JSON path, JSON_VALUE, JSON_QUERY và JSON_EXISTS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-004
+    title: JSON_TABLE và chuyển cấu trúc JSON thành bảng quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-005
+    title: JSON_OBJECT, JSON_ARRAY và các hàm tổng hợp JSON
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-006
+    title: ON ERROR, ON EMPTY và phân biệt JSON null với SQL NULL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-007
+    title: Chỉ mục cho JSON, điều kiện đường dẫn và lựa chọn truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-008
+    title: Cập nhật JSON và kiểm tra cú pháp JSON_TRANSFORM/JSON_MERGEPATCH theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-009
+    title: PL/SQL JSON object type và thao tác cây JSON
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-010
+    title: XMLType, XMLTABLE, XMLQUERY và XMLEXISTS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-011
+    title: XMLSERIALIZE, XMLCAST và chuyển đổi giữa XML với dữ liệu quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-012
+    title: Thiết kế hợp đồng JSON/XML, kiểm soát kích thước và dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: json-and-xml-013
+    title: Lựa chọn lưu trữ quan hệ, tài liệu hoặc mô hình kết hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: optimizer-and-statistics
+  title: Bộ tối ưu và thống kê
+  childs:
+  - slug: optimizer-and-statistics-001
+    title: Cost-based optimizer và các đầu vào để lựa chọn kế hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-002
+    title: Cardinality, selectivity, cost và giới hạn của ước lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-003
+    title: Thống kê bảng, cột, chỉ mục và thông tin hệ thống
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-004
+    title: 'DBMS_STATS: thu thập thống kê theo bảng, schema hoặc database'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-005
+    title: Auto statistics, stale statistics và thời điểm cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-006
+    title: Histogram và dữ liệu phân bố lệch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-007
+    title: Extended statistics cho các cột tương quan hoặc biểu thức
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-008
+    title: Bind peeking, adaptive cursor sharing và nhiều child cursor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-009
+    title: Dynamic statistics, cardinality feedback và khác biệt theo phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-010
+    title: 'Query transformation: view merging, unnesting và predicate pushing'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-011
+    title: Pending statistics, khóa thống kê và phục hồi thống kê cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: optimizer-and-statistics-012
+    title: Tác động của thống kê sau nạp lớn, thay đổi dữ liệu hoặc nâng cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: execution-plans
+  title: Kế hoạch thực thi
+  childs:
+  - slug: execution-plans-001
+    title: EXPLAIN PLAN và khác biệt với kế hoạch đã thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-002
+    title: DBMS_XPLAN.DISPLAY và DISPLAY_CURSOR
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-003
+    title: Đọc cây thực thi, thứ tự xử lý và quan hệ giữa các nhánh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-004
+    title: TABLE ACCESS FULL, BY INDEX ROWID và các đường truy cập chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-005
+    title: NESTED LOOPS, HASH JOIN và SORT MERGE JOIN
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-006
+    title: FILTER, SORT, HASH GROUP BY và WINDOW SORT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-007
+    title: 'Predicate information: access predicate và filter predicate'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-008
+    title: So sánh E-Rows/A-Rows, Starts, Buffers và thời gian thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-009
+    title: Thu thập thống kê thực thi bằng GATHER_PLAN_STATISTICS trong phiên thử nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-010
+    title: SQL_ID, PLAN_HASH_VALUE, child cursor và điều kiện tái sử dụng kế hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-011
+    title: Phân biệt kế hoạch chạy nối tiếp với parallel execution
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: execution-plans-012
+    title: Giới hạn của cost và tránh kết luận chỉ từ một ảnh chụp kế hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sql-tuning
+  title: Tối ưu SQL
+  childs:
+  - slug: sql-tuning-001
+    title: Quy trình đo tải, chọn SQL trọng yếu, sửa và so sánh lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-002
+    title: Giảm số dòng và số cột được xử lý trước các thao tác tốn chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-003
+    title: Điều kiện có thể khai thác chỉ mục và tránh hàm bao quanh cột ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-004
+    title: Chuyển kiểu ngầm định, NLS và nguyên nhân mất đường truy cập chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-005
+    title: Viết lại truy vấn JOIN/subquery theo đúng ngữ nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-006
+    title: Tối ưu EXISTS, NOT EXISTS và xử lý quan hệ nhiều-nhiều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-007
+    title: Giảm round trip, truy vấn lặp và mô hình N+1 từ ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-008
+    title: Biến bind, cursor sharing và tải có phân bố dữ liệu lệch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-009
+    title: Tối ưu phân trang, Top-N và truy vấn theo khoảng thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-010
+    title: Ảnh hưởng của ORDER BY, DISTINCT, phép nhóm và dữ liệu tràn TEMP
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-011
+    title: Hint, query block và cách kiểm chứng hint được sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-012
+    title: SQL Plan Management, baseline và kiểm soát hồi quy kế hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-013
+    title: SQL Profile, SQL Patch, SQL Tuning Advisor và kiểm tra điều kiện giấy phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sql-tuning-014
+    title: Đo độ trễ, thông lượng, CPU/I/O và tính đúng sau mỗi thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: system-performance
+  title: Hiệu năng hệ thống
+  childs:
+  - slug: system-performance-001
+    title: Đọc V$SESSION, V$SQL, V$SQLSTATS và các bộ đếm tích lũy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-002
+    title: Wait event, wait class, DB time và phân biệt CPU với thời gian chờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-003
+    title: Chọn khoảng đo, tính chênh lệch bộ đếm và tránh diễn giải sai số tổng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-004
+    title: SQL trace, DBMS_MONITOR và TKPROF
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-005
+    title: AWR, ASH, ADDM và kiểm tra quyền sử dụng Diagnostics Pack
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-006
+    title: Chẩn đoán bằng dynamic view, trace hoặc Statspack trong phạm vi được phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-007
+    title: Nhận diện nghẽn CPU, I/O, redo, undo và temporary space
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-008
+    title: PGA, SGA, ASMM/AMM và đánh đổi bộ nhớ với hệ điều hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-009
+    title: Parallel execution, degree of parallelism và nguy cơ dùng quá tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-010
+    title: Session/process limit, số kết nối và giới hạn connection pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-011
+    title: Resource Manager, consumer group và phân bổ tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: system-performance-012
+    title: Thiết lập mức hiệu năng cơ sở và kiểm thử trước/sau thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-security
+  title: Bảo mật
+  childs:
+  - slug: database-security-001
+    title: Nguyên tắc quyền tối thiểu và tách tài khoản quản trị/ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-002
+    title: CREATE USER, xác thực, khóa tài khoản và quản lý vòng đời mật khẩu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-003
+    title: System privilege, object privilege, role và quyền cấp lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-004
+    title: GRANT, REVOKE, WITH ADMIN OPTION và WITH GRANT OPTION
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-005
+    title: Profile, password policy và giới hạn tài nguyên phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-006
+    title: SYSDBA, SYSOPER và các quyền quản trị chuyên biệt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-007
+    title: Ranh giới quyền qua synonym, view, package và database link
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-008
+    title: SQL injection, bind parameter và kiểm soát tên đối tượng động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-009
+    title: Oracle Net encryption, TLS/TCPS, wallet và quản lý chứng thư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-010
+    title: TDE, keystore, sao lưu khóa và điều kiện tính năng/giấy phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-011
+    title: Unified Auditing, audit policy và tra cứu dấu vết thao tác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-012
+    title: Fine-Grained Auditing và điều kiện áp dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-013
+    title: Virtual Private Database, application context và DBMS_RLS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-014
+    title: Data Redaction, che dữ liệu thử nghiệm và kiểm tra điều kiện sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-015
+    title: Quản lý bí mật, luân chuyển mật khẩu và tránh ghi dữ liệu nhạy cảm vào log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-security-016
+    title: Rà soát quyền định kỳ, tài khoản bỏ quên và truy cập từ PUBLIC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-operations
+  title: Vận hành
+  childs:
+  - slug: database-operations-001
+    title: STARTUP NOMOUNT, MOUNT, OPEN và điều kiện sử dụng từng trạng thái
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-002
+    title: SHUTDOWN NORMAL, TRANSACTIONAL, IMMEDIATE và ABORT
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-003
+    title: PFILE, SPFILE và phạm vi MEMORY/SPFILE/BOTH của tham số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-004
+    title: ALTER SYSTEM, ALTER SESSION và yêu cầu khởi động lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-005
+    title: ARCHIVELOG, NOARCHIVELOG và kế hoạch bảo vệ dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-006
+    title: Quản lý redo log group, member và log switch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-007
+    title: Fast Recovery Area, archived log và áp lực dung lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-008
+    title: ADR, alert log, trace file và sử dụng ADRCI
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-009
+    title: Theo dõi trạng thái listener, service, database và PDB
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-010
+    title: 'DBMS_SCHEDULER: job, program, schedule, credential và lịch sử chạy'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-011
+    title: Maintenance window, auto task và kiểm soát thời điểm bảo trì
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-012
+    title: DBMS_APPLICATION_INFO để gắn module/action cho phiên ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-013
+    title: Kiểm tra sức khỏe định kỳ và xây dựng sổ tay vận hành (runbook)
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-operations-014
+    title: Lập kế hoạch dung lượng, ngưỡng cảnh báo và xử lý tài nguyên cạn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Phân biệt backup, restore, recovery và yêu cầu RPO/RTO
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-002
+    title: Consistent backup, inconsistent backup và crash recovery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-003
+    title: RMAN repository, control file và recovery catalog
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-004
+    title: Cấu hình RMAN channel, device type và vị trí lưu backup
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-005
+    title: Full backup, incremental level 0/1 và block change tracking
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-006
+    title: Backup database, tablespace, datafile, control file và SPFILE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-007
+    title: Sao lưu archived redo log và quan hệ với khả năng phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-008
+    title: Retention policy, redundancy, recovery window và deletion policy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-009
+    title: LIST, REPORT, CROSSCHECK, EXPIRED và OBSOLETE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-010
+    title: RESTORE VALIDATE, kiểm tra lỗi block và diễn tập phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-011
+    title: Complete recovery khi mất datafile hoặc hỏng vùng lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-012
+    title: Point-in-time recovery, RESETLOGS và database incarnation
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-013
+    title: Phục hồi khi mất control file, SPFILE hoặc online redo log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-014
+    title: Phục hồi CDB/PDB và kiểm tra điều kiện của bản Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-015
+    title: RMAN DUPLICATE, tạo bản sao và tách dữ liệu nhạy cảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-016
+    title: Sao lưu khóa mã hóa, lưu bản sao ngoài máy chủ và chứng minh khả năng khôi phục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: flashback
+  title: Flashback
+  childs:
+  - slug: flashback-001
+    title: Phân biệt Flashback Query, Table, Database và backup recovery
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-002
+    title: AS OF SCN, AS OF TIMESTAMP và truy vấn dữ liệu trong quá khứ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-003
+    title: VERSIONS BETWEEN và xem lịch sử thay đổi của dòng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-004
+    title: Flashback Transaction Query và điều kiện truy cập thông tin giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-005
+    title: FLASHBACK TABLE, row movement và giới hạn phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-006
+    title: Recycle bin, FLASHBACK DROP và hành vi PURGE
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-007
+    title: Flashback Database, flashback log và cấu hình vùng phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-008
+    title: Restore point, guaranteed restore point và áp lực dung lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-009
+    title: Undo retention, thời gian lưu lịch sử và giới hạn khả năng flashback
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-010
+    title: Flashback Data Archive và kiểm tra điều kiện tính năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: flashback-011
+    title: Lựa chọn cách khắc phục xóa nhầm, cập nhật nhầm hoặc triển khai lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: high-availability
+  title: Sẵn sàng cao
+  childs:
+  - slug: high-availability-001
+    title: Phân biệt sẵn sàng cao, khôi phục thảm họa và mở rộng năng lực xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-002
+    title: Tổng quan RAC, instance dùng chung database và Cache Fusion
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-003
+    title: Service trong RAC, phân phối kết nối và ràng buộc vị trí dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-004
+    title: 'Data Guard: primary, physical standby và redo transport/apply'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-005
+    title: Synchronous/asynchronous transport và đánh đổi độ trễ với mức bảo vệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-006
+    title: Protection mode, apply lag, transport lag và kiểm chứng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-007
+    title: Switchover, failover, reinstate và kế hoạch diễn tập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-008
+    title: Data Guard Broker, observer và điều kiện tự động failover
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-009
+    title: Active Data Guard và phân biệt với chức năng Data Guard cơ bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-010
+    title: FAN, Fast Connection Failover và phối hợp với connection pool
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-011
+    title: Application Continuity, replay và những thao tác không an toàn để lặp lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-012
+    title: Đối chiếu RAC/Data Guard/Active Data Guard với edition và giấy phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: high-availability-013
+    title: Thiết kế ứng dụng chịu mất kết nối, thử lại có giới hạn và chống giao dịch trùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-movement
+  title: Nhập xuất và di chuyển
+  childs:
+  - slug: data-movement-001
+    title: Phân biệt sao lưu vật lý với xuất nhập dữ liệu logic
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-002
+    title: 'Data Pump: expdp, impdp và xử lý phía máy chủ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-003
+    title: DIRECTORY object, quyền truy cập và vị trí dump/log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-004
+    title: Export/import theo database, schema, table hoặc tablespace
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-005
+    title: INCLUDE, EXCLUDE, QUERY và chọn phạm vi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-006
+    title: REMAP_SCHEMA, REMAP_TABLESPACE và xử lý đối tượng đã tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-007
+    title: Consistent export bằng FLASHBACK_SCN/FLASHBACK_TIME
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-008
+    title: Parallel, compression, encryption và kiểm tra điều kiện sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-009
+    title: 'SQL*Loader: control file, bad file, discard file và nạp CSV'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-010
+    title: External table để đọc file và xử lý dữ liệu theo SQL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-011
+    title: Transportable tablespace và full transportable theo điều kiện tương thích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-012
+    title: Bộ ký tự, timezone file, VERSION và tương thích giữa nguồn/đích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-013
+    title: Đối soát số dòng, tổng kiểm tra nghiệp vụ và đối tượng INVALID sau di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-movement-014
+    title: Kế hoạch cắt chuyển, dữ liệu tăng thêm và quay lui khi kiểm tra thất bại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: distributed-integration
+  title: Tích hợp phân tán
+  childs:
+  - slug: distributed-integration-001
+    title: Database link và truy vấn đối tượng từ database khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-002
+    title: Đẩy điều kiện lọc, giảm dữ liệu truyền và đọc kế hoạch truy vấn phân tán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-003
+    title: Giao dịch phân tán, two-phase commit và giao dịch in-doubt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-004
+    title: XA transaction từ Java và lựa chọn quản lý giao dịch toàn cục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-005
+    title: 'Advanced Queuing: queue table, enqueue, dequeue và tính giao dịch'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-006
+    title: DBMS_SCHEDULER cho công việc tích hợp nền và kiểm soát thực hiện lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-007
+    title: UTL_FILE, DIRECTORY và giới hạn truy cập filesystem
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-008
+    title: UTL_HTTP, network ACL, wallet và gọi dịch vụ bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-009
+    title: Change Data Capture, GoldenGate và phân biệt với Data Guard
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-010
+    title: Outbox, tính lũy đẳng (idempotency) và đồng bộ dữ liệu theo sự kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-011
+    title: ORDS, REST-enabled SQL và ranh giới với ứng dụng Spring Boot
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: distributed-integration-012
+    title: Giới hạn phạm vi, quyền và giấy phép của các phương án tích hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: oracle-jdbc
+  title: Oracle JDBC
+  childs:
+  - slug: oracle-jdbc-001
+    title: Chọn Oracle JDBC driver theo JDK và ma trận tương thích database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-002
+    title: JDBC Thin, OCI driver và tiêu chí lựa chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-003
+    title: URL kết nối bằng service name, Easy Connect và connect descriptor
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-004
+    title: OracleDataSource, thuộc tính kết nối và quản lý bí mật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-005
+    title: Connection, Statement, PreparedStatement và CallableStatement
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-006
+    title: Bind kiểu dữ liệu, setNull và phân biệt JDBC type với Oracle type
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-007
+    title: Ánh xạ NUMBER sang BigDecimal và kiểm soát độ chính xác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-008
+    title: Ánh xạ DATE/TIMESTAMP sang kiểu java.time và xử lý múi giờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-009
+    title: Sequence, identity, generated keys và RETURNING từ JDBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-010
+    title: Batch DML, JDBC standard batching và xử lý BatchUpdateException
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-011
+    title: Fetch size, row prefetch và giảm số lần trao đổi mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-012
+    title: REF CURSOR, OUT parameter, ARRAY và object type
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-013
+    title: Đọc ghi CLOB/BLOB dạng luồng và đóng tài nguyên đúng vòng đời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-014
+    title: Statement cache, cursor phía server và xử lý ORA-01000
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-015
+    title: Connect timeout, read timeout, query timeout và hủy câu lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: oracle-jdbc-016
+    title: SQLState, vendor error code và phân loại lỗi có thể thử lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: spring-boot-and-jpa
+  title: Spring Boot và JPA
+  childs:
+  - slug: spring-boot-and-jpa-001
+    title: Cấu hình DataSource Oracle trong Spring Boot theo từng môi trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-002
+    title: HikariCP, Oracle UCP và ranh giới quản lý kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-003
+    title: Kích thước pool, thời gian sống kết nối và giới hạn session phía Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-004
+    title: Khởi tạo và đặt lại NLS/application context khi tái sử dụng kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-005
+    title: JdbcTemplate, named parameter và xử lý kiểu dữ liệu Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-006
+    title: Chọn Oracle dialect theo phiên bản Hibernate và database
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-007
+    title: Ánh xạ entity, schema, tên đối tượng và định danh có dấu ngoặc kép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-008
+    title: Sequence generator, allocationSize và phối hợp với sequence phía Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-009
+    title: Ánh xạ LOB, thời gian, enum và converter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-010
+    title: '@Transactional, propagation và ranh giới giao dịch qua proxy'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-011
+    title: Read-only, isolation, flush và hành vi khóa thực tế trong Oracle
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-012
+    title: Optimistic locking, pessimistic locking và timeout
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-013
+    title: Phân trang, batch insert/update và kiểm soát N+1
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-014
+    title: Stored procedure, native query và giới hạn trừu tượng ORM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: spring-boot-and-jpa-015
+    title: Khôi phục kết nối sau sự cố và tránh thực hiện lặp giao dịch nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-testing
+  title: Kiểm thử
+  childs:
+  - slug: database-testing-001
+    title: Chọn bản Oracle, edition và tham số tương thích cho bộ kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-002
+    title: Tạo môi trường Oracle cô lập bằng container hoặc máy ảo tự động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-003
+    title: Kiểm thử tích hợp với Oracle thật và khác biệt với H2
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-004
+    title: Tạo/reset schema, seed dữ liệu và thứ tự quan hệ khóa ngoại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-005
+    title: Kiểm thử SQL với NULL, chuỗi rỗng, dữ liệu trùng và Unicode
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-006
+    title: Kiểm thử NUMBER, làm tròn, ngày giờ và chuyển múi giờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-007
+    title: Kiểm thử giao dịch, rollback và implicit commit của DDL
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-008
+    title: Kiểm thử đồng thời bằng nhiều session và lịch thực thi có kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-009
+    title: Kiểm thử package, function và procedure bằng utPLSQL hoặc JDBC
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-010
+    title: Kiểm thử mất kết nối, timeout, deadlock và tính an toàn khi retry
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-011
+    title: Đo tải với dữ liệu đại diện, warm-up và kế hoạch thực thi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-testing-012
+    title: Kiểm thử phục hồi dữ liệu và kiểm tra khả năng quay lui triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-change-management
+  title: Thay đổi và nâng cấp
+  childs:
+  - slug: database-change-management-001
+    title: Quản lý DDL, PL/SQL và dữ liệu tham chiếu bằng version control
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-002
+    title: Flyway/Liquibase với Oracle và thứ tự thực hiện migration
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-003
+    title: Khóa triển khai, lịch sử migration và phát hiện schema drift
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-004
+    title: DDL implicit commit và thiết kế migration chịu lỗi từng phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-005
+    title: Mô hình mở rộng rồi thu hẹp để đổi schema tương thích ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-006
+    title: Backfill dữ liệu theo lô, kiểm soát redo/undo và khả năng chạy lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-007
+    title: Online DDL, DBMS_REDEFINITION và giới hạn khóa/tính năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-008
+    title: Edition-Based Redefinition, editioning view và cross-edition trigger
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-009
+    title: Đổi tên, đổi kiểu, thêm ràng buộc và xử lý đối tượng phụ thuộc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-010
+    title: Release Update, OPatch, datapatch và kiểm tra sau vá
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-011
+    title: Nâng cấp database, COMPATIBLE và kiểm tra tính năng bị loại bỏ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-012
+    title: Kiểm chứng SQL plan, driver, timezone, quyền và ứng dụng sau nâng cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-change-management-013
+    title: Kế hoạch cắt chuyển, go/no-go và giới hạn của rollback hoặc downgrade
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Quy trình xác định thời điểm, phạm vi, thay đổi gần nhất và bằng chứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-002
+    title: ORA-12154, ORA-12514, ORA-12541 và chẩn đoán Oracle Net
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-003
+    title: ORA-01017, ORA-28000 và lỗi xác thực hoặc tài khoản bị khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-004
+    title: ORA-00942, ORA-01031 và lỗi phân giải đối tượng hoặc thiếu quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-005
+    title: ORA-00001, ORA-02291, ORA-02292 và vi phạm toàn vẹn dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-006
+    title: ORA-01400, ORA-01438, ORA-12899 và dữ liệu vượt miền cho phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-007
+    title: ORA-01722, ORA-01843, ORA-01861 và lỗi chuyển đổi phụ thuộc dữ liệu/NLS
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-008
+    title: ORA-00054, ORA-00060 và phân biệt chờ khóa với deadlock
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-009
+    title: ORA-01555, ORA-30036 và kiểm tra nhu cầu UNDO
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-010
+    title: ORA-01652, ORA-01653 và lỗi không đủ vùng tạm hoặc lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-011
+    title: ORA-01000, ORA-04030, ORA-04031 và tài nguyên cursor/bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-012
+    title: ORA-00018, ORA-00020 và giới hạn session/process
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-013
+    title: ORA-03113, ORA-03135, ORA-17002 và mất kết nối từ ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-014
+    title: ORA-04063, ORA-06508, ORA-04068 và đối tượng PL/SQL/trạng thái package
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-015
+    title: Truy vấn chậm đột ngột do thống kê, bind hoặc thay đổi kế hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-016
+    title: Commit chậm, redo log switch và nghẽn vùng phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-017
+    title: Thu thập alert log, trace, SQL_ID và ngữ cảnh trước khi khắc phục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: troubleshooting-018
+    title: Đánh giá tác động trước khi kill session, khởi động lại hoặc đổi tham số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: extended-features
+  title: Tính năng mở rộng
+  childs:
+  - slug: extended-features-001
+    title: Lập ma trận tính năng theo release, COMPATIBLE, edition và giấy phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-002
+    title: So sánh phạm vi SQL/PLSQL giữa hệ thống 19c và các bản Oracle mới hơn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-003
+    title: SQL BOOLEAN, giới hạn định danh và cú pháp mới theo bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-004
+    title: SQL macro và điều kiện sử dụng theo release/update
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-005
+    title: JSON-Relational Duality và ranh giới với JSON_TABLE hoặc ORM
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-006
+    title: 'AI Vector Search: kiểu VECTOR, độ tương đồng và loại chỉ mục'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-007
+    title: SQL property graph, mô hình đồ thị và truy vấn theo phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-008
+    title: 'Oracle Text: chỉ mục văn bản, lexer và đồng bộ chỉ mục'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-009
+    title: 'Oracle Spatial: hình học, hệ tọa độ và truy vấn không gian'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-010
+    title: Database In-Memory, column store và khác biệt với buffer cache
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-011
+    title: Sharding, khóa phân mảnh và định tuyến giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-012
+    title: Autonomous Database, wallet và ranh giới trách nhiệm vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: extended-features-013
+    title: Đánh giá tính năng mở rộng bằng bài toán, dữ liệu và điều kiện triển khai thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Xây dựng schema quản lý đơn hàng với ràng buộc, sequence và dữ liệu mẫu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-002
+    title: Viết báo cáo doanh thu có tổng phụ, xếp hạng và so sánh theo thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-003
+    title: Thiết kế giữ chỗ tồn kho và kiểm chứng giao dịch đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-004
+    title: Xây dựng package nghiệp vụ với hợp đồng tham số và xử lý lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-005
+    title: Nạp dữ liệu lớn, tách dòng lỗi và đối soát kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-006
+    title: Tối ưu một truy vấn từ số liệu thực thi đến lựa chọn chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-007
+    title: Kết nối Java/Spring Boot, quản lý giao dịch và ánh xạ kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-008
+    title: Mô phỏng pool cạn, timeout, deadlock và khôi phục có kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-009
+    title: Triển khai thay đổi schema tương thích nhiều phiên bản ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-010
+    title: Di chuyển schema bằng Data Pump và kiểm tra dữ liệu/đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-011
+    title: Diễn tập xóa nhầm, mất datafile và lựa chọn phương án phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-012
+    title: Hoàn thiện runbook với sơ đồ kiến trúc, chỉ số theo dõi và bằng chứng kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

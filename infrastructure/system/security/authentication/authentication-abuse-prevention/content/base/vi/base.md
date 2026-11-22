@@ -1,0 +1,7 @@
+# Security Authentication Authentication Abuse Prevention
+
+**Authentication Abuse Prevention** tập trung ngăn việc lợi dụng các chức năng đăng nhập và khôi phục tài khoản để đoán mật khẩu, thử thông tin đăng nhập bị rò rỉ, dò tài khoản hoặc chiếm quyền người dùng. Phòng vệ hiệu quả phải kết hợp giới hạn tần suất, phát hiện hành vi tự động, xác thực nhiều yếu tố và phản hồi an toàn; không nên chỉ dựa vào khóa tài khoản hay CAPTCHA vì có thể gây phiền toái hoặc từ chối dịch vụ đối với người dùng hợp lệ.
+
+Lộ trình gồm **8 mốc**: nhận diện các dạng tấn công xác thực; thiết kế throttling và backoff; giảm credential stuffing và bot traffic; chống user enumeration; áp dụng MFA và step-up; bảo vệ OTP cùng account recovery; giám sát và phản ứng với hành vi đáng ngờ; cuối cùng là kiểm thử hiệu quả và đánh đổi. Người học thực hành trên ứng dụng mẫu trong môi trường được phép, kiểm tra cả cách hệ thống xử lý yêu cầu bất thường lẫn trải nghiệm của người dùng bình thường.
+
+Học phần phù hợp với Java/backend developer, security engineer hoặc người vận hành hệ thống đã biết HTTP, session và các cơ chế xác thực cơ bản. Sau khi hoàn thành, bạn có thể đề xuất cơ chế chống lạm dụng theo nhiều lớp, xử lý rủi ro chiếm đoạt tài khoản, bảo vệ luồng khôi phục và đánh giá chính sách bằng log, kiểm thử và số liệu thay vì chỉ tăng số lượng rào cản.

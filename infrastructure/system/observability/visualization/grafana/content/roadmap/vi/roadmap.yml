@@ -1,0 +1,56 @@
+roadmap:
+- id: tong-quan-grafana
+  title: Tổng quan Grafana
+  purpose: Hiểu vai trò của Grafana trong quan sát hệ thống và sự khác biệt giữa hiển thị với lưu trữ telemetry.
+  objectives:
+  - Phân biệt Grafana với backend metrics, logs và traces.
+  - Nhận diện Dashboard, Panel và Explore.
+- id: data-sources
+  title: Data Sources
+  purpose: Kết nối các kho telemetry để có dữ liệu truy vấn và trực quan hóa.
+  objectives:
+  - Cấu hình nguồn Prometheus, Loki hoặc Tempo.
+  - Kiểm tra kết nối và quyền truy vấn.
+  - Nhận diện lỗi cấu hình nguồn dữ liệu.
+- id: explore-truy-van
+  title: Explore & Truy vấn
+  purpose: Khám phá dữ liệu theo thời gian trước khi đưa lên dashboard.
+  objectives:
+  - Truy vấn metrics, logs hoặc traces trong Explore.
+  - Điều chỉnh time range và bộ lọc.
+  - Đọc kết quả và phát hiện tín hiệu bất thường.
+- id: panels-bieu-do
+  title: Panels & Biểu đồ
+  purpose: Chọn kiểu hiển thị phù hợp để truyền đạt trạng thái và xu hướng.
+  objectives:
+  - Chọn Time series, Stat hoặc Table theo dữ liệu.
+  - Cấu hình đơn vị, ngưỡng và chú giải.
+  - Kiểm tra panel so với kết quả truy vấn.
+- id: thiet-ke-dashboard
+  title: Thiết kế Dashboard
+  purpose: Kết hợp các panel thành góc nhìn vận hành dễ hiểu và có mục đích.
+  objectives:
+  - Xây dashboard cho một dịch vụ hoặc hệ thống.
+  - Bố trí chỉ số trọng yếu theo thứ tự đọc.
+  - Thiết lập time range và refresh phù hợp.
+- id: variables-bo-loc
+  title: Variables & Bộ lọc
+  purpose: Tái sử dụng một dashboard cho nhiều dịch vụ và môi trường.
+  objectives:
+  - Tạo biến service hoặc environment.
+  - Dùng biến trong query và tiêu đề panel.
+  - Kiểm tra kết quả khi đổi bộ lọc.
+- id: transformations-links
+  title: Transformations & Links
+  purpose: Biến đổi dữ liệu và liên kết từ bức tranh tổng quan tới chi tiết điều tra.
+  objectives:
+  - Lọc, ghép hoặc đổi tên trường dữ liệu.
+  - Tạo data link giữa panel và dashboard.
+  - Giữ thời gian và biến khi drilldown.
+- id: chia-se-provisioning
+  title: Chia sẻ & Provisioning
+  purpose: Duy trì dashboard nhất quán, có thể chia sẻ và triển khai lặp lại.
+  objectives:
+  - Lưu và tổ chức dashboard theo thư mục.
+  - Kiểm soát quyền xem hoặc sửa nội dung.
+  - Nêu cách provision dashboard từ cấu hình.

@@ -1,0 +1,363 @@
+menu:
+- level1: Khái niệm lạm dụng xác thực
+  level2:
+  - Authentication abuse là gì và khác lỗi xác thực thế nào
+  - Mục tiêu của kẻ tấn công khi lạm dụng luồng đăng nhập
+  - Tấn công đoán, tự động hóa, chiếm tài khoản và từ chối dịch vụ
+  - Bề mặt lạm dụng gồm login, signup, reset và verify
+  - Phòng ngừa phải cân bằng bảo mật với khả dụng
+  - Ranh giới giữa abuse prevention và authorization
+- level1: Mô hình đe dọa
+  level2:
+  - Attacker có credential bị rò rỉ hoặc danh sách tài khoản
+  - Attacker phân tán qua nhiều IP, thiết bị và ASN
+  - Bot, browser automation và traffic giống người dùng
+  - Insider hoặc service abuse bằng credential hợp lệ
+  - Tấn công vào logic, quota và dependency bên ngoài
+  - Đánh giá tác động đến người dùng, hệ thống và chi phí
+- level1: Bề mặt xác thực
+  level2:
+  - Login bằng mật khẩu và username
+  - MFA, OTP, recovery code và passkey
+  - Đăng ký, xác minh email và xác minh số điện thoại
+  - Password reset, account unlock và reauthentication
+  - Refresh token, session renewal và logout
+  - API key, service account và machine authentication
+  - Federation, SSO và callback xác thực
+- level1: Brute force
+  level2:
+  - Đoán mật khẩu trên một tài khoản
+  - Giới hạn số lần thử liên tiếp
+  - Backoff tăng dần sau các lần thất bại
+  - Không khóa cứng gây denial of service cho nạn nhân
+  - Reset bộ đếm sau khi xác thực thành công phù hợp
+  - Tách retry limit theo authenticator và theo tài khoản
+  - Đo hiệu quả mà không làm lộ ngưỡng bảo vệ
+- level1: Credential stuffing
+  level2:
+  - Dùng username và password từ các vụ rò rỉ khác
+  - Tín hiệu nhiều tài khoản bị thử cùng một mẫu credential
+  - Phân biệt stuffing với người dùng quên mật khẩu
+  - Password blocklist và kiểm tra mật khẩu đã lộ
+  - MFA chống tác động của password reuse
+  - Phát hiện theo tài khoản, IP, thiết bị và mạng phân tán
+  - Không chỉ dựa vào một ngưỡng lưu lượng cố định
+- level1: Password spraying
+  level2:
+  - Thử một mật khẩu phổ biến trên nhiều tài khoản
+  - Tín hiệu thất bại rải đều theo nhiều username
+  - Phát hiện theo nguồn, thời gian và mẫu hành vi
+  - Kết hợp blocklist với throttling
+  - Không khóa hàng loạt tài khoản hợp lệ
+  - Bảo vệ tài khoản đặc quyền với policy riêng
+  - Điều tra password spray trong log tập trung
+- level1: OTP và mã xác thực
+  level2:
+  - Giới hạn lần thử OTP theo challenge và tài khoản
+  - Độ dài, thời hạn và entropy của mã
+  - Không cho đoán mã qua nhiều endpoint khác nhau
+  - Một mã chỉ được dùng một lần
+  - Invalidate challenge cũ khi phát hành challenge mới
+  - Chống abuse SMS, email và voice delivery
+  - Không tiết lộ mã trong log hoặc thông báo lỗi
+- level1: MFA abuse
+  level2:
+  - MFA fatigue và lạm dụng push notification
+  - Spam yêu cầu xác nhận để làm người dùng chấp thuận
+  - Number matching và context-aware approval
+  - Giới hạn số challenge đang chờ
+  - Step-up khi hành vi có rủi ro cao
+  - Backup factor không được trở thành đường tắt yếu
+  - Thu hồi và bind lại authenticator bị lạm dụng
+- level1: Login throttling
+  level2:
+  - Rate limit theo tài khoản, IP, thiết bị và danh tính
+  - Distributed attack khiến chỉ giới hạn theo IP thất bại
+  - Token bucket, leaky bucket và sliding window
+  - Backoff mềm thay vì khóa cứng đột ngột
+  - Thời gian chờ và thông báo cho người dùng hợp lệ
+  - Đồng bộ counter trong hệ thống nhiều instance
+  - Fail-safe khi rate-limit store không khả dụng
+- level1: Account lockout
+  level2:
+  - Mục tiêu và giới hạn của account lockout
+  - Khóa tạm thời so với vô hiệu hóa lâu dài
+  - Lockout có thể bị dùng để khóa nạn nhân
+  - Mở khóa qua reauthentication hoặc recovery an toàn
+  - Thông báo mà không xác nhận tài khoản tồn tại
+  - Policy riêng cho tài khoản đặc quyền
+  - Audit mọi lần khóa, mở khóa và thay đổi policy
+- level1: Bot detection
+  level2:
+  - Phân biệt người dùng thật và automation
+  - CAPTCHA, challenge và các giới hạn của chúng
+  - Proof-of-work hoặc JavaScript challenge khi phù hợp
+  - Tín hiệu trình duyệt, thiết bị và tốc độ thao tác
+  - Không phụ thuộc một fingerprint dễ giả mạo
+  - Accessibility và fallback cho người dùng thật
+  - Đánh giá false positive trước khi chặn
+- level1: Risk-based authentication
+  level2:
+  - Điểm rủi ro theo IP, địa lý, thiết bị và thời điểm
+  - Hành vi quen thuộc của tài khoản
+  - Impossible travel và thay đổi môi trường bất thường
+  - Step-up MFA thay vì từ chối mọi traffic đáng ngờ
+  - Giải thích quyết định đủ dùng mà không lộ tín hiệu
+  - Model drift và rà soát rule định kỳ
+  - Không dùng risk score như bằng chứng authorization duy nhất
+- level1: Account enumeration
+  level2:
+  - Username enumeration qua thông báo lỗi
+  - Khác biệt status code, thời gian và kích thước response
+  - Thông báo chung cho login, signup và recovery
+  - Cân bằng UX với yêu cầu xác nhận email
+  - Timing equalization và xử lý nhánh thất bại
+  - Không để endpoint phụ làm lộ trạng thái tài khoản
+  - Kiểm thử enumeration ở mọi ngôn ngữ và format
+- level1: Login response security
+  level2:
+  - Thông báo lỗi chung và không xác nhận username
+  - Status code nhất quán trong các trường hợp thất bại
+  - Không trả stack trace, rule nội bộ hoặc identity detail
+  - Response time không tạo tín hiệu dễ khai thác
+  - Cache-control cho response xác thực
+  - Correlation ID không chứa thông tin nhạy cảm
+  - Không ghi credential hoặc OTP vào response
+- level1: Registration abuse
+  level2:
+  - Tạo hàng loạt tài khoản tự động
+  - Email, phone và domain reputation
+  - Giới hạn signup theo nguồn và danh tính
+  - Xác minh trước khi cấp quyền hoặc tài nguyên
+  - Chống tạo account để chiếm username
+  - Cleanup tài khoản chưa hoàn tất và dữ liệu liên quan
+  - Không biến xác minh thành kênh spam
+- level1: Email và SMS abuse
+  level2:
+  - Giới hạn số message theo tài khoản và đích nhận
+  - Chống gửi lại verification hoặc reset liên tục
+  - Chi phí và quota của nhà cung cấp
+  - De-duplicate yêu cầu trong cửa sổ thời gian
+  - Không lộ việc email hoặc số điện thoại tồn tại
+  - Theo dõi delivery failure và bounce bất thường
+  - Runbook khi provider bị lạm dụng hoặc gián đoạn
+- level1: Password reset abuse
+  level2:
+  - Giới hạn yêu cầu reset theo account và nguồn
+  - Token reset đủ entropy, ngắn hạn và dùng một lần
+  - Invalidate token sau khi đổi mật khẩu
+  - Không gửi mật khẩu mới qua kênh không an toàn
+  - Chống reset spam làm gián đoạn người dùng
+  - Revoke session và authenticator theo policy
+  - Thông báo reset không xác nhận tài khoản
+- level1: Recovery abuse
+  level2:
+  - Xác định mức assurance cần cho account recovery
+  - Không dùng security question yếu làm yếu tố chính
+  - Recovery code có entropy và trạng thái sử dụng
+  - Step-up hoặc manual review cho tài khoản nhạy cảm
+  - Chống social engineering qua support workflow
+  - Audit người phê duyệt và bằng chứng recovery
+  - Delay có kiểm soát cho thay đổi rủi ro cao
+- level1: Session abuse
+  level2:
+  - Session fixation và đổi session ID sau đăng nhập
+  - Giới hạn session đồng thời theo policy
+  - Reauthentication cho thao tác nhạy cảm
+  - Invalidate session khi phát hiện rủi ro
+  - Refresh token rotation và reuse detection
+  - Logout từ xa và thu hồi toàn bộ phiên
+  - Không để session timeout gây lockout nhầm
+- level1: Token abuse
+  level2:
+  - Brute force token và xác minh chữ ký
+  - Token replay và ràng buộc audience
+  - Scope, expiry và quyền tối thiểu
+  - Refresh token reuse và phát hiện chain bất thường
+  - Không chấp nhận algorithm hoặc issuer ngoài allowlist
+  - Key rotation và xử lý token còn hiệu lực
+  - Không để token trong URL, log hoặc referrer
+- level1: API authentication abuse
+  level2:
+  - Rate limit theo client, identity và endpoint
+  - Chống credential stuffing qua API không có giao diện
+  - Giới hạn payload, pagination và số lượng thao tác
+  - Bảo vệ endpoint login, token và recovery riêng
+  - Không để API bypass policy của web UI
+  - Idempotency cho request có side effect
+  - Kiểm tra authorization sau khi authentication thành công
+- level1: Resource exhaustion
+  level2:
+  - Chi phí hash mật khẩu và login song song
+  - Kết nối database, KMS, email và SMS bị tiêu thụ
+  - Giới hạn concurrency và queue depth
+  - Timeout, circuit breaker và bulkhead
+  - Chống request tạo nhiều challenge hoặc session
+  - Quota theo tenant và theo loại thao tác
+  - Đo chi phí trên cả thành công và thất bại
+- level1: Distributed abuse
+  level2:
+  - Attack phân tán qua proxy, botnet và cloud IP
+  - Kết hợp tín hiệu account, device, network và behavior
+  - Edge rate limit và application rate limit
+  - ASN, reputation và residential proxy
+  - Không block cả NAT hoặc mạng doanh nghiệp vô tội
+  - Chia sẻ tín hiệu giữa các region
+  - Xử lý sai lệch clock và eventual consistency
+- level1: IP và proxy
+  level2:
+  - Xác định client IP qua trusted proxy chain
+  - Không tin X-Forwarded-For từ nguồn không được xác thực
+  - Chính sách theo IP không thay thế kiểm soát theo account
+  - IPv4, IPv6, NAT và mobile network
+  - Proxy rotation và giới hạn của IP reputation
+  - Kiểm thử deployment sau CDN hoặc load balancer
+  - Audit source context đã dùng cho quyết định
+- level1: Thiết bị và fingerprint
+  level2:
+  - Device binding và rủi ro mất thiết bị
+  - Fingerprint ổn định vừa đủ nhưng không xâm phạm quá mức
+  - Cookie, local storage và khả năng bị xóa
+  - Thiết bị mới cần step-up thay vì tự động chặn
+  - Không dùng fingerprint làm authenticator duy nhất
+  - Privacy, consent và thời hạn lưu tín hiệu
+  - Xử lý shared device và trình duyệt riêng tư
+- level1: Mạng và địa lý
+  level2:
+  - Địa lý bất thường và impossible travel
+  - VPN, Tor, proxy và mạng di động
+  - Địa chỉ IP không phản ánh chính xác người dùng
+  - Chính sách khác nhau cho vùng có rủi ro
+  - Không dùng geolocation đơn độc để từ chối
+  - Rà soát dữ liệu địa lý và yêu cầu riêng tư
+  - Fallback khi dịch vụ định vị không khả dụng
+- level1: Bảo vệ endpoint
+  level2:
+  - Gateway, WAF và API gateway trước application
+  - Middleware chung cho login và recovery
+  - Policy riêng cho endpoint nhạy cảm
+  - Chống bypass qua endpoint legacy hoặc internal
+  - Header, method và content type hợp lệ
+  - Giới hạn upload và body trước khi xác thực sâu
+  - Đồng bộ rule giữa edge và origin
+- level1: Giám sát sự kiện
+  level2:
+  - Ghi authentication success và failure
+  - Theo dõi nhiều account từ một nguồn
+  - Theo dõi một account từ nhiều nguồn
+  - Bùng nổ reset, OTP, MFA hoặc signup
+  - Tương quan sự kiện với thay đổi profile
+  - Audit lockout, challenge và policy decision
+  - Không ghi password, token, OTP hoặc secret
+- level1: Phát hiện và cảnh báo
+  level2:
+  - Rule threshold và phát hiện theo hành vi
+  - Baseline theo tenant, khu vực và thời gian
+  - Alert cho credential stuffing và spraying
+  - Alert cho MFA fatigue và reset spam
+  - Phân biệt sự cố thật với campaign hợp lệ
+  - Severity, deduplication và escalation
+  - Đo mean time to detect và false positive
+- level1: Phản ứng sự cố
+  level2:
+  - Containment không khóa nhầm toàn bộ người dùng
+  - Tạm dừng authenticator hoặc endpoint bị lạm dụng
+  - Thu hồi session, token và recovery artifact
+  - Chặn nguồn hoặc tăng step-up có kiểm soát
+  - Bảo toàn log và thông tin điều tra
+  - Thông báo người dùng khi tài khoản có rủi ro
+  - Post-incident review và cập nhật control
+- level1: Privacy và UX
+  level2:
+  - Không tiết lộ sự tồn tại của tài khoản
+  - Thông báo thời gian chờ rõ ràng cho người dùng hợp lệ
+  - Fallback accessible khi CAPTCHA hoặc challenge lỗi
+  - Không yêu cầu dữ liệu thiết bị quá mức cần thiết
+  - Retention và mục đích sử dụng tín hiệu rủi ro
+  - Giảm friction cho hành vi hợp lệ
+  - Thiết kế recovery không đẩy người dùng vào support nguy hiểm
+- level1: Multi-tenant và đa vùng
+  level2:
+  - Cô lập counter, quota và risk signal theo tenant
+  - Policy riêng cho tenant có mức rủi ro khác nhau
+  - Đồng bộ lockout và session state giữa region
+  - Failover không reset toàn bộ kiểm soát abuse
+  - Ngăn tenant này gây cạn quota của tenant khác
+  - Data residency cho log và tín hiệu hành vi
+  - Test eventual consistency khi attack đồng thời
+- level1: Automation và CI/CD
+  level2:
+  - Load test login không tạo dữ liệu production
+  - Seed test account và secret riêng môi trường
+  - Không vô hiệu hóa rate limit trong production
+  - Kiểm tra rule sau thay đổi gateway hoặc WAF
+  - Canary policy và rollback nhanh
+  - Audit thay đổi ngưỡng, allowlist và blocklist
+  - Diễn tập incident trong pipeline an toàn
+- level1: Java thực hành
+  level2:
+  - Rate limiter trong Spring Filter hoặc interceptor
+  - Đồng bộ counter với Redis hoặc kho phân tán
+  - Bucket4j hoặc cơ chế tương đương có kiểm soát
+  - Spring Security event và audit publisher
+  - Async challenge delivery có queue và retry
+  - Circuit breaker cho provider email, SMS và risk
+  - Không để exception hoặc debug log lộ credential
+  - Test concurrency và race condition trong service
+- level1: Kiểm thử abuse
+  level2:
+  - Test brute force và backoff theo tài khoản
+  - Test credential stuffing và password spraying
+  - Test phân tán qua nhiều IP và device
+  - Test lockout DoS và false positive
+  - Test enumeration qua status, body và timing
+  - Test reset, OTP, MFA và signup abuse
+  - Test quota, timeout và dependency failure
+  - Test recovery sau khi policy chặn nhầm
+- level1: Đo lường hiệu quả
+  level2:
+  - Tỷ lệ attack bị chặn trước khi xác thực thành công
+  - False positive và tỷ lệ người dùng hợp lệ bị challenge
+  - Thời gian phát hiện và thời gian containment
+  - Chi phí email, SMS, KMS và compute do abuse
+  - Tỷ lệ lockout, recovery và support escalation
+  - Coverage của endpoint và authenticator
+  - Review metric theo campaign và theo mùa
+- level1: Quản trị policy
+  level2:
+  - Owner cho từng ngưỡng và rule abuse prevention
+  - Version hóa policy và lý do thay đổi
+  - Quy trình phê duyệt allowlist và exception
+  - Rà soát threshold theo threat landscape
+  - Separation of duties khi mở khóa hoặc bypass
+  - Kiểm kê dependency và provider bên ngoài
+  - Bằng chứng kiểm toán cho test và diễn tập
+- level1: Anti-pattern
+  level2:
+  - Chỉ giới hạn theo IP và bỏ qua account identity
+  - Khóa tài khoản vĩnh viễn sau vài lần sai
+  - Trả lỗi khác nhau cho username đúng và sai
+  - Dùng CAPTCHA duy nhất cho mọi loại abuse
+  - Đặt một ngưỡng cố định cho toàn hệ thống
+  - Tin tuyệt đối vào X-Forwarded-For hoặc fingerprint
+  - Không giới hạn reset, OTP và gửi message
+  - Tắt rate limit để chạy test rồi quên bật lại
+  - Ghi password, token, OTP hoặc risk detail vào log
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Luồng từ edge đến login service và identity store
+  - Risk engine, rate limiter và audit pipeline
+  - Tách detection khỏi quyết định challenge hoặc block
+  - Session, token, MFA và recovery cùng chia sẻ tín hiệu
+  - Failover, queue và dependency protection
+  - Runbook cho campaign credential attack
+  - Điểm kiểm soát privacy và trải nghiệm người dùng
+- level1: Checklist triển khai
+  level2:
+  - Checklist bề mặt login, signup, reset và MFA
+  - Checklist throttling, lockout và distributed defense
+  - Checklist enumeration, bot và risk-based challenge
+  - Checklist quota, dependency và resource exhaustion
+  - Checklist logging, alerting, incident và recovery
+  - Checklist privacy, accessibility và false positive
+  - Checklist test, metric, policy owner và audit evidence

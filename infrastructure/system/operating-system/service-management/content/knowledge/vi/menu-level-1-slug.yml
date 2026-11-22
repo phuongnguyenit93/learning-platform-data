@@ -1,0 +1,106 @@
+menu:
+  - title: "Tổng quan dịch vụ"
+    slug: service-overview
+    index: 0
+  - title: "Kiến trúc quản lý"
+    slug: service-management-architecture
+    index: 1
+  - title: "Vòng đời dịch vụ"
+    slug: service-lifecycle
+    index: 2
+  - title: "Khởi động hệ thống"
+    slug: system-startup
+    index: 3
+  - title: "Cấu hình thực thi"
+    slug: execution-configuration
+    index: 4
+  - title: "Phụ thuộc dịch vụ"
+    slug: service-dependencies
+    index: 5
+  - title: "Tài khoản thực thi"
+    slug: service-accounts
+    index: 6
+  - title: "Phân quyền tối thiểu"
+    slug: least-privilege
+    index: 7
+  - title: "Cấu hình và bí mật"
+    slug: configuration-and-secrets
+    index: 8
+  - title: "systemd cơ bản"
+    slug: systemd-basics
+    index: 9
+  - title: "Unit systemd"
+    slug: systemd-units
+    index: 10
+  - title: "Kích hoạt systemd"
+    slug: systemd-activation
+    index: 11
+  - title: "Phụ thuộc systemd"
+    slug: systemd-dependencies
+    index: 12
+  - title: "Khôi phục systemd"
+    slug: systemd-recovery
+    index: 13
+  - title: "Bảo vệ systemd"
+    slug: systemd-hardening
+    index: 14
+  - title: "Nhật ký systemd"
+    slug: systemd-logging
+    index: 15
+  - title: "Linux ngoài systemd"
+    slug: non-systemd-linux-services
+    index: 16
+  - title: "Windows Services"
+    slug: windows-services
+    index: 17
+  - title: "Cấu hình Windows"
+    slug: windows-service-configuration
+    index: 18
+  - title: "Tài khoản Windows"
+    slug: windows-service-accounts
+    index: 19
+  - title: "Phục hồi Windows"
+    slug: windows-service-recovery
+    index: 20
+  - title: "Nhật ký Windows"
+    slug: windows-service-logging
+    index: 21
+  - title: "launchd trên macOS"
+    slug: macos-launchd
+    index: 22
+  - title: "Cấu hình launchd"
+    slug: launchd-configuration
+    index: 23
+  - title: "Vận hành macOS"
+    slug: macos-service-operations
+    index: 24
+  - title: "Nhật ký macOS"
+    slug: macos-service-logging
+    index: 25
+  - title: "Giám sát và cảnh báo"
+    slug: monitoring-and-alerting
+    index: 26
+  - title: "Tài nguyên và hiệu năng"
+    slug: resources-and-performance
+    index: 27
+  - title: "Chẩn đoán sự cố"
+    slug: service-troubleshooting
+    index: 28
+  - title: "Triển khai và nâng cấp"
+    slug: deployment-and-upgrades
+    index: 29
+  - title: "Tự động hóa vận hành"
+    slug: operations-automation
+    index: 30
+  - title: "Môi trường đặc thù"
+    slug: special-runtime-environments
+    index: 31
+  - title: "Sao lưu và phục hồi"
+    slug: backup-and-restore
+    index: 32
+  - title: "Quy trình vận hành"
+    slug: operational-procedures
+    index: 33
+  - title: "Bài thực hành"
+    slug: service-management-labs
+    index: 34

@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Cài đặt
+  slug: installation
+  index: 2
+- title: Cấu hình
+  slug: configuration
+  index: 3
+- title: Virtual host
+  slug: virtual-hosts
+  index: 4
+- title: Location
+  slug: location-matching
+  index: 5
+- title: URI và rewrite
+  slug: uri-rewrites
+  index: 6
+- title: Reverse proxy
+  slug: reverse-proxy
+  index: 7
+- title: Header và IP gốc
+  slug: forwarded-headers
+  index: 8
+- title: Truyền dữ liệu
+  slug: data-streaming
+  index: 9
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 10
+- title: Khả dụng và thử lại
+  slug: availability-retries
+  index: 11
+- title: DNS của upstream
+  slug: upstream-dns
+  index: 12
+- title: TLS và HTTPS
+  slug: tls-https
+  index: 13
+- title: Kết nối và timeout
+  slug: connections-timeouts
+  index: 14
+- title: WebSocket
+  slug: websocket
+  index: 15
+- title: gRPC
+  slug: grpc
+  index: 16
+- title: Proxy TCP/UDP
+  slug: tcp-udp-proxy
+  index: 17
+- title: Nội dung tĩnh
+  slug: static-content
+  index: 18
+- title: Bộ nhớ đệm
+  slug: caching
+  index: 19
+- title: Hiệu năng
+  slug: performance
+  index: 20
+- title: Kiểm soát truy cập
+  slug: access-controls
+  index: 21
+- title: Giới hạn lưu lượng
+  slug: rate-limiting
+  index: 22
+- title: Nhật ký
+  slug: logs
+  index: 23
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 24
+- title: Triển khai
+  slug: deployment
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Khắc phục sự cố
+  slug: troubleshooting
+  index: 27
+- title: Bài thực hành
+  slug: hands-on-lab
+  index: 28

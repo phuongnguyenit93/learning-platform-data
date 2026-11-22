@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan phiên
+  slug: session-overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 1
+- title: Các kiến trúc phiên
+  slug: session-architectures
+  index: 2
+- title: Thiết kế mã phiên
+  slug: session-id-design
+  index: 3
+- title: Mô hình trạng thái
+  slug: session-state-model
+  index: 4
+- title: Truyền tải phiên
+  slug: session-transport
+  index: 5
+- title: Cookie phiên
+  slug: session-cookies
+  index: 6
+- title: Lưu trữ phía khách
+  slug: client-side-storage
+  index: 7
+- title: Tạo phiên và đăng nhập
+  slug: login-session-creation
+  index: 8
+- title: Vòng đời và thời hạn
+  slug: session-lifecycle-expiration
+  index: 9
+- title: Đổi mã phiên
+  slug: session-id-rotation
+  index: 10
+- title: Xác thực lại và nâng quyền
+  slug: reauthentication-privilege-escalation
+  index: 11
+- title: Phân quyền trong phiên
+  slug: session-authorization
+  index: 12
+- title: Đăng xuất và thu hồi
+  slug: logout-revocation
+  index: 13
+- title: Ghi nhớ đăng nhập
+  slug: remember-me
+  index: 14
+- title: Nhiều thiết bị và tab
+  slug: multi-device-tabs
+  index: 15
+- title: CSRF và phiên
+  slug: csrf-session-security
+  index: 16
+- title: XSS và rò rỉ phiên
+  slug: xss-session-leaks
+  index: 17
+- title: Cố định và chiếm phiên
+  slug: session-fixation-hijacking
+  index: 18
+- title: Kho phiên phía máy chủ
+  slug: server-side-session-store
+  index: 19
+- title: Phiên phân tán
+  slug: distributed-sessions
+  index: 20
+- title: SPA và giao tiếp API
+  slug: spa-api-sessions
+  index: 21
+- title: SSO và phiên liên kết
+  slug: sso-federated-sessions
+  index: 22
+- title: Phiên và token
+  slug: sessions-vs-tokens
+  index: 23
+- title: Ứng dụng và kết nối dài
+  slug: long-lived-connections
+  index: 24
+- title: Trải nghiệm an toàn
+  slug: secure-user-experience
+  index: 25
+- title: Quan sát và phát hiện
+  slug: monitoring-detection
+  index: 26
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 27
+- title: Kiểm thử bảo mật
+  slug: security-testing
+  index: 28
+- title: Vận hành và thay đổi
+  slug: operations-changes
+  index: 29
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 31
+- title: Tra cứu và ôn tập
+  slug: reference-review
+  index: 32

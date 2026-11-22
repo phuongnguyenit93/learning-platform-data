@@ -1,0 +1,3 @@
+menuLevel1: ConfigMap
+menuLevel2: Cung cấp cấu hình bằng biến môi trường, envFrom hoặc volume
+status: ''

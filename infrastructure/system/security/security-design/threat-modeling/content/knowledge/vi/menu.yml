@@ -1,0 +1,462 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Threat modeling là gì và tạo giá trị nào
+  - Vì sao cần mô hình hóa trước khi triển khai
+  - Khác biệt giữa threat, vulnerability và risk
+  - Threat modeling trong vòng đời phát triển
+  - Quan hệ giữa kiến trúc và mối đe dọa
+  - Đầu ra cần có của một phiên threat modeling
+  - Giới hạn của threat modeling
+  - Lộ trình học từ phạm vi đến kiểm chứng
+- level1: Mục tiêu và phạm vi
+  level2:
+  - Xác định mục tiêu bảo mật của hệ thống
+  - Chọn sản phẩm, dịch vụ hoặc tính năng cần mô hình
+  - Khoanh vùng phiên bản và môi trường phân tích
+  - Xác định phần nằm ngoài phạm vi
+  - Đặt câu hỏi phân tích theo mục tiêu
+  - Phân biệt phạm vi kinh doanh và phạm vi kỹ thuật
+  - Xử lý hệ thống đang thay đổi
+  - Tiêu chí kết thúc một phiên phân tích
+- level1: Tư duy đe dọa
+  level2:
+  - Nhìn hệ thống từ góc nhìn của kẻ tấn công
+  - Đặt câu hỏi What can go wrong
+  - Phân biệt sự kiện và kịch bản tấn công
+  - Không đồng nhất lỗi với mối đe dọa
+  - Tìm đường đi thay vì chỉ liệt kê lỗi
+  - Kiểm tra giả định bằng bằng chứng
+  - Tránh suy đoán không có ngữ cảnh
+  - Giữ cân bằng giữa đầy đủ và khả thi
+- level1: Tài sản bảo vệ
+  level2:
+  - Nhận diện tài sản có giá trị
+  - Phân loại dữ liệu và bí mật
+  - Xác định tài sản logic và vật lý
+  - Định giá tính bí mật, toàn vẹn, sẵn sàng
+  - Liên kết tài sản với chủ sở hữu
+  - Xác định bản sao và dẫn xuất của dữ liệu
+  - Phân tích tài sản tạm thời và trong bộ nhớ
+  - Định nghĩa tiêu chí mất mát tài sản
+- level1: Tác nhân đe dọa
+  level2:
+  - Nhận diện người dùng và hệ thống hợp lệ
+  - Phân loại insider và outsider
+  - Khách vãng lai và danh tính chưa xác thực
+  - Nhà cung cấp và đối tác tích hợp
+  - Quản trị viên và tài khoản đặc quyền
+  - Tác nhân tự động và bot
+  - Động cơ, năng lực và nguồn lực tấn công
+  - Giả định về tác nhân không đáng tin
+- level1: Bề mặt tấn công
+  level2:
+  - Bề mặt tấn công là gì
+  - Liệt kê điểm vào của hệ thống
+  - API, giao diện người dùng và cổng quản trị
+  - Luồng tích hợp và webhook
+  - Kho lưu trữ, hàng đợi và file transfer
+  - Endpoint vận hành và health check
+  - Kênh nội bộ có thật sự đáng tin không
+  - Đánh giá bề mặt tấn công theo môi trường
+- level1: Thành phần hệ thống
+  level2:
+  - Liệt kê service, module và thư viện
+  - Phân biệt thành phần xử lý và lưu trữ
+  - Nhận diện thành phần chia sẻ
+  - Xác định quyền và trách nhiệm từng thành phần
+  - Đánh dấu thành phần bên thứ ba
+  - Định vị control plane và data plane
+  - Đánh giá thành phần tạm thời
+  - Quản lý phiên bản trong mô hình
+- level1: Ranh giới tin cậy
+  level2:
+  - Trust boundary là gì
+  - Xác định nơi thay đổi mức độ tin cậy
+  - Ranh giới giữa client và server
+  - Ranh giới giữa service và database
+  - Ranh giới giữa tenant và tenant
+  - Ranh giới giữa mạng nội bộ và Internet
+  - Ranh giới giữa workload và control plane
+  - Ranh giới không thể hiện rõ trên sơ đồ
+- level1: Luồng dữ liệu
+  level2:
+  - Xác định dữ liệu đi qua hệ thống
+  - Theo dõi dữ liệu từ nguồn đến đích
+  - Phân biệt dữ liệu đầu vào và đầu ra
+  - Dòng dữ liệu đồng bộ và bất đồng bộ
+  - Truyền dữ liệu qua message broker
+  - Dữ liệu qua cache và log
+  - Dữ liệu qua biên giới tổ chức
+  - Kiểm tra đường đi ngoài dự kiến
+- level1: Phụ thuộc và liên kết
+  level2:
+  - Nhận diện dependency trực tiếp
+  - Phụ thuộc hạ tầng và dịch vụ nền
+  - Phụ thuộc vào danh tính bên ngoài
+  - Phụ thuộc vào nhà cung cấp cloud
+  - Phụ thuộc runtime và build-time
+  - Luồng gọi ngược và callback
+  - Điểm yếu do phụ thuộc dùng chung
+  - Quản lý thay đổi từ hệ thống liên quan
+- level1: Giả định bảo mật
+  level2:
+  - Ghi nhận giả định về môi trường
+  - Giả định về danh tính và quyền
+  - Giả định về mạng và mã hóa
+  - Giả định về nhà cung cấp
+  - Giả định về dữ liệu đầu vào
+  - Phân biệt giả định với kiểm soát
+  - Tìm bằng chứng cho từng giả định
+  - Xử lý giả định bị phá vỡ
+- level1: Thu thập bằng chứng
+  level2:
+  - Đọc yêu cầu và mục tiêu kinh doanh
+  - Đọc sơ đồ kiến trúc hiện tại
+  - Đọc cấu hình triển khai
+  - Đọc hợp đồng API và schema dữ liệu
+  - Đọc luồng xác thực và phân quyền
+  - Đọc log, metric và audit trail
+  - Phỏng vấn chủ sở hữu hệ thống
+  - Đánh dấu bằng chứng thiếu hoặc lỗi thời
+- level1: DFD và mô hình
+  level2:
+  - Data Flow Diagram dùng để làm gì
+  - Chọn mức chi tiết cho DFD
+  - Vẽ external entity và process
+  - Vẽ data store và data flow
+  - Đặt trust boundary trên DFD
+  - Đọc DFD để tìm điểm phân tích
+  - Kiểm tra DFD không bỏ sót luồng
+  - Giới hạn của DFD trong hệ thống phức tạp
+- level1: Mô hình tài sản
+  level2:
+  - Biểu diễn tài sản trên sơ đồ
+  - Liên kết tài sản với data flow
+  - Liên kết tài sản với thành phần
+  - Hiển thị nơi lưu và nơi xử lý
+  - Đánh dấu tài sản có quyền đặc biệt
+  - Biểu diễn dữ liệu nhạy cảm
+  - Kiểm tra tài sản không có chủ sở hữu
+  - Cập nhật mô hình khi tài sản thay đổi
+- level1: STRIDE
+  level2:
+  - STRIDE và mục tiêu phân loại
+  - Spoofing và giả mạo danh tính
+  - Tampering và thay đổi dữ liệu
+  - Repudiation và khả năng chối bỏ
+  - Information disclosure và lộ thông tin
+  - Denial of service và mất sẵn sàng
+  - Elevation of privilege và leo thang quyền
+  - Áp dụng STRIDE theo từng thành phần
+- level1: LINDDUN và riêng tư
+  level2:
+  - LINDDUN dùng cho privacy threat modeling
+  - Linkability và liên kết danh tính
+  - Identifiability và khả năng nhận diện
+  - Non-repudiation trong ngữ cảnh riêng tư
+  - Detectability và khả năng suy ra sự kiện
+  - Disclosure of information
+  - Unawareness và thiếu minh bạch
+  - Non-compliance và nghĩa vụ pháp lý
+- level1: Attack tree
+  level2:
+  - Attack tree là gì
+  - Xác định mục tiêu tấn công gốc
+  - Phân rã mục tiêu thành các bước
+  - Nút AND và OR trong attack tree
+  - Gắn điều kiện và chi phí tấn công
+  - Nhận diện đường đi ngắn nhất
+  - So sánh attack tree với DFD
+  - Giới hạn của cây tấn công
+- level1: Abuse case
+  level2:
+  - Abuse case và misuse case
+  - Viết câu chuyện lạm dụng
+  - Xác định tác nhân và mục tiêu
+  - Tiền điều kiện của abuse case
+  - Luồng chính và luồng thay thế
+  - Liên kết abuse case với yêu cầu
+  - Biến abuse case thành kịch bản kiểm thử
+  - Tránh viết abuse case quá mơ hồ
+- level1: Kill chain
+  level2:
+  - Cyber kill chain và mục đích
+  - Reconnaissance trong chuỗi tấn công
+  - Weaponization và delivery
+  - Exploitation và installation
+  - Command and control
+  - Actions on objectives
+  - Liên kết kill chain với control
+  - Giới hạn của mô hình tuyến tính
+- level1: Attack path
+  level2:
+  - Attack path là gì
+  - Điểm bắt đầu và mục tiêu cuối
+  - Di chuyển ngang trong hệ thống
+  - Leo thang quyền trên đường đi
+  - Đường đi qua nhiều trust boundary
+  - Đường đi qua dependency bên ngoài
+  - Nhận diện choke point
+  - Ưu tiên chặn đường đi có rủi ro cao
+- level1: Kịch bản đe dọa
+  level2:
+  - Cấu trúc một threat scenario
+  - Tác nhân, mục tiêu và tài sản
+  - Tiền điều kiện và giả định
+  - Chuỗi hành động của kẻ tấn công
+  - Điều kiện thành công của cuộc tấn công
+  - Phát hiện và phản ứng trong kịch bản
+  - Viết kịch bản có thể kiểm chứng
+  - Tránh trùng lặp các kịch bản
+- level1: Lỗ hổng và mối đe dọa
+  level2:
+  - Vulnerability là điểm yếu có thể khai thác
+  - Threat event và threat source
+  - Exploitability và khả năng khai thác
+  - Exposure và mức phơi bày
+  - Misconfiguration và thiết kế sai
+  - Zero-day trong mô hình hóa
+  - Liên kết lỗ hổng với đường tấn công
+  - Không dùng danh sách CVE thay cho mô hình
+- level1: Xác thực
+  level2:
+  - Threat modeling cho đăng nhập
+  - Mật khẩu và thông tin xác thực
+  - Multi-factor authentication
+  - Session và token
+  - Federated identity
+  - Account recovery và reset credential
+  - Brute force và credential stuffing
+  - Replay và credential theft
+- level1: Phân quyền
+  level2:
+  - Threat modeling cho authorization
+  - Role-based access control
+  - Attribute-based access control
+  - Object-level authorization
+  - Function-level authorization
+  - Tenant isolation
+  - Privilege escalation
+  - Kiểm tra deny by default
+- level1: Dữ liệu và bí mật
+  level2:
+  - Phân loại dữ liệu trong kịch bản
+  - Mã hóa khi truyền và khi lưu
+  - Quản lý khóa mã hóa
+  - Secret trong cấu hình và môi trường
+  - Log chứa dữ liệu nhạy cảm
+  - Backup và bản sao dữ liệu
+  - Xóa dữ liệu và vòng đời lưu giữ
+  - Rò rỉ qua lỗi và thông báo
+- level1: API
+  level2:
+  - Threat modeling cho API
+  - API gateway và reverse proxy
+  - Input validation và schema
+  - Rate limiting và quota
+  - Pagination và resource exhaustion
+  - Webhook và callback verification
+  - API versioning và compatibility
+  - Error response và information disclosure
+- level1: Ứng dụng web
+  level2:
+  - Threat modeling cho web application
+  - Cross-site scripting
+  - Cross-site request forgery
+  - Injection và interpreter boundary
+  - File upload và xử lý nội dung
+  - Redirect và URL handling
+  - Browser storage và cookie
+  - Security headers và policy
+- level1: Dịch vụ và messaging
+  level2:
+  - Threat modeling cho service-to-service
+  - Message broker và queue
+  - Message authentication
+  - Duplicate và replay message
+  - Dead letter và poison message
+  - Timeout, retry và circuit breaker
+  - Command và event boundary
+  - Thông tin nhạy cảm trong payload
+- level1: Mạng và giao thức
+  level2:
+  - Phân vùng mạng và trust boundary
+  - TLS và xác thực đầu cuối
+  - DNS và service discovery
+  - Firewall và security group
+  - Proxy, load balancer và ingress
+  - Internal network không mặc định an toàn
+  - Network egress và data exfiltration
+  - Đường quản trị và kênh vận hành
+- level1: Container
+  level2:
+  - Threat modeling cho container
+  - Image provenance và base image
+  - Container privilege và capability
+  - Filesystem và secret mount
+  - Container escape
+  - Network namespace và service boundary
+  - Runtime policy và admission
+  - Ephemeral workload và bằng chứng
+- level1: Cloud
+  level2:
+  - Threat modeling cho cloud
+  - Shared responsibility model
+  - Identity và IAM policy
+  - Cloud storage và public exposure
+  - Metadata service
+  - Control plane và data plane
+  - Multi-account và cross-account access
+  - Region, backup và disaster recovery
+- level1: Chuỗi cung ứng
+  level2:
+  - Threat modeling cho software supply chain
+  - Dependency confusion
+  - Typosquatting và package impersonation
+  - Build pipeline và artifact
+  - CI runner và credential
+  - Code signing và provenance
+  - Third-party service và SaaS
+  - SBOM và khả năng truy xuất
+- level1: Rủi ro
+  level2:
+  - Risk là gì trong threat modeling
+  - Risk theo tài sản và kịch bản
+  - Risk inherent và residual
+  - Risk acceptance
+  - Risk transfer và avoidance
+  - Risk reduction
+  - Risk owner và thời hạn
+  - Liên kết risk với quyết định
+- level1: Khả năng xảy ra
+  level2:
+  - Likelihood trong đánh giá rủi ro
+  - Khả năng tiếp cận mục tiêu
+  - Năng lực và động cơ tác nhân
+  - Độ phức tạp của khai thác
+  - Mức độ phát hiện và ngăn chặn
+  - Tần suất phơi bày
+  - Đánh giá định tính và định lượng
+  - Tránh chấm điểm giả chính xác
+- level1: Tác động
+  level2:
+  - Impact đối với tính bí mật
+  - Impact đối với tính toàn vẹn
+  - Impact đối với tính sẵn sàng
+  - Impact đối với an toàn người dùng
+  - Impact đối với tài chính
+  - Impact đối với pháp lý và tuân thủ
+  - Impact đối với danh tiếng
+  - Lan truyền tác động qua phụ thuộc
+- level1: Ưu tiên xử lý
+  level2:
+  - Ma trận likelihood và impact
+  - Xếp hạng theo đường tấn công
+  - Ưu tiên choke point
+  - Ưu tiên control có hiệu quả rộng
+  - Ưu tiên theo thời hạn phát hành
+  - Xử lý rủi ro chấp nhận được
+  - Rủi ro còn lại sau giảm thiểu
+  - Giải thích thứ tự ưu tiên
+- level1: Yêu cầu bảo mật
+  level2:
+  - Chuyển threat thành security requirement
+  - Requirement có thể kiểm thử
+  - Acceptance criteria cho control
+  - Non-functional security requirement
+  - Requirement cho dữ liệu và quyền
+  - Requirement cho audit và giám sát
+  - Requirement cho khả năng phục hồi
+  - Tránh requirement chung chung
+- level1: Giảm thiểu
+  level2:
+  - Biện pháp phòng ngừa
+  - Biện pháp phát hiện
+  - Biện pháp phản ứng
+  - Biện pháp phục hồi
+  - Defense in depth
+  - Fail secure và secure default
+  - Least privilege
+  - Giảm thiểu bằng thiết kế hoặc vận hành
+- level1: Kiến trúc phòng thủ
+  level2:
+  - Security control và vị trí đặt
+  - Preventive control
+  - Detective control
+  - Corrective control
+  - Compensating control
+  - Control plane và policy enforcement
+  - Isolation và segmentation
+  - Đánh đổi bảo mật và khả dụng
+- level1: Kiểm chứng control
+  level2:
+  - Xác nhận control đã được triển khai
+  - Kiểm thử đường tấn công sau giảm thiểu
+  - Kiểm thử negative path
+  - Kiểm tra bypass và misconfiguration
+  - Evidence từ test và runtime
+  - Liên kết control với requirement
+  - Đánh giá false positive và false negative
+  - Điều kiện chấp nhận rủi ro còn lại
+- level1: DevSecOps
+  level2:
+  - Threat modeling trong backlog
+  - Security champion và vai trò nhóm
+  - Review threat trước khi coding
+  - Đưa threat vào pull request
+  - Security gate trong CI
+  - Kiểm tra IaC và cấu hình
+  - Liên kết threat với issue
+  - Đo lường tiến độ xử lý
+- level1: Công cụ và tự động hóa
+  level2:
+  - Công cụ vẽ DFD
+  - Kho lưu threat và requirement
+  - Tự động phát hiện thành phần
+  - Tự động lập dependency graph
+  - Rule và template phân tích
+  - Đồng bộ mô hình với mã nguồn
+  - Giới hạn của công cụ tự động
+  - Quản lý dữ liệu nhạy cảm trong công cụ
+- level1: Duy trì mô hình
+  level2:
+  - Threat model là tài liệu sống
+  - Điều kiện cần phân tích lại
+  - Thay đổi kiến trúc và dependency
+  - Thay đổi threat landscape
+  - Đánh giá sau sự cố
+  - Quản lý phiên bản mô hình
+  - Loại bỏ kịch bản lỗi thời
+  - Định kỳ xác nhận giả định
+- level1: Báo cáo và giao tiếp
+  level2:
+  - Viết threat model cho nhiều đối tượng
+  - Tóm tắt rủi ro cho lãnh đạo
+  - Chi tiết kỹ thuật cho nhóm phát triển
+  - Hiển thị ưu tiên và owner
+  - Phân biệt sự kiện với bằng chứng
+  - Trình bày trade-off
+  - Tránh ngôn ngữ gây báo động sai
+  - Ghi nhận quyết định và ngoại lệ
+- level1: Case study
+  level2:
+  - Threat modeling cho ứng dụng web
+  - Threat modeling cho REST API
+  - Threat modeling cho hệ thống microservices
+  - Threat modeling cho hệ thống thanh toán
+  - Threat modeling cho nền tảng đa tenant
+  - Threat modeling cho pipeline CI/CD
+  - Threat modeling cho workload cloud
+  - Threat modeling cho hệ thống legacy
+- level1: Thực hành tổng hợp
+  level2:
+  - Xác định phạm vi và tài sản
+  - Vẽ DFD và trust boundary
+  - Liệt kê tác nhân và điểm vào
+  - Áp dụng STRIDE cho từng luồng
+  - Viết abuse case và attack path
+  - Đánh giá likelihood và impact
+  - Chọn control và security requirement
+  - Kiểm chứng bằng test và evidence
+  - Viết báo cáo và kế hoạch theo dõi

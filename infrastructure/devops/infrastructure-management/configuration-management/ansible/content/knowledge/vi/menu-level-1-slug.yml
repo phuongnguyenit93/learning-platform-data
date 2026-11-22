@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Môi trường
+  slug: environment
+  index: 1
+- title: Kết nối
+  slug: connections
+  index: 2
+- title: Inventory
+  slug: inventory
+  index: 3
+- title: Inventory động
+  slug: dynamic-inventory
+  index: 4
+- title: Lệnh ad hoc
+  slug: ad-hoc-commands
+  index: 5
+- title: Playbook
+  slug: playbook
+  index: 6
+- title: Biến
+  slug: variables
+  index: 7
+- title: Facts
+  slug: facts
+  index: 8
+- title: Jinja2
+  slug: jinja2
+  index: 9
+- title: Điều kiện và vòng lặp
+  slug: conditionals-loops
+  index: 10
+- title: Tệp và mẫu
+  slug: files-templates
+  index: 11
+- title: Hệ điều hành
+  slug: operating-systems
+  index: 12
+- title: Handlers
+  slug: handlers
+  index: 13
+- title: Xử lý lỗi
+  slug: error-handling
+  index: 14
+- title: Điều phối
+  slug: orchestration
+  index: 15
+- title: Chế độ kiểm tra
+  slug: check-mode
+  index: 16
+- title: Tái sử dụng
+  slug: reusable-content
+  index: 17
+- title: Roles
+  slug: roles
+  index: 18
+- title: Collections
+  slug: collections
+  index: 19
+- title: Ansible Vault
+  slug: ansible-vault
+  index: 20
+- title: Quản lý môi trường
+  slug: environment-management
+  index: 21
+- title: Triển khai ứng dụng
+  slug: application-deployment
+  index: 22
+- title: Windows
+  slug: windows
+  index: 23
+- title: Thiết bị mạng
+  slug: network-devices
+  index: 24
+- title: Cloud và container
+  slug: cloud-containers
+  index: 25
+- title: Kiểm thử
+  slug: testing
+  index: 26
+- title: Tích hợp CI/CD
+  slug: cicd-integration
+  index: 27
+- title: Môi trường thực thi
+  slug: execution-environments
+  index: 28
+- title: AWX và Controller
+  slug: awx-controller
+  index: 29
+- title: Bảo mật
+  slug: security
+  index: 30
+- title: Hiệu năng
+  slug: performance
+  index: 31
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 32
+- title: Mở rộng Ansible
+  slug: extending-ansible
+  index: 33
+- title: Nâng cấp
+  slug: upgrades
+  index: 34
+- title: Thực hành
+  slug: hands-on-practice
+  index: 35

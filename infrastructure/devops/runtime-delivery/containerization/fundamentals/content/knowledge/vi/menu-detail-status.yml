@@ -1,0 +1,2890 @@
+menu:
+- slug: containerization-and-deployment-models
+  title: Nền tảng container hóa và lựa chọn mô hình triển khai
+  childs:
+  - slug: containerization-and-deployment-models-001
+    title: Bài toán đóng gói ứng dụng và sự khác biệt giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-002
+    title: Container là tiến trình được cô lập với môi trường thực thi riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-003
+    title: Phân biệt image, container và registry trong vòng đời ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-004
+    title: So sánh container, máy ảo và tiến trình chạy trực tiếp trên máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-005
+    title: Kernel dùng chung và giới hạn cô lập của container so với máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-006
+    title: Tính bất biến của image và tính có thể thay thế của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-007
+    title: Ứng dụng stateless, stateful và dữ liệu cần tồn tại sau triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-008
+    title: Lợi ích và chi phí của container hóa trong phát triển và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-009
+    title: Trường hợp phù hợp và không phù hợp để sử dụng container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containerization-and-deployment-models-010
+    title: Ranh giới kiến thức giữa container cơ bản và hệ thống orchestration
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-architecture-and-oci
+  title: Kiến trúc hệ sinh thái container và các chuẩn OCI
+  childs:
+  - slug: container-architecture-and-oci-001
+    title: Vai trò của container engine, runtime, registry và công cụ dòng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-002
+    title: Luồng yêu cầu từ Docker CLI qua Docker Engine API đến container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-003
+    title: Vai trò của containerd, shim và runtime cấp thấp như runc hoặc crun
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-004
+    title: Phân biệt công cụ build image với runtime chạy container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-005
+    title: OCI Image Specification và cấu trúc trao đổi image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-006
+    title: OCI Runtime Specification và cấu hình tiến trình container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-007
+    title: OCI Distribution Specification và giao tiếp với registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-008
+    title: Quan hệ giữa Docker, Podman và các thành phần trong hệ sinh thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-009
+    title: Tiến trình runtime trên máy chủ và tiến trình ứng dụng trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-architecture-and-oci-010
+    title: Đọc sơ đồ tổng thể từ mã nguồn đến image và container đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-engine-setup
+  title: Chuẩn bị môi trường và thao tác với container engine
+  childs:
+  - slug: container-engine-setup-001
+    title: Kiểm tra hệ điều hành, kiến trúc CPU và khả năng chạy container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-002
+    title: Phân biệt Docker Engine trên Linux và môi trường Docker Desktop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-003
+    title: Máy ảo Linux bên dưới Docker Desktop trên Windows hoặc macOS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-004
+    title: Vai trò của WSL 2 trong môi trường Docker Desktop trên Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-005
+    title: Kiểm tra phiên bản client, server và trạng thái engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-006
+    title: Docker context và cách xác định daemon đang nhận lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-007
+    title: Kết nối engine từ xa qua SSH hoặc TLS và bảo vệ API của daemon
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-008
+    title: Quyền truy cập Docker socket và hệ quả của nhóm docker
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-009
+    title: Lựa chọn môi trường rootful hoặc rootless cho thực hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-010
+    title: Kiểm tra kết nối registry bằng một image tối giản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-011
+    title: Tách tài nguyên thực hành bằng quy ước đặt tên và label
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-engine-setup-012
+    title: Chuẩn bị thư mục, cổng và dữ liệu mẫu trước khi làm bài tập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-namespaces-and-cgroups
+  title: Cơ chế cô lập bằng Linux namespaces và cgroups
+  childs:
+  - slug: linux-namespaces-and-cgroups-001
+    title: Tiến trình Linux, cây tiến trình và mối liên hệ với container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-002
+    title: PID namespace và sự khác nhau giữa PID trong container với trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-003
+    title: Mount namespace và cách container nhìn thấy cây filesystem riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-004
+    title: Network namespace với interface, địa chỉ và bảng định tuyến riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-005
+    title: UTS namespace và phạm vi hostname của container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-006
+    title: IPC namespace và cô lập tài nguyên giao tiếp liên tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-007
+    title: User namespace và ánh xạ UID hoặc GID giữa container với host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-008
+    title: Cgroup namespace và cách quan sát cây phân cấp tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-009
+    title: Namespaces cô lập góc nhìn còn cgroups quản lý tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-010
+    title: Khái niệm controller và khác biệt nền tảng giữa cgroups v1 với v2
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-011
+    title: Quan sát namespaces và cgroups của một container từ máy chủ Linux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-012
+    title: Tài nguyên kernel vẫn dùng chung và giới hạn bảo mật của sự cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-namespaces-and-cgroups-013
+    title: Những thay đổi khi chia sẻ namespace với host hoặc container khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-images-layers-and-filesystems
+  title: Cấu trúc image, layers và filesystem của container
+  childs:
+  - slug: container-images-layers-and-filesystems-001
+    title: Image gồm cấu hình, manifest và các filesystem layer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-002
+    title: Phân biệt image manifest với image index cho nhiều nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-003
+    title: Tag có thể thay đổi và digest nhận diện nội dung image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-004
+    title: Quan hệ giữa image ID, manifest digest và layer digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-005
+    title: Layer chỉ đọc và writable layer riêng của từng container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-006
+    title: Cơ chế hợp nhất filesystem và nguyên lý copy-on-write
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-007
+    title: OverlayFS, copy-up và ảnh hưởng của thao tác ghi lần đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-008
+    title: Whiteout và lý do xóa tệp không loại bỏ dữ liệu khỏi layer trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-009
+    title: Chia sẻ layer giữa nhiều image và cách đọc dung lượng sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-010
+    title: Phân biệt kích thước image truyền qua registry với dung lượng trên đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-011
+    title: Đọc metadata bằng docker image inspect và lịch sử bằng docker history
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-012
+    title: Quan sát thay đổi filesystem bằng docker diff
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-013
+    title: Phân biệt docker save hoặc load với docker export hoặc import
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-layers-and-filesystems-014
+    title: Hạn chế của docker commit trong quy trình build có thể tái tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-process-lifecycle
+  title: Chạy container và quản lý vòng đời tiến trình
+  childs:
+  - slug: container-process-lifecycle-001
+    title: Tạo container từ image bằng docker run và docker create
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-002
+    title: Quan hệ giữa lệnh khởi chạy, tiến trình chính và trạng thái container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-003
+    title: Chạy foreground, detached và phiên tương tác với stdin hoặc TTY
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-004
+    title: Liệt kê container và đọc các trạng thái created, running, exited
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-005
+    title: Bắt đầu lại container đã dừng và phân biệt với tạo container mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-006
+    title: Chạy lệnh bổ sung bằng docker exec và giới hạn khi container đã dừng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-007
+    title: Phân biệt docker attach với docker exec khi tương tác ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-008
+    title: Đặt tên, label và tra cứu container theo bộ lọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-009
+    title: Xử lý PID 1, tiến trình con và hiện tượng zombie
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-010
+    title: Dùng init tối giản khi ứng dụng không thu hồi tiến trình con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-011
+    title: Gửi tín hiệu, dừng có thời hạn và buộc kết thúc container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-012
+    title: Exit code và cách phân biệt thoát bình thường với lỗi tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-013
+    title: Chính sách restart và những điều kiện không tự khởi động lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-014
+    title: Phân biệt pause, unpause, stop và restart
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-015
+    title: Xóa container và lựa chọn tự xóa sau khi kết thúc bằng tùy chọn rm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-process-lifecycle-016
+    title: Quy trình chạy một tác vụ ngắn hạn và thu thập kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dockerfile-and-startup-configuration
+  title: Viết Dockerfile và cấu hình khởi chạy ứng dụng
+  childs:
+  - slug: dockerfile-and-startup-configuration-001
+    title: Cấu trúc Dockerfile và mối quan hệ với build context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-002
+    title: Chọn base image phù hợp và sử dụng FROM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-003
+    title: Thiết lập thư mục làm việc với WORKDIR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-004
+    title: Sao chép tệp bằng COPY và lựa chọn trường hợp cần ADD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-005
+    title: Thực thi lệnh build bằng RUN và ảnh hưởng đến layer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-006
+    title: Phân biệt shell form với exec form trong Dockerfile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-007
+    title: Vai trò của ENTRYPOINT, CMD và cách ghi đè khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-008
+    title: Truyền đối số và chuyển tiếp tín hiệu qua entrypoint script
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-009
+    title: Phân biệt ARG lúc build với ENV mặc định lúc chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-010
+    title: Thiết lập USER, quyền tệp và COPY với tùy chọn chown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-011
+    title: EXPOSE là metadata và không tự công bố cổng trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-012
+    title: Khai báo VOLUME và tác động đến lưu trữ khi chạy image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-013
+    title: Khai báo HEALTHCHECK và giới hạn ý nghĩa của trạng thái health
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-014
+    title: Khai báo STOPSIGNAL phù hợp với tiến trình ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-015
+    title: Gắn metadata bằng LABEL và các nhãn OCI thông dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-016
+    title: Khả năng tái sử dụng stage và cách đặt tên stage trong Dockerfile
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dockerfile-and-startup-configuration-017
+    title: Thực hành đọc một Dockerfile từ base image đến lệnh khởi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: image-build-optimization
+  title: Build image, tối ưu cache và tổ chức multi-stage build
+  childs:
+  - slug: image-build-optimization-001
+    title: Thực hiện build và đặt tag cho image đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-002
+    title: Giới hạn build context bằng tệp dockerignore
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-003
+    title: Thứ tự COPY và RUN để tận dụng cache phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-004
+    title: Xác định nguyên nhân cache hit hoặc cache miss
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-005
+    title: Phân biệt làm mới base image với vô hiệu hóa cache build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-006
+    title: Vai trò của BuildKit và cách đọc log các bước build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-007
+    title: Multi-stage build để tách môi trường biên dịch khỏi runtime
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-008
+    title: Sao chép artifact giữa các stage và build một target cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-009
+    title: Dùng cache mount cho trình quản lý gói hoặc công cụ biên dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-010
+    title: Truyền build secret và SSH mount mà không nhúng khóa vào image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-011
+    title: Ghim đầu vào và nhận diện nguyên nhân build không thể tái tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-012
+    title: Tối ưu số lượng tệp, phụ thuộc và kích thước image đầu ra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-013
+    title: Lựa chọn base image tối giản, distroless hoặc scratch theo nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-014
+    title: Xuất, nhập và chia sẻ cache build trong môi trường làm việc nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-build-optimization-015
+    title: Đo thời gian build và kiểm chứng tối ưu bằng cùng một bộ đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-containerization
+  title: Chuẩn bị ứng dụng để chạy đúng trong container
+  childs:
+  - slug: application-containerization-001
+    title: Xác định runtime, thư viện hệ thống và artifact cần đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-002
+    title: Đóng gói ứng dụng Java dạng JAR bằng các stage JDK và runtime Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-003
+    title: Chạy tiến trình ứng dụng trực tiếp và tránh daemon hóa bên trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-004
+    title: Lắng nghe trên địa chỉ phù hợp để nhận kết nối ngoài container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-005
+    title: Đưa log ứng dụng ra stdout hoặc stderr
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-006
+    title: Tách dữ liệu lâu dài khỏi thư mục cài đặt ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-007
+    title: Xác định thư mục tạm và đường dẫn ứng dụng cần quyền ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-008
+    title: Đóng gói chứng chỉ CA và xử lý kết nối TLS từ ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-009
+    title: Thiết lập locale, múi giờ và encoding theo yêu cầu ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-010
+    title: Xử lý SIGTERM, hoàn tất yêu cầu đang chạy và đóng kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-011
+    title: Thiết kế điểm kiểm tra sức khỏe có chi phí và phụ thuộc phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-containerization-012
+    title: Kiểm chứng cùng một image với nhiều bộ cấu hình môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: image-registries-and-distribution
+  title: Registry và phân phối image có kiểm soát
+  childs:
+  - slug: image-registries-and-distribution-001
+    title: Cấu trúc tên image gồm registry, namespace, repository và tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-002
+    title: Phân biệt registry công khai, registry riêng và registry chạy cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-003
+    title: Đăng nhập registry và quản lý credential bằng credential store
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-004
+    title: Kéo image bằng tag và xác minh image đã chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-005
+    title: Gắn tag bổ sung và đẩy image lên repository được cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-006
+    title: Kéo hoặc triển khai image bằng digest để cố định nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-007
+    title: Thiết kế tag phiên bản và nhận diện rủi ro khi dùng latest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-008
+    title: Phân quyền đọc hoặc ghi repository theo vai trò sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-009
+    title: Xác thực TLS, proxy và kết nối registry trong mạng nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-010
+    title: Lưu chuyển image bằng archive khi không truy cập được registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-011
+    title: Kiểm tra manifest hoặc image index trước khi phân phối nhiều nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-registries-and-distribution-012
+    title: Quản lý retention và phân biệt xóa tag với thu gom blob tại registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-networking
+  title: Mạng container, DNS và công bố dịch vụ
+  childs:
+  - slug: container-networking-001
+    title: Luồng gói tin từ ứng dụng qua network namespace đến mạng ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-002
+    title: Veth pair, Linux bridge và vai trò kết nối container trên cùng host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-003
+    title: Địa chỉ IP, route và NAT trong mạng bridge cơ bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-004
+    title: So sánh default bridge với user-defined bridge
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-005
+    title: Tạo mạng riêng và kết nối hoặc ngắt kết nối container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-006
+    title: Phân giải tên container và network alias trong mạng hỗ trợ DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-007
+    title: Localhost của container khác localhost của host và container khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-008
+    title: Phân biệt cổng ứng dụng, cổng container và cổng công bố trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-009
+    title: Ánh xạ cổng TCP hoặc UDP và lựa chọn địa chỉ bind trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-010
+    title: Truy cập từ container đến dịch vụ chạy trên host theo từng môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-011
+    title: Dùng mạng host hoặc none và đánh giá phạm vi cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-012
+    title: Kết nối một container với nhiều mạng để tách luồng giao tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-013
+    title: Container truy cập Internet qua proxy và cấu hình DNS phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-014
+    title: Quan hệ giữa port publishing, firewall của host và phạm vi truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-015
+    title: Cấu hình IPv6 cơ bản và nhận diện khi môi trường chỉ hỗ trợ IPv4
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-networking-016
+    title: Quan sát kết nối bằng network inspect và công cụ chẩn đoán mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-storage-and-volumes
+  title: Lưu trữ dữ liệu với volume, bind mount và tmpfs
+  childs:
+  - slug: container-storage-and-volumes-001
+    title: Phân biệt writable layer, named volume, bind mount và tmpfs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-002
+    title: Vòng đời dữ liệu khi dừng, xóa hoặc thay thế container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-003
+    title: Tạo, gắn, kiểm tra và xóa named volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-004
+    title: Anonymous volume và cách tránh mất dấu dữ liệu cần giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-005
+    title: Bind mount thư mục host và lựa chọn đường dẫn an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-006
+    title: Mount tệp hoặc thư mục ở chế độ chỉ đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-007
+    title: Dữ liệu image bị che khi mount vào một đường dẫn đã có nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-008
+    title: Cơ chế khởi tạo volume mới từ nội dung trong image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-009
+    title: Quyền đọc ghi, UID hoặc GID và lỗi permission denied với mount
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-010
+    title: Vai trò nhãn SELinux khi chia sẻ thư mục host trên hệ thống có bật SELinux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-011
+    title: Dùng tmpfs cho dữ liệu tạm và cân nhắc việc dùng bộ nhớ hoặc swap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-012
+    title: Chia sẻ volume giữa nhiều container và giới hạn ghi đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-013
+    title: Sao lưu, phục hồi và kiểm chứng tính nhất quán của dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-014
+    title: Dữ liệu cơ sở dữ liệu và yêu cầu dừng hoặc snapshot đúng cách khi backup
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-storage-and-volumes-015
+    title: Thực hành thay container ứng dụng mà vẫn bảo toàn dữ liệu trên volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: runtime-configuration-and-secrets
+  title: Cấu hình runtime và quản lý thông tin nhạy cảm
+  childs:
+  - slug: runtime-configuration-and-secrets-001
+    title: Tách cấu hình môi trường khỏi image có thể tái sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-002
+    title: Truyền cấu hình bằng biến môi trường, env file và tệp cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-003
+    title: Phân biệt env file truyền cho container với tệp env dùng để nội suy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-004
+    title: Thứ tự ưu tiên cấu hình và cách xác định giá trị ứng dụng thực nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-005
+    title: Vì sao ARG, ENV, layer và build log không phù hợp để lưu secret
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-006
+    title: Rủi ro lộ thông tin nhạy cảm qua inspect, log và lịch sử lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-007
+    title: Cấp secret lúc chạy qua tệp mount với quyền truy cập tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-008
+    title: Đối chiếu cơ chế secret giữa container chạy trực tiếp và Compose
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-009
+    title: Thay hoặc xoay vòng secret và xác định khi nào cần tạo lại container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: runtime-configuration-and-secrets-010
+    title: Xác minh cấu hình bắt buộc khi khởi động mà không ghi secret vào log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: docker-compose-applications
+  title: Chạy ứng dụng nhiều container bằng Docker Compose
+  childs:
+  - slug: docker-compose-applications-001
+    title: Vai trò của Compose và giới hạn điều phối trên một môi trường engine
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-002
+    title: Cấu trúc tệp Compose với services, networks và volumes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-003
+    title: Khai báo image có sẵn hoặc build từ Dockerfile cho từng service
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-004
+    title: Chạy, dừng, tạo lại và xóa stack với các lệnh Compose
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-005
+    title: Project name và cách tách tài nguyên của nhiều stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-006
+    title: Giao tiếp giữa service bằng tên DNS và cổng nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-007
+    title: Khai báo volume, bind mount và bảo toàn dữ liệu khi dùng down
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-008
+    title: Nội suy biến và kiểm tra cấu hình đã hợp nhất bằng compose config
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-009
+    title: Kết hợp nhiều tệp cấu hình và sử dụng profiles cho tác vụ tùy chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-010
+    title: Depends_on, healthcheck và sự khác nhau giữa thứ tự chạy với sẵn sàng phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-011
+    title: Retry kết nối ứng dụng khi dependency khởi động chậm hoặc bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-012
+    title: Cấp configs hoặc secrets và nhận diện giới hạn của Compose cục bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-013
+    title: Thiết lập tài nguyên hoặc restart và kiểm tra cấu hình thực tế trên container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-014
+    title: Xem log, thực thi lệnh và cập nhật một service trong stack
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-015
+    title: Mở rộng số container của service và xử lý xung đột cổng host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: docker-compose-applications-016
+    title: Thực hành ghép ứng dụng, cơ sở dữ liệu và mạng riêng bằng Compose
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-resource-management
+  title: Giới hạn tài nguyên và đọc hành vi của cgroups
+  childs:
+  - slug: container-resource-management-001
+    title: Phân biệt mức sử dụng tài nguyên hiện tại với giới hạn được cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-002
+    title: CPU quota, CPU period và giới hạn theo số CPU tương đương
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-003
+    title: CPU shares hoặc weight và tác dụng khi có tranh chấp tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-004
+    title: CPU affinity với cpuset và cân nhắc khi gắn ứng dụng vào CPU cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-005
+    title: Giới hạn bộ nhớ cứng, giới hạn mềm và vùng nhớ của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-006
+    title: Tương tác giữa giới hạn memory, swap và cấu hình của host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-007
+    title: Phân biệt OOM bên trong container với áp lực bộ nhớ toàn host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-008
+    title: Đọc trạng thái OOMKilled và vì sao exit code 137 chưa đủ kết luận OOM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-009
+    title: Giới hạn số tiến trình bằng pids limit và phòng ngừa cạn PID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-010
+    title: Ulimit cho file descriptor hoặc tài nguyên tiến trình và phạm vi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-011
+    title: Kiểm soát I/O khi driver, thiết bị và cgroup controller hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-012
+    title: Quan sát CPU throttling và memory pressure bằng thống kê runtime hoặc cgroups
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-013
+    title: JVM nhận diện giới hạn container và cách dành bộ nhớ ngoài Java heap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-management-014
+    title: Thực nghiệm điều chỉnh giới hạn dưới tải và chừa tài nguyên cho host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-runtime-security
+  title: Bảo mật runtime và giảm quyền của container
+  childs:
+  - slug: container-runtime-security-001
+    title: Mô hình đe dọa khi container dùng chung kernel với host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-002
+    title: Chạy ứng dụng bằng người dùng không phải root trong image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-003
+    title: User namespace và rootless runtime trong mô hình giảm quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-004
+    title: Giới hạn mạng, lưu trữ và cgroups cần kiểm tra khi chạy rootless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-005
+    title: Phân biệt root bên trong container với quyền trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-006
+    title: Linux capabilities và cách giữ tập quyền tối thiểu cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-007
+    title: No-new-privileges và ngăn tiến trình tăng đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-008
+    title: Seccomp và giới hạn tập syscall được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-009
+    title: AppArmor hoặc SELinux trong kiểm soát truy cập bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-010
+    title: Root filesystem chỉ đọc và các điểm ghi cần cấp riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-011
+    title: Rủi ro của privileged, host namespace và truy cập thiết bị host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-012
+    title: Rủi ro mount Docker socket hoặc đường dẫn nhạy cảm của host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-013
+    title: Giảm bề mặt tấn công từ cổng công bố, mạng và volume chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-runtime-security-014
+    title: Kiểm tra cấu hình bảo mật thực tế bằng inspect trước khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: image-security-and-software-supply-chain
+  title: An toàn image và nền tảng chuỗi cung ứng phần mềm
+  childs:
+  - slug: image-security-and-software-supply-chain-001
+    title: Lựa chọn nguồn base image và đánh giá mức độ tin cậy của nhà phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-002
+    title: Ghim digest nhưng vẫn có kế hoạch cập nhật bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-003
+    title: Giảm công cụ, package và tài khoản không cần thiết trong runtime image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-004
+    title: Loại bỏ mã nguồn riêng, credential và tệp thừa khỏi build context
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-005
+    title: Quét lỗ hổng trong image và hiểu giới hạn của kết quả quét
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-006
+    title: Phân loại mức độ ảnh hưởng theo gói, phiên bản và khả năng khai thác thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-007
+    title: SBOM và khả năng truy vết thành phần đã đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-008
+    title: Chữ ký image và kiểm chứng nguồn phát hành trước khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-009
+    title: Provenance và mối liên hệ giữa mã nguồn, quy trình build với artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-010
+    title: Khắc phục lỗ hổng bằng rebuild image và thay container đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-security-and-software-supply-chain-011
+    title: Thực hành phát hiện secret trong layer và xử lý bằng thu hồi hoặc thay khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-observability
+  title: Quan sát trạng thái, log và dấu vết vận hành
+  childs:
+  - slug: container-observability-001
+    title: Đọc cấu hình và trạng thái container bằng docker inspect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-002
+    title: Thu thập stdout hoặc stderr bằng docker logs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-003
+    title: Logging driver và giới hạn khả năng truy xuất log theo driver
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-004
+    title: Giới hạn kích thước, luân chuyển và theo dõi dung lượng log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-005
+    title: Đo CPU, bộ nhớ, network I/O và block I/O bằng docker stats
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-006
+    title: Theo dõi sự kiện tạo, chạy, dừng và xóa container bằng docker events
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-007
+    title: Quan sát tiến trình bằng docker top và đối chiếu với góc nhìn trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-008
+    title: Đọc kết quả healthcheck và lịch sử kiểm tra sức khỏe
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-009
+    title: Gắn label hoặc metadata để liên kết container với phiên bản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-010
+    title: Phân biệt tiến trình còn sống, ứng dụng sẵn sàng và dependency hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-011
+    title: Thu thập bộ thông tin chẩn đoán tối thiểu mà không làm lộ cấu hình nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-observability-012
+    title: Ranh giới giữa quan sát bằng CLI và hệ thống thu thập metrics hoặc log tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-troubleshooting
+  title: Chẩn đoán các lỗi container thường gặp
+  childs:
+  - slug: container-troubleshooting-001
+    title: Quy trình khoanh vùng lỗi từ build đến pull, create và run
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-002
+    title: Build lỗi do context, đường dẫn COPY hoặc tệp bị dockerignore loại bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-003
+    title: Image không kéo được do sai tên, thiếu quyền hoặc lỗi xác thực registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-004
+    title: Manifest không có nền tảng phù hợp và lỗi exec format error
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-005
+    title: Container thoát ngay do lệnh khởi chạy, đối số hoặc thiếu dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-006
+    title: Lỗi entrypoint do shebang, quyền thực thi hoặc ký tự xuống dòng CRLF
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-007
+    title: Lệnh không tồn tại khi dùng base image tối giản hoặc distroless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-008
+    title: Ứng dụng chạy nhưng không truy cập được do bind address hoặc publish port
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-009
+    title: Lỗi DNS, sai mạng và dùng localhost khi kết nối service khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-010
+    title: Xung đột cổng host và lỗi cấp phát địa chỉ mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-011
+    title: Lỗi quyền volume do UID, GID hoặc chính sách truy cập của host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-012
+    title: Dữ liệu biến mất do ghi vào writable layer hoặc gắn nhầm volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-013
+    title: Restart loop, OOM và tiến trình bị kill khi thiếu tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-014
+    title: Build hoặc ứng dụng chậm do cache, I/O bind mount hoặc CPU throttling
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-015
+    title: Sự cố đầy đĩa từ image, build cache, writable layer hoặc log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-016
+    title: Debug image không có shell bằng công cụ từ host hoặc container hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-troubleshooting-017
+    title: Ghi lại giả thuyết, bằng chứng và cách tái hiện trước khi thay cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-deployment-lifecycle
+  title: Vòng đời triển khai và cập nhật ứng dụng an toàn
+  childs:
+  - slug: container-deployment-lifecycle-001
+    title: Từ image đã kiểm chứng đến cấu hình triển khai có thể lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-002
+    title: Tạo lại container khi đổi image hoặc cấu hình thay vì sửa trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-003
+    title: Cố định phiên bản image và lưu bằng chứng phiên bản đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-004
+    title: Kiểm tra cấu hình, cổng, volume và giới hạn trước khi khởi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-005
+    title: Tách startup, readiness và liveness ở mức khái niệm vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-006
+    title: Healthcheck độc lập không mặc nhiên thay container hoặc khởi động lại ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-007
+    title: Thời gian chờ dependency và khả năng tự phục hồi kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-008
+    title: Graceful shutdown, stop timeout và xử lý yêu cầu đang dở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-009
+    title: Bảo toàn dữ liệu và xử lý migration tương thích khi nâng phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-010
+    title: Thay thế phiên bản trên một host và nhận diện khoảng gián đoạn dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-011
+    title: Khái niệm blue-green hoặc rolling và vai trò của proxy hoặc orchestrator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-012
+    title: Rollback image, cấu hình và giới hạn rollback khi dữ liệu đã thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-deployment-lifecycle-013
+    title: Kiểm chứng sau triển khai bằng log, sức khỏe ứng dụng và thao tác nghiệp vụ mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: image-delivery-pipelines
+  title: Đưa image vào quy trình tích hợp và phân phối liên tục
+  childs:
+  - slug: image-delivery-pipelines-001
+    title: Chuỗi công việc từ checkout, kiểm thử, build đến push image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-002
+    title: Dùng cùng một image artifact qua các môi trường kiểm thử và triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-003
+    title: Gắn phiên bản phát hành, mã commit và metadata truy vết cho image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-004
+    title: Cấp credential registry cho pipeline với quyền và thời hạn phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-005
+    title: Tách build secret khỏi biến môi trường thông thường của job
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-006
+    title: Chia sẻ cache giữa các job và tránh phụ thuộc cache để bảo đảm tính đúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-007
+    title: Chạy smoke test trên image vừa build trước khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-008
+    title: Kiểm tra lỗ hổng, SBOM hoặc chữ ký tại các điểm kiểm soát thích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-009
+    title: Nhận diện rủi ro khi job build được truy cập Docker socket của host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: image-delivery-pipelines-010
+    title: Bàn giao digest, cấu hình cần thiết và tiêu chí kiểm chứng cho bước triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-platform-compatibility
+  title: Tính tương thích giữa kiến trúc CPU và hệ điều hành
+  childs:
+  - slug: container-platform-compatibility-001
+    title: Image phụ thuộc hệ điều hành và kiến trúc CPU mục tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-002
+    title: So sánh nền tảng linux amd64 với linux arm64 khi chọn image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-003
+    title: Buildx, builder và lựa chọn platform khi build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-004
+    title: Native build, cross-compilation và emulation bằng QEMU
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-005
+    title: Build và phát hành image index cho nhiều nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-006
+    title: Thư viện native và sự khác nhau giữa glibc với musl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-007
+    title: Windows containers và yêu cầu tương thích với kernel hoặc chế độ cô lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-008
+    title: Khác biệt đường dẫn, phân biệt hoa thường và quyền tệp giữa các host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-009
+    title: Hiệu năng bind mount và cơ chế thông báo thay đổi tệp qua máy ảo Desktop
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-platform-compatibility-010
+    title: Kiểm thử cùng artifact trên các nền tảng được tuyên bố hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-resource-maintenance
+  title: Bảo trì tài nguyên và giữ môi trường thực hành ổn định
+  childs:
+  - slug: container-resource-maintenance-001
+    title: Kiểm kê container, image, volume, network và build cache đang tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-002
+    title: Đọc báo cáo dung lượng bằng docker system df
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-003
+    title: Phân biệt image dangling với image không còn container tham chiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-004
+    title: Dọn container đã dừng và image cũ sau khi xác minh nhu cầu khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-005
+    title: Dọn cache build và cân nhắc chi phí build lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-006
+    title: Dọn network không còn sử dụng mà không làm gián đoạn stack khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-007
+    title: Kiểm tra backup và quyền sở hữu dữ liệu trước khi xóa volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-008
+    title: Hiểu phạm vi từng lệnh prune trước khi áp dụng bộ lọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-009
+    title: Lập kế hoạch cập nhật engine, base image và khởi động lại dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-resource-maintenance-010
+    title: Thiết lập quy trình kết thúc bài thực hành và xác nhận tài nguyên đã thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-labs-and-assessment
+  title: Bài thực hành tổng hợp và đánh giá năng lực nền tảng
+  childs:
+  - slug: container-labs-and-assessment-001
+    title: Lab so sánh tiến trình, namespace và dữ liệu giữa hai container cùng image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-002
+    title: Lab quan sát writable layer khi tạo lại container từ cùng digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-003
+    title: Lab viết Dockerfile multi-stage cho ứng dụng Java và chạy bằng user không root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-004
+    title: Lab đo cache hit hoặc miss và giảm kích thước runtime image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-005
+    title: Lab chạy registry cục bộ, push image và pull lại bằng digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-006
+    title: Lab kết nối ứng dụng với cơ sở dữ liệu qua user-defined network
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-007
+    title: Lab lưu dữ liệu bằng named volume và phục hồi sang container thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-008
+    title: Lab dựng stack Compose với healthcheck và retry dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-009
+    title: Lab gây tải để quan sát CPU throttling, giới hạn bộ nhớ và trạng thái OOM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-010
+    title: Lab giảm quyền runtime và kiểm chứng đường dẫn chỉ đọc hoặc được phép ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-011
+    title: Lab chẩn đoán lỗi cổng, DNS, permission và entrypoint từ bằng chứng vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-012
+    title: Lab nâng phiên bản, kiểm tra graceful shutdown và rollback image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-013
+    title: Bài đánh giá lựa chọn image, mạng, lưu trữ và giới hạn tài nguyên cho một ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-labs-and-assessment-014
+    title: Bài đánh giá giải thích ranh giới cô lập và rủi ro của cấu hình container đã cho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

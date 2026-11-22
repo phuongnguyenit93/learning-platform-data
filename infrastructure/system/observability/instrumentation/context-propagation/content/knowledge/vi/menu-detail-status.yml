@@ -1,0 +1,3058 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Truyền ngữ cảnh là gì và vì sao hệ thống quan sát cần cơ chế này
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Một yêu cầu đi qua nhiều hàm, luồng và dịch vụ như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Ngữ cảnh thực thi và mối liên hệ giữa các công việc cùng hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt truyền ngữ cảnh với tạo span, ghi logs và xuất telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vì sao cùng một trace ID chưa đủ bảo đảm quan hệ xử lý đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Truyền trong một tiến trình và truyền qua ranh giới tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Các ranh giới thường làm mất ngữ cảnh trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Vai trò của chuẩn trao đổi, thư viện và cơ chế gắn phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: 'Bản đồ thuật ngữ: context, scope, carrier, propagator và baggage'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-010
+    title: Trình tự học từ mô hình ngữ cảnh đến kiểm chứng đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-model
+  title: Mô hình ngữ cảnh
+  childs:
+  - slug: context-model-001
+    title: Ngữ cảnh là tập giá trị gắn với một đơn vị thực thi logic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-002
+    title: Truyền tường minh qua tham số và truy cập ngữ cảnh hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-003
+    title: Ngữ cảnh bất biến và tạo ngữ cảnh dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-004
+    title: Phân biệt ngữ cảnh với đối tượng request và đối tượng session
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-005
+    title: Khóa ngữ cảnh, danh tính khóa và xung đột giữa thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-006
+    title: Ngữ cảnh gốc, ngữ cảnh hiện hành và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-007
+    title: Giá trị cục bộ và giá trị được phép truyền qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-008
+    title: Snapshot của ngữ cảnh và thời điểm chụp giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-009
+    title: Ngữ cảnh bất biến không bảo đảm đối tượng bên trong cũng bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-010
+    title: Phân biệt metadata quan sát với quyền truy cập, giao dịch và trạng thái nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-model-011
+    title: Quan hệ giữa ngữ cảnh thực thi với deadline và tín hiệu hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-lifecycle
+  title: Phạm vi và vòng đời
+  childs:
+  - slug: scope-lifecycle-001
+    title: Phạm vi kích hoạt ngữ cảnh và cơ chế khôi phục ngữ cảnh trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-002
+    title: Mở phạm vi tại điểm vào và đóng phạm vi khi rời điểm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-003
+    title: Phạm vi lồng nhau và thứ tự đóng từ trong ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-004
+    title: Khôi phục ngữ cảnh khi có ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-005
+    title: Phân biệt đóng scope với kết thúc span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-006
+    title: Phạm vi trên một luồng và công việc tiếp tục trên luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-007
+    title: Vì sao không giữ scope mở trong lúc chờ tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-008
+    title: Chụp ngữ cảnh trước khi bàn giao và kích hoạt lúc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-009
+    title: Khôi phục trạng thái sẵn có trên luồng nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-010
+    title: Giải phóng tham chiếu sau thành công, lỗi, hủy hoặc timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-011
+    title: Rò rỉ ngữ cảnh và lẫn dữ liệu giữa hai yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-lifecycle-012
+    title: Quyền sở hữu việc mở, đóng scope khi nhiều lớp cùng tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-relationships
+  title: Quan hệ trace
+  childs:
+  - slug: trace-relationships-001
+    title: Trace, span và SpanContext trong mô hình quan sát phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-002
+    title: Trace ID nhận diện hành trình và span ID nhận diện một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-003
+    title: Span cha cục bộ và ngữ cảnh cha nhận từ dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-004
+    title: Phân biệt ngữ cảnh cha từ xa với span đang hoạt động tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-005
+    title: Span con khi gọi hàm, gửi yêu cầu hoặc xử lý công việc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-006
+    title: Tạo span không đồng nghĩa tự động kích hoạt span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-007
+    title: Giữ nguyên trace ID và thay đổi span ID qua các chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-008
+    title: Phân biệt quan hệ cha con với liên kết bằng span link
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-009
+    title: Một công việc có nhiều nguồn khởi tạo hoặc nhiều thông điệp đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-010
+    title: Ngữ cảnh hợp lệ trong trường hợp span không ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-relationships-011
+    title: Liên hệ giữa vòng đời span và vòng đời công việc thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: traceparent
+  title: Traceparent
+  childs:
+  - slug: traceparent-001
+    title: Vai trò của W3C Trace Context trong trao đổi giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-002
+    title: 'Cấu trúc traceparent: version, trace-id, parent-id và trace-flags'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-003
+    title: Ý nghĩa parent-id đối với dịch vụ nhận yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-004
+    title: Định dạng, độ dài và miền giá trị hợp lệ của các định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-005
+    title: Định danh toàn số không và ngữ cảnh không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-006
+    title: Cờ sampled và thông tin quyết định lấy mẫu được truyền đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-007
+    title: Quy tắc đọc các phiên bản và cờ theo đặc tả tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-008
+    title: Khi không nhận được traceparent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-009
+    title: Khi traceparent sai định dạng hoặc không được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-010
+    title: Thay đổi parent-id khi tạo thao tác gửi đi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-011
+    title: Tên header, tính không phân biệt hoa thường và xử lý qua thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: traceparent-012
+    title: Đọc một chuỗi header mẫu để dựng quan hệ giữa các chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracestate
+  title: Tracestate
+  childs:
+  - slug: tracestate-001
+    title: Tracestate dùng cho thông tin mở rộng của hệ thống tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-002
+    title: Mối liên hệ giữa traceparent hợp lệ và tracestate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-003
+    title: Danh sách khóa giá trị, thứ tự thành viên và quyền sở hữu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-004
+    title: Cách thêm, cập nhật và chuyển tiếp thông tin của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-005
+    title: Giới hạn kích thước và số thành viên theo đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-006
+    title: Xử lý thành viên sai định dạng hoặc trùng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-007
+    title: Bảo toàn thông tin tương thích khi đi qua nhiều hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-008
+    title: Phân biệt tracestate với baggage và thuộc tính của span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracestate-009
+    title: Không đưa dữ liệu nghiệp vụ tùy ý vào tracestate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: baggage
+  title: Baggage
+  childs:
+  - slug: baggage-001
+    title: Baggage là dữ liệu ứng dụng truyền cùng hành trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-002
+    title: Baggage có thể tồn tại độc lập với tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-003
+    title: Phân biệt baggage với span attributes và resource attributes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-004
+    title: Cấu trúc khóa, giá trị và metadata trong header baggage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-005
+    title: Mã hóa ký tự, phân tách thành viên và giải mã an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-006
+    title: Thêm, đọc, thay thế và loại bỏ một mục baggage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-007
+    title: Giới hạn số mục và tổng kích thước được truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-008
+    title: Danh sách thuộc tính được cho phép tại từng ranh giới dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-009
+    title: Baggage không tự động trở thành thuộc tính span hoặc log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-010
+    title: Chọn điểm chuyển baggage thành thông tin quan sát cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-011
+    title: Giới hạn cardinality khi dùng dữ liệu ngữ cảnh cho metrics
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baggage-012
+    title: Vòng đời baggage khi tạo nhánh xử lý hoặc bắt đầu hành trình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inject-extract
+  title: Inject và extract
+  childs:
+  - slug: inject-extract-001
+    title: Carrier là nơi chứa dữ liệu được truyền qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-002
+    title: 'Inject: ghi ngữ cảnh đã chọn vào carrier'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-003
+    title: 'Extract: đọc carrier để tạo ngữ cảnh phía nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-004
+    title: Phân biệt trích xuất ngữ cảnh với kích hoạt ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-005
+    title: Getter và setter để thích nghi với từng kiểu carrier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-006
+    title: Ngữ cảnh nền dùng khi trích xuất và chính sách giữ giá trị cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-007
+    title: Kết hợp nhiều propagator cho trace context và baggage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-008
+    title: Trường được propagator sử dụng và cách tránh ghi header trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-009
+    title: Inject sau khi tạo span gửi đi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-010
+    title: Carrier dùng lại, dữ liệu cũ và nguy cơ lẫn yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-011
+    title: Xử lý giá trị thiếu, sai kiểu và nhiều giá trị cho một trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inject-extract-012
+    title: Kiểm thử vòng inject rồi extract trên cùng một carrier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-flows
+  title: Luồng HTTP
+  childs:
+  - slug: http-flows-001
+    title: Luồng nhận yêu cầu, extract, tạo server span và kích hoạt ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-002
+    title: Luồng gọi ra, tạo client span, inject và gửi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-003
+    title: Đóng scope và kết thúc span khi thao tác hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-004
+    title: Truyền ngữ cảnh qua nhiều dịch vụ trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-005
+    title: Proxy, gateway và header bị lọc hoặc thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-006
+    title: Giữ riêng ngữ cảnh cho từng yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-007
+    title: Lỗi HTTP, ngoại lệ và tác động đến vòng đời ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-008
+    title: Thử lại yêu cầu và quan hệ giữa span logic với từng lần gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-009
+    title: Chuyển hướng sang đích khác và chính sách truyền header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-010
+    title: Header từ trình duyệt, CORS và quyền đọc header phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-011
+    title: Correlation ID của ứng dụng và quan hệ với trace ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-flows-012
+    title: Phân biệt header giao thức tracing với dữ liệu nghiệp vụ trong body
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rpc-long-lived-connections
+  title: RPC và kết nối dài
+  childs:
+  - slug: rpc-long-lived-connections-001
+    title: Truyền ngữ cảnh bằng metadata trong gRPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-002
+    title: Interceptor phía nhận và phía gửi trong một lời gọi RPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-003
+    title: Phân biệt OpenTelemetry Context với io.grpc.Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-004
+    title: Deadline và cancellation của RPC cần cơ chế truyền riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-005
+    title: Ngữ cảnh của một lời gọi streaming và các lần xử lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-006
+    title: 'WebSocket: ngữ cảnh lúc bắt tay và ngữ cảnh từng thông điệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-007
+    title: 'SSE: phạm vi kết nối, lần xử lý sự kiện và tác vụ gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-008
+    title: Carrier cho giao thức không có HTTP headers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rpc-long-lived-connections-009
+    title: Không dùng ngữ cảnh của một kết nối làm cha cho mọi công việc vô hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threadlocal
+  title: ThreadLocal
+  childs:
+  - slug: threadlocal-001
+    title: ThreadLocal lưu dữ liệu riêng cho từng Thread như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-002
+    title: Một luồng xử lý nhiều yêu cầu và nguy cơ giữ lại dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-003
+    title: set, get, remove và dọn dẹp bằng finally
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-004
+    title: Lưu và khôi phục giá trị trước khi mở phạm vi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-005
+    title: InheritableThreadLocal và thời điểm kế thừa khi tạo luồng con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-006
+    title: Vì sao kế thừa luồng không giải quyết đầy đủ việc tái sử dụng pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-007
+    title: Bàn giao tác vụ khác với tạo mới một luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-008
+    title: Ngữ cảnh theo yêu cầu và ngữ cảnh theo luồng không luôn trùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-009
+    title: Dữ liệu dùng chung có thể thay đổi và lỗi cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-010
+    title: Giới hạn của biến static hoặc singleton làm nơi giữ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threadlocal-011
+    title: Tái hiện lẫn ngữ cảnh bằng một pool chỉ có một luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: executors
+  title: Executor
+  childs:
+  - slug: executors-001
+    title: Điểm bàn giao qua Executor, ExecutorService và ScheduledExecutorService
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-002
+    title: Chụp ngữ cảnh lúc nộp tác vụ thay vì lúc khởi tạo pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-003
+    title: Bao bọc Runnable và Callable để kích hoạt rồi khôi phục ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-004
+    title: Trang trí executor và phạm vi những tác vụ được bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-005
+    title: Bàn giao lồng nhau và tránh bao bọc nhiều lần ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-006
+    title: Đường chạy inline và chính sách thực thi trên luồng gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-007
+    title: Tác vụ bị từ chối và giải phóng dữ liệu đã chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-008
+    title: Tác vụ ném lỗi, bị hủy hoặc không bao giờ được chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-009
+    title: Lịch chạy một lần và lịch chạy lặp cần chính sách ngữ cảnh khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-010
+    title: ForkJoinPool, parallel stream và giới hạn truyền ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-011
+    title: Tác vụ đã chụp ngữ cảnh không tự nhìn thấy thay đổi về sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executors-012
+    title: Đối chiếu ngữ cảnh trên luồng nộp và luồng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: completablefuture
+  title: CompletableFuture
+  childs:
+  - slug: completablefuture-001
+    title: Các điểm đổi đơn vị thực thi trong chuỗi CompletionStage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-002
+    title: thenApply và luồng thực thi phụ thuộc thời điểm hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-003
+    title: thenApplyAsync và executor mặc định hoặc được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-004
+    title: supplyAsync, runAsync và thời điểm cần chụp ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-005
+    title: Truyền ngữ cảnh qua callback và qua executor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-006
+    title: thenCompose và ngữ cảnh của công việc bất đồng bộ được nối tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-007
+    title: thenCombine, allOf và lựa chọn ngữ cảnh khi hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-008
+    title: whenComplete, handle, exceptionally và nhánh xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-009
+    title: Timeout của future không đồng nghĩa công việc nền đã dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-010
+    title: Hủy future, công việc còn chạy và giải phóng phạm vi đúng chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-011
+    title: Future đã hoàn tất trước khi đăng ký callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: completablefuture-012
+    title: Kiểm thử chuỗi có nhánh chạy cùng luồng và nhánh chạy trên pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-threads
+  title: Luồng ảo
+  childs:
+  - slug: virtual-threads-001
+    title: Luồng ảo trong Java 21 và ngữ cảnh theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-002
+    title: Phân biệt luồng ảo với luồng carrier của JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-003
+    title: ThreadLocal trên luồng ảo và giới hạn của suy luận theo tên luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-004
+    title: Kế thừa ngữ cảnh khi tạo luồng ảo và chính sách của thread builder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-005
+    title: Executor tạo luồng ảo cho từng tác vụ vẫn cần xác định ranh giới ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-006
+    title: Chi phí giữ dữ liệu ngữ cảnh khi có nhiều luồng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-007
+    title: Truyền sang pool khác từ một luồng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-008
+    title: Kiểm chứng ngữ cảnh bằng hành vi thay vì giả định mô hình luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry-java
+  title: OpenTelemetry Java
+  childs:
+  - slug: opentelemetry-java-001
+    title: Context.current, Context.root và ContextKey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-002
+    title: Context.with để tạo ngữ cảnh dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-003
+    title: makeCurrent và Scope trong try-with-resources
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-004
+    title: Span.current và truy cập SpanContext hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-005
+    title: setParent khi tạo span từ một ngữ cảnh đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-006
+    title: setNoParent khi chủ động bắt đầu trace mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-007
+    title: Giữ quan hệ giữa tạo span, kích hoạt và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-008
+    title: Context.wrap cho Runnable, Callable và các kiểu tác vụ được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-009
+    title: Context.taskWrapping để trang trí executor theo API phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-010
+    title: TextMapPropagator, TextMapGetter và TextMapSetter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-011
+    title: Baggage API và gắn baggage vào ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-java-012
+    title: Phân biệt cơ chế Context API với cấu hình SDK, sampler và exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mdc-logging
+  title: MDC và logging
+  childs:
+  - slug: mdc-logging-001
+    title: MDC là gì và vai trò trong liên kết logs với hành trình xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-002
+    title: Phân biệt bản đồ MDC với ngữ cảnh tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-003
+    title: Đưa trace ID, span ID hoặc correlation ID vào sự kiện log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-004
+    title: Cập nhật MDC khi span hiện hành thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-005
+    title: Sao chép và khôi phục MDC khi bàn giao tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-006
+    title: Dọn dẹp đúng khóa mà không xóa dữ liệu do lớp ngoài quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-007
+    title: MDC lồng nhau và phục hồi giá trị bị che khuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-008
+    title: Sự kiện log bất đồng bộ và thời điểm chụp dữ liệu MDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-009
+    title: Logs từ luồng nền không có request đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-010
+    title: Vì sao MDC có trace ID nhưng trace vẫn có thể đứt quan hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mdc-logging-011
+    title: Không dùng toàn bộ MDC làm baggage mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: micrometer
+  title: Micrometer
+  childs:
+  - slug: micrometer-001
+    title: Vai trò của Micrometer Context Propagation tại các điểm đổi mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-002
+    title: ThreadLocalAccessor và hợp đồng truy cập giá trị theo khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-003
+    title: ContextAccessor cho cấu trúc ngữ cảnh dạng bản đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-004
+    title: ContextRegistry và đăng ký các accessor cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-005
+    title: ContextSnapshotFactory và chụp những giá trị đã đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-006
+    title: ContextSnapshot lưu giá trị tại thời điểm chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-007
+    title: setThreadLocals và khôi phục bằng Scope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-008
+    title: Giá trị vắng mặt, chính sách xóa và ngăn dữ liệu cũ rò sang tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-009
+    title: Bao bọc tác vụ hoặc executor bằng cơ chế snapshot phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-010
+    title: Chuyển dữ liệu giữa ThreadLocal với Reactor Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-011
+    title: Observation đang hoạt động và accessor của hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: micrometer-012
+    title: Phân biệt truyền ngữ cảnh cục bộ với inject header qua mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactor-context
+  title: Reactor Context
+  childs:
+  - slug: reactor-context-001
+    title: Vì sao ThreadLocal riêng lẻ không mô tả đúng chuỗi reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-002
+    title: Context và ContextView gắn với subscriber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-003
+    title: Context bất biến và tạo giá trị dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-004
+    title: contextWrite và phạm vi nhìn thấy của thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-005
+    title: Chiều truyền ngữ cảnh từ bên đăng ký đến các toán tử phía trên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-006
+    title: deferContextual để đọc ngữ cảnh lúc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-007
+    title: Thời điểm lắp ráp chuỗi, đăng ký và phát tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-008
+    title: publishOn, subscribeOn và sự độc lập giữa luồng với subscriber context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-009
+    title: flatMap và phạm vi ngữ cảnh của chuỗi con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-010
+    title: Nhiều subscriber dùng chung một chuỗi nhưng có ngữ cảnh riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-011
+    title: Khóa trùng, thứ tự contextWrite và giá trị bị ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactor-context-012
+    title: Không đưa toàn bộ ngữ cảnh vào đối tượng dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reactive-bridges
+  title: Cầu nối reactive
+  childs:
+  - slug: reactive-bridges-001
+    title: Cơ chế nối Reactor Context với ThreadLocal đã đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-002
+    title: contextCapture và thời điểm chụp dữ liệu khi đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-003
+    title: Chế độ khôi phục giới hạn và các toán tử được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-004
+    title: Hooks.enableAutomaticContextPropagation và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-005
+    title: Bật hook trước các lượt đăng ký cần được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-006
+    title: Đặt dữ liệu bằng contextWrite và đọc qua mã dùng ThreadLocal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-007
+    title: Đường chuyển từ mã mệnh lệnh sang reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-008
+    title: Đường chuyển từ reactive sang thư viện mệnh lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-009
+    title: Giá trị không có trong context và yêu cầu làm sạch ThreadLocal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-010
+    title: retry, repeat và việc tạo lại phạm vi theo mỗi lần đăng ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-011
+    title: cache, share và rủi ro gắn nhầm ngữ cảnh giữa nhiều bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reactive-bridges-012
+    title: Kiểm tra khả năng tương thích giữa phiên bản Reactor và thư viện cầu nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-mvc
+  title: Spring MVC
+  childs:
+  - slug: spring-mvc-001
+    title: Điểm vào Servlet và phạm vi ngữ cảnh cho một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-002
+    title: Vai trò của filter, interceptor và cơ chế observation có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-003
+    title: Extract đầu vào trước khi gắn phép đo cho phần xử lý tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-004
+    title: Truyền ngữ cảnh qua RestClient, RestTemplate hoặc HTTP client được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-005
+    title: Client được cấu hình sẵn so với client tự khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-006
+    title: Servlet async, Callable, DeferredResult và các lần dispatch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-007
+    title: TaskDecorator và trang trí executor cho tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-008
+    title: ContextPropagatingTaskDecorator khi phiên bản Spring hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-009
+    title: '@Async và điều kiện executor thực sự được áp dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-010
+    title: Phân biệt observability context với SecurityContext, giao dịch và RequestContextHolder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-mvc-011
+    title: Dọn dẹp khi có lỗi, timeout hoặc trả kết quả bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-webflux
+  title: Spring WebFlux
+  childs:
+  - slug: spring-webflux-001
+    title: Ngữ cảnh theo ServerWebExchange và theo subscriber
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-002
+    title: Vai trò của WebFilter và observation trong luồng reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-003
+    title: Dùng Reactor Context để giữ dữ liệu quan sát theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-004
+    title: Truyền ngữ cảnh qua WebClient tại thời điểm đăng ký phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-005
+    title: Đưa tracing context vào lời gọi gửi đi mà không đọc ThreadLocal quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-006
+    title: Nhánh reactive gọi thư viện blocking trên scheduler khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-007
+    title: Kết hợp cầu nối tự động với cấu hình của Spring Boot đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-008
+    title: Tránh subscribe thủ công làm tách phạm vi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-009
+    title: Lỗi, hủy đăng ký và thời điểm kết thúc span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-webflux-010
+    title: Kiểm chứng riêng từng yêu cầu khi nhiều chuỗi dùng chung event loop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging
+  title: Messaging
+  childs:
+  - slug: messaging-001
+    title: Ngữ cảnh producer, metadata thông điệp và consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-002
+    title: Chọn carrier từ message headers hoặc message properties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-003
+    title: Inject trước khi gửi và extract khi nhận xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-004
+    title: Phân biệt gửi thông điệp, nhận thông điệp và xử lý nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-005
+    title: Quan hệ cha con hoặc span links theo mô hình messaging
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-006
+    title: Một lần xử lý nhận nhiều thông điệp có ngữ cảnh khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-007
+    title: Phát đến nhiều consumer và phân nhánh hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-008
+    title: Thử gửi lại, xử lý lại và giao nhận thông điệp lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-009
+    title: Thời gian chờ trong hàng đợi và vòng đời span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-010
+    title: Kafka headers và vấn đề khóa có thể có nhiều giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-011
+    title: AMQP, JMS và khác biệt kiểu dữ liệu thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-012
+    title: Giải phóng ngữ cảnh trên luồng consumer trước thông điệp tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-013
+    title: Ngữ cảnh tracing không tự bảo đảm giao nhận chính xác một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: background-tasks
+  title: Tác vụ nền
+  childs:
+  - slug: background-tasks-001
+    title: Phân biệt công việc tiếp nối request với công việc độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-002
+    title: Tác vụ chạy sau khi request đã trả kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-003
+    title: Ngữ cảnh được chụp có thể còn định danh của span đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-004
+    title: Lựa chọn nối tiếp trace, tạo trace mới hoặc thêm span link
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-005
+    title: Lịch lặp không được giữ mãi ngữ cảnh của lần cấu hình ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-006
+    title: Ngữ cảnh cho từng lần chạy scheduler và từng đơn vị batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-007
+    title: Workflow dài hạn và dữ liệu liên kết được lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-008
+    title: Retry, backoff và ngữ cảnh riêng cho từng lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-009
+    title: Chia nhiều nhánh và hợp nhất kết quả từ nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-010
+    title: Phân biệt truyền trace context với truyền deadline hoặc trạng thái hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-tasks-011
+    title: Giới hạn dữ liệu giữ lại khi tác vụ chờ lâu hoặc không được chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-sampling
+  title: Tương thích và lấy mẫu
+  childs:
+  - slug: compatibility-sampling-001
+    title: W3C Trace Context và định dạng B3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-002
+    title: B3 một header, nhiều header và cấu hình tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-003
+    title: Phân biệt giải mã đầu vào với định dạng sẽ ghi đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-004
+    title: Thứ tự ưu tiên khi nhận nhiều định dạng không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-005
+    title: Chuyển đổi định dạng và thông tin có thể không được bảo toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-006
+    title: Proxy hoặc thư viện trung gian không tạo span nhưng vẫn chuyển ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-007
+    title: Cờ sampled, quyết định sampler cục bộ và chính sách tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-008
+    title: Không ghi span vẫn có thể truyền ngữ cảnh hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-009
+    title: Phân biệt truyền metadata lấy mẫu với xuất dữ liệu span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-010
+    title: Trace bị thiếu span do sampling và trace bị đứt do propagation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-sampling-011
+    title: Tương thích khi bật agent, thư viện tự động và mã thủ công cùng lúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trust-boundaries
+  title: Ranh giới tin cậy
+  childs:
+  - slug: trust-boundaries-001
+    title: Ngữ cảnh đầu vào từ người gọi là dữ liệu cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-002
+    title: Định dạng hợp lệ không đồng nghĩa nguồn gửi đáng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-003
+    title: Baggage và trace ID không phải bằng chứng xác thực hay phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-004
+    title: Chính sách tiếp tục, làm mới hoặc loại bỏ ngữ cảnh tại biên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-005
+    title: Không truyền mật khẩu, token và thông tin nhạy cảm qua baggage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-006
+    title: Danh sách trường cho phép theo miền, dịch vụ hoặc đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-007
+    title: Giới hạn kích thước, số trường và chi phí phân tích header
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-008
+    title: Chặn dữ liệu nguy hiểm trước khi chuyển vào logs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-009
+    title: Ngăn dùng dữ liệu từ bên ngoài để ép mức ghi nhận không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-010
+    title: Cách ly dữ liệu giữa người dùng, tenant và yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-011
+    title: CORS, chuyển hướng và điểm đích bên ngoài miền tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trust-boundaries-012
+    title: Phân biệt dữ liệu quan sát với trạng thái giao dịch, bảo mật và phân vùng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-lifecycle
+  title: Hiệu năng và vòng đời
+  childs:
+  - slug: performance-lifecycle-001
+    title: Chi phí chụp snapshot theo số khóa và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-002
+    title: Chi phí mở, đóng scope tại các ranh giới thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-003
+    title: Bao bọc nhiều lần và tác động đến cấp phát đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-004
+    title: Giữ request hoặc đối tượng lớn trong context gây giữ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-005
+    title: Task bị hủy trong hàng đợi và vòng đời dữ liệu được giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-006
+    title: Chi phí cầu nối tự động trong chuỗi reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-007
+    title: Baggage lớn làm tăng kích thước mọi lời gọi hoặc thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-008
+    title: Giới hạn dữ liệu cần truyền theo mục tiêu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-lifecycle-009
+    title: Đo chi phí dưới tải và kiểm tra sau khi thay đổi cơ chế propagation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử inject rồi extract bảo toàn các trường được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử header thiếu, sai định dạng và vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử scope lồng nhau khôi phục giá trị cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử đóng scope khi có ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử nhiều request trên một luồng pool dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử capture lúc nộp tác vụ và restore lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử CompletableFuture hoàn tất trước và sau khi gắn callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử Reactor với nhiều subscriber và thay đổi scheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử retry, timeout, hủy và công việc vẫn chạy nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử producer, consumer, batch và thông điệp xử lý lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Kiểm thử parent ID, trace ID và span links thay vì chỉ kiểm tra logs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-012
+    title: Kiểm thử không rò ngữ cảnh sang công việc kế tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-013
+    title: Kiểm thử tự động và thủ công không tạo hai bộ span ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán
+  childs:
+  - slug: troubleshooting-001
+    title: Lần theo ranh giới đầu tiên mà trace ID hoặc parent ID thay đổi sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Header có đủ nhưng ngữ cảnh hiện hành vẫn rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Context đã extract nhưng chưa được kích hoạt khi tạo span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Span đã tạo nhưng chưa trở thành span hiện hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Trace ID đúng nhưng client span hoặc server span bị gắn sai cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Logs có trace ID cũ sau khi xử lý yêu cầu khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Mất ngữ cảnh sau @Async, executor hoặc callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Mất dữ liệu khi đổi scheduler hoặc đăng ký reactive ở thời điểm khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Header biến mất qua gateway, proxy hoặc client tự khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Baggage không xuất hiện trong span vì chưa có bước ánh xạ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Span lặp hoặc scope lồng sai khi nhiều cơ chế cùng gắn phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Phân biệt lỗi propagation với lỗi sampling, exporter hoặc đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-013
+    title: Dùng nhật ký ranh giới và carrier đã lọc để kiểm chứng giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Vẽ hành trình ngữ cảnh qua hai dịch vụ và một hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Đọc traceparent mẫu để xác định quan hệ các chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Xây carrier giả để kiểm chứng inject và extract
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Tái hiện lẫn ThreadLocal trên pool một luồng rồi xác minh dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: So sánh capture ở lúc tạo wrapper với lúc nộp từng tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Truyền ngữ cảnh qua chuỗi CompletableFuture có nhánh lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: So sánh tác vụ trên luồng nền tảng và luồng ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Liên kết MDC với span đang hoạt động và kiểm tra scope lồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Chuyển dữ liệu giữa ThreadLocal và Reactor Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Đối chiếu contextWrite, contextCapture và chế độ cầu nối tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Kiểm tra hai subscriber đồng thời không dùng nhầm ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Theo dõi producer, consumer, thử lại và xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-013
+    title: Thiết kế chính sách baggage tại ranh giới dịch vụ nội bộ và bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-014
+    title: Kiểm chứng hành trình không ghi span nhưng vẫn truyền ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-015
+    title: Lập bảng ranh giới, cơ chế capture, restore, inject, extract và bằng chứng kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

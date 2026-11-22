@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-lua-chon-chien-luoc
+  title: Mục tiêu & lựa chọn chiến lược
+  purpose: Hiểu đánh đổi giữa tốc độ phát hành, tính sẵn sàng, chi phí và khả năng hoàn tác.
+  objectives:
+  - Phân biệt deployment với release tính năng.
+  - Xác định downtime, rủi ro, quy mô và SLA/SLO.
+  - Chọn tiêu chí so sánh các chiến lược.
+- id: recreate-rolling-update
+  title: Recreate & Rolling Update
+  purpose: Nắm hai cách thay thế phiên bản cơ bản và ảnh hưởng tới tài nguyên, tính sẵn sàng.
+  objectives:
+  - Mô tả Recreate và tình huống chấp nhận downtime.
+  - Giải thích RollingUpdate, maxSurge và maxUnavailable.
+  - Kiểm tra điều kiện sẵn sàng trước khi chuyển tải.
+- id: blue-green-deployment
+  title: Blue-Green Deployment
+  purpose: Triển khai phiên bản mới song song với bản ổn định để kiểm thử và chuyển lưu lượng có kiểm soát.
+  objectives:
+  - Thiết kế môi trường blue/green và bước xác minh green.
+  - Thực hiện chuyển routing/service sang green.
+  - Đánh giá chi phí nhân đôi và khả năng chuyển về blue.
+- id: canary-deployment
+  title: Canary Deployment
+  purpose: Giới hạn tác động tới người dùng bằng cách phát hành cho một phần nhỏ lưu lượng trước.
+  objectives:
+  - Chia nhóm stable/canary và tăng tỷ lệ traffic từng bước.
+  - Xác định thời gian quan sát và điều kiện nâng tỷ lệ.
+  - Phân biệt canary theo traffic với theo số instance.
+- id: progressive-delivery-flags
+  title: Progressive Delivery & Flags
+  purpose: Kết hợp phát hành từng bước và bật tính năng độc lập để kiểm soát phạm vi người dùng.
+  objectives:
+  - So sánh phân phối phiên bản với feature flag.
+  - Thiết kế pause, promotion và phân đoạn người dùng.
+  - Quy định vòng đời và dọn bỏ feature flag cũ.
+- id: health-quality-gates
+  title: Health & Quality Gates
+  purpose: Dùng tín hiệu vận hành để quyết định tiếp tục hoặc dừng rollout thay vì chỉ dựa vào trạng thái chạy.
+  objectives:
+  - Cấu hình readiness, startup và liveness probes phù hợp.
+  - Theo dõi error rate, latency, saturation và SLO.
+  - Đặt ngưỡng phân tích, cảnh báo và điều kiện abort.
+- id: tuong-thich-du-lieu
+  title: Tương thích & dữ liệu
+  purpose: Tránh gián đoạn khi hai phiên bản ứng dụng cùng hoạt động hoặc khi thay đổi schema.
+  objectives:
+  - Đảm bảo API và sự kiện tương thích ngược trong giai đoạn chuyển tiếp.
+  - Áp dụng expand–migrate–contract cho schema khi phù hợp.
+  - Kiểm tra session, cache và tác vụ nền giữa hai phiên bản.
+- id: rollback-van-hanh-phat-hanh
+  title: Rollback & vận hành phát hành
+  purpose: Chuẩn bị đường lui và quy trình kiểm thử để có thể phản ứng nhanh khi rollout thất bại.
+  objectives:
+  - Dùng revision, image digest và audit trail để truy vết.
+  - Thử rollback hoặc revert với dữ liệu đã thay đổi.
+  - Diễn tập chiến lược rolling, blue-green và canary trên môi trường thử nghiệm.

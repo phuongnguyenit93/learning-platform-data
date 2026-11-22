@@ -1,0 +1,3 @@
+menuLevel1: ThreadLocal
+menuLevel2: InheritableThreadLocal và thời điểm kế thừa khi tạo luồng con
+status: ''

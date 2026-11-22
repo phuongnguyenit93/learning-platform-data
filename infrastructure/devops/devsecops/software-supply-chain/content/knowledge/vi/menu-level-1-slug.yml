@@ -1,0 +1,106 @@
+menu:
+- title: Tổng quan chuỗi cung ứng
+  slug: supply-chain-overview
+  index: 0
+- title: Bản đồ tài sản và niềm tin
+  slug: asset-and-trust-mapping
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 2
+- title: Bảo vệ nguồn mã
+  slug: source-code-protection
+  index: 3
+- title: Tiếp nhận phụ thuộc
+  slug: dependency-intake
+  index: 4
+- title: Định danh và phiên bản
+  slug: identity-and-versioning
+  index: 5
+- title: Phân giải và nguồn tải
+  slug: resolution-and-download-sources
+  index: 6
+- title: Nền tảng build
+  slug: build-infrastructure
+  index: 7
+- title: Build khép kín và tái lập
+  slug: hermetic-and-reproducible-builds
+  index: 8
+- title: Bảo vệ luồng CI/CD
+  slug: cicd-pipeline-protection
+  index: 9
+- title: Danh tính và quyền thực thi
+  slug: workload-identity-and-permissions
+  index: 10
+- title: Nền tảng SBOM
+  slug: sbom-foundations
+  index: 11
+- title: Tạo và quản lý SBOM
+  slug: sbom-generation-and-management
+  index: 12
+- title: Kiểm chứng SBOM
+  slug: sbom-validation
+  index: 13
+- title: Lỗ hổng và VEX
+  slug: vulnerability-and-vex
+  index: 14
+- title: Nguồn gốc artifact
+  slug: artifact-provenance
+  index: 15
+- title: Khung bảo đảm SLSA
+  slug: slsa-assurance
+  index: 16
+- title: Chứng thực và in-toto
+  slug: attestations-and-in-toto
+  index: 17
+- title: Digest và chữ ký
+  slug: digests-and-signatures
+  index: 18
+- title: Quản lý khóa và tin cậy
+  slug: key-and-trust-management
+  index: 19
+- title: Sigstore và ký không khóa
+  slug: sigstore-and-keyless-signing
+  index: 20
+- title: Registry và phân phối
+  slug: registries-and-distribution
+  index: 21
+- title: Cập nhật phần mềm an toàn
+  slug: secure-software-updates
+  index: 22
+- title: Chính sách xác minh
+  slug: verification-policies
+  index: 23
+- title: Từ phát hành đến triển khai
+  slug: release-to-deployment
+  index: 24
+- title: Container và OCI
+  slug: containers-and-oci
+  index: 25
+- title: Chuỗi cung ứng Java
+  slug: java-supply-chain
+  index: 26
+- title: Khác biệt hệ sinh thái
+  slug: ecosystem-differences
+  index: 27
+- title: Nhà cung cấp và nguồn mở
+  slug: vendors-and-open-source
+  index: 28
+- title: Giấy phép và dữ liệu thành phần
+  slug: licenses-and-component-data
+  index: 29
+- title: Quan sát và chỉ số
+  slug: observability-and-metrics
+  index: 30
+- title: Ứng phó sự cố chuỗi cung ứng
+  slug: supply-chain-incident-response
+  index: 31
+- title: Quản trị và lộ trình áp dụng
+  slug: governance-and-adoption-roadmap
+  index: 32
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 33
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 34

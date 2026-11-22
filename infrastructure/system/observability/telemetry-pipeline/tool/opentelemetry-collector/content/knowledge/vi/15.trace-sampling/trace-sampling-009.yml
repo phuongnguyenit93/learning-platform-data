@@ -1,0 +1,3 @@
+menuLevel1: Lấy mẫu traces
+menuLevel2: Đưa các span cùng trace đến cùng Collector xử lý tail sampling
+status: ''

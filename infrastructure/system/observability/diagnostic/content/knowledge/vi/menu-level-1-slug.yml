@@ -1,0 +1,103 @@
+menu:
+- title: Định hướng chẩn đoán
+  slug: diagnostic-orientation
+  index: 0
+- title: Tư duy điều tra
+  slug: investigative-mindset
+  index: 1
+- title: Quy trình chẩn đoán
+  slug: diagnostic-workflow
+  index: 2
+- title: Chuẩn bị quan sát
+  slug: observability-readiness
+  index: 3
+- title: Chất lượng bằng chứng
+  slug: evidence-quality
+  index: 4
+- title: Phân tích metrics
+  slug: metrics-analysis
+  index: 5
+- title: Phân tích logs
+  slug: log-analysis
+  index: 6
+- title: Phân tích traces
+  slug: trace-analysis
+  index: 7
+- title: Profiling
+  slug: profiling
+  index: 8
+- title: Công cụ JVM
+  slug: jvm-tools
+  index: 9
+- title: Luồng và đồng bộ
+  slug: threads-and-synchronization
+  index: 10
+- title: Bộ nhớ
+  slug: memory-diagnostics
+  index: 11
+- title: Thu gom rác
+  slug: garbage-collection
+  index: 12
+- title: CPU và tính toán
+  slug: cpu-analysis
+  index: 13
+- title: Độ trễ và thông lượng
+  slug: latency-and-throughput
+  index: 14
+- title: Lỗi và tính sẵn sàng
+  slug: errors-and-availability
+  index: 15
+- title: Nhóm tài nguyên
+  slug: resource-pools
+  index: 16
+- title: Bất đồng bộ và reactive
+  slug: async-and-reactive
+  index: 17
+- title: Mạng và giao thức
+  slug: network-and-protocols
+  index: 18
+- title: Cơ sở dữ liệu
+  slug: database-diagnostics
+  index: 19
+- title: Cache
+  slug: cache-diagnostics
+  index: 20
+- title: Hàng đợi thông điệp
+  slug: message-queues
+  index: 21
+- title: Hệ điều hành
+  slug: operating-system
+  index: 22
+- title: Container và Kubernetes
+  slug: containers-and-kubernetes
+  index: 23
+- title: Spring Boot
+  slug: spring-boot
+  index: 24
+- title: Hệ phân tán
+  slug: distributed-systems
+  index: 25
+- title: Pipeline telemetry
+  slug: telemetry-pipeline
+  index: 26
+- title: Triển khai và cấu hình
+  slug: deployment-and-configuration
+  index: 27
+- title: Bảo vệ bằng chứng
+  slug: evidence-protection
+  index: 28
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 29
+- title: Nguyên nhân gốc rễ
+  slug: root-cause-analysis
+  index: 30
+- title: Kiểm chứng khắc phục
+  slug: fix-verification
+  index: 31
+- title: Tự động hóa chẩn đoán
+  slug: automated-diagnostics
+  index: 32
+- title: Thực hành tình huống
+  slug: scenario-practice
+  index: 33

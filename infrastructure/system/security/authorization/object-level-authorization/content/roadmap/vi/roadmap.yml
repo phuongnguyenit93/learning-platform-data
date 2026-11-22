@@ -1,0 +1,44 @@
+roadmap:
+- id: ranh-gioi-phan-quyen-doi-tuong
+  title: Ranh giới phân quyền đối tượng
+  purpose: Hiểu vì sao đăng nhập thành công chưa cho phép truy cập mọi tài nguyên.
+  objectives:
+  - Phân biệt quyền trên chức năng, đối tượng và thuộc tính.
+  - Nhận diện lỗi BOLA và tham chiếu trực tiếp không an toàn (IDOR).
+- id: mo-hinh-quyet-dinh-quyen
+  title: Mô hình quyết định quyền
+  purpose: Biến yêu cầu truy cập thành quyết định quyền rõ ràng.
+  objectives:
+  - Xác định chủ thể, tài nguyên, hành động và ngữ cảnh.
+  - Mô tả điều kiện cho phép hoặc từ chối theo từng tài nguyên.
+- id: so-huu-chia-se-va-tenant
+  title: Sở hữu, chia sẻ và tenant
+  purpose: Xác định ai được làm gì với dữ liệu của cá nhân hoặc tổ chức.
+  objectives:
+  - Thiết kế quyền sở hữu và chia sẻ giữa người dùng.
+  - Cách ly tài nguyên giữa các khách hàng (tenant).
+- id: thuc-thi-quyen-tai-may-chu
+  title: Thực thi quyền tại máy chủ
+  purpose: Bảo đảm mọi thao tác được kiểm tra bằng thông tin đáng tin cậy.
+  objectives:
+  - Áp dụng mặc định từ chối và kiểm tra quyền theo từng hành động.
+  - Giải thích vì sao UUID và nút giao diện không thay thế kiểm tra quyền.
+- id: truy-van-va-cac-luong-truy-cap
+  title: Truy vấn và các luồng truy cập
+  purpose: Ngăn bỏ sót kiểm tra khi tài nguyên được truy cập qua nhiều đường.
+  objectives:
+  - Giới hạn truy vấn danh sách theo phạm vi được phép.
+  - Kiểm tra từng đối tượng trong xử lý hàng loạt, tài nguyên lồng và xuất dữ liệu.
+- id: thay-doi-va-nhat-quan-quyen
+  title: Thay đổi và nhất quán quyền
+  purpose: Giữ quyết định truy cập đúng khi quan hệ và quyền thay đổi.
+  objectives:
+  - Xử lý thu hồi quyền, chuyển chủ sở hữu và thay đổi chia sẻ.
+  - Nhận diện quyền cũ trong bộ nhớ đệm và rủi ro đổi quyền giữa kiểm tra với sử dụng.
+- id: kiem-thu-va-giam-sat
+  title: Kiểm thử và giám sát
+  purpose: Chứng minh không thể vượt quyền bằng cách đổi đối tượng hoặc đường truy cập.
+  objectives:
+  - Lập ma trận kiểm thử chéo người dùng, hành động và tenant.
+  - Thử thay mã đối tượng với cả trường hợp được phép và bị từ chối.
+  - Ghi nhận quyết định quyền để phát hiện truy cập bất thường.

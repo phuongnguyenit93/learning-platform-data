@@ -1,0 +1,112 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 2
+- title: Loại phép đo
+  slug: metric-types
+  index: 3
+- title: Thiết kế metric
+  slug: metric-design
+  index: 4
+- title: Cài đặt
+  slug: installation
+  index: 5
+- title: Cấu hình
+  slug: configuration
+  index: 6
+- title: Thu thập
+  slug: scraping
+  index: 7
+- title: Khám phá dịch vụ
+  slug: service-discovery
+  index: 8
+- title: Tái gán nhãn
+  slug: relabeling
+  index: 9
+- title: Exporter
+  slug: exporters
+  index: 10
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 11
+- title: PromQL cơ bản
+  slug: promql-basics
+  index: 12
+- title: Thời gian truy vấn
+  slug: query-time-semantics
+  index: 13
+- title: Hàm PromQL
+  slug: promql-functions
+  index: 14
+- title: Phép tổng hợp
+  slug: aggregations
+  index: 15
+- title: Ghép vector
+  slug: vector-matching
+  index: 16
+- title: Truy vấn phân phối
+  slug: distribution-queries
+  index: 17
+- title: Truy vấn vận hành
+  slug: operational-queries
+  index: 18
+- title: Quy tắc ghi
+  slug: recording-rules
+  index: 19
+- title: Quy tắc cảnh báo
+  slug: alerting-rules
+  index: 20
+- title: HTTP API
+  slug: http-api
+  index: 21
+- title: Grafana
+  slug: grafana
+  index: 22
+- title: TSDB
+  slug: tsdb
+  index: 23
+- title: Hiệu năng
+  slug: performance
+  index: 24
+- title: Lưu trữ từ xa
+  slug: remote-storage
+  index: 25
+- title: Chế độ Agent
+  slug: agent-mode
+  index: 26
+- title: Federation
+  slug: federation
+  index: 27
+- title: HA và mở rộng
+  slug: ha-scalability
+  index: 28
+- title: Kubernetes
+  slug: kubernetes
+  index: 29
+- title: OpenTelemetry
+  slug: opentelemetry
+  index: 30
+- title: Bảo mật
+  slug: security
+  index: 31
+- title: Giám sát nội bộ
+  slug: self-monitoring
+  index: 32
+- title: Kiểm thử
+  slug: testing
+  index: 33
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 34
+- title: Quản lý thay đổi
+  slug: change-management
+  index: 35
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 36

@@ -1,0 +1,57 @@
+roadmap:
+- id: quyen-dac-quyen-rui-ro
+  title: Quyền đặc quyền & rủi ro
+  purpose: Nhận diện các đường truy cập có khả năng thay đổi hệ thống quan trọng và tác động khi quyền cao bị lạm dụng.
+  objectives:
+  - Phân biệt tài khoản thường, admin và tài khoản dịch vụ có đặc quyền.
+  - Chỉ ra tài sản, vai trò và thao tác quản trị có tác động lớn.
+  - Giải thích rủi ro của quyền admin thường trực và dùng chung.
+- id: kiem-ke-phan-loai-quyen
+  title: Kiểm kê & phân loại quyền
+  purpose: Lập bản đồ danh tính và quyền thực tế trước khi chọn biện pháp quản lý truy cập đặc quyền.
+  objectives:
+  - Liệt kê tài khoản root, admin, service account và quyền ứng dụng nhạy cảm.
+  - Gắn chủ sở hữu, hệ thống, phạm vi quyền và mức rủi ro.
+  - Phát hiện tài khoản mồ côi, quyền thừa và đường truy cập vòng ngoài.
+- id: least-privilege-phan-nhiem
+  title: Least Privilege & phân nhiệm
+  purpose: Giới hạn phạm vi của quyền cao và tránh việc một cá nhân tự cấp rồi tự phê duyệt quyền.
+  objectives:
+  - Thiết kế RBAC với quyền tối thiểu cho từng nhiệm vụ.
+  - Phân biệt quyền làm việc thường ngày với quyền quản trị.
+  - Áp dụng separation of duties và rà soát quyền cấp chéo.
+- id: xac-thuc-thiet-bi-quan-tri
+  title: Xác thực & thiết bị quản trị
+  purpose: Giảm nguy cơ chiếm quyền bằng danh tính mạnh và đường truy cập quản trị đáng tin cậy.
+  objectives:
+  - Bật MFA mạnh cho danh tính và thao tác quản trị quan trọng.
+  - Phân tách tài khoản admin khỏi tài khoản làm việc thường ngày.
+  - Giải thích vai trò của PAW, jump server và kiểm soát phiên.
+- id: jit-jea-phe-duyet
+  title: JIT, JEA & phê duyệt
+  purpose: Thay quyền luôn bật bằng cơ chế nâng quyền có giới hạn về thời gian và chức năng.
+  objectives:
+  - Phân biệt Just-in-Time với Just-Enough-Access.
+  - Thiết lập yêu cầu cấp quyền kèm lý do, phạm vi, người duyệt và thời hạn.
+  - Kiểm tra quyền tự hết hạn hoặc bị thu hồi sau nhiệm vụ.
+- id: bao-ve-credential-phien
+  title: Bảo vệ credential & phiên
+  purpose: Bảo vệ bí mật quản trị và kiểm soát các phiên truy cập tới tài nguyên nhạy cảm.
+  objectives:
+  - Lưu credential đặc quyền trong vault và xoay vòng khi phù hợp.
+  - Ưu tiên danh tính hoặc thông tin xác thực ngắn hạn thay cho mật khẩu chia sẻ.
+  - Áp dụng gateway, giám sát hoặc ghi phiên khi hệ thống hỗ trợ.
+- id: audit-danh-gia-dinh-ky
+  title: Audit & đánh giá định kỳ
+  purpose: Duy trì khả năng truy vết ai được quyền gì, khi nào và đã thao tác ra sao.
+  objectives:
+  - Theo dõi yêu cầu, phê duyệt, kích hoạt và thu hồi quyền.
+  - Cảnh báo truy cập bất thường hoặc quyền tồn tại quá lâu.
+  - Thực hiện access review và xác nhận lại quyền với chủ sở hữu.
+- id: break-glass-ung-pho-su-co
+  title: Break-glass & ứng phó sự cố
+  purpose: Đảm bảo khôi phục được quyền quản trị khẩn cấp mà không tạo đường tắt thiếu kiểm soát.
+  objectives:
+  - Thiết lập tài khoản khẩn cấp có bảo vệ, giám sát và quy định sử dụng.
+  - Diễn tập mất hệ thống cấp quyền hoặc tài khoản admin bị chiếm.
+  - Lập bước thu hồi phiên, đổi credential và kiểm tra nhật ký sau sự cố.

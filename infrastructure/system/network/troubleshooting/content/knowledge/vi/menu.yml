@@ -1,0 +1,416 @@
+menu:
+- level1: Tư duy chẩn đoán
+  level2:
+  - Network Troubleshooting là gì và giải quyết những nhóm sự cố nào
+  - Phân biệt triệu chứng, nguyên nhân trực tiếp và nguyên nhân gốc
+  - Mô hình OSI và TCP/IP như bản đồ khoanh vùng sự cố
+  - Đường đi của một yêu cầu từ tiến trình nguồn đến dịch vụ đích
+  - Phân biệt lỗi phân giải tên, kết nối, bảo mật và giao thức ứng dụng
+  - Độ trễ, mất gói, dao động độ trễ và thông lượng trong mô tả sự cố
+  - Chẩn đoán dựa trên giả thuyết, phép thử và bằng chứng có thể đối chiếu
+  - Kiến thức đầu vào và lộ trình từ kiểm tra cơ bản đến phân tích gói tin
+- level1: Bối cảnh sự cố
+  level2:
+  - Ghi rõ nguồn, đích, giao thức, cổng và thời điểm xảy ra lỗi
+  - Xác định lỗi ảnh hưởng một người dùng, một máy, một vùng hay toàn hệ thống
+  - Phân biệt lỗi liên tục, gián đoạn và chỉ xuất hiện dưới tải
+  - Thu thông báo lỗi gốc, mã trạng thái và thời gian chờ thực tế
+  - Vẽ sơ đồ đường đi qua DNS, gateway, proxy, firewall và backend
+  - Ghi phiên bản hệ điều hành, ứng dụng và thành phần mạng liên quan
+  - Đối chiếu thay đổi triển khai, cấu hình, chứng thư và hạ tầng gần thời điểm lỗi
+  - Tạo ma trận so sánh nguồn hoặc đích đang hoạt động với nơi gặp lỗi
+  - Thiết lập mốc đo bình thường và đồng bộ thời gian giữa các nguồn bằng chứng
+- level1: Quy trình khoanh vùng
+  level2:
+  - Chọn cách đi từ tầng thấp lên, tầng cao xuống hoặc chia đôi đường đi
+  - Tách kiểm tra phía máy khách, đường truyền, trung gian và máy chủ
+  - Kiểm tra cùng endpoint từ nhiều vị trí có ý nghĩa
+  - Thay đổi một yếu tố mỗi lần để kiểm chứng giả thuyết
+  - Đối chiếu truy cập bằng tên với truy cập tới IP và giữ đúng ngữ cảnh giao thức
+  - Kiểm tra đường đi và đường về như hai phần riêng của kết nối
+  - Phân biệt kết quả quan sát với kết luận chưa được chứng minh
+  - Ưu tiên phép kiểm tra ít tác động và lưu bằng chứng trước thay đổi
+  - Xác định điều kiện chuyển nhóm xử lý và thông tin cần bàn giao
+- level1: Bộ công cụ
+  level2:
+  - Chọn công cụ theo tầng mạng và câu hỏi cần trả lời
+  - Dùng ping, traceroute, tracepath hoặc tracert để thăm dò đường đi
+  - Dùng dig, nslookup hoặc Resolve-DnsName để kiểm tra DNS
+  - Dùng ss, netstat và công cụ hệ điều hành để xem socket
+  - Dùng curl để kiểm tra giao thức, header và thời gian từng giai đoạn
+  - Dùng OpenSSL s_client để kiểm tra thương lượng TLS
+  - Dùng tcpdump, Wireshark và tshark theo mục tiêu phân tích gói
+  - Dùng iperf3 để đo thông lượng trong điều kiện thử nghiệm được xác định
+  - Dùng Test-NetConnection để kiểm tra TCP và lựa chọn tuyến trên Windows
+  - Kiểm tra phiên bản, quyền, không gian mạng và giới hạn của từng công cụ
+- level1: Liên kết vật lý
+  level2:
+  - Nhận diện mất tín hiệu, cáp lỗi, đầu nối hỏng và cổng chưa hoạt động
+  - Đối chiếu trạng thái link với khả năng truyền dữ liệu thực tế
+  - Kiểm tra tốc độ liên kết, duplex và thương lượng tự động
+  - Đọc bộ đếm lỗi CRC, lỗi nhận, lỗi gửi và gói bị bỏ
+  - Phát hiện link chập chờn, module quang lỗi và nguồn điện không ổn định
+  - Phân biệt lỗi NIC, driver, firmware và cổng switch
+  - Đánh giá bonding hoặc teaming khi một liên kết thành viên gặp sự cố
+  - Đổi cáp hoặc cổng có kiểm soát và so sánh bộ đếm trước sau
+- level1: Mạng cục bộ
+  level2:
+  - Kiểm tra kết nối cùng subnet trước khi đi qua router
+  - Đọc bảng ARP và nhận diện trạng thái láng giềng không phân giải được
+  - Phát hiện trùng địa chỉ IP, ánh xạ MAC sai và ARP không nhất quán
+  - Kiểm tra VLAN access, trunk và việc gắn thẻ trên đường truyền
+  - Nhận diện sai VLAN bản địa hoặc VLAN không được phép qua trunk
+  - Đối chiếu bảng MAC với cổng vật lý và vị trí thiết bị
+  - Nhận diện vòng lặp tầng hai, bão quảng bá và thay đổi spanning tree
+  - Kiểm tra cấu hình bridge và chuyển tiếp giữa các giao diện
+  - Phân biệt cổng có link với cổng được phép chuyển tiếp dữ liệu
+- level1: Kết nối Wi-Fi
+  level2:
+  - Đánh giá cường độ tín hiệu, tỷ lệ tín hiệu trên nhiễu và chất lượng liên kết
+  - Phân biệt đã kết nối điểm truy cập với đã có kết nối IP
+  - Nhận diện nhiễu kênh, tranh chấp môi trường và số lượng thiết bị quá lớn
+  - Kiểm tra băng tần, kênh, khoảng cách và vật cản
+  - Khoanh vùng lỗi xác thực, cấp địa chỉ và captive portal
+  - Đối chiếu lỗi roaming với thời điểm ứng dụng mất kết nối
+  - Phân biệt giới hạn mạng vô tuyến với đường truyền đi ra Internet
+  - So sánh kết nối có dây và Wi-Fi trong cùng điều kiện
+- level1: Cấu hình IP
+  level2:
+  - Kiểm tra địa chỉ, prefix, subnet mask và gateway trên giao diện thực dùng
+  - Phát hiện địa chỉ chưa được cấp, sai subnet và địa chỉ trùng
+  - Chẩn đoán quá trình DHCP, thời hạn lease và lỗi cấp lại địa chỉ
+  - Phân biệt địa chỉ loopback, link-local, riêng và công khai trong phép thử
+  - Kiểm tra máy nhiều giao diện và việc lựa chọn địa chỉ nguồn
+  - Nhận diện dịch vụ chỉ bind vào loopback hoặc sai địa chỉ
+  - Phân biệt cấu hình tĩnh với cấu hình do hệ thống quản lý mạng tạo
+  - Kiểm tra IP forwarding khi máy đóng vai trò router hoặc gateway
+  - Đối chiếu cấu hình trong tiến trình, container và hệ điều hành chủ
+- level1: Định tuyến
+  level2:
+  - Đọc bảng định tuyến theo địa chỉ đích và quy tắc khớp prefix dài nhất
+  - Kiểm tra default route, next hop và khả năng tiếp cận gateway
+  - Xác định giao diện và địa chỉ nguồn được chọn cho một đích cụ thể
+  - Phát hiện tuyến thiếu, tuyến sai, tuyến vòng và vùng mạng chồng lấn
+  - Đánh giá định tuyến bất đối xứng và đường phản hồi qua thiết bị khác
+  - Kiểm tra policy routing, bảng tuyến riêng và đánh dấu gói
+  - Nhận diện tác động của ECMP khi chỉ một số luồng gặp lỗi
+  - Đối chiếu thay đổi tuyến động, trạng thái láng giềng và route flapping
+  - Kiểm tra chuyển tiếp giữa mạng nội bộ, VPN và mạng đám mây
+  - Thu bằng chứng tuyến thực tế trước khi điều chỉnh cấu hình
+- level1: DNS
+  level2:
+  - Phân biệt lỗi tìm tên, không có bản ghi và không liên hệ được DNS server
+  - Đọc câu trả lời A, AAAA, CNAME và chuỗi phân giải
+  - Phân biệt NXDOMAIN, SERVFAIL, REFUSED và timeout
+  - Kiểm tra resolver hệ điều hành so với truy vấn trực tiếp bằng công cụ DNS
+  - Đối chiếu hosts file, thứ tự phân giải tên và cấu hình resolver
+  - Kiểm tra search domain, tên đầy đủ và ảnh hưởng của ndots
+  - So sánh DNS nội bộ, công khai và split-horizon
+  - Phân tích TTL, cache dương, cache âm và bản ghi cũ sau thay đổi
+  - Kiểm tra đường truyền UDP, chuyển sang TCP và phản hồi bị cắt
+  - Khoanh vùng lỗi delegation, DNSSEC hoặc upstream khi có liên quan
+  - Đối chiếu DNS trong ứng dụng, máy chủ, container và Kubernetes
+  - Kiểm chứng endpoint thực được chọn sau khi phân giải nhiều địa chỉ
+- level1: ICMP và đường đi
+  level2:
+  - Dùng ICMP để kiểm tra khả năng tiếp cận và đo RTT
+  - Phân biệt phản hồi Echo với khả năng sử dụng một dịch vụ TCP hoặc UDP
+  - Đọc Time Exceeded, Destination Unreachable và thông điệp liên quan MTU
+  - So sánh thăm dò bằng ICMP, UDP và TCP
+  - Diễn giải hop không phản hồi mà không mặc định đường truyền bị đứt
+  - Đánh giá giới hạn tốc độ ICMP và mức ưu tiên phản hồi của router
+  - Đọc kết quả traceroute hoặc mtr khi đường đi thay đổi
+  - Đối chiếu mất gói tại đích với mất phản hồi ở hop trung gian
+- level1: TCP
+  level2:
+  - Đọc bắt tay SYN, SYN-ACK, ACK để xác định điểm kết nối thất bại
+  - Phân biệt connection refused, connect timeout và reset
+  - Kiểm tra cổng lắng nghe, địa chỉ bind và hàng đợi kết nối
+  - Phân tích trạng thái SYN-SENT, SYN-RECV và ESTABLISHED
+  - Đọc FIN, RST và xác định phía đóng hoặc hủy kết nối
+  - Phân biệt retransmission, duplicate ACK và gói đến sai thứ tự
+  - Đánh giá cửa sổ nhận, zero window và bên nhận không xử lý kịp
+  - Phân tích thời gian truyền lại và tác động lên độ trễ
+  - Phân biệt TCP keepalive với cơ chế kiểm tra sống của ứng dụng
+  - Đánh giá kết nối rỗi, idle timeout và socket được tái sử dụng
+  - Phân tích TIME_WAIT, CLOSE_WAIT và nguy cơ cạn tài nguyên
+  - Đối chiếu bằng chứng hai đầu trước khi kết luận vị trí mất gói
+- level1: UDP và QUIC
+  level2:
+  - Phân biệt không có phản hồi UDP với cổng chắc chắn đã mở hoặc đóng
+  - Kiểm tra dịch vụ UDP bằng yêu cầu đúng định dạng giao thức
+  - Đọc ICMP Port Unreachable và giới hạn khi không nhận thông điệp lỗi
+  - Đánh giá socket buffer, gói bị bỏ và tốc độ bên nhận
+  - Phân tích mất gói, jitter và thứ tự dữ liệu trong ứng dụng dùng UDP
+  - Kiểm tra thời hạn ánh xạ NAT đối với luồng UDP
+  - Khoanh vùng QUIC hoặc HTTP/3 khi UDP bị chặn hoặc giới hạn
+  - Đối chiếu chuyển sang TCP với lỗi đường truyền và lỗi giao thức
+  - Xác định dữ liệu quan sát được và giới hạn phân tích khi QUIC mã hóa
+- level1: TLS
+  level2:
+  - Tách lỗi kết nối TCP khỏi lỗi bắt tay TLS
+  - Kiểm tra tên máy chủ, SNI và chứng thư thực được trả về
+  - Đối chiếu Subject Alternative Name với tên dịch vụ được gọi
+  - Phân tích chuỗi chứng thư, intermediate CA và trust store
+  - Nhận diện chứng thư hết hạn, chưa có hiệu lực và đồng hồ sai
+  - Kiểm tra phiên bản giao thức, bộ mã và thuật toán bị vô hiệu hóa
+  - Đọc TLS alert và xác định thời điểm thương lượng bị dừng
+  - 'Chẩn đoán mTLS: chứng thư máy khách, khóa riêng và CA tin cậy'
+  - Đối chiếu ALPN với giao thức ứng dụng dự kiến
+  - Khoanh vùng TLS termination, kết nối mã hóa lại và proxy kiểm tra TLS
+  - Kiểm chứng xác minh chứng thư hoạt động đúng sau khi khắc phục
+- level1: HTTP và gRPC
+  level2:
+  - Tách thời gian DNS, TCP, TLS, chờ byte đầu và tải nội dung
+  - Đối chiếu HTTP status với lỗi vận chuyển và lỗi nghiệp vụ
+  - Phân tích 400, 401, 403 và 404 theo nguồn phản hồi
+  - Khoanh vùng 429, 502, 503 và 504 qua từng tầng trung gian
+  - Kiểm tra Host, scheme, đường dẫn và header chuyển tiếp
+  - Phân tích vòng lặp redirect và sai đích sau chuyển hướng
+  - Kiểm tra Content-Length, chunked transfer, nén và nội dung bị cắt
+  - 'Chẩn đoán HTTP/2: thương lượng, reset stream và giới hạn đồng thời'
+  - Đối chiếu gRPC status, deadline và lỗi HTTP/2
+  - Khoanh vùng WebSocket hoặc SSE bị đóng khi kết nối kéo dài
+  - Phân biệt CORS hoặc chính sách trình duyệt với sự cố kết nối mạng
+  - Dùng curl tái hiện yêu cầu đồng thời giữ đúng tên máy chủ và ngữ cảnh bảo mật
+- level1: Proxy và cân bằng tải
+  level2:
+  - Xác định điểm nhận kết nối, điểm kết thúc TLS và backend thực xử lý
+  - Kiểm tra explicit proxy, biến môi trường proxy và cấu hình bỏ qua proxy
+  - Đối chiếu kết quả gọi trực tiếp backend với gọi qua proxy
+  - Kiểm tra health check khác với yêu cầu ứng dụng thực tế
+  - Phân tích upstream connect timeout, read timeout và idle timeout
+  - Nhận diện keepalive không tương thích hoặc tái sử dụng kết nối đã đóng
+  - Kiểm tra thuật toán phân phối, session affinity và backend lỗi cục bộ
+  - Đối chiếu Host, SNI và địa chỉ nguồn qua các tầng chuyển tiếp
+  - Phân tích retry ở proxy và nguy cơ che khuất hoặc khuếch đại lỗi
+  - Theo dõi drain kết nối khi thêm, bỏ hoặc triển khai lại backend
+- level1: NAT và conntrack
+  level2:
+  - Theo dõi địa chỉ và cổng trước sau SNAT hoặc DNAT
+  - Phân biệt lỗi cạn cổng tạm thời ở máy khách với cạn cổng SNAT
+  - Kiểm tra bảng theo dõi kết nối và dấu hiệu bảng bị đầy
+  - Đánh giá timeout trạng thái TCP hoặc UDP trên thiết bị trung gian
+  - Nhận diện luồng bị gián đoạn khi ánh xạ NAT thay đổi
+  - Chẩn đoán hairpin NAT và truy cập dịch vụ bằng địa chỉ công khai từ mạng trong
+  - Đối chiếu địa chỉ nguồn sau NAT với quy tắc firewall và nhật ký
+  - Kiểm tra đường về và thiết bị giữ trạng thái khi định tuyến bất đối xứng
+  - Đo tốc độ tạo kết nối và phân bố cổng trước khi đề xuất điều chỉnh
+- level1: Firewall và chính sách
+  level2:
+  - Xác định điểm áp dụng chính sách trên máy chủ, router và nền tảng đám mây
+  - Phân biệt gói bị DROP với kết nối bị REJECT
+  - Đối chiếu quy tắc theo địa chỉ nguồn, đích, cổng và chiều lưu lượng
+  - Kiểm tra thứ tự rule, bộ đếm khớp và chính sách mặc định
+  - Phân biệt firewall có trạng thái với bộ lọc không lưu trạng thái
+  - Đánh giá lưu lượng phản hồi và cổng tạm thời trên đường về
+  - Kiểm tra chính sách egress, proxy bắt buộc và giới hạn truy cập đích
+  - Đối chiếu nhật ký chặn với bắt gói tại các điểm trước sau
+  - Kiểm chứng một thay đổi chính sách có phạm vi thay vì vô hiệu hóa toàn bộ lớp bảo vệ
+- level1: MTU và phân mảnh
+  level2:
+  - Phân biệt MTU giao diện, Path MTU và MSS của TCP
+  - Nhận diện tình huống gói nhỏ đi được nhưng truyền dữ liệu lớn bị treo
+  - Phân tích phân mảnh IPv4 và gói có cờ không phân mảnh
+  - Đọc thông báo ICMP cần phân mảnh hoặc Packet Too Big
+  - Chẩn đoán PMTUD bị gián đoạn khi thông điệp ICMP cần thiết bị chặn
+  - Đánh giá phần dung lượng tăng thêm của VPN, overlay và tunnel
+  - Dùng phép thử kích thước gói phù hợp với giao thức và hệ điều hành
+  - Đối chiếu MSS, kích thước gói và đường đi trước khi điều chỉnh MTU
+  - Kiểm chứng truyền tải lớn theo cả hai chiều sau khi khắc phục
+- level1: IPv6 và dual-stack
+  level2:
+  - Đối chiếu kết nối IPv4 và IPv6 đến cùng dịch vụ
+  - Kiểm tra địa chỉ link-local, địa chỉ toàn cục và phạm vi giao diện
+  - Phân tích Neighbor Discovery, Router Advertisement và việc chọn gateway
+  - Kiểm tra cấu hình SLAAC hoặc DHCPv6 theo mô hình triển khai
+  - Đối chiếu bản ghi AAAA với khả năng định tuyến thực tế
+  - Phân tích thứ tự chọn địa chỉ và cơ chế Happy Eyeballs ở máy khách
+  - Nhận diện dịch vụ chỉ lắng nghe trên một họ địa chỉ
+  - Kiểm tra ICMPv6, PMTUD và chính sách firewall theo từng họ địa chỉ
+  - Chẩn đoán lỗi đường IPv6 khiến yêu cầu chậm trước khi chuyển sang IPv4
+- level1: Bắt gói tin
+  level2:
+  - Chọn vị trí bắt gói theo giả thuyết và đoạn đường cần quan sát
+  - Xác định đúng giao diện, chiều lưu lượng và không gian mạng
+  - Phân biệt capture filter với display filter
+  - Chọn giới hạn độ dài gói, dung lượng và thời gian thu
+  - Lưu pcap hoặc pcapng và xoay tệp để theo dõi lỗi gián đoạn
+  - Thu gói đồng thời ở hai đầu với dấu thời gian có thể đối chiếu
+  - Phát hiện gói bị bỏ tại chính công cụ thu thập
+  - Đánh giá tác động của checksum offload, TSO, GSO và GRO lên bản bắt gói
+  - Nhận diện bản ghi lặp khi bắt trên nhiều giao diện hoặc đường ảo hóa
+  - Giới hạn dữ liệu nhạy cảm và kiểm soát chia sẻ tệp bắt gói
+- level1: Phân tích Wireshark
+  level2:
+  - Đọc địa chỉ, cổng, cờ và dấu thời gian của một luồng cụ thể
+  - Dùng lọc hiển thị để tách cuộc hội thoại cần phân tích
+  - Theo dõi luồng TCP và ghép yêu cầu với phản hồi
+  - Phân tích trình tự bắt tay, truyền dữ liệu và đóng kết nối
+  - Đọc retransmission, out-of-order, duplicate ACK và cảnh báo TCP
+  - Phân biệt zero window do bên nhận với nghẽn hoặc mất gói trên đường
+  - Đọc thống kê cuộc hội thoại, đồ thị thời gian và tốc độ dữ liệu
+  - Nhận diện khoảng trống do bắt gói bắt đầu muộn hoặc thu thiếu
+  - Đối chiếu kết luận của Expert Information với bằng chứng gói thực tế
+  - Xác định giới hạn đọc nội dung khi giao thức đã mã hóa
+  - Tái tạo dòng thời gian sự cố từ nhiều bản bắt gói
+- level1: Hiệu năng mạng
+  level2:
+  - Phân biệt dung lượng liên kết, thông lượng truyền và dữ liệu ứng dụng hữu ích
+  - Đo RTT, độ trễ một chiều và yêu cầu đồng bộ thời gian
+  - Đánh giá phân bố độ trễ và các trường hợp chậm ở phần đuôi
+  - Đo mất gói, jitter và tác động theo loại ứng dụng
+  - Liên hệ băng thông, RTT và lượng dữ liệu cần truyền đồng thời
+  - Thiết kế phép đo iperf3 theo chiều truyền, số luồng và thời gian chạy
+  - Phân biệt giới hạn mạng với giới hạn CPU, đĩa và tiến trình phát hoặc nhận
+  - Nhận diện nghẽn hàng đợi, bufferbloat và độ trễ tăng dưới tải
+  - Đánh giá TCP window, congestion control và dấu hiệu nghẽn
+  - Nhận diện giới hạn tốc độ hoặc chất lượng dịch vụ trên đường truyền
+  - So sánh đường nội bộ, liên vùng và Internet bằng điều kiện đo nhất quán
+- level1: Chẩn đoán Linux
+  level2:
+  - Kiểm tra địa chỉ, trạng thái giao diện và thống kê bằng ip
+  - Xác định tuyến cùng địa chỉ nguồn bằng ip route và ip rule
+  - Đọc socket, hàng đợi và tiến trình liên quan bằng ss
+  - Kiểm tra bảng láng giềng và lỗi phân giải địa chỉ tầng hai
+  - Đối chiếu nftables hoặc iptables với hệ thống thực đang quản lý firewall
+  - Phân tích conntrack, reverse path filtering và chuyển tiếp gói
+  - Kiểm tra network namespace và dùng đúng ngữ cảnh tiến trình
+  - Đọc log kernel cùng bộ đếm lỗi giao diện và socket
+  - Đánh giá backlog, giới hạn file descriptor và số lượng socket
+  - Liên hệ CPU, softirq và mức sử dụng mạng khi máy bị quá tải
+  - Lưu cấu hình cùng bộ đếm trước sau phép thử có kiểm soát
+- level1: Chẩn đoán Windows
+  level2:
+  - Kiểm tra địa chỉ, gateway, DNS và adapter thực dùng
+  - Dùng Test-NetConnection để phân biệt kiểm tra ICMP với TCP
+  - Kiểm tra phân giải tên bằng Resolve-DnsName và hosts file
+  - Đối chiếu bảng định tuyến, metric giao diện và lựa chọn địa chỉ nguồn
+  - Xác định socket, tiến trình lắng nghe và cổng đang sử dụng
+  - Kiểm tra Windows Firewall, profile mạng và chính sách theo ứng dụng
+  - Đối chiếu proxy người dùng, proxy hệ thống và cấu hình ứng dụng
+  - Dùng pktmon để thu gói và tìm vị trí gói bị bỏ trong ngăn xếp
+  - Khoanh vùng adapter VPN, mạng ảo Hyper-V và môi trường WSL
+  - Ghi nhận sự kiện và bằng chứng trước khi đặt lại cấu hình mạng
+- level1: Docker và container
+  level2:
+  - Phân biệt loopback của container với loopback máy chủ
+  - Kiểm tra địa chỉ bind của ứng dụng và cổng được publish
+  - Đọc network, endpoint và cấu hình kết nối bằng công cụ Docker
+  - Khoanh vùng DNS nội bộ và phân giải tên dịch vụ giữa container
+  - Kiểm tra bridge, veth và đường ra ngoài qua máy chủ
+  - So sánh kết nối từ container, container cùng mạng và máy chủ
+  - Phân tích NAT, firewall và cổng trên đường vào container
+  - Nhận diện xung đột subnet với VPN hoặc mạng bên ngoài
+  - Chẩn đoán MTU, quyền bắt gói và container thiếu công cụ kiểm tra
+  - Phân biệt mạng bridge, host và overlay theo môi trường đang dùng
+- level1: Kubernetes
+  level2:
+  - Vẽ đường từ Pod nguồn qua Service đến Pod đích
+  - Kiểm tra ứng dụng lắng nghe trong Pod trước khi kiểm tra Service
+  - Đối chiếu selector, port, targetPort và EndpointSlice
+  - Phân biệt Pod chưa sẵn sàng với lỗi chuyển tiếp mạng
+  - Kiểm tra ClusterIP, Headless Service, NodePort và LoadBalancer theo đường truy cập
+  - Chẩn đoán DNS Service, namespace, search path và cấu hình CoreDNS
+  - Kiểm tra NetworkPolicy theo cả ingress và egress
+  - Đối chiếu kết nối cùng node với khác node để khoanh vùng CNI
+  - 'Nhận diện cơ chế chuyển tiếp Service thực dùng: kube-proxy hoặc dataplane thay thế'
+  - Kiểm tra đường ra ngoài, SNAT và chính sách egress của cụm
+  - Khoanh vùng Ingress hoặc Gateway theo tuyến, backend và TLS
+  - Dùng Pod chẩn đoán hoặc ephemeral container đúng ngữ cảnh cần kiểm tra
+  - Kiểm tra MTU overlay và vấn đề dual-stack trong cụm
+- level1: Service mesh
+  level2:
+  - Xác định lưu lượng đi qua sidecar, proxy node hoặc đường dữ liệu của mesh
+  - Đối chiếu đường đi được proxy xử lý với kết nối trực tiếp
+  - Kiểm tra workload có được đưa vào mesh đúng dự kiến
+  - Khoanh vùng lỗi mTLS, danh tính workload và chứng thư
+  - Kiểm tra chính sách cho phép, định tuyến và khám phá endpoint
+  - Đối chiếu timeout, retry, giới hạn kết nối và circuit breaker
+  - Phân tích reset hoặc lỗi giao thức tại proxy của từng phía
+  - Phân biệt control plane lỗi với cấu hình cũ còn chạy tại data plane
+  - Dùng log và số liệu proxy để xác nhận điểm yêu cầu bị từ chối hoặc chuyển sai
+- level1: Mạng đám mây
+  level2:
+  - Đọc đường đi qua subnet, bảng tuyến, gateway và giao diện ảo
+  - Phân biệt subnet có tuyến Internet với dịch vụ được phép truy cập từ ngoài
+  - Đối chiếu security group và network ACL theo đặc tính nhà cung cấp
+  - Kiểm tra NAT gateway, egress và giới hạn kết nối theo tài nguyên
+  - Khoanh vùng peering, transit gateway và mạng chồng lấn địa chỉ
+  - Kiểm tra private endpoint, DNS riêng và kết nối dịch vụ quản lý
+  - Đọc flow log để xác định luồng được ghi nhận cho phép hoặc từ chối
+  - Phân biệt dữ liệu flow log với bản bắt gói và giới hạn quan sát
+  - Đánh giá load balancer, health check và phân phối giữa các vùng
+  - Đối chiếu công cụ phân tích đường đi của nhà cung cấp với lưu lượng thực
+- level1: VPN và kết nối lai
+  level2:
+  - Phân biệt tunnel đang hoạt động với mạng đích thực sự truy cập được
+  - Kiểm tra tuyến được đẩy, split tunnel và default route
+  - Nhận diện subnet chồng lấn giữa mạng nhà, doanh nghiệp và đám mây
+  - Chẩn đoán DNS khi kết nối hoặc ngắt VPN
+  - Kiểm tra NAT, firewall và đường trả về qua tunnel
+  - Phân tích MTU, phân mảnh và truyền dữ liệu lớn trong VPN
+  - Đối chiếu thời điểm thương lượng lại khóa với kết nối bị gián đoạn
+  - Khoanh vùng kết nối site-to-site, đường riêng và đường Internet dự phòng
+  - Kiểm chứng failover mà không làm sai tuyến hoặc mất kết nối đang giữ trạng thái
+- level1: Ứng dụng Java
+  level2:
+  - Đối chiếu lỗi kết nối Java với kết quả kiểm tra từ cùng môi trường tiến trình
+  - Phân tích UnknownHostException và bộ nhớ đệm phân giải tên của JVM
+  - Phân biệt ConnectException, SocketTimeoutException và lỗi kết nối bị reset
+  - Tách timeout lấy kết nối từ pool với timeout kết nối hoặc đọc mạng
+  - Kiểm tra proxy, địa chỉ bind và lựa chọn IPv4 hoặc IPv6 phía JVM
+  - Chẩn đoán SSLHandshakeException và lỗi đường dẫn chứng thư PKIX
+  - Đối chiếu trust store, key store và SNI giữa Java với công cụ dòng lệnh
+  - Dùng javax.net.debug có giới hạn để kiểm tra quá trình TLS
+  - Phân tích thread dump, thời gian dừng JVM và tiến trình không đọc socket
+  - Nhận diện pool cạn, kết nối rò rỉ và tái sử dụng kết nối đã hết hiệu lực
+  - Kiểm tra timeout và retry của HTTP client, JDBC hoặc gRPC theo thư viện thực dùng
+  - Liên kết log ứng dụng với luồng mạng bằng thời điểm và định danh yêu cầu
+- level1: Liên kết dữ liệu quan sát
+  level2:
+  - Kết hợp log, metrics, traces và gói tin theo cùng dòng thời gian
+  - Xác định địa chỉ và cổng trước sau từng tầng proxy hoặc NAT
+  - Phân biệt thời gian ứng dụng ghi nhận với thời gian truyền trên đường
+  - Đối chiếu số liệu NIC, TCP, proxy và backend để tìm điểm nghẽn
+  - Dùng trace để chọn yêu cầu lỗi rồi kiểm chứng bằng dữ liệu mạng
+  - Đánh giá giới hạn lấy mẫu, khoảng thu thập và mức độ bao phủ
+  - Chuẩn hóa múi giờ, độ chính xác thời gian và độ lệch đồng hồ
+  - Tổ chức hồ sơ bằng chứng để người khác tái kiểm tra được kết luận
+- level1: Lỗi gián đoạn
+  level2:
+  - Thiết kế phép kiểm tra lặp có ghi thời điểm và điều kiện thực hiện
+  - Phân nhóm lỗi theo backend, vùng, địa chỉ IP và họ giao thức
+  - Đối chiếu sự cố với TTL, đổi DNS và tái phân phối endpoint
+  - Phân tích lỗi sau thời gian rỗi hoặc khi mở kết nối đầu tiên
+  - Nhận diện chỉ một nhánh ECMP, NAT hoặc backend hoạt động không ổn định
+  - Đánh giá tải đột biến, cạn tài nguyên và hàng đợi tăng theo thời gian
+  - Đối chiếu luân chuyển chứng thư, triển khai và thay đổi tuyến
+  - Dùng tệp bắt gói xoay vòng để giữ bằng chứng trước thời điểm lỗi
+  - Phân biệt tương quan theo thời gian với nguyên nhân đã được kiểm chứng
+- level1: Khắc phục và xác minh
+  level2:
+  - Chọn biện pháp giảm ảnh hưởng dựa trên đoạn đường đã khoanh vùng
+  - Xác định phạm vi thay đổi, điều kiện hoàn nguyên và tiêu chí thành công
+  - Phân biệt phục hồi tạm thời với sửa nguyên nhân gốc
+  - Kiểm tra lại từ nguồn gặp lỗi và các đường đi có liên quan
+  - Xác minh cả IPv4, IPv6, kết nối mới và kết nối tồn tại khi phù hợp
+  - Theo dõi độ trễ, lỗi và tài nguyên dưới tải đại diện sau thay đổi
+  - Thu dọn cấu hình hoặc công cụ chẩn đoán tạm đã được sử dụng
+  - Viết báo cáo sự cố với bằng chứng, dòng thời gian và giả thuyết đã loại
+  - Cập nhật runbook cùng phép kiểm tra phát hiện tái diễn
+- level1: Thực hành tổng hợp
+  level2:
+  - Chẩn đoán máy không ra mạng do sai prefix hoặc default gateway
+  - Khoanh vùng lỗi DNS do cache, search domain hoặc upstream
+  - Phân biệt cổng không lắng nghe với gói bị firewall chặn
+  - Phân tích TCP bắt tay thành công nhưng ứng dụng không phản hồi
+  - Tái hiện truyền dữ liệu lớn bị treo do Path MTU
+  - Đọc pcap để phân biệt truyền lại TCP với lỗi thu thập gói
+  - Chẩn đoán chứng thư sai tên, thiếu intermediate hoặc trust store Java không khớp
+  - Khoanh vùng lỗi 502 hoặc 504 qua proxy và backend
+  - Tìm nguyên nhân lỗi gián đoạn do idle timeout hoặc cạn cổng SNAT
+  - Chẩn đoán container truy cập được bằng IP nhưng sai DNS hoặc cổng publish
+  - Khoanh vùng Kubernetes Service sai targetPort, EndpointSlice hoặc NetworkPolicy
+  - Đối chiếu lỗi IPv6 với cơ chế chuyển sang IPv4 của máy khách
+  - Tổ chức một phiên xử lý sự cố từ giả thuyết đến bằng chứng và xác minh phục hồi

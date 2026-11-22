@@ -1,0 +1,2344 @@
+menu:
+- slug: overview-azure-devops
+  title: Tổng quan Azure DevOps
+  childs:
+  - slug: overview-azure-devops-001
+    title: Azure DevOps là gì và giải quyết vấn đề cộng tác phát triển phần mềm nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-002
+    title: Vai trò của Azure Repos, Azure Boards, Azure Pipelines, Azure Test Plans và Azure Artifacts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-003
+    title: Phân biệt Azure DevOps Services, Azure DevOps Server và các tên gọi TFS, VSTS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-004
+    title: Phân biệt nền tảng Azure DevOps với tài nguyên và cổng quản trị Microsoft Azure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-005
+    title: Mối quan hệ giữa yêu cầu, công việc, mã nguồn, kiểm thử và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-006
+    title: Các khái niệm organization, project, team, repository, work item và pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-007
+    title: Kiến thức Git cần có trước khi làm việc với Azure Repos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-azure-devops-008
+    title: Nhận diện khác biệt tính năng theo phiên bản, mô hình triển khai và giấy phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: organizations-projects
+  title: Tổ chức và dự án
+  childs:
+  - slug: organizations-projects-001
+    title: Cấu trúc organization, project và team cùng phạm vi dữ liệu của từng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-002
+    title: Lựa chọn một hay nhiều organization và project theo sản phẩm, quyền truy cập và cộng tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-003
+    title: Tạo organization, chọn khu vực lưu trữ và thiết lập chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-004
+    title: Tạo project, chọn quy trình công việc và hệ thống quản lý phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-005
+    title: Thiết lập khả năng hiển thị dự án và điều kiện cho phép dự án công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-006
+    title: Điều hướng giao diện, Organization settings và Project settings
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-007
+    title: Tạo team, xác định thành viên và cấu hình công cụ riêng cho nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-008
+    title: Quy ước đặt tên, URL, mô tả dự án và trang tổng quan ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organizations-projects-009
+    title: Phân biệt cài đặt cá nhân, cài đặt nhóm, dự án và toàn tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: members-access
+  title: Thành viên và truy cập
+  childs:
+  - slug: members-access-001
+    title: Tài khoản Microsoft, Microsoft Entra ID và mối quan hệ với organization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-002
+    title: Mời thành viên nội bộ, khách bên ngoài và kiểm soát quyền tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-003
+    title: Phân biệt mức truy cập Stakeholder, Basic, Basic + Test Plans với quyền thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-004
+    title: Vai trò của Readers, Contributors, Project Administrators và Project Collection Administrators
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-005
+    title: Nhóm Azure DevOps, nhóm Microsoft Entra và cách tổ chức thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-006
+    title: Cơ chế kế thừa quyền và ý nghĩa Allow, Deny, Not set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-007
+    title: Đánh giá quyền hiệu lực khi người dùng thuộc nhiều nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-008
+    title: Giới hạn truy cập theo dự án và chia quyền theo trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: members-access-009
+    title: Quy trình tiếp nhận, thay đổi vai trò và thu hồi quyền khi thành viên rời nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-authentication
+  title: Xác thực an toàn
+  childs:
+  - slug: secure-authentication-001
+    title: Phân biệt đăng nhập cổng web, xác thực Git và xác thực ứng dụng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-002
+    title: Kết nối HTTPS bằng Git Credential Manager và thông tin xác thực Microsoft
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-003
+    title: Sử dụng Microsoft Entra ID token cho các kịch bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-004
+    title: Tạo, đăng ký, kiểm tra và thu hồi khóa SSH cho Azure Repos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-005
+    title: Sử dụng PAT theo organization, phạm vi quyền và thời hạn khi thực sự cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-006
+    title: Lưu trữ, luân chuyển và thu hồi thông tin xác thực trên máy phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-007
+    title: Lựa chọn service principal, managed identity hoặc danh tính liên kết cho tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-008
+    title: Giới hạn phương thức xác thực giữa Azure DevOps Services và Azure DevOps Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-authentication-009
+    title: Ảnh hưởng của xác thực đa yếu tố, Conditional Access và chính sách tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repo-initialization
+  title: Khởi tạo kho mã
+  childs:
+  - slug: repo-initialization-001
+    title: 'Azure Repos Git và TFVC: mô hình, trường hợp sử dụng và ranh giới khác biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-002
+    title: Tạo nhiều kho Git trong một dự án và xác định chủ sở hữu kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-003
+    title: Khởi tạo README, .gitignore, .gitattributes và tài liệu đóng góp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-004
+    title: Đưa kho Git có sẵn từ máy cục bộ lên Azure Repos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-005
+    title: Nhập kho từ dịch vụ Git khác bằng chức năng Import repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-006
+    title: Lấy URL clone HTTPS hoặc SSH và cấu hình remote
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-007
+    title: Đặt nhánh mặc định và kiểm tra trạng thái kho sau khi khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repo-initialization-008
+    title: Đổi tên, xóa và khôi phục kho trong điều kiện nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: azure-repos
+  title: Làm việc với Azure Repos
+  childs:
+  - slug: azure-repos-001
+    title: Clone, fetch, pull và push trong quy trình đồng bộ với Azure Repos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-002
+    title: Đọc cây tệp, lịch sử commit, thông tin tác giả và nội dung thay đổi trên web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-003
+    title: So sánh commit, nhánh và tag để xác định phạm vi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-004
+    title: Sử dụng lịch sử dòng mã và tìm nguồn gốc thay đổi khi điều tra lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-005
+    title: Tìm kiếm mã nguồn, bộ lọc và điều kiện khả dụng của Code Search
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-006
+    title: Chỉnh sửa tệp trên web và chọn cách tạo nhánh, commit phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-007
+    title: Làm việc với Azure Repos từ VS Code, Visual Studio và công cụ Git trong IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-008
+    title: Quản lý tệp lớn bằng Git LFS và các giới hạn cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-009
+    title: Sử dụng submodule và cấp quyền truy cập các kho phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-repos-010
+    title: Xử lý xuống dòng, mã hóa ký tự và khác biệt đường dẫn giữa các hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branches-versioning
+  title: Nhánh và phiên bản
+  childs:
+  - slug: branches-versioning-001
+    title: Tạo nhánh từ commit, tag hoặc work item trên Azure DevOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-002
+    title: Đặt tên nhánh và ánh xạ nhánh với công việc đang thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-003
+    title: Thiết lập nhánh mặc định, nhánh so sánh và nhánh yêu thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-004
+    title: Theo dõi mức chênh lệch và đồng bộ nhánh tính năng với nhánh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-005
+    title: Áp dụng mô hình nhánh đã chọn bằng công cụ và chính sách Azure Repos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-006
+    title: Tạo tag, phân biệt tag với nhánh và ghi nhận mốc mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-007
+    title: Cherry-pick thay đổi để đưa bản sửa sang nhánh khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-008
+    title: Revert thay đổi sau khi hợp nhất và lựa chọn quy trình sửa lỗi khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-versioning-009
+    title: Khóa nhánh, dọn nhánh đã hợp nhất và nhận diện nhánh không còn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pull-request-lifecycle
+  title: Vòng đời pull request
+  childs:
+  - slug: pull-request-lifecycle-001
+    title: Vai trò của pull request và khác biệt với thao tác push hoặc merge cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-002
+    title: Tạo pull request với nhánh nguồn, nhánh đích và phạm vi thay đổi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-003
+    title: Viết tiêu đề, mô tả, hướng dẫn kiểm tra và mẫu pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-004
+    title: Sử dụng draft pull request để cộng tác trước khi sẵn sàng đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-005
+    title: Thêm người đánh giá bắt buộc, tùy chọn và nhóm đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-006
+    title: Cập nhật pull request bằng commit mới và theo dõi các lần cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-007
+    title: Đọc trạng thái đánh giá, xung đột, bản dựng và chính sách đang chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-008
+    title: Hoàn tất pull request bằng merge commit, squash hoặc các lựa chọn rebase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-009
+    title: Sử dụng auto-complete và hiểu điều kiện để tự động hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-010
+    title: Xử lý xung đột ở máy cục bộ rồi cập nhật lại pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pull-request-lifecycle-011
+    title: Abandon, reactivate và theo dõi pull request đã hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-review
+  title: Đánh giá mã nguồn
+  childs:
+  - slug: code-review-001
+    title: Chuẩn bị pull request nhỏ, có ngữ cảnh và bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-002
+    title: Đọc phần Files, Commits, Updates và so sánh giữa các lần sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-003
+    title: Bình luận theo dòng, tạo luồng trao đổi và đề xuất sửa mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-004
+    title: Ý nghĩa các lựa chọn Approve, Approve with suggestions, Wait for author và Reject
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-005
+    title: Trao đổi giữa tác giả và người đánh giá, xử lý rồi đóng luồng bình luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-006
+    title: Theo dõi yêu cầu đánh giá lại khi nội dung pull request thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-007
+    title: Tổ chức đánh giá theo chuyên môn, quyền sở hữu thư mục và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-review-008
+    title: Xây dựng quy ước phản hồi rõ ràng và tránh tắc nghẽn chờ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branch-policies
+  title: Chính sách nhánh
+  childs:
+  - slug: branch-policies-001
+    title: Phân biệt branch policy, quyền nhánh và các thiết lập cấp kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-002
+    title: Chọn nhánh đích cần bảo vệ và kiểm tra phạm vi áp dụng chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-003
+    title: Yêu cầu số người phê duyệt tối thiểu và kiểm soát tự phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-004
+    title: Đặt lại phiếu đánh giá khi có thay đổi mới hoặc theo điều kiện cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-005
+    title: Tự động thêm người đánh giá theo đường dẫn và yêu cầu quyền sở hữu mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-006
+    title: Bắt buộc liên kết work item và giải quyết các luồng bình luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-007
+    title: Thiết lập Build validation với chế độ tự động hoặc thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-008
+    title: Quản lý thời hạn kết quả bản dựng khi nhánh đích thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-009
+    title: Cấu hình Status checks từ dịch vụ ngoài và danh tính được phép đăng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-010
+    title: Giới hạn cách hợp nhất và đánh giá tác động lên lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-011
+    title: Áp dụng bộ lọc đường dẫn, tiền tố nhánh và chính sách trên nhiều kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-policies-012
+    title: Kiểm chứng chính sách bằng các pull request đạt và không đạt điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-permissions
+  title: Quyền trên kho mã
+  childs:
+  - slug: repository-permissions-001
+    title: Phân quyền ở cấp dự án, repository, nhánh và tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-002
+    title: Quyền Read, Contribute, Create branch và Create tag trong công việc hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-003
+    title: Kiểm soát Force push và các thao tác viết lại lịch sử hoặc xóa nhánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-004
+    title: Quyền tạo, đổi tên, xóa kho và chỉnh sửa chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-005
+    title: Phân biệt Bypass policies when pushing với Bypass policies when completing pull requests
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-006
+    title: Giới hạn quyền quản trị và thiết kế lối xử lý khẩn cấp có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-007
+    title: Cấu hình quyền nhánh theo nhóm hoặc tiền tố và rà soát kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-permissions-008
+    title: Kiểm tra phân quyền bằng các tài khoản có vai trò khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-code-security
+  title: Bảo mật mã nguồn
+  childs:
+  - slug: source-code-security-001
+    title: Ngăn thông tin bí mật xuất hiện trong commit, tệp cấu hình và mô tả pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-002
+    title: 'Xử lý khi lộ khóa: thu hồi, thay thế và đánh giá phạm vi ảnh hưởng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-003
+    title: Chính sách kho đối với kích thước tệp, đường dẫn và tính tương thích tên tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-004
+    title: Giới thiệu GitHub Secret Protection và GitHub Code Security cho Azure DevOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-005
+    title: Điều kiện nền tảng, giấy phép và quyền để bật tính năng bảo mật nâng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-006
+    title: Quét thông tin bí mật và chặn push chứa bí mật khi tính năng được bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-007
+    title: Quét thư viện phụ thuộc và phân tích CodeQL trong quy trình kiểm tra mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-008
+    title: Phân loại, xử lý, miễn trừ và theo dõi cảnh báo bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-security-009
+    title: Đánh giá rủi ro khi pull request sửa YAML pipeline hoặc mã chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: fork-collaboration
+  title: Cộng tác qua fork
+  childs:
+  - slug: fork-collaboration-001
+    title: Phân biệt làm việc trên nhánh chung với đóng góp qua fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-collaboration-002
+    title: Phạm vi tạo fork trong cùng organization và điều kiện quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-collaboration-003
+    title: Tạo fork, xác định kho gốc và cấu hình remote upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-collaboration-004
+    title: Đồng bộ fork khi kho gốc có thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-collaboration-005
+    title: Tạo và đánh giá pull request giữa fork và kho gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-collaboration-006
+    title: Xác định danh tính bản dựng và quyền truy cập khi kiểm tra thay đổi từ fork
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: fork-collaboration-007
+    title: Kiểm soát bí mật, tài nguyên được bảo vệ và mã đóng góp chưa được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: azure-boards
+  title: Azure Boards
+  childs:
+  - slug: azure-boards-001
+    title: Vai trò của work item trong phối hợp công việc và theo dõi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-002
+    title: Các quy trình Basic, Agile, Scrum, CMMI và hệ thống loại công việc tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-003
+    title: Tạo, chỉnh sửa và phân công work item với trường dữ liệu phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-004
+    title: Quản lý trạng thái, lý do chuyển trạng thái, mức ưu tiên và nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-005
+    title: Thảo luận, đề cập thành viên, đính kèm tệp và theo dõi lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-006
+    title: Quan hệ Parent-Child, Related, Predecessor-Successor và cách tránh cấu trúc sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-007
+    title: Thiết lập Area Path để chia phạm vi sản phẩm và trách nhiệm nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-008
+    title: Thiết lập Iteration Path để tổ chức các giai đoạn làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-boards-009
+    title: Xử lý bug theo cách nhóm đã cấu hình và theo dõi công việc phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backlogs-sprints
+  title: Backlog và sprint
+  childs:
+  - slug: backlogs-sprints-001
+    title: Phân biệt portfolio backlog, product backlog, board và sprint taskboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-002
+    title: Phân rã mục tiêu thành các loại công việc phù hợp với quy trình đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-003
+    title: Sắp xếp backlog, bổ sung tiêu chí chấp nhận và chuẩn bị công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-004
+    title: Cấu hình cột board, ánh xạ trạng thái và tiêu chí hoàn thành từng cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-005
+    title: Sử dụng swimlane, giới hạn công việc đang làm và kiểu hiển thị thẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-006
+    title: Lập kế hoạch sprint, chọn công việc và chia nhỏ task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-007
+    title: Thiết lập capacity, ngày nghỉ và theo dõi tải công việc trong sprint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-008
+    title: Theo dõi tiến độ bằng taskboard, burndown và phản hồi trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backlogs-sprints-009
+    title: Phối hợp nhiều team bằng Delivery Plans và nhận diện phụ thuộc công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: queries-reports
+  title: Truy vấn và báo cáo
+  childs:
+  - slug: queries-reports-001
+    title: Tạo truy vấn work item bằng trường dữ liệu, toán tử và nhóm điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-002
+    title: Phân biệt truy vấn danh sách phẳng, liên kết trực tiếp và cây phân cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-003
+    title: Lưu My Queries, chia sẻ Shared Queries và quản lý quyền truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-004
+    title: Sử dụng WIQL khi cần biểu diễn truy vấn bằng văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-005
+    title: Chỉnh sửa hàng loạt và xuất, nhập CSV với kiểm tra trường dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-006
+    title: Tạo biểu đồ từ truy vấn và dashboard phục vụ từng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-007
+    title: Đọc velocity, cumulative flow, lead time và cycle time đúng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-008
+    title: Sử dụng Analytics, OData hoặc Power BI theo khả năng nền tảng và quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: queries-reports-009
+    title: Diễn giải số liệu cộng tác, tránh đánh giá hiệu quả chỉ bằng số commit hoặc pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: wiki-documentation
+  title: Wiki và tài liệu
+  childs:
+  - slug: wiki-documentation-001
+    title: Phân biệt Project wiki với Published code wiki
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-002
+    title: Tạo Project wiki và tổ chức cây trang cho tài liệu nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-003
+    title: Xuất bản Markdown từ kho Git thành code wiki và chọn nhánh tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-004
+    title: Sử dụng tiêu đề, bảng, liên kết, khối mã và tài nguyên đính kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-005
+    title: Liên kết trang wiki với mã nguồn, work item và hướng dẫn phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-006
+    title: Quản lý lịch sử trang, so sánh và khôi phục thay đổi tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-007
+    title: Cộng tác trên kho Git của wiki và thiết lập quyền chỉnh sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-008
+    title: Áp dụng đánh giá qua pull request cho tài liệu được quản lý trong code repo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wiki-documentation-009
+    title: Duy trì README, hướng dẫn đóng góp, quyết định kiến trúc và quy trình tiếp nhận thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-traceability
+  title: Truy vết thay đổi
+  childs:
+  - slug: change-traceability-001
+    title: Liên kết work item với nhánh, commit và pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-002
+    title: Tham chiếu mã work item trong commit và mô tả pull request theo cú pháp được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-003
+    title: Theo dõi thay đổi từ mục Development và lịch sử của work item
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-004
+    title: Cập nhật trạng thái work item khi hoàn tất pull request theo tùy chọn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-005
+    title: Liên kết yêu cầu với test case, kết quả kiểm thử và lỗi phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-006
+    title: Truy từ yêu cầu đến bản dựng, gói đầu ra và thông tin triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-007
+    title: Điều tra thay đổi gây lỗi bằng chuỗi work item, pull request và commit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-traceability-008
+    title: Kiểm tra liên kết thiếu, liên kết sai và giới hạn truy vết qua nhiều dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: azure-pipelines-integration
+  title: Tích hợp Azure Pipelines
+  childs:
+  - slug: azure-pipelines-integration-001
+    title: Vai trò của pipeline trong kiểm chứng mã và điều kiện hợp nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-002
+    title: Tạo pipeline từ Azure Repos và quản lý azure-pipelines.yml trong kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-003
+    title: Nhận diện stage, job, step, task cùng vai trò của agent và agent pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-004
+    title: Cấu hình CI trigger theo nhánh, đường dẫn và nhu cầu của kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-005
+    title: Kiểm tra pull request Azure Repos bằng Build validation thay cho YAML pr trigger
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-006
+    title: Hiểu commit hợp nhất được kiểm tra và phân biệt bản dựng nhánh với bản dựng pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-007
+    title: Chạy build, kiểm thử và công bố kết quả cho dự án mẫu Java bằng Maven hoặc Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-008
+    title: Đọc log, kết quả kiểm thử, trạng thái bản dựng và tệp đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-009
+    title: Cấp quyền Build Service, giới hạn phạm vi job và bảo vệ quyền đọc repository
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-010
+    title: Quản lý biến bí mật, variable group, service connection và quyền sử dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-011
+    title: Nhận diện environments, approvals và checks tại ranh giới tích hợp triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-pipelines-integration-012
+    title: Đánh giá thay đổi YAML và hạn chế quyền khi pipeline chạy mã đóng góp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-feedback
+  title: Kiểm thử và phản hồi
+  childs:
+  - slug: testing-feedback-001
+    title: Vai trò Azure Test Plans và điều kiện quyền, mức truy cập cần có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-feedback-002
+    title: Tổ chức test plan, test suite và test case phục vụ yêu cầu sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-feedback-003
+    title: Viết bước kiểm thử, kết quả mong đợi và dùng lại bước hoặc tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-feedback-004
+    title: Thực hiện kiểm thử thủ công, ghi kết quả và thu thập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-feedback-005
+    title: Tạo bug từ phiên kiểm thử và liên kết lỗi với công việc liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-feedback-006
+    title: Phân biệt kết quả kiểm thử tự động từ pipeline với hoạt động quản lý Test Plans
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-feedback-007
+    title: Thu thập phản hồi và kiểm thử khám phá bằng công cụ phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: azure-artifacts
+  title: Azure Artifacts
+  childs:
+  - slug: azure-artifacts-001
+    title: Vai trò feed quản lý gói và khác biệt với repository hoặc pipeline artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-artifacts-002
+    title: Phân biệt feed cấp dự án, cấp tổ chức và phạm vi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-artifacts-003
+    title: Kết nối công cụ quản lý gói, gồm Maven và Gradle cho dự án Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-artifacts-004
+    title: Xuất bản, tải về và xác thực gói theo danh tính người dùng hoặc pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-artifacts-005
+    title: Sử dụng upstream source và quản lý nguồn thư viện phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-artifacts-006
+    title: Quản lý phiên bản gói, feed view và vòng đời quảng bá gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: azure-artifacts-007
+    title: Thiết lập retention, theo dõi dung lượng và kiểm tra ảnh hưởng khi xóa gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notifications-integrations
+  title: Thông báo và tích hợp
+  childs:
+  - slug: notifications-integrations-001
+    title: Theo dõi work item, pull request và các thay đổi cần chú ý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-002
+    title: Cấu hình đăng ký thông báo cá nhân, nhóm và dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-003
+    title: Giảm thông báo không cần thiết bằng sự kiện, bộ lọc và đối tượng nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-004
+    title: Phân biệt thông báo, Service hooks, webhook và extension
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-005
+    title: Tạo Service hook theo sự kiện work item, pull request hoặc bản dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-006
+    title: Kết nối Microsoft Teams, Slack hoặc hệ thống ngoài theo tích hợp được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-007
+    title: Cài đặt extension từ Marketplace và rà soát quyền được yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notifications-integrations-008
+    title: Kiểm tra lịch sử gửi sự kiện, lỗi webhook và nguy cơ xử lý trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cli-rest-api
+  title: CLI và REST API
+  childs:
+  - slug: cli-rest-api-001
+    title: Cài Azure CLI cùng Azure DevOps extension và xác định môi trường được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-002
+    title: Đăng nhập, chọn organization, project mặc định và quản lý ngữ cảnh lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-003
+    title: Tra cứu project, repository, nhánh và pull request bằng az devops, az repos
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-004
+    title: Tra cứu work item, truy vấn và chính sách bằng các nhóm lệnh tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-005
+    title: Nhận diện URL REST API, phiên bản API và định danh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-006
+    title: Xác thực REST API với danh tính và phạm vi quyền phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-007
+    title: Đọc dữ liệu có phân trang, lọc kết quả và xử lý continuation token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-008
+    title: Tự động hóa tác vụ có kiểm tra trạng thái trước khi ghi và tránh tạo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-009
+    title: Xử lý lỗi HTTP, giới hạn yêu cầu và retry có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cli-rest-api-010
+    title: Đăng trạng thái pull request từ dịch vụ kiểm tra ngoài qua REST API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-customization
+  title: Tùy biến quy trình
+  childs:
+  - slug: workflow-customization-001
+    title: Phân biệt tùy biến board của team với tùy biến process dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-002
+    title: Mô hình inherited process và khác biệt với mô hình XML theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-003
+    title: Tạo quy trình kế thừa và xác định dự án chịu ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-004
+    title: Bổ sung loại work item, trường dữ liệu và bố cục biểu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-005
+    title: Điều chỉnh trạng thái và quy tắc bắt buộc theo điều kiện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-006
+    title: Kiểm tra ảnh hưởng lên backlog, board, truy vấn và báo cáo khi đổi quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-007
+    title: Quyền quản lý process và cách kiểm thử thay đổi trước khi áp dụng rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-customization-008
+    title: Duy trì tiêu chuẩn chung mà vẫn đáp ứng khác biệt hợp lý giữa các team
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-operations
+  title: Quản trị và vận hành
+  childs:
+  - slug: governance-operations-001
+    title: Phân công organization owner, quản trị viên và người quản lý tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-002
+    title: Rà soát thành viên, mức truy cập, giấy phép và liên kết thanh toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-003
+    title: Quản lý chính sách tổ chức đối với khách ngoài, PAT và ứng dụng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-004
+    title: Theo dõi audit log theo điều kiện khả dụng và phân biệt với lịch sử Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-005
+    title: Quản lý vòng đời extension, Service hooks và danh tính tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-006
+    title: Theo dõi dung lượng kho, Git LFS, feed, pipeline và giới hạn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-007
+    title: Giám sát tình trạng Azure DevOps và phân biệt lỗi dịch vụ với lỗi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-008
+    title: Lập kế hoạch sao lưu, xuất dữ liệu và phục hồi theo Services hoặc Server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-009
+    title: Chuẩn hóa cấu hình và phát hiện sai lệch quyền, chính sách giữa nhiều kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-operations-010
+    title: Quản lý dữ liệu nhạy cảm, thời hạn lưu trữ và trách nhiệm tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration
+  title: Di chuyển và chuyển đổi
+  childs:
+  - slug: migration-001
+    title: Kiểm kê kho mã, lịch sử, người dùng, quyền, chính sách và tích hợp trước di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-002
+    title: Di chuyển Git từ GitHub, GitLab, Bitbucket hoặc máy chủ Git khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-003
+    title: Kiểm chứng branch, tag, commit và chuyển dữ liệu Git LFS riêng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-004
+    title: Phân biệt chuyển lịch sử Git với chuyển pull request, work item và bình luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-005
+    title: Lập kế hoạch chuyển TFVC sang Git và quyết định phạm vi giữ lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-006
+    title: Nhận diện công cụ, điều kiện và giới hạn khi chuyển Server sang Services
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-007
+    title: Tái lập quyền, chính sách nhánh, webhook và pipeline ở đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-008
+    title: Tổ chức chạy thử, ngừng ghi nguồn, xác minh sau chuyển và phương án quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Phân biệt lỗi sai organization, sai project và thiếu mức truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chẩn đoán clone, fetch hoặc push thất bại do URL, HTTPS, SSH hay token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Xử lý quyền Deny, kế thừa quyền và thay đổi nhóm chưa có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Tìm nguyên nhân push bị từ chối do policy, quyền hoặc giới hạn kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Chẩn đoán pull request không thể hoàn tất dù đã có người phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Xử lý build validation không chạy, lỗi thời hoặc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Điều tra Status check không xuất hiện hoặc không cập nhật đúng pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Xử lý work item không hiện trên backlog, board hoặc sprint của team
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Chẩn đoán lỗi truy cập wiki, feed và tài nguyên giữa các dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Thu thập mã lỗi, thời điểm, định danh yêu cầu và bằng chứng trước khi yêu cầu hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Thiết lập organization, project, team và kho Java với quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Thực hiện luồng work item, nhánh tính năng, commit và pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Thiết lập đánh giá mã, chính sách nhánh và thử tình huống vi phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Gắn pipeline Maven hoặc Gradle vào Build validation của nhánh chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Mô phỏng xung đột, cập nhật đánh giá và hoàn tất pull request an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Tổ chức backlog, sprint, dashboard và wiki cho một nhóm phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Truy vết một bug từ phản hồi, bản sửa đến kết quả kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Mô phỏng thành viên rời nhóm, thu hồi quyền và thay thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Diễn tập sự cố lộ bí mật hoặc cấp quyền quá rộng trong môi trường thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Tổng hợp tiêu chí kiểm chứng cấu hình cộng tác và hồ sơ bàn giao dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

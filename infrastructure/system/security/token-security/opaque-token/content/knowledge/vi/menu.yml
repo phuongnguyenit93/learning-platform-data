@@ -1,0 +1,574 @@
+menu:
+- level1: Tổng quan opaque token
+  level2:
+  - Opaque token là gì
+  - Bài toán opaque token giải quyết
+  - Access token opaque
+  - Token reference
+  - Token không tự mô tả
+  - Server giữ trạng thái token
+  - Client sử dụng bearer token
+  - Ưu điểm của opaque token
+  - Giới hạn của opaque token
+  - Thuật ngữ cốt lõi
+- level1: Mô hình OAuth2
+  level2:
+  - OAuth2 giải quyết bài toán nào
+  - Resource owner
+  - Client
+  - Authorization server
+  - Resource server
+  - Access token
+  - Refresh token
+  - Authorization code
+  - Client credentials
+  - Luồng cấp quyền
+- level1: Opaque và JWT
+  level2:
+  - Khác nhau về cấu trúc
+  - Khác nhau về validation
+  - Khác nhau về trạng thái
+  - Khác nhau về khả năng thu hồi
+  - Khác nhau về hiệu năng
+  - Khác nhau về riêng tư
+  - Khi nào chọn opaque
+  - Khi nào chọn JWT
+  - Mô hình kết hợp
+  - Chiến lược chuyển đổi
+- level1: Vòng đời token
+  level2:
+  - Tạo token
+  - Phát hành token
+  - Sử dụng token
+  - Introspect token
+  - Gia hạn token
+  - Thu hồi token
+  - Access token hết hạn
+  - Token bị vô hiệu
+  - Xóa token
+  - Theo dõi trạng thái
+- level1: Thành phần hệ thống
+  level2:
+  - Client application
+  - Máy chủ cấp quyền
+  - Authorization service
+  - Introspection endpoint
+  - Máy chủ resource
+  - Token store
+  - Identity provider
+  - API gateway
+  - Resource API
+  - Luồng giữa các thành phần
+- level1: Authorization Server
+  level2:
+  - Vai trò authorization server
+  - Đăng nhập người dùng
+  - Xác thực client
+  - Cấp quyền consent
+  - Cấp access token
+  - Cấp refresh token
+  - Quản lý scope
+  - Quản lý audience
+  - Quản lý phiên
+  - Chính sách phát hành
+- level1: Resource Server
+  level2:
+  - Vai trò resource server
+  - Nhận bearer token
+  - Gọi introspection
+  - Xác định token active
+  - Tạo authentication
+  - Xác minh scope tại API
+  - Xác minh audience tại API
+  - Cho phép truy cập
+  - Từ chối truy cập
+  - Bảo vệ endpoint
+- level1: Token issuance
+  level2:
+  - Điều kiện phát hành
+  - Token endpoint
+  - Client credentials grant
+  - Authorization code grant
+  - Refresh token grant
+  - Scope do server cấp
+  - Audience được cấp
+  - Thời hạn được cấp
+  - Token response
+  - Lỗi phát hành token
+- level1: Định dạng opaque token
+  level2:
+  - Chuỗi token ngẫu nhiên
+  - Entropy của token
+  - Độ dài token
+  - Character set
+  - Token identifier
+  - Không nhúng dữ liệu nhạy cảm
+  - Không phụ thuộc format nội bộ
+  - Khả năng lưu trữ
+  - So sánh token trước sau
+  - Kiểm tra token hợp lệ
+- level1: Token introspection
+  level2:
+  - Introspection là gì
+  - RFC 7662
+  - Gửi token để kiểm tra
+  - Xác thực request introspection
+  - Response introspection
+  - Token active hay inactive
+  - Introspection theo resource
+  - Introspection theo audience
+  - Giới hạn introspection
+  - Audit introspection
+- level1: Introspection response
+  level2:
+  - Trường active
+  - Trường scope
+  - Trường client_id
+  - Trường username
+  - Trường token_type
+  - Trường exp
+  - Trường iat
+  - Trường nbf
+  - Trường sub
+  - Trường aud và iss
+- level1: Token validation
+  level2:
+  - Kiểm tra token rỗng
+  - Kiểm tra token sai format
+  - Kiểm tra token active
+  - Kiểm tra thời hạn
+  - Kiểm tra not-before
+  - Kiểm tra issuer
+  - Kiểm tra issuer và audience
+  - Kiểm tra token type
+  - Xác minh scope hiệu lực
+  - Kết luận validation
+- level1: Token state
+  level2:
+  - Trạng thái active
+  - Trạng thái expired
+  - Trạng thái revoked
+  - Trạng thái unknown
+  - Trạng thái suspended
+  - Trạng thái client disabled
+  - Thay đổi trạng thái
+  - Nguồn sự thật về trạng thái
+  - Đồng bộ trạng thái
+  - Xử lý trạng thái không rõ
+- level1: Token metadata
+  level2:
+  - Metadata của token
+  - Audience metadata
+  - Client identifier
+  - Username
+  - Issuer
+  - Audience field
+  - Issued-at time
+  - Expiration time
+  - Not-before time
+  - Token type
+- level1: Scope
+  level2:
+  - Scope là gì
+  - Scope được yêu cầu
+  - Scope đã cấp
+  - Scope theo API
+  - Scope theo thao tác
+  - Scope dạng read
+  - Scope dạng write
+  - Scope mặc định
+  - Kiểm tra scope quyền
+  - Kiểm tra scope
+- level1: Audience
+  level2:
+  - Audience là gì
+  - Resource identifier
+  - Audience của API
+  - Audience của gateway
+  - Token dùng sai audience
+  - Nhiều audience
+  - Audience và scope
+  - Xác minh audience
+  - Chính sách audience
+  - Tài liệu audience
+- level1: Client authentication
+  level2:
+  - Xác thực confidential client
+  - Client secret
+  - Private key JWT
+  - mTLS client authentication
+  - Basic authentication
+  - Post authentication
+  - Credential rotation
+  - Credential storage
+  - Client không tin cậy
+  - Lỗi xác thực client
+- level1: Bearer token
+  level2:
+  - Bearer token là gì
+  - Authorization header
+  - Token trong cookie
+  - Token trong query parameter
+  - Không gửi token qua URL
+  - TLS khi truyền token
+  - Proxy và header
+  - Token trong log
+  - Token trong browser
+  - Quy tắc truyền token
+- level1: Token storage
+  level2:
+  - Lưu token phía server
+  - Database token store
+  - Cache token store
+  - Key-value token store
+  - Hash token khi lưu
+  - Mã hóa dữ liệu lưu
+  - TTL bản ghi
+  - Index token
+  - Phân vùng token store
+  - Sao lưu token store
+- level1: Expiration
+  level2:
+  - Thời hạn access token
+  - Thời hạn refresh token
+  - Expiring token
+  - Clock skew
+  - Thời gian server
+  - Token gần hết hạn
+  - Gia hạn trước hạn
+  - Từ chối token hết hạn
+  - Chọn thời hạn phù hợp
+  - Kiểm thử thời hạn
+- level1: Revocation
+  level2:
+  - Token revocation là gì
+  - Endpoint thu hồi
+  - Thu hồi bởi người dùng
+  - Thu hồi bởi admin
+  - Thu hồi khi logout
+  - Thu hồi khi đổi mật khẩu
+  - Thu hồi khi phát hiện rủi ro
+  - Thu hồi client
+  - Propagation revocation
+  - Kiểm tra sau revocation
+- level1: Rotation
+  level2:
+  - Token rotation là gì
+  - Refresh token rotation
+  - Client secret rotation
+  - Khóa ký rotation
+  - Rotation token store
+  - Grace period
+  - Phát hiện reuse
+  - Rollback rotation
+  - Lịch rotation
+  - Kiểm thử rotation
+- level1: Replay protection
+  level2:
+  - Replay attack
+  - Token bị dùng lại
+  - Giới hạn thời gian dùng
+  - Giới hạn audience
+  - Nonce
+  - Ngăn replay bằng binding
+  - Phát hiện bất thường
+  - Vô hiệu token nghi ngờ
+  - Rate limit validation
+  - Điều tra replay
+- level1: Token binding
+  level2:
+  - Khái niệm token binding
+  - mTLS-bound token
+  - DPoP-bound token
+  - Thiết bị sở hữu khóa
+  - Proof of possession
+  - Bearer và sender-constrained
+  - Kiểm tra binding
+  - Tương thích client
+  - Đánh đổi triển khai
+  - Kiểm thử binding
+- level1: Threat model
+  level2:
+  - Tài sản cần bảo vệ
+  - Kẻ tấn công tiềm năng
+  - Token theft
+  - Token replay
+  - Introspection abuse
+  - Client compromise
+  - Resource server compromise
+  - Authorization server compromise
+  - Biên giới tin cậy
+  - Ma trận rủi ro
+- level1: Token leakage
+  level2:
+  - Rò rỉ trong log
+  - Rò rỉ trong URL
+  - Rò rỉ trong referrer
+  - Rò rỉ trong exception
+  - Rò rỉ trong trace
+  - Rò rỉ trong browser history
+  - Rò rỉ qua proxy
+  - Mask token
+  - Xóa token khỏi dữ liệu chẩn đoán
+  - Quy trình xử lý rò rỉ
+- level1: Privacy
+  level2:
+  - Dữ liệu nhận dạng trong token
+  - Opaque token và riêng tư
+  - Metadata introspection
+  - Minimize response
+  - Ẩn username
+  - Ẩn client information
+  - Retention metadata
+  - Quyền truy cập audit
+  - Xóa dữ liệu theo chính sách
+  - Đánh giá privacy
+- level1: Spring Security
+  level2:
+  - Resource Server trong Spring Security
+  - Opaque token support
+  - SecurityFilterChain
+  - BearerTokenAuthenticationFilter
+  - AuthenticationManager
+  - OpaqueTokenAuthenticationProvider
+  - OAuth2AuthenticatedPrincipal
+  - GrantedAuthority
+  - SecurityContext
+  - Luồng xác thực Spring
+- level1: Spring Boot configuration
+  level2:
+  - Bật opaque token resource server
+  - Introspection URI
+  - Introspection client ID
+  - Introspection client secret
+  - Cấu hình theo properties
+  - Cấu hình theo YAML
+  - Cấu hình theo profile
+  - Cấu hình bằng bean
+  - Secret trong môi trường
+  - Kiểm tra cấu hình Boot
+- level1: OpaqueTokenIntrospector
+  level2:
+  - OpaqueTokenIntrospector là gì
+  - Gọi introspection token
+  - SpringOpaqueTokenIntrospector
+  - Request tới introspection
+  - Đọc introspection response
+  - Tạo Authentication
+  - Xử lý inactive token
+  - Tùy biến introspector
+  - Decorate introspector
+  - Kiểm thử introspector
+- level1: Bearer token filter
+  level2:
+  - Đọc Authorization header
+  - BearerTokenResolver
+  - Resolver mặc định
+  - Resolver tùy biến
+  - Token thiếu
+  - Token sai scheme
+  - Token lặp header
+  - Filter chain order
+  - Anonymous request
+  - Phân tích filter failure
+- level1: Principal và authority
+  level2:
+  - Authentication principal
+  - Tên principal
+  - Attributes của principal
+  - Scope thành authority
+  - SCOPE_ prefix
+  - Authority mapping
+  - Custom authority converter
+  - Principal trong controller
+  - Principal trong method security
+  - Kiểm thử quyền
+- level1: Custom introspector
+  level2:
+  - Khi nào cần custom
+  - Gọi HTTP client
+  - Gọi WebClient
+  - Gọi RestClient
+  - Parse response tùy biến
+  - Map lỗi introspection
+  - Thêm authority
+  - Thêm principal attribute
+  - Bọc introspector chuẩn
+  - Đảm bảo contract custom
+- level1: Remote call resilience
+  level2:
+  - Timeout introspection
+  - Connection timeout
+  - Read timeout
+  - Retry introspection
+  - Circuit breaker
+  - Bulkhead
+  - Fallback an toàn
+  - Rate limit introspection
+  - Xử lý authorization server down
+  - Kiểm thử resilience
+- level1: Introspection caching
+  level2:
+  - Vì sao cần cache
+  - Cache active response
+  - Cache inactive response
+  - TTL cache
+  - Invalidation khi revoke
+  - Cache theo token hash
+  - Cache phân tán
+  - Rủi ro stale authorization
+  - Cache stampede
+  - Đo hiệu quả cache
+- level1: Nhiều resource server
+  level2:
+  - Mô hình nhiều API
+  - Các resource server tham gia
+  - Cấu hình introspection riêng
+  - Audience riêng từng API
+  - Scope riêng từng API
+  - Chia sẻ token store
+  - Cache giữa resource server
+  - Đồng bộ revocation
+  - Boundary giữa API
+  - Kiểm thử multi-resource
+- level1: Multi-tenant
+  level2:
+  - Tenant trong token
+  - Issuer theo tenant
+  - Client theo tenant
+  - Introspection theo tenant
+  - Scope theo tenant
+  - Audience theo tenant
+  - Cô lập token store
+  - Cô lập cache
+  - Tránh nhầm tenant
+  - Kiểm thử tenant isolation
+- level1: Error semantics
+  level2:
+  - 401 Unauthorized
+  - 403 Forbidden
+  - Bearer token bị thiếu
+  - Token không hợp lệ
+  - Token hết hạn
+  - Scope không đủ
+  - Access token đã quá thời hạn
+  - Authorization server lỗi
+  - Response error nhất quán
+  - Không lộ chi tiết nhạy cảm
+- level1: Testing opaque token
+  level2:
+  - Kiểm thử token active
+  - Kiểm thử token inactive
+  - Kiểm thử token hết hạn
+  - Kiểm thử scope
+  - Kiểm thử audience
+  - Kiểm thử revocation
+  - Kiểm thử timeout
+  - Kiểm thử retry
+  - Kiểm thử cache
+  - Kiểm thử error response
+- level1: Testing Spring Security
+  level2:
+  - MockMvc với bearer token
+  - WebTestClient với bearer token
+  - Mock introspection server
+  - TestSecurityContext
+  - Test method security
+  - Test authority mapping
+  - Test custom introspector
+  - Test filter chain
+  - Test multiple tenants
+  - Test integration end-to-end
+- level1: Observability
+  level2:
+  - Metric introspection
+  - Metric token active
+  - Metric token inactive
+  - Metric latency
+  - Metric timeout
+  - Metric cache hit
+  - Trace request validation
+  - Log không chứa token
+  - Audit revocation
+  - Alert authorization server
+- level1: Performance
+  level2:
+  - Chi phí remote introspection
+  - Latency xác thực request
+  - Throughput resource server
+  - Connection pooling
+  - Cache hit ratio
+  - Payload introspection
+  - Batch không phù hợp
+  - Parallel request
+  - Load test validation
+  - Tối ưu đường đi token
+- level1: Operations
+  level2:
+  - Cấu hình production
+  - Quản lý secret
+  - Quản lý certificate
+  - Theo dõi token store
+  - Theo dõi introspection
+  - Runbook authorization server
+  - Runbook resource server
+  - Xử lý revoke khẩn cấp
+  - Backup và restore
+  - Kiểm tra sau triển khai
+- level1: Migration
+  level2:
+  - Chuyển từ JWT sang opaque
+  - Chuyển từ opaque sang JWT
+  - Dual validation
+  - Dual issuance
+  - Chuyển client từng bước
+  - Chuyển resource server
+  - Đối soát quyền
+  - Rollback migration
+  - Ngừng format cũ
+  - Kiểm thử tương thích
+- level1: Anti-pattern token
+  level2:
+  - Lưu token dạng plaintext
+  - Gửi token qua query
+  - Log toàn bộ token
+  - Cache quá lâu
+  - Không kiểm tra audience
+  - Không giới hạn scope
+  - Retry không giới hạn
+  - Dùng token sau revocation
+  - Ẩn lỗi authorization server
+  - Dùng opaque token không có lý do
+- level1: Thiết kế token security
+  level2:
+  - Xác định tài sản bảo vệ
+  - Chọn loại token
+  - Chọn thời hạn
+  - Chọn scope
+  - Chọn audience
+  - Chọn cơ chế introspection
+  - Chọn cache
+  - Chọn revocation
+  - Chọn khả năng quan sát
+  - Ghi lại quyết định
+- level1: Dự án thực hành
+  level2:
+  - Tạo authorization server
+  - Phát hành opaque token
+  - Lưu token an toàn
+  - Tạo introspection endpoint
+  - Cấu hình resource server
+  - Ánh xạ scope thành authority
+  - Thêm revocation
+  - Thêm cache introspection
+  - Thêm kiểm thử bảo mật
+  - Thêm observability
+  - Viết runbook vận hành
+- level1: Tổng kết opaque token
+  level2:
+  - Bản đồ khái niệm
+  - Luồng từ client đến resource
+  - Checklist validation
+  - Checklist bảo mật
+  - Checklist vận hành
+  - Bước học tiếp theo

@@ -1,0 +1,7 @@
+# DevOps DevSecOps Dependency Scanning
+
+Dependency Scanning là hoạt động phân tích các thư viện và thành phần bên thứ ba được ứng dụng sử dụng để phát hiện lỗ hổng bảo mật đã được công bố. Trong DevSecOps, đây là một phần của Software Composition Analysis (SCA), giúp nhóm hiểu rủi ro từ chuỗi phụ thuộc, kể cả dependency gián tiếp, thay vì chỉ kiểm tra mã nguồn tự viết.
+
+Module dành cho người đã biết Git, Java build tools như Maven hoặc Gradle và quy trình CI/CD cơ bản. Lộ trình bắt đầu từ việc đọc manifest/lockfile và cây phụ thuộc, chạy công cụ như OWASP Dependency-Check hoặc OSV-Scanner, phân tích CVE và advisory, sau đó ưu tiên rủi ro theo mức độ ảnh hưởng thực tế. Bạn sẽ thực hành cập nhật phiên bản và kiểm thử, tạo Software Bill of Materials (SBOM), tích hợp quét vào pull request/pipeline và theo dõi lỗ hổng phát sinh mới.
+
+Sau khi hoàn thành, bạn có thể xác định thư viện dễ tổn thương trong một dự án mẫu, tạo báo cáo có thể truy vết, đề xuất bản vá, xác minh bằng kiểm thử và triển khai chính sách xử lý cảnh báo có ngoại lệ được ghi nhận rõ ràng. Kết quả quét chỉ là tín hiệu hỗ trợ quyết định: cần xem xét khả năng khai thác, phạm vi sử dụng và tác động thay đổi trước khi chặn bản phát hành.

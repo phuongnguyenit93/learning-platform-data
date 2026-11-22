@@ -1,0 +1,166 @@
+menu:
+- title: Tổng quan IAM lifecycle
+  slug: overview-iam-lifecycle
+  index: 0
+- title: Mục tiêu IAM
+  slug: iam-goals
+  index: 1
+- title: Mô hình identity
+  slug: identity-model
+  index: 2
+- title: Chủ thể và vai trò
+  slug: subjects-and-roles
+  index: 3
+- title: Nguồn dữ liệu nhân sự
+  slug: hr-data-sources
+  index: 4
+- title: Identity proofing
+  slug: identity-proofing
+  index: 5
+- title: Identity enrollment
+  slug: identity-enrollment
+  index: 6
+- title: Joiner lifecycle
+  slug: joiner-lifecycle
+  index: 7
+- title: Mover lifecycle
+  slug: mover-lifecycle
+  index: 8
+- title: Leaver lifecycle
+  slug: leaver-lifecycle
+  index: 9
+- title: Account provisioning
+  slug: account-provisioning
+  index: 10
+- title: Account deprovisioning
+  slug: account-deprovisioning
+  index: 11
+- title: Account reconciliation
+  slug: account-reconciliation
+  index: 12
+- title: Authentication
+  slug: authentication
+  index: 13
+- title: Mật khẩu
+  slug: passwords
+  index: 14
+- title: MFA
+  slug: identity-lifecycle-mfa
+  index: 15
+- title: Federation
+  slug: federation
+  index: 16
+- title: SSO
+  slug: identity-lifecycle-sso
+  index: 17
+- title: OAuth và OIDC
+  slug: oauth-oidc
+  index: 18
+- title: Directory service
+  slug: directory-service
+  index: 19
+- title: SCIM provisioning
+  slug: scim-provisioning
+  index: 20
+- title: Authorization
+  slug: authorization
+  index: 21
+- title: RBAC
+  slug: identity-lifecycle-rbac
+  index: 22
+- title: ABAC
+  slug: identity-lifecycle-abac
+  index: 23
+- title: PBAC
+  slug: identity-lifecycle-pbac
+  index: 24
+- title: Least privilege
+  slug: least-privilege
+  index: 25
+- title: Privileged access
+  slug: privileged-access
+  index: 26
+- title: Access request
+  slug: access-request
+  index: 27
+- title: Approval workflow
+  slug: approval-workflow
+  index: 28
+- title: Access review
+  slug: access-review
+  index: 29
+- title: Access recertification
+  slug: access-recertification
+  index: 30
+- title: Segregation of duties
+  slug: segregation-of-duties
+  index: 31
+- title: Emergency access
+  slug: emergency-access
+  index: 32
+- title: Service identity
+  slug: service-identity
+  index: 33
+- title: Machine identity
+  slug: machine-identity
+  index: 34
+- title: Non-human account
+  slug: non-human-account
+  index: 35
+- title: Session management
+  slug: session-management
+  index: 36
+- title: Token và credential
+  slug: tokens-and-credentials
+  index: 37
+- title: Identity logging
+  slug: identity-logging
+  index: 38
+- title: Identity audit
+  slug: identity-audit
+  index: 39
+- title: Risk-based access
+  slug: risk-based-access
+  index: 40
+- title: Identity monitoring
+  slug: identity-monitoring
+  index: 41
+- title: Cloud IAM
+  slug: cloud-iam
+  index: 42
+- title: Zero Trust IAM
+  slug: zero-trust-iam
+  index: 43
+- title: Third-party identity
+  slug: third-party-identity
+  index: 44
+- title: Privacy và identity
+  slug: privacy-identity
+  index: 45
+- title: IAM resilience
+  slug: iam-resilience
+  index: 46
+- title: IAM testing
+  slug: iam-testing
+  index: 47
+- title: IAM operations
+  slug: iam-operations
+  index: 48
+- title: IAM metrics
+  slug: iam-metrics
+  index: 49
+- title: IAM migration
+  slug: iam-migration
+  index: 50
+- title: Anti-pattern IAM
+  slug: anti-pattern-iam
+  index: 51
+- title: Thiết kế chương trình IAM
+  slug: iam-program-design
+  index: 52
+- title: Dự án thực hành
+  slug: hands-on-project
+  index: 53
+- title: Tổng kết IAM lifecycle
+  slug: iam-lifecycle-summary
+  index: 54

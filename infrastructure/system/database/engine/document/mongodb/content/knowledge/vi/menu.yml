@@ -1,0 +1,499 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - MongoDB là gì và mô hình cơ sở dữ liệu hướng document
+  - Các khái niệm database, collection, document, field và namespace
+  - Mối liên hệ giữa BSON, truy vấn, index và aggregation
+  - So sánh MongoDB với cơ sở dữ liệu quan hệ và các mô hình NoSQL khác
+  - Bài toán phù hợp, giới hạn và đánh đổi khi chọn MongoDB
+  - Tổng quan standalone, replica set, sharded cluster và dịch vụ Atlas
+  - Kiến thức đầu vào và trình tự học từ document đến vận hành
+  - Thuật ngữ cốt lõi và cách tra cứu tài liệu theo phiên bản
+- level1: Môi trường thực hành
+  level2:
+  - Lựa chọn MongoDB Community, Enterprise và Atlas theo môi trường
+  - Cài đặt MongoDB và kiểm tra phiên bản server, công cụ, driver
+  - Dựng môi trường Docker với volume lưu dữ liệu và cấu hình kết nối
+  - Khởi tạo replica set phục vụ thực hành giao dịch và change stream
+  - Kết nối bằng mongosh và thao tác với MongoDB Compass
+  - Đọc connection string, mongodb://, mongodb+srv:// và các tùy chọn URI
+  - Tạo bộ dữ liệu mẫu và quy ước thực hành có thể chạy lại
+  - Kiểm tra kết nối, log khởi động và dọn dữ liệu thử nghiệm an toàn
+- level1: Kiến trúc MongoDB
+  level2:
+  - Vai trò của mongod, mongos và config server
+  - Đường đi của một yêu cầu đọc hoặc ghi trong MongoDB
+  - 'WiredTiger: document, index và tổ chức dữ liệu lưu trữ'
+  - Bộ nhớ đệm WiredTiger, bộ nhớ hệ điều hành và tập dữ liệu thường dùng
+  - Journal, checkpoint và khả năng khôi phục sau sự cố
+  - Nén dữ liệu, nén index và đánh đổi CPU với dung lượng
+  - Khóa, điều khiển đồng thời và xung đột ghi trong storage engine
+  - Phân biệt journal với oplog và dữ liệu sao lưu
+  - 'Giới hạn tài nguyên: RAM, ổ đĩa, kết nối và dung lượng lưu trữ'
+- level1: BSON và kiểu dữ liệu
+  level2:
+  - Phân biệt JSON, BSON và Extended JSON
+  - Kiểu số int32, int64, double và Decimal128
+  - Độ chính xác số, tiền tệ và chuyển đổi kiểu dữ liệu
+  - Chuỗi, boolean, object và mảng lồng nhau
+  - ObjectId, trường _id và lựa chọn khóa định danh
+  - Date, Timestamp, múi giờ và biểu diễn thời gian
+  - Binary, UUID và quy ước biểu diễn UUID giữa các driver
+  - Phân biệt trường không tồn tại, null, chuỗi rỗng và mảng rỗng
+  - Thứ tự so sánh kiểu BSON và ảnh hưởng đến truy vấn, sắp xếp
+  - Giới hạn kích thước document, độ lồng nhau và tên trường
+  - Đọc ghi Extended JSON mà không làm mất thông tin kiểu BSON
+- level1: Database và collection
+  level2:
+  - Tạo, liệt kê, chọn và xóa database hoặc collection
+  - Tạo collection ngầm định và tạo tường minh với tùy chọn
+  - Quy tắc đặt tên, namespace và phân biệt chữ hoa chữ thường
+  - Collection thông thường và capped collection
+  - 'View chỉ đọc: định nghĩa, cách truy vấn và giới hạn'
+  - Đọc metadata, thống kê dung lượng và thông tin collection
+  - Thay đổi tùy chọn collection bằng collMod trong phạm vi được hỗ trợ
+- level1: Mô hình document
+  level2:
+  - Bắt đầu từ nhu cầu truy vấn, tần suất đọc ghi và vòng đời dữ liệu
+  - 'Nhúng document và tham chiếu: tiêu chí lựa chọn'
+  - Mô hình quan hệ một một, một nhiều và nhiều nhiều
+  - Ranh giới document, tính gắn kết dữ liệu và thao tác nguyên tử
+  - Phi chuẩn hóa, sao chép dữ liệu và duy trì tính nhất quán
+  - Mảng tăng không giới hạn, document quá lớn và document bị ghi tập trung
+  - Các mẫu subset, computed, bucket và attribute
+  - Document đa hình và biểu diễn các biến thể nghiệp vụ
+  - Mô hình lịch sử, phiên bản và dữ liệu cần lưu trữ lâu dài
+  - Đánh giá mô hình bằng truy vấn, index, dung lượng và chi phí cập nhật
+- level1: Schema validation
+  level2:
+  - Schema linh hoạt và trách nhiệm kiểm soát chất lượng dữ liệu
+  - Khai báo validator với $jsonSchema và bsonType
+  - Trường bắt buộc, enum, khoảng giá trị và quy tắc chuỗi
+  - Kiểm tra document lồng nhau, mảng và phần tử mảng
+  - Kết hợp biểu thức truy vấn với schema validation
+  - validationLevel, validationAction và xử lý document cũ
+  - Cập nhật validator, triển khai tương thích và giới hạn bypassDocumentValidation
+  - Phân chia kiểm tra dữ liệu giữa MongoDB và ứng dụng
+- level1: Thêm document
+  level2:
+  - insertOne, insertMany và cấu trúc kết quả ghi
+  - Tự sinh _id và sử dụng định danh do ứng dụng cung cấp
+  - Ghi nhiều document theo thứ tự và không theo thứ tự
+  - Lỗi trùng khóa, lỗi validation và kết quả thành công một phần
+  - Kiểm soát kích thước lô ghi và giới hạn yêu cầu
+  - Thiết kế thao tác thêm có thể gửi lại mà không tạo dữ liệu trùng
+- level1: Truy vấn document
+  level2:
+  - find, findOne và cấu trúc bộ lọc truy vấn
+  - So sánh giá trị với $eq, $ne, $gt, $gte, $lt và $lte
+  - Kết hợp điều kiện bằng $and, $or, $nor và $not
+  - Tập giá trị với $in, $nin và các trường hợp biên
+  - Truy vấn trường lồng nhau bằng dot notation và so sánh nguyên document
+  - Kiểm tra trường bằng $exists, $type và truy vấn null
+  - 'Projection: chọn trường, loại trường và xử lý _id'
+  - Sắp xếp nhiều trường và tạo thứ tự ổn định khi giá trị trùng
+  - Truy vấn theo thời gian, chuỗi và collation
+  - Đếm chính xác, đếm ước lượng và lấy giá trị distinct
+  - Phân biệt toán tử truy vấn, biểu thức $expr và biểu thức aggregation
+- level1: Truy vấn mảng
+  level2:
+  - So khớp toàn bộ mảng và so khớp từng phần tử
+  - Điều kiện tập phần tử với $all, $in và $nin
+  - Ràng buộc nhiều điều kiện trên cùng phần tử bằng $elemMatch
+  - Truy vấn mảng document và đường dẫn lồng nhau
+  - Kiểm tra kích thước mảng với $size và biểu thức phù hợp
+  - Projection mảng bằng $elemMatch, $slice và toán tử vị trí
+  - Các trường hợp mảng rỗng, phần tử null và trường không tồn tại
+  - Ảnh hưởng của cấu trúc mảng đến multikey index và kế hoạch truy vấn
+- level1: Cập nhật document
+  level2:
+  - updateOne, updateMany và phân biệt matchedCount với modifiedCount
+  - replaceOne và giới hạn thay thế document, trường _id
+  - Gán, xóa và đổi tên trường với $set, $unset và $rename
+  - Cập nhật số và thời gian với $inc, $mul, $min, $max và $currentDate
+  - Upsert, $setOnInsert và kiểm soát trùng khóa khi nhiều yêu cầu đồng thời
+  - Cập nhật trường lồng nhau mà không thay thế nhầm document con
+  - Thêm phần tử bằng $push, $addToSet và các tùy chọn $each, $sort, $slice
+  - Loại phần tử bằng $pull, $pullAll và $pop
+  - Cập nhật mảng bằng $, $[] và $[identifier] kết hợp arrayFilters
+  - Cập nhật bằng aggregation pipeline và giới hạn các stage được phép
+  - findOneAndUpdate, findOneAndReplace và lựa chọn document trả về
+  - Thiết kế bộ lọc cập nhật có điều kiện và kiểm soát kết quả không khớp
+- level1: Xóa và ghi theo lô
+  level2:
+  - deleteOne, deleteMany và giới hạn thao tác xóa
+  - Xóa mềm, xóa vật lý và tác động đến truy vấn, unique index
+  - findOneAndDelete và nhu cầu đọc kèm xóa nguyên tử
+  - 'bulkWrite: kết hợp thêm, sửa, thay thế và xóa document'
+  - Ordered, unordered và cách đọc kết quả hoặc lỗi của bulkWrite
+  - Xử lý thành công một phần, gửi lại có chọn lọc và chống ghi trùng
+  - Chia lô tác vụ lớn, điều tiết tốc độ và lưu mốc tiếp tục
+- level1: Cursor và phân trang
+  level2:
+  - Vòng đời cursor, getMore và cơ chế tải dữ liệu theo lô
+  - batchSize, limit và ảnh hưởng đến bộ nhớ, số lần truyền dữ liệu
+  - Đọc tuần tự, đóng cursor và xử lý cursor hết hạn
+  - Phân trang bằng skip, limit và chi phí ở trang sâu
+  - Phân trang theo khóa với khóa ghép và thứ tự ổn định
+  - Đếm tổng số bản ghi và đánh đổi độ chính xác với độ trễ
+  - Giới hạn thời gian truy vấn bằng maxTimeMS và xử lý hủy yêu cầu
+  - Đọc tập dữ liệu lớn khi dữ liệu có thể thay đổi giữa các lượt
+- level1: Index cơ bản
+  level2:
+  - Index hỗ trợ truy vấn như thế nào và chi phí duy trì khi ghi
+  - Index mặc định _id và quản lý createIndex, getIndexes, dropIndex
+  - Index đơn và index ghép
+  - Thứ tự trường, tiền tố index và khả năng dùng lại index
+  - Nguyên tắc equality, sort, range và đánh đổi theo truy vấn
+  - Index cho sắp xếp, chiều tăng giảm và bộ lọc kết hợp
+  - Truy vấn được index bao phủ và điều kiện cần đọc document
+  - Độ chọn lọc, phân bố giá trị và kích thước index
+  - Thiết kế bộ index từ truy vấn thực tế và loại index trùng lặp
+  - Hidden index và thử nghiệm tác động trước khi loại bỏ index
+- level1: Index chuyên biệt
+  level2:
+  - Multikey index cho mảng và giới hạn index ghép nhiều trường mảng
+  - 'Unique index: dữ liệu trùng, null và trường không tồn tại'
+  - Sparse index và partial index với điều kiện lọc
+  - TTL index, thời gian hết hạn và độ trễ xóa nền
+  - Hashed index và phạm vi truy vấn được hỗ trợ
+  - Wildcard index cho cấu trúc trường biến đổi
+  - Collation của index và yêu cầu tương thích với truy vấn
+  - Ràng buộc unique index trong sharded collection
+  - Xây dựng index trên hệ thống đang hoạt động và theo dõi tiến trình
+  - Giới hạn index theo kiểu collection, phiên bản và mô hình triển khai
+- level1: Kế hoạch thực thi
+  level2:
+  - explain và các mức queryPlanner, executionStats, allPlansExecution
+  - Đọc COLLSCAN, IXSCAN, FETCH và SORT trong kế hoạch truy vấn
+  - Đối chiếu nReturned, totalKeysExamined và totalDocsExamined
+  - Phân tích truy vấn có sort, projection, mảng và nhiều nhánh điều kiện
+  - hint, giới hạn sử dụng và cách kiểm chứng một index được đề xuất
+  - Query shape, plan cache và thay đổi kế hoạch khi dữ liệu biến động
+  - So sánh kế hoạch trước sau trên bộ dữ liệu đại diện
+  - Phân biệt thời gian thực thi trong explain với độ trễ ứng dụng
+- level1: Aggregation cơ bản
+  level2:
+  - Luồng document qua pipeline và cách phân biệt stage với expression
+  - Lọc sớm bằng $match và quan hệ với index
+  - Chọn, thêm, xóa trường bằng $project, $set và $unset
+  - Sắp xếp, giới hạn và bỏ qua bằng $sort, $limit, $skip
+  - Tách phần tử mảng bằng $unwind và xử lý null hoặc mảng rỗng
+  - Gom nhóm bằng $group và lựa chọn khóa nhóm
+  - Các accumulator $sum, $avg, $min, $max, $push và $addToSet
+  - Đếm bằng $count và tổng hợp tần suất bằng $sortByCount
+  - Thay đổi document gốc bằng $replaceRoot và $replaceWith
+  - Đọc kết quả aggregation bằng cursor và kiểm chứng từng stage
+- level1: Biểu thức aggregation
+  level2:
+  - Tham chiếu trường, biến hệ thống và phạm vi biến với $let
+  - Điều kiện $cond, $switch, $ifNull và xử lý dữ liệu thiếu
+  - Kiểm tra, chuyển đổi kiểu bằng $type, $convert và $to*
+  - Biểu thức số học, làm tròn và tính toán với Decimal128
+  - Xử lý chuỗi, biểu thức chính quy và giới hạn theo collation
+  - Xử lý mảng bằng $map, $filter, $reduce và toán tử tập hợp
+  - Chuyển đổi object với $objectToArray, $arrayToObject và $mergeObjects
+  - Đọc ghi trường động bằng $getField và $setField theo phiên bản hỗ trợ
+  - Tính toán ngày giờ, múi giờ, $dateTrunc, $dateAdd và $dateDiff
+  - Kiểm chứng biểu thức trên dữ liệu null, sai kiểu và trường không tồn tại
+- level1: Aggregation nâng cao
+  level2:
+  - Kết hợp collection bằng $lookup và pipeline truy vấn con
+  - Tác động của index, số bản ghi khớp và kích thước kết quả khi join
+  - Duyệt quan hệ bằng $graphLookup và kiểm soát độ sâu
+  - Hợp nhất tập dữ liệu bằng $unionWith
+  - Tổng hợp nhiều nhánh bằng $facet và giới hạn bộ nhớ riêng
+  - Chia khoảng bằng $bucket và $bucketAuto
+  - 'Phân tích cửa sổ với $setWindowFields: xếp hạng và tổng lũy kế'
+  - Bổ sung khoảng trống với $densify, $fill và điều kiện hỗ trợ
+  - Ghi kết quả bằng $out, $merge và kiểm soát tác động lên dữ liệu đích
+  - View tổng hợp, dữ liệu tính sẵn và chiến lược cập nhật
+  - Giới hạn pipeline, kích thước document và tràn bộ nhớ ra đĩa
+  - Đọc explain cho aggregation và tối ưu thứ tự stage
+- level1: Nguyên tử và cạnh tranh
+  level2:
+  - Tính nguyên tử trên một document và giới hạn với nhiều document
+  - Tránh mất cập nhật bằng toán tử nguyên tử thay cho đọc rồi ghi
+  - Cập nhật có điều kiện và so sánh phiên bản trước khi ghi
+  - Khóa lạc quan bằng trường version và xử lý xung đột
+  - Unique index bảo vệ ràng buộc khi nhiều yêu cầu chạy đồng thời
+  - Write conflict, gửi lại thao tác và yêu cầu về tính lặp an toàn
+  - Khóa chống xử lý trùng bằng mã yêu cầu nghiệp vụ
+  - Lựa chọn giữa nhúng dữ liệu, cập nhật nguyên tử và giao dịch
+- level1: Replica set
+  level2:
+  - Mục tiêu sao chép và cấu trúc primary, secondary
+  - Quorum, thành viên bỏ phiếu và điều kiện có primary
+  - Khởi tạo replica set, cấu hình thành viên và kiểm tra rs.status
+  - Oplog, cửa sổ lịch sử và độ trễ sao chép
+  - Initial sync và bổ sung hoặc thay thế thành viên
+  - Bầu chọn, stepdown và xử lý kết nối khi chuyển primary
+  - Majority commit point và nguy cơ rollback sau sự cố
+  - Priority, votes, arbiter và các đánh đổi về khả năng chịu lỗi
+  - Hidden member, delayed member và giới hạn sử dụng
+  - Phân bố thành viên theo vùng lỗi và kiểm thử mất thành viên
+  - Lựa chọn secondary theo tag và mục đích phân tải đọc
+- level1: Nhất quán đọc ghi
+  level2:
+  - 'Write concern: w, j, wtimeout và mức xác nhận ghi'
+  - Phân biệt lỗi xác nhận với thao tác ghi chưa được thực hiện
+  - 'Read concern: local, available, majority, linearizable và snapshot'
+  - 'Read preference: primary, secondary và các chế độ ưu tiên'
+  - Độ trễ sao chép và nguy cơ đọc dữ liệu cũ
+  - Logical session, causal consistency và thứ tự thao tác có quan hệ nhân quả
+  - Điều kiện bảo đảm đọc lại dữ liệu vừa ghi
+  - Snapshot read và phạm vi áp dụng bên ngoài hoặc bên trong giao dịch
+  - Kết hợp read concern, write concern và read preference theo nghiệp vụ
+  - Đánh đổi tính nhất quán, độ trễ và khả dụng khi mạng bị phân vùng
+- level1: Giao dịch
+  level2:
+  - Khi nào cần giao dịch nhiều document
+  - Điều kiện triển khai giao dịch trên replica set và sharded cluster
+  - Session, bắt đầu giao dịch, commit và abort
+  - Read concern, write concern và read preference trong giao dịch
+  - Phân biệt gửi lại toàn giao dịch với gửi lại commit
+  - TransientTransactionError, UnknownTransactionCommitResult và xử lý lỗi
+  - Giới hạn thời gian, dung lượng và các thao tác bị hạn chế
+  - Giao dịch dài, xung đột ghi và ảnh hưởng đến tài nguyên
+  - Phối hợp giao dịch với gửi sự kiện bằng transactional outbox
+  - Kiểm chứng toàn vẹn dữ liệu khi giao dịch thất bại hoặc ứng dụng mất kết nối
+- level1: Sharding
+  level2:
+  - Phân biệt sharding, replication và phân vùng nghiệp vụ
+  - Vai trò mongos, config server replica set và các shard
+  - Phân bố dữ liệu, metadata định tuyến, chunk và balancer
+  - Chọn shard key theo độ phân tán, tần suất và hướng tăng giá trị
+  - Ranged sharding, hashed sharding và khóa ghép
+  - Truy vấn định tuyến đúng shard và truy vấn scatter gather
+  - Điểm nóng ghi, dữ liệu lệch và truy vấn thiếu shard key
+  - Zone sharding và ràng buộc vị trí dữ liệu
+  - Ràng buộc _id, unique index và tính duy nhất trên toàn cụm
+  - Chuyển dữ liệu giữa shard và theo dõi cân bằng tải
+  - Refine shard key, resharding và điều kiện hỗ trợ
+  - Ảnh hưởng của sharding đến aggregation, giao dịch và vận hành
+  - Đánh giá thời điểm cần sharding và chi phí quản trị đi kèm
+- level1: Change stream
+  level2:
+  - Mục tiêu theo dõi thay đổi và điều kiện triển khai
+  - Theo dõi collection, database hoặc deployment theo phạm vi hỗ trợ
+  - Cấu trúc sự kiện và phân biệt insert, update, replace, delete
+  - Lọc, biến đổi sự kiện và bảo toàn resume token
+  - fullDocument, updateLookup và pre image, post image
+  - resumeAfter, startAfter, startAtOperationTime và các tình huống khôi phục
+  - Lưu resume token bền vững và xử lý khi lịch sử oplog không còn
+  - Thứ tự sự kiện, xử lý lặp và giới hạn bảo đảm giao nhận
+  - Điều tiết tốc độ tiêu thụ, độ trễ và khôi phục sau gián đoạn
+  - Kết hợp change stream với CDC, outbox và hệ thống nhận sự kiện
+- level1: Chuỗi thời gian
+  level2:
+  - Bài toán time series và khác biệt với collection thông thường
+  - Thiết kế timeField, metaField và granularity
+  - Tổ chức bucket và ảnh hưởng của metadata có nhiều giá trị khác nhau
+  - Ghi dữ liệu đến muộn, sai thứ tự và vấn đề trùng phép đo
+  - Truy vấn theo thời gian, metadata và thiết kế index
+  - Tổng hợp theo cửa sổ thời gian và tạo dữ liệu thống kê
+  - Chính sách hết hạn dữ liệu và cơ chế TTL
+  - Giới hạn cập nhật, giao dịch, sharding theo phiên bản hỗ trợ
+  - Đánh giá time series collection cho dữ liệu cảm biến và quan sát hệ thống
+- level1: Dữ liệu địa lý
+  level2:
+  - GeoJSON, thứ tự kinh độ vĩ độ và mô hình tọa độ
+  - Point, LineString, Polygon và các hình học được hỗ trợ
+  - Index 2dsphere, index 2d và tiêu chí lựa chọn
+  - Truy vấn vùng bằng $geoWithin và $geoIntersects
+  - Truy vấn lân cận bằng $near, $nearSphere và stage $geoNear
+  - Khoảng cách, đơn vị đo và xử lý ranh giới địa lý
+  - Kết hợp điều kiện nghiệp vụ với truy vấn địa lý
+  - Kiểm tra dữ liệu tọa độ, hình học không hợp lệ và giới hạn index
+- level1: Tìm kiếm văn bản
+  level2:
+  - Tìm kiếm bằng $regex và điều kiện có thể tận dụng index
+  - Phân biệt so khớp chuỗi, collation và tìm kiếm toàn văn
+  - Text index, $text, điểm textScore và ngôn ngữ hỗ trợ
+  - Giới hạn của text index khi tìm gần đúng, tự hoàn thành và tiếng Việt
+  - 'Atlas Search: phạm vi dịch vụ và điều kiện triển khai'
+  - Search index, analyzer, tokenizer và chuẩn hóa văn bản
+  - Truy vấn tìm kiếm, lọc, fuzzy, autocomplete và xếp hạng
+  - Facet, highlight và phân trang kết quả tìm kiếm
+  - Độ trễ cập nhật search index, giám sát và đánh giá chất lượng kết quả
+- level1: Tìm kiếm vector
+  level2:
+  - Embedding, mô hình sinh vector và vai trò của MongoDB
+  - Điều kiện sử dụng Atlas Vector Search theo môi trường và phiên bản
+  - Thiết kế trường vector, số chiều và metadata đi kèm
+  - Vector index, độ tương đồng và lựa chọn tham số tìm kiếm
+  - Tìm lân cận gần đúng, chính xác và lọc metadata theo hỗ trợ
+  - Kết hợp tìm kiếm từ khóa, vector và bước xếp hạng lại
+  - Đánh giá độ phù hợp, độ trễ, bộ nhớ và chi phí lưu vector
+  - Cập nhật embedding khi thay mô hình và kiểm soát quyền truy cập dữ liệu
+- level1: GridFS
+  level2:
+  - Bài toán lưu tệp lớn và tiêu chí lựa chọn GridFS
+  - Cấu trúc collection files, chunks và các index cần thiết
+  - Tải lên, tải xuống theo luồng và metadata của tệp
+  - Đọc theo phạm vi, quản lý tên tệp và nhiều phiên bản
+  - Xóa tệp, phát hiện phần dữ liệu mồ côi và xử lý tải lên dang dở
+  - Quyền truy cập, sao lưu và tính nhất quán giữa metadata với nội dung
+  - So sánh GridFS với lưu tệp trong document hoặc object storage
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa và các lớp bảo vệ MongoDB
+  - Xác thực SCRAM, authentication database và cơ chế chứng chỉ
+  - User, role và phân quyền theo nguyên tắc tối thiểu
+  - Giới hạn mạng, bindIp, firewall và kiểm soát truy cập Atlas
+  - TLS cho kết nối ứng dụng và liên lạc nội bộ cụm
+  - Xác thực giữa các thành viên replica set hoặc sharded cluster
+  - Quản lý mật khẩu, chứng chỉ và luân chuyển thông tin bí mật
+  - Mã hóa dữ liệu lưu trữ và quản lý khóa theo mô hình triển khai
+  - Client Side Field Level Encryption và Queryable Encryption
+  - Giới hạn truy vấn, index và tính năng khi mã hóa trường
+  - Audit, che dữ liệu nhạy cảm trong log và kiểm soát quyền sao lưu
+  - Rà soát cấu hình trước khi đưa hệ thống ra môi trường thật
+- level1: Sao lưu và phục hồi
+  level2:
+  - Xác định RPO, RTO và phạm vi dữ liệu cần khôi phục
+  - mongodump, mongorestore và điều kiện tương thích công cụ
+  - Tính nhất quán của bản sao lưu khi hệ thống vẫn đang ghi
+  - Sao lưu bằng snapshot và yêu cầu phối hợp với storage engine
+  - Sao lưu liên tục và khôi phục đến thời điểm theo nền tảng hỗ trợ
+  - Phân biệt mongoexport, mongoimport với công cụ sao lưu đầy đủ
+  - Khôi phục có chọn lọc, namespace, index và schema validation
+  - Sao lưu replica set, sharded cluster và dịch vụ Atlas
+  - Chính sách giữ bản sao, mã hóa và phân quyền truy cập
+  - Diễn tập phục hồi và xác minh dữ liệu, ứng dụng sau khôi phục
+- level1: Quan sát hệ thống
+  level2:
+  - 'Chỉ số cần theo dõi: độ trễ, lưu lượng, lỗi và kết nối'
+  - CPU, RAM, ổ đĩa, WiredTiger cache và áp lực bộ nhớ
+  - Theo dõi replication lag, oplog window và trạng thái thành viên
+  - Theo dõi shard, balancer và mức lệch phân bố dữ liệu
+  - Log có cấu trúc, slow query log và mức chi tiết phù hợp
+  - Database profiler và chi phí thu thập thông tin truy vấn
+  - currentOp, nhận diện thao tác chạy lâu và điều kiện dùng killOp
+  - mongostat, mongotop, Compass và công cụ giám sát Atlas
+  - Thiết lập ngưỡng cảnh báo, dữ liệu nền và quy trình điều tra sự cố
+  - Bảo vệ dữ liệu nhạy cảm trong log, profiler và hệ thống giám sát
+- level1: Tối ưu hiệu năng
+  level2:
+  - Xây dựng tải thử đại diện và tiêu chí đo p50, p95, p99
+  - Xác định điểm nghẽn ở ứng dụng, truy vấn, storage hay mạng
+  - Tối ưu mô hình document theo mẫu truy cập và tần suất cập nhật
+  - Cân bằng số index, tốc độ đọc, tốc độ ghi và dung lượng
+  - Tập dữ liệu thường dùng, bộ nhớ đệm và tác động của đọc từ đĩa
+  - Giảm dữ liệu truyền qua mạng bằng projection, batch và nén
+  - Kiểm soát mức song song, connection pool và hàng đợi yêu cầu
+  - Tối ưu aggregation, join và dữ liệu tổng hợp tính sẵn
+  - Đánh giá ổ đĩa, journal, checkpoint và cấu hình nén
+  - Lập kế hoạch dung lượng, mở rộng tài nguyên và tránh tối ưu theo dữ liệu thử quá nhỏ
+- level1: Vận hành và nâng cấp
+  level2:
+  - Quản lý cấu hình mongod, mongos và tham số khởi động
+  - Lưu trữ bền vững, quyền thư mục và giới hạn tài nguyên môi trường chạy
+  - Kiểm tra sẵn sàng, khởi động, dừng và bảo trì có kiểm soát
+  - Chuyển primary, thay thành viên và giảm gián đoạn kết nối
+  - 'Chuẩn bị nâng cấp: bản sao lưu, ma trận tương thích và thử nghiệm'
+  - Nâng cấp lần lượt, Feature Compatibility Version và điều kiện hạ phiên bản
+  - Tương thích giữa server, driver và Database Tools
+  - Quản lý thay đổi index, validator và cấu hình trên dữ liệu thật
+  - Mở rộng hoặc thu hẹp cụm và kiểm soát di chuyển dữ liệu
+  - Quy trình xử lý sự cố, ghi nhận thay đổi và kiểm chứng sau bảo trì
+- level1: Java Driver
+  level2:
+  - Chọn Java Driver đồng bộ hoặc Reactive Streams theo ứng dụng
+  - Tạo MongoClient, quản lý vòng đời và dùng lại kết nối
+  - Cấu hình URI, xác thực, TLS và lựa chọn database, collection
+  - Connection pool, server selection và các loại timeout
+  - Ánh xạ Document, POJO codec và quy ước tên trường
+  - Ánh xạ ObjectId, UUID, Decimal128, ngày giờ và giá trị null
+  - Dùng Filters, Projections, Sorts và Updates cho CRUD
+  - Thực thi aggregation, bulkWrite và đọc kết quả theo lô
+  - MongoCursor, giải phóng tài nguyên và xử lý tập dữ liệu lớn
+  - ClientSession, giao dịch và hành vi retry của driver
+  - Theo dõi topology, pool, lệnh và phân loại exception
+  - Tích hợp change stream, resume token và dừng ứng dụng có kiểm soát
+- level1: Spring Data MongoDB
+  level2:
+  - Cấu hình kết nối Spring Boot và quản lý thông tin bí mật
+  - Ánh xạ @Document, @Id, @Field và cấu trúc document lồng nhau
+  - Custom converter cho kiểu dữ liệu nghiệp vụ
+  - MongoRepository, phương thức suy diễn và truy vấn @Query
+  - Phân trang, sắp xếp và giới hạn của phân trang dựa trên offset
+  - MongoTemplate cho CRUD có điều kiện, bulk và cập nhật mảng
+  - Aggregation bằng Spring Data và ánh xạ kết quả
+  - '@Version, optimistic locking và xử lý cập nhật xung đột'
+  - Auditing, thời gian tạo sửa và callback vòng đời
+  - MongoTransactionManager, @Transactional và phạm vi session
+  - Quản lý index tường minh và rủi ro tự tạo index khi khởi động
+  - ReactiveMongoTemplate, reactive repository và yêu cầu tránh chặn luồng
+  - Kiểm chứng hành vi Spring Data với BSON, truy vấn và index thực tế
+- level1: Kiểm thử
+  level2:
+  - Phân chia kiểm thử đơn vị, tích hợp và đầu cuối
+  - Dựng MongoDB bằng Testcontainers với topology phù hợp tính năng
+  - Thiết kế fixture nhỏ, xác định và độc lập giữa các lần chạy
+  - Kiểm thử BSON, null, trường thiếu, mảng và schema validation
+  - Kiểm thử unique index, TTL và các hành vi diễn ra bất đồng bộ
+  - Kiểm thử cạnh tranh, khóa lạc quan và ràng buộc nghiệp vụ
+  - Kiểm thử commit, rollback và gửi lại giao dịch trên replica set
+  - Kiểm thử mất kết nối, chuyển primary và tiếp tục change stream
+  - Kiểm thử quyền truy cập, xác thực và bảo vệ dữ liệu nhạy cảm
+  - Kiểm thử hiệu năng và kế hoạch truy vấn mà không phụ thuộc chỉ số thời gian ngẫu nhiên
+  - Kiểm thử di chuyển dữ liệu và phục hồi bản sao lưu
+- level1: Tiến hóa dữ liệu
+  level2:
+  - Phiên bản schema và tương thích giữa ứng dụng cũ với mới
+  - Thêm, đổi tên, bỏ trường theo quy trình triển khai nhiều giai đoạn
+  - Đọc dữ liệu nhiều phiên bản và chuyển đổi khi đọc
+  - Backfill theo lô với giới hạn tốc độ, checkpoint và khả năng chạy lại
+  - Tạo ràng buộc mới sau khi làm sạch dữ liệu cũ
+  - Chuyển từ dữ liệu quan hệ sang document theo mẫu truy cập
+  - Di chuyển dữ liệu bằng xuất nhập, CDC hoặc ghi song song theo yêu cầu
+  - Đối soát số lượng, kiểu dữ liệu, ràng buộc và kết quả nghiệp vụ
+  - Chuyển lưu lượng, theo dõi sai lệch và phương án quay lại
+- level1: Xử lý sự cố
+  level2:
+  - Chẩn đoán lỗi kết nối, DNS, TLS và server selection timeout
+  - Phân biệt lỗi xác thực với thiếu quyền thao tác
+  - E11000 duplicate key và xung đột dữ liệu khi upsert
+  - Lỗi schema validation, sai kiểu BSON và giá trị không thể chuyển đổi
+  - Lỗi document quá lớn, mảng tăng không giới hạn và giới hạn pipeline
+  - Truy vấn chậm do thiếu index, sort, collation hoặc kiểu dữ liệu
+  - Aggregation thiếu bộ nhớ, tràn ra đĩa và giới hạn của từng stage
+  - Not primary, write conflict và lỗi tạm thời của giao dịch
+  - Timeout xác nhận ghi hoặc commit với kết quả chưa xác định
+  - Replication lag, mất quorum và oplog không đủ cho đồng bộ
+  - Shard bị ghi tập trung, dữ liệu lệch và truy vấn scatter gather
+  - Đầy ổ đĩa, áp lực bộ nhớ và ưu tiên hành động khôi phục an toàn
+  - Thu thập bằng chứng, khoanh vùng nguyên nhân và kiểm chứng sau sửa lỗi
+- level1: Thiết kế ứng dụng
+  level2:
+  - 'Danh mục sản phẩm: thuộc tính biến đổi và truy vấn bộ lọc'
+  - 'Đơn hàng: bản chụp dữ liệu, trạng thái và ranh giới giao dịch'
+  - 'Tồn kho: cập nhật có điều kiện và chống trừ số lượng nhiều lần'
+  - 'Dữ liệu sự kiện: lưu lịch sử, thời gian giữ và truy vấn tổng hợp'
+  - 'Ứng dụng nhiều khách hàng: phân tách dữ liệu, index và quyền truy cập'
+  - 'Thông báo thay đổi: change stream, xử lý lặp và khôi phục người tiêu thụ'
+  - Lựa chọn MongoDB độc lập hoặc phối hợp với hệ quản trị khác
+  - Lập bảng đánh đổi giữa mô hình, tính nhất quán, hiệu năng và vận hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo môi trường và bộ dữ liệu ứng dụng bán hàng
+  - Thiết kế document, validator và các truy vấn nghiệp vụ chính
+  - Hoàn thiện CRUD, cập nhật mảng và phân trang ổn định
+  - Đo truy vấn, thiết kế index và so sánh explain trước sau
+  - Xây dựng báo cáo bằng aggregation và kiểm chứng kết quả
+  - Thử nghiệm cạnh tranh khi cập nhật tồn kho và tạo đơn hàng
+  - Thực hành giao dịch, mất kết nối và xử lý kết quả chưa xác định
+  - Dựng replica set, chuyển primary và quan sát tính nhất quán
+  - Thử nghiệm sharding trong môi trường tách biệt và đo phân bố dữ liệu
+  - Tích hợp Java hoặc Spring Data với kiểm thử tự động
+  - Triển khai change stream có lưu mốc tiếp tục và chống xử lý lặp
+  - Sao lưu, phục hồi, kiểm tra quyền và lập checklist vận hành
+- level1: Tổng kết và tra cứu
+  level2:
+  - Hệ thống hóa quan hệ giữa document, index, aggregation và topology
+  - Bảng lựa chọn nhúng, tham chiếu, cập nhật nguyên tử và giao dịch
+  - Bảng lựa chọn read concern, write concern và read preference
+  - Danh mục giới hạn cần kiểm tra theo phiên bản và môi trường triển khai
+  - Checklist rà soát mô hình, truy vấn, bảo mật, sao lưu và vận hành
+  - Cách tìm tài liệu chính thức, release note và ma trận tương thích

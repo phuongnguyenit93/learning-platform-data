@@ -1,0 +1,55 @@
+roadmap:
+- id: vai-tro-logstash
+  title: Vai trò Logstash
+  purpose: Hiểu Logstash là tầng xử lý sự kiện trong pipeline observability.
+  objectives:
+  - Mô tả luồng input → filter → output.
+  - Phân biệt event, field, codec và plugin.
+- id: cai-dat-pipeline
+  title: Cài đặt & Pipeline
+  purpose: Khởi chạy Logstash và quản lý cấu hình pipeline có thể kiểm chứng.
+  objectives:
+  - Chạy pipeline mẫu với stdin và stdout.
+  - Viết cấu hình .conf, dùng --config.test_and_exit để kiểm tra.
+- id: input-codec
+  title: Input & Codec
+  purpose: Thu nhận log từ các nguồn và giải mã thành event đúng cấu trúc.
+  objectives:
+  - Cấu hình input file, Beats hoặc HTTP tùy nguồn.
+  - Chọn codec plain/JSON phù hợp định dạng.
+  - Kiểm tra event ở đầu vào.
+- id: parse-chuan-hoa
+  title: Parse & Chuẩn hóa
+  purpose: Chuyển log thô thành field và mốc thời gian nhất quán.
+  objectives:
+  - Dùng Grok hoặc Dissect để tách field.
+  - Chuẩn hóa timestamp bằng date filter.
+  - Phát hiện và xử lý lỗi parse.
+- id: filter-lam-giau
+  title: Filter & Làm giàu
+  purpose: Làm sạch và bổ sung trường hữu ích trước khi chuyển tiếp dữ liệu.
+  objectives:
+  - Dùng conditionals và mutate để đổi hoặc bỏ field.
+  - Bổ sung metadata cần thiết cho truy vấn.
+  - Loại bỏ trường nhạy cảm không cần thiết.
+- id: output-bao-mat
+  title: Output & Bảo mật
+  purpose: Đưa sự kiện đã xử lý đến backend một cách chính xác và an toàn.
+  objectives:
+  - Cấu hình output Elasticsearch và stdout để đối chiếu.
+  - Thiết lập xác thực và TLS khi cần.
+  - Xác minh kết quả ghi và lỗi xuất dữ liệu.
+- id: do-ben-hieu-nang
+  title: Độ bền & Hiệu năng
+  purpose: Giảm mất dữ liệu và nghẽn pipeline khi nguồn hoặc backend biến động.
+  objectives:
+  - Giải thích persistent queue và dead letter queue cùng giới hạn.
+  - Đánh giá batch size, workers và backpressure.
+  - Thử hành vi khi backend tạm gián đoạn.
+- id: giam-sat-kiem-thu
+  title: Giám sát & Kiểm thử
+  purpose: Phát hiện suy giảm hiệu năng và kiểm chứng chất lượng xử lý dữ liệu.
+  objectives:
+  - Đọc monitoring API và thống kê pipeline.
+  - Thử sự kiện mẫu, kết quả parse và đầu ra.
+  - Theo dõi throughput, độ trễ, queue và DLQ.

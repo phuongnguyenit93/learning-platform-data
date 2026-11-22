@@ -1,0 +1,3 @@
+menuLevel1: Executor và hàng đợi tác vụ
+menuLevel2: ThreadPoolExecutor và quan hệ giữa core size, max size và queue
+status: ""

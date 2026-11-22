@@ -1,0 +1,3 @@
+menuLevel1: Unit systemd
+menuLevel2: Kiểm tra bằng systemd-analyze verify và áp dụng bằng daemon-reload
+status: ""

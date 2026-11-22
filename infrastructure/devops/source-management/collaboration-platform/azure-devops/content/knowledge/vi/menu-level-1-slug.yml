@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan Azure DevOps
+  slug: overview-azure-devops
+  index: 0
+- title: Tổ chức và dự án
+  slug: organizations-projects
+  index: 1
+- title: Thành viên và truy cập
+  slug: members-access
+  index: 2
+- title: Xác thực an toàn
+  slug: secure-authentication
+  index: 3
+- title: Khởi tạo kho mã
+  slug: repo-initialization
+  index: 4
+- title: Làm việc với Azure Repos
+  slug: azure-repos
+  index: 5
+- title: Nhánh và phiên bản
+  slug: branches-versioning
+  index: 6
+- title: Vòng đời pull request
+  slug: pull-request-lifecycle
+  index: 7
+- title: Đánh giá mã nguồn
+  slug: code-review
+  index: 8
+- title: Chính sách nhánh
+  slug: branch-policies
+  index: 9
+- title: Quyền trên kho mã
+  slug: repository-permissions
+  index: 10
+- title: Bảo mật mã nguồn
+  slug: source-code-security
+  index: 11
+- title: Cộng tác qua fork
+  slug: fork-collaboration
+  index: 12
+- title: Azure Boards
+  slug: azure-boards
+  index: 13
+- title: Backlog và sprint
+  slug: backlogs-sprints
+  index: 14
+- title: Truy vấn và báo cáo
+  slug: queries-reports
+  index: 15
+- title: Wiki và tài liệu
+  slug: wiki-documentation
+  index: 16
+- title: Truy vết thay đổi
+  slug: change-traceability
+  index: 17
+- title: Tích hợp Azure Pipelines
+  slug: azure-pipelines-integration
+  index: 18
+- title: Kiểm thử và phản hồi
+  slug: testing-feedback
+  index: 19
+- title: Azure Artifacts
+  slug: azure-artifacts
+  index: 20
+- title: Thông báo và tích hợp
+  slug: notifications-integrations
+  index: 21
+- title: CLI và REST API
+  slug: cli-rest-api
+  index: 22
+- title: Tùy biến quy trình
+  slug: workflow-customization
+  index: 23
+- title: Quản trị và vận hành
+  slug: governance-operations
+  index: 24
+- title: Di chuyển và chuyển đổi
+  slug: migration
+  index: 25
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 26
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 27

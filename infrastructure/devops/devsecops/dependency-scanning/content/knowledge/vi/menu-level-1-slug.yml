@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Rủi ro và phạm vi
+  slug: risks-scope
+  index: 1
+- title: Đồ thị phụ thuộc
+  slug: dependency-graphs
+  index: 2
+- title: Phiên bản và tái lập
+  slug: reproducible-versions
+  index: 3
+- title: Định danh thành phần
+  slug: component-identification
+  index: 4
+- title: Dữ liệu lỗ hổng
+  slug: vulnerability-data
+  index: 5
+- title: Cơ chế phát hiện
+  slug: detection-mechanisms
+  index: 6
+- title: SBOM
+  slug: sbom
+  index: 7
+- title: Quét kho mã
+  slug: repository-scanning
+  index: 8
+- title: Quét bản phát hành
+  slug: release-scanning
+  index: 9
+- title: Maven
+  slug: maven
+  index: 10
+- title: Gradle
+  slug: gradle
+  index: 11
+- title: Các hệ sinh thái khác
+  slug: other-ecosystems
+  index: 12
+- title: Công cụ quét
+  slug: scanning-tools
+  index: 13
+- title: Kết quả và báo cáo
+  slug: results-reporting
+  index: 14
+- title: Ưu tiên rủi ro
+  slug: risk-prioritization
+  index: 15
+- title: Khả năng khai thác
+  slug: exploitability
+  index: 16
+- title: Chính sách kiểm soát
+  slug: control-policies
+  index: 17
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 18
+- title: Giám sát liên tục
+  slug: continuous-monitoring
+  index: 19
+- title: Khắc phục
+  slug: remediation
+  index: 20
+- title: Nâng cấp tự động
+  slug: automated-upgrades
+  index: 21
+- title: Ngoại lệ và VEX
+  slug: exceptions-vex
+  index: 22
+- title: Vận hành bộ quét
+  slug: scanner-operations
+  index: 23
+- title: Bảo mật quy trình
+  slug: process-security
+  index: 24
+- title: Quản trị và chỉ số
+  slug: governance-metrics
+  index: 25
+- title: Thực hành
+  slug: hands-on-practice
+  index: 26
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 27

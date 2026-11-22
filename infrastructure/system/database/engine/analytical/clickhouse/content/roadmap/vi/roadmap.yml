@@ -1,0 +1,57 @@
+roadmap:
+- id: olap-khoi-dong
+  title: OLAP & khởi động
+  purpose: Hiểu bài toán phân tích dữ liệu nhiều dòng và tạo môi trường ClickHouse để chạy truy vấn đầu tiên.
+  objectives:
+  - Phân biệt workload OLAP với OLTP
+  - Khởi chạy ClickHouse Server hoặc ClickHouse Cloud
+  - Kết nối bằng client và chạy SELECT đơn giản
+- id: mergetree-schema
+  title: MergeTree & Schema
+  purpose: Thiết kế bảng cột phù hợp với dữ liệu và mẫu truy vấn phân tích thay vì sao chép nguyên schema OLTP.
+  objectives:
+  - Tạo bảng MergeTree với kiểu dữ liệu phù hợp
+  - Giải thích ORDER BY và sparse primary index
+  - Chọn PARTITION BY theo vòng đời dữ liệu
+- id: nap-du-lieu-java
+  title: Nạp dữ liệu & Java
+  purpose: Đưa dữ liệu từ file hay ứng dụng Java vào ClickHouse hiệu quả, hạn chế tạo quá nhiều data part nhỏ.
+  objectives:
+  - Nạp CSV hoặc JSONEachRow bằng INSERT
+  - So sánh batch insert với async insert
+  - Gọi ClickHouse qua Java Client hoặc JDBC
+- id: sql-phan-tich
+  title: SQL phân tích
+  purpose: Khai thác dữ liệu sự kiện và thời gian bằng lọc, gom nhóm và các hàm tổng hợp.
+  objectives:
+  - Viết SELECT với WHERE và GROUP BY
+  - Tổng hợp theo ngày bằng hàm thời gian
+  - Sử dụng JOIN hoặc window function khi phù hợp
+- id: toi-uu-truy-van
+  title: Tối ưu truy vấn
+  purpose: Đánh giá truy vấn dựa trên lượng dữ liệu phải đọc và chọn khóa sắp xếp hợp lý.
+  objectives:
+  - Chạy EXPLAIN và đọc bước quét dữ liệu
+  - So sánh read_rows/read_bytes và độ trễ
+  - Kiểm tra hiệu quả ORDER BY, filter và pruning
+- id: materialized-views
+  title: Materialized Views
+  purpose: Tăng tốc báo cáo lặp lại bằng việc tính sẵn kết quả trong quá trình nạp dữ liệu.
+  objectives:
+  - Tạo incremental materialized view với bảng đích
+  - Tổng hợp dữ liệu mới theo nhóm hoặc thời gian
+  - Phân biệt incremental view và refreshable view
+- id: ttl-vong-doi-du-lieu
+  title: TTL & vòng đời dữ liệu
+  purpose: Kiểm soát dung lượng và chính sách lưu giữ dữ liệu phân tích theo thời gian.
+  objectives:
+  - Định nghĩa TTL cho bảng hoặc cột
+  - Giải thích TTL được áp dụng trong background merges
+  - So sánh xóa dữ liệu cũ và tổng hợp dữ liệu lịch sử
+- id: giam-sat-van-hanh
+  title: Giám sát & vận hành
+  purpose: Quan sát hoạt động ClickHouse và nhận diện vấn đề trước khi mở rộng lưu lượng hoặc dữ liệu.
+  objectives:
+  - Đọc system.query_log và system.parts
+  - Theo dõi số parts, thời gian query và bộ nhớ
+  - Giải thích nhu cầu backup, replication và phân mảnh

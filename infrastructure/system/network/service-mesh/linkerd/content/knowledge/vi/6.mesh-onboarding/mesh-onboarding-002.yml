@@ -1,0 +1,3 @@
+menuLevel1: Đưa ứng dụng vào mesh
+menuLevel2: Đặt linkerd.io/inject trên namespace hoặc Pod template
+status: ''

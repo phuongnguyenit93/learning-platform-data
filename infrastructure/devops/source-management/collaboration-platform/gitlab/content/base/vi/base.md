@@ -1,0 +1,7 @@
+# DevOps Source Management Collaboration Platform Gitlab
+
+GitLab là nền tảng cộng tác giúp nhóm phát triển quản lý Git repository, công việc và quy trình đưa thay đổi vào mã nguồn chung. Bên cạnh các thao tác Git cơ bản, GitLab cung cấp group, project, issue, merge request, code review, branch protection và CI/CD để quá trình hợp tác có thể truy vết từ yêu cầu đến phiên bản mã đã được kiểm tra.
+
+Module dành cho người đã biết Git ở mức clone, commit, push và nắm quy trình phát triển phần mềm cơ bản. Lộ trình đi từ tổ chức workspace/project, quản lý repository và feature branch đến lập kế hoạch bằng issue, đề xuất thay đổi qua merge request, phản hồi code review, quản lý quyền truy cập và bảo vệ nhánh quan trọng. Phần cuối giới thiệu pipeline build/test và cách liên kết issue, MR, commit với kết quả kiểm tra tự động.
+
+Sau khi hoàn thành, bạn có thể thiết lập một dự án GitLab thử nghiệm, cộng tác qua nhánh và merge request, kiểm tra quyền và quy tắc bảo vệ mã nguồn, đồng thời giải thích lịch sử thay đổi dựa trên dữ liệu sẵn có trong GitLab. Một số chính sách approval bắt buộc và tính năng nâng cao phụ thuộc phiên bản hoặc gói GitLab; hãy đối chiếu quyền thực tế trước khi cấu hình trong dự án.

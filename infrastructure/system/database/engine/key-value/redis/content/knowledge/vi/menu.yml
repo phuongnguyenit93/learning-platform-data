@@ -1,0 +1,485 @@
+menu:
+- level1: Tổng quan Redis
+  level2:
+  - Redis là gì và giải quyết những bài toán nào
+  - Mô hình khóa–giá trị và máy chủ cấu trúc dữ liệu
+  - Vai trò bộ nhớ chính và lưu trữ bền vững
+  - Redis trong kiến trúc ứng dụng và hệ thống dữ liệu
+  - Phân biệt cơ sở dữ liệu, bộ nhớ đệm và môi giới thông điệp
+  - So sánh Redis với Memcached và cơ sở dữ liệu quan hệ
+  - 'Thuật ngữ: instance, keyspace, client, shard và replica'
+  - Lộ trình học, kiến thức nền và môi trường thực hành
+  - Giới hạn sử dụng và những trường hợp nên chọn công nghệ khác
+- level1: Kiến trúc xử lý
+  level2:
+  - Tiến trình Redis, kết nối máy khách và vòng lặp sự kiện
+  - Mô hình thực thi lệnh và ý nghĩa của xử lý tuần tự
+  - Tác vụ nền, luồng I/O và các công việc ngoài luồng lệnh chính
+  - Tính nguyên tử của một lệnh và giới hạn giữa nhiều lệnh
+  - Lệnh chậm, lệnh chặn và ảnh hưởng tới các kết nối khác
+  - Độ phức tạp lệnh và kích thước dữ liệu đầu vào
+  - Vai trò hệ điều hành, CPU, RAM và ổ đĩa
+  - Phân biệt chế độ độc lập, Sentinel và Redis Cluster
+- level1: Cài đặt và cấu hình
+  level2:
+  - Lựa chọn phiên bản, bản phân phối và điều kiện sử dụng
+  - Cài đặt môi trường phát triển và chạy bằng Docker
+  - Khởi động redis-server và kiểm tra bằng redis-cli
+  - Tệp redis.conf, tham số khởi động và thứ tự cấu hình
+  - Địa chỉ lắng nghe, cổng dịch vụ và protected mode
+  - Thư mục dữ liệu, tệp nhật ký và quyền hệ điều hành
+  - Đọc và thay đổi cấu hình bằng CONFIG GET và CONFIG SET
+  - Cấu hình thời gian chờ, TCP keepalive và giới hạn kết nối
+  - Nạp dữ liệu mẫu và đặt lại môi trường thực hành
+  - Dừng, khởi động lại và xác minh cấu hình thực tế
+- level1: Giao thức và kết nối
+  level2:
+  - RESP2, RESP3 và cách biểu diễn yêu cầu–phản hồi
+  - Mở phiên làm việc với AUTH, HELLO và SELECT
+  - Lệnh, đối số, giá trị trả về và các nhóm lỗi
+  - Phân biệt chuỗi rỗng, giá trị null và khóa không tồn tại
+  - Mã hóa văn bản, dữ liệu nhị phân và giới hạn kích thước
+  - Kết nối lâu dài, ghép nhiều yêu cầu và quản lý tài nguyên
+  - Thời gian chờ kết nối, thời gian chờ lệnh và hủy yêu cầu
+  - Kết nối lại, thử lại và nguy cơ thực thi lệnh nhiều lần
+  - Đọc mô tả lệnh bằng COMMAND và đối chiếu khả năng máy chủ
+- level1: Thiết kế khóa
+  level2:
+  - Quy ước đặt tên khóa và phân chia không gian tên
+  - Thiết kế khóa theo thực thể, quan hệ và mẫu truy cập
+  - TYPE, EXISTS và kiểm tra vòng đời dữ liệu
+  - DEL, UNLINK và lựa chọn cách xóa dữ liệu lớn
+  - RENAME, RENAMENX và COPY
+  - Quét không gian khóa bằng SCAN và giới hạn của KEYS
+  - Cơ sở dữ liệu logic, SELECT và giới hạn trong Redis Cluster
+  - Hash tag trong tên khóa và ảnh hưởng tới phân bố dữ liệu
+  - Khóa quá lớn, khóa truy cập dày đặc và nguy cơ tập trung tải
+  - Thiết kế phiên bản khóa và chuyển đổi lược đồ dữ liệu
+- level1: Thời hạn dữ liệu
+  level2:
+  - TTL, PTTL và ý nghĩa các giá trị trả về
+  - EXPIRE, PEXPIRE, EXPIREAT và PEXPIREAT
+  - SET với EX, PX, EXAT, PXAT và KEEPTTL
+  - PERSIST và các thao tác làm thay đổi thời hạn khóa
+  - Điều kiện NX, XX, GT và LT khi đặt thời hạn
+  - Cơ chế hết hạn chủ động và hết hạn khi truy cập
+  - Phân biệt hết hạn, thu hồi do thiếu bộ nhớ và xóa chủ động
+  - Đồng hồ hệ thống, thời điểm tuyệt đối và kiểm thử thời gian
+  - Rải thời hạn dữ liệu để tránh hết hạn đồng loạt
+- level1: Chuỗi và bộ đếm
+  level2:
+  - Biểu diễn chuỗi, số và dữ liệu nhị phân bằng String
+  - SET, GET và các tùy chọn ghi có điều kiện
+  - MSET, MGET và truy cập nhiều khóa
+  - SET NX và SET XX trong khởi tạo hoặc cập nhật
+  - INCR, DECR, INCRBY và DECRBY
+  - INCRBYFLOAT, biểu diễn số và giới hạn độ chính xác
+  - APPEND, STRLEN, GETRANGE và SETRANGE
+  - GETDEL, GETEX và cập nhật vòng đời khi đọc
+  - Giới hạn kích thước, chi phí sao chép và lựa chọn cấu trúc
+  - Bài toán bộ đếm có thời hạn và cấp số thứ tự
+- level1: Hash
+  level2:
+  - Mô hình trường–giá trị và biểu diễn một thực thể
+  - HSET, HGET, HMGET và HGETALL
+  - HSETNX, HEXISTS, HDEL và HLEN
+  - HKEYS, HVALS và HSCAN
+  - HINCRBY và HINCRBYFLOAT
+  - Phân biệt trường không tồn tại và khóa không tồn tại
+  - Lựa chọn Hash, nhiều khóa String hoặc tài liệu JSON
+  - Mã hóa nội bộ, kích thước trường và chi phí bộ nhớ
+  - 'Thời hạn từng trường: kiểm tra hỗ trợ và phân biệt TTL của khóa'
+  - Cập nhật từng phần, phiên bản thực thể và thay đổi lược đồ
+- level1: List
+  level2:
+  - Mô hình danh sách có thứ tự và truy cập hai đầu
+  - LPUSH, RPUSH, LPOP và RPOP
+  - LRANGE, LINDEX, LLEN và LSET
+  - LINSERT, LREM và LTRIM
+  - BLPOP, BRPOP và kết nối dành cho lệnh chặn
+  - LMOVE và BLMOVE trong chuyển phần tử giữa danh sách
+  - Danh sách giới hạn kích thước và lịch sử gần nhất
+  - Độ phức tạp truy cập theo vị trí và dữ liệu lớn
+  - Mất kết nối, khôi phục tác vụ và giới hạn hàng đợi dựa trên List
+- level1: Set
+  level2:
+  - Tập hợp không thứ tự và tính duy nhất của phần tử
+  - SADD, SREM, SISMEMBER và SMISMEMBER
+  - SMEMBERS, SCARD và SSCAN
+  - SPOP, SRANDMEMBER và lựa chọn ngẫu nhiên
+  - SUNION, SINTER, SDIFF và các biến thể lưu kết quả
+  - SMOVE và thay đổi quan hệ thành viên
+  - Biểu diễn quan hệ nhiều–nhiều bằng Set
+  - Kiểm tra trùng lặp, thẻ phân loại và quyền thành viên
+  - Chi phí phép toán tập hợp và ràng buộc nhiều khóa trong Cluster
+- level1: Sorted Set
+  level2:
+  - Phần tử duy nhất, điểm số và thứ tự sắp xếp
+  - ZADD với điều kiện cập nhật và trả về số thay đổi
+  - ZSCORE, ZMSCORE, ZCARD và ZCOUNT
+  - ZRANGE theo thứ hạng, điểm số và thứ tự từ điển
+  - ZRANK, ZREVRANK và cách xác định vị trí
+  - ZINCRBY và cập nhật điểm đồng thời
+  - ZREM và các lệnh xóa theo khoảng
+  - ZPOPMIN, ZPOPMAX và các biến thể chặn
+  - ZUNION, ZINTER, ZDIFF và kết hợp tập có trọng số
+  - Độ chính xác điểm số và quy tắc xử lý các phần tử đồng điểm
+  - Bảng xếp hạng, lịch tác vụ và cửa sổ thời gian
+- level1: Bitmap và Bitfield
+  level2:
+  - Bitmap trên String và cách chọn chỉ số bit
+  - SETBIT, GETBIT và BITCOUNT
+  - BITPOS và tìm vị trí bit thỏa điều kiện
+  - BITOP và kết hợp nhiều bitmap
+  - BITFIELD, độ rộng trường và số có dấu
+  - Các chế độ tràn số của BITFIELD
+  - BITFIELD_RO và truy vấn trường bit chỉ đọc
+  - Theo dõi hoạt động, cờ tính năng và thống kê theo ngày
+  - Dung lượng theo miền chỉ số và rủi ro cấp phát lớn
+- level1: HyperLogLog
+  level2:
+  - Đếm gần đúng số phần tử khác nhau với HyperLogLog
+  - PFADD, PFCOUNT và PFMERGE
+  - Sai số, chi phí bộ nhớ và lựa chọn đếm chính xác
+- level1: Dữ liệu địa lý
+  level2:
+  - GEOADD và mô hình tọa độ địa lý
+  - GEOPOS, GEODIST và GEOHASH
+  - GEOSEARCH và GEOSEARCHSTORE
+  - Đơn vị khoảng cách, giới hạn tọa độ và sắp xếp kết quả
+  - Tìm đối tượng lân cận và kết hợp thuộc tính nghiệp vụ
+  - Giới hạn truy vấn địa lý và khi cần hệ thống chuyên dụng
+- level1: Streams
+  level2:
+  - Mô hình nhật ký sự kiện và cấu trúc Stream ID
+  - XADD, XLEN và chính sách đặt ID
+  - XRANGE, XREVRANGE và truy xuất lịch sử
+  - XREAD và đọc chặn từ một hay nhiều stream
+  - XGROUP và vòng đời nhóm tiêu thụ
+  - XREADGROUP và phân phối thông điệp trong nhóm
+  - XACK và danh sách thông điệp chờ xác nhận
+  - XPENDING, XCLAIM và XAUTOCLAIM
+  - XTRIM, XDEL và giới hạn lưu giữ
+  - XINFO và quan sát stream, nhóm, máy khách tiêu thụ
+  - Thứ tự, thông điệp trùng lặp và ngữ nghĩa giao nhận
+  - Khôi phục máy khách tiêu thụ, xử lý lỗi và thông điệp không xử lý được
+- level1: JSON
+  level2:
+  - Kiểm tra khả năng JSON theo phiên bản và bản phân phối
+  - Lựa chọn tài liệu JSON, Hash hoặc chuỗi JSON
+  - Đường dẫn JSONPath và lựa chọn phần tử
+  - JSON.SET, JSON.GET và JSON.DEL
+  - Cập nhật chuỗi, số, mảng và đối tượng
+  - Đọc nhiều đường dẫn và xử lý kết quả không tồn tại
+  - Chi phí cập nhật tài liệu lớn và giới hạn kích thước
+  - Lược đồ ứng dụng, kiểm tra dữ liệu và chuyển đổi phiên bản
+  - Kết hợp JSON với chỉ mục tìm kiếm khi được hỗ trợ
+- level1: Tìm kiếm và vector
+  level2:
+  - Kiểm tra khả năng tìm kiếm, vector và điều kiện triển khai
+  - Thiết kế chỉ mục trên Hash hoặc JSON
+  - FT.CREATE, tiền tố khóa và khai báo trường
+  - Trường văn bản, TAG, NUMERIC và GEO
+  - FT.SEARCH, bộ lọc, sắp xếp và phân trang
+  - FT.AGGREGATE và tổng hợp dữ liệu
+  - Ngôn ngữ truy vấn, dialect và ký tự cần thoát
+  - Phân tích văn bản, từ dừng và cấu hình theo ngôn ngữ
+  - Kiểu dữ liệu vector, số chiều và phép đo khoảng cách
+  - Lựa chọn chỉ mục FLAT hoặc HNSW
+  - Truy vấn lân cận gần nhất và kết hợp bộ lọc thuộc tính
+  - Vòng đời chỉ mục, chất lượng kết quả và chi phí bộ nhớ
+- level1: Dữ liệu chuyên biệt
+  level2:
+  - Xác định khả năng tích hợp và phần mở rộng theo môi trường
+  - 'Chuỗi thời gian: mẫu đo, nhãn và chính sách lưu giữ'
+  - TS.ADD, TS.RANGE và truy vấn theo khoảng
+  - TS.MRANGE, gộp mẫu và tổng hợp theo thời gian
+  - 'Bloom filter: kiểm tra thành viên và xác suất dương tính giả'
+  - 'Cuckoo filter: quản lý thành viên và khả năng xóa'
+  - 'Count-Min Sketch: ước lượng tần suất xuất hiện'
+  - 'Top-K: theo dõi các phần tử xuất hiện nhiều'
+  - 't-digest: ước lượng phân vị của luồng số liệu'
+  - Đánh đổi sai số, dung lượng và lựa chọn cấu trúc phù hợp
+- level1: Giao dịch và đồng thời
+  level2:
+  - MULTI, EXEC và hàng đợi lệnh giao dịch
+  - DISCARD và hủy giao dịch chưa thực thi
+  - Lỗi trước EXEC và lỗi khi thực thi từng lệnh
+  - Giới hạn hoàn tác và ý nghĩa tính nguyên tử
+  - WATCH, UNWATCH và kiểm soát đồng thời lạc quan
+  - Xử lý xung đột, giới hạn thử lại và thời gian chờ
+  - So sánh giao dịch, lệnh đơn, pipeline và mã chạy phía máy chủ
+  - Giới hạn nhiều khóa và hash slot trong Redis Cluster
+  - Mất kết nối trước hoặc sau EXEC và kết quả không xác định
+  - Thiết kế thao tác an toàn khi có yêu cầu đồng thời
+- level1: Lua và Functions
+  level2:
+  - Bài toán cần thực thi logic gần dữ liệu
+  - EVAL, EVALSHA và bộ nhớ đệm script
+  - Khai báo KEYS, ARGV và truy cập khóa đúng quy tắc
+  - Kiểu dữ liệu trả về giữa Lua và RESP
+  - Đảm bảo tính nguyên tử và chi phí chặn máy chủ
+  - Giới hạn thời gian, lỗi script và SCRIPT KILL
+  - Nạp, gọi và quản lý thư viện bằng Redis Functions
+  - FUNCTION LOAD, FCALL và vòng đời thư viện
+  - Nhân bản, lưu trữ và triển khai script hoặc function
+  - Thiết kế script an toàn trong Cluster và kiểm thử đồng thời
+- level1: Pipeline và cache máy khách
+  level2:
+  - Độ trễ mạng và lý do sử dụng pipeline
+  - Gom lệnh, thứ tự phản hồi và giới hạn tính nguyên tử
+  - Chia lô theo số lệnh, kích thước và bộ nhớ máy khách
+  - Lỗi từng lệnh, ngắt kết nối và xử lý kết quả một phần
+  - Pipeline với giao dịch, lệnh chặn và Cluster
+  - Lựa chọn pipeline, lệnh nhiều phần tử hoặc script
+  - Client-side caching và invalidation
+  - CLIENT TRACKING, thông báo đẩy và các chế độ theo dõi
+  - Cache cục bộ, kết nối lại và nguy cơ dữ liệu cũ
+- level1: Pub/Sub và thông báo
+  level2:
+  - PUBLISH, SUBSCRIBE và vòng đời đăng ký kênh
+  - PSUBSCRIBE và định tuyến bằng mẫu kênh
+  - Ngữ nghĩa giao nhận và giới hạn lưu trữ của Pub/Sub
+  - Sharded Pub/Sub và điều kiện sử dụng trong Cluster
+  - Quản lý kết nối đăng ký, mất kết nối và đăng ký lại
+  - Thông báo keyspace, keyevent và cấu hình sự kiện
+  - Sự kiện hết hạn và giới hạn về thời điểm phát sinh
+  - So sánh Pub/Sub, Streams và hàng đợi tác vụ
+  - Thiết kế thông báo làm mới dữ liệu và đồng bộ máy khách
+- level1: Lưu trữ bền vững
+  level2:
+  - Lựa chọn không lưu bền, RDB, AOF hoặc kết hợp
+  - Tạo ảnh chụp RDB với SAVE và BGSAVE
+  - Lịch tạo RDB và điều kiện lỗi ghi dữ liệu
+  - AOF, chính sách fsync và đánh đổi mất dữ liệu–độ trễ
+  - Viết lại AOF và quản lý các tệp liên quan
+  - Fork, copy-on-write và nhu cầu bộ nhớ khi lưu
+  - Thứ tự nạp dữ liệu khi khởi động lại
+  - Phát hiện tệp hỏng và sử dụng công cụ kiểm tra
+  - Độ bền dữ liệu khi tiến trình, hệ điều hành hoặc máy chủ gặp sự cố
+  - Đo thời gian khôi phục và chọn chính sách theo yêu cầu nghiệp vụ
+- level1: Nhân bản
+  level2:
+  - Mô hình primary–replica và cấu hình REPLICAOF
+  - Đồng bộ đầy đủ, đồng bộ từng phần và replication backlog
+  - Replication offset, độ trễ nhân bản và kiểm tra trạng thái
+  - Nhân bản bất đồng bộ và cửa sổ có thể mất dữ liệu
+  - Đọc từ replica và giới hạn nhất quán
+  - WAIT và giới hạn của xác nhận nhân bản
+  - 'WAITAOF: điều kiện hỗ trợ và phạm vi xác nhận'
+  - Quy định số replica tối thiểu trước khi chấp nhận ghi
+  - Đổi vai trò, khởi động lại và khôi phục kết nối
+  - Dung lượng mạng, đầu ra máy khách và đồng bộ tập dữ liệu lớn
+- level1: Sentinel
+  level2:
+  - Vai trò Sentinel và kiến trúc khả dụng cao
+  - Giám sát primary, replica và các Sentinel khác
+  - Quorum, đa số và điều kiện quyết định chuyển đổi
+  - Phân biệt nhận định lỗi chủ quan và khách quan
+  - Lựa chọn replica và quá trình failover
+  - Khám phá primary từ máy khách
+  - Tham số thời gian, giới hạn chuyển đổi và chống dao động
+  - Phân vùng mạng, split-brain và giới hạn đảm bảo dữ liệu
+  - Xác thực, TLS và cấu hình truy cập Sentinel
+  - Kiểm thử chuyển đổi, khôi phục và xác minh sau sự cố
+- level1: Redis Cluster
+  level2:
+  - Phân mảnh dữ liệu và mô hình hash slot
+  - CRC16, hash tag và thiết kế khóa cùng slot
+  - Primary, replica, cluster bus và trạng thái nút
+  - Tạo cụm và kiểm tra phân bổ slot
+  - MOVED, ASK và hành vi định tuyến của máy khách
+  - Ràng buộc lệnh nhiều khóa, giao dịch và script
+  - Thêm nút, phân phối lại slot và di chuyển dữ liệu
+  - Failover, vùng lỗi và khả năng phục vụ khi mất nút
+  - Đọc replica, READONLY và đánh đổi nhất quán
+  - Phát hiện slot thiếu, nút lỗi và trạng thái cụm không hợp lệ
+  - Lập kế hoạch phân mảnh để tránh lệch tải và khóa nóng
+- level1: Bộ nhớ và thu hồi
+  level2:
+  - 'Các thành phần bộ nhớ: dữ liệu, cấu trúc và bộ đệm'
+  - MEMORY USAGE, MEMORY STATS và INFO MEMORY
+  - maxmemory và phần bộ nhớ ngoài ngân sách dữ liệu
+  - Các chính sách noeviction, allkeys và volatile
+  - LRU, LFU, TTL và hành vi lựa chọn khóa thu hồi
+  - Chọn chính sách theo tỷ lệ truy cập và yêu cầu dữ liệu
+  - Mã hóa nội bộ và các ngưỡng chuyển đổi cấu trúc
+  - Phân mảnh, allocator và active defragmentation
+  - Lazy freeing, UNLINK và giải phóng đối tượng lớn
+  - Dự phòng bộ nhớ cho nhân bản, lưu bền và tải tăng đột biến
+  - Phát hiện rò rỉ khóa và dự báo dung lượng
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ trung vị, p95, p99 và thông lượng
+  - Thiết kế phép đo phản ánh tải nghiệp vụ
+  - redis-benchmark và giới hạn của kết quả đo mẫu
+  - Chọn lệnh theo độ phức tạp và kích thước dữ liệu
+  - Tối ưu số lượt mạng bằng lệnh gộp và pipeline
+  - Phát hiện big key, hot key và truy vấn quá rộng
+  - SLOWLOG, LATENCY và chẩn đoán điểm nghẽn
+  - Tác động của lưu bền, fork, fsync và sao chép dữ liệu
+  - Ảnh hưởng CPU, mạng, swap và thiết lập hệ điều hành
+  - Giới hạn kết nối, bộ đệm đầu ra và máy khách tiêu thụ chậm
+  - Đo lại sau thay đổi và tránh tối ưu theo chỉ số đơn lẻ
+- level1: Quan sát vận hành
+  level2:
+  - INFO theo nhóm chỉ số và vai trò từng nhóm
+  - ROLE, CLIENT LIST và kiểm tra kết nối
+  - Nhật ký máy chủ, sự kiện khởi động và lỗi cấu hình
+  - Hit rate, miss rate, expired keys và evicted keys
+  - Lệnh mỗi giây, lưu lượng mạng và độ trễ ứng dụng
+  - Theo dõi lưu bền, nhân bản, Sentinel và Cluster
+  - Xuất số liệu và xây dựng bảng giám sát
+  - Ngưỡng cảnh báo, xu hướng tăng trưởng và ngân sách lỗi
+  - MONITOR, chi phí quan sát và hạn chế dữ liệu nhạy cảm
+  - Đối chiếu số liệu máy khách, Redis và hệ điều hành
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa và giới hạn truy cập mạng
+  - Protected mode, bind và tường lửa
+  - 'ACL: người dùng, nhóm lệnh, mẫu khóa và mẫu kênh'
+  - AUTH, tài khoản mặc định và nguyên tắc quyền tối thiểu
+  - TLS cho máy khách, nhân bản và lưu lượng cụm
+  - Quản lý mật khẩu, chứng thư và luân chuyển bí mật
+  - Bảo vệ CONFIG, MODULE, DEBUG và thao tác quản trị
+  - ACL LOG, nhật ký bảo mật và xử lý từ chối truy cập
+  - Dữ liệu nhạy cảm trong bộ nhớ, bản sao và bản sao lưu
+  - Cập nhật phiên bản và kiểm tra cấu hình trước khi đưa vào vận hành
+- level1: Sao lưu và nâng cấp
+  level2:
+  - Xác định RPO, RTO và phạm vi dữ liệu cần khôi phục
+  - Phân biệt replica với bản sao lưu độc lập
+  - Sao lưu RDB, AOF và cấu hình cần thiết
+  - Tính nhất quán của bản sao và quy trình sao chép an toàn
+  - Mã hóa, lưu giữ và kiểm tra toàn vẹn bản sao lưu
+  - Diễn tập khôi phục trên môi trường tách biệt
+  - Đánh giá tương thích lệnh, định dạng và phần mở rộng
+  - Nâng cấp từng nút và kiểm tra hành vi máy khách
+  - Di chuyển dữ liệu bằng DUMP, RESTORE hoặc MIGRATE
+  - Đối soát dữ liệu, chuyển lưu lượng và kế hoạch quay lui
+- level1: Triển khai
+  level2:
+  - Lựa chọn máy ảo, container hoặc dịch vụ được quản lý
+  - Volume bền vững, quyền tệp và vòng đời container
+  - Cấp phát CPU, RAM, ổ đĩa và ngân sách dự phòng
+  - Triển khai Sentinel hoặc Cluster qua nhiều vùng lỗi
+  - 'Kubernetes: StatefulSet, Service và khám phá nút'
+  - NAT, địa chỉ công bố và kết nối cluster bus
+  - Kiểm tra sẵn sàng, kiểm tra sống và dừng tiến trình an toàn
+  - Cấu hình ứng dụng khi primary hoặc topology thay đổi
+  - Giới hạn tài nguyên, kế hoạch mở rộng và kiểm thử sức tải
+- level1: Thiết kế bộ nhớ đệm
+  level2:
+  - Chọn dữ liệu cần đệm và mục tiêu độ trễ
+  - Cache-aside và vòng đời đọc–ghi
+  - Read-through, write-through và write-behind
+  - TTL tuyệt đối, thời hạn trượt và làm mới trước hạn
+  - Vô hiệu hóa cache khi dữ liệu nguồn thay đổi
+  - Cache stampede và phối hợp làm mới một khóa
+  - Cache penetration, negative caching và bộ lọc thành viên
+  - Cache avalanche và rải thời hạn dữ liệu
+  - Stale-while-revalidate và phục vụ dữ liệu cũ có kiểm soát
+  - Khóa nóng, cache nhiều tầng và client-side caching
+  - Đo hiệu quả cache và chi phí lưu dữ liệu không được truy cập
+- level1: Nhất quán dữ liệu
+  level2:
+  - Xác định nguồn dữ liệu chuẩn và vai trò Redis
+  - Tranh chấp đọc–ghi trong cache-aside
+  - Thứ tự cập nhật cơ sở dữ liệu và vô hiệu hóa cache
+  - Sự kiện thay đổi dữ liệu, outbox và cơ chế đồng bộ lại
+  - Phiên bản dữ liệu và ngăn cập nhật cũ ghi đè
+  - Tính lũy đẳng và khử yêu cầu trùng lặp
+  - Đảm bảo đọc sau ghi và giới hạn đọc replica
+  - Xử lý lỗi một phần giữa Redis và cơ sở dữ liệu
+  - Đối soát, xây lại cache và khôi phục sau mất dữ liệu
+- level1: Mẫu ứng dụng
+  level2:
+  - Lưu phiên đăng nhập, giỏ hàng và dữ liệu tạm thời
+  - Bộ đếm, thống kê hoạt động và xếp hạng
+  - Giới hạn tốc độ theo cửa sổ cố định
+  - Giới hạn tốc độ theo cửa sổ trượt và token bucket
+  - Tính nguyên tử, TTL và xử lý tranh chấp trong rate limiter
+  - Khóa phân tán với SET NX PX và mã chủ sở hữu
+  - Gia hạn và giải phóng khóa bằng kiểm tra chủ sở hữu
+  - Lease, fencing token và giới hạn an toàn khi tiến trình bị treo
+  - 'Redlock: giả định, đánh đổi và điều kiện lựa chọn'
+  - Lập lịch tác vụ, hàng đợi trì hoãn và giới hạn đúng giờ
+  - Phát hiện trực tuyến, heartbeat và giới hạn độ chính xác
+- level1: Xử lý thông điệp
+  level2:
+  - Chọn List, Pub/Sub hoặc Streams theo yêu cầu
+  - Thiết kế khóa, nhóm tiêu thụ và phân vùng thông điệp
+  - Xác nhận sau xử lý và tránh mất thông điệp
+  - Xử lý ít nhất một lần và khử xử lý trùng
+  - Thử lại có giới hạn và thời gian chờ tăng dần
+  - Hàng đợi thông điệp lỗi và thao tác xử lý lại
+  - Thứ tự xử lý, song song hóa và tranh chấp người tiêu thụ
+  - Áp lực ngược, tồn đọng và giới hạn bộ nhớ
+  - Giám sát độ trễ xử lý và khôi phục sau khi máy khách chết
+  - Đánh giá khi nên dùng hệ thống thông điệp chuyên dụng
+- level1: Java và máy khách
+  level2:
+  - Lựa chọn Lettuce hoặc Jedis theo mô hình ứng dụng
+  - Quản lý kết nối, vòng đời máy khách và tài nguyên
+  - Lệnh đồng bộ, bất đồng bộ và luồng phản ứng
+  - Codec, tuần tự hóa khóa–giá trị và tương thích dữ liệu
+  - Kết nối dùng chung, connection pool và lệnh chặn
+  - Cấu hình timeout, retry và xử lý kết quả chưa xác định
+  - Pipeline, giao dịch và thực thi Lua từ Java
+  - Kết nối Sentinel, Cluster và tự phát hiện thay đổi topology
+  - Tách kết nối đọc replica và kiểm soát dữ liệu cũ
+  - Ghi nhận số liệu, tracing và đóng tài nguyên đúng cách
+- level1: Spring Data Redis
+  level2:
+  - Cấu hình kết nối trong Spring Boot
+  - RedisConnectionFactory, Lettuce và Jedis
+  - RedisTemplate, StringRedisTemplate và bộ tuần tự hóa
+  - ValueOperations, HashOperations và các cấu trúc dữ liệu
+  - ReactiveRedisTemplate và quy tắc không chặn luồng
+  - Thực thi script, pipeline và giao dịch với SessionCallback
+  - Ranh giới giao dịch Redis và giao dịch cơ sở dữ liệu quan hệ
+  - 'Spring Cache: Cacheable, CachePut và CacheEvict'
+  - TTL, tiền tố khóa và cấu hình RedisCacheManager
+  - Spring Session và chia sẻ phiên giữa nhiều ứng dụng
+  - Redis Repository, chỉ mục và các giới hạn cần kiểm tra
+  - Kiểm tra cấu hình môi trường và lỗi tương thích tuần tự hóa
+- level1: Kiểm thử
+  level2:
+  - Thiết kế dữ liệu mẫu, tên khóa và dọn dẹp sau kiểm thử
+  - Kiểm thử tích hợp với Redis thật và Testcontainers
+  - Phân biệt kiểm thử giả lập với hành vi máy chủ thực
+  - Kiểm thử TTL, đồng hồ và các điều kiện thời gian
+  - Kiểm thử cập nhật đồng thời và tính lũy đẳng
+  - Kiểm thử script, giao dịch và lỗi từng lệnh
+  - Mô phỏng mất kết nối, timeout và phản hồi bị thất lạc
+  - Kiểm thử failover với replica, Sentinel và Cluster
+  - Kiểm thử khôi phục từ RDB, AOF và bản sao lưu
+  - Kiểm thử sức tải, tăng dung lượng và hồi quy hiệu năng
+  - Kiểm tra ACL, TLS và quyền ứng dụng
+- level1: Xử lý sự cố
+  level2:
+  - Không kết nối được, xác thực lỗi và chứng thư không hợp lệ
+  - WRONGTYPE, lỗi đối số và dữ liệu tuần tự hóa sai
+  - OOM, không có khóa đủ điều kiện thu hồi và tăng RAM
+  - Timeout, lệnh chặn, big key và hot key
+  - MISCONF và lỗi ghi RDB hoặc AOF
+  - READONLY sau failover và máy khách giữ primary cũ
+  - MOVED, ASK, CROSSSLOT và cấu hình Cluster sai
+  - Replication lag, đồng bộ lại kéo dài và backlog thiếu
+  - Cluster mất slot, mất đa số hoặc ngắt mạng giữa các nút
+  - Dữ liệu biến mất do TTL, eviction, ghi đè hoặc khôi phục
+  - Tăng đột biến thông điệp chờ xác nhận trong Streams
+  - Quy trình thu thập bằng chứng và phục hồi dịch vụ
+- level1: Bài tập tổng hợp
+  level2:
+  - Xây bộ đếm theo ngày và kiểm chứng TTL
+  - Thiết kế hồ sơ người dùng với Hash và phiên bản dữ liệu
+  - Xây bảng xếp hạng theo mùa bằng Sorted Set
+  - Theo dõi người dùng hoạt động bằng Bitmap và HyperLogLog
+  - Tìm đối tượng gần nhất bằng chỉ mục địa lý
+  - Xây cache-aside có chống stampede và negative caching
+  - Xây rate limiter nguyên tử và đo dưới tải đồng thời
+  - Xây hàng đợi Streams có xác nhận và xử lý lại
+  - Tích hợp Spring Boot với cache, metrics và kiểm thử Redis
+  - Diễn tập failover, khôi phục dữ liệu và đối soát kết quả
+  - Đánh giá thiết kế theo độ trễ, độ bền, nhất quán và chi phí

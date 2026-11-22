@@ -1,0 +1,440 @@
+menu:
+- level1: Tổng quan Vault
+  level2:
+  - Vault là gì và bài toán quản lý bí mật tập trung
+  - Bí mật tĩnh, bí mật động và mã hóa như một dịch vụ
+  - Rủi ro của bí mật trong mã nguồn, tệp cấu hình và biến môi trường
+  - Vai trò của Vault trong vòng đời bí mật và mô hình Zero Trust
+  - Vault giải quyết và không giải quyết những vấn đề nào
+  - So sánh Vault với kho mật khẩu, KMS và trình quản lý cấu hình
+  - Tự quản lý Vault và sử dụng dịch vụ được quản lý
+  - Phân biệt phiên bản, giấy phép và phạm vi tính năng theo ấn bản
+  - Lộ trình học từ môi trường thử nghiệm đến vận hành thực tế
+- level1: Khái niệm cốt lõi
+  level2:
+  - Secret, secrets engine và đường dẫn mount
+  - Auth method và sự khác biệt với secrets engine
+  - Token, policy, capability và identity
+  - Lease, TTL, gia hạn và thu hồi
+  - Seal, unseal, key share và recovery key
+  - Storage backend và hàng rào mã hóa (security barrier)
+  - Cluster, node active, node standby và leader
+  - Request, response và audit event
+  - Quan hệ giữa người gọi, token, policy, đường dẫn và bí mật
+- level1: Kiến trúc
+  level2:
+  - Luồng yêu cầu từ client qua xác thực đến secrets engine
+  - Các thành phần server, storage, barrier và audit
+  - Phân biệt dữ liệu đã mã hóa trong storage với bản rõ trong bộ nhớ
+  - Vòng đời một yêu cầu đọc hoặc cấp phát bí mật
+  - Đường dẫn hệ thống, auth mount và secrets mount
+  - Ranh giới tin cậy giữa Vault, hệ thống danh tính và hệ thống đích
+  - Phụ thuộc hạ tầng và các điểm có thể gây mất khả dụng
+  - Phân biệt kiến trúc một cluster với nhiều cluster
+- level1: Môi trường thực hành
+  level2:
+  - Cài đặt binary và kiểm tra phiên bản CLI/server
+  - Chạy chế độ dev và các giới hạn bảo mật
+  - Chạy server bằng tệp cấu hình HCL
+  - Thư mục dữ liệu, quyền hệ điều hành và danh tính dịch vụ
+  - Biến môi trường VAULT_ADDR, VAULT_CACERT và VAULT_TOKEN
+  - Tránh lưu root token vào lịch sử shell và tệp dùng chung
+  - Dữ liệu giả, tài khoản thử nghiệm và môi trường cô lập
+  - Chuyển từ cấu hình dev sang môi trường có lưu trữ bền vững
+- level1: TLS và mạng
+  level2:
+  - Cấu hình listener HTTPS và chuỗi chứng thư
+  - Xác minh hostname, CA tin cậy và hạn chế bỏ qua kiểm tra TLS
+  - TLS giữa client, Vault và các hệ thống đích
+  - Địa chỉ api_addr, cluster_addr và quảng bá địa chỉ
+  - Cổng API, lưu lượng cluster và luật tường lửa
+  - Load balancer, proxy ngược và truyền thông tin yêu cầu
+  - mTLS tại lớp truyền tải và phân biệt với auth method chứng thư
+  - Đổi chứng thư mà không làm gián đoạn truy cập
+  - Thiết kế truy cập quản trị tách khỏi truy cập ứng dụng
+- level1: Khởi tạo và seal
+  level2:
+  - Khởi tạo cluster lần đầu và phân phối vật liệu khôi phục
+  - Shamir secret sharing và ngưỡng unseal
+  - Quy trình unseal thủ công và trách nhiệm của người giữ khóa
+  - Auto-unseal với KMS hoặc HSM được hỗ trợ
+  - Phân biệt unseal key với recovery key
+  - Root token ban đầu và quy trình ngừng sử dụng thường xuyên
+  - Rekey, rotate và các loại khóa cần phân biệt
+  - Mất key share, mất recovery key và mất quyền truy cập KMS
+  - Thay đổi cơ chế seal và kế hoạch seal migration
+  - Diễn tập seal, khởi động lại và phục hồi có kiểm soát
+- level1: Lưu trữ và HA
+  level2:
+  - Integrated Storage với Raft và vai trò của quorum
+  - Chọn storage backend theo hỗ trợ và yêu cầu vận hành
+  - Voter, non-voter và thành viên Raft theo cấu hình hỗ trợ
+  - Thiết kế số node và phân bố miền lỗi
+  - Node active, standby và chuyển tiếp yêu cầu
+  - Bầu leader, mất node và tác động của phân vùng mạng
+  - Thêm node bằng raft join và xác minh thành viên
+  - Loại bỏ node, thay node và tránh mất quorum
+  - Autopilot và điều kiện áp dụng theo phiên bản/ấn bản
+  - Phân biệt HA trong cluster với sao chép giữa các cluster
+- level1: CLI và HTTP API
+  level2:
+  - Cấu trúc lệnh vault và ánh xạ sang API
+  - Đọc, ghi, liệt kê và xóa dữ liệu theo đường dẫn
+  - Định dạng JSON và đọc kết quả bằng công cụ dòng lệnh
+  - Header xác thực và chỉ định namespace khi được hỗ trợ
+  - Mã trạng thái HTTP và xử lý lỗi có cấu trúc
+  - Health endpoint, trạng thái sealed và trạng thái standby
+  - Phân biệt đường dẫn CLI, đường dẫn API và đường dẫn policy
+  - Timeout, retry và tính lặp an toàn của thao tác
+  - Tránh để bí mật lộ qua tham số, lịch sử và output
+- level1: Xác thực
+  level2:
+  - Cách auth method trao đổi danh tính để cấp Vault token
+  - Enable auth mount và cấu hình theo từng môi trường
+  - Đăng nhập của con người và xác thực của workload
+  - Token auth, userpass và giới hạn sử dụng
+  - LDAP và tích hợp hệ thống thư mục
+  - OIDC cho đăng nhập tương tác và JWT cho workload
+  - Xác thực bằng chứng thư TLS và ràng buộc danh tính
+  - Cloud IAM auth và danh tính của hạ tầng
+  - Chọn auth method theo nguồn danh tính và khả năng vận hành
+  - Thay đổi auth mount và tác động tới liên kết danh tính
+- level1: Token
+  level2:
+  - Service token, batch token và tiêu chí lựa chọn
+  - Token accessor và thao tác quản trị không cần token gốc
+  - TTL, max TTL, explicit max TTL và periodic token
+  - Token có thể gia hạn và giới hạn của việc gia hạn
+  - Quan hệ cha con, orphan token và thu hồi theo cây
+  - Giới hạn số lần sử dụng và các ảnh hưởng khi tích hợp
+  - Token role và chính sách tạo token
+  - Default policy, policy cấp trực tiếp và policy qua identity
+  - Lookup, renew, revoke và kiểm tra kết quả
+  - Root token, quy trình generate-root và quyền truy cập khẩn cấp
+  - Lưu trữ token phía client và xử lý khi token bị lộ
+- level1: Chính sách ACL
+  level2:
+  - Cú pháp HCL của policy và quy tắc theo đường dẫn
+  - 'Capabilities: create, read, update, delete, list, patch, sudo và deny'
+  - Wildcard, glob và độ ưu tiên khớp đường dẫn
+  - Quyền list và thông tin có thể lộ qua tên khóa
+  - Ràng buộc tham số, tham số bắt buộc và giá trị cho phép
+  - Quyền trên auth mount, secrets mount và system endpoint
+  - Thiết kế quyền tối thiểu theo ứng dụng và môi trường
+  - Kiểm tra capability của token và chẩn đoán permission denied
+  - Policy template dựa trên thuộc tính danh tính
+  - Kiểm soát thay đổi policy và kiểm thử hồi quy quyền
+  - Giới hạn của ACL và các cơ chế kiểm soát bổ sung theo ấn bản
+- level1: Danh tính
+  level2:
+  - Entity và cách đại diện một chủ thể trong Vault
+  - Entity alias và liên kết với mount accessor
+  - Internal group, external group và group alias
+  - Policy gắn với entity và nhóm
+  - Đăng nhập qua nhiều auth method vào cùng danh tính
+  - Metadata danh tính và sử dụng trong policy template
+  - Thay đổi nhóm ở hệ thống ngoài và thời điểm hiệu lực
+  - Xử lý entity trùng, gộp danh tính và xóa liên kết
+  - Vòng đời nhân sự, workload và thu hồi quyền truy cập
+- level1: AppRole
+  level2:
+  - RoleID, SecretID và vai trò của từng thành phần
+  - Thiết kế policy và TTL cho AppRole
+  - SecretID TTL, số lần sử dụng và ràng buộc mạng
+  - Cấp SecretID theo mô hình đẩy hoặc mô hình kéo
+  - Response wrapping khi bàn giao SecretID
+  - SecretID accessor, kiểm kê và thu hồi
+  - Bootstrap workload mà không chuyển bí mật sang mã nguồn
+  - AppRole với Vault Agent và gia hạn token
+  - Đổi SecretID, mất token và khôi phục xác thực
+- level1: KV secrets engine
+  level2:
+  - KV v1 và KV v2 theo mô hình dữ liệu
+  - Enable mount và lựa chọn phiên bản
+  - Đọc, ghi và liệt kê bí mật
+  - Version, metadata và lịch sử thay đổi trong KV v2
+  - Soft delete, undelete và destroy
+  - Check-and-set để kiểm soát ghi đồng thời
+  - Giới hạn số phiên bản và thời hạn xóa
+  - Đường dẫn data, metadata, delete, undelete và destroy trong policy
+  - Patch bí mật và khả năng hỗ trợ theo API
+  - Phân biệt đổi giá trị trong KV với xoay vòng bí mật tại hệ thống nguồn
+  - Thiết kế cấu trúc đường dẫn tránh lộ thông tin nhạy cảm
+- level1: Bí mật động
+  level2:
+  - Bí mật động khác bí mật tĩnh như thế nào
+  - Role của secrets engine và quyền tại hệ thống đích
+  - Cấp phát theo yêu cầu và gắn với danh tính truy cập
+  - Lease ID, lease duration và renewable
+  - TTL của token, mount, role và hệ thống đích
+  - Gia hạn lease và trường hợp cần cấp lại
+  - Thu hồi lease và việc vô hiệu hóa tại hệ thống đích
+  - Orphaned credential khi thu hồi thất bại
+  - Quản lý số lượng credential và giới hạn tải
+  - Thiết kế ứng dụng chịu được hết hạn và đổi credential
+- level1: Database engine
+  level2:
+  - Kết nối Vault với cơ sở dữ liệu và chọn plugin
+  - Tài khoản quản trị kết nối và quyền tối thiểu cần thiết
+  - Dynamic role và câu lệnh tạo/thu hồi tài khoản
+  - Static role và xoay vòng tài khoản có sẵn
+  - Phân biệt rotate root với xoay vòng credential ứng dụng
+  - Cấp credential và cập nhật connection pool
+  - TTL, gia hạn, session còn mở và hiệu lực thu hồi
+  - Bảo vệ kết nối TLS tới cơ sở dữ liệu
+  - Xử lý lỗi plugin, mất kết nối và quyền không đủ
+  - Kiểm thử thu hồi tài khoản thực tế tại cơ sở dữ liệu
+- level1: Cloud secrets engine
+  level2:
+  - Vai trò của cloud secrets engine trong cấp credential
+  - 'AWS: lựa chọn loại credential và ràng buộc IAM'
+  - 'Azure: danh tính, role và credential theo engine hỗ trợ'
+  - 'Google Cloud: tài khoản dịch vụ và loại credential hỗ trợ'
+  - Phân biệt cloud auth method với cloud secrets engine
+  - Cấp quyền tối thiểu cho danh tính mà Vault sử dụng
+  - TTL của Vault và hạn sử dụng tại nhà cung cấp cloud
+  - Thu hồi, xoay vòng và giới hạn nhất quán của hệ thống ngoài
+  - Tránh phụ thuộc vòng giữa Vault và hạ tầng cloud
+  - Đánh giá credential ngắn hạn so với workload identity trực tiếp
+- level1: PKI engine
+  level2:
+  - PKI engine và vòng đời chứng thư
+  - Thiết kế root CA ngoại tuyến và intermediate CA
+  - Khởi tạo issuer và ký CSR cho intermediate CA
+  - Role phát hành và giới hạn tên miền, SAN, TTL
+  - Khóa riêng do client tạo so với khóa được engine tạo
+  - Cấp chứng thư, gia hạn ứng dụng và cấp mới khi gần hết hạn
+  - Chuỗi chứng thư, AIA, CRL và OCSP theo cấu hình hỗ trợ
+  - Thu hồi chứng thư và giới hạn hiệu lực tại bên sử dụng
+  - Xoay vòng issuer và chuyển đổi chuỗi tin cậy
+  - Bảo vệ khóa CA và phân quyền quản trị PKI
+  - Dọn dữ liệu hết hạn và kiểm soát tăng trưởng storage
+- level1: Transit engine
+  level2:
+  - Mã hóa như một dịch vụ và ranh giới dữ liệu của Transit
+  - Tạo khóa và lựa chọn loại khóa theo nhu cầu
+  - Encrypt, decrypt và định dạng ciphertext của Vault
+  - Version của khóa, rotate và rewrap
+  - Derived key, context và convergent encryption
+  - Data key và mô hình mã hóa phong bì
+  - Ký, xác minh chữ ký, HMAC và kiểm tra HMAC
+  - Giới hạn encrypt/decrypt theo phiên bản khóa
+  - Exportable, allow_plaintext_backup và rủi ro xuất khóa
+  - Hiệu năng, batch API và kích thước dữ liệu
+  - Phân biệt xoay vòng khóa với mã hóa lại dữ liệu ứng dụng
+- level1: SSH engine
+  level2:
+  - SSH secrets engine và bài toán truy cập máy chủ
+  - Chứng thư SSH và cơ chế one-time password theo khả năng hỗ trợ
+  - Thiết lập CA và cấu hình máy chủ tin cậy
+  - Role, principal, critical option và extension
+  - Cấp chứng thư ngắn hạn cho người dùng và workload
+  - Giới hạn tài khoản hệ điều hành và phạm vi máy đích
+  - TTL, thu hồi và giới hạn vô hiệu hóa chứng thư đã cấp
+  - Đổi CA và quản lý chuỗi tin cậy SSH
+  - Audit phiên truy cập và phần trách nhiệm ngoài Vault
+- level1: Kubernetes
+  level2:
+  - Kubernetes auth và xác minh danh tính service account
+  - Auth role, bound service account và namespace Kubernetes
+  - TokenReview, reviewer credential và luân chuyển token
+  - Audience, issuer và giới hạn token service account
+  - Phân biệt Kubernetes namespace với Vault namespace
+  - Vault Agent Injector và mô hình sidecar
+  - Secrets Store CSI Driver với Vault provider
+  - Vault Secrets Operator và đồng bộ dữ liệu vào Kubernetes Secret
+  - So sánh tệp được render, volume và Secret trong Kubernetes
+  - Kubernetes secrets engine và cấp credential theo khả năng hỗ trợ
+  - RBAC, network policy và ranh giới giữa cluster với Vault
+  - Thay đổi bí mật, reload ứng dụng và xử lý khi Vault gián đoạn
+- level1: JWT và OIDC
+  level2:
+  - OIDC discovery, JWKS và xác minh chữ ký
+  - Bound issuer, audience và claims
+  - JWT role và OIDC role
+  - User claim, groups claim và ánh xạ danh tính
+  - Redirect URI và luồng đăng nhập tương tác
+  - Token workload từ CI/CD và danh tính liên kết
+  - Ràng buộc repository, branch, môi trường và chủ thể
+  - Xoay vòng khóa nhà phát hành và bộ nhớ đệm JWKS
+  - Giảm nguy cơ chấp nhận token đúng chữ ký nhưng sai mục đích
+- level1: Vault Agent
+  level2:
+  - Vai trò của Agent trong xác thực và cung cấp bí mật
+  - Cấu hình auto-auth và lựa chọn auth method
+  - Token sink và bảo vệ quyền truy cập tệp
+  - Gia hạn token và xác thực lại khi cần thiết
+  - Template và render bí mật ra tệp
+  - Quyền tệp, ghi nguyên tử và lệnh chạy sau render
+  - Thay đổi bí mật và cơ chế reload ứng dụng
+  - Thoát, retry, backoff và xử lý lỗi kéo dài
+  - Không để template hoặc log làm lộ bí mật
+  - Thiết kế Agent theo vòng đời tiến trình hoặc workload
+- level1: Proxy và cache
+  level2:
+  - Vault Proxy, Agent và các khác biệt theo phiên bản
+  - API proxy và cách ứng dụng gửi yêu cầu
+  - Cache token, lease và giới hạn dữ liệu được cache
+  - Persistent cache và điều kiện hỗ trợ
+  - Phân biệt cache với nguồn lưu bí mật lâu dài
+  - Thu hồi, dữ liệu cũ và tính nhất quán khi có cache
+  - Ranh giới bảo mật của listener cục bộ
+  - Vault mất kết nối và giới hạn phục vụ từ cache
+  - Đánh giá việc sử dụng theo mô hình đe dọa và yêu cầu khả dụng
+- level1: Tích hợp ứng dụng
+  level2:
+  - Ứng dụng gọi API trực tiếp hay nhận bí mật qua Agent
+  - Khởi tạo ứng dụng và tránh phụ thuộc vòng
+  - Cấp bí mật qua tệp, socket hoặc bộ nhớ theo môi trường
+  - Biến môi trường và giới hạn làm mới khi tiến trình đang chạy
+  - Quản lý lease trong ứng dụng và xử lý credential hết hạn
+  - Connection pool và chuyển sang credential mới
+  - Retry có giới hạn, jitter và tránh thundering herd
+  - Fail closed, giảm chức năng và chính sách khi Vault gián đoạn
+  - Giảm số bản sao và thời gian tồn tại của bản rõ
+  - Thiết kế cho Linux service, Windows service và container
+  - Không đưa token hoặc secret vào log, exception và telemetry
+- level1: CI/CD và IaC
+  level2:
+  - Xác thực job bằng danh tính ngắn hạn thay cho token cố định
+  - Policy riêng theo pipeline và môi trường triển khai
+  - Ràng buộc danh tính với repository, branch và môi trường
+  - Không để secret lộ qua log, artifact và cache pipeline
+  - Cấp secret cho build so với cấp secret khi ứng dụng chạy
+  - Terraform provider và quản lý cấu hình Vault
+  - Rủi ro dữ liệu nhạy cảm trong Terraform state và plan
+  - Bootstrap ban đầu và tách quyền cấu hình với quyền đọc secret
+  - Kiểm tra thay đổi policy và cấu hình trước khi triển khai
+  - Xử lý job lỗi, hủy job và thu hồi credential
+- level1: Vòng đời bí mật
+  level2:
+  - Phát hiện, phân loại và lập danh mục bí mật
+  - Chủ sở hữu, người sử dụng và hệ thống nguồn
+  - Cấp phát, phân phối, sử dụng, đổi và hủy
+  - Response wrapping, wrapping token và giới hạn sử dụng
+  - Xoay vòng bí mật tĩnh và cấp lại bí mật động
+  - Phối hợp thay đổi bí mật với các ứng dụng tiêu thụ
+  - Thu hồi quyền Vault so với vô hiệu hóa credential nguồn
+  - Dữ liệu tồn tại trong phiên bản cũ, cache và bản sao
+  - Xử lý khi bí mật, token hoặc credential nguồn bị lộ
+  - Chứng minh việc thu hồi bằng kiểm tra tại hệ thống đích
+- level1: Audit
+  level2:
+  - Audit device và dữ liệu được ghi nhận
+  - Enable nhiều audit device và tác động khi ghi thất bại
+  - Request, response, request ID và liên kết sự kiện
+  - HMAC dữ liệu nhạy cảm và audit hash
+  - Giới hạn của việc che giấu dữ liệu trong audit
+  - Quyền truy cập, lưu giữ và chuyển log sang hệ thống tập trung
+  - Xoay tệp log và tránh đầy đĩa
+  - Phân tích hoạt động đăng nhập, cấp token và đọc secret
+  - Cảnh báo thay đổi policy, mount, seal và quyền đặc biệt
+  - Phân biệt audit log, operational log và metrics
+- level1: Namespaces
+  level2:
+  - Vault namespace và mục tiêu phân tách quản trị
+  - Điều kiện giấy phép và hỗ trợ theo ấn bản
+  - Namespace cha con và phạm vi đường dẫn
+  - Auth mount, secrets mount và identity trong namespace
+  - Quản trị ủy quyền và phân quyền giữa các nhóm
+  - Header namespace và cấu hình client
+  - Phân biệt namespace với ranh giới cluster độc lập
+  - Thiết kế nhiều nhóm, nhiều môi trường và nhiều tenant
+  - Giới hạn cô lập cần kiểm chứng bằng mô hình đe dọa
+- level1: Replication
+  level2:
+  - Performance replication và disaster recovery replication
+  - Điều kiện giấy phép, phiên bản và topology hỗ trợ
+  - Primary, secondary và vai trò từng cluster
+  - Loại dữ liệu và trạng thái được sao chép theo cơ chế
+  - Auth, token và lease trong kiến trúc nhiều cluster
+  - Độ trễ sao chép, mất kết nối và tính nhất quán
+  - Promotion, failover và failback
+  - Phân biệt replication với backup
+  - Kế hoạch RPO, RTO và kiểm thử chuyển đổi
+- level1: Sao lưu và phục hồi
+  level2:
+  - Phạm vi dữ liệu cần sao lưu với từng storage backend
+  - Raft snapshot và quyền tối thiểu cho thao tác sao lưu
+  - Mã hóa, lưu giữ và kiểm soát truy cập bản sao
+  - Phụ thuộc vào seal, recovery key và dịch vụ KMS/HSM
+  - Quy trình phục hồi trên môi trường cô lập
+  - Đối chiếu phiên bản, cấu hình và trạng thái cluster
+  - Rủi ro token, lease và credential cũ sau phục hồi
+  - Xác minh dữ liệu và quyền truy cập sau phục hồi
+  - Sao lưu cấu hình, policy và cấu hình tích hợp bên ngoài
+  - Diễn tập mất node, mất cluster và mất hạ tầng seal
+- level1: Nâng cấp và thay đổi
+  level2:
+  - Đọc release note, thay đổi hành vi và yêu cầu tương thích
+  - Chọn lộ trình nâng cấp được hỗ trợ
+  - Sao lưu và kiểm tra phục hồi trước thay đổi
+  - Rolling upgrade trong cluster HA
+  - Tương thích giữa server, CLI, Agent và plugin
+  - Nâng cấp storage, seal và cấu hình hệ điều hành
+  - Kiểm tra auth, lease và engine sau nâng cấp
+  - Giới hạn rollback khi định dạng dữ liệu đã thay đổi
+  - Quản lý thay đổi giấy phép và phụ thuộc tính năng
+- level1: Vận hành
+  level2:
+  - Chạy Vault bằng dịch vụ hệ điều hành hoặc container
+  - Quyền tiến trình, mlock và giới hạn tài nguyên
+  - Dung lượng đĩa, độ trễ I/O và yêu cầu lưu trữ bền vững
+  - Đồng bộ thời gian và ảnh hưởng tới TTL, TLS, JWT
+  - Tuning auth mount và secrets mount
+  - Quản lý plugin, catalog và checksum
+  - Quota, giới hạn yêu cầu và chống lạm dụng theo tính năng hỗ trợ
+  - Dọn lease, dữ liệu hết hạn và tăng trưởng storage
+  - Quy trình break-glass có phân quyền và ghi audit
+  - Runbook seal, mất quorum, mất audit và mất KMS
+- level1: Giám sát và chẩn đoán
+  level2:
+  - Health check, readiness và trạng thái sealed
+  - Metrics về yêu cầu, độ trễ, lỗi và tài nguyên
+  - Giám sát Raft, quorum và thay đổi leader
+  - Giám sát số token, lease và lỗi thu hồi
+  - Chẩn đoán permission denied theo token, policy và path
+  - Chẩn đoán lỗi xác thực AppRole, JWT và Kubernetes
+  - Chẩn đoán TLS, DNS, proxy và địa chỉ cluster
+  - Lỗi gia hạn, lease hết hạn và hệ thống đích không khả dụng
+  - Lỗi audit device, đầy đĩa và ghi storage thất bại
+  - Thu thập dữ liệu hỗ trợ mà không lộ secret
+- level1: Mô hình đe dọa
+  level2:
+  - Tài sản cần bảo vệ và các chủ thể có quyền đặc biệt
+  - Chiếm token ứng dụng và giới hạn phạm vi ảnh hưởng
+  - Chiếm quyền host Vault và khả năng tiếp cận bản rõ
+  - Lộ storage snapshot, recovery key hoặc quyền KMS
+  - Tài khoản quản trị, root token và nguy cơ lạm quyền
+  - Policy quá rộng và vượt ranh giới môi trường
+  - Rủi ro plugin và chuỗi cung ứng
+  - Secret đã ra khỏi Vault và giới hạn kiểm soát tiếp theo
+  - Giới hạn khi Vault hoặc hệ thống danh tính bị xâm nhập
+  - Phòng vệ nhiều lớp và quy trình ứng phó sự cố
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử đường đi đầy đủ từ xác thực đến thu hồi
+  - Kiểm thử cho phép và từ chối theo policy
+  - Kiểm thử hết hạn token, gia hạn và quan hệ cha con
+  - Kiểm thử lease hết hạn và thu hồi tại hệ thống đích
+  - Kiểm thử xoay vòng credential trong ứng dụng đang chạy
+  - Kiểm thử failover, mất node và phân vùng mạng
+  - Kiểm thử audit thất bại và storage không ghi được
+  - Kiểm thử khởi động lại, seal và auto-unseal
+  - Kiểm thử phục hồi snapshot và chuyển đổi DR
+  - Kiểm thử tải, retry và giới hạn tài nguyên
+  - Tiêu chí chấp nhận trước khi vận hành sản xuất
+- level1: Thực hành
+  level2:
+  - Dựng Vault có TLS và lưu trữ Raft trong môi trường thử nghiệm
+  - Khởi tạo, unseal và tách quyền quản trị thường ngày
+  - Thiết kế policy riêng cho hai ứng dụng và hai môi trường
+  - Quản lý KV v2 với version, CAS, delete và destroy
+  - Cấp bí mật động từ cơ sở dữ liệu và kiểm chứng thu hồi
+  - Cấu hình AppRole với response wrapping và Vault Agent
+  - Xác thực workload bằng JWT hoặc Kubernetes
+  - Cấp chứng thư ngắn hạn bằng PKI engine
+  - Mã hóa phong bì và xoay vòng khóa bằng Transit
+  - Xây dựng pipeline nhận credential ngắn hạn
+  - Sao lưu, khôi phục và diễn tập sự cố có kiểm soát
+  - Hoàn thiện sơ đồ kiến trúc, mô hình đe dọa và runbook

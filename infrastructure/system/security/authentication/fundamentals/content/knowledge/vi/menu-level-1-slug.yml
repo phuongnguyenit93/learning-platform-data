@@ -1,0 +1,163 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: authentication-overview
+  index: 0
+- title: Mục tiêu xác thực
+  slug: authentication-goals
+  index: 1
+- title: Identity
+  slug: identity
+  index: 2
+- title: Account
+  slug: account
+  index: 3
+- title: Authentication factor
+  slug: authentication-factor
+  index: 4
+- title: Credential
+  slug: credential
+  index: 5
+- title: Mức độ tin cậy
+  slug: assurance-levels
+  index: 6
+- title: Authentication flow
+  slug: authentication-flow
+  index: 7
+- title: Trust boundary
+  slug: trust-boundary
+  index: 8
+- title: Threat model
+  slug: threat-model
+  index: 9
+- title: Password authentication
+  slug: password-authentication
+  index: 10
+- title: Passwordless
+  slug: passwordless
+  index: 11
+- title: MFA
+  slug: mfa
+  index: 12
+- title: Passkey và WebAuthn
+  slug: passkeys-and-webauthn
+  index: 13
+- title: Certificate authentication
+  slug: certificate-authentication
+  index: 14
+- title: API key
+  slug: api-key
+  index: 15
+- title: HMAC request authentication
+  slug: hmac-request-authentication
+  index: 16
+- title: Token authentication
+  slug: token-authentication
+  index: 17
+- title: Session
+  slug: session
+  index: 18
+- title: Cookie và browser
+  slug: cookies-and-browser
+  index: 19
+- title: Federation
+  slug: federation
+  index: 20
+- title: SSO
+  slug: sso
+  index: 21
+- title: OAuth
+  slug: oauth
+  index: 22
+- title: OpenID Connect
+  slug: open-id-connect
+  index: 23
+- title: Identity proofing
+  slug: identity-proofing
+  index: 24
+- title: Enrollment
+  slug: enrollment
+  index: 25
+- title: Authentication context
+  slug: authentication-context
+  index: 26
+- title: Step-up
+  slug: step-up
+  index: 27
+- title: Risk-based authentication
+  slug: risk-based-authentication
+  index: 28
+- title: Đăng nhập
+  slug: sign-in
+  index: 29
+- title: Đăng xuất
+  slug: sign-out
+  index: 30
+- title: Account recovery
+  slug: account-recovery
+  index: 31
+- title: Account lifecycle
+  slug: account-lifecycle
+  index: 32
+- title: Credential lifecycle
+  slug: credential-lifecycle
+  index: 33
+- title: Chống đoán credential
+  slug: credential-stuffing-defense
+  index: 34
+- title: Chống phishing
+  slug: phishing-defense
+  index: 35
+- title: Chống replay
+  slug: replay-protection
+  index: 36
+- title: Authorization boundary
+  slug: authorization-boundary
+  index: 37
+- title: Service authentication
+  slug: service-authentication
+  index: 38
+- title: Authentication trong API
+  slug: api-authentication
+  index: 39
+- title: Authentication trong web
+  slug: web-authentication
+  index: 40
+- title: Authentication trong mobile
+  slug: mobile-authentication
+  index: 41
+- title: Authentication trong distributed system
+  slug: distributed-system-authentication
+  index: 42
+- title: Lưu trữ credential
+  slug: credential-storage
+  index: 43
+- title: Error và privacy
+  slug: errors-and-privacy
+  index: 44
+- title: Monitoring và audit
+  slug: monitoring-and-auditing
+  index: 45
+- title: Incident response
+  slug: incident-response
+  index: 46
+- title: Availability
+  slug: availability
+  index: 47
+- title: Testing
+  slug: testing
+  index: 48
+- title: Security review
+  slug: security-review
+  index: 49
+- title: Compliance
+  slug: compliance
+  index: 50
+- title: Trải nghiệm người dùng
+  slug: user-experience
+  index: 51
+- title: Case study
+  slug: case-study
+  index: 52
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 53

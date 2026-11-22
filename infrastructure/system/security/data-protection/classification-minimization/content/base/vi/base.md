@@ -1,0 +1,7 @@
+# Security Data Protection Classification Minimization
+
+Phân loại và tối thiểu hóa dữ liệu là hai nguyên tắc bổ trợ nhau trong bảo vệ thông tin. **Data Classification** giúp xác định mức độ nhạy cảm và tác động khi dữ liệu bị truy cập, sử dụng hoặc tiết lộ trái phép. **Data Minimization** đặt câu hỏi liệu mỗi trường dữ liệu có thật sự cần cho mục đích xử lý đã công bố hay không; thu thập ít hơn và chia sẻ đúng phạm vi sẽ giảm cả rủi ro bảo mật lẫn gánh nặng vận hành.
+
+Module dành cho người đã biết ứng dụng web/API, cơ sở dữ liệu, quyền truy cập và khái niệm dữ liệu cá nhân cơ bản. Lộ trình đi từ kiểm kê nguồn, đích, owner và luồng dữ liệu đến phân loại độ nhạy, gắn nhãn cùng quy tắc xử lý. Sau đó người học thực hành xác định mục đích sử dụng, giản lược trường dữ liệu trong form hoặc API, giới hạn dữ liệu chia sẻ, bảo vệ dữ liệu test và tránh ghi thông tin nhạy cảm vào log.
+
+Khi hoàn thành, bạn có thể lập bảng phân loại cho một tập dữ liệu mẫu, giải thích vì sao từng trường cần được xử lý, thiết kế response hoặc dataset chỉ chứa dữ liệu cần thiết, và lập kế hoạch rà soát định kỳ. Mức phân loại là chính sách theo ngữ cảnh của tổ chức, không phải một bảng nhãn áp dụng máy móc cho mọi hệ thống; việc giảm dữ liệu vẫn cần bảo đảm chức năng và các nghĩa vụ pháp lý liên quan.

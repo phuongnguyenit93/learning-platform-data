@@ -1,0 +1,3238 @@
+menu:
+- slug: cloud-cost-overview
+  title: Tổng quan chi phí đám mây
+  childs:
+  - slug: cloud-cost-overview-001
+    title: Quản lý chi phí đám mây là gì và giải quyết vấn đề nào?
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-002
+    title: Chi phí, mức sử dụng và giá trị kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-003
+    title: Đặc điểm chi tiêu của IaaS, PaaS và SaaS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-004
+    title: Trách nhiệm chi phí trong mô hình trách nhiệm chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-005
+    title: Vòng đời tài nguyên và thời điểm phát sinh chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-006
+    title: Các nguồn lãng phí phổ biến trên đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-007
+    title: Phân biệt tiết kiệm chi phí và tránh phát sinh chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-008
+    title: Đánh đổi giữa chi phí, hiệu năng, độ tin cậy và bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-009
+    title: Chu trình quan sát, tối ưu và vận hành chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-cost-overview-010
+    title: Đánh giá hiện trạng và xây dựng lộ trình quản lý chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: finance-and-pricing-models
+  title: Tài chính và mô hình định giá
+  childs:
+  - slug: finance-and-pricing-models-001
+    title: Phân biệt CapEx, OpEx và chi phí biến đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-002
+    title: Đọc đơn vị tính phí và các chiều định giá dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-003
+    title: Định giá theo mức sử dụng, bậc thang và gói dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-004
+    title: Giá niêm yết, giá hợp đồng và chi phí thực trả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-005
+    title: Tài nguyên trả theo nhu cầu, cam kết và có thể bị thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-006
+    title: Chi phí trực tiếp, gián tiếp, cố định và biên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-007
+    title: Tổng chi phí sở hữu và chi phí cơ hội
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-008
+    title: Chiết khấu, tín dụng, hoàn tiền và ưu đãi dùng thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-009
+    title: Thuế, tỷ giá và thời điểm ghi nhận chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finance-and-pricing-models-010
+    title: Phân biệt chi phí theo hóa đơn và chi phí cam kết phân bổ theo kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: finops-organization
+  title: Tổ chức thực hành FinOps
+  childs:
+  - slug: finops-organization-001
+    title: Nguyên tắc FinOps và trách nhiệm chung về chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-002
+    title: Vai trò của kỹ thuật, tài chính, sản phẩm và mua sắm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-003
+    title: Xây dựng nhóm FinOps tập trung và mạng lưới đại diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-004
+    title: Phân định trách nhiệm bằng ma trận RACI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-005
+    title: Thiết lập phạm vi quản lý tài khoản và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-006
+    title: Thu thập yêu cầu và xác định bên sử dụng báo cáo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-007
+    title: Xây dựng mục tiêu và chỉ số thành công của FinOps
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-008
+    title: Tổ chức nhịp họp và quy trình ra quyết định chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-009
+    title: Đào tạo nhận thức và văn hóa sở hữu chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-organization-010
+    title: Quản lý danh mục cơ hội tối ưu và thứ tự ưu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-data-collection
+  title: Thu thập dữ liệu chi phí
+  childs:
+  - slug: cost-data-collection-001
+    title: Cấu trúc hóa đơn và bản ghi sử dụng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-002
+    title: Quan hệ giữa tài khoản thanh toán, tài khoản con và tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-003
+    title: Nguồn dữ liệu từ hóa đơn, báo cáo xuất và API chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-004
+    title: Thu thập mức sử dụng từ số liệu vận hành và kiểm kê tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-005
+    title: Thiết kế nơi lưu trữ dữ liệu chi phí tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-006
+    title: Lựa chọn độ hạt theo thời gian, dịch vụ và tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-007
+    title: Xử lý độ trễ, cập nhật hồi tố và dữ liệu chưa chốt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-008
+    title: Thu thập bảng giá và điều kiện chiết khấu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-009
+    title: Kết nối dữ liệu chi phí với danh mục ứng dụng và chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-010
+    title: Thu thập phí hỗ trợ, Marketplace và dịch vụ bên thứ ba
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-data-collection-011
+    title: Phân quyền truy cập và bảo vệ dữ liệu thanh toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-normalization-and-quality
+  title: Chuẩn hóa và kiểm soát dữ liệu
+  childs:
+  - slug: data-normalization-and-quality-001
+    title: Thiết kế mô hình dữ liệu chi phí dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-002
+    title: Giới thiệu FOCUS trong chuẩn hóa dữ liệu thanh toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-003
+    title: Ánh xạ trường dữ liệu giữa các nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-004
+    title: Chuẩn hóa tiền tệ, đơn vị sử dụng và múi giờ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-005
+    title: Phân loại phí sử dụng, phí định kỳ và điều chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-006
+    title: Phân bổ khoản trả trước và chi phí cam kết theo kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-007
+    title: Phát hiện bản ghi trùng, thiếu và sai định dạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-008
+    title: Xử lý dữ liệu đến muộn và nạp lại không tạo bản ghi trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-009
+    title: Đối chiếu tổng chi phí giữa dữ liệu nguồn và báo cáo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-010
+    title: Quản lý lịch sử thay đổi và nguồn gốc dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-normalization-and-quality-011
+    title: Thiết lập kiểm tra chất lượng và mức độ mới của dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-allocation-and-tagging
+  title: Phân bổ chi phí và gắn nhãn
+  childs:
+  - slug: cost-allocation-and-tagging-001
+    title: Thiết kế cây tổ chức cho tài khoản, dự án và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-002
+    title: Xây dựng hệ thống nhãn cho chủ sở hữu và trung tâm chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-003
+    title: Quy tắc đặt tên và kiểm tra tính hợp lệ của nhãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-004
+    title: Ánh xạ tài nguyên với ứng dụng, sản phẩm và đơn vị kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-005
+    title: Phân bổ chi phí tài nguyên không hỗ trợ gắn nhãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-006
+    title: Phát hiện chi phí chưa xác định được chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-007
+    title: Lựa chọn tiêu thức phân bổ cho nền tảng dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-008
+    title: Phân chia chi phí mạng, hỗ trợ và bảo mật tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-009
+    title: Phân bổ chiết khấu và tín dụng cho đơn vị sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-010
+    title: Quản lý nhãn và chủ sở hữu khi tái cấu trúc tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-011
+    title: Đo tỷ lệ chi phí được phân bổ và chất lượng nhãn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-allocation-and-tagging-012
+    title: Thiết kế mô hình phân bổ có thể giải thích và kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-reporting-and-transparency
+  title: Báo cáo và minh bạch chi phí
+  childs:
+  - slug: cost-reporting-and-transparency-001
+    title: Thiết kế báo cáo phù hợp từng nhóm người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-002
+    title: Xây dựng góc nhìn chi phí theo tổ chức và sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-003
+    title: Phân tích chi phí theo dịch vụ, khu vực và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-004
+    title: Theo dõi xu hướng và cơ cấu chi tiêu theo thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-005
+    title: So sánh kỳ hiện tại với kỳ trước và kế hoạch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-006
+    title: Phân rã biến động do giá, lượng sử dụng và cơ cấu dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-007
+    title: Phân biệt chi tiêu gộp, chi tiêu ròng và chi phí phân bổ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-008
+    title: Hiển thị chi phí chưa chốt và mức độ tin cậy của số liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-009
+    title: Xây dựng bảng điều khiển cho lãnh đạo và đội kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-010
+    title: Tổ chức showback để các đội nhìn thấy chi phí của mình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-reporting-and-transparency-011
+    title: Truyền đạt khuyến nghị bằng số liệu và hành động cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: unit-economics-and-value
+  title: Kinh tế đơn vị và giá trị
+  childs:
+  - slug: unit-economics-and-value-001
+    title: Chọn đơn vị kinh doanh phù hợp để đo chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-002
+    title: Tính chi phí trên khách hàng, giao dịch và yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-003
+    title: Đo chi phí phục vụ từng gói sản phẩm và nhóm khách hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-004
+    title: Liên kết dữ liệu sử dụng sản phẩm với chi phí hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-005
+    title: Phân biệt chi phí trung bình và chi phí biên khi mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-006
+    title: Đánh giá biên lợi nhuận sau chi phí đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-007
+    title: Chuẩn hóa chỉ số khi sản lượng và cơ cấu khách hàng thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-008
+    title: Đánh giá hiệu quả chi phí bằng chỉ số hiệu năng và SLO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-009
+    title: Lập luận đầu tư cho sáng kiến tối ưu bằng ROI và thời gian hoàn vốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: unit-economics-and-value-010
+    title: Ưu tiên chi tiêu theo giá trị kinh doanh và mục tiêu tăng trưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: budgeting-and-forecasting
+  title: Ngân sách và dự báo
+  childs:
+  - slug: budgeting-and-forecasting-001
+    title: Xác định phạm vi và chủ sở hữu ngân sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-002
+    title: Lập ngân sách từ trên xuống và từ nhu cầu từng đội
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-003
+    title: Xây dựng đường cơ sở từ lịch sử chi tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-004
+    title: Dự báo theo xu hướng, mùa vụ và yếu tố kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-005
+    title: Ước tính chi phí cho sản phẩm và tính năng mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-006
+    title: Tính tác động của tăng trưởng, di chuyển và thay đổi kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-007
+    title: Xây dựng kịch bản cơ sở, tăng trưởng cao và cắt giảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-008
+    title: Đưa cam kết, tín dụng và khoản chi một lần vào dự báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-009
+    title: Thiết lập ngưỡng cảnh báo theo chi phí thực tế và dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-010
+    title: Đánh giá sai số dự báo và điều chỉnh định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-011
+    title: Phân tích chênh lệch ngân sách và lập phương án xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: budgeting-and-forecasting-012
+    title: Quản lý hạn mức chi tiêu và quy trình xin bổ sung ngân sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-monitoring-and-anomalies
+  title: Giám sát và bất thường chi phí
+  childs:
+  - slug: cost-monitoring-and-anomalies-001
+    title: Phân biệt cảnh báo ngân sách và phát hiện bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-002
+    title: Xây dựng đường cơ sở chi phí theo hành vi sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-003
+    title: Lựa chọn mức phân tích để phát hiện tăng chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-004
+    title: Đặt ngưỡng tuyệt đối, tương đối và ngưỡng theo mùa vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-005
+    title: Kết hợp tín hiệu chi phí với thay đổi cấu hình và triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-006
+    title: Phân tuyến cảnh báo đến đúng chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-007
+    title: Giảm cảnh báo nhiễu và tránh bỏ sót chi phí bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-008
+    title: Điều tra nguyên nhân từ dịch vụ đến tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-009
+    title: Xử lý sự cố bùng nổ chi phí và hạn chế thiệt hại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-010
+    title: Xây dựng kịch bản ứng phó với lạm dụng tài nguyên và thông tin truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-monitoring-and-anomalies-011
+    title: Đánh giá thời gian phát hiện và hiệu quả xử lý bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-efficient-architecture
+  title: Kiến trúc hiệu quả về chi phí
+  childs:
+  - slug: cost-efficient-architecture-001
+    title: Đưa yêu cầu chi phí vào thiết kế kiến trúc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-002
+    title: Ước lượng tổng chi phí của các phương án kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-003
+    title: Lựa chọn giữa tự quản lý và dịch vụ được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-004
+    title: So sánh kiến trúc nguyên khối, microservices và hướng sự kiện theo chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-005
+    title: Thiết kế khả năng co giãn theo nhu cầu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-006
+    title: Định lượng chi phí của SLO, dự phòng và phục hồi thảm họa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-007
+    title: Lựa chọn khu vực triển khai theo chi phí và yêu cầu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-008
+    title: Giảm xử lý dư thừa bằng bộ nhớ đệm, gom lô và tối ưu thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-009
+    title: Thiết kế vòng đời môi trường phát triển, kiểm thử và bản xem trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-010
+    title: Đánh giá chi phí giấy phép, vận hành và nhân lực khi chọn công nghệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-efficient-architecture-011
+    title: Đưa tác động tài nguyên và phát thải vào quyết định tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compute-cost-optimization
+  title: Tối ưu tài nguyên tính toán
+  childs:
+  - slug: compute-cost-optimization-001
+    title: Đọc cấu trúc chi phí máy ảo, CPU, bộ nhớ và ổ đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-002
+    title: Đo mức sử dụng và nhận diện tài nguyên cấp phát dư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-003
+    title: Lựa chọn kích thước và họ máy theo đặc điểm tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-004
+    title: Đánh giá kiến trúc CPU và khả năng tương thích của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-005
+    title: Thiết kế autoscaling tránh duy trì công suất nhàn rỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-006
+    title: Lập lịch bật tắt máy và thu hồi môi trường hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-007
+    title: Tận dụng tài nguyên có thể bị thu hồi cho tác vụ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-008
+    title: Tối ưu xử lý theo lô và hàng đợi công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-009
+    title: Phát hiện máy bỏ quên, đĩa rời và địa chỉ IP không sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-010
+    title: Tối ưu ảnh máy, thời gian khởi động và dung lượng dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compute-cost-optimization-011
+    title: Kiểm chứng tác động của rightsizing bằng hiệu năng và độ ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: kubernetes-container-cost-optimization
+  title: Tối ưu Kubernetes và container
+  childs:
+  - slug: kubernetes-container-cost-optimization-001
+    title: Phân rã chi phí cụm, node, pod và workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-002
+    title: Phân bổ chi phí theo namespace, nhãn và nhóm ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-003
+    title: Đo chi phí công suất nhàn rỗi và chi phí hệ thống dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-004
+    title: Thiết lập CPU và memory requests, limits theo dữ liệu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-005
+    title: Phối hợp autoscaling workload và autoscaling node
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-006
+    title: Tối ưu xếp pod và giảm phân mảnh tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-007
+    title: Lựa chọn node pool và phối hợp loại tài nguyên tính toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-008
+    title: Kiểm soát chi phí workload yêu cầu GPU và phần cứng riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-009
+    title: Quản lý chi phí volume, cân bằng tải và lưu lượng của cụm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-010
+    title: Đánh giá chi phí Kubernetes được quản lý và container serverless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-011
+    title: Sử dụng OpenCost hoặc Kubecost để phân tích phân bổ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-container-cost-optimization-012
+    title: Thu hồi namespace và môi trường tạm theo vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-integration-cost-optimization
+  title: Tối ưu serverless và tích hợp
+  childs:
+  - slug: serverless-integration-cost-optimization-001
+    title: Đọc mô hình tính phí hàm, thời gian chạy và số lượt gọi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-002
+    title: Tối ưu cấu hình bộ nhớ, CPU và thời lượng thực thi hàm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-003
+    title: Giảm chi phí khởi động, chờ đợi và năng lực cấp sẵn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-004
+    title: Kiểm soát concurrency và lượng công việc đầu vào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-005
+    title: Tối ưu xử lý theo lô và kích thước thông điệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-006
+    title: Giảm lượt gọi trùng bằng tính idempotent và loại bỏ trùng lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-007
+    title: Ngăn vòng lặp sự kiện, retry vô hạn và khuếch đại tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-008
+    title: Phân tích chi phí API gateway, hàng đợi và luồng sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-009
+    title: Tối ưu số bước và chuyển trạng thái của workflow
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-integration-cost-optimization-010
+    title: So sánh serverless với container và máy ảo theo hình dạng tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-and-backup-cost-optimization
+  title: Tối ưu lưu trữ và sao lưu
+  childs:
+  - slug: storage-and-backup-cost-optimization-001
+    title: Phân rã chi phí dung lượng, yêu cầu truy cập và truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-002
+    title: Lựa chọn object, block và file storage theo mẫu sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-003
+    title: Chọn lớp lưu trữ theo tần suất truy cập và thời hạn lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-004
+    title: Tính chi phí chuyển lớp, truy xuất và xóa sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-005
+    title: Thiết kế chính sách vòng đời và lưu trữ dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-006
+    title: Tối ưu dung lượng bằng nén, loại bỏ trùng lặp và định dạng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-007
+    title: Giảm chi phí phiên bản đối tượng và tải lên chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-008
+    title: Rightsizing dung lượng, IOPS và throughput của ổ đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-009
+    title: Xử lý volume bỏ quên và snapshot không còn cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-010
+    title: Thiết kế sao lưu theo RPO, RTO và thời gian lưu giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-011
+    title: Đánh giá chi phí sao chép đa vùng và phục hồi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-backup-cost-optimization-012
+    title: Kiểm soát chi phí yêu cầu đối với nhiều tệp nhỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: database-cost-optimization
+  title: Tối ưu cơ sở dữ liệu
+  childs:
+  - slug: database-cost-optimization-001
+    title: Phân rã chi phí xử lý, lưu trữ, I/O và sao lưu cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-002
+    title: Lựa chọn cơ sở dữ liệu theo tải giao dịch và mẫu truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-003
+    title: Rightsizing instance và năng lực xử lý được cấp phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-004
+    title: Tối ưu truy vấn và chỉ mục để giảm tài nguyên tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-005
+    title: Đánh giá chi phí replica, khả dụng cao và đọc mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-006
+    title: Lựa chọn giữa năng lực cấp sẵn và tính phí theo yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-007
+    title: Kiểm soát phân vùng nóng và giới hạn thông lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-008
+    title: Tối ưu kết nối, bộ nhớ đệm và tải đọc lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-009
+    title: Quản lý tăng trưởng dữ liệu, lưu trữ lạnh và dọn dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-010
+    title: Tối ưu môi trường cơ sở dữ liệu phát triển và kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: database-cost-optimization-011
+    title: Đánh giá chi phí sao lưu, khôi phục và truyền dữ liệu của cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-analytics-cost-optimization
+  title: Tối ưu dữ liệu và phân tích
+  childs:
+  - slug: data-analytics-cost-optimization-001
+    title: Phân rã chi phí data lake, kho dữ liệu và nền tảng phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-002
+    title: Đo chi phí trên pipeline, tập dữ liệu và truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-003
+    title: Giảm dữ liệu quét bằng phân vùng, phân cụm và lọc sớm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-004
+    title: Lựa chọn định dạng cột, nén và kích thước tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-005
+    title: Tối ưu lịch chạy, kích thước cụm và thời gian nhàn rỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-006
+    title: Thiết kế xử lý tăng dần thay cho nạp lại toàn bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-007
+    title: Kiểm soát chi phí truy vấn tương tác và báo cáo BI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-008
+    title: Đánh giá xử lý luồng so với xử lý theo lô
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-009
+    title: Quản lý thời hạn lưu và số bản sao dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-010
+    title: Kiểm soát retry, dữ liệu lỗi và chạy lại pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-analytics-cost-optimization-011
+    title: Đặt ngân sách và hạn mức cho workload phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-content-delivery-optimization
+  title: Tối ưu mạng và phân phối nội dung
+  childs:
+  - slug: network-content-delivery-optimization-001
+    title: Phân loại chi phí truyền dữ liệu vào, ra và nội vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-002
+    title: Phân tích lưu lượng giữa vùng sẵn sàng và khu vực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-003
+    title: Giảm truyền dữ liệu liên vùng bằng thiết kế vị trí workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-004
+    title: Định lượng chi phí NAT gateway và điểm cuối riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-005
+    title: Tối ưu chi phí cân bằng tải theo lưu lượng và kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-006
+    title: Sử dụng CDN và bộ nhớ đệm để giảm lưu lượng nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-007
+    title: Tối ưu truyền dữ liệu bằng nén và giảm payload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-008
+    title: Đánh giá kết nối riêng, VPN và kết nối mạng lai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-009
+    title: Phát hiện tuyến lưu lượng vòng và truyền dữ liệu lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-010
+    title: Phân bổ chi phí mạng dùng chung theo nguồn phát sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-content-delivery-optimization-011
+    title: Đánh giá chi phí bảo vệ biên và dịch vụ phân phối nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-security-costs
+  title: Chi phí quan sát và bảo mật
+  childs:
+  - slug: observability-and-security-costs-001
+    title: Phân rã chi phí log, metric, trace và sự kiện bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-002
+    title: Chọn mức thu thập theo giá trị điều tra và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-003
+    title: Kiểm soát cardinality của metric và nhãn động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-004
+    title: Tối ưu sampling, lọc log và dữ liệu telemetry trùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-005
+    title: Thiết kế thời hạn lưu và lớp lưu trữ dữ liệu quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-006
+    title: Giảm chi phí truy vấn và xuất dữ liệu telemetry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-007
+    title: Kiểm soát chi phí cảnh báo, kiểm tra tổng hợp và giám sát mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-008
+    title: Phân tích phí quản lý khóa, bí mật và chứng thư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-009
+    title: Đánh giá chi phí quét bảo mật, SIEM và phân tích mối đe dọa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-security-costs-010
+    title: Cân bằng tiết kiệm với yêu cầu kiểm toán và điều tra sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ai-and-ml-cost-optimization
+  title: Tối ưu AI và máy học
+  childs:
+  - slug: ai-and-ml-cost-optimization-001
+    title: Phân rã chi phí dữ liệu, huấn luyện và suy luận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-002
+    title: Đo chi phí trên mô hình, lần huấn luyện và yêu cầu suy luận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-003
+    title: Lựa chọn CPU, GPU và bộ tăng tốc theo workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-004
+    title: Tăng mức sử dụng GPU bằng gom lô và chia sẻ tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-005
+    title: Tối ưu huấn luyện bằng checkpoint và quản lý thử nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-006
+    title: Thu hồi notebook, endpoint và tài nguyên ML nhàn rỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-007
+    title: Đọc chi phí token đầu vào, đầu ra và ngữ cảnh của AI tạo sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-008
+    title: Lựa chọn mô hình và định tuyến yêu cầu theo chất lượng cần đạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-009
+    title: Giảm chi phí suy luận bằng caching, batching và lượng tử hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-010
+    title: Kiểm soát chi phí embedding, vector database và truy xuất dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-011
+    title: Ngăn vòng lặp tác nhân và giới hạn chi tiêu theo người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-ml-cost-optimization-012
+    title: Đánh giá tiết kiệm AI cùng chất lượng, độ trễ và an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: commitments-and-discounts
+  title: Cam kết sử dụng và chiết khấu
+  childs:
+  - slug: commitments-and-discounts-001
+    title: Phân biệt tối ưu mức sử dụng và tối ưu đơn giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-002
+    title: Xác định phần tải ổn định đủ điều kiện mua cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-003
+    title: So sánh chiết khấu theo thời hạn và phương thức thanh toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-004
+    title: Đo tỷ lệ bao phủ và tỷ lệ sử dụng cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-005
+    title: Tính chi phí hiệu dụng và điểm hòa vốn của cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-006
+    title: Đánh giá rủi ro mua thừa, thay đổi công nghệ và di chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-007
+    title: Phân bổ lợi ích cam kết giữa các đội và tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-008
+    title: Xây dựng kế hoạch mua theo đợt và lịch đáo hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-009
+    title: Phối hợp rightsizing, tự động co giãn và danh mục cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-010
+    title: Theo dõi cam kết không sử dụng và hành động điều chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: commitments-and-discounts-011
+    title: Đánh giá hiệu quả danh mục sau khi tính phí trả trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: contracts-licensing-and-marketplace
+  title: Hợp đồng, giấy phép và Marketplace
+  childs:
+  - slug: contracts-licensing-and-marketplace-001
+    title: Chuẩn bị dữ liệu chi tiêu cho đàm phán nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-002
+    title: Phân tích điều kiện hợp đồng và mức chi tiêu tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-003
+    title: Quản lý hạn mức tín dụng và ngày hết hạn ưu đãi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-004
+    title: Đánh giá phí hỗ trợ và lựa chọn cấp hỗ trợ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-005
+    title: So sánh giá theo mức sử dụng và giấy phép mang theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-006
+    title: Kiểm kê giấy phép, ghế người dùng và mức sử dụng SaaS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-007
+    title: Phân tích chi phí mua dịch vụ qua Marketplace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-008
+    title: Đối chiếu ưu đãi riêng với điều kiện thanh toán và cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-009
+    title: Lập lịch gia hạn, chấm dứt và tránh mua trùng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: contracts-licensing-and-marketplace-010
+    title: Đánh giá chi phí chuyển đổi nhà cung cấp và thoát hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aws-cost-management
+  title: Quản lý chi phí AWS
+  childs:
+  - slug: aws-cost-management-001
+    title: Thiết kế phạm vi thanh toán hợp nhất trong AWS Organizations
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-002
+    title: Phân tích chi tiêu bằng AWS Cost Explorer
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-003
+    title: Xuất dữ liệu chi tiết bằng AWS Data Exports và Cost and Usage Reports
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-004
+    title: Tổ chức phân bổ bằng cost allocation tags và Cost Categories
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-005
+    title: Theo dõi ngân sách bằng AWS Budgets
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-006
+    title: Phát hiện tăng chi tiêu với AWS Cost Anomaly Detection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-007
+    title: Đọc khuyến nghị từ AWS Compute Optimizer và Trusted Advisor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-008
+    title: Đánh giá Savings Plans và Reserved Instances cho nhu cầu thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-009
+    title: Đo hiệu quả sử dụng EC2 Spot trong workload có khả năng gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-010
+    title: Phân tích phí EC2, EBS, S3, RDS và truyền dữ liệu AWS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aws-cost-management-011
+    title: Đối soát báo cáo AWS với hóa đơn và khoản điều chỉnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: azure-cost-management
+  title: Quản lý chi phí Azure
+  childs:
+  - slug: azure-cost-management-001
+    title: Thiết kế phạm vi chi phí theo billing account và subscription Azure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-002
+    title: Phân tích chi tiêu trong Microsoft Cost Management
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-003
+    title: Xuất dữ liệu chi phí Azure để phục vụ báo cáo tập trung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-004
+    title: Phân bổ chi phí bằng management group, resource group và tag
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-005
+    title: Thiết lập ngân sách và cảnh báo chi tiêu Azure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-006
+    title: Đánh giá khuyến nghị tối ưu từ Azure Advisor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-007
+    title: So sánh Azure Reservations và Azure savings plan for compute
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-008
+    title: Đánh giá Azure Hybrid Benefit và chi phí giấy phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-009
+    title: Quản lý phạm vi áp dụng và mức sử dụng cam kết Azure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-010
+    title: Phân tích chi phí máy ảo, ổ đĩa, lưu trữ và mạng Azure
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: azure-cost-management-011
+    title: Đối soát chi phí Azure với hóa đơn, tín dụng và thuế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: google-cloud-cost-management
+  title: Quản lý chi phí Google Cloud
+  childs:
+  - slug: google-cloud-cost-management-001
+    title: Thiết kế phạm vi Cloud Billing account, folder và project
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-002
+    title: Phân tích chi tiêu bằng báo cáo Cloud Billing
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-003
+    title: Xuất dữ liệu Cloud Billing sang BigQuery
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-004
+    title: Phân bổ chi phí Google Cloud bằng label, tag và project
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-005
+    title: Thiết lập budget và thông báo chi tiêu Google Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-006
+    title: Khai thác khuyến nghị chi phí từ Google Cloud Recommender
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-007
+    title: Phân tích committed use discounts theo loại cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-008
+    title: Đánh giá tài nguyên Spot và chiết khấu áp dụng cho workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-009
+    title: Phân tích chi phí Compute Engine, GKE và Cloud Storage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-010
+    title: Kiểm soát chi phí truy vấn và năng lực xử lý BigQuery
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: google-cloud-cost-management-011
+    title: Đối soát chi phí Google Cloud với hóa đơn và tín dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hybrid-and-multicloud-costs
+  title: Chi phí môi trường lai và đa đám mây
+  childs:
+  - slug: hybrid-and-multicloud-costs-001
+    title: Xây dựng góc nhìn chi tiêu chung cho hạ tầng lai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-002
+    title: Chuẩn hóa so sánh giá giữa các nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-003
+    title: Đưa chi phí trung tâm dữ liệu và vận hành vào bài toán TCO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-004
+    title: Ước tính chi phí di chuyển ứng dụng và dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-005
+    title: Tính chi phí chạy song song trong giai đoạn chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-006
+    title: Đánh giá ảnh hưởng của cam kết còn hiệu lực khi di chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-007
+    title: Định lượng chi phí kết nối và truyền dữ liệu đa đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-008
+    title: So sánh tính khả chuyển với chi phí dịch vụ đặc thù
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-009
+    title: Quản lý chi phí sao chép, đồng bộ và phục hồi xuyên nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hybrid-and-multicloud-costs-010
+    title: Xác minh lợi ích tài chính sau di chuyển và đóng tài nguyên cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-policies-and-controls
+  title: Chính sách và kiểm soát chi phí
+  childs:
+  - slug: cost-policies-and-controls-001
+    title: Xây dựng chính sách chi tiêu và danh mục dịch vụ được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-002
+    title: Thiết lập guardrail theo tài khoản, môi trường và nhóm người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-003
+    title: Áp dụng quyền tối thiểu cho dữ liệu và hành động FinOps
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-004
+    title: Bắt buộc nhãn và chủ sở hữu trong quy trình cấp tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-005
+    title: Kiểm soát loại máy, khu vực và cấu hình có chi phí cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-006
+    title: Phân biệt quota tài nguyên, ngân sách và giới hạn chi tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-007
+    title: Thiết kế phê duyệt cho tài nguyên và cam kết vượt ngưỡng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-008
+    title: Quản lý ngoại lệ, thời hạn ngoại lệ và người chịu trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-009
+    title: Đưa kiểm tra chi phí vào đánh giá kiến trúc và thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-010
+    title: Lưu bằng chứng kiểm toán cho quyết định và hành động tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-policies-and-controls-011
+    title: Bảo vệ độ sẵn sàng và dữ liệu khi thực hiện biện pháp giảm chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-management-automation
+  title: Tự động hóa quản lý chi phí
+  childs:
+  - slug: cost-management-automation-001
+    title: Thiết kế luồng thu thập và xử lý dữ liệu chi phí tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-002
+    title: Tích hợp API thanh toán với lịch chạy và xử lý lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-003
+    title: Ước tính chi phí từ Infrastructure as Code
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-004
+    title: Đưa chênh lệch chi phí vào quy trình pull request và CI/CD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-005
+    title: Thực thi chính sách chi phí bằng policy as code
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-006
+    title: Tự động nhắc gắn nhãn và bổ sung chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-007
+    title: Tự động lập lịch bật tắt và thu hồi tài nguyên hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-008
+    title: Kết nối cảnh báo chi phí với hệ thống xử lý công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-009
+    title: Thiết kế chế độ mô phỏng và phê duyệt trước hành động nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-010
+    title: Xây dựng rollback, nhật ký và kiểm soát quyền tự động hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-automation-011
+    title: Đo lợi ích tiết kiệm sau khi tính chi phí vận hành công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reconciliation-and-internal-billing
+  title: Đối soát và thanh toán nội bộ
+  childs:
+  - slug: reconciliation-and-internal-billing-001
+    title: Phân biệt showback và chargeback trong vận hành tài chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-002
+    title: Thiết kế chính sách tính phí nội bộ và kỳ chốt số liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-003
+    title: Xây dựng bảng ánh xạ đơn vị kinh doanh với mã hạch toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-004
+    title: Tính đơn giá nội bộ cho dịch vụ nền tảng dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-005
+    title: Đối soát chi phí phân bổ với tổng tiền nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-006
+    title: Xử lý tín dụng, hoàn tiền và điều chỉnh sau khi chốt kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-007
+    title: Phân biệt dự toán chi phí dồn tích và hóa đơn đã xác nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-008
+    title: Xây dựng báo cáo thanh toán nội bộ có thể truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-009
+    title: Giải quyết tranh chấp phân bổ và xác nhận từ chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reconciliation-and-internal-billing-010
+    title: Tích hợp kết quả chi phí với quy trình kế toán và mua sắm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: finops-operations-and-improvement
+  title: Vận hành và cải tiến FinOps
+  childs:
+  - slug: finops-operations-and-improvement-001
+    title: Thiết kế lịch vận hành FinOps theo ngày, tuần và tháng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-002
+    title: Quản lý backlog tối ưu từ phát hiện đến xác nhận kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-003
+    title: Ưu tiên cơ hội theo tiết kiệm, công sức và mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-004
+    title: Xác lập đường cơ sở trước mỗi thay đổi tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-005
+    title: Đo tiết kiệm thực tế và tránh tính trùng thành quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-006
+    title: Theo dõi hồi quy chi phí sau triển khai và tăng trưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-007
+    title: Xây dựng runbook cho cảnh báo, tối ưu và gia hạn cam kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-008
+    title: Đánh giá độ trưởng thành và khoảng trống năng lực FinOps
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-009
+    title: So sánh hiệu quả chi phí giữa các đội theo bối cảnh sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-010
+    title: Đánh giá và lựa chọn công cụ quản lý chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: finops-operations-and-improvement-011
+    title: Cập nhật lộ trình FinOps theo thay đổi chiến lược kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scenario-based-practice
+  title: Thực hành theo tình huống
+  childs:
+  - slug: scenario-based-practice-001
+    title: Đọc hóa đơn mẫu và truy tìm nhóm dịch vụ tốn kém nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-002
+    title: Thiết kế hệ thống nhãn cho doanh nghiệp có nhiều đội
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-003
+    title: Phân bổ chi phí nền tảng dùng chung cho các sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-004
+    title: Dự báo ngân sách cho ứng dụng có tải theo mùa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-005
+    title: Điều tra chi phí tăng đột biến sau một lần triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-006
+    title: Rightsizing cụm máy ảo theo dữ liệu sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-007
+    title: Giảm công suất nhàn rỗi của cụm Kubernetes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-008
+    title: Tối ưu chi phí lưu trữ và truy vấn của nền tảng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-009
+    title: Lập kế hoạch cam kết khi nhu cầu có nhiều kịch bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-010
+    title: Xử lý sự cố retry làm tăng phí serverless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-011
+    title: Giảm chi phí AI tạo sinh trong giới hạn chất lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scenario-based-practice-012
+    title: So sánh phương án kiến trúc đa vùng theo chi phí và SLO
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-management-capstone
+  title: Dự án quản lý chi phí tổng hợp
+  childs:
+  - slug: cost-management-capstone-001
+    title: Xác định bài toán, phạm vi và tiêu chí nghiệm thu dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-002
+    title: Kiểm kê tài nguyên và xác lập đường cơ sở chi tiêu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-003
+    title: Thiết kế mô hình dữ liệu và quy trình kiểm tra chất lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-004
+    title: Xây dựng phân bổ theo sản phẩm và chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-005
+    title: Thiết kế bảng điều khiển chi phí và kinh tế đơn vị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-006
+    title: Lập ngân sách, dự báo và cơ chế cảnh báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-007
+    title: Xây dựng danh mục khuyến nghị tối ưu có lượng hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-008
+    title: Lập kế hoạch cam kết và quản lý rủi ro tài chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-009
+    title: Thiết kế chính sách và tự động hóa kiểm soát chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-010
+    title: Đánh giá tác động bằng chi phí, hiệu năng và độ tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-capstone-011
+    title: Hoàn thiện quy trình đối soát, vận hành và bàn giao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

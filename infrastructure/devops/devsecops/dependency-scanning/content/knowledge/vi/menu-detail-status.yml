@@ -1,0 +1,2434 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Dependency Scanning là gì và vấn đề bảo mật của thư viện bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của phân tích thành phần phần mềm (SCA) trong DevSecOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Các khái niệm: thành phần, gói, hiện vật, phụ thuộc và lỗ hổng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Mối liên hệ giữa mã nguồn, trình quản lý gói, bản dựng và sản phẩm triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt Dependency Scanning với SAST, DAST, Secret Scanning và Container Scanning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: 'Vòng đời xử lý: kiểm kê, phát hiện, xác minh, ưu tiên, khắc phục và theo dõi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Giới hạn của kết quả quét và ý nghĩa của việc không phát hiện lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và kiến thức nền về quản lý phụ thuộc, Git và CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risks-scope
+  title: Rủi ro và phạm vi
+  childs:
+  - slug: risks-scope-001
+    title: Lỗ hổng đã công bố trong thư viện trực tiếp và thư viện bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-002
+    title: Thành phần lỗi thời, ngừng bảo trì và không còn phiên bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-003
+    title: Phân biệt lỗ hổng đã biết, gói độc hại và hành vi xâm phạm chuỗi cung ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-004
+    title: 'Nhầm tên gói, chiếm tên và dependency confusion: phạm vi phát hiện và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-005
+    title: Rủi ro từ mã được thực thi khi cài đặt hoặc trong quá trình dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-006
+    title: Phân biệt cảnh báo lỗ hổng, giấy phép và tình trạng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-007
+    title: Xác định tài sản cần quét theo kho mã, ứng dụng, môi trường và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risks-scope-008
+    title: Ranh giới với quản trị giấy phép và bảo mật chuỗi cung ứng phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-graphs
+  title: Đồ thị phụ thuộc
+  childs:
+  - slug: dependency-graphs-001
+    title: Phụ thuộc trực tiếp, phụ thuộc bắc cầu và đường dẫn đưa thư viện vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-002
+    title: Phụ thuộc lúc biên dịch, lúc chạy, khi kiểm thử và khi dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-003
+    title: Phụ thuộc tùy chọn, phụ thuộc theo nền tảng và điều kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-004
+    title: Phụ thuộc phát triển và phụ thuộc ngang hàng (peer dependency) trong hệ sinh thái phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-005
+    title: Phiên bản được khai báo và phiên bản thực tế sau phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-006
+    title: Xung đột phiên bản, quy tắc chọn phiên bản và thay thế phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-007
+    title: Workspace, dự án nhiều module và kho mã chứa nhiều hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-008
+    title: Thư viện sao chép trực tiếp, thư viện nhúng và thành phần ngoài trình quản lý gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graphs-009
+    title: Ảnh hưởng của môi trường dựng, cấu hình và kiến trúc đến đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reproducible-versions
+  title: Phiên bản và tái lập
+  childs:
+  - slug: reproducible-versions-001
+    title: Phiên bản cố định, khoảng phiên bản và phiên bản động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-002
+    title: Quy ước phiên bản theo hệ sinh thái và giới hạn của Semantic Versioning
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-003
+    title: Manifest, lockfile và tệp khai báo phiên bản tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-004
+    title: Mối liên hệ giữa lockfile, đồ thị đã phân giải và bản dựng tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-005
+    title: Snapshot, prerelease và hiện vật có nội dung thay đổi nhưng giữ nguyên phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-006
+    title: Khóa phiên bản, kiểm tra checksum và đối chiếu nguồn tải gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-007
+    title: Đồng bộ phiên bản giữa máy lập trình viên, CI và môi trường phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-versions-008
+    title: Ghi nhận commit, cấu hình dựng và dấu vết đầu vào cho mỗi lần quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: component-identification
+  title: Định danh thành phần
+  childs:
+  - slug: component-identification-001
+    title: 'Tọa độ gói: hệ sinh thái, namespace, tên và phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-002
+    title: Package URL (purl) và cách biểu diễn định danh theo hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-003
+    title: Common Platform Enumeration (CPE) và khác biệt với định danh gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-004
+    title: Vai trò của checksum và siêu dữ liệu khi xác minh hiện vật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-005
+    title: Chuẩn hóa tên, namespace, hậu tố phiên bản và biến thể theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-006
+    title: Phân biệt thành phần cùng tên nhưng khác hệ sinh thái hoặc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-007
+    title: Thành phần nội bộ, gói riêng và thông tin nguồn gốc không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-008
+    title: Nhận diện thư viện bị đổi tên, đóng gói lại hoặc nhúng vào gói khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: component-identification-009
+    title: Sai lệch định danh và nguyên nhân ghép nhầm lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vulnerability-data
+  title: Dữ liệu lỗ hổng
+  childs:
+  - slug: vulnerability-data-001
+    title: CVE, GHSA, OSV và quan hệ giữa các mã định danh lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-002
+    title: NVD, cơ sở dữ liệu theo hệ sinh thái và thông báo của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-003
+    title: 'Cấu trúc bản ghi: thành phần ảnh hưởng, điều kiện, mức độ và phiên bản sửa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-004
+    title: Khoảng phiên bản bị ảnh hưởng, mốc đưa lỗi vào và mốc đã khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-005
+    title: Alias, bản ghi trùng, bản ghi bị rút và cập nhật thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-006
+    title: Khác biệt giữa công bố lỗ hổng, dữ liệu được bổ sung và thời điểm bộ quét đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-007
+    title: Mức độ đầy đủ của dữ liệu và độ tin cậy của nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-008
+    title: Backport bản vá và khác biệt giữa phiên bản upstream với gói của nhà phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-data-009
+    title: Xử lý thông tin mâu thuẫn giữa cơ sở dữ liệu, nhà cung cấp và bộ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: detection-mechanisms
+  title: Cơ chế phát hiện
+  childs:
+  - slug: detection-mechanisms-001
+    title: 'Chuỗi xử lý: thu thập thành phần, chuẩn hóa, đối sánh và tạo phát hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-002
+    title: Phân tích manifest, lockfile, đồ thị đã phân giải và tệp nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-003
+    title: Đối sánh theo tọa độ gói, purl, CPE và khoảng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-004
+    title: Quét có cài đặt phụ thuộc và quét không cần thực thi quá trình cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-005
+    title: Phát hiện từ siêu dữ liệu so với phân tích nội dung hiện vật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-006
+    title: Các nguyên nhân báo sai (false positive) và bỏ sót (false negative)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-007
+    title: Ảnh hưởng của độ phủ hệ sinh thái và cơ sở dữ liệu đến kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-008
+    title: Tách phát hiện lỗ hổng khỏi đánh giá khả năng bị khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: detection-mechanisms-009
+    title: Kiểm chứng một phát hiện bằng định danh, phiên bản và thông báo gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sbom
+  title: SBOM
+  childs:
+  - slug: sbom-001
+    title: 'Danh mục thành phần phần mềm (SBOM): mục đích và cấu trúc cơ bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-002
+    title: 'SBOM từ mã nguồn, bản dựng và bản phát hành: khác biệt về độ phản ánh thực tế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-003
+    title: CycloneDX và SPDX trong trao đổi thông tin thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-004
+    title: Biểu diễn thành phần, định danh, phiên bản và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-005
+    title: Tạo SBOM từ công cụ dựng, bộ quét hoặc hiện vật đã đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-006
+    title: Kiểm tra tính hợp lệ, thành phần thiếu và độ đầy đủ của quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-007
+    title: Quét lỗ hổng từ SBOM và giới hạn khi không có hiện vật gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-008
+    title: Liên kết SBOM với commit, phiên bản phát hành và digest của hiện vật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-009
+    title: So sánh SBOM để nhận diện thành phần thêm, xóa và thay đổi phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sbom-010
+    title: Lưu trữ, chia sẻ và bảo vệ thông tin trong SBOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-scanning
+  title: Quét kho mã
+  childs:
+  - slug: repository-scanning-001
+    title: Chọn thư mục gốc và xác định toàn bộ manifest, lockfile cần quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-002
+    title: Kiểm kê dự án nhiều module, workspace và nhiều hệ sinh thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-003
+    title: Xử lý lockfile thiếu, lỗi thời hoặc không khớp với manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-004
+    title: Phạm vi quét đối với mã mẫu, dữ liệu kiểm thử và thư mục sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-005
+    title: Nhận diện phụ thuộc lấy từ Git, đường dẫn cục bộ và nguồn ngoài registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-006
+    title: Giới hạn của việc chỉ quét khai báo mà không dựng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-007
+    title: Quét thay đổi trong pull request và so sánh với nhánh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-008
+    title: Thiết lập đường cơ sở và phân biệt phát hiện mới với tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-scanning-009
+    title: Tránh thực thi mã cài đặt không đáng tin cậy trong bước kiểm kê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-scanning
+  title: Quét bản phát hành
+  childs:
+  - slug: release-scanning-001
+    title: Đối chiếu phụ thuộc trong mã nguồn với thành phần thực sự được phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-002
+    title: Quét JAR, WAR, gói nén và thư mục ứng dụng đã đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-003
+    title: Thư viện được đóng gói lại (shading), đổi package và tệp JAR chứa nhiều thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-004
+    title: Phụ thuộc bị loại khỏi gói, được nhúng hoặc được nạp ngoài lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-005
+    title: Phân biệt gói hệ điều hành với thư viện ứng dụng khi quét container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-006
+    title: Ảnh hưởng của base image, lớp ảnh và giai đoạn dựng đến danh mục thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-007
+    title: Giới hạn nhận diện với tệp nhị phân native, liên kết tĩnh và hiện vật thiếu siêu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-008
+    title: Gắn kết quả quét với digest của đúng hiện vật trước khi phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-scanning-009
+    title: Xử lý sai lệch giữa bản dựng đã quét và hiện vật được triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maven
+  title: Maven
+  childs:
+  - slug: maven-001
+    title: Đọc pom.xml và phân biệt dependencies với dependencyManagement
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-002
+    title: Parent POM, BOM và phiên bản phụ thuộc được quản lý tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-003
+    title: Phân tích dependency tree và đường dẫn của phụ thuộc bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-004
+    title: Scope compile, runtime, provided và test khi xác định phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-005
+    title: Phụ thuộc optional, exclusions và giới hạn của việc loại bỏ thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-006
+    title: Profile, property và effective POM trong đồ thị thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-007
+    title: Phụ thuộc của plugin dựng và khác biệt với phụ thuộc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-008
+    title: Quét dự án Maven nhiều module và tránh đếm trùng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-009
+    title: Xác minh phiên bản sau nâng cấp và kiểm tra hiện vật đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maven-010
+    title: Kho Maven riêng, xác thực và thành phần nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gradle
+  title: Gradle
+  childs:
+  - slug: gradle-001
+    title: Đọc khai báo phụ thuộc trong build.gradle và build.gradle.kts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-002
+    title: Configuration và khác biệt giữa classpath biên dịch, chạy và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-003
+    title: Phân tích dependencies và dependencyInsight để truy vết thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-004
+    title: Platform, BOM, constraints và version catalog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-005
+    title: 'Dependency locking và dependency verification: mục đích khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-006
+    title: Quy tắc phân giải, thay thế phụ thuộc và cưỡng chế phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-007
+    title: Variant, thuộc tính và khác biệt đồ thị theo môi trường dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-008
+    title: Plugin, buildscript và phụ thuộc của quá trình dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-009
+    title: Dự án nhiều module, included build và phạm vi quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gradle-010
+    title: Xác minh đồ thị đã phân giải và hiện vật sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-ecosystems
+  title: Các hệ sinh thái khác
+  childs:
+  - slug: other-ecosystems-001
+    title: 'npm: package.json, lockfile và phạm vi production, development, optional'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-002
+    title: 'Yarn, pnpm và workspace: nhận diện đúng tệp khóa và cấu trúc cài đặt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-003
+    title: 'Python: tệp khai báo, tệp khóa và thư viện thực tế trong môi trường'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-004
+    title: 'Python: extras, điều kiện môi trường và gói phụ thuộc nền tảng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-005
+    title: '.NET và NuGet: phụ thuộc trực tiếp, bắc cầu và tệp kết quả phân giải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-006
+    title: 'Go Modules: module graph, phiên bản và quan hệ với mã được sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-007
+    title: 'Rust và Cargo: Cargo.lock, features và thành phần được chọn khi biên dịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-008
+    title: 'PHP Composer và Ruby Bundler: khai báo, tệp khóa và nhóm phụ thuộc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-009
+    title: Giới hạn so sánh kết quả giữa các hệ sinh thái và định dạng phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-ecosystems-010
+    title: Chọn độ phủ hệ sinh thái theo thành phần thực tế của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scanning-tools
+  title: Công cụ quét
+  childs:
+  - slug: scanning-tools-001
+    title: 'Tiêu chí đánh giá bộ quét: đầu vào, hệ sinh thái, dữ liệu và khả năng tích hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-002
+    title: 'OWASP Dependency-Check: hướng tiếp cận và phạm vi sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-003
+    title: 'OWASP Dependency-Track: quản lý danh mục và theo dõi thành phần từ SBOM'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-004
+    title: 'OSV-Scanner: đầu vào, nguồn dữ liệu và tình huống áp dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-005
+    title: 'Trivy và Grype: quét thành phần từ hiện vật, container và SBOM'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-006
+    title: 'GitHub Dependabot: cảnh báo phụ thuộc và cập nhật bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-007
+    title: 'Dịch vụ SCA thương mại: độ phủ, quyền truy cập và mô hình sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-008
+    title: Phân biệt bộ quét, nền tảng quản lý phát hiện và bot cập nhật phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-009
+    title: So sánh các công cụ bằng cùng mẫu kiểm thử và cùng thời điểm dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanning-tools-010
+    title: Chọn công cụ theo nhu cầu và ghi nhận giới hạn thay vì chỉ đếm cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: results-reporting
+  title: Kết quả và báo cáo
+  childs:
+  - slug: results-reporting-001
+    title: 'Cấu trúc phát hiện: thành phần, phiên bản, mã lỗ hổng và bằng chứng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-002
+    title: Đọc mức độ nghiêm trọng, phiên bản sửa và điều kiện ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-003
+    title: Truy vết một phát hiện qua nhiều đường dẫn phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-004
+    title: Phân biệt số lỗ hổng, số thành phần và số lần xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-005
+    title: Chuẩn hóa và khử trùng theo ứng dụng, hiện vật, thành phần và lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-006
+    title: Định dạng JSON, SARIF và báo cáo phục vụ người đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-007
+    title: 'Mã thoát: phân biệt phát hiện vi phạm chính sách với lỗi chạy bộ quét'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-008
+    title: Đối chiếu kết quả trước và sau thay đổi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: results-reporting-009
+    title: Lưu bằng chứng, phiên bản công cụ và thời điểm cập nhật dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: risk-prioritization
+  title: Ưu tiên rủi ro
+  childs:
+  - slug: risk-prioritization-001
+    title: 'CVSS: mức độ nghiêm trọng, phiên bản thang điểm và giới hạn diễn giải'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-002
+    title: 'EPSS: ước lượng khả năng khai thác và cách dùng cùng ngữ cảnh'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-003
+    title: KEV và bằng chứng lỗ hổng đã bị khai thác trong thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-004
+    title: Mức độ quan trọng của tài sản, dữ liệu và phạm vi phơi lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-005
+    title: Vai trò lúc chạy, đường dẫn phụ thuộc và phạm vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-006
+    title: Điều kiện cấu hình, đặc quyền và đầu vào cần cho việc khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-007
+    title: Khả năng có bản vá, biện pháp giảm thiểu và chi phí thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-008
+    title: Xây dựng mức ưu tiên xử lý từ nhiều tín hiệu thay vì chỉ dựa vào điểm số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: risk-prioritization-009
+    title: Ưu tiên lỗ hổng mới phát sinh so với tồn đọng và rủi ro đang bị khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exploitability
+  title: Khả năng khai thác
+  childs:
+  - slug: exploitability-001
+    title: Phân biệt thành phần hiện diện, mã có thể được gọi và khả năng bị khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-002
+    title: Khả năng tiếp cận mã lỗi (reachability) và vai trò trong giảm nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-003
+    title: Phân tích tĩnh đồ thị gọi và giới hạn với mã động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-004
+    title: Bằng chứng lúc chạy và giới hạn của độ phủ kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-005
+    title: Reflection, tải lớp động, plugin và cấu hình làm sai lệch suy luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-006
+    title: Kiểm tra điều kiện ảnh hưởng từ thông báo gốc của nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-007
+    title: Đánh giá trường hợp phụ thuộc chỉ dùng lúc dựng hoặc kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-008
+    title: Phân biệt chưa có bằng chứng khai thác với bằng chứng không bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exploitability-009
+    title: Ghi nhận kết luận và bằng chứng để người khác có thể kiểm tra lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: control-policies
+  title: Chính sách kiểm soát
+  childs:
+  - slug: control-policies-001
+    title: Xác định mục tiêu kiểm soát và phạm vi áp dụng theo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-002
+    title: Ngưỡng chặn theo mức độ, bằng chứng khai thác và mức quan trọng của tài sản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-003
+    title: Chính sách cho phát hiện mới, tồn đọng và thành phần chưa có bản sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-004
+    title: Chế độ cảnh báo, chặn hợp nhất và chặn phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-005
+    title: Thời hạn xử lý theo mức rủi ro và cơ chế nâng mức khi quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-006
+    title: 'Xử lý bộ quét lỗi hoặc dữ liệu quá cũ: cho phép tiếp tục hay chặn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-007
+    title: 'Chính sách dưới dạng mã: quản lý phiên bản, review và kiểm thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-008
+    title: Tách vi phạm bảo mật khỏi kiểm tra giấy phép khi công cụ hỗ trợ cả hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: control-policies-009
+    title: Lộ trình áp dụng chính sách để kiểm soát nợ bảo mật hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ci-cd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: ci-cd-integration-001
+    title: Chọn điểm quét ở máy cá nhân, pull request, nhánh chính và trước phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-002
+    title: Thiết kế các bước kiểm kê, quét, đánh giá chính sách và lưu báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-003
+    title: Tích hợp với GitHub Actions và GitLab CI theo quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-004
+    title: Quét ma trận hệ sinh thái và module mà không bỏ sót hoặc đếm trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-005
+    title: Gắn kết quả kiểm tra với đúng commit và hiện vật dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-006
+    title: Tách kiểm tra vi phạm chính sách khỏi lỗi mạng hoặc lỗi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-007
+    title: Quản lý cache, dữ liệu lỗ hổng và thời gian chạy trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-008
+    title: Công bố báo cáo, annotation và liên kết tới hệ thống theo dõi công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-009
+    title: Kiểm soát pull request từ fork và tác vụ chạy với mã không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ci-cd-integration-010
+    title: Điều kiện cho phép hợp nhất, phát hành và xác minh sau khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-monitoring
+  title: Giám sát liên tục
+  childs:
+  - slug: continuous-monitoring-001
+    title: Vì sao cần quét lại khi mã nguồn và phiên bản phụ thuộc không thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-002
+    title: Lập lịch quét lại theo dữ liệu lỗ hổng mới và mức quan trọng của tài sản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-003
+    title: Theo dõi SBOM theo phiên bản sản phẩm đang còn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-004
+    title: Xác định ứng dụng bị ảnh hưởng khi xuất hiện lỗ hổng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-005
+    title: Phân biệt phát hiện mới do thay đổi phần mềm với thay đổi cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-006
+    title: Quản lý thông báo, gộp cảnh báo và tránh tạo công việc trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-007
+    title: Đồng bộ trạng thái giữa bộ quét, danh mục tài sản và hệ thống công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-008
+    title: Quản lý vòng đời bản phát hành, kết thúc hỗ trợ và ngừng giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-monitoring-009
+    title: Kiểm chứng độ mới của dữ liệu và khả năng bỏ sót trong các lần quét định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remediation
+  title: Khắc phục
+  childs:
+  - slug: remediation-001
+    title: Lựa chọn nâng cấp, thay thế, loại bỏ hoặc giảm thiểu rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-002
+    title: Chọn phiên bản đã sửa theo thông báo gốc và nhánh được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-003
+    title: Nâng phụ thuộc trực tiếp để xử lý thư viện bắc cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-004
+    title: Cập nhật BOM, platform hoặc parent để đồng bộ tập phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-005
+    title: Ghi đè phiên bản bắc cầu và rủi ro tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-006
+    title: Loại bỏ phụ thuộc không cần thiết và kiểm tra ảnh hưởng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-007
+    title: Ứng phó khi chưa có bản sửa hoặc dự án upstream ngừng bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-008
+    title: Kiểm thử tương thích API, hành vi, tích hợp và yêu cầu hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-009
+    title: Dựng lại, quét lại và xác minh đúng hiện vật sau khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remediation-010
+    title: Đóng phát hiện dựa trên bằng chứng và theo dõi nguy cơ tái xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-upgrades
+  title: Nâng cấp tự động
+  childs:
+  - slug: automated-upgrades-001
+    title: Phân biệt cập nhật bảo mật, cập nhật định kỳ và nâng phiên bản lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-002
+    title: Dependabot và Renovate trong quy trình tạo pull request cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-003
+    title: Cấu hình lịch chạy, nhóm cập nhật và giới hạn số pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-004
+    title: Đồng bộ manifest, lockfile và tệp quản lý phiên bản tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-005
+    title: Đánh giá release notes, thay đổi không tương thích và hướng dẫn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-006
+    title: 'Điều kiện tự động hợp nhất: kiểm thử, chính sách và quyền phê duyệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-007
+    title: Kiểm soát quyền bot, registry riêng và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-008
+    title: Xử lý bản cập nhật lỗi, phụ thuộc bị bỏ quên và pull request tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-upgrades-009
+    title: Đo độ trễ cập nhật và giảm nhiễu mà vẫn giữ kiểm soát rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: exceptions-vex
+  title: Ngoại lệ và VEX
+  childs:
+  - slug: exceptions-vex-001
+    title: Phân biệt báo sai, không bị ảnh hưởng, chấp nhận rủi ro và trì hoãn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-002
+    title: Bằng chứng tối thiểu khi đề nghị loại bỏ hoặc hạ ưu tiên cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-003
+    title: Phạm vi ngoại lệ theo thành phần, phiên bản, lỗ hổng và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-004
+    title: Người chịu trách nhiệm, phê duyệt, thời hạn và ngày đánh giá lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-005
+    title: 'Vulnerability Exploitability eXchange (VEX): mục đích và quan hệ với SBOM'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-006
+    title: Trạng thái affected, not affected, fixed và under investigation trong VEX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-007
+    title: Diễn giải lý do không bị ảnh hưởng và kiểm chứng nguồn tuyên bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-008
+    title: Quản lý suppression như mã và tránh quy tắc bỏ qua quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-009
+    title: Tái đánh giá ngoại lệ khi thành phần, cấu hình hoặc bằng chứng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: exceptions-vex-010
+    title: Phân biệt ngoại lệ được phê duyệt với việc tắt hoặc bỏ qua bộ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scanner-operations
+  title: Vận hành bộ quét
+  childs:
+  - slug: scanner-operations-001
+    title: Lựa chọn mô hình CLI, dịch vụ tập trung và nền tảng quản lý danh mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-002
+    title: Đóng gói, cố định phiên bản và cập nhật chính bộ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-003
+    title: Đồng bộ cơ sở dữ liệu, cache và theo dõi độ trễ cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-004
+    title: Proxy, giới hạn API, retry có kiểm soát và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-005
+    title: Quét trong mạng hạn chế hoặc ngoại tuyến và điều kiện bảo đảm độ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-006
+    title: Kho gói riêng, thông tin xác thực và quyền đọc thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-007
+    title: Quản lý cấu hình theo môi trường và dự án mà không tạo sai lệch chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-008
+    title: Phân bổ tài nguyên và tối ưu quét kho mã lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-009
+    title: Giám sát lỗi, hiệu năng và tính sẵn sàng của dịch vụ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scanner-operations-010
+    title: Kiểm thử thay đổi công cụ hoặc nguồn dữ liệu trước khi áp dụng rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-security
+  title: Bảo mật quy trình
+  childs:
+  - slug: process-security-001
+    title: Xem bộ quét và dữ liệu cập nhật như thành phần cần được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-002
+    title: Chạy bộ quét trong môi trường cô lập với quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-003
+    title: Rủi ro khi phân tích tệp nén, tệp nhị phân và đầu vào không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-004
+    title: Giảm thực thi script cài đặt trong quá trình xác định phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-005
+    title: Bảo vệ token registry, khóa API và thông tin xác thực CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-006
+    title: Kiểm soát dữ liệu mã nguồn, SBOM và danh mục thành phần gửi ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-007
+    title: Ẩn thông tin nhạy cảm trong log và giới hạn truy cập báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-008
+    title: Xác minh nguồn công cụ, plugin và gói cập nhật của bộ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-security-009
+    title: Ngăn sửa chính sách, suppression hoặc báo cáo để vượt kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-metrics
+  title: Quản trị và chỉ số
+  childs:
+  - slug: governance-metrics-001
+    title: Phân công trách nhiệm giữa nhóm phát triển, bảo mật và nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-002
+    title: Gắn ứng dụng, thành phần và phát hiện với chủ sở hữu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-003
+    title: Độ phủ quét theo kho mã, hệ sinh thái, bản phát hành và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-004
+    title: Thời gian phát hiện, phân loại và khắc phục theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-005
+    title: Tồn đọng, tuổi phát hiện, tỷ lệ quá hạn và ngoại lệ hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-006
+    title: Tỷ lệ báo sai, cảnh báo trùng và chất lượng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-007
+    title: Đo xu hướng rủi ro mà không đồng nhất số cảnh báo với mức an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-008
+    title: Lưu vết kiểm toán từ kết quả quét tới phê duyệt và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-metrics-009
+    title: Quy trình ứng phó khi có lỗ hổng nghiêm trọng ảnh hưởng nhiều ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Chuẩn bị dự án mẫu và môi trường cô lập để thử nghiệm phụ thuộc có lỗ hổng đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Đọc đồ thị phụ thuộc và truy vết một thư viện bắc cầu có cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Tạo SBOM và đối chiếu với thành phần trong gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Quét cùng dự án bằng hai công cụ và giải thích chênh lệch kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Xác minh một cảnh báo bằng định danh, khoảng phiên bản và thông báo gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Xây dựng chính sách chặn phát hiện mới trong pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Khắc phục phụ thuộc bắc cầu, chạy kiểm thử và quét lại hiện vật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Thực hành ngoại lệ có bằng chứng, người phê duyệt và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Mô phỏng lỗ hổng mới xuất hiện cho bản phát hành không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Kiểm chứng pipeline khi bộ quét lỗi, dữ liệu cũ hoặc không có kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Lập báo cáo tổng hợp với phát hiện, quyết định xử lý và bằng chứng đóng lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Không tìm thấy manifest, lockfile hoặc module cần quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Thiếu phụ thuộc do lỗi phân giải, registry riêng hoặc thiếu quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Báo sai do CPE, định danh gói hoặc quy tắc so sánh phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Đã nâng cấp nhưng cảnh báo còn tồn tại trong đồ thị hoặc gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Bản vá backport và cảnh báo không khớp phiên bản upstream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Kết quả khác nhau giữa máy cá nhân, CI và nền tảng quản lý tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Quét thành công nhưng báo cáo rỗng, thiếu hệ sinh thái hoặc thiếu thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Pipeline không chặn do mã thoát, cấu hình hoặc suppression sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Quét chậm, lỗi giới hạn API và cơ sở dữ liệu cập nhật thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Checklist điều tra từ đầu vào, công cụ, dữ liệu đến chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

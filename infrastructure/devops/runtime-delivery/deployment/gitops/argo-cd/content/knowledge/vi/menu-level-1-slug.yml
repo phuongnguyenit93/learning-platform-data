@@ -1,0 +1,109 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Cài đặt
+  slug: installation
+  index: 2
+- title: Ứng dụng đầu tiên
+  slug: first-application
+  index: 3
+- title: Application
+  slug: application
+  index: 4
+- title: Nguồn triển khai
+  slug: deployment-sources
+  index: 5
+- title: Helm
+  slug: helm
+  index: 6
+- title: Kustomize
+  slug: kustomize
+  index: 7
+- title: Nhiều nguồn
+  slug: multiple-sources
+  index: 8
+- title: Đối chiếu và sai lệch
+  slug: reconciliation-and-drift
+  index: 9
+- title: Sức khỏe ứng dụng
+  slug: application-health
+  index: 10
+- title: Đồng bộ thủ công
+  slug: manual-sync
+  index: 11
+- title: Đồng bộ tự động
+  slug: automated-sync
+  index: 12
+- title: Tùy chọn đồng bộ
+  slug: sync-options
+  index: 13
+- title: Hooks và waves
+  slug: hooks-waves
+  index: 14
+- title: Vòng đời tài nguyên
+  slug: resource-lifecycle
+  index: 15
+- title: AppProject
+  slug: appproject
+  index: 16
+- title: Xác thực và RBAC
+  slug: authentication-and-rbac
+  index: 17
+- title: Phân tách nhóm
+  slug: team-isolation
+  index: 18
+- title: ApplicationSet
+  slug: applicationset
+  index: 19
+- title: Generators
+  slug: generators
+  index: 20
+- title: Vận hành ApplicationSet
+  slug: applicationset-operations
+  index: 21
+- title: Nhiều cluster
+  slug: multi-cluster
+  index: 22
+- title: Cấu trúc GitOps
+  slug: gitops-repository-structure
+  index: 23
+- title: Chuyển môi trường
+  slug: environment-promotion
+  index: 24
+- title: Tích hợp CI
+  slug: ci-integration
+  index: 25
+- title: Cập nhật image
+  slug: image-updates
+  index: 26
+- title: Bí mật và bảo mật
+  slug: secrets-and-security
+  index: 27
+- title: Tiện ích mở rộng
+  slug: extensions
+  index: 28
+- title: Giám sát
+  slug: monitoring
+  index: 29
+- title: Thông báo
+  slug: notifications
+  index: 30
+- title: Sẵn sàng và hiệu năng
+  slug: availability-and-performance
+  index: 31
+- title: Sao lưu và nâng cấp
+  slug: backup-and-upgrades
+  index: 32
+- title: Kiểm thử
+  slug: testing
+  index: 33
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 34
+- title: Thực hành
+  slug: practice
+  index: 35

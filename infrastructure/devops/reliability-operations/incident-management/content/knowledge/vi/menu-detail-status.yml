@@ -1,0 +1,3322 @@
+menu:
+- slug: incident-overview
+  title: Tổng quan
+  childs:
+  - slug: incident-overview-001
+    title: Quản lý sự cố là gì và vai trò trong vận hành dịch vụ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-002
+    title: Phân biệt sự kiện, cảnh báo, sự cố, vấn đề và yêu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-003
+    title: Phân biệt quản lý sự cố với xử lý lỗi thông thường và hỗ trợ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-004
+    title: Mục tiêu khôi phục dịch vụ và bảo vệ người dùng khi xảy ra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-005
+    title: Mối liên hệ giữa DevOps, SRE, ITSM và quản lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-006
+    title: Vai trò của SLI, SLO và ngân sách lỗi trong đánh giá tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-007
+    title: Phân biệt ứng phó sự cố, liên tục kinh doanh và khôi phục thảm họa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-008
+    title: Tư duy hệ thống và giới hạn của việc quy lỗi cho một cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-009
+    title: Cân bằng tốc độ xử lý, mức rủi ro và chất lượng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-overview-010
+    title: Thuật ngữ, vai trò và thứ tự học để tham gia xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-lifecycle
+  title: Vòng đời sự cố
+  childs:
+  - slug: incident-lifecycle-001
+    title: Các giai đoạn từ phát hiện đến xác nhận phục hồi và đóng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-002
+    title: Phân biệt thời điểm lỗi bắt đầu, được phát hiện và được công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-003
+    title: Thiết kế trạng thái sự cố và điều kiện chuyển trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-004
+    title: Phân biệt đang điều tra, đã xác định, đang giảm thiểu và đang theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-005
+    title: Tiêu chí mở lại sự cố sau khi đã xác nhận phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-006
+    title: Liên kết nhiều cảnh báo với một sự cố duy nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-007
+    title: Quản lý sự cố liên quan, sự cố trùng và sự cố phát sinh thứ cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-008
+    title: Phân biệt nhật ký xử lý trực tiếp với báo cáo sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-lifecycle-009
+    title: Xác định sản phẩm đầu ra và trách nhiệm ở từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: response-preparation
+  title: Chuẩn bị ứng phó
+  childs:
+  - slug: response-preparation-001
+    title: Lập danh mục dịch vụ và xác định chủ sở hữu vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-002
+    title: Xác định dịch vụ trọng yếu, hành trình người dùng và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-003
+    title: Chuẩn bị sơ đồ kiến trúc và bản đồ phụ thuộc có thể tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-004
+    title: Xây dựng chính sách ứng phó và tiêu chí tuyên bố sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-005
+    title: Chuẩn bị danh bạ, lịch trực và tuyến chuyển cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-006
+    title: Thiết lập kênh phối hợp, cầu họp và nơi ghi nhật ký sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-007
+    title: Chuẩn bị quyền truy cập, tài khoản khẩn cấp và cơ chế kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-008
+    title: Kiểm tra khả năng truy cập công cụ khi hệ thống chính bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-009
+    title: Chuẩn bị runbook, mẫu thông báo và danh sách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-010
+    title: Kiểm tra năng lực rollback, chuyển lưu lượng và khôi phục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-preparation-011
+    title: Xác định quyền quyết định và thẩm quyền chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: severity-prioritization
+  title: Phân cấp và ưu tiên
+  childs:
+  - slug: severity-prioritization-001
+    title: Phân biệt mức nghiêm trọng của tác động với mức ưu tiên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-002
+    title: Xây dựng tiêu chí phân cấp theo phạm vi và hậu quả đối với người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-003
+    title: Đánh giá ảnh hưởng đến tính sẵn sàng, độ trễ và tính đúng đắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-004
+    title: Đánh giá mất dữ liệu, sai dữ liệu và nguy cơ lộ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-005
+    title: Đánh giá số người dùng, khách hàng, khu vực và dịch vụ bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-006
+    title: Xử lý sự cố tác động nhỏ về số lượng nhưng nghiêm trọng về nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-007
+    title: Xác định tình trạng khẩn cấp khi chưa đủ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-008
+    title: Điều chỉnh mức nghiêm trọng khi xuất hiện bằng chứng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-009
+    title: Tránh hạ cấp chỉ vì đã có biện pháp giảm thiểu tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-prioritization-010
+    title: Ánh xạ mức nghiêm trọng với lực lượng, truyền thông và chuyển cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-command
+  title: Tổ chức chỉ huy
+  childs:
+  - slug: incident-command-001
+    title: Vai trò người chỉ huy sự cố và phạm vi quyền điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-002
+    title: Vai trò trưởng nhóm kỹ thuật và người trực tiếp thực hiện thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-003
+    title: Vai trò phụ trách truyền thông và cập nhật các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-004
+    title: Vai trò người ghi chép, quản lý thời gian và theo dõi nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-005
+    title: Trách nhiệm của chủ dịch vụ, hỗ trợ khách hàng và đại diện nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-006
+    title: Phân biệt quyền điều phối với quyền quyết định chuyên môn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-007
+    title: Thiết kế cơ chế một đầu mối chỉ huy và nhiều nhóm điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-008
+    title: Gộp vai trò trong nhóm nhỏ mà vẫn bảo đảm trách nhiệm rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-009
+    title: Chuyển giao người chỉ huy khi sự cố kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-010
+    title: Xử lý bất đồng kỹ thuật và quyết định cần phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-command-011
+    title: Thiết lập người thay thế khi người phụ trách không thể tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: on-call-operations
+  title: Trực vận hành
+  childs:
+  - slug: on-call-operations-001
+    title: Thiết kế lịch trực chính, trực dự phòng và phạm vi hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-002
+    title: Chuẩn bị năng lực tối thiểu trước khi tham gia ca trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-003
+    title: Định tuyến cảnh báo đến đúng đội và đúng người đang trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-004
+    title: Xác nhận đã nhận cảnh báo và xử lý khi không có phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-005
+    title: Chuyển cấp theo thời gian, mức tác động và năng lực chuyên môn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-006
+    title: Phân biệt chuyển cấp chức năng với chuyển cấp quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-007
+    title: Bàn giao ca trực bằng tình trạng hệ thống, rủi ro và công việc mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-008
+    title: Quản lý thay đổi lịch trực và thông tin liên hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-009
+    title: Kiểm tra đường gọi khẩn cấp và kênh dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-010
+    title: Giảm mệt mỏi do cảnh báo và bảo vệ thời gian nghỉ của người trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-011
+    title: Điều phối người thay ca trong sự cố kéo dài hoặc ngoài giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-012
+    title: Đánh giá tính bền vững của lịch trực theo khối lượng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-detection
+  title: Phát hiện sự cố
+  childs:
+  - slug: incident-detection-001
+    title: Phát hiện từ chỉ số người dùng thay vì chỉ theo dõi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-002
+    title: Kết hợp metrics, logs, traces và kiểm thử tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-003
+    title: Phát hiện từ hỗ trợ khách hàng, đối tác và phản ánh của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-004
+    title: Nhận diện lỗi một phần và suy giảm âm thầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-005
+    title: Liên hệ cảnh báo với SLO và tốc độ tiêu hao ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-006
+    title: Phát hiện vấn đề về tính đúng đắn và độ mới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-007
+    title: Đối chiếu tín hiệu từ nhiều nguồn để giảm nhận định sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-008
+    title: Nhận diện trường hợp hệ thống giám sát cũng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-009
+    title: Phân biệt mất tín hiệu với dịch vụ đang hoạt động bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-010
+    title: Gom nhóm, khử trùng và giảm nhiễu trong cơn bão cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-detection-011
+    title: Ghi nhận thời điểm phát hiện và nguồn thông tin ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: intake-triage
+  title: Tiếp nhận và đánh giá
+  childs:
+  - slug: intake-triage-001
+    title: Tiếp nhận cảnh báo và xác định dịch vụ bị nghi ngờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-002
+    title: Xác minh triệu chứng có xảy ra thực tế hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-003
+    title: Đánh giá nhanh ảnh hưởng tới người dùng và nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-004
+    title: Xác định thời điểm bắt đầu và phạm vi bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-005
+    title: Kiểm tra thay đổi gần nhất và các sự cố đang diễn ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-006
+    title: Phân biệt nguyên nhân cục bộ với phụ thuộc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-007
+    title: Thu thập thông tin tối thiểu trước khi chuyển cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-008
+    title: Ưu tiên hành động bảo vệ dữ liệu khi nghi ngờ mất tính toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-009
+    title: Quyết định tự xử lý, chuyển cấp hay tuyên bố sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-010
+    title: Ghi rõ thông tin đã xác nhận, giả thuyết và điều chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: intake-triage-011
+    title: Tránh trì hoãn kích hoạt ứng phó vì muốn biết ngay nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: response-coordination
+  title: Điều phối ứng phó
+  childs:
+  - slug: response-coordination-001
+    title: Tuyên bố sự cố và tạo định danh thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-002
+    title: Kích hoạt kênh điều phối và xác nhận các vai trò đang đảm nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-003
+    title: Tạo bản tóm tắt hiện trạng và mục tiêu xử lý trước mắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-004
+    title: Phân chia luồng điều tra, giảm thiểu và truyền thông
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-005
+    title: Giao nhiệm vụ có người nhận, mục tiêu và điểm báo cáo lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-006
+    title: Quản lý hàng đợi hành động và tránh nhiều người sửa cùng một chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-007
+    title: Đặt nhịp cập nhật theo mức nghiêm trọng và diễn biến thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-008
+    title: Tổng hợp tiến độ mà không kéo mọi người vào một cuộc họp kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-009
+    title: Đánh giá lại tác động và nguồn lực khi tình huống thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-010
+    title: Chọn thời điểm dừng điều tra để triển khai giảm thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-011
+    title: Quản lý sự cố mới xuất hiện trong khi đang xử lý sự cố hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-012
+    title: Chuyển cấp khi không có tiến triển hoặc vượt thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-013
+    title: Bàn giao đầy đủ trạng thái, quyết định và rủi ro khi thay người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: response-coordination-014
+    title: Duy trì bức tranh chung giữa nhiều nhóm và nhiều múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communications-evidence
+  title: Thông tin và bằng chứng
+  childs:
+  - slug: communications-evidence-001
+    title: Thiết lập tài liệu sự cố làm nơi tập hợp thông tin thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-002
+    title: Ghi dòng thời gian với múi giờ và mốc thời gian nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-003
+    title: Phân biệt sự kiện quan sát được với suy đoán về nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-004
+    title: Ghi quyết định, lý do lựa chọn và người chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-005
+    title: Lưu truy vấn, biểu đồ, log và dấu vết liên quan đến triệu chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-006
+    title: Liên kết commit, bản triển khai, cấu hình và thay đổi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-007
+    title: Giữ bằng chứng trước thao tác restart, rollback hoặc thay thế tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-008
+    title: Kiểm tra độ lệch đồng hồ và giới hạn độ tin cậy của timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-009
+    title: Che dữ liệu cá nhân, thông tin xác thực và nội dung nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-010
+    title: Kiểm soát quyền truy cập và thời hạn lưu hồ sơ sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communications-evidence-011
+    title: Ghi phần chưa biết và thông tin cần bổ sung sau khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-diagnostics
+  title: Chẩn đoán hệ thống
+  childs:
+  - slug: system-diagnostics-001
+    title: Bắt đầu từ hành trình người dùng và lần theo chuỗi phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-002
+    title: Xây dựng giả thuyết có thể kiểm chứng thay vì sửa theo phỏng đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-003
+    title: Ưu tiên phép kiểm tra theo tác động, thời gian và độ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-004
+    title: So sánh trạng thái trước và sau thời điểm bắt đầu sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-005
+    title: So sánh nhóm bị ảnh hưởng với nhóm hoạt động bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-006
+    title: Phân biệt triệu chứng, điều kiện kích hoạt và yếu tố góp phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-007
+    title: Theo dõi request qua nhiều dịch vụ bằng định danh tương quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-008
+    title: Nhận diện retry, timeout và lỗi dây chuyền trong hệ phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-009
+    title: Kiểm tra giới hạn tài nguyên, hàng đợi và điểm nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-010
+    title: Đánh giá giới hạn của telemetry, sampling và dữ liệu bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-011
+    title: Thay đổi từng yếu tố có kiểm soát và ghi nhận kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-diagnostics-012
+    title: Tránh thiên kiến xác nhận, neo vào thay đổi gần nhất và kết luận sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: impact-mitigation
+  title: Giảm thiểu tác động
+  childs:
+  - slug: impact-mitigation-001
+    title: Phân biệt giảm thiểu tạm thời với sửa lỗi lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-002
+    title: Lựa chọn hành động dựa trên mức tác động và khả năng đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-003
+    title: Vô hiệu hóa tính năng bằng feature flag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-004
+    title: Cô lập thành phần lỗi và giới hạn phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-005
+    title: Chuyển lưu lượng khỏi bản triển khai, vùng hoặc cụm có vấn đề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-006
+    title: Áp dụng giảm chức năng có kiểm soát để giữ luồng nghiệp vụ chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-007
+    title: Sử dụng rate limit, load shedding và backpressure khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-008
+    title: Tạm dừng tác vụ nền hoặc nguồn tải không thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-009
+    title: Điều chỉnh timeout, retry và circuit breaker theo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-010
+    title: Đánh giá mở rộng tài nguyên so với nguy cơ khuếch đại điểm nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-011
+    title: Xác định tiêu chí thành công, điều kiện dừng và phương án hoàn nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: impact-mitigation-012
+    title: Theo dõi hệ quả ngoài dự kiến sau mỗi hành động giảm thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-related-incidents
+  title: Ứng phó thay đổi
+  childs:
+  - slug: change-related-incidents-001
+    title: Liên hệ sự cố với triển khai mã, cấu hình và thay đổi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-002
+    title: Tạm dừng rollout và các thay đổi không thiết yếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-003
+    title: Đánh giá rollback so với sửa tiếp trên phiên bản đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-004
+    title: Kiểm tra tính tương thích của dữ liệu và schema trước rollback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-005
+    title: Hoàn nguyên cấu hình và kiểm chứng phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-006
+    title: Chuyển khỏi bản canary hoặc thu hẹp tập người dùng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-007
+    title: Thực hiện thay đổi khẩn cấp với người phê duyệt và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-008
+    title: Tránh chồng nhiều bản sửa khi chưa đánh giá kết quả bản trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-009
+    title: Khôi phục quy trình triển khai bình thường sau khi hệ thống ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-related-incidents-010
+    title: Bổ sung kiểm soát thay đổi từ bài học của sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-incidents
+  title: Sự cố hiệu năng
+  childs:
+  - slug: performance-incidents-001
+    title: Phân biệt tăng độ trễ, giảm thông lượng và tăng tỷ lệ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-002
+    title: Phân tích độ trễ theo phân vị và theo nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-003
+    title: Ứng phó tăng tải đột biến và tải vượt dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-004
+    title: Nhận diện cạn CPU, bộ nhớ, kết nối và luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-005
+    title: Phân tích hàng đợi tăng, công việc tồn đọng và độ trễ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-006
+    title: Nhận diện retry storm và hiệu ứng khuếch đại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-007
+    title: Đánh giá cache miss, cache stampede và điểm nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-008
+    title: Lựa chọn giảm tải, mở rộng hoặc thu hẹp chức năng theo điểm nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-incidents-009
+    title: Kiểm chứng phục hồi từ góc nhìn người dùng thay vì chỉ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-incidents
+  title: Sự cố phụ thuộc
+  childs:
+  - slug: dependency-incidents-001
+    title: Xác định phụ thuộc ngoài, phụ thuộc nội bộ và phụ thuộc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-002
+    title: Phân biệt lỗi nhà cung cấp với lỗi tích hợp của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-003
+    title: Kiểm tra DNS, TLS, kết nối và timeout trên đường gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-004
+    title: Đánh giá tác động khi phụ thuộc chậm thay vì ngừng hoàn toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-005
+    title: Thiết kế và kích hoạt phương án fallback có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-006
+    title: Kiểm soát retry để không làm trầm trọng thêm sự cố phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-007
+    title: Phối hợp với nhà cung cấp bằng bằng chứng và mã yêu cầu hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-008
+    title: Theo dõi trạng thái nhà cung cấp mà vẫn kiểm chứng tác động thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-009
+    title: Phục hồi kết nối và tránh dồn tải khi phụ thuộc hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-incidents-010
+    title: Xác nhận trách nhiệm xử lý khi có nhiều nhà cung cấp liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-incidents
+  title: Sự cố dữ liệu
+  childs:
+  - slug: data-incidents-001
+    title: Phân biệt mất khả dụng, mất dữ liệu, sai dữ liệu và dữ liệu chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-002
+    title: Đánh giá phạm vi ghi sai và bảo vệ phần dữ liệu chưa bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-003
+    title: Tạm dừng luồng ghi hoặc tác vụ xử lý theo thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-004
+    title: Điều tra truy vấn chậm, khóa, deadlock và cạn connection pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-005
+    title: Đánh giá replication lag và sự khác biệt dữ liệu giữa các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-006
+    title: Ứng phó lỗi migration và thay đổi schema không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-007
+    title: Đánh giá mất kết nối, đầy dung lượng và lỗi lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-008
+    title: Chọn failover với nhận thức về nhất quán và nguy cơ split-brain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-009
+    title: Phối hợp khôi phục từ bản sao lưu theo mục tiêu RPO và RTO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-010
+    title: Đối soát dữ liệu và xác nhận tính toàn vẹn sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-011
+    title: Kiểm soát replay, xử lý trùng và tác động nghiệp vụ khi chạy bù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-incidents-012
+    title: Phân biệt khôi phục dịch vụ với hoàn tất khôi phục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-incidents
+  title: Sự cố ứng dụng
+  childs:
+  - slug: application-incidents-001
+    title: Ứng phó tiến trình crash và chu kỳ khởi động lại liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-002
+    title: Chẩn đoán rò rỉ bộ nhớ, hết bộ nhớ và thu gom rác kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-003
+    title: Nhận diện cạn thread pool, deadlock và tác vụ bị treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-004
+    title: Ứng phó cấu hình sai, thiếu biến môi trường và thay đổi bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-005
+    title: Kiểm tra lỗi khởi động, readiness và phụ thuộc chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-006
+    title: Phân tích lỗi chỉ xuất hiện ở một phiên bản hoặc một nhóm tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-007
+    title: Ứng phó lỗi cache và trạng thái ứng dụng không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-008
+    title: Kiểm tra chứng thư, token hoặc thông tin xác thực hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-009
+    title: Đánh giá restart như biện pháp tạm thời và giới hạn mất bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-incidents-010
+    title: Xác minh hành vi nghiệp vụ sau khi tiến trình đã chạy trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: platform-incidents
+  title: Sự cố nền tảng
+  childs:
+  - slug: platform-incidents-001
+    title: Ứng phó node, máy ảo hoặc vùng hạ tầng không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-002
+    title: Phân biệt lỗi ứng dụng với lỗi mạng, lưu trữ và lớp điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-003
+    title: Kiểm tra Pod, rollout, scheduler và dịch vụ trong môi trường Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-004
+    title: Nhận diện giới hạn quota, hạn mức API và cạn tài nguyên cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-005
+    title: Ứng phó DNS, load balancer và định tuyến sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-006
+    title: Đánh giá lỗi control plane so với lỗi data plane
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-007
+    title: Phân tích sự cố chứng thư và đồng bộ thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-008
+    title: Điều phối failover khu vực với nhóm hạ tầng và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-009
+    title: Xử lý khi nền tảng CI/CD hoặc hệ thống quản trị cũng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: platform-incidents-010
+    title: Giữ phạm vi quản lý sự cố tách rõ với thiết kế hạ tầng chuyên sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-incidents
+  title: Sự cố bảo mật
+  childs:
+  - slug: security-incidents-001
+    title: Nhận diện dấu hiệu sự cố bảo mật trong quá trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-002
+    title: Kích hoạt phối hợp giữa nhóm vận hành và nhóm ứng phó bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-003
+    title: Phân biệt mục tiêu phục hồi với yêu cầu cô lập và bảo toàn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-004
+    title: Giới hạn truy cập và phạm vi tác động theo quy trình được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-005
+    title: Quản lý thay thế thông tin xác thực và nguy cơ gián đoạn liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-006
+    title: Bảo vệ bằng chứng, nhật ký và quyền truy cập hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-007
+    title: Điều phối nội dung thông báo với người có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-008
+    title: Giới hạn chia sẻ thông tin nhạy cảm trong kênh xử lý chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-incidents-009
+    title: Xác định điều kiện bàn giao, phục hồi và theo dõi sau sự cố bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: internal-communications
+  title: Truyền thông nội bộ
+  childs:
+  - slug: internal-communications-001
+    title: Xác định người cần biết, người cần quyết định và người cần hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-002
+    title: Chuẩn hóa thông báo mở sự cố với tác động và thời điểm cập nhật tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-003
+    title: Tóm tắt hiện trạng bằng thông tin đã xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-004
+    title: Thông báo điều chưa biết mà không tạo cảm giác chắc chắn giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-005
+    title: Phân biệt thông tin điều phối kỹ thuật với cập nhật cho quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-006
+    title: Cập nhật mức nghiêm trọng, phạm vi ảnh hưởng và biện pháp đang áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-007
+    title: Điều phối yêu cầu từ lãnh đạo mà không làm gián đoạn nhóm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-008
+    title: Ghi nhận quyết định nghiệp vụ và chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: internal-communications-009
+    title: Đồng bộ thông tin giữa kênh chat, cầu họp và tài liệu sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: external-communications
+  title: Truyền thông bên ngoài
+  childs:
+  - slug: external-communications-001
+    title: Xác định nhóm người dùng và đối tác cần được thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-002
+    title: Thiết lập trách nhiệm soạn, kiểm chứng và phê duyệt thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-003
+    title: Viết cập nhật tập trung vào ảnh hưởng đối với người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-004
+    title: Công bố thông tin trên status page và kênh hỗ trợ được chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-005
+    title: Cập nhật theo nhịp cam kết kể cả khi chưa có kết luận mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-006
+    title: Phân biệt ước tính phục hồi với cam kết có đủ cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-007
+    title: Hướng dẫn giải pháp tạm thời có điều kiện và giới hạn rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-008
+    title: Đồng bộ nội dung giữa hỗ trợ khách hàng, quản lý tài khoản và status page
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-009
+    title: Thông báo phục hồi và phần công việc còn tiếp tục xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-010
+    title: Chia sẻ báo cáo sau sự cố với mức chi tiết và phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: external-communications-011
+    title: Xử lý đính chính khi thông tin đã công bố không còn chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: major-incidents
+  title: Sự cố nghiêm trọng
+  childs:
+  - slug: major-incidents-001
+    title: Tiêu chí kích hoạt chế độ xử lý sự cố nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-002
+    title: Huy động nhiều nhóm nhưng giữ một đầu mối chỉ huy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-003
+    title: Thiết lập các nhóm công việc và đầu mối báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-004
+    title: Ưu tiên giữa nhiều dịch vụ và hành trình nghiệp vụ cùng bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-005
+    title: Quản lý quyết định có chi phí lớn hoặc khó đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-006
+    title: Kích hoạt phương án liên tục kinh doanh hoặc khôi phục thảm họa khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-007
+    title: Điều phối người phụ trách nghiệp vụ, lãnh đạo và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-008
+    title: Duy trì kênh phối hợp dự phòng khi công cụ nội bộ không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-009
+    title: Quản lý ca làm việc, nghỉ ngơi và chuyển giao trong sự cố kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-010
+    title: Đánh giá lại chiến lược khi các biện pháp giảm thiểu không hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: major-incidents-011
+    title: Ngăn sự cố thứ cấp do thao tác vội vàng hoặc thay đổi thiếu phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-recovery
+  title: Phục hồi dịch vụ
+  childs:
+  - slug: service-recovery-001
+    title: Đặt tiêu chí phục hồi theo tác động và chỉ số người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-002
+    title: Phân biệt dịch vụ hoạt động lại với phục hồi đầy đủ chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-003
+    title: Xác minh hành trình nghiệp vụ và các vai trò người dùng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-004
+    title: Kiểm tra tính đúng đắn, độ mới và khả năng truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-005
+    title: Đối chiếu trạng thái giữa các vùng, khách hàng và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-006
+    title: Phục hồi lưu lượng từng bước và theo dõi tín hiệu bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-007
+    title: Giải phóng công việc tồn đọng mà không gây tăng tải trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-008
+    title: Xử lý replay, retry và tác vụ bị gián đoạn theo nguyên tắc an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-009
+    title: Theo dõi trong khoảng thời gian phù hợp với đặc điểm sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-010
+    title: Xác định điều kiện quay lại phương án giảm thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-011
+    title: Thông báo trạng thái phục hồi cùng giới hạn còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-recovery-012
+    title: Bàn giao rủi ro và biện pháp tạm thời cho đội vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-closure
+  title: Đóng sự cố
+  childs:
+  - slug: incident-closure-001
+    title: Xác minh đầy đủ tiêu chí đóng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-002
+    title: Chốt dòng thời gian và phạm vi tác động đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-003
+    title: Ghi trạng thái của bản sửa, biện pháp tạm thời và rủi ro còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-004
+    title: Xác nhận người chịu trách nhiệm cho từng công việc tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-005
+    title: Hoàn tất thông báo cho các nhóm và kênh liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-006
+    title: Lưu hồ sơ, bằng chứng và liên kết đến công việc khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-007
+    title: Đặt lịch phân tích sau sự cố theo mức nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-closure-008
+    title: Xác định điều kiện mở lại hoặc tạo sự cố liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: post-incident-analysis
+  title: Phân tích sau sự cố
+  childs:
+  - slug: post-incident-analysis-001
+    title: Mục đích của postmortem và tiêu chí cần tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-002
+    title: Chuẩn bị hồ sơ sự cố và thu thập góc nhìn từ người tham gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-003
+    title: Tạo không gian thảo luận không đổ lỗi và dựa trên sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-004
+    title: Tái dựng dòng thời gian từ nhiều nguồn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-005
+    title: Định lượng tác động và ghi rõ phần chưa thể xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-006
+    title: Phân biệt điều kiện kích hoạt, yếu tố góp phần và lỗ hổng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-007
+    title: Phân tích vì sao quyết định lúc đó có vẻ hợp lý với thông tin sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-008
+    title: Sử dụng 5 Whys hoặc sơ đồ nguyên nhân với nhận thức về giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-009
+    title: Phân tích thất bại của các lớp phòng vệ và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-010
+    title: Ghi nhận điều đã làm tốt, điều cản trở và yếu tố may mắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-011
+    title: Đề xuất hành động gắn với bằng chứng thay vì chỉ yêu cầu cẩn thận hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-012
+    title: Rà soát báo cáo với người tham gia và các bên chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: post-incident-analysis-013
+    title: Công bố bài học theo phạm vi phù hợp và bảo vệ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prevention-improvements
+  title: Cải tiến phòng ngừa
+  childs:
+  - slug: prevention-improvements-001
+    title: Phân loại hành động ngăn tái diễn, giảm tác động và tăng khả năng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-002
+    title: Ưu tiên cải tiến theo rủi ro, chi phí và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-003
+    title: Chuyển bài học thành công việc có chủ sở hữu và hạn hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-004
+    title: Đặt tiêu chí nghiệm thu kiểm chứng được cho hành động khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-005
+    title: Tăng khả năng rollback, cô lập và suy giảm chức năng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-006
+    title: Bổ sung kiểm thử hồi quy cho điều kiện gây sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-007
+    title: Cải thiện telemetry và cảnh báo cho khoảng trống đã phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-008
+    title: Sửa runbook, quyền truy cập và quy trình phối hợp bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-009
+    title: Xác minh hành động đã hoàn thành thực sự làm giảm rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-010
+    title: Theo dõi hành động quá hạn, bị hủy hoặc không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prevention-improvements-011
+    title: Tổng hợp sự cố lặp lại để xử lý vấn đề mang tính hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runbooks-playbooks
+  title: Runbook và playbook
+  childs:
+  - slug: runbooks-playbooks-001
+    title: Phân biệt runbook thao tác với playbook điều phối ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-002
+    title: Xác định đối tượng sử dụng, phạm vi và điều kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-003
+    title: Viết bước kiểm tra với tín hiệu đầu vào và kết quả mong đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-004
+    title: Mô tả hành động, quyền cần có và giới hạn tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-005
+    title: Ghi điều kiện dừng, điểm chuyển cấp và phương án hoàn nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-006
+    title: Thiết kế nhánh quyết định khi kết quả kiểm tra không như dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-007
+    title: Bổ sung truy vấn, dashboard và liên kết đến dữ liệu cần tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-008
+    title: Giữ tài liệu dùng được khi hệ thống chính hoặc mạng nội bộ gặp lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-009
+    title: Kiểm chứng runbook bằng người chưa trực tiếp xây dựng hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-010
+    title: Quản lý phiên bản, chủ sở hữu và lịch rà soát tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runbooks-playbooks-011
+    title: Rà soát hướng dẫn lỗi thời và tránh sao chép thao tác nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-automation
+  title: Công cụ và tự động hóa
+  childs:
+  - slug: tools-automation-001
+    title: Thiết kế luồng từ cảnh báo đến gọi trực, tạo sự cố và ghi hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-002
+    title: Liên kết sự cố với dashboard, log, trace và lịch sử triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-003
+    title: Đồng bộ công cụ quản lý sự cố với hệ thống quản lý công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-004
+    title: Tự động tạo kênh, tài liệu và mẫu cập nhật theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-005
+    title: Tự động thu thập ngữ cảnh mà không làm lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-006
+    title: Thiết kế webhook và bot có xác thực, phân quyền và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-007
+    title: Bảo đảm thao tác tự động có tính lặp an toàn và chống tạo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-008
+    title: Đặt kiểm soát phê duyệt cho tự động hóa có thể thay đổi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-009
+    title: Giới hạn phạm vi và điều kiện dừng của hành động tự phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-010
+    title: Giám sát chính công cụ điều phối và chuẩn bị phương án thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-011
+    title: Kiểm thử tích hợp, lỗi truyền sự kiện và khả năng hoạt động dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-automation-012
+    title: Đánh giá lợi ích tự động hóa dựa trên thời gian và rủi ro thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-metrics
+  title: Đo lường vận hành
+  childs:
+  - slug: operational-metrics-001
+    title: Xác định mốc bắt đầu, kết thúc và nguồn dữ liệu của từng chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-002
+    title: Đo thời gian phát hiện và độ trễ nhận biết sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-003
+    title: Đo thời gian xác nhận cảnh báo và bắt đầu ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-004
+    title: Đo thời gian giảm thiểu tác động và phục hồi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-005
+    title: Làm rõ MTTR đang chỉ sửa chữa, phục hồi hay giải quyết hoàn toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-006
+    title: Sử dụng phân bố và phân vị thay vì chỉ nhìn giá trị trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-007
+    title: Theo dõi thời lượng ảnh hưởng và số người dùng bị tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-008
+    title: Đối chiếu sự cố với SLO và mức tiêu hao ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-009
+    title: Theo dõi tần suất tái diễn và hiệu quả hành động sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-010
+    title: Đo chất lượng gọi trực, bàn giao và cập nhật thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-011
+    title: Tránh dùng chỉ số để khuyến khích đóng sớm hoặc che giấu sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-metrics-012
+    title: Giải thích sai lệch do dữ liệu thiếu, thay đổi phân cấp và mẫu quá nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: drills-training
+  title: Diễn tập và đào tạo
+  childs:
+  - slug: drills-training-001
+    title: Thiết kế mục tiêu diễn tập theo năng lực cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-002
+    title: Phân biệt diễn tập bàn giấy, mô phỏng và thử lỗi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-003
+    title: Chọn phạm vi, môi trường và giới hạn ảnh hưởng được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-004
+    title: Chuẩn bị kịch bản, người điều phối và tiêu chí dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-005
+    title: Diễn tập nhận cảnh báo, gọi trực và chuyển cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-006
+    title: Diễn tập chỉ huy, ghi chép và truyền thông sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-007
+    title: Diễn tập mất công cụ giám sát hoặc kênh phối hợp chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-008
+    title: Diễn tập rollback, failover và xác nhận phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-009
+    title: Đánh giá kết quả bằng bằng chứng thay vì chỉ hoàn thành kịch bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-010
+    title: Cập nhật tài liệu và kế hoạch đào tạo từ khoảng trống phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drills-training-011
+    title: Tổ chức quan sát ca trực và thực hành có người hướng dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Xây dựng dịch vụ thử nghiệm cùng tín hiệu giám sát và dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Lập danh mục dịch vụ, ma trận trách nhiệm và tuyến gọi trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Tạo ma trận phân cấp sự cố theo tác động người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: Mô phỏng một lỗi triển khai và thực hiện đánh giá ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Tuyên bố sự cố, phân vai và tạo nhật ký xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Điều tra giả thuyết bằng metrics, logs và traces
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Thực hiện giảm thiểu có điều kiện dừng và phương án hoàn nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Soạn thông báo nội bộ và thông báo người dùng theo từng trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Bàn giao giữa hai ca trong khi sự cố còn đang mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Xác minh phục hồi, theo dõi ổn định và đóng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Viết postmortem cùng hành động khắc phục có thể nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Tính chỉ số từ dòng thời gian và đánh giá giới hạn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-013
+    title: Dọn môi trường thử nghiệm và xác nhận không còn tác động ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: coordination-scenarios
+  title: Tình huống phối hợp
+  childs:
+  - slug: coordination-scenarios-001
+    title: Cảnh báo dồn dập nhưng chưa xác định được dịch vụ gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-002
+    title: Nhiều nhóm đồng thời thay đổi hệ thống và làm mất dấu nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-003
+    title: Người chỉ huy vắng mặt hoặc không có đội nhận trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-004
+    title: Khách hàng báo lỗi nhưng dashboard tổng hợp vẫn bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-005
+    title: Biện pháp giảm thiểu có hiệu quả nhưng gây rủi ro dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-006
+    title: Nhà cung cấp thông báo phục hồi nhưng người dùng vẫn bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-007
+    title: Sự cố tái diễn ngay sau khi được đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-008
+    title: Sự cố kéo dài qua nhiều ca và nhiều múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-009
+    title: Hệ thống điều phối, danh bạ hoặc nền tảng đăng nhập cùng bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-010
+    title: Yêu cầu ước tính thời gian phục hồi khi chưa đủ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-011
+    title: Postmortem hoàn tất nhưng hành động phòng ngừa liên tục quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: coordination-scenarios-012
+    title: Có nhiều sự cố đồng thời cạnh tranh cùng một nhóm chuyên gia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-roadmap
+  title: Lộ trình áp dụng
+  childs:
+  - slug: adoption-roadmap-001
+    title: Đánh giá hiện trạng quy trình, công cụ và năng lực đội ngũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-002
+    title: Chọn dịch vụ thí điểm và tiêu chí thành công đo được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-003
+    title: Thiết lập tối thiểu chủ sở hữu, lịch trực, phân cấp và kênh phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-004
+    title: Chuẩn hóa vòng đời sự cố và mẫu hồ sơ trước khi mở rộng tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-005
+    title: Mở rộng thực hành chỉ huy, truyền thông và postmortem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-006
+    title: Ưu tiên giảm sự cố lặp lại và cải thiện khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-007
+    title: Kết hợp đánh giá mức sẵn sàng với nhịp thay đổi và mục tiêu tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-008
+    title: Rà soát định kỳ bằng dữ liệu sự cố, phản hồi người trực và diễn tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

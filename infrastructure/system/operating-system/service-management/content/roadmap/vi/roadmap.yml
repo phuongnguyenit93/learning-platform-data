@@ -1,0 +1,64 @@
+roadmap:
+- id: service-init-architecture
+  title: Service & Init Architecture
+  purpose: Hiểu vai trò dịch vụ nền và thành phần quản lý vòng đời khi hệ điều hành khởi động.
+  objectives:
+  - Phân biệt process thường với service/daemon chạy nền.
+  - Giải thích systemd trên Linux và Service Control Manager trên Windows.
+  - Nhận diện service, driver và user-level service.
+- id: lifecycle-startup
+  title: Lifecycle & Startup
+  purpose: Quản lý trạng thái hoạt động, tự khởi động và dừng dịch vụ có kiểm soát.
+  objectives:
+  - Phân biệt start, stop, restart, reload và status.
+  - Thiết lập startup mode hoặc enable/disable theo nhu cầu.
+  - Kiểm tra trạng thái active, failed và pending khi chuyển trạng thái.
+- id: unit-service-configuration
+  title: Unit & Service Configuration
+  purpose: Mô tả cách khai báo lệnh chạy, môi trường và chính sách khởi động của service.
+  objectives:
+  - Tạo systemd .service unit với ExecStart, User và Restart.
+  - Đọc Windows service type, start type và binary path.
+  - Phân biệt cấu hình mặc định với override/drop-in.
+- id: dependencies-boot-ordering
+  title: Dependencies & Boot Ordering
+  purpose: Kiểm soát quan hệ phụ thuộc và thứ tự khởi chạy giữa các dịch vụ.
+  objectives:
+  - Dùng Wants/Requires và After/Before trong systemd.
+  - Nhận diện dependency và trigger-start trong Windows SCM.
+  - Phân biệt quan hệ cần có với thứ tự khởi động.
+- id: service-control-tools
+  title: Service Control Tools
+  purpose: Dùng công cụ quản trị để liệt kê, kiểm tra và điều khiển service an toàn.
+  objectives:
+  - Thực hành systemctl list/status/start/stop/enable.
+  - Dùng Services console hoặc sc.exe query/config/start/stop.
+  - Xác nhận kết quả sau thay đổi trước khi thao tác tiếp.
+- id: identity-permissions
+  title: Identity & Permissions
+  purpose: Giới hạn quyền chạy và quyền điều khiển service theo nguyên tắc tối thiểu.
+  objectives:
+  - Chọn service user/group riêng thay cho quyền root hoặc LocalSystem khi phù hợp.
+  - Kiểm tra quyền SCM/service object và file thực thi.
+  - Bảo vệ secret, file cấu hình và thư mục dữ liệu của service.
+- id: logs-monitoring
+  title: Logs & Monitoring
+  purpose: Đọc tín hiệu hoạt động để xác định thời điểm lỗi và nguyên nhân service dừng.
+  objectives:
+  - Dùng journalctl -u để lọc log systemd theo unit và thời gian.
+  - Kiểm tra Windows Event Viewer và Service Control Manager events.
+  - Theo dõi restart count, uptime, resource use và exit code.
+- id: recovery-resource-control
+  title: Recovery & Resource Control
+  purpose: Cấu hình phục hồi có giới hạn và cô lập ảnh hưởng của service lỗi.
+  objectives:
+  - Thiết lập restart policy, start timeout và stop timeout.
+  - Giới hạn CPU/memory hoặc service failure recovery khi phù hợp.
+  - Tránh vòng lặp restart và kiểm tra hành vi khi dependency lỗi.
+- id: automation-operations
+  title: Automation & Operations
+  purpose: Chuẩn hóa thay đổi service để triển khai và vận hành có thể lặp lại.
+  objectives:
+  - Quản lý unit/config bằng script hoặc configuration management.
+  - Kiểm thử enable, restart, rollback và reboot trong môi trường lab.
+  - Ghi runbook, kiểm tra quyền và lưu lại trạng thái sau triển khai.

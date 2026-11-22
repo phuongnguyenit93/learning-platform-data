@@ -1,0 +1,329 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Log là gì và một bản ghi mô tả sự kiện như thế nào
+  - Vì sao cần nhiều loại log trong cùng một hệ thống
+  - Vai trò của log trong chẩn đoán, vận hành và truy xét sự kiện
+  - Phân biệt log, metric, trace và sự kiện nghiệp vụ
+  - Từ câu hỏi cần trả lời đến loại log cần thu thập
+  - Mối liên hệ giữa ứng dụng, nền tảng và hệ thống lưu trữ log
+  - Phạm vi học Log Types và kiến thức cần có trước khi đi sâu
+- level1: Cách phân loại
+  level2:
+  - 'Phân loại theo mục đích: chẩn đoán, truy cập, kiểm toán và bảo mật'
+  - 'Phân loại theo nguồn: ứng dụng, JVM, hệ điều hành và hạ tầng'
+  - Phân loại theo nội dung nghiệp vụ hoặc hoạt động kỹ thuật
+  - 'Phân loại theo cấu trúc: phi cấu trúc, bán cấu trúc và có cấu trúc'
+  - Phân biệt loại log với mức độ TRACE, DEBUG, INFO, WARN và ERROR
+  - Phân biệt loại log với đích ghi file, stdout, stderr hoặc dịch vụ tập trung
+  - Vì sao một bản ghi có thể thuộc nhiều nhóm phân loại
+  - Lập ma trận mục đích, nguồn, định dạng và người sử dụng
+  - 'Nhận diện các thuật ngữ dễ gây nhầm: event log, trace log và transaction log'
+- level1: Cấu trúc bản ghi
+  level2:
+  - Thời điểm sự kiện xảy ra và thời điểm hệ thống quan sát được sự kiện
+  - Nguồn phát sinh, tên dịch vụ, môi trường và phiên bản triển khai
+  - Tên hoặc mã sự kiện cùng nội dung thông báo
+  - Chủ thể thực hiện, hành động, đối tượng và kết quả
+  - Mức độ nghiêm trọng cùng phạm vi tác động
+  - Mã yêu cầu, mã giao dịch và mã liên kết giữa các dịch vụ
+  - Thuộc tính bổ sung theo từng loại sự kiện
+  - Phân biệt thông điệp dễ đọc với trường dữ liệu dùng để truy vấn
+  - Trường bắt buộc, trường tùy chọn và giá trị chưa biết
+- level1: Mức độ nghiêm trọng
+  level2:
+  - Ý nghĩa và phạm vi sử dụng của TRACE và DEBUG
+  - Ghi nhận hoạt động bình thường bằng INFO
+  - Nhận diện tình trạng cần chú ý bằng WARN
+  - Phân biệt lỗi thao tác, lỗi yêu cầu và lỗi ảnh hưởng toàn dịch vụ
+  - Khác biệt giữa tên mức độ của các thư viện và hệ thống
+  - Vì sao HTTP 4xx, HTTP 5xx và exception cần ngữ cảnh để chọn mức
+  - Phân biệt mức nghiêm trọng với kết quả thành công hoặc thất bại
+  - Ánh xạ mức độ khi hợp nhất log từ nhiều nguồn
+  - Chọn mức độ nhất quán theo hành động người vận hành cần thực hiện
+- level1: Log chẩn đoán
+  level2:
+  - Log chẩn đoán ứng dụng dùng để giải thích hoạt động nội bộ nào
+  - Ghi nhận khởi động, nạp cấu hình và dừng ứng dụng
+  - Theo dõi nhánh xử lý và các quyết định kỹ thuật quan trọng
+  - Phân biệt thông tin chẩn đoán với dữ liệu nghiệp vụ cần lưu
+  - Chọn logger và nhóm chức năng để điều khiển độ chi tiết
+  - Ghi tham số có chọn lọc và tránh kết xuất toàn bộ đối tượng
+  - Bật log chi tiết trong phạm vi và thời gian phù hợp
+  - Đọc chuỗi log chẩn đoán để tái hiện một lần xử lý
+  - Giới hạn của log chẩn đoán khi thiếu ngữ cảnh hoặc bị tắt
+- level1: Log lỗi
+  level2:
+  - Log lỗi phản ánh thất bại của thao tác hay suy giảm của thành phần
+  - Phân biệt thông báo lỗi, exception và stack trace
+  - Đọc nguyên nhân gốc, nguyên nhân lồng nhau và vị trí phát sinh
+  - Ghi ngữ cảnh thao tác cùng mã lỗi ổn định
+  - Phân biệt lỗi được xử lý với lỗi không được xử lý
+  - Xử lý lỗi thử lại và tránh ghi trùng cùng một exception ở mọi tầng
+  - Gom stack trace nhiều dòng thành đúng một sự kiện
+  - Phân biệt log lỗi ứng dụng, lỗi runtime và báo cáo tiến trình bị sập
+  - Đánh giá ảnh hưởng thực tế từ log thay vì chỉ đếm số dòng ERROR
+  - Nhận diện giới hạn của suy luận nguyên nhân chỉ từ thông điệp lỗi
+- level1: Log truy cập
+  level2:
+  - Nhật ký truy cập (access log) ghi nhận yêu cầu tại điểm phục vụ nào
+  - Các trường method, đường dẫn, mã trạng thái và thời lượng
+  - Địa chỉ client, proxy và chuỗi chuyển tiếp địa chỉ
+  - Phân biệt log tại reverse proxy với log tại ứng dụng
+  - Thời điểm ghi access log và các yêu cầu kết thúc bất thường
+  - Phân biệt thời gian toàn yêu cầu với thời gian chờ thành phần phía sau
+  - Gắn request ID hoặc trace ID để nối log qua nhiều tầng
+  - Nhận diện lưu lượng kiểm tra sức khỏe và yêu cầu tự động
+  - Bảo vệ query string, header, cookie và nội dung yêu cầu
+  - Đọc mẫu access log để phân tích lỗi, độ trễ và nguồn lưu lượng
+- level1: Log kiểm toán
+  level2:
+  - Nhật ký kiểm toán (audit log) trả lời ai làm gì, với đối tượng nào
+  - Xác định thao tác cần kiểm toán theo tài sản và trách nhiệm quản lý
+  - Ghi thay đổi cấu hình, quyền truy cập và dữ liệu quan trọng
+  - Phân biệt danh tính người yêu cầu với tiến trình thực thi
+  - Ghi giá trị thay đổi có chọn lọc và bảo vệ dữ liệu nhạy cảm
+  - Phân biệt yêu cầu được tiếp nhận với thay đổi đã có hiệu lực
+  - Liên kết sự kiện kiểm toán với phiên làm việc và giao dịch
+  - Bảo vệ quyền ghi, quyền đọc và khả năng phát hiện sửa đổi
+  - Giới hạn của việc chứng minh nguồn gốc và tính toàn vẹn bằng file log
+  - Đọc chuỗi audit log để tái hiện lịch sử thay đổi
+- level1: Log bảo mật
+  level2:
+  - Nhật ký bảo mật (security log) hỗ trợ phát hiện và điều tra sự kiện nào
+  - Ghi đăng nhập thành công, thất bại và kết thúc phiên
+  - Ghi quyết định phân quyền và hành động vượt quyền
+  - Ghi thay đổi tài khoản, vai trò và thông tin xác thực
+  - Phân biệt vi phạm chính sách, hành vi đáng ngờ và sự cố đã xác nhận
+  - Ghi nguồn truy cập, đối tượng bị tác động và kết quả kiểm soát
+  - Phân biệt log bảo mật với audit log và access log
+  - Liên kết sự kiện từ ứng dụng, hệ điều hành và thiết bị bảo vệ
+  - Nhận diện dữ liệu không được đưa vào log bảo mật
+  - Đánh giá cảnh báo sai và giới hạn kết luận từ một sự kiện riêng lẻ
+- level1: Log nghiệp vụ
+  level2:
+  - Nhật ký nghiệp vụ (business log) mô tả hoạt động ở mức ý nghĩa nào
+  - Đặt tên sự kiện theo hành động và kết quả nghiệp vụ
+  - Ghi vòng đời đơn hàng, thanh toán hoặc yêu cầu dịch vụ
+  - Phân biệt từ chối nghiệp vụ hợp lệ với lỗi kỹ thuật
+  - Gắn mã đối tượng nghiệp vụ và mã liên kết một lần xử lý
+  - Phân biệt business log với audit log và dữ liệu phân tích hành vi
+  - Phân biệt log quan sát với sự kiện tích hợp và dữ liệu nguồn chuẩn
+  - Đọc nhiều sự kiện để tái hiện một hành trình nghiệp vụ
+  - Xử lý thông tin khách hàng bằng trường dữ liệu tối thiểu cần thiết
+- level1: Log hành vi
+  level2:
+  - Log hành vi người dùng phục vụ phân tích tương tác nào
+  - Ghi xem màn hình, thao tác và kết quả tương tác
+  - Phân biệt hành động trên giao diện với nghiệp vụ đã hoàn tất
+  - Liên kết sự kiện theo phiên và định danh giả khi phù hợp
+  - Phân biệt log hành vi với log kiểm toán và log nghiệp vụ
+  - Nhận diện bot, thao tác nền và sự kiện tương tác bị ghi trùng
+  - Ảnh hưởng của lấy mẫu, hoạt động ngoại tuyến và gửi dữ liệu đến muộn
+  - Giới hạn phạm vi theo dõi và giảm dữ liệu nhận dạng được thu thập
+- level1: Log giao dịch
+  level2:
+  - Ba cách dùng thuật ngữ transaction log và nguy cơ hiểu sai
+  - Ghi nhận giao dịch ứng dụng theo mã giao dịch cùng các bước xử lý
+  - Ý nghĩa của bắt đầu, commit, rollback và thời điểm ghi log
+  - Theo dõi giao dịch phân tán, thử lại và hành động bù
+  - Phân biệt log giao dịch với sổ cái và bản ghi nghiệp vụ có thẩm quyền
+  - Phân biệt thông báo SQL với nhật ký phục hồi của cơ sở dữ liệu
+  - Vai trò của WAL, redo log hoặc binary log tùy hệ quản trị
+  - Phân biệt nhật ký phục hồi, luồng CDC và audit log
+  - Vì sao không áp dụng chính sách xóa log thông thường cho nhật ký phục hồi
+- level1: Log hiệu năng
+  level2:
+  - Nhật ký hiệu năng (performance log) ghi độ trễ và chi phí thao tác
+  - Nhật ký thao tác chậm (slow log) ghi các lần vượt ngưỡng cần điều tra
+  - Phân biệt độ trễ thực tế, thời gian CPU và thời gian chờ
+  - Phân biệt phép đo từng sự kiện với số liệu tổng hợp từ metric
+  - Chọn ngưỡng theo loại thao tác, khối lượng dữ liệu và mục tiêu dịch vụ
+  - Ghi kích thước đầu vào, số bản ghi hoặc số lần gọi để giải thích chi phí
+  - Liên kết log chậm với truy vấn cơ sở dữ liệu và dịch vụ phụ thuộc
+  - Ảnh hưởng của lấy mẫu và chỉ ghi thao tác chậm đến phân tích
+  - Giới hạn của log thời gian khi phân tích đường xử lý song song
+- level1: Log tích hợp
+  level2:
+  - Ghi các lời gọi HTTP hoặc RPC đến hệ thống bên ngoài
+  - Ghi gửi, nhận và xử lý thông điệp bất đồng bộ
+  - Phân biệt message ID, correlation ID và mã một lần xử lý
+  - Ghi timeout, thử lại và kết quả cuối cùng
+  - Theo dõi thông điệp trùng, xử lý lại và hàng đợi lỗi
+  - Phân biệt đã gửi, đã nhận, đã xác nhận và đã hoàn tất nghiệp vụ
+  - Giới hạn nội dung request, response và payload thông điệp được ghi
+  - Phân biệt nhật ký vận hành broker với bản ghi trong topic hoặc hàng đợi
+  - Tái hiện lỗi tích hợp bằng log của cả bên gọi và bên nhận
+- level1: Log JVM
+  level2:
+  - Phân biệt log ứng dụng Java với log do JVM phát sinh
+  - Vai trò của Unified Logging và cách nhận diện tag cùng mức độ
+  - GC log mô tả chu kỳ thu gom, khoảng dừng và thay đổi bộ nhớ
+  - Log nạp lớp, biên dịch JIT và các hoạt động runtime
+  - Phân biệt lỗi Java thông thường với báo cáo lỗi nghiêm trọng của JVM
+  - Phân biệt log dạng văn bản với thread dump, heap dump và JFR
+  - Liên kết log JVM với thời điểm ứng dụng chậm hoặc khởi động lại
+  - Thông tin phiên bản, cấu hình runtime và mốc thời gian cần bảo toàn
+  - Chọn nguồn dữ liệu chẩn đoán phù hợp thay vì chỉ tăng độ chi tiết log ứng dụng
+- level1: Log hệ điều hành
+  level2:
+  - System log mô tả hoạt động của máy chủ và dịch vụ nền
+  - Phân biệt log kernel với log tiến trình người dùng
+  - Ghi khởi động, dừng dịch vụ và thay đổi trạng thái tiến trình
+  - Log xác thực, quyền hệ thống và hoạt động quản trị
+  - Đọc sự kiện bộ nhớ, đĩa, hệ thống tệp và kết nối thiết bị
+  - Phân biệt syslog với journal của systemd
+  - Nhận diện nguồn, kênh, mã sự kiện và mức độ trong Windows Event Log
+  - Liên kết sự kiện hệ điều hành với lỗi của ứng dụng
+  - Giới hạn suy luận khi chỉ có log của một máy trong hệ thống phân tán
+- level1: Log cơ sở dữ liệu
+  level2:
+  - Phân biệt server log, statement log, slow query log và audit log
+  - Ghi kết nối, ngắt kết nối và lỗi xác thực cơ sở dữ liệu
+  - Đọc lỗi câu lệnh, mã lỗi và ngữ cảnh phiên làm việc
+  - Nhận diện truy vấn chậm, chờ khóa và deadlock
+  - Log checkpoint, khôi phục và vận hành sao chép dữ liệu
+  - Liên kết session ID, transaction ID và request ID khi có thể
+  - Phân biệt nhật ký máy chủ dạng text, CSV và JSON
+  - Giới hạn ghi câu lệnh, tham số và dữ liệu trả về để bảo vệ thông tin
+  - Đọc log PostgreSQL minh họa mà không nhầm với nội dung WAL
+  - Đối chiếu với metric và thông tin phiên hiện tại trước khi kết luận
+- level1: Log mạng và proxy
+  level2:
+  - Log reverse proxy, API gateway và bộ cân bằng tải phục vụ mục đích gì
+  - Phân biệt access log với error log của máy chủ web
+  - Đọc lỗi kết nối, lỗi TLS và lỗi thành phần phía sau
+  - Log DNS mô tả truy vấn tên miền cùng kết quả phân giải
+  - Log tường lửa ghi quyết định cho phép hoặc chặn kết nối
+  - Phân biệt flow log với packet capture và log yêu cầu HTTP
+  - Địa chỉ nguồn, đích và tác động của NAT hoặc proxy
+  - Liên kết request ID giữa cổng truy cập và dịch vụ
+  - Phân biệt lỗi truyền tải với lỗi ứng dụng trả về hợp lệ
+- level1: Log container
+  level2:
+  - Phân biệt log ứng dụng trong container với log của container runtime
+  - stdout và stderr là kênh xuất dữ liệu, không tự xác định mức độ
+  - Lớp bao bản ghi container và nội dung log ứng dụng bên trong
+  - Gắn tên pod, namespace, container và định danh phiên chạy
+  - Phân biệt log workload với log kubelet và control plane
+  - Phân biệt Kubernetes Event với log thường và audit log API server
+  - Đọc log của container hiện tại và lần chạy trước khi khởi động lại
+  - Xử lý một sự kiện nhiều dòng và các bản ghi bị chia đoạn
+  - Giới hạn của log cục bộ khi pod hoặc node không còn tồn tại
+  - Nhận diện trùng lặp khi nhiều đường thu thập cùng đọc một nguồn
+- level1: Log đám mây
+  level2:
+  - Phân biệt log ứng dụng, log tài nguyên và log hoạt động quản trị
+  - Log control plane và log truy cập data plane trả lời câu hỏi khác nhau
+  - Nhận diện log truy cập kho đối tượng, cân bằng tải và dịch vụ được quản lý
+  - Log chức năng serverless theo lần gọi và phiên thực thi
+  - Phân biệt sự kiện quản trị với sự kiện dữ liệu trong AWS CloudTrail
+  - Định danh tài khoản, vùng, dự án và tài nguyên trong bản ghi
+  - Phân biệt sự kiện không được bật thu thập với sự kiện không xảy ra
+  - Liên kết log đám mây với danh tính và hành động từ ứng dụng
+  - Kiểm tra thời gian giao nhận và giới hạn phạm vi quan sát của từng nguồn
+- level1: Log tác vụ và dữ liệu
+  level2:
+  - Ghi vòng đời tác vụ định kỳ theo job ID và run ID
+  - Phân biệt không chạy, chạy lỗi, chạy quá lâu và không có dữ liệu đầu vào
+  - Log tiến độ, số bản ghi và kết quả của tác vụ xử lý dữ liệu
+  - Ghi lỗi dữ liệu, bản ghi bị loại và nguyên nhân kiểm tra không đạt
+  - Phân biệt log vận hành pipeline với dữ liệu truy nguyên nguồn gốc
+  - Theo dõi phân vùng, bước xử lý và mốc hoàn thành có chọn lọc
+  - Phân biệt lần chạy lại với lần xử lý trùng cùng một dữ liệu
+  - Đối chiếu log từng bước với kết quả đầu ra đã được xác nhận
+  - Giới hạn thông tin dữ liệu gốc xuất hiện trong log kiểm tra
+- level1: Log phát hành
+  level2:
+  - Phân biệt log build, test, đóng gói và triển khai
+  - Gắn commit, phiên bản ứng dụng, môi trường và mã lần phát hành
+  - Nhận diện lỗi công cụ với lỗi do mã nguồn hoặc cấu hình
+  - Log kiểm tra khởi động, chuyển lưu lượng và quay lui
+  - Phân biệt đầu ra test với sự kiện vận hành của ứng dụng thật
+  - Liên kết mốc phát hành với thay đổi lỗi và độ trễ sau triển khai
+  - Bảo vệ biến môi trường, token và thông tin xác thực trong đầu ra
+  - Giữ thông tin đủ để tái hiện lỗi của đúng lần chạy
+- level1: Kiểu biểu diễn
+  level2:
+  - Log phi cấu trúc và ưu điểm khi đọc trực tiếp bằng mắt
+  - Log bán cấu trúc với mẫu dòng ổn định hoặc cặp khóa-giá trị
+  - Log có cấu trúc với tên trường, kiểu dữ liệu và schema rõ ràng
+  - Phân biệt một dòng log với một sự kiện logic nhiều dòng
+  - Biểu diễn exception và stack trace trong log có cấu trúc
+  - Thời gian, múi giờ, Unicode và ký tự xuống dòng
+  - Xử lý dấu phân cách, dấu nháy và ký tự cần escape
+  - Phân biệt phần bao do hạ tầng thêm với dữ liệu ứng dụng
+  - Đánh đổi giữa khả năng đọc, độ chính xác phân tích và dung lượng
+- level1: Định dạng và lược đồ
+  level2:
+  - 'JSON và JSON Lines: ranh giới từng bản ghi và kiểu giá trị'
+  - Cặp khóa-giá trị và cách biểu diễn giá trị chứa khoảng trắng
+  - 'CSV và định dạng phân cách: thứ tự cột, dấu nháy và giá trị thiếu'
+  - Common Log Format và Combined Log Format của log truy cập
+  - 'Syslog RFC 5424: header, facility, severity và structured data'
+  - Phân biệt định dạng syslog với giao thức vận chuyển bản tin
+  - Nhận diện khác biệt khi tiếp nhận syslog kiểu RFC 3164 cũ
+  - Vai trò của Elastic Common Schema trong thống nhất trường dữ liệu
+  - Phân biệt schema sự kiện với định dạng mã hóa và nền tảng lưu trữ
+  - Phiên bản schema và thay đổi tương thích khi thêm hoặc đổi trường
+- level1: Log OpenTelemetry
+  level2:
+  - Vì sao cần mô hình chung cho log từ nhiều nguồn
+  - Phân biệt Timestamp với ObservedTimestamp
+  - Vai trò của SeverityText và SeverityNumber
+  - Biểu diễn Body, Attributes và tên sự kiện
+  - Resource xác định thực thể phát sinh log
+  - InstrumentationScope xác định thư viện hoặc bộ phận tạo bản ghi
+  - Liên kết TraceId, SpanId và TraceFlags khi có ngữ cảnh
+  - Ánh xạ log text, JSON hoặc syslog vào mô hình log chung
+  - Phân biệt mô hình dữ liệu OpenTelemetry với giao thức OTLP
+  - Kiểm tra thông tin bị mất hoặc đổi nghĩa trong quá trình ánh xạ
+- level1: Liên kết log
+  level2:
+  - Chọn request ID, trace ID, transaction ID hoặc mã nghiệp vụ theo câu hỏi
+  - Phân biệt mã một lần xử lý với mã đối tượng tồn tại lâu dài
+  - Liên kết access log, log ứng dụng và log cơ sở dữ liệu
+  - Liên kết log kiểm toán với sự kiện bảo mật liên quan
+  - Xây dựng dòng thời gian có tính đến lệch đồng hồ và dữ liệu đến muộn
+  - Phân biệt thứ tự nhận log với thứ tự sự kiện thực sự xảy ra
+  - Nhận diện bản ghi trùng và các lần thử lại của cùng một thao tác
+  - Vì sao không có log chưa đủ chứng minh sự kiện không xảy ra
+  - Xác minh kết luận bằng metric, trace hoặc dữ liệu nghiệp vụ phù hợp
+- level1: Chính sách từng loại
+  level2:
+  - Lập danh mục nguồn log, mục đích sử dụng và chủ sở hữu
+  - Chọn trường dữ liệu bắt buộc theo từng loại log
+  - Tách quyền đọc và ghi theo mức nhạy cảm và trách nhiệm
+  - Chọn thời gian lưu theo nhu cầu vận hành và chính sách tổ chức
+  - Phân biệt loại có thể lấy mẫu với loại cần bảo toàn đầy đủ
+  - Đặt giới hạn dung lượng và ưu tiên khi luồng log tăng đột biến
+  - Phân biệt ghi đồng bộ, bất đồng bộ và bảo đảm giao nhận cần có
+  - Chọn đích lưu cùng chính sách xoay vòng và bảo quản theo từng loại
+  - Xác định cách xử lý dữ liệu nhạy cảm và yêu cầu loại bỏ thông tin
+  - Đánh giá lại chính sách sau thay đổi hệ thống hoặc mục đích sử dụng
+- level1: Chất lượng log
+  level2:
+  - Tiêu chí một bản ghi đủ rõ để phân loại và sử dụng
+  - Nhận diện thông báo mơ hồ, thiếu đối tượng hoặc thiếu kết quả
+  - Phân biệt thông điệp mẫu ổn định với dữ liệu thay đổi từng sự kiện
+  - Kiểm tra schema, kiểu trường, đơn vị và mốc thời gian
+  - Kiểm tra dữ liệu nhạy cảm và nguy cơ chèn dòng log giả
+  - Kiểm tra một sự kiện nhiều dòng được giữ đúng ranh giới
+  - Kiểm tra trùng lặp, mất bản ghi và dữ liệu đến không đúng thứ tự
+  - Đo tác động của log quá dày, thông điệp lớn và thuộc tính thừa
+  - Kiểm thử lỗi ghi log, lỗi phân tích và trường bắt buộc bị thiếu
+  - Rà soát bộ log mẫu theo đúng câu hỏi mà mỗi loại cần trả lời
+- level1: Thực hành tổng hợp
+  level2:
+  - Phân loại bộ log hỗn hợp theo mục đích, nguồn, cấu trúc và mức độ
+  - Thiết kế danh mục log cho một dịch vụ Spring Boot
+  - Từ một yêu cầu HTTP nối log truy cập, log ứng dụng và log cơ sở dữ liệu
+  - Phân biệt lỗi nghiệp vụ hợp lệ với lỗi kỹ thuật bằng log mẫu
+  - Tái hiện thao tác đổi quyền bằng audit log và security log
+  - Theo dõi giao dịch thử lại mà không nhầm với xử lý thành công nhiều lần
+  - Đối chiếu log ứng dụng chậm với GC log và slow query log
+  - Chuẩn hóa một sự kiện text và JSON về cùng schema
+  - Ánh xạ các nguồn log vào mô hình OpenTelemetry
+  - Phân tích sự cố container khởi động lại bằng nhiều loại bằng chứng
+  - Thiết kế chính sách lưu, quyền truy cập và mức chi tiết cho từng nhóm
+  - Đánh giá bộ log hoàn chỉnh về tính rõ nghĩa, đầy đủ và chi phí

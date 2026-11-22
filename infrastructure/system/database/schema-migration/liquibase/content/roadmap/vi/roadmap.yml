@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-cua-liquibase
+  title: Vai trò của Liquibase
+  purpose: Hiểu vì sao thay đổi schema cần được quản lý có phiên bản và triển khai nhất quán.
+  objectives:
+  - Giải thích migration và nguy cơ chỉnh schema thủ công.
+  - Mô tả luồng changelog → changeset → update.
+  - Phân biệt schema migration với tạo dữ liệu mẫu.
+- id: cai-dat-ket-noi
+  title: Cài đặt & kết nối
+  purpose: Thiết lập Liquibase với cơ sở dữ liệu và kiểm tra cấu hình trước khi triển khai.
+  objectives:
+  - Cấu hình JDBC URL, driver và thông tin xác thực.
+  - Khởi chạy Liquibase CLI với changelog đơn giản.
+  - Nhận biết cách tích hợp Liquibase vào Spring Boot.
+- id: to-chuc-changelog
+  title: Tổ chức changelog
+  purpose: Tạo cấu trúc lưu trữ thay đổi rõ ràng, dễ review và mở rộng theo dự án.
+  objectives:
+  - Phân biệt XML, YAML, JSON và formatted SQL.
+  - Tổ chức root changelog với include/includeAll.
+  - Đưa changelog vào version control và quy ước đường dẫn.
+- id: thiet-ke-changeset
+  title: Thiết kế changeset
+  purpose: Mô tả mỗi thay đổi nhỏ, có định danh ổn định và có thể theo dõi lịch sử.
+  objectives:
+  - Tạo changeset với author, id và change type.
+  - Viết thay đổi thêm bảng, cột hoặc ràng buộc.
+  - Giải thích vì sao không sửa tùy tiện changeset đã áp dụng.
+- id: dieu-kien-thuc-thi
+  title: Điều kiện thực thi
+  purpose: Giới hạn thay đổi theo môi trường và kiểm tra tiền đề trước thao tác nhạy cảm.
+  objectives:
+  - Dùng preConditions để xác minh trạng thái database.
+  - Phân biệt contexts và labels để chọn changeset.
+  - Đánh giá onFail/onError trước khi triển khai.
+- id: update-theo-doi-trang-thai
+  title: Update & theo dõi trạng thái
+  purpose: Thực thi thay đổi an toàn và hiểu cách Liquibase tránh chạy lại hoặc chạy đồng thời.
+  objectives:
+  - Chạy status, update-sql để xem trước rồi update.
+  - Giải thích DATABASECHANGELOG, checksum và lịch sử chạy.
+  - Nhận diện vai trò DATABASECHANGELOGLOCK khi triển khai song song.
+- id: rollback-phuc-hoi
+  title: Rollback & phục hồi
+  purpose: Chuẩn bị đường lui khi migration lỗi hoặc thay đổi không phù hợp.
+  objectives:
+  - Viết rollback rõ ràng cho changeset SQL khi cần.
+  - Xem trước SQL hoàn tác và thử trên bản sao dữ liệu.
+  - Phân biệt rollback schema với phục hồi dữ liệu từ backup.
+- id: kiem-thu-ci-cd
+  title: Kiểm thử & CI/CD
+  purpose: Đưa migration vào quy trình phát hành để phát hiện lỗi sớm và kiểm soát triển khai.
+  objectives:
+  - Kiểm thử cập nhật trên database thử nghiệm sạch và đã nâng cấp.
+  - Tích hợp validate, update-sql và review vào pipeline.
+  - Kiểm tra môi trường, quyền truy cập và kế hoạch rollback trước release.

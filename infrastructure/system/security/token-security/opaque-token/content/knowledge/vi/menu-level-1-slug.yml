@@ -1,0 +1,145 @@
+menu:
+- title: Tổng quan opaque token
+  slug: opaque-token-overview
+  index: 0
+- title: Mô hình OAuth2
+  slug: oauth2-model
+  index: 1
+- title: Opaque và JWT
+  slug: opaque-jwt
+  index: 2
+- title: Vòng đời token
+  slug: token-lifecycle
+  index: 3
+- title: Thành phần hệ thống
+  slug: system-components
+  index: 4
+- title: Authorization Server
+  slug: authorization-server
+  index: 5
+- title: Resource Server
+  slug: resource-server
+  index: 6
+- title: Token issuance
+  slug: token-issuance
+  index: 7
+- title: Định dạng opaque token
+  slug: opaque-token-format
+  index: 8
+- title: Token introspection
+  slug: token-introspection
+  index: 9
+- title: Introspection response
+  slug: introspection-response
+  index: 10
+- title: Token validation
+  slug: token-validation
+  index: 11
+- title: Token state
+  slug: token-state
+  index: 12
+- title: Token metadata
+  slug: token-metadata
+  index: 13
+- title: Scope
+  slug: opaque-token-scope
+  index: 14
+- title: Audience
+  slug: audience
+  index: 15
+- title: Client authentication
+  slug: client-authentication
+  index: 16
+- title: Bearer token
+  slug: bearer-token
+  index: 17
+- title: Token storage
+  slug: token-storage
+  index: 18
+- title: Expiration
+  slug: expiration
+  index: 19
+- title: Revocation
+  slug: revocation
+  index: 20
+- title: Rotation
+  slug: rotation
+  index: 21
+- title: Replay protection
+  slug: replay-protection
+  index: 22
+- title: Token binding
+  slug: token-binding
+  index: 23
+- title: Threat model
+  slug: threat-model
+  index: 24
+- title: Token leakage
+  slug: token-leakage
+  index: 25
+- title: Privacy
+  slug: opaque-token-privacy
+  index: 26
+- title: Spring Security
+  slug: spring-security
+  index: 27
+- title: Spring Boot configuration
+  slug: spring-boot-configuration
+  index: 28
+- title: OpaqueTokenIntrospector
+  slug: opaquetokenintrospector
+  index: 29
+- title: Bearer token filter
+  slug: bearer-token-filter
+  index: 30
+- title: Principal và authority
+  slug: principal-authority
+  index: 31
+- title: Custom introspector
+  slug: custom-introspector
+  index: 32
+- title: Remote call resilience
+  slug: remote-call-resilience
+  index: 33
+- title: Introspection caching
+  slug: introspection-caching
+  index: 34
+- title: Nhiều resource server
+  slug: multiple-resource-servers
+  index: 35
+- title: Multi-tenant
+  slug: multi-tenant
+  index: 36
+- title: Error semantics
+  slug: error-semantics
+  index: 37
+- title: Testing opaque token
+  slug: testing-opaque-token
+  index: 38
+- title: Testing Spring Security
+  slug: testing-spring-security
+  index: 39
+- title: Observability
+  slug: observability
+  index: 40
+- title: Performance
+  slug: performance
+  index: 41
+- title: Operations
+  slug: operations
+  index: 42
+- title: Migration
+  slug: migration
+  index: 43
+- title: Anti-pattern token
+  slug: anti-pattern-token
+  index: 44
+- title: Thiết kế token security
+  slug: token-security-design
+  index: 45
+- title: Dự án thực hành
+  slug: practical-project
+  index: 46
+- title: Tổng kết opaque token
+  slug: opaque-token-summary
+  index: 47

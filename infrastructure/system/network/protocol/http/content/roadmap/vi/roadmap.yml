@@ -1,0 +1,49 @@
+roadmap:
+- id: mo-hinh-http
+  title: Mô hình HTTP
+  purpose: Hiểu cách HTTP trao đổi thông điệp giữa client, server và các thành phần trung gian.
+  objectives:
+  - Mô tả chu trình request → response.
+  - Giải thích tính stateless của HTTP.
+- id: uri-phuong-thuc
+  title: URI & phương thức
+  purpose: Chọn đúng tài nguyên và hành động khi thiết kế yêu cầu HTTP.
+  objectives:
+  - Phân tích scheme, host, path và query.
+  - Phân biệt GET, POST, PUT, PATCH, DELETE; safe và idempotent.
+- id: cau-truc-thong-diep
+  title: Cấu trúc thông điệp
+  purpose: Đọc được thành phần của HTTP request và response.
+  objectives:
+  - Nhận diện method, target, status, headers và body.
+  - Giải thích vai trò Content-Type và dữ liệu trả về.
+- id: ma-trang-thai
+  title: Mã trạng thái
+  purpose: Diễn giải phản hồi thành công, chuyển hướng và lỗi để xử lý đúng.
+  objectives:
+  - Phân loại nhóm 1xx–5xx.
+  - Phân biệt các mã 200, 201, 301, 304, 400, 404, 429, 500.
+- id: headers-bieu-dien
+  title: Headers & biểu diễn
+  purpose: Hiểu cách client và server mô tả, thương lượng dữ liệu qua HTTP.
+  objectives:
+  - Dùng Accept, Content-Type và Content-Encoding đúng ngữ cảnh.
+  - Nhận biết Authorization và các header thường dùng.
+- id: cookie-bao-mat
+  title: Cookie & bảo mật
+  purpose: Hiểu cơ chế duy trì phiên và các ranh giới bảo mật quanh HTTP.
+  objectives:
+  - Giải thích Cookie/Set-Cookie cùng Secure, HttpOnly, SameSite.
+  - Phân biệt HTTPS (TLS) với HTTP và vai trò CORS trên trình duyệt.
+- id: caching-dieu-kien
+  title: Caching & điều kiện
+  purpose: Tận dụng cache để giảm tải mà vẫn kiểm soát độ mới dữ liệu.
+  objectives:
+  - Giải thích Cache-Control và ETag.
+  - Mô tả If-None-Match và phản hồi 304.
+- id: phien-ban-kiem-thu
+  title: Phiên bản & kiểm thử
+  purpose: Nhận diện khác biệt truyền tải và biết cách quan sát yêu cầu HTTP thực tế.
+  objectives:
+  - So sánh HTTP/1.1, HTTP/2 và HTTP/3 ở mức nền tảng.
+  - Dùng curl hoặc DevTools kiểm tra headers, status và thời gian.

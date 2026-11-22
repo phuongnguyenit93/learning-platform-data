@@ -1,0 +1,112 @@
+menu:
+- title: Khái niệm mã hóa lưu trữ
+  slug: encryption-at-rest-overview
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 1
+- title: Phạm vi dữ liệu
+  slug: data-scope
+  index: 2
+- title: Phân loại và giảm thiểu
+  slug: data-classification-and-minimization
+  index: 3
+- title: Lớp mã hóa
+  slug: encryption-layers
+  index: 4
+- title: Chọn thuật toán
+  slug: algorithm-selection
+  index: 5
+- title: Mã hóa và toàn vẹn
+  slug: encryption-and-integrity
+  index: 6
+- title: Quản lý nonce và IV
+  slug: nonce-and-iv-management
+  index: 7
+- title: Mô hình khóa
+  slug: key-models
+  index: 8
+- title: Envelope encryption
+  slug: envelope-encryption
+  index: 9
+- title: KMS và HSM
+  slug: kms-va-hsm
+  index: 10
+- title: Phân phối khóa
+  slug: key-distribution
+  index: 11
+- title: Định dạng ciphertext
+  slug: ciphertext-formats
+  index: 12
+- title: Mã hóa database
+  slug: database-encryption
+  index: 13
+- title: Mã hóa file
+  slug: file-encryption
+  index: 14
+- title: Object storage
+  slug: object-storage
+  index: 15
+- title: Block và volume storage
+  slug: block-and-volume-encryption
+  index: 16
+- title: Thiết bị và endpoint
+  slug: devices-and-endpoints
+  index: 17
+- title: Backup và snapshot
+  slug: backups-and-snapshots
+  index: 18
+- title: Replication và khôi phục
+  slug: replication-and-recovery
+  index: 19
+- title: Cache và dữ liệu tạm
+  slug: caches-and-temporary-data
+  index: 20
+- title: Log và quan sát
+  slug: logging-and-observability
+  index: 21
+- title: Phân tách tenant
+  slug: tenant-isolation
+  index: 22
+- title: Kiểm soát truy cập
+  slug: access-control
+  index: 23
+- title: Hiệu năng và khả dụng
+  slug: performance-and-availability
+  index: 24
+- title: Xoay vòng khóa
+  slug: key-rotation
+  index: 25
+- title: Di chuyển dữ liệu
+  slug: data-migration
+  index: 26
+- title: Xóa và hủy dữ liệu
+  slug: secure-data-deletion
+  index: 27
+- title: Sự cố và lộ khóa
+  slug: incidents-and-key-exposure
+  index: 28
+- title: Cloud và đa môi trường
+  slug: cloud-and-multienvironment
+  index: 29
+- title: Java thực hành
+  slug: java-implementation
+  index: 30
+- title: Kiểm thử bảo mật
+  slug: security-testing
+  index: 31
+- title: Giám sát và kiểm toán
+  slug: monitoring-and-auditing
+  index: 32
+- title: Quản trị và tuân thủ
+  slug: governance-and-compliance
+  index: 33
+- title: Anti-pattern
+  slug: antipatterns
+  index: 34
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 35
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 36

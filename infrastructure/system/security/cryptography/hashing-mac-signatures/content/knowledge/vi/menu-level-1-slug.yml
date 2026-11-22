@@ -1,0 +1,118 @@
+menu:
+- title: Mô hình Hash MAC Signature
+  slug: hash-mac-signature-model
+  index: 0
+- title: Mục tiêu bảo vệ
+  slug: security-goals
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 2
+- title: Hash cơ bản
+  slug: hash-fundamentals
+  index: 3
+- title: Tính chất hash
+  slug: hash-properties
+  index: 4
+- title: Thuật toán hash
+  slug: hash-algorithms
+  index: 5
+- title: Va chạm và tấn công
+  slug: collisions-attacks
+  index: 6
+- title: Chuẩn hóa đầu vào
+  slug: input-canonicalization
+  index: 7
+- title: Biểu diễn digest
+  slug: digest-encoding
+  index: 8
+- title: Hash mật khẩu
+  slug: password-hashing
+  index: 9
+- title: MAC là gì
+  slug: message-authentication-codes
+  index: 10
+- title: HMAC
+  slug: hmac
+  index: 11
+- title: CMAC và KMAC
+  slug: cmac-kmac
+  index: 12
+- title: Quản lý khóa MAC
+  slug: mac-key-management
+  index: 13
+- title: Xác minh MAC
+  slug: mac-verification
+  index: 14
+- title: Chữ ký số
+  slug: digital-signatures
+  index: 15
+- title: Quy trình ký
+  slug: signing-workflow
+  index: 16
+- title: Thuật toán chữ ký
+  slug: signature-algorithms
+  index: 17
+- title: Định dạng chữ ký
+  slug: signature-formats
+  index: 18
+- title: Khóa công khai và PKI
+  slug: public-keys-pki
+  index: 19
+- title: Context và domain separation
+  slug: context-domain-separation
+  index: 20
+- title: Chống replay
+  slug: replay-protection
+  index: 21
+- title: Webhook và API signing
+  slug: webhook-api-signing
+  index: 22
+- title: Token và JWS
+  slug: tokens-jws
+  index: 23
+- title: Manifest và tính toàn vẹn file
+  slug: file-integrity-manifests
+  index: 24
+- title: Chữ ký trong phân phối
+  slug: distribution-signatures
+  index: 25
+- title: Độ an toàn khi so sánh
+  slug: constant-time-comparison
+  index: 26
+- title: Streaming và hiệu năng
+  slug: streaming-performance
+  index: 27
+- title: Java JCA/JCE
+  slug: java-jca-jce
+  index: 28
+- title: Thiết kế API
+  slug: api-design
+  index: 29
+- title: Kiểm thử hash
+  slug: hash-testing
+  index: 30
+- title: Kiểm thử MAC
+  slug: mac-testing
+  index: 31
+- title: Kiểm thử chữ ký
+  slug: signature-testing
+  index: 32
+- title: Giám sát và kiểm toán
+  slug: monitoring-auditing
+  index: 33
+- title: Xoay vòng và thu hồi
+  slug: key-rotation-revocation
+  index: 34
+- title: Sự cố mật mã
+  slug: cryptography-incidents
+  index: 35
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 36
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 37
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 38

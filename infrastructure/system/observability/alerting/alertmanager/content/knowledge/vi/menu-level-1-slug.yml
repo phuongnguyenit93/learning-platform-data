@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Dữ liệu cảnh báo
+  slug: alert-data
+  index: 1
+- title: Luồng xử lý
+  slug: alert-processing-pipeline
+  index: 2
+- title: Khởi chạy
+  slug: getting-started
+  index: 3
+- title: Kết nối Prometheus
+  slug: prometheus-integration
+  index: 4
+- title: Cấu hình
+  slug: configuration
+  index: 5
+- title: Bộ so khớp
+  slug: matchers
+  index: 6
+- title: Định tuyến
+  slug: routing
+  index: 7
+- title: Gom nhóm và thời gian
+  slug: grouping-and-timing
+  index: 8
+- title: Bộ nhận
+  slug: receivers
+  index: 9
+- title: Kênh thông báo
+  slug: notification-channels
+  index: 10
+- title: Webhook
+  slug: alerting-alertmanager-webhook
+  index: 11
+- title: Mẫu thông báo
+  slug: notification-templates
+  index: 12
+- title: Ức chế
+  slug: inhibition
+  index: 13
+- title: Tạm tắt
+  slug: silences
+  index: 14
+- title: Khung thời gian
+  slug: time-intervals
+  index: 15
+- title: Web UI và API
+  slug: web-ui-and-api
+  index: 16
+- title: amtool
+  slug: alerting-alertmanager-amtool
+  index: 17
+- title: Sẵn sàng cao
+  slug: high-availability
+  index: 18
+- title: Lưu trữ
+  slug: storage
+  index: 19
+- title: Bảo mật
+  slug: security
+  index: 20
+- title: Kubernetes
+  slug: alerting-alertmanager-kubernetes
+  index: 21
+- title: Giám sát
+  slug: monitoring
+  index: 22
+- title: Kiểm thử
+  slug: testing
+  index: 23
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 24
+- title: Quản lý thay đổi
+  slug: change-management
+  index: 25
+- title: Thiết kế vận hành
+  slug: operational-design
+  index: 26
+- title: Thực hành tổng hợp
+  slug: hands-on-exercise
+  index: 27

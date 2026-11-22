@@ -1,0 +1,3 @@
+menuLevel1: Khôi phục systemd
+menuLevel2: Thông báo sẵn sàng bằng sd_notify và Type=notify
+status: ""

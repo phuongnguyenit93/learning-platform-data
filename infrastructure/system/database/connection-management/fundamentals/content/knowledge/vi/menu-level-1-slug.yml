@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc kết nối
+  slug: connection-architecture
+  index: 1
+- title: Vòng đời kết nối
+  slug: connection-lifecycle
+  index: 2
+- title: Cấu hình kết nối
+  slug: connection-configuration
+  index: 3
+- title: JDBC và DataSource
+  slug: jdbc-datasource
+  index: 4
+- title: Quản lý tài nguyên
+  slug: resource-management
+  index: 5
+- title: Trạng thái phiên
+  slug: session-state
+  index: 6
+- title: Giao dịch và kết nối
+  slug: transactions-connections
+  index: 7
+- title: Nguyên lý pool
+  slug: pooling-principles
+  index: 8
+- title: Vòng đời pool
+  slug: pool-lifecycle
+  index: 9
+- title: Ngân sách kết nối
+  slug: connection-budgeting
+  index: 10
+- title: Thời hạn chờ
+  slug: connection-timeouts
+  index: 11
+- title: Đồng thời và áp lực tải
+  slug: concurrency-load-pressure
+  index: 12
+- title: Tích hợp framework
+  slug: framework-integration
+  index: 13
+- title: Lỗi kết nối
+  slug: connection-failures
+  index: 14
+- title: Hủy và thử lại
+  slug: cancellation-retries
+  index: 15
+- title: Rò rỉ và chiếm giữ
+  slug: leaks-connection-holding
+  index: 16
+- title: Định tuyến kết nối
+  slug: connection-routing
+  index: 17
+- title: Bảo mật kết nối
+  slug: connection-security
+  index: 18
+- title: Quan sát hệ thống
+  slug: observability
+  index: 19
+- title: Chẩn đoán sự cố
+  slug: incident-diagnostics
+  index: 20
+- title: Kiểm thử kết nối
+  slug: connection-testing
+  index: 21
+- title: Triển khai và phục hồi
+  slug: deployment-recovery
+  index: 22
+- title: Điều chỉnh hiệu năng
+  slug: performance-tuning
+  index: 23
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 24

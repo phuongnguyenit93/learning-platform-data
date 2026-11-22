@@ -1,0 +1,318 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Dependency Scanning là gì và vấn đề bảo mật của thư viện bên thứ ba
+  - Vai trò của phân tích thành phần phần mềm (SCA) trong DevSecOps
+  - 'Các khái niệm: thành phần, gói, hiện vật, phụ thuộc và lỗ hổng'
+  - Mối liên hệ giữa mã nguồn, trình quản lý gói, bản dựng và sản phẩm triển khai
+  - Phân biệt Dependency Scanning với SAST, DAST, Secret Scanning và Container Scanning
+  - 'Vòng đời xử lý: kiểm kê, phát hiện, xác minh, ưu tiên, khắc phục và theo dõi'
+  - Giới hạn của kết quả quét và ý nghĩa của việc không phát hiện lỗ hổng
+  - Lộ trình học và kiến thức nền về quản lý phụ thuộc, Git và CI/CD
+- level1: Rủi ro và phạm vi
+  level2:
+  - Lỗ hổng đã công bố trong thư viện trực tiếp và thư viện bắc cầu
+  - Thành phần lỗi thời, ngừng bảo trì và không còn phiên bản được hỗ trợ
+  - Phân biệt lỗ hổng đã biết, gói độc hại và hành vi xâm phạm chuỗi cung ứng
+  - 'Nhầm tên gói, chiếm tên và dependency confusion: phạm vi phát hiện và giới hạn'
+  - Rủi ro từ mã được thực thi khi cài đặt hoặc trong quá trình dựng
+  - Phân biệt cảnh báo lỗ hổng, giấy phép và tình trạng bảo trì
+  - Xác định tài sản cần quét theo kho mã, ứng dụng, môi trường và bản phát hành
+  - Ranh giới với quản trị giấy phép và bảo mật chuỗi cung ứng phần mềm
+- level1: Đồ thị phụ thuộc
+  level2:
+  - Phụ thuộc trực tiếp, phụ thuộc bắc cầu và đường dẫn đưa thư viện vào ứng dụng
+  - Phụ thuộc lúc biên dịch, lúc chạy, khi kiểm thử và khi dựng
+  - Phụ thuộc tùy chọn, phụ thuộc theo nền tảng và điều kiện kích hoạt
+  - Phụ thuộc phát triển và phụ thuộc ngang hàng (peer dependency) trong hệ sinh thái phù hợp
+  - Phiên bản được khai báo và phiên bản thực tế sau phân giải
+  - Xung đột phiên bản, quy tắc chọn phiên bản và thay thế phụ thuộc
+  - Workspace, dự án nhiều module và kho mã chứa nhiều hệ sinh thái
+  - Thư viện sao chép trực tiếp, thư viện nhúng và thành phần ngoài trình quản lý gói
+  - Ảnh hưởng của môi trường dựng, cấu hình và kiến trúc đến đồ thị phụ thuộc
+- level1: Phiên bản và tái lập
+  level2:
+  - Phiên bản cố định, khoảng phiên bản và phiên bản động
+  - Quy ước phiên bản theo hệ sinh thái và giới hạn của Semantic Versioning
+  - Manifest, lockfile và tệp khai báo phiên bản tập trung
+  - Mối liên hệ giữa lockfile, đồ thị đã phân giải và bản dựng tái lập
+  - Snapshot, prerelease và hiện vật có nội dung thay đổi nhưng giữ nguyên phiên bản
+  - Khóa phiên bản, kiểm tra checksum và đối chiếu nguồn tải gói
+  - Đồng bộ phiên bản giữa máy lập trình viên, CI và môi trường phát hành
+  - Ghi nhận commit, cấu hình dựng và dấu vết đầu vào cho mỗi lần quét
+- level1: Định danh thành phần
+  level2:
+  - 'Tọa độ gói: hệ sinh thái, namespace, tên và phiên bản'
+  - Package URL (purl) và cách biểu diễn định danh theo hệ sinh thái
+  - Common Platform Enumeration (CPE) và khác biệt với định danh gói
+  - Vai trò của checksum và siêu dữ liệu khi xác minh hiện vật
+  - Chuẩn hóa tên, namespace, hậu tố phiên bản và biến thể theo nền tảng
+  - Phân biệt thành phần cùng tên nhưng khác hệ sinh thái hoặc nhà cung cấp
+  - Thành phần nội bộ, gói riêng và thông tin nguồn gốc không đầy đủ
+  - Nhận diện thư viện bị đổi tên, đóng gói lại hoặc nhúng vào gói khác
+  - Sai lệch định danh và nguyên nhân ghép nhầm lỗ hổng
+- level1: Dữ liệu lỗ hổng
+  level2:
+  - CVE, GHSA, OSV và quan hệ giữa các mã định danh lỗ hổng
+  - NVD, cơ sở dữ liệu theo hệ sinh thái và thông báo của nhà cung cấp
+  - 'Cấu trúc bản ghi: thành phần ảnh hưởng, điều kiện, mức độ và phiên bản sửa'
+  - Khoảng phiên bản bị ảnh hưởng, mốc đưa lỗi vào và mốc đã khắc phục
+  - Alias, bản ghi trùng, bản ghi bị rút và cập nhật thông tin
+  - Khác biệt giữa công bố lỗ hổng, dữ liệu được bổ sung và thời điểm bộ quét đồng bộ
+  - Mức độ đầy đủ của dữ liệu và độ tin cậy của nguồn
+  - Backport bản vá và khác biệt giữa phiên bản upstream với gói của nhà phân phối
+  - Xử lý thông tin mâu thuẫn giữa cơ sở dữ liệu, nhà cung cấp và bộ quét
+- level1: Cơ chế phát hiện
+  level2:
+  - 'Chuỗi xử lý: thu thập thành phần, chuẩn hóa, đối sánh và tạo phát hiện'
+  - Phân tích manifest, lockfile, đồ thị đã phân giải và tệp nhị phân
+  - Đối sánh theo tọa độ gói, purl, CPE và khoảng phiên bản
+  - Quét có cài đặt phụ thuộc và quét không cần thực thi quá trình cài đặt
+  - Phát hiện từ siêu dữ liệu so với phân tích nội dung hiện vật
+  - Các nguyên nhân báo sai (false positive) và bỏ sót (false negative)
+  - Ảnh hưởng của độ phủ hệ sinh thái và cơ sở dữ liệu đến kết quả
+  - Tách phát hiện lỗ hổng khỏi đánh giá khả năng bị khai thác
+  - Kiểm chứng một phát hiện bằng định danh, phiên bản và thông báo gốc
+- level1: SBOM
+  level2:
+  - 'Danh mục thành phần phần mềm (SBOM): mục đích và cấu trúc cơ bản'
+  - 'SBOM từ mã nguồn, bản dựng và bản phát hành: khác biệt về độ phản ánh thực tế'
+  - CycloneDX và SPDX trong trao đổi thông tin thành phần
+  - Biểu diễn thành phần, định danh, phiên bản và quan hệ phụ thuộc
+  - Tạo SBOM từ công cụ dựng, bộ quét hoặc hiện vật đã đóng gói
+  - Kiểm tra tính hợp lệ, thành phần thiếu và độ đầy đủ của quan hệ phụ thuộc
+  - Quét lỗ hổng từ SBOM và giới hạn khi không có hiện vật gốc
+  - Liên kết SBOM với commit, phiên bản phát hành và digest của hiện vật
+  - So sánh SBOM để nhận diện thành phần thêm, xóa và thay đổi phiên bản
+  - Lưu trữ, chia sẻ và bảo vệ thông tin trong SBOM
+- level1: Quét kho mã
+  level2:
+  - Chọn thư mục gốc và xác định toàn bộ manifest, lockfile cần quét
+  - Kiểm kê dự án nhiều module, workspace và nhiều hệ sinh thái
+  - Xử lý lockfile thiếu, lỗi thời hoặc không khớp với manifest
+  - Phạm vi quét đối với mã mẫu, dữ liệu kiểm thử và thư mục sinh tự động
+  - Nhận diện phụ thuộc lấy từ Git, đường dẫn cục bộ và nguồn ngoài registry
+  - Giới hạn của việc chỉ quét khai báo mà không dựng ứng dụng
+  - Quét thay đổi trong pull request và so sánh với nhánh đích
+  - Thiết lập đường cơ sở và phân biệt phát hiện mới với tồn đọng
+  - Tránh thực thi mã cài đặt không đáng tin cậy trong bước kiểm kê
+- level1: Quét bản phát hành
+  level2:
+  - Đối chiếu phụ thuộc trong mã nguồn với thành phần thực sự được phân phối
+  - Quét JAR, WAR, gói nén và thư mục ứng dụng đã đóng gói
+  - Thư viện được đóng gói lại (shading), đổi package và tệp JAR chứa nhiều thư viện
+  - Phụ thuộc bị loại khỏi gói, được nhúng hoặc được nạp ngoài lúc chạy
+  - Phân biệt gói hệ điều hành với thư viện ứng dụng khi quét container
+  - Ảnh hưởng của base image, lớp ảnh và giai đoạn dựng đến danh mục thành phần
+  - Giới hạn nhận diện với tệp nhị phân native, liên kết tĩnh và hiện vật thiếu siêu dữ liệu
+  - Gắn kết quả quét với digest của đúng hiện vật trước khi phát hành
+  - Xử lý sai lệch giữa bản dựng đã quét và hiện vật được triển khai
+- level1: Maven
+  level2:
+  - Đọc pom.xml và phân biệt dependencies với dependencyManagement
+  - Parent POM, BOM và phiên bản phụ thuộc được quản lý tập trung
+  - Phân tích dependency tree và đường dẫn của phụ thuộc bắc cầu
+  - Scope compile, runtime, provided và test khi xác định phạm vi ảnh hưởng
+  - Phụ thuộc optional, exclusions và giới hạn của việc loại bỏ thư viện
+  - Profile, property và effective POM trong đồ thị thực tế
+  - Phụ thuộc của plugin dựng và khác biệt với phụ thuộc ứng dụng
+  - Quét dự án Maven nhiều module và tránh đếm trùng phát hiện
+  - Xác minh phiên bản sau nâng cấp và kiểm tra hiện vật đóng gói
+  - Kho Maven riêng, xác thực và thành phần nội bộ
+- level1: Gradle
+  level2:
+  - Đọc khai báo phụ thuộc trong build.gradle và build.gradle.kts
+  - Configuration và khác biệt giữa classpath biên dịch, chạy và kiểm thử
+  - Phân tích dependencies và dependencyInsight để truy vết thành phần
+  - Platform, BOM, constraints và version catalog
+  - 'Dependency locking và dependency verification: mục đích khác nhau'
+  - Quy tắc phân giải, thay thế phụ thuộc và cưỡng chế phiên bản
+  - Variant, thuộc tính và khác biệt đồ thị theo môi trường dựng
+  - Plugin, buildscript và phụ thuộc của quá trình dựng
+  - Dự án nhiều module, included build và phạm vi quét
+  - Xác minh đồ thị đã phân giải và hiện vật sau thay đổi
+- level1: Các hệ sinh thái khác
+  level2:
+  - 'npm: package.json, lockfile và phạm vi production, development, optional'
+  - 'Yarn, pnpm và workspace: nhận diện đúng tệp khóa và cấu trúc cài đặt'
+  - 'Python: tệp khai báo, tệp khóa và thư viện thực tế trong môi trường'
+  - 'Python: extras, điều kiện môi trường và gói phụ thuộc nền tảng'
+  - '.NET và NuGet: phụ thuộc trực tiếp, bắc cầu và tệp kết quả phân giải'
+  - 'Go Modules: module graph, phiên bản và quan hệ với mã được sử dụng'
+  - 'Rust và Cargo: Cargo.lock, features và thành phần được chọn khi biên dịch'
+  - 'PHP Composer và Ruby Bundler: khai báo, tệp khóa và nhóm phụ thuộc'
+  - Giới hạn so sánh kết quả giữa các hệ sinh thái và định dạng phiên bản
+  - Chọn độ phủ hệ sinh thái theo thành phần thực tế của sản phẩm
+- level1: Công cụ quét
+  level2:
+  - 'Tiêu chí đánh giá bộ quét: đầu vào, hệ sinh thái, dữ liệu và khả năng tích hợp'
+  - 'OWASP Dependency-Check: hướng tiếp cận và phạm vi sử dụng'
+  - 'OWASP Dependency-Track: quản lý danh mục và theo dõi thành phần từ SBOM'
+  - 'OSV-Scanner: đầu vào, nguồn dữ liệu và tình huống áp dụng'
+  - 'Trivy và Grype: quét thành phần từ hiện vật, container và SBOM'
+  - 'GitHub Dependabot: cảnh báo phụ thuộc và cập nhật bảo mật'
+  - 'Dịch vụ SCA thương mại: độ phủ, quyền truy cập và mô hình sử dụng'
+  - Phân biệt bộ quét, nền tảng quản lý phát hiện và bot cập nhật phụ thuộc
+  - So sánh các công cụ bằng cùng mẫu kiểm thử và cùng thời điểm dữ liệu
+  - Chọn công cụ theo nhu cầu và ghi nhận giới hạn thay vì chỉ đếm cảnh báo
+- level1: Kết quả và báo cáo
+  level2:
+  - 'Cấu trúc phát hiện: thành phần, phiên bản, mã lỗ hổng và bằng chứng'
+  - Đọc mức độ nghiêm trọng, phiên bản sửa và điều kiện ảnh hưởng
+  - Truy vết một phát hiện qua nhiều đường dẫn phụ thuộc
+  - Phân biệt số lỗ hổng, số thành phần và số lần xuất hiện
+  - Chuẩn hóa và khử trùng theo ứng dụng, hiện vật, thành phần và lỗ hổng
+  - Định dạng JSON, SARIF và báo cáo phục vụ người đọc
+  - 'Mã thoát: phân biệt phát hiện vi phạm chính sách với lỗi chạy bộ quét'
+  - Đối chiếu kết quả trước và sau thay đổi phụ thuộc
+  - Lưu bằng chứng, phiên bản công cụ và thời điểm cập nhật dữ liệu
+- level1: Ưu tiên rủi ro
+  level2:
+  - 'CVSS: mức độ nghiêm trọng, phiên bản thang điểm và giới hạn diễn giải'
+  - 'EPSS: ước lượng khả năng khai thác và cách dùng cùng ngữ cảnh'
+  - KEV và bằng chứng lỗ hổng đã bị khai thác trong thực tế
+  - Mức độ quan trọng của tài sản, dữ liệu và phạm vi phơi lộ
+  - Vai trò lúc chạy, đường dẫn phụ thuộc và phạm vi triển khai
+  - Điều kiện cấu hình, đặc quyền và đầu vào cần cho việc khai thác
+  - Khả năng có bản vá, biện pháp giảm thiểu và chi phí thay đổi
+  - Xây dựng mức ưu tiên xử lý từ nhiều tín hiệu thay vì chỉ dựa vào điểm số
+  - Ưu tiên lỗ hổng mới phát sinh so với tồn đọng và rủi ro đang bị khai thác
+- level1: Khả năng khai thác
+  level2:
+  - Phân biệt thành phần hiện diện, mã có thể được gọi và khả năng bị khai thác
+  - Khả năng tiếp cận mã lỗi (reachability) và vai trò trong giảm nhiễu
+  - Phân tích tĩnh đồ thị gọi và giới hạn với mã động
+  - Bằng chứng lúc chạy và giới hạn của độ phủ kiểm thử
+  - Reflection, tải lớp động, plugin và cấu hình làm sai lệch suy luận
+  - Kiểm tra điều kiện ảnh hưởng từ thông báo gốc của nhà cung cấp
+  - Đánh giá trường hợp phụ thuộc chỉ dùng lúc dựng hoặc kiểm thử
+  - Phân biệt chưa có bằng chứng khai thác với bằng chứng không bị ảnh hưởng
+  - Ghi nhận kết luận và bằng chứng để người khác có thể kiểm tra lại
+- level1: Chính sách kiểm soát
+  level2:
+  - Xác định mục tiêu kiểm soát và phạm vi áp dụng theo ứng dụng
+  - Ngưỡng chặn theo mức độ, bằng chứng khai thác và mức quan trọng của tài sản
+  - Chính sách cho phát hiện mới, tồn đọng và thành phần chưa có bản sửa
+  - Chế độ cảnh báo, chặn hợp nhất và chặn phát hành
+  - Thời hạn xử lý theo mức rủi ro và cơ chế nâng mức khi quá hạn
+  - 'Xử lý bộ quét lỗi hoặc dữ liệu quá cũ: cho phép tiếp tục hay chặn'
+  - 'Chính sách dưới dạng mã: quản lý phiên bản, review và kiểm thử'
+  - Tách vi phạm bảo mật khỏi kiểm tra giấy phép khi công cụ hỗ trợ cả hai
+  - Lộ trình áp dụng chính sách để kiểm soát nợ bảo mật hiện có
+- level1: Tích hợp CI/CD
+  level2:
+  - Chọn điểm quét ở máy cá nhân, pull request, nhánh chính và trước phát hành
+  - Thiết kế các bước kiểm kê, quét, đánh giá chính sách và lưu báo cáo
+  - Tích hợp với GitHub Actions và GitLab CI theo quyền tối thiểu
+  - Quét ma trận hệ sinh thái và module mà không bỏ sót hoặc đếm trùng
+  - Gắn kết quả kiểm tra với đúng commit và hiện vật dựng
+  - Tách kiểm tra vi phạm chính sách khỏi lỗi mạng hoặc lỗi công cụ
+  - Quản lý cache, dữ liệu lỗ hổng và thời gian chạy trong pipeline
+  - Công bố báo cáo, annotation và liên kết tới hệ thống theo dõi công việc
+  - Kiểm soát pull request từ fork và tác vụ chạy với mã không đáng tin
+  - Điều kiện cho phép hợp nhất, phát hành và xác minh sau khắc phục
+- level1: Giám sát liên tục
+  level2:
+  - Vì sao cần quét lại khi mã nguồn và phiên bản phụ thuộc không thay đổi
+  - Lập lịch quét lại theo dữ liệu lỗ hổng mới và mức quan trọng của tài sản
+  - Theo dõi SBOM theo phiên bản sản phẩm đang còn được hỗ trợ
+  - Xác định ứng dụng bị ảnh hưởng khi xuất hiện lỗ hổng mới
+  - Phân biệt phát hiện mới do thay đổi phần mềm với thay đổi cơ sở dữ liệu
+  - Quản lý thông báo, gộp cảnh báo và tránh tạo công việc trùng
+  - Đồng bộ trạng thái giữa bộ quét, danh mục tài sản và hệ thống công việc
+  - Quản lý vòng đời bản phát hành, kết thúc hỗ trợ và ngừng giám sát
+  - Kiểm chứng độ mới của dữ liệu và khả năng bỏ sót trong các lần quét định kỳ
+- level1: Khắc phục
+  level2:
+  - Lựa chọn nâng cấp, thay thế, loại bỏ hoặc giảm thiểu rủi ro
+  - Chọn phiên bản đã sửa theo thông báo gốc và nhánh được hỗ trợ
+  - Nâng phụ thuộc trực tiếp để xử lý thư viện bắc cầu
+  - Cập nhật BOM, platform hoặc parent để đồng bộ tập phiên bản
+  - Ghi đè phiên bản bắc cầu và rủi ro tương thích
+  - Loại bỏ phụ thuộc không cần thiết và kiểm tra ảnh hưởng chức năng
+  - Ứng phó khi chưa có bản sửa hoặc dự án upstream ngừng bảo trì
+  - Kiểm thử tương thích API, hành vi, tích hợp và yêu cầu hiệu năng
+  - Dựng lại, quét lại và xác minh đúng hiện vật sau khắc phục
+  - Đóng phát hiện dựa trên bằng chứng và theo dõi nguy cơ tái xuất hiện
+- level1: Nâng cấp tự động
+  level2:
+  - Phân biệt cập nhật bảo mật, cập nhật định kỳ và nâng phiên bản lớn
+  - Dependabot và Renovate trong quy trình tạo pull request cập nhật
+  - Cấu hình lịch chạy, nhóm cập nhật và giới hạn số pull request
+  - Đồng bộ manifest, lockfile và tệp quản lý phiên bản tập trung
+  - Đánh giá release notes, thay đổi không tương thích và hướng dẫn chuyển đổi
+  - 'Điều kiện tự động hợp nhất: kiểm thử, chính sách và quyền phê duyệt'
+  - Kiểm soát quyền bot, registry riêng và thông tin xác thực
+  - Xử lý bản cập nhật lỗi, phụ thuộc bị bỏ quên và pull request tồn đọng
+  - Đo độ trễ cập nhật và giảm nhiễu mà vẫn giữ kiểm soát rủi ro
+- level1: Ngoại lệ và VEX
+  level2:
+  - Phân biệt báo sai, không bị ảnh hưởng, chấp nhận rủi ro và trì hoãn xử lý
+  - Bằng chứng tối thiểu khi đề nghị loại bỏ hoặc hạ ưu tiên cảnh báo
+  - Phạm vi ngoại lệ theo thành phần, phiên bản, lỗ hổng và ứng dụng
+  - Người chịu trách nhiệm, phê duyệt, thời hạn và ngày đánh giá lại
+  - 'Vulnerability Exploitability eXchange (VEX): mục đích và quan hệ với SBOM'
+  - Trạng thái affected, not affected, fixed và under investigation trong VEX
+  - Diễn giải lý do không bị ảnh hưởng và kiểm chứng nguồn tuyên bố
+  - Quản lý suppression như mã và tránh quy tắc bỏ qua quá rộng
+  - Tái đánh giá ngoại lệ khi thành phần, cấu hình hoặc bằng chứng thay đổi
+  - Phân biệt ngoại lệ được phê duyệt với việc tắt hoặc bỏ qua bộ quét
+- level1: Vận hành bộ quét
+  level2:
+  - Lựa chọn mô hình CLI, dịch vụ tập trung và nền tảng quản lý danh mục
+  - Đóng gói, cố định phiên bản và cập nhật chính bộ quét
+  - Đồng bộ cơ sở dữ liệu, cache và theo dõi độ trễ cập nhật
+  - Proxy, giới hạn API, retry có kiểm soát và thời gian chờ
+  - Quét trong mạng hạn chế hoặc ngoại tuyến và điều kiện bảo đảm độ mới
+  - Kho gói riêng, thông tin xác thực và quyền đọc thành phần
+  - Quản lý cấu hình theo môi trường và dự án mà không tạo sai lệch chính sách
+  - Phân bổ tài nguyên và tối ưu quét kho mã lớn
+  - Giám sát lỗi, hiệu năng và tính sẵn sàng của dịch vụ quét
+  - Kiểm thử thay đổi công cụ hoặc nguồn dữ liệu trước khi áp dụng rộng
+- level1: Bảo mật quy trình
+  level2:
+  - Xem bộ quét và dữ liệu cập nhật như thành phần cần được bảo vệ
+  - Chạy bộ quét trong môi trường cô lập với quyền tối thiểu
+  - Rủi ro khi phân tích tệp nén, tệp nhị phân và đầu vào không đáng tin
+  - Giảm thực thi script cài đặt trong quá trình xác định phụ thuộc
+  - Bảo vệ token registry, khóa API và thông tin xác thực CI
+  - Kiểm soát dữ liệu mã nguồn, SBOM và danh mục thành phần gửi ra ngoài
+  - Ẩn thông tin nhạy cảm trong log và giới hạn truy cập báo cáo
+  - Xác minh nguồn công cụ, plugin và gói cập nhật của bộ quét
+  - Ngăn sửa chính sách, suppression hoặc báo cáo để vượt kiểm soát
+- level1: Quản trị và chỉ số
+  level2:
+  - Phân công trách nhiệm giữa nhóm phát triển, bảo mật và nền tảng
+  - Gắn ứng dụng, thành phần và phát hiện với chủ sở hữu xử lý
+  - Độ phủ quét theo kho mã, hệ sinh thái, bản phát hành và môi trường
+  - Thời gian phát hiện, phân loại và khắc phục theo mức rủi ro
+  - Tồn đọng, tuổi phát hiện, tỷ lệ quá hạn và ngoại lệ hết hạn
+  - Tỷ lệ báo sai, cảnh báo trùng và chất lượng bằng chứng
+  - Đo xu hướng rủi ro mà không đồng nhất số cảnh báo với mức an toàn
+  - Lưu vết kiểm toán từ kết quả quét tới phê duyệt và bản phát hành
+  - Quy trình ứng phó khi có lỗ hổng nghiêm trọng ảnh hưởng nhiều ứng dụng
+- level1: Thực hành
+  level2:
+  - Chuẩn bị dự án mẫu và môi trường cô lập để thử nghiệm phụ thuộc có lỗ hổng đã biết
+  - Đọc đồ thị phụ thuộc và truy vết một thư viện bắc cầu có cảnh báo
+  - Tạo SBOM và đối chiếu với thành phần trong gói phát hành
+  - Quét cùng dự án bằng hai công cụ và giải thích chênh lệch kết quả
+  - Xác minh một cảnh báo bằng định danh, khoảng phiên bản và thông báo gốc
+  - Xây dựng chính sách chặn phát hiện mới trong pull request
+  - Khắc phục phụ thuộc bắc cầu, chạy kiểm thử và quét lại hiện vật
+  - Thực hành ngoại lệ có bằng chứng, người phê duyệt và thời hạn
+  - Mô phỏng lỗ hổng mới xuất hiện cho bản phát hành không đổi
+  - Kiểm chứng pipeline khi bộ quét lỗi, dữ liệu cũ hoặc không có kết nối
+  - Lập báo cáo tổng hợp với phát hiện, quyết định xử lý và bằng chứng đóng lỗi
+- level1: Xử lý sự cố
+  level2:
+  - Không tìm thấy manifest, lockfile hoặc module cần quét
+  - Thiếu phụ thuộc do lỗi phân giải, registry riêng hoặc thiếu quyền
+  - Báo sai do CPE, định danh gói hoặc quy tắc so sánh phiên bản
+  - Đã nâng cấp nhưng cảnh báo còn tồn tại trong đồ thị hoặc gói phát hành
+  - Bản vá backport và cảnh báo không khớp phiên bản upstream
+  - Kết quả khác nhau giữa máy cá nhân, CI và nền tảng quản lý tập trung
+  - Quét thành công nhưng báo cáo rỗng, thiếu hệ sinh thái hoặc thiếu thành phần
+  - Pipeline không chặn do mã thoát, cấu hình hoặc suppression sai
+  - Quét chậm, lỗi giới hạn API và cơ sở dữ liệu cập nhật thất bại
+  - Checklist điều tra từ đầu vào, công cụ, dữ liệu đến chính sách

@@ -1,0 +1,2431 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Độ tin cậy của dịch vụ là gì dưới góc nhìn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt chỉ số mức dịch vụ (SLI), mục tiêu mức dịch vụ (SLO) và thỏa thuận mức dịch vụ (SLA)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Mối liên hệ giữa trải nghiệm người dùng, phép đo, mục tiêu và cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt SLO với KPI kinh doanh, chỉ số hạ tầng và ngưỡng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vì sao mục tiêu độ tin cậy cần gắn với chi phí và tốc độ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Vai trò của ngân sách lỗi trong cân bằng độ tin cậy và phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vòng đời từ xác định dịch vụ đến đo lường, đánh giá và cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-experience
+  title: Trải nghiệm người dùng
+  childs:
+  - slug: user-experience-001
+    title: Xác định dịch vụ, người dùng và hành trình sử dụng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-002
+    title: Chọn thao tác cần bảo vệ thay vì đo mọi thành phần như nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-003
+    title: Xác định kết quả thành công từ góc nhìn người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-004
+    title: Phân biệt trải nghiệm đầu cuối với trạng thái của từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-005
+    title: Nhận diện suy giảm một phần và tác động đến từng nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-006
+    title: Xác định phạm vi theo môi trường, vùng, khách hàng và loại thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-007
+    title: Xác định chủ sở hữu và các bên thống nhất mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-experience-008
+    title: Lập danh sách ưu tiên hành trình cần xây dựng SLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sli-specification
+  title: Đặc tả SLI
+  childs:
+  - slug: sli-specification-001
+    title: Phân biệt điều muốn đo với cách triển khai phép đo SLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-002
+    title: Xác định sự kiện hợp lệ, sự kiện tốt và sự kiện xấu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-003
+    title: Thiết kế tử số và mẫu số có cùng phạm vi đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-004
+    title: SLI theo sự kiện và SLI theo thời gian phù hợp với trường hợp nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-005
+    title: Xác định điểm đo, nguồn dữ liệu và chiều phân loại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-006
+    title: Quy định ngưỡng thành công và cách xử lý trường hợp biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-007
+    title: Ghi rõ điều kiện loại trừ và dữ liệu không đủ để kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-008
+    title: Đặc tả đơn vị, tần suất cập nhật và độ trễ công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sli-specification-009
+    title: Kiểm tra SLI có phản ánh đúng trải nghiệm cần bảo vệ hay không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-slis
+  title: SLI khả dụng
+  childs:
+  - slug: availability-slis-001
+    title: Định nghĩa khả dụng dựa trên yêu cầu hợp lệ và kết quả phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-002
+    title: Phân loại mã trạng thái HTTP theo ý nghĩa của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-003
+    title: Xử lý lỗi ứng dụng nằm trong phản hồi HTTP thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-004
+    title: Phân loại kết quả RPC và gRPC theo hợp đồng thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-005
+    title: Xử lý timeout, mất kết nối và yêu cầu không đến được ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-006
+    title: Xử lý hủy yêu cầu, giới hạn tốc độ và lỗi do dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-007
+    title: Đo suy giảm chức năng khi dịch vụ vẫn phản hồi được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-008
+    title: Phân biệt khả dụng của endpoint kiểm tra sức khỏe với khả dụng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-slis-009
+    title: Kiểm chứng tác động của bảo trì và điều kiện loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: latency-slis
+  title: SLI độ trễ
+  childs:
+  - slug: latency-slis-001
+    title: Chọn điểm bắt đầu và kết thúc của thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-002
+    title: Phân biệt độ trễ phía máy chủ, phía máy khách và toàn hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-003
+    title: Tính tỷ lệ yêu cầu hoàn thành trong ngưỡng thời gian quy định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-004
+    title: Phân biệt SLI theo ngưỡng với theo dõi các phân vị p50, p95 và p99
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-005
+    title: Đọc phân bố độ trễ và tác động của phần đuôi phân bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-006
+    title: Vì sao không lấy trung bình các phân vị giữa các máy hoặc vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-007
+    title: Chọn bucket histogram phù hợp với ngưỡng SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-008
+    title: Đo độ trễ theo loại thao tác thay vì trộn các đường xử lý khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-009
+    title: Xử lý yêu cầu timeout, lỗi và chưa hoàn thành trong SLI độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-slis-010
+    title: Đo thời gian có kết quả đầu tiên và hoàn thành toàn bộ với luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-slis
+  title: SLI dữ liệu
+  childs:
+  - slug: data-slis-001
+    title: Đo tính đúng đắn của kết quả theo điều kiện có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-002
+    title: Đo độ mới của dữ liệu theo thời điểm phát sinh và thời điểm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-003
+    title: Đo độ đầy đủ của dữ liệu dự kiến phải có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-004
+    title: Phân biệt mất dữ liệu, ghi trùng và xử lý sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-005
+    title: Định nghĩa SLI về độ bền dữ liệu và giới hạn của bằng chứng đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-006
+    title: Đo mức độ nhất quán bằng độ trễ hoặc sai khác quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-007
+    title: Xác định tập dữ liệu đối chiếu và sai số được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-008
+    title: Xử lý dữ liệu đến muộn và kết quả đối chiếu thay đổi sau khi công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-slis-009
+    title: Phân biệt chất lượng dữ liệu với khả dụng của hệ thống lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-workflows
+  title: Luồng bất đồng bộ
+  childs:
+  - slug: asynchronous-workflows-001
+    title: Chọn đơn vị đo cho thông điệp, tác vụ và lượt chạy công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-002
+    title: Đo tỷ lệ xử lý thành công trong thời hạn cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-003
+    title: Đo độ trễ đầu cuối từ tiếp nhận đến kết quả có thể sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-004
+    title: Đo tuổi thông điệp và độ trễ hàng đợi so với số lượng tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-005
+    title: Xử lý retry, thông điệp trùng và tác vụ được chạy lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-006
+    title: Xác định trạng thái thất bại cuối cùng và hàng đợi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-007
+    title: Thiết kế SLI cho công việc định kỳ và hạn hoàn thành batch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-workflows-008
+    title: Đo tiến độ của luồng xử lý liên tục và nguy cơ ngừng cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-quality
+  title: Chất lượng phép đo
+  childs:
+  - slug: measurement-quality-001
+    title: So sánh đo bằng nhật ký, chỉ số, dấu vết và kiểm tra tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-002
+    title: Phân biệt kiểm tra bên ngoài với đo từ bên trong dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-003
+    title: Đánh giá độ bao phủ của điểm đo và các lỗi không được ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-004
+    title: Ảnh hưởng của lấy mẫu đến tử số, mẫu số và các sự kiện hiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-005
+    title: Kiểm soát lệch đồng hồ và độ chính xác dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-006
+    title: Xử lý sự kiện trùng, đến muộn và dữ liệu bị mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-007
+    title: Đối chiếu dữ liệu giữa gateway, ứng dụng và phía máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-008
+    title: Xác định độ tin cậy của phép đo trước khi công bố kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-quality-009
+    title: Bảo vệ dữ liệu nhạy cảm trong nhãn, nhật ký và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-collection
+  title: Thu thập số liệu
+  childs:
+  - slug: metrics-collection-001
+    title: Thiết kế bộ đếm cho tổng sự kiện và sự kiện đạt yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-002
+    title: Thiết kế histogram để đo tỷ lệ độ trễ đạt ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-003
+    title: Chọn nhãn phân loại và kiểm soát số lượng tổ hợp nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-004
+    title: Giữ ý nghĩa phép đo ổn định giữa các phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-005
+    title: Xử lý bộ đếm đặt lại khi tiến trình khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-006
+    title: Kết hợp OpenTelemetry với hệ thống thu thập số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-007
+    title: Giám sát chính đường thu thập và lưu trữ dữ liệu SLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-collection-008
+    title: Kiểm tra tính đầy đủ của dữ liệu trước khi triển khai mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: evaluation-windows
+  title: Cửa sổ đánh giá
+  childs:
+  - slug: evaluation-windows-001
+    title: Phân biệt cửa sổ trượt và cửa sổ theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-002
+    title: Chọn độ dài cửa sổ phù hợp với hành vi dịch vụ và nhu cầu đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-003
+    title: Phân biệt khoảng lấy mẫu, khoảng truy vấn và cửa sổ SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-004
+    title: Xử lý múi giờ, ranh giới kỳ và số ngày khác nhau giữa các tháng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-005
+    title: Tính tỷ lệ trên tổng sự kiện thay vì trung bình các tỷ lệ không cùng trọng số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-006
+    title: Tính tỷ lệ khoảng thời gian đạt yêu cầu khi dùng SLI theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-007
+    title: Xử lý cửa sổ chưa đủ dữ liệu và kỳ đầu mới bật đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: evaluation-windows-008
+    title: Quy định cách sửa số liệu khi dữ liệu đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slo-design
+  title: Thiết kế SLO
+  childs:
+  - slug: slo-design-001
+    title: Đặt mục tiêu từ nhu cầu người dùng và mức độ quan trọng của hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-002
+    title: Dùng dữ liệu lịch sử để đánh giá khả năng đáp ứng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-003
+    title: Chọn ngưỡng SLI và tỷ lệ mục tiêu theo hai quyết định riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-004
+    title: Xác định mục tiêu theo nhóm thao tác hoặc mức dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-005
+    title: Đánh giá đánh đổi giữa độ tin cậy, độ trễ, chi phí và năng lực vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-006
+    title: Vì sao mục tiêu 100 phần trăm cần được xem xét thận trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-007
+    title: Tránh mục tiêu quá dễ đạt nhưng không bảo vệ trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-008
+    title: Tránh đặt mục tiêu vượt khả năng đo hoặc kiểm soát của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-009
+    title: Lập đặc tả SLO gồm phạm vi, phép đo, cửa sổ và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-design-010
+    title: Thống nhất mục tiêu thử nghiệm trước khi dùng để ra quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-budgets
+  title: Ngân sách lỗi
+  childs:
+  - slug: error-budgets-001
+    title: Tính tỷ lệ lỗi được phép từ tỷ lệ mục tiêu SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-002
+    title: Tính ngân sách theo số sự kiện hợp lệ trong cửa sổ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-003
+    title: Tính ngân sách theo thời gian khi SLI được định nghĩa theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-004
+    title: Vì sao không tự đổi ngân sách theo yêu cầu thành số phút ngừng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-005
+    title: Tính lượng ngân sách đã dùng và còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-006
+    title: Diễn giải ngân sách âm khi mức lỗi vượt phần được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-007
+    title: Ảnh hưởng của biến động lưu lượng đến ngân sách theo sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-008
+    title: Ảnh hưởng của dữ liệu rời cửa sổ trượt đến ngân sách còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-009
+    title: Quản lý nhiều SLO mà không gộp các ngân sách khác đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budgets-010
+    title: Minh họa phép tính bằng các tập sự kiện và khoảng thời gian mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: burn-rates
+  title: Tốc độ tiêu hao
+  childs:
+  - slug: burn-rates-001
+    title: Định nghĩa tốc độ tiêu hao ngân sách lỗi (burn rate)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-002
+    title: Tính burn rate từ tỷ lệ lỗi quan sát và tỷ lệ lỗi được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-003
+    title: Diễn giải burn rate bằng một, nhỏ hơn một và lớn hơn một
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-004
+    title: Phân biệt burn rate tức thời với lượng ngân sách đã dùng trong kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-005
+    title: Ước tính thời gian tiêu hết ngân sách với giả định tốc độ không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-006
+    title: Đánh giá ảnh hưởng của lưu lượng và thời lượng cửa sổ quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-007
+    title: Tính burn rate cho SLI khả dụng và SLI độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: burn-rates-008
+    title: Xử lý trường hợp mẫu số bằng không hoặc không đủ số sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-budget-policies
+  title: Chính sách ngân sách
+  childs:
+  - slug: error-budget-policies-001
+    title: Xác định hành động khi ngân sách còn nhiều, gần hết hoặc đã hết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-002
+    title: Ưu tiên công việc độ tin cậy dựa trên mức tiêu hao ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-003
+    title: Đặt điều kiện phát hành và điều kiện tạm dừng thay đổi có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-004
+    title: Phân biệt thay đổi tính năng với sửa lỗi hoặc vá bảo mật khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-005
+    title: Phân công người quyết định và người phê duyệt ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-006
+    title: Quy định thời hạn, bằng chứng và rà soát sau ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-007
+    title: Tránh dùng ngân sách lỗi để quy trách nhiệm cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-budget-policies-008
+    title: Đánh giá lại chính sách bằng tác động thực tế đến người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slo-alerting
+  title: Cảnh báo theo SLO
+  childs:
+  - slug: slo-alerting-001
+    title: Chuyển từ cảnh báo chỉ số đơn lẻ sang cảnh báo rủi ro vi phạm mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-002
+    title: Thiết kế cảnh báo theo nhiều cửa sổ và nhiều mức burn rate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-003
+    title: Kết hợp cửa sổ dài xác nhận tác động và cửa sổ ngắn xác nhận còn lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-004
+    title: Liên hệ ngưỡng cảnh báo với phần ngân sách và thời gian tiêu hao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-005
+    title: Phân biệt cảnh báo cần xử lý ngay với công việc xử lý trong giờ làm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-006
+    title: Điều chỉnh cảnh báo cho lỗi bùng phát và lỗi kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-007
+    title: Thiết kế thời điểm kích hoạt, khôi phục và chống cảnh báo dao động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-008
+    title: Xử lý ngưỡng số sự kiện tối thiểu và tình trạng không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-009
+    title: Gắn cảnh báo với hành trình, chủ sở hữu và hướng dẫn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-010
+    title: Kiểm thử cảnh báo trước khi đưa vào quy trình trực vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prometheus-promql
+  title: Prometheus và PromQL
+  childs:
+  - slug: prometheus-promql-001
+    title: Ánh xạ đặc tả SLI sang bộ đếm và histogram của Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-002
+    title: Tính tốc độ tăng và xử lý counter reset bằng rate hoặc increase
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-003
+    title: Tổng hợp tử số và mẫu số theo cùng tập nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-004
+    title: Tính tỷ lệ thành công và tỷ lệ lỗi theo sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-005
+    title: Tính tỷ lệ yêu cầu đạt ngưỡng bằng bucket histogram phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-006
+    title: Phân biệt tính phân vị bằng histogram_quantile với tính SLI theo ngưỡng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-007
+    title: Xử lý chuỗi thiếu dữ liệu, mẫu số bằng không và dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-008
+    title: Tạo recording rule cho tỷ lệ lỗi và burn rate dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-009
+    title: Thiết kế alerting rule cho các cửa sổ quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-promql-010
+    title: Kiểm thử truy vấn và quy tắc bằng dữ liệu đầu vào đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slo-automation
+  title: Tự động hóa SLO
+  childs:
+  - slug: slo-automation-001
+    title: Quản lý đặc tả SLO như mã nguồn có lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-002
+    title: Tách cấu hình dịch vụ khỏi mẫu sinh truy vấn và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-003
+    title: Đánh giá OpenSLO như một cách mô tả SLO có cấu trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-004
+    title: Đánh giá Sloth hoặc Pyrra trong quy trình triển khai SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-005
+    title: Kiểm tra schema, nhãn và tính nhất quán của đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-006
+    title: Duyệt thay đổi SLO, quy tắc và bảng điều khiển qua pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-007
+    title: Phát hiện chênh lệch giữa cấu hình mong muốn và cấu hình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-automation-008
+    title: Quản lý phiên bản và quay lại cấu hình SLO khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboards
+  title: Bảng điều khiển
+  childs:
+  - slug: dashboards-001
+    title: Hiển thị mục tiêu, tỷ lệ đạt được và trạng thái cửa sổ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-002
+    title: Hiển thị ngân sách còn lại, ngân sách đã dùng và burn rate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-003
+    title: Thể hiện độ đầy đủ và độ trễ của dữ liệu đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-004
+    title: Phân rã theo hành trình, vùng và nhóm khách hàng để tìm điểm bị che khuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-005
+    title: Kết hợp dòng thời gian SLO với phát hành và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-006
+    title: Phân biệt bảng điều khiển vận hành với báo cáo cho các bên liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-007
+    title: Tránh biểu đồ trung bình che lấp suy giảm hoặc gây hiểu sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sla-design
+  title: Thiết kế SLA
+  childs:
+  - slug: sla-design-001
+    title: Xác định bên cung cấp, bên sử dụng và dịch vụ trong thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-002
+    title: Mô tả chỉ tiêu, phương pháp đo và kỳ đánh giá có thể đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-003
+    title: Quy định điều kiện yêu cầu hợp lệ và phạm vi lỗi được tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-004
+    title: Làm rõ bảo trì, điều kiện loại trừ và trách nhiệm của khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-005
+    title: Quy định nguồn bằng chứng và quy trình đối soát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-006
+    title: Mô tả cách thông báo gián đoạn và cung cấp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-007
+    title: Xác định quy trình yêu cầu khoản bù trừ (service credit) và trách nhiệm phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-008
+    title: Phân biệt SLA bên ngoài với thỏa thuận vận hành nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-009
+    title: Rà soát tính khả thi kỹ thuật cùng các bên phụ trách cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sla-design-010
+    title: Quản lý phiên bản, ngày hiệu lực và cách thay đổi thỏa thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slo-sla-relationships
+  title: Liên hệ SLO và SLA
+  childs:
+  - slug: slo-sla-relationships-001
+    title: Ánh xạ chỉ tiêu SLA sang SLI và SLO phục vụ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-002
+    title: Đặt khoảng đệm giữa mục tiêu nội bộ và cam kết bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-003
+    title: Đối chiếu khác biệt về phạm vi, cửa sổ và điều kiện loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-004
+    title: Phân biệt cảnh báo SLO với kết luận vi phạm SLA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-005
+    title: Tránh dùng cùng một tỷ lệ khi hai phép đo có mẫu số khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-006
+    title: Liên kết cam kết của nhà cung cấp phụ thuộc với mục tiêu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-007
+    title: Chuẩn bị bằng chứng cho đối soát và giải quyết số liệu bất đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-sla-relationships-008
+    title: Đánh giá lại mục tiêu khi thay đổi cam kết hoặc phân hạng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-dependencies
+  title: Phụ thuộc dịch vụ
+  childs:
+  - slug: service-dependencies-001
+    title: Lập bản đồ phụ thuộc trên hành trình người dùng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-002
+    title: Phân biệt SLO đầu cuối với SLO của thành phần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-003
+    title: Đánh giá mô hình phụ thuộc nối tiếp và giả định độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-004
+    title: Đánh giá dự phòng song song cùng các lỗi có nguyên nhân chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-005
+    title: Nhận diện phụ thuộc ẩn từ DNS, định danh và hệ thống điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-006
+    title: Ảnh hưởng của retry, timeout và circuit breaker đến kết quả đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-007
+    title: Phân bổ mục tiêu thành phần từ yêu cầu của hành trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-dependencies-008
+    title: Đối chiếu giới hạn kiểm soát khi phụ thuộc dịch vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems
+  title: Hệ thống phân tán
+  childs:
+  - slug: distributed-systems-001
+    title: Thiết kế mục tiêu theo vùng và mục tiêu toàn dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-002
+    title: Vì sao tổng hợp theo lưu lượng có thể che suy giảm ở vùng nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-003
+    title: Phân biệt góc nhìn toàn hệ thống với trải nghiệm từng khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-004
+    title: Đo tác động của chuyển vùng và khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-005
+    title: Đo suy giảm khi dùng cache cũ hoặc cơ chế phục vụ thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-006
+    title: Phân biệt mức sẵn sàng với tính đúng đắn trong xử lý phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-007
+    title: Đo hành trình có nhiều lần gọi mà không đếm sai trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-008
+    title: Giữ nhất quán định nghĩa SLI giữa nhiều cụm và nhiều môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: low-traffic-missing-data
+  title: Tải thấp và dữ liệu thiếu
+  childs:
+  - slug: low-traffic-missing-data-001
+    title: Phân biệt không có yêu cầu, không có lỗi và không có dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-002
+    title: Diễn giải tỷ lệ khi chỉ có rất ít sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-003
+    title: Xác định số lượng quan sát tối thiểu để đánh giá và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-004
+    title: Kết hợp kiểm tra tổng hợp với dữ liệu người dùng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-005
+    title: Xử lý dịch vụ mới và cửa sổ chưa tích lũy đủ số liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-006
+    title: Ảnh hưởng của lưu lượng theo mùa, theo giờ và chiến dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-007
+    title: Quy định trạng thái chưa xác định thay vì mặc định đạt mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: low-traffic-missing-data-008
+    title: Báo cáo khoảng trống dữ liệu và tác động đến độ tin cậy kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-releases
+  title: Vận hành và phát hành
+  childs:
+  - slug: operations-releases-001
+    title: Dùng SLO và ngân sách lỗi trong quyết định phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-002
+    title: So sánh canary với phiên bản hiện tại theo các SLI phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-003
+    title: Đặt điều kiện dừng hoặc quay lại phiên bản trước khi rủi ro tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-004
+    title: Theo dõi tiêu hao ngân sách trong và sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-005
+    title: Liên hệ sự cố với tác động người dùng và lượng ngân sách đã dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-006
+    title: Phân tích hậu sự cố để phát hiện thiếu sót trong phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-007
+    title: Ưu tiên cải tiến độ tin cậy theo nguồn tiêu hao lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-releases-008
+    title: Giới hạn của SLO khi đánh giá thay đổi bảo mật và mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slo-testing
+  title: Kiểm thử SLO
+  childs:
+  - slug: slo-testing-001
+    title: Tạo tập dữ liệu có kết quả mong đợi cho tử số và mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-002
+    title: Kiểm thử ngưỡng đúng tại ranh giới độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-003
+    title: Kiểm thử tổng hợp nhiều máy, nhiều vùng và nhiều loại thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-004
+    title: Kiểm thử counter reset, dữ liệu thiếu và sự kiện đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-005
+    title: Kiểm thử cửa sổ trượt và ranh giới kỳ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-006
+    title: Kiểm thử phép tính ngân sách lỗi và burn rate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-007
+    title: Mô phỏng lỗi ngắn, lỗi kéo dài và sự cố cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-008
+    title: Kiểm thử kích hoạt và khôi phục cảnh báo nhiều cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-testing-009
+    title: Kiểm thử hồi quy khi đổi cấu hình hoặc nguồn đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: organization-wide-rollout
+  title: Triển khai trong tổ chức
+  childs:
+  - slug: organization-wide-rollout-001
+    title: Kiểm kê dịch vụ và chọn hành trình thí điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-002
+    title: Đo hiện trạng trước khi bật chính sách hoặc cảnh báo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-003
+    title: Thống nhất vai trò của nhóm sản phẩm, phát triển và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-004
+    title: Chuẩn hóa mẫu đặc tả nhưng cho phép khác biệt giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-005
+    title: Mở rộng từ SLO thử nghiệm đến SLO có trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-006
+    title: Đào tạo cách đọc ngân sách lỗi và diễn giải cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-007
+    title: Đánh giá chi phí thu thập, lưu trữ và duy trì phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-wide-rollout-008
+    title: Theo dõi độ bao phủ SLO và các dịch vụ chưa có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản trị thay đổi
+  childs:
+  - slug: change-management-001
+    title: Rà soát SLO theo lịch và sau thay đổi lớn của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Phân biệt đổi mục tiêu với sửa lỗi trong phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Đánh giá tác động trước khi đổi ngưỡng, mẫu số hoặc điều kiện loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Giữ lịch sử để kết quả các kỳ vẫn có thể đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Chạy song song phép đo cũ và mới khi chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Tránh hạ mục tiêu hoặc đổi mẫu số chỉ để làm đẹp báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Thu hồi SLO không còn phản ánh hành trình có giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Công bố thay đổi và lưu bằng chứng phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-mistakes
+  title: Sai lầm thường gặp
+  childs:
+  - slug: common-mistakes-001
+    title: Chọn mức sử dụng CPU hoặc RAM làm đại diện duy nhất cho trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-002
+    title: Chỉ đo endpoint kiểm tra sức khỏe và bỏ qua hành trình thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-003
+    title: Loại trừ lỗi, retry hoặc timeout làm sai lệch mẫu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-004
+    title: Lấy trung bình tỷ lệ sai trọng số hoặc gộp phân vị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-005
+    title: Dùng phân vị độ trễ thay cho tỷ lệ đạt ngưỡng mà không đổi định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-006
+    title: Nhầm ngân sách lỗi còn lại với tốc độ tiêu hao hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-007
+    title: Báo đạt SLO khi dữ liệu đo không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-008
+    title: Đặt mục tiêu quá nhiều nhưng thiếu chủ sở hữu và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-009
+    title: Đồng nhất đạt SLO với không có sự cố hoặc không có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-mistakes-010
+    title: Cảnh báo quá nhiễu hoặc phản hồi quá chậm so với ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: guided-exercises
+  title: Thực hành có hướng dẫn
+  childs:
+  - slug: guided-exercises-001
+    title: Đặc tả hành trình và SLI cho một API phục vụ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-002
+    title: Xây dựng SLI khả dụng từ bộ đếm yêu cầu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-003
+    title: Xây dựng SLI độ trễ từ histogram và ngưỡng đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-004
+    title: Tính SLO cùng ngân sách lỗi theo sự kiện và theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-005
+    title: Tính burn rate rồi đối chiếu với dòng thời gian lỗi mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-006
+    title: Viết và kiểm thử recording rule cùng alerting rule
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-007
+    title: Tạo bảng điều khiển theo dõi mục tiêu và chất lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-008
+    title: Đặc tả SLI độ mới và hạn hoàn thành cho luồng bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-009
+    title: Đối chiếu một SLO nội bộ với SLA giả lập có phạm vi rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: guided-exercises-010
+    title: Viết chính sách ngân sách lỗi và đánh giá bằng các tình huống mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-scenarios
+  title: Tình huống tổng hợp
+  childs:
+  - slug: integrated-scenarios-001
+    title: Dịch vụ đạt tỷ lệ khả dụng nhưng người dùng vẫn chờ quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-002
+    title: Lưu lượng tăng làm thay đổi ngân sách lỗi theo số yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-003
+    title: Một vùng hoặc nhóm khách hàng lỗi trong khi tổng thể vẫn đạt mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-004
+    title: Luồng dữ liệu còn hoạt động nhưng kết quả không đủ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-005
+    title: Sự cố thu thập số liệu bị nhầm thành dịch vụ không có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-006
+    title: Ngân sách lỗi gần hết trước đợt phát hành quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-007
+    title: SLO nội bộ đạt nhưng số liệu đối soát SLA cho kết quả khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-008
+    title: Thay đổi định nghĩa SLI khi dịch vụ tách thành nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-scenarios-009
+    title: Checklist đánh giá một đặc tả SLI, SLO và SLA có thể vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

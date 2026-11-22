@@ -1,0 +1,3 @@
+menuLevel1: Plugin backend
+menuLevel2: Khai báo dependency tới core services qua registerInit
+status: ''

@@ -1,0 +1,3 @@
+menuLevel1: Cơ chế cô lập bằng Linux namespaces và cgroups
+menuLevel2: Những thay đổi khi chia sẻ namespace với host hoặc container khác
+status: ""

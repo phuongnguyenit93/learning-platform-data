@@ -1,0 +1,50 @@
+roadmap:
+- id: mo-hinh-xac-thuc-token
+  title: Mô hình xác thực token
+  purpose: Hiểu cách token đại diện cho kết quả xác thực hoặc quyền truy cập.
+  objectives:
+  - Mô tả luồng nhận token và gửi yêu cầu.
+  - Phân biệt xác thực danh tính với quyết định cấp quyền.
+- id: vai-tro-va-dang-token
+  title: Vai trò và dạng token
+  purpose: Chọn đúng loại token cho từng mục đích.
+  objectives:
+  - Phân biệt access token, refresh token và ID token.
+  - So sánh token tham chiếu (opaque) và token tự chứa như JWT.
+- id: cap-phat-va-su-dung
+  title: Cấp phát và sử dụng
+  purpose: Sử dụng token đúng nơi trong luồng truy cập.
+  objectives:
+  - Mô tả cấp token sau xác thực và gửi access token đến API.
+  - Xác định nơi sử dụng refresh token và ID token.
+- id: xac-minh-va-cap-quyen
+  title: Xác minh và cấp quyền
+  purpose: Chỉ chấp nhận token hợp lệ cho đúng tài nguyên.
+  objectives:
+  - Xác minh chữ ký hoặc tra cứu trạng thái token (introspection).
+  - Kiểm tra nguồn cấp, đối tượng nhận và thời hạn.
+  - Áp dụng quyền sau khi token hợp lệ.
+- id: luu-tru-va-truyen-tai
+  title: Lưu trữ và truyền tải
+  purpose: Hạn chế lộ token trên đường truyền và thiết bị.
+  objectives:
+  - Chọn nơi lưu phù hợp cho trình duyệt, ứng dụng và dịch vụ.
+  - Truyền qua TLS; ngăn lộ token qua URL và nhật ký.
+- id: danh-cap-va-phat-lai
+  title: Đánh cắp và phát lại
+  purpose: Nhận diện rủi ro khi token bị lộ hoặc bị dùng sai.
+  objectives:
+  - Phân tích đánh cắp token, phát lại và rủi ro XSS/CSRF theo cách lưu.
+  - So sánh Bearer token và token ràng buộc bên gửi.
+- id: vong-doi-va-thu-hoi
+  title: Vòng đời và thu hồi
+  purpose: Giới hạn thời gian sử dụng và ứng phó khi token bị lộ.
+  objectives:
+  - Thiết kế hết hạn, làm mới, xoay vòng và thu hồi token.
+  - Giải thích giới hạn vô hiệu hóa token khi đăng xuất.
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng luồng xác thực và xử lý lỗi an toàn.
+  objectives:
+  - Thử token hết hạn, sai chữ ký, sai đối tượng nhận và thiếu quyền.
+  - Theo dõi lỗi xác thực mà không ghi giá trị token.

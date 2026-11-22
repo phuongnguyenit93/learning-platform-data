@@ -1,0 +1,2515 @@
+menu:
+- slug: overview
+  title: Bức tranh tổng quan
+  childs:
+  - slug: overview-001
+    title: 'Chương trình, tiến trình và luồng: ba khái niệm khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao hệ điều hành cần nhiều tiến trình và nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Tính đồng thời và tính song song: phân biệt bằng dòng thời gian'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: CPU, lõi xử lý và luồng phần cứng khác luồng phần mềm như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Tiến trình sở hữu tài nguyên, luồng thực hiện công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Cách lập lịch, bộ nhớ và giao tiếp liên tiến trình kết nối với nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Chi phí và lợi ích khi chọn nhiều tiến trình hoặc nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức nền và thứ tự học từ mô hình đến quan sát thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-structure
+  title: Cấu trúc tiến trình
+  childs:
+  - slug: process-structure-001
+    title: 'PID, PPID và TID: nhận diện tiến trình, cha và luồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-002
+    title: Khối điều khiển tiến trình và thông tin hệ điều hành phải lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-003
+    title: Không gian địa chỉ riêng và các vùng mã, dữ liệu, heap, stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-004
+    title: 'Tài nguyên gắn với tiến trình: tệp mở, thư mục làm việc và môi trường'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-005
+    title: Thông tin nào dùng chung, thông tin nào riêng giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-006
+    title: Cây tiến trình và quan hệ cha–con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-007
+    title: 'Định danh có thể tái sử dụng: giới hạn của việc chỉ lưu PID'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-structure-008
+    title: Ranh giới cách ly và quyền truy cập giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-lifecycle
+  title: Vòng đời tiến trình
+  childs:
+  - slug: process-lifecycle-001
+    title: Các trạng thái mới tạo, sẵn sàng, đang chạy, chờ và kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-002
+    title: Chuyển trạng thái khi được cấp CPU, hết lượt hoặc chờ sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-003
+    title: Phân biệt chờ CPU với chờ I/O và chờ đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-004
+    title: Tạm dừng và tiếp tục một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-005
+    title: Trạng thái trừu tượng khác ký hiệu trạng thái của từng hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-006
+    title: 'Tiến trình zombie: đã kết thúc nhưng chưa được thu hồi trạng thái'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-007
+    title: Tiến trình mồ côi và vai trò của tiến trình nhận nuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-008
+    title: Đọc dòng thời gian để giải thích vì sao một tiến trình chưa chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-creation-exec
+  title: Tạo và thay chương trình
+  childs:
+  - slug: process-creation-exec-001
+    title: 'fork(): tạo tiến trình con và hai nhánh thực thi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-002
+    title: 'Copy-on-write: vì sao fork không đồng nghĩa sao chép ngay toàn bộ bộ nhớ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-003
+    title: 'Họ hàm exec(): thay chương trình trong tiến trình hiện tại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-004
+    title: Chuỗi fork–exec–wait để khởi chạy và theo dõi chương trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-005
+    title: 'posix_spawn(): giao diện tạo tiến trình và khởi chạy chương trình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-006
+    title: 'Tài nguyên được kế thừa: biến môi trường, thư mục và tệp mở'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-007
+    title: File descriptor, open file description và ảnh hưởng của việc dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-008
+    title: FD_CLOEXEC và ngăn tệp mở bị kế thừa ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-009
+    title: 'fork trong chương trình nhiều luồng: trạng thái khóa và giới hạn thao tác ở tiến trình con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-creation-exec-010
+    title: CreateProcess trên Windows và điểm khác với mô hình fork–exec
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: termination-reaping
+  title: Kết thúc và thu hồi
+  childs:
+  - slug: termination-reaping-001
+    title: Kết thúc bình thường, lỗi không được xử lý và bị hệ điều hành chấm dứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-002
+    title: Mã thoát và cách tiến trình cha diễn giải kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-003
+    title: exit(), _exit() và phạm vi dọn dẹp trước khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-004
+    title: 'wait(), waitpid() và waitid(): chờ, thăm dò và thu hồi tiến trình con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-005
+    title: 'Đọc trạng thái thoát: kết thúc bằng mã hay bởi tín hiệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-006
+    title: SIGCHLD và tránh bỏ sót việc thu hồi nhiều tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-007
+    title: Subreaper và trách nhiệm thu hồi khi cây tiến trình thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-008
+    title: Đóng tài nguyên, xử lý tiến trình con còn sống và giới hạn thời gian dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: termination-reaping-009
+    title: Quan sát zombie mà không nhầm với tiến trình còn tiêu thụ CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-model
+  title: Mô hình luồng
+  childs:
+  - slug: thread-model-001
+    title: Luồng là gì và vì sao một tiến trình có thể có nhiều luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-002
+    title: Thanh ghi, con trỏ lệnh và stack riêng của từng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-003
+    title: Heap dùng chung và dữ liệu cục bộ theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-004
+    title: Luồng người dùng và luồng do nhân hệ điều hành quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-005
+    title: Các mô hình ánh xạ M:1, 1:1 và M:N
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-006
+    title: NPTL trên Linux và cách nhận diện các tác vụ bằng PID/TID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-007
+    title: 'Tác vụ chờ nhiều và tác vụ tính toán nhiều: cơ sở chọn mô hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-model-008
+    title: Khi nào nên dùng luồng, tiến trình hoặc vòng lặp sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-lifecycle
+  title: Vòng đời luồng
+  childs:
+  - slug: thread-lifecycle-001
+    title: Tạo luồng bằng pthread_create và truyền dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-002
+    title: Kết thúc hàm luồng, pthread_exit và giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-003
+    title: 'pthread_join: chờ một luồng kết thúc và nhận kết quả'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-004
+    title: Luồng joinable, detached và trách nhiệm thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-005
+    title: Luồng chính kết thúc khác với toàn bộ tiến trình kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-006
+    title: Kích thước stack, guard page và giới hạn số luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-007
+    title: Quản lý vòng đời dữ liệu được truyền sang luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-008
+    title: 'Luồng native trên Windows: tạo, chờ và đóng handle'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-lifecycle-009
+    title: Nhận diện lỗi tạo luồng do cạn bộ nhớ hoặc chạm giới hạn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-modes
+  title: Chế độ thực thi
+  childs:
+  - slug: execution-modes-001
+    title: 'Chế độ người dùng và chế độ nhân: quyền thực thi khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-002
+    title: Lời gọi hệ thống đưa yêu cầu của tiến trình vào nhân như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-003
+    title: Ngắt phần cứng, ngoại lệ đồng bộ và bẫy vào nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-004
+    title: Ngắt bộ định thời hỗ trợ chia sẻ CPU và giành lại quyền chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-005
+    title: Đường đi từ một lời gọi chặn đến việc đánh thức luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-006
+    title: Chuyển chế độ khác chuyển ngữ cảnh và chuyển sang luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-007
+    title: Mã nhân đang chạy thay mặt tiến trình và công việc của luồng nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-modes-008
+    title: Giới hạn quan sát từ không gian người dùng khi phân tích hoạt động của nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-switching
+  title: Chuyển ngữ cảnh
+  childs:
+  - slug: context-switching-001
+    title: Những trạng thái CPU cần lưu và khôi phục khi đổi luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-002
+    title: Chuyển giữa hai luồng cùng tiến trình và giữa hai tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-003
+    title: Chuyển ngữ cảnh tự nguyện và không tự nguyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-004
+    title: Hết lát thời gian, chờ khóa và chờ I/O dẫn tới chuyển ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-005
+    title: Ảnh hưởng của cache, TLB và dữ liệu nóng sau khi chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-006
+    title: Di chuyển luồng sang CPU khác và chi phí mất tính cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-007
+    title: Vì sao số lần chuyển ngữ cảnh cao chưa đủ để kết luận có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-switching-008
+    title: Đo chi phí chuyển ngữ cảnh trong một thí nghiệm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cpu-scheduling
+  title: Lập lịch CPU
+  childs:
+  - slug: cpu-scheduling-001
+    title: Bộ lập lịch chọn luồng sẵn sàng theo tiêu chí nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-002
+    title: Hàng đợi sẵn sàng, lượt chạy và giành quyền CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-003
+    title: Lập lịch hợp tác và lập lịch có quyền thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-004
+    title: Thông lượng, độ trễ, thời gian đáp ứng và tính công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-005
+    title: Các mô hình FCFS, SJF, Round Robin và hàng đợi nhiều mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-006
+    title: Lập lịch trên nhiều lõi và cân bằng tải giữa các CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-007
+    title: Công bằng theo tỷ trọng trong chính sách lập lịch thông thường của Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-008
+    title: 'Affinity: CPU được phép chạy khác với lượng CPU được cấp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-scheduling-009
+    title: Lập lịch không bảo đảm thứ tự thực thi của các luồng trong mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: priorities-deadlines
+  title: Ưu tiên và thời hạn
+  childs:
+  - slug: priorities-deadlines-001
+    title: Mức ưu tiên ảnh hưởng khả năng được chạy như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-002
+    title: 'nice và renice: điều chỉnh tỷ trọng trong lớp lập lịch phù hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-003
+    title: SCHED_OTHER, SCHED_FIFO, SCHED_RR và SCHED_DEADLINE trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-004
+    title: Thời gian thực cứng, mềm và giới hạn của bảo đảm thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-005
+    title: Ưu tiên cao có thể gây đói CPU cho tác vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-006
+    title: Đảo ngược ưu tiên khi luồng ưu tiên cao chờ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-007
+    title: Kế thừa ưu tiên và trần ưu tiên trong giao thức khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-008
+    title: Lớp ưu tiên tiến trình và ưu tiên luồng trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: priorities-deadlines-009
+    title: Quyền hạn, rủi ro và cách giới hạn thí nghiệm lập lịch thời gian thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signals-control
+  title: Tín hiệu và điều khiển
+  childs:
+  - slug: signals-control-001
+    title: Tín hiệu POSIX là gì và những sự kiện thường tạo tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-002
+    title: Hành động mặc định, bỏ qua và cài đặt hàm xử lý tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-003
+    title: SIGINT, SIGTERM, SIGKILL, SIGSTOP và SIGCONT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-004
+    title: Tín hiệu gửi cho tiến trình hoặc cho một luồng cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-005
+    title: Mặt nạ tín hiệu, tín hiệu đang chờ và lựa chọn luồng tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-006
+    title: 'Tín hiệu chuẩn và tín hiệu thời gian thực: khả năng xếp hàng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-007
+    title: sigaction, sigprocmask, pthread_sigmask và sigwait
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-008
+    title: An toàn bất đồng bộ trong hàm xử lý tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-009
+    title: EINTR, SA_RESTART và xử lý lời gọi bị ngắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-010
+    title: Nhóm tiến trình, phiên và điều khiển tác vụ từ terminal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signals-control-011
+    title: Tắt chương trình có kiểm soát bằng thông báo và thời hạn chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interprocess-communication
+  title: Giao tiếp liên tiến trình
+  childs:
+  - slug: interprocess-communication-001
+    title: Chọn cơ chế IPC theo cách ly, kích thước dữ liệu và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-002
+    title: 'Pipe vô danh: kết nối tiến trình có quan hệ và chiều truyền dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-003
+    title: Đóng đúng đầu pipe để nhận EOF và tránh treo khi chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-004
+    title: 'FIFO: pipe có tên và vòng đời hai đầu giao tiếp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-005
+    title: Unix domain socket và giao tiếp hai chiều trên cùng máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-006
+    title: 'Hàng đợi thông điệp POSIX và System V: mô hình trao đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-007
+    title: Luồng byte, ranh giới thông điệp và thiết kế khuôn dạng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-008
+    title: Dữ liệu từng phần, bộ đệm đầy và điều tiết tốc độ bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-009
+    title: EOF, EPIPE, SIGPIPE và phát hiện đầu bên kia đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interprocess-communication-010
+    title: Named pipe và cơ chế IPC tương ứng trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-memory
+  title: Bộ nhớ chia sẻ
+  childs:
+  - slug: shared-memory-001
+    title: Vì sao bộ nhớ chia sẻ giảm sao chép nhưng vẫn cần đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-002
+    title: 'mmap: ánh xạ chia sẻ khác ánh xạ riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-003
+    title: shm_open, ftruncate, mmap và vòng đời đối tượng POSIX shared memory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-004
+    title: Quyền sở hữu, khởi tạo một lần và gỡ bỏ vùng chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-005
+    title: 'Bố trí dữ liệu dùng chung: không dựa vào địa chỉ con trỏ của tiến trình khác'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-006
+    title: Khóa và semaphore dùng chung giữa các tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-007
+    title: Xử lý tiến trình chết khi đang giữ tài nguyên chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-008
+    title: Tính hiển thị trong bộ nhớ khác độ bền dữ liệu trên thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-memory-009
+    title: Thiết kế bộ đệm vòng có giới hạn cho hai tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: concurrency-correctness
+  title: Tính đúng đắn đồng thời
+  childs:
+  - slug: concurrency-correctness-001
+    title: Thao tác có vẻ đơn lẻ có thể gồm nhiều bước đọc–sửa–ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-002
+    title: 'Race condition và data race: hai khái niệm cần phân biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-003
+    title: Đoạn tới hạn, dữ liệu dùng chung và bất biến cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-004
+    title: Tính nguyên tử, tính hiển thị và thứ tự thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-005
+    title: Tính đúng đắn an toàn và khả năng tiếp tục tiến triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-006
+    title: Xác định điểm tuyến tính hóa của một thao tác đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-007
+    title: Vì sao chạy đúng nhiều lần không chứng minh chương trình không có tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-008
+    title: Rút nhỏ vùng chia sẻ bằng dữ liệu bất biến, sở hữu riêng và truyền thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: concurrency-correctness-009
+    title: 'TOCTOU: kiểm tra điều kiện rồi sử dụng tài nguyên trong lúc trạng thái có thể đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locks-mutexes
+  title: Khóa và mutex
+  childs:
+  - slug: locks-mutexes-001
+    title: Loại trừ tương hỗ và hợp đồng sử dụng mutex
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-002
+    title: Chọn dữ liệu và bất biến mà một khóa bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-003
+    title: Mutex chặn khác spinlock chờ bận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-004
+    title: 'trylock và khóa có thời hạn: xử lý khi chưa lấy được khóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-005
+    title: Khóa thường, khóa đệ quy và những lỗi dùng khóa phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-006
+    title: 'Độ hạt của khóa: một khóa lớn hay nhiều khóa nhỏ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-007
+    title: Khóa đọc–ghi và điều kiện để có lợi hơn mutex
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-008
+    title: Mutex robust và phục hồi khi chủ sở hữu chết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-009
+    title: 'futex trên Linux: đường nhanh ở không gian người dùng và hỗ trợ chờ từ nhân'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locks-mutexes-010
+    title: Thu hồi khóa đúng cách trên mọi đường thoát và đường báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditions-semaphores
+  title: Điều kiện và semaphore
+  childs:
+  - slug: conditions-semaphores-001
+    title: Semaphore đếm và cách biểu diễn số tài nguyên sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-002
+    title: Semaphore nhị phân khác mutex có quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-003
+    title: Biến điều kiện để chờ một mệnh đề trên dữ liệu dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-004
+    title: Vì sao phải kiểm tra lại điều kiện trong vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-005
+    title: Đánh thức giả, mất thông báo và khoảng trống giữa kiểm tra với chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-006
+    title: 'signal và broadcast: đánh thức một hay nhiều luồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-007
+    title: Kết hợp mutex với biến điều kiện để bảo vệ hàng đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-008
+    title: Barrier để nhiều luồng gặp nhau tại một mốc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-009
+    title: Chờ có thời hạn và chọn đồng hồ phù hợp cho khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-semaphores-010
+    title: Bài toán bộ đệm có giới hạn với nhiều bên sản xuất và tiêu thụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: atomics-memory-ordering
+  title: Nguyên tử và thứ tự bộ nhớ
+  childs:
+  - slug: atomics-memory-ordering-001
+    title: Phép đọc–ghi nguyên tử khác một chuỗi thao tác nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-002
+    title: Compare-and-swap, fetch-add và cập nhật có tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-003
+    title: Hệ quả của tối ưu trình biên dịch và sắp xếp lại ở CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-004
+    title: Quan hệ happens-before nối việc ghi dữ liệu với việc đọc hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-005
+    title: Acquire, release, relaxed và thứ tự nhất quán tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-006
+    title: Đồng bộ cache không tự tạo hợp đồng đồng bộ cho chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-007
+    title: Vì sao volatile trong C/C++ không thay thế mutex hoặc kiểu nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-008
+    title: Vấn đề ABA và vòng đời vùng nhớ trong thuật toán không khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-009
+    title: Phân biệt blocking, lock-free và wait-free
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: atomics-memory-ordering-010
+    title: Khi nào nên chọn thư viện đồng bộ đã được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deadlocks-progress
+  title: Bế tắc và tiến triển
+  childs:
+  - slug: deadlocks-progress-001
+    title: Bốn điều kiện cần của deadlock và đồ thị chờ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-002
+    title: Chu kỳ chờ giữa nhiều khóa và cách áp đặt thứ tự khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-003
+    title: Bế tắc do gọi lại, chờ join hoặc chờ kết quả trong khi giữ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-004
+    title: 'Phòng ngừa, tránh và phát hiện bế tắc: các hướng tiếp cận khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-005
+    title: Thuật toán Banker trong mô hình cấp phát tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-006
+    title: Thời hạn chờ hỗ trợ phát hiện nhưng không tự chứng minh hết bế tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-007
+    title: 'Livelock: các luồng vẫn hoạt động nhưng công việc không tiến triển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-008
+    title: 'Starvation: tác vụ liên tục không nhận được tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-009
+    title: Lock convoy và thundering herd khi nhiều luồng cùng chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deadlocks-progress-010
+    title: Giảm tranh chấp bằng chia nhỏ sở hữu và giới hạn số tác vụ cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: task-coordination-cancellation
+  title: Hợp tác và hủy tác vụ
+  childs:
+  - slug: task-coordination-cancellation-001
+    title: Phân rã công việc và xác định dữ liệu đi qua ranh giới luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-002
+    title: Thỏa thuận kết thúc giữa bên tạo việc và bên nhận việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-003
+    title: Cờ dừng cần cơ chế đồng bộ để luồng khác quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-004
+    title: Hủy hợp tác và rủi ro của việc cưỡng bức kết thúc luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-005
+    title: 'pthread_cancel: kiểu hủy, điểm hủy và hàm dọn dẹp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-006
+    title: Đánh thức tác vụ đang chờ khi có yêu cầu dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-007
+    title: Truyền lỗi và kết quả giữa các luồng mà không bỏ sót tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-008
+    title: Đóng hàng đợi, ngừng nhận việc, chờ hoàn tất và hết thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-009
+    title: 'Xử lý công việc đang làm dở: hoàn tất, hủy hoặc bàn giao'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: task-coordination-cancellation-010
+    title: Phạm vi vòng đời giúp tiến trình cha quản lý toàn bộ tác vụ con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thread-groups-load
+  title: Nhóm luồng và tải
+  childs:
+  - slug: thread-groups-load-001
+    title: Nhóm luồng tách vòng đời luồng khỏi vòng đời công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-002
+    title: Hàng đợi có giới hạn và chính sách khi hết chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-003
+    title: Ước lượng số luồng cho công việc tính toán hoặc chờ nhiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-004
+    title: 'Số luồng vượt số lõi: lợi ích và chi phí tùy loại công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-005
+    title: Bế tắc khi tác vụ trong nhóm chờ tác vụ khác cùng nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-006
+    title: Work stealing và phân phối những công việc nhỏ không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-007
+    title: Chi phí tạo luồng, tái sử dụng luồng và dữ liệu cục bộ bị giữ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-008
+    title: Điều tiết đầu vào để ngăn hàng đợi và độ trễ tăng không kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-009
+    title: Nhóm tiến trình so với nhóm luồng khi cần cách ly lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thread-groups-load-010
+    title: 'Vòng lặp sự kiện, coroutine và luồng hệ điều hành: quan hệ giữa các lớp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hierarchies-resource-limits
+  title: Phân cấp và giới hạn
+  childs:
+  - slug: hierarchies-resource-limits-001
+    title: Nhóm tiến trình, phiên và phạm vi gửi tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-002
+    title: 'Job control: tác vụ tiền cảnh, nền và terminal điều khiển'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-003
+    title: Giới hạn tài nguyên theo tiến trình bằng getrlimit, setrlimit và ulimit
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-004
+    title: RLIMIT_NPROC và cách hệ điều hành tính phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-005
+    title: 'PID namespace: định danh khác nhau giữa bên trong và bên ngoài'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-006
+    title: Tiến trình PID 1 trong namespace và trách nhiệm xử lý tín hiệu, thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-007
+    title: 'cgroup v2: nhóm tiến trình để theo dõi và kiểm soát tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-008
+    title: cpu.weight, cpu.max và hiện tượng bị giới hạn thời gian CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-009
+    title: 'cpuset và pids.max: CPU được phép dùng và giới hạn số tác vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-010
+    title: Windows Job Objects và quản lý vòng đời một nhóm tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hierarchies-resource-limits-011
+    title: Giới hạn container khác khả năng CPU nhìn thấy từ máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linux-observability
+  title: Quan sát trên Linux
+  childs:
+  - slug: linux-observability-001
+    title: 'ps: đọc PID, PPID, TID, trạng thái và thời gian CPU'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-002
+    title: 'top và htop: chuyển giữa góc nhìn tiến trình với luồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-003
+    title: 'pstree: dựng quan hệ cha–con để tìm nguồn khởi chạy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-004
+    title: '/proc/<pid>/status, stat và task: đối chiếu thông tin tiến trình, luồng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-005
+    title: '/proc/<pid>/fd, cmdline và environ: quan sát tài nguyên trong phạm vi quyền được cấp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-006
+    title: 'pidstat và vmstat: lấy mẫu CPU, chuyển ngữ cảnh và hàng đợi chạy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-007
+    title: 'strace: theo dõi tạo tiến trình, lời gọi chờ và tín hiệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-008
+    title: 'perf stat, perf record và perf sched: đo sự kiện, mẫu CPU và lập lịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-009
+    title: 'taskset, chrt và prlimit: đọc cấu hình trước khi thay đổi có kiểm soát'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-010
+    title: 'gdb và pstack: xem ngăn xếp các luồng khi chương trình treo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-observability-011
+    title: Quyền ptrace, dữ liệu nhạy cảm và chi phí của công cụ quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: windows-observability
+  title: Quan sát trên Windows
+  childs:
+  - slug: windows-observability-001
+    title: 'Task Manager: đối chiếu tiến trình, luồng, CPU và tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-002
+    title: 'Resource Monitor: quan sát hoạt động và phân tích chuỗi chờ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-003
+    title: 'Process Explorer: xem cây tiến trình, luồng và handle'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-004
+    title: 'Get-Process và Get-CimInstance: lấy thông tin tiến trình bằng PowerShell'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-005
+    title: 'PID và handle: nhận diện đối tượng và quản lý vòng đời tham chiếu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-006
+    title: Wait Chain Traversal và đọc quan hệ chờ khi nghi ngờ bế tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-007
+    title: 'Windows Performance Recorder và Windows Performance Analyzer: phân tích CPU, luồng, lập lịch'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-008
+    title: 'WinDbg: đọc ngăn xếp luồng và dữ liệu chẩn đoán tiến trình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-009
+    title: 'Stop-Process và cơ chế dừng có kiểm soát: hiểu tác động trước khi dùng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-observability-010
+    title: Đối chiếu kết quả Windows với mô hình chung mà không suy diễn hành vi POSIX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-integration
+  title: Liên hệ với Java
+  childs:
+  - slug: java-integration-001
+    title: Tiến trình JVM, các luồng ứng dụng và các luồng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-002
+    title: Luồng nền tảng Java và mối quan hệ với luồng hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-003
+    title: 'Luồng ảo trong Java 21: luồng Java không tương ứng một-một với luồng hệ điều hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-004
+    title: Trạng thái Thread.State khác trạng thái tiến trình, luồng do hệ điều hành báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-005
+    title: Thread.start, join và interrupt dưới góc nhìn vòng đời tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-006
+    title: interrupt là yêu cầu hợp tác, không phải tín hiệu POSIX hay lệnh cưỡng bức dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-007
+    title: synchronized, Lock, volatile và kiểu nguyên tử thuộc mô hình bộ nhớ Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-008
+    title: ExecutorService và giới hạn số luồng, hàng đợi khi xử lý công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-009
+    title: 'ProcessBuilder và Process: khởi chạy, đọc đầu ra, chờ và kết thúc tiến trình con'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-010
+    title: Tiến trình con bị chặn khi đầu ra đầy mà ứng dụng Java chưa đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-integration-011
+    title: jcmd, jstack và đối chiếu định danh luồng với công cụ hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multithreaded-performance
+  title: Hiệu năng đa luồng
+  childs:
+  - slug: multithreaded-performance-001
+    title: Định luật Amdahl và giới hạn tăng tốc của phần công việc tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-002
+    title: Chọn độ hạt tác vụ để chi phí điều phối không lấn át tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-003
+    title: True sharing và false sharing trên cùng dòng cache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-004
+    title: Tính cục bộ dữ liệu, NUMA và ảnh hưởng của di chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-005
+    title: Cạnh tranh khóa, thời gian giữ khóa và đoạn tới hạn nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-006
+    title: Chờ bận, đánh thức liên tục và lãng phí CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-007
+    title: Thông lượng cao khác độ trễ thấp, nhất là ở các phân vị cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-008
+    title: Lấy mẫu với khoảng đo đủ dài và phân biệt CPU time với wall-clock time
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-009
+    title: 'Thiết kế phép đo: tải ổn định, khởi động, lặp lại và đối chứng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multithreaded-performance-010
+    title: Tách nút thắt CPU, đồng bộ và I/O trước khi tăng số luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Quy trình từ triệu chứng đến giả thuyết, bằng chứng và phép kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: CPU cao do tính toán, vòng lặp bận hoặc quá nhiều tác vụ cạnh tranh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: 'CPU thấp nhưng chương trình chậm: chờ I/O, khóa hay giới hạn CPU'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'Nhiều luồng ở trạng thái chờ: khi nào bình thường, khi nào bất thường'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Luồng tăng liên tục và cạn tài nguyên do không quản lý vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Zombie tích tụ và tiến trình cha không thu hồi đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: 'Không dừng được bằng SIGTERM: kiểm tra mặt nạ, xử lý tín hiệu và trạng thái chờ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Chương trình treo khi chờ tiến trình con, pipe hoặc khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Phân biệt deadlock, starvation, livelock và nghẽn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: 'Tiến trình bị kết thúc ngoài ý muốn: mã thoát, tín hiệu, OOM và nhật ký'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Lưu mốc thời gian, ảnh chụp trạng thái và ngăn xếp để đối chiếu trước–sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Dựng cây tiến trình và giải thích PID, PPID, TID bằng quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Thí nghiệm fork–exec–wait và chứng minh PID được giữ qua exec
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Tạo zombie trong môi trường kiểm soát rồi thu hồi đúng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: So sánh dữ liệu riêng của hai tiến trình với dữ liệu dùng chung giữa hai luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: Đo công việc tính toán khi thay đổi số luồng và số CPU được phép dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Tạo tranh chấp bộ đếm rồi sửa bằng mutex và phép toán nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: Xây hàng đợi có giới hạn bằng mutex và biến điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Tạo bế tắc hai khóa, đọc ngăn xếp và sửa thứ tự lấy khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Xây giao tiếp pipe có xử lý EOF và tiến trình con xuất nhiều dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Điều phối dừng nhiều tiến trình, luồng bằng tín hiệu và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-011
+    title: Quan sát tác động của cpu.max và pids.max trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-012
+    title: Lập hồ sơ hiệu năng và giải thích kết quả bằng bằng chứng hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-013
+    title: Bài tập chọn kiến trúc tiến trình, luồng hoặc vòng lặp sự kiện theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,57 @@
+roadmap:
+- id: inventory-dependency-graph
+  title: Inventory & Dependency Graph
+  purpose: Biết thành phần bên thứ ba nào thực sự được sử dụng và phụ thuộc vào đâu.
+  objectives:
+  - Đọc dependency manifest và lockfile.
+  - Phân biệt direct và transitive dependencies.
+  - Xuất danh sách package, phiên bản và nguồn.
+- id: sca-cong-cu-quet
+  title: SCA & công cụ quét
+  purpose: Nhận diện lỗ hổng đã công bố trong thư viện và dependency của dự án.
+  objectives:
+  - Phân biệt dependency scanning với SAST.
+  - Chạy OWASP Dependency-Check hoặc OSV-Scanner.
+  - Lưu báo cáo quét của dự án Java thử nghiệm.
+- id: cve-bao-cao
+  title: CVE & báo cáo
+  purpose: Đọc kết quả quét đúng bối cảnh và tránh xử lý chỉ dựa trên số lượng cảnh báo.
+  objectives:
+  - Tìm CVE/advisory, phiên bản ảnh hưởng và bản vá.
+  - Phân biệt độ nghiêm trọng với khả năng khai thác.
+  - Nhận diện kết quả trùng hoặc false positive.
+- id: phan-loai-rui-ro
+  title: Phân loại rủi ro
+  purpose: Ưu tiên sửa lỗi theo tác động thực tế lên ứng dụng và môi trường triển khai.
+  objectives:
+  - Đánh giá mức độ ảnh hưởng, exposure và dependency scope.
+  - Kiểm tra đường sử dụng thành phần dễ tổn thương.
+  - Xếp thứ tự xử lý và ghi nhận người phụ trách.
+- id: cap-nhat-khac-phuc
+  title: Cập nhật & khắc phục
+  purpose: Loại bỏ dependency có rủi ro mà vẫn bảo vệ tương thích chức năng.
+  objectives:
+  - Chọn phiên bản đã vá hoặc thư viện thay thế.
+  - Cập nhật manifest/lockfile và chạy unit tests.
+  - Quét lại để xác nhận lỗ hổng được xử lý.
+- id: sbom-theo-doi-thanh-phan
+  title: SBOM & theo dõi thành phần
+  purpose: Duy trì danh mục thành phần có thể kiểm tra lại khi xuất hiện lỗ hổng mới.
+  objectives:
+  - Giải thích vai trò của SBOM và CycloneDX.
+  - Xuất SBOM của ứng dụng và kiểm tra thành phần.
+  - Nhận diện lợi ích giám sát liên tục với Dependency-Track.
+- id: ci-cd-chinh-sach
+  title: CI/CD & chính sách
+  purpose: Tự động kiểm tra rủi ro dependency tại thời điểm thay đổi mã hoặc phát hành.
+  objectives:
+  - Gắn dependency scan vào pipeline hoặc pull request.
+  - Đặt ngưỡng cảnh báo/chặn theo chính sách nhóm.
+  - Lưu kết quả scan làm bằng chứng cho review.
+- id: ngoai-le-van-hanh
+  title: Ngoại lệ & vận hành
+  purpose: Quản lý cảnh báo tồn đọng và duy trì kiểm soát lâu dài.
+  objectives:
+  - Ghi lý do, owner và hạn dùng cho ngoại lệ.
+  - Bật cảnh báo phiên bản mới hoặc advisory mới.
+  - Theo dõi số lỗi mở, thời gian khắc phục và quét lại.

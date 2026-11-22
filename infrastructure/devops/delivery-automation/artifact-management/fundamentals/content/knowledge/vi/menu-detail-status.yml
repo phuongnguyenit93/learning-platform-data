@@ -1,0 +1,1876 @@
+menu:
+- slug: artifact-fundamentals
+  title: Nền tảng artifact
+  childs:
+  - slug: artifact-fundamentals-001
+    title: Artifact là gì và vai trò của đầu ra build trong quá trình phân phối phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-002
+    title: Phân biệt mã nguồn, artifact, dependency, bản phát hành và bản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-003
+    title: 'Các dạng artifact: JAR, package thư viện, gói phân phối và container image'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-004
+    title: Artifact triển khai, artifact trung gian và tài liệu đi kèm bản build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-005
+    title: Vì sao lưu artifact tập trung thay cho truyền tệp thủ công giữa các máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-006
+    title: Artifact management trong mối quan hệ với build automation và CI/CD
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-007
+    title: 'Các rủi ro cơ bản: dùng nhầm phiên bản, ghi đè nội dung và mất dấu nguồn gốc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-fundamentals-008
+    title: 'Các nguyên tắc cốt lõi: định danh rõ ràng, bất biến, kiểm chứng và truy vết'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-lifecycle
+  title: Vòng đời artifact
+  childs:
+  - slug: artifact-lifecycle-001
+    title: Các giai đoạn từ tạo artifact đến công bố, sử dụng, lưu giữ và loại bỏ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-002
+    title: Xác định bên tạo, bên sở hữu và bên tiêu thụ artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-003
+    title: Phân biệt trạng thái đã build, đã kiểm thử, được phê duyệt và được phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-004
+    title: Phân biệt kho artifact dùng lâu dài với artifact tạm thời của một lần chạy CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-005
+    title: Liên kết một lần build với artifact, kết quả kiểm thử và bản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-006
+    title: Quản lý artifact ứng viên, artifact bị cách ly và artifact đã thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-007
+    title: Xác định nguồn sự thật khi cùng một artifact xuất hiện ở nhiều hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-lifecycle-008
+    title: Xây dựng luồng quản lý artifact tối thiểu cho một nhóm phát triển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-identification
+  title: Định danh artifact
+  childs:
+  - slug: artifact-identification-001
+    title: 'Cấu thành định danh: namespace, tên, phiên bản, loại và nền tảng đích'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-002
+    title: 'Tọa độ Maven: groupId, artifactId, version, packaging và classifier'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-003
+    title: Định danh package theo tên gói, phạm vi sở hữu và phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-004
+    title: Định danh container image bằng registry, repository, tag và digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-005
+    title: Phân biệt tên dễ đọc với định danh theo nội dung bằng hàm băm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-006
+    title: Nhận diện biến thể theo hệ điều hành, kiến trúc CPU và cấu hình build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-007
+    title: Quy ước đặt tên và namespace để tránh xung đột giữa nhóm và dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-identification-008
+    title: Ánh xạ định danh artifact tới commit, build và bản phát hành tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: immutable-versioning
+  title: Phiên bản bất biến
+  childs:
+  - slug: immutable-versioning-001
+    title: Mục đích của phiên bản và cách diễn đạt mức độ thay đổi với Semantic Versioning
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-002
+    title: Phân biệt phiên bản phát triển, prerelease, release candidate và release chính thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-003
+    title: Đặc điểm của snapshot và rủi ro khi dùng phiên bản có thể thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-004
+    title: Vì sao cùng một phiên bản phát hành phải luôn trỏ tới cùng nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-005
+    title: Phân biệt phiên bản, tag, build number, commit SHA và digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-006
+    title: Tác động của nhãn latest và các tham chiếu động tới khả năng triển khai lặp lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-007
+    title: Chặn ghi đè và xử lý khi cần sửa một artifact đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: immutable-versioning-008
+    title: Chọn chiến lược phiên bản cho nhánh phát triển, bản vá và nhiều dòng phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repositories-and-registries
+  title: Repository và registry
+  childs:
+  - slug: repositories-and-registries-001
+    title: Vai trò của artifact repository và package hoặc container registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-002
+    title: Phân biệt kho hosted, proxy và nhóm kho hoặc virtual repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-003
+    title: Kho công khai, kho riêng và tiêu chí lựa chọn theo nhu cầu sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-004
+    title: Tổ chức kho cho dependency bên ngoài, artifact nội bộ và bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-005
+    title: Tách snapshot, release và vùng cách ly theo chính sách của nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-006
+    title: 'Các thành phần cơ bản: endpoint, namespace, metadata, blob và chỉ mục'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-007
+    title: Lựa chọn kho theo định dạng hỗ trợ, quyền truy cập và khả năng tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repositories-and-registries-008
+    title: Phân biệt kho artifact với Git, object storage và bộ nhớ đệm của CI
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: dependency-resolution
+  title: Phụ thuộc và phân giải
+  childs:
+  - slug: dependency-resolution-001
+    title: Dependency trực tiếp, dependency bắc cầu và đồ thị phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-002
+    title: Cách công cụ build tìm phiên bản và tải artifact từ các kho đã cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-003
+    title: Thứ tự ưu tiên repository và nguy cơ lấy nhầm package trùng tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-004
+    title: Phiên bản cố định, khoảng phiên bản và tác động của cập nhật tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-005
+    title: Lockfile, dependency locking và khả năng tái lập tập dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-006
+    title: Local cache, proxy cache và khác biệt giữa cache với kho lưu trữ chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-007
+    title: Phân biệt dependency dùng khi build, kiểm thử và chạy ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: dependency-resolution-008
+    title: Kiểm soát nguồn dependency và cập nhật phụ thuộc qua quy trình có kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reproducible-builds
+  title: Build tái lập
+  childs:
+  - slug: reproducible-builds-001
+    title: Phân biệt build thành công, build lặp lại được và build tái lập theo byte
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-002
+    title: Cố định mã nguồn, dependency, toolchain và môi trường build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-003
+    title: Ảnh hưởng của timestamp, thứ tự tệp, locale và đường dẫn tuyệt đối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-004
+    title: Quản lý cấu hình và đầu vào build để tránh thay đổi nội dung ngoài dự kiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-005
+    title: Ghi nhận phiên bản JDK, công cụ đóng gói và base image đã sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-006
+    title: So sánh checksum giữa các lần build và tìm nguồn gây khác biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-007
+    title: Phân biệt môi trường build được kiểm soát với bằng chứng nguồn gốc đáng tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reproducible-builds-008
+    title: Nguyên tắc build một lần và dùng lại đúng artifact trong các bước tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-metadata
+  title: Metadata artifact
+  childs:
+  - slug: artifact-metadata-001
+    title: Các trường metadata tối thiểu để tìm kiếm, sử dụng và kiểm toán artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-002
+    title: Ghi nhận commit, nhánh, build ID, thời điểm tạo và danh tính hệ thống build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-003
+    title: Mô tả loại artifact, runtime, hệ điều hành và kiến trúc được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-004
+    title: Liên kết artifact với báo cáo kiểm thử, SBOM, chữ ký và provenance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-005
+    title: Phân biệt metadata nằm trong artifact với thuộc tính lưu tại repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-006
+    title: Thiết kế nhãn sở hữu, sản phẩm và môi trường phục vụ tra cứu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-007
+    title: Tách metadata định danh bất biến khỏi trạng thái phê duyệt có thể cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-metadata-008
+    title: Bảo toàn metadata khi sao chép, promotion và xuất nhập artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-storage
+  title: Lưu trữ artifact
+  childs:
+  - slug: artifact-storage-001
+    title: Phân biệt lưu theo đường dẫn phiên bản và lưu theo địa chỉ nội dung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-002
+    title: Quan hệ giữa manifest, blob và metadata trong kho artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-003
+    title: Dung lượng artifact, trùng lặp dữ liệu và cơ chế chia sẻ blob
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-004
+    title: Lựa chọn nơi lưu theo yêu cầu độ bền, hiệu năng và khả năng phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-005
+    title: Giới hạn kích thước, hạn ngạch dung lượng và kiểm soát tốc độ tăng trưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-006
+    title: Bảo vệ dữ liệu lưu trữ và quản lý quyền truy cập lớp lưu trữ bên dưới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-007
+    title: Lưu artifact cùng checksum và bằng chứng kiểm chứng theo định danh rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-storage-008
+    title: Giữ nhất quán giữa dữ liệu artifact, metadata và chỉ mục tìm kiếm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-publishing
+  title: Công bố artifact
+  childs:
+  - slug: artifact-publishing-001
+    title: Chuẩn bị nội dung, tọa độ, phiên bản và metadata trước khi upload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-002
+    title: Kiểm thử và kiểm tra điều kiện bắt buộc trước khi cho phép công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-003
+    title: Phân biệt upload tệp, publish package và push container image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-004
+    title: Dùng vùng staging để kiểm tra đầy đủ trước khi cho phép tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-005
+    title: Công bố đồng bộ các thành phần cần thiết để tránh bản phát hành thiếu tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-006
+    title: Xử lý retry, upload gián đoạn và hai pipeline cùng công bố một phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-007
+    title: Xác nhận artifact đã công bố bằng cách đọc lại metadata và digest từ kho
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-publishing-008
+    title: Xử lý publish thất bại, hủy bản ứng viên và phát hành phiên bản thay thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-distribution
+  title: Phân phối artifact
+  childs:
+  - slug: artifact-distribution-001
+    title: Cấu hình client tải artifact qua endpoint và cơ chế xác thực phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-002
+    title: Chọn artifact theo phiên bản cố định, tọa độ đầy đủ hoặc digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-003
+    title: Kiểm tra tính đầy đủ và toàn vẹn sau khi tải trước khi đưa vào sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-004
+    title: Proxy, mirror và cache trong việc giảm độ trễ và phụ thuộc mạng ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-005
+    title: Cache hit, cache miss, thời hạn cache và rủi ro dữ liệu cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-006
+    title: Sao chép giữa vùng hoặc kho và kiểm tra nội dung sau sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-007
+    title: Phân phối trong môi trường hạn chế kết nối hoặc cần hoạt động ngoại tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-distribution-008
+    title: Cân bằng băng thông, độ sẵn sàng và tính nhất quán khi nhiều nơi cùng tiêu thụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-integrity
+  title: Tính toàn vẹn
+  childs:
+  - slug: artifact-integrity-001
+    title: Checksum và digest giúp phát hiện nội dung thay đổi như thế nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-002
+    title: Sử dụng SHA-256 và phân biệt hàm băm với mã hóa hoặc chữ ký số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-003
+    title: Tạo checksum cho artifact và so sánh với giá trị kỳ vọng khi tải về
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-004
+    title: Vì sao checksum cần đến từ nguồn đáng tin cậy để chống thay thế đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-005
+    title: 'Phạm vi kiểm chứng: từng tệp, gói nén, manifest và các lớp container image'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-006
+    title: Phân biệt bảo vệ đường truyền bằng TLS với kiểm tra nội dung artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-007
+    title: Dừng tiêu thụ, cách ly và điều tra khi checksum không khớp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-integrity-008
+    title: Lưu kết quả kiểm chứng gắn với digest và lần chạy pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-signing
+  title: Chữ ký artifact
+  childs:
+  - slug: artifact-signing-001
+    title: Mục đích của chữ ký số và các câu hỏi về danh tính bên phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-002
+    title: Phân biệt xác minh chữ ký hợp lệ với quyết định tin cậy người ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-003
+    title: Quan hệ giữa khóa riêng, khóa công khai, chứng thư và chính sách tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-004
+    title: Ký artifact hoặc digest và liên kết chữ ký với đúng nội dung cần bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-005
+    title: Tổng quan cách ký dùng khóa quản lý sẵn và cách ký dựa trên danh tính ngắn hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-006
+    title: Kiểm tra danh tính, nguồn cấp chứng thư và điều kiện chấp nhận chữ ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-007
+    title: Quản lý vòng đời khóa, thay khóa và xử lý khi danh tính ký bị xâm phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-signing-008
+    title: Tích hợp xác minh chữ ký vào bước tải, promotion và triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-provenance
+  title: Nguồn gốc artifact
+  childs:
+  - slug: artifact-provenance-001
+    title: Provenance mô tả artifact được tạo từ đâu, bằng gì và qua quy trình nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-002
+    title: Liên kết digest đầu ra với mã nguồn, đầu vào build và danh tính builder
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-003
+    title: Phân biệt provenance, attestation, chữ ký, SBOM và báo cáo kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-004
+    title: 'Các trường bằng chứng cơ bản: subject, builder, invocation và materials'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-005
+    title: Khái niệm SLSA và vai trò của mức bảo đảm đối với chuỗi cung ứng phần mềm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-006
+    title: Thu thập bằng chứng từ hệ thống CI và bảo vệ khỏi sửa đổi tùy ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-007
+    title: Xác minh attestation theo digest, danh tính phát hành và chính sách nguồn build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-provenance-008
+    title: Giới hạn của provenance khi đầu vào, builder hoặc chính sách tin cậy bị sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sbom
+  title: SBOM
+  childs:
+  - slug: sbom-001
+    title: SBOM là gì và giúp quản lý thành phần phần mềm trong artifact như thế nào
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-002
+    title: Thành phần trực tiếp, bắc cầu, thư viện nhúng và package hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-003
+    title: 'Các thông tin cơ bản: tên, phiên bản, nhà cung cấp, giấy phép và quan hệ phụ thuộc'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-004
+    title: Nhận diện thành phần bằng package URL và các định danh phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-005
+    title: 'Tổng quan hai định dạng SBOM phổ biến: SPDX và CycloneDX'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-006
+    title: Sinh SBOM từ dependency graph và quét nội dung đóng gói để nhận biết phần thiếu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-007
+    title: Gắn SBOM với digest của artifact và lưu cùng bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sbom-008
+    title: Dùng SBOM để tra cứu ảnh hưởng khi phát hiện lỗ hổng hoặc thay đổi chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-acceptance-policies
+  title: Chính sách chấp nhận
+  childs:
+  - slug: artifact-acceptance-policies-001
+    title: Xác định điều kiện chấp nhận artifact trước khi công bố, promotion và triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-002
+    title: Quét lỗ hổng dependency và container image bằng dữ liệu nhận diện thành phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-003
+    title: Đánh giá phát hiện theo mức độ nghiêm trọng, khả năng ảnh hưởng và ngữ cảnh sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-004
+    title: Kiểm tra giấy phép, thành phần bị cấm và dependency không còn được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-005
+    title: Phân biệt bằng chứng đã quét với cam kết artifact không có lỗ hổng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-006
+    title: Quét lại artifact bất biến khi cơ sở dữ liệu lỗ hổng hoặc chính sách thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-007
+    title: Quản lý ngoại lệ có người chịu trách nhiệm, lý do và thời hạn rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-acceptance-policies-008
+    title: Cách ly hoặc thu hồi artifact và xác định các bản triển khai đang bị ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: access-control
+  title: Kiểm soát truy cập
+  childs:
+  - slug: access-control-001
+    title: Phân biệt quyền đọc, công bố, sửa metadata, promotion và xóa artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-002
+    title: Áp dụng quyền tối thiểu theo namespace, repository và vai trò công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-003
+    title: Tách danh tính người dùng, pipeline build và hệ thống triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-004
+    title: Sử dụng service account, token có phạm vi hẹp và thông tin xác thực ngắn hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-005
+    title: Lưu bí mật trong hệ thống quản lý phù hợp và tránh đưa vào artifact hoặc log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-006
+    title: Giới hạn quyền công bố từ nhánh, pull request và nguồn chạy CI chưa được tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-007
+    title: Thu hồi thông tin xác thực, thay token và kiểm tra quyền khi có sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-008
+    title: Ghi nhật ký truy cập và truy vết các thao tác phát hành, ghi đè hoặc xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-cd-artifacts
+  title: Artifact trong CI/CD
+  childs:
+  - slug: ci-cd-artifacts-001
+    title: Thiết kế luồng build, test, package, publish, verify và deploy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-002
+    title: Truyền định danh và digest giữa các job thay vì suy đoán artifact từ tên nhánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-003
+    title: Phân biệt build cache, artifact của job và artifact phát hành trong pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-004
+    title: Bảo đảm kiểm thử tích hợp và triển khai sử dụng đúng đầu ra đã đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-005
+    title: Gắn báo cáo kiểm thử, kết quả quét và phê duyệt với cùng một digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-006
+    title: Tổ chức cổng kiểm soát tự động và xử lý khi thiếu bằng chứng bắt buộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-007
+    title: Xử lý chạy lại pipeline, các build đồng thời và lỗi sau khi publish thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-artifacts-008
+    title: Ghi nhận artifact thực tế đã triển khai để phục vụ kiểm toán và khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-promotion
+  title: Promotion artifact
+  childs:
+  - slug: artifact-promotion-001
+    title: Promotion là gì và khác gì với build lại hoặc đổi nội dung artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-002
+    title: Chuyển cùng artifact qua môi trường phát triển, kiểm thử, staging và production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-003
+    title: 'Điều kiện promotion: kết quả kiểm thử, chữ ký, provenance, SBOM và chính sách'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-004
+    title: Promotion bằng sao chép, gắn nhãn hoặc đổi trạng thái và cách giữ nguyên digest
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-005
+    title: Tách cấu hình môi trường và bí mật triển khai khỏi artifact đã kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-006
+    title: Bảo toàn bằng chứng và xác minh định danh sau khi chuyển giữa các repository
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-007
+    title: Phân quyền phê duyệt, lưu lịch sử promotion và ngăn dùng nhầm artifact ứng viên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-promotion-008
+    title: Rollback về artifact đã biết cùng kiểm tra tính tương thích dữ liệu và cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: retention-and-cleanup
+  title: Lưu giữ và dọn dẹp
+  childs:
+  - slug: retention-and-cleanup-001
+    title: Phân biệt chính sách lưu giữ, chính sách xóa và nhu cầu lưu trữ dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-002
+    title: Đặt thời gian lưu theo snapshot, bản ứng viên, release và artifact đang triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-003
+    title: Bảo vệ artifact phục vụ rollback, kiểm toán và các phiên bản vẫn được hỗ trợ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-004
+    title: Xác định artifact còn tham chiếu trước khi xóa tag, manifest hoặc package
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-005
+    title: Phân biệt xóa tham chiếu với garbage collection giải phóng blob không còn được dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-006
+    title: Lưu giữ đồng bộ SBOM, chữ ký, provenance và báo cáo đi kèm artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-007
+    title: Chạy xem trước, rà soát danh sách xóa và ghi lại kết quả dọn dẹp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: retention-and-cleanup-008
+    title: Xử lý artifact bị thu hồi và cân nhắc thời gian khôi phục trước khi xóa vĩnh viễn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: repository-operations
+  title: Vận hành kho artifact
+  childs:
+  - slug: repository-operations-001
+    title: Theo dõi dung lượng, tốc độ tăng trưởng, lưu lượng tải và tỷ lệ lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-002
+    title: Theo dõi độ trễ publish, download và hiệu quả proxy cache
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-003
+    title: Cảnh báo khi gần hết dung lượng, xác thực lỗi hoặc artifact không truy cập được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-004
+    title: Sao lưu blob, metadata, cấu hình và thông tin cần thiết để phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-005
+    title: Xác định mục tiêu phục hồi và kiểm tra khôi phục bằng artifact có thể tải, kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-006
+    title: Quản lý sao chép và khả năng hoạt động khi một kho hoặc một vùng gặp sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-007
+    title: Bảo trì, nâng cấp và di chuyển kho mà vẫn giữ định danh cùng bằng chứng artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: repository-operations-008
+    title: Đánh giá chi phí lưu trữ, băng thông và hiệu quả chính sách lưu giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: jars-and-packages
+  title: JAR và package
+  childs:
+  - slug: jars-and-packages-001
+    title: Phân biệt JAR thư viện, executable JAR, WAR và gói phân phối ứng dụng Java
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-002
+    title: Vai trò của POM, manifest và metadata khi công bố artifact Maven
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-003
+    title: Tách JAR chính, sources, javadoc và các classifier trong một phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-004
+    title: Công bố snapshot và release vào repository phù hợp, kiểm tra khả năng phân giải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-005
+    title: 'Đặc điểm package npm và Python: manifest, phiên bản và nội dung được đóng gói'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-006
+    title: Kiểm tra gói trước khi publish để tránh thiếu tệp hoặc chứa thông tin bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-007
+    title: Cài đặt thử artifact đã công bố trong môi trường sạch và kiểm tra dependency
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: jars-and-packages-008
+    title: So sánh quy tắc bất biến, thu hồi và phân giải giữa các hệ sinh thái package
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-images
+  title: Container image
+  childs:
+  - slug: container-images-001
+    title: 'Cấu trúc container image: filesystem layer, config, manifest và image index'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-002
+    title: Phân biệt image đang có trên máy, image trong registry và container đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-003
+    title: Tag có thể thay đổi và cách ghim image bằng digest khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-004
+    title: Quan hệ giữa base image, dependency hệ điều hành và ứng dụng được đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-005
+    title: Image đa kiến trúc và cách phân biệt digest của index với manifest từng nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-006
+    title: Push, pull và sao chép image kèm kiểm tra digest cùng artifact đính kèm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-007
+    title: Gắn SBOM, chữ ký và attestation với đúng image hoặc từng biến thể nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-images-008
+    title: Quản lý tag, layer dùng chung và tác động của cleanup trong container registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: artifact-troubleshooting-001
+    title: 'Không tìm thấy artifact: kiểm tra tọa độ, phiên bản, endpoint và thứ tự repository'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-002
+    title: Lỗi xác thực hoặc phân quyền khi tải, publish và promotion artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-003
+    title: Phiên bản tồn tại nhưng nội dung khác do ghi đè, tag động hoặc cache cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-004
+    title: Checksum không khớp hoặc chữ ký không hợp lệ sau khi tải và sao chép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-005
+    title: Publish thiếu thành phần, metadata chưa nhất quán hoặc upload bị gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-006
+    title: Dependency phân giải khác giữa máy cá nhân, CI và môi trường ngoại tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-007
+    title: Deployment dùng nhầm image, sai kiến trúc hoặc thiếu bằng chứng đã kiểm thử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-troubleshooting-008
+    title: 'Artifact bị dọn nhầm: truy lịch sử, đánh giá ảnh hưởng và phục hồi từ nguồn tin cậy'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: artifact-management-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: artifact-management-practice-001
+    title: Thiết kế namespace, repository, quyền truy cập và quy tắc phiên bản cho dự án mẫu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-002
+    title: Đóng gói một JAR, công bố phiên bản bất biến và tải lại để kiểm tra checksum
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-003
+    title: Build và push container image, ghi nhận digest rồi triển khai theo định danh đó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-004
+    title: Sinh SBOM và provenance, ký artifact và kiểm tra trước khi chấp nhận sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-005
+    title: Nối pipeline để kiểm thử, quét và phê duyệt cùng một artifact đã công bố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-006
+    title: Promotion artifact qua staging và production, chứng minh digest được giữ nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-007
+    title: Mô phỏng rollback, thu hồi artifact và dọn dẹp với danh sách xem trước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: artifact-management-practice-008
+    title: Rà soát toàn bộ luồng bằng tiêu chí đúng artifact, đủ bằng chứng và truy vết được
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

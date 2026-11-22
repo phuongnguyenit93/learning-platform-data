@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan Netty
+  slug: netty-overview
+  index: 0
+- title: Nền tảng mạng
+  slug: networking-fundamentals
+  index: 1
+- title: Java I/O và Reactor
+  slug: java-io-reactor
+  index: 2
+- title: Kiến trúc Netty
+  slug: netty-architecture
+  index: 3
+- title: Transport
+  slug: transports
+  index: 4
+- title: EventLoop
+  slug: event-loops
+  index: 5
+- title: Khởi tạo ứng dụng
+  slug: application-bootstrap
+  index: 6
+- title: Channel và vòng đời
+  slug: channel-lifecycle
+  index: 7
+- title: Pipeline
+  slug: channel-pipeline
+  index: 8
+- title: Thiết kế Handler
+  slug: handler-design
+  index: 9
+- title: Future và Promise
+  slug: futures-promises
+  index: 10
+- title: ByteBuf
+  slug: bytebuf
+  index: 11
+- title: Quản lý tham chiếu
+  slug: reference-counting
+  index: 12
+- title: Cấp phát bộ nhớ
+  slug: memory-allocation
+  index: 13
+- title: Codec và định khung
+  slug: codecs-framing
+  index: 14
+- title: Giao thức ứng dụng
+  slug: application-protocols
+  index: 15
+- title: TCP server
+  slug: tcp-servers
+  index: 16
+- title: TCP client
+  slug: tcp-clients
+  index: 17
+- title: UDP
+  slug: udp
+  index: 18
+- title: HTTP/1.1
+  slug: http-1-1
+  index: 19
+- title: HTTP/2 và mở rộng
+  slug: http-2-extensions
+  index: 20
+- title: WebSocket
+  slug: websocket
+  index: 21
+- title: TLS và bảo mật đường truyền
+  slug: tls-transport-security
+  index: 22
+- title: Kiểm soát tải
+  slug: backpressure-control
+  index: 23
+- title: Tác vụ nghiệp vụ
+  slug: business-tasks
+  index: 24
+- title: Kết nối và phục hồi
+  slug: connections-recovery
+  index: 25
+- title: Bảo vệ giao thức
+  slug: protocol-security
+  index: 26
+- title: Quan sát hệ thống
+  slug: observability
+  index: 27
+- title: Hiệu năng
+  slug: performance
+  index: 28
+- title: Kiểm thử
+  slug: testing
+  index: 29
+- title: Vận hành và vòng đời
+  slug: operations-lifecycle
+  index: 30
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 31
+- title: Tích hợp và lựa chọn
+  slug: integration-choices
+  index: 32
+- title: Thực hành Netty
+  slug: netty-practice
+  index: 33

@@ -1,0 +1,57 @@
+roadmap:
+- id: vai-tro-kien-truc-os
+  title: Vai trò & Kiến trúc OS
+  purpose: Hiểu hệ điều hành là lớp quản lý tài nguyên và cung cấp dịch vụ cho chương trình, giữa ứng dụng và phần cứng.
+  objectives:
+  - Phân biệt kernel, system programs và application.
+  - Mô tả user mode với kernel mode.
+  - Vẽ các thành phần chính của một hệ điều hành.
+- id: system-calls-interfaces
+  title: System Calls & Interfaces
+  purpose: Nắm cách chương trình yêu cầu dịch vụ được bảo vệ từ kernel thông qua giao diện hệ thống.
+  objectives:
+  - Phân biệt system call với thư viện/API cấp ứng dụng.
+  - Nhận diện nhóm gọi process, file, memory và device.
+  - Mô tả luồng chuyển user mode ↔ kernel mode.
+- id: process-thread-scheduling
+  title: Process, Thread & Scheduling
+  purpose: Hiểu cách OS tạo, điều phối và chia thời gian CPU cho các luồng thực thi.
+  objectives:
+  - Phân biệt program, process và thread.
+  - Mô tả process state và context switch.
+  - Giải thích scheduling, priority và starvation.
+- id: memory-virtual-address-space
+  title: Memory & Virtual Address Space
+  purpose: Nắm cách OS cấp phát, bảo vệ và ánh xạ bộ nhớ cho từng tiến trình.
+  objectives:
+  - Phân biệt virtual memory với physical memory.
+  - Giải thích page, page table và address space.
+  - Nhận diện paging, swapping và memory pressure.
+- id: file-system-storage
+  title: File System & Storage
+  purpose: Hiểu cách dữ liệu được tổ chức, định danh và truy cập qua hệ thống file.
+  objectives:
+  - Phân biệt file, directory, metadata và permissions.
+  - Mô tả filesystem abstraction và mount.
+  - Giải thích buffering, caching và persistent storage.
+- id: devices-i-o
+  title: Devices & I/O
+  purpose: Nhận diện cách OS kết nối chương trình với thiết bị và điều phối hoạt động nhập/xuất.
+  objectives:
+  - Mô tả vai trò device driver và device interface.
+  - Phân biệt interrupt, polling và DMA ở mức khái niệm.
+  - Theo dõi luồng I/O từ process đến thiết bị.
+- id: concurrency-resource-sharing
+  title: Concurrency & Resource Sharing
+  purpose: Hiểu các vấn đề phát sinh khi nhiều tiến trình cùng chia sẻ CPU, memory, file và thiết bị.
+  objectives:
+  - Phân biệt concurrency với parallelism.
+  - Nhận diện race condition, deadlock và starvation.
+  - Giải thích mutex, semaphore và IPC ở mức nền tảng.
+- id: protection-system-monitoring
+  title: Protection & System Monitoring
+  purpose: Nắm cách OS cô lập tiến trình, kiểm soát quyền và quan sát tình trạng hệ thống.
+  objectives:
+  - Phân biệt authentication, permissions và isolation.
+  - Kiểm tra process, memory, disk và I/O usage.
+  - Đọc log hoặc system metrics để tìm dấu hiệu quá tải.

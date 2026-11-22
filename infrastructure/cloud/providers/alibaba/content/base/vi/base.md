@@ -1,0 +1,7 @@
+# Cloud Providers Alibaba
+
+Alibaba Cloud là nền tảng điện toán đám mây cung cấp dịch vụ hạ tầng và dịch vụ được quản lý cho ứng dụng, dữ liệu và vận hành. Trong module này, người học tìm hiểu cách kết hợp các thành phần tiêu biểu như Elastic Compute Service (ECS), Virtual Private Cloud (VPC), Object Storage Service (OSS), ApsaraDB RDS và Application Load Balancer (ALB) để triển khai một ứng dụng Java. Nội dung hướng đến người đã biết Java, Linux, HTTP và kiến thức mạng cơ bản, chưa yêu cầu kinh nghiệm vận hành Alibaba Cloud.
+
+Lộ trình bắt đầu từ khái niệm region, zone và quản lý quyền bằng Resource Access Management (RAM), sau đó thiết lập VPC, vSwitch, security group và máy chủ ECS. Tiếp theo, bạn dùng OSS để lưu object, RDS để lưu dữ liệu quan hệ và ALB để phân phối truy cập ứng dụng. Các mốc cuối hướng dẫn đo hiệu năng bằng CloudMonitor, nhận diện những thành phần tính phí và triển khai hạ tầng lặp lại với Terraform. Mỗi bước nên đi kèm một phép kiểm tra kết nối, quyền truy cập hoặc trạng thái tài nguyên thay vì chỉ tạo dịch vụ trên giao diện.
+
+Sau khi hoàn thành, bạn có thể phác thảo và triển khai môi trường ứng dụng nhỏ trên Alibaba Cloud, giải thích chức năng của từng dịch vụ, hạn chế quyền truy cập quá rộng và kiểm chứng kết quả qua log, metrics và thử nghiệm kết nối. Vì tài nguyên đám mây có thể phát sinh phí ngay khi được tạo, hãy chọn cấu hình thử nghiệm phù hợp, theo dõi chi phí và giải phóng ECS, RDS, EIP cùng các tài nguyên liên quan sau bài thực hành.

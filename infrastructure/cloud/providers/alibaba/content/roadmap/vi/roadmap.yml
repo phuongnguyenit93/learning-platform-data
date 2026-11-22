@@ -1,0 +1,57 @@
+roadmap:
+- id: vung-trien-khai-ram
+  title: Vùng triển khai & RAM
+  purpose: Nắm cấu trúc tài khoản, phạm vi tài nguyên và quản lý danh tính khi bắt đầu với Alibaba Cloud.
+  objectives:
+  - Phân biệt region, zone và resource group
+  - Tạo RAM user/role với quyền tối thiểu
+  - Ước tính quota và chi phí môi trường thử nghiệm
+- id: vpc-an-ninh-mang
+  title: VPC & an ninh mạng
+  purpose: Thiết lập mạng riêng và kiểm soát luồng kết nối trước khi chạy ứng dụng trên cloud.
+  objectives:
+  - Thiết kế VPC, vSwitch và dải CIDR
+  - Cấu hình security group đúng cổng và nguồn
+  - Phân biệt private IP, EIP và đường truy cập Internet
+- id: ecs-may-chu-ao
+  title: ECS & máy chủ ảo
+  purpose: Tạo và vận hành máy chủ tính toán cho ứng dụng Java với cấu hình phù hợp.
+  objectives:
+  - Chọn instance type, image và disk cho ECS
+  - Kết nối SSH và triển khai ứng dụng đơn giản
+  - Quản lý snapshot, khởi động và giải phóng instance
+- id: oss-luu-tru-doi-tuong
+  title: OSS & lưu trữ đối tượng
+  purpose: Lưu file và nội dung tĩnh độc lập với máy chủ ứng dụng, đồng thời kiểm soát quyền truy cập.
+  objectives:
+  - Tạo bucket và tải lên/xuống object
+  - Phân biệt ACL/policy và quyền RAM khi truy cập
+  - Chọn storage class và lifecycle rule phù hợp
+- id: apsaradb-rds
+  title: ApsaraDB RDS
+  purpose: Kết nối ứng dụng với cơ sở dữ liệu quan hệ được quản lý thay vì tự vận hành database trên ECS.
+  objectives:
+  - Tạo RDS MySQL hoặc PostgreSQL trong VPC
+  - Cấu hình tài khoản và kiểm tra kết nối từ ECS
+  - Giải thích backup, khôi phục và tùy chọn HA
+- id: alb-kha-dung-cao
+  title: ALB & khả dụng cao
+  purpose: Phân phối lưu lượng ứng dụng và nhận biết các điểm lỗi đơn lẻ ở tầng phục vụ.
+  objectives:
+  - Tạo ALB listener và backend server group
+  - Thiết lập health check và thử chuyển hướng khi lỗi
+  - Giải thích lợi ích triển khai ECS ở nhiều zone
+- id: cloudmonitor-chi-phi
+  title: CloudMonitor & chi phí
+  purpose: Quan sát hiệu năng và ngân sách để giảm rủi ro sự cố hoặc phát sinh chi phí ngoài dự kiến.
+  objectives:
+  - Theo dõi CPU, mạng và trạng thái ECS/RDS
+  - Tạo alert rule và xác nhận cảnh báo
+  - So sánh pay-as-you-go, subscription và gắn tag chi phí
+- id: iac-bai-thuc-hanh
+  title: IaC & bài thực hành
+  purpose: Tái tạo hệ thống tối thiểu bằng cấu hình có thể kiểm soát và biết cách dọn dẹp sau khi thử nghiệm.
+  objectives:
+  - Dùng Terraform provider lập kế hoạch và tạo VPC/ECS
+  - Kiểm thử ứng dụng với OSS hoặc RDS và kiểm tra log
+  - Chạy plan/destroy và xác minh tài nguyên đã giải phóng

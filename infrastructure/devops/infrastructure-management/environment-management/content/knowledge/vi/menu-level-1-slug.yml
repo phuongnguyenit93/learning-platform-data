@@ -1,0 +1,79 @@
+menu:
+- title: Tổng quan môi trường
+  slug: environment-overview
+  index: 0
+- title: Các loại môi trường
+  slug: environment-types
+  index: 1
+- title: Thiết kế môi trường
+  slug: environment-design
+  index: 2
+- title: Danh mục và trách nhiệm
+  slug: inventory-ownership
+  index: 3
+- title: Vòng đời môi trường
+  slug: environment-lifecycle
+  index: 4
+- title: Môi trường dưới dạng mã
+  slug: environments-as-code
+  index: 5
+- title: Cấu hình theo môi trường
+  slug: environment-configuration
+  index: 6
+- title: Bí mật và danh tính
+  slug: secrets-identities
+  index: 7
+- title: Mạng và truy cập
+  slug: networking-access
+  index: 8
+- title: Môi trường cục bộ
+  slug: local-environments
+  index: 9
+- title: Môi trường dùng chung
+  slug: shared-environments
+  index: 10
+- title: Môi trường tạm thời
+  slug: ephemeral-environments
+  index: 11
+- title: Dữ liệu theo môi trường
+  slug: environment-data
+  index: 12
+- title: Dịch vụ phụ thuộc
+  slug: dependent-services
+  index: 13
+- title: Tính tương đồng
+  slug: environment-parity
+  index: 14
+- title: Kiểm chứng môi trường
+  slug: environment-validation
+  index: 15
+- title: Tích hợp phát hành
+  slug: release-integration
+  index: 16
+- title: Bảo vệ production
+  slug: production-protection
+  index: 17
+- title: Kiểm soát sai lệch
+  slug: drift-control
+  index: 18
+- title: Tự động hóa vòng đời
+  slug: lifecycle-automation
+  index: 19
+- title: Quan sát môi trường
+  slug: environment-observability
+  index: 20
+- title: Dung lượng và chi phí
+  slug: capacity-costs
+  index: 21
+- title: Phục hồi môi trường
+  slug: environment-recovery
+  index: 22
+- title: Quản trị môi trường
+  slug: environment-governance
+  index: 23
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 24
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 25

@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Phạm vi kiểm thử
+  slug: testing-scope
+  index: 1
+- title: Nền tảng web
+  slug: web-fundamentals
+  index: 2
+- title: Môi trường an toàn
+  slug: safe-testing-environments
+  index: 3
+- title: Cơ chế SAST
+  slug: sast-mechanisms
+  index: 4
+- title: Thiết lập SAST
+  slug: sast-setup
+  index: 5
+- title: Quy tắc SAST
+  slug: sast-rules
+  index: 6
+- title: SAST Java và Spring
+  slug: sast-java-spring
+  index: 7
+- title: Kiểm chứng SAST
+  slug: sast-validation
+  index: 8
+- title: Cơ chế DAST
+  slug: dast-mechanisms
+  index: 9
+- title: Khám phá bề mặt
+  slug: attack-surface-discovery
+  index: 10
+- title: Đăng nhập và phiên
+  slug: authentication-and-sessions
+  index: 11
+- title: Cấu hình DAST
+  slug: dast-configuration
+  index: 12
+- title: Kiểm thử đầu vào
+  slug: input-validation-testing
+  index: 13
+- title: Kiểm thử phân quyền
+  slug: authorization-testing
+  index: 14
+- title: Bảo mật trình duyệt
+  slug: browser-security
+  index: 15
+- title: Bảo mật API
+  slug: api-security
+  index: 16
+- title: Cấu hình ứng dụng
+  slug: application-configuration
+  index: 17
+- title: Đọc kết quả
+  slug: interpreting-findings
+  index: 18
+- title: Phân loại và ưu tiên
+  slug: finding-triage-and-prioritization
+  index: 19
+- title: Khắc phục và xác minh
+  slug: remediation-and-verification
+  index: 20
+- title: Tích hợp CI/CD
+  slug: ci-cd-integration
+  index: 21
+- title: Cổng chất lượng
+  slug: quality-gates
+  index: 22
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 23
+- title: SAST với Semgrep
+  slug: sast-semgrep
+  index: 24
+- title: SAST với CodeQL
+  slug: sast-codeql
+  index: 25
+- title: SAST với SonarQube
+  slug: sast-sonar-qube
+  index: 26
+- title: DAST với ZAP
+  slug: dast-owasp-zap
+  index: 27
+- title: DAST với Burp Suite
+  slug: dast-burp-suite
+  index: 28
+- title: Tối ưu vận hành
+  slug: operational-optimization
+  index: 29
+- title: Đo lường hiệu quả
+  slug: effectiveness-metrics
+  index: 30
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 31
+- title: Tình huống thực tế
+  slug: real-world-scenarios
+  index: 32
+- title: Lộ trình áp dụng
+  slug: adoption-roadmap
+  index: 33

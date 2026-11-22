@@ -1,0 +1,5 @@
+# Security Cryptography — Encryption
+
+Mã hóa (encryption) biến dữ liệu có thể đọc thành dữ liệu mã hóa nhằm bảo vệ tính bí mật khi lưu trữ hoặc truyền tải. Tuy nhiên, mã hóa không tự động bảo đảm tính toàn vẹn, xác thực danh tính hay an toàn cho toàn bộ hệ thống. Vì vậy, cần hiểu sự khác nhau giữa mã hóa, hàm băm, mã xác thực thông điệp và chữ ký số; ưu tiên các cơ chế **authenticated encryption (AEAD)** đã được chuẩn hóa như AES-GCM hoặc ChaCha20-Poly1305, thay vì tự thiết kế thuật toán.
+
+Module dành cho người có nền tảng lập trình backend, dữ liệu nhị phân và nguyên tắc bảo mật ứng dụng. Bạn sẽ tìm hiểu mã hóa đối xứng và bất đối xứng, nonce, authentication tag, AAD và mô hình hybrid encryption, rồi học quản lý vòng đời khóa bằng kiểm soát truy cập, KMS/HSM và rotation. Phần thực hành sử dụng **Java Cryptography Architecture (JCA)** để mã hóa/giải mã với AES-GCM, kiểm thử trường hợp sai khóa hoặc dữ liệu bị sửa và chọn cách bảo vệ dữ liệu at rest/in transit. Sau lộ trình, bạn có thể chọn cơ chế mã hóa phù hợp, sử dụng thư viện chuẩn và tránh những sai lầm phổ biến như tái sử dụng nonce hoặc lưu khóa cùng dữ liệu.

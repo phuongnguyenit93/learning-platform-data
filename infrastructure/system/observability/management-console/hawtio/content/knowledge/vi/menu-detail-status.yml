@@ -1,0 +1,1900 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Hawtio là gì và giải quyết nhu cầu quản lý ứng dụng Java nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vai trò của management console trong quan sát và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt xem trạng thái, chẩn đoán và thay đổi trạng thái ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Phân biệt Hawtio với Actuator, công cụ APM và hệ thống lưu trữ telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Các thành phần JVM, JMX, MBean, Jolokia và plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Ứng dụng phù hợp, giới hạn sử dụng và yêu cầu quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Luồng thao tác từ trình duyệt đến ứng dụng được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học từ kết nối JVM đến vận hành có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmx-jolokia
+  title: JMX và Jolokia
+  childs:
+  - slug: jmx-jolokia-001
+    title: JMX, MBeanServer và mô hình quản lý tài nguyên Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-002
+    title: ObjectName, domain và các thuộc tính định danh MBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-003
+    title: Thuộc tính chỉ đọc, thuộc tính có thể ghi và thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-004
+    title: Metadata, kiểu tham số và giá trị trả về của MBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-005
+    title: Kiểu dữ liệu phức hợp CompositeData và TabularData
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-006
+    title: Vai trò của Jolokia trong truy cập JMX qua HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-007
+    title: Các yêu cầu list, search, read, write và exec
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-008
+    title: Phản hồi lỗi HTTP và lỗi thực thi bên trong yêu cầu Jolokia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmx-jolokia-009
+    title: Ranh giới giữa dữ liệu MBean cung cấp và cách Hawtio trình bày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hawtio-architecture
+  title: Kiến trúc Hawtio
+  childs:
+  - slug: hawtio-architecture-001
+    title: Frontend React và backend Java của Hawtio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-002
+    title: Vai trò của gói @hawtio/react và bản phân phối console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-003
+    title: Console nhúng trong ứng dụng và console kết nối JVM từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-004
+    title: Jolokia agent cục bộ và agent của ứng dụng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-005
+    title: ProxyServlet và đường đi của yêu cầu kết nối từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-006
+    title: Phát hiện MBeans và điều kiện kích hoạt plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-007
+    title: Chu kỳ tải lại metadata và cập nhật giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-architecture-008
+    title: Ranh giới trách nhiệm giữa console, plugin và ứng dụng được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-versions
+  title: Cài đặt và phiên bản
+  childs:
+  - slug: installation-versions-001
+    title: Đọc ma trận hỗ trợ Java, Spring Boot, Quarkus, Camel và Jolokia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-002
+    title: Phân biệt các thế hệ Hawtio và tài liệu tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-003
+    title: Lựa chọn phiên bản tương thích và khóa phiên bản phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-004
+    title: Khởi chạy Hawtio bằng JBang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-005
+    title: Cấu hình cổng, địa chỉ lắng nghe và context path
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-006
+    title: Kết nối endpoint Jolokia từ tham số dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-007
+    title: Khởi chạy nhiều kết nối và đặt tên môi trường rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-008
+    title: Kiểm tra console, endpoint và ứng dụng đích sau khi cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-versions-009
+    title: Phân biệt thiết lập thực hành cục bộ với cấu hình triển khai dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Chọn artifact Hawtio phù hợp với thế hệ Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Thêm phụ thuộc bằng Maven hoặc Gradle và kiểm tra xung đột phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Bật JMX và xác minh MBeans của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Đăng ký và công khai đúng các endpoint Hawtio, Jolokia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Phân biệt cổng ứng dụng, cổng quản lý và địa chỉ truy cập console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Thay đổi management base path và ánh xạ đường dẫn Hawtio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Kiểm soát endpoint được công khai theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Tích hợp Camel Management khi ứng dụng sử dụng Apache Camel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Cấu hình Spring Security cho console và endpoint quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Kiểm tra tích hợp bằng một MBean mẫu có dữ liệu xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: other-runtimes
+  title: Các runtime khác
+  childs:
+  - slug: other-runtimes-001
+    title: Tích hợp Hawtio vào ứng dụng Quarkus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-002
+    title: Cấu hình Hawtio theo quy ước thuộc tính của Quarkus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-003
+    title: Triển khai WAR trên Servlet container tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-004
+    title: Kiểm tra tương thích Java EE, Jakarta EE và thư viện servlet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-005
+    title: Nhúng Hawtio trong ứng dụng Java theo bản phân phối hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-006
+    title: Đóng gói container và đưa cấu hình từ bên ngoài vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-007
+    title: Đặt reverse proxy và bảo toàn đường dẫn endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: other-runtimes-008
+    title: Lựa chọn mô hình triển khai theo vòng đời và ranh giới bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-connectivity
+  title: Kết nối JVM
+  childs:
+  - slug: jvm-connectivity-001
+    title: Connect plugin và các kiểu kết nối được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-002
+    title: Khám phá JVM cục bộ và phụ thuộc cần cho Discover
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-003
+    title: Tạo, kiểm tra và sử dụng kết nối đến Jolokia từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-004
+    title: Hostname, cổng, context path và đường dẫn agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-005
+    title: Cấu hình ProxyServlet và danh sách đích được phép kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-006
+    title: Xác thực console và xác thực ứng dụng đích là hai ranh giới riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-007
+    title: Kết nối HTTPS, chuỗi chứng thư và xác minh tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-008
+    title: Thông tin kết nối được lưu trong trình duyệt và giới hạn bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-009
+    title: Phân biệt lỗi trình duyệt, proxy, mạng và agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-connectivity-010
+    title: Xác minh đúng JVM và môi trường trước thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mbean-management
+  title: Quản lý MBeans
+  childs:
+  - slug: mbean-management-001
+    title: Duyệt cây MBean theo domain và ObjectName
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-002
+    title: Tìm kiếm, lựa chọn và đọc metadata của MBean
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-003
+    title: Đọc thuộc tính đơn và dữ liệu lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-004
+    title: Theo dõi giá trị thay đổi theo thời gian trên biểu đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-005
+    title: Phân biệt giá trị tức thời, bộ đếm và thống kê tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-006
+    title: Ghi thuộc tính có thể thay đổi và kiểm tra kết quả thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-007
+    title: Gọi operation với đúng chữ ký và kiểu tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-008
+    title: Phân biệt thao tác chỉ đọc với thao tác có tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-009
+    title: Xử lý MBean xuất hiện, biến mất hoặc đổi trạng thái khi ứng dụng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mbean-management-010
+    title: Giới hạn workspace theo domain để giảm tải và tập trung dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-monitoring
+  title: Theo dõi JVM
+  childs:
+  - slug: jvm-monitoring-001
+    title: Runtime plugin và điều kiện dữ liệu hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-002
+    title: Thông tin tiến trình, phiên bản JVM và system properties
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-003
+    title: Bộ nhớ heap, non-heap và các memory pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-004
+    title: Theo dõi garbage collection và diễn giải số liệu tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-005
+    title: Số lượng luồng, trạng thái luồng và dấu hiệu tắc nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-006
+    title: Class loading và các thông số nền tảng có thể đọc qua MBeans
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-007
+    title: Đối chiếu số liệu JVM với giới hạn tài nguyên của container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-008
+    title: JVM Diagnostics và mức độ hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-009
+    title: Java Flight Recorder và điều kiện sử dụng tính năng thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-monitoring-010
+    title: Giới hạn của dữ liệu trực tiếp trên console khi điều tra sự cố kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: camel-management
+  title: Quản lý Camel
+  childs:
+  - slug: camel-management-001
+    title: Điều kiện Camel Context và Camel Management để plugin hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-002
+    title: Duyệt Camel Contexts, routes và endpoints
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-003
+    title: Thông tin phiên bản và trạng thái của Camel Context
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-004
+    title: Đọc thống kê exchanges thành công, thất bại và đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-005
+    title: Xem sơ đồ route và liên hệ với các bước xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-006
+    title: Thống kê thời gian xử lý và dấu hiệu route chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-007
+    title: Khởi động, dừng, tạm ngưng và tiếp tục route theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-008
+    title: Duyệt endpoint và gửi thông điệp thử trong môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-009
+    title: Theo dõi thay đổi trạng thái sau thao tác quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-management-010
+    title: Ảnh hưởng của quản lý route lên lưu lượng và dữ liệu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: camel-diagnostics
+  title: Chẩn đoán Camel
+  childs:
+  - slug: camel-diagnostics-001
+    title: Source tab và yêu cầu hỗ trợ Camel XML DSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-002
+    title: Debug tab và phụ thuộc Camel Debug
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-003
+    title: Điểm dừng, trạng thái exchange và tác động khi tạm dừng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-004
+    title: Trace tab và điều kiện bật Camel Tracer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-005
+    title: Phân biệt theo dõi thông điệp của Camel với distributed tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-006
+    title: Đọc nội dung trao đổi và bảo vệ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-007
+    title: Phân tích thời gian xử lý theo processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-008
+    title: Exchanges tab và điều kiện duyệt inflight exchanges
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-009
+    title: Thống kê endpoint vào ra và mức thống kê quản lý cần bật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: camel-diagnostics-010
+    title: Thu hẹp phạm vi chẩn đoán và tắt tính năng bổ sung sau điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-plugins
+  title: Plugin ứng dụng
+  childs:
+  - slug: application-plugins-001
+    title: Phân biệt plugin có sẵn với tính năng đã đủ điều kiện kích hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-002
+    title: Logs plugin và phụ thuộc hawtio-log phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-003
+    title: Tích hợp bộ đọc logs với Logback theo phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-004
+    title: Duyệt logs và liên hệ với sự kiện vận hành của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-005
+    title: Giới hạn dữ liệu logs trên console so với hệ thống logs tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-006
+    title: Spring Boot plugin và điều kiện endpoint Actuator tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-007
+    title: Đọc Health, Info và kiểm soát thông tin được công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-008
+    title: Loggers endpoint và thay đổi mức ghi log trong thời gian điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-009
+    title: HTTP Exchanges và điều kiện ghi nhận dữ liệu yêu cầu HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-010
+    title: 'Quartz plugin: schedulers, jobs và triggers'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-plugins-011
+    title: Kiểm tra tác động trước khi thay đổi lịch hoặc kích hoạt job thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: broker-administration
+  title: Quản trị broker
+  childs:
+  - slug: broker-administration-001
+    title: Phân biệt plugin broker bên ngoài với plugin của bản Hawtio đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-002
+    title: Console Apache ActiveMQ Artemis xây dựng trên Hawtio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-003
+    title: Duyệt tài nguyên và thao tác broker theo plugin Artemis cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-004
+    title: Plugin cộng đồng cho Apache ActiveMQ Classic
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-005
+    title: Quan sát queues, topics, producers và consumers theo khả năng plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-006
+    title: Dữ liệu thông điệp, thao tác quản trị và quyền truy cập tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-007
+    title: Kiểm tra tính tương thích giữa broker, plugin và Hawtio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: broker-administration-008
+    title: Giới hạn phạm vi thực hành để tránh thay đổi thông điệp ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: console-configuration
+  title: Cấu hình console
+  childs:
+  - slug: console-configuration-001
+    title: Phân biệt cấu hình backend với cấu hình frontend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-002
+    title: System properties và cấu hình theo từng runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-003
+    title: Cấu hình Jolokia qua thuộc tính, biến môi trường và policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-004
+    title: Vai trò và cấu trúc hawtconfig.json
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-005
+    title: Tùy chỉnh tên ứng dụng, logo và thông tin About
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-006
+    title: Cấu hình nội dung trang đăng nhập và liên kết hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-007
+    title: Ẩn tuyến giao diện và phân biệt với thực thi phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-008
+    title: Cấu hình workspace JMX và các plugin phụ thuộc vào workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-009
+    title: Đặt hawtconfig.json và tài nguyên tĩnh đúng vị trí triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: console-configuration-010
+    title: Quản lý cấu hình theo môi trường và kiểm tra giá trị có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: user-authentication
+  title: Xác thực người dùng
+  childs:
+  - slug: user-authentication-001
+    title: Phân biệt xác thực người dùng với kiểm soát quyền thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-002
+    title: Cơ chế xác thực theo Spring Boot, Quarkus và Servlet container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-003
+    title: JAAS và phạm vi runtime có hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-004
+    title: Tích hợp Spring Security và ánh xạ danh tính sang Hawtio
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-005
+    title: OpenID Connect và tích hợp nhà cung cấp danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-006
+    title: Vai trò của Keycloak trong mô hình đăng nhập tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-007
+    title: Phiên đăng nhập, thời gian hết hạn và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-008
+    title: Quản lý mật khẩu, token và bí mật kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-009
+    title: Giới hạn thử đăng nhập và xử lý lỗi xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: user-authentication-010
+    title: Kiểm tra truy cập console, Jolokia và endpoint quản lý bằng từng danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: authorization-protection
+  title: Phân quyền và bảo vệ
+  childs:
+  - slug: authorization-protection-001
+    title: Nguyên tắc quyền tối thiểu cho người xem và người vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-002
+    title: Phân biệt Hawtio RBAC, Jolokia policy và phân quyền của runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-003
+    title: Kiểm tra phạm vi hỗ trợ RBAC theo runtime và phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-004
+    title: Giới hạn read, write và exec theo MBean hoặc thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-005
+    title: Jolokia access policy và vị trí nạp policy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-006
+    title: HTTPS cho trình duyệt, console và ứng dụng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-007
+    title: CORS, kiểm tra Origin và phòng chống CSRF cho endpoint Jolokia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-008
+    title: Proxy allowlist và giới hạn đích kết nối từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-009
+    title: CSP, nhúng iframe và bảo vệ tài nguyên frontend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-010
+    title: Bảo vệ dữ liệu nhạy cảm trong MBeans, logs và thông báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: authorization-protection-011
+    title: Kiểm chứng người không đủ quyền không thể thực thi thao tác trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hawtio-online
+  title: Hawtio Online
+  childs:
+  - slug: hawtio-online-001
+    title: Vai trò của Hawtio Online trên Kubernetes và OpenShift
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-002
+    title: Phân biệt Hawtio nhúng, console từ xa và Hawtio Online
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-003
+    title: Phát hiện ứng dụng có endpoint Jolokia trong cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-004
+    title: Triển khai theo namespace và theo toàn cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-005
+    title: Định danh người dùng và quyền truy cập tài nguyên Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-006
+    title: Cơ chế đăng nhập theo Kubernetes và OpenShift
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-007
+    title: Chứng thư phía phục vụ và chứng thư kết nối agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-008
+    title: ConfigMap, Secret và cấu hình theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-009
+    title: 'RBAC của Hawtio Online: vai trò viewer, admin và ACL cho MBeans'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-010
+    title: Giới hạn phạm vi khám phá ứng dụng và phân tách khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-online-011
+    title: Kiểm tra kết nối qua pod proxy và xử lý ứng dụng thay đổi vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hawtio-extensions
+  title: Mở rộng Hawtio
+  childs:
+  - slug: hawtio-extensions-001
+    title: Khi nào cần MBean tùy chỉnh và khi nào cần plugin giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-002
+    title: Thiết kế MBean riêng cho trạng thái và thao tác nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-003
+    title: Đăng ký MBean và xác minh dữ liệu từ JMX trước khi viết UI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-004
+    title: Cấu trúc plugin TypeScript, React và PatternFly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-005
+    title: Khai báo định danh, tiêu đề, tuyến và điều kiện kích hoạt plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-006
+    title: Đăng ký plugin đồng bộ và trì hoãn tải plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-007
+    title: Khởi tạo dịch vụ và thứ tự bootstrap của console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-008
+    title: Tải plugin bên ngoài bằng Module Federation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-009
+    title: Đóng gói, phát hành và kiểm tra tương thích plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hawtio-extensions-010
+    title: Kiểm soát tài nguyên, quyền truy cập và dữ liệu hiển thị của plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-operations
+  title: Vận hành thực tế
+  childs:
+  - slug: production-operations-001
+    title: Tách mặt phẳng quản lý khỏi lưu lượng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-002
+    title: Đặt console sau cổng truy cập nội bộ và reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-003
+    title: Tần suất polling, số MBeans và tải do nhiều phiên console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-004
+    title: Đo chi phí biểu đồ, tracing, debugging và ghi nhận chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-005
+    title: Thời gian chờ, lỗi mạng và kết quả thao tác chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-006
+    title: Quy trình thao tác quản trị có kiểm tra trạng thái trước và sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-007
+    title: Kết hợp bằng chứng console với logs, metrics và traces bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-008
+    title: Nâng cấp Hawtio, Jolokia và plugin theo ma trận tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-009
+    title: Sao lưu cấu hình và quay lui khi bản nâng cấp gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-operations-010
+    title: Nhật ký thao tác, trách nhiệm vận hành và giới hạn kiểm toán của từng runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-troubleshooting
+  title: Kiểm thử và sự cố
+  childs:
+  - slug: testing-troubleshooting-001
+    title: Môi trường thực hành có MBeans và dữ liệu kiểm chứng xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-002
+    title: Kiểm thử tải console, đăng nhập và kết nối agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-003
+    title: Kiểm thử quyền đọc, ghi và thực thi bằng các tài khoản khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-004
+    title: Lỗi 404 do context path hoặc endpoint chưa được công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-005
+    title: Lỗi 401, 403 và phân biệt nguồn từ chối truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-006
+    title: Lỗi CORS, Origin, CSRF và reverse proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-007
+    title: Lỗi TLS, chuỗi chứng thư và tên máy chủ không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-008
+    title: Plugin không xuất hiện do thiếu MBeans, thư viện hoặc endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-009
+    title: Biểu đồ không cập nhật và số liệu thay đổi sau khi JVM khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-010
+    title: Lỗi dependency, Java hoặc Jakarta EE không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-troubleshooting-011
+    title: Kiểm tra kết quả thực sau timeout trước khi lặp lại thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Kết nối console độc lập với một JVM có Jolokia
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: Tích hợp Hawtio và MBean tùy chỉnh vào ứng dụng Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Quan sát bộ nhớ, luồng và dữ liệu nghiệp vụ từ JMX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: Quản lý một Camel route và kiểm chứng thay đổi trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: Điều tra lỗi xử lý bằng thống kê route, logs và dữ liệu exchange
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Thiết lập truy cập có xác thực và kiểm tra quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: Triển khai Hawtio Online trong phạm vi namespace thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Xây dựng plugin hiển thị một MBean riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Đánh giá cấu hình theo tính tương thích, bảo mật và chi phí vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Hoàn thiện tài liệu vận hành và bằng chứng kiểm thử cho console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

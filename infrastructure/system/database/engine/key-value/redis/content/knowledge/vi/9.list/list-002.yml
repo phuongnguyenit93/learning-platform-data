@@ -1,0 +1,3 @@
+menuLevel1: List
+menuLevel2: LPUSH, RPUSH, LPOP và RPOP
+status: ''

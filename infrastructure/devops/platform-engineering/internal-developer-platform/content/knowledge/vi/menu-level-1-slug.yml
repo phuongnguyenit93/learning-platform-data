@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nhu cầu người dùng
+  slug: developer-needs
+  index: 1
+- title: Sản phẩm nền tảng
+  slug: platform-products
+  index: 2
+- title: Kiến trúc
+  slug: architecture
+  index: 3
+- title: Mô hình tài nguyên
+  slug: resource-model
+  index: 4
+- title: Giao diện tự phục vụ
+  slug: self-service-interface
+  index: 5
+- title: Danh mục dịch vụ
+  slug: service-catalog
+  index: 6
+- title: Lộ trình chuẩn
+  slug: golden-paths
+  index: 7
+- title: Khuôn mẫu dự án
+  slug: project-templates
+  index: 8
+- title: Quy trình yêu cầu
+  slug: request-workflows
+  index: 9
+- title: Thực thi bất đồng bộ
+  slug: asynchronous-execution
+  index: 10
+- title: Cấp phát hạ tầng
+  slug: infrastructure-provisioning
+  index: 11
+- title: Môi trường
+  slug: environments
+  index: 12
+- title: Môi trường lập trình
+  slug: development-environments
+  index: 13
+- title: Nền tảng thực thi
+  slug: runtime-platform
+  index: 14
+- title: Dịch vụ phụ trợ
+  slug: shared-services
+  index: 15
+- title: Phân phối phần mềm
+  slug: software-delivery
+  index: 16
+- title: Quan sát ứng dụng
+  slug: application-observability
+  index: 17
+- title: Vận hành tự phục vụ
+  slug: self-service-operations
+  index: 18
+- title: Danh tính và quyền
+  slug: identity-and-access
+  index: 19
+- title: Bí mật và chứng chỉ
+  slug: secrets-and-certificates
+  index: 20
+- title: Chính sách đa nhóm
+  slug: multi-team-policies
+  index: 21
+- title: An toàn chuỗi cung ứng
+  slug: supply-chain-security
+  index: 22
+- title: Tích hợp hệ thống
+  slug: system-integration
+  index: 23
+- title: Phiên bản và tiến hóa
+  slug: versioning-and-evolution
+  index: 24
+- title: Độ tin cậy nền tảng
+  slug: platform-reliability
+  index: 25
+- title: Kiểm thử nền tảng
+  slug: platform-testing
+  index: 26
+- title: Chi phí và năng lực
+  slug: costs-and-capacity
+  index: 27
+- title: Đo hiệu quả
+  slug: impact-measurement
+  index: 28
+- title: Tổ chức vận hành
+  slug: operating-model
+  index: 29
+- title: Triển khai áp dụng
+  slug: adoption-and-rollout
+  index: 30
+- title: Lựa chọn giải pháp
+  slug: solution-selection
+  index: 31
+- title: Sai lầm và sự cố
+  slug: pitfalls-and-incidents
+  index: 32
+- title: Thực hành
+  slug: hands-on-labs
+  index: 33

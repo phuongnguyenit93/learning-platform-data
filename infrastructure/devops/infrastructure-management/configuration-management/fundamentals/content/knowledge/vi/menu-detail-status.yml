@@ -1,0 +1,2371 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Quản lý cấu hình là gì và giải quyết vấn đề nào trong vận hành hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Từ cấu hình thủ công đến tự động hóa có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: tài nguyên, nút đích, cấu hình, chính sách và lần thực thi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Vòng đời cấu hình: khai báo → kiểm tra → áp dụng → xác minh → theo dõi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt quản lý cấu hình hạ tầng, cấu hình ứng dụng và quản lý mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Mối liên hệ với cấp phát hạ tầng, triển khai ứng dụng và quản lý môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vai trò của tiêu chuẩn cấu hình, phiên bản và bằng chứng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Kiến thức hệ điều hành, mạng, Git và quyền truy cập cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: desired-state-model
+  title: Mô hình trạng thái
+  childs:
+  - slug: desired-state-model-001
+    title: Phân biệt trạng thái mong muốn, trạng thái hiện tại và trạng thái quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-002
+    title: Mô tả tài nguyên bằng thuộc tính và điều kiện cần đáp ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-003
+    title: So sánh trạng thái để xác định thao tác cần thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-004
+    title: 'Hiểu giới hạn của dữ liệu quan sát: độ mới, độ đầy đủ và quyền đọc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-005
+    title: Hội tụ cấu hình và các điều kiện để hệ thống tiến về trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-006
+    title: Tính lũy đẳng và ý nghĩa của việc thực thi lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-007
+    title: Phân biệt lũy đẳng, xác định, tái lập và không gây tác dụng phụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-008
+    title: Nhận diện thao tác luôn thay đổi, không hội tụ hoặc phụ thuộc thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desired-state-model-009
+    title: Xác minh trạng thái sau thực thi thay vì chỉ dựa vào mã thoát thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: management-scope
+  title: Phạm vi quản lý
+  childs:
+  - slug: management-scope-001
+    title: Xác định tài nguyên thuộc quyền quản lý và tài nguyên chỉ được tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-002
+    title: Phân biệt trạng thái khai báo với toàn bộ trạng thái của một máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-003
+    title: 'Chọn mức chi tiết quản lý: tệp, gói, dịch vụ, tài khoản và chính sách'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-004
+    title: Thiết lập ranh giới giữa hệ điều hành, nền tảng chạy và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-005
+    title: Phân định trách nhiệm giữa nhóm hạ tầng, phát triển và bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-006
+    title: Quy định tài nguyên dùng chung để tránh nhiều bên cùng sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-007
+    title: Xác định nguồn có thẩm quyền cho từng loại dữ liệu cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: management-scope-008
+    title: Nhận diện dữ liệu nghiệp vụ và dữ liệu người dùng không được tùy tiện ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-architecture
+  title: Kiến trúc thực thi
+  childs:
+  - slug: execution-architecture-001
+    title: Phân biệt mô hình đẩy cấu hình và mô hình nút đích tự kéo cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-002
+    title: So sánh kiến trúc có agent và không có agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-003
+    title: Vai trò của máy điều khiển, nút đích và kho định nghĩa cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-004
+    title: Phân biệt lần thực thi theo yêu cầu và đối soát theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-005
+    title: Đánh giá kết nối mạng, độ trễ, tường lửa và hướng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-006
+    title: Xử lý nút ngoại tuyến, kết nối gián đoạn và kết quả chưa xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-007
+    title: Tách kênh phân phối cấu hình, kênh xác thực và kênh báo cáo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-architecture-008
+    title: Đánh giá điểm lỗi tập trung, khả năng mở rộng và quyền lực của máy điều khiển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: declarative-configuration
+  title: Cách khai báo
+  childs:
+  - slug: declarative-configuration-001
+    title: Phân biệt mô tả mệnh lệnh và mô tả trạng thái khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-002
+    title: So sánh script thao tác với tài nguyên có cơ chế kiểm tra trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-003
+    title: Thiết kế điều kiện chỉ thực thi khi cần thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-004
+    title: Phân biệt khai báo trạng thái, chạy lệnh một lần và điều phối quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-005
+    title: Biểu diễn trạng thái có mặt, vắng mặt, bật, tắt và đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-006
+    title: Quản lý thứ tự thực thi bằng quan hệ phụ thuộc có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-007
+    title: Giới hạn của lệnh tùy ý đối với lũy đẳng và báo cáo thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: declarative-configuration-008
+    title: Chọn cách biểu diễn phù hợp với tài nguyên và khả năng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: target-inventory
+  title: Danh mục nút đích
+  childs:
+  - slug: target-inventory-001
+    title: Inventory là gì và khác gì với danh sách máy chủ hoặc CMDB
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-002
+    title: Định danh nút bằng tên, địa chỉ và thuộc tính ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-003
+    title: Phân nhóm nút theo môi trường, vai trò, vị trí và quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-004
+    title: Phân biệt inventory tĩnh, inventory động và dữ liệu khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-005
+    title: Đồng bộ inventory với nguồn hạ tầng và xử lý dữ liệu lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-006
+    title: Thiết kế quy tắc chọn nút để tránh áp dụng nhầm phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-007
+    title: Xử lý nút mới tạo, đổi địa chỉ, bị thay thế hoặc ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: target-inventory-008
+    title: Kiểm tra danh sách đích thực tế trước khi áp dụng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-discovery
+  title: Khám phá hệ thống
+  childs:
+  - slug: system-discovery-001
+    title: Thu thập thông tin hệ điều hành, kiến trúc, mạng và phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-002
+    title: Phân biệt dữ liệu cấu hình đầu vào với thông tin thu thập từ nút đích (facts)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-003
+    title: Đánh giá độ tin cậy và quyền truy cập của dữ liệu khám phá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-004
+    title: Sử dụng facts để chọn cấu hình tương thích với từng loại nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-005
+    title: Quản lý thời hạn làm mới và bộ nhớ đệm của facts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-006
+    title: Xử lý thiếu dữ liệu, khác biệt tên thuộc tính và giá trị không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-007
+    title: Giảm chi phí thu thập thông tin trên hệ thống nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-discovery-008
+    title: Tránh thu thập hoặc ghi log dữ liệu nhạy cảm ngoài nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-data
+  title: Dữ liệu cấu hình
+  childs:
+  - slug: configuration-data-001
+    title: Tách dữ liệu cấu hình khỏi logic thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-002
+    title: 'Chọn định dạng cấu hình: YAML, JSON, tệp thuộc tính và biến môi trường'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-003
+    title: Kiểm soát kiểu dữ liệu, chuỗi rỗng, giá trị null và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-004
+    title: Thiết kế lớp cấu hình chung, theo nhóm, theo môi trường và theo nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-005
+    title: Quy định rõ thứ tự ưu tiên và cách hợp nhất cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-006
+    title: Phân biệt ghi đè giá trị, hợp nhất bản đồ và thay thế danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-007
+    title: Kiểm tra dữ liệu bằng schema và ràng buộc nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-008
+    title: Quản lý giá trị tính toán và tránh cấu hình phụ thuộc ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-009
+    title: Truy vết nguồn tạo ra giá trị cấu hình hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-data-010
+    title: Thiết kế thay đổi schema và tương thích với dữ liệu cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: templates
+  title: Khuôn mẫu
+  childs:
+  - slug: templates-001
+    title: Tạo tệp cấu hình từ template và dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-002
+    title: Sử dụng biến, điều kiện và vòng lặp có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-003
+    title: Kiểm soát dấu nháy, ký tự thoát, khoảng trắng và dòng xuống hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-004
+    title: Phân biệt kiểm tra template với kiểm tra cú pháp tệp đã sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-005
+    title: Thiết kế template ổn định để tránh thay đổi giả trong diff
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-006
+    title: Xử lý biến thiếu và tránh âm thầm sinh cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-007
+    title: Đánh giá rủi ro chèn dữ liệu vào shell, lệnh và tệp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-008
+    title: Giảm logic trong template để giữ khả năng đọc và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: templates-009
+    title: Bảo vệ tệp render và bản diff khi có thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-directories
+  title: Tệp và thư mục
+  childs:
+  - slug: files-and-directories-001
+    title: Quản lý sự tồn tại và cấu trúc thư mục trên nút đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-002
+    title: Thiết lập chủ sở hữu, nhóm và quyền truy cập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-003
+    title: Chọn quản lý toàn bộ tệp hoặc chỉ một phần nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-004
+    title: Phân biệt sao chép tệp, sinh từ template và chỉnh sửa theo mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-005
+    title: Kiểm tra checksum, mã hóa văn bản và dấu kết thúc dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-006
+    title: Áp dụng thay đổi tệp theo cách nguyên tử khi hệ thống hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-007
+    title: Xử lý liên kết tượng trưng và đường dẫn phụ thuộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-008
+    title: Sao lưu trước thay đổi và bảo vệ quyền của bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-directories-009
+    title: Ngăn xóa nhầm tệp không thuộc phạm vi quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packages
+  title: Gói phần mềm
+  childs:
+  - slug: packages-001
+    title: Quản lý gói cần cài đặt, giữ lại hoặc gỡ bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-002
+    title: Chọn phiên bản cụ thể và hiểu rủi ro của trạng thái luôn mới nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-003
+    title: Quản lý nguồn gói, kho nội bộ và độ tin cậy của nguồn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-004
+    title: Kiểm tra chữ ký hoặc checksum khi phân phối phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-005
+    title: Xử lý phụ thuộc và khác biệt trình quản lý gói giữa các hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-006
+    title: Đánh giá tác động của cập nhật gói đến dịch vụ và yêu cầu khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-007
+    title: Quản lý khóa phiên bản, bản vá và cửa sổ bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-008
+    title: Phân biệt cài gói hệ thống với triển khai một phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packages-009
+    title: Xử lý lỗi khóa trình quản lý gói, kho tạm lỗi hoặc phiên bản không còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: services
+  title: Dịch vụ
+  childs:
+  - slug: services-001
+    title: Phân biệt cài đặt dịch vụ, bật lúc khởi động và trạng thái đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-002
+    title: Thiết lập điều kiện tiên quyết trước khi khởi động dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-003
+    title: Chọn reload, restart hoặc không tác động khi cấu hình thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-004
+    title: Kích hoạt thao tác theo thay đổi thực tế thay vì chạy lại vô điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-005
+    title: Gom thông báo thay đổi để tránh khởi động lại lặp nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-006
+    title: Kiểm tra cú pháp cấu hình trước khi reload hoặc restart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-007
+    title: Phân biệt tiến trình đang chạy với dịch vụ sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-008
+    title: Quản lý tác vụ định kỳ và tránh lịch chạy trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-009
+    title: Điều phối khởi động lại hệ điều hành và xác nhận nút đã hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-platforms
+  title: Nền tảng hệ thống
+  childs:
+  - slug: system-platforms-001
+    title: Quản lý tài khoản, nhóm và quyền sở hữu tài nguyên hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-002
+    title: Thiết lập quyền nâng đặc quyền theo nguyên tắc tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-003
+    title: Quản lý SSH và kiểm tra đường truy cập trước khi siết chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-004
+    title: Cấu hình hostname, phân giải tên và các phụ thuộc mạng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-005
+    title: Quản lý tường lửa mà vẫn giữ kênh điều khiển và khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-006
+    title: Thiết lập thời gian, múi giờ và đồng bộ đồng hồ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-007
+    title: Quản lý chứng chỉ, chuỗi tin cậy và quyền truy cập khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-008
+    title: Quản lý tham số hệ điều hành và phân biệt hiệu lực tức thời với sau khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-platforms-009
+    title: Chuẩn hóa cấu hình nền và ghi nhận khác biệt giữa các hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependencies-and-ordering
+  title: Phụ thuộc và thứ tự
+  childs:
+  - slug: dependencies-and-ordering-001
+    title: Biểu diễn quan hệ phụ thuộc giữa gói, tệp, tài khoản và dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-002
+    title: Phân biệt thứ tự khai báo với thứ tự thực thi do công cụ bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-003
+    title: Phát hiện phụ thuộc vòng và tác động của thứ tự không rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-004
+    title: Thiết kế điều kiện kiểm tra trước khi thực hiện thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-005
+    title: Quản lý handler, thông báo và hành động chỉ chạy khi có thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-006
+    title: Phân biệt điều kiện cục bộ trên nút với phối hợp giữa nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-007
+    title: Giới hạn bảo đảm giao dịch khi nhiều tài nguyên cùng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependencies-and-ordering-008
+    title: Xử lý thất bại từng phần mà không giả định mọi thay đổi đều được hoàn tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: organization-and-reuse
+  title: Tổ chức và tái sử dụng
+  childs:
+  - slug: organization-and-reuse-001
+    title: Chia cấu hình thành đơn vị theo trách nhiệm và vòng đời thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-002
+    title: Thiết kế vai trò hoặc mô-đun có đầu vào và đầu ra rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-003
+    title: Tách cấu hình nền chung khỏi cấu hình dành riêng cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-004
+    title: Xây dựng giao diện dữ liệu và giá trị mặc định cho thành phần dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-005
+    title: Quản lý phụ thuộc giữa các đơn vị cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-006
+    title: Tránh sao chép, trừu tượng hóa quá sớm và ràng buộc ngầm giữa thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-007
+    title: Đặt quy ước tên, thư mục và tài liệu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-008
+    title: Phiên bản hóa thành phần dùng chung và kiểm soát tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: organization-and-reuse-009
+    title: Quản lý nguồn, độ tin cậy và cập nhật của thành phần bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments-and-variants
+  title: Môi trường và biến thể
+  childs:
+  - slug: environments-and-variants-001
+    title: Tách cấu hình phát triển, kiểm thử và sản xuất theo ranh giới rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-002
+    title: Tái sử dụng cùng logic với dữ liệu môi trường khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-003
+    title: Quản lý khác biệt hệ điều hành, vùng triển khai và nhóm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-004
+    title: Tránh điều kiện chồng chéo làm cấu hình khó dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-005
+    title: Xác định ngoại lệ có lý do, chủ sở hữu và thời hạn rà soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-006
+    title: Thăng cấp cùng phiên bản cấu hình qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-007
+    title: Kiểm tra cấu hình hiệu lực và danh sách nút trước khi thay môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-008
+    title: Phân biệt tương đồng cấu hình với sao chép nguyên dữ liệu sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-variants-009
+    title: Kiểm soát chênh lệch môi trường mà không xóa bỏ khác biệt có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets-and-access
+  title: Bí mật và truy cập
+  childs:
+  - slug: secrets-and-access-001
+    title: Phân biệt bí mật, dữ liệu nhạy cảm và cấu hình có thể công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-002
+    title: Chọn nguồn lưu giữ bí mật và giới hạn quyền truy xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-003
+    title: Cấp thông tin xác thực cho công cụ và nút đích theo phạm vi tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-004
+    title: Phân biệt mã hóa khi lưu trữ, khi truyền và quyền đọc lúc sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-005
+    title: Đưa bí mật vào cấu hình mà không lưu vào Git hoặc artifact không bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-006
+    title: Che dữ liệu trong log, diff, báo cáo lỗi và chế độ xem trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-007
+    title: Xoay vòng bí mật và phối hợp thay đổi giữa bên cấp và bên sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-008
+    title: Kiểm soát tệp tạm, bản sao lưu và dữ liệu cache có chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-009
+    title: Thu hồi quyền và xử lý sự cố thông tin xác thực bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-access-010
+    title: Kiểm tra nguy cơ cấu hình trở thành đường thực thi mã trên nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-management
+  title: Quản lý phiên bản
+  childs:
+  - slug: version-management-001
+    title: Lưu định nghĩa cấu hình, template và dữ liệu công khai trong Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-002
+    title: Phân biệt phiên bản cấu hình, phiên bản công cụ và phiên bản gói phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-003
+    title: Review thay đổi bằng diff và xác định phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-004
+    title: Gắn thay đổi với yêu cầu, sự cố hoặc quyết định vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-005
+    title: Ghim phiên bản phụ thuộc và duy trì thông tin đầu vào cần tái lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-006
+    title: Đánh dấu bản cấu hình đã kiểm tra và thăng cấp bằng phiên bản xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-007
+    title: Truy vết nút đích đang sử dụng phiên bản cấu hình nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-008
+    title: Quản lý sửa khẩn cấp và đưa thay đổi trở lại nguồn chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-009
+    title: Phân biệt quay lại phiên bản khai báo với khôi phục trạng thái hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-testing
+  title: Kiểm thử cấu hình
+  childs:
+  - slug: configuration-testing-001
+    title: Kiểm tra định dạng, cú pháp và quy ước bằng công cụ tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-002
+    title: Kiểm tra schema dữ liệu và các tổ hợp biến đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-003
+    title: Kiểm thử logic chọn tài nguyên và kết quả render template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-004
+    title: Kiểm thử tích hợp trong môi trường tạm hoặc máy ảo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-005
+    title: Kiểm thử hội tụ từ trạng thái sạch và từ trạng thái đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-006
+    title: Kiểm tra lũy đẳng bằng lần chạy tiếp theo với đầu vào được kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-007
+    title: Kiểm thử trạng thái dịch vụ, quyền tệp và hành vi sau áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-008
+    title: Phân biệt check mode, dry run, diff và tác động thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-009
+    title: Đánh giá giới hạn mô phỏng đối với lệnh tùy ý, mạng và bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-010
+    title: Kiểm thử lỗi, mất kết nối và khả năng khôi phục sau thất bại từng phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-testing-011
+    title: Xây dựng ma trận kiểm thử cho hệ điều hành và phiên bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-execution
+  title: Thực thi an toàn
+  childs:
+  - slug: safe-execution-001
+    title: Xác nhận phạm vi đích, danh tính thực thi và quyền cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-002
+    title: Kiểm tra điều kiện tiên quyết, kết nối và khả năng phục hồi trước khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-003
+    title: Xem trước thay đổi và nhận diện thao tác phá hủy hoặc gây gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-004
+    title: Áp dụng thử trên nhóm nhỏ trước khi mở rộng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-005
+    title: Chia đợt thực thi và giới hạn số nút thay đổi đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-006
+    title: Đặt thời gian chờ, điều kiện dừng và chính sách thử lại có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-007
+    title: Tránh hai lần chạy đồng thời tranh chấp cùng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-008
+    title: Phân biệt lỗi tạm thời với lỗi cấu hình không thể chữa bằng thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-009
+    title: Xử lý nút không liên lạc được và xác minh trước khi thực thi tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-execution-010
+    title: Lưu kết quả theo từng nút và nhận diện trạng thái thành công một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: changes-and-rollback
+  title: Sửa đổi và khôi phục
+  childs:
+  - slug: changes-and-rollback-001
+    title: Đánh giá mức độ rủi ro và phạm vi ảnh hưởng của thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-002
+    title: Chọn cửa sổ bảo trì và phối hợp với người vận hành dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-003
+    title: Xác định bản sao lưu, điểm phục hồi và tiêu chí quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-004
+    title: Thay đổi tương thích từng bước khi cấu hình ảnh hưởng nhiều thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-005
+    title: Khôi phục tệp cấu hình và phiên bản gói trong giới hạn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-006
+    title: Nhận diện tác động không thể đảo ngược bằng việc chạy cấu hình cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-007
+    title: Phân biệt rollback, roll-forward và sửa chữa trạng thái sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-008
+    title: Giữ đường truy cập khẩn cấp khi thay đổi mạng hoặc xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-009
+    title: Xác minh dịch vụ và tính nhất quán dữ liệu sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-rollback-010
+    title: Ghi nhận kết quả diễn tập khôi phục để điều chỉnh quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-drift
+  title: Sai lệch cấu hình
+  childs:
+  - slug: configuration-drift-001
+    title: Nhận diện configuration drift và nguyên nhân phát sinh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-002
+    title: Phân biệt sai lệch ngoài ý muốn với ngoại lệ đã được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-003
+    title: Phát hiện thay đổi thủ công, cập nhật tự động và tác động của công cụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-004
+    title: So sánh theo trạng thái chuẩn với theo checksum hoặc văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-005
+    title: Giảm cảnh báo giả do giá trị động, thứ tự nội dung và dữ liệu sinh tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-006
+    title: Chọn chỉ cảnh báo, yêu cầu phê duyệt hoặc tự động sửa sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-007
+    title: Đặt tần suất đối soát phù hợp với rủi ro và tải hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-008
+    title: Xử lý cấu hình bị hai bộ điều khiển liên tục ghi đè lẫn nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-009
+    title: Đưa chỉnh sửa khẩn cấp hợp lệ trở lại nguồn cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-drift-010
+    title: Xác minh hội tụ sau sửa và theo dõi sai lệch tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-auditing
+  title: Quan sát và kiểm toán
+  childs:
+  - slug: observability-and-auditing-001
+    title: 'Đọc kết quả theo tài nguyên và nút: không đổi, đã đổi, bỏ qua hoặc thất bại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-002
+    title: Phân biệt báo cáo thay đổi với bằng chứng tài nguyên đã đạt trạng thái đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-003
+    title: Ghi lại phiên bản cấu hình, đầu vào, người thực thi và thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-004
+    title: Theo dõi thời gian chạy, tỷ lệ lỗi, phạm vi thay đổi và nút chưa hội tụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-005
+    title: Liên kết log thực thi với cảnh báo dịch vụ và yêu cầu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-006
+    title: Xây dựng tiêu chuẩn cấu hình bảo mật và kiểm tra tuân thủ có phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-007
+    title: Quản lý ngoại lệ chính sách bằng phê duyệt, lý do và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-008
+    title: Bảo vệ tính toàn vẹn, quyền đọc và thời hạn lưu giữ bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-auditing-009
+    title: Trình bày báo cáo mà không làm lộ bí mật hoặc dữ liệu hệ thống nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-models
+  title: Mô hình hạ tầng
+  childs:
+  - slug: infrastructure-models-001
+    title: Phân biệt cấu hình tại chỗ với thay máy hoặc image theo mô hình bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-002
+    title: Chọn thời điểm cấu hình khi tạo image, khi khởi động và trong quá trình vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-003
+    title: Phân chia trách nhiệm giữa công cụ cấp phát IaC và công cụ quản lý cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-004
+    title: Thiết kế bàn giao danh sách đích và dữ liệu sau bước cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-005
+    title: Nhận diện cấu hình đóng gói trong container và cấu hình cấp từ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-006
+    title: Phân biệt quản lý máy chủ với quản lý tài nguyên trong hệ điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-007
+    title: Liên hệ GitOps với nguồn khai báo, đối soát và quyền thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-008
+    title: Tránh để nhiều công cụ cùng sở hữu một thuộc tính tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-models-009
+    title: Chọn mô hình kết hợp phù hợp với khả năng tái tạo và đặc điểm dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workflow-integration
+  title: Tích hợp quy trình
+  childs:
+  - slug: workflow-integration-001
+    title: Tổ chức luồng đề xuất → review → kiểm thử → phê duyệt → áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-002
+    title: Đưa kiểm tra cấu hình vào CI trước khi cho phép triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-003
+    title: Tách tác vụ kiểm tra không đặc quyền với tác vụ áp dụng có quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-004
+    title: Quản lý runner hoặc máy điều khiển như một thành phần có quyền nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-005
+    title: Truyền phiên bản cấu hình và dữ liệu môi trường vào quy trình tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-006
+    title: Lưu artifact kiểm thử và báo cáo mà không đóng gói bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-007
+    title: Thiết lập cổng phê duyệt cho thay đổi có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-008
+    title: Truy vết lần thực thi tự động đến commit và phạm vi đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workflow-integration-009
+    title: Xử lý chạy lại quy trình mà không lặp tác dụng phụ nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tool-selection
+  title: Lựa chọn công cụ
+  childs:
+  - slug: tool-selection-001
+    title: Xây dựng tiêu chí từ quy mô nút, hệ điều hành và mô hình kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-002
+    title: So sánh Ansible, Puppet, Chef và Salt ở mức mô hình quản lý cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-003
+    title: Đánh giá mức khai báo, khả năng lũy đẳng và cơ chế kiểm tra trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-004
+    title: So sánh khả năng tái sử dụng, quản lý dữ liệu và báo cáo thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-005
+    title: Đánh giá quyền truy cập, quản lý bí mật và yêu cầu vận hành công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-006
+    title: Kiểm tra tương thích, hệ sinh thái thành phần và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-007
+    title: Thử nghiệm bằng cùng một bài toán và bộ tiêu chí xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tool-selection-008
+    title: Xác định ranh giới giữa kiến thức nền tảng và hướng dẫn chuyên sâu từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không kết nối được nút: kiểm tra định danh, mạng và thông tin xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Thiếu quyền: phân biệt quyền đăng nhập, nâng đặc quyền và quyền tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Cấu hình sai do biến bị ghi đè, sai kiểu hoặc facts không còn mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Lần chạy nào cũng báo thay đổi dù trạng thái mong muốn không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Thứ tự phụ thuộc sai khiến tệp, gói hoặc dịch vụ thực thi không đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Template render hợp lệ nhưng dịch vụ từ chối cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Thay đổi thành công trên một số nút và thất bại trên các nút còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Khác biệt phiên bản gói, hệ điều hành hoặc công cụ gây kết quả không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Thay đổi thủ công hoặc bộ điều khiển khác làm sai lệch liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: 'Thực thi bị ngắt giữa chừng: xác định trạng thái thực trước khi chạy lại'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Thu thập bằng chứng tối thiểu và giữ bí mật trong quá trình chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice
+  title: Thực hành
+  childs:
+  - slug: practice-001
+    title: Thiết kế trạng thái chuẩn cho một nhóm máy chủ cung cấp cùng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-002
+    title: Lập inventory, ranh giới sở hữu và dữ liệu cấu hình theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-003
+    title: Quản lý tài khoản, gói, tệp cấu hình và dịch vụ bằng khai báo rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-004
+    title: Render cấu hình từ template và kiểm tra dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-005
+    title: Thiết kế lần chạy đầu hội tụ và lần chạy sau không đổi với cùng đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-006
+    title: Tạo sai lệch có kiểm soát rồi so sánh cảnh báo với tự động sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-007
+    title: Đưa kiểm thử, review và áp dụng theo đợt vào quy trình thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-008
+    title: Diễn tập lỗi giữa chừng, thử lại có kiểm soát và khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-009
+    title: Luân chuyển bí mật và xác minh không rò rỉ qua log hoặc artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-010
+    title: Đối chiếu kết quả cuối với trạng thái mong muốn và lưu bằng chứng theo từng nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

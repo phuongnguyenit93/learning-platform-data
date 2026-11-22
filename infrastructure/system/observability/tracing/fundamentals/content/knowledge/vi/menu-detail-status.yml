@@ -1,0 +1,2521 @@
+menu:
+- slug: tracing-foundations
+  title: Nền tảng tracing
+  childs:
+  - slug: tracing-foundations-001
+    title: Truy vết phân tán (distributed tracing) là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-002
+    title: Hành trình của một yêu cầu qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-003
+    title: Vai trò của tracing trong khả năng quan sát (observability)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-004
+    title: Phân biệt truy vết, nhật ký (logs), số đo (metrics) và đo hiệu năng chi tiết (profiling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-005
+    title: Từ một thao tác người dùng đến các công việc bên trong hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-006
+    title: Khả năng nhìn thấy đường đi, thời gian và kết quả của công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-007
+    title: Khi nào tracing hữu ích và khi nào cần kết hợp tín hiệu khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-foundations-008
+    title: 'Giới hạn của trace: dữ liệu quan sát không tự chứng minh nguyên nhân gốc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-model
+  title: Mô hình trace
+  childs:
+  - slug: trace-model-001
+    title: 'Trace: tập hợp các span liên quan đến một luồng công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-002
+    title: 'Span: đơn vị biểu diễn một thao tác có thời điểm bắt đầu và kết thúc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-003
+    title: Mã trace (trace ID) và mã span (span ID)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-004
+    title: Span gốc, span cha và span con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-005
+    title: Quan hệ cha–con và quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-006
+    title: Cây span và các quan hệ bổ sung bằng liên kết span (span links)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-007
+    title: Một trace qua nhiều tiến trình, máy chủ và vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-008
+    title: Nhiều trace thuộc cùng một hành trình nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-009
+    title: Phân biệt trace ID, mã yêu cầu và mã giao dịch nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-model-010
+    title: Giới hạn suy luận từ thứ tự xuất hiện của các span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: span-lifecycle
+  title: Vòng đời span
+  childs:
+  - slug: span-lifecycle-001
+    title: Xác định ranh giới bắt đầu và kết thúc của một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-002
+    title: Tạo span, kích hoạt span và kết thúc span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-003
+    title: Span hiện tại (current span) và phạm vi đang hoạt động (scope)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-004
+    title: Phân biệt thời gian tồn tại của span với phạm vi kích hoạt ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-005
+    title: Khôi phục span trước đó khi thoát khỏi phạm vi lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-006
+    title: Kết thúc span khi thành công, thất bại hoặc bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-007
+    title: Kết thúc span bất đồng bộ tại thời điểm công việc thực sự hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-008
+    title: Span không kết thúc, kết thúc hai lần và ghi dữ liệu sau khi kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-lifecycle-009
+    title: Quyền sở hữu vòng đời span giữa thư viện và mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: span-data
+  title: Dữ liệu trong span
+  childs:
+  - slug: span-data-001
+    title: Tên span và ý nghĩa của thao tác được mô tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-002
+    title: Thời điểm bắt đầu, kết thúc và khoảng thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-003
+    title: 'Thuộc tính (attributes): khóa, giá trị và kiểu dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-004
+    title: Sự kiện trong span (span events) và mốc diễn tiến quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-005
+    title: 'Liên kết span: ngữ cảnh được liên kết và thông tin đi kèm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-006
+    title: 'Loại span (span kind): INTERNAL, SERVER, CLIENT, PRODUCER và CONSUMER'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-007
+    title: 'Trạng thái span (span status): UNSET, OK và ERROR'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-008
+    title: Thông tin ngoại lệ và quan hệ với trạng thái lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-009
+    title: Tài nguyên (resource) mô tả nguồn phát sinh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-010
+    title: Phạm vi thư viện đo lường (instrumentation scope)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-data-011
+    title: Phân biệt dữ liệu nhận dạng thao tác và dữ liệu phục vụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-context
+  title: Ngữ cảnh truy vết
+  childs:
+  - slug: trace-context-001
+    title: Ngữ cảnh span (span context) và thông tin tối thiểu để liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-002
+    title: Ngữ cảnh đang hoạt động trong một tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-003
+    title: Ngữ cảnh cục bộ và ngữ cảnh nhận từ tiến trình khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-004
+    title: Cờ truy vết (trace flags) và thông tin trạng thái truyền kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-005
+    title: Ngữ cảnh hợp lệ, không hợp lệ và bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-006
+    title: Tạo span con từ ngữ cảnh nhận vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-007
+    title: Khởi tạo trace mới và chủ động thiết lập ranh giới trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-008
+    title: Dữ liệu truyền kèm (baggage) và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-009
+    title: Phân biệt baggage, thuộc tính span và thông tin tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-context-010
+    title: Giới hạn thời gian sống và phạm vi sử dụng ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-propagation
+  title: Truyền ngữ cảnh
+  childs:
+  - slug: context-propagation-001
+    title: Lan truyền ngữ cảnh (context propagation) qua ranh giới hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-002
+    title: Vật mang ngữ cảnh (carrier), chèn dữ liệu (inject) và trích xuất (extract)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-003
+    title: Vai trò của bộ truyền ngữ cảnh (propagator)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-004
+    title: 'W3C Trace Context: vai trò của traceparent và tracestate'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-005
+    title: Truyền baggage và giới hạn dữ liệu được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-006
+    title: Ngữ cảnh qua HTTP headers, siêu dữ liệu RPC và thuộc tính thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-007
+    title: Khi proxy hoặc cổng giao tiếp làm mất thông tin truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-008
+    title: Tương thích định dạng truyền và ảnh hưởng của cấu hình không đồng nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-009
+    title: Xử lý ngữ cảnh thiếu, sai định dạng hoặc không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-010
+    title: Ranh giới tin cậy giữa phía khách, dịch vụ nội bộ và đối tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-011
+    title: Truyền ngữ cảnh khi mã chạy được đo lường tự động hoặc thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: async-workflows
+  title: Luồng bất đồng bộ
+  childs:
+  - slug: async-workflows-001
+    title: Vì sao quan hệ luồng thực thi không tương đương quan hệ span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-002
+    title: Chụp ngữ cảnh trước khi chuyển công việc sang luồng khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-003
+    title: Khôi phục và giải phóng ngữ cảnh trong công việc bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-004
+    title: Phân biệt thời gian chờ lập lịch với thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-005
+    title: Tách một công việc thành nhiều nhánh song song (fan-out)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-006
+    title: Gom kết quả nhiều nhánh (fan-in) và mô tả quan hệ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-007
+    title: Callback, chuỗi xử lý và ranh giới hoàn tất công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-008
+    title: Tác vụ tách rời và quyết định dùng trace cũ hay trace mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-009
+    title: Hủy công việc, hết thời gian chờ và công việc vẫn tiếp tục chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: async-workflows-010
+    title: Nguy cơ rò rỉ ngữ cảnh giữa các công việc dùng chung luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: messaging-background-jobs
+  title: Thông điệp và tác vụ
+  childs:
+  - slug: messaging-background-jobs-001
+    title: Truy vết từ bên gửi qua môi giới đến bên xử lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-002
+    title: Phân biệt tạo thông điệp, gửi, nhận và xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-003
+    title: Quan hệ giữa độ trễ hàng đợi và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-004
+    title: Truyền ngữ cảnh qua metadata của thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-005
+    title: Một thông điệp, nhiều bên nhận và quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-006
+    title: 'Nhận hoặc xử lý theo lô: nhiều nguồn và liên kết span'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-007
+    title: Gửi lại, xử lý lại và phân biệt các lần thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-008
+    title: Thông điệp lỗi, hàng đợi cách ly và luồng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-009
+    title: Tác vụ định kỳ, công việc nền và lựa chọn span gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: messaging-background-jobs-010
+    title: Liên kết các trace khi công việc kéo dài qua nhiều giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation
+  title: Gắn đo lường
+  childs:
+  - slug: instrumentation-001
+    title: Gắn đo lường (instrumentation) ở thư viện, ứng dụng và hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-002
+    title: Đo lường tự động và đo lường thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-003
+    title: Lựa chọn ranh giới span theo câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-004
+    title: Span giao tiếp kỹ thuật và span nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-005
+    title: Bổ sung ngữ cảnh vào span đang có thay vì tạo span trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-006
+    title: Tạo span cho thao tác quan trọng chưa được thư viện ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-007
+    title: Xác định ai tạo span, ai kích hoạt và ai kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-008
+    title: Tránh tạo span cho mọi hàm hoặc mọi vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-009
+    title: Kiểm soát ảnh hưởng của đo lường tới hành vi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-010
+    title: Phân biệt API gắn đo lường, SDK xử lý và đích xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: semantic-conventions
+  title: Quy ước ngữ nghĩa
+  childs:
+  - slug: semantic-conventions-001
+    title: Vai trò của quy ước ngữ nghĩa (semantic conventions)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-002
+    title: Đặt tên span theo mẫu thao tác ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-003
+    title: Phân biệt đường dẫn thực tế và mẫu tuyến HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-004
+    title: Lựa chọn thuộc tính có giá trị chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-005
+    title: Số loại giá trị thuộc tính (cardinality) và nguy cơ tăng không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-006
+    title: Nhận dạng dịch vụ, phiên bản và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-007
+    title: Phân biệt dịch vụ, phiên bản chạy và máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-008
+    title: Thuộc tính tài nguyên, thuộc tính span và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-009
+    title: Chuẩn hóa tên đơn vị, mã lỗi và định danh nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-010
+    title: Phân biệt dữ liệu do nguồn phát cung cấp và dữ liệu hệ lưu trữ suy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: semantic-conventions-011
+    title: Quản lý tương thích khi thay đổi quy ước thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collection-export
+  title: Thu thập và xuất
+  childs:
+  - slug: collection-export-001
+    title: Luồng dữ liệu từ ứng dụng đến hệ thống truy vấn trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-002
+    title: Bộ ghi nhận span và vai trò xử lý trong SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-003
+    title: Bộ xử lý span (span processor) và bộ xuất dữ liệu (exporter)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-004
+    title: Gửi đồng bộ, gom lô và xử lý ở luồng nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-005
+    title: Vai trò của collector trong thu nhận, xử lý và chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-006
+    title: Mô hình triển khai collector gần ứng dụng và tại cổng tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-007
+    title: Giao thức xuất dữ liệu và phân biệt với giao thức truyền ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-008
+    title: Hàng đợi, thử lại và phản ứng khi đích nhận bị chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-009
+    title: Điểm có thể mất dữ liệu trong luồng thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-010
+    title: Đẩy nốt dữ liệu (flush) và dừng ứng dụng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collection-export-011
+    title: Giám sát sức khỏe của chính luồng thu thập trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-sampling
+  title: Lấy mẫu trace
+  childs:
+  - slug: trace-sampling-001
+    title: 'Lấy mẫu (sampling): mục đích và thông tin phải đánh đổi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-002
+    title: Phân biệt không tạo bản ghi, ghi nhận span và xuất span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-003
+    title: Lấy mẫu ở đầu luồng (head sampling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-004
+    title: Quyết định lấy mẫu theo ngữ cảnh cha (parent-based sampling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-005
+    title: Lấy mẫu theo tỷ lệ và tính nhất quán trong một trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-006
+    title: Lấy mẫu sau khi thu thập (tail sampling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-007
+    title: Chính sách ưu tiên trace lỗi, chậm hoặc thuộc luồng quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-008
+    title: Thời gian chờ quyết định và giới hạn bộ nhớ khi lấy mẫu cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-009
+    title: Trace đến muộn, thiếu span và khó khăn khi quyết định lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-010
+    title: Ảnh hưởng của lấy mẫu nhiều tầng trong ứng dụng và collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-011
+    title: Thiên lệch mẫu và giới hạn suy luận tần suất lỗi hoặc phân bố độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-012
+    title: Chọn chính sách theo lưu lượng, mục đích điều tra và ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-search
+  title: Lưu trữ và tra cứu
+  childs:
+  - slug: storage-search-001
+    title: Đơn vị lưu trữ trace và tập hợp các span liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-002
+    title: Độ trễ tiếp nhận dữ liệu và tính sẵn sàng khi tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-003
+    title: Tra cứu theo trace ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-004
+    title: Tìm trace theo dịch vụ, thao tác, thời gian và kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-005
+    title: Lọc theo thuộc tính, thời lượng và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-006
+    title: Phạm vi thời gian truy vấn và sai lệch do chọn sai khoảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-007
+    title: Chỉ mục, trường có thể tìm kiếm và chi phí lập chỉ mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-008
+    title: Thời hạn lưu giữ và khác biệt giữa các lớp dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-009
+    title: Phân trang, giới hạn kết quả và thiên lệch khi chỉ xem một số trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-search-010
+    title: Quyền truy cập trace và chia tách dữ liệu theo đội hoặc khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-interpretation
+  title: Đọc và hiểu trace
+  childs:
+  - slug: trace-interpretation-001
+    title: Cách đọc biểu đồ thời gian dạng thác nước (waterfall)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-002
+    title: Trục thời gian, độ dài span và quan hệ lồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-003
+    title: Nhận diện dịch vụ, loại span và ranh giới giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-004
+    title: Phân biệt thực thi tuần tự, song song và chờ đợi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-005
+    title: Đọc sự kiện, thuộc tính, liên kết và thông tin lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-006
+    title: Phân biệt span tổng hợp với span được nguồn đo lường tạo ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-007
+    title: Span bị thiếu, span mồ côi và trace chưa đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-008
+    title: Ảnh hưởng của lệch đồng hồ tới vị trí hiển thị các span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-009
+    title: Phân biệt thời gian thực tế quan sát được và phần thời gian chưa rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-interpretation-010
+    title: Đối chiếu trace với hành trình yêu cầu dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: latency-analysis
+  title: Phân tích độ trễ
+  childs:
+  - slug: latency-analysis-001
+    title: Từ thời gian đầu cuối đến các giai đoạn đóng góp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-002
+    title: Thời gian bao gồm span con và thời gian riêng của span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-003
+    title: Vì sao không thể cộng toàn bộ thời lượng span thành thời gian yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-004
+    title: Đường găng (critical path) khi có nhiều nhánh song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-005
+    title: Phân biệt thời gian xử lý, chờ hàng đợi và chờ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-006
+    title: Tách thời gian phía khách, phía máy chủ và phần giao tiếp chưa quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-007
+    title: Phát hiện chuỗi gọi tuần tự không cần thiết và mẫu truy vấn N+1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-008
+    title: So sánh trace nhanh và chậm của cùng một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-009
+    title: Ảnh hưởng của thử lại, hết thời gian chờ và thao tác dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-010
+    title: Độ trễ đuôi (tail latency) và giới hạn của một trace đơn lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: latency-analysis-011
+    title: Từ dấu hiệu trong trace đến giả thuyết cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-analysis
+  title: Phân tích lỗi
+  childs:
+  - slug: error-analysis-001
+    title: Phân biệt lỗi kỹ thuật, kết quả nghiệp vụ và lỗi người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-002
+    title: Trạng thái span, mã phản hồi và ngoại lệ là các tín hiệu khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-003
+    title: Ghi nhận ngoại lệ không đồng nghĩa tự xác lập trạng thái lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-004
+    title: Lỗi được bắt, được chuyển đổi hoặc được phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-005
+    title: Xác định nơi lỗi xuất hiện và nơi lỗi biểu lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-006
+    title: Theo dõi lỗi lan truyền qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-007
+    title: Phân biệt lỗi ban đầu và lỗi phát sinh do thử lại hoặc hết thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-008
+    title: Từ chối yêu cầu, hủy công việc và ngắt kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-009
+    title: Khi một span lỗi nhưng yêu cầu đầu cuối vẫn thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-analysis-010
+    title: Kết hợp trace với bằng chứng khác trước khi kết luận nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-correlation
+  title: Liên kết tín hiệu
+  childs:
+  - slug: signal-correlation-001
+    title: Tương quan nhật ký với trace ID và span ID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-002
+    title: Đưa ngữ cảnh truy vết vào nhật ký và giới hạn khi không có span hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-003
+    title: Từ một dòng nhật ký mở trace và từ trace tìm nhật ký liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-004
+    title: Số đo tổng hợp và trace của từng lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-005
+    title: Mẫu liên kết (exemplar) giữa số đo và trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-006
+    title: Vì sao không dùng trace ID làm nhãn của chuỗi số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-007
+    title: Sơ đồ phụ thuộc dịch vụ suy ra từ các span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-008
+    title: Phân biệt sơ đồ quan sát được và kiến trúc đầy đủ của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-009
+    title: Từ cảnh báo đến tập trace liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-010
+    title: Ảnh hưởng của lấy mẫu tới số đo và sơ đồ suy ra từ trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: communication-tracing
+  title: Tracing giao tiếp
+  childs:
+  - slug: communication-tracing-001
+    title: Span phía gọi và span phía nhận trong HTTP hoặc RPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-002
+    title: Quan hệ thời gian giữa CLIENT span và SERVER span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-003
+    title: Đi qua proxy, cổng API và bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-004
+    title: Lời gọi lồng nhau và chuỗi phụ thuộc nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-005
+    title: Thử lại từng lần và thao tác logic tổng thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-006
+    title: Kết nối lại, chuyển hướng và yêu cầu dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-007
+    title: Luồng phản hồi kéo dài và giao tiếp dạng streaming
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-008
+    title: Ranh giới khi phụ thuộc bên ngoài không hỗ trợ truyền ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: communication-tracing-009
+    title: Truy vết từ trình duyệt hoặc thiết bị tới dịch vụ phía máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-tracing
+  title: Tracing truy cập dữ liệu
+  childs:
+  - slug: database-tracing-001
+    title: Span cho truy vấn cơ sở dữ liệu và thao tác lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-002
+    title: Phân biệt chờ lấy kết nối với thực thi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-003
+    title: Ranh giới giao dịch và các thao tác dữ liệu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-004
+    title: Thao tác theo lô và cách giữ ngữ nghĩa span rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-005
+    title: Truy cập bộ nhớ đệm và đường đi khi không tìm thấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-006
+    title: Truy vết lời gọi đến hệ tìm kiếm và kho đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-007
+    title: Phân biệt thời gian phía thư viện với thời gian thực thi tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-008
+    title: Chuỗi truy vấn lặp và chi phí tích lũy trong một yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-tracing-009
+    title: Che dữ liệu nhạy cảm trong câu lệnh và tham số truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-tracing
+  title: Tracing trên JVM
+  childs:
+  - slug: jvm-tracing-001
+    title: Mô hình ngữ cảnh gắn với luồng và giới hạn của ThreadLocal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-002
+    title: Luồng tái sử dụng và yêu cầu dọn dẹp ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-003
+    title: Executor, thread pool và truyền ngữ cảnh cho tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-004
+    title: CompletableFuture và chuỗi xử lý bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-005
+    title: Luồng ảo (virtual threads) và ranh giới công việc cần truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-006
+    title: Luồng xử lý Servlet và vòng đời yêu cầu đồng bộ hoặc bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-007
+    title: Luồng xử lý phản ứng (reactive) và ngữ cảnh theo chuỗi xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-008
+    title: Phân biệt lúc dựng chuỗi xử lý, lúc đăng ký và lúc tín hiệu hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-009
+    title: Đo lường thư viện HTTP, JDBC và thư viện thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-010
+    title: Phối hợp agent, thư viện tích hợp và đo lường thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-tracing-011
+    title: Kiểm tra không làm thay đổi kết quả, ngoại lệ hoặc cách hủy công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-tests
+  title: Kiểm thử tracing
+  childs:
+  - slug: tracing-tests-001
+    title: Tiêu chí chấp nhận cho dữ liệu truy vết của một luồng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-002
+    title: Kiểm tra cấu trúc cha–con và danh tính trace/span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-003
+    title: Kiểm tra thời điểm kết thúc và số span được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-004
+    title: Kiểm tra tên, thuộc tính, loại span và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-005
+    title: Kiểm tra chèn và trích xuất ngữ cảnh qua ranh giới dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-006
+    title: Kiểm tra bất đồng bộ, song song và tái sử dụng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-007
+    title: Kiểm tra lỗi, thử lại, hủy công việc và hết thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-008
+    title: Kiểm tra chính sách lấy mẫu và trace không được lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-009
+    title: Kiểm tra toàn luồng từ nguồn đo lường đến tra cứu trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-010
+    title: Kiểm tra không rò rỉ dữ liệu nhạy cảm hoặc ngữ cảnh giữa yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-tests-011
+    title: Đối chiếu hành vi ứng dụng trước và sau khi bật đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-quality
+  title: Chất lượng dữ liệu
+  childs:
+  - slug: data-quality-001
+    title: Trace bị đứt tại một ranh giới giao tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-002
+    title: Trace bị tách do không dùng ngữ cảnh nhận vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-003
+    title: Quan hệ cha–con sai và span gắn nhầm yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-004
+    title: Span trùng do nhiều lớp đo lường cùng một thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-005
+    title: Span chưa kết thúc và span mất khi tiến trình dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-006
+    title: Thiếu dữ liệu do lấy mẫu, bộ đệm đầy hoặc lỗi xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-007
+    title: Trace đã được gửi nhưng chưa thể tìm thấy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-008
+    title: Sai tên dịch vụ, thiếu tài nguyên và thuộc tính không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-009
+    title: Thời lượng bất thường do đồng hồ hoặc chọn sai vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-010
+    title: Quy trình khoanh vùng lỗi tại nguồn, truyền, xử lý và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-011
+    title: Chỉ số theo dõi span nhận, xuất, lỗi và bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-costs
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-costs-001
+    title: Chi phí CPU, bộ nhớ và cấp phát khi tạo span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-002
+    title: Chi phí mạng, bộ đệm và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-003
+    title: Tác động của số span trên mỗi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-004
+    title: Tác động của số thuộc tính, sự kiện và liên kết trong span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-005
+    title: Giới hạn kích thước giá trị và khối lượng dữ liệu truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-006
+    title: Áp lực ngược (backpressure) và lựa chọn khi luồng xuất bị quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-007
+    title: Cân bằng lấy mẫu, độ chi tiết và thời gian lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-008
+    title: Tối ưu trường được lập chỉ mục theo nhu cầu điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-009
+    title: Đo ảnh hưởng thực tế bằng kiểm thử tải có và không có tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-010
+    title: Phân bổ ngân sách quan sát theo dịch vụ và luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-privacy
+  title: Bảo mật và riêng tư
+  childs:
+  - slug: security-privacy-001
+    title: Nhận diện bí mật và dữ liệu cá nhân có thể đi vào trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-002
+    title: Giới hạn dữ liệu ở URL, headers, payload và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-003
+    title: Rủi ro khi đưa thông tin nhạy cảm vào baggage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-004
+    title: Lọc, che hoặc loại bỏ dữ liệu ngay tại nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-005
+    title: Xác thực và mã hóa đường truyền dữ liệu truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-006
+    title: Phân quyền tra cứu, xuất dữ liệu và quản trị cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-007
+    title: Cô lập dữ liệu giữa môi trường, đội và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-008
+    title: Ngữ cảnh từ bên ngoài và nguy cơ giả mạo thông tin liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-009
+    title: Giới hạn kích thước ngữ cảnh và phòng tránh lạm dụng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-privacy-010
+    title: Chính sách lưu giữ, xóa và kiểm toán truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-governance
+  title: Quản trị tracing
+  childs:
+  - slug: tracing-governance-001
+    title: Xác định mục tiêu truy vết và phạm vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-002
+    title: Ưu tiên hành trình quan trọng và phụ thuộc cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-003
+    title: Phân công sở hữu đo lường, collector và hệ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-004
+    title: Chuẩn dùng chung cho tên dịch vụ, thuộc tính và dữ liệu được phép ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-005
+    title: Quản lý cấu hình theo môi trường và phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-006
+    title: Triển khai từng phần, kiểm tra kết quả và quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-007
+    title: Tương thích khi nâng cấp agent, SDK hoặc thư viện tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-008
+    title: Tài liệu hóa ranh giới chưa được đo lường và giới hạn lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-governance-009
+    title: Rà soát giá trị điều tra, chất lượng dữ liệu và chi phí định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-ecosystem
+  title: Hệ sinh thái tracing
+  childs:
+  - slug: tracing-ecosystem-001
+    title: Chuẩn dữ liệu, giao thức và hệ lưu trữ là các lớp khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-ecosystem-002
+    title: Vai trò của OpenTelemetry trong gắn đo lường và chuyển dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-ecosystem-003
+    title: Vai trò của Micrometer Tracing trong ứng dụng Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-ecosystem-004
+    title: Vai trò của Jaeger, Zipkin và Tempo trong lưu trữ hoặc tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-ecosystem-005
+    title: Phân biệt giao diện xem trace với khả năng thu thập của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-ecosystem-006
+    title: Khả năng tương tác và giới hạn khi chuyển giữa các công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-ecosystem-007
+    title: Ranh giới kiến thức nền tảng và cấu hình triển khai từng công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Vẽ mô hình trace cho một yêu cầu qua nhiều dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Thiết kế span và thuộc tính cho một luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Kiểm chứng truyền ngữ cảnh qua HTTP và tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Thiết kế quan hệ span cho thông điệp, lô và nhiều lần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Đọc trace để tìm đường găng và phần thời gian chưa quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Phân tích lỗi phụ thuộc có thử lại và cơ chế dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Khoanh vùng trace bị đứt hoặc thiếu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Đánh giá tác động của chính sách lấy mẫu tới điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Tương quan một cảnh báo với số đo, nhật ký và trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Rà soát một thiết kế tracing theo chất lượng, bảo mật và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

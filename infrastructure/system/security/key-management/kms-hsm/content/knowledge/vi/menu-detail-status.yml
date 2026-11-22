@@ -1,0 +1,2470 @@
+menu:
+- slug: kms-hsm-overview
+  title: 1. Tổng quan KMS và HSM
+  childs:
+  - slug: kms-hsm-overview-001
+    title: 1.1. Quản lý khóa là gì và vì sao thuật toán mạnh vẫn cần bảo vệ khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-002
+    title: 1.2. Dịch vụ quản lý khóa (KMS) và mô-đun bảo mật phần cứng (HSM)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-003
+    title: 1.3. Vai trò của KMS, HSM, kho bí mật và hạ tầng khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-004
+    title: 1.4. Khóa, vật liệu khóa, đối tượng khóa và siêu dữ liệu quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-005
+    title: 1.5. Phân biệt lưu khóa với thực hiện phép toán mà không xuất khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-006
+    title: 1.6. Quan hệ giữa ứng dụng, danh tính gọi, chính sách và ranh giới mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-007
+    title: 1.7. Các mô hình KMS dùng HSM, HSM độc lập và dịch vụ HSM được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-008
+    title: 1.8. Giới hạn bảo vệ và những rủi ro KMS/HSM không tự giải quyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-hsm-overview-009
+    title: 1.9. Lộ trình từ nền tảng khóa đến thiết kế, tích hợp và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptography-foundations
+  title: 2. Nền tảng mật mã
+  childs:
+  - slug: cryptography-foundations-001
+    title: 2.1. Khóa đối xứng, cặp khóa bất đối xứng và mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-002
+    title: 2.2. Mã hóa, giải mã, ký, xác minh và mã xác thực thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-003
+    title: 2.3. Hàm băm, khóa HMAC và sự khác nhau giữa băm với mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-004
+    title: 2.4. Độ mạnh khóa, thuật toán, tham số và thời gian cần bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-005
+    title: 2.5. Nguồn ngẫu nhiên mật mã và yêu cầu khi sinh khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-006
+    title: 2.6. Nonce, IV, salt và vật liệu công khai đi kèm phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-007
+    title: 2.7. Mã hóa có xác thực (AEAD) và dữ liệu xác thực bổ sung (AAD)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-008
+    title: 2.8. Phân tách khóa theo mục đích và tránh dùng một khóa cho nhiều giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-009
+    title: 2.9. Dẫn xuất khóa, thỏa thuận khóa và khác biệt với vận chuyển khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-model
+  title: 3. Mô hình đe dọa
+  childs:
+  - slug: threat-model-001
+    title: 3.1. Đánh cắp khóa từ mã nguồn, tệp cấu hình, bộ nhớ và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-002
+    title: 3.2. Lạm dụng quyền gọi giải mã hoặc ký mà không cần lấy được khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-003
+    title: 3.3. Chiếm tài khoản quản trị, sửa chính sách và nâng quyền gián tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-004
+    title: 3.4. Thay thế khóa, tráo siêu dữ liệu và tấn công ranh giới tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-005
+    title: 3.5. Nguy cơ vật lý, kênh kề và giả mạo thiết bị đối với HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-006
+    title: 3.6. Mất khóa, hủy nhầm và mất khả năng giải mã dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-007
+    title: 3.7. Lạm dụng chuỗi cung ứng, firmware và công cụ quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-008
+    title: 3.8. Đánh giá tác động theo loại khóa, hệ thống và phạm vi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-009
+    title: 3.9. Phân biệt bảo vệ tính bí mật khóa với bảo vệ tính hợp lệ của yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-hierarchy
+  title: 4. Hệ phân cấp khóa
+  childs:
+  - slug: key-hierarchy-001
+    title: 4.1. Khóa gốc tin cậy và các tầng bảo vệ vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-002
+    title: 4.2. Khóa mã hóa dữ liệu (DEK) và khóa mã hóa khóa (KEK)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-003
+    title: 4.3. Khóa chủ quản lý và quan hệ với các phiên bản vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-004
+    title: 4.4. Khóa ký, khóa HMAC, khóa bọc và khóa dẫn xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-005
+    title: 4.5. Định danh khóa, bí danh, phiên bản và tham chiếu ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-006
+    title: 4.6. Phân chia khóa theo khách hàng, ứng dụng, môi trường và loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-007
+    title: 4.7. Giới hạn phạm vi ảnh hưởng khi một khóa hoặc quyền bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-008
+    title: 4.8. Mối liên hệ giữa hệ phân cấp khóa và cấu trúc tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-hierarchy-009
+    title: 4.9. Đánh đổi giữa số lượng khóa, khả năng quản trị và mức cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kms-architecture
+  title: 5. Kiến trúc KMS
+  childs:
+  - slug: kms-architecture-001
+    title: 5.1. Mặt phẳng quản trị khóa và mặt phẳng thực hiện phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-002
+    title: 5.2. Kho siêu dữ liệu, bộ thực thi mật mã và hệ thống kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-003
+    title: 5.3. Đường đi của yêu cầu từ xác thực đến cấp quyền và xử lý mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-004
+    title: 5.4. Ranh giới giữa dịch vụ KMS và HSM ở tầng bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-005
+    title: 5.5. KMS tại chỗ, KMS đám mây và mô hình kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-006
+    title: 5.6. Kiến trúc nhiều khách hàng và cơ chế cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-007
+    title: 5.7. Phạm vi vùng, khu vực, tài khoản và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-008
+    title: 5.8. Tính nhất quán của trạng thái khóa và chính sách giữa các thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kms-architecture-009
+    title: 5.9. Phụ thuộc vào mạng, danh tính và nền tảng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hsm-architecture
+  title: 6. Kiến trúc HSM
+  childs:
+  - slug: hsm-architecture-001
+    title: 6.1. Ranh giới mật mã và những thành phần được bảo vệ bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-002
+    title: 6.2. HSM dạng thiết bị mạng, thẻ cắm, thiết bị cục bộ và dịch vụ đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-003
+    title: 6.3. Bộ xử lý mật mã, bộ sinh số ngẫu nhiên và vùng lưu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-004
+    title: 6.4. Đối tượng khóa, thuộc tính sử dụng và quyền xuất vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-005
+    title: 6.5. Phân vùng logic và cách ly ứng dụng hoặc đơn vị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-006
+    title: 6.6. Vai trò quản trị, cán bộ mật mã và người sử dụng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-007
+    title: 6.7. Xác thực phiên làm việc và bảo vệ kênh giữa máy khách với HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-008
+    title: 6.8. Các trạng thái vận hành, khởi tạo, khóa và đưa ra khỏi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-architecture-009
+    title: 6.9. Giới hạn năng lực và những khác biệt phải xác minh theo thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hardware-protection
+  title: 7. Bảo vệ phần cứng
+  childs:
+  - slug: hardware-protection-001
+    title: 7.1. Chống can thiệp vật lý, phát hiện can thiệp và phản ứng của thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-002
+    title: 7.2. Bảo vệ vật liệu khóa trong bộ nhớ và vùng lưu trữ bên trong
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-003
+    title: 7.3. Khởi động an toàn, firmware được xác thực và cập nhật có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-004
+    title: 7.4. Bảo vệ cổng quản trị, cổng bảo trì và thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-005
+    title: 7.5. Rủi ro kênh kề và vai trò của biện pháp triển khai vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-006
+    title: 7.6. Xác minh nguồn gốc thiết bị, bàn giao và chuỗi kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-007
+    title: 7.7. Chế độ vận hành an toàn và cấu hình ảnh hưởng đến phạm vi bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-008
+    title: 7.8. Phân biệt chứng nhận thuật toán với đánh giá toàn mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-protection-009
+    title: 7.9. Kiểm tra phạm vi, phiên bản và điều kiện của tuyên bố bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-lifecycle
+  title: 8. Vòng đời khóa
+  childs:
+  - slug: key-lifecycle-001
+    title: 8.1. Các trạng thái tạo, kích hoạt, đang dùng, ngừng dùng và hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-002
+    title: 8.2. Thời hạn dùng để bảo vệ dữ liệu và thời hạn cần giữ để xử lý dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-003
+    title: 8.3. Chủ sở hữu, người quản trị và trách nhiệm tại từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-004
+    title: 8.4. Siêu dữ liệu về nguồn gốc, mục đích, thuật toán và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-005
+    title: 8.5. Phân biệt vô hiệu hóa, thu hồi, hết hạn và hủy vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-006
+    title: 8.6. Quan hệ giữa vòng đời khóa với dữ liệu, chữ ký và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-007
+    title: 8.7. Điều kiện chuyển trạng thái và kiểm soát thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-008
+    title: 8.8. Danh mục khóa, phát hiện khóa mồ côi và phụ thuộc không còn chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-lifecycle-009
+    title: 8.9. Lưu bằng chứng vòng đời mà không làm lộ vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-generation-import
+  title: 9. Sinh và đưa khóa vào
+  childs:
+  - slug: key-generation-import-001
+    title: 9.1. Sinh khóa bên trong ranh giới KMS hoặc HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-002
+    title: 9.2. Lựa chọn thuật toán, kích thước và thuộc tính ngay khi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-003
+    title: 9.3. Khóa không thể xuất và các điều kiện ngoại lệ cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-004
+    title: 9.4. Nhập khóa bên ngoài bằng cơ chế bọc khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-005
+    title: 9.5. Xác minh nguồn gốc, tính toàn vẹn và đối tượng nhận khi nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-006
+    title: 9.6. Bảo vệ vật liệu khóa tạm trên đường tạo và nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-007
+    title: 9.7. Xác định thời hạn của khóa nhập và khả năng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-008
+    title: 9.8. Xử lý tạo dở dang, yêu cầu lặp và khóa bị tạo thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-generation-import-009
+    title: 9.9. Kiểm chứng khóa hoạt động bằng dữ liệu thử không nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-ownership-controls
+  title: 10. Quyền sở hữu và kiểm soát
+  childs:
+  - slug: key-ownership-controls-001
+    title: 10.1. Khóa do nhà cung cấp quản lý và khóa do khách hàng quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-002
+    title: 10.2. Mang khóa của tổ chức vào dịch vụ (BYOK) và ranh giới kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-003
+    title: 10.3. Giữ khóa ở hệ thống bên ngoài (HYOK) và quản lý khóa ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-004
+    title: 10.4. Phân biệt quyền sở hữu vật liệu khóa với quyền phê duyệt phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-005
+    title: 10.5. Khả năng nhìn thấy, vô hiệu hóa, xuất và hủy khóa trong từng mô hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-006
+    title: 10.6. Giới hạn độc lập với nhà cung cấp khi dữ liệu và quyền dùng khóa vẫn ở đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-007
+    title: 10.7. Yêu cầu chủ quyền dữ liệu, vị trí lưu và phạm vi pháp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-008
+    title: 10.8. Đánh đổi về khả dụng, độ trễ, chi phí và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-ownership-controls-009
+    title: 10.9. Tiêu chí lựa chọn mô hình theo mức độ nhạy cảm và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identity-authorization
+  title: 11. Danh tính và cấp quyền
+  childs:
+  - slug: identity-authorization-001
+    title: 11.1. Xác thực ứng dụng, người quản trị và tác vụ tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-002
+    title: 11.2. Tách quyền quản trị khóa khỏi quyền mã hóa, giải mã hoặc ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-003
+    title: 11.3. Chính sách theo khóa, danh tính, hành động và điều kiện ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-004
+    title: 11.4. Ủy quyền cho dịch vụ sử dụng khóa và giới hạn quyền được chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-005
+    title: 11.5. Quyền tạm thời, thời hạn ủy quyền và thu hồi quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-006
+    title: 11.6. Điều kiện theo môi trường, tài nguyên và ngữ cảnh mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-007
+    title: 11.7. Ngăn truy cập chéo khách hàng và lạm dụng vai trò dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-008
+    title: 11.8. Ngăn leo thang quyền thông qua sửa chính sách hoặc tạo ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-009
+    title: 11.9. Phân tách nhiệm vụ, nhiều người phê duyệt và quyền khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identity-authorization-010
+    title: 11.10. Rà soát quyền và kiểm chứng các trường hợp phải bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: envelope-encryption
+  title: 12. Mã hóa phong bì
+  childs:
+  - slug: envelope-encryption-001
+    title: 12.1. Luồng sinh DEK, mã hóa dữ liệu và bọc DEK bằng KEK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-002
+    title: 12.2. Vì sao xử lý dữ liệu lớn bên ngoài KMS thường phù hợp hơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-003
+    title: 12.3. Lưu bản mã, DEK đã bọc, định danh khóa và tham số mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-004
+    title: 12.4. Luồng mở DEK và giải mã tại bên được cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-005
+    title: 12.5. Gắn ngữ cảnh mã hóa với đối tượng, khách hàng và mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-006
+    title: 12.6. Ngữ cảnh và AAD có thể cần được bảo vệ tính toàn vẹn dù không phải bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-007
+    title: 12.7. Ngăn tráo DEK đã bọc hoặc bản mã giữa các tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-008
+    title: 12.8. Tái bọc DEK so với giải mã và mã hóa lại toàn bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-009
+    title: 12.9. Bộ nhớ đệm DEK, giới hạn thời gian và phạm vi tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: envelope-encryption-010
+    title: 12.10. Giới hạn bảo vệ khi ứng dụng đã nhận DEK dạng rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encryption-authentication
+  title: 13. Mã hóa và xác thực
+  childs:
+  - slug: encryption-authentication-001
+    title: 13.1. Chọn phép toán và kiểu khóa tương thích với yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-002
+    title: 13.2. Mã hóa trực tiếp qua dịch vụ và giới hạn kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-003
+    title: 13.3. Quản lý nonce, IV, nhãn xác thực và siêu dữ liệu thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-004
+    title: 13.4. Ràng buộc ngữ cảnh giải mã với tài nguyên được cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-005
+    title: 13.5. Xử lý bản mã bị sửa, thiếu siêu dữ liệu hoặc sai phiên bản khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-006
+    title: 13.6. Phân biệt lỗi không đủ quyền với lỗi dữ liệu không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-007
+    title: 13.7. Chống biến giao diện giải mã thành nguồn tiết lộ thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-008
+    title: 13.8. HMAC trong KMS/HSM và giới hạn của việc chia sẻ quyền xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encryption-authentication-009
+    title: 13.9. Thiết kế định dạng bản mã có khả năng nâng cấp và di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signing-verification
+  title: 14. Ký và xác minh
+  childs:
+  - slug: signing-verification-001
+    title: 14.1. Khóa riêng ký trong KMS/HSM và phân phối khóa công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-002
+    title: 14.2. Phân biệt ký dữ liệu với ký giá trị băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-003
+    title: 14.3. Chọn thuật toán, định dạng chữ ký và tham số tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-004
+    title: 14.4. Chuẩn hóa dữ liệu cần ký và tránh diễn giải khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-005
+    title: 14.5. Kiểm soát ai được ký, được ký nội dung gì và với mục đích nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-006
+    title: 14.6. Giới hạn của quyền ký khi tài khoản gọi bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-007
+    title: 14.7. Gắn phiên bản khóa, chứng thư hoặc định danh khóa vào dữ liệu ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-008
+    title: 14.8. Luân chuyển khóa ký và tiếp tục xác minh chữ ký cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-009
+    title: 14.9. Đóng dấu thời gian, lưu bằng chứng và yêu cầu xác minh lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signing-verification-010
+    title: 14.10. Ứng dụng trong ký tạo phẩm, tài liệu, token và cập nhật phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-interfaces
+  title: 15. Giao diện tích hợp
+  childs:
+  - slug: integration-interfaces-001
+    title: 15.1. API dịch vụ từ xa và thư viện máy khách của KMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-002
+    title: '15.2. PKCS #11 và mô hình đối tượng, phiên, cơ chế mật mã'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-003
+    title: 15.3. KMIP trong quản lý khóa và yêu cầu tương thích thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-004
+    title: 15.4. Tích hợp qua giao diện mật mã của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-005
+    title: 15.5. Tác nhân, proxy và cổng kết nối HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-006
+    title: 15.6. Xác thực kết nối, chứng thư máy khách và quản lý thông tin đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-007
+    title: 15.7. Giới hạn thuật toán, kiểu khóa và khả năng giữa các giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-008
+    title: 15.8. Ánh xạ lỗi, thời gian chờ và xử lý yêu cầu lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-interfaces-009
+    title: 15.9. Kiểm thử tương thích thay vì giả định mọi nhà cung cấp hoạt động giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-integration
+  title: 16. Tích hợp ứng dụng
+  childs:
+  - slug: application-integration-001
+    title: 16.1. Thiết kế giao diện sử dụng khóa không phụ thuộc trực tiếp vào nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-002
+    title: 16.2. Tham chiếu khóa bằng định danh và quản lý thay đổi bí danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-003
+    title: 16.3. Kiểm soát kích thước, định dạng và phân loại dữ liệu gửi đến dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-004
+    title: 16.4. Bảo vệ DEK dạng rõ, bộ nhớ đệm và dữ liệu sau giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-005
+    title: 16.5. Phân tách môi trường phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-006
+    title: 16.6. Danh tính khối lượng công việc thay cho thông tin xác thực cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-007
+    title: 16.7. Nhóm kết nối, phiên HSM và xử lý tiến trình khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-008
+    title: 16.8. Quan sát lỗi mà không ghi dữ liệu rõ hoặc vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-009
+    title: 16.9. Thiết kế kiểm thử với mô phỏng và môi trường mật mã thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-integration-010
+    title: 16.10. Kiểm soát thao tác ký hoặc giải mã theo mục đích nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-integration
+  title: 17. Tích hợp hạ tầng
+  childs:
+  - slug: infrastructure-integration-001
+    title: 17.1. Mã hóa kho đối tượng, ổ đĩa, cơ sở dữ liệu và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-002
+    title: 17.2. Mã hóa phía ứng dụng so với mã hóa do dịch vụ lưu trữ thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-003
+    title: 17.3. Ranh giới quyền khi dịch vụ được quản lý gọi KMS thay ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-004
+    title: 17.4. Kiểm soát khóa cho nhiều khách hàng hoặc nhiều tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-005
+    title: 17.5. Tích hợp hệ thống cấp chứng thư và bảo vệ khóa CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-006
+    title: 17.6. Tích hợp đường ống ký phần mềm và kiểm soát tạo phẩm được ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-007
+    title: 17.7. KMS/HSM trong môi trường tại chỗ, đám mây và kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-008
+    title: 17.8. Thiết kế phụ thuộc khi khởi động hệ thống cần giải mã cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-integration-009
+    title: 17.9. Giới hạn của mã hóa lưu trữ trước truy cập hợp lệ bị lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hsm-administrative-ceremonies
+  title: 18. Nghi thức quản trị HSM
+  childs:
+  - slug: hsm-administrative-ceremonies-001
+    title: 18.1. Khởi tạo thiết bị, miền bảo mật và phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-002
+    title: 18.2. Thiết lập vai trò, thông tin xác thực và phân tách nhiệm vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-003
+    title: 18.3. Kiểm soát nhiều người và phê duyệt theo ngưỡng M trên N
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-004
+    title: 18.4. Phân biệt chia giữ thông tin khôi phục với chữ ký ngưỡng và MPC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-005
+    title: 18.5. Tổ chức nghi thức sinh khóa gốc hoặc khóa có mức bảo vệ cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-006
+    title: 18.6. Ghi nhận người tham gia, thiết bị, bước thực hiện và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-007
+    title: 18.7. Bảo quản thẻ, thiết bị xác thực và phần thông tin khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-008
+    title: 18.8. Xử lý người giữ phần thông tin thay đổi vai trò hoặc không còn sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-009
+    title: 18.9. Diễn tập khôi phục có kiểm soát và tránh lộ bí mật quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hsm-administrative-ceremonies-010
+    title: 18.10. Quy trình kết thúc nghi thức và kiểm tra trạng thái an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-rotation-versions
+  title: 19. Luân chuyển và phiên bản
+  childs:
+  - slug: key-rotation-versions-001
+    title: 19.1. Luân chuyển khóa chủ, thay phiên bản vật liệu và thay định danh khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-002
+    title: 19.2. Phân biệt luân chuyển KEK, DEK và khóa ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-003
+    title: 19.3. Giữ khả năng giải mã dữ liệu cũ trong thời hạn cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-004
+    title: 19.4. Tái bọc DEK để đổi tầng bảo vệ mà không xử lý lại toàn bộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-005
+    title: 19.5. Mã hóa lại dữ liệu khi thuật toán, DEK hoặc phạm vi tin cậy thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-006
+    title: 19.6. Luân chuyển theo lịch và theo sự kiện nghi bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-007
+    title: 19.7. Chuyển khóa đang dùng qua bí danh và kiểm soát tác động đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-008
+    title: 19.8. Thời gian cùng tồn tại của khóa ký cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-009
+    title: 19.9. Đối soát tiến độ chuyển đổi và phát hiện dữ liệu còn phụ thuộc khóa cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-rotation-versions-010
+    title: 19.10. Quay lui an toàn và giới hạn khi khóa cũ không còn đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: key-disable-destruction
+  title: 20. Vô hiệu hóa và hủy
+  childs:
+  - slug: key-disable-destruction-001
+    title: 20.1. Ngừng phép toán mới trong khi giữ khả năng xử lý dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-002
+    title: 20.2. Vô hiệu hóa khóa và xử lý bộ nhớ đệm còn giữ vật liệu đã mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-003
+    title: 20.3. Thu hồi quyền sử dụng khóa so với hủy vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-004
+    title: 20.4. Thời gian chờ hủy, phê duyệt và khả năng khôi phục trước hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-005
+    title: 20.5. Xác minh không còn dữ liệu, chữ ký hoặc bản sao lưu cần khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-006
+    title: 20.6. Hủy khóa trong nhiều bản sao, phân vùng và khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-007
+    title: 20.7. Xóa khả năng giải mã bằng hủy khóa và các điều kiện giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-008
+    title: 20.8. Đưa HSM ra khỏi sử dụng, xóa vật liệu và xử lý thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: key-disable-destruction-009
+    title: 20.9. Lưu bằng chứng hủy và kiểm chứng yêu cầu sử dụng bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-recovery
+  title: 21. Sao lưu và khôi phục
+  childs:
+  - slug: backup-recovery-001
+    title: 21.1. Sao lưu vật liệu khóa, siêu dữ liệu, chính sách và cấu hình HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-002
+    title: 21.2. Bọc bản sao lưu và bảo vệ khóa hoặc miền cần để khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-003
+    title: 21.3. Tách địa điểm, người giữ và quyền tiếp cận vật liệu khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-004
+    title: 21.4. Điều kiện tương thích giữa thiết bị nguồn và thiết bị đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-005
+    title: 21.5. Khôi phục khi mất thiết bị, hỏng cụm hoặc mất toàn bộ khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-006
+    title: 21.6. Phân biệt sao chép trực tuyến với bản sao lưu chống xóa nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-007
+    title: 21.7. Tránh khôi phục quyền đã thu hồi hoặc tái kích hoạt khóa đã ngừng dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-008
+    title: 21.8. Kiểm chứng khả năng giải mã và ký sau khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-009
+    title: 21.9. Xác định RPO, RTO và kiểm tra định kỳ quy trình phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-recovery-010
+    title: 21.10. Xử lý mất đồng thời khóa dữ liệu và vật liệu khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: availability-performance
+  title: 22. Khả dụng và hiệu năng
+  childs:
+  - slug: availability-performance-001
+    title: 22.1. Cụm HSM, dự phòng KMS và phân phối tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-002
+    title: 22.2. Nhân bản khóa, chính sách và trạng thái giữa các điểm phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-003
+    title: 22.3. Độ trễ theo mạng, thuật toán, kích thước dữ liệu và loại phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-004
+    title: 22.4. Hạn mức yêu cầu, năng lực phần cứng và tắc nghẽn phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-005
+    title: 22.5. Thử lại có giới hạn, điều tiết lưu lượng và tránh tải đột biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-006
+    title: '22.6. Lưu tạm vật liệu hoặc kết quả: lợi ích và chi phí bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-007
+    title: 22.7. Lựa chọn từ chối an toàn khi không thể truy cập hệ thống khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-008
+    title: 22.8. Kiểm thử tải, chuyển đổi dự phòng và lỗi từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-009
+    title: 22.9. Đánh đổi giữa nhiều khu vực với chủ quyền, nhất quán và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: availability-performance-010
+    title: 22.10. Giám sát mức sử dụng và dự báo năng lực theo tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: auditing-monitoring
+  title: 23. Kiểm toán và giám sát
+  childs:
+  - slug: auditing-monitoring-001
+    title: 23.1. Nhật ký tạo, nhập, sửa chính sách, sử dụng, luân chuyển và hủy khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-002
+    title: 23.2. Liên kết danh tính, định danh khóa, tài nguyên và mục đích phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-003
+    title: 23.3. Phát hiện giải mã hàng loạt, ký bất thường và dùng khóa ngoài ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-004
+    title: 23.4. Theo dõi thay đổi quyền, chế độ bảo mật và firmware
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-005
+    title: 23.5. Phát hiện khóa mồ côi, phiên bản quá hạn và lịch hủy bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-006
+    title: 23.6. Bảo vệ tính toàn vẹn, đồng bộ thời gian và thời hạn lưu nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-007
+    title: 23.7. Tránh ghi vật liệu khóa, dữ liệu rõ hoặc ngữ cảnh nhạy cảm vào log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-008
+    title: 23.8. Tách quyền xem bằng chứng khỏi quyền sử dụng khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-009
+    title: 23.9. Đối soát yêu cầu ứng dụng với bằng chứng KMS và HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: auditing-monitoring-010
+    title: 23.10. Chỉ số vận hành về lỗi, độ trễ, hạn mức và khả năng kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: 24. Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: 24.1. Phân biệt lộ vật liệu khóa, lộ quyền sử dụng và xâm nhập thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: 24.2. Khoanh vùng tài khoản, chính sách, khóa và dữ liệu bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: 24.3. Tạm dừng ký hoặc giải mã trái phép và kiểm soát gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: 24.4. Luân chuyển, tái bọc hoặc mã hóa lại theo loại sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: 24.5. Xử lý chữ ký đáng ngờ và thông báo thay đổi khóa xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: 24.6. Thay thế HSM hoặc tái lập miền tin cậy khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: 24.7. Bảo toàn bằng chứng trước khi xóa trạng thái hoặc đưa thiết bị ra khỏi dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: 24.8. Khôi phục khi hủy nhầm, mất khóa hoặc lỗi quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-009
+    title: 24.9. Xác nhận quyền cũ bị chặn và dữ liệu hợp lệ vẫn xử lý được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-010
+    title: 24.10. Rút kinh nghiệm và cập nhật chính sách, kiến trúc cùng quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compliance-governance
+  title: 25. Tuân thủ và quản trị
+  childs:
+  - slug: compliance-governance-001
+    title: 25.1. Chính sách quản lý khóa và phân công trách nhiệm tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-002
+    title: 25.2. Ánh xạ yêu cầu kinh doanh, hợp đồng và quy định vào kiểm soát khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-003
+    title: 25.3. Đánh giá chứng nhận mô-đun theo cấu hình và phạm vi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-004
+    title: 25.4. Yêu cầu lưu trú khóa, dữ liệu và bằng chứng vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-005
+    title: 25.5. Quản lý thay đổi firmware, thuật toán và cấu hình được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-006
+    title: 25.6. Rà soát nhà cung cấp, quyền quản trị và trách nhiệm hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-007
+    title: 25.7. Quản lý ngoại lệ, chấp nhận rủi ro và thời hạn khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-008
+    title: 25.8. Chuẩn bị kiểm toán bằng hồ sơ vòng đời và bằng chứng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compliance-governance-009
+    title: 25.9. Đánh giá tổng chi phí sở hữu và năng lực con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: migration-upgrades
+  title: 26. Di chuyển và nâng cấp
+  childs:
+  - slug: migration-upgrades-001
+    title: 26.1. Kiểm kê định dạng bản mã, khóa và phụ thuộc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-002
+    title: 26.2. Đánh giá khả năng xuất khóa và giới hạn do thuộc tính bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-003
+    title: 26.3. Chuyển giữa HSM, KMS hoặc mô hình đám mây và tại chỗ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-004
+    title: 26.4. Tái bọc hoặc mã hóa lại khi không thể chuyển vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-005
+    title: 26.5. Chuyển đổi thuật toán và thiết kế khả năng thay đổi mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-006
+    title: 26.6. Di chuyển khóa ký cùng dữ liệu xác minh và chứng thư liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-007
+    title: 26.7. Chạy song song, kiểm chứng dữ liệu cũ và giới hạn thời gian chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-008
+    title: 26.8. Ngăn thay đổi bí danh hoặc định dạng làm mất khả năng giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-009
+    title: 26.9. Ngừng hệ thống cũ sau khi đối soát toàn bộ dữ liệu và bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: migration-upgrades-010
+    title: 26.10. Lập kế hoạch dài hạn cho thuật toán và yêu cầu bảo vệ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: common-tradeoffs
+  title: 27. Sai lầm và đánh đổi
+  childs:
+  - slug: common-tradeoffs-001
+    title: 27.1. Cho rằng có HSM thì tài khoản gọi ký hoặc giải mã luôn an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-002
+    title: 27.2. Gộp quyền quản trị khóa và quyền sử dụng khóa vào một vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-003
+    title: 27.3. Dùng một khóa cho nhiều khách hàng, môi trường hoặc mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-004
+    title: 27.4. Đưa dữ liệu lớn qua KMS mà không đánh giá mã hóa phong bì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-005
+    title: 27.5. Tái sử dụng nonce hoặc thiếu ràng buộc ngữ cảnh với tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-006
+    title: 27.6. Hủy khóa theo tuổi mà không kiểm tra dữ liệu phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-007
+    title: 27.7. Coi tự động luân chuyển là tự động mã hóa lại toàn bộ dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-008
+    title: 27.8. Chỉ sao chép cụm mà không có phương án chống xóa nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-009
+    title: 27.9. Dựa vào nhãn chứng nhận mà bỏ qua cấu hình và phạm vi đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: common-tradeoffs-010
+    title: 27.10. Đánh đổi giữa tính không thể xuất, khả năng di chuyển và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-practice
+  title: 28. Kiểm thử và thực hành
+  childs:
+  - slug: testing-practice-001
+    title: 28.1. Lập sơ đồ tài nguyên, ranh giới tin cậy và hệ phân cấp khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-002
+    title: 28.2. Thiết kế ma trận quyền quản trị, mã hóa, giải mã và ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-003
+    title: 28.3. Thực hành mã hóa phong bì với siêu dữ liệu và ngữ cảnh xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-004
+    title: 28.4. Kiểm chứng truy cập chéo khách hàng và ngữ cảnh sai bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-005
+    title: 28.5. Thực hành ký, đổi khóa và xác minh chữ ký từ phiên bản cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-006
+    title: 28.6. Luân chuyển KEK, tái bọc DEK và kiểm chứng dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-007
+    title: 28.7. Mô phỏng mất KMS, hết hạn phiên HSM và vượt hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-008
+    title: 28.8. Diễn tập sao lưu, phục hồi và chuyển đổi dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-009
+    title: 28.9. Diễn tập lộ quyền giải mã hoặc lịch hủy khóa ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-practice-010
+    title: 28.10. Xây dựng tiêu chí nghiệm thu và hồ sơ quyết định kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

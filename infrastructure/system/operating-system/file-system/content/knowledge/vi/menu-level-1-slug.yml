@@ -1,0 +1,82 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Tệp và thư mục
+  slug: files-directories
+  index: 1
+- title: Đường dẫn
+  slug: paths
+  index: 2
+- title: Siêu dữ liệu
+  slug: metadata
+  index: 3
+- title: Liên kết
+  slug: links
+  index: 4
+- title: Mở và quản lý tệp
+  slug: file-descriptors-handles
+  index: 5
+- title: Đọc và ghi
+  slug: reads-writes
+  index: 6
+- title: Thao tác không gian tên
+  slug: namespace-operations
+  index: 7
+- title: Quyền truy cập
+  slug: access-permissions
+  index: 8
+- title: Bảo mật tệp
+  slug: file-security
+  index: 9
+- title: Khóa và đồng thời
+  slug: locking-concurrency
+  index: 10
+- title: Tổ chức lưu trữ
+  slug: storage-organization
+  index: 11
+- title: Cấp phát dữ liệu
+  slug: data-allocation
+  index: 12
+- title: Tra cứu và lập chỉ mục
+  slug: lookup-indexing
+  index: 13
+- title: Bộ nhớ đệm và I/O
+  slug: caching-io
+  index: 14
+- title: Nhất quán và phục hồi
+  slug: consistency-recovery
+  index: 15
+- title: Gắn kết hệ thống tệp
+  slug: mounting-filesystems
+  index: 16
+- title: Các hệ thống tệp
+  slug: filesystem-types
+  index: 17
+- title: Ảnh chụp và bản sao
+  slug: snapshots-clones
+  index: 18
+- title: Dung lượng và hạn ngạch
+  slug: capacity-quotas
+  index: 19
+- title: Hệ thống tệp mạng
+  slug: network-filesystems
+  index: 20
+- title: Môi trường cách ly
+  slug: isolated-environments
+  index: 21
+- title: Sao lưu và khôi phục
+  slug: backups-recovery
+  index: 22
+- title: Hiệu năng
+  slug: performance
+  index: 23
+- title: Giám sát thay đổi
+  slug: change-monitoring
+  index: 24
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 25
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 26

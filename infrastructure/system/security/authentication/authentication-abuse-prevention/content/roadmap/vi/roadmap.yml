@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-abuse
+  title: Nhận diện Abuse
+  purpose: Nhận biết các kiểu lạm dụng điểm xác thực để lựa chọn biện pháp phòng vệ tương ứng.
+  objectives:
+  - Phân biệt brute force, password spraying và credential stuffing
+  - Xác định điểm vào login, OTP và password reset
+  - Vẽ kịch bản account takeover cơ bản
+- id: throttling-backoff
+  title: Throttling & Backoff
+  purpose: Giới hạn các lần thử không hợp lệ mà không dễ tạo cơ chế khóa tài khoản gây DoS.
+  objectives:
+  - Thiết lập giới hạn độc lập theo tài khoản và IP
+  - Thử backoff, ngưỡng và khoảng thời gian quan sát
+  - Đánh giá nguy cơ lockout với người dùng hợp lệ
+- id: chong-bot-stuffing
+  title: Chống Bot & Stuffing
+  purpose: Kết hợp nhiều tín hiệu để nhận diện đăng nhập tự động thay vì chỉ chặn một IP.
+  objectives:
+  - Nhận diện nhiều tài khoản bị thử từ cùng nguồn
+  - Áp dụng challenge khi rủi ro tăng
+  - Giải thích vì sao CAPTCHA không đủ khi đứng riêng
+- id: ngan-user-enumeration
+  title: Ngăn User Enumeration
+  purpose: Không để phản hồi của hệ thống làm lộ tài khoản nào đang tồn tại.
+  objectives:
+  - Chuẩn hóa thông báo lỗi khi login thất bại
+  - So sánh nội dung và thời gian phản hồi
+  - Thử luồng đăng ký và reset với tài khoản không tồn tại
+- id: mfa-step-up
+  title: MFA & Step-up
+  purpose: Tăng độ bảo đảm xác thực khi thấy hành vi bất thường hoặc hành động nhạy cảm.
+  objectives:
+  - Phân biệt MFA với hai mật khẩu cùng yếu tố
+  - Ưu tiên passkey hoặc phương thức chống phishing
+  - Đề xuất step-up cho thiết bị hoặc tình huống rủi ro
+- id: otp-account-recovery
+  title: OTP & Account Recovery
+  purpose: Bảo vệ các đường xác thực thay thế không trở thành lối tắt chiếm đoạt tài khoản.
+  objectives:
+  - Giới hạn số lần nhập sai OTP
+  - Kiểm tra token reset dùng một lần, có hạn dùng
+  - Xác minh thay đổi MFA cần xác thực bổ sung
+- id: logging-response
+  title: Logging & Response
+  purpose: Phát hiện lạm dụng sớm và hỗ trợ người dùng khôi phục an toàn khi bị nhắm mục tiêu.
+  objectives:
+  - Ghi nhận thất bại đăng nhập không lộ secrets
+  - Cảnh báo các đợt thử mật khẩu bất thường
+  - Thông báo rủi ro và lập quy trình phản ứng
+- id: kiem-thu-can-bang
+  title: Kiểm thử & Cân bằng
+  purpose: Kiểm tra hiệu quả chống lạm dụng cùng tác động đến trải nghiệm người dùng.
+  objectives:
+  - Mô phỏng đăng nhập sai trong môi trường thử
+  - Xác minh giới hạn, phản hồi và luồng recovery
+  - Đo false positive và điều chỉnh chính sách

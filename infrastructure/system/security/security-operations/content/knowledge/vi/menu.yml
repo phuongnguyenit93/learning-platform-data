@@ -1,0 +1,566 @@
+menu:
+- level1: Khái niệm SecOps
+  level2:
+  - Security Operations là gì
+  - Phân biệt SecOps và IT Operations
+  - Mục tiêu bảo vệ tính sẵn sàng
+  - Mục tiêu phát hiện và phản ứng
+  - Vòng đời sự kiện bảo mật
+  - Con người quy trình và công nghệ
+  - Tư duy vận hành liên tục
+  - Ranh giới giữa SOC và đội nền tảng
+  - Từ cảnh báo đến quyết định
+- level1: Mô hình vận hành
+  level2:
+  - Mô hình SOC tập trung
+  - Mô hình SOC phân tán
+  - Mô hình follow-the-sun
+  - Phân công L1 L2 L3
+  - Vai trò incident commander
+  - Phối hợp SecOps với DevOps
+  - Phối hợp SecOps với ITSM
+  - Thuê dịch vụ MDR và MSSP
+  - Ma trận trách nhiệm RACI
+  - Điều phối bên thứ ba
+- level1: Governance
+  level2:
+  - Chính sách vận hành bảo mật
+  - Risk appetite và mức chấp nhận rủi ro
+  - Security objectives đo được
+  - Quyền phê duyệt hành động khẩn cấp
+  - Quy trình ngoại lệ bảo mật
+  - Quản lý thay đổi cho công cụ SOC
+  - Quản lý nhà cung cấp an ninh
+  - Đánh giá hiệu lực kiểm soát
+  - Họp review rủi ro định kỳ
+  - Cải tiến liên tục theo bài học
+- level1: Tài sản và phạm vi
+  level2:
+  - Inventory tài sản công nghệ
+  - Business service và dependency
+  - Chủ sở hữu tài sản
+  - Mức độ quan trọng của hệ thống
+  - Data flow và trust boundary
+  - Asset discovery chủ động
+  - Asset discovery thụ động
+  - Tài sản cloud ephemeral
+  - Tài sản IoT và OT
+  - Đối soát inventory với thực tế
+- level1: Đánh giá rủi ro
+  level2:
+  - Threat landscape theo ngành
+  - Risk register cho dịch vụ
+  - Risk scenario và impact
+  - Likelihood và mức độ phơi nhiễm
+  - Crown jewels của tổ chức
+  - Attack path đến tài sản trọng yếu
+  - Risk acceptance có thời hạn
+  - Risk treatment và owner
+  - Theo dõi residual risk
+  - Cập nhật risk khi môi trường đổi
+- level1: Giám sát liên tục
+  level2:
+  - Continuous security monitoring
+  - Baseline hành vi bình thường
+  - Giám sát identity activity
+  - Giám sát network activity
+  - Giám sát endpoint activity
+  - Giám sát cloud control plane
+  - Giám sát data access
+  - Giám sát cấu hình bảo mật
+  - Giám sát thay đổi đặc quyền
+  - Phát hiện logging bị dừng
+- level1: Nguồn nhật ký
+  level2:
+  - Application security log
+  - Web server và API gateway log
+  - Identity provider log
+  - Operating system audit log
+  - Database audit log
+  - Network firewall log
+  - DNS và proxy log
+  - Cloud audit trail
+  - Container và Kubernetes log
+  - SaaS audit log
+  - Physical access log
+- level1: Thiết kế logging
+  level2:
+  - Sự kiện authentication thành công
+  - Sự kiện authentication thất bại
+  - Authorization denial
+  - Thay đổi quyền admin
+  - Thay đổi cấu hình nhạy cảm
+  - Truy cập dữ liệu quan trọng
+  - Thay đổi secret hoặc certificate
+  - Hoạt động của service account
+  - Thông tin who when where what
+  - Trace ID và span ID cho điều tra
+- level1: Bảo vệ log
+  level2:
+  - Log integrity và chống sửa đổi
+  - Phân quyền đọc log
+  - Phân quyền xóa log
+  - Mã hóa log khi truyền
+  - Mã hóa log khi lưu
+  - Log injection và encoding
+  - Che giấu password token session
+  - Giới hạn log request body
+  - Đồng bộ thời gian hệ thống
+  - Retention theo mục đích
+- level1: SIEM
+  level2:
+  - Kiến trúc SIEM
+  - Ingest và chuẩn hóa log
+  - Parsing field theo schema
+  - Correlation rule
+  - Search và truy vấn điều tra
+  - Lưu trữ hot warm cold
+  - Quản lý index và partition
+  - Phân quyền tenant trong SIEM
+  - SIEM cost và volume control
+  - Tích hợp ticketing
+- level1: Detection engineering
+  level2:
+  - Detection use case
+  - Detection logic dựa trên hành vi
+  - Signature và indicator matching
+  - Threshold và time window
+  - Tương quan nhiều nguồn dữ liệu
+  - Giảm false positive
+  - Xác định false negative
+  - Version control cho rule
+  - Peer review detection
+  - Đo coverage của detection
+- level1: Alert triage
+  level2:
+  - Alert enrichment
+  - Xác thực cảnh báo
+  - Ưu tiên theo severity
+  - Ưu tiên theo asset criticality
+  - Triage theo identity context
+  - Triage theo threat intelligence
+  - Đóng cảnh báo không liên quan
+  - Escalate cảnh báo nghiêm trọng
+  - Gộp alert cùng một sự kiện
+  - Ghi nhận lý do disposition
+- level1: SOC workflow
+  level2:
+  - Alert queue và ownership
+  - SLA xử lý cảnh báo
+  - Handoff giữa ca trực
+  - Case management
+  - Evidence link trong case
+  - Timeline của điều tra
+  - Checklist analyst L1
+  - Escalation cho analyst L2
+  - Review chất lượng case
+  - Đóng case và lưu bài học
+- level1: Phân loại sự cố
+  level2:
+  - Security event so với incident
+  - Severity và impact
+  - Data breach
+  - Account compromise
+  - Malware infection
+  - Ransomware incident
+  - DDoS incident
+  - Insider threat
+  - Cloud misconfiguration incident
+  - Third-party incident
+- level1: Chuẩn bị ứng phó
+  level2:
+  - Incident response plan
+  - Incident response team
+  - Danh bạ liên lạc khẩn cấp
+  - Quyền truy cập break-glass
+  - Playbook theo loại sự cố
+  - Bộ công cụ điều tra
+  - Isolated analysis environment
+  - Chuẩn bị bằng chứng pháp lý
+  - Thỏa thuận với nhà cung cấp
+  - Diễn tập trước khi có sự cố
+- level1: Vòng đời incident
+  level2:
+  - Detect và declare
+  - Triage và validate
+  - Containment planning
+  - Eradication planning
+  - Recovery decision
+  - Post-incident review
+  - Incident status và ownership
+  - Tiêu chí chuyển giai đoạn
+  - Theo dõi action item
+  - Continuous improvement
+- level1: Containment
+  level2:
+  - Cô lập endpoint bị nhiễm
+  - Khóa tài khoản bị chiếm
+  - Thu hồi session đáng ngờ
+  - Chặn domain và IP độc hại
+  - Cắt đường truy cập lateral
+  - Cô lập workload cloud
+  - Tạm dừng secret bị lộ
+  - Giới hạn blast radius
+  - Containment ngắn hạn và dài hạn
+  - Đánh giá tác động kinh doanh
+- level1: Eradication
+  level2:
+  - Xóa persistence của attacker
+  - Loại malware và tool lạ
+  - Sửa cấu hình sai
+  - Rotate credential bị lộ
+  - Patch lỗ hổng bị khai thác
+  - Rebuild endpoint tin cậy
+  - Xác minh không còn IOC
+  - Kiểm tra backdoor
+  - Xác nhận root cause
+  - Phê duyệt trước khi mở lại
+- level1: Forensics
+  level2:
+  - Bảo toàn evidence
+  - Chain of custody
+  - Thu thập volatile data
+  - Disk và memory acquisition
+  - Phân tích process tree
+  - Phân tích network connection
+  - Phân tích authentication trail
+  - Phân tích timeline
+  - IOC extraction
+  - Phân biệt bằng chứng và giả thuyết
+- level1: Giao tiếp sự cố
+  level2:
+  - Thông báo nội bộ
+  - Thông báo lãnh đạo
+  - Thông báo khách hàng
+  - Thông báo nhà cung cấp
+  - Phối hợp pháp chế
+  - Phối hợp cơ quan chức năng
+  - Thông điệp công khai
+  - Nguyên tắc need-to-know
+  - Phê duyệt nội dung truyền thông
+  - Ghi nhận quyết định giao tiếp
+- level1: Threat intelligence
+  level2:
+  - Strategic threat intelligence
+  - Operational threat intelligence
+  - Tactical indicator
+  - Threat actor profile
+  - Campaign và TTP
+  - IOC confidence
+  - Indicator lifecycle
+  - Feed quality và freshness
+  - Chia sẻ intelligence
+  - Đưa intelligence vào detection
+- level1: Threat hunting
+  level2:
+  - Hypothesis-driven hunting
+  - Hunt theo identity anomaly
+  - Hunt theo endpoint behavior
+  - Hunt theo network pattern
+  - Hunt trong cloud audit
+  - Hunt theo persistence
+  - Hunt theo data exfiltration
+  - Hunt không phụ thuộc alert
+  - Ghi nhận hunt query
+  - Chuyển kết quả hunt thành rule
+- level1: Quản lý lỗ hổng
+  level2:
+  - Asset-based vulnerability view
+  - Authenticated scanning
+  - Unauthenticated scanning
+  - Vulnerability severity
+  - Exploitability và exposure
+  - Lỗ hổng internet-facing
+  - Lỗ hổng trong dependency
+  - Lỗ hổng cấu hình
+  - Exception cho lỗ hổng
+  - Theo dõi remediation
+- level1: Patch và remediation
+  level2:
+  - Patch operating system
+  - Patch application
+  - Patch library dependency
+  - Patch network device
+  - Patch container base image
+  - Kiểm thử trước khi triển khai
+  - Emergency patch
+  - Virtual patching
+  - Xác minh sau patch
+  - SLA theo mức nghiêm trọng
+- level1: Exposure management
+  level2:
+  - Attack surface discovery
+  - External attack surface
+  - Shadow IT
+  - Cloud exposure
+  - Public storage exposure
+  - Exposed credential
+  - Exposed management interface
+  - Attack path prioritization
+  - Continuous exposure validation
+  - Đo thời gian giảm phơi nhiễm
+- level1: IAM operations
+  level2:
+  - Joiner mover leaver
+  - Provisioning và deprovisioning
+  - MFA enrollment
+  - Authentication policy
+  - Authorization policy
+  - Access review định kỳ
+  - Dormant account
+  - Service account inventory
+  - Federation monitoring
+  - Identity lifecycle evidence
+- level1: Privileged access
+  level2:
+  - Privileged account inventory
+  - Just-in-time access
+  - Just-enough access
+  - Break-glass account
+  - Session recording
+  - Admin command audit
+  - PAM policy
+  - Credential checkout
+  - Privileged access alert
+  - Review quyền đặc biệt
+- level1: Endpoint operations
+  level2:
+  - Endpoint inventory
+  - EDR telemetry
+  - Host isolation
+  - Endpoint hardening
+  - Anti-malware policy
+  - USB và peripheral control
+  - Local admin control
+  - Process execution monitoring
+  - Endpoint patch state
+  - Reimage và recovery
+- level1: Network operations
+  level2:
+  - Firewall rule review
+  - Network segmentation
+  - East-west traffic
+  - North-south traffic
+  - IDS và IPS alert
+  - DNS security monitoring
+  - Proxy và web gateway
+  - VPN access monitoring
+  - Network flow telemetry
+  - Network device configuration audit
+- level1: Cloud operations
+  level2:
+  - Cloud account inventory
+  - Cloud control plane audit
+  - Cloud security posture
+  - IAM role analysis
+  - Public resource detection
+  - Security group review
+  - Cloud workload telemetry
+  - Cloud-native detection
+  - Cloud incident containment
+  - Multi-cloud evidence
+- level1: Container Kubernetes
+  level2:
+  - Container image scanning
+  - Registry access control
+  - Kubernetes audit log
+  - Admission policy
+  - Pod security context
+  - Service account token
+  - Runtime container detection
+  - Cluster network policy
+  - Secret exposure trong cluster
+  - Kubernetes incident response
+- level1: Application security ops
+  level2:
+  - Application inventory
+  - API inventory
+  - WAF monitoring
+  - Authentication flow monitoring
+  - Authorization failure monitoring
+  - Secure release gate
+  - Runtime application protection
+  - Dependency alert triage
+  - DAST finding operations
+  - Phối hợp AppSec và SOC
+- level1: Data protection
+  level2:
+  - Data classification
+  - Sensitive data discovery
+  - Data access monitoring
+  - DLP alert
+  - Database activity monitoring
+  - Encryption key usage
+  - Exfiltration detection
+  - Data retention enforcement
+  - Breach impact assessment
+  - Data recovery validation
+- level1: Zero Trust operations
+  level2:
+  - Verify explicitly trong vận hành
+  - Least privilege theo context
+  - Assume breach mindset
+  - Identity-aware policy
+  - Device posture signal
+  - Continuous authorization
+  - Micro-segmentation monitoring
+  - Policy decision log
+  - Workload identity
+  - Đo mức trưởng thành Zero Trust
+- level1: Secrets và certificate
+  level2:
+  - Secret inventory
+  - Secret rotation
+  - Secret leakage detection
+  - Certificate inventory
+  - Certificate expiration monitoring
+  - Key compromise response
+  - KMS access monitoring
+  - HSM operational audit
+  - Secret access anomaly
+  - Không đưa secret vào log
+- level1: Email và phishing
+  level2:
+  - Phishing report intake
+  - Email authentication monitoring
+  - SPF DKIM DMARC
+  - Malicious attachment
+  - Malicious link
+  - Business email compromise
+  - Mailbox rule anomaly
+  - User awareness signal
+  - Takedown domain giả mạo
+  - Phản ứng sau click phishing
+- level1: Ransomware
+  level2:
+  - Ransomware early indicators
+  - Mass file modification
+  - Suspicious encryption process
+  - Backup protection
+  - Network isolation plan
+  - Privileged account containment
+  - Recovery priority
+  - Negotiation và legal decision
+  - Evidence preservation
+  - Post-ransomware hardening
+- level1: DDoS và availability
+  level2:
+  - DDoS detection
+  - Volumetric attack
+  - Application-layer attack
+  - Rate limiting
+  - Traffic scrubbing
+  - CDN và edge control
+  - Upstream provider coordination
+  - Availability SLO
+  - Failover testing
+  - Post-attack tuning
+- level1: Third-party security
+  level2:
+  - Supplier inventory
+  - Supplier criticality
+  - Vendor security monitoring
+  - Third-party access
+  - MSSP evidence
+  - SaaS audit log (bổ sung 2)
+  - Contract security clauses
+  - Breach notification path
+  - Offboarding supplier
+  - Supply-chain incident
+- level1: Automation và SOAR
+  level2:
+  - SOAR architecture
+  - Playbook automation
+  - Alert enrichment tự động
+  - Account disable action
+  - Endpoint isolation action
+  - Ticket creation tự động
+  - Human approval gate
+  - Automation rollback
+  - Idempotent response action
+  - Đo hiệu quả automation
+- level1: Metrics và KPI
+  level2:
+  - MTTD và MTTR
+  - Alert volume
+  - False positive rate
+  - Detection coverage
+  - Incident recurrence
+  - Vulnerability remediation time
+  - Patch compliance
+  - MFA coverage
+  - Log source health
+  - SOC analyst workload
+  - Risk reduction outcome
+- level1: Diễn tập và kiểm thử
+  level2:
+  - Tabletop exercise
+  - Purple team exercise
+  - Red team signal
+  - Breach simulation
+  - Detection validation
+  - Playbook dry run
+  - Disaster recovery exercise
+  - Communication drill
+  - Exercise evidence
+  - Cải tiến sau diễn tập
+- level1: Tuân thủ và audit
+  level2:
+  - Control evidence collection
+  - Audit trail integrity
+  - Policy compliance monitoring
+  - Regulatory reporting
+  - Exception register
+  - Evidence retention
+  - Access review evidence
+  - Incident reporting obligation
+  - Audit finding remediation
+  - Đối chiếu control với risk
+- level1: Backup và recovery
+  level2:
+  - Backup inventory
+  - Immutable backup
+  - Offline backup
+  - Backup access control
+  - Backup monitoring
+  - Restore test
+  - Recovery point objective
+  - Recovery time objective
+  - Clean room recovery
+  - Khôi phục sau compromise
+- level1: Runbook vận hành
+  level2:
+  - Runbook alert triage
+  - Runbook account compromise
+  - Runbook malware
+  - Runbook exposed secret
+  - Runbook cloud misconfiguration
+  - Runbook log outage
+  - Runbook certificate expiry
+  - Runbook vulnerability critical
+  - Runbook service degradation
+  - Runbook evidence collection
+- level1: Production readiness
+  level2:
+  - Security monitoring readiness
+  - Alert ownership readiness
+  - Incident contact readiness
+  - Logging coverage readiness
+  - Break-glass readiness
+  - Backup restore readiness
+  - Patch emergency readiness
+  - Vendor escalation readiness
+  - Tabletop completion
+  - Go-live security sign-off
+- level1: Bài học và cải tiến
+  level2:
+  - Root cause review
+  - Lessons learned
+  - Detection gap backlog
+  - Process gap backlog
+  - Control effectiveness review
+  - Incident trend analysis
+  - Recurring alert reduction
+  - Playbook versioning
+  - Risk register update
+  - Đo cải tiến sau sự cố

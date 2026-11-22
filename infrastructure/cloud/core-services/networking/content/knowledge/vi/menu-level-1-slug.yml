@@ -1,0 +1,97 @@
+menu:
+  - title: "Tổng quan mạng đám mây"
+    slug: cloud-networking-overview
+    index: 0
+  - title: "Giao thức và luồng kết nối"
+    slug: protocols-and-connection-flows
+    index: 1
+  - title: "Địa chỉ IPv4 và thiết kế CIDR"
+    slug: ipv4-addressing-and-cidr-planning
+    index: 2
+  - title: "IPv6 và mạng dual-stack"
+    slug: ipv6-and-dual-stack-networking
+    index: 3
+  - title: "Mạng ảo và phân đoạn subnet"
+    slug: virtual-networks-and-subnet-segmentation
+    index: 4
+  - title: "Định tuyến trong cloud"
+    slug: cloud-routing
+    index: 5
+  - title: "BGP và trao đổi tuyến"
+    slug: bgp-and-route-exchange
+    index: 6
+  - title: "Kết nối Internet và NAT"
+    slug: internet-connectivity-and-nat
+    index: 7
+  - title: "Kiểm soát truy cập mạng"
+    slug: network-access-control
+    index: 8
+  - title: "Thiết bị mạng và kiểm tra lưu lượng"
+    slug: network-appliances-and-inspection
+    index: 9
+  - title: "Truy cập riêng tới dịch vụ"
+    slug: private-service-connectivity
+    index: 10
+  - title: "Kết nối giữa các mạng cloud"
+    slug: cloud-network-interconnection
+    index: 11
+  - title: "VPN cho kết nối cloud"
+    slug: cloud-vpn-connectivity
+    index: 12
+  - title: "Kết nối chuyên dụng và hybrid"
+    slug: dedicated-and-hybrid-connectivity
+    index: 13
+  - title: "Kết nối multicloud và mạng diện rộng"
+    slug: multicloud-and-wide-area-networking
+    index: 14
+  - title: "DNS và phân giải tên"
+    slug: dns-and-name-resolution
+    index: 15
+  - title: "Quản lý lưu lượng bằng DNS"
+    slug: dns-traffic-management
+    index: 16
+  - title: "Cân bằng tải lớp truyền tải"
+    slug: transport-layer-load-balancing
+    index: 17
+  - title: "Cân bằng tải lớp ứng dụng"
+    slug: application-layer-load-balancing
+    index: 18
+  - title: "Kết nối biên và CDN"
+    slug: edge-connectivity-and-cdn
+    index: 19
+  - title: "Mạng cho container và Kubernetes"
+    slug: container-and-kubernetes-networking
+    index: 20
+  - title: "Kết nối cho các loại workload"
+    slug: workload-connectivity
+    index: 21
+  - title: "Độ trễ và hiệu năng mạng"
+    slug: network-latency-and-performance
+    index: 22
+  - title: "Tính sẵn sàng và phục hồi mạng"
+    slug: network-availability-and-recovery
+    index: 23
+  - title: "Giám sát và quan sát lưu lượng"
+    slug: network-monitoring-and-observability
+    index: 24
+  - title: "Công cụ chẩn đoán mạng"
+    slug: network-diagnostic-tools
+    index: 25
+  - title: "Quy trình xử lý sự cố kết nối"
+    slug: connectivity-troubleshooting
+    index: 26
+  - title: "Quản lý địa chỉ và tài nguyên mạng"
+    slug: ipam-and-network-resource-management
+    index: 27
+  - title: "Tự động hóa và thay đổi cấu hình mạng"
+    slug: network-automation-and-change-management
+    index: 28
+  - title: "Chi phí truyền dữ liệu và tối ưu"
+    slug: data-transfer-cost-optimization
+    index: 29
+  - title: "Thiết kế kiến trúc mạng"
+    slug: network-architecture-design
+    index: 30
+  - title: "Thực hành tích hợp và đánh giá"
+    slug: integrated-labs-and-assessment
+    index: 31

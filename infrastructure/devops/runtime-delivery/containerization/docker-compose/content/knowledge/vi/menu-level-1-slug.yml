@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan Docker Compose
+  slug: docker-compose-overview
+  index: 0
+- title: Cài đặt và môi trường
+  slug: installation-environment
+  index: 1
+- title: Ứng dụng Compose đầu tiên
+  slug: first-compose-app
+  index: 2
+- title: Cấu trúc Compose YAML
+  slug: compose-yaml-structure
+  index: 3
+- title: Project và định danh
+  slug: projects-identifiers
+  index: 4
+- title: Khai báo service
+  slug: service-definitions
+  index: 5
+- title: Vòng đời và lệnh CLI
+  slug: cli-lifecycle
+  index: 6
+- title: Xây dựng image
+  slug: image-builds
+  index: 7
+- title: Image và registry
+  slug: image-registry
+  index: 8
+- title: Nội suy cấu hình
+  slug: variable-interpolation
+  index: 9
+- title: Biến môi trường container
+  slug: container-environment-variables
+  index: 10
+- title: Mạng và phân giải tên
+  slug: networking-name-resolution
+  index: 11
+- title: Cổng và truy cập
+  slug: ports-access
+  index: 12
+- title: Volume và dữ liệu
+  slug: volumes-data
+  index: 13
+- title: Bind mount và tmpfs
+  slug: bind-mount-tmpfs
+  index: 14
+- title: Configs và secrets
+  slug: configs-secrets
+  index: 15
+- title: Phụ thuộc và thứ tự chạy
+  slug: dependencies-startup-order
+  index: 16
+- title: Sức khỏe và khởi động lại
+  slug: healthchecks-restarts
+  index: 17
+- title: Tiến trình và dừng an toàn
+  slug: processes-graceful-shutdown
+  index: 18
+- title: Ghép và tái sử dụng cấu hình
+  slug: compose-file-merging-reuse
+  index: 19
+- title: Profiles và dịch vụ tùy chọn
+  slug: profiles-optional-services
+  index: 20
+- title: Quy trình phát triển
+  slug: development-workflows
+  index: 21
+- title: Cơ sở dữ liệu và khởi tạo
+  slug: database-initialization
+  index: 22
+- title: Ứng dụng nhiều tầng
+  slug: multi-tier-applications
+  index: 23
+- title: Kiểm thử và CI
+  slug: testing-ci
+  index: 24
+- title: Quy mô và tài nguyên
+  slug: scaling-resources
+  index: 25
+- title: Bảo mật ứng dụng Compose
+  slug: compose-application-security
+  index: 26
+- title: Quan sát và chẩn đoán
+  slug: observability-diagnostics
+  index: 27
+- title: Quản lý nhiều môi trường
+  slug: multi-environment-management
+  index: 28
+- title: Triển khai trên một host
+  slug: single-host-deployment
+  index: 29
+- title: Sao lưu và phục hồi
+  slug: backups-recovery
+  index: 30
+- title: Khác biệt nền tảng
+  slug: platform-differences
+  index: 31
+- title: Bảo trì và nâng cấp
+  slug: maintenance-upgrades
+  index: 32
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 33

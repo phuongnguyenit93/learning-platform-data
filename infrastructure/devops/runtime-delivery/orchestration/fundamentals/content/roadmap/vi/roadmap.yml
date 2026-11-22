@@ -1,0 +1,57 @@
+roadmap:
+- id: tu-duy-orchestration
+  title: Tư duy Orchestration
+  purpose: Hiểu vì sao cần điều phối container khi ứng dụng chạy trên nhiều máy chủ.
+  objectives:
+  - Phân biệt chạy container thủ công với orchestration.
+  - Giải thích desired state và reconciliation.
+  - Nêu lợi ích của tự phục hồi và mở rộng bản sao.
+- id: cluster-scheduling
+  title: Cluster & Scheduling
+  purpose: Nắm cấu trúc cụm và cách workload được phân phối đến node phù hợp.
+  objectives:
+  - Phân biệt control plane và worker node.
+  - Nêu vai trò của API server, scheduler và kubelet.
+  - Giải thích ảnh hưởng của CPU/memory requests đến scheduling.
+- id: pods-workloads
+  title: Pods & Workloads
+  purpose: Nhận diện các đơn vị thực thi và bộ điều khiển workload cơ bản.
+  objectives:
+  - Phân biệt container, Pod và Deployment.
+  - Nêu trường hợp dùng Deployment, StatefulSet và Job.
+  - Đọc trạng thái Pod trong một cluster thử nghiệm.
+- id: desired-state-rollout
+  title: Desired State & Rollout
+  purpose: Quản lý số bản sao và phiên bản ứng dụng bằng khai báo có thể lặp lại.
+  objectives:
+  - Đọc manifest YAML và trường metadata/spec.
+  - Áp dụng thay đổi số replicas của Deployment.
+  - Quan sát rollout và thực hành rollback trong sandbox.
+- id: service-discovery-network
+  title: Service Discovery & Network
+  purpose: Giữ kết nối ứng dụng ổn định khi Pod được tạo lại hoặc thay địa chỉ.
+  objectives:
+  - Tạo Service chọn Pod bằng labels/selectors.
+  - Phân biệt ClusterIP, NodePort và LoadBalancer.
+  - Thử DNS/service discovery giữa hai workload.
+- id: config-persistent-data
+  title: Config & Persistent Data
+  purpose: Tách cấu hình khỏi image và quản lý dữ liệu sống lâu hơn Pod.
+  objectives:
+  - Dùng ConfigMap cho cấu hình không nhạy cảm.
+  - Sử dụng Secret đúng mục đích và kiểm soát truy cập.
+  - Phân biệt volume tạm với PVC/PersistentVolume.
+- id: kha-dung-self-healing
+  title: Khả dụng & Self-healing
+  purpose: Cấu hình kiểm tra sức khỏe để phục hồi lỗi và tránh gửi traffic vào Pod chưa sẵn sàng.
+  objectives:
+  - Phân biệt liveness, readiness và startup probes.
+  - Giải thích vai trò của replicas khi Pod gặp sự cố.
+  - Thử xóa một Pod và quan sát controller tạo lại.
+- id: scaling-observability
+  title: Scaling & Observability
+  purpose: Theo dõi hệ thống và điều chỉnh năng lực xử lý theo tải thực tế.
+  objectives:
+  - So sánh scale thủ công với Horizontal Pod Autoscaler.
+  - Đọc events, logs và metrics cơ bản.
+  - Chẩn đoán thử Pod Pending hoặc CrashLoopBackOff.

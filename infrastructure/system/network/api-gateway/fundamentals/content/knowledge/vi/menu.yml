@@ -1,0 +1,336 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - API gateway là gì và giải quyết vấn đề gì khi công khai nhiều dịch vụ
+  - Mô hình client – gateway – upstream và các thuật ngữ nền tảng
+  - Lợi ích, chi phí và tình huống không cần thêm gateway
+  - Phân biệt API gateway với reverse proxy, load balancer và firewall
+  - Phân biệt API gateway, API management và developer portal
+  - Quan hệ giữa gateway, ingress controller và service mesh
+  - Lưu lượng vào, lưu lượng ra và giao tiếp nội bộ giữa dịch vụ
+  - Gateway chịu trách nhiệm kỹ thuật nào và ứng dụng giữ trách nhiệm nghiệp vụ nào
+  - Lộ trình học từ một yêu cầu đi qua gateway đến vận hành hệ thống
+- level1: Kiến thức nền
+  level2:
+  - 'HTTP: phương thức, URI, header, body và mã trạng thái cần nắm'
+  - Phân biệt kết nối mạng, yêu cầu HTTP và phiên người dùng
+  - DNS, địa chỉ IP, cổng và cách tìm dịch vụ đích
+  - TLS, chứng chỉ, HTTPS và danh tính máy chủ
+  - Reverse proxy và hai chặng kết nối độc lập
+  - Tính không lưu trạng thái của HTTP và trạng thái tại ứng dụng
+  - Ranh giới tin cậy giữa Internet, gateway và mạng dịch vụ
+- level1: Kiến trúc gateway
+  level2:
+  - 'Mặt phẳng dữ liệu (data plane): nơi tiếp nhận và xử lý lưu lượng API'
+  - 'Mặt phẳng điều khiển (control plane): nơi quản lý và phân phối cấu hình'
+  - Tách control plane khỏi data plane để giảm phạm vi ảnh hưởng
+  - Listener, route, upstream, consumer và policy là những khái niệm gì
+  - Đối chiếu mô hình khái niệm với tên gọi khác nhau giữa các sản phẩm
+  - Gateway đơn, cụm gateway và phân chia theo miền dịch vụ
+  - 'Gateway tập trung và gateway phân tán: đánh đổi quyền sở hữu'
+  - Trạng thái cục bộ, trạng thái chia sẻ và các phụ thuộc ngoài
+  - Cấu hình tĩnh, cấu hình động và thời điểm cấu hình có hiệu lực
+  - Giới hạn của gateway khi nhìn toàn bộ kiến trúc hệ thống
+- level1: Vòng đời yêu cầu
+  level2:
+  - Tiếp nhận kết nối và xác định listener hoặc virtual host
+  - Chuẩn hóa yêu cầu, chọn route và xác định policy áp dụng
+  - Kiểm tra danh tính, quyền truy cập và giới hạn lưu lượng
+  - Biến đổi yêu cầu trước khi chọn hoặc gọi upstream
+  - Thiết lập kết nối và truyền yêu cầu tới dịch vụ đích
+  - Nhận phản hồi, áp dụng policy phản hồi và trả về client
+  - Logging, metric, tracing và kết thúc vòng đời xử lý
+  - Phản hồi được tạo tại gateway khác phản hồi do upstream tạo
+  - Thứ tự xử lý phụ thuộc sản phẩm và cách kiểm chứng bằng bằng chứng
+- level1: Định tuyến
+  level2:
+  - Định tuyến theo host, đường dẫn và phương thức HTTP
+  - Định tuyến theo header, query parameter và điều kiện bổ sung
+  - Khớp chính xác, tiền tố, biểu thức chính quy và thứ tự ưu tiên
+  - Route mặc định, route không khớp và phản hồi mong đợi
+  - Chồng lấn route và nguy cơ đi nhầm policy bảo vệ
+  - Viết lại đường dẫn, bỏ tiền tố và giữ query string
+  - Dấu gạch chéo, percent-encoding và chuẩn hóa trước khi khớp
+  - Host công khai, Host gửi upstream và tạo URL chính xác
+  - Định tuyến theo phiên bản API và khả năng tương thích client
+  - Phân tách route công khai, route nội bộ và route quản trị
+  - Phát hiện vòng lặp khi gateway định tuyến về chính nó
+- level1: Dịch vụ đích
+  level2:
+  - Service, upstream, target và endpoint đích khác nhau như thế nào
+  - Đích cố định, DNS và service discovery
+  - TTL, lưu DNS trong bộ nhớ và địa chỉ dịch vụ đã thay đổi
+  - Cân bằng tải round robin, trọng số và least connections
+  - Session affinity và đánh đổi khi ghim client vào một máy chủ
+  - Health check chủ động, thụ động và tiêu chí loại máy chủ lỗi
+  - Readiness của dịch vụ khác trạng thái cổng đang mở
+  - Connection pool, tái sử dụng kết nối và giới hạn kết nối upstream
+  - Đưa target phục hồi trở lại mà không gây dồn tải
+  - Vai trò của discovery và giới hạn khi mạng hoặc DNS gặp sự cố
+- level1: Giao thức và TLS
+  level2:
+  - Chuyển tiếp HTTP/1.1, HTTP/2 và khả năng chuyển đổi giữa hai chặng
+  - 'HTTP/3: xác định hỗ trợ theo phía client và phía upstream'
+  - TLS termination, passthrough và mã hóa lại tới upstream
+  - TLS passthrough và giới hạn áp dụng policy HTTP khi chưa giải mã
+  - SNI, ALPN và lựa chọn chứng chỉ hoặc giao thức
+  - Xác minh chứng chỉ, tên máy chủ và chuỗi tin cậy của upstream
+  - mTLS tại chặng client–gateway và gateway–upstream
+  - Forwarded, X-Forwarded-For, X-Forwarded-Proto và thông tin nguồn
+  - Trust proxy và loại bỏ thông tin nguồn do client tự giả mạo
+  - HTTP header theo từng chặng và các trường không được chuyển tiếp tùy tiện
+  - Gia hạn, thay chứng chỉ và quản lý khóa riêng
+- level1: Biến đổi dữ liệu
+  level2:
+  - Thêm, xóa hoặc thay header yêu cầu theo chính sách
+  - Viết lại URI, query và Host trước khi gửi upstream
+  - Biến đổi header, mã trạng thái và nội dung phản hồi
+  - Content-Type, Content-Encoding và Content-Length sau biến đổi
+  - Giới hạn body, buffering và chi phí khi cần đọc toàn bộ nội dung
+  - Chuẩn hóa lỗi kỹ thuật mà vẫn giữ ý nghĩa phản hồi của upstream
+  - Không ghi đè trace context, chữ ký hoặc metadata cần bảo toàn
+  - Biến đổi dữ liệu nhạy cảm và nguy cơ lộ thông tin qua log
+  - Ranh giới giữa biến đổi giao thức với xử lý nghiệp vụ
+  - Tương thích ngược và kiểm thử hợp đồng khi thay đổi phép biến đổi
+- level1: Xác thực
+  level2:
+  - Xác thực, phân quyền và định danh ứng dụng gọi API khác nhau ra sao
+  - 'API key: mục đích, phạm vi và giới hạn bảo mật'
+  - Basic Authentication và yêu cầu bảo vệ đường truyền
+  - Bearer token và phân biệt JWT với opaque token
+  - 'Kiểm tra JWT: chữ ký, thuật toán, issuer, audience và thời hạn'
+  - JWKS, lưu khóa trong bộ nhớ và xử lý khi khóa được luân chuyển
+  - Introspection cho opaque token và phụ thuộc vào máy chủ xác thực
+  - OAuth 2.0, OpenID Connect và vai trò của gateway trong từng mô hình
+  - mTLS và ánh xạ chứng chỉ client sang danh tính được tin cậy
+  - Token hết hạn, bị thu hồi và đánh đổi khi lưu kết quả xác thực
+  - Danh tính người dùng, danh tính ứng dụng và thông tin chuyển tới upstream
+  - '401, 403 và 407: phân biệt xác thực API với xác thực proxy'
+  - Ẩn danh, bypass xác thực và kiểm tra route ngoại lệ
+- level1: Phân quyền
+  level2:
+  - Phân quyền theo route và phương thức HTTP
+  - Role, scope, claim và cách dùng làm điều kiện truy cập
+  - Phân biệt quyền kỹ thuật tại gateway với quyền trên đối tượng nghiệp vụ
+  - Gateway không thay thế kiểm tra quyền sở hữu tài nguyên tại dịch vụ
+  - Xác định tenant từ nguồn đáng tin và cô lập truy cập giữa các tenant
+  - Chính sách mặc định từ chối và quản lý ngoại lệ tường minh
+  - Tích hợp bộ máy quyết định quyền và xử lý lỗi phụ thuộc
+  - Truyền danh tính tới upstream bằng kênh và metadata được bảo vệ
+  - Kiểm tra toàn bộ đường đi để ngăn truy cập bỏ qua gateway
+  - Kiểm toán thay đổi quyền và truy vết quyết định từ chối
+- level1: Bảo vệ API
+  level2:
+  - Ranh giới bảo vệ của gateway so với WAF và mã ứng dụng
+  - Kiểm tra cấu trúc yêu cầu bằng schema và giới hạn của validation
+  - Giới hạn header, URI, body và kiểu nội dung được chấp nhận
+  - Danh sách IP cho phép hoặc chặn và nguồn IP sau chuỗi proxy
+  - CORS, preflight và vì sao CORS không phải cơ chế xác thực
+  - Ngăn giả mạo header danh tính và header do gateway quản lý
+  - SSRF và kiểm tra đích khi cho phép định tuyến động
+  - HTTP request smuggling và phân tích thông điệp nhất quán qua các chặng
+  - Chuẩn hóa đường dẫn và tránh vượt quy tắc truy cập
+  - Open redirect, Host header injection và các phép biến đổi không an toàn
+  - Chặn đường dẫn quản trị, debug và endpoint nội bộ ngoài ý muốn
+  - Che thông tin nhạy cảm trong lỗi, log và phản hồi
+- level1: Giới hạn lưu lượng
+  level2:
+  - Rate limit, quota, throttling và giới hạn đồng thời khác nhau như thế nào
+  - Fixed window, sliding window, token bucket và leaky bucket
+  - Chọn khóa giới hạn theo IP, người dùng, ứng dụng hoặc tenant
+  - Giới hạn theo route, consumer và toàn bộ hệ thống
+  - Burst, tốc độ duy trì và cách phản hồi khi vượt ngưỡng
+  - 429, Retry-After và hợp đồng phản hồi với client
+  - Bộ đếm cục bộ và bộ đếm phân tán khi có nhiều gateway
+  - Độ chính xác, độ trễ và tính sẵn sàng của bộ đếm dùng chung
+  - Quota theo kỳ và xử lý reset, đồng hồ lệch hoặc yêu cầu cạnh tranh
+  - Giới hạn kết nối, hàng đợi và kích thước dữ liệu
+  - Phân biệt hạn chế lưu lượng với chống DDoS ở tầng hạ tầng
+  - Chọn hành vi khi kho đếm hoặc dịch vụ policy không khả dụng
+- level1: Độ tin cậy
+  level2:
+  - Connect timeout, TLS timeout, read timeout và deadline tổng
+  - Phân bổ ngân sách thời gian qua client, gateway và dịch vụ
+  - Điều kiện thử lại theo lỗi, phương thức và trạng thái gửi dữ liệu
+  - Tính idempotent và nguy cơ lặp thao tác có tác dụng phụ
+  - Replay body và giới hạn thử lại với dữ liệu truyền luồng
+  - Backoff, jitter, số lần thử và ngân sách thử lại
+  - Thử lại ở nhiều lớp và nguy cơ khuếch đại tải
+  - Circuit breaker, phát hiện lỗi target và giới hạn của từng cơ chế
+  - Cô lập tài nguyên giữa route hoặc dịch vụ khi một phía bị chậm
+  - Fallback, fail-open, fail-closed và lựa chọn theo loại policy
+  - Hủy yêu cầu khi client rời đi và giải phóng tài nguyên
+  - Giới hạn phục hồi sau khi đã gửi header hoặc một phần phản hồi
+- level1: Bộ nhớ đệm
+  level2:
+  - Khi nào có thể lưu phản hồi tại gateway
+  - Cache key theo route, query, header, danh tính và tenant
+  - Cache-Control, TTL và tuân thủ ngữ nghĩa cache HTTP
+  - Vary, thương lượng nội dung và các biến thể biểu diễn
+  - Phản hồi có Authorization, Cookie và dữ liệu cá nhân
+  - Cache HIT, MISS, BYPASS và đo hiệu quả thực tế
+  - ETag, Last-Modified và xác thực lại dữ liệu đã lưu
+  - Vô hiệu hóa cache khi dữ liệu hoặc cấu hình API thay đổi
+  - Cache stampede và gộp yêu cầu tới cùng tài nguyên
+  - Phục vụ dữ liệu cũ có kiểm soát khi upstream gặp sự cố
+  - Cache cục bộ hoặc chia sẻ và ảnh hưởng tới nhiều bản sao gateway
+- level1: Giao tiếp kéo dài
+  level2:
+  - Yêu cầu thông thường khác kết nối hoặc luồng kéo dài như thế nào
+  - 'WebSocket: bắt tay, nâng cấp giao thức và truyền hai chiều'
+  - 'Server-Sent Events: buffering, flush, heartbeat và kết nối lại'
+  - 'gRPC: HTTP/2, trailer, mã trạng thái và deadline'
+  - gRPC streaming và khả năng hỗ trợ policy trên từng luồng
+  - Tải lên, tải xuống tệp lớn và backpressure
+  - Idle timeout và giới hạn thời gian tồn tại của kết nối
+  - Giới hạn retry, ghi log body và biến đổi dữ liệu khi streaming
+  - Draining kết nối dài khi reload hoặc triển khai phiên bản mới
+- level1: Mẫu tích hợp
+  level2:
+  - Gateway dùng chung và gateway riêng theo miền nghiệp vụ
+  - Backend for Frontend và nhu cầu của từng loại client
+  - 'Aggregation: gộp phản hồi từ nhiều upstream ở mức phù hợp'
+  - Fan-out, lỗi từng phần và ngân sách thời gian của yêu cầu tổng hợp
+  - Vì sao điều phối quy trình nghiệp vụ phức tạp không nên tập trung tại gateway
+  - Chuyển đổi giao thức và đánh giá khả năng hỗ trợ của sản phẩm
+  - Canary và phân chia lưu lượng theo trọng số hoặc nhóm client
+  - Blue-green và chuyển route giữa các phiên bản dịch vụ
+  - Traffic mirroring, dữ liệu nhạy cảm và nguy cơ lặp tác dụng phụ
+  - Strangler pattern và di chuyển từng phần khỏi hệ thống cũ
+- level1: Mở rộng gateway
+  level2:
+  - Policy, filter, middleware và plugin trong chuỗi xử lý
+  - Điểm mở rộng ở giai đoạn yêu cầu, upstream, phản hồi và ghi log
+  - Thứ tự policy và tác động tới xác thực, giới hạn tải, cache
+  - Kết hợp policy toàn cục, theo route và theo consumer
+  - Xung đột cấu hình, ghi đè và tính kế thừa phụ thuộc sản phẩm
+  - Plugin gọi dịch vụ ngoài và chi phí độ trễ trên đường xử lý
+  - Giới hạn CPU, bộ nhớ, I/O và cô lập lỗi phần mở rộng
+  - Tương thích phiên bản, kiểm thử và quản lý phụ thuộc plugin
+  - Khi nào dùng policy có sẵn và khi nào cần viết phần mở rộng
+- level1: Quan sát hệ thống
+  level2:
+  - Access log, error log và dấu vết quyết định policy
+  - Phân biệt mã trạng thái gateway với mã upstream
+  - Request ID, correlation ID và truyền trace context
+  - Tách thời gian xử lý gateway, chờ upstream và tổng thời gian
+  - Metric lưu lượng, tỷ lệ lỗi, độ trễ và mức bão hòa
+  - Phân vị p50, p95, p99 theo route, dịch vụ và vùng triển khai
+  - Theo dõi xác thực thất bại, từ chối quyền và rate limit
+  - Theo dõi pool kết nối, hàng đợi, retry, cache và target health
+  - Giới hạn nhãn metric để tránh bùng nổ số chuỗi dữ liệu
+  - Lấy mẫu trace, che bí mật và kiểm soát thời gian lưu log
+  - SLO và cảnh báo dựa trên trải nghiệm client cùng tín hiệu nguyên nhân
+- level1: Quản lý cấu hình
+  level2:
+  - Cấu hình khai báo và cấu hình qua API quản trị
+  - 'Gateway as Code: version control, review và khả năng tái lập'
+  - Tách cấu hình môi trường khỏi bí mật và khóa xác thực
+  - Kiểm tra schema, tham chiếu, route chồng lấn và policy thiếu
+  - Áp dụng cấu hình lặp lại mà không tạo tài nguyên trùng
+  - Phân phối cấu hình tới nhiều data plane và xác định mức hội tụ
+  - Phát hiện cấu hình lệch giữa nguồn quản lý với trạng thái đang chạy
+  - Snapshot, phiên bản cấu hình, rollback và truy vết người thay đổi
+  - Thay đổi nguyên tử, cập nhật từng phần và nguy cơ trạng thái trung gian
+  - Quyền truy cập control plane và bảo vệ API quản trị
+  - CI/CD cho cấu hình gateway và điều kiện đưa vào môi trường vận hành
+- level1: Quản trị API
+  level2:
+  - 'Vòng đời API: công bố, sử dụng, thay đổi và ngừng hỗ trợ'
+  - OpenAPI và mô tả hợp đồng mà gateway có thể sử dụng
+  - Kiểm tra schema khác kiểm tra đúng nghiệp vụ như thế nào
+  - Quản lý consumer, thông tin xác thực và quyền dùng API
+  - Gói sử dụng, quota và ranh giới với hệ thống tính phí
+  - Developer portal, tài liệu, đăng ký sử dụng và phạm vi API management
+  - Phiên bản API, tương thích ngược và thông báo thay đổi
+  - Deprecation, thời hạn hỗ trợ và kế hoạch loại bỏ route cũ
+  - Nhật ký kiểm toán và phân quyền quản trị theo nhóm
+  - Phân định quyền sở hữu giữa đội nền tảng và đội dịch vụ
+- level1: Triển khai
+  level2:
+  - Gateway tại biên mạng, mạng riêng và ranh giới vùng tin cậy
+  - Triển khai trên máy chủ, container và môi trường điều phối
+  - Gateway, ingress và service mesh cùng tồn tại trong một đường đi
+  - Listener công khai, listener nội bộ và cổng quản trị riêng
+  - Firewall, security group và ngăn truy cập trực tiếp upstream
+  - Gateway nhiều vùng, nhiều cụm và các phụ thuộc liên vùng
+  - Data plane tự quản lý, control plane quản lý tập trung và mô hình kết hợp
+  - Kiểm tra readiness, liveness và điều kiện nhận lưu lượng
+  - Luân chuyển bí mật, chứng chỉ và thông tin xác thực quản trị
+  - Nâng cấp phiên bản, kiểm tra tương thích và chuẩn bị rollback
+- level1: Tính sẵn sàng
+  level2:
+  - Gateway trở thành điểm lỗi tập trung trong những trường hợp nào
+  - Nhiều bản sao, active-active và active-passive
+  - Load balancer phía trước gateway và đường kiểm tra sức khỏe
+  - Tách biệt lỗi data plane với lỗi control plane
+  - Khả năng xử lý bằng cấu hình cuối đã nhận khi mất kết nối quản trị
+  - Phụ thuộc vào DNS, IdP, kho khóa, kho đếm và bộ máy policy
+  - Trạng thái chia sẻ, session affinity và tính nhất quán giữa các bản sao
+  - Graceful shutdown, connection draining và triển khai liên tục
+  - Khôi phục sau lỗi một máy, một cụm hoặc một vùng
+  - Diễn tập sự cố và xác minh mục tiêu phục hồi
+- level1: Hiệu năng
+  level2:
+  - Độ trễ gateway thêm vào và cách phân rã theo từng policy
+  - Thông lượng, số yêu cầu đồng thời và số kết nối đang mở
+  - Chi phí TLS, xác thực token, nén, biến đổi body và ghi log
+  - Connection pool, keep-alive và tái sử dụng phiên TLS
+  - Buffering, streaming, kích thước body và mức dùng RAM hoặc đĩa tạm
+  - Nút thắt CPU, bộ nhớ, băng thông và dịch vụ phụ thuộc
+  - Thiết kế benchmark với tải đại diện và đường đi so sánh tương đương
+  - Đọc độ trễ phân vị, tỷ lệ lỗi và hàng đợi dưới tải
+  - Mở rộng ngang và giới hạn do trạng thái hoặc bộ đếm dùng chung
+  - Ước lượng dung lượng cùng phần dự phòng cho lỗi và tăng tải
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử route, điều kiện khớp và route không mong đợi
+  - Kiểm thử thứ tự policy và cấu hình kế thừa hoặc ghi đè
+  - Kiểm thử xác thực, quyền truy cập và cô lập tenant
+  - Kiểm thử rate limit, burst, quota và nhiều bản sao gateway
+  - Kiểm thử biến đổi yêu cầu, phản hồi và tương thích hợp đồng
+  - Kiểm thử cache với dữ liệu công khai, dữ liệu riêng tư và biến thể
+  - Mô phỏng upstream chậm, lỗi mạng, DNS lỗi và dịch vụ xác thực mất kết nối
+  - Kiểm thử timeout, retry, circuit breaker và thao tác bị thực hiện lặp
+  - Kiểm thử WebSocket, SSE, gRPC và truyền tệp lớn
+  - Kiểm thử tải, reload, nâng cấp và rollback cấu hình
+- level1: Chẩn đoán lỗi
+  level2:
+  - Khoanh vùng tại client, gateway, policy, mạng hay upstream
+  - 404 và 405 do khớp route khác lỗi tương tự từ dịch vụ đích
+  - 401, 403 và lỗi JWT do issuer, audience, thời gian hoặc khóa
+  - 429 và xác định đúng khóa giới hạn, bộ đếm hoặc quota
+  - 502, 503, 504 và bằng chứng cần đối chiếu trên từng chặng
+  - Lỗi chứng chỉ, SNI, ALPN hoặc mTLS khi kết nối upstream
+  - Sai path, Host, redirect hoặc cookie sau phép biến đổi
+  - CORS thất bại dù gọi trực tiếp bằng công cụ vẫn thành công
+  - Kết nối dài bị ngắt, dữ liệu bị giữ lại hoặc phản hồi thiếu
+  - Sự cố chỉ xuất hiện ở một bản sao do cấu hình hoặc trạng thái lệch
+  - Quy trình thu log, trace, metric và tái hiện tối thiểu trước khi sửa
+- level1: Lựa chọn giải pháp
+  level2:
+  - Tiêu chí xác định có cần API gateway hay không
+  - Chọn theo giao thức, policy bắt buộc và mô hình triển khai
+  - Đánh giá năng lực bảo mật, cô lập tenant và quản trị cấu hình
+  - So sánh chi phí vận hành, độ trễ và phụ thuộc nền tảng
+  - Đánh giá API management khi nhu cầu vượt ngoài chuyển tiếp yêu cầu
+  - Tránh tập trung logic nghiệp vụ và tránh dùng gateway thay mọi lớp bảo vệ
+  - Khả năng di chuyển cấu hình, phần mở rộng và rủi ro phụ thuộc sản phẩm
+  - Chuẩn bị kiến thức để học triển khai Kong hoặc gateway cụ thể
+  - Checklist quyết định kiến trúc và các giả định cần được kiểm chứng
+- level1: Thực hành
+  level2:
+  - Vẽ topology và chỉ ra trách nhiệm của từng thành phần trong đường đi API
+  - Dựng lab một gateway với nhiều upstream và quan sát vòng đời yêu cầu
+  - Thiết kế route theo host, path, method rồi thử các trường hợp chồng lấn
+  - Kiểm chứng TLS termination, xác minh upstream và mTLS
+  - Xác thực API key hoặc token rồi truyền danh tính được bảo vệ tới dịch vụ
+  - Thử quyền theo scope, tenant và kiểm tra truy cập bỏ qua gateway
+  - Đo rate limit với burst, nhiều client và nhiều bản sao gateway
+  - Tạo upstream chậm để kiểm chứng timeout, retry và nguy cơ lặp thao tác
+  - Thử cache theo biến thể và chứng minh dữ liệu riêng tư không bị chia sẻ
+  - Quan sát buffering, streaming và timeout của kết nối dài
+  - Thực hiện canary hoặc blue-green rồi xác minh khả năng rollback
+  - Theo dõi một yêu cầu xuyên gateway bằng log, metric và trace
+  - Mô phỏng mất IdP, kho đếm hoặc control plane để đánh giá hành vi đã chọn
+  - 'Bài tập tổng hợp: thiết kế và bảo vệ một phương án gateway bằng kết quả kiểm thử'

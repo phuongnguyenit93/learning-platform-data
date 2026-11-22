@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-opentelemetry
+  title: Tổng quan OpenTelemetry
+  purpose: Hiểu vai trò instrumentation trong hệ thống observability.
+  objectives:
+  - Phân biệt traces, metrics và logs.
+  - Mô tả luồng ứng dụng → OTel → hệ quan sát.
+- id: api-sdk-resource
+  title: API, SDK & Resource
+  purpose: Nắm các thành phần tạo, xử lý và định danh telemetry.
+  objectives:
+  - Phân biệt trách nhiệm API và SDK.
+  - Cấu hình service.name cùng thuộc tính Resource.
+- id: auto-instrumentation
+  title: Auto Instrumentation
+  purpose: Thu thập telemetry Java với ít thay đổi mã nguồn.
+  objectives:
+  - Gắn Java Agent hoặc Spring Boot Starter.
+  - Kiểm tra span HTTP và truy vấn dữ liệu tự động.
+- id: manual-tracing
+  title: Manual Tracing
+  purpose: Bổ sung dấu vết cho luồng nghiệp vụ cần theo dõi.
+  objectives:
+  - Tạo span và quản lý Scope đúng vòng đời.
+  - Ghi attributes, events và lỗi trên span.
+- id: metrics-logs
+  title: Metrics & Logs
+  purpose: Đo hoạt động và liên kết bản ghi với trace.
+  objectives:
+  - Tạo Counter/Histogram cho chỉ số nghiệp vụ.
+  - Kiểm tra trace ID và span ID trong log.
+- id: context-semconv
+  title: Context & SemConv
+  purpose: Giữ liên kết giữa các dịch vụ và chuẩn hóa telemetry.
+  objectives:
+  - Kiểm tra truyền trace context qua HTTP.
+  - Áp dụng semantic conventions cho HTTP và Resource.
+- id: otlp-collector
+  title: OTLP & Collector
+  purpose: Đưa telemetry đến hệ thống quan sát qua pipeline chuẩn.
+  objectives:
+  - Cấu hình OTLP exporter và endpoint.
+  - Thiết lập Collector nhận, xử lý và chuyển tiếp dữ liệu.
+- id: kiem-chung-toi-uu
+  title: Kiểm chứng & Tối ưu
+  purpose: Đảm bảo telemetry hữu ích, an toàn và ít tốn tài nguyên.
+  objectives:
+  - Đối chiếu trace, metric, log trên một luồng yêu cầu.
+  - Kiểm tra sampling, dữ liệu nhạy cảm và span trùng lặp.

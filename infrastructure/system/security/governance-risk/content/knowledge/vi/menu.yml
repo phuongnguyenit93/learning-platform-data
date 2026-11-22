@@ -1,0 +1,553 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Security governance là gì
+  - Vai trò của governance trong bảo mật
+  - Khác biệt governance và management
+  - Quan hệ giữa risk và security
+  - Governance trong vòng đời doanh nghiệp
+  - Đầu ra của chương trình governance
+  - Những thất bại governance thường gặp
+  - Lộ trình học governance và risk
+- level1: Mục tiêu governance
+  level2:
+  - Bảo vệ mục tiêu kinh doanh
+  - Định hướng trách nhiệm bảo mật
+  - Ra quyết định dựa trên rủi ro
+  - Đảm bảo tuân thủ cần thiết
+  - Phân bổ nguồn lực bảo mật
+  - Đo lường hiệu lực chương trình
+  - Minh bạch với các bên liên quan
+  - Duy trì khả năng phục hồi
+- level1: Phạm vi governance
+  level2:
+  - Xác định phạm vi chương trình
+  - Đơn vị kinh doanh thuộc phạm vi
+  - Hệ thống và dữ liệu thuộc phạm vi
+  - Nhà cung cấp thuộc phạm vi
+  - Phạm vi theo khu vực pháp lý
+  - Phạm vi theo mức độ quan trọng
+  - Xử lý phạm vi dùng chung
+  - Quản lý ngoại lệ phạm vi
+- level1: Nguyên tắc governance
+  level2:
+  - Accountability
+  - Transparency
+  - Proportionality
+  - Consistency
+  - Independence
+  - Risk-based decision
+  - Continuous improvement
+  - Evidence-based governance
+- level1: Chiến lược bảo mật
+  level2:
+  - Liên kết security với business strategy
+  - Xác định security objective
+  - Security roadmap
+  - Ưu tiên sáng kiến bảo mật
+  - Đầu tư theo risk
+  - Chiến lược năng lực bảo mật
+  - Chiến lược công nghệ và dữ liệu
+  - Đánh giá chiến lược định kỳ
+- level1: Vai trò và trách nhiệm
+  level2:
+  - Board và executive sponsor
+  - Chief Information Security Officer
+  - Risk owner
+  - Control owner
+  - System owner
+  - Data owner
+  - Process owner
+  - Người thực thi và người kiểm tra
+- level1: Mô hình ba tuyến
+  level2:
+  - Three lines model
+  - First line trong vận hành
+  - Second line trong risk và compliance
+  - Third line trong internal audit
+  - Độc lập giữa các tuyến
+  - Ranh giới trách nhiệm
+  - Luồng phối hợp giữa các tuyến
+  - Đánh giá hiệu lực mô hình
+- level1: Hội đồng và quyết định
+  level2:
+  - Security steering committee
+  - Risk committee
+  - Quyền quyết định của hội đồng
+  - Chuẩn bị agenda rủi ro
+  - Escalation lên cấp quản trị
+  - Biên bản và quyết định
+  - Theo dõi action item
+  - Đánh giá hiệu quả hội đồng
+- level1: Chính sách bảo mật
+  level2:
+  - Security policy là gì
+  - Policy hierarchy
+  - Enterprise security policy
+  - Acceptable use policy
+  - Access control policy
+  - Data protection policy
+  - Incident response policy
+  - Policy approval và publication
+- level1: Chuẩn và hướng dẫn
+  level2:
+  - Standard và policy
+  - Baseline và guideline
+  - Procedure và work instruction
+  - Control statement
+  - Internal standard
+  - Industry framework
+  - Định nghĩa thuật ngữ chung
+  - Quản lý xung đột tài liệu
+- level1: Vòng đời chính sách
+  level2:
+  - Soạn thảo policy
+  - Review policy
+  - Phê duyệt policy
+  - Truyền thông policy
+  - Đào tạo theo policy
+  - Đo lường tuân thủ
+  - Xử lý vi phạm policy
+  - Rà soát và hết hạn
+- level1: Quy trình quản trị
+  level2:
+  - Quy trình request và approval
+  - Quy trình risk assessment
+  - Quy trình exception
+  - Quy trình control review
+  - Quy trình audit evidence
+  - Quy trình escalation
+  - Quy trình thay đổi policy
+  - Chuẩn hóa workflow
+- level1: Tài sản và chủ sở hữu
+  level2:
+  - Asset governance
+  - Asset inventory
+  - Asset owner
+  - Information owner
+  - Critical asset
+  - Asset classification
+  - Vòng đời tài sản
+  - Tài sản không có chủ sở hữu
+- level1: Risk là gì
+  level2:
+  - Risk trong an ninh thông tin
+  - Risk source và risk event
+  - Threat, vulnerability và risk
+  - Risk cause và consequence
+  - Risk scenario
+  - Risk exposure
+  - Người chịu trách nhiệm rủi ro
+  - Risk statement
+- level1: Risk appetite
+  level2:
+  - Risk appetite là gì
+  - Risk tolerance
+  - Risk capacity
+  - Đặt ngưỡng rủi ro
+  - Appetite theo loại rủi ro
+  - Appetite theo đơn vị
+  - Appetite và quyết định đầu tư
+  - Rà soát appetite
+- level1: Taxonomy rủi ro
+  level2:
+  - Risk taxonomy
+  - Strategic risk
+  - Operational risk
+  - Technology risk
+  - Cybersecurity risk
+  - Third-party risk
+  - Compliance risk
+  - Emerging risk
+- level1: Nhận diện rủi ro
+  level2:
+  - Xác định risk source
+  - Phỏng vấn bên liên quan
+  - Workshop nhận diện risk
+  - Phân tích quy trình
+  - Phân tích tài sản
+  - Phân tích dependency
+  - Threat intelligence
+  - Kiểm tra rủi ro bị bỏ sót
+- level1: Đánh giá rủi ro
+  level2:
+  - Risk assessment là gì
+  - Xác định context
+  - Đánh giá control hiện có
+  - Xác định likelihood
+  - Xác định impact
+  - Xác định inherent risk
+  - Xác định residual risk
+  - Xác nhận kết quả đánh giá
+- level1: Định tính
+  level2:
+  - Qualitative risk assessment
+  - Thang điểm likelihood
+  - Thang điểm impact
+  - Ma trận rủi ro
+  - Tiêu chí xếp hạng
+  - Calibration giữa các nhóm
+  - Ưu điểm của định tính
+  - Giới hạn của định tính
+- level1: Định lượng
+  level2:
+  - Quantitative risk assessment
+  - Frequency và magnitude
+  - Single loss expectancy
+  - Annual loss expectancy
+  - Monte Carlo
+  - Khoảng tin cậy
+  - Dữ liệu đầu vào định lượng
+  - Giới hạn của định lượng
+- level1: Khả năng xảy ra
+  level2:
+  - Likelihood trong risk
+  - Exposure frequency
+  - Khả năng khai thác
+  - Năng lực tác nhân
+  - Mức độ phơi bày
+  - Khả năng phát hiện
+  - Khả năng ngăn chặn
+  - Tránh chấm điểm cảm tính
+- level1: Tác động
+  level2:
+  - Impact đối với confidentiality
+  - Impact đối với integrity
+  - Impact đối với availability
+  - Impact đối với an toàn
+  - Impact tài chính
+  - Impact pháp lý
+  - Impact danh tiếng
+  - Impact lan truyền
+- level1: Inherent và residual
+  level2:
+  - Inherent risk
+  - Control effect
+  - Residual risk
+  - Risk trước và sau kiểm soát
+  - Khoảng cách giữa target và actual
+  - Rủi ro còn lại chấp nhận được
+  - Rà soát residual risk
+  - Không đánh đồng control với risk
+- level1: Xử lý rủi ro
+  level2:
+  - Risk treatment là gì
+  - Risk mitigation
+  - Risk avoidance
+  - Risk transfer
+  - Risk acceptance
+  - Chọn treatment theo mục tiêu
+  - Chi phí và hiệu quả treatment
+  - Kế hoạch treatment
+- level1: Risk register
+  level2:
+  - Risk register là gì
+  - Trường thông tin của risk
+  - Risk ID và phân loại
+  - Risk owner và action owner
+  - Ngày mở và ngày xem xét
+  - Liên kết risk với control
+  - Trạng thái xử lý
+  - Chất lượng dữ liệu risk register
+- level1: Chấp nhận rủi ro
+  level2:
+  - Risk acceptance criteria
+  - Thẩm quyền chấp nhận
+  - Biện minh cho acceptance
+  - Thời hạn chấp nhận
+  - Điều kiện xem xét lại
+  - Chấp nhận residual risk
+  - Escalation khi vượt appetite
+  - Bằng chứng quyết định
+- level1: Ngoại lệ rủi ro
+  level2:
+  - Risk exception là gì
+  - Lý do xin ngoại lệ
+  - Đánh giá compensating control
+  - Thời hạn ngoại lệ
+  - Phê duyệt ngoại lệ
+  - Theo dõi ngoại lệ
+  - Hết hạn và gia hạn
+  - Đóng ngoại lệ
+- level1: Tổng hợp rủi ro
+  level2:
+  - Risk aggregation
+  - Risk interdependency
+  - Concentration risk
+  - Risk propagation
+  - Risk portfolio
+  - Risk theo đơn vị kinh doanh
+  - Risk theo hệ thống
+  - Tránh đếm trùng rủi ro
+- level1: Khung kiểm soát
+  level2:
+  - Control framework là gì
+  - Control objective
+  - Preventive control
+  - Detective control
+  - Corrective control
+  - Compensating control
+  - Manual và automated control
+  - Mapping giữa các framework
+- level1: Thiết kế kiểm soát
+  level2:
+  - Control design
+  - Chỉ định chủ sở hữu control
+  - Control frequency
+  - Control population
+  - Control evidence
+  - Control dependency
+  - Segregation of duties
+  - Đánh giá control design
+- level1: Vận hành kiểm soát
+  level2:
+  - Control operation
+  - Thực thi đúng tần suất
+  - Xử lý control failure
+  - Đảm bảo người thực thi
+  - Giám sát control
+  - Đánh giá ngoại lệ
+  - Control effectiveness
+  - Cải tiến control
+- level1: Bằng chứng kiểm soát
+  level2:
+  - Control evidence là gì
+  - Evidence đủ và phù hợp
+  - Evidence source
+  - Evidence timestamp
+  - Evidence integrity
+  - Evidence retention
+  - Evidence sampling
+  - Chuẩn bị evidence cho audit
+- level1: Assurance
+  level2:
+  - Security assurance
+  - Assurance objective
+  - Assurance scope
+  - Independent assurance
+  - Management assurance
+  - Evidence-based conclusion
+  - Assurance finding
+  - Theo dõi assurance action
+- level1: Internal audit
+  level2:
+  - Vai trò internal audit
+  - Audit universe
+  - Audit risk assessment
+  - Audit planning
+  - Audit fieldwork
+  - Audit sampling
+  - Audit finding
+  - Audit follow-up
+- level1: External audit
+  level2:
+  - Mục tiêu của kiểm toán độc lập
+  - Audit request
+  - Phạm vi và tiêu chí audit
+  - Chuẩn bị phỏng vấn
+  - Quản lý bằng chứng cung cấp
+  - Audit observation
+  - Management response
+  - Theo dõi kết luận audit
+- level1: Compliance
+  level2:
+  - Compliance governance
+  - Xác định nghĩa vụ tuân thủ
+  - Compliance obligation
+  - Legal và regulatory requirement
+  - Contractual requirement
+  - Compliance control
+  - Compliance monitoring
+  - Xử lý non-compliance
+- level1: Mapping quy định
+  level2:
+  - Regulatory mapping
+  - Requirement và control
+  - Control crosswalk
+  - Phân tích khoảng trống
+  - Yêu cầu theo khu vực
+  - Yêu cầu theo ngành
+  - Xung đột nghĩa vụ
+  - Cập nhật khi quy định đổi
+- level1: Privacy governance
+  level2:
+  - Privacy risk
+  - Data protection governance
+  - Data controller và processor
+  - Privacy principle
+  - Data inventory
+  - Privacy impact assessment
+  - Consent và lawful basis
+  - Data subject right
+- level1: Third-party governance
+  level2:
+  - Third-party risk governance
+  - Nhận diện nhà cung cấp
+  - Phân loại mức độ quan trọng
+  - Due diligence
+  - Security requirement trong hợp đồng
+  - Right to audit
+  - Monitoring nhà cung cấp
+  - Chấm dứt quan hệ nhà cung cấp
+- level1: Vendor risk
+  level2:
+  - Vendor risk assessment
+  - Vendor security questionnaire
+  - Đánh giá evidence của vendor
+  - Cloud service provider risk
+  - Subcontractor risk
+  - Vendor concentration
+  - Vendor incident notification
+  - Vendor exit plan
+- level1: Dự án và sản phẩm
+  level2:
+  - Project risk governance
+  - Product security risk
+  - Risk gate trong dự án
+  - Security review milestone
+  - Đánh giá thay đổi phạm vi
+  - Risk của hệ thống legacy
+  - Risk khi mua sản phẩm
+  - Đóng risk sau go-live
+- level1: Change governance
+  level2:
+  - Change risk
+  - Change advisory
+  - Security impact assessment
+  - Emergency change
+  - Standard change
+  - Segregation trong change
+  - Rollback và recovery
+  - Post-change review
+- level1: Secure SDLC governance
+  level2:
+  - Security trong planning
+  - Security requirement
+  - Threat modeling gate
+  - Code review policy
+  - Security testing gate
+  - Release approval
+  - Vulnerability exception
+  - Risk sau phát hành
+- level1: Data governance
+  level2:
+  - Mục tiêu quản trị dữ liệu
+  - Data owner và steward
+  - Data classification
+  - Data quality và integrity
+  - Data lifecycle
+  - Data retention
+  - Data access review
+  - Data sharing governance
+- level1: IAM governance
+  level2:
+  - Identity governance
+  - Access request
+  - Access approval
+  - Joiner mover leaver
+  - Privileged access review
+  - Periodic access certification
+  - Segregation trong IAM
+  - Access exception
+- level1: Cloud và platform governance
+  level2:
+  - Cloud governance
+  - Account và subscription policy
+  - Resource ownership
+  - Cloud security baseline
+  - Configuration compliance
+  - Cloud risk assessment
+  - Platform control
+  - Cloud exception
+- level1: Incident governance
+  level2:
+  - Phạm vi quản trị sự cố
+  - Incident severity
+  - Incident commander
+  - Escalation policy
+  - Regulatory notification
+  - Executive communication
+  - Post-incident review
+  - Risk register sau sự cố
+- level1: Liên tục kinh doanh
+  level2:
+  - Business continuity governance
+  - Business impact analysis
+  - Critical business service
+  - Recovery objective
+  - Continuity strategy
+  - Exercise và test
+  - Dependency trong phục hồi
+  - Board reporting về continuity
+- level1: Resilience
+  level2:
+  - Operational resilience
+  - Important business service
+  - Tolerance for disruption
+  - Scenario testing
+  - Single point of failure
+  - Tập trung phụ thuộc
+  - Resilience investment
+  - Đánh giá sau gián đoạn
+- level1: Metrics và báo cáo
+  level2:
+  - Security metric
+  - Key risk indicator
+  - Key performance indicator
+  - Key control indicator
+  - Leading và lagging indicator
+  - Metric definition
+  - Data quality của metric
+  - Tránh metric gây hành vi sai
+- level1: Báo cáo quản trị
+  level2:
+  - Board security report
+  - Executive risk dashboard
+  - Risk trend
+  - Top risk
+  - Risk appetite breach
+  - Control health
+  - Action overdue
+  - Thông điệp theo đối tượng
+- level1: GRC và tự động hóa
+  level2:
+  - GRC platform
+  - Risk workflow
+  - Control library
+  - Evidence automation
+  - Compliance mapping
+  - Exception workflow
+  - Dashboard và reporting
+  - Giới hạn của tự động hóa
+- level1: Văn hóa và đào tạo
+  level2:
+  - Security culture
+  - Đào tạo theo vai trò
+  - Awareness program
+  - Phishing simulation
+  - Trách nhiệm của nhân viên
+  - Trách nhiệm của quản lý
+  - Đo lường nhận thức
+  - Thay đổi hành vi
+- level1: Case study
+  level2:
+  - Governance cho doanh nghiệp nhỏ
+  - Governance cho doanh nghiệp lớn
+  - Quản trị cloud risk
+  - Quản trị third-party risk
+  - Risk cho hệ thống legacy
+  - Compliance program
+  - Board reporting
+  - Ứng phó khi audit phát hiện gap
+- level1: Thực hành tổng hợp
+  level2:
+  - Xác định phạm vi governance
+  - Lập risk taxonomy
+  - Xây risk register
+  - Đặt risk appetite
+  - Đánh giá likelihood và impact
+  - Chọn risk treatment
+  - Thiết kế control framework
+  - Thu thập evidence
+  - Xây dashboard quản trị
+  - Hoàn thiện kế hoạch cải tiến

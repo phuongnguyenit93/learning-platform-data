@@ -1,0 +1,415 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Nginx là gì và những bài toán mà proxy Nginx giải quyết
+  - Phân biệt máy chủ web, reverse proxy, forward proxy và bộ cân bằng tải
+  - Vị trí của Nginx trong luồng trình duyệt → proxy → ứng dụng → dữ liệu
+  - 'Các thuật ngữ nền tảng: client, server, upstream, downstream, origin và virtual host'
+  - Quan hệ giữa Nginx với DNS, HTTP, TLS và tường lửa
+  - Phân biệt Nginx Open Source, NGINX Plus và các mô-đun mở rộng
+  - Ranh giới giữa Nginx, API Gateway, Ingress Controller và Service Mesh
+  - Kiến thức đầu vào và lộ trình học từ cấu hình đơn giản đến vận hành
+- level1: Kiến trúc
+  level2:
+  - Vai trò của tiến trình master và các tiến trình worker
+  - Mô hình xử lý sự kiện và I/O không chặn của Nginx
+  - Vòng đời kết nối và yêu cầu HTTP qua các giai đoạn xử lý
+  - Phân biệt kết nối, yêu cầu, luồng HTTP/2 và tiến trình xử lý
+  - Cách worker sử dụng CPU, bộ nhớ, socket và bộ mô tả tệp
+  - Vai trò của bộ nhớ dùng chung giữa các worker
+  - Vai trò của tiến trình quản lý và nạp lại bộ nhớ đệm
+  - Cấu trúc mô-đun, mô-đun tĩnh và mô-đun động
+  - Những công việc Nginx thực hiện và những công việc thuộc ứng dụng phía sau
+  - Tác động của thao tác chặn và hệ thống tệp chậm đến worker
+- level1: Cài đặt
+  level2:
+  - Chọn môi trường thực hành Linux, máy ảo hoặc container
+  - Cài Nginx từ kho hệ điều hành và từ kho gói Nginx
+  - Lựa chọn phiên bản và kiểm tra khả năng tương thích trước khi nâng cấp
+  - Đọc nginx -v và nginx -V để xác định phiên bản, đường dẫn và mô-đun
+  - Cấu trúc thư mục cấu hình, log, nội dung tĩnh và tệp tạm
+  - Người dùng chạy master, worker và quyền truy cập tệp
+  - Khởi động, dừng và kiểm tra dịch vụ qua systemd
+  - Chạy Nginx trong container và vai trò của chế độ daemon off
+  - Kiểm tra cổng lắng nghe và gửi yêu cầu HTTP đầu tiên
+  - Phân biệt stop, quit, reload và restart trong quản lý tiến trình
+  - Gỡ cấu hình mặc định và chuẩn bị cấu hình thực hành tối thiểu
+- level1: Cấu hình
+  level2:
+  - Cú pháp directive, dấu chấm phẩy, block và chú thích
+  - Các ngữ cảnh main, events, http, server, location và upstream
+  - Quy tắc hợp lệ của directive trong từng ngữ cảnh
+  - Giá trị mặc định và cách kế thừa cấu hình giữa các cấp
+  - 'Những directive có quy tắc kế thừa đặc thù: add_header và proxy_set_header'
+  - Tách cấu hình bằng include và tổ chức tệp theo chức năng
+  - Ý nghĩa của sites-available, sites-enabled và conf.d trong từng cách đóng gói
+  - Đường dẫn tuyệt đối, đường dẫn tương đối và tiền tố cấu hình
+  - Biến có sẵn, biến tự định nghĩa và thời điểm đánh giá giá trị
+  - Đơn vị kích thước, thời gian và cách đọc giới hạn cấu hình
+  - Kiểm tra cú pháp bằng nginx -t và xem cấu hình hợp nhất bằng nginx -T
+  - Nạp lại cấu hình an toàn và giữ bản cấu hình để quay lui
+  - Phân biệt biến môi trường của tiến trình với biến trong cấu hình Nginx
+- level1: Virtual host
+  level2:
+  - Cấu hình listen theo địa chỉ IP, cổng, IPv4 và IPv6
+  - Quan hệ giữa socket lắng nghe, server block và virtual host
+  - Cách server_name khớp tên chính xác, wildcard và biểu thức chính quy
+  - Thứ tự chọn virtual host qua listen, SNI và Host
+  - Ý nghĩa của default_server và xử lý tên miền không mong đợi
+  - Phân biệt $host, $http_host và $server_name
+  - Chạy nhiều tên miền và nhiều ứng dụng trên cùng Nginx
+  - Tách virtual host công khai, nội bộ và phục vụ kiểm tra
+  - Chuyển hướng tên miền chính, www và tên miền thay thế
+  - Kiểm tra virtual host bằng curl, Host và --resolve
+- level1: Location
+  level2:
+  - Phân biệt URI, đường dẫn, chuỗi truy vấn và tài nguyên được phục vụ
+  - Location khớp chính xác bằng dấu =
+  - Location theo tiền tố và tiền tố có ^~
+  - Location biểu thức chính quy phân biệt và không phân biệt hoa thường
+  - Thuật toán lựa chọn location và ảnh hưởng của thứ tự khai báo
+  - Location lồng nhau và phạm vi áp dụng cấu hình
+  - Named location và chuyển xử lý nội bộ
+  - Định tuyến /api, /assets và / về các đích khác nhau
+  - Ảnh hưởng của dấu gạch chéo cuối đường dẫn
+  - Khác biệt giữa URI gốc, URI chuẩn hóa và URI sau chuyển xử lý
+  - Internal redirect và việc tìm lại location
+  - Những lỗi định tuyến do location chồng lấn hoặc regex quá rộng
+- level1: URI và rewrite
+  level2:
+  - Phân biệt return, rewrite, try_files và proxy_pass
+  - Chuyển hướng bên ngoài và chuyển xử lý nội bộ
+  - Lựa chọn mã chuyển hướng 301, 302, 307 và 308
+  - Cú pháp rewrite, nhóm bắt và giá trị thay thế
+  - Phân biệt cờ last và break trong rewrite
+  - Bảo toàn, thay thế và loại bỏ chuỗi truy vấn khi đổi URI
+  - Dùng map để ánh xạ giá trị và giảm cấu hình điều kiện rải rác
+  - Phạm vi sử dụng if và các rủi ro cần kiểm tra trong location
+  - Chuẩn hóa URL và tránh vòng lặp chuyển hướng
+  - Phân biệt rewrite ở cấp server và cấp location
+  - Xây dựng URL chuyển hướng đúng khi Nginx đứng sau proxy khác
+  - Kiểm tra đường dẫn chứa ký tự mã hóa và ngăn chuyển hướng đến đích tùy ý
+- level1: Reverse proxy
+  level2:
+  - Cấu hình proxy_pass để chuyển yêu cầu đến một ứng dụng HTTP
+  - Định nghĩa upstream có tên và tái sử dụng trong nhiều location
+  - Khác biệt của proxy_pass có và không có URI phía sau địa chỉ
+  - Thay tiền tố /api và bảo toàn đường dẫn khi chuyển tới upstream
+  - Những thay đổi cần kiểm tra khi proxy_pass chứa biến
+  - Chọn phiên bản HTTP cho kết nối từ Nginx đến upstream
+  - Cấu hình Host gửi tới ứng dụng và ảnh hưởng đến virtual host upstream
+  - Proxy đến địa chỉ IP, tên DNS và Unix domain socket
+  - Chuyển mã trạng thái, header và nội dung phản hồi về client
+  - Dùng proxy_redirect để xử lý Location và Refresh từ upstream
+  - Xử lý cookie bằng proxy_cookie_domain, proxy_cookie_path và proxy_cookie_flags
+  - Phân biệt HTTP proxy với FastCGI, uWSGI và SCGI
+  - Ranh giới trách nhiệm giữa Nginx và ứng dụng về định tuyến, phiên và lỗi nghiệp vụ
+- level1: Header và IP gốc
+  level2:
+  - Header từng chặng và header đầu cuối trong chuỗi proxy
+  - Cách proxy_set_header thiết lập, ghi đè hoặc loại bỏ header gửi upstream
+  - Truyền Host, giao thức gốc, IP gốc và cổng gốc cho ứng dụng
+  - Phân biệt X-Forwarded-For, X-Real-IP, X-Forwarded-Proto và Forwarded
+  - Nối chuỗi địa chỉ bằng $proxy_add_x_forwarded_for và xác định ranh giới tin cậy
+  - Nguy cơ giả mạo header do client tự gửi
+  - Khôi phục IP client bằng set_real_ip_from, real_ip_header và real_ip_recursive
+  - Phân biệt $remote_addr và $realip_remote_addr sau khi khôi phục IP
+  - Tiếp nhận PROXY protocol từ bộ cân bằng tải đáng tin cậy
+  - Truyền mã yêu cầu và mã truy vết qua nhiều tầng proxy
+  - Ẩn hoặc cho phép header phản hồi bằng proxy_hide_header và proxy_pass_header
+  - Thêm header phản hồi bằng add_header và kiểm tra tác dụng của always
+- level1: Truyền dữ liệu
+  level2:
+  - Luồng xử lý request body và response body qua reverse proxy
+  - Giới hạn kích thước request body bằng client_max_body_size
+  - Bộ đệm header, body yêu cầu và các tệp tạm
+  - Bật hoặc tắt proxy_request_buffering khi tải dữ liệu lên upstream
+  - Bật hoặc tắt proxy_buffering khi nhận phản hồi từ upstream
+  - Cấu hình proxy_buffer_size, proxy_buffers và proxy_busy_buffers_size
+  - Tác động của phản hồi lớn đến đĩa tạm và bộ nhớ
+  - Truyền nội dung theo luồng và ảnh hưởng đến thời điểm client nhận dữ liệu
+  - 'Server-Sent Events: bộ đệm, thời gian chờ và phát hiện ngắt kết nối'
+  - Tải lên tệp lớn, client chậm và upstream đọc chậm
+  - Tải xuống tệp lớn, yêu cầu Range và phản hồi một phần
+  - Vai trò của X-Accel-Buffering và X-Accel-Redirect
+  - Điều gì xảy ra khi client hủy yêu cầu trong lúc upstream đang xử lý
+- level1: Cân bằng tải
+  level2:
+  - Nhóm upstream và cách phân phối yêu cầu giữa nhiều máy chủ
+  - Round robin và cấu hình trọng số weight
+  - Least connections với least_conn và bài toán thời gian xử lý lệch nhau
+  - Phân phối theo địa chỉ IP bằng ip_hash
+  - Hash theo khóa và consistent hashing
+  - Ảnh hưởng của NAT, proxy phía trước và IP gốc đến ip_hash
+  - Thêm máy chủ dự phòng bằng backup và tạm loại máy chủ bằng down
+  - Giới hạn kết nối tới từng máy chủ bằng max_conns và các điều kiện áp dụng
+  - Chia sẻ trạng thái upstream giữa worker bằng zone
+  - Phiên người dùng, sticky session và thiết kế ứng dụng không lưu phiên cục bộ
+  - Phân biệt cân bằng tải HTTP với cân bằng kết nối TCP
+  - Nhận diện tính năng cân bằng tải thuộc bản Open Source, Plus hoặc mô-đun ngoài
+- level1: Khả dụng và thử lại
+  level2:
+  - Phát hiện lỗi thụ động bằng max_fails và fail_timeout
+  - Phân biệt kiểm tra sức khỏe chủ động với phát hiện lỗi qua lưu lượng thực
+  - Cấu hình điều kiện thử upstream khác bằng proxy_next_upstream
+  - Giới hạn số lần thử và tổng thời gian thử lại
+  - Phân biệt lỗi kết nối, lỗi truyền dữ liệu và phản hồi lỗi HTTP
+  - Tính lũy đẳng của phương thức HTTP và rủi ro lặp tác vụ khi retry
+  - Điều kiện khiến Nginx không thể thử lại sau khi đã gửi dữ liệu
+  - Hành vi khi một phần hoặc toàn bộ upstream ngừng hoạt động
+  - Phối hợp retry của client, Nginx và ứng dụng để tránh khuếch đại lưu lượng
+  - Rút một upstream khỏi lưu lượng trước khi bảo trì
+  - Thiết kế trang lỗi và phương án dự phòng không che giấu lỗi gốc
+- level1: DNS của upstream
+  level2:
+  - Phân biệt DNS phía client với DNS Nginx dùng để tìm upstream
+  - Thời điểm phân giải tên miền trong từng cách khai báo upstream
+  - Đánh giá hành vi khi IP dịch vụ thay đổi mà Nginx vẫn đang chạy
+  - Cấu hình resolver, resolver_timeout và thời hạn lưu kết quả phân giải
+  - Phân giải lúc chạy khi proxy_pass dùng biến
+  - Dùng resolve trong upstream và kiểm tra phiên bản, zone cùng điều kiện hỗ trợ
+  - Tên DNS nhiều địa chỉ, IPv4, IPv6 và tác động đến kết nối
+  - DNS nội bộ container, tên dịch vụ và địa chỉ thay đổi khi triển khai
+  - Chẩn đoán host not found, lỗi resolver và bản ghi DNS lỗi thời
+  - Ranh giới tin cậy khi chọn máy chủ DNS cho Nginx
+- level1: TLS và HTTPS
+  level2:
+  - Vai trò của Nginx tại điểm kết thúc TLS
+  - Chứng thư, khóa riêng, chuỗi chứng thư và tên miền hợp lệ
+  - Cấu hình listen cho HTTPS và gắn chứng thư vào virtual host
+  - SNI và phục vụ nhiều tên miền trên cùng địa chỉ
+  - Chuyển HTTP sang HTTPS và tránh vòng lặp qua nhiều proxy
+  - Lựa chọn phiên bản TLS và bộ mã hóa theo yêu cầu tương thích
+  - Gia hạn chứng thư, bảo vệ khóa riêng và nạp lại cấu hình
+  - HSTS và điều kiện cần kiểm tra trước khi bật includeSubDomains hoặc preload
+  - Phiên TLS, tái sử dụng phiên và tác động đến hiệu năng
+  - Kiểm tra HTTPS bằng curl và openssl s_client
+  - Mã hóa kết nối từ Nginx đến upstream bằng HTTPS
+  - Xác minh chứng thư upstream bằng proxy_ssl_verify và CA tin cậy
+  - Phân biệt proxy_ssl_server_name, proxy_ssl_name và Host gửi tới upstream
+  - Xác thực hai chiều TLS giữa client và Nginx
+  - Xác thực hai chiều TLS giữa Nginx và upstream
+  - Xử lý chứng thư hết hạn, sai tên miền hoặc thiếu chuỗi tin cậy
+- level1: Kết nối và timeout
+  level2:
+  - Phân biệt keep-alive phía client và keep-alive phía upstream
+  - Tái sử dụng kết nối upstream với keepalive và các header phù hợp
+  - Giới hạn thời gian sống và số yêu cầu trên kết nối
+  - Phân biệt thời gian thiết lập kết nối, thời gian chờ đọc và thời gian chờ ghi
+  - Vai trò của client_header_timeout, client_body_timeout và send_timeout
+  - Vai trò của proxy_connect_timeout, proxy_send_timeout và proxy_read_timeout
+  - Phân biệt thời gian chờ giữa các lần I/O với giới hạn tổng thời gian yêu cầu
+  - Phối hợp timeout giữa client, CDN, Nginx, load balancer và ứng dụng
+  - Client chậm, upstream chậm và cách kết nối bị giữ lâu
+  - HTTP/1.1, HTTP/2 và multiplexing ở phía tiếp nhận client
+  - Phân biệt giao thức phía client với giao thức kết nối upstream
+  - 'HTTP/3 và QUIC: điều kiện hỗ trợ, UDP, TLS và cơ chế dự phòng'
+  - Giới hạn kết nối đồng thời và ảnh hưởng của giới hạn hệ điều hành
+- level1: WebSocket
+  level2:
+  - Cơ chế bắt tay HTTP Upgrade và kết nối hai chiều của WebSocket
+  - Chuyển Upgrade và Connection qua Nginx
+  - Dùng map để tạo Connection phù hợp với từng yêu cầu
+  - Cấu hình proxy HTTP cho endpoint WebSocket
+  - Timeout khi kết nối WebSocket không có dữ liệu
+  - Ping, pong, heartbeat và trách nhiệm của ứng dụng
+  - Cân bằng kết nối dài và ảnh hưởng của việc triển khai lại upstream
+  - Xác thực, Origin và ranh giới bảo mật của WebSocket
+  - Kiểm tra bắt tay thất bại và kết nối bị ngắt qua reverse proxy
+- level1: gRPC
+  level2:
+  - Quan hệ giữa gRPC, HTTP/2 và mô-đun ngx_http_grpc_module
+  - Định tuyến dịch vụ gRPC bằng grpc_pass
+  - Kết nối grpc và grpcs tới upstream
+  - Cấu hình TLS và xác minh danh tính upstream gRPC
+  - Truyền metadata, danh tính client và mã truy vết
+  - RPC đơn lẻ, streaming và lựa chọn thời gian chờ
+  - Cân bằng tải, thử lại và rủi ro gọi lặp RPC
+  - Phân biệt mã HTTP với grpc-status khi quan sát lỗi
+  - Giới hạn của gRPC-Web và vai trò của thành phần chuyển đổi
+  - Kiểm thử gRPC qua Nginx bằng grpcurl
+- level1: Proxy TCP/UDP
+  level2:
+  - Ranh giới giữa ngữ cảnh http và stream
+  - Kiểm tra và nạp mô-đun stream trước khi cấu hình
+  - Chuyển tiếp kết nối TCP tới một upstream
+  - Chuyển tiếp datagram UDP và quản lý phiên
+  - Nhóm upstream, cân bằng tải và phát hiện lỗi trong stream
+  - Thời gian chờ, giới hạn kết nối và vòng đời phiên TCP/UDP
+  - TLS termination và TLS passthrough ở tầng stream
+  - Định tuyến theo SNI với ssl_preread và các giới hạn quan sát
+  - Nhận và gửi PROXY protocol trong chuỗi proxy TCP
+  - Nhật ký kết nối stream và khác biệt với access log HTTP
+  - Rủi ro khi áp dụng kỳ vọng về HTTP vào một proxy tầng vận chuyển
+- level1: Nội dung tĩnh
+  level2:
+  - Phục vụ tệp tĩnh trực tiếp và quan hệ với reverse proxy
+  - Phân biệt root và alias trong ánh xạ URI tới tệp
+  - Dấu gạch chéo cuối đường dẫn với alias
+  - Chọn tệp index và kiểm soát danh sách thư mục
+  - Dùng try_files để tìm tệp và chuyển tới ứng dụng khi cần
+  - Định tuyến ứng dụng SPA và tránh trả HTML cho tài nguyên bị thiếu
+  - Kiểu MIME, charset và header Content-Type
+  - Quyền tệp, quyền thư mục và chính sách truy cập của hệ điều hành
+  - Phục vụ nội dung nội bộ qua internal và X-Accel-Redirect
+  - Cache-Control, expires, ETag và Last-Modified cho nội dung tĩnh
+  - Phân biệt open_file_cache với bộ nhớ đệm phản hồi HTTP
+- level1: Bộ nhớ đệm
+  level2:
+  - Phân biệt cache trình duyệt, CDN, proxy cache và cache ứng dụng
+  - Điều kiện phù hợp để lưu phản hồi và rủi ro lưu dữ liệu cá nhân
+  - Khai báo vùng lưu bằng proxy_cache_path và lựa chọn nơi đặt dữ liệu
+  - Khóa cache và vai trò của scheme, host, URI cùng query string
+  - Cấu hình proxy_cache, proxy_cache_key và proxy_cache_valid
+  - Ảnh hưởng của Cache-Control, Expires, Set-Cookie và Vary
+  - Phân biệt proxy_cache_bypass với proxy_no_cache
+  - Loại trừ yêu cầu có đăng nhập, cookie hoặc Authorization
+  - Quan sát HIT, MISS, BYPASS, EXPIRED và STALE qua $upstream_cache_status
+  - Dùng proxy_cache_lock để giảm nhiều yêu cầu cùng tái tạo một nội dung
+  - Tái kiểm tra nội dung bằng proxy_cache_revalidate
+  - Phục vụ nội dung cũ và cập nhật nền khi có điều kiện phù hợp
+  - Quản lý dung lượng, inactive và vòng đời tệp cache
+  - 'Xóa hoặc vô hiệu hóa cache: đổi khóa, thời hạn và giới hạn tính năng purge'
+  - Kiểm tra nguy cơ cache poisoning, lẫn tên miền và lẫn người dùng
+- level1: Hiệu năng
+  level2:
+  - Đo độ trễ, thông lượng và tỷ lệ lỗi trước khi chỉnh cấu hình
+  - worker_processes và phân bổ tài nguyên CPU
+  - worker_connections, worker_rlimit_nofile và giới hạn tệp mở của hệ điều hành
+  - Chi phí kết nối client cùng kết nối upstream trong bài toán dung lượng
+  - Backlog, hàng đợi kết nối và giới hạn TCP của hệ điều hành
+  - sendfile, tcp_nopush và tcp_nodelay trong phục vụ dữ liệu
+  - Nén gzip, loại nội dung cần nén và chi phí CPU
+  - gzip_static, tệp nén sẵn và mô-đun Brotli khi được cài
+  - Phối hợp bộ đệm, tệp tạm và I/O đĩa khi lưu lượng tăng
+  - Tái sử dụng kết nối và giảm chi phí thiết lập TCP/TLS
+  - Ảnh hưởng của log, biểu thức chính quy và cấu hình lặp đến hiệu năng
+  - Đánh giá kết quả thay đổi bằng phép đo có cùng điều kiện
+- level1: Kiểm soát truy cập
+  level2:
+  - Xác định bề mặt công khai, nội bộ và ranh giới tin cậy
+  - Cho phép hoặc chặn địa chỉ bằng allow và deny
+  - Ảnh hưởng của việc khôi phục IP client đến quyết định truy cập
+  - Xác thực cơ bản bằng auth_basic và bảo vệ tệp mật khẩu
+  - Ủy quyền xác thực qua auth_request và dịch vụ xác thực bên ngoài
+  - Kết hợp điều kiện truy cập bằng satisfy
+  - 'Xác thực JWT: ranh giới hỗ trợ của phiên bản và mô-đun'
+  - Giới hạn phương thức HTTP và kiểm tra hành vi của ứng dụng
+  - CORS, preflight và phối hợp với chính sách CORS tại ứng dụng
+  - Header bảo mật, CSP và trách nhiệm của chủ sở hữu ứng dụng
+  - Chặn tệp ẩn, bản sao cấu hình và thư mục không được công khai
+  - Giảm lộ thông tin phiên bản và thông tin nội bộ trong phản hồi
+  - Giới hạn bảo vệ của Nginx trước XSS, SQL injection, CSRF và DDoS
+  - Mô-đun WAF, quy trình cập nhật và kiểm tra tương thích
+  - Bảo vệ endpoint quản trị, trang trạng thái và hệ thống log
+- level1: Giới hạn lưu lượng
+  level2:
+  - Phân biệt giới hạn tốc độ yêu cầu với giới hạn kết nối
+  - Xác định khóa giới hạn theo IP, tài khoản hoặc thông tin đáng tin cậy
+  - Khai báo limit_req_zone và áp dụng limit_req
+  - Ý nghĩa của rate, burst, delay và nodelay
+  - Khai báo limit_conn_zone và áp dụng limit_conn
+  - Cách đếm kết nối trong HTTP/1.1, HTTP/2 và HTTP/3
+  - Chọn mã phản hồi khi vượt giới hạn và ghi log sự kiện
+  - Dùng chế độ dry run để đánh giá ảnh hưởng trước khi chặn
+  - Miễn trừ luồng cần thiết mà không tạo đường vượt giới hạn
+  - Giới hạn băng thông tải xuống bằng limit_rate
+  - Ảnh hưởng của NAT, CDN và IP dùng chung đến tính công bằng
+  - Ranh giới chia sẻ bộ đếm giữa worker và giữa nhiều máy Nginx
+- level1: Nhật ký
+  level2:
+  - Vai trò của access_log và error_log trong điều tra yêu cầu
+  - Thiết kế log_format chứa trường cần thiết cho vận hành
+  - Ghi log JSON và xử lý ký tự đặc biệt bằng escape=json
+  - Ghi request ID, virtual host, phương thức, URI và mã trạng thái
+  - Phân biệt $request_time, $upstream_connect_time, $upstream_header_time và $upstream_response_time
+  - Ghi địa chỉ upstream, trạng thái upstream và các lần thử lại
+  - Ghi IP client, IP proxy tin cậy và giao thức sử dụng
+  - Log có điều kiện bằng map và giảm log cho yêu cầu không cần thiết
+  - Chọn mức error_log và điều kiện dùng debug log
+  - Xoay vòng log, mở lại tệp và quản lý dung lượng
+  - Đưa log ra stdout/stderr trong container
+  - Che dữ liệu nhạy cảm và hạn chế ghi token, cookie hoặc query bí mật
+  - Đọc một dấu vết yêu cầu xuyên suốt nhiều lớp proxy
+- level1: Quan sát hệ thống
+  level2:
+  - Phân biệt kiểm tra tiến trình, kiểm tra HTTP và kiểm tra ứng dụng
+  - Trang stub_status và ý nghĩa của các số liệu kết nối
+  - Thu thập số liệu bằng exporter và phân biệt nguồn số liệu theo phiên bản
+  - Theo dõi lưu lượng, độ trễ, lỗi và mức sử dụng tài nguyên
+  - Phân tách lỗi client, lỗi Nginx và lỗi upstream
+  - Xây dựng cảnh báo cho lỗi 5xx, timeout và cạn tài nguyên
+  - Phát hiện mất cân bằng lưu lượng giữa các upstream
+  - Theo dõi tỷ lệ cache hit và chi phí truy cập origin
+  - Quan sát kết nối dài của WebSocket, gRPC và stream
+  - Liên kết log, metric và trace; kiểm tra mô-đun truy vết được hỗ trợ
+  - Thiết kế dashboard và ngưỡng cảnh báo dựa trên lưu lượng thực
+- level1: Triển khai
+  level2:
+  - Tổ chức cấu hình theo môi trường và quản lý bằng Git
+  - Tạo cấu hình từ template và xử lý biến môi trường của container
+  - Quản lý chứng thư, khóa riêng và bí mật ngoài image
+  - Kiểm tra cấu hình trong CI trước khi triển khai
+  - Phát hành cấu hình theo phiên bản và lưu dấu vết thay đổi
+  - Reload an toàn, kết nối đang hoạt động và thời hạn dừng worker
+  - Nâng cấp gói hoặc image và kiểm tra thay đổi tương thích
+  - Triển khai Nginx bằng Docker Compose cùng ứng dụng phía sau
+  - Quyền ghi thư mục tạm, filesystem chỉ đọc và chạy container không có quyền root
+  - Readiness, liveness và thứ tự khởi động giữa proxy với ứng dụng
+  - Ranh giới giữa Nginx tự quản lý với Nginx trong Ingress Controller
+  - Rút lưu lượng, dừng có kiểm soát và quay lui khi triển khai lỗi
+  - Nhiều máy Nginx, điểm lỗi đơn và vai trò của load balancer phía trước
+  - Sao lưu cấu hình, phục hồi sự cố và xây dựng runbook vận hành
+- level1: Kiểm thử
+  level2:
+  - Xây dựng ma trận tên miền, đường dẫn, phương thức và giao thức
+  - Kiểm tra cú pháp, mô-đun và cấu hình hợp nhất trước khi chạy
+  - Dùng curl để kiểm tra status, header, cookie và nội dung
+  - Kiểm tra virtual host và TLS mà không đổi DNS công khai
+  - Kiểm thử dấu gạch chéo, query string và ký tự mã hóa trong URI
+  - Kiểm tra header chuyển tiếp và khả năng giả mạo IP gốc
+  - Kiểm tra tải lên lớn, tải xuống lớn và client chậm
+  - Kiểm thử WebSocket, SSE, gRPC và proxy TCP/UDP bằng công cụ phù hợp
+  - Mô phỏng upstream lỗi, phản hồi chậm và ngắt kết nối
+  - Kiểm thử cache, CORS, xác thực và giới hạn lưu lượng
+  - Thiết kế bài đo tải bằng k6, wrk hoặc công cụ tương đương
+  - Phân biệt tải kiểm thử, giới hạn máy phát tải và giới hạn hệ thống được đo
+  - Đặt tiêu chí chấp nhận và kiểm tra hồi quy sau thay đổi cấu hình
+- level1: Khắc phục sự cố
+  level2:
+  - Quy trình đi từ triệu chứng đến log, cấu hình hiệu lực và kết nối thực
+  - 'Nginx không khởi động: cú pháp lỗi, thiếu mô-đun, cổng bận và quyền truy cập'
+  - Trả sai virtual host hoặc location do thứ tự và điều kiện khớp
+  - Lỗi 403 do quyền tệp, chính sách truy cập hoặc đường dẫn thư mục
+  - Lỗi 404 do root, alias, try_files và đường dẫn chuyển tới upstream
+  - Lỗi 400 hoặc 431 liên quan đến header, cookie và giới hạn kích thước
+  - Lỗi 413 khi tải dữ liệu vượt giới hạn cho phép
+  - Lỗi 429 hoặc 503 phát sinh từ chính sách giới hạn lưu lượng
+  - Lỗi 502 do kết nối bị từ chối, sai giao thức hoặc phản hồi upstream không hợp lệ
+  - Lỗi 504 và cách xác định chặng đang vượt thời gian chờ
+  - Mã 499 trong log khi client đóng kết nối
+  - Vòng lặp chuyển hướng và ứng dụng nhận sai giao thức hoặc tên miền
+  - Lỗi TLS do SNI, chuỗi chứng thư và xác minh upstream
+  - Nội dung cache sai, thiếu cập nhật hoặc bị lẫn giữa người dùng
+  - WebSocket, SSE hoặc gRPC bị ngắt sau một khoảng thời gian
+  - DNS lỗi thời sau khi thay container hoặc triển khai upstream
+  - Cạn worker_connections, tệp mở, bộ nhớ hoặc dung lượng đĩa tạm
+  - Độ trễ tăng khi reload, đổi cấu hình hoặc mất một upstream
+  - Dùng ss, dig, openssl và tcpdump để kiểm tra từng lớp trong môi trường được phép
+- level1: Bài thực hành
+  level2:
+  - Dựng môi trường nhiều ứng dụng và lần theo một yêu cầu qua Nginx
+  - Tạo nhiều virtual host và xác minh server mặc định
+  - Định tuyến /api, nội dung tĩnh và SPA trên cùng một tên miền
+  - So sánh proxy_pass có và không có URI bằng yêu cầu kiểm chứng
+  - Thiết lập chuỗi proxy tin cậy và kiểm tra giả mạo X-Forwarded-For
+  - Cân bằng tải nhiều upstream và mô phỏng mất một máy chủ
+  - Thử lại yêu cầu đọc và đánh giá rủi ro lặp yêu cầu ghi
+  - Thiết lập HTTPS phía client và xác minh TLS phía upstream
+  - Vận hành WebSocket, SSE và gRPC qua reverse proxy
+  - Xây dựng proxy cache có loại trừ nội dung cá nhân
+  - Áp dụng xác thực, CORS và giới hạn lưu lượng rồi kiểm thử
+  - Tạo log có cấu trúc, dashboard và cảnh báo cho một lỗi upstream
+  - Đo tải trước và sau khi điều chỉnh kết nối, bộ đệm hoặc nén
+  - Triển khai cấu hình qua CI, reload an toàn và quay lui
+  - Thiết kế cấu hình tổng hợp cùng báo cáo kiểm chứng và runbook xử lý sự cố

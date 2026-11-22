@@ -1,0 +1,3289 @@
+menu:
+- slug: influxdb-overview
+  title: Tổng quan InfluxDB
+  childs:
+  - slug: influxdb-overview-001
+    title: InfluxDB là gì và bài toán lưu trữ dữ liệu theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-overview-002
+    title: Quan hệ giữa nguồn dữ liệu, điểm dữ liệu, chuỗi thời gian và truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-overview-003
+    title: Vai trò của InfluxDB trong hệ thống giám sát, IoT và phân tích sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-overview-004
+    title: Luồng dữ liệu từ thu thập đến lưu trữ, xử lý và trực quan hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-overview-005
+    title: So sánh phạm vi sử dụng với cơ sở dữ liệu quan hệ, kho phân tích và hệ thống giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-overview-006
+    title: Giới hạn khi dùng InfluxDB cho giao dịch nghiệp vụ và quan hệ dữ liệu phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-overview-007
+    title: Kiến thức cần có và trình tự học từ mô hình dữ liệu đến vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: influxdb-generations
+  title: Các thế hệ InfluxDB
+  childs:
+  - slug: influxdb-generations-001
+    title: Nhận diện phiên bản, sản phẩm và bộ máy lưu trữ đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-002
+    title: 'InfluxDB 1.x: database, retention policy và InfluxQL'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-003
+    title: 'InfluxDB 2.x: organization, bucket, token và Flux'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-004
+    title: 'InfluxDB 3: database, table, SQL và InfluxQL'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-005
+    title: Phân biệt InfluxDB OSS, Core, Enterprise và các dịch vụ Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-006
+    title: Ma trận ngôn ngữ truy vấn, API và công cụ theo từng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-007
+    title: Phân biệt tương thích API ghi với tương thích truy vấn và quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-008
+    title: Giới hạn truy vấn lịch sử, tài nguyên và tính năng theo phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-generations-009
+    title: Chọn nhánh thực hành và cố định phiên bản máy chủ, CLI, SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-series-foundations
+  title: Nền tảng thời gian
+  childs:
+  - slug: time-series-foundations-001
+    title: Phân biệt thời gian sự kiện, thời gian thu thập và thời gian ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-002
+    title: Unix timestamp, RFC3339 và cách biểu diễn một thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-003
+    title: Độ chính xác giây, mili giây, micro giây và nano giây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-004
+    title: Lưu trữ theo UTC và hiển thị theo múi giờ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-005
+    title: Khoảng thời gian đóng, mở và quy ước đầu bao gồm, cuối loại trừ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-006
+    title: Dữ liệu đến muộn, sai thứ tự và đồng hồ thiết bị bị lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-007
+    title: Dữ liệu lấy mẫu đều, không đều và khoảng thời gian bị thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-008
+    title: Phân biệt đại lượng tức thời, bộ đếm tích lũy và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-foundations-009
+    title: Đơn vị đo, chu kỳ lấy mẫu và ảnh hưởng đến ý nghĩa kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-model
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-model-001
+    title: 'Measurement và table: ranh giới nhóm dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-002
+    title: Point, timestamp, tag set và field set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-003
+    title: Tag key, tag value và vai trò của thuộc tính định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-004
+    title: Field key, field value và các kiểu dữ liệu được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-005
+    title: Series và cách tính số lượng chuỗi theo từng bộ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-006
+    title: Danh tính điểm dữ liệu trong InfluxDB 1.x và 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-007
+    title: Khóa chính và quy tắc schema của table trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-008
+    title: 'Điểm trùng khóa: hợp nhất field, ghi đè và khác biệt theo phiên bản'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-009
+    title: Giá trị vắng mặt, chuỗi rỗng và NULL trong kết quả truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-model-010
+    title: Schema-on-write, suy luận kiểu và xung đột kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: schema-design
+  title: Thiết kế schema
+  childs:
+  - slug: schema-design-001
+    title: Xuất phát từ câu hỏi truy vấn, độ phân giải và thời hạn lưu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-002
+    title: Chọn tag hay field theo định danh, điều kiện lọc và phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-003
+    title: Thiết kế measurement cho dữ liệu cảm biến, máy chủ và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-004
+    title: Quy ước tên, đơn vị đo và phiên bản schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-005
+    title: Cardinality trong TSM và rủi ro dùng giá trị biến động làm tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-006
+    title: Cardinality trong InfluxDB 3 và chi phí thực tế của schema, dữ liệu, truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-007
+    title: Thiết kế tập tag, thứ tự khóa và thay đổi cột theo phiên bản InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-008
+    title: Schema rộng, schema thưa và tách table theo mẫu truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-009
+    title: Tách dữ liệu theo khách hàng, môi trường và phạm vi quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-010
+    title: Xử lý thuộc tính tùy chọn và thay đổi kiểu mà vẫn giữ dữ liệu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: schema-design-011
+    title: Các thiết kế sai thường gặp và cách kiểm chứng bằng dữ liệu mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-and-tools
+  title: Cài đặt và công cụ
+  childs:
+  - slug: installation-and-tools-001
+    title: Chuẩn bị môi trường và kiểm tra yêu cầu của phiên bản đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-002
+    title: Cài đặt bằng binary hoặc gói hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-003
+    title: Chạy Docker và Docker Compose với image được cố định phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-004
+    title: Cổng dịch vụ, đường dẫn dữ liệu và cấu hình lưu trữ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-005
+    title: Khởi tạo InfluxDB 1.x, InfluxDB 2.x và InfluxDB 3 theo nhánh riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-006
+    title: Phân biệt CLI influx, influxd, influxdb3 và công cụ quản trị Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-007
+    title: Sử dụng giao diện InfluxDB 2.x và InfluxDB 3 Explorer đúng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-008
+    title: Kiểm tra trạng thái sẵn sàng và thực hiện vòng ghi, đọc đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-tools-009
+    title: Quản lý cấu hình bằng tệp, biến môi trường và tham số khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-administration
+  title: Quản trị tài nguyên
+  childs:
+  - slug: resource-administration-001
+    title: Tạo và kiểm tra database, retention policy trong InfluxDB 1.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-002
+    title: Tạo organization, bucket và quản lý định danh trong InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-003
+    title: Tạo database, table và xem schema trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-004
+    title: Cấu hình thời hạn lưu dữ liệu theo khả năng của từng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-005
+    title: Tạo tài nguyên tường minh và tài nguyên phát sinh khi ghi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-006
+    title: Ánh xạ database-retention policy sang bucket bằng DBRP trong InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-007
+    title: Phân biệt tài nguyên quản trị, dữ liệu người dùng và dữ liệu hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-008
+    title: Kiểm tra giới hạn database, bucket, table và cột trước khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-administration-009
+    title: Tự động hóa khởi tạo lặp lại an toàn và quản lý cấu hình giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: line-protocol
+  title: Line Protocol
+  childs:
+  - slug: line-protocol-001
+    title: Cấu trúc measurement, tag set, field set và timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-002
+    title: Quy tắc dấu phân cách, khoảng trắng và kết thúc dòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-003
+    title: Escape tên measurement, tag và field key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-004
+    title: Biểu diễn string, boolean, float, integer và unsigned integer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-005
+    title: Dấu nháy, ký tự Unicode và dữ liệu văn bản đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-006
+    title: Timestamp tường minh, timestamp mặc định và tham số precision
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-007
+    title: Ghi nhiều field và nhiều điểm trong cùng một payload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-008
+    title: Dữ liệu trùng khóa và tác động của việc đổi tag hoặc timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-009
+    title: Phát hiện lỗi cú pháp, sai kiểu và sai đơn vị thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: line-protocol-010
+    title: Chuyển JSON, CSV hoặc bản ghi ứng dụng sang Line Protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-ingestion
+  title: Ghi dữ liệu
+  childs:
+  - slug: data-ingestion-001
+    title: Chọn HTTP API, CLI, SDK hoặc Telegraf cho luồng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-002
+    title: Ghi đồng bộ, ghi bất đồng bộ và thời điểm xác nhận thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-003
+    title: Gom lô theo số điểm, kích thước và khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-004
+    title: Nén payload, tái sử dụng kết nối và cấu hình timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-005
+    title: Kiểm soát tốc độ gửi, bộ đệm và áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-006
+    title: Xử lý phản hồi lỗi, ghi thành công một phần và dữ liệu bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-007
+    title: Thử lại có giới hạn, thời gian chờ tăng dần và độ trễ ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-008
+    title: Gửi lại dữ liệu an toàn, điểm trùng và giới hạn bảo đảm exactly-once
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-009
+    title: Nạp dữ liệu lịch sử và xử lý điểm đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-010
+    title: Lưu tạm khi mất kết nối và phục hồi tiến độ sau khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-ingestion-011
+    title: Đo thông lượng, độ trễ và độ đầy đủ của luồng ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: telegraf-collection
+  title: Thu thập với Telegraf
+  childs:
+  - slug: telegraf-collection-001
+    title: Vai trò input, processor, aggregator và output trong luồng thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-002
+    title: Cấu trúc tệp cấu hình và kiểm tra dữ liệu trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-003
+    title: Thu thập CPU, bộ nhớ, đĩa, mạng và tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-004
+    title: Thu thập HTTP, MQTT, Kafka và dữ liệu thiết bị theo plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-005
+    title: Đọc JSON, CSV và dữ liệu Prometheus bằng parser phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-006
+    title: Chuẩn hóa tag, đổi tên field và lọc metric
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-007
+    title: Chọn output tương thích InfluxDB 1.x, 2.x hoặc 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-008
+    title: Cấu hình chu kỳ thu thập, chu kỳ gửi, batch và buffer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-009
+    title: Bảo vệ thông tin xác thực bằng biến môi trường hoặc secret store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: telegraf-collection-010
+    title: Giám sát lỗi parser, lỗi output, mất dữ liệu và nghẽn bộ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: http-api
+  title: HTTP API
+  childs:
+  - slug: http-api-001
+    title: Cấu trúc URL, thông tin xác thực và tài nguyên đích theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-002
+    title: API /write và /query của InfluxDB 1.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-003
+    title: API /api/v2/write và /api/v2/query của InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-004
+    title: API ghi và truy vấn /api/v3 của InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-005
+    title: Phạm vi hỗ trợ API tương thích v1 và v2 trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-006
+    title: Gửi truy vấn có tham số và tránh ghép chuỗi từ đầu vào người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-007
+    title: Định dạng JSON, CSV, annotated CSV và dữ liệu trả theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-008
+    title: Phân biệt xác thực, phân quyền và lỗi tài nguyên không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-009
+    title: Mã trạng thái HTTP, nội dung lỗi và chính sách thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-010
+    title: Dùng curl để tái hiện yêu cầu và kiểm tra hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: http-api-011
+    title: Vai trò Arrow Flight và Flight SQL khi sản phẩm, SDK hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: influxql
+  title: InfluxQL
+  childs:
+  - slug: influxql-001
+    title: Phạm vi hỗ trợ InfluxQL và khác biệt giữa các thế hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-002
+    title: SELECT, FROM, WHERE và giới hạn thời gian truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-003
+    title: Định danh, dấu nháy, tag, field và biểu thức lọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-004
+    title: SHOW MEASUREMENTS, TAG KEYS, FIELD KEYS và lệnh khám phá được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-005
+    title: Phép tổng hợp COUNT, SUM, MEAN, MIN và MAX
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-006
+    title: Hàm chọn FIRST, LAST, TOP, BOTTOM và ý nghĩa timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-007
+    title: GROUP BY tag, GROUP BY time và căn chỉnh cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-008
+    title: fill(), khoảng dữ liệu trống và giới hạn của phép điền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-009
+    title: ORDER BY, LIMIT, SLIMIT và phân biệt điểm với chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-010
+    title: DIFFERENCE, DERIVATIVE và NON_NEGATIVE_DERIVATIVE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-011
+    title: MOVING_AVERAGE, PERCENTILE và CUMULATIVE_SUM theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-012
+    title: Truy vấn con, SELECT INTO và các tính năng chỉ có ở sản phẩm tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxql-013
+    title: Truy vấn nhiều measurement và giới hạn ghép dữ liệu của InfluxQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: flux-basics-2x
+  title: Flux cơ bản (2.x)
+  childs:
+  - slug: flux-basics-2x-001
+    title: Vai trò của Flux trong InfluxDB 2.x và ranh giới với InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-002
+    title: Cú pháp pipeline, biến, hàm và toán tử |>
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-003
+    title: Stream of tables, group key và cách đọc kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-004
+    title: Các cột _time, _measurement, _field, _value, _start và _stop
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-005
+    title: from(), range() và filter() để giới hạn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-006
+    title: keep(), drop(), rename() và tổ chức cột
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-007
+    title: group(), sort(), limit() và ảnh hưởng đến từng bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-008
+    title: aggregateWindow() và lựa chọn khoảng tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-009
+    title: map(), toán tử số học và chuyển đổi kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-010
+    title: first(), last(), findRecord() và lấy giá trị đơn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: flux-basics-2x-011
+    title: Đọc annotated CSV và xử lý nhiều bảng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-flux-2x
+  title: Flux nâng cao (2.x)
+  childs:
+  - slug: advanced-flux-2x-001
+    title: 'window() và aggregateWindow(): ranh giới, timestamp và cửa sổ rỗng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-002
+    title: pivot() để đưa nhiều field về cùng một bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-003
+    title: 'join() và union(): điều kiện ghép, group key và dữ liệu thiếu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-004
+    title: difference(), derivative(), increase() và bộ đếm bị đặt lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-005
+    title: movingAverage(), cumulativeSum() và phân tích xu hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-006
+    title: fill(), interpolate và phân biệt điền thiếu với nội suy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-007
+    title: quantile(), histogram và giới hạn tổng hợp phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-008
+    title: stateDuration(), stateCount() và phân tích trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-009
+    title: Hàm tự định nghĩa, reduce() và logic điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-010
+    title: Khám phá schema, xử lý chuỗi và biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-flux-2x-011
+    title: Hạn chế dữ liệu quét và kiểm tra khả năng đẩy phép tính xuống bộ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sql-basics-3x
+  title: SQL cơ bản (3.x)
+  childs:
+  - slug: sql-basics-3x-001
+    title: Vai trò SQL và phạm vi phương ngữ DataFusion trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-002
+    title: Khám phá table, column và metadata hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-003
+    title: SELECT, WHERE, ORDER BY và LIMIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-004
+    title: Lọc tag, field và khoảng thời gian có giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-005
+    title: Định danh có dấu nháy, alias và tên cột đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-006
+    title: Kiểu dữ liệu, CAST, NULL và logic ba giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-007
+    title: Hàm số học, chuỗi và biểu thức CASE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-008
+    title: COUNT, SUM, AVG, MIN, MAX và GROUP BY
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-009
+    title: HAVING, truy vấn con và common table expression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-010
+    title: JOIN và UNION theo hỗ trợ của sản phẩm, phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sql-basics-3x-011
+    title: Tham số truy vấn, định dạng đầu ra và đọc kết quả theo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-series-sql-3x
+  title: SQL thời gian (3.x)
+  childs:
+  - slug: time-series-sql-3x-001
+    title: NOW, INTERVAL và biểu thức thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-002
+    title: DATE_BIN để chia khoảng thời gian và căn chỉnh mốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-003
+    title: Tổng hợp theo cửa sổ thời gian và nhiều chiều tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-004
+    title: Hàm selector lấy giá trị đầu, cuối cùng timestamp liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-005
+    title: LAG, LEAD và so sánh các bản ghi trong cùng chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-006
+    title: Window frame, trung bình trượt và tổng tích lũy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-007
+    title: Tính tốc độ thay đổi với bộ đếm, khoảng lấy mẫu và giá trị đặt lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-008
+    title: Phát hiện khoảng trống và sử dụng hàm gap filling được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-009
+    title: Phân vị, độ lệch và thống kê chuỗi theo hàm được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-010
+    title: Top N, giá trị mới nhất và xếp hạng theo từng thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-series-sql-3x-011
+    title: EXPLAIN, EXPLAIN ANALYZE và đọc kế hoạch thực thi khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-correctness
+  title: Tính đúng đắn dữ liệu
+  childs:
+  - slug: data-correctness-001
+    title: Phân biệt không có điểm, field vắng mặt, NULL và giá trị bằng không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-002
+    title: Chọn cửa sổ theo nghiệp vụ và tránh đếm trùng ở ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-003
+    title: Phân biệt trung bình theo mẫu và trung bình có trọng số thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-004
+    title: Tổng hợp bộ đếm và đại lượng tức thời đúng ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-005
+    title: Vì sao không cộng hoặc lấy trung bình các phân vị một cách tùy tiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-006
+    title: Dữ liệu đến muộn và tính lại khoảng tổng hợp bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-007
+    title: Chuỗi không đều, khoảng ngừng thiết bị và nội suy có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-008
+    title: Sai số số thực, ép kiểu và chuyển đổi đơn vị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-009
+    title: Đối chiếu truy vấn InfluxQL, Flux và SQL trên cùng tập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-correctness-010
+    title: Giới hạn giao dịch, tính nhất quán và bảo đảm đọc sau ghi theo sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tsm-engine-1x-2x
+  title: Bộ máy TSM (1.x/2.x)
+  childs:
+  - slug: tsm-engine-1x-2x-001
+    title: Đường đi của dữ liệu qua WAL, cache và tệp TSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-002
+    title: Ghi WAL, xác nhận ghi và phục hồi sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-003
+    title: Snapshot cache và chuyển dữ liệu từ bộ nhớ xuống đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-004
+    title: Cấu trúc TSM và nén timestamp, giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-005
+    title: Shard, shard group và quan hệ với retention policy hoặc bucket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-006
+    title: Chỉ mục chuỗi trong bộ nhớ và Time Series Index
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-007
+    title: Đường đọc, iterator và kết hợp dữ liệu trong cache với TSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-008
+    title: Compaction, tombstone và thu hồi dung lượng sau xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-009
+    title: Tác động của cardinality, shard duration và dữ liệu sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tsm-engine-1x-2x-010
+    title: Phân biệt metadata trong InfluxDB 1.x với InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: influxdb-3-engine
+  title: Bộ máy InfluxDB 3
+  childs:
+  - slug: influxdb-3-engine-001
+    title: Vai trò Apache Arrow, DataFusion, Parquet và object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-002
+    title: Đường ghi, WAL, vùng đệm và quá trình tạo dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-003
+    title: Catalog, schema và metadata điều khiển truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-004
+    title: Đường đọc dữ liệu trong bộ nhớ và tệp Parquet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-005
+    title: Lưu trữ theo cột, nén và loại bỏ tệp không liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-006
+    title: Vai trò khóa chính, sắp xếp dữ liệu và thiết kế tag
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-007
+    title: Last Value Cache cho truy vấn giá trị gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-008
+    title: Distinct Value Cache cho khám phá giá trị tag theo hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-009
+    title: Giới hạn lưu giữ, phạm vi truy vấn và tài nguyên trong Core
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-010
+    title: Compaction, chỉ mục và truy vấn lịch sử trong Enterprise theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: influxdb-3-engine-011
+    title: Phân biệt bộ máy lưu trữ của Core và các lựa chọn Enterprise
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: retention-and-deletion
+  title: Lưu giữ và xóa
+  childs:
+  - slug: retention-and-deletion-001
+    title: Chọn thời hạn lưu dữ liệu thô, dữ liệu tổng hợp và dữ liệu kiểm toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-002
+    title: Retention policy trong InfluxDB 1.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-003
+    title: Bucket retention trong InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-004
+    title: Database retention trong InfluxDB 3 và giới hạn thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-005
+    title: Thời điểm hết hạn logic và thời điểm thu hồi dung lượng vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-006
+    title: Xóa theo thời gian và predicate trong InfluxDB 1.x hoặc 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-007
+    title: Xóa database, table và khả năng xóa từng phần trong InfluxDB 3 theo sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-008
+    title: Phân biệt xóa điểm, xóa measurement và xóa toàn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-009
+    title: Kiểm tra dữ liệu trước, sau xóa và tác động tới dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: retention-and-deletion-010
+    title: Quản lý dữ liệu hết hạn trong bản sao lưu và object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scheduled-aggregation
+  title: Tổng hợp định kỳ
+  childs:
+  - slug: scheduled-aggregation-001
+    title: Giảm độ phân giải và thiết kế nhiều tầng lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-002
+    title: Continuous Query và RESAMPLE trong InfluxDB 1.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-003
+    title: 'Flux task trong InfluxDB 2.x: every, cron và offset'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-004
+    title: Đọc dữ liệu nguồn, aggregateWindow() và ghi bằng to()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-005
+    title: Tham số hóa và tái sử dụng task bằng cơ chế phù hợp InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-006
+    title: Xử lý dữ liệu muộn, cửa sổ chồng lấn và chạy lại không tạo sai số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-007
+    title: Lưu sum, count, min, max để tổng hợp tiếp đúng phép toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-008
+    title: Theo dõi trạng thái chạy, thời gian thực thi và lỗi của task
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-009
+    title: Chọn Processing Engine hoặc lịch chạy bên ngoài cho InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-aggregation-010
+    title: So sánh xử lý lúc ghi, xử lý định kỳ và tính trực tiếp lúc truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processing-engine-3x
+  title: Processing Engine (3.x)
+  childs:
+  - slug: processing-engine-3x-001
+    title: Vai trò Python plugin nhúng trong InfluxDB 3 Core và Enterprise
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-002
+    title: Cấu hình thư mục plugin và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-003
+    title: Cấu trúc plugin, dữ liệu đầu vào và API được cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-004
+    title: Trigger theo ghi dữ liệu và quan hệ với WAL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-005
+    title: Trigger theo lịch và yêu cầu HTTP theo khả năng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-006
+    title: Đọc, biến đổi và ghi dữ liệu tổng hợp từ plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-007
+    title: Trạng thái trong bộ nhớ, vòng đời và giới hạn khi khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-008
+    title: Kiểm thử plugin, quản lý thư viện và cố định phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-009
+    title: Phân quyền, bảo vệ bí mật và giới hạn tác động của mã plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processing-engine-3x-010
+    title: Quan sát lỗi, chống vòng lặp ghi và xử lý lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-client
+  title: Java Client
+  childs:
+  - slug: java-client-001
+    title: Chọn thư viện Java tương thích InfluxDB 1.x, 2.x hoặc 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-002
+    title: Khai báo phụ thuộc Maven hoặc Gradle và cố định phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-003
+    title: Khởi tạo client bằng URL, database hoặc bucket, organization và token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-004
+    title: Ánh xạ Instant, Duration và độ chính xác timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-005
+    title: Tạo Point, gán tag, field và serialize Line Protocol
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-006
+    title: Ghi theo lô, xử lý kết quả bất đồng bộ và lỗi khi flush
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-007
+    title: Truy vấn Flux với client InfluxDB 2.x và đọc nhiều bảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-008
+    title: Truy vấn SQL hoặc InfluxQL với client InfluxDB 3 và Arrow Flight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-009
+    title: Ánh xạ kết quả sang DTO, xử lý NULL và bảo toàn kiểu số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-010
+    title: Quản lý stream, kết nối, bộ nhớ Arrow và đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-client-011
+    title: Cấu hình TLS, timeout, retry và khả năng tương thích JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: Tổ chức lớp cấu hình, lớp truy cập dữ liệu và lớp nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Khai báo cấu hình có kiểu và nạp bí mật từ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Quản lý vòng đời client bằng bean và đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Thiết kế dịch vụ ghi dữ liệu cảm biến theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Thiết kế truy vấn theo khoảng thời gian và giới hạn khối lượng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Kiểm tra đầu vào, múi giờ, đơn vị đo và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Xử lý luồng chặn trong ứng dụng Servlet hoặc Reactive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Ánh xạ lỗi cơ sở dữ liệu thành lỗi ứng dụng có thể xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Kết hợp InfluxDB với cơ sở dữ liệu nghiệp vụ và hàng đợi khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Thu thập số đo bằng Micrometer và chọn cơ chế xuất phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Flush khi dừng ứng dụng và theo dõi số điểm chưa được gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dashboards-and-alerts
+  title: Dashboard và cảnh báo
+  childs:
+  - slug: dashboards-and-alerts-001
+    title: Kết nối Grafana bằng ngôn ngữ và phương thức xác thực phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-002
+    title: Dashboard trong InfluxDB 2.x và InfluxDB 3 Explorer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-003
+    title: Biến dashboard, bộ lọc tag và khoảng thời gian động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-004
+    title: Chọn bước tổng hợp theo độ rộng biểu đồ và chu kỳ lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-005
+    title: Biểu diễn đơn vị, múi giờ, dữ liệu thiếu và nhiều chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-006
+    title: Checks, notification rules và endpoints trong InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-007
+    title: Cảnh báo bằng Grafana hoặc thành phần bên ngoài cho InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-008
+    title: Ngưỡng cảnh báo, thời gian duy trì và phát hiện mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-009
+    title: Chống cảnh báo lặp, dao động quanh ngưỡng và sai lệch do dữ liệu muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dashboards-and-alerts-010
+    title: Vai trò Chronograf, Kapacitor trong hệ thống TICK sử dụng InfluxDB 1.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: Phân biệt xác thực, phân quyền và cô lập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Người dùng, quyền database và xác thực trong InfluxDB 1.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: API token, organization và quyền bucket trong InfluxDB 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: Token quản trị, token tài nguyên và mô hình quyền InfluxDB 3 theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Áp dụng đặc quyền tối thiểu cho người ghi, người đọc và quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Luân chuyển, thu hồi, lưu trữ an toàn và kiểm tra token hết hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: TLS, chứng chỉ, proxy và giới hạn truy cập mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Bảo vệ object storage, ổ đĩa và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Ngăn lộ token, dữ liệu nhạy cảm trong log và dashboard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Truy vấn có tham số, danh sách tài nguyên cho phép và giới hạn đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-011
+    title: Kiểm toán truy cập và tính năng bảo mật riêng của Enterprise hoặc Cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-optimization
+  title: Tối ưu hiệu năng
+  childs:
+  - slug: performance-optimization-001
+    title: Xác định tải ghi, tải truy vấn, độ trễ mục tiêu và mức đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-002
+    title: Ước lượng số điểm mỗi giây, số field, cardinality và dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-003
+    title: Tối ưu kích thước lô, nén và số kết nối ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-004
+    title: Giới hạn thời gian, chọn cột và giảm dữ liệu quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-005
+    title: Tối ưu bộ lọc tag, phép nhóm và phép tổng hợp theo bộ máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-006
+    title: Chi phí pivot, join, sắp xếp và truy vấn nhiều chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-007
+    title: Tối ưu schema, shard và compaction trong TSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-008
+    title: Tối ưu Parquet, cache và object storage trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-009
+    title: Quản lý CPU, RAM, đĩa, băng thông và giới hạn truy vấn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-010
+    title: Đo bộ nhớ đệm nóng, bộ nhớ đệm lạnh và độ trễ phân vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-optimization-011
+    title: Thiết kế benchmark tái lập và kiểm tra kết quả đúng trước khi so tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-monitoring
+  title: Giám sát vận hành
+  childs:
+  - slug: operational-monitoring-001
+    title: Theo dõi trạng thái sẵn sàng, tiến trình và tài nguyên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-002
+    title: Thu thập metrics của InfluxDB bằng endpoint hoặc công cụ phù hợp phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-003
+    title: Đo tốc độ ghi, điểm bị từ chối và tỷ lệ phản hồi lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-004
+    title: Đo độ trễ truy vấn, số truy vấn chạy và timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-005
+    title: Theo dõi WAL, cache, compaction và dung lượng đĩa trong TSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-006
+    title: Theo dõi object storage, Parquet, cache và catalog trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-007
+    title: Theo dõi Telegraf, hàng đợi gửi và dữ liệu đến chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-008
+    title: Thu thập log có cấu trúc và liên kết với yêu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-009
+    title: Thiết lập SLI, SLO và cảnh báo theo mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-monitoring-010
+    title: Soạn quy trình trực vận hành và thu thập bằng chứng sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Xác định RPO, RTO và phạm vi dữ liệu cần khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-002
+    title: Phân biệt sao lưu dữ liệu, metadata, cấu hình và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-003
+    title: Sao lưu và phục hồi InfluxDB 1.x bằng công cụ tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-004
+    title: Sao lưu và phục hồi InfluxDB 2.x bằng influx backup, influx restore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-005
+    title: Sao lưu InfluxDB 3 theo bộ máy, sản phẩm và hướng dẫn được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-006
+    title: Tính nhất quán giữa WAL, catalog và dữ liệu trong object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-007
+    title: Lập lịch, mã hóa, lưu ngoài máy và kiểm tra tính toàn vẹn bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-008
+    title: Khôi phục vào môi trường tách biệt và xử lý xung đột tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-009
+    title: Đối chiếu số điểm, phạm vi thời gian và truy vấn sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-010
+    title: Diễn tập mất máy chủ, mất đĩa và mất quyền truy cập object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-and-scaling
+  title: Triển khai và mở rộng
+  childs:
+  - slug: deployment-and-scaling-001
+    title: Đánh giá tài nguyên, dung lượng tăng trưởng và kiến trúc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-002
+    title: Vận hành một nút bằng dịch vụ hệ điều hành hoặc container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-003
+    title: Volume bền vững, quyền tệp và khởi động lại an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-004
+    title: Reverse proxy, cân bằng tải và kiểm tra trạng thái sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-005
+    title: Giới hạn một nút của OSS hoặc Core và lựa chọn khi cần HA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-006
+    title: Phân biệt HA, replication và backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-007
+    title: Vai trò các nút, bản sao đọc và compaction trong InfluxDB 3 Enterprise
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-008
+    title: Đánh giá Kubernetes và sản phẩm hỗ trợ triển khai cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-009
+    title: Thu thập tại biên và sao chép dữ liệu theo tính năng từng sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-010
+    title: Đánh giá Cloud theo vùng, giới hạn, chi phí lưu trữ, truy vấn và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-and-scaling-011
+    title: Nâng cấp có kiểm soát, kiểm tra tương thích và kế hoạch quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-migration
+  title: Di chuyển phiên bản
+  childs:
+  - slug: version-migration-001
+    title: Lập danh mục schema, API, SDK, truy vấn, task và dashboard hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-002
+    title: Ánh xạ database-retention policy của 1.x sang bucket của 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-003
+    title: Chuyển truy vấn InfluxQL hoặc cấu hình DBRP khi chuyển sang 2.x
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-004
+    title: Ánh xạ bucket, measurement và tag sang database, table trong InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-005
+    title: Đánh giá kiểu dữ liệu, khóa chính, schema và cardinality trước khi nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-006
+    title: Chuyển Flux sang SQL hoặc InfluxQL theo ý nghĩa phép tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-007
+    title: Thay thế Continuous Query, Flux task và cơ chế cảnh báo theo đích đến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-008
+    title: Xuất, nạp dữ liệu lịch sử và kiểm tra phương án di chuyển được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-009
+    title: Ghi song song, theo dõi sai lệch và xác định mốc chuyển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-010
+    title: Đối chiếu số điểm, timestamp, giá trị và truy vấn nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-011
+    title: Chuyển ứng dụng, SDK, token và dashboard theo từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-migration-012
+    title: Điều kiện quay lui và xử lý dữ liệu phát sinh trong giai đoạn chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: 'Không kết nối được: URL, cổng, TLS, proxy và trạng thái dịch vụ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Lỗi 401, 403, token sai phạm vi và tài nguyên không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Sai Line Protocol, xung đột kiểu và batch bị từ chối một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Timestamp sai precision, sai múi giờ hoặc nằm ngoài khoảng truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: 'Đã ghi thành công nhưng chưa thấy dữ liệu: đích ghi, filter và khả năng hiển thị'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Điểm trùng, field bị thay thế và sai khác do khóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Truy vấn sai ngôn ngữ, API hoặc tính năng không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Truy vấn chậm, quá bộ nhớ, timeout và nghẽn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Đầy đĩa, WAL tăng, compaction chậm và lỗi object storage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Dữ liệu biến mất do retention, thao tác xóa hoặc task sai đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Thu thập bản tái hiện tối thiểu và xác minh nguyên nhân sau sửa lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-testing
+  title: Kiểm thử hệ thống
+  childs:
+  - slug: system-testing-001
+    title: Tạo bộ dữ liệu mẫu có kết quả mong đợi được tính độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-002
+    title: Kiểm thử serialize Line Protocol, escape và chuyển đổi kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-003
+    title: Kiểm thử ranh giới thời gian, dữ liệu thiếu và chuỗi không đều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-004
+    title: Kiểm thử điểm trùng, dữ liệu muộn và bộ đếm đặt lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-005
+    title: Kiểm thử tích hợp với phiên bản InfluxDB được cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-006
+    title: Dùng Testcontainers hoặc container chuyên biệt theo mức hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-007
+    title: Kiểm thử hợp đồng HTTP API và ánh xạ lỗi SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-008
+    title: Mô phỏng mất mạng, timeout, retry và khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-009
+    title: Kiểm thử tải ghi, truy vấn đồng thời và giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-010
+    title: Kiểm thử phân quyền, retention và phục hồi trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-testing-011
+    title: Tự động hóa kiểm tra tương thích khi nâng cấp máy chủ hoặc client
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: end-to-end-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: end-to-end-practice-001
+    title: 'Xây dựng luồng cảm biến: thiết bị giả lập, schema và Line Protocol'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-002
+    title: Thu thập số đo máy chủ bằng Telegraf và kiểm chứng dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-003
+    title: Viết ứng dụng Java hoặc Spring Boot để ghi, truy vấn và xử lý lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-004
+    title: Phân tích cùng bộ dữ liệu bằng InfluxQL, Flux và SQL theo nhánh phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-005
+    title: Xây dashboard Grafana và kiểm tra cảnh báo mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-006
+    title: Thiết kế dữ liệu thô, tổng hợp định kỳ và chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-007
+    title: Đo tải, tìm điểm nghẽn và so sánh trước, sau tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-008
+    title: Diễn tập sao lưu, phục hồi và đối chiếu tính đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-009
+    title: Thực hành chuyển một luồng dữ liệu từ 2.x sang InfluxDB 3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-010
+    title: Giải thích lựa chọn schema, phiên bản và đánh đổi vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: end-to-end-practice-011
+    title: Đánh giá dự án bằng độ đúng dữ liệu, khả năng phục hồi và mục tiêu hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

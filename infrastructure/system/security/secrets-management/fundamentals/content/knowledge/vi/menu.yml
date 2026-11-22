@@ -1,0 +1,560 @@
+menu:
+- level1: Khái niệm secrets
+  level2:
+  - Secret là gì
+  - Phân biệt secret và configuration
+  - Phân biệt secret và dữ liệu công khai
+  - Mục tiêu của secrets management
+  - Blast radius của credential
+  - Secret trong môi trường phát triển
+  - Secret trong môi trường production
+  - Con người quy trình và công nghệ
+  - Vì sao cần quản lý tập trung
+  - Nguyên tắc giảm lộ secret
+- level1: Các loại secret
+  level2:
+  - Password
+  - API key
+  - Database credential
+  - Connection string
+  - OAuth client secret
+  - Access token
+  - Refresh token
+  - SSH private key
+  - TLS private key
+  - Signing key
+  - Webhook secret
+  - Cloud access key
+- level1: Mối đe dọa
+  level2:
+  - Hardcode secret trong source
+  - Secret trong Git history
+  - Secret trong file cấu hình
+  - Secret trong CI/CD log
+  - Secret trong container image
+  - Secret trong crash dump
+  - Secret trong memory process
+  - Secret bị dùng lại nhiều nơi
+  - Credential dùng chung
+  - Secret bị lộ qua fork repository
+  - Secret bị trích xuất qua backup
+- level1: Yêu cầu bảo mật
+  level2:
+  - Confidentiality của secret
+  - Integrity của secret
+  - Availability của secret
+  - Least privilege
+  - Separation of duties
+  - Need-to-know access
+  - Short-lived credential
+  - Revocation nhanh
+  - Auditability
+  - Non-repudiation cho thao tác quản trị
+- level1: Inventory và metadata
+  level2:
+  - Secret inventory
+  - Owner của secret
+  - Mục đích sử dụng
+  - Loại secret và thuật toán
+  - Consumer được phép
+  - Hệ thống phụ thuộc
+  - Môi trường sử dụng
+  - Ngày tạo và ngày dùng
+  - Ngày xoay vòng tiếp theo
+  - Liên hệ khi có sự cố
+  - Metadata phục vụ di chuyển
+- level1: Vòng đời secret
+  level2:
+  - Creation
+  - Provisioning
+  - Distribution
+  - Consumption
+  - Rotation
+  - Revocation
+  - Expiration
+  - Archival
+  - Deletion
+  - Khôi phục sau lỗi
+  - Đối soát từng trạng thái
+- level1: Tạo secret
+  level2:
+  - Sinh bằng bộ tạo ngẫu nhiên an toàn
+  - Độ dài theo mục đích
+  - Entropy của credential
+  - Tránh tự đặt secret yếu
+  - Không dùng secret mặc định
+  - Tạo secret theo môi trường
+  - Tạo secret theo service identity
+  - Tạo secret bất đối xứng
+  - Sinh secret trong pipeline an toàn
+  - Kiểm tra secret trước khi cấp
+- level1: Lưu trữ
+  level2:
+  - Dedicated secrets manager
+  - Vault và secret engine
+  - Cloud secret manager
+  - Tách secret khỏi config store
+  - Encryption at rest
+  - Customer-managed key
+  - Version của secret
+  - Namespace và tenancy
+  - Phân tách production development
+  - Giới hạn quyền quản trị storage
+- level1: Access control
+  level2:
+  - Định danh người đọc secret
+  - Định danh workload đọc secret
+  - ACL theo secret object
+  - ACL theo namespace
+  - Role-based access
+  - Attribute-based access
+  - Least-privilege policy
+  - Deny mặc định
+  - Periodic access review
+  - Thu hồi quyền không còn cần
+- level1: Xác thực với secret manager
+  level2:
+  - Workload identity
+  - Machine identity
+  - OIDC federation
+  - Kubernetes service account
+  - Cloud IAM role
+  - mTLS giữa client và manager
+  - Bootstrap credential
+  - Short-lived authentication token
+  - Xác minh audience và issuer
+  - Theo dõi authentication failure
+- level1: Authorization
+  level2:
+  - Policy path và scope
+  - Read so với write permission
+  - Create so với delete permission
+  - Rotate permission
+  - Revoke permission
+  - Admin policy tách khỏi consumer policy
+  - Policy inheritance
+  - Policy conflict
+  - Policy change review
+  - Kiểm thử quyền bằng identity thật
+- level1: Dynamic secrets
+  level2:
+  - Dynamic database credential
+  - Dynamic cloud credential
+  - Dynamic SSH credential
+  - Lease của secret
+  - TTL ngắn
+  - Renew lease
+  - Revoke lease
+  - Credential theo session
+  - Giảm credential dùng chung
+  - Xử lý khi lease hết hạn
+- level1: Static credentials
+  level2:
+  - Khi nào cần static secret
+  - Giới hạn phạm vi static secret
+  - Tách credential theo service
+  - Tách credential theo môi trường
+  - Theo dõi lần sử dụng
+  - Lịch xoay vòng
+  - Dual credential khi chuyển đổi
+  - Kiểm soát secret khó xoay
+  - Kế hoạch thay thế static credential
+  - Đo tuổi secret
+- level1: Rotation (bổ sung 2)
+  level2:
+  - Lý do phải rotate
+  - Rotation theo lịch
+  - Rotation khi có dấu hiệu lộ
+  - Automated rotation
+  - Manual rotation có kiểm soát
+  - Dual-read dual-write rotation
+  - Promote version mới
+  - Kiểm thử credential mới
+  - Rollback rotation
+  - Không làm gián đoạn service
+- level1: Revocation (bổ sung 2)
+  level2:
+  - Thu hồi secret bị lộ
+  - Thu hồi credential không còn dùng
+  - Thu hồi token
+  - Thu hồi certificate
+  - Blacklist hoặc deny list
+  - Xác minh trạng thái revoked
+  - Xử lý request dùng secret cũ
+  - Thông báo consumer sau revocation
+  - Ghi audit sự kiện thu hồi
+  - Diễn tập revocation khẩn cấp
+- level1: Expiration và lease
+  level2:
+  - Expiration time
+  - TTL theo loại secret
+  - Credential hết hạn
+  - Token expiration
+  - Certificate expiration
+  - Lease expiration
+  - Renewal trước hạn
+  - Không gia hạn vô hạn
+  - Grace period có kiểm soát
+  - Cảnh báo sắp hết hạn
+- level1: Versioning
+  level2:
+  - Secret version
+  - Current và previous version
+  - Version promotion
+  - Rollback về version cũ
+  - Version pinning
+  - Consumer đọc latest version
+  - Compatibility khi đổi format
+  - Xóa version cũ
+  - Audit version change
+  - Kiểm thử chuyển version
+- level1: Phân phối secret
+  level2:
+  - Provisioning qua secret manager
+  - Inject vào process
+  - Inject qua environment có rủi ro
+  - Mount qua file
+  - In-memory volume
+  - Sidecar agent
+  - Init container
+  - Fetch tại startup
+  - Fetch khi runtime
+  - Không truyền secret qua command line
+- level1: Ứng dụng runtime
+  level2:
+  - Application identity
+  - Secret retrieval khi khởi động
+  - Refresh secret khi xoay vòng
+  - Cache secret trong memory
+  - Giảm thời gian secret ở plaintext
+  - Không log secret
+  - Xử lý secret manager unavailable
+  - Fail closed và fail safe
+  - Connection pool sau rotation
+  - Graceful reload credential
+- level1: CI/CD
+  level2:
+  - Secret trong pipeline
+  - OIDC cho pipeline
+  - Ephemeral build credential
+  - Tách build và deploy identity
+  - Mask secret trong log
+  - Fork và pull request leakage
+  - Secret scope theo job
+  - Secret scope theo environment
+  - Không lưu static cloud key
+  - Audit pipeline secret access
+  - Rotate secret CI/CD
+- level1: Source control
+  level2:
+  - Pre-commit secret scanning
+  - Push protection
+  - Secret scanning trong CI
+  - Quét Git history
+  - Xóa secret khỏi working tree
+  - Không coi xóa file là remediation
+  - Rotate ngay sau phát hiện
+  - Sử dụng encrypted artifact
+  - Review repository permission
+  - Bảo vệ fork và mirror
+- level1: Container
+  level2:
+  - Secret trong image layer
+  - Secret trong Dockerfile
+  - Build argument và leakage
+  - Runtime secret injection
+  - Image scanning
+  - Registry access control
+  - Container workload identity
+  - Container log redaction
+  - Secret mount permission
+  - Rebuild image sau exposure
+- level1: Kubernetes
+  level2:
+  - Kubernetes Secret limitation
+  - External Secrets Operator
+  - Secret store CSI driver
+  - Service account identity
+  - Namespace isolation
+  - RBAC cho secret
+  - Secret encryption at rest
+  - Secret rotation trong Pod
+  - Reload secret không restart
+  - Audit Kubernetes secret access
+  - Admission policy cho secret
+- level1: Cloud
+  level2:
+  - AWS Secrets Manager
+  - Google Cloud Secret Manager
+  - Azure Key Vault
+  - Cloud IAM cho secret
+  - Cloud audit trail
+  - Native rotation function
+  - Cloud secret version
+  - Cloud quota và limit
+  - Cloud backup của secret
+  - Khi nào dùng native service
+- level1: Multi-cloud
+  level2:
+  - Khác biệt API giữa cloud
+  - Chính sách thống nhất
+  - Cloud-agnostic access layer
+  - Centralized audit log
+  - Rotation xuyên nhiều cloud
+  - Tách production theo cloud
+  - Giảm vendor lock-in
+  - Fallback khi một cloud lỗi
+  - Đồng bộ metadata
+  - Đánh giá chi phí đa cloud
+- level1: Khóa mã hóa
+  level2:
+  - Secret key và encryption key
+  - Symmetric key
+  - Asymmetric private key
+  - Key wrapping
+  - Envelope encryption
+  - Key hierarchy
+  - Key usage restriction
+  - Cryptoperiod
+  - Key compromise
+  - Key destruction
+  - Key recovery
+- level1: HSM và KMS
+  level2:
+  - Vai trò KMS
+  - Vai trò HSM
+  - HSM không thay thế secret manager
+  - Generate key trong HSM
+  - Key export policy
+  - Key usage audit
+  - HSM availability
+  - HSM backup
+  - KMS permission boundary
+  - Chọn HSM hay managed KMS
+- level1: Certificate và PKI
+  level2:
+  - Certificate inventory
+  - Private key protection
+  - Certificate issuance
+  - Certificate renewal
+  - Certificate rotation
+  - Certificate revocation
+  - CRL và OCSP
+  - Trust store
+  - Intermediate CA
+  - Certificate expiry alert
+  - mTLS credential
+- level1: Password và token
+  level2:
+  - Password không nên lưu plaintext
+  - Password hashing
+  - Token storage
+  - Bearer token risk
+  - Refresh token protection
+  - Token scope
+  - Token audience
+  - Token expiration (bổ sung 2)
+  - Token revocation
+  - Passwordless authentication
+- level1: Phát hiện rò rỉ
+  level2:
+  - Secret scanning
+  - Pattern detection
+  - Entropy detection
+  - High-confidence finding
+  - False positive của scanner
+  - Quét commit mới
+  - Quét history
+  - Quét artifact
+  - Quét log
+  - Quét memory dump
+  - Secret detection rule
+- level1: Audit và logging
+  level2:
+  - Ai yêu cầu secret
+  - Secret được cấp cho hệ thống nào
+  - Request được approve hay reject
+  - Thời điểm secret được dùng
+  - Thời điểm secret được rotate
+  - Thời điểm secret hết hạn
+  - Attempt dùng secret revoked
+  - Authentication error
+  - Authorization error
+  - Administrative action
+  - Đồng bộ thời gian audit
+- level1: Monitoring
+  level2:
+  - Secret manager health
+  - Secret access volume
+  - Access anomaly
+  - Truy cập ngoài giờ
+  - Truy cập từ vị trí lạ
+  - Nhiều lỗi authentication
+  - Nhiều lần đọc cùng secret
+  - Secret manager latency
+  - Rotation job failure
+  - Audit log bị dừng
+  - Cảnh báo backup thất bại
+- level1: Ứng phó lộ secret
+  level2:
+  - Declare secret exposure incident
+  - Xác định phạm vi lộ
+  - Xác định consumer bị ảnh hưởng
+  - Revoke secret ngay
+  - Tạo secret thay thế
+  - Triển khai secret mới
+  - Xóa secret khỏi hệ thống lộ
+  - Kiểm tra Git history
+  - Kiểm tra log và artifact
+  - Theo dõi việc misuse
+  - Post-incident review
+- level1: Backup và restore
+  level2:
+  - Backup secret manager
+  - Mã hóa backup
+  - Giảm quyền đọc backup
+  - Immutable backup
+  - Snapshot theo vòng đời
+  - Restore test
+  - Khôi phục metadata
+  - Khôi phục version secret
+  - Kiểm tra integrity backup
+  - Backup bị lộ phải xử lý như secret
+- level1: Availability và break-glass
+  level2:
+  - Secret manager downtime
+  - Dependency khi khởi động service
+  - Local cache có kiểm soát
+  - Break-glass credential
+  - Secondary secret manager
+  - Emergency access approval
+  - Quorum cho thao tác khẩn cấp
+  - Theo dõi break-glass usage
+  - Thu hồi sau khẩn cấp
+  - Diễn tập mất secret manager
+- level1: Thực hành cho developer
+  level2:
+  - Không hardcode secret
+  - Không commit secret
+  - Không log secret (bổ sung 2)
+  - Không gửi secret qua chat
+  - Không đưa secret vào exception
+  - Dùng local secret store
+  - Tách local và production secret
+  - Review secret trong code review
+  - Dùng identity thay credential
+  - Tài liệu cách truy cập đúng
+- level1: Kiểm thử
+  level2:
+  - Test access denied
+  - Test least privilege
+  - Test secret rotation
+  - Test revoke propagation
+  - Test expired credential
+  - Test manager outage
+  - Test backup restore
+  - Test leaked credential response
+  - Test log redaction
+  - Test CI/CD masking
+  - Test concurrent rotation
+- level1: Chính sách
+  level2:
+  - Secrets management policy
+  - Naming convention
+  - Classification của secret
+  - Password policy
+  - Rotation policy
+  - Retention policy
+  - Access review policy
+  - Emergency access policy
+  - Exception policy
+  - Policy enforcement tự động
+- level1: Đánh giá nhà cung cấp
+  level2:
+  - Dedicated secret storage
+  - Fine-grained access control
+  - Dynamic secret support
+  - Automated rotation (bổ sung 2)
+  - Audit logging
+  - Version và rollback
+  - Backup và restore (bổ sung 2)
+  - Availability SLA
+  - API quota
+  - Migration support
+  - Cloud-native integration
+- level1: Di chuyển
+  level2:
+  - Inventory trước migration
+  - Map secret metadata
+  - Dual-read migration
+  - Cutover consumer
+  - Migrate theo environment
+  - Migrate theo service
+  - Validate credential mới
+  - Rollback migration
+  - Xóa secret ở hệ cũ
+  - Cập nhật tài liệu owner
+- level1: Vận hành runbook
+  level2:
+  - Runbook cấp secret mới
+  - Runbook rotate database password
+  - Runbook revoke API key
+  - Runbook lộ secret trong Git
+  - Runbook certificate sắp hết hạn
+  - Runbook manager unavailable
+  - Runbook restore backup
+  - Runbook cấp break-glass
+  - Runbook audit access
+  - Runbook xử lý rotation failure
+- level1: Chỉ số
+  level2:
+  - Secret age
+  - Secret rotation compliance
+  - Secret access review coverage
+  - Dynamic secret adoption
+  - Static credential count
+  - Time to revoke
+  - Time to rotate
+  - Secret scanning coverage
+  - Unauthorized access attempt
+  - Break-glass usage
+  - Backup restore success rate
+- level1: Kiến trúc mẫu
+  level2:
+  - Centralized vault pattern
+  - Cloud-native manager pattern
+  - Sidecar injection pattern
+  - CSI mount pattern
+  - Runtime fetch pattern
+  - Pipeline OIDC pattern
+  - Dynamic credential pattern
+  - Dual-credential rotation pattern
+  - Envelope encryption pattern
+  - Multi-cloud abstraction pattern
+- level1: Anti-pattern
+  level2:
+  - Secret trong source code
+  - Secret trong Docker image
+  - Secret trong plain environment
+  - Credential dùng chung (bổ sung 2)
+  - Root token cho application
+  - Secret manager admin cho developer
+  - Rotation không có rollback
+  - Không có owner của secret
+  - Không audit secret access
+  - Backup không kiểm thử
+  - Xóa secret mà không rotate
+- level1: Checklist production
+  level2:
+  - Đã lập inventory secret
+  - Đã gán owner và consumer
+  - Đã tách môi trường
+  - Đã bật least privilege
+  - Đã bật audit log
+  - Đã kiểm thử rotation
+  - Đã kiểm thử revocation
+  - Đã cấu hình expiration
+  - Đã quét leakage
+  - Đã kiểm thử backup restore
+  - Đã có break-glass
+  - Đã có runbook sự cố

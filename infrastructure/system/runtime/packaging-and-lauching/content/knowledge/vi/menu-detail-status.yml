@@ -1,0 +1,2746 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Đóng gói và khởi chạy ứng dụng trong vòng đời phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt mã nguồn, bản dựng, gói phân phối và tiến trình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Bài toán mang ứng dụng từ môi trường phát triển đến máy đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: 'Những thành phần cần có: mã thực thi, phụ thuộc, runtime và cấu hình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt build, package, install, launch và deploy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Quan hệ giữa gói ứng dụng, hệ điều hành và môi trường thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Ví dụ hành trình từ dự án Java đến ứng dụng có thể chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học và phạm vi giữa đóng gói, JVM và quản lý tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-chain
+  title: Chuỗi thực thi
+  childs:
+  - slug: execution-chain-001
+    title: Từ biên dịch và liên kết đến tạo gói phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-002
+    title: Phân biệt liên kết tĩnh, liên kết động và nạp lớp trong Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-003
+    title: Những bước diễn ra từ lệnh khởi chạy đến điểm vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-004
+    title: Vai trò của bộ khởi chạy, runtime và mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-005
+    title: Thư mục làm việc, đối số và môi trường của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-006
+    title: Dữ liệu và tài nguyên được tìm kiếm khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-007
+    title: Đặc tả điều kiện chạy như một hợp đồng của gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-chain-008
+    title: Phân biệt lỗi trước khi vào ứng dụng với lỗi trong quá trình khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distribution-formats
+  title: Hình thức phân phối
+  childs:
+  - slug: distribution-formats-001
+    title: Mã nguồn và những điều kiện để máy đích tự dựng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-002
+    title: Script và yêu cầu có trình thông dịch tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-003
+    title: Thư mục lớp biên dịch và tài nguyên đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-004
+    title: JAR thư viện, JAR thực thi và bản phân phối dạng thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-005
+    title: WAR và ứng dụng phụ thuộc máy chủ triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-006
+    title: Tệp thực thi native và phụ thuộc hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-007
+    title: Gói có kèm runtime, bộ cài và container image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distribution-formats-008
+    title: So sánh kích thước, tính di động, cách cập nhật và trải nghiệm khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-entry-points
+  title: Điểm vào chương trình
+  childs:
+  - slug: application-entry-points-001
+    title: Điểm vào như nơi bộ khởi chạy chuyển quyền điều khiển cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-002
+    title: Phương thức main trong mô hình khởi chạy Java truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-003
+    title: Phân biệt lớp chứa main với lớp bootstrap của framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-004
+    title: Đối số ứng dụng và hợp đồng sử dụng dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-005
+    title: Chọn điểm vào khi một dự án có nhiều chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-006
+    title: Ứng dụng chạy một lần, tác vụ nền và dịch vụ sống lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-007
+    title: Mã thoát và cách biểu đạt kết quả cho tiến trình gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-entry-points-008
+    title: Thiết kế thông báo trợ giúp, phiên bản và lỗi đối số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jar-structure
+  title: Cấu trúc JAR
+  childs:
+  - slug: jar-structure-001
+    title: JAR như kho lưu trữ lớp Java và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-002
+    title: Cấu trúc đường dẫn package bên trong JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-003
+    title: Thư mục META-INF và tệp manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-004
+    title: Vai trò của Main-Class và Class-Path trong manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-005
+    title: Đóng gói tệp cấu hình, mẫu, chứng chỉ và dữ liệu tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-006
+    title: Đọc tài nguyên qua classpath thay vì giả định đường dẫn tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-007
+    title: Kiểm tra nội dung bằng công cụ jar và công cụ giải nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-008
+    title: Multi-release JAR và ý nghĩa khi chọn phiên bản Java chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jar-structure-009
+    title: Phân biệt tạo được JAR với tạo được gói chạy hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classpath-and-module-path
+  title: Classpath và module path
+  childs:
+  - slug: classpath-and-module-path-001
+    title: Classpath trong tìm kiếm lớp và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-002
+    title: Thiết lập classpath khi chạy lớp có main
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-003
+    title: Quy tắc đường dẫn tương đối và dấu phân cách theo hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-004
+    title: Thứ tự tìm kiếm và tình huống trùng lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-005
+    title: Wildcard trong classpath và giới hạn phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-006
+    title: Module path, module-info và ranh giới mô-đun JPMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-007
+    title: Khởi chạy mô-đun bằng tên mô-đun và lớp chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-008
+    title: Phân biệt named module, automatic module và unnamed module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classpath-and-module-path-009
+    title: Ảnh hưởng của lựa chọn java -jar đến cách khai báo classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-dependencies
+  title: Phụ thuộc khi chạy
+  childs:
+  - slug: runtime-dependencies-001
+    title: Phân biệt phụ thuộc biên dịch, runtime và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-002
+    title: Phụ thuộc trực tiếp, bắc cầu và kết quả phân giải phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-003
+    title: Đảm bảo gói phân phối có đủ runtime dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-004
+    title: Phụ thuộc provided hoặc compileOnly và trách nhiệm của môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-005
+    title: Xung đột phiên bản và rủi ro dùng nhầm thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-006
+    title: Thư viện native, JNI và đường dẫn tìm thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-007
+    title: 'Phụ thuộc ngoài mã: executable, thư viện hệ thống và tệp dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-008
+    title: Kiến trúc CPU, hệ điều hành và ABI ảnh hưởng đến khả năng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-dependencies-009
+    title: Liệt kê phụ thuộc thực tế để tái hiện môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: executable-jars
+  title: JAR thực thi
+  childs:
+  - slug: executable-jars-001
+    title: JAR thường và điều kiện có thể chạy bằng java -jar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-002
+    title: Thin JAR và bố cục thư mục lib đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-003
+    title: 'Uber JAR hoặc shaded JAR: hợp nhất lớp và tài nguyên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-004
+    title: Nested JAR và nhu cầu có bộ nạp hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-005
+    title: Xử lý tài nguyên trùng và mô tả nhà cung cấp dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-006
+    title: Relocation package để giảm xung đột thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-007
+    title: Ảnh hưởng của đóng gói lại đến chữ ký và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: executable-jars-008
+    title: Chọn hình thức JAR theo khả năng vận hành và cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-packaging
+  title: Gói Spring Boot
+  childs:
+  - slug: spring-boot-packaging-001
+    title: Vai trò của bootJar và gói ứng dụng có bộ khởi chạy riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-002
+    title: Phân biệt JAR thư viện với executable JAR của Spring Boot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-003
+    title: Bố cục lớp ứng dụng, thư viện và bộ khởi chạy trong gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-004
+    title: Vai trò của Main-Class và Start-Class trong mô hình launcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-005
+    title: Khởi chạy bằng java -jar và truyền đối số ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-006
+    title: Phân biệt bootRun trong phát triển với chạy gói đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-007
+    title: Đưa cấu hình ra ngoài gói và lựa chọn profile khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-008
+    title: Layered JAR và khả năng tái sử dụng lớp container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-009
+    title: Tùy chọn tạo script thực thi kèm gói và điều kiện hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-packaging-010
+    title: Kiểm tra gói có thể chạy độc lập ngoài thư mục dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: war-packaging
+  title: Gói WAR
+  childs:
+  - slug: war-packaging-001
+    title: Cấu trúc WAR và vai trò của WEB-INF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-002
+    title: Mã ứng dụng, thư viện và tài nguyên web trong gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-003
+    title: Phân biệt container nhúng với container cài bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-004
+    title: Điểm bootstrap khi ứng dụng được servlet container nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-005
+    title: Phụ thuộc do container cung cấp và nguy cơ đóng gói trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-006
+    title: Executable WAR và điều kiện hỗ trợ hai cách khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-007
+    title: Tương thích Java, Servlet API và container mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: war-packaging-008
+    title: Quyền sở hữu cấu hình, class loading và nhật ký khi triển khai WAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: packaging-tools
+  title: Công cụ đóng gói
+  childs:
+  - slug: packaging-tools-001
+    title: Phối hợp javac và jar trong ví dụ đóng gói tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-002
+    title: Vòng đời Maven và phân biệt package, install, deploy với triển khai ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-003
+    title: Các mục tiêu đóng gói JAR, assembly và shading trong Maven
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-004
+    title: Gradle Java plugin và nhiệm vụ jar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-005
+    title: Gradle application plugin với startScripts và installDist
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-006
+    title: Tạo bản phân phối ZIP hoặc TAR từ Gradle
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-007
+    title: Wrapper, toolchain và đầu vào ảnh hưởng đến kết quả đóng gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: packaging-tools-008
+    title: Phân biệt thư mục đầu ra build với gói đã sẵn sàng phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-launchers
+  title: Bộ khởi chạy Java
+  childs:
+  - slug: java-launchers-001
+    title: Tìm đúng lệnh java và xác minh runtime đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-002
+    title: Vai trò của JAVA_HOME, PATH và lựa chọn bản cài Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-003
+    title: Khởi chạy lớp chính từ thư mục lớp biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-004
+    title: Khởi chạy JAR thực thi và mô-đun JPMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-005
+    title: Chế độ chạy trực tiếp mã nguồn và giới hạn theo phiên bản Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-006
+    title: Phân biệt tùy chọn bộ khởi chạy, tùy chọn JVM và đối số ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-007
+    title: Vị trí tham số trước hoặc sau tên lớp, JAR và mô-đun
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-008
+    title: Tệp đối số để quản lý dòng lệnh dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-009
+    title: Phân biệt java và javaw trong trải nghiệm khởi chạy trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-launchers-010
+    title: Kiểm tra mã thoát và chẩn đoán lỗi từ bộ khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-options
+  title: Tham số JVM
+  childs:
+  - slug: jvm-options-001
+    title: Phân loại tham số chuẩn và tùy chọn phụ thuộc bản JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-002
+    title: Thuộc tính hệ thống qua -D và cách ứng dụng đọc giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-003
+    title: Khai báo heap, stack và ngân sách bộ nhớ ở mức khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-004
+    title: Tham số GC và giới hạn phạm vi so với chuyên đề tinh chỉnh JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-005
+    title: Thiết lập ghi log JVM và vị trí lưu dữ liệu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-006
+    title: Tùy chọn mở package hoặc cấp quyền truy cập mô-đun khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-007
+    title: JAVA_TOOL_OPTIONS và JDK_JAVA_OPTIONS trong quá trình khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-008
+    title: JAVA_OPTS như quy ước của script thay vì tùy chọn tự động chung của java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-options-009
+    title: Kiểm chứng tham số thực sự có hiệu lực và bảo vệ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-configuration
+  title: Môi trường và cấu hình
+  childs:
+  - slug: environment-configuration-001
+    title: Đối số dòng lệnh, biến môi trường, thuộc tính hệ thống và tệp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-002
+    title: Xác định thứ tự ưu tiên cấu hình theo ứng dụng hoặc framework
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-003
+    title: Kế thừa môi trường từ shell, tiến trình cha hoặc trình quản lý dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-004
+    title: Phân biệt biến đã khai báo trong shell với biến được export
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-005
+    title: Thư mục làm việc và cách phân giải đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-006
+    title: Mã hóa ký tự, locale và múi giờ của môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-007
+    title: Cấu hình mạng, proxy, DNS và truststore cần cho kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-008
+    title: Tách thông tin bí mật khỏi mã nguồn và gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-009
+    title: Kiểm tra cấu hình bắt buộc và dừng sớm khi không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-010
+    title: Ghi nhận cấu hình cần thiết để tái hiện sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: launch-scripts
+  title: Script khởi chạy
+  childs:
+  - slug: launch-scripts-001
+    title: 'Trách nhiệm của script: xác định môi trường và gọi đúng chương trình'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-002
+    title: Shell script trên Linux, macOS và quy tắc shebang
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-003
+    title: PowerShell hoặc batch script trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-004
+    title: Xác định thư mục cài đặt từ vị trí script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-005
+    title: Quoting và escaping khi đường dẫn có khoảng trắng hoặc Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-006
+    title: Truyền nguyên vẹn danh sách đối số đến ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-007
+    title: Phân biệt thay thế tiến trình bằng exec với sinh thêm tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-008
+    title: Giữ đúng mã thoát và quản lý tín hiệu dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: launch-scripts-009
+    title: Quyền thực thi, xuống dòng CRLF/LF và tính di động của script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-lifecycle
+  title: Tiến trình và vòng đời
+  childs:
+  - slug: process-lifecycle-001
+    title: Tiến trình cha, tiến trình con và cây tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-002
+    title: Chạy foreground, background và ảnh hưởng khi kết thúc phiên shell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-003
+    title: Quản lý đầu vào, đầu ra và lỗi chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-004
+    title: Vòng đời từ khởi động, phục vụ đến dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-005
+    title: Truyền tín hiệu và sự khác biệt giữa các hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-006
+    title: Graceful shutdown và thời gian cho phép hoàn tất công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-007
+    title: Shutdown hook và giới hạn khi tiến trình bị buộc kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-008
+    title: Tài nguyên mở và trách nhiệm giải phóng khi dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-009
+    title: Mã thoát, chính sách chạy lại và tránh vòng lặp khởi động lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-layout
+  title: Bố cục cài đặt
+  childs:
+  - slug: installation-layout-001
+    title: Tách thư mục chương trình, runtime, cấu hình và dữ liệu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-002
+    title: Bố cục bin, lib, conf, data, logs và thư mục tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-003
+    title: Đường dẫn tương đối, tuyệt đối và tính di chuyển của bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-004
+    title: Giới hạn ghi khi thư mục cài đặt hoặc hệ thống tệp chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-005
+    title: Người dùng chạy ứng dụng và quyền truy cập tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-006
+    title: Đóng gói tệp mẫu mà vẫn bảo toàn cấu hình người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-007
+    title: Giới hạn độ dài đường dẫn và khác biệt phân biệt hoa thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-layout-008
+    title: Quy ước thư mục theo hệ điều hành và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: custom-runtimes
+  title: Runtime tùy chỉnh
+  childs:
+  - slug: custom-runtimes-001
+    title: Phân biệt dùng Java cài sẵn với phân phối kèm runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-002
+    title: JDK, runtime image và tập công cụ cần cho môi trường đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-003
+    title: Phân tích mô-đun phụ thuộc bằng jdeps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-004
+    title: Tạo runtime image bằng jlink
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-005
+    title: Phụ thuộc động, reflection và dịch vụ có thể không hiện đủ qua phân tích tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-006
+    title: Kết hợp runtime image với ứng dụng và script khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-007
+    title: Ràng buộc nền tảng khi phân phối runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: custom-runtimes-008
+    title: Quản lý phiên bản và cập nhật bảo mật cho runtime được đóng kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-installers
+  title: Bộ cài ứng dụng
+  childs:
+  - slug: application-installers-001
+    title: Gói nén di động và bộ cài tích hợp hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-002
+    title: jpackage trong tạo application image và gói cài đặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-003
+    title: Đầu vào ứng dụng, điểm vào và runtime đi kèm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-004
+    title: Shortcut, biểu tượng, menu và liên kết tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-005
+    title: Định danh ứng dụng, phiên bản và metadata nhà phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-006
+    title: Định dạng gói theo nền tảng và điều kiện của máy tạo gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-007
+    title: Quyền cài đặt, cập nhật và gỡ bỏ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-installers-008
+    title: Bảo toàn dữ liệu người dùng qua các lần nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: native-executables
+  title: Tệp thực thi native
+  childs:
+  - slug: native-executables-001
+    title: Phân biệt chương trình Java chạy trên JVM với executable native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-executables-002
+    title: GraalVM Native Image như một phương án đóng gói Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-executables-003
+    title: Metadata cho reflection, tài nguyên và cơ chế nạp động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-executables-004
+    title: Phụ thuộc thư viện hệ thống, ABI và kiến trúc CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-executables-005
+    title: Liên kết tĩnh, liên kết động và khả năng chạy trên máy đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-executables-006
+    title: Khác biệt về khởi động, bộ nhớ và khả năng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: native-executables-007
+    title: Kiểm thử executable native như một sản phẩm riêng của quy trình build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-packaging
+  title: Đóng gói container
+  childs:
+  - slug: container-packaging-001
+    title: Image, lớp hệ thống tệp và container đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-002
+    title: Chọn ảnh nền phù hợp với runtime và thư viện hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-003
+    title: Multi-stage build để tách môi trường dựng khỏi môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-004
+    title: Đóng gói JAR và runtime vào image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-005
+    title: Phân lớp phụ thuộc và mã ứng dụng để tận dụng bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-006
+    title: Buildpacks hoặc Jib như các phương án tạo image Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-007
+    title: Tag, digest và định danh bất biến của image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-008
+    title: Kiến trúc CPU và image đa nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-packaging-009
+    title: Giảm tệp không cần thiết và kiểm soát nội dung đưa vào image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-execution
+  title: Chạy trong container
+  childs:
+  - slug: container-execution-001
+    title: ENTRYPOINT, CMD và cách truyền đối số ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-002
+    title: Dạng exec và dạng shell trong lệnh khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-003
+    title: Tiến trình PID 1, chuyển tiếp tín hiệu và thu hồi tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-004
+    title: Kết thúc có kiểm soát trước khi container bị buộc dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-005
+    title: Biến môi trường, tệp cấu hình và volume khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-006
+    title: Thư mục làm việc, người dùng và hệ thống tệp chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-007
+    title: Đưa log ra đầu ra chuẩn và thu thập dữ liệu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-008
+    title: Phối hợp giới hạn tài nguyên container với tham số JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-009
+    title: Phân biệt cổng lắng nghe, công bố cổng và địa chỉ bind
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-execution-010
+    title: Kiểm tra container chạy được mà không phụ thuộc tệp trên máy build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: os-services
+  title: Dịch vụ hệ điều hành
+  childs:
+  - slug: os-services-001
+    title: Khác biệt giữa chạy từ terminal và chạy dưới trình quản lý dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-002
+    title: Khai báo lệnh, người dùng, môi trường và thư mục làm việc trong systemd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-003
+    title: Phụ thuộc khởi động và điều kiện sẵn sàng của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-004
+    title: Chính sách restart, giới hạn số lần lỗi và thời gian chờ dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-005
+    title: Tích hợp log và chẩn đoán khi dịch vụ không khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-006
+    title: Chạy Java dưới Windows Service và vai trò của service wrapper
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-007
+    title: launchd trên macOS trong quản lý chương trình nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-008
+    title: Cài đặt, cập nhật và gỡ đăng ký dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: os-services-009
+    title: Phối hợp vòng đời ứng dụng với trình quản lý dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versioning-distribution
+  title: Phiên bản và phân phối
+  childs:
+  - slug: versioning-distribution-001
+    title: Định danh ứng dụng, phiên bản và bản dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-002
+    title: Phân biệt phiên bản chương trình, runtime và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-003
+    title: Tên gói phản ánh hệ điều hành và kiến trúc mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-004
+    title: Kho artifact, kho image và kênh tải bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-005
+    title: Phân biệt phát hành gói với triển khai gói vào môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-006
+    title: Checksum và chữ ký trong kiểm tra gói nhận được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-007
+    title: Metadata bản dựng, commit nguồn và danh mục phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-008
+    title: Tải phụ thuộc khi chạy so với phân phối đủ để chạy ngoại tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versioning-distribution-009
+    title: Tài liệu cài đặt và hợp đồng khởi chạy của từng bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reproducible-builds
+  title: Build tái lập
+  childs:
+  - slug: reproducible-builds-001
+    title: Mục tiêu tạo cùng kết quả từ cùng đầu vào đã kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-002
+    title: Cố định phiên bản công cụ build, plugin và Java toolchain
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-003
+    title: Khóa phiên bản phụ thuộc và kiểm tra nguồn tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-004
+    title: Timestamp, thứ tự tệp và metadata ảnh hưởng đến gói nén
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-005
+    title: Locale, múi giờ và đường dẫn tuyệt đối lọt vào kết quả build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-006
+    title: Loại bỏ tệp tạm, cấu hình cá nhân và dữ liệu ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-007
+    title: Phân biệt build thành công, build tái lập và gói thực sự chạy được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-008
+    title: Ghi nhận môi trường build và nguồn gốc artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reproducible-builds-009
+    title: So sánh checksum và phân tích khác biệt giữa các bản dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: package-security
+  title: An toàn gói chạy
+  childs:
+  - slug: package-security-001
+    title: Kiểm soát mã, thư viện và tài nguyên đưa vào gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-002
+    title: Quét phụ thuộc và danh mục thành phần phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-003
+    title: Bảo vệ nguồn gốc artifact bằng chữ ký và xác minh nhà phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-004
+    title: Không đóng gói bí mật vào JAR, image hoặc script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-005
+    title: Nguy cơ lộ đối số nhạy cảm qua danh sách tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-006
+    title: Quyền tối thiểu cho người dùng chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-007
+    title: Quyền tệp, symlink và giải nén vào thư mục an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-008
+    title: Giới hạn bề mặt công cụ và dịch vụ không cần thiết trong runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-security-009
+    title: Cập nhật thư viện, Java runtime và ảnh nền theo quy trình phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-readiness
+  title: Khởi động và sẵn sàng
+  childs:
+  - slug: startup-readiness-001
+    title: Phân biệt tiến trình tồn tại, ứng dụng khởi tạo xong và sẵn sàng phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-002
+    title: Thứ tự nạp cấu hình, dựng thành phần và mở tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-003
+    title: Kiểm tra điều kiện bắt buộc và thông báo lỗi có thể hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-004
+    title: Thời hạn khởi động và quản lý phụ thuộc chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-005
+    title: Migration dữ liệu khi khởi động và rủi ro nhiều thể hiện cùng chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-006
+    title: Khởi tạo lười và ảnh hưởng đến yêu cầu đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-007
+    title: Liveness, readiness và startup check trong môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-008
+    title: Công bố phiên bản, thời gian khởi động và trạng thái hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-readiness-009
+    title: Dừng một phần khởi tạo và thu hồi tài nguyên khi bootstrap thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades-rollback
+  title: Nâng cấp và rollback
+  childs:
+  - slug: upgrades-rollback-001
+    title: Thay gói ứng dụng độc lập với cấu hình và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-002
+    title: Bố cục thư mục theo phiên bản và chuyển điểm khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-003
+    title: Tương thích giữa phiên bản ứng dụng và Java runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-004
+    title: Thay đổi định dạng cấu hình và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-005
+    title: Nâng cấp có migration dữ liệu và giới hạn quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-006
+    title: Tránh nhiều phiên bản tranh chấp tệp, cổng hoặc khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-007
+    title: Giữ khả năng chạy lại bản cũ với điều kiện đã xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-008
+    title: Cập nhật runtime đóng kèm và bộ cài theo phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-rollback-009
+    title: Dọn phiên bản cũ sau khi kiểm tra bản mới hoạt động ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: package-testing
+  title: Kiểm thử gói chạy
+  childs:
+  - slug: package-testing-001
+    title: Kiểm tra cấu trúc gói, điểm vào và danh sách phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-002
+    title: Smoke test bằng chính artifact đã tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-003
+    title: Chạy trên máy sạch hoặc môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-004
+    title: Ma trận Java, hệ điều hành và kiến trúc CPU mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-005
+    title: Kiểm thử đường dẫn có khoảng trắng, Unicode và thư mục làm việc khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-006
+    title: Kiểm thử không có mạng hoặc không có công cụ build trên máy đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-007
+    title: Kiểm thử quyền hạn chế và hệ thống tệp chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-008
+    title: Kiểm thử truyền đối số, biến môi trường và mã thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-009
+    title: Kiểm thử dừng, chạy lại và giải phóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: package-testing-010
+    title: Kiểm thử cài mới, nâng cấp, gỡ cài đặt và giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Không tìm thấy lệnh java hoặc chạy nhầm bản cài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không tìm thấy lớp chính hoặc thiếu Main-Class
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: ClassNotFoundException và NoClassDefFoundError khi đóng gói thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: UnsupportedClassVersionError và lệch phiên bản Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: NoSuchMethodError hoặc LinkageError do xung đột thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Không tìm thấy mô-đun hoặc vi phạm ranh giới truy cập JPMS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Thiếu tài nguyên hoặc sai đường dẫn khi chuyển từ IDE sang JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: UnsatisfiedLinkError và khác biệt thư viện native trên máy đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lỗi script do quoting, xuống dòng hoặc quyền thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Chạy được từ terminal nhưng lỗi dưới service hoặc container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Không bind được cổng, sai địa chỉ lắng nghe hoặc thiếu quyền tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Thu thập lệnh khởi chạy, môi trường hiệu lực và log để tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-performance
+  title: Hiệu năng khởi động
+  childs:
+  - slug: startup-performance-001
+    title: Tách thời gian nạp runtime, nạp lớp và khởi tạo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-002
+    title: Đo khởi động lạnh, khởi động ấm và thời điểm sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-003
+    title: Chi phí giải nén, đọc đĩa và bố cục gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-004
+    title: Ảnh hưởng của số lượng thư viện và quét classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-005
+    title: CDS, AppCDS và điều kiện sử dụng theo JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-006
+    title: Đánh đổi của khởi tạo lười và tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-007
+    title: So sánh gói JVM với native executable bằng cùng tiêu chí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-performance-008
+    title: Cân bằng kích thước phân phối, tốc độ khởi động và khả năng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-process
+  title: Quy trình phát hành
+  childs:
+  - slug: release-process-001
+    title: Chuỗi build, kiểm thử, đóng gói, xác minh và công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-002
+    title: Dựng riêng artifact theo nền tảng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-003
+    title: Promote cùng artifact qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-004
+    title: Đính kèm checksum, nguồn gốc và hướng dẫn khởi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-005
+    title: Quản lý retention của artifact và phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-006
+    title: Tự động kiểm tra cài đặt và chạy thử trong pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-007
+    title: Kiểm tra cấu hình triển khai khớp hợp đồng gói phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-process-008
+    title: Ghi nhận artifact thực tế đang chạy và hỗ trợ quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercises
+  title: Bài tập thực hành
+  childs:
+  - slug: hands-on-exercises-001
+    title: Biên dịch lớp Java và khởi chạy không qua IDE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-002
+    title: Tạo JAR có manifest và kiểm chứng java -jar
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-003
+    title: Đóng gói ứng dụng nhiều thư viện thành bản phân phối bin và lib
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-004
+    title: So sánh thin JAR, shaded JAR và nested JAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-005
+    title: Chạy executable JAR của Spring Boot bên ngoài thư mục dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-006
+    title: Viết script truyền đúng đối số trên đường dẫn có khoảng trắng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-007
+    title: Tạo runtime tùy chỉnh và bản phân phối không cần Java cài sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-008
+    title: Tạo bộ cài ứng dụng và kiểm thử nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-009
+    title: Xây dựng container nhận tín hiệu dừng và thoát có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-010
+    title: Đăng ký ứng dụng thành dịch vụ với môi trường chạy tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-011
+    title: Tái hiện lỗi chỉ xuất hiện trên máy đích và lập bằng chứng chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercises-012
+    title: Danh sách kiểm tra gói hoàn chỉnh và khả năng khởi chạy độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

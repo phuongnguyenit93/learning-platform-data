@@ -1,0 +1,2653 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Hoạch định năng lực là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt nhu cầu, năng lực, hiệu năng và mức sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Thông lượng, độ trễ, mức đồng thời và điểm bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Năng lực lý thuyết, năng lực thực tế và năng lực đáp ứng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Quan hệ giữa hoạch định năng lực, độ tin cậy và chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Hoạch định chủ động và ứng phó thiếu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vai trò của nhóm ứng dụng, nền tảng, vận hành và kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học cùng kiến thức hệ thống cần chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: goals-and-scope
+  title: Mục tiêu và phạm vi
+  childs:
+  - slug: goals-and-scope-001
+    title: Xác định dịch vụ, hành trình người dùng và tài nguyên cần quy hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-002
+    title: Chuyển mục tiêu kinh doanh thành giả định về nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-003
+    title: Dùng SLI, SLO và yêu cầu độ trễ làm ràng buộc năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-004
+    title: Xác định thời hạn quy hoạch ngắn, trung và dài hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-005
+    title: Phân biệt năng lực theo dịch vụ, cụm, vùng và toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-006
+    title: Lập bản đồ thành phần và luồng xử lý quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-007
+    title: Xác định chủ sở hữu, bên cung cấp dữ liệu và người phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-008
+    title: Ghi nhận giới hạn ngân sách, hạ tầng và yêu cầu tuân thủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-and-scope-009
+    title: Định nghĩa tiêu chí đủ năng lực cùng bằng chứng nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-modeling
+  title: Mô hình tải
+  childs:
+  - slug: load-modeling-001
+    title: Phân loại tải tương tác, xử lý nền, theo lô và truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-002
+    title: Phân biệt người dùng hoạt động, phiên truy cập và yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-003
+    title: Tốc độ yêu cầu đến, tốc độ hoàn thành và yêu cầu đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-004
+    title: Cơ cấu nghiệp vụ, kích thước dữ liệu và chi phí mỗi loại yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-005
+    title: Thời gian suy nghĩ của người dùng và mức đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-006
+    title: Mô hình tải mở và tải đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-007
+    title: Tải nền, giờ cao điểm và chu kỳ ngày hoặc tuần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-008
+    title: Tải tăng đột biến, chiến dịch và sự kiện theo lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-009
+    title: Tải thử lại, công việc định kỳ và lưu lượng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-modeling-010
+    title: Tải theo khách hàng, khu vực, phân vùng và mức độ ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-metrics
+  title: Chỉ số năng lực
+  childs:
+  - slug: capacity-metrics-001
+    title: Chọn đơn vị năng lực theo yêu cầu, giao dịch hoặc khối lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-002
+    title: Thông lượng trung bình, thông lượng đỉnh và cửa sổ đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-003
+    title: Độ trễ trung vị, p95, p99 và tác động của phân phối đuôi dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-004
+    title: Mức sử dụng, độ bão hòa và lỗi theo phương pháp USE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-005
+    title: Đo tài nguyên tiêu thụ trên mỗi đơn vị công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-006
+    title: Hàng đợi, tuổi công việc và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-007
+    title: Năng lực còn lại, khoảng dự trữ và ngưỡng vận hành an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-008
+    title: Tỷ lệ hoàn thành đúng SLO theo từng mức tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-009
+    title: Phân biệt tài nguyên được cấp, được đặt trước và thực sự sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-metrics-010
+    title: Giới hạn của giá trị trung bình và số đo tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: baseline-data
+  title: Dữ liệu nền
+  childs:
+  - slug: baseline-data-001
+    title: Thu thập metrics, logs, traces và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-002
+    title: Chọn tần suất lấy mẫu và thời gian lưu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-003
+    title: Đồng bộ thời gian cùng đơn vị đo giữa các nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-004
+    title: Kiểm tra dữ liệu thiếu, số đo sai và thay đổi cách ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-005
+    title: Gắn nhãn theo dịch vụ, phiên bản, vùng và nhóm khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-006
+    title: Xây dựng đường cơ sở trong điều kiện vận hành ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-007
+    title: Phân biệt tải đại diện với tải bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-008
+    title: Đánh dấu bản phát hành, sự cố và thay đổi hạ tầng trên chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-009
+    title: Giới hạn cardinality và chi phí thu thập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: baseline-data-010
+    title: Lưu giả định, nguồn dữ liệu và phiên bản của đường cơ sở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-modeling
+  title: Mô hình hiệu năng
+  childs:
+  - slug: performance-modeling-001
+    title: Liên hệ giữa tốc độ đến, thông lượng và số yêu cầu trong hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-002
+    title: Luật Little và điều kiện áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-003
+    title: Nhu cầu thời gian phục vụ trên mỗi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-004
+    title: Mối quan hệ giữa mức sử dụng và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-005
+    title: Mô hình hàng đợi đơn và các giả định đơn giản hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-006
+    title: Hệ thống nhiều tầng và hàng đợi nối tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-007
+    title: Phần tuần tự, phần song song và giới hạn tăng tốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-008
+    title: Chi phí phối hợp và hiệu quả khi tăng số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-modeling-009
+    title: Hiệu chỉnh mô hình bằng dữ liệu đo thay vì suy rộng tuyến tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: load-testing
+  title: Kiểm thử tải
+  childs:
+  - slug: load-testing-001
+    title: Xác định câu hỏi và tiêu chí đạt trước khi kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-002
+    title: Thiết kế kịch bản theo cơ cấu nghiệp vụ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-003
+    title: Chuẩn bị dữ liệu, môi trường và trạng thái bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-004
+    title: Kiểm thử tải thông thường, tải đỉnh và khả năng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-005
+    title: Kiểm thử quá tải để tìm giới hạn chịu tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-006
+    title: Kiểm thử tải tăng đột biến và tốc độ hồi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-007
+    title: Kiểm thử bền để phát hiện rò rỉ hoặc suy giảm theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-008
+    title: Chọn mô hình phát tải bằng k6, JMeter hoặc Gatling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-009
+    title: Sai lệch do bỏ sót thời gian chờ (coordinated omission) khi đo độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-010
+    title: Kiểm chứng bộ phát tải và mạng không trở thành nút thắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-011
+    title: Thu thập độ trễ, lỗi và tài nguyên đồng thời trong mỗi lượt chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: load-testing-012
+    title: Lặp lại kiểm thử, so sánh kết quả và lưu điều kiện thí nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: bottleneck-analysis
+  title: Phân tích nút thắt
+  childs:
+  - slug: bottleneck-analysis-001
+    title: Vẽ đường cong tải, thông lượng, độ trễ và lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-002
+    title: Xác định điểm bắt đầu vi phạm SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-003
+    title: Phân biệt nút thắt CPU, bộ nhớ, I/O, mạng và khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-004
+    title: Liên kết hàng đợi với tài nguyên hoặc phụ thuộc bị nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-005
+    title: Phân tích tài nguyên nóng ở một node hoặc phân vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-006
+    title: Phân biệt giới hạn ứng dụng với giới hạn hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-007
+    title: Dùng profiling và tracing để kiểm tra giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-008
+    title: Đánh giá sự dịch chuyển nút thắt sau tối ưu hoặc mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: bottleneck-analysis-009
+    title: Xác định năng lực bền vững thay vì lấy thông lượng cao nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: demand-forecasting
+  title: Dự báo nhu cầu
+  childs:
+  - slug: demand-forecasting-001
+    title: Chọn biến dự báo, độ phân giải và khoảng thời gian dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-002
+    title: Phân tích xu hướng, mùa vụ và các điểm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-003
+    title: Dự báo đơn giản bằng giá trị gần nhất và đường cơ sở theo mùa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-004
+    title: Trung bình trượt và làm trơn chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-005
+    title: Hồi quy theo tăng trưởng người dùng hoặc khối lượng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-006
+    title: Ảnh hưởng của chiến dịch, sản phẩm mới và khách hàng lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-007
+    title: Dự báo riêng theo vùng, nhóm tải và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-008
+    title: Chuyển nhu cầu nghiệp vụ thành nhu cầu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-009
+    title: Kiểm định dự báo bằng các cửa sổ dữ liệu quá khứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-010
+    title: Chọn thước đo sai số và nhận diện sai lệch có hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: demand-forecasting-011
+    title: Cập nhật dự báo khi giả định hoặc cơ cấu tải thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: forecasting-risks
+  title: Rủi ro dự báo
+  childs:
+  - slug: forecasting-risks-001
+    title: Phân biệt sai số đo, sai số mô hình và bất định kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-002
+    title: Lập kịch bản tăng trưởng thấp, cơ sở và cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-003
+    title: Khoảng dự báo và cách diễn giải mức tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-004
+    title: Phân tích độ nhạy với các giả định quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-005
+    title: Chọn khoảng dự trữ theo biến động, hậu quả và thời gian bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-006
+    title: Tránh cộng trùng dự phòng ở nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-007
+    title: Kịch bản vượt dự báo và giới hạn chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: forecasting-risks-008
+    title: Nhận diện tín hiệu cho thấy mô hình không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cpu-capacity-planning
+  title: Quy hoạch CPU
+  childs:
+  - slug: cpu-capacity-planning-001
+    title: Đo thời gian CPU trên mỗi yêu cầu hoặc công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-002
+    title: Phân biệt mức sử dụng CPU với hàng đợi chờ CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-003
+    title: vCPU, lõi vật lý và khác biệt hiệu năng giữa loại máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-004
+    title: Chi phí ngữ cảnh, khóa và tranh chấp khi tăng số luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-005
+    title: CPU quota, throttling và ảnh hưởng tới độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-006
+    title: Tải một luồng và giới hạn mở rộng theo số lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-007
+    title: Tranh chấp tài nguyên với ứng dụng lân cận (noisy neighbor)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-008
+    title: So sánh tăng cấu hình máy với tăng số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-capacity-planning-009
+    title: Xác minh năng lực CPU sau thay đổi phần cứng hoặc runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-capacity-planning
+  title: Quy hoạch bộ nhớ
+  childs:
+  - slug: memory-capacity-planning-001
+    title: Phân biệt bộ nhớ thường trú, bộ nhớ ảo và bộ nhớ khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-002
+    title: Bộ nhớ nền cùng phần tăng thêm theo phiên hoặc yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-003
+    title: Heap, bộ nhớ ngoài heap, ngăn xếp luồng và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-004
+    title: Ảnh hưởng của thu gom rác tới thông lượng và độ trễ JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-005
+    title: Page cache, working set và quan hệ với I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-006
+    title: Rò rỉ bộ nhớ, phân mảnh và tăng trưởng trong kiểm thử bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-007
+    title: Giới hạn container, OOM và hành vi khi thiếu bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-008
+    title: Swap, áp lực bộ nhớ và suy giảm hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-009
+    title: Tính nhu cầu bộ nhớ theo mức đồng thời và thời gian lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-capacity-planning-010
+    title: Chọn khoảng dự trữ bộ nhớ và kiểm chứng khi tải đỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-capacity-planning
+  title: Quy hoạch lưu trữ
+  childs:
+  - slug: storage-capacity-planning-001
+    title: Phân biệt dung lượng, IOPS, băng thông và độ trễ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-002
+    title: Đặc tả tải đọc, ghi, tuần tự, ngẫu nhiên và kích thước khối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-003
+    title: Dự báo dữ liệu tăng theo nghiệp vụ và thời gian lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-004
+    title: Dung lượng cho chỉ mục, bản sao, snapshot và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-005
+    title: Khoảng trống cho compaction, tái lập chỉ mục và thao tác bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-006
+    title: Tốc độ tăng logs, traces và dữ liệu tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-007
+    title: Giới hạn volume, filesystem, inode và hạn ngạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-008
+    title: Ảnh hưởng của cache, nén và khuếch đại ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-009
+    title: Kiểm thử năng lực lưu trữ trong trạng thái ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-010
+    title: Nhu cầu I/O và dung lượng khi phục hồi hoặc đồng bộ lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-capacity-planning-011
+    title: Chọn thời điểm mở rộng, phân tầng hoặc xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-capacity-planning
+  title: Quy hoạch mạng
+  childs:
+  - slug: network-capacity-planning-001
+    title: Ước tính lưu lượng từ số yêu cầu và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-002
+    title: Băng thông, số gói mỗi giây và độ trễ mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-003
+    title: Kết nối đồng thời, tốc độ tạo kết nối và chi phí TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-004
+    title: Giới hạn cổng tạm, socket, file descriptor và bảng theo dõi kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-005
+    title: Năng lực load balancer, proxy và cổng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-006
+    title: Lưu lượng giữa dịch vụ, giữa vùng và ra internet
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-007
+    title: Chi phí mạng của sao chép dữ liệu, sao lưu và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-008
+    title: Đo tắc nghẽn, mất gói, truyền lại và giới hạn thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-capacity-planning-009
+    title: Kiểm chứng năng lực mạng khi chuyển hướng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-capacity
+  title: Năng lực ứng dụng
+  childs:
+  - slug: application-capacity-001
+    title: Phân biệt công việc dùng CPU với công việc chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-002
+    title: Thread pool, event loop và giới hạn xử lý đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-003
+    title: Connection pool và hàng đợi chờ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-004
+    title: Chi phí tuần tự hóa, nén và kích thước phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-005
+    title: Khóa, vùng tranh chấp và giới hạn trong tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-006
+    title: Ảnh hưởng của timeout, retry và lời gọi lặp tới tải thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-007
+    title: Tác động của khởi động, warm-up và biên dịch JIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-008
+    title: Ứng dụng giữ trạng thái và giới hạn khi thêm bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-009
+    title: Đo chi phí tài nguyên của từng loại giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-capacity-010
+    title: Đánh giá thay đổi năng lực sau mỗi phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: database-capacity
+  title: Cơ sở dữ liệu
+  childs:
+  - slug: database-capacity-001
+    title: Mô hình nhu cầu theo truy vấn, giao dịch và kích thước dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-002
+    title: CPU, bộ nhớ, I/O và working set của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-003
+    title: Chỉ mục, kế hoạch truy vấn và chi phí trên mỗi giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-004
+    title: Số kết nối, connection pool và giới hạn đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-005
+    title: Khóa, tranh chấp và thời gian giữ giao dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-006
+    title: Tốc độ ghi, nhật ký giao dịch và độ trễ sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-007
+    title: Read replica và giới hạn mở rộng tải đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-008
+    title: Phân mảnh dữ liệu, khóa phân vùng và phân vùng nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-009
+    title: Dung lượng cùng tài nguyên cho backup, restore và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-010
+    title: Năng lực còn lại khi mất replica hoặc chuyển vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: database-capacity-011
+    title: Kiểm thử tải với dữ liệu có quy mô và phân bố đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cache-capacity
+  title: Bộ nhớ đệm
+  childs:
+  - slug: cache-capacity-001
+    title: Mục tiêu năng lực của cache và tải giảm cho hệ thống phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-002
+    title: Ước tính bộ nhớ từ số khóa, kích thước giá trị và metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-003
+    title: Tỷ lệ hit, miss và chi phí xử lý tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-004
+    title: TTL, eviction và ảnh hưởng của chính sách giữ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-005
+    title: Khóa nóng, phân bố không đều và giới hạn từng node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-006
+    title: Cache stampede và tải khi hết hạn đồng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-007
+    title: Khởi động với cache lạnh và thời gian làm ấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cache-capacity-008
+    title: Dự phòng khi cache mất dữ liệu hoặc không sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: asynchronous-processing
+  title: Xử lý bất đồng bộ
+  childs:
+  - slug: asynchronous-processing-001
+    title: Tốc độ nhận việc, tốc độ xử lý và năng lực của consumer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-002
+    title: Độ sâu hàng đợi, độ trễ và tuổi bản tin lâu nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-003
+    title: Ước tính số worker từ thời gian xử lý và mục tiêu hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-004
+    title: Tính thời gian giải phóng tồn đọng sau một đợt tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-005
+    title: Batch size, mức song song và đánh đổi với độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-006
+    title: Phân vùng, thứ tự bản tin và giới hạn số consumer hữu ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-007
+    title: Retry, dead-letter queue và khuếch đại khối lượng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-008
+    title: Retention, replication và dung lượng broker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-009
+    title: Năng lực khi consumer dừng, broker lỗi hoặc phân vùng nóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: asynchronous-processing-010
+    title: Giới hạn tiếp nhận và tạo áp lực ngược tới bên gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-systems-capacity
+  title: Hệ thống phân tán
+  childs:
+  - slug: distributed-systems-capacity-001
+    title: Tổng hợp năng lực theo chuỗi phụ thuộc giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-002
+    title: Fan-out và số lời gọi phía sau trên mỗi yêu cầu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-003
+    title: Giới hạn đồng thời và quota của dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-004
+    title: Phân bố tải không đều giữa các bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-005
+    title: Hot key, hot shard và tác động của độ lệch dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-006
+    title: Chi phí đồng bộ, phối hợp và sao chép khi mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-007
+    title: Giới hạn mở rộng tuyến tính trong hệ thống nhiều node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-008
+    title: Tải tái cân bằng, di chuyển dữ liệu và bổ sung thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-009
+    title: Nhu cầu tăng thêm khi phụ thuộc chậm hoặc lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-systems-capacity-010
+    title: Xác định hợp đồng năng lực giữa các nhóm sở hữu dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-capacity
+  title: Năng lực Kubernetes
+  childs:
+  - slug: kubernetes-capacity-001
+    title: Phân biệt capacity và allocatable của node
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-002
+    title: Requests, limits và tài nguyên thực tế của Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-003
+    title: Khả năng đặt lịch và hiện tượng tài nguyên bị chia nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-004
+    title: Quy hoạch số Pod, số node và cấu hình node pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-005
+    title: DaemonSet, thành phần hệ thống và chi phí nền của cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-006
+    title: Pod Pending, taint, affinity và giới hạn đặt lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-007
+    title: Chọn request từ dữ liệu sử dụng cùng yêu cầu độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-008
+    title: ResourceQuota, LimitRange và phân bổ giữa nhóm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-009
+    title: Ephemeral storage, volume và giới hạn gắn ổ đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-010
+    title: Năng lực cho rolling update và số Pod tăng tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-011
+    title: Tài nguyên dự phòng khi node bảo trì hoặc mất một vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-capacity-012
+    title: Đánh giá mật độ Pod cùng năng lực mạng của cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-capacity
+  title: Năng lực cloud
+  childs:
+  - slug: cloud-capacity-001
+    title: Chọn loại máy theo CPU, bộ nhớ, I/O và tải thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-002
+    title: Hiệu năng dùng chung, burst credit và giới hạn bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-003
+    title: Quota tài khoản, vùng và giới hạn từng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-004
+    title: Phân biệt quota được cấp với tài nguyên thực sự có thể cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-005
+    title: Thời gian tạo máy, gắn volume và chuẩn bị dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-006
+    title: Giới hạn mở rộng của cơ sở dữ liệu và dịch vụ được quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-007
+    title: Cold start, concurrency và giới hạn của serverless
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-008
+    title: Năng lực cho môi trường thử nghiệm, staging và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-009
+    title: Rủi ro thu hồi máy Spot hoặc tài nguyên gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-capacity-010
+    title: Kiểm chứng kế hoạch theo vùng triển khai và điều kiện cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: autoscaling
+  title: Mở rộng tự động
+  childs:
+  - slug: autoscaling-001
+    title: Chọn mở rộng dọc, mở rộng ngang hoặc kết hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-002
+    title: Phân biệt mở rộng phản ứng, theo lịch và theo dự báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-003
+    title: Chọn tín hiệu theo CPU, yêu cầu, hàng đợi hoặc độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-004
+    title: Xác định số bản sao tối thiểu, tối đa và mức dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-005
+    title: Thời gian phát hiện, cấp phát, khởi động và nhận tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-006
+    title: Cooldown, khoảng ổn định và hiện tượng tăng giảm liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-007
+    title: HPA, VPA và tương tác khi điều chỉnh tài nguyên Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-008
+    title: Mở rộng node cùng ràng buộc quota và khả năng đặt lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-009
+    title: Giới hạn mở rộng do database, cache và phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-010
+    title: Thu hẹp an toàn với kết nối dài, phiên và công việc đang xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: autoscaling-011
+    title: Kiểm thử autoscaling khi tải tăng nhanh và khi tài nguyên cạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-reserves
+  title: Dự phòng năng lực
+  childs:
+  - slug: capacity-reserves-001
+    title: Chọn mức dự phòng theo mục tiêu độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-002
+    title: Mô hình N+1 và giả định về miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-003
+    title: Tính năng lực còn lại sau khi mất node hoặc vùng sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-004
+    title: Kịch bản đồng thời có tải đỉnh và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-005
+    title: Phân bố dự phòng theo vùng và giới hạn chia sẻ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-006
+    title: Tải tăng trên thành phần sống sót khi chuyển lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-007
+    title: Năng lực để tái tạo bản sao và khôi phục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-008
+    title: Yêu cầu tài nguyên phục vụ RTO và RPO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-009
+    title: Dự phòng cho triển khai, bảo trì và thay thế hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-010
+    title: Phân biệt dự phòng nóng, ấm, lạnh và thời gian đưa vào phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-reserves-011
+    title: Kiểm chứng chuyển vùng bằng diễn tập có đo đạc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: overload-management
+  title: Điều tiết quá tải
+  childs:
+  - slug: overload-management-001
+    title: Nhận diện quá tải trước khi hệ thống sụp đổ dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-002
+    title: Giới hạn tốc độ và hạn ngạch theo khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-003
+    title: Admission control và giới hạn yêu cầu đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-004
+    title: Hàng đợi có giới hạn và cơ chế tạo áp lực ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-005
+    title: Ưu tiên công việc quan trọng và loại bỏ tải có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-006
+    title: Suy giảm chức năng để duy trì luồng nghiệp vụ cốt lõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-007
+    title: Retry budget, backoff và jitter để tránh khuếch đại tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-008
+    title: Timeout, circuit breaker và cô lập nhóm tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overload-management-009
+    title: Đánh giá ảnh hưởng tới SLO, tính công bằng và trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cost-efficiency
+  title: Hiệu quả chi phí
+  childs:
+  - slug: cost-efficiency-001
+    title: Chi phí trên mỗi yêu cầu, giao dịch hoặc khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-002
+    title: So sánh chi phí tăng cấu hình với tăng số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-003
+    title: Điều chỉnh cấu hình (right-sizing) theo nhu cầu bền vững và rủi ro tải đỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-004
+    title: Chi phí của tài nguyên nhàn rỗi và khoảng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-005
+    title: Đánh đổi giữa hiệu năng, độ tin cậy và ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-006
+    title: Cam kết sử dụng, đặt trước năng lực và tính linh hoạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-007
+    title: Phân biệt ưu đãi giá với bảo đảm tài nguyên sẵn có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-008
+    title: Chi phí lưu trữ, truyền dữ liệu và dịch vụ phụ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-009
+    title: Phân bổ chi phí theo dịch vụ, nhóm và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cost-efficiency-010
+    title: Kiểm chứng hiệu quả tối ưu bằng chi phí cùng kết quả SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-planning-process
+  title: Lập kế hoạch
+  childs:
+  - slug: capacity-planning-process-001
+    title: Tổng hợp nhu cầu dự báo và năng lực hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-002
+    title: Xác định khoảng thiếu hụt theo tài nguyên và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-003
+    title: So sánh tối ưu phần mềm, điều tiết tải và bổ sung hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-004
+    title: Chọn mốc hành động theo tốc độ tăng trưởng và thời gian chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-005
+    title: Đặt ngưỡng kích hoạt yêu cầu tăng quota hoặc mua sắm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-006
+    title: Lập ngân sách cùng các phương án tăng trưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-007
+    title: Lập lịch kiểm thử, triển khai và nghiệm thu năng lực mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-008
+    title: Ghi rõ giả định, mức dự phòng và rủi ro được chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-009
+    title: Chỉ định chủ sở hữu, thời hạn và phương án dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-planning-process-010
+    title: Trình bày báo cáo năng lực cho nhóm kỹ thuật và bên kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-monitoring
+  title: Giám sát năng lực
+  childs:
+  - slug: capacity-monitoring-001
+    title: Thiết kế dashboard theo nhu cầu, tài nguyên và SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-002
+    title: Theo dõi năng lực còn lại theo từng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-003
+    title: Ước tính thời gian tới khi chạm ngưỡng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-004
+    title: Phân biệt cảnh báo khẩn cấp với cảnh báo cần lập kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-005
+    title: Theo dõi quota, dung lượng trống và khả năng cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-006
+    title: Phát hiện độ lệch tải giữa node, vùng và khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-007
+    title: Giám sát hàng đợi, tồn đọng và thời gian hoàn thành dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-008
+    title: So sánh dự báo với nhu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-monitoring-009
+    title: Liên kết cảnh báo với chủ sở hữu và hướng dẫn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: continuous-operations
+  title: Vận hành liên tục
+  childs:
+  - slug: continuous-operations-001
+    title: Thiết lập chu kỳ rà soát năng lực và cập nhật giả định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-002
+    title: Đưa đánh giá năng lực vào quy trình phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-003
+    title: Kiểm thử hồi quy hiệu năng và phát hiện tăng chi phí tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-004
+    title: Chuẩn bị năng lực trước chiến dịch hoặc mùa cao điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-005
+    title: Hướng dẫn xử lý khi chạm giới hạn hoặc cấp phát thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-006
+    title: Dùng dữ liệu sự cố để điều chỉnh mô hình và khoảng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-007
+    title: Tự động hóa thu thập, tính toán và xuất báo cáo có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-008
+    title: Quản lý phiên bản dữ liệu, mô hình và quyết định quy hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: continuous-operations-009
+    title: Rà soát tài nguyên dư thừa sau sự kiện hoặc thay đổi sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercise
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercise-001
+    title: Xây dựng đường cơ sở cho một dịch vụ từ dữ liệu quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-002
+    title: Lập mô hình tải từ mục tiêu người dùng và cơ cấu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-003
+    title: Tìm năng lực đáp ứng SLO bằng kiểm thử tải tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-004
+    title: Chẩn đoán nút thắt CPU, bộ nhớ và connection pool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-005
+    title: Dự báo tăng trưởng cùng kịch bản bất định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-006
+    title: Tính dung lượng lưu trữ với retention, replication và backup
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-007
+    title: Tính worker cùng thời gian giải phóng hàng đợi tồn đọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-008
+    title: Quy hoạch cụm Kubernetes cho tải đỉnh và mất một vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-009
+    title: So sánh autoscaling với cấp phát cố định theo chi phí và độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-010
+    title: Hoàn thiện kế hoạch năng lực cùng dashboard, ngưỡng hành động và bằng chứng nghiệm thu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

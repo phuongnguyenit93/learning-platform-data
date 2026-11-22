@@ -1,0 +1,49 @@
+roadmap:
+- id: muc-tieu-capacity
+  title: Mục tiêu Capacity
+  purpose: Liên kết khả năng phục vụ với yêu cầu độ trễ, thông lượng và độ tin cậy của dịch vụ.
+  objectives:
+  - '- Xác định throughput, p95 latency, error rate và mục tiêu SLO.'
+  - '- Phân biệt capacity, utilization và mức tải cực đại.'
+- id: dac-tinh-workload
+  title: Đặc tính Workload
+  purpose: Nắm nhu cầu hiện tại và biến động theo thời gian để tránh chỉ dựa vào mức tải trung bình.
+  objectives:
+  - '- Thu thập RPS, concurrency, tỷ lệ read/write và traffic peak.'
+  - '- Xác định mùa vụ, tăng trưởng và sự kiện làm tăng tải.'
+- id: metrics-bottleneck
+  title: Metrics & Bottleneck
+  purpose: Đo mức sử dụng và điểm nghẽn của toàn đường đi yêu cầu trước khi tăng tài nguyên.
+  objectives:
+  - '- Theo dõi CPU, memory, I/O, network, queue depth và DB pool.'
+  - '- Nhận diện saturation tại dịch vụ hoặc dependency.'
+- id: forecast-headroom
+  title: Forecast & Headroom
+  purpose: Dự báo nhu cầu và dự phòng năng lực đủ để hấp thụ tăng trưởng, lỗi và đột biến.
+  objectives:
+  - '- Ước tính nhu cầu theo tốc độ tăng và mùa vụ từ dữ liệu lịch sử.'
+  - '- Tính headroom, lead time và năng lực failover cần giữ.'
+- id: load-stress-soak-test
+  title: Load, Stress & Soak Test
+  purpose: Xác thực giả định năng lực thực tế thay vì chỉ dùng số liệu cấu hình hạ tầng.
+  objectives:
+  - '- Thiết kế kịch bản tải thường, peak, spike và kéo dài.'
+  - '- Đo throughput, latency, errors và giới hạn trước/sau mở rộng.'
+- id: sizing-quota-dependency
+  title: Sizing, Quota & Dependency
+  purpose: Chọn quy mô tài nguyên có xét giới hạn quota và năng lực của các hệ thống phụ thuộc.
+  objectives:
+  - '- So sánh vertical và horizontal scaling theo bottleneck.'
+  - '- Kiểm tra quota, DB connection limit và downstream capacity.'
+- id: autoscaling-resilience
+  title: Autoscaling & Resilience
+  purpose: Tự động thích ứng tải mà tránh phản ứng trễ, dao động quy mô và mất dự phòng.
+  objectives:
+  - '- Đặt autoscale metric, min/max replicas và stabilization.'
+  - '- Kiểm thử thời gian warm-up, failover và scale-in an toàn.'
+- id: review-capacity-runbook
+  title: Review & Capacity Runbook
+  purpose: Vận hành chu kỳ rà soát, cảnh báo và điều chỉnh năng lực gắn với chi phí và độ tin cậy.
+  objectives:
+  - '- Tạo dashboard trend/forecast và cảnh báo gần ngưỡng capacity.'
+  - '- Lập runbook mở rộng, kiểm tra định kỳ và so chi phí với SLO.'

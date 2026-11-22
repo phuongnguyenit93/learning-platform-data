@@ -1,0 +1,3 @@
+menuLevel1: Ủy quyền sudo
+menuLevel2: Cấu trúc /etc/sudoers, thư mục sudoers.d và kiểm tra bằng visudo
+status: ""

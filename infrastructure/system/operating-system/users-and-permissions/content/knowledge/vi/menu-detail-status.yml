@@ -1,0 +1,3064 @@
+menu:
+- slug: access-control-principles
+  title: Nguyên lý truy cập
+  childs:
+  - slug: access-control-principles-001
+    title: Phân biệt định danh, xác thực, phân quyền và kiểm toán truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-002
+    title: Chủ thể, đối tượng, hành động và ngữ cảnh trong quyết định cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-003
+    title: Mô hình DAC, MAC, RBAC và cách áp dụng trong hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-004
+    title: Nguyên tắc mặc định từ chối, quyền tối thiểu và phân tách nhiệm vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-005
+    title: Phân biệt tài khoản người dùng, tài khoản hệ thống và tài khoản dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-006
+    title: Quyền sở hữu, quyền được cấp, đặc quyền và quyền truy cập hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-007
+    title: Ranh giới bảo mật giữa máy chủ, phiên đăng nhập, dịch vụ và container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: access-control-principles-008
+    title: Đối chiếu user, group, UID/GID, SID, ACL và cơ chế nâng quyền của Linux với Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-identities
+  title: Danh tính Linux
+  childs:
+  - slug: linux-identities-001
+    title: UID, GID và cách kernel xác định danh tính người dùng, nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-002
+    title: Người dùng root, tài khoản thường và dải ID dành cho tài khoản hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-003
+    title: Nhóm chính, nhóm bổ sung và ý nghĩa của danh sách nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-004
+    title: Cấu trúc /etc/passwd, /etc/shadow, /etc/group và /etc/gshadow
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-005
+    title: Tra cứu danh tính bằng id, whoami, groups và getent
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-006
+    title: NSS và thứ tự tra cứu danh tính từ tệp cục bộ, LDAP hoặc Active Directory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-007
+    title: Phân biệt tên tài khoản hiển thị với UID/GID lưu trên hệ thống tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-identities-008
+    title: Rủi ro trùng ID, tái sử dụng ID và tệp không còn chủ sở hữu hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-accounts
+  title: Tài khoản Linux
+  childs:
+  - slug: linux-accounts-001
+    title: Tạo tài khoản bằng useradd và adduser, nhận biết khác biệt theo bản phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-002
+    title: Thiết lập thư mục home, shell đăng nhập, nhóm chính và tệp mẫu /etc/skel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-003
+    title: Chỉnh sửa tài khoản bằng usermod và cập nhật thông tin nhận diện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-004
+    title: Đặt mật khẩu, ngày hết hạn và chu kỳ đổi mật khẩu bằng passwd, chage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-005
+    title: Phân biệt khóa mật khẩu, hết hạn tài khoản và vô hiệu hóa đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-006
+    title: Quản lý tài khoản dịch vụ với shell nologin và home phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-007
+    title: Đổi UID/GID và rà soát quyền sở hữu trên từng hệ thống tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-008
+    title: Xóa tài khoản bằng userdel, xử lý dữ liệu và tiến trình còn tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-accounts-009
+    title: Kiểm tra cấu hình mặc định trong /etc/login.defs và thiết lập của useradd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-groups
+  title: Nhóm Linux
+  childs:
+  - slug: linux-groups-001
+    title: Tạo, đổi tên và xóa nhóm bằng groupadd, groupmod, groupdel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-002
+    title: Thêm hoặc gỡ nhóm bổ sung bằng usermod và gpasswd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-003
+    title: Tránh mất nhóm hiện có khi sử dụng usermod -G và -aG
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-004
+    title: Thay đổi nhóm chính và ảnh hưởng đến tệp mới được tạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-005
+    title: Hiệu lực thay đổi nhóm trong phiên hiện tại, phiên mới và tiến trình đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-006
+    title: Chuyển ngữ cảnh nhóm bằng newgrp và sg
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-007
+    title: Thiết kế nhóm theo vai trò cho thư mục dùng chung và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-groups-008
+    title: Rà soát nhóm nhạy cảm như sudo, wheel, docker và nhóm truy cập thiết bị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-authentication
+  title: Xác thực Linux
+  childs:
+  - slug: linux-authentication-001
+    title: Luồng đăng nhập và vai trò của PAM trong xác thực, tài khoản, mật khẩu và phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-002
+    title: Phân biệt quyết định của PAM với kiểm tra quyền truy cập của kernel
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-003
+    title: Chính sách mật khẩu, giới hạn thử sai và khóa đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-004
+    title: Đăng nhập SSH bằng mật khẩu hoặc khóa và quyền truy cập thư mục .ssh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-005
+    title: Giới hạn truy cập từ xa bằng AllowUsers, AllowGroups và cấu hình đăng nhập root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-006
+    title: Phân biệt chuyển tài khoản bằng su, su - và thực thi lệnh bằng sudo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-007
+    title: Tích hợp danh tính tập trung qua SSSD, LDAP và Active Directory ở mức hệ điều hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-008
+    title: Giới hạn phiên, tài nguyên và môi trường đăng nhập của tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-authentication-009
+    title: Thu hồi quyền khi phiên, khóa SSH hoặc thông tin xác thực còn hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: posix-permissions
+  title: Quyền POSIX
+  childs:
+  - slug: posix-permissions-001
+    title: Đọc quyền, chủ sở hữu, nhóm và loại tệp từ ls -l, stat
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-002
+    title: Ba lớp quyền owner, group, others và cách kernel chọn lớp để kiểm tra
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-003
+    title: Quyền đọc, ghi, thực thi đối với tệp thông thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-004
+    title: Biểu diễn quyền bằng ký hiệu rwx và giá trị bát phân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-005
+    title: Tính quyền truy cập của chủ sở hữu, thành viên nhóm và người dùng khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-006
+    title: Phân biệt quyền ghi nội dung, thay đổi metadata và thay đổi quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-007
+    title: Ảnh hưởng của UID hiệu lực, GID hiệu lực và nhóm bổ sung đến truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-008
+    title: Phân biệt quyền đọc tệp, chạy chương trình và khả năng thực thi định dạng tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-permissions-009
+    title: Giới hạn của mô hình owner/group/others khi nhiều nhóm cần quyền khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: directory-access
+  title: Truy cập thư mục
+  childs:
+  - slug: directory-access-001
+    title: Ý nghĩa quyền đọc, ghi và tìm kiếm x đối với thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-002
+    title: Quyền tìm kiếm trên mọi thư mục cha trong đường dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-003
+    title: Điều kiện tạo, xóa và đổi tên tệp trong thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-004
+    title: Vì sao quyền xóa tệp phụ thuộc vào thư mục chứa tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-005
+    title: Phân biệt liệt kê tên tệp với truy cập một tên tệp đã biết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-006
+    title: Quyền trên thư mục home, thư mục tạm và thư mục dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-007
+    title: Ảnh hưởng của symbolic link và hard link đến truy cập, sở hữu và xóa tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-008
+    title: Lần theo quyền của từng thành phần đường dẫn bằng namei
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: directory-access-009
+    title: Thiết kế thư mục trao đổi dữ liệu chỉ ghi, chỉ đọc hoặc dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-permission-management
+  title: Thiết lập quyền Linux
+  childs:
+  - slug: linux-permission-management-001
+    title: Thay đổi quyền bằng chmod với cú pháp ký hiệu và bát phân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-002
+    title: Thay đổi chủ sở hữu và nhóm bằng chown, chgrp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-003
+    title: Áp dụng quyền đệ quy và phân biệt nhu cầu quyền của tệp với thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-004
+    title: Sử dụng quyền X để cấp thực thi có điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-005
+    title: Ảnh hưởng của symbolic link khi thay đổi quyền và sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-006
+    title: umask và cách loại bỏ bit quyền khỏi chế độ tạo tệp, thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-007
+    title: Phạm vi umask trong shell, phiên đăng nhập, tiến trình và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-008
+    title: Kết hợp nhóm dùng chung, setgid và umask cho dữ liệu cộng tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-009
+    title: Kiểm tra quyền sau sao chép, di chuyển, giải nén và khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-management-010
+    title: Phân biệt quyền POSIX với thuộc tính immutable, append-only và trạng thái chỉ đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: special-permission-bits
+  title: Quyền đặc biệt
+  childs:
+  - slug: special-permission-bits-001
+    title: setuid trên tệp thực thi và sự thay đổi UID hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-002
+    title: setgid trên tệp thực thi và sự thay đổi GID hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-003
+    title: setgid trên thư mục và kế thừa nhóm cho đối tượng mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-004
+    title: Sticky bit trên thư mục dùng chung và điều kiện xóa, đổi tên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-005
+    title: Đọc các ký hiệu s, S, t, T trong kết quả ls -l
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-006
+    title: Thiết lập, gỡ bỏ và tìm kiếm các bit quyền đặc biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-007
+    title: Giới hạn và rủi ro của chương trình setuid, setgid
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-008
+    title: Ảnh hưởng của nosuid, noexec và no_new_privs đến hành vi nâng quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: special-permission-bits-009
+    title: Rà soát quyền đặc biệt sau cài đặt gói, triển khai và phục hồi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: posix-acls
+  title: ACL POSIX
+  childs:
+  - slug: posix-acls-001
+    title: ACL truy cập và trường hợp cần nhiều người dùng hoặc nhóm có quyền khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-002
+    title: Đọc ACL bằng getfacl và nhận diện dấu cộng trong ls -l
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-003
+    title: Cấp, sửa và xóa ACL bằng setfacl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-004
+    title: ACL mask và cách tính quyền hiệu lực của các mục chịu mask
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-005
+    title: Thứ tự xét owner, named user, group và others trong ACL POSIX
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-006
+    title: Default ACL trên thư mục và cách đối tượng mới kế thừa ACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-007
+    title: Tương tác giữa chmod, ACL mask, chế độ tạo tệp và default ACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-008
+    title: Thiết kế ACL cho thư mục cộng tác có nhiều vai trò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-009
+    title: Sao lưu, khôi phục và bảo toàn ACL khi sao chép dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: posix-acls-010
+    title: Nhận biết giới hạn hỗ trợ ACL theo hệ thống tệp và giao thức chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sudo-delegation
+  title: Ủy quyền sudo
+  childs:
+  - slug: sudo-delegation-001
+    title: Cơ chế sudo và sự khác biệt giữa sudo, su và đăng nhập root trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-002
+    title: Cấu trúc /etc/sudoers, thư mục sudoers.d và kiểm tra bằng visudo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-003
+    title: Quy tắc theo người dùng, nhóm, máy chủ, Runas và lệnh được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-004
+    title: Liệt kê quyền sudo bằng sudo -l và kiểm thử bằng tài khoản được ủy quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-005
+    title: Thiết kế danh sách lệnh cụ thể, giới hạn tham số và sử dụng đường dẫn tuyệt đối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-006
+    title: PASSWD, NOPASSWD, bộ nhớ đệm xác thực và thu hồi phiên sudo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-007
+    title: Kiểm soát biến môi trường, PATH, thư mục làm việc và tệp cấu hình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-008
+    title: Rủi ro từ shell escape, trình soạn thảo, wildcard và chương trình gọi lệnh khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-009
+    title: Sử dụng sudoedit để cho phép sửa tệp theo phạm vi cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-010
+    title: Ghi nhận lệnh quản trị, đầu vào, đầu ra và yêu cầu bảo vệ nhật ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sudo-delegation-011
+    title: Kiểm thử quy tắc, phương án cứu hộ và phục hồi khi cấu hình sudo sai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-capabilities
+  title: Capabilities Linux
+  childs:
+  - slug: linux-capabilities-001
+    title: Chia nhỏ đặc quyền root thành Linux capabilities
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-002
+    title: Các tập permitted, effective, inheritable, bounding và ambient
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-003
+    title: Quan sát capabilities của tệp và tiến trình bằng getcap, getpcaps, capsh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-004
+    title: Cấp và gỡ file capabilities bằng setcap
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-005
+    title: Phạm vi sử dụng CAP_NET_BIND_SERVICE, CAP_CHOWN và CAP_DAC_OVERRIDE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-006
+    title: Rủi ro của CAP_SYS_ADMIN và các capability có phạm vi rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-007
+    title: Tương tác giữa capabilities, execve, setuid và no_new_privs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-008
+    title: Thiết kế capability tối thiểu cho dịch vụ và container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-capabilities-009
+    title: Giới hạn capabilities bằng systemd và cấu hình runtime container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: selinux-and-apparmor
+  title: SELinux và AppArmor
+  childs:
+  - slug: selinux-and-apparmor-001
+    title: Vai trò của kiểm soát truy cập bắt buộc khi quyền POSIX hoặc ACL đã cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-002
+    title: SELinux context, domain, type và quyết định truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-003
+    title: Nhận diện trạng thái enforcing, permissive và disabled của SELinux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-004
+    title: Đọc thông báo AVC để xác định chủ thể, đối tượng và hành động bị chặn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-005
+    title: Khôi phục nhãn bằng restorecon và khai báo nhãn bền vững bằng semanage fcontext
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-006
+    title: AppArmor profile, chế độ enforce, complain và nhật ký từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-007
+    title: Điều chỉnh chính sách hoặc nhãn theo nhu cầu thực tế của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: selinux-and-apparmor-008
+    title: Kiểm chứng nguyên nhân trước khi thay đổi chính sách SELinux hoặc AppArmor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-identities
+  title: Danh tính Windows
+  childs:
+  - slug: windows-identities-001
+    title: Tài khoản cục bộ, tài khoản miền và tài khoản Microsoft
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-002
+    title: SID, RID và cách Windows nhận diện người dùng, nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-003
+    title: Phân biệt tên tài khoản, tên đăng nhập, UPN và SID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-004
+    title: Các danh tính SYSTEM, LOCAL SERVICE, NETWORK SERVICE và tài khoản dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-005
+    title: Nhóm tích hợp Users, Administrators, Authenticated Users và Everyone
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-006
+    title: LSASS, SAM và Active Directory trong quản lý danh tính, xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-007
+    title: Nhận diện tài khoản hiện tại bằng whoami và các lệnh PowerShell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-008
+    title: Tác động của việc đổi tên, xóa, tạo lại tài khoản đến SID và quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-identities-009
+    title: Phạm vi trust và sự khác biệt giữa danh tính cục bộ với danh tính miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-accounts
+  title: Tài khoản Windows
+  childs:
+  - slug: windows-accounts-001
+    title: Tạo, sửa và xóa tài khoản cục bộ bằng giao diện quản trị hoặc PowerShell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-002
+    title: Quản lý mật khẩu, trạng thái tài khoản và thời hạn sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-003
+    title: Tạo và quản lý nhóm cục bộ bằng New-LocalGroup, Set-LocalGroup và các lệnh liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-004
+    title: Thêm, gỡ thành viên nhóm và kiểm tra nhóm lồng nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-005
+    title: Phân biệt tài khoản bị vô hiệu hóa, bị khóa và mật khẩu hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-006
+    title: Quản lý hồ sơ người dùng, thư mục home và dữ liệu khi thu hồi tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-007
+    title: Tài khoản miền, nhóm miền và phạm vi quản trị trong môi trường Active Directory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-008
+    title: Local Security Policy, Group Policy và nguồn áp dụng chính sách tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-009
+    title: Phạm vi nhóm Domain Local, Global, Universal và tổ chức phân quyền theo AGDLP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-010
+    title: Phân biệt xác thực cục bộ, Kerberos, NTLM và quyền đăng nhập được cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-accounts-011
+    title: Quy trình cấp, thay đổi vai trò và thu hồi tài khoản theo vòng đời nhân sự
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-tokens-and-privileges
+  title: Token và đặc quyền Windows
+  childs:
+  - slug: windows-tokens-and-privileges-001
+    title: Access token gồm SID, nhóm, đặc quyền và mức toàn vẹn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-002
+    title: Primary token, impersonation token và ngữ cảnh truy cập của luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-003
+    title: Phân biệt quyền trên đối tượng với user rights và privileges
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-004
+    title: UAC, split token và sự khác biệt giữa chạy thường với Run as administrator
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-005
+    title: Mandatory Integrity Control và tác động đến thao tác ghi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-006
+    title: Kiểm tra nhóm, đặc quyền và token bằng whoami /all, /groups, /priv
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-007
+    title: Quyền đăng nhập cục bộ, RDP, batch và dịch vụ cùng các chính sách từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-008
+    title: Ảnh hưởng của nhóm bị vô hiệu hóa hoặc deny-only trong token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-tokens-and-privileges-009
+    title: Đăng nhập lại, làm mới phiên và kiểm tra thay đổi nhóm hoặc chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ntfs-security-model
+  title: Cơ chế NTFS
+  childs:
+  - slug: ntfs-security-model-001
+    title: Security descriptor, owner, DACL và SACL của đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-002
+    title: ACE cho phép, từ chối và thông tin chủ thể được cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-003
+    title: Quyền cơ bản Read, Write, Modify, Full control và quyền đặc biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-004
+    title: Quyền áp dụng cho thư mục, tệp và từng thao tác truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-005
+    title: Quyền tường minh, quyền kế thừa và thứ tự ACE trong DACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-006
+    title: Cách Windows xét các ACE với quyền yêu cầu và access token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-007
+    title: Phân biệt DACL rỗng với NULL DACL và hệ quả truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-008
+    title: Quyền sở hữu, quyền thay đổi DACL và quyền take ownership
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-009
+    title: Quyền Delete trên đối tượng và Delete subfolders and files trên thư mục cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-security-model-010
+    title: Giới hạn của ACL với dữ liệu được mã hóa bằng EFS hoặc bảo vệ bằng cơ chế khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ntfs-acl-management
+  title: Quản lý ACL NTFS
+  childs:
+  - slug: ntfs-acl-management-001
+    title: Đọc và sửa quyền bằng Security, Advanced Security và Effective Access
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-002
+    title: Kiểm tra owner, DACL và cơ chế kế thừa bằng icacls, Get-Acl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-003
+    title: Thiết lập ACL bằng icacls, Set-Acl và kiểm tra phạm vi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-004
+    title: Cờ OI, CI, IO, NP và cách kế thừa quyền tới tệp, thư mục con
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-005
+    title: Bật, tắt kế thừa và phân biệt chuyển đổi với loại bỏ ACE kế thừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-006
+    title: Thay đổi owner bằng takeown hoặc công cụ quản lý ACL phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-007
+    title: Thiết kế quyền theo nhóm, xử lý ACE Deny và tránh cấp Full control quá rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-008
+    title: Sao lưu, khôi phục và rà soát ACL bằng icacls
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-009
+    title: Ảnh hưởng của sao chép, di chuyển trong cùng hoặc khác volume đến ACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ntfs-acl-management-010
+    title: Bảo toàn quyền và chủ sở hữu khi đồng bộ, sao lưu bằng robocopy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-file-sharing
+  title: Chia sẻ tệp mạng
+  childs:
+  - slug: network-file-sharing-001
+    title: Phân biệt quyền trên máy chủ, quyền chia sẻ và danh tính truy cập từ máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-002
+    title: Kết hợp share permissions với NTFS permissions trong SMB
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-003
+    title: Nhận diện tài khoản, phiên SMB và thông tin xác thực đang được sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-004
+    title: Ảnh hưởng của quyền miền, nhóm lồng nhau và cập nhật token đến truy cập mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-005
+    title: Thiết kế thư mục SMB theo nhóm và kiểm tra quyền hiệu lực từ máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-006
+    title: Ánh xạ danh tính Windows với người dùng Linux khi sử dụng Samba
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-007
+    title: NFS, tính nhất quán UID/GID và ánh xạ danh tính giữa máy khách với máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-008
+    title: root_squash, export chỉ đọc và quyền trên thư mục được chia sẻ NFS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-009
+    title: Phân biệt POSIX ACL, NFSv4 ACL và mô hình ACL phía máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-file-sharing-010
+    title: Chẩn đoán trường hợp truy cập cục bộ được nhưng truy cập qua SMB hoặc NFS bị từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: process-permissions
+  title: Quyền tiến trình
+  childs:
+  - slug: process-permissions-001
+    title: Real UID/GID, effective UID/GID, saved IDs và filesystem UID trên Linux
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-002
+    title: Kế thừa thông tin xác thực qua fork, exec và việc hạ đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-003
+    title: Nhóm bổ sung và nguyên nhân tiến trình giữ quyền từ phiên cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-004
+    title: Điều kiện gửi tín hiệu, kiểm tra tiến trình và truy cập /proc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-005
+    title: Quyền đối với UNIX socket, named pipe và thiết bị hệ thống
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-006
+    title: Access token, impersonation và quyền truy cập process, thread trên Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-007
+    title: Quyền mở handle, đọc bộ nhớ, gỡ lỗi và dừng tiến trình Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-008
+    title: Phân biệt quyền của người mở ứng dụng với danh tính ứng dụng thực sự sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-009
+    title: Ảnh hưởng của working directory, biến môi trường và tệp cấu hình đến truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: process-permissions-010
+    title: Xác định danh tính và tài nguyên cần thiết trước khi cấp thêm quyền cho tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-service-permissions
+  title: Dịch vụ Linux
+  childs:
+  - slug: linux-service-permissions-001
+    title: Chọn tài khoản dịch vụ riêng, nhóm phụ trợ và phạm vi sở hữu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-002
+    title: Cấu hình User, Group, SupplementaryGroups trong systemd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-003
+    title: UMask, WorkingDirectory và đường dẫn dữ liệu của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-004
+    title: DynamicUser và quản lý thư mục bằng StateDirectory, RuntimeDirectory, LogsDirectory
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-005
+    title: Cấp quyền đọc cấu hình, ghi log, PID file, socket và thư mục tạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-006
+    title: Giới hạn quyền bằng NoNewPrivileges và CapabilityBoundingSet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-007
+    title: ProtectSystem, ProtectHome, PrivateTmp và ReadWritePaths trong systemd
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-008
+    title: Nhận diện sandbox, mount namespace và nhãn MAC của tiến trình dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-009
+    title: Quyền thực thi trong cron, timer và tác vụ không có shell đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-service-permissions-010
+    title: Kiểm thử dịch vụ bằng đúng danh tính, môi trường và cấu hình triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-service-permissions
+  title: Dịch vụ Windows
+  childs:
+  - slug: windows-service-permissions-001
+    title: Chọn LocalSystem, LocalService, NetworkService hoặc tài khoản chuyên dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-002
+    title: Virtual account, service SID và managed service account trong cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-003
+    title: gMSA và quản lý mật khẩu tài khoản dịch vụ trong miền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-004
+    title: Log on as a service, Deny log on as a service và ảnh hưởng của Group Policy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-005
+    title: Quyền trên executable, thư mục cài đặt, cấu hình, log và dữ liệu dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-006
+    title: Quyền truy cập mạng của tài khoản dịch vụ và danh tính phía máy chủ từ xa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-007
+    title: Phân biệt ACL của đối tượng dịch vụ với ACL của tệp thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-008
+    title: Quyền start, stop, thay đổi cấu hình dịch vụ và rủi ro sửa đường dẫn thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-009
+    title: Scheduled Task, batch logon và lựa chọn ngữ cảnh chạy phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-service-permissions-010
+    title: Kiểm tra token, sự kiện và quyền hiệu lực khi dịch vụ chạy khác phiên tương tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-container-permissions
+  title: Container Linux
+  childs:
+  - slug: linux-container-permissions-001
+    title: UID/GID trong container và quyền thực tế trên hệ thống tệp của máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-002
+    title: Chỉ định USER trong Dockerfile và danh tính chạy bằng tùy chọn user
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-003
+    title: Đồng bộ UID/GID, nhóm bổ sung và quyền thư mục khi dùng bind mount
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-004
+    title: Quyền sở hữu của named volume và bước khởi tạo dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-005
+    title: Root trong container, user namespace và ánh xạ ID
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-006
+    title: Rootless container, subordinate IDs và giới hạn tài nguyên được truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-007
+    title: Capabilities mặc định, cap-drop, cap-add và no-new-privileges
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-008
+    title: Rủi ro của privileged, thiết bị được cấp và Docker socket
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-009
+    title: Hệ thống tệp chỉ đọc, tmpfs và thư mục cần ghi của ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-010
+    title: SELinux labels, AppArmor profile và seccomp trong giới hạn truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-011
+    title: Bảo toàn quyền khi COPY, giải nén và tạo image nhiều giai đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-container-permissions-012
+    title: Kiểm thử image bằng người dùng không phải root với đúng volume triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-containers-and-wsl
+  title: Container Windows và WSL
+  childs:
+  - slug: windows-containers-and-wsl-001
+    title: ContainerUser, ContainerAdministrator và lựa chọn danh tính trong Windows container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-002
+    title: ACL trên image, volume và thư mục dùng chung của Windows container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-003
+    title: Danh tính truy cập mạng và gMSA trong Windows container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-004
+    title: Khác biệt giữa process isolation, Hyper-V isolation và quyền trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-005
+    title: Phân biệt root trong WSL với quyền quản trị Windows
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-006
+    title: Quyền Linux trên hệ thống tệp WSL và quyền NTFS trên ổ đĩa Windows được gắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-007
+    title: Tùy chọn metadata, umask và ánh xạ quyền trên DrvFs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-containers-and-wsl-008
+    title: Chẩn đoán quyền khi công cụ Windows, WSL và Docker Desktop dùng chung dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: kubernetes-permissions
+  title: Quyền trong Kubernetes
+  childs:
+  - slug: kubernetes-permissions-001
+    title: Phân biệt danh tính API, ServiceAccount và UID/GID của tiến trình trong Pod
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-002
+    title: RBAC của Kubernetes và quyền truy cập tệp bên trong container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-003
+    title: runAsUser, runAsGroup và runAsNonRoot trong securityContext
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-004
+    title: fsGroup, supplementalGroups và quyền truy cập volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-005
+    title: fsGroupChangePolicy, CSI driver và giới hạn thay đổi sở hữu volume
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-006
+    title: allowPrivilegeEscalation, capabilities và readOnlyRootFilesystem
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-007
+    title: seccompProfile, SELinux và AppArmor theo hỗ trợ của cụm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-008
+    title: Quyền trên Secret, ConfigMap, projected volume và service account token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-009
+    title: Init container, dữ liệu persistent và rủi ro chown đệ quy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: kubernetes-permissions-010
+    title: Kiểm chứng Pod bằng UID/GID thực tế, sự kiện và chính sách bảo mật áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: least-privilege-design
+  title: Thiết kế quyền tối thiểu
+  childs:
+  - slug: least-privilege-design-001
+    title: Lập ma trận chủ thể, tài nguyên và thao tác cần thiết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-002
+    title: Phân tách tài khoản cá nhân, quản trị, triển khai và chạy dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-003
+    title: Cấp quyền qua nhóm vai trò và xác định chủ sở hữu từng tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-004
+    title: Phân biệt quyền đọc, ghi, thực thi, xóa và quản lý quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-005
+    title: Ủy quyền tác vụ cụ thể bằng sudo, service ACL hoặc cơ chế tương ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-006
+    title: Giới hạn quyền theo môi trường phát triển, kiểm thử và sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-007
+    title: Quản lý quyền tạm thời, thời hạn cấp quyền và quy trình thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-008
+    title: Bảo vệ khóa SSH, mật khẩu dịch vụ, token và tệp chứa bí mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-009
+    title: Đánh giá rủi ro từ quyền sửa mã, cấu hình hoặc thư mục của tiến trình đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: least-privilege-design-010
+    title: Kiểm thử cả thao tác được phép và thao tác phải bị từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-access-auditing
+  title: Kiểm toán Linux
+  childs:
+  - slug: linux-access-auditing-001
+    title: Kiểm kê tài khoản, nhóm, UID/GID bất thường và tài khoản không còn sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-002
+    title: Rà soát tài khoản UID 0, shell đăng nhập và chính sách hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-003
+    title: Tìm tệp ghi được quá rộng, tệp vô chủ và thư mục có cấu hình quyền rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-004
+    title: Kiểm kê setuid, setgid, file capabilities và nhóm có thể nâng quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-005
+    title: Đối chiếu quyền POSIX, ACL, sudoers và chính sách MAC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-006
+    title: Đọc nhật ký đăng nhập, xác thực, sudo qua journal và tệp log theo bản phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-007
+    title: Thiết lập auditd để theo dõi thay đổi tài khoản, quyền và tài nguyên nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-008
+    title: Phân biệt login UID, real UID và effective UID trong sự kiện audit
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-009
+    title: Tra cứu bằng ausearch, aureport và liên kết sự kiện với tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-access-auditing-010
+    title: Bảo vệ log, quản lý dung lượng và ghi nhận sai lệch so với cấu hình chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-access-auditing
+  title: Kiểm toán Windows
+  childs:
+  - slug: windows-access-auditing-001
+    title: Kiểm kê tài khoản, nhóm cục bộ, thành viên quản trị và tài khoản dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-002
+    title: Đối chiếu quyền đăng nhập, user rights và chính sách Group Policy hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-003
+    title: Cấu hình Advanced Audit Policy theo loại sự kiện cần theo dõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-004
+    title: SACL và điều kiện sinh sự kiện truy cập đối tượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-005
+    title: Tra cứu sự kiện đăng nhập thành công, thất bại và logon type
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-006
+    title: Theo dõi thay đổi tài khoản, nhóm, quyền đối tượng và sử dụng đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-007
+    title: Liên kết SID, Logon ID, process ID và tài nguyên trong Security log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-008
+    title: Thu thập sự kiện bằng Event Viewer, Get-WinEvent và Windows Event Forwarding
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-009
+    title: Rà soát ACL bất thường, SID không phân giải được và kế thừa bị ngắt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-access-auditing-010
+    title: Lưu trữ bằng chứng, bảo vệ nhật ký và cân bằng độ chi tiết với khối lượng log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-permission-troubleshooting
+  title: Chẩn đoán Linux
+  childs:
+  - slug: linux-permission-troubleshooting-001
+    title: Phân biệt Permission denied, Operation not permitted và Read-only file system
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-002
+    title: Thu thập lệnh lỗi, mã lỗi, danh tính, nhóm và ngữ cảnh thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-003
+    title: Kiểm tra từng thành phần đường dẫn bằng namei, ls và stat
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-004
+    title: Đọc ACL, mask và quyền hiệu lực bằng getfacl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-005
+    title: Kiểm tra symbolic link, điểm mount, tùy chọn noexec, nosuid và trạng thái chỉ đọc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-006
+    title: Kiểm tra thuộc tính immutable, append-only và giới hạn của hệ thống tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-007
+    title: Đối chiếu UID/GID số khi tên tài khoản hoặc nguồn NSS thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-008
+    title: Kiểm tra capabilities, quyền đặc biệt và chính sách SELinux, AppArmor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-009
+    title: Phân tích truy cập bị từ chối bằng strace, audit log và nhật ký dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-010
+    title: Nhận diện tệp bị giữ mở, tiến trình giữ nhóm cũ và môi trường thực thi khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-011
+    title: Chẩn đoán script không chạy do thiếu quyền thư mục, trình thông dịch hoặc mount noexec
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permission-troubleshooting-012
+    title: Sửa quyền trong phạm vi cần thiết, tái hiện lỗi và kiểm thử lại bằng đúng tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-permission-troubleshooting
+  title: Chẩn đoán Windows
+  childs:
+  - slug: windows-permission-troubleshooting-001
+    title: Thu thập Access is denied, mã lỗi, đường dẫn và danh tính thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-002
+    title: Xác định token, UAC, nhóm và đặc quyền bằng whoami cùng công cụ kiểm tra tiến trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-003
+    title: Kiểm tra owner, ACE tường minh, kế thừa và quyền hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-004
+    title: Phân tích ACE Deny và thứ tự ACE trong DACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-005
+    title: Đối chiếu quyền NTFS, quyền chia sẻ SMB và phiên xác thực mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-006
+    title: Kiểm tra user rights, logon type, Group Policy và quyền chạy dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-007
+    title: Dùng Process Monitor để tìm thao tác, đối tượng và kết quả ACCESS DENIED
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-008
+    title: Phân biệt ACCESS DENIED với SHARING VIOLATION, khóa tệp và tệp không tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-009
+    title: Nhận diện EFS, Controlled Folder Access, mức toàn vẹn và phần mềm bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-010
+    title: Chẩn đoán lỗi với registry, named pipe, service object và Scheduled Task
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-011
+    title: Xử lý SID không còn hợp lệ, token cũ và khác biệt giữa phiên tương tác với dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permission-troubleshooting-012
+    title: Sửa ACL hoặc cấu hình theo nguyên nhân và kiểm chứng quyền sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-permission-troubleshooting
+  title: Chẩn đoán container
+  childs:
+  - slug: container-permission-troubleshooting-001
+    title: Đối chiếu danh tính trong image, cấu hình runtime và tiến trình đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-002
+    title: So sánh UID/GID trong container với chủ sở hữu bind mount trên host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-003
+    title: Kiểm tra ánh xạ user namespace, rootless và subordinate IDs
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-004
+    title: Rà soát nhóm bổ sung, fsGroup và quyền volume do CSI cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-005
+    title: Phân biệt lỗi khi build image, khởi tạo volume và chạy ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-006
+    title: Kiểm tra root filesystem chỉ đọc, đường dẫn mount và thư mục tạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-007
+    title: Đọc log từ chối của SELinux, AppArmor và seccomp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-008
+    title: Kiểm tra capabilities, no-new-privileges và thao tác yêu cầu đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-009
+    title: Phân tích khác biệt giữa chạy cục bộ, Docker Compose, CI và Kubernetes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-permission-troubleshooting-010
+    title: Xác nhận bản sửa bằng container mới, dữ liệu cũ và người dùng không phải root
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: linux-permissions-labs
+  title: Thực hành Linux
+  childs:
+  - slug: linux-permissions-labs-001
+    title: Tạo bộ tài khoản, nhóm và thư mục dùng chung theo ma trận vai trò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-002
+    title: Quan sát UID/GID, nhóm chính và nhóm bổ sung qua nhiều phiên đăng nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-003
+    title: Tính và kiểm chứng quyền đọc, ghi, thực thi trên tệp và thư mục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-004
+    title: Cấu hình setgid, sticky bit, umask và kiểm tra tệp mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-005
+    title: Thiết kế POSIX ACL nhiều nhóm, kiểm tra mask và default ACL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-006
+    title: Ủy quyền một tác vụ quản trị bằng sudoers có giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-007
+    title: Chạy dịch vụ systemd bằng tài khoản riêng với phạm vi ghi tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-008
+    title: Gây lỗi truy cập có kiểm soát và chẩn đoán bằng namei, getfacl, strace
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-009
+    title: Chạy ứng dụng trong container không phải root với bind mount có quyền đúng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: linux-permissions-labs-010
+    title: Thu hồi tài khoản, kiểm toán quyền còn lại và khôi phục cấu hình đã sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: windows-permissions-labs
+  title: Thực hành Windows
+  childs:
+  - slug: windows-permissions-labs-001
+    title: Tạo tài khoản, nhóm và cấu trúc thư mục theo vai trò công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-002
+    title: Quan sát SID, access token, UAC và đặc quyền của phiên thường, phiên nâng quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-003
+    title: Thiết kế ACL NTFS với quyền Read, Modify và quản lý quyền riêng biệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-004
+    title: Thử nghiệm kế thừa, phạm vi ACE và quyền xóa tệp trong thư mục cha
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-005
+    title: Kết hợp quyền SMB với NTFS và kiểm chứng từ máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-006
+    title: Chạy dịch vụ hoặc Scheduled Task bằng tài khoản được cấp quyền tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-007
+    title: Sao lưu, thay đổi và phục hồi ACL bằng icacls hoặc PowerShell
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-008
+    title: Bật audit phù hợp, cấu hình SACL và truy vết một lần truy cập bị từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-009
+    title: Chẩn đoán Access is denied bằng Effective Access và Process Monitor
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: windows-permissions-labs-010
+    title: Thu hồi quyền nhóm, làm mới phiên và xác nhận tài khoản hết quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-incident-response
+  title: Vận hành và ứng cứu
+  childs:
+  - slug: operations-and-incident-response-001
+    title: Lưu cấu hình tài khoản, nhóm, ACL và quy tắc ủy quyền làm đường cơ sở
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-002
+    title: Chuẩn bị bản sao quyền, tài khoản cứu hộ và phương án hoàn tác trước thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-003
+    title: Rà soát quyền theo định kỳ và sau thay đổi nhân sự, dịch vụ hoặc hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-004
+    title: Phát hiện quyền lệch sau triển khai, đồng bộ, phục hồi và di chuyển dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-005
+    title: Thực hiện thay đổi quyền theo lô với phạm vi, nhật ký và điểm kiểm tra rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-006
+    title: Thu hồi phiên, thông tin xác thực và quyền tồn dư khi tài khoản bị xâm phạm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-007
+    title: Thu thập bằng chứng về danh tính, quyền hiệu lực và lịch sử thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-008
+    title: Khôi phục truy cập quản trị khi cấu hình sudo hoặc ACL bị lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-response-009
+    title: Xây dựng checklist bàn giao và tiêu chí nghiệm thu phân quyền Linux, Windows, container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

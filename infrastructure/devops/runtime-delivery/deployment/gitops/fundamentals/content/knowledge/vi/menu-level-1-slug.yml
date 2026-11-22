@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: gitops-overview
+  index: 0
+- title: Nguyên tắc
+  slug: gitops-principles
+  index: 1
+- title: Vòng lặp đối soát
+  slug: reconciliation-loop
+  index: 2
+- title: Nguồn trạng thái
+  slug: desired-state-source
+  index: 3
+- title: Kiến trúc
+  slug: architecture
+  index: 4
+- title: Quan hệ với CI/CD
+  slug: ci-cd-relationship
+  index: 5
+- title: Mô hình tài nguyên
+  slug: resource-model
+  index: 6
+- title: Tổ chức kho mã
+  slug: repository-organization
+  index: 7
+- title: Dữ liệu cấu hình
+  slug: configuration-data
+  index: 8
+- title: Sinh manifest
+  slug: manifest-generation
+  index: 9
+- title: Artifact triển khai
+  slug: deployment-artifacts
+  index: 10
+- title: Quy trình thay đổi
+  slug: change-workflow
+  index: 11
+- title: Thăng cấp môi trường
+  slug: environment-promotion
+  index: 12
+- title: Đồng bộ tài nguyên
+  slug: resource-synchronization
+  index: 13
+- title: Sức khỏe ứng dụng
+  slug: application-health
+  index: 14
+- title: Xóa và quyền sở hữu
+  slug: deletion-ownership
+  index: 15
+- title: Sai lệch cấu hình
+  slug: configuration-drift
+  index: 16
+- title: Bí mật
+  slug: secrets
+  index: 17
+- title: Quyền và độ tin cậy
+  slug: permissions-trust
+  index: 18
+- title: Nhiều cụm và nhóm
+  slug: multicluster-teams
+  index: 19
+- title: Phụ thuộc triển khai
+  slug: deployment-dependencies
+  index: 20
+- title: Dữ liệu và migration
+  slug: data-migrations
+  index: 21
+- title: Kiểm thử và chính sách
+  slug: testing-policies
+  index: 22
+- title: Quan sát và kiểm toán
+  slug: observability-auditing
+  index: 23
+- title: Khôi phục
+  slug: recovery
+  index: 24
+- title: Quản trị vận hành
+  slug: operations-governance
+  index: 25
+- title: Lựa chọn công cụ
+  slug: tool-selection
+  index: 26
+- title: Áp dụng GitOps
+  slug: gitops-adoption
+  index: 27
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 28
+- title: Thực hành
+  slug: hands-on-practice
+  index: 29

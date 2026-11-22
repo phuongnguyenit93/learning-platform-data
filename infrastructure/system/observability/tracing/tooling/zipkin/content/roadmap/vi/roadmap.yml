@@ -1,0 +1,49 @@
+roadmap:
+- id: zipkin-distributed-tracing
+  title: Zipkin & Distributed Tracing
+  purpose: Hiểu vai trò của Zipkin trong thu thập, lưu trữ và tra cứu trace xuyên nhiều service.
+  objectives:
+  - '- Phân biệt trace, span, parent-child span và trace context.'
+  - '- Mô tả luồng instrumentation → collector → storage → query/UI.'
+- id: zipkin-data-model
+  title: Zipkin Data Model
+  purpose: Đọc đúng cấu trúc span để diễn giải service, operation, latency và lỗi.
+  objectives:
+  - '- Nhận diện traceId, spanId, parentId, timestamp và duration.'
+  - '- Dùng local/remote endpoint, annotation và tag có kiểm soát.'
+- id: instrumentation-propagation
+  title: Instrumentation & Propagation
+  purpose: Tạo trace xuyên service và truyền context qua HTTP hoặc messaging.
+  objectives:
+  - '- Tích hợp tracer/agent phù hợp với Java và framework.'
+  - '- Phân biệt B3 single/multi-header và W3C Trace Context.'
+- id: zipkin-server-collector
+  title: Zipkin Server & Collector
+  purpose: Triển khai điểm tiếp nhận span và kiểm tra dữ liệu được ingest thành công.
+  objectives:
+  - '- Chạy Zipkin server, gửi span qua HTTP API v2 hoặc transport hỗ trợ.'
+  - '- Kiểm tra payload, service name, sampling và lỗi collector.'
+- id: storage-query-ui
+  title: Storage & Query/UI
+  purpose: Chọn cách lưu trace phù hợp và tìm trace để điều tra latency hoặc lỗi phân tán.
+  objectives:
+  - '- So sánh in-memory với backend lưu trữ bền vững được hỗ trợ.'
+  - '- Tìm theo service, operation, tag, annotation, duration và trace ID.'
+- id: spring-boot-integration
+  title: Spring Boot Integration
+  purpose: Kết nối ứng dụng Java/Spring với Zipkin qua lựa chọn tracing tương thích phiên bản.
+  objectives:
+  - '- Cấu hình Micrometer Tracing, Brave hoặc OpenTelemetry theo stack.'
+  - '- Kiểm tra endpoint export, sampling và trace propagation.'
+- id: otlp-migration-path
+  title: OTLP & Migration Path
+  purpose: Chọn đường vận chuyển trace phù hợp với xu hướng exporter hiện hành.
+  objectives:
+  - '- Phân biệt Zipkin exporter trực tiếp, OTLP ingestion và OTel Collector.'
+  - '- Với triển khai mới, ưu tiên OTLP hoặc Collector thay exporter đã deprecated.'
+- id: operations-security-tuning
+  title: Operations, Security & Tuning
+  purpose: Vận hành tracing có kiểm soát về tải, dữ liệu nhạy cảm và độ tin cậy.
+  objectives:
+  - '- Điều chỉnh sampling, retention, storage capacity và collector backpressure.'
+  - '- Bảo vệ UI/API, giới hạn tag nhạy cảm và kiểm thử trace khi upstream lỗi.'

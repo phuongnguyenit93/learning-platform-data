@@ -1,0 +1,49 @@
+roadmap:
+- id: process-fundamentals
+  title: Process Fundamentals
+  purpose: Hiểu tiến trình như một chương trình đang thực thi cùng không gian địa chỉ và tài nguyên.
+  objectives:
+  - Phân biệt program với process; nhận diện PID và process state.
+  - Mô tả tạo, chạy, chờ và kết thúc tiến trình.
+- id: process-lifecycle-ipc
+  title: Process Lifecycle & IPC
+  purpose: Nắm cách tiến trình được tạo, kết thúc và phối hợp với tiến trình khác.
+  objectives:
+  - Giải thích fork/exec/wait và quan hệ parent-child.
+  - So sánh pipe, shared memory, message queue và socket.
+- id: thread-execution-context
+  title: Thread & Execution Context
+  purpose: Hiểu thread là đơn vị thực thi nằm trong một process.
+  objectives:
+  - Phân biệt process isolation với thread dùng chung bộ nhớ.
+  - Nhận diện stack, registers, thread state và context switch.
+- id: cpu-scheduling
+  title: CPU Scheduling
+  purpose: Giải thích cách hệ điều hành phân phối CPU cho các luồng sẵn sàng chạy.
+  objectives:
+  - Phân biệt ready/running/blocked và preemption.
+  - So sánh FCFS, SJF, Round Robin và priority scheduling.
+- id: concurrency-synchronization
+  title: Concurrency & Synchronization
+  purpose: Bảo vệ dữ liệu khi nhiều thread truy cập cùng tài nguyên.
+  objectives:
+  - Nhận diện race condition, critical section và data race.
+  - Thực hành mutex, semaphore, condition variable và atomic.
+- id: deadlock-coordination
+  title: Deadlock & Coordination
+  purpose: Phát hiện trạng thái các thread chờ nhau và chọn cách phòng tránh.
+  objectives:
+  - Nêu bốn điều kiện cần của deadlock.
+  - Phân biệt prevention, avoidance, detection và recovery.
+- id: resource-performance
+  title: Resource & Performance
+  purpose: Quản lý tài nguyên thực thi và đánh giá chi phí của đa luồng.
+  objectives:
+  - Theo dõi CPU, memory, file descriptor và thread count.
+  - Phân biệt concurrency với parallelism; nhận diện oversubscription.
+- id: quan-sat-thuc-hanh
+  title: Quan sát & Thực hành
+  purpose: Dùng công cụ hệ điều hành để quan sát vòng đời process/thread và kiểm chứng hành vi.
+  objectives:
+  - Theo dõi process tree, thread, trạng thái và mức CPU.
+  - Thực hành khởi chạy, gửi tín hiệu, đồng bộ và phân tích deadlock.

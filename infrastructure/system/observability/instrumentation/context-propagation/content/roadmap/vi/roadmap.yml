@@ -1,0 +1,56 @@
+roadmap:
+- id: ban-chat-cua-context
+  title: Bản chất của Context
+  purpose: Hiểu vai trò của ngữ cảnh trong việc liên kết các bước xử lý của cùng một yêu cầu.
+  objectives:
+  - Phân biệt execution context, trace context và MDC.
+  - Nhận diện điểm đứt ngữ cảnh khi đổi thread hoặc dịch vụ.
+- id: trace-context-baggage
+  title: Trace Context & Baggage
+  purpose: Nắm chuẩn trao đổi trace và dữ liệu đi kèm giữa các thành phần.
+  objectives:
+  - Giải thích traceparent, tracestate và baggage.
+  - Phân biệt trace context với dữ liệu nghiệp vụ.
+  - Chọn dữ liệu an toàn để truyền.
+- id: context-api-scope
+  title: Context API & Scope
+  purpose: Quản lý ngữ cảnh hiện hành đúng vòng đời khi instrument ứng dụng Java.
+  objectives:
+  - Dùng Context.current() và makeCurrent().
+  - Đóng Scope đúng cách để tránh rò rỉ.
+  - Liên hệ span hiện hành với log.
+- id: async-executor
+  title: Async & Executor
+  purpose: Giữ ngữ cảnh xuyên các tác vụ bất đồng bộ chạy trên thread khác.
+  objectives:
+  - Truyền context qua Runnable, Callable, Executor.
+  - Kiểm tra propagation với CompletableFuture.
+  - Khôi phục context sau khi tác vụ kết thúc.
+- id: reactor-context
+  title: Reactor Context
+  purpose: Duy trì dữ liệu liên kết trong luồng reactive khi scheduler thay đổi.
+  objectives:
+  - Dùng contextWrite và deferContextual.
+  - Kết nối Reactor Context với ThreadLocal khi cần.
+  - Kiểm tra context qua publishOn/subscribeOn.
+- id: http-lien-dich-vu
+  title: HTTP liên dịch vụ
+  purpose: Nối trace qua ranh giới giữa client và server bằng propagator.
+  objectives:
+  - Inject trace headers vào HTTP request.
+  - Extract context ở phía nhận.
+  - Xác nhận cùng trace ID xuyên các dịch vụ.
+- id: messaging-job-nen
+  title: Messaging & Job nền
+  purpose: Tiếp tục ngữ cảnh qua message broker và công việc xử lý nền.
+  objectives:
+  - Gắn trace headers vào message metadata.
+  - Extract context khi consumer xử lý.
+  - Xử lý trường hợp thiếu parent hợp lệ.
+- id: kiem-thu-an-toan
+  title: Kiểm thử & an toàn
+  purpose: Phát hiện mất hoặc lẫn context và ngăn dữ liệu nhạy cảm lan truyền.
+  objectives:
+  - Kiểm thử correlation qua async, HTTP và queue.
+  - Phát hiện context bị lẫn giữa các request.
+  - Loại thông tin nhạy cảm khỏi baggage.

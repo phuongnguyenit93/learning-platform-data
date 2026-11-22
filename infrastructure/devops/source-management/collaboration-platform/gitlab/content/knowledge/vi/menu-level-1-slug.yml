@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Tài khoản
+  slug: accounts
+  index: 1
+- title: Điều hướng
+  slug: navigation
+  index: 2
+- title: Group
+  slug: group
+  index: 3
+- title: Project
+  slug: project
+  index: 4
+- title: Phân quyền
+  slug: permissions
+  index: 5
+- title: Kết nối Git
+  slug: git-connectivity
+  index: 6
+- title: Kho mã
+  slug: repositories
+  index: 7
+- title: Commit
+  slug: commit
+  index: 8
+- title: Nhánh và tag
+  slug: branches-tags
+  index: 9
+- title: Fork
+  slug: fork
+  index: 10
+- title: Merge request
+  slug: merge-request
+  index: 11
+- title: Review
+  slug: review
+  index: 12
+- title: Phê duyệt
+  slug: approvals
+  index: 13
+- title: Hợp nhất
+  slug: merging
+  index: 14
+- title: Issue
+  slug: issue
+  index: 15
+- title: Lập kế hoạch
+  slug: planning
+  index: 16
+- title: Tài liệu
+  slug: documentation
+  index: 17
+- title: Thông báo
+  slug: notifications
+  index: 18
+- title: Token và khóa
+  slug: tokens-keys
+  index: 19
+- title: Chính sách mã
+  slug: code-policies
+  index: 20
+- title: Kiểm tra tích hợp
+  slug: integration-checks
+  index: 21
+- title: Tích hợp hệ thống
+  slug: system-integrations
+  index: 22
+- title: API và CLI
+  slug: api-cli
+  index: 23
+- title: Dữ liệu lớn
+  slug: large-files
+  index: 24
+- title: Di chuyển
+  slug: migration
+  index: 25
+- title: Quản trị nhóm
+  slug: group-administration
+  index: 26
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 27
+- title: Thực hành
+  slug: practice
+  index: 28

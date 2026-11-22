@@ -1,0 +1,61 @@
+menu:
+  - title: "Nền tảng quản lý hạ tầng trong DevOps"
+    slug: infrastructure-management-foundations
+    index: 0
+  - title: "Kiểm kê tài nguyên và mô hình hóa hiện trạng"
+    slug: resource-inventory-and-current-state
+    index: 1
+  - title: "Yêu cầu hạ tầng và thiết kế trạng thái đích"
+    slug: requirements-and-target-state-design
+    index: 2
+  - title: "Phân tách và quản lý môi trường"
+    slug: environment-isolation-and-management
+    index: 3
+  - title: "Các thành phần tài nguyên cần quản lý"
+    slug: infrastructure-resource-components
+    index: 4
+  - title: "Nguyên lý Infrastructure as Code"
+    slug: infrastructure-as-code-principles
+    index: 5
+  - title: "Tổ chức mã hạ tầng và tái sử dụng"
+    slug: iac-organization-and-reuse
+    index: 6
+  - title: "Trạng thái IaC và quản lý tài nguyên hiện hữu"
+    slug: iac-state-and-resource-management
+    index: 7
+  - title: "Quản lý cấu hình theo trạng thái mong muốn"
+    slug: desired-state-configuration-management
+    index: 8
+  - title: "Cấu hình, bí mật và hiện vật hạ tầng"
+    slug: config-secrets-and-infra-artifacts
+    index: 9
+  - title: "Phân quyền và nền tảng bảo mật hạ tầng"
+    slug: infrastructure-access-and-security
+    index: 10
+  - title: "Kiểm soát thay đổi và tự động hóa triển khai hạ tầng"
+    slug: change-control-deployment-automation
+    index: 11
+  - title: "Phát hiện drift và đối soát trạng thái"
+    slug: drift-detection-and-state-reconciliation
+    index: 12
+  - title: "Giám sát và khả năng quan sát hạ tầng"
+    slug: infra-monitoring-and-observability
+    index: 13
+  - title: "Sao lưu, phục hồi và khôi phục sau thảm họa"
+    slug: backup-restoration-and-disaster-recovery
+    index: 14
+  - title: "Độ tin cậy và quản lý năng lực"
+    slug: reliability-and-capacity-management
+    index: 15
+  - title: "Vòng đời tài nguyên, bản vá và nâng cấp"
+    slug: resource-lifecycle-patching-and-upgrades
+    index: 16
+  - title: "Chi phí, chính sách và quản trị hạ tầng"
+    slug: infra-cost-policy-and-governance
+    index: 17
+  - title: "Vận hành, xử lý sự cố và bàn giao"
+    slug: operations-incident-response-handover
+    index: 18
+  - title: "Thực hành tổng hợp quản lý hạ tầng có thể tái lập"
+    slug: reproducible-infrastructure-practice
+    index: 19

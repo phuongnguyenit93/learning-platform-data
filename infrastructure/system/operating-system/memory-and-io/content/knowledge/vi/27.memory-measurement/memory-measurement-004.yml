@@ -1,0 +1,3 @@
+menuLevel1: Đo bộ nhớ
+menuLevel2: Đọc VmSize, VmRSS, VmSwap và giới hạn số liệu trong /proc/<pid>/status
+status: ''

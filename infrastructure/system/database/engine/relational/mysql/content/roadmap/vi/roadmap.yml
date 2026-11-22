@@ -1,0 +1,57 @@
+roadmap:
+- id: mysql-ket-noi
+  title: MySQL & kết nối
+  purpose: Làm quen với MySQL Server, cách vận hành cơ bản và giao tiếp với cơ sở dữ liệu.
+  objectives:
+  - Phân biệt MySQL Server với client
+  - Cài đặt, khởi chạy và kết nối bằng mysql CLI
+  - Tạo database và kiểm tra trạng thái kết nối
+- id: schema-kieu-du-lieu
+  title: Schema & kiểu dữ liệu
+  purpose: Thiết kế bảng có cấu trúc rõ ràng và ràng buộc phù hợp với dữ liệu nghiệp vụ.
+  objectives:
+  - Chọn kiểu INT, VARCHAR, DATETIME phù hợp
+  - Dùng CREATE TABLE, PRIMARY KEY và FOREIGN KEY
+  - Phân biệt NULL, UNIQUE và DEFAULT
+- id: sql-truy-van-crud
+  title: SQL truy vấn & CRUD
+  purpose: Đọc, thêm, sửa và tổng hợp dữ liệu quan hệ bằng SQL có điều kiện.
+  objectives:
+  - Dùng SELECT, INSERT, UPDATE và DELETE
+  - Viết JOIN, GROUP BY và HAVING
+  - Thực hiện sắp xếp, phân trang kết quả
+- id: index-explain
+  title: Index & EXPLAIN
+  purpose: Hiểu ảnh hưởng của index và query plan để cải thiện truy vấn chậm.
+  objectives:
+  - Tạo index đơn và index ghép phù hợp
+  - Đọc EXPLAIN để phát hiện table scan
+  - So sánh truy vấn trước và sau tối ưu
+- id: innodb-giao-dich
+  title: InnoDB & giao dịch
+  purpose: Bảo đảm nhất quán dữ liệu khi nhiều phiên đọc và ghi đồng thời.
+  objectives:
+  - Dùng START TRANSACTION, COMMIT, ROLLBACK
+  - Phân biệt isolation level và MVCC
+  - Nhận diện row lock, deadlock và cách xử lý
+- id: tai-khoan-bao-mat
+  title: Tài khoản & bảo mật
+  purpose: Giới hạn quyền truy cập vào dữ liệu và bảo vệ kết nối ứng dụng.
+  objectives:
+  - Tạo user và gán quyền bằng GRANT
+  - Áp dụng nguyên tắc đặc quyền tối thiểu
+  - Thiết lập kết nối TLS và bảo vệ credential
+- id: cau-hinh-giam-sat
+  title: Cấu hình & giám sát
+  purpose: Quan sát tài nguyên, kết nối và truy vấn để phát hiện vấn đề vận hành.
+  objectives:
+  - Giải thích cấu hình InnoDB buffer pool cơ bản
+  - Theo dõi slow query và số kết nối
+  - Đọc error log và chỉ số Performance Schema
+- id: backup-replication
+  title: Backup & replication
+  purpose: Thiết lập khả năng phục hồi dữ liệu và hiểu cơ chế sao chép giữa các server.
+  objectives:
+  - Sao lưu/khôi phục bằng mysqldump
+  - Phân biệt backup với source-replica replication
+  - Thử phục hồi dữ liệu và đánh giá độ trễ replica

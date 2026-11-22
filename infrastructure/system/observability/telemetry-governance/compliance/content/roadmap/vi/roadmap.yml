@@ -1,0 +1,50 @@
+roadmap:
+- id: pham-vi-tuan-thu
+  title: Phạm vi tuân thủ
+  purpose: Xác định nghĩa vụ pháp lý, tiêu chuẩn và cam kết áp dụng cho dữ liệu quan sát hệ thống.
+  objectives:
+  - Nhận diện yêu cầu áp dụng theo bối cảnh (ví dụ GDPR)
+  - Xác định phạm vi, chủ sở hữu và bên xử lý telemetry
+  - Phân biệt yêu cầu bắt buộc với thực hành khuyến nghị
+- id: kiem-ke-telemetry
+  title: Kiểm kê telemetry
+  purpose: Hiểu loại dữ liệu nào được thu thập, truyền và lưu trữ trước khi lập kiểm soát.
+  objectives:
+  - Liệt kê nguồn logs, metrics, traces và đích lưu trữ
+  - Vẽ luồng dữ liệu qua collector, backend và bên thứ ba
+  - Nhận diện PII, bí mật và metadata nhạy cảm
+- id: privacy-by-design
+  title: Privacy by Design
+  purpose: Giảm rủi ro riêng tư ngay từ khâu thu thập và xử lý telemetry.
+  objectives:
+  - Gắn mục đích thu thập với trường dữ liệu cần thiết
+  - Chọn cách loại bỏ, che hoặc ẩn danh dữ liệu nhạy cảm
+  - Kiểm tra dữ liệu trước khi xuất khỏi hệ thống
+- id: bao-ve-truy-cap
+  title: Bảo vệ & truy cập
+  purpose: Chuyển yêu cầu bảo mật thành các kiểm soát có thể vận hành và kiểm chứng.
+  objectives:
+  - Giới hạn quyền xem, truy vấn và xuất dữ liệu telemetry
+  - Kiểm tra mã hóa khi truyền và lưu trữ
+  - Lưu dấu truy cập, thay đổi cấu hình và chia sẻ dữ liệu
+- id: luu-giu-xoa-du-lieu
+  title: Lưu giữ & xóa dữ liệu
+  purpose: Thiết lập vòng đời telemetry phù hợp với mục đích và nghĩa vụ liên quan.
+  objectives:
+  - Xác định retention theo loại dữ liệu và yêu cầu áp dụng
+  - Thiết kế xóa hoặc hết hạn dữ liệu đúng chính sách
+  - Đánh giá vị trí lưu trữ và luồng dữ liệu xuyên biên giới
+- id: kiem-toan-bang-chung
+  title: Kiểm toán & bằng chứng
+  purpose: Liên kết yêu cầu tuân thủ với kiểm soát và tài liệu chứng minh thực thi.
+  objectives:
+  - Lập bảng đối chiếu yêu cầu, kiểm soát và chủ sở hữu
+  - Thu thập bằng chứng cấu hình, quyền truy cập và retention
+  - Kiểm tra tính toàn vẹn và khả năng truy vết thay đổi
+- id: danh-gia-lien-tuc
+  title: Đánh giá liên tục
+  purpose: Duy trì trạng thái tuân thủ khi pipeline và yêu cầu thay đổi.
+  objectives:
+  - Định kỳ rà soát rủi ro và sai lệch cấu hình
+  - Phát hiện việc lộ thông tin nhạy cảm trong telemetry
+  - Xây quy trình xử lý sự cố và khắc phục phát hiện

@@ -1,0 +1,49 @@
+roadmap:
+- id: nen-tang-observability
+  title: Nền tảng Observability
+  purpose: Hiểu vì sao cần quan sát trạng thái hệ thống qua dữ liệu phát ra.
+  objectives:
+  - Giải thích observability và monitoring.
+  - Nêu câu hỏi cần trả lời khi hệ thống bất thường.
+- id: ba-tin-hieu-cot-loi
+  title: Ba tín hiệu cốt lõi
+  purpose: Nắm vai trò bổ trợ của metrics, logs và traces.
+  objectives:
+  - Phân biệt metrics, logs, traces.
+  - Chọn tín hiệu phù hợp cho một triệu chứng.
+- id: thu-thap-telemetry
+  title: Thu thập Telemetry
+  purpose: Hiểu dữ liệu quan sát được tạo, xử lý và gửi đi như thế nào.
+  objectives:
+  - Mô tả luồng tạo → thu thập → lưu trữ.
+  - Phân biệt instrumentation và collector.
+- id: boi-canh-tuong-quan
+  title: Bối cảnh & tương quan
+  purpose: Kết nối dữ liệu từ cùng dịch vụ và luồng yêu cầu.
+  objectives:
+  - Nhận biết service, trace ID và span ID.
+  - Liên hệ log với trace của một yêu cầu.
+- id: do-suc-khoe-dich-vu
+  title: Đo sức khỏe dịch vụ
+  purpose: Chọn chỉ số phản ánh trải nghiệm người dùng và độ tin cậy.
+  objectives:
+  - Nhận diện latency, traffic, errors, saturation.
+  - Đề xuất một SLI và SLO cơ bản.
+- id: dashboard-canh-bao
+  title: Dashboard & cảnh báo
+  purpose: Biến tín hiệu thành quan sát và phản hồi kịp thời.
+  objectives:
+  - Đọc dashboard theo xu hướng bất thường.
+  - Phân biệt cảnh báo hành động và nhiễu.
+- id: dieu-tra-su-co
+  title: Điều tra sự cố
+  purpose: Dùng nhiều tín hiệu để thu hẹp phạm vi lỗi.
+  objectives:
+  - Xác định triệu chứng từ metric hoặc alert.
+  - Dùng logs và traces kiểm chứng giả thuyết.
+- id: thuc-hanh-tong-hop
+  title: Thực hành tổng hợp
+  purpose: Vận dụng quy trình quan sát cho một dịch vụ mẫu.
+  objectives:
+  - Vẽ luồng telemetry đến dashboard.
+  - Trình bày cách tìm nguyên nhân một sự cố.

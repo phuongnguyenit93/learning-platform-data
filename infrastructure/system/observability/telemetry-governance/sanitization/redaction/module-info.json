@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "OBSERVABILITY_TELEMETRY_GOVERNANCE_SANITIZATION_REDACTION"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Thiết kế cơ chế che và loại bỏ dữ liệu nhạy cảm trong logs, traces và metrics trước khi lưu trữ hoặc chuyển tiếp. Học nhận diện token, thông tin cá nhân và thuộc tính nguy hiểm, triển khai quy tắc redaction ở ứng dụng hoặc Collector và kiểm thử để giữ giá trị chẩn đoán."
+  }
+}

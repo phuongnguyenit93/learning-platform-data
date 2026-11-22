@@ -1,0 +1,97 @@
+menu:
+- title: Tổng quan Grafana
+  slug: grafana-overview
+  index: 0
+- title: Tư duy dashboard
+  slug: dashboard-design-thinking
+  index: 1
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 2
+- title: Nguồn dữ liệu
+  slug: data-sources
+  index: 3
+- title: Mô hình dữ liệu
+  slug: data-modeling
+  index: 4
+- title: Truy vấn panel
+  slug: panel-queries
+  index: 5
+- title: Thời gian và độ phân giải
+  slug: time-resolution
+  index: 6
+- title: Explore và Drilldown
+  slug: explore-drilldown
+  index: 7
+- title: Biểu đồ thời gian
+  slug: time-series-charts
+  index: 8
+- title: Chỉ số và ngưỡng
+  slug: metrics-thresholds
+  index: 9
+- title: Bảng và danh mục
+  slug: tables-lists
+  index: 10
+- title: Phân bố và trạng thái
+  slug: distributions-status
+  index: 11
+- title: Trực quan chuyên biệt
+  slug: specialized-visualizations
+  index: 12
+- title: Tùy biến trường
+  slug: field-customization
+  index: 13
+- title: Biến dashboard
+  slug: dashboard-variables
+  index: 14
+- title: Bố cục linh hoạt
+  slug: flexible-layouts
+  index: 15
+- title: Biến đổi dữ liệu
+  slug: data-transformations
+  index: 16
+- title: Ghép và tính toán
+  slug: data-joining-calculations
+  index: 17
+- title: Liên kết tương tác
+  slug: interactive-links
+  index: 18
+- title: Chú thích và cảnh báo
+  slug: annotations-alerts
+  index: 19
+- title: Hiển thị metric
+  slug: metrics-visualization
+  index: 20
+- title: Hiển thị log
+  slug: logs-visualization
+  index: 21
+- title: Hiển thị trace
+  slug: traces-visualization
+  index: 22
+- title: Liên kết tín hiệu
+  slug: signal-correlation
+  index: 23
+- title: Dashboard ứng dụng
+  slug: application-dashboards
+  index: 24
+- title: Thiết kế giao diện
+  slug: interface-design
+  index: 25
+- title: Tái sử dụng dashboard
+  slug: dashboard-reuse
+  index: 26
+- title: Chia sẻ và phân quyền
+  slug: sharing-access-control
+  index: 27
+- title: Dashboard bằng mã
+  slug: dashboards-as-code
+  index: 28
+- title: Hiệu năng dashboard
+  slug: dashboard-performance
+  index: 29
+- title: Chẩn đoán và kiểm thử
+  slug: diagnostics-testing
+  index: 30
+- title: Thực hành tổng hợp
+  slug: integrated-practice
+  index: 31

@@ -1,0 +1,57 @@
+roadmap:
+- id: kiem-ke-luong-du-lieu
+  title: Kiểm kê & luồng dữ liệu
+  purpose: Xác định dữ liệu đang thu thập, xử lý và truyền qua hệ thống trước khi đặt chính sách bảo vệ.
+  objectives:
+  - Liệt kê nguồn, đích và owner của các tập dữ liệu.
+  - Vẽ một luồng dữ liệu từ thu thập đến sử dụng.
+  - Đánh dấu các trường định danh và dữ liệu nhạy cảm.
+- id: phan-loai-do-nhay
+  title: Phân loại độ nhạy
+  purpose: Đánh giá hậu quả khi dữ liệu bị truy cập hoặc tiết lộ sai để áp dụng mức bảo vệ phù hợp.
+  objectives:
+  - Phân biệt Public, Internal, Confidential và Restricted.
+  - Nhận diện PII, dữ liệu tài chính và thông tin xác thực.
+  - Gán mức nhạy cảm cho bộ dữ liệu mẫu kèm lý do.
+- id: nhan-chinh-sach-xu-ly
+  title: Nhãn & chính sách xử lý
+  purpose: Biến kết quả phân loại thành nhãn và quy tắc dễ hiểu cho người sở hữu dữ liệu.
+  objectives:
+  - Đặt nhãn dữ liệu theo taxonomy nhất quán.
+  - Liên kết nhãn với owner và quy tắc truy cập/chia sẻ.
+  - Xử lý trường hợp dữ liệu ghép có độ nhạy cao hơn.
+- id: muc-dich-tinh-can-thiet
+  title: Mục đích & tính cần thiết
+  purpose: Giới hạn dữ liệu được xử lý theo mục đích nghiệp vụ cụ thể thay vì thu thập mặc định.
+  objectives:
+  - Viết mục đích sử dụng cho một tính năng.
+  - Đối chiếu từng trường dữ liệu với mục đích đó.
+  - Loại bỏ trường không cần thiết hoặc không có căn cứ.
+- id: thu-thap-toi-thieu
+  title: Thu thập tối thiểu
+  purpose: Thiết kế form và API chỉ yêu cầu thông tin đủ để hoàn thành chức năng.
+  objectives:
+  - Tách trường bắt buộc với trường tùy chọn.
+  - Giảm payload hoặc dùng field selection khi phù hợp.
+  - Kiểm thử tính năng khi bỏ các trường dư thừa.
+- id: chia-se-truy-cap-toi-thieu
+  title: Chia sẻ & truy cập tối thiểu
+  purpose: Hạn chế phạm vi dữ liệu lộ ra cho client, dịch vụ và bên thứ ba.
+  objectives:
+  - Dùng DTO chỉ xuất các trường bên nhận cần.
+  - Áp dụng quyền đọc theo mục đích và độ nhạy.
+  - Xác định giới hạn dữ liệu khi export hoặc tích hợp.
+- id: du-lieu-test-log-an-toan
+  title: Dữ liệu test & log an toàn
+  purpose: Tránh tạo bản sao dữ liệu nhạy cảm không cần thiết trong môi trường phụ trợ.
+  objectives:
+  - Dùng dữ liệu tổng hợp hoặc khử định danh cho test.
+  - Ẩn token, PII và secrets trong log/trace.
+  - Kiểm tra bản xuất dữ liệu không chứa trường thừa.
+- id: ra-soat-cai-tien
+  title: Rà soát & cải tiến
+  purpose: Duy trì phân loại và giảm dữ liệu tích lũy khi nhu cầu hoặc luồng xử lý thay đổi.
+  objectives:
+  - Rà soát nhãn, owner và trường dữ liệu định kỳ.
+  - Đo số trường nhạy cảm và trường không còn cần thiết.
+  - Ghi nhận hành động bỏ trường hoặc hạn chế truy cập.

@@ -1,0 +1,7 @@
+# Security Key Management Key Lifecycle
+
+Key lifecycle là vòng đời quản lý một khóa mật mã từ lúc xác định nhu cầu, sinh hoặc nhập key material, phân phối và kích hoạt, cho đến sử dụng, luân chuyển, ngừng dùng và tiêu hủy. Mỗi giai đoạn có yêu cầu riêng về bảo mật, quyền truy cập, khả năng phục hồi và tính sẵn sàng. Quản lý khóa không chỉ là chọn thuật toán mã hóa tốt: mất khóa có thể khiến dữ liệu không thể giải mã, còn lộ khóa có thể làm mất tính bí mật hoặc độ tin cậy của chữ ký số.
+
+Module phù hợp với người đã nắm các khái niệm mã hóa đối xứng, bất đối xứng, chữ ký số và quản lý quyền cơ bản. Lộ trình bắt đầu từ chính sách, kiểm kê và sinh khóa an toàn; tiếp theo là phân phối, kích hoạt, bảo vệ khóa trong KMS/HSM, phân quyền và theo dõi nhật ký sử dụng. Người học cũng làm quen với cryptoperiod, rotation và sự khác biệt giữa thay khóa với mã hóa lại dữ liệu, trước khi nghiên cứu phục hồi, ứng phó sự cố lộ khóa và quy trình ngừng dùng/tiêu hủy.
+
+Sau khi hoàn thành, bạn có thể phác thảo vòng đời khóa cho một ứng dụng, định nghĩa owner và trạng thái của khóa, thiết kế chính sách rotation/thu hồi có kiểm thử và đánh giá hậu quả trước khi tiêu hủy key material. Thực hành trên môi trường thử nghiệm, tránh vô hiệu hóa hoặc xóa khóa đang bảo vệ dữ liệu thật; đối với dữ liệu cũ, luôn xác nhận phương án giải mã và yêu cầu lưu giữ trước khi kết thúc vòng đời.

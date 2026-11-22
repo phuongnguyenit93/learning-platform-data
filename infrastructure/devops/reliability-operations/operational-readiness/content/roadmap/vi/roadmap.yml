@@ -1,0 +1,57 @@
+roadmap:
+- id: operational-readiness-la-gi
+  title: Operational Readiness là gì?
+  purpose: Hiểu tiêu chí một dịch vụ cần đáp ứng để vận hành production an toàn trước và sau thời điểm go-live.
+  objectives:
+  - Phân biệt release hoàn tất với sẵn sàng vận hành
+  - Liệt kê nhóm tiêu chí people, process và technology
+  - Xác định bằng chứng cho từng tiêu chí sẵn sàng
+- id: ownership-on-call
+  title: Ownership & On-call
+  purpose: Bảo đảm dịch vụ có người chịu trách nhiệm, liên hệ hỗ trợ và tuyến xử lý rõ ràng khi sự cố xảy ra.
+  objectives:
+  - Chỉ định service owner và trách nhiệm vận hành
+  - Thiết kế lịch on-call và tuyến escalation
+  - Kiểm tra quyền truy cập và khả năng hỗ trợ ngoài giờ
+- id: kien-truc-dependencies
+  title: Kiến trúc & Dependencies
+  purpose: Đánh giá rủi ro hệ thống từ phụ thuộc, điểm lỗi đơn và giới hạn tài nguyên trước khi tiếp nhận vận hành.
+  objectives:
+  - Vẽ sơ đồ dependency và luồng quan trọng
+  - Nhận diện single point of failure và failure mode
+  - Ghi nhận giả định, giới hạn và tác động khi phụ thuộc lỗi
+- id: sli-slo-observability
+  title: SLI/SLO & Observability
+  purpose: Chứng minh có thể theo dõi sức khỏe dịch vụ và phát hiện tác động đến người dùng qua tín hiệu đáng tin cậy.
+  objectives:
+  - Định nghĩa SLI/SLO cho hành trình sử dụng quan trọng
+  - Kiểm tra metrics, logs, traces và dashboard
+  - Thử cảnh báo có người nhận và hướng xử lý rõ
+- id: runbooks-incident-response
+  title: Runbooks & Incident Response
+  purpose: Chuẩn bị hướng dẫn vận hành thường ngày và quy trình phối hợp để giảm thời gian xử lý sự cố.
+  objectives:
+  - Viết runbook cho thao tác lặp lại an toàn
+  - Viết playbook cho lỗi và phương án khắc phục
+  - Diễn tập phân vai, escalation và truyền thông sự cố
+- id: release-safety-rollback
+  title: Release Safety & Rollback
+  purpose: Kiểm chứng hệ thống có thể triển khai, giám sát và đảo ngược thay đổi mà không gây gián đoạn quá mức.
+  objectives:
+  - Đặt quality gate và tiêu chí dừng phát hành
+  - Thử rollout từng phần và theo dõi chỉ số
+  - Diễn tập rollback hoặc vô hiệu hóa tính năng
+- id: capacity-security-recovery
+  title: Capacity, Security & Recovery
+  purpose: Xác nhận các biện pháp bảo vệ hệ thống và dữ liệu đủ khả năng đáp ứng tình huống tải cao hoặc hỏng hóc.
+  objectives:
+  - Chạy load test và kiểm tra capacity headroom
+  - Rà soát IAM, secrets, audit và lỗ hổng nghiêm trọng
+  - Xác minh backup, restore và mục tiêu RTO/RPO
+- id: orr-go-no-go-review
+  title: ORR & Go/No-Go Review
+  purpose: Tổng hợp bằng chứng thành Operational Readiness Review để ra quyết định phát hành và theo dõi tồn đọng.
+  objectives:
+  - Tạo checklist ORR với bằng chứng và người chịu trách nhiệm
+  - Phân loại blocker, ngoại lệ và biện pháp giảm rủi ro
+  - Chốt go/no-go và lịch rà soát lại sau go-live

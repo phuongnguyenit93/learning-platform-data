@@ -1,0 +1,121 @@
+menu:
+- title: Khái niệm lạm dụng xác thực
+  slug: authentication-abuse-concepts
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 1
+- title: Bề mặt xác thực
+  slug: authentication-attack-surface
+  index: 2
+- title: Brute force
+  slug: brute-force
+  index: 3
+- title: Credential stuffing
+  slug: credential-stuffing
+  index: 4
+- title: Password spraying
+  slug: password-spraying
+  index: 5
+- title: OTP và mã xác thực
+  slug: otp-code-abuse
+  index: 6
+- title: MFA abuse
+  slug: mfa-abuse
+  index: 7
+- title: Login throttling
+  slug: login-throttling
+  index: 8
+- title: Account lockout
+  slug: account-lockout
+  index: 9
+- title: Bot detection
+  slug: bot-detection
+  index: 10
+- title: Risk-based authentication
+  slug: risk-based-authentication
+  index: 11
+- title: Account enumeration
+  slug: account-enumeration
+  index: 12
+- title: Login response security
+  slug: login-response-security
+  index: 13
+- title: Registration abuse
+  slug: registration-abuse
+  index: 14
+- title: Email và SMS abuse
+  slug: email-sms-abuse
+  index: 15
+- title: Password reset abuse
+  slug: password-reset-abuse
+  index: 16
+- title: Recovery abuse
+  slug: recovery-abuse
+  index: 17
+- title: Session abuse
+  slug: session-abuse
+  index: 18
+- title: Token abuse
+  slug: token-abuse
+  index: 19
+- title: API authentication abuse
+  slug: api-authentication-abuse
+  index: 20
+- title: Resource exhaustion
+  slug: resource-exhaustion
+  index: 21
+- title: Distributed abuse
+  slug: distributed-abuse
+  index: 22
+- title: IP và proxy
+  slug: ip-proxy-signals
+  index: 23
+- title: Thiết bị và fingerprint
+  slug: device-fingerprinting
+  index: 24
+- title: Mạng và địa lý
+  slug: network-geolocation
+  index: 25
+- title: Bảo vệ endpoint
+  slug: endpoint-protection
+  index: 26
+- title: Giám sát sự kiện
+  slug: event-monitoring
+  index: 27
+- title: Phát hiện và cảnh báo
+  slug: detection-alerting
+  index: 28
+- title: Phản ứng sự cố
+  slug: incident-response
+  index: 29
+- title: Privacy và UX
+  slug: privacy-user-experience
+  index: 30
+- title: Multi-tenant và đa vùng
+  slug: multitenant-multiregion-abuse
+  index: 31
+- title: Automation và CI/CD
+  slug: automation-ci-cd
+  index: 32
+- title: Java thực hành
+  slug: java-exercises
+  index: 33
+- title: Kiểm thử abuse
+  slug: abuse-testing
+  index: 34
+- title: Đo lường hiệu quả
+  slug: effectiveness-metrics
+  index: 35
+- title: Quản trị policy
+  slug: policy-governance
+  index: 36
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 37
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 38
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 39

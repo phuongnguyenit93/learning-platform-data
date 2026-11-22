@@ -1,0 +1,389 @@
+menu:
+- level1: Mô hình Input Output Security
+  level2:
+  - Dữ liệu đi vào ứng dụng qua những boundary nào
+  - Dữ liệu đi ra được thông dịch trong ngữ cảnh nào
+  - Input validation và output encoding giải quyết vấn đề khác nhau
+  - Dữ liệu không tin cậy có thể đến từ request, database và service khác
+  - Mục tiêu là giữ dữ liệu ở dạng dữ liệu thay vì mã lệnh
+  - Phòng vệ phải bao phủ toàn bộ luồng dữ liệu
+- level1: Nguồn dữ liệu không tin cậy
+  level2:
+  - Query parameter, path parameter và fragment
+  - Request body, form field và multipart upload
+  - Header, cookie và giá trị từ client
+  - Dữ liệu người dùng đã lưu trong database
+  - Response từ third-party, webhook và message queue
+  - Environment, file cấu hình và metadata runtime
+  - Dữ liệu nội bộ vẫn cần kiểm tra khi trust boundary thay đổi
+- level1: Mô hình đe dọa
+  level2:
+  - Input độc hại được dùng làm dữ liệu nghiệp vụ
+  - Input phá vỡ parser hoặc làm quá tải tài nguyên
+  - Input thoát khỏi context và trở thành code
+  - Output bị browser, template engine hoặc client thông dịch
+  - Attacker lợi dụng khác biệt giữa các lớp parse
+  - Đánh giá impact, exploitability và khả năng phát hiện
+- level1: Input validation
+  level2:
+  - Validation cú pháp và validation ngữ nghĩa
+  - Allowlist định dạng được phép
+  - Kiểm tra độ dài, kiểu, phạm vi và precision
+  - Kiểm tra quan hệ giữa nhiều trường
+  - Reject sớm ở boundary nhưng vẫn kiểm tra tại business layer
+  - Thông báo lỗi an toàn và hữu ích
+  - Không coi validation là thay thế output encoding
+- level1: Allowlist và blocklist
+  level2:
+  - Allowlist phù hợp với trường có miền giá trị rõ
+  - Blocklist dễ bỏ sót biến thể và encoding khác
+  - Khi nào cần kết hợp allowlist với threat signal
+  - Không dùng regex blocklist để chống mọi XSS
+  - Cập nhật danh sách theo thay đổi nghiệp vụ
+  - Test bypass bằng Unicode, case và normalization
+- level1: Kiểu và ràng buộc dữ liệu
+  level2:
+  - Phân biệt string, number, boolean, date và enum
+  - Giới hạn min, max và cardinality
+  - Nullable, default và trường bắt buộc
+  - Precision, scale và overflow số
+  - ID dạng UUID, integer và opaque identifier
+  - Không tự ép kiểu âm thầm làm thay đổi ý nghĩa
+  - Đồng nhất validation giữa API và domain model
+- level1: Kích thước và tài nguyên
+  level2:
+  - Giới hạn request body và field length
+  - Giới hạn số phần tử trong array hoặc object
+  - Giới hạn độ sâu JSON và nested structure
+  - Giới hạn số file, số dòng và kích thước upload
+  - Chống parser bomb và input gây CPU exhaustion
+  - Timeout, memory limit và concurrency limit
+  - Đo tác động khi reject input quá lớn
+- level1: Canonicalization
+  level2:
+  - Chuẩn hóa trước khi so sánh hoặc áp dụng policy
+  - Unicode normalization và ký tự tương đương
+  - Case folding, whitespace và newline
+  - Path normalization và separator khác hệ điều hành
+  - URL normalization và percent encoding
+  - Tránh double decode và decode không nhất quán
+  - Kiểm tra sau canonicalization nhưng encode theo context cuối
+- level1: Unicode và encoding
+  level2:
+  - UTF-8 và cách xử lý byte sequence không hợp lệ
+  - Confusable characters và mixed-script input
+  - Null byte, control character và bidi mark
+  - Decode một lần tại boundary
+  - Không cắt chuỗi giữa một code point
+  - Độ dài theo byte khác độ dài theo ký tự
+  - Kiểm thử locale và normalization form
+- level1: Output encoding
+  level2:
+  - Encoding biến dữ liệu không tin cậy thành text an toàn
+  - Encoding phải phù hợp với context đích
+  - Không encode quá sớm rồi lưu dữ liệu đã encode
+  - Không double encode khi đi qua nhiều lớp
+  - Đặt encoder ngay tại output sink
+  - Framework auto-escaping và điểm bypass
+  - Encoding không thay thế sanitize khi cần HTML
+- level1: HTML context
+  level2:
+  - HTML body text và entity encoding
+  - Quoted attribute và attribute encoding
+  - Không chèn dữ liệu vào raw HTML nếu không cần
+  - Safe DOM APIs thay cho innerHTML
+  - Event handler attribute là dangerous context
+  - Tag name, attribute name và URL không phải string context thường
+  - Kiểm thử ký tự quote, angle bracket và ampersand
+- level1: JavaScript context
+  level2:
+  - Không chèn input vào inline script
+  - Serialize dữ liệu thành JSON an toàn cho script
+  - Không ghép chuỗi thành code hoặc expression
+  - Tránh eval, Function và string-based timer
+  - Trusted function với addEventListener
+  - Context encoder phải phù hợp cả script và HTML bao quanh
+  - Kiểm thử quote, newline, slash và closing tag
+- level1: CSS context
+  level2:
+  - Không nội suy dữ liệu trực tiếp vào CSS source
+  - Property value khác selector và property name
+  - Style attribute và dynamic stylesheet
+  - Không cho input quyết định CSS syntax
+  - Dùng lớp hoặc giá trị đã chuẩn hóa thay vì ghép CSS
+  - URL trong CSS cần kiểm tra scheme và context
+  - Kiểm thử escape và parser khác nhau giữa browser
+- level1: URL context
+  level2:
+  - Percent encoding cho parameter value
+  - Không encode toàn bộ URL một cách mù quáng
+  - Allowlist scheme, host và port khi nhận URL
+  - Chặn javascript, data và scheme nguy hiểm khi phù hợp
+  - Phân biệt path, query, fragment và authority
+  - Open redirect và link generation an toàn
+  - Kiểm tra decode trước khi quyết định policy
+- level1: JSON context
+  level2:
+  - Content-Type application/json và charset phù hợp
+  - Serialize bằng thư viện thay vì ghép chuỗi
+  - Không trả JSON dưới text/html
+  - Chống JSON hijacking và response bị thông dịch sai
+  - Giới hạn depth, size và số phần tử
+  - Không tin field type chỉ vì client khai báo
+  - Kiểm tra unknown field theo hợp đồng API
+- level1: XML context
+  level2:
+  - Parse XML với cấu hình an toàn
+  - Vô hiệu hóa external entity khi không cần
+  - Giới hạn entity expansion và document size
+  - Namespace và canonicalization trong dữ liệu XML
+  - Encoding, DTD và schema validation
+  - Không serialize XML bằng nối chuỗi
+  - Tách validation schema khỏi business authorization
+- level1: Template engine
+  level2:
+  - Auto-escaping theo template context
+  - Khác biệt giữa render text và render trusted HTML
+  - Không đưa input vào template source
+  - Server-side template injection và expression evaluation
+  - Safe helper cho URL, attribute và JSON
+  - Điểm đánh dấu nội dung trusted phải có kiểm soát
+  - Kiểm thử template escape và bypass
+- level1: HTML sanitization
+  level2:
+  - Khi nào người dùng được phép nhập HTML
+  - Sanitize bằng thư viện duy trì và cấu hình allowlist
+  - Không sửa nội dung sau sanitize theo cách làm mất an toàn
+  - Sanitize URL, style, attribute và embedded content
+  - Patch thư viện sanitizer khi có bypass
+  - Quyết định lưu sanitized content hay raw content
+  - Kiểm thử payload theo browser và parser thực tế
+- level1: Cross-site scripting
+  level2:
+  - Reflected XSS từ request vào response ngay lập tức
+  - Stored XSS qua dữ liệu lưu trữ lâu dài
+  - DOM XSS do client đọc source và dùng unsafe sink
+  - Context-sensitive output encoding
+  - Safe sink, framework escaping và sanitizer
+  - XSS có thể dẫn đến đánh cắp session và thao tác thay người dùng
+  - Coverage của mọi output point quan trọng hơn một filter chung
+- level1: DOM security
+  level2:
+  - Nguồn DOM như URL, storage và message
+  - Sink nguy hiểm như innerHTML, document.write và eval
+  - textContent, setAttribute và createElement an toàn hơn
+  - Giữ tên attribute và handler cố định
+  - Kiểm tra postMessage origin trước khi dùng dữ liệu
+  - Không tin giá trị đã được encode nếu chuyển sang context khác
+  - Kiểm thử route client và bundle production
+- level1: HTTP request security
+  level2:
+  - Parse method, path, query và header nhất quán
+  - Giới hạn header count, length và duplicated header
+  - Content-Length, transfer encoding và request smuggling
+  - Content-Type và body parser tương ứng
+  - Reject method hoặc protocol version không được hỗ trợ
+  - Timeout header, body và idle connection
+  - Đồng nhất parse giữa proxy và origin
+- level1: HTTP response security
+  level2:
+  - Content-Type chính xác và X-Content-Type-Options
+  - Cache-Control cho dữ liệu nhạy cảm
+  - Content-Disposition an toàn khi tải file
+  - Không phản chiếu input vào header mà không kiểm tra
+  - Response splitting và CRLF injection
+  - Status code không lộ quá nhiều thông tin
+  - Xử lý lỗi thống nhất giữa JSON và HTML
+- level1: Header và cookie
+  level2:
+  - Validate header value trước khi tạo response
+  - Không đưa input vào Set-Cookie hoặc Location tùy ý
+  - Cookie attribute HttpOnly, Secure và SameSite
+  - Giới hạn kích thước và số lượng cookie
+  - Không dùng cookie làm nơi lưu JSON tùy ý
+  - Decode cookie đúng một lần
+  - Kiểm thử proxy và browser behavior
+- level1: File và path input
+  level2:
+  - Allowlist tên file và extension theo nghiệp vụ
+  - Path traversal và path canonicalization
+  - Không dùng tên file người dùng làm đường dẫn trực tiếp
+  - Tách storage key nội bộ khỏi tên hiển thị
+  - Giới hạn kích thước, số file và quota
+  - Content-Type client khai báo không đủ tin cậy
+  - Dọn file tạm và output khi xử lý lỗi
+- level1: HTML upload và rich content
+  level2:
+  - Phân biệt text thường với HTML người dùng soạn
+  - Sanitize rich text trước khi render
+  - Chặn script, event handler và dangerous URL
+  - Xử lý image, iframe và embedded object
+  - Không cho phép nội dung thay đổi sau sanitize mà không kiểm tra
+  - CSP bổ trợ nhưng không thay thế sanitizer
+  - Kiểm thử editor, preview và export
+- level1: Dữ liệu API
+  level2:
+  - Schema validation cho request và response
+  - Unknown field, mass assignment và field overposting
+  - Coercion kiểu trong framework có thể tạo bypass
+  - Response filtering không trả field nội bộ
+  - Version hóa contract và validation rule
+  - Kiểm tra pagination, sort và filter input
+  - Không coi response từ service khác là trusted tuyệt đối
+- level1: Output cho database
+  level2:
+  - Parameterized query cho dữ liệu đi vào SQL
+  - Không nối chuỗi input vào query
+  - Encoding không thay thế query parameterization
+  - Kiểm tra dynamic identifier bằng allowlist
+  - Stored procedure và ORM không tự động an toàn mọi trường hợp
+  - Đồng nhất kiểu dữ liệu trước khi truy vấn
+  - Audit input và query error mà không lộ câu lệnh
+- level1: Output cho shell và hệ điều hành
+  level2:
+  - Không truyền input trực tiếp vào shell command
+  - Ưu tiên API không qua shell
+  - Allowlist command, option và path
+  - Tách argument thay vì nối chuỗi command
+  - Giới hạn quyền process và working directory
+  - Không phản hồi stdout, stderr hoặc path nội bộ cho client
+  - Kiểm thử metacharacter, whitespace và null byte
+- level1: Output cho log
+  level2:
+  - Sanitize dữ liệu trước khi ghi log
+  - Chống log injection và giả mạo dòng log
+  - Không ghi password, token, secret hoặc dữ liệu nhạy cảm
+  - Giới hạn độ dài message và field
+  - Structured logging với field type rõ ràng
+  - Escape khi log viewer render HTML
+  - Giữ correlation ID không chứa input nguy hiểm
+- level1: Output cho message
+  level2:
+  - Validate message schema trước khi xử lý
+  - Canonicalization giữa producer và consumer
+  - Không tin header hoặc metadata từ producer
+  - Giới hạn size, depth và retry poison message
+  - Encode payload theo serializer được duy trì
+  - Dead-letter queue không được làm lộ dữ liệu
+  - Kiểm tra replay và idempotency ở consumer
+- level1: Serialization và deserialization
+  level2:
+  - Chọn format dữ liệu có schema rõ ràng
+  - Không deserialize object không tin cậy tùy ý
+  - Allowlist type và class khi bắt buộc hỗ trợ object
+  - Giới hạn depth, size và thời gian parse
+  - Validate sau deserialize trước business logic
+  - Kiểm tra polymorphic type và type confusion
+  - Tách dữ liệu từ client khỏi object domain trực tiếp
+- level1: Error handling
+  level2:
+  - Thông báo lỗi an toàn cho client
+  - Log chi tiết ở server nhưng đã khử nhạy cảm
+  - Không lộ stack trace, path và dependency version
+  - Không phản chiếu nguyên input trong error response
+  - Status code nhất quán theo loại lỗi
+  - Exception mapping tập trung và có kiểm thử
+  - Fallback không được bỏ qua validation hoặc encoding
+- level1: CORS và cross-origin output
+  level2:
+  - Allowlist origin thay vì phản chiếu tùy ý
+  - Credentials và wildcard origin không dùng cùng nhau
+  - Preflight method, header và cache
+  - Không trả dữ liệu nhạy cảm cho origin không tin cậy
+  - Kiểm tra response header ở browser thực tế
+  - Phân biệt CORS với authentication và CSRF
+  - Không dùng CORS để thay thế authorization
+- level1: Content Security Policy
+  level2:
+  - CSP giảm tác động của một số XSS
+  - Nonce hoặc hash cho script inline cần thiết
+  - Không dùng unsafe-inline và unsafe-eval tùy tiện
+  - Report-only trước khi enforce
+  - Rà soát third-party script và source
+  - CSP không thay thế output encoding
+  - Theo dõi violation để phát hiện regression
+- level1: Browser output security
+  level2:
+  - MIME sniffing và nosniff
+  - Frame embedding và clickjacking liên quan đến output
+  - Download file phải có Content-Disposition phù hợp
+  - Trusted Types cho DOM sink khi khả dụng
+  - Referrer và source map có thể lộ dữ liệu
+  - Không render secret trong HTML hoặc client state
+  - Kiểm tra browser parser thay vì chỉ unit test server
+- level1: Java thực hành
+  level2:
+  - Bean Validation cho constraint cú pháp
+  - Jackson cấu hình allowlist type và giới hạn input
+  - Spring MVC binding và unknown field
+  - HtmlUtils hoặc encoder đúng context
+  - Thymeleaf auto-escaping và thẻ raw HTML
+  - Content-Type, response header và exception handler
+  - Parameterized query với JDBC hoặc JPA
+  - Không đưa input vào Runtime.exec hoặc template source
+- level1: Kiểm thử input
+  level2:
+  - Test allowlist và boundary value
+  - Test Unicode, encoding và normalization
+  - Test payload quá lớn, quá sâu và malformed
+  - Test type confusion và unknown field
+  - Test parser differential giữa proxy và application
+  - Test path, URL, header và multipart
+  - Fuzz input theo schema và theo context
+- level1: Kiểm thử output
+  level2:
+  - Test XSS reflected, stored và DOM
+  - Test HTML, attribute, JavaScript, CSS và URL context
+  - Test JSON, XML và Content-Type
+  - Test log injection và header injection
+  - Test response error không lộ thông tin
+  - Test CORS, CSP và browser rendering
+  - Test double encoding và canonicalization mismatch
+  - Test output từ dữ liệu database và service bên ngoài
+- level1: Giám sát và kiểm toán
+  level2:
+  - Ghi validation failure theo loại và endpoint
+  - Theo dõi parser error, response error và XSS signal
+  - Phát hiện input bất thường nhưng không log payload nhạy cảm
+  - Tương quan request ID với downstream output
+  - Audit thay đổi schema, sanitizer và policy
+  - Alert khi tỷ lệ reject hoặc 5xx tăng
+  - Bảo vệ log khỏi dữ liệu được attacker kiểm soát
+- level1: Quản trị và tuân thủ
+  level2:
+  - Quy định input contract cho từng endpoint
+  - Danh mục trusted sink và dangerous sink
+  - Rà soát thư viện encoder, sanitizer và parser
+  - Quy trình cập nhật khi browser hoặc framework thay đổi
+  - Exception có owner, thời hạn và bằng chứng
+  - Security review cho output mới và integration mới
+  - Đào tạo đội ngũ về context-specific defense
+- level1: Anti-pattern
+  level2:
+  - Dùng một filter regex chung để chống mọi injection
+  - HTML-encode rồi đưa cùng giá trị vào JavaScript hoặc URL
+  - Tin rằng input validation loại bỏ nhu cầu output encoding
+  - Dùng innerHTML, eval hoặc string-based event handler
+  - Nối chuỗi SQL, shell command hoặc template source
+  - Render user HTML mà không sanitize
+  - Phản chiếu input vào header hoặc lỗi response
+  - Để framework auto-escape rồi dùng API raw tùy tiện
+  - Trả Content-Type sai khiến browser sniff nội dung
+- level1: Kiến trúc tham chiếu
+  level2:
+  - Validation tại API boundary và domain boundary
+  - Canonicalization một lần trước policy decision
+  - Output encoder ngay tại từng sink
+  - Parser, sanitizer và serializer được cô lập
+  - Schema, error handler và security header tập trung
+  - Luồng log và monitoring không làm lộ input
+  - Điểm kiểm soát cho browser, API và service-to-service
+- level1: Checklist triển khai
+  level2:
+  - Checklist nguồn input, schema, size và normalization
+  - Checklist output context và encoder tương ứng
+  - Checklist HTML, JS, CSS, URL, JSON và XML
+  - Checklist parser, serializer, file, log và header
+  - Checklist CORS, CSP, browser và error handling
+  - Checklist test fuzzing, XSS và regression
+  - Checklist library, policy owner, monitoring và audit

@@ -1,0 +1,3 @@
+menuLevel1: Phiên bản và tương thích
+menuLevel2: 'Thay đổi tên cờ thất bại: --atomic ở Helm 3 và --rollback-on-failure ở Helm 4'
+status: ''

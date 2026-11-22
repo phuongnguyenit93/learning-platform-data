@@ -1,0 +1,3115 @@
+menu:
+- slug: cloud-security-fundamentals
+  title: Nền tảng bảo mật đám mây
+  childs:
+  - slug: cloud-security-fundamentals-001
+    title: Mục tiêu và phạm vi của bảo mật, quản trị đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-002
+    title: Mô hình triển khai public cloud, private cloud, hybrid cloud và multicloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-003
+    title: Ranh giới trách nhiệm bảo mật trong IaaS, PaaS và SaaS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-004
+    title: Tính bí mật, toàn vẹn, sẵn sàng và quyền riêng tư trên đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-005
+    title: Mối đe dọa, lỗ hổng, rủi ro và biện pháp kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-006
+    title: Ranh giới tin cậy, đa thuê bao và cách ly tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-007
+    title: Vòng đời tài nguyên và những thay đổi của bề mặt tấn công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-008
+    title: Nguyên tắc Zero Trust trong kiến trúc đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-security-fundamentals-009
+    title: Phòng thủ nhiều lớp và nguyên tắc thiết kế an toàn mặc định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: governance-models-and-accountability
+  title: Mô hình quản trị và trách nhiệm
+  childs:
+  - slug: governance-models-and-accountability-001
+    title: Xây dựng chiến lược bảo mật đám mây theo mục tiêu kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-002
+    title: Vai trò của lãnh đạo, chủ hệ thống, chủ dữ liệu và đội bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-003
+    title: Phân công trách nhiệm bằng RACI giữa tổ chức và nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-004
+    title: Tổ chức Cloud Center of Excellence và nhóm nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-005
+    title: Lựa chọn mô hình quản trị tập trung, phân tán hoặc liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-006
+    title: Phân quyền quyết định giữa tổ chức, đơn vị và nhóm sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-007
+    title: Tích hợp đánh giá bảo mật vào vòng đời dịch vụ đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-008
+    title: Thiết lập hội đồng kiến trúc và quy trình phê duyệt thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: governance-models-and-accountability-009
+    title: Lộ trình trưởng thành của năng lực quản trị đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-risk-management
+  title: Quản lý rủi ro đám mây
+  childs:
+  - slug: cloud-risk-management-001
+    title: Xác định phạm vi, tài sản và bên liên quan khi đánh giá rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-002
+    title: Phân tích tác động kinh doanh và mức độ quan trọng của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-003
+    title: Xác lập khẩu vị rủi ro, mức chịu đựng và ngưỡng chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-004
+    title: Mô hình hóa mối đe dọa từ luồng dữ liệu và ranh giới tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-005
+    title: Xây dựng kịch bản mất dữ liệu, chiếm quyền và gián đoạn dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-006
+    title: Ước lượng khả năng xảy ra, tác động và mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-007
+    title: Đánh giá rủi ro kế thừa từ nhà cung cấp và dịch vụ được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-008
+    title: Lập sổ đăng ký rủi ro và giao trách nhiệm xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-009
+    title: Lựa chọn giảm thiểu, tránh, chuyển giao hoặc chấp nhận rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-risk-management-010
+    title: Theo dõi rủi ro còn lại và đánh giá lại khi kiến trúc thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: policies-and-control-standards
+  title: Chính sách và tiêu chuẩn kiểm soát
+  childs:
+  - slug: policies-and-control-standards-001
+    title: Phân biệt chính sách, tiêu chuẩn, quy trình và hướng dẫn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-002
+    title: Xây dựng danh mục kiểm soát bảo mật cho đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-003
+    title: Phân loại kiểm soát phòng ngừa, phát hiện và khắc phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-004
+    title: Phân định kiểm soát kế thừa, dùng chung và do khách hàng thực hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-005
+    title: Thiết lập cấu hình bảo mật tối thiểu theo loại tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-006
+    title: Áp dụng yêu cầu kiểm soát theo mức nhạy cảm và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-007
+    title: Chuyển yêu cầu chính sách thành rào chắn kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-008
+    title: Quản lý ngoại lệ với chủ sở hữu, thời hạn và biện pháp bù đắp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: policies-and-control-standards-009
+    title: Quản lý phiên bản, phổ biến và rà soát hiệu lực chính sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: compliance-and-data-sovereignty
+  title: Tuân thủ và chủ quyền dữ liệu
+  childs:
+  - slug: compliance-and-data-sovereignty-001
+    title: Xác định nghĩa vụ tuân thủ theo ngành, khu vực và loại dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-002
+    title: Ánh xạ kiểm soát với ISO 27001, ISO 27017 và ISO 27018
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-003
+    title: Sử dụng NIST CSF và NIST SP 800-53 để xây dựng chương trình kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-004
+    title: Đánh giá đám mây bằng CSA Cloud Controls Matrix và chương trình STAR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-005
+    title: Lựa chọn CIS Benchmarks phù hợp với nền tảng và phiên bản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-006
+    title: Xác định phạm vi dữ liệu thẻ và trách nhiệm PCI DSS trên đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-007
+    title: Chuyển yêu cầu bảo vệ dữ liệu cá nhân thành kiểm soát kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-008
+    title: Phân biệt vị trí lưu trữ, chủ quyền và chuyển dữ liệu xuyên biên giới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-009
+    title: Thiết kế lưu giữ, xóa dữ liệu và bảo toàn dữ liệu theo yêu cầu pháp lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-010
+    title: Đánh giá tác động quyền riêng tư trước khi triển khai dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: compliance-and-data-sovereignty-011
+    title: Duy trì ma trận nghĩa vụ, kiểm soát và bằng chứng tuân thủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-organization-and-landing-zones
+  title: Tổ chức tài nguyên và landing zone
+  childs:
+  - slug: resource-organization-and-landing-zones-001
+    title: Thiết kế cấu trúc tổ chức, thư mục, tài khoản, subscription và project
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-002
+    title: Phân tách môi trường production, thử nghiệm, phát triển và sandbox
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-003
+    title: Bảo vệ tài khoản gốc và các tài khoản quản trị cấp tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-004
+    title: Thiết kế landing zone với ranh giới mạng, danh tính và nhật ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-005
+    title: Tổ chức tài khoản hoặc project chuyên dụng cho bảo mật và vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-006
+    title: Kiểm soát vùng triển khai và danh mục dịch vụ được phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-007
+    title: Triển khai rào chắn kế thừa theo cây tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-008
+    title: Chuẩn hóa tên tài nguyên, nhãn, chủ sở hữu và trung tâm chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-009
+    title: Tự động cấp phát tài khoản mới kèm cấu hình bảo mật tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-organization-and-landing-zones-010
+    title: Thu hồi và đóng môi trường đám mây theo quy trình
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: asset-inventory-and-attack-surface
+  title: Kiểm kê tài sản và bề mặt tấn công
+  childs:
+  - slug: asset-inventory-and-attack-surface-001
+    title: Thu thập tài sản từ API quản trị và các nguồn kiểm kê
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-002
+    title: Xây dựng quan hệ giữa tài nguyên, danh tính, dữ liệu và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-003
+    title: Xác minh chủ sở hữu và mức quan trọng của từng tài sản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-004
+    title: Phát hiện tài nguyên không được quản lý và hoạt động shadow cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-005
+    title: Kiểm kê tên miền, địa chỉ công khai và dịch vụ tiếp xúc Internet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-006
+    title: Nhận diện kho dữ liệu công khai và điểm quản trị bị lộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-007
+    title: Theo dõi tài nguyên tạm thời, bị bỏ quên hoặc hết vòng đời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: asset-inventory-and-attack-surface-008
+    title: Đo độ bao phủ kiểm kê và đối soát tài sản giữa các nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: user-identity-and-federation
+  title: Danh tính người dùng và liên kết
+  childs:
+  - slug: user-identity-and-federation-001
+    title: Thiết kế nguồn danh tính và miền tin cậy cho người dùng đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-002
+    title: Tích hợp đăng nhập một lần bằng SAML và OpenID Connect
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-003
+    title: Áp dụng xác thực đa yếu tố và xác thực chống lừa đảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-004
+    title: Quản lý vòng đời nhân sự từ cấp quyền đến thu hồi quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-005
+    title: Tự động đồng bộ danh tính và nhóm bằng SCIM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-006
+    title: Kiểm soát điều kiện truy cập theo thiết bị, vị trí và mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-007
+    title: Bảo vệ phiên đăng nhập, cookie, token và thời hạn phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-008
+    title: Giới hạn truy cập của khách, đối tác và cộng tác viên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-009
+    title: Bảo vệ đăng nhập qua console, CLI và công cụ quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: user-identity-and-federation-010
+    title: Kiểm tra thuộc tính, đối tượng nhận và điều kiện tin cậy khi liên kết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: authorization-and-privileged-access
+  title: Phân quyền và truy cập đặc quyền
+  childs:
+  - slug: authorization-and-privileged-access-001
+    title: Thiết kế mô hình quyền với RBAC, ABAC và quyền theo tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-002
+    title: Đánh giá quyền hiệu lực từ chính sách cho phép và từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-003
+    title: Giới hạn quyền bằng ranh giới cấp tổ chức và phạm vi ủy quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-004
+    title: Thiết kế quyền tối thiểu theo tác vụ và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-005
+    title: Tách biệt nhiệm vụ quản trị, phát triển, triển khai và kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-006
+    title: Quản lý truy cập đặc quyền bằng PAM và phê duyệt có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-007
+    title: Áp dụng Just-in-Time và Just-Enough-Access
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-008
+    title: Thiết kế tài khoản khẩn cấp và kiểm tra quy trình break-glass
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-009
+    title: Sử dụng CIEM để phát hiện quyền dư thừa và đường leo thang đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-010
+    title: Rà soát quyền định kỳ và chứng thực lại quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authorization-and-privileged-access-011
+    title: Ghi nhận, giám sát và điều tra phiên quản trị đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: machine-identity-and-secrets
+  title: Danh tính máy và quản lý bí mật
+  childs:
+  - slug: machine-identity-and-secrets-001
+    title: Phân biệt danh tính workload, service account và managed identity
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-002
+    title: Thiết kế vòng đời danh tính máy theo vòng đời workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-003
+    title: Ưu tiên thông tin xác thực ngắn hạn và loại bỏ khóa truy cập cố định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-004
+    title: Thiết lập liên kết danh tính cho workload và tác vụ tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-005
+    title: Kiểm soát quan hệ tin cậy khi truy cập chéo tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-006
+    title: Kiểm kê và phân loại mật khẩu, khóa API, token và chứng thư
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-007
+    title: Tổ chức kho bí mật và chính sách phân quyền truy xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-008
+    title: Cấp bí mật cho ứng dụng mà không nhúng vào mã hoặc image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-009
+    title: Tự động xoay vòng, thu hồi và thay thế thông tin xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-010
+    title: Phát hiện bí mật bị lộ và xử lý phạm vi ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: machine-identity-and-secrets-011
+    title: Xác thực dịch vụ với dịch vụ bằng danh tính workload và mTLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-protection-and-privacy
+  title: Bảo vệ dữ liệu và quyền riêng tư
+  childs:
+  - slug: data-protection-and-privacy-001
+    title: Phân loại dữ liệu và lập bản đồ luồng dữ liệu đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-002
+    title: Khám phá dữ liệu nhạy cảm và đánh giá tư thế dữ liệu bằng DSPM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-003
+    title: Áp dụng tối thiểu hóa dữ liệu và giới hạn mục đích sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-004
+    title: Thiết kế kiểm soát truy cập dữ liệu theo độ nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-005
+    title: Ngăn chia sẻ công khai và phân phối dữ liệu ngoài phạm vi cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-006
+    title: Cách ly dữ liệu giữa khách hàng, đơn vị và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-007
+    title: Che dữ liệu, token hóa và giả danh hóa dữ liệu cá nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-008
+    title: Bảo vệ dữ liệu dùng cho phát triển, kiểm thử và phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-009
+    title: Phát hiện và ngăn thất thoát dữ liệu bằng DLP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-010
+    title: Thực thi lưu giữ, xóa an toàn và xử lý yêu cầu của chủ thể dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-protection-and-privacy-011
+    title: Tích hợp quyền riêng tư ngay từ thiết kế dịch vụ đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: encryption-and-key-management
+  title: Mã hóa và quản trị khóa
+  childs:
+  - slug: encryption-and-key-management-001
+    title: Lựa chọn mã hóa khi lưu trữ, truyền tải và xử lý dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-002
+    title: Thiết kế TLS và xác minh chứng thư cho kết nối đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-003
+    title: Phân biệt khóa do nhà cung cấp quản lý và khóa do khách hàng quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-004
+    title: Lựa chọn KMS, HSM, BYOK và mô hình giữ khóa bên ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-005
+    title: Hiểu mã hóa phong bì và quan hệ giữa khóa dữ liệu với khóa chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-006
+    title: Thiết kế chính sách sử dụng khóa và tách biệt người quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-007
+    title: Quản lý vòng đời khóa từ tạo mới đến hủy có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-008
+    title: Quản lý PKI, cấp phát và gia hạn chứng thư tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-009
+    title: Bảo đảm khả năng khôi phục dữ liệu khi khóa gặp sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-010
+    title: Giám sát thao tác mật mã và truy cập khóa bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: encryption-and-key-management-011
+    title: Đánh giá confidential computing cho dữ liệu đang được xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cloud-networking-and-connectivity
+  title: Mạng đám mây và kết nối
+  childs:
+  - slug: cloud-networking-and-connectivity-001
+    title: Thiết kế VPC hoặc VNet, subnet và bảng định tuyến an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-002
+    title: Phân vùng mạng theo mức tin cậy và mức quan trọng của workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-003
+    title: Kết hợp security group, network ACL và tường lửa đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-004
+    title: Giới hạn lưu lượng ngang giữa ứng dụng và tầng dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-005
+    title: Thiết kế kết nối hybrid qua VPN và đường truyền riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-006
+    title: Kiểm soát peering, transit gateway và kết nối chéo tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-007
+    title: Truy cập dịch vụ đám mây qua private endpoint
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-008
+    title: Bảo vệ DNS, phân giải tên nội bộ và miền quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-009
+    title: Kiểm soát lưu lượng đi ra qua NAT, proxy và bộ lọc đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-010
+    title: Giảm địa chỉ công khai và bảo vệ đường truy cập quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-011
+    title: Thiết kế khả năng chống DDoS ở lớp mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-networking-and-connectivity-012
+    title: Xác minh đường đi và chẩn đoán vi phạm chính sách mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-machine-and-os-security
+  title: Bảo mật máy ảo và hệ điều hành
+  childs:
+  - slug: virtual-machine-and-os-security-001
+    title: Xây dựng golden image và cấu hình hệ điều hành tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-002
+    title: Kiểm tra nguồn image, chuỗi khởi động và tính toàn vẹn máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-003
+    title: Quản trị máy ảo qua phiên được kiểm soát và truy cập có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-004
+    title: Giới hạn đặc quyền hệ điều hành và quyền của tiến trình dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-005
+    title: Bảo vệ metadata endpoint và thông tin xác thực gắn với máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-006
+    title: Triển khai EDR và CWPP cho workload máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-007
+    title: Bảo vệ ổ đĩa, snapshot và image chia sẻ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-008
+    title: Cập nhật máy ảo bằng bản vá hoặc thay thế image bất biến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machine-and-os-security-009
+    title: Duy trì kiểm soát bảo mật khi tự động co giãn workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: container-and-kubernetes-security
+  title: Bảo mật container và Kubernetes
+  childs:
+  - slug: container-and-kubernetes-security-001
+    title: Phân định trách nhiệm khi dùng Kubernetes tự quản lý hoặc được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-002
+    title: Tạo container image tối giản và chạy bằng người dùng không đặc quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-003
+    title: Bảo vệ registry và kiểm soát quyền kéo, đẩy image
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-004
+    title: Bảo vệ Kubernetes API, control plane và cấu hình xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-005
+    title: Thiết kế namespace, RBAC và ranh giới đa thuê bao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-006
+    title: Giới hạn đặc quyền pod, capability và quyền truy cập host
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-007
+    title: Thực thi Pod Security và chính sách admission
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-008
+    title: Quản lý service account và danh tính workload trong cluster
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-009
+    title: Bảo vệ secret, cấu hình và volume của ứng dụng container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-010
+    title: Kiểm soát lưu lượng pod bằng NetworkPolicy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-011
+    title: Gia cố node và tổ chức cập nhật cluster an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: container-and-kubernetes-security-012
+    title: Phát hiện hành vi bất thường và thoát container khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless-and-managed-services
+  title: Serverless và dịch vụ được quản lý
+  childs:
+  - slug: serverless-and-managed-services-001
+    title: Xác định bề mặt tấn công của FaaS, PaaS và nền tảng được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-002
+    title: Thiết kế quyền thực thi riêng cho từng function và tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-003
+    title: Xác thực nguồn sự kiện và giới hạn đối tượng được kích hoạt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-004
+    title: Kiểm tra dữ liệu đầu vào và xử lý sự kiện không tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-005
+    title: Bảo vệ biến môi trường, thư mục tạm và kết nối của function
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-006
+    title: Kiểm soát phụ thuộc, runtime và phiên bản function
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-007
+    title: Bảo vệ workflow, lịch tác vụ và chuỗi xử lý sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-008
+    title: Giới hạn đồng thời, thời gian chạy và lạm dụng tài nguyên serverless
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-and-managed-services-009
+    title: Cấu hình triển khai, rollback và quyền quản trị nền tảng PaaS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-and-data-services-security
+  title: Bảo mật dịch vụ lưu trữ và dữ liệu
+  childs:
+  - slug: storage-and-data-services-security-001
+    title: Bảo vệ kết nối, xác thực và cấu hình database được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-002
+    title: Phân quyền dữ liệu ở mức database, bảng, hàng và cột
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-003
+    title: Kiểm soát bucket, object, ACL và chính sách chia sẻ lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-004
+    title: Giới hạn quyền và thời hạn của URL truy cập dữ liệu được ký sẵn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-005
+    title: Bảo vệ file storage, điểm mount và quyền truy cập giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-006
+    title: Gia cố cache và kho khóa giá trị được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-007
+    title: Phân quyền producer, consumer và quản trị hàng đợi, topic, stream
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-008
+    title: Kiểm soát quyền truy vấn và chia sẻ trong data lake, data warehouse
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-data-services-security-009
+    title: Bảo vệ bản sao, bản xuất và quá trình nhập dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: application-api-and-edge-security
+  title: Bảo mật ứng dụng, API và phân phối biên
+  childs:
+  - slug: application-api-and-edge-security-001
+    title: Mô hình hóa mối đe dọa cho ứng dụng web trên đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-002
+    title: Xác thực API và kiểm tra token ở đúng ranh giới dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-003
+    title: Kiểm soát quyền ở mức đối tượng và chức năng API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-004
+    title: Xác minh schema, chữ ký webhook và tính mới của yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-005
+    title: Phòng chống SSRF và lạm dụng truy cập tài nguyên nội bộ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-006
+    title: Áp dụng rate limit, quota và kiểm soát bot ở API gateway
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-007
+    title: Cấu hình WAF và quản lý vòng đời quy tắc bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-008
+    title: Bảo vệ CDN, origin và nội dung lưu đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-009
+    title: Ngăn rò rỉ thông tin qua phản hồi, header và log ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: application-api-and-edge-security-010
+    title: Kiểm chứng cách ly người thuê trong ứng dụng SaaS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ai-and-machine-learning-security
+  title: Bảo mật dịch vụ AI và học máy
+  childs:
+  - slug: ai-and-machine-learning-security-001
+    title: Phân định trách nhiệm với API mô hình và nền tảng AI được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-002
+    title: Kiểm soát dữ liệu huấn luyện, đánh giá và suy luận theo độ nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-003
+    title: Bảo vệ notebook, job huấn luyện và quyền truy cập kho dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-004
+    title: Quản lý quyền, nguồn gốc và tính toàn vẹn của model registry
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-005
+    title: Giới hạn dữ liệu gửi tới mô hình và cấu hình lưu giữ của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-006
+    title: Bảo vệ truy xuất RAG bằng quyền truy cập tài liệu gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-007
+    title: Giới hạn quyền gọi công cụ của tác nhân AI trước prompt injection
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-008
+    title: Bảo vệ endpoint suy luận và giám sát lạm dụng quota
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ai-and-machine-learning-security-009
+    title: Đánh giá bảo mật trước khi đưa workload AI vào môi trường production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: software-supply-chain-and-cicd
+  title: Chuỗi cung ứng phần mềm và CI/CD
+  childs:
+  - slug: software-supply-chain-and-cicd-001
+    title: Mô hình hóa mối đe dọa đối với mã nguồn, pipeline và artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-002
+    title: Bảo vệ repository, nhánh phát hành và quyền sửa pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-003
+    title: Cách ly runner và giảm quyền của tác vụ build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-004
+    title: Cấu hình liên kết danh tính giữa CI/CD và tài khoản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-005
+    title: Quét mã nguồn, phụ thuộc và bí mật trước khi đóng gói
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-006
+    title: Tạo SBOM và theo dõi thành phần trong bản phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-007
+    title: Ký artifact và xác minh nguồn gốc bằng provenance
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-008
+    title: Áp dụng yêu cầu SLSA theo mức bảo đảm của chuỗi build
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-009
+    title: Kiểm soát action, plugin và nguồn tải phụ thuộc bên thứ ba
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-010
+    title: Tách biệt quyền build, phê duyệt và triển khai production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-011
+    title: Thiết lập cổng kiểm tra bảo mật và ngoại lệ khi phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: software-supply-chain-and-cicd-012
+    title: Triển khai artifact bất biến và xác minh trước khi chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-and-policy-as-code
+  title: Hạ tầng dưới dạng mã và policy as code
+  childs:
+  - slug: infrastructure-and-policy-as-code-001
+    title: Chuẩn hóa mẫu hạ tầng an toàn cho Terraform, CloudFormation và Bicep
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-002
+    title: Bảo vệ state, backend và dữ liệu nhạy cảm của công cụ IaC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-003
+    title: Giới hạn quyền bootstrap và danh tính thực thi hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-004
+    title: Phát hiện cấu hình không an toàn trong thay đổi IaC
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-005
+    title: Biểu diễn kiểm soát bằng OPA, Sentinel hoặc chính sách nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-006
+    title: Kiểm thử chính sách bằng trường hợp cho phép và từ chối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-007
+    title: Thực thi rào chắn trước khi cấp phát và tại thời điểm triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-008
+    title: Quản lý policy pack theo phiên bản và phạm vi áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-009
+    title: Phát hiện sai lệch cấu hình giữa mã nguồn và tài nguyên thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-010
+    title: Tự động sửa sai lệch với điều kiện an toàn và khả năng rollback
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-and-policy-as-code-011
+    title: Lưu kết quả đánh giá chính sách làm bằng chứng kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-posture-and-attack-paths
+  title: Quản lý tư thế và đường tấn công
+  childs:
+  - slug: security-posture-and-attack-paths-001
+    title: Phân biệt vai trò của CNAPP, CSPM, CWPP, CIEM và DSPM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-002
+    title: Kết nối công cụ quản lý tư thế theo nguyên tắc quyền tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-003
+    title: Đánh giá cấu hình tài nguyên với bộ kiểm soát phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-004
+    title: Đánh giá tư thế Kubernetes bằng KSPM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-005
+    title: Ghép dữ liệu danh tính, mạng và tài sản thành đường tấn công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-006
+    title: Ưu tiên phát hiện theo mức phơi lộ và giá trị tài sản đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-007
+    title: Loại bỏ phát hiện trùng và quản lý trường hợp dương tính giả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-008
+    title: Điều phối khắc phục qua ticket hoặc quy trình tự động có phê duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-009
+    title: Kiểm tra phạm vi giám sát và vùng mù giữa các tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-posture-and-attack-paths-010
+    title: Theo dõi tái phát cấu hình sai và hiệu quả ngăn ngừa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vulnerability-and-patch-management
+  title: Quản lý lỗ hổng và cập nhật
+  childs:
+  - slug: vulnerability-and-patch-management-001
+    title: Xác định phạm vi quét cho máy ảo, image, mã và dịch vụ được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-002
+    title: Thu thập và đối soát kết quả quét từ nhiều công cụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-003
+    title: Diễn giải CVE, CVSS, EPSS và thông tin khai thác thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-004
+    title: Ưu tiên lỗ hổng theo đường tấn công và mức quan trọng của workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-005
+    title: Thiết lập thời hạn khắc phục theo mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-006
+    title: Tổ chức kiểm thử, bảo trì và rollback khi cập nhật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-007
+    title: Xử lý lỗ hổng zero-day và hệ thống chưa có bản vá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-008
+    title: Áp dụng biện pháp bù đắp khi chưa thể khắc phục trực tiếp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vulnerability-and-patch-management-009
+    title: Quét lại và xác minh bằng chứng đóng lỗ hổng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: logging-and-evidence-preservation
+  title: Nhật ký và bảo toàn bằng chứng
+  childs:
+  - slug: logging-and-evidence-preservation-001
+    title: Lựa chọn nhật ký control plane, data plane, mạng và workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-002
+    title: Thu thập nhật ký tập trung trên toàn tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-003
+    title: Chuẩn hóa thời gian, định danh và ngữ cảnh tài nguyên trong log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-004
+    title: Bảo vệ đường truyền và phân quyền truy cập hệ thống nhật ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-005
+    title: Lưu nhật ký bất biến và tách quyền vận hành khỏi quyền xóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-006
+    title: Loại bỏ hoặc che dữ liệu nhạy cảm khỏi nhật ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-007
+    title: Thiết kế thời hạn lưu giữ, phân tầng lưu trữ và ngân sách log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-008
+    title: Phát hiện tắt audit log, mất nguồn dữ liệu và sửa cấu hình ghi log
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-009
+    title: Bảo toàn tính toàn vẹn và chuỗi bàn giao bằng chứng số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: logging-and-evidence-preservation-010
+    title: Kiểm tra định kỳ khả năng thu thập, tìm kiếm và truy xuất bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: threat-detection-and-hunting
+  title: Phát hiện và săn tìm mối đe dọa
+  childs:
+  - slug: threat-detection-and-hunting-001
+    title: Xây dựng tình huống phát hiện theo kỹ thuật tấn công đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-002
+    title: Tích hợp nguồn dữ liệu vào SIEM và dịch vụ phát hiện gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-003
+    title: Quản lý quy tắc phát hiện dưới dạng mã
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-004
+    title: Phát hiện đăng nhập bất thường và chiếm đoạt phiên người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-005
+    title: Phát hiện leo thang quyền và tạo cơ chế duy trì truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-006
+    title: Phát hiện khai thác tài nguyên để đào tiền mã hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-007
+    title: Phát hiện truy cập dữ liệu bất thường và hành vi rút dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-008
+    title: Tương quan DNS, lưu lượng mạng và hành vi workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-009
+    title: Săn tìm mối đe dọa theo giả thuyết và thông tin tình báo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-010
+    title: Tinh chỉnh cảnh báo và đo độ bao phủ phát hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: threat-detection-and-hunting-011
+    title: Thiết kế điều phối phản ứng bằng SOAR với giới hạn tự động hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: incident-response-and-investigation
+  title: Ứng phó sự cố và điều tra
+  childs:
+  - slug: incident-response-and-investigation-001
+    title: Thiết lập đội ứng phó, mức độ sự cố và cơ chế điều phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-002
+    title: Chuẩn bị quyền điều tra và môi trường lưu bằng chứng trước sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-003
+    title: Thu thập log, snapshot và metadata của tài nguyên bị xâm nhập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-004
+    title: Điều tra khóa truy cập, token hoặc danh tính đám mây bị đánh cắp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-005
+    title: Ứng phó kho lưu trữ công khai và sự cố rò rỉ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-006
+    title: Khoanh vùng máy ảo hoặc container bị chiếm quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-007
+    title: Xử lý thay đổi trái phép ở tài khoản gốc và cấp tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-008
+    title: Cô lập tài nguyên và thu hồi quyền mà vẫn bảo toàn bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-009
+    title: Phối hợp với nhà cung cấp, đối tác và đầu mối pháp lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-010
+    title: Loại bỏ cơ chế duy trì truy cập và khôi phục trạng thái tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-011
+    title: Thông tin sự cố và quyết định thông báo theo nghĩa vụ áp dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: incident-response-and-investigation-012
+    title: Tổng kết sau sự cố và chuyển bài học thành hành động kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resilience-and-disaster-recovery
+  title: Khả năng phục hồi và khôi phục
+  childs:
+  - slug: resilience-and-disaster-recovery-001
+    title: Phân tích phụ thuộc dịch vụ và tác động của sự cố vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-002
+    title: Xác định RTO, RPO và mức ưu tiên khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-003
+    title: Thiết kế khả năng chịu lỗi qua nhiều vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-004
+    title: Lựa chọn kiến trúc dự phòng liên vùng theo yêu cầu dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-005
+    title: Thiết kế sao lưu cách ly tài khoản và quyền quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-006
+    title: Bảo vệ bản sao lưu bằng tính bất biến và kiểm soát thời hạn lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-007
+    title: Chuẩn bị khôi phục sau ransomware và xóa dữ liệu có chủ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-008
+    title: Khôi phục đồng bộ hạ tầng, dữ liệu, danh tính và khóa mã hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-009
+    title: Diễn tập chuyển đổi dự phòng và quay lại hệ thống chính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resilience-and-disaster-recovery-010
+    title: Đo kết quả khôi phục và cập nhật kế hoạch liên tục kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: security-testing-and-validation
+  title: Kiểm thử và xác minh bảo mật
+  childs:
+  - slug: security-testing-and-validation-001
+    title: Xác định phạm vi, quyền thực hiện và quy định kiểm thử của nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-002
+    title: Lập kế hoạch xác minh kiểm soát theo mô hình mối đe dọa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-003
+    title: Kiểm tra kiến trúc và cấu hình trước khi đưa dịch vụ vào vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-004
+    title: Kiểm thử đường leo thang quyền và truy cập chéo tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-005
+    title: Kiểm thử cách ly mạng, dữ liệu và ranh giới người thuê
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-006
+    title: Tổ chức kiểm thử xâm nhập đám mây trong phạm vi được cấp phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-007
+    title: Diễn tập purple team để xác minh phát hiện và phản ứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-008
+    title: Kiểm tra khả năng duy trì kiểm soát khi hệ thống gặp lỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: security-testing-and-validation-009
+    title: Báo cáo phát hiện, giao trách nhiệm và xác minh sau khắc phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: multicloud-hybrid-and-saas-governance
+  title: Quản trị multicloud, hybrid và SaaS
+  childs:
+  - slug: multicloud-hybrid-and-saas-governance-001
+    title: Ánh xạ khái niệm bảo mật giữa AWS, Azure và Google Cloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-002
+    title: So sánh phạm vi quản trị của AWS Organizations, Azure Management Groups và Google Cloud Organization
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-003
+    title: Lựa chọn rào chắn bằng SCP, Azure Policy và Organization Policy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-004
+    title: Duy trì danh tính và phân quyền nhất quán trên nhiều nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-005
+    title: Thiết lập ranh giới tin cậy giữa datacenter và các đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-006
+    title: Chuẩn hóa kiểm soát và bằng chứng trong môi trường không đồng nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-007
+    title: Tương quan nhật ký và phát hiện tấn công xuyên nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-008
+    title: Quản trị tenant SaaS và cấu hình ứng dụng bằng SSPM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-009
+    title: Rà soát quyền OAuth, ứng dụng tích hợp và kết nối SaaS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-010
+    title: Kiểm soát truy cập và dữ liệu SaaS bằng CASB hoặc SSE
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: multicloud-hybrid-and-saas-governance-011
+    title: Tiếp nhận môi trường sau sáp nhập và hợp nhất quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: vendor-and-third-party-management
+  title: Nhà cung cấp và bên thứ ba
+  childs:
+  - slug: vendor-and-third-party-management-001
+    title: Thẩm định nhà cung cấp theo mức quan trọng của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-002
+    title: Đánh giá báo cáo SOC, chứng nhận và tài liệu bảo đảm của nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-003
+    title: Quy định trách nhiệm bảo mật, quyền kiểm toán và xử lý dữ liệu trong hợp đồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-004
+    title: Kiểm soát nhà thầu phụ và chuỗi cung cấp dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-005
+    title: Giới hạn truy cập ủy quyền của đơn vị vận hành thuê ngoài
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-006
+    title: Đánh giá rủi ro tập trung và phụ thuộc nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-007
+    title: Thống nhất phối hợp sự cố và thời hạn thông báo với đối tác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-008
+    title: Rà soát định kỳ thay đổi dịch vụ và tình trạng kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: vendor-and-third-party-management-009
+    title: Lập kế hoạch thoát dịch vụ, chuyển dữ liệu và thu hồi truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: auditing-and-continuous-assurance
+  title: Kiểm toán và bảo đảm liên tục
+  childs:
+  - slug: auditing-and-continuous-assurance-001
+    title: Xây dựng kế hoạch kiểm toán theo phạm vi và mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-002
+    title: Xác định chủ kiểm soát và chủ bằng chứng cho từng yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-003
+    title: Đánh giá thiết kế và hiệu quả vận hành của kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-004
+    title: Thu thập bằng chứng tự động từ API và hệ thống quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-005
+    title: Gắn bằng chứng với tài nguyên, phiên bản cấu hình và thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-006
+    title: Chọn mẫu kiểm toán cho tài nguyên tạm thời và môi trường thay đổi nhanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-007
+    title: Kiểm soát quyền truy cập, lưu giữ và chia sẻ hồ sơ kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-008
+    title: Quản lý phát hiện kiểm toán và kế hoạch hành động khắc phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: auditing-and-continuous-assurance-009
+    title: Tổ chức giám sát tuân thủ liên tục và báo cáo bảo đảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-metrics-and-improvement
+  title: Vận hành, đo lường và cải tiến
+  childs:
+  - slug: operations-metrics-and-improvement-001
+    title: Xây dựng quy trình vận hành và lịch rà soát kiểm soát định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-002
+    title: Thiết lập KPI, KRI và mục tiêu dịch vụ cho đội bảo mật đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-003
+    title: Đo thời gian phát hiện, phản ứng và xử lý rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-004
+    title: Theo dõi độ bao phủ kiểm soát và mức phơi lộ theo đơn vị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-005
+    title: Theo dõi ngoại lệ sắp hết hạn và hành động khắc phục quá hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-006
+    title: Thiết kế báo cáo phù hợp với kỹ thuật, chủ dịch vụ và lãnh đạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-007
+    title: Kết hợp ngân sách bảo mật với quản lý chi phí FinOps
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-008
+    title: Phát triển năng lực đội ngũ và mạng lưới security champion
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-009
+    title: Đánh giá hiệu quả công cụ và loại bỏ khoảng trống vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-metrics-and-improvement-010
+    title: Ưu tiên lộ trình cải tiến dựa trên rủi ro và bài học thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: hands-on-labs-and-capstone-projects
+  title: Thực hành và đồ án tổng hợp
+  childs:
+  - slug: hands-on-labs-and-capstone-projects-001
+    title: Chuẩn bị sandbox với giới hạn quyền, chi phí và quy trình thu dọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-002
+    title: Xây dựng landing zone có phân tách môi trường và rào chắn tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-003
+    title: Tích hợp SSO, truy cập có thời hạn và danh tính workload
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-004
+    title: Triển khai ứng dụng ba tầng với mạng riêng, kho bí mật và khóa mã hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-005
+    title: Gia cố cluster Kubernetes và xác minh chính sách pod, mạng, danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-006
+    title: Bảo vệ ứng dụng serverless theo chuỗi sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-007
+    title: Xây dựng pipeline IaC có kiểm tra chính sách và xác minh artifact
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-008
+    title: Ưu tiên và khắc phục đường tấn công từ kết quả đánh giá tư thế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-009
+    title: Xây dựng tình huống phát hiện và xử lý danh tính bị xâm nhập trong lab
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-010
+    title: Diễn tập khôi phục dữ liệu từ bản sao lưu được bảo vệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-011
+    title: Lập hồ sơ kiểm soát và bằng chứng cho một đợt kiểm toán giả lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: hands-on-labs-and-capstone-projects-012
+    title: Đồ án thiết kế chương trình bảo mật và quản trị cho tổ chức multicloud
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

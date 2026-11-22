@@ -1,0 +1,56 @@
+roadmap:
+- id: kien-truc-nginx
+  title: Kiến trúc Nginx
+  purpose: Hiểu vai trò của Nginx tại biên ứng dụng và cách nó xử lý kết nối HTTP hiệu quả.
+  objectives:
+  - Phân biệt web server, reverse proxy và upstream.
+  - Mô tả vai trò master, worker và xử lý theo sự kiện.
+- id: cau-hinh-dinh-tuyen
+  title: Cấu hình & định tuyến
+  purpose: Nắm cấu trúc cấu hình để đưa request đến đúng website hoặc tài nguyên.
+  objectives:
+  - Đọc http, server, location, listen và server_name.
+  - Phân biệt root, alias và quy tắc khớp location.
+  - Tổ chức cấu hình qua include.
+- id: reverse-proxy
+  title: Reverse Proxy
+  purpose: Chuyển request đến backend và truyền đúng thông tin của client qua proxy.
+  objectives:
+  - Dùng proxy_pass và proxy_set_header.
+  - Truyền Host, X-Forwarded-For và X-Forwarded-Proto.
+  - Cấu hình timeout kết nối và phản hồi.
+- id: upstream-can-bang-tai
+  title: Upstream & cân bằng tải
+  purpose: Phân phối traffic cho nhiều backend nhằm nâng khả năng phục vụ và chịu lỗi.
+  objectives:
+  - Khai báo upstream với nhiều server.
+  - So sánh round-robin, least_conn và ip_hash.
+  - Kiểm tra hành vi khi backend bị lỗi.
+- id: https-tls
+  title: HTTPS & TLS
+  purpose: Bảo vệ kết nối phía client và hiểu ranh giới mã hóa ở reverse proxy.
+  objectives:
+  - Cấu hình listen 443 ssl cùng certificate/key.
+  - Kiểm tra chứng chỉ và phiên bản TLS.
+  - Phân biệt TLS termination với HTTPS đến upstream.
+- id: cache-hieu-nang
+  title: Cache & hiệu năng
+  purpose: Cải thiện tốc độ phản hồi bằng cache và nén nội dung có kiểm soát.
+  objectives:
+  - Thiết lập proxy_cache và thời hạn cache.
+  - Bật gzip phù hợp với loại nội dung.
+  - Tránh cache dữ liệu riêng tư hoặc nhạy cảm.
+- id: gioi-han-bao-ve
+  title: Giới hạn & bảo vệ
+  purpose: Giảm tác động của lưu lượng đột biến và các truy vấn quá mức.
+  objectives:
+  - Dùng limit_req_zone, limit_req và burst.
+  - Phân biệt delay, nodelay và trường hợp bị từ chối.
+  - Kiểm tra IP client khi có nhiều lớp proxy.
+- id: logs-van-hanh
+  title: Logs & vận hành
+  purpose: Phát hiện lỗi và áp dụng thay đổi cấu hình một cách có kiểm soát.
+  objectives:
+  - Đọc access_log, error_log và log_format.
+  - Chạy nginx -t trước khi reload.
+  - Dùng curl để kiểm tra header, status và upstream.

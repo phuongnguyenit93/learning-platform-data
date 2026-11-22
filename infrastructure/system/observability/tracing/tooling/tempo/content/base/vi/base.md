@@ -1,0 +1,7 @@
+# Observability Tracing Tooling Tempo
+
+Grafana Tempo là backend distributed tracing mã nguồn mở, tập trung vào việc nhận, lưu trữ và truy vấn trace data với chi phí lưu trữ dài hạn thấp nhờ object storage. Dữ liệu thường được gửi từ ứng dụng đã instrument qua OpenTelemetry Collector hoặc Grafana Alloy đến Tempo; Grafana sau đó truy vấn và hiển thị trace để phân tích quan hệ giữa các spans, độ trễ và lỗi xuyên nhiều dịch vụ. Tempo hỗ trợ tra cứu theo trace ID và tìm kiếm bằng TraceQL.
+
+Module dành cho người đã hiểu trace/span, biết cách instrument ứng dụng hoặc sử dụng OpenTelemetry Collector, và có kiến thức cơ bản về Docker hoặc Kubernetes. Lộ trình đi từ kiến trúc và hai deployment modes của Tempo đến ingestion qua OTLP, cấu hình object storage, retention và query bằng TraceQL. Các mốc tiếp theo giới thiệu metrics-generator để tạo RED metrics/service graph, multi-tenancy cùng giới hạn tài nguyên, rồi kết thúc bằng monitoring và xử lý sự cố. Nội dung tập trung vào backend Tempo; cách instrument ứng dụng và các khái niệm tracing tổng quát thuộc những phần học riêng.
+
+Sau khi hoàn thành, bạn có thể triển khai Tempo thử nghiệm, gửi trace từ Collector, xác minh dữ liệu đã lưu, tìm trace bằng ID hoặc TraceQL, và liên kết traces với metrics trong Grafana/Prometheus. Bạn cũng có thể chọn deployment mode phù hợp, cấu hình object storage và retention, nhận diện rủi ro khi bật multi-tenancy. Tempo không cung cấp sẵn authentication layer; cần đặt một authentication proxy hoặc lớp bảo vệ tương đương trước endpoint trong môi trường cần kiểm soát truy cập.

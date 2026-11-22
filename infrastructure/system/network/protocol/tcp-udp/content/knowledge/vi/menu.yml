@@ -1,0 +1,374 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - TCP và UDP là gì, giải quyết bài toán truyền dữ liệu nào
+  - Vai trò của tầng giao vận trong mô hình TCP/IP
+  - Mối liên hệ giữa ứng dụng, socket, TCP/UDP và IP
+  - Luồng byte, đoạn TCP, gói UDP và gói IP
+  - Kết nối, độ tin cậy, thứ tự và ranh giới thông điệp
+  - Băng thông, thông lượng, độ trễ, RTT và jitter
+  - Mất gói, trùng gói và đảo thứ tự trên đường truyền
+  - Phân biệt kiểm soát lỗi, điều khiển luồng và điều khiển tắc nghẽn
+  - Lộ trình học và kiến thức IP cần chuẩn bị
+- level1: Địa chỉ và cổng
+  level2:
+  - Địa chỉ IP và số cổng định danh đầu cuối như thế nào
+  - Cổng nguồn, cổng đích và phân kênh tới tiến trình
+  - Cổng phổ biến, cổng đăng ký và cổng tạm thời
+  - Không gian cổng TCP và UDP độc lập với nhau
+  - Bộ địa chỉ định danh luồng và kết nối
+  - Địa chỉ wildcard, loopback và giao diện mạng
+  - Một cổng lắng nghe phục vụ nhiều kết nối TCP
+  - Xung đột địa chỉ, chiếm cổng và nguyên tắc tái sử dụng
+  - IPv4, IPv6 và ứng dụng dùng hai ngăn xếp
+- level1: Dữ liệu và MTU
+  level2:
+  - Đóng gói dữ liệu từ ứng dụng xuống tầng liên kết
+  - TCP chia luồng dữ liệu thành các đoạn như thế nào
+  - UDP giữ ranh giới thông điệp như thế nào
+  - MTU, MSS, phần đầu giao thức và tải hữu ích
+  - Phân mảnh IP khác với phân đoạn TCP
+  - Khác biệt phân mảnh giữa IPv4 và IPv6
+  - Path MTU Discovery và vai trò của ICMP
+  - Packetization Layer PMTU Discovery và đường truyền chặn ICMP
+  - Kích thước gói, chi phí đóng gói và nguy cơ mất toàn bộ thông điệp
+  - Jumbo frame, đường hầm và MTU hiệu dụng
+- level1: Phần đầu TCP
+  level2:
+  - Cấu trúc đoạn TCP và độ dài phần đầu
+  - Cổng nguồn và cổng đích trong phần đầu TCP
+  - Sequence Number và Acknowledgment Number
+  - Data Offset, vùng dự trữ và cách xác định tải hữu ích
+  - Các cờ SYN, ACK, FIN và RST
+  - Các cờ PSH, URG, ECE và CWR
+  - Window và ý nghĩa cửa sổ quảng bá
+  - Checksum TCP và phần đầu giả IP
+  - Urgent Pointer và giới hạn dữ liệu khẩn
+  - Vùng Options và Padding
+  - Đọc một đoạn TCP từ bản chụp lưu lượng
+- level1: Thiết lập TCP
+  level2:
+  - Mở chủ động, mở thụ động và vai trò hai đầu kết nối
+  - Bắt tay ba bước SYN, SYN-ACK và ACK
+  - Initial Sequence Number và đồng bộ số thứ tự
+  - Thương lượng MSS, Window Scale, SACK và Timestamp
+  - SYN bị mất, SYN-ACK bị mất và truyền lại khi bắt tay
+  - ACK cuối bị mất và cách kết nối tiếp tục được xác nhận
+  - Kết nối bị từ chối, bị lọc và hết thời gian chờ
+  - SYN backlog, hàng đợi accept và giới hạn tiếp nhận
+  - Mở đồng thời và các chuyển trạng thái liên quan
+  - 'TCP Fast Open: mục tiêu, điều kiện và giới hạn'
+- level1: Đóng kết nối TCP
+  level2:
+  - Đóng có trật tự bằng FIN và ACK
+  - Đóng một chiều và trạng thái half-close
+  - Phân biệt đóng chiều gửi với đóng toàn bộ socket
+  - Đóng chủ động, đóng thụ động và đóng đồng thời
+  - EOF khi đọc và dữ liệu còn lại trong bộ đệm
+  - RST và đóng kết nối đột ngột
+  - FIN bị mất, ACK bị mất và quá trình truyền lại
+  - SO_LINGER và ảnh hưởng tới close
+  - Vòng đời kết nối dài và lựa chọn tái sử dụng
+  - Dọn tài nguyên khi ứng dụng lỗi hoặc tiến trình kết thúc
+- level1: Trạng thái TCP
+  level2:
+  - Sơ đồ trạng thái và cách đọc chuyển trạng thái
+  - CLOSED và LISTEN
+  - SYN-SENT và SYN-RECEIVED
+  - ESTABLISHED
+  - FIN-WAIT-1 và FIN-WAIT-2
+  - CLOSE-WAIT và LAST-ACK
+  - CLOSING
+  - TIME-WAIT, 2MSL và ngăn đoạn cũ lẫn vào kết nối mới
+  - Phân biệt nhiều TIME-WAIT với rò rỉ CLOSE-WAIT
+  - Đối chiếu trạng thái hai đầu qua một phiên kết nối
+- level1: Thứ tự và xác nhận
+  level2:
+  - Số thứ tự đếm byte thay vì đếm gói
+  - SYN và FIN chiếm không gian số thứ tự
+  - ACK tích lũy và byte tiếp theo được mong đợi
+  - Số thứ tự tương đối trong công cụ bắt gói
+  - Tràn vòng số thứ tự và so sánh trong không gian tuần hoàn
+  - Nhận đoạn đến sai thứ tự và ghép lại luồng
+  - Loại bỏ dữ liệu trùng và xử lý đoạn chồng lấn
+  - Duplicate ACK và ý nghĩa của khoảng trống dữ liệu
+  - SACK mô tả các khối dữ liệu đã nhận
+  - ACK xác nhận TCP đã nhận dữ liệu, chưa chứng minh nghiệp vụ hoàn tất
+- level1: Phục hồi mất gói
+  level2:
+  - Phân biệt mất đoạn dữ liệu với mất ACK
+  - Truyền lại khi hết thời gian chờ
+  - Fast Retransmit dựa trên ACK trùng
+  - Fast Recovery và quan hệ với cửa sổ tắc nghẽn
+  - Phục hồi nhiều đoạn mất bằng SACK
+  - RACK và phát hiện mất gói theo thời gian
+  - Tail Loss Probe và mất gói ở cuối đợt truyền
+  - Truyền lại giả do đảo thứ tự hoặc độ trễ biến động
+  - DSACK và nhận biết dữ liệu bị nhận trùng
+  - Giới hạn của độ tin cậy khi kết nối bị đứt
+- level1: Điều khiển luồng
+  level2:
+  - Bộ đệm gửi và bộ đệm nhận
+  - Receive Window bảo vệ bên nhận
+  - Send Window và lượng dữ liệu chưa được xác nhận
+  - Ứng dụng đọc chậm tác động tới luồng TCP
+  - Window Scale và kết nối có tích băng thông–độ trễ lớn
+  - Zero Window, Window Update và Zero Window Probe
+  - Persist Timer và tránh bế tắc khi mất cập nhật cửa sổ
+  - Silly Window Syndrome và cách tránh truyền quá nhỏ
+  - Backpressure từ socket lên xử lý của ứng dụng
+  - Phân biệt nghẽn bên nhận với nghẽn trên mạng
+- level1: Điều khiển tắc nghẽn
+  level2:
+  - Tắc nghẽn mạng, hàng đợi và dấu hiệu mất gói
+  - Congestion Window, Receive Window và lượng dữ liệu đang bay
+  - Slow Start và ngưỡng ssthresh
+  - Congestion Avoidance và nguyên lý AIMD
+  - Phản ứng với timeout so với phát hiện mất gói nhanh
+  - TCP Tahoe, Reno và NewReno
+  - CUBIC và tăng cửa sổ theo thời gian
+  - BBR và cách tiếp cận dựa trên mô hình đường truyền
+  - ECN, ECE và CWR
+  - Pacing, ACK Clock và độ dồn của lưu lượng
+  - Cạnh tranh giữa các luồng và tính công bằng
+  - Bufferbloat, AQM và giới hạn của điều khiển tắc nghẽn
+- level1: Bộ định thời TCP
+  level2:
+  - RTT mẫu, SRTT và độ biến thiên RTT
+  - Tính RTO và lý do RTO khác RTT
+  - Thuật toán Karn và mẫu RTT sau truyền lại
+  - Exponential Backoff khi liên tiếp hết thời gian chờ
+  - Delayed ACK Timer
+  - 'Keepalive: thời gian nhàn rỗi, khoảng thăm dò và số lần thử'
+  - TCP User Timeout và dữ liệu chưa được xác nhận
+  - Phân biệt connect timeout, read timeout và write timeout của ứng dụng
+  - Giới hạn thời gian cho toàn bộ yêu cầu và ngân sách thử lại
+- level1: Tùy chọn TCP
+  level2:
+  - MSS được quảng bá ở đâu và không phải MTU
+  - Window Scale và phạm vi áp dụng sau bắt tay
+  - SACK Permitted và các khối SACK
+  - Timestamp, đo RTT và PAWS
+  - TCP Fast Open Cookie
+  - NOP, End of Option List và giới hạn vùng tùy chọn
+  - Khả năng tương thích khi middlebox xử lý tùy chọn TCP
+  - Quan sát tùy chọn được hỗ trợ và thực sự được thương lượng
+- level1: Hành vi luồng TCP
+  level2:
+  - Một lần write không tương ứng một lần read
+  - Đọc thiếu, ghi thiếu và lặp cho đến khi đủ dữ liệu
+  - Gộp dữ liệu và chia nhỏ dữ liệu ở phía nhận
+  - Head-of-Line Blocking trên một luồng TCP
+  - Nagle và TCP_NODELAY
+  - Tương tác giữa Nagle, gói nhỏ và Delayed ACK
+  - PSH không tạo ranh giới thông điệp
+  - Dữ liệu khẩn và giới hạn khi dùng OOB
+  - Kết nối nửa sống, mất mạng im lặng và phát hiện lỗi
+  - Keepalive TCP khác heartbeat của ứng dụng
+- level1: Phần đầu UDP
+  level2:
+  - Cấu trúc UDP datagram và phần đầu 8 byte
+  - Cổng nguồn và cổng đích trong phần đầu UDP
+  - Length bao gồm phần đầu và dữ liệu
+  - Checksum UDP và phần đầu giả IP
+  - Ý nghĩa checksum bằng 0 trong IPv4
+  - Yêu cầu checksum trong IPv6 và phạm vi ngoại lệ chuyên biệt
+  - Checksum phát hiện lỗi nhưng không cung cấp xác thực
+  - Datagram không có tải và giới hạn độ dài
+  - Giới hạn payload thực tế theo MTU đường truyền
+- level1: Hoạt động UDP
+  level2:
+  - Gửi và nhận không cần bắt tay giao thức
+  - Mỗi datagram là một thông điệp độc lập
+  - Mất, trùng và đảo thứ tự datagram
+  - Datagram lớn hơn bộ đệm đọc và nguy cơ bị cắt
+  - Tràn bộ đệm nhận và mất gói trong máy đích
+  - UDP socket đã connect và khác biệt với kết nối TCP
+  - ICMP báo lỗi và cách lỗi được chuyển tới ứng dụng
+  - Unicast, broadcast và multicast
+  - Broadcast IPv4, multicast IPv6 và phạm vi truyền
+  - UDP không tự điều khiển luồng hay tắc nghẽn
+- level1: Độ tin cậy trên UDP
+  level2:
+  - Chọn độ tin cậy theo yêu cầu thông điệp
+  - Định danh phiên, số thứ tự và số thứ tự thông điệp
+  - ACK, NACK và cơ chế truyền lại ở tầng ứng dụng
+  - Chống xử lý trùng bằng mã yêu cầu và tính lũy đẳng
+  - Sắp xếp lại thông điệp và giới hạn thời gian chờ
+  - Chia thông điệp và ghép lại có giới hạn tài nguyên
+  - Kiểm soát tốc độ gửi và phản ứng với tắc nghẽn
+  - Jitter Buffer, thời hạn phát và loại dữ liệu quá muộn
+  - Forward Error Correction và đánh đổi dung lượng
+  - Ranh giới giữa tự xây giao thức và dùng giao thức đã có
+- level1: Chọn TCP hay UDP
+  level2:
+  - So sánh kết nối, thứ tự, độ tin cậy và ranh giới thông điệp
+  - So sánh chi phí bắt tay, phần đầu và trạng thái kết nối
+  - UDP không mặc nhiên nhanh hơn TCP
+  - TCP không đảm bảo thời hạn giao dữ liệu
+  - Truyền tệp, truy vấn dữ liệu và giao dịch nghiệp vụ
+  - Âm thanh, video thời gian thực và trò chơi trực tuyến
+  - DNS dùng UDP và chuyển sang TCP trong những tình huống nào
+  - HTTP/1.1, HTTP/2 dùng TCP và HTTP/3 dùng QUIC trên UDP
+  - QUIC bổ sung những gì so với UDP thuần
+  - Tiêu chí chọn giao thức theo mạng, tải và cách xử lý lỗi
+- level1: Mô hình socket
+  level2:
+  - Socket API và ranh giới giữa ứng dụng với hệ điều hành
+  - socket, bind, listen, accept, connect và close
+  - Socket lắng nghe và socket kết nối sau accept
+  - send, recv, sendto và recvfrom
+  - Blocking, non-blocking và mã lỗi cần xử lý
+  - Readiness khác với completion
+  - Select, poll, epoll và kqueue ở mức khái niệm
+  - File descriptor, giới hạn tiến trình và vòng đời tài nguyên
+  - SO_REUSEADDR và SO_REUSEPORT phụ thuộc hệ điều hành
+  - Địa chỉ đích, giao diện nguồn và lựa chọn cổng tạm thời
+- level1: Lập trình TCP
+  level2:
+  - Thiết kế TCP client và server tối thiểu
+  - Vòng lặp accept và xử lý từng kết nối
+  - Đóng khung thông điệp bằng độ dài, dấu phân cách hoặc độ dài cố định
+  - Giới hạn kích thước thông điệp và kiểm tra dữ liệu đầu vào
+  - Đọc đủ khung, xử lý nhiều khung và khung chưa hoàn chỉnh
+  - Mã hóa ký tự, byte order và tuần tự hóa dữ liệu
+  - Quản lý timeout, hủy thao tác và đóng tài nguyên
+  - Request ID, phản hồi nghiệp vụ và giới hạn của retry
+  - Connection Pool, kết nối dài và phát hiện kết nối hỏng
+  - Socket, ServerSocket và SocketChannel trong Java
+- level1: Lập trình UDP
+  level2:
+  - Thiết kế UDP sender và receiver tối thiểu
+  - Bind cổng nhận, chọn đích và phân biệt từng bên gửi
+  - Chuẩn bị bộ đệm nhận và phát hiện nguy cơ cắt datagram
+  - Giới hạn kích thước thông điệp trước khi gửi
+  - Timeout nhận và tổ chức vòng lặp xử lý
+  - Quản lý số thứ tự, trùng gói và dữ liệu hết hạn
+  - Join, leave và giao diện mạng của nhóm multicast
+  - TTL hoặc Hop Limit và phạm vi multicast
+  - DatagramSocket, DatagramPacket và DatagramChannel trong Java
+  - Thiết kế phản hồi an toàn và giới hạn lưu lượng
+- level1: Đồng thời và I/O
+  level2:
+  - Một luồng cho mỗi kết nối và giới hạn tài nguyên
+  - Thread Pool và hàng đợi xử lý có giới hạn
+  - Event Loop và I/O không chặn
+  - Selector, SelectionKey và trạng thái đọc/ghi
+  - Bộ đệm đọc/ghi theo kết nối và quản lý partial I/O
+  - Hàng đợi ghi, backpressure và bên nhận chậm
+  - Virtual Thread trong Java và yêu cầu kiểm soát số kết nối
+  - An toàn dữ liệu khi nhiều tác vụ dùng cùng socket
+  - Dừng server có trật tự và hoàn tất dữ liệu đang xử lý
+- level1: Hiệu năng
+  level2:
+  - Bandwidth–Delay Product và kích thước cửa sổ cần thiết
+  - Đo thông lượng hữu ích thay vì chỉ đếm byte trên đường truyền
+  - Độ trễ trung bình, p95, p99 và độ biến thiên
+  - Kích thước bộ đệm socket và giới hạn tự điều chỉnh
+  - Gói nhỏ, batching và đánh đổi độ trễ–thông lượng
+  - Zero-copy, sendfile và phạm vi lợi ích
+  - TSO, GSO, GRO, LRO và sai khác khi quan sát trên máy
+  - Checksum offload và cảnh báo checksum giả trong bản chụp
+  - CPU, NIC, IRQ và điểm nghẽn xử lý gói
+  - Cổng tạm thời, conntrack và giới hạn số kết nối
+  - Thử nghiệm trước khi thay sysctl hoặc tùy chọn socket
+- level1: NAT và middlebox
+  level2:
+  - NAT và biến đổi địa chỉ, cổng của luồng
+  - Conntrack theo dõi TCP và UDP khác nhau
+  - Ánh xạ UDP có thời hạn dù giao thức không có kết nối
+  - Timeout nhàn rỗi của NAT, firewall và load balancer
+  - Kết nối ra ngoài thành công nhưng không nhận được kết nối vào
+  - UDP hole punching và giới thiệu STUN, TURN, ICE
+  - Proxy kết thúc TCP và tách một đường truyền thành nhiều kết nối
+  - Load Balancer lớp 4, duy trì phiên và thay đổi đường truyền
+  - Bất đối xứng tuyến đường và ảnh hưởng tới thiết bị có trạng thái
+  - VPN, tunnel và các lỗi MTU phát sinh
+- level1: Bảo mật
+  level2:
+  - Mô hình đe dọa đối với truyền tải TCP và UDP
+  - TCP và UDP thuần không mã hóa nội dung
+  - TLS trên TCP, DTLS trên UDP và bảo mật của QUIC
+  - Giả mạo địa chỉ nguồn và giới hạn tin cậy danh tính
+  - SYN Flood, SYN Cookie và giới hạn hàng đợi
+  - UDP Flood, phản xạ và khuếch đại lưu lượng
+  - Giả mạo RST, chèn dữ liệu và ý nghĩa số thứ tự
+  - Slow Client, kết nối nhàn rỗi và cạn tài nguyên
+  - Giới hạn tốc độ, kích thước và số phiên theo nguồn
+  - Xác thực thông điệp và kiểm tra quyền ở tầng ứng dụng
+  - Bảo vệ dữ liệu nhạy cảm trong log và bản chụp gói
+- level1: Quan sát lưu lượng
+  level2:
+  - Xác định giao diện, hướng bắt và vị trí quan sát
+  - Bộ lọc bắt gói và bộ lọc hiển thị
+  - 'tcpdump: bắt theo host, port, TCP và UDP'
+  - 'Wireshark: phân tích phiên và Follow TCP Stream'
+  - Đọc handshake, payload, ACK, FIN và RST theo thời gian
+  - Nhận diện retransmission, out-of-order và duplicate ACK
+  - Phân tích receive window, zero window và RTT
+  - Thống kê luồng UDP, tốc độ, mất gói và jitter
+  - Giới hạn của suy luận từ bản chụp một phía
+  - Đồng bộ thời gian và đối chiếu bản chụp hai đầu
+  - Ẩn danh và lưu trữ tệp PCAP phục vụ phân tích
+- level1: Công cụ chẩn đoán
+  level2:
+  - 'ss và netstat: cổng, trạng thái và hàng đợi socket'
+  - 'lsof: ánh xạ socket với tiến trình'
+  - 'nc và socat: thử kết nối và truyền dữ liệu tối thiểu'
+  - curl và giới hạn khi dùng công cụ tầng ứng dụng để suy luận TCP
+  - 'iperf3: đo TCP, UDP và chọn tham số thí nghiệm'
+  - ping, traceroute và giới hạn khi suy luận chất lượng TCP/UDP
+  - Thông số TCP theo kết nối qua TCP_INFO
+  - Bộ đếm lỗi mạng, dropped packets và bộ đệm hệ điều hành
+  - Phân biệt lỗi DNS, IP, transport và giao thức ứng dụng
+- level1: Xử lý sự cố
+  level2:
+  - Connection Refused và kiểm tra cổng lắng nghe
+  - Connect timeout, SYN không có phản hồi và đường đi bị lọc
+  - Handshake thành công nhưng không truyền được dữ liệu
+  - Connection Reset và xác định bên gửi RST
+  - Broken Pipe, EOF và ghi vào kết nối đã đóng
+  - CLOSE-WAIT tăng kéo dài và kiểm tra vòng đời tài nguyên
+  - TIME-WAIT nhiều, cạn cổng tạm thời và giới hạn thiết kế
+  - Zero Window, ứng dụng đọc chậm và hàng đợi tăng
+  - Truyền chậm do mất gói, RTT cao hoặc cửa sổ nhỏ
+  - Kết nối treo do PMTU black hole
+  - UDP gửi thành công nhưng bên nhận không thấy dữ liệu
+  - UDP bị cắt, trùng, đảo thứ tự hoặc mất theo đợt
+  - Lập giả thuyết, thu bằng chứng và kiểm chứng nguyên nhân
+- level1: Kiểm thử truyền tải
+  level2:
+  - Thiết kế môi trường lab và sơ đồ hai đầu truyền
+  - Tạo độ trễ, mất gói, trùng và đảo thứ tự bằng netem
+  - Kiểm thử băng thông giới hạn và hàng đợi
+  - Mô phỏng đóng có trật tự, reset và mất mạng im lặng
+  - Kiểm thử đọc từng phần và nhiều thông điệp trong một lần đọc
+  - Kiểm thử gói UDP sát MTU và datagram vượt bộ đệm
+  - Kiểm thử tải, soak test và giải phóng tài nguyên
+  - Đo kết quả có kiểm soát và tránh nhầm lẫn do công cụ
+  - Đặt tiêu chí đạt cho độ đúng, độ trễ, thông lượng và mất gói
+  - Lưu cấu hình, PCAP, số đo và cách tái hiện
+- level1: Bài thực hành
+  level2:
+  - Theo dõi vòng đời TCP từ bắt tay tới đóng kết nối
+  - Xây giao thức TCP có khung độ dài và phản hồi
+  - Mô phỏng bên nhận chậm để quan sát backpressure
+  - So sánh truyền gói nhỏ khi bật và tắt TCP_NODELAY
+  - Đo TCP dưới các mức RTT, mất gói và băng thông
+  - Xây UDP echo có số thứ tự và thống kê mất gói
+  - Tạo luồng UDP thời gian thực có jitter buffer đơn giản
+  - Thử retry và chống xử lý trùng cho thông điệp UDP
+  - Chẩn đoán một phiên truyền lỗi từ PCAP và log
+  - So sánh TCP, UDP thuần và yêu cầu dùng QUIC cho một tình huống
+- level1: Thiết kế và vận hành
+  level2:
+  - Chuyển yêu cầu nghiệp vụ thành tiêu chí truyền tải
+  - Chọn giao thức, kiểu thông điệp và mô hình kết nối
+  - Lập ngân sách timeout, retry, backoff và giới hạn tải
+  - Thiết kế heartbeat, reconnect và khôi phục phiên
+  - Giữ ranh giới giữa xác nhận truyền tải và xác nhận nghiệp vụ
+  - Thiết lập chỉ số, log và cảnh báo có thể hành động
+  - Kiểm soát dung lượng kết nối, bộ đệm và tài nguyên
+  - Đánh giá khả năng tương thích IPv4, IPv6, NAT và firewall
+  - Checklist rà soát trước khi đưa ứng dụng vào vận hành
+  - Những ngộ nhận thường gặp và cách kiểm chứng bằng thí nghiệm

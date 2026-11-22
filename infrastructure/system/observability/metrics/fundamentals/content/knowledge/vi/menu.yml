@@ -1,0 +1,420 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Metric là gì và vì sao hệ thống cần số liệu đo lường
+  - Vai trò của metrics trong khả năng quan sát hệ thống
+  - Phân biệt metrics, logs, traces và profiles
+  - Khác biệt giữa sự kiện riêng lẻ với số liệu đã tổng hợp
+  - Từ câu hỏi vận hành đến phép đo, biểu đồ và quyết định
+  - Giám sát bên trong và đo từ góc nhìn người sử dụng
+  - Những câu hỏi metrics trả lời tốt và các giới hạn cần nhận biết
+  - 'Bản đồ thuật ngữ: phép đo, điểm dữ liệu, chuỗi thời gian và chiều dữ liệu'
+  - Phân biệt nguyên lý chung với mô hình của từng hệ sinh thái
+  - Trình tự học từ thiết kế phép đo đến kiểm chứng và ứng dụng
+- level1: Thiết kế phép đo
+  level2:
+  - Xác định đối tượng, hành vi và thời điểm cần đo
+  - Phân biệt số liệu kỹ thuật với số liệu nghiệp vụ
+  - Đo đầu vào, đầu ra, lỗi và lượng công việc đang xử lý
+  - Xác định phạm vi của một yêu cầu, thao tác hoặc giao dịch
+  - Đo thời gian xử lý và thời gian chờ theo ranh giới rõ ràng
+  - Đếm yêu cầu logic và đếm từng lần thử lại
+  - Phân biệt sự kiện thành công, thất bại, hủy bỏ và hết hạn
+  - Chọn nguồn đo phía máy khách hoặc máy chủ theo câu hỏi
+  - Xác định đơn vị, tập đối tượng và chu kỳ quan sát
+  - Ghi hợp đồng phép đo trước khi lựa chọn thư viện hoặc công cụ
+  - Tránh số liệu dễ thu thập nhưng không phục vụ quyết định
+- level1: Mô hình dữ liệu
+  level2:
+  - Phép đo, công cụ ghi nhận và phép tổng hợp
+  - Một điểm dữ liệu gồm giá trị, thời gian và thông tin nhận diện
+  - Chuỗi thời gian và các yếu tố xác định danh tính chuỗi
+  - Tên metric, mô tả, đơn vị và loại dữ liệu
+  - Nhãn, thuộc tính và chiều dữ liệu
+  - Tài nguyên phát sinh số liệu và thông tin phạm vi đo
+  - Phân biệt tên metric, một chuỗi cụ thể và một điểm trên chuỗi
+  - Giá trị vô hướng và dữ liệu phân phối
+  - Metric nhận trực tiếp và metric suy ra bằng phép tính
+  - Quan hệ giữa phép ghi nhận, dữ liệu xuất ra và dữ liệu lưu trữ
+  - Đối chiếu mô hình chuỗi thời gian với mô hình điểm dữ liệu OpenTelemetry
+- level1: Thời gian và đơn vị
+  level2:
+  - Thời điểm xảy ra sự kiện, thời điểm thu thập và thời điểm tiếp nhận
+  - Thời gian tuyệt đối và thời gian đơn điệu khi đo khoảng thời gian
+  - Ảnh hưởng của lệch đồng hồ và điều chỉnh đồng hồ hệ thống
+  - Khoảng thu thập, khoảng xuất dữ liệu và độ phân giải
+  - Giây, mili giây và cách chuyển đổi thời lượng nhất quán
+  - Byte, bit và các hệ đơn vị dung lượng
+  - Đơn vị đếm, đơn vị mỗi giây và phân tích thứ nguyên
+  - Tỷ lệ từ 0 đến 1 và phần trăm từ 0 đến 100
+  - Dấu thời gian của điểm đo và khoảng thời gian điểm đo đại diện
+  - Chênh lệch múi giờ hiển thị với thời gian lưu trữ
+  - Làm tròn số, độ chính xác và giá trị rất lớn hoặc rất nhỏ
+- level1: Counter
+  level2:
+  - Bộ đếm tích lũy và các sự kiện phù hợp để đếm
+  - Tính đơn điệu của counter và ngoại lệ khi khởi động lại
+  - Đếm số yêu cầu, lỗi, byte và công việc đã hoàn tất
+  - Phân biệt giá trị bộ đếm với số sự kiện trong một khoảng
+  - Chuyển chênh lệch counter thành tốc độ phát sinh sự kiện
+  - Khởi tạo bằng không và tình huống chưa có chuỗi dữ liệu
+  - Counter reset, tràn số và thay đổi danh tính tiến trình
+  - Vì sao không dùng counter để biểu diễn giá trị có thể giảm
+  - Đếm tại một điểm xác định để tránh đếm hai lần
+  - Tính nhất quán khi nhiều luồng cập nhật bộ đếm
+  - Phân biệt tổng bộ đếm của dịch vụ với bộ đếm của từng bản sao
+- level1: Gauge
+  level2:
+  - Gauge và giá trị đại diện cho một thời điểm
+  - Đo nhiệt độ, bộ nhớ đang dùng và độ dài hàng đợi
+  - Ghi giá trị tuyệt đối và quan sát giá trị từ nguồn có sẵn
+  - Giá trị âm, giá trị bằng không và miền giá trị hợp lệ
+  - Thời điểm đọc gauge và nguy cơ bỏ lỡ biến động ngắn
+  - Gauge phản ánh trạng thái mới nhất hay một giá trị đã quá hạn
+  - Giá trị tối đa, tối thiểu, trung bình và giá trị cuối trong cửa sổ
+  - Khi nào có thể cộng gauge của nhiều thực thể
+  - Gauge tỷ lệ và lý do cần giữ cả tử số lẫn mẫu số
+  - Phân biệt gauge với counter và số thay đổi trong khoảng
+  - Quan sát trạng thái mà không giữ tham chiếu tài nguyên ngoài ý muốn
+- level1: Công cụ ghi nhận
+  level2:
+  - Phân biệt loại công cụ ghi nhận với dạng dữ liệu xuất ra
+  - Đếm sự kiện bằng Counter và theo dõi tăng giảm bằng UpDownCounter
+  - Quan sát giá trị tích lũy sẵn có bằng bộ đếm bất đồng bộ
+  - Quan sát số lượng hiện tại bằng công cụ tăng giảm bất đồng bộ
+  - Gauge đồng bộ và gauge quan sát theo chu kỳ trong mô hình phù hợp
+  - Histogram để ghi từng lần quan sát giá trị
+  - Bộ đo thời lượng và bộ đo kích thước trong các thư viện
+  - Tính cộng gộp và tính đơn điệu khi lựa chọn công cụ
+  - Một phép ghi nhận có thể tạo nhiều chuỗi đầu ra
+  - Phân biệt callback quan sát với luồng xử lý nghiệp vụ
+  - Đối chiếu thuật ngữ OpenTelemetry, Prometheus và Micrometer
+- level1: Histogram
+  level2:
+  - Phân phối giá trị và lý do một số trung bình chưa đủ
+  - Khoảng giá trị, ranh giới bucket và số quan sát
+  - Tổng số quan sát, tổng giá trị và trung bình có trọng số
+  - Thiết kế bucket theo phạm vi dữ liệu và ngưỡng cần đánh giá
+  - Bucket tuyến tính, theo cấp số nhân và theo ngưỡng nghiệp vụ
+  - Phân biệt số đếm riêng từng bucket với bucket tích lũy theo ranh giới
+  - Classic histogram và biểu diễn nhiều chuỗi thành phần
+  - Native histogram và exponential histogram ở mức mô hình dữ liệu
+  - Đánh đổi giữa độ chính xác, phạm vi biểu diễn và tài nguyên
+  - Điều kiện gộp các phân phối có cấu trúc bucket tương thích
+  - Đổi cấu trúc bucket và ảnh hưởng đến dữ liệu lịch sử
+  - Quan sát âm, giá trị bằng không và điều kiện diễn giải tổng
+- level1: Phân vị và summary
+  level2:
+  - Trung vị, phân vị và cách diễn giải p50, p95, p99
+  - Độ trễ đuôi và trải nghiệm của nhóm yêu cầu chậm
+  - Tính phân vị từ tập quan sát thô
+  - Ước lượng phân vị từ histogram và vai trò của nội suy
+  - Sai số theo giá trị và sai số theo thứ hạng phân vị
+  - Summary và phân vị được tính sẵn phía ứng dụng
+  - Vì sao không lấy trung bình p99 của các bản sao dịch vụ
+  - Phần nào của summary có thể cộng gộp và phần nào không
+  - Ảnh hưởng của số lượng quan sát thấp đến phân vị cao
+  - Phân vị theo cửa sổ thời gian và giới hạn truy vấn lại
+  - Phân vị của từng chặng và phân vị của toàn bộ hành trình
+  - Chọn histogram hoặc summary theo yêu cầu truy vấn và khả năng hỗ trợ
+  - Bỏ sót quan sát khi hệ thống chậm và sai lệch độ trễ do coordinated omission
+- level1: Tính tích lũy
+  level2:
+  - Dữ liệu cộng dồn và dữ liệu chênh lệch theo khoảng
+  - Cumulative temporality và delta temporality
+  - Thời điểm bắt đầu, thời điểm kết thúc và nhận diện reset
+  - Phân biệt tích lũy theo thời gian với tích lũy theo ranh giới bucket
+  - Số tổng đơn điệu và số tổng không đơn điệu
+  - Chuyển delta sang cumulative và trạng thái cần lưu
+  - Chuyển cumulative sang delta và yêu cầu giữ điểm trước
+  - Khoảng dữ liệu bị mất và giới hạn của khả năng khôi phục
+  - Các khoảng thời gian chồng lấn và nguy cơ đếm trùng
+  - Một nguồn ghi cho một chuỗi và vấn đề trùng danh tính nguồn
+  - Khởi động lại bộ thu thập và mất trạng thái chuyển đổi
+  - Lựa chọn temporality dựa trên khả năng của đường ống và nơi lưu trữ
+- level1: Chiều dữ liệu
+  level2:
+  - Phân loại số liệu theo dịch vụ, môi trường và phiên bản
+  - Phân biệt thuộc tính tài nguyên với thuộc tính từng phép đo
+  - Nhãn hạ tầng và nhãn nghiệp vụ
+  - Phạm vi nhãn theo máy, tiến trình, bản sao và vùng triển khai
+  - Chuẩn hóa route thay vì dùng đường dẫn chứa định danh
+  - Mã trạng thái, loại lỗi và tập giá trị hữu hạn
+  - Giá trị thiếu, giá trị rỗng và ý nghĩa của nhóm chưa xác định
+  - Tách chiều dữ liệu khi truy vấn để không làm mất ngữ cảnh
+  - Loại bỏ chiều dữ liệu và tác động đến khả năng phân tích
+  - Tránh đổi ý nghĩa cùng một nhãn giữa các dịch vụ
+  - Định danh người dùng, request ID và dữ liệu không phù hợp làm nhãn
+- level1: Cardinality
+  level2:
+  - Cardinality là gì và cách đếm số chuỗi
+  - Ước lượng số tổ hợp từ các chiều dữ liệu
+  - Phân biệt số giá trị của từng nhãn với số tổ hợp thực xuất hiện
+  - Chuỗi đang hoạt động và chuỗi từng xuất hiện trong thời gian lưu
+  - Series churn khi bản sao và giá trị nhãn liên tục thay đổi
+  - Vì sao nhãn ít giá trị vẫn có thể tạo nhiều chuỗi khi kết hợp
+  - Chi phí bucket histogram nhân với số tổ hợp nhãn
+  - 'Những nguồn không giới hạn: URL thô, thông báo lỗi và định danh'
+  - Ngân sách cardinality theo metric, dịch vụ và môi trường
+  - Giới hạn thuộc tính, gom nhóm giá trị và cơ chế tràn khi được hỗ trợ
+  - Đánh đổi giữa chi tiết phân tích với chi phí vận hành
+  - Theo dõi số chuỗi mới và phát hiện tăng đột biến
+- level1: Đặt tên và schema
+  level2:
+  - Tên metric biểu đạt một đại lượng và một ý nghĩa ổn định
+  - Mô tả rõ điểm đo, phạm vi và cách diễn giải
+  - Nhất quán tên, đơn vị và quy ước của hệ sinh thái sử dụng
+  - Không mã hóa giá trị nhãn vào tên metric
+  - Phân biệt tên đại lượng với trạng thái hoặc kết quả xử lý
+  - Ngăn xung đột cùng tên nhưng khác loại, đơn vị hoặc ý nghĩa
+  - Quy ước ngữ nghĩa và khả năng đối chiếu giữa các dịch vụ
+  - Thay đổi tên, nhãn hoặc đơn vị như một thay đổi hợp đồng
+  - Tương thích khi chuyển đổi OpenTelemetry và hệ thống chuỗi thời gian
+  - Duy trì danh mục metric có nguồn phát sinh và người phụ trách
+  - Ngừng sử dụng metric có kế hoạch và kiểm tra bên đang tiêu thụ
+- level1: Thu thập số liệu
+  level2:
+  - Đường đi từ nguồn phát sinh đến hệ thống lưu trữ metrics
+  - Mô hình pull và thu thập theo chu kỳ
+  - Mô hình push và xuất số liệu theo chu kỳ
+  - Vai trò của thư viện, exporter, agent và collector
+  - Phân biệt thu thập trạng thái hiện tại với thu thập sự kiện đã tổng hợp
+  - Phát hiện nguồn dữ liệu và duy trì danh tính ổn định
+  - Khoảng thu thập và đánh đổi giữa độ phân giải với chi phí
+  - Tác vụ ngắn hạn và rủi ro kết thúc trước lần thu thập
+  - Timeout, lỗi kết nối và tín hiệu nguồn không truy cập được
+  - Đo phía ứng dụng so với suy ra từ logs hoặc traces
+  - Đường thu thập trực tiếp và đường qua bộ trung gian
+  - Tự quan sát hoạt động thu thập và xuất số liệu
+- level1: Đường ống metrics
+  level2:
+  - Tiếp nhận, kiểm tra, biến đổi, gom lô và chuyển tiếp
+  - Tổng hợp tại nguồn, tại bộ thu và tại nơi lưu trữ
+  - Chuẩn hóa tên, đơn vị và thuộc tính trước khi chuyển tiếp
+  - Lọc metric và loại bỏ thuộc tính theo hợp đồng
+  - Bộ đệm, hàng đợi và giới hạn tài nguyên
+  - Backpressure khi nơi nhận xử lý không kịp
+  - Thử lại, thời gian chờ và nguy cơ gửi trùng
+  - Mất dữ liệu khi tiến trình dừng hoặc hàng đợi đầy
+  - Độ trễ đầu cuối từ phép đo đến khả năng truy vấn
+  - Chuyển đổi định dạng và nguy cơ mất ngữ nghĩa
+  - Nhiều bản sao thu thập và điều kiện loại bỏ dữ liệu trùng
+  - Số liệu về dữ liệu bị từ chối, bị bỏ và đang chờ gửi
+- level1: Lưu trữ và lưu giữ
+  level2:
+  - Cơ sở dữ liệu chuỗi thời gian và cách tổ chức dữ liệu
+  - Chỉ mục chuỗi, mẫu dữ liệu và metadata
+  - Vai trò của nén dữ liệu theo thời gian
+  - Độ phân giải đầu vào và dữ liệu thực sự được lưu
+  - Thời gian lưu giữ theo nhu cầu vận hành và phân tích
+  - Lưu trữ ngắn hạn, dài hạn và phân tầng dữ liệu
+  - Downsampling và đánh đổi giữa dung lượng với thông tin
+  - Phép tổng hợp phù hợp khi giảm độ phân giải từng loại metric
+  - Phân biệt rollup theo thời gian với gộp chuỗi theo chiều dữ liệu
+  - Dữ liệu đến muộn, sai thứ tự và chính sách tiếp nhận
+  - Xóa dữ liệu, cách ly nhóm sử dụng và giới hạn truy cập
+  - Ước lượng dung lượng từ số chuỗi, tần suất và thời gian lưu
+- level1: Phép tổng hợp
+  level2:
+  - Cộng gộp theo thời gian và theo các chiều dữ liệu
+  - Tổng, số lượng, tối thiểu, tối đa và giá trị cuối
+  - Trung bình đơn giản và trung bình có trọng số
+  - Tính trung bình từ tổng giá trị và tổng số quan sát
+  - Điều kiện có thể cộng các gauge của nhiều nguồn
+  - Giữ nhóm theo chiều cần phân tích và loại chiều không cần thiết
+  - Không cộng lẫn đơn vị hoặc đại lượng khác nghĩa
+  - Tổng hợp phân phối khi bucket và ngữ nghĩa tương thích
+  - Thứ tự tính toán và thông tin bị mất sau khi gộp
+  - Tách nhóm lưu lượng để phát hiện sai lệch bị số tổng che khuất
+  - Nghịch lý Simpson khi thành phần các nhóm thay đổi
+  - Chứng minh phép tổng hợp bằng một bộ số liệu nhỏ
+- level1: Tốc độ và tỷ lệ
+  level2:
+  - Chênh lệch giá trị, mức tăng trong khoảng và tốc độ mỗi giây
+  - Chuẩn hóa tốc độ theo độ dài khoảng thời gian thực tế
+  - Tính tốc độ trên từng chuỗi trước khi cộng khi cần nhận diện reset
+  - Xử lý counter reset trong phép tính mức tăng
+  - Tốc độ trung bình theo cửa sổ và tốc độ từ các điểm gần nhất
+  - Tử số và mẫu số phải cùng phạm vi, thời gian và tập đối tượng
+  - Tỷ lệ lỗi, tỷ lệ thành công và tỷ lệ cache hit
+  - Tính tỷ lệ toàn dịch vụ từ tổng tử số và tổng mẫu số
+  - Vì sao không lấy trung bình phần trăm giữa các nhóm có tải khác nhau
+  - Mẫu số bằng không và phân biệt với tỷ lệ bằng không
+  - Tốc độ thay đổi gauge và khác biệt với tốc độ sự kiện counter
+  - Kiểm tra đơn vị đầu ra để phát hiện công thức sai
+- level1: Cửa sổ thời gian
+  level2:
+  - Cửa sổ trượt, cửa sổ cố định và khoảng thời gian căn chỉnh
+  - Khoảng thu thập, bước truy vấn và độ dài cửa sổ tính toán
+  - Tác động của số điểm quan sát đến độ ổn định phép tính
+  - Cửa sổ ngắn nhạy với biến động và cửa sổ dài làm mượt
+  - Lấy mẫu định kỳ và nguy cơ bỏ lỡ đỉnh ngắn
+  - Sai lệch khi chọn bước truy vấn lớn hơn biến động cần xem
+  - Căn chỉnh thời gian khi so sánh nhiều nguồn
+  - So sánh với giai đoạn trước và ảnh hưởng của tính mùa vụ
+  - Độ trễ thu thập, độ trễ xuất và độ mới của điểm dữ liệu
+  - Chọn cửa sổ theo câu hỏi và thời gian phản ứng cần thiết
+  - Phân biệt giá trị tức thời với kết quả tổng hợp cả khoảng
+- level1: Dữ liệu thiếu và sai
+  level2:
+  - Không có chuỗi, không có điểm mới và giá trị bằng không
+  - Dữ liệu quá hạn và ngữ nghĩa staleness theo hệ thống
+  - Khoảng trống do mất nguồn, lỗi thu thập hoặc lỗi truyền
+  - NaN, vô cực và giá trị ngoài miền hợp lệ
+  - Counter giảm do reset hoặc thay đổi nguồn dữ liệu
+  - Dấu thời gian sai, dữ liệu trùng và điểm đến không đúng thứ tự
+  - Điền số không và nội suy có thể làm sai kết luận như thế nào
+  - Phân biệt dịch vụ ngừng hoạt động với đường đo bị lỗi
+  - Số liệu thiếu do lọc nhãn hoặc giới hạn cardinality
+  - Phát hiện khác biệt giữa số đếm gốc và số đếm suy ra
+  - Ghi rõ mức đầy đủ, độ mới và độ tin cậy của dữ liệu
+- level1: Gắn phép đo vào mã
+  level2:
+  - Đặt điểm đo tại ranh giới hành vi cần quan sát
+  - Đo đủ nhánh thành công, thất bại, hủy và timeout
+  - Bắt đầu, kết thúc và kết thúc đúng một lần cho phép đo thời lượng
+  - Xử lý tác vụ bất đồng bộ theo thời điểm hoàn tất thật
+  - Đếm yêu cầu đang xử lý bằng cơ chế tăng giảm cân bằng
+  - Tách số liệu tự động và số liệu thủ công để tránh đếm trùng
+  - An toàn khi truy cập đồng thời và chi phí trên đường xử lý chính
+  - Callback quan sát cần ngắn, không chặn và không gây tác dụng phụ
+  - Tránh giữ tham chiếu đối tượng hoặc tạo metric trong mỗi yêu cầu
+  - Ổn định tập nhãn trước khi phát sinh phép ghi nhận
+  - Không để lỗi ghi metrics thay đổi kết quả nghiệp vụ
+  - Kiểm chứng điểm đo bằng số sự kiện và kết quả đã biết
+- level1: Mẫu tín hiệu
+  level2:
+  - 'Bốn tín hiệu cốt lõi: độ trễ, lưu lượng, lỗi và mức bão hòa'
+  - RED cho dịch vụ xử lý yêu cầu
+  - USE cho tài nguyên có giới hạn
+  - Phân biệt mức sử dụng với mức bão hòa
+  - Độ trễ của yêu cầu thành công và yêu cầu thất bại
+  - Lưu lượng đầu vào, đầu ra và số yêu cầu đang xử lý
+  - Độ dài hàng đợi, thời gian chờ và khả năng phục vụ
+  - Phân biệt chỉ báo dẫn trước với chỉ báo xuất hiện sau sự cố
+  - Tín hiệu kỹ thuật có thể hỗ trợ giải thích tác động người dùng
+  - Chọn số đo theo kiến trúc đồng bộ, bất đồng bộ hoặc xử lý theo lô
+  - Giới hạn của việc dùng một mẫu tín hiệu cho mọi thành phần
+- level1: Tài nguyên hệ thống
+  level2:
+  - CPU đã dùng, thời gian CPU và mức tải
+  - Bộ nhớ đang dùng, bộ nhớ khả dụng và giới hạn cấp phát
+  - Tốc độ lỗi trang, swap và áp lực bộ nhớ
+  - Dung lượng lưu trữ, inode và khả năng tiếp tục ghi
+  - IOPS, thông lượng, độ trễ I/O và hàng đợi thiết bị
+  - Thông lượng mạng, lỗi truyền và số kết nối
+  - Mức dùng descriptor, luồng và các giới hạn tài nguyên
+  - Phân biệt số liệu máy chủ, container và tiến trình
+  - Hạn mức CPU, giới hạn bộ nhớ và phạm vi của mẫu số
+  - Đo tài nguyên theo bản sao, máy, vùng và toàn hệ thống
+  - Giới hạn suy luận nguyên nhân từ một chỉ số tài nguyên đơn lẻ
+- level1: Dịch vụ và JVM
+  level2:
+  - Số yêu cầu, lỗi và thời lượng xử lý HTTP theo route chuẩn hóa
+  - Số thao tác đang xử lý và mức dùng nhóm luồng
+  - Hàng đợi, tuổi thông điệp và độ trễ xử lý bất đồng bộ
+  - 'Nhóm kết nối cơ sở dữ liệu: đang dùng, rảnh và đang chờ'
+  - Tốc độ truy vấn, lỗi và thời gian chờ phụ thuộc bên ngoài
+  - Cache hit, cache miss, thao tác loại bỏ và kích thước cache
+  - Heap, non-heap và tổng bộ nhớ của tiến trình JVM
+  - Số lần, tổng thời gian và phân phối tạm dừng GC
+  - Tốc độ cấp phát và quan hệ với áp lực thu gom rác
+  - Số luồng, trạng thái luồng và tranh chấp
+  - Đọc số liệu Micrometer, OpenTelemetry và runtime theo cùng một hợp đồng
+  - Đối chiếu số liệu ứng dụng với tài nguyên hệ điều hành
+- level1: Metrics nghiệp vụ
+  level2:
+  - Chọn phép đo gắn với một kết quả nghiệp vụ cụ thể
+  - Số đơn hàng tạo mới, thanh toán thành công và giao dịch thất bại
+  - Phân biệt yêu cầu kỹ thuật với một sự kiện nghiệp vụ duy nhất
+  - Thử lại, giao nhận lặp và nguy cơ đếm trùng kết quả
+  - Đếm khi ghi nhận ý định, khi xác nhận hay khi hoàn tất giao dịch
+  - Giao dịch cơ sở dữ liệu thất bại sau thời điểm ghi metric
+  - Số liệu quan sát vận hành và sổ cái nghiệp vụ cần độ chính xác cao
+  - Chuyển đổi theo nhóm người dùng mà không đưa định danh cá nhân vào nhãn
+  - Phân biệt số thực thể hiện có với số sự kiện đã xảy ra
+  - Kiểm tra chênh lệch với nguồn dữ liệu nghiệp vụ có thẩm quyền
+- level1: SLI và SLO
+  level2:
+  - Chỉ số mức dịch vụ và mục tiêu mức dịch vụ
+  - Từ hành trình người dùng đến định nghĩa sự kiện tốt
+  - Xác định tập sự kiện hợp lệ làm mẫu số
+  - SLI về tính sẵn sàng, độ trễ, độ mới và tính đúng đắn
+  - Đánh giá tỷ lệ yêu cầu nằm dưới ngưỡng độ trễ bằng phân phối
+  - SLI dựa trên sự kiện và SLI dựa trên cửa sổ thời gian
+  - Ngân sách lỗi và tốc độ tiêu thụ ngân sách lỗi
+  - Cửa sổ đánh giá cố định và cửa sổ trượt
+  - Ảnh hưởng của lưu lượng thấp và dữ liệu thiếu đến SLI
+  - Phân biệt mục tiêu người dùng với ngưỡng tài nguyên nội bộ
+  - Giới hạn của metric phía máy chủ khi đánh giá trải nghiệm đầu cuối
+  - Cung cấp số liệu đầu vào cho cảnh báo theo SLO
+- level1: Liên hệ các tín hiệu
+  level2:
+  - Metrics giúp khoanh vùng thời điểm và phạm vi bất thường
+  - Từ metric bất thường đến logs chứa chi tiết sự kiện
+  - Từ phân phối độ trễ đến trace của yêu cầu chậm
+  - Exemplar và liên kết một quan sát đại diện với trace
+  - Phân biệt exemplar với nhãn làm tăng số chuỗi
+  - Vai trò của resource attributes trong đối chiếu các tín hiệu
+  - Ảnh hưởng của lấy mẫu traces đến metrics suy ra từ traces
+  - Đếm từ logs và điều kiện đầy đủ, không trùng, không bị lọc
+  - Liên hệ metric CPU với profile để tìm đoạn mã tiêu tốn tài nguyên
+  - Tương quan giữa hai tín hiệu và giới hạn kết luận quan hệ nhân quả
+- level1: Biểu đồ và diễn giải
+  level2:
+  - Chọn đường thời gian, bảng, cột hoặc heatmap theo dữ liệu
+  - Hiển thị đơn vị, cửa sổ tính toán và phạm vi tổng hợp rõ ràng
+  - Xem tổng quan trước rồi phân tách theo nhóm nghi vấn
+  - Biểu diễn counter bằng tốc độ hoặc mức tăng khi câu hỏi yêu cầu
+  - Dùng heatmap để quan sát thay đổi phân phối
+  - Hiển thị nhiều phân vị cùng số lượng quan sát
+  - Thang tuyến tính, thang logarit và nguy cơ gây hiểu nhầm
+  - Trục tung, khoảng giá trị và tác động đến cảm nhận biến động
+  - Biểu diễn khoảng trống và dữ liệu quá hạn trung thực
+  - Đánh dấu triển khai, thay đổi cấu hình và sự kiện vận hành
+  - So sánh các nhóm có lưu lượng hoặc kích thước khác nhau
+  - Chỉ ra câu hỏi và hành động gắn với từng biểu đồ
+- level1: Chi phí và quản trị
+  level2:
+  - Chi phí CPU, RAM và độ trễ do gắn phép đo
+  - Chi phí truyền, tiếp nhận, lưu trữ và truy vấn
+  - Ước lượng tải theo số chuỗi, chu kỳ và loại dữ liệu
+  - Ngân sách histogram theo số bucket và độ phân giải
+  - Kiểm soát cardinality ngay tại nguồn và tại đường ống
+  - Giảm số chiều, giảm tần suất hoặc tổng hợp sớm theo mục tiêu
+  - Đánh đổi giữa dữ liệu đầy đủ và các hình thức lấy mẫu
+  - Bảo vệ thông tin nhạy cảm trong tên, nhãn và exemplars
+  - Phân quyền truy cập theo dịch vụ, môi trường và nhóm sử dụng
+  - Quản lý người phụ trách, thay đổi schema và ngừng metric
+  - Theo dõi mức dùng tài nguyên của chính hệ thống metrics
+- level1: Kiểm chứng và chẩn đoán
+  level2:
+  - Kiểm thử counter bằng chuỗi sự kiện có kết quả biết trước
+  - Kiểm thử gauge khi trạng thái thay đổi và tài nguyên được giải phóng
+  - Kiểm thử bucket, count, sum bằng tập quan sát nhỏ
+  - Kiểm chứng reset, khởi động lại và thay đổi bản sao
+  - Kiểm chứng nhiều luồng, tác vụ bất đồng bộ và các nhánh lỗi
+  - Phát hiện sai đơn vị, sai loại công cụ và sai phạm vi phép đo
+  - Phân biệt lỗi ở điểm đo, khâu thu thập, lưu trữ và truy vấn
+  - Điều tra đường biểu đồ bằng phẳng dù ứng dụng còn hoạt động
+  - Điều tra tốc độ tăng đột biến sau triển khai hoặc reset
+  - Điều tra p99 khác nhau giữa ứng dụng và hệ thống quan sát
+  - Điều tra cardinality tăng và dữ liệu bị loại bỏ
+  - Đối chiếu số liệu suy ra với dữ liệu gốc và nguồn độc lập
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế danh mục metrics cho một dịch vụ nhận yêu cầu
+  - Lập bảng phép đo, loại công cụ, đơn vị và nhãn hữu hạn
+  - Tạo dữ liệu mẫu để tính mức tăng, tốc độ và tỷ lệ lỗi
+  - Tính trung bình có trọng số cho các bản sao có tải khác nhau
+  - Dựng histogram và ước lượng phân vị từ tập thời lượng mẫu
+  - So sánh tỷ lệ dưới ngưỡng độ trễ với giá trị p99
+  - Ước lượng cardinality trước và sau khi thêm một chiều dữ liệu
+  - Mô phỏng mất điểm, reset và khởi động lại bộ thu
+  - So sánh kết quả khi đổi cửa sổ và bước truy vấn
+  - Đối chiếu dữ liệu tích lũy với dữ liệu chênh lệch theo khoảng
+  - Thiết kế biểu đồ RED và USE từ cùng một hệ thống mẫu
+  - Xây dựng một SLI từ định nghĩa sự kiện tốt và hợp lệ
+  - Liên kết một điểm bất thường với logs, traces hoặc profiles
+  - Đo chi phí gắn phép đo dưới tải có kiểm soát
+  - Hoàn thiện hợp đồng metric và bằng chứng kiểm chứng

@@ -1,0 +1,368 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Logging là gì và bản ghi log phản ánh sự kiện nào của hệ thống
+  - Vì sao cần log trong phát triển, vận hành và điều tra sự cố
+  - Quan hệ giữa log, metric, trace và khả năng quan sát hệ thống
+  - Phân biệt sự kiện thực tế, bản ghi sự kiện và dòng văn bản xuất ra
+  - Luồng từ câu lệnh ghi log đến nơi tìm kiếm và phân tích
+  - Phân biệt logging, in ra màn hình, debugging và thu thập số liệu
+  - Mục đích khác nhau của log ứng dụng, truy cập, bảo mật và kiểm toán
+  - 'Giới hạn của log: dữ liệu thiếu, sai thời gian, bị mất hoặc không đáng tin cậy'
+  - Phạm vi nền tảng và vai trò của các công cụ lưu trữ, phân tích chuyên biệt
+  - Lộ trình học từ thiết kế một bản ghi đến quan sát toàn bộ luồng xử lý
+- level1: Thiết kế sự kiện
+  level2:
+  - Bắt đầu từ câu hỏi cần trả lời khi vận hành hoặc điều tra
+  - Chọn các mốc nghiệp vụ, thay đổi trạng thái và ranh giới tích hợp cần ghi
+  - Xác định ai thực hiện, hành động gì, đối tượng nào và kết quả ra sao
+  - Tên sự kiện ổn định và phân biệt loại sự kiện với thông điệp mô tả
+  - Định danh yêu cầu, tác vụ, thực thể và sự kiện cho các mục đích khác nhau
+  - Ghi kết quả thành công, thất bại, bị từ chối hoặc chưa xác định
+  - Phân biệt ý định thực hiện, bắt đầu xử lý và hoàn tất thao tác
+  - Thời điểm ghi log so với commit, rollback và tác dụng phụ
+  - Một sự kiện có ích so với ghi lại mọi bước thực thi
+  - Xác định nơi chịu trách nhiệm ghi để tránh thiếu hoặc lặp sự kiện
+  - Vì sao log ứng dụng không tự trở thành nguồn dữ liệu nghiệp vụ chuẩn
+- level1: Mức độ log
+  level2:
+  - Ý nghĩa của TRACE, DEBUG, INFO, WARN và ERROR
+  - FATAL và các mức độ chỉ xuất hiện trong một số hệ sinh thái
+  - Chọn mức độ theo kết quả, khả năng phục hồi và ảnh hưởng thực tế
+  - Phân biệt mức độ nghiêm trọng với độ chi tiết của thông điệp
+  - Ngưỡng ghi log và thứ tự mức độ trong từng thư viện
+  - Không đồng nhất mã HTTP, ngoại lệ hoặc retry với một mức log cố định
+  - Cảnh báo có thể xử lý và tác hại của cảnh báo lặp vô ích
+  - Lỗi dự kiến, lỗi bất thường và trách nhiệm của tầng xử lý
+  - Thống nhất cách dùng mức độ giữa các nhóm phát triển
+  - Ánh xạ mức độ khi thu thập log từ nhiều nguồn
+  - Mức độ không xác định và bảo toàn giá trị gốc khi chuẩn hóa
+  - Điều chỉnh độ chi tiết tạm thời mà vẫn kiểm soát phạm vi và thời gian
+- level1: Thông điệp hữu ích
+  level2:
+  - Viết thông điệp mô tả sự kiện và kết quả bằng từ ngữ rõ ràng
+  - Thêm ngữ cảnh đủ để điều tra mà không phải đọc toàn bộ mã nguồn
+  - Giữ mẫu thông điệp ổn định và đưa dữ liệu biến đổi thành trường riêng
+  - Mã sự kiện, mã lỗi và thông tin hỗ trợ tìm kiếm
+  - Giá trị đầu vào liên quan, đầu ra tóm tắt và nguyên nhân thất bại
+  - Đơn vị đo, kiểu dữ liệu và tên trường tránh gây hiểu nhầm
+  - Phân biệt thông tin quan sát được với suy đoán về nguyên nhân
+  - Giới hạn nội dung lớn, danh sách dài và biểu diễn đối tượng
+  - Vì sao thông điệp kiểu started, failed hoặc unknown đơn lẻ thường thiếu giá trị
+  - Ngôn ngữ thông điệp, thuật ngữ thống nhất và khả năng hỗ trợ nhiều nhóm
+  - Thiết kế log vẫn dễ hiểu khi tách khỏi dòng đứng trước hoặc sau
+- level1: Log có cấu trúc
+  level2:
+  - Log văn bản tự do, bán cấu trúc và có cấu trúc
+  - JSON, JSON Lines và nguyên tắc xác định ranh giới bản ghi
+  - Phân biệt đối tượng JSON hợp lệ với một chuỗi chứa JSON lồng bên trong
+  - Lược đồ trường chung cho thời gian, mức độ, sự kiện, dịch vụ và thông điệp
+  - Chuỗi, số, boolean, null và bảo toàn kiểu dữ liệu
+  - Trường tùy chọn, giá trị thiếu và giá trị rỗng
+  - Đặt tên trường, cấu trúc lồng và xử lý xung đột tên
+  - Ký tự đặc biệt, xuống dòng, Unicode và mã hóa văn bản
+  - Phiên bản lược đồ và tương thích khi thêm, đổi hoặc bỏ trường
+  - Kiểm tra kích thước bản ghi và hành vi khi dữ liệu bị cắt ngắn
+  - Phân biệt structured logging với việc nối nhiều cặp key=value thủ công
+  - Mô hình LogRecord của OpenTelemetry và cách biểu diễn dữ liệu từ nhiều nguồn
+- level1: Thời gian và thứ tự
+  level2:
+  - Thời điểm sự kiện xảy ra, được quan sát và được tiếp nhận
+  - Timestamp của nguồn và ObservedTimestamp trong mô hình log chung
+  - UTC, múi giờ, độ lệch múi giờ và biểu diễn thời gian rõ ràng
+  - Đơn vị giây, mili giây, micro giây và nano giây
+  - Độ chính xác biểu diễn khác với độ chính xác của đồng hồ
+  - Đồng bộ thời gian và ảnh hưởng của clock skew giữa máy chủ
+  - Đo thời lượng bằng đồng hồ đơn điệu và phân biệt với thời gian hệ thống
+  - Thứ tự ghi trên một luồng, nhiều luồng và nhiều máy
+  - Log đến muộn, bị đệm và xuất hiện không theo thứ tự xảy ra
+  - Định danh, số thứ tự và quan hệ nhân quả khi timestamp chưa đủ
+  - Cửa sổ tìm kiếm và lý do cần mở rộng khoảng thời gian khi điều tra
+- level1: Ngữ cảnh thực thi
+  level2:
+  - Ngữ cảnh dùng chung cho các log trong một yêu cầu hoặc tác vụ
+  - Request ID, correlation ID, trace ID và span ID khác nhau ra sao
+  - Thuộc tính dịch vụ, môi trường, phiên bản và instance
+  - Ngữ cảnh nghiệp vụ, tenant và nguyên tắc hạn chế dữ liệu nhận dạng
+  - Mapped Diagnostic Context (MDC) và khả năng gắn trường vào log
+  - Vòng đời thêm, sử dụng, xóa và khôi phục ngữ cảnh
+  - Rò ngữ cảnh khi tái sử dụng luồng trong thread pool
+  - Truyền ngữ cảnh qua executor, callback và chuỗi xử lý bất đồng bộ
+  - Giới hạn của ngữ cảnh gắn với luồng trong reactive và virtual thread
+  - Kiểm tra định danh do bên ngoài truyền vào trước khi dùng làm ngữ cảnh
+  - Ngữ cảnh của tác vụ nền và sự kiện không thuộc yêu cầu HTTP
+- level1: Liên kết tín hiệu
+  level2:
+  - Liên kết log với trace bằng trace ID và span ID
+  - Log nằm trong span đang hoạt động và log ngoài phạm vi span
+  - Phân biệt mức TRACE của logger với tín hiệu distributed trace
+  - Liên kết theo tài nguyên, dịch vụ, phiên bản và môi trường
+  - Dùng metric để phát hiện triệu chứng rồi tìm log trong khoảng liên quan
+  - Đi từ trace lỗi hoặc chậm đến các log cùng ngữ cảnh
+  - Giới hạn liên kết khi trace bị lấy mẫu hoặc không được lưu
+  - Chuẩn hóa định dạng mã định danh giữa ứng dụng và nơi phân tích
+  - Không thay thế log bằng span event một cách máy móc
+  - Kiểm chứng liên kết xuyên dịch vụ, tác vụ bất đồng bộ và hàng đợi
+- level1: Lỗi và ngoại lệ
+  level2:
+  - Ghi ngoại lệ cùng thông điệp mô tả thao tác thất bại
+  - Truyền đối tượng Throwable thay vì chỉ ghi getMessage
+  - Stack trace, chuỗi nguyên nhân và suppressed exception
+  - Chọn tầng ghi ngoại lệ và tránh log rồi ném lại ở mọi tầng
+  - Phân biệt nơi phát sinh lỗi với nơi quyết định cách xử lý
+  - Ghi retry, số lần thử và kết quả cuối mà không tạo bão log
+  - Ngoại lệ bị xử lý, bị chuyển đổi và lỗi không được bắt
+  - Ghi timeout, hủy tác vụ và lỗi phụ thuộc bên ngoài
+  - Tóm tắt lỗi lặp theo loại, nguyên nhân và phạm vi ảnh hưởng
+  - Giữ stack trace nhiều dòng thành một bản ghi khi thu thập
+  - Che dữ liệu nhạy cảm có thể nằm trong thông điệp ngoại lệ
+- level1: Kiến trúc logging
+  level2:
+  - Logging API, facade, provider và implementation khác nhau ra sao
+  - Logger và quy tắc đặt tên theo thành phần hoặc package
+  - Logger gốc, quan hệ phân cấp và kế thừa mức độ
+  - Appender hoặc handler và trách nhiệm chuyển bản ghi đến đích
+  - Layout, encoder và trách nhiệm định dạng dữ liệu
+  - Filter, ngưỡng tại đích xuất và quy tắc định tuyến
+  - Luồng xử lý từ kiểm tra mức độ đến tạo sự kiện rồi xuất dữ liệu
+  - Additivity, kế thừa appender và nguyên nhân log bị lặp
+  - Phân biệt mức logger với bộ lọc tại appender
+  - Vòng đời khởi tạo, thay cấu hình và đóng tài nguyên
+  - Phân biệt logging trong thư viện dùng chung với cấu hình của ứng dụng
+- level1: Logging trong Java
+  level2:
+  - Vai trò của java.util.logging, SLF4J, Logback và Log4j 2
+  - Chọn một provider phù hợp khi sử dụng SLF4J
+  - Tương thích phiên bản giữa API, provider và thư viện phụ thuộc
+  - Bridge giữa các API logging và nguy cơ tạo vòng chuyển tiếp
+  - Khai báo logger và lựa chọn tên logger có thể quản lý bằng cấu hình
+  - Tham số hóa thông điệp bằng placeholder thay vì nối chuỗi
+  - Đánh giá biểu thức đối số vẫn có thể xảy ra khi mức log bị tắt
+  - Kiểm tra isDebugEnabled hoặc dùng Supplier khi API hỗ trợ
+  - Fluent API của SLF4J 2 và các trường key-value
+  - Marker và mục đích phân loại ngoài mức độ nghiêm trọng
+  - Ghi Throwable đúng overload và kiểm chứng stack trace thực tế
+  - Giới hạn của System.out, System.err và printStackTrace trong ứng dụng cần quản trị log
+- level1: Cấu hình
+  level2:
+  - Phân biệt cấu hình mặc định, cấu hình ứng dụng và cấu hình môi trường
+  - Mức của logger gốc và mức riêng cho package hoặc thành phần
+  - Khai báo appender, encoder, filter và tham chiếu giữa các thành phần
+  - Cấu hình console, tệp và nhiều đích xuất
+  - Chọn tệp cấu hình và xác định cấu hình thực sự được nạp
+  - Logging trong Spring Boot và thời điểm khởi tạo trước ApplicationContext
+  - Quan hệ giữa logging.level, logging.config và cấu hình native của framework
+  - Tách cấu hình phát triển, kiểm thử và sản xuất
+  - Định dạng có cấu trúc và khả năng hỗ trợ tùy phiên bản thư viện
+  - Đổi mức log lúc chạy và yêu cầu xác thực, giới hạn phạm vi
+  - Phát hiện lỗi cú pháp, appender không hoạt động và cấu hình bị bỏ qua
+  - Quản lý thay đổi cấu hình có thể kiểm tra và quay lui
+- level1: Đích xuất và định dạng
+  level2:
+  - Console, stdout, stderr và ý nghĩa của từng luồng
+  - Ghi tệp cục bộ, system journal và đích xuất qua mạng
+  - Tách nội dung bản ghi khỏi phương tiện vận chuyển
+  - Định dạng dễ đọc cho con người và định dạng dễ xử lý bằng máy
+  - Mẫu hiển thị thời gian, mức độ, logger, luồng và thông điệp
+  - Thông tin vị trí mã nguồn và chi phí thu thập caller data
+  - Màu sắc, ký tự điều khiển và tính tương thích với bộ thu thập
+  - UTF-8, bộ ký tự mặc định và dữ liệu tiếng Việt
+  - Buffering, flush và sự khác biệt với ghi bền vững lên thiết bị
+  - Quyền truy cập đích xuất, lỗi kết nối và hành vi khi ghi thất bại
+  - Tránh ghi trùng cùng bản ghi qua nhiều đường thu thập
+- level1: Đồng bộ và bất đồng bộ
+  level2:
+  - Ghi log đồng bộ và thời gian chờ trên luồng ứng dụng
+  - Logging bất đồng bộ bằng hàng đợi và luồng xử lý nền
+  - Khác biệt giữa tham số hóa thông điệp, đánh giá lười và xuất bất đồng bộ
+  - Kích thước hàng đợi, tốc độ phát sinh và tốc độ tiêu thụ
+  - 'Hàng đợi đầy: chờ, loại bỏ hoặc chuyển sang cơ chế khác'
+  - Chính sách loại bỏ theo mức độ và các bản ghi có thể bị mất
+  - Chụp ngữ cảnh, thời gian, dữ liệu khả biến và vị trí gọi trước khi chuyển luồng
+  - Thứ tự bản ghi khi nhiều luồng cùng ghi
+  - Flush khi dừng, thời gian chờ đóng và giới hạn khi tiến trình bị dừng cưỡng bức
+  - Đo thông lượng cùng độ trễ ứng dụng và độ trễ log xuất hiện
+  - Phân biệt thread-safe, không mất dữ liệu và ghi bền vững
+- level1: Tệp và xoay vòng
+  level2:
+  - Tệp đang ghi, tệp lưu trữ và mục đích của log rotation
+  - Xoay vòng theo thời gian, kích thước hoặc kết hợp
+  - Đặt tên tệp lưu trữ, nén và giới hạn tổng dung lượng
+  - Giữ tệp đang mở sau đổi tên và tương tác với tiến trình thu thập
+  - Đánh đổi của rename-and-create và copytruncate
+  - Phối hợp rotation do ứng dụng quản lý với công cụ bên ngoài
+  - Quyền thư mục, chủ sở hữu và khởi tạo lại tệp sau rotation
+  - Tiến trình đồng thời ghi cùng tệp và các giới hạn an toàn
+  - Tệp bị xóa nhưng còn mở và dung lượng chưa được giải phóng
+  - Dung lượng đầy, inode cạn và ảnh hưởng đến ứng dụng
+  - Phân biệt rotation, retention, archive và backup
+- level1: Thu thập và pipeline
+  level2:
+  - Các chặng phát sinh, đọc, phân tích cú pháp, xử lý, chuyển tiếp và lưu
+  - Thu thập từ tệp, stdout/stderr, journal hoặc giao thức xuất trực tiếp
+  - Agent trên máy, sidecar và gateway tập trung
+  - Đọc tiếp từ offset hoặc checkpoint khi collector khởi động lại
+  - Theo dõi tệp qua rotation và nhận diện tệp mới
+  - Ghép stack trace hoặc bản ghi nhiều dòng trước khi xử lý tiếp
+  - Phân tích cú pháp, chuẩn hóa trường và bổ sung siêu dữ liệu nguồn
+  - Lọc, che dữ liệu nhạy cảm và định tuyến theo mục đích
+  - Gom lô, nén, hàng đợi và cơ chế thử lại
+  - Phân biệt chấp nhận bản ghi với đã lưu và có thể tìm kiếm
+  - OTLP Logs, syslog và các giao thức cần ánh xạ dữ liệu
+  - Vai trò của Elasticsearch, Loki và các backend khác trong bức tranh tổng thể
+  - Giới hạn của pipeline khi nguồn dữ liệu thay đổi định dạng
+- level1: Container và phân tán
+  level2:
+  - Xem log như luồng sự kiện trong ứng dụng theo mô hình Twelve-Factor
+  - Quan hệ giữa stdout/stderr, container runtime và tệp log trên máy chủ
+  - Thu thập theo node, theo sidecar hoặc xuất trực tiếp từ ứng dụng
+  - Gắn thông tin cluster, namespace, pod, container và phiên bản
+  - Tách vòng đời dữ liệu log khỏi vòng đời container, pod và node
+  - Xem log hiện tại, log lần chạy trước và giới hạn dữ liệu còn được giữ
+  - Rotation của runtime và trách nhiệm của từng thành phần
+  - Nhiều replica, tên instance thay đổi và tìm log theo danh tính ổn định
+  - Thứ tự, trùng lặp và dữ liệu đến muộn giữa các dịch vụ
+  - Giới hạn bộ đệm, tài nguyên node và ảnh hưởng khi backend gián đoạn
+  - Quyền đọc log trong môi trường nhiều nhóm và nhiều tenant
+- level1: Tìm kiếm và phân tích
+  level2:
+  - Bắt đầu bằng thời gian, môi trường và dịch vụ bị ảnh hưởng
+  - Tìm theo trường có cấu trúc so với tìm từ khóa trong thông điệp
+  - Kết hợp mức độ, loại sự kiện, mã lỗi và mã định danh yêu cầu
+  - Biểu thức chính quy, ký tự đặc biệt và giới hạn của tìm kiếm văn bản
+  - Dựng dòng thời gian của một yêu cầu hoặc tác vụ
+  - Nhóm sự kiện theo mẫu để nhận diện lỗi lặp
+  - Đếm, tính tốc độ và so sánh xu hướng từ tập log phù hợp
+  - Phân biệt số dòng log, số sự kiện, số lần thử và số yêu cầu
+  - Lọc theo phiên bản triển khai để điều tra hồi quy
+  - Đối chiếu sự kiện trước và sau lỗi thay vì chỉ xem dòng ERROR
+  - Ảnh hưởng của sampling, log bị mất và độ trễ tiếp nhận đến kết luận
+  - Ghi lại truy vấn, thời gian, bằng chứng và giới hạn của điều tra
+- level1: Giảm nhiễu
+  level2:
+  - Nhận diện log giá trị thấp, log lặp và log không có người sử dụng
+  - Chọn sự kiện cần giữ thay vì tăng mức ghi trên toàn ứng dụng
+  - Lọc theo thành phần, loại sự kiện và mức độ
+  - Giới hạn tốc độ ghi cho sự kiện lặp
+  - Gộp sự kiện tương tự và báo cáo số bản ghi bị lược bỏ
+  - Lấy mẫu ngẫu nhiên, định kỳ hoặc theo định danh yêu cầu
+  - Giữ ngữ cảnh của một yêu cầu khi lấy mẫu nhiều bản ghi liên quan
+  - Ưu tiên dữ liệu cần điều tra và xác định các sự kiện không được lấy mẫu tùy mục đích
+  - Đánh đổi giữa giảm khối lượng với khả năng phát hiện lỗi hiếm
+  - Phân biệt lấy mẫu log với lấy mẫu trace và giới hạn liên kết
+  - Đánh giá hiệu quả giảm nhiễu bằng tình huống điều tra thực tế
+- level1: Hiệu năng và chi phí
+  level2:
+  - Chi phí kiểm tra mức độ, tạo bản ghi, định dạng và truyền dữ liệu
+  - Cấp phát bộ nhớ, boxing, toString và tuần tự hóa đối tượng
+  - Thông điệp bị tắt vẫn gây tốn kém do tính đối số hoặc tạo stack trace
+  - Chi phí thông tin vị trí gọi, stack trace dài và nội dung dữ liệu lớn
+  - I/O đồng bộ, tranh chấp khóa và áp lực lên hàng đợi
+  - Bão log khi lỗi dây chuyền và ảnh hưởng đến độ trễ ứng dụng
+  - Ước lượng dung lượng theo số sự kiện, kích thước và thời gian lưu
+  - Chi phí tiếp nhận, lập chỉ mục, lưu trữ và truy vấn
+  - Độ đa dạng giá trị trường và khác biệt chi phí giữa các backend
+  - Đo cả lượng log bị mất, độ trễ xuất hiện và tác động đến ứng dụng
+  - So sánh cấu hình với tải đại diện thay vì chỉ đo logger trong vòng lặp
+- level1: An toàn dữ liệu
+  level2:
+  - Xác định dữ liệu cần ghi, dữ liệu cần hạn chế và dữ liệu phải loại bỏ
+  - Không ghi mật khẩu, token, khóa bí mật và nội dung xác thực
+  - Dữ liệu cá nhân trong URL, header, payload và thông điệp ngoại lệ
+  - Che, loại bỏ, rút gọn hoặc thay định danh theo mục tiêu sử dụng
+  - Giới hạn của băm định danh và mã hóa đối với nguy cơ nhận diện lại
+  - Log injection qua xuống dòng, ký tự điều khiển và dữ liệu không đáng tin cậy
+  - Dùng cấu trúc, escaping và kiểm tra dữ liệu để bảo toàn ranh giới bản ghi
+  - Xử lý log an toàn khi hiển thị trên web, xuất CSV hoặc chia sẻ báo cáo
+  - Quyền ghi, quyền đọc và phân tách dữ liệu giữa môi trường, nhóm, tenant
+  - Bảo vệ dữ liệu khi truyền và khi lưu trữ
+  - Giảm quyền của agent, collector và tài khoản truy cập backend
+  - Kiểm soát dữ liệu trong bản sao lưu, bản xuất và nội dung hỗ trợ sự cố
+  - Bảo vệ tính toàn vẹn và phát hiện sửa hoặc xóa log trái phép
+  - Kiểm chứng thông tin nhạy cảm không xuất hiện sau thay đổi mã hoặc cấu hình
+- level1: Độ tin cậy
+  level2:
+  - Xác định yêu cầu chấp nhận mất log theo từng mục đích
+  - Các điểm có thể mất dữ liệu từ ứng dụng đến nơi lưu
+  - Bộ đệm trong bộ nhớ, hàng đợi bền vững và giới hạn thực tế
+  - Giao nhiều nhất một lần, ít nhất một lần và phạm vi bảo đảm
+  - Vì sao retry có thể tạo bản ghi trùng
+  - Định danh sự kiện và loại trùng khi có yêu cầu
+  - Áp lực ngược khi bên nhận chậm và ảnh hưởng đến ứng dụng
+  - Mạng gián đoạn, backend lỗi và chính sách thử lại có giới hạn
+  - Cô lập bản ghi không hợp lệ thay vì chặn toàn pipeline
+  - Phân biệt được tiếp nhận, đã ghi bền vững và có thể tìm kiếm
+  - Ứng xử khi hệ thống logging lỗi theo yêu cầu vận hành hoặc kiểm toán
+  - Thoát có kiểm soát, flush và các tình huống vẫn không bảo đảm dữ liệu
+  - Thử nghiệm mất điện, dừng tiến trình hoặc hết dung lượng trên môi trường thử
+- level1: Vòng đời dữ liệu
+  level2:
+  - Chọn thời gian giữ log theo mục đích điều tra và yêu cầu áp dụng
+  - Dữ liệu đang truy vấn, dữ liệu lưu trữ dài hạn và bản sao lưu
+  - Phân tầng lưu trữ và đánh đổi chi phí với thời gian truy xuất
+  - Retention tại nguồn, collector, kho tập trung và bản sao xuất
+  - Rotation không tự bảo đảm toàn bộ chính sách lưu giữ
+  - Xóa dữ liệu, hết hạn và kiểm tra các bản sao còn tồn tại
+  - Lược đồ thay đổi và khả năng đọc log của phiên bản ứng dụng cũ
+  - Archive, nén và phục hồi dữ liệu để điều tra
+  - Phân công chủ sở hữu cho lược đồ, cấu hình và thời gian lưu
+  - Theo dõi dung lượng tăng trưởng và xác minh chính sách dọn dữ liệu
+  - Kiểm soát việc chia sẻ bằng chứng, truy cập và ghi nhận truy cập log
+- level1: Kiểm thử logging
+  level2:
+  - Định nghĩa yêu cầu nội dung log cho các tình huống quan trọng
+  - Thu bản ghi trong kiểm thử bằng appender hoặc đích xuất dành riêng
+  - Kiểm tra mức độ, logger, mã sự kiện và trường ngữ cảnh
+  - Kiểm tra sự hiện diện của Throwable và chuỗi nguyên nhân
+  - Kiểm tra cấu trúc JSON, kiểu trường và tương thích lược đồ
+  - Tránh kiểm thử quá phụ thuộc vào câu chữ, thời gian hoặc thứ tự không bảo đảm
+  - Kiểm tra dữ liệu nhạy cảm không bị ghi ra
+  - Kiểm thử MDC được dọn sạch và truyền đúng khi dùng thread pool
+  - Kiểm thử rotation, collector khởi động lại và tiếp tục từ checkpoint
+  - Kiểm thử hàng đợi đầy, backend gián đoạn và dừng tiến trình
+  - Đối chiếu bản ghi tại nguồn với kết quả tìm kiếm đầu cuối
+  - Đánh giá tính hữu ích bằng một bài điều tra từ log đã sinh
+- level1: Giám sát pipeline
+  level2:
+  - Số bản ghi phát sinh, thu thập, từ chối, loại bỏ và lưu thành công
+  - Độ trễ từ thời điểm sự kiện đến khi có thể tìm kiếm
+  - Độ đầy hàng đợi, lượng dữ liệu tồn và tốc độ giải phóng
+  - Lỗi phân tích cú pháp, thiếu trường và xung đột kiểu dữ liệu
+  - Lỗi kết nối, số lần thử lại và tài nguyên của agent hoặc collector
+  - Dung lượng, inode và tăng trưởng tệp log trên nguồn
+  - Tỷ lệ dữ liệu theo dịch vụ, mức độ và loại sự kiện
+  - Kiểm tra đầu cuối bằng sự kiện thử có định danh biết trước
+  - Cảnh báo theo triệu chứng mất dữ liệu hoặc chậm tiếp nhận
+  - Không dùng duy nhất chính pipeline đang lỗi để báo lỗi của nó
+  - Phân biệt hệ thống không có sự kiện với hệ thống đã ngừng thu thập
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Không có log: kiểm tra nhánh mã, mức hiệu lực và cấu hình được nạp'
+  - Log bị lặp do additivity, nhiều appender hoặc nhiều đường thu thập
+  - Thiếu stack trace do dùng sai API hoặc bộ thu thập tách dòng
+  - Thiếu correlation ID do ngữ cảnh không được thiết lập hoặc truyền tiếp
+  - Nhầm yêu cầu do MDC cũ còn lại trên luồng tái sử dụng
+  - Sai timestamp, đơn vị, múi giờ hoặc thứ tự hiển thị
+  - JSON hỏng, ký tự tiếng Việt sai và bản ghi bị cắt ngắn
+  - Mất log sau rotation, khởi động lại, thay pod hoặc dừng cưỡng bức
+  - Ứng dụng chậm vì ghi log đồng bộ hoặc hàng đợi bị đầy
+  - Không tìm thấy log đã gửi do thời gian, bộ lọc, quyền hoặc độ trễ lập chỉ mục
+  - Hết dung lượng và tệp đã xóa vẫn còn bị tiến trình giữ
+  - Bão log sau sự cố và cách giảm tải mà vẫn giữ bằng chứng
+  - Quy trình cô lập chặng hỏng bằng bản ghi thử và số liệu đối chiếu
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế bộ sự kiện để điều tra một luồng xử lý nghiệp vụ
+  - Chuyển log văn bản rời rạc sang bản ghi có cấu trúc
+  - Chuẩn hóa mức độ và loại bỏ thông điệp không đủ ngữ cảnh
+  - Ghi ngoại lệ một lần tại tầng phù hợp và giữ đầy đủ nguyên nhân
+  - Theo dõi một yêu cầu xuyên các log bằng correlation ID
+  - Truyền và dọn MDC qua thread pool với các yêu cầu đồng thời
+  - Liên kết log với trace và đối chiếu khi trace không được lưu
+  - Cấu hình console, tệp xoay vòng và xác minh không ghi trùng
+  - So sánh logging đồng bộ, bất đồng bộ và chính sách khi đầy hàng đợi
+  - Dựng pipeline thử nghiệm rồi kiểm chứng dữ liệu sau rotation hoặc khởi động lại
+  - Thử dữ liệu chứa xuống dòng, Unicode và trường nhạy cảm
+  - Mô phỏng backend gián đoạn rồi đo mất, trùng và độ trễ log
+  - Điều tra sự cố từ dữ liệu đã sinh và lập dòng thời gian có chứng cứ
+  - Hoàn thiện quy ước logging, tiêu chí kiểm thử và trách nhiệm vận hành

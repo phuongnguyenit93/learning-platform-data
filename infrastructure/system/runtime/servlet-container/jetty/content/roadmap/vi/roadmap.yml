@@ -1,0 +1,58 @@
+roadmap:
+- id: jetty-servlet-container
+  title: Jetty & Servlet Container
+  purpose: Hiểu Jetty là HTTP server kiêm Servlet Container, phân biệt cơ chế xử lý HTTP với môi trường chạy ứng dụng Jakarta
+    Servlet.
+  objectives:
+  - Giải thích vai trò client, HTTP server và Servlet container
+  - Phân biệt Jetty Core Handler với Servlet API
+  - Nêu trường hợp dùng Jetty standalone và embedded
+- id: jetty-home-base-modules
+  title: JETTY_HOME, BASE & Modules
+  purpose: Thiết lập Jetty độc lập và quản lý cấu hình theo module mà không sửa trực tiếp bộ thư viện cài đặt.
+  objectives:
+  - Phân biệt JETTY_HOME với JETTY_BASE
+  - Bật module server, http và môi trường deploy phù hợp
+  - Dùng start.jar để xem cấu hình và khởi động Jetty
+- id: server-connector-handler
+  title: Server, Connector & Handler
+  purpose: Nắm luồng xử lý request trong Jetty từ socket qua Connector tới Handler và phản hồi HTTP.
+  objectives:
+  - Phân biệt Server, ServerConnector và Handler
+  - Cấu hình port và HTTP connector
+  - Giải thích Handler tree, context path và callback
+- id: servlet-filter-session
+  title: Servlet, Filter & Session
+  purpose: Tổ chức ứng dụng Servlet trên Jetty với ánh xạ URL, lớp lọc yêu cầu và quản lý trạng thái người dùng.
+  objectives:
+  - Tạo servlet và filter bằng Jakarta Servlet API
+  - Cấu hình ServletContextHandler và URL mapping
+  - Giải thích HttpSession và phạm vi session
+- id: war-deployment-context
+  title: WAR Deployment & Context
+  purpose: Đóng gói ứng dụng web và triển khai vào đúng môi trường EE với context path và classloading phù hợp.
+  objectives:
+  - Tạo WAR có WEB-INF và dependency cần thiết
+  - Bật ee10-deploy rồi triển khai vào webapps
+  - Kiểm tra context path, web.xml và log khi deploy lỗi
+- id: embedded-jetty-trong-java
+  title: Embedded Jetty trong Java
+  purpose: Khởi chạy Jetty trực tiếp từ ứng dụng Java để hiểu cách tạo server programmatically và vòng đời tài nguyên.
+  objectives:
+  - Tạo Server cùng ServerConnector từ mã Java
+  - Gắn ServletContextHandler và servlet mẫu
+  - Thực hành start, stop, join và giải phóng tài nguyên
+- id: https-http-2-hardening
+  title: HTTPS, HTTP/2 & Hardening
+  purpose: Bảo vệ kênh truyền và cấu hình protocol phù hợp khi Jetty phục vụ client trực tiếp hoặc sau reverse proxy.
+  objectives:
+  - Cấu hình SSL/TLS và keystore cho HTTPS
+  - Phân biệt HTTP/1.1 với HTTP/2 và ALPN
+  - Rà soát connector, ciphers và thông tin nhạy cảm
+- id: threading-monitoring-qa
+  title: Threading, Monitoring & QA
+  purpose: Đánh giá vận hành Jetty bằng log, metrics và bài kiểm thử tải, tránh blocking gây tắc nghẽn xử lý I/O.
+  objectives:
+  - Quan sát thread pool, acceptors và selectors
+  - Sử dụng JMX hoặc server dump để chẩn đoán
+  - Kiểm thử lỗi 404, timeout, tải đồng thời và shutdown

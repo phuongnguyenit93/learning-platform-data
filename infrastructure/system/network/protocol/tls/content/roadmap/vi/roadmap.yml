@@ -1,0 +1,57 @@
+roadmap:
+- id: muc-tieu-bao-mat-tls
+  title: Mục tiêu bảo mật TLS
+  purpose: Hiểu vai trò và phạm vi bảo vệ của TLS trong truyền thông mạng.
+  objectives:
+  - 'Nêu ba mục tiêu: bí mật, toàn vẹn, xác thực.'
+  - Phân biệt TLS với HTTPS và TCP.
+  - Chỉ ra giới hạn bảo vệ tại hai đầu kết nối.
+- id: phien-ban-ban-ghi
+  title: Phiên bản & bản ghi
+  purpose: Nắm cấu trúc giao thức và các thay đổi cốt lõi giữa các phiên bản.
+  objectives:
+  - Phân biệt TLS 1.2 và TLS 1.3.
+  - Nhận diện handshake, alert và application data.
+  - Giải thích vai trò của TLS record layer.
+- id: handshake-tls-1-3
+  title: Handshake TLS 1.3
+  purpose: Theo dõi quá trình hai bên thỏa thuận kết nối bảo mật.
+  objectives:
+  - Đọc thứ tự ClientHello, ServerHello và Finished.
+  - Nhận diện trao đổi khóa và chọn cipher suite.
+  - Mô tả thời điểm dữ liệu ứng dụng được bảo vệ.
+- id: chung-chi-chuoi-tin-cay
+  title: Chứng chỉ & chuỗi tin cậy
+  purpose: Xác thực đúng máy chủ và hiểu nền tảng PKI.
+  objectives:
+  - Đọc SAN, thời hạn và chủ thể chứng chỉ.
+  - Kiểm tra chuỗi CA và trust anchor.
+  - Giải thích lỗi hostname hoặc chứng chỉ hết hạn.
+- id: khoa-phien-ma-hoa
+  title: Khóa phiên & mã hóa
+  purpose: Hiểu cách TLS tạo khóa và bảo vệ dữ liệu trao đổi.
+  objectives:
+  - Mô tả ECDHE và tính bí mật chuyển tiếp.
+  - Phân biệt AEAD với chữ ký số.
+  - Giải thích vai trò HKDF trong TLS 1.3.
+- id: extensions-phien-noi-lai
+  title: Extensions & phiên nối lại
+  purpose: Hiểu các tùy chọn giúp định tuyến và tối ưu kết nối.
+  objectives:
+  - Giải thích SNI và ALPN.
+  - Phân biệt phiên đầy đủ với session resumption.
+  - Nêu lợi ích và rủi ro phát lại của 0-RTT.
+- id: cau-hinh-tls-an-toan
+  title: Cấu hình TLS an toàn
+  purpose: Áp dụng các lựa chọn phiên bản, chứng chỉ và bộ mã hóa hợp lý.
+  objectives:
+  - Ưu tiên TLS 1.3, cấu hình TLS 1.2 khi cần.
+  - Loại bỏ giao thức và thuật toán lỗi thời.
+  - Lên kế hoạch thay chứng chỉ và bảo vệ private key.
+- id: kiem-tra-chan-doan
+  title: Kiểm tra & chẩn đoán
+  purpose: Xác định lỗi handshake và đánh giá cấu hình TLS thực tế.
+  objectives:
+  - Kiểm tra chứng chỉ và handshake bằng openssl s_client.
+  - Nhận diện lỗi phiên bản, chuỗi tin cậy và tên miền.
+  - Dùng trace mạng để khoanh vùng bước thất bại.

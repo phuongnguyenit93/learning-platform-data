@@ -1,0 +1,3 @@
+menuLevel1: Hàng đợi và retry
+menuLevel2: Áp lực ngược (backpressure) truyền từ backend về receiver và bên gửi
+status: ''

@@ -1,0 +1,55 @@
+roadmap:
+- id: tong-quan-docker-compose
+  title: Tổng quan Docker Compose
+  purpose: Hiểu cách Compose mô tả và vận hành ứng dụng nhiều container qua một cấu hình thống nhất.
+  objectives:
+  - Giải thích vai trò Compose trong triển khai nhiều dịch vụ.
+  - Phân biệt container, image, service và Compose project.
+- id: viet-compose-yaml
+  title: Viết compose.yaml
+  purpose: Khai báo dịch vụ và cấu hình chạy ứng dụng với cú pháp Compose hiện đại.
+  objectives:
+  - Tạo services sử dụng image hoặc build từ Dockerfile.
+  - Cấu hình command, ports và restart theo nhu cầu.
+- id: lenh-van-hanh
+  title: Lệnh vận hành
+  purpose: Thực hành vòng đời chạy, quan sát và dừng toàn bộ ứng dụng.
+  objectives:
+  - Dùng docker compose up -d, ps và logs để theo dõi dịch vụ.
+  - Thử exec, down và phân biệt down với down -v.
+- id: networks-service-dns
+  title: Networks & Service DNS
+  purpose: Kết nối các dịch vụ nội bộ mà không phụ thuộc địa chỉ IP container.
+  objectives:
+  - Gọi service khác bằng tên qua mạng mặc định.
+  - Phân biệt ports công khai với giao tiếp nội bộ giữa dịch vụ.
+- id: volumes-du-lieu
+  title: Volumes & Dữ liệu
+  purpose: Giữ dữ liệu cần tồn tại ngoài vòng đời của container.
+  objectives:
+  - Khai báo named volume cho một cơ sở dữ liệu.
+  - Phân biệt named volume với bind mount khi phát triển.
+- id: dependencies-healthcheck
+  title: Dependencies & Healthcheck
+  purpose: Đảm bảo dịch vụ phụ thuộc chỉ bắt đầu khi điều kiện sẵn sàng phù hợp.
+  objectives:
+  - 'Khai báo depends_on với condition: service_healthy.'
+  - Viết healthcheck và giải thích running khác healthy.
+- id: bien-moi-truong-profiles
+  title: Biến môi trường & Profiles
+  purpose: Tái sử dụng cấu hình và bật dịch vụ tùy môi trường phát triển.
+  objectives:
+  - Dùng .env, interpolation và docker compose config để kiểm tra.
+  - Tạo profile cho dịch vụ chỉ dùng khi debug hoặc test.
+- id: secrets-an-toan
+  title: Secrets & An toàn
+  purpose: Tránh lộ thông tin nhạy cảm và giới hạn bề mặt truy cập của dịch vụ.
+  objectives:
+  - Khai báo secrets cấp quyền theo từng service.
+  - Tránh lưu mật khẩu trong image, Git hoặc biến môi trường công khai.
+- id: kiem-thu-xu-ly-loi
+  title: Kiểm thử & Xử lý lỗi
+  purpose: Xác minh cấu hình và chẩn đoán sự cố của một stack trước khi chia sẻ.
+  objectives:
+  - Kiểm tra cấu hình bằng docker compose config -q.
+  - Dùng logs/ps/exec để xác định lỗi mạng, startup hoặc volume.

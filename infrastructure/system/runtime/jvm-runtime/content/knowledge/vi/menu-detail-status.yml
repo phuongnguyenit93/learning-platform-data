@@ -1,0 +1,3349 @@
+menu:
+- slug: jvm-overview
+  title: Tổng quan JVM
+  childs:
+  - slug: jvm-overview-001
+    title: JVM là gì và vai trò trong quá trình chạy chương trình Java
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-002
+    title: Phân biệt JDK, môi trường runtime, JVM và thư viện chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-003
+    title: Từ mã nguồn, class file đến thực thi trên hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-004
+    title: Khả năng độc lập nền tảng và các giới hạn tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-005
+    title: Phân biệt đặc tả JVM với triển khai HotSpot và các JVM khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-006
+    title: Mối liên hệ giữa JVM, tiến trình, luồng và tài nguyên máy tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-007
+    title: 'Các thuật ngữ cốt lõi: bytecode, class loading, JIT, heap và GC'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-overview-008
+    title: Kiến thức cần có và thứ tự học từ thực thi đến chẩn đoán runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-architecture
+  title: Kiến trúc lõi
+  childs:
+  - slug: core-architecture-001
+    title: Bộ nạp lớp, vùng dữ liệu runtime và bộ máy thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-002
+    title: Luồng đi của một lớp từ lúc được tìm thấy đến khi gọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-003
+    title: Thông dịch bytecode và biên dịch thành mã máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-004
+    title: Vai trò bộ thu gom rác và quản lý tài nguyên tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-005
+    title: Cầu nối giữa mã Java, thư viện native và hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-006
+    title: Thành phần dùng chung và thành phần gắn với từng luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-007
+    title: Phân biệt mô hình logic trong JVMS với bố trí bộ nhớ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-architecture-008
+    title: Quan sát một JVM đang chạy để nối kiến trúc với bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-configuration
+  title: Khởi động và cấu hình
+  childs:
+  - slug: startup-configuration-001
+    title: Java launcher và các bước tạo một tiến trình JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-002
+    title: Phân biệt tùy chọn JVM, system property và tham số ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-003
+    title: Chạy lớp chính, JAR thực thi, module và tệp mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-004
+    title: Classpath, module path, thư mục làm việc và tìm tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-005
+    title: JAVA_HOME, PATH, JDK_JAVA_OPTIONS và JAVA_TOOL_OPTIONS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-006
+    title: Phân biệt tùy chọn chuẩn, -X, -XX và mức hỗ trợ theo triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-007
+    title: Đọc phiên bản, nhà cung cấp, kiến trúc CPU và cấu hình hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-008
+    title: Ergonomics và cách JVM tự chọn cấu hình ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-009
+    title: Kiểm soát tùy chọn không hợp lệ, đã đổi tên hoặc bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-configuration-010
+    title: Lưu cấu hình khởi động có thể tái lập giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: process-lifecycle
+  title: Vòng đời tiến trình
+  childs:
+  - slug: process-lifecycle-001
+    title: Các giai đoạn từ khởi động JVM đến gọi điểm vào ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-002
+    title: Vai trò luồng chính, luồng nền ứng dụng và daemon thread
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-003
+    title: Điều kiện JVM kết thúc khi không còn luồng giữ tiến trình sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-004
+    title: System.exit(), Runtime.halt() và mã thoát tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-005
+    title: Shutdown hook, thứ tự không bảo đảm và giới hạn thời gian dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-006
+    title: Phối hợp SIGTERM hoặc tín hiệu nền tảng với việc dừng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-007
+    title: Phân biệt kết thúc có kiểm soát, bị buộc dừng và sự cố native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-008
+    title: Giải phóng kết nối, luồng và tệp trước khi JVM thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: process-lifecycle-009
+    title: Nhận diện tiến trình không thoát do luồng hoặc tác vụ còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-file-and-bytecode
+  title: Class file và bytecode
+  childs:
+  - slug: class-file-and-bytecode-001
+    title: Cấu trúc class file, phiên bản major/minor và khả năng tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-002
+    title: Constant pool, tên lớp, trường, phương thức và descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-003
+    title: Code attribute, bảng ngoại lệ và thông tin phục vụ gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-004
+    title: Local variable, operand stack và cách bytecode thao tác dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-005
+    title: Lệnh tạo đối tượng, truy cập trường và điều khiển luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-006
+    title: Phân biệt invokevirtual, invokeinterface, invokestatic và invokespecial
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-007
+    title: invokedynamic, bootstrap method và liên kết lời gọi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-008
+    title: Bytecode cho synchronized, ngoại lệ và khối finally
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-009
+    title: Type erasure, bridge method và dấu vết của ngôn ngữ trong class file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-file-and-bytecode-010
+    title: Đọc kết quả javap để đối chiếu mã nguồn với hành vi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-engine
+  title: Khung thực thi
+  childs:
+  - slug: execution-engine-001
+    title: Tạo và kết thúc stack frame theo vòng đời lời gọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-002
+    title: Local variable slot, operand stack và dữ liệu của từng lần gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-003
+    title: Truyền tham số, tham chiếu this và giá trị trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-004
+    title: Liên kết frame với runtime constant pool của lớp tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-005
+    title: Hoàn tất bình thường và hoàn tất đột ngột do ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-006
+    title: Tìm exception handler và tháo stack qua nhiều lời gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-007
+    title: Phân biệt stack trace logic với frame mã máy đã được tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-008
+    title: Ảnh hưởng của inlining và deoptimization đến việc quan sát stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-009
+    title: Đệ quy, kích thước stack và điều kiện phát sinh StackOverflowError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-engine-010
+    title: Đọc thông tin frame bằng javap, StackWalker và công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classloading-linking
+  title: Nạp và liên kết lớp
+  childs:
+  - slug: classloading-linking-001
+    title: Tìm biểu diễn lớp và tạo lớp trong JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-002
+    title: Verification và kiểm tra tính hợp lệ, an toàn kiểu của bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-003
+    title: Preparation và cấp phát dữ liệu tĩnh với giá trị khởi đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-004
+    title: Resolution và chuyển tham chiếu tượng trưng thành liên kết runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-005
+    title: Liên kết sớm, liên kết lười và thời điểm lỗi được bộc lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-006
+    title: Phân biệt loading, linking và initialization
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-007
+    title: Ràng buộc nạp lớp khi các lớp có quan hệ kế thừa hoặc gọi nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-008
+    title: Phân biệt ClassNotFoundException với NoClassDefFoundError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-009
+    title: LinkageError, NoSuchMethodError và lỗi thư viện không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloading-linking-010
+    title: Quan sát nạp, liên kết và dỡ lớp bằng công cụ runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: class-initialization
+  title: Khởi tạo lớp
+  childs:
+  - slug: class-initialization-001
+    title: Những thao tác kích hoạt khởi tạo lớp hoặc interface
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-002
+    title: Phân biệt class literal, đọc hằng và truy cập trường tĩnh thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-003
+    title: Thứ tự khởi tạo lớp cha, trường static và khối static
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-004
+    title: Phân biệt phương thức đặc biệt <clinit> với <init>
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-005
+    title: Khóa khởi tạo lớp khi nhiều luồng truy cập đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-006
+    title: Khởi tạo vòng và khả năng quan sát giá trị tạm thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-007
+    title: ExceptionInInitializerError và trạng thái lớp sau khi khởi tạo thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-008
+    title: Khởi tạo đối tượng, gọi constructor và xuất bản tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: class-initialization-009
+    title: Thiết kế khởi tạo lười và chẩn đoán deadlock khi nạp ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: classloaders
+  title: Bộ nạp lớp
+  childs:
+  - slug: classloaders-001
+    title: Bootstrap, platform và application class loader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-002
+    title: Định danh kiểu theo tên nhị phân và bộ nạp định nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-003
+    title: Ủy quyền cho bộ nạp cha và lựa chọn cơ chế nạp riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-004
+    title: Defining loader, initiating loader và giới hạn nhìn thấy lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-005
+    title: Thread context class loader và tích hợp thư viện mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-006
+    title: Tải tài nguyên, ServiceLoader và phát hiện thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-007
+    title: Bộ nạp tùy biến, plugin và cô lập các phiên bản thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-008
+    title: Vì sao hai lớp cùng tên vẫn có thể không ép kiểu được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-009
+    title: Điều kiện dỡ lớp và quan hệ với khả năng thu hồi class loader
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: classloaders-010
+    title: Rò rỉ bộ nạp lớp do static, ThreadLocal, luồng và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: modules-access
+  title: Module và truy cập
+  childs:
+  - slug: modules-access-001
+    title: Module runtime và sự khác biệt với classpath truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-002
+    title: Named module, unnamed module và automatic module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-003
+    title: Readability, exports và opens trong kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-004
+    title: Phân giải đồ thị module và module layer khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-005
+    title: Strong encapsulation và lỗi truy cập API nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-006
+    title: Reflection, MethodHandle và quyền truy cập tại runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-007
+    title: --add-reads, --add-exports, --add-opens và phạm vi sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-008
+    title: Xung đột package, thiếu module và thư viện chưa tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: modules-access-009
+    title: Tách giới hạn truy cập của module khỏi cơ chế bảo mật hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-memory
+  title: Vùng nhớ runtime
+  childs:
+  - slug: runtime-memory-001
+    title: Heap và dữ liệu dùng chung giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-002
+    title: JVM stack, frame và thời gian sống theo lời gọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-003
+    title: Program counter và trạng thái thực thi của mỗi luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-004
+    title: Method area và runtime constant pool theo đặc tả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-005
+    title: Native method stack và các chi tiết phụ thuộc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-006
+    title: Metaspace, compressed class space và metadata trong HotSpot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-007
+    title: Code cache và nơi lưu mã máy đã được biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-008
+    title: Phân biệt vị trí của biến tham chiếu với vị trí của đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-009
+    title: Phân biệt vùng nhớ JVM với mô hình bộ nhớ Java (JMM)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-memory-010
+    title: Giới hạn của sơ đồ heap/stack đơn giản khi giải thích chương trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: objects-references
+  title: Đối tượng và tham chiếu
+  childs:
+  - slug: objects-references-001
+    title: Cấu trúc header, dữ liệu trường và phần đệm của đối tượng HotSpot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-002
+    title: Mark word, thông tin lớp và thay đổi theo cấu hình, phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-003
+    title: Căn chỉnh đối tượng và chi phí của kiểu dữ liệu, mảng, boxing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-004
+    title: Compressed ordinary object pointers và compressed class pointers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-005
+    title: Phân biệt tham chiếu Java, địa chỉ native và định danh đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-006
+    title: So sánh ==, equals() và identityHashCode() ở góc nhìn runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-007
+    title: String pool, intern() và phân biệt với constant pool của class file
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-008
+    title: Compact Strings và ảnh hưởng tới biểu diễn nội dung chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-009
+    title: Shallow size, retained size và kích thước đồ thị đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: objects-references-010
+    title: Quan sát bố trí đối tượng bằng công cụ phù hợp với JVM đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-allocation
+  title: Cấp phát bộ nhớ
+  childs:
+  - slug: memory-allocation-001
+    title: Đường đi của thao tác new từ kiểm tra lớp đến khởi tạo đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-002
+    title: Thread-Local Allocation Buffer và cấp phát theo con trỏ tăng dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-003
+    title: Cấp phát ngoài TLAB và xử lý đối tượng lớn theo bộ thu gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-004
+    title: Khởi tạo giá trị mặc định và bảo đảm quan sát dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-005
+    title: Phân biệt tốc độ cấp phát với lượng dữ liệu còn sống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-006
+    title: Đối tượng tồn tại ngắn, đối tượng sống lâu và áp lực lên GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-007
+    title: Escape analysis, scalar replacement và điều kiện loại bỏ cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-008
+    title: Phân biệt loại bỏ đối tượng với giả định mọi đối tượng được chuyển lên stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-009
+    title: Chi phí sao chép, boxing và tạo chuỗi trong đường xử lý thường xuyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-allocation-010
+    title: Đo lượng cấp phát thực tế trước khi tối ưu cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: interpretation-jit
+  title: Thông dịch và JIT
+  childs:
+  - slug: interpretation-jit-001
+    title: Vai trò của interpreter trong khởi động và thu thập hồ sơ thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-002
+    title: Ngưỡng độ nóng của phương thức, vòng lặp và quyết định biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-003
+    title: C1, C2 và các mức biên dịch trong HotSpot theo cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-004
+    title: Tiered compilation và quá trình đi tới trạng thái chạy ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-005
+    title: On-Stack Replacement và tối ưu vòng lặp đang thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-006
+    title: Hàng đợi biên dịch, luồng compiler và tranh chấp CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-007
+    title: Code cache, mã được thay thế và khả năng thu hồi mã đã biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-008
+    title: Ảnh hưởng của warm-up đến độ trễ và thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-009
+    title: So sánh chạy thông dịch, JIT và biên dịch trước khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: interpretation-jit-010
+    title: Quan sát quyết định biên dịch bằng log, JFR và công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: optimization-deoptimization
+  title: Tối ưu và hoàn nguyên
+  childs:
+  - slug: optimization-deoptimization-001
+    title: Inlining và tác động đến chi phí gọi phương thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-002
+    title: Devirtualization và tối ưu lời gọi dựa trên kiểu đã quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-003
+    title: Loại bỏ mã chết, gộp hằng và tối ưu vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-004
+    title: Loại bỏ kiểm tra biên, cấp phát và khóa khi đủ điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-005
+    title: Intrinsics, vector hóa và phụ thuộc vào CPU, JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-006
+    title: Giả định tối ưu và tình huống làm giả định không còn đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-007
+    title: Deoptimization và khôi phục trạng thái để tiếp tục thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-008
+    title: Ảnh hưởng của nạp lớp mới, hồ sơ thay đổi và nhánh hiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-009
+    title: Phân biệt bảo đảm ngữ nghĩa Java với tối ưu không được bảo đảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: optimization-deoptimization-010
+    title: Đọc kết quả đo mà không suy diễn trực tiếp từ hình dạng mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-threads
+  title: Luồng Java
+  childs:
+  - slug: java-threads-001
+    title: Luồng Java, luồng hệ điều hành và mô hình thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-002
+    title: Trạng thái NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-003
+    title: Phân biệt trạng thái luồng Java với trạng thái lập lịch của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-004
+    title: Stack mỗi luồng, ngữ cảnh thực thi và chi phí chuyển ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-005
+    title: Monitor, wait/notify và cơ chế đánh thức luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-006
+    title: park/unpark, interrupt và hủy công việc theo cơ chế phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-007
+    title: ThreadLocal, phạm vi dữ liệu và nguy cơ giữ tham chiếu lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-008
+    title: Số luồng, giới hạn hệ điều hành và khả năng tạo thêm luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-009
+    title: Daemon thread và ảnh hưởng tới thời điểm tiến trình kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-threads-010
+    title: Đọc thread dump để nối trạng thái với mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jmm-synchronization
+  title: JMM và đồng bộ
+  childs:
+  - slug: jmm-synchronization-001
+    title: Tính nguyên tử, khả năng nhìn thấy và thứ tự thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-002
+    title: Happens-before và cách suy luận việc truyền dữ liệu giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-003
+    title: Data race, sắp xếp lại và giới hạn của thử nghiệm chạy nhiều lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-004
+    title: volatile và bảo đảm truy cập so với phép toán ghép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-005
+    title: synchronized, monitor và bảo đảm khi vào/ra vùng bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-006
+    title: final field, bất biến và xuất bản đối tượng an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-007
+    title: CAS, VarHandle và các chế độ truy cập bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-008
+    title: Khóa trong HotSpot và thay đổi triển khai theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-009
+    title: Deadlock, livelock, starvation và tranh chấp tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-010
+    title: Phân biệt visibility theo JMM với cache CPU, GC barrier và safepoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jmm-synchronization-011
+    title: Giới hạn của sleep(), yield() và log khi kiểm chứng chương trình đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-threads
+  title: Luồng ảo
+  childs:
+  - slug: virtual-threads-001
+    title: Luồng ảo là gì và bài toán mở rộng tác vụ chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-002
+    title: Luồng ảo, luồng nền thực thi (carrier) và bộ lập lịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-003
+    title: Gắn và tháo luồng ảo khi tác vụ bị chặn theo cơ chế hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-004
+    title: Lưu trạng thái stack và ảnh hưởng đến tiêu thụ bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-005
+    title: Pinning và khác biệt khi dùng synchronized giữa các phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-006
+    title: Lời gọi native, tác vụ CPU dài và các giới hạn cần đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-007
+    title: ThreadLocal và việc quản lý ngữ cảnh với số lượng tác vụ lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-008
+    title: Giới hạn tài nguyên hữu hạn dù số luồng có thể tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-009
+    title: Quan sát luồng ảo bằng JFR và dạng thread dump được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-threads-010
+    title: Lựa chọn luồng nền tảng hoặc luồng ảo theo đặc điểm công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safepoint-and-handshake
+  title: Safepoint và handshake
+  childs:
+  - slug: safepoint-and-handshake-001
+    title: Safepoint là gì và vì sao JVM cần phối hợp trạng thái luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-002
+    title: Phân biệt thời gian đi tới safepoint với thời gian dừng tại safepoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-003
+    title: Những hoạt động VM có thể yêu cầu phối hợp toàn bộ luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-004
+    title: Safepoint polling trong mã thông dịch và mã đã biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-005
+    title: Trạng thái thực thi mã native và ảnh hưởng tới thao tác của JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-006
+    title: Thread-local handshake và tác vụ chỉ nhắm tới một số luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-007
+    title: Quan hệ giữa safepoint, GC và việc quan sát stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-008
+    title: Đọc log safepoint để tìm nguồn gây trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safepoint-and-handshake-009
+    title: Phân biệt dừng do GC với các khoảng dừng runtime khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gc-fundamentals
+  title: Nền tảng GC
+  childs:
+  - slug: gc-fundamentals-001
+    title: Khả năng truy cập đối tượng và các nhóm GC root
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-002
+    title: Đồ thị tham chiếu, đối tượng không còn truy cập và chu trình tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-003
+    title: Strong, Soft, Weak, Phantom Reference và ReferenceQueue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-004
+    title: Đánh dấu, quét, sao chép và dồn bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-005
+    title: Phân biệt thu gom song song, đồng thời và stop-the-world
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-006
+    title: Giả thuyết thế hệ và trường hợp đối tượng được chuyển vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-007
+    title: Read barrier, write barrier, card table và remembered set
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-008
+    title: Tính nhất quán của việc đánh dấu khi ứng dụng vẫn thay đổi tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-009
+    title: Phân biệt bộ nhớ được thu hồi với bộ nhớ trả lại hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-010
+    title: Chi phí GC theo tốc độ cấp phát, tập dữ liệu sống và tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gc-fundamentals-011
+    title: Giới hạn của System.gc() và các giả định sai về thời điểm thu gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: garbage-collectors
+  title: Các bộ thu gom
+  childs:
+  - slug: garbage-collectors-001
+    title: Lựa chọn collector theo độ trễ, thông lượng, bộ nhớ và CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-002
+    title: Serial GC và đặc điểm của tác vụ thu gom đơn luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-003
+    title: Parallel GC và ưu tiên thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-004
+    title: G1 với region, tập vùng thu gom và mục tiêu khoảng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-005
+    title: Chu kỳ đánh dấu, young collection và mixed collection của G1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-006
+    title: Đối tượng humongous và áp lực phân vùng trong G1
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-007
+    title: ZGC và mô hình thu gom có độ trễ thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-008
+    title: ZGC phân thế hệ và thay đổi chế độ hỗ trợ theo JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-009
+    title: Shenandoah và phạm vi khả dụng theo bản phân phối, nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-010
+    title: Epsilon cho thí nghiệm cấp phát không thu hồi bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-011
+    title: Nhận diện CMS và tùy chọn lịch sử trong tài liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-012
+    title: Kiểm tra collector đang dùng và các giá trị mặc định thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: garbage-collectors-013
+    title: Đánh đổi khi đổi collector và yêu cầu đo lại trên tải đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: heap-gc-configuration
+  title: Heap và cấu hình GC
+  childs:
+  - slug: heap-gc-configuration-001
+    title: -Xms, -Xmx và khác biệt giữa dung lượng ban đầu với giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-002
+    title: Used, committed, reserved và cách đọc số liệu heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-003
+    title: Phân bổ đủ chỗ cho dữ liệu sống và đợt tăng cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-004
+    title: Mục tiêu khoảng dừng và giới hạn của cam kết từ collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-005
+    title: GC ergonomics và các tham số nên để JVM tự điều chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-006
+    title: Đọc unified GC log bằng -Xlog với tag, mức và thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-007
+    title: Phân biệt các pha GC, nguyên nhân kích hoạt và phần bộ nhớ sau thu gom
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-008
+    title: Nhận diện áp lực cấp phát, thăng hạng và thiếu không gian di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-009
+    title: Đánh giá Full GC theo bộ thu gom và nguyên nhân cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-010
+    title: Quy trình chỉnh một giả thuyết, đo lại và quay lui cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: heap-gc-configuration-011
+    title: Tránh áp dụng máy móc bộ cờ GC của JDK hoặc loại tải khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: off-heap-memory
+  title: Bộ nhớ ngoài heap
+  childs:
+  - slug: off-heap-memory-001
+    title: Phân biệt heap Java với toàn bộ bộ nhớ của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-002
+    title: Metaspace, code cache, stack và bộ nhớ phục vụ GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-003
+    title: DirectByteBuffer, ánh xạ tệp và vòng đời vùng nhớ ngoài heap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-004
+    title: Reserved, committed, resident và số liệu RSS của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-005
+    title: Native Memory Tracking và điều kiện bật khi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-006
+    title: Đọc NMT summary, detail, baseline và phần chênh lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-007
+    title: Giới hạn của NMT đối với thư viện native và các vùng không được theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-008
+    title: Giới hạn direct memory và các phần native không thuộc giới hạn đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-009
+    title: Ảnh hưởng của số luồng, thư viện native và phân mảnh bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: off-heap-memory-010
+    title: Đối chiếu số liệu JVM với hệ điều hành trước khi kết luận rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jni-native-code
+  title: JNI và mã native
+  childs:
+  - slug: jni-native-code-001
+    title: JNI là gì và ranh giới giữa mã Java với mã máy ngoài JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-002
+    title: Nạp thư viện native và phân biệt java.library.path với classpath
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-003
+    title: Ánh xạ phương thức native và nguyên nhân UnsatisfiedLinkError
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-004
+    title: JNI local/global reference và tác động đến khả năng thu hồi đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-005
+    title: Chuyển luồng giữa trạng thái Java, VM và native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-006
+    title: Truyền bộ đệm, sao chép dữ liệu và quyền sở hữu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-007
+    title: Lỗi native, truy cập sai bộ nhớ và ảnh hưởng toàn tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-008
+    title: Foreign Function and Memory API theo trạng thái hỗ trợ của từng JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-009
+    title: Phân biệt JNI, thư viện cầu nối và API truy cập native chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jni-native-code-010
+    title: Chẩn đoán lỗi tích hợp bằng công cụ JVM cùng công cụ hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-lifecycle
+  title: Vòng đời tài nguyên
+  childs:
+  - slug: resource-lifecycle-001
+    title: Phân biệt thu hồi bộ nhớ với đóng tệp, socket và kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-002
+    title: AutoCloseable, try-with-resources và xử lý ngoại lệ khi đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-003
+    title: Quyền sở hữu tài nguyên trong chuỗi gọi và khi chuyển giữa các luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-004
+    title: Cleaner, PhantomReference và giới hạn của dọn dẹp dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-005
+    title: Finalization và lộ trình ngừng hỗ trợ theo phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-006
+    title: Đóng executor, pool và tác vụ nền khi ứng dụng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-007
+    title: ThreadLocal và tài nguyên gắn với luồng được tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-008
+    title: Giới hạn file descriptor, kết nối và tài nguyên hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-009
+    title: Kiểm chứng giải phóng tài nguyên bằng số liệu sau nhiều chu kỳ hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: runtime-api
+  title: API runtime
+  childs:
+  - slug: runtime-api-001
+    title: Runtime.getRuntime() và các khả năng quan sát, điều khiển tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-002
+    title: Ý nghĩa totalMemory(), freeMemory() và maxMemory()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-003
+    title: availableProcessors() và tài nguyên mà JVM quan sát được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-004
+    title: System property, biến môi trường và sự khác biệt phạm vi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-005
+    title: ManagementFactory và các MXBean về bộ nhớ, luồng, lớp, biên dịch, GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-006
+    title: ProcessHandle, thông tin tiến trình và quan sát tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-007
+    title: ProcessBuilder và quản lý luồng vào/ra khi chạy chương trình ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-008
+    title: Shutdown hook và phối hợp với cơ chế đóng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: runtime-api-009
+    title: Giới hạn của số liệu chụp tại một thời điểm và chi phí gọi API quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-tools
+  title: Công cụ chẩn đoán
+  childs:
+  - slug: diagnostic-tools-001
+    title: Xác định đúng PID, phiên bản JVM và tiến trình cần quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-002
+    title: jcmd và cách tra các lệnh thực sự được JVM hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-003
+    title: Đọc dòng lệnh, cờ hiệu lực, system property và thời gian chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-004
+    title: jps, jinfo, jstat, jstack, jmap và phạm vi dùng theo JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-005
+    title: Phân biệt class histogram, heap dump, thread dump và bản ghi JFR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-006
+    title: Unified Logging và lựa chọn tag cho class loading, GC, safepoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-007
+    title: JMX, JConsole và giám sát từ công cụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-008
+    title: Điều kiện attach theo tài khoản, quyền và không gian tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-009
+    title: Đánh giá chi phí tạm dừng, dung lượng tệp và ảnh hưởng khi lấy dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-tools-010
+    title: Thu thập bộ bằng chứng tối thiểu trước khi đổi cấu hình hoặc khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jfr-profiling
+  title: JFR và hồ sơ thực thi
+  childs:
+  - slug: jfr-profiling-001
+    title: Java Flight Recorder và mô hình ghi nhận sự kiện runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-002
+    title: Bắt đầu, lấy bản ghi và dừng ghi bằng công cụ được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-003
+    title: Lựa chọn cấu hình, ngưỡng, thời lượng và giới hạn dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-004
+    title: Java Mission Control và cách đọc hồ sơ theo trục thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-005
+    title: Phân tích CPU, cấp phát, khóa, I/O và các sự kiện GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-006
+    title: Phân biệt mẫu thống kê với số đếm đầy đủ của thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-007
+    title: Liên kết đợt trễ của ứng dụng với sự kiện runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-008
+    title: Viết sự kiện JFR riêng cho thao tác nghiệp vụ cần đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-009
+    title: Giới hạn độ chính xác, sai lệch lấy mẫu và chi phí của profiler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jfr-profiling-010
+    title: Lưu, chia sẻ và bảo vệ dữ liệu chẩn đoán có thể chứa thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-leak-analysis
+  title: Phân tích rò rỉ nhớ
+  childs:
+  - slug: memory-leak-analysis-001
+    title: Phân biệt bộ nhớ tăng bình thường, giữ dữ liệu hợp lệ và rò rỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-002
+    title: Theo dõi tập dữ liệu sống sau GC qua nhiều chu kỳ tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-003
+    title: Class histogram và giới hạn khi chỉ nhìn số lượng, shallow size
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-004
+    title: Heap dump, đường giữ tham chiếu tới GC root và dominator tree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-005
+    title: Retained size và cách xác định thành phần giữ đồ thị đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-006
+    title: Rò rỉ do bộ nhớ đệm, collection, listener và static reference
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-007
+    title: Rò rỉ do ThreadLocal, tác vụ chưa hoàn tất và hàng đợi không giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-008
+    title: Rò rỉ class loader và tăng Metaspace khi sinh hoặc nạp lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-009
+    title: Đối chiếu heap với NMT khi RSS tăng mà heap ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-leak-analysis-010
+    title: Kiểm chứng bản sửa dưới tải lặp lại với cùng cách đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threads-cpu-profiling
+  title: Phân tích luồng và CPU
+  childs:
+  - slug: threads-cpu-profiling-001
+    title: Liên kết mức dùng CPU của tiến trình với các luồng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-002
+    title: Đọc nhiều thread dump theo thời gian thay cho một ảnh chụp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-003
+    title: Phân biệt tính toán CPU, vòng lặp bận và chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-004
+    title: Nhận diện BLOCKED, park, wait và tranh chấp khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-005
+    title: Phát hiện deadlock và xác định luồng nắm tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-006
+    title: Phân biệt nghẽn luồng, nghẽn pool và nghẽn dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-007
+    title: Đánh giá mức chạy song song, chuyển ngữ cảnh và CPU throttling
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-008
+    title: Theo dõi luồng ảo bằng công cụ phù hợp với phiên bản JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-009
+    title: Liên kết hồ sơ CPU với biên dịch, GC và công việc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threads-cpu-profiling-010
+    title: Đặt giả thuyết nguyên nhân rồi kiểm chứng bằng tải và dấu thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-errors-incidents
+  title: Lỗi và sự cố JVM
+  childs:
+  - slug: jvm-errors-incidents-001
+    title: Phân biệt ngoại lệ ứng dụng, VirtualMachineError và lỗi tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-002
+    title: StackOverflowError và giới hạn độ sâu stack
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-003
+    title: OutOfMemoryError do heap và phân biệt với rò rỉ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-004
+    title: OutOfMemoryError do Metaspace hoặc compressed class space
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-005
+    title: Thiếu direct memory, native memory hoặc khả năng tạo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-006
+    title: Code cache đầy và ảnh hưởng đến khả năng tiếp tục biên dịch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-007
+    title: Thu thập heap dump, log và bằng chứng khi xảy ra OOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-008
+    title: Phân biệt JVM báo OOM với tiến trình bị OOM killer hoặc nền tảng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-009
+    title: Fatal error, hs_err_pid và định vị luồng, frame gây sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-010
+    title: Core dump, thư viện native và thông tin cần cho phân tích sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-errors-incidents-011
+    title: Hành vi sau lỗi nghiêm trọng và điều kiện cần khởi động lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-containers
+  title: JVM trong container
+  childs:
+  - slug: jvm-containers-001
+    title: Cgroup, CPU quota và giới hạn tài nguyên mà JVM nhận biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-002
+    title: Container awareness và khác biệt theo JDK, hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-003
+    title: Heap theo tỷ lệ bộ nhớ và kiểm tra cấu hình hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-004
+    title: Dành ngân sách cho stack, Metaspace, code cache và native memory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-005
+    title: availableProcessors(), ActiveProcessorCount và số luồng nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-006
+    title: CPU throttling và ảnh hưởng tới GC, JIT, thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-007
+    title: Khởi động nhiều JVM trên cùng máy và cạnh tranh tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-008
+    title: Phân biệt memory limit, working set, RSS và số liệu JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-009
+    title: Readiness, warm-up và thời gian dừng trong nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-containers-010
+    title: Thu thập bằng chứng khi tiến trình container bị dừng hoặc khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: startup-distribution
+  title: Khởi động và phân phối
+  childs:
+  - slug: startup-distribution-001
+    title: Phân rã thời gian khởi động JVM, nạp lớp và khởi tạo ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-002
+    title: Class Data Sharing và mục đích chia sẻ metadata đã chuẩn bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-003
+    title: AppCDS, lưu trữ lớp và điều kiện tương thích của archive
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-004
+    title: Đánh đổi giữa kích thước runtime, chi phí khởi động và hiệu năng ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-005
+    title: jlink và tạo runtime image từ các module cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-006
+    title: Đóng gói ứng dụng, runtime image và cấu hình triển khai riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-007
+    title: Phân biệt HotSpot JIT với GraalVM Native Image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-008
+    title: Khả năng tương thích hệ điều hành, CPU và thư viện native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-009
+    title: Đánh giá ứng dụng chạy ngắn, dịch vụ chạy lâu và môi trường co giãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: startup-distribution-010
+    title: Kiểm chứng lợi ích khởi động bằng dữ liệu trước và sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-measurement
+  title: Đo hiệu năng
+  childs:
+  - slug: performance-measurement-001
+    title: Chọn mục tiêu độ trễ, thông lượng, bộ nhớ và chi phí CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-002
+    title: Xác định tải đại diện, dữ liệu đầu vào và trạng thái chạy ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-003
+    title: Phân biệt đo vi mô với kiểm thử toàn ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-004
+    title: JMH, warm-up, measurement và tiến trình fork độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-005
+    title: Tránh loại bỏ mã chết, gộp hằng và kết quả không được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-006
+    title: Đo tốc độ cấp phát cùng hiệu năng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-007
+    title: Giới hạn của đo thời gian thủ công bằng nanoTime()
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-008
+    title: Sai lệch do GC, JIT, nhiễu hệ điều hành và tải chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-009
+    title: Đọc độ phân tán, phân vị và giới hạn suy luận từ số trung bình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-010
+    title: So sánh đúng phiên bản JDK, JVM flag và cấu hình máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-measurement-011
+    title: Tối ưu một giả thuyết rồi đo lại cả lợi ích lẫn chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compatibility-security
+  title: Tương thích và bảo mật
+  childs:
+  - slug: compatibility-security-001
+    title: Kiểm tra tương thích bytecode, thư viện, module và mã native khi đổi JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-002
+    title: Đối chiếu cờ JVM, collector và các giá trị mặc định giữa phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-003
+    title: Phân biệt tính năng chính thức, preview, experimental và API nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-004
+    title: Agent, instrumentation và thay đổi bytecode trong quá trình nạp lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-005
+    title: Quyền attach, nạp agent và thay đổi chính sách theo JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-006
+    title: Strong encapsulation và di trú khỏi API nội bộ không được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-007
+    title: Security Manager theo dòng JDK và lựa chọn cô lập ngoài JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-008
+    title: Giới hạn của kiểm tra bytecode và class loader trong bảo vệ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-009
+    title: Bảo vệ JMX, tệp dump, bản ghi và cấu hình chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-010
+    title: Thử nghiệm hồi quy chức năng, hiệu năng và tài nguyên trước nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compatibility-security-011
+    title: Lập kế hoạch chuyển đổi, quay lui và kiểm chứng sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Lần theo một chương trình từ javac, javap đến lời gọi chạy trên JVM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Thực nghiệm thời điểm nạp lớp, liên kết và khởi tạo static
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Nạp hai lớp cùng tên bằng hai class loader để quan sát định danh kiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Quan sát warm-up, biên dịch JIT và thay đổi hiệu năng theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: So sánh tải cấp phát, dữ liệu sống và các pha GC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Đối chiếu heap, Metaspace, direct memory và RSS trên cùng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Tái hiện rò rỉ heap, ThreadLocal và class loader với dữ liệu đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Tái hiện tranh chấp khóa, deadlock và tác vụ bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: So sánh luồng nền tảng với luồng ảo dưới giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Thử nghiệm giới hạn container, dừng có kiểm soát và thu thập bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: Chọn cấu hình runtime từ mục tiêu dịch vụ và kết quả kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

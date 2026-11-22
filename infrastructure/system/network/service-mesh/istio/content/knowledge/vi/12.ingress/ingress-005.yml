@@ -1,0 +1,3 @@
+menuLevel1: Ingress
+menuLevel2: Gắn HTTPRoute vào gateway và kiểm tra Accepted, Programmed, ResolvedRefs
+status: ''

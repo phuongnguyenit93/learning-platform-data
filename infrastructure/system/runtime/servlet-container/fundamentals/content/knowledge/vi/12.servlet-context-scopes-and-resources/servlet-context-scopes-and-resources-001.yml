@@ -1,0 +1,3 @@
+menuLevel1: ServletContext, phạm vi dữ liệu và tài nguyên dùng chung
+menuLevel2: Một ServletContext cho mỗi web application và ranh giới truy cập
+status: ""

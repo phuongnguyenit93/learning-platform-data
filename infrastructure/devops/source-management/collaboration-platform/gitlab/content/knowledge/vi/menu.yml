@@ -1,0 +1,326 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - GitLab là gì và giải quyết vấn đề nào trong quản lý mã nguồn và cộng tác
+  - Mối liên hệ giữa Git, GitLab, kho mã cục bộ và kho mã từ xa
+  - 'Bản đồ khái niệm: người dùng, namespace, group, project, repository và merge request'
+  - 'Vòng đời một thay đổi: issue → branch → commit → merge request → review → merge'
+  - Phân biệt GitLab.com, GitLab Self-Managed và GitLab Dedicated
+  - Đối chiếu gói dịch vụ, phiên bản và quyền truy cập trước khi sử dụng tính năng
+  - Phạm vi quản lý mã nguồn và cộng tác; điểm kết nối với CI/CD và quản lý phát hành
+  - Lộ trình thực hành và kiến thức Git cần chuẩn bị
+- level1: Tài khoản
+  level2:
+  - Tạo tài khoản, xác minh email và thiết lập hồ sơ người dùng
+  - Phân biệt username, tên hiển thị, email tài khoản và danh tính tác giả commit
+  - Đăng nhập, đăng xuất và quản lý phiên truy cập
+  - Thiết lập xác thực hai yếu tố và lưu phương án khôi phục tài khoản
+  - Nhận diện tài khoản cá nhân, tài khoản dịch vụ và tài khoản tự động hóa
+  - Đăng nhập bằng SSO và tác động của chính sách tổ chức đến quyền truy cập
+  - Thiết lập múi giờ, ngôn ngữ, tùy chọn giao diện và thông báo cá nhân
+  - Bảo vệ tài khoản khi thay đổi thiết bị, mất khóa hoặc nghỉ khỏi tổ chức
+- level1: Điều hướng
+  level2:
+  - Nhận diện trang cá nhân, trang group, trang project và các khu vực chức năng
+  - Tìm và chuyển nhanh giữa project, group và công việc được giao
+  - Theo dõi hoạt động, dự án quan tâm và thay đổi liên quan
+  - Sử dụng danh sách To-Do để quản lý việc cần xử lý
+  - Tìm kiếm trong project hoặc group và nhận biết phạm vi kết quả
+  - Tìm mã nguồn, đường dẫn tệp, commit, issue và merge request
+  - Phân biệt tìm kiếm văn bản, tìm theo bộ lọc và khả năng tìm kiếm nâng cao
+  - Sử dụng liên kết cố định, mã tham chiếu và phím tắt để cộng tác
+- level1: Group
+  level2:
+  - Thiết kế namespace cho cá nhân, nhóm sản phẩm và tổ chức
+  - Tạo group, subgroup và phân chia cấu trúc quản lý
+  - Phân biệt quyền ở group, subgroup và project
+  - Kế thừa thành viên, thiết lập và chính sách trong cây group
+  - Chọn mức hiển thị group và hiểu tác động đến khả năng tìm thấy nội dung
+  - Chia sẻ quyền giữa các group và kiểm soát truy cập gián tiếp
+  - Đổi tên, đổi đường dẫn hoặc chuyển group và đánh giá các liên kết bị ảnh hưởng
+  - Chọn cấu trúc group phù hợp với quyền sở hữu và ranh giới cộng tác
+- level1: Project
+  level2:
+  - Tạo project từ kho rỗng, mẫu dự án hoặc nguồn nhập
+  - Phân biệt project và repository; xác định dữ liệu nằm ngoài lịch sử Git
+  - Thiết lập tên, slug, mô tả, mức hiển thị và nhánh mặc định
+  - Khởi tạo README, .gitignore và giấy phép theo nhu cầu dự án
+  - Bật hoặc tắt các khả năng cộng tác cần thiết của project
+  - Quản lý chủ sở hữu, thông tin liên hệ và quy ước vận hành project
+  - Đổi đường dẫn hoặc chuyển namespace và cập nhật remote, tích hợp, liên kết
+  - 'Lưu trữ, khôi phục hoặc xóa project: quyền hạn, tác động và biện pháp phòng nhầm'
+  - Đánh giá giới hạn dung lượng và hạn mức của project trước khi mở rộng
+- level1: Phân quyền
+  level2:
+  - Hiểu vai trò truy cập và áp dụng nguyên tắc đặc quyền tối thiểu
+  - Thêm thành viên trực tiếp, mời qua group và kiểm tra nguồn cấp quyền
+  - Phân biệt khả năng xem mã, tạo nhánh, đề xuất thay đổi và quản trị thiết lập
+  - Thiết lập thời hạn truy cập cho cộng tác viên và người dùng bên ngoài
+  - Nhận diện quyền kế thừa và quyền hiệu lực khi một người có nhiều nguồn truy cập
+  - Quản lý quyền cho nhóm nội bộ, nhà thầu và cộng tác viên bên ngoài
+  - Rà soát truy cập khi thay đổi nhóm, chuyển vai trò hoặc kết thúc hợp tác
+  - Kiểm tra vai trò tùy chỉnh và điều kiện gói dịch vụ khi cần phân quyền đặc biệt
+  - Chẩn đoán trường hợp có quyền project nhưng không thực hiện được thao tác cụ thể
+- level1: Kết nối Git
+  level2:
+  - Chọn HTTPS hoặc SSH để kết nối kho mã từ xa
+  - Tạo khóa SSH, bảo vệ khóa riêng và đăng ký khóa công khai
+  - Kiểm tra dấu vân tay máy chủ và xác minh kết nối SSH
+  - Xác thực Git qua HTTPS và sử dụng trình quản lý thông tin đăng nhập
+  - Clone repository, kiểm tra remote và cấu hình danh tính commit
+  - Push lần đầu, lấy thay đổi từ xa và đồng bộ nhánh làm việc
+  - Quản lý nhiều tài khoản hoặc nhiều máy chủ GitLab trên cùng thiết bị
+  - Xử lý thay đổi URL remote khi project được chuyển hoặc đổi tên
+  - Chẩn đoán lỗi xác thực, quyền truy cập và kết nối mạng khi dùng Git
+- level1: Kho mã
+  level2:
+  - Đọc cây thư mục và chuyển giữa nhánh, tag hoặc commit
+  - Xem nội dung tệp, lịch sử thay đổi và người sửa bằng blame
+  - Đọc diff giữa các commit, nhánh hoặc tag
+  - Phân biệt liên kết theo nhánh với permalink theo commit
+  - Tạo, sửa, đổi tên và xóa tệp trực tiếp trên giao diện web
+  - Chọn nhánh và tạo merge request khi chỉnh sửa tệp qua web
+  - Sử dụng Web IDE cho thay đổi nhiều tệp và kiểm tra phạm vi trước khi commit
+  - Tải ảnh chụp mã nguồn và phân biệt với clone đầy đủ lịch sử Git
+  - Nhận diện metadata, nội dung nhị phân và tệp sinh tự động khi duyệt kho mã
+- level1: Commit
+  level2:
+  - Đọc commit SHA, tác giả, người tạo commit và quan hệ commit cha
+  - Viết thông điệp commit rõ mục đích và liên kết đến issue hoặc merge request
+  - Chia thay đổi thành commit dễ xem xét và giữ lịch sử có ý nghĩa
+  - Kiểm tra chữ ký commit hoặc tag và phân biệt với quyền phê duyệt
+  - Thiết lập ký commit theo cơ chế được GitLab hỗ trợ trong môi trường đang dùng
+  - Nhận diện tác động của amend, rebase và push lại đến một nhánh đã chia sẻ
+  - Áp dụng cherry-pick hoặc revert qua GitLab và kiểm tra thay đổi phát sinh
+  - Chẩn đoán commit không liên kết đúng tài khoản hoặc không được xác minh
+  - Tránh đưa thông tin bí mật, tệp không cần thiết và dữ liệu cá nhân vào commit
+- level1: Nhánh và tag
+  level2:
+  - Tạo nhánh từ nhánh mặc định, tag hoặc commit cụ thể
+  - Đặt tên nhánh theo mục đích và liên kết nhánh với công việc
+  - Theo dõi độ lệch nhánh và đồng bộ trước khi đề xuất hợp nhất
+  - Thiết lập nhánh mặc định và đánh giá tác động khi thay đổi
+  - Bảo vệ nhánh và quy định ai được push, merge hoặc force push
+  - Đối chiếu branch rules, protected branches và điều kiện khả dụng
+  - Tạo tag, phân biệt tag nhẹ với annotated tag và xem mã tại tag
+  - Bảo vệ tag để kiểm soát danh tính và quyền tạo mốc phiên bản
+  - Dọn nhánh đã hợp nhất và tránh xóa nhánh còn phục vụ cộng tác
+  - Liên hệ chiến lược nhánh với chính sách GitLab mà không thay thế thiết kế chiến lược
+- level1: Fork
+  level2:
+  - Phân biệt fork, clone và nhánh trong cùng repository
+  - Tạo fork và xác định quan hệ với project gốc
+  - Thiết lập remote upstream và đồng bộ fork với nguồn gốc
+  - Tạo merge request từ fork sang project đích
+  - Kiểm tra quyền sửa nhánh nguồn của người duy trì khi cộng tác qua fork
+  - Đánh giá mức hiển thị, quyền truy cập và rủi ro dữ liệu khi fork
+  - Phân biệt yêu cầu xác thực và bối cảnh kiểm tra cho thay đổi từ fork
+  - Chọn mô hình fork hoặc shared repository cho cộng tác viên bên ngoài
+- level1: Merge request
+  level2:
+  - Hiểu merge request là đơn vị đề xuất, thảo luận và kiểm soát thay đổi
+  - Chọn nhánh nguồn, nhánh đích và kiểm tra phạm vi diff
+  - Viết tiêu đề, mô tả, bối cảnh và tiêu chí hoàn tất rõ ràng
+  - Sử dụng mẫu mô tả merge request và danh sách kiểm tra
+  - Gắn issue, label, milestone và người chịu trách nhiệm phù hợp
+  - Phân biệt assignee, reviewer, tác giả và người có quyền merge
+  - Sử dụng trạng thái Draft và chuyển sang sẵn sàng xem xét
+  - Cập nhật merge request bằng commit mới và theo dõi phiên bản diff
+  - Đóng, mở lại và xác định vòng đời merge request khi công việc thay đổi
+  - Chia merge request lớn thành các đề xuất nhỏ và quản lý phụ thuộc giữa chúng
+- level1: Review
+  level2:
+  - Chuẩn bị review từ mục tiêu thay đổi, phạm vi ảnh hưởng và tiêu chí chấp nhận
+  - Đọc diff theo tệp, theo dòng và theo phiên bản thay đổi
+  - Nhận xét trực tiếp trên mã và phân biệt thảo luận với bình luận thông thường
+  - Gom nhận xét thành một lượt review và gửi phản hồi có bối cảnh
+  - Đưa gợi ý chỉnh sửa mã và kiểm tra trước khi áp dụng
+  - Phản hồi, giải quyết hoặc mở lại luồng thảo luận
+  - Theo dõi tệp đã xem và rà lại phần thay đổi sau khi tác giả cập nhật
+  - Phân biệt yêu cầu sửa, đồng thuận kỹ thuật và phê duyệt chính thức
+  - 'Quy ước giao tiếp review: lý do, mức độ ảnh hưởng và trách nhiệm xử lý'
+  - Tổ chức review cho thay đổi nhiều nhóm hoặc có dữ liệu nhạy cảm
+- level1: Phê duyệt
+  level2:
+  - Phân biệt quyền merge, approval và điều kiện hợp nhất
+  - Thiết kế quy tắc phê duyệt theo người, nhóm và loại thay đổi
+  - Kiểm tra điều kiện gói dịch vụ cho quy tắc approval cần áp dụng
+  - Kiểm soát tự phê duyệt và phê duyệt của người tham gia tạo thay đổi
+  - Xử lý hiệu lực phê duyệt khi merge request có commit mới
+  - Định nghĩa CODEOWNERS và ánh xạ đường dẫn với nhóm chịu trách nhiệm
+  - Kiểm tra cú pháp, quy tắc khớp và kết quả nhận diện Code Owner
+  - Kết hợp CODEOWNERS, bảo vệ nhánh và điều kiện phê duyệt
+  - Kiểm tra phê duyệt bắt buộc, ngoại lệ và quyền bỏ qua trong môi trường thực tế
+- level1: Hợp nhất
+  level2:
+  - Chọn merge commit, fast-forward hoặc phương thức hợp nhất phù hợp
+  - Quyết định squash commit và tác động đến lịch sử truy vết
+  - Rebase nhánh nguồn và kiểm tra lại nội dung trước khi merge
+  - Phát hiện xung đột và chọn cách giải quyết trên web hoặc tại máy
+  - Giải quyết xung đột cục bộ, chạy kiểm tra và cập nhật merge request
+  - 'Kiểm tra điều kiện merge: quyền, approval, thảo luận và kết quả kiểm tra'
+  - Sử dụng auto-merge theo khả năng của môi trường và điều kiện đã cấu hình
+  - Nhận diện merge train, merged results pipeline và điều kiện sử dụng
+  - Xử lý nhánh đích thay đổi trong khi merge request đang được xem xét
+  - Kiểm tra kết quả sau merge, dọn nhánh nguồn và phục hồi bằng revert khi cần
+- level1: Issue
+  level2:
+  - Phân biệt issue, merge request và các loại work item trong môi trường GitLab
+  - Tạo issue với vấn đề, bối cảnh, tiêu chí chấp nhận và thông tin tái hiện
+  - Sử dụng mẫu issue để chuẩn hóa báo lỗi, yêu cầu và đề xuất kỹ thuật
+  - Phân công người xử lý, đặt thời hạn và theo dõi trách nhiệm
+  - Thảo luận, đính kèm minh chứng và cập nhật tiến độ công việc
+  - Liên kết issue với commit, nhánh và merge request
+  - Sử dụng tham chiếu đóng issue và kiểm tra điều kiện tự động đóng
+  - Liên kết issue liên quan, phụ thuộc hoặc chặn nhau theo khả năng hỗ trợ
+  - Quản lý issue bảo mật hoặc confidential và kiểm tra quyền xem
+  - Đóng, mở lại, di chuyển và xử lý issue trùng lặp
+- level1: Lập kế hoạch
+  level2:
+  - Thiết kế label theo loại việc, mức ưu tiên và trạng thái
+  - Phân biệt label cấp group, label cấp project và scoped label
+  - Tổ chức milestone và theo dõi phạm vi công việc của một mốc
+  - Xây dựng issue board từ bộ lọc, danh sách và quy ước trạng thái
+  - Theo dõi người phụ trách, thời hạn và công việc tồn đọng trên board
+  - Nhận diện epic, iteration và quan hệ phân cấp công việc theo gói dịch vụ
+  - Sử dụng weight, ước lượng và theo dõi thời gian khi phù hợp
+  - Lưu bộ lọc và chia sẻ góc nhìn công việc giữa các thành viên
+  - Phân biệt trạng thái công việc, tiến độ milestone và trạng thái mã đã hợp nhất
+- level1: Tài liệu
+  level2:
+  - Sử dụng GitLab Flavored Markdown trong issue, merge request và tài liệu
+  - Viết liên kết, bảng, khối mã và danh sách kiểm tra dễ đọc
+  - Tham chiếu người dùng, nhóm, issue, merge request và commit đúng phạm vi
+  - Sử dụng quick actions và kiểm tra quyền trước khi thay đổi metadata
+  - Tổ chức README, CONTRIBUTING, quy tắc ứng xử và hướng dẫn báo lỗi
+  - Quản lý wiki của project và phân biệt wiki với tài liệu trong repository
+  - Chia sẻ snippets và kiểm soát mức hiển thị của đoạn mã
+  - Sử dụng tệp đính kèm, hình ảnh và sơ đồ mà không lộ thông tin nhạy cảm
+  - Xây dựng mẫu issue và merge request trong kho mã để quản lý bằng review
+  - Nhận diện GitLab Pages như điểm xuất bản tài liệu và ranh giới với cấu hình CI/CD
+- level1: Thông báo
+  level2:
+  - Chọn mức thông báo theo tài khoản, group và project
+  - Theo dõi hoặc hủy theo dõi một issue hay merge request
+  - Sử dụng mention và yêu cầu review để gọi đúng người xử lý
+  - Phân biệt email, To-Do và hoạt động hiển thị trong GitLab
+  - Quản lý yêu cầu review, việc được giao và thảo luận chưa giải quyết
+  - Thiết lập quy ước thời gian phản hồi và bàn giao giữa các nhóm
+  - Giảm thông báo dư thừa và xử lý trường hợp bỏ sót thông báo
+  - Kiểm tra quyền truy cập trước khi chia sẻ liên kết trong thông báo hoặc kênh nhóm
+- level1: Token và khóa
+  level2:
+  - Phân biệt mật khẩu, SSH key, access token, deploy key và deploy token
+  - Chọn personal, project hoặc group access token theo chủ thể cần đại diện
+  - Giới hạn scope, quyền hiệu lực và thời hạn của token
+  - Phân biệt token cho API với thông tin xác thực Git qua HTTPS
+  - Cấp deploy key cho nhu cầu đọc hoặc ghi kho mã có giới hạn
+  - Sử dụng deploy token và kiểm tra phạm vi tài nguyên được hỗ trợ
+  - Lưu giữ token an toàn và tránh đưa thông tin xác thực vào URL hoặc lịch sử lệnh
+  - Xoay vòng, thu hồi và kiểm tra ảnh hưởng khi token hoặc khóa hết hạn
+  - Tách danh tính tự động hóa khỏi tài khoản của nhân viên
+  - Kiểm kê thông tin xác thực và xử lý sự cố token hoặc khóa bị lộ
+- level1: Chính sách mã
+  level2:
+  - Chuẩn hóa quy ước commit, tên nhánh và yêu cầu trước khi push
+  - Nhận diện push rules, phạm vi áp dụng và điều kiện gói dịch vụ
+  - Kết hợp nhánh được bảo vệ với mô hình quyền tối thiểu
+  - Quản lý quyền force push, xóa nhánh và sửa lịch sử
+  - Quy định chữ ký commit và kiểm tra danh tính người đóng góp
+  - Ngăn đưa thông tin bí mật vào kho mã bằng quy trình và kiểm tra phù hợp
+  - 'Xử lý bí mật đã lọt vào Git: thu hồi trước, đánh giá lịch sử và phối hợp làm sạch'
+  - Xác định dữ liệu nhạy cảm trong issue, log, attachment và phần thảo luận
+  - Kiểm tra hiệu lực chính sách bằng tài khoản có vai trò khác nhau
+- level1: Kiểm tra tích hợp
+  level2:
+  - Đọc trạng thái pipeline và kết quả kiểm tra ngay trong merge request
+  - Phân biệt kiểm tra thất bại, chưa chạy, bị bỏ qua và đang chờ
+  - Xác định nguồn tạo pipeline và commit mà kết quả kiểm tra đại diện
+  - Kiểm tra báo cáo kiểm thử, độ bao phủ và artifact phục vụ review khi có
+  - Hiểu tác động của thiết lập yêu cầu pipeline thành công trước khi merge
+  - Nhận diện khác biệt giữa kiểm tra nhánh nguồn và kết quả hợp nhất dự kiến
+  - Đánh giá rủi ro kiểm tra thay đổi từ fork trước khi cấp quyền hoặc dùng bí mật
+  - Phối hợp với nhóm CI/CD khi điều kiện merge không phản ánh đúng chất lượng thay đổi
+  - Phân định cấu hình pipeline, runner và triển khai sang nội dung GitLab CI/CD
+- level1: Tích hợp hệ thống
+  level2:
+  - Phân biệt tích hợp có sẵn, webhook và lời gọi API chủ động
+  - Chọn sự kiện webhook cho push, issue hoặc merge request
+  - Cấu hình endpoint, bí mật xác thực và phạm vi sự kiện webhook
+  - Kiểm tra payload, nhật ký gửi và kết quả nhận của hệ thống đích
+  - Xử lý sự kiện trùng lặp, gửi lại và thứ tự đến trong hệ thống nhận webhook
+  - Kết nối công cụ theo dõi công việc hoặc kênh trao đổi theo nhu cầu nhóm
+  - Kiểm soát dữ liệu mã nguồn và thông tin nhạy cảm đi qua tích hợp
+  - Phân quyền, thay đổi chủ sở hữu và thu hồi một tích hợp
+  - Chẩn đoán webhook thất bại do xác thực, mạng hoặc lỗi bên nhận
+- level1: API và CLI
+  level2:
+  - Chọn REST API, GraphQL hoặc GitLab CLI theo nhu cầu tự động hóa
+  - Xác định API endpoint của GitLab.com hoặc máy chủ GitLab riêng
+  - Xác thực lời gọi API và phân biệt scope với quyền trên tài nguyên
+  - Tham chiếu tài nguyên bằng ID hoặc đường dẫn và xử lý mã hóa URL
+  - Đọc project, thành viên, nhánh, issue và merge request qua API
+  - Xử lý phân trang, giới hạn tốc độ và lỗi quyền truy cập
+  - Tạo issue hoặc merge request bằng công cụ tự động với phạm vi quyền tối thiểu
+  - Sử dụng GitLab CLI cho quy trình issue, merge request và review thường ngày
+  - Thiết kế thao tác lặp lại an toàn và ghi nhật ký không chứa thông tin xác thực
+  - Kiểm tra phiên bản API, tài liệu máy chủ và tương thích công cụ trước khi dùng
+- level1: Dữ liệu lớn
+  level2:
+  - Nhận diện nguyên nhân kho mã tăng dung lượng và lịch sử khó tải
+  - Phân biệt tệp trong Git, Git LFS, attachment và artifact của pipeline
+  - Thiết lập Git LFS cho loại tệp lớn và kiểm tra quy tắc theo dõi
+  - Kiểm tra tải lên, tải xuống và quyền truy cập đối tượng LFS
+  - Đánh giá hạn mức lưu trữ và băng thông trước khi đưa dữ liệu lớn vào kho mã
+  - Sử dụng shallow clone hoặc partial clone phù hợp với môi trường
+  - Dọn tệp không cần thiết và đánh giá rủi ro trước khi viết lại lịch sử
+  - Phối hợp làm sạch dữ liệu giữa repository, fork, bản clone và hệ thống sao lưu
+- level1: Di chuyển
+  level2:
+  - Khảo sát mã nguồn, issue, merge request, thành viên và tích hợp trước khi di chuyển
+  - Phân biệt chuyển namespace, nhập repository và nhập hoặc xuất project
+  - Chọn công cụ nhập theo nền tảng nguồn và phiên bản GitLab đích
+  - Kiểm tra dữ liệu được hỗ trợ khi export/import và các thành phần cần chuyển riêng
+  - Nhập lịch sử Git, nhánh, tag và Git LFS có kiểm chứng
+  - Thiết lập repository mirroring và chọn chiều đồng bộ theo khả năng hỗ trợ
+  - Xử lý quyền, xác thực, độ trễ và xung đột khi mirror repository
+  - Cập nhật remote, webhook, liên kết tài liệu và thông tin xác thực sau di chuyển
+  - Đối chiếu số lượng, lịch sử, quyền và liên kết công việc sau chuyển đổi
+  - Lập phương án chuyển giao và quay lại khi đợt di chuyển chưa đạt yêu cầu
+- level1: Quản trị nhóm
+  level2:
+  - Chuẩn hóa thiết lập project bằng mẫu và quy ước chung
+  - Thiết kế quy trình tiếp nhận dự án và thành viên mới
+  - Rà soát chủ sở hữu, vai trò và tài khoản không còn sử dụng
+  - Theo dõi sự kiện audit theo phạm vi và điều kiện gói dịch vụ
+  - Phân biệt nhật ký hoạt động, audit event và bằng chứng phê duyệt
+  - Đo thời gian chờ review, tuổi merge request và tồn đọng công việc
+  - Diễn giải chỉ số cộng tác theo bối cảnh thay vì đánh giá cá nhân bằng số commit
+  - Xây dựng chính sách lưu giữ dữ liệu và lưu trữ project đã kết thúc
+  - Phân biệt clone, project export và bản sao lưu đầy đủ của hệ thống GitLab
+  - Phối hợp quản trị GitLab Self-Managed về nâng cấp, sao lưu và sự cố dịch vụ
+- level1: Xử lý sự cố
+  level2:
+  - 'Không clone hoặc push được: kiểm tra URL, kết nối, danh tính và quyền'
+  - 'Push bị từ chối: phân biệt nhánh được bảo vệ, push rule và lịch sử phân kỳ'
+  - Merge request sai nhánh đích, thiếu commit hoặc chứa thay đổi ngoài ý muốn
+  - Merge request không thể merge dù đã có người phê duyệt
+  - Xung đột xuất hiện lại sau khi rebase hoặc sau cập nhật nhánh đích
+  - CODEOWNERS hoặc approval rule không áp dụng như dự kiến
+  - Người dùng không thấy project, issue bảo mật hoặc nội dung được chia sẻ
+  - Token hết hạn, SSH key không khớp và danh tính tài khoản bị nhầm
+  - Thông báo, webhook hoặc tích hợp ngừng hoạt động
+  - Thu thập bằng chứng và bàn giao sự cố mà không làm lộ dữ liệu nhạy cảm
+- level1: Thực hành
+  level2:
+  - Khởi tạo group và project cho một nhóm có nhiều vai trò
+  - Kết nối repository bằng SSH hoặc HTTPS và xác minh quyền thực tế
+  - Thiết lập nhánh mặc định, bảo vệ nhánh và mẫu cộng tác
+  - Thực hiện luồng issue → branch → commit → merge request hoàn chỉnh
+  - Review bằng nhận xét theo dòng, gợi ý sửa và giải quyết thảo luận
+  - Thiết lập phê duyệt và Code Owner phù hợp với tính năng đang có
+  - Giải quyết xung đột, hợp nhất thay đổi và xác minh lịch sử sau merge
+  - Đóng góp qua fork và kiểm tra quyền đối với người dùng bên ngoài
+  - Tích hợp webhook hoặc API trong môi trường thử nghiệm có quyền hạn chế
+  - Diễn tập thu hồi quyền, thay token và xử lý một thay đổi cần revert
+  - Đối chiếu quy trình cộng tác cuối cùng với yêu cầu bảo mật và truy vết của nhóm

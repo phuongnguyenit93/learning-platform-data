@@ -1,0 +1,57 @@
+roadmap:
+- id: loki-architecture-log-flow
+  title: Loki Architecture & Log Flow
+  purpose: Hiểu kiến trúc Loki và cách logs đi từ collector qua ingestion, storage đến truy vấn.
+  objectives:
+  - Phân biệt agent, Loki và Grafana trong logging stack.
+  - Mô tả write path và read path ở mức thành phần.
+  - Giải thích log stream, labels và chunks.
+- id: deployment-configuration
+  title: Deployment & Configuration
+  purpose: Triển khai Loki theo quy mô phù hợp và quản lý cấu hình runtime có kiểm soát.
+  objectives:
+  - Chạy single-binary mode cho môi trường thử nghiệm.
+  - Phân biệt simple scalable và microservices deployment.
+  - Kiểm tra cấu hình, readiness và API endpoint.
+- id: log-ingestion-pipeline
+  title: Log Ingestion & Pipeline
+  purpose: Thu thập, chuẩn hóa và gửi log từ ứng dụng hoặc hạ tầng vào Loki.
+  objectives:
+  - Cấu hình Grafana Alloy hoặc client gửi log qua push API.
+  - Thực hiện parse, relabel và enrich log trong pipeline.
+  - Xác minh tenant, timestamp và dữ liệu đã ingest.
+- id: labels-cardinality
+  title: Labels & Cardinality
+  purpose: Thiết kế label set giúp định vị log stream nhanh mà không làm bùng nổ số lượng stream.
+  objectives:
+  - Chọn labels ít biến thiên như app, env và namespace.
+  - Tránh label có cardinality cao như request ID hoặc user ID.
+  - Phân biệt labels, structured metadata và parsed fields.
+- id: storage-retention
+  title: Storage & Retention
+  purpose: Lưu trữ log hiệu quả và đặt thời hạn lưu phù hợp yêu cầu vận hành.
+  objectives:
+  - Phân biệt index với compressed log chunks.
+  - Cấu hình object storage và schema phù hợp.
+  - Thiết lập retention qua Compactor và kiểm tra xóa dữ liệu.
+- id: logql-log-analysis
+  title: LogQL & Log Analysis
+  purpose: Truy vấn log theo stream và nội dung để điều tra lỗi hoặc tạo chỉ số từ log.
+  objectives:
+  - Viết stream selector và line filter bằng LogQL.
+  - Dùng parser như json, logfmt và pattern.
+  - Tạo metric query bằng count_over_time hoặc rate.
+- id: multi-tenancy-security
+  title: Multi-tenancy & Security
+  purpose: Cô lập dữ liệu giữa nhóm sử dụng và kiểm soát quyền truy cập API của Loki.
+  objectives:
+  - Giải thích tenant ID qua X-Scope-OrgID.
+  - Bảo vệ endpoint bằng authentication reverse proxy.
+  - Đặt ingestion limits và kiểm tra ranh giới tenant.
+- id: operations-troubleshooting
+  title: Operations & Troubleshooting
+  purpose: Theo dõi sức khỏe logging stack và chẩn đoán vấn đề về ingestion, query hoặc storage.
+  objectives:
+  - Quan sát metrics, logs và trạng thái component.
+  - Điều tra lỗi ingestion, cardinality và query latency.
+  - Kiểm tra backlog, compaction và dung lượng object storage.

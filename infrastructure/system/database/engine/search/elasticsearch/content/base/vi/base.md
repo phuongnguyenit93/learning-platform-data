@@ -1,0 +1,7 @@
+# Database Engine Search Elasticsearch
+
+Elasticsearch là công cụ tìm kiếm và phân tích dữ liệu theo mô hình document, nổi bật với khả năng full-text search, lọc, xếp hạng mức độ phù hợp và aggregation trên dữ liệu được lập chỉ mục. Module này giúp bạn hiểu cách Elasticsearch tổ chức index và shard, lựa chọn mapping/analyzer, viết truy vấn Query DSL và tích hợp từ ứng dụng Java. Elasticsearch thường đóng vai trò hệ thống phục vụ truy vấn tìm kiếm; việc chọn nó làm kho dữ liệu chính cần cân nhắc yêu cầu nhất quán và nghiệp vụ cụ thể.
+
+Người học nên có nền tảng Java, JSON, HTTP API và khái niệm cơ sở dữ liệu. Lộ trình bắt đầu từ document/index, kiến trúc cluster, primary shard/replica, sau đó thực hành CRUD, mapping kiểu `text`/`keyword` và phân tích văn bản. Tiếp theo là truy vấn `match`, `term`, `bool`, tìm kiếm theo relevance, tổng hợp dữ liệu với aggregation và gọi Elasticsearch bằng Java API Client.
+
+Hoàn thành module, bạn có thể thiết kế một index tìm kiếm, nhập và truy vấn tài liệu, lựa chọn phương pháp phân tích văn bản phù hợp, viết truy vấn và aggregation cơ bản, đồng thời nhận biết vấn đề về refresh, pagination, phân mảnh, alias/reindex và vận hành cluster. Khi triển khai thực tế, cần đối chiếu phiên bản Elasticsearch/Java client, bảo vệ API key và giám sát giới hạn tài nguyên.

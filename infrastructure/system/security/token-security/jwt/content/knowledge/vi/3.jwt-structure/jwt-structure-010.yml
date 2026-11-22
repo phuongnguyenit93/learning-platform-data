@@ -1,0 +1,3 @@
+menuLevel1: Cấu trúc JWT
+menuLevel2: JWT không bảo vệ bí mật của payload chỉ bằng Base64url
+status: WRITTEN

@@ -1,0 +1,279 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - 'Proxy là gì: vai trò trung gian giữa bên gửi và bên nhận'
+  - 'Vì sao cần proxy: kiểm soát truy cập, che giấu cấu trúc và phân phối lưu lượng'
+  - Mô hình client – proxy – upstream và các thuật ngữ nền tảng
+  - Phân biệt proxy, router, NAT, firewall, load balancer và API gateway
+  - Những gì proxy quan sát hoặc thay đổi ở từng tầng giao thức
+  - Lợi ích và đánh đổi về độ trễ, độ phức tạp và điểm lỗi tập trung
+  - Ranh giới nội dung nền tảng và các module Nginx, HAProxy, API gateway, service mesh
+  - Lộ trình học và cách đọc sơ đồ đường đi của yêu cầu
+- level1: Kiến thức nền
+  level2:
+  - Địa chỉ IP, cổng, socket và cặp đầu cuối của một kết nối
+  - DNS và vai trò phân giải tên trước khi kết nối
+  - 'TCP và UDP: khác biệt khi đặt proxy ở tầng vận chuyển'
+  - 'HTTP: yêu cầu, phản hồi, phương thức, trạng thái, header và body'
+  - 'TLS: mã hóa, chứng chỉ và xác thực đầu cuối'
+  - Phân biệt kết nối mạng, yêu cầu HTTP và phiên đăng nhập
+  - Chiều vào, chiều ra và ranh giới tin cậy trong sơ đồ mạng
+- level1: Các kiểu proxy
+  level2:
+  - 'Forward proxy: đại diện cho phía client khi truy cập tài nguyên'
+  - 'Reverse proxy: đại diện cho phía dịch vụ khi tiếp nhận yêu cầu'
+  - 'Explicit proxy và transparent proxy: cách lưu lượng được chuyển qua trung gian'
+  - 'Proxy tầng 4 và tầng 7: thông tin định tuyến và mức độ can thiệp'
+  - Proxy cho lưu lượng vào (ingress) và lưu lượng ra (egress)
+  - Proxy trên máy người dùng, proxy dùng chung và proxy cạnh dịch vụ
+  - 'Chuỗi nhiều proxy: điểm vào, các chặng trung gian và điểm ra'
+  - Biến môi trường HTTP_PROXY, HTTPS_PROXY, NO_PROXY và sự khác biệt giữa ứng dụng
+  - Cấu hình tự động bằng PAC/WPAD và các giới hạn an toàn
+- level1: Luồng kết nối
+  level2:
+  - 'Đường đi trực tiếp và đường đi qua proxy: so sánh từng chặng'
+  - Hai chặng kết nối client–proxy và proxy–upstream độc lập như thế nào
+  - 'Vòng đời yêu cầu: tiếp nhận, kiểm tra, chọn đích, chuyển tiếp và phản hồi'
+  - Điểm thực hiện DNS khi dùng forward proxy, reverse proxy và đường hầm
+  - Địa chỉ nguồn và địa chỉ đích thay đổi qua từng chặng
+  - Proxy TCP chấm dứt kết nối và cơ chế chuyển tiếp gói tin khác nhau ra sao
+  - Luồng trả về, định tuyến bất đối xứng và điều kiện kết nối thành công
+  - FIN, RST, ngắt kết nối một chiều và yêu cầu còn đang xử lý
+- level1: Proxy HTTP
+  level2:
+  - HTTP/1.1 origin-form, absolute-form và authority-form trong các ngữ cảnh proxy
+  - Forward proxy xử lý URL đích và trường Host như thế nào
+  - Reverse proxy tiếp nhận yêu cầu rồi xây dựng yêu cầu gửi upstream
+  - 'Header đầu cuối và header theo từng chặng: quy tắc chuyển tiếp'
+  - Connection và việc loại bỏ các header chỉ dành cho một chặng
+  - Content-Length, Transfer-Encoding và ranh giới thông điệp HTTP/1.1
+  - Chuyển tiếp phương thức, mã trạng thái, body và nội dung lỗi
+  - 'Viết lại URL và đường dẫn: tiền tố, dấu gạch chéo và query string'
+  - Chuyển hướng Location và ảnh hưởng của địa chỉ công khai
+  - Cookie Domain, Path, Secure và ứng dụng đặt sau reverse proxy
+  - Proxy-Authorization, Proxy-Authenticate và phản hồi 407
+- level1: Đường hầm và SOCKS
+  level2:
+  - Đường hầm (tunnel) khác chuyển tiếp yêu cầu ứng dụng như thế nào
+  - 'HTTP CONNECT: thiết lập đường hầm tới host và cổng đích'
+  - 'HTTPS qua CONNECT: TLS chạy giữa những đầu cuối nào'
+  - Giới hạn khả năng quan sát nội dung bên trong đường hầm mã hóa
+  - 'SOCKS5: thương lượng phương thức xác thực và yêu cầu kết nối'
+  - Phân giải DNS tại client hoặc tại SOCKS proxy và nguy cơ lộ truy vấn
+  - 'SOCKS5 UDP ASSOCIATE: phạm vi hỗ trợ và khác biệt với CONNECT TCP'
+  - Phân biệt HTTP proxy, HTTPS proxy và SOCKS proxy khi cấu hình client
+  - Giới hạn cổng, đích kết nối và tài nguyên cho đường hầm dài hạn
+- level1: Proxy TLS
+  level2:
+  - 'TLS passthrough, termination và re-encryption: so sánh đường đi mã hóa'
+  - 'TLS termination: nơi giữ khóa riêng và nơi nhìn thấy dữ liệu rõ'
+  - Mã hóa lại tới upstream và xác minh danh tính máy chủ đích
+  - SNI, chứng chỉ đa tên miền và lựa chọn đích khi chưa giải mã HTTP
+  - ALPN và thương lượng giao thức trên từng chặng
+  - 'mTLS: xác thực client ở proxy và xác thực giữa proxy với upstream'
+  - Chuỗi chứng chỉ, kho tin cậy, tên máy chủ và lỗi xác minh thường gặp
+  - Chứng chỉ hết hạn, gia hạn và thay chứng chỉ khi hệ thống đang chạy
+  - 'TLS inspection qua CA được tin cậy: cơ chế và giới hạn quyền riêng tư'
+  - Certificate pinning và những trường hợp TLS interception không hoạt động
+  - Thông tin HTTPS công khai khi chặng nội bộ dùng HTTP
+- level1: Định tuyến
+  level2:
+  - Listener, địa chỉ bind, cổng tiếp nhận và giao diện mạng
+  - Virtual host và định tuyến theo tên miền
+  - Định tuyến theo đường dẫn, phương thức và header
+  - Thứ tự khớp quy tắc, quy tắc mặc định và trường hợp chồng lấn
+  - Phân biệt chọn route, chọn nhóm upstream và chọn máy chủ trong nhóm
+  - Đích upstream cố định, đích qua DNS và thay đổi địa chỉ dịch vụ
+  - TTL, lưu DNS trong bộ nhớ và ảnh hưởng của bản ghi cũ
+  - IPv4, IPv6 và lỗi khác biệt giữa hai họ địa chỉ
+  - Chuẩn hóa, giải mã URL và bảo toàn query khi chuyển tiếp
+  - Tránh vòng lặp định tuyến khi proxy trỏ về chính nó hoặc proxy khác
+- level1: Thông tin nguồn
+  level2:
+  - Vì sao upstream thường chỉ thấy địa chỉ IP của proxy
+  - 'Forwarded: biểu diễn địa chỉ nguồn, host và giao thức gốc'
+  - X-Forwarded-For, X-Forwarded-Host và X-Forwarded-Proto
+  - X-Real-IP và giới hạn khi đường đi có nhiều proxy
+  - Chọn đúng IP client trong chuỗi proxy dựa trên danh sách trung gian tin cậy
+  - Ngăn giả mạo header bằng cách loại bỏ, ghi đè hoặc nối theo chính sách
+  - 'PROXY protocol: truyền thông tin đầu cuối trước giao thức ứng dụng'
+  - Sự khác biệt giữa PROXY protocol, HTTP header và giữ nguyên IP ở tầng mạng
+  - URL tuyệt đối, ghi log và kiểm soát truy cập khi ứng dụng tin thông tin proxy
+- level1: Cân bằng tải
+  level2:
+  - Quan hệ giữa reverse proxy, nhóm upstream và bộ cân bằng tải
+  - Round robin và phân phối theo trọng số
+  - Least connections và ảnh hưởng của kết nối kéo dài
+  - 'Băm theo khóa và consistent hashing: tính ổn định khi thay đổi nhóm máy chủ'
+  - 'Sticky session: cách duy trì máy chủ đích và đánh đổi về khả năng phục hồi'
+  - Kiểm tra sức khỏe chủ động và phát hiện lỗi thụ động
+  - Liveness, readiness và vì sao cổng mở chưa chứng minh dịch vụ dùng được
+  - Loại máy chủ lỗi, đưa máy chủ phục hồi trở lại và tránh dao động
+  - Phân phối lưu lượng cho canary, blue-green và chuyển vùng
+  - Nhận diện phân phối lệch khi tải theo yêu cầu khác tải theo kết nối
+- level1: Quản lý kết nối
+  level2:
+  - Keep-alive và tái sử dụng kết nối trên từng chặng độc lập
+  - 'Connection pool tới upstream: kích thước, phạm vi và giới hạn'
+  - HTTP/1.1 tuần tự, HTTP/2 ghép nhiều luồng và áp lực lên upstream
+  - Kết nối nhàn rỗi, giới hạn tuổi thọ và thu hồi tài nguyên
+  - Connection backlog và hàng đợi chờ kết nối hoặc chờ upstream
+  - File descriptor, cổng nguồn tạm thời, TIME_WAIT và giới hạn hệ điều hành
+  - TCP keepalive khác HTTP keep-alive như thế nào
+  - Giới hạn kết nối đồng thời cho client, proxy và upstream
+  - 'Tái sử dụng kết nối đã bị đóng: nguyên nhân reset và lỗi chập chờn'
+- level1: Thời hạn và thử lại
+  level2:
+  - Thời hạn DNS, kết nối, bắt tay TLS, đọc và ghi thuộc các giai đoạn nào
+  - Phân biệt timeout tổng, timeout chờ nhàn rỗi và khoảng chờ giữa các lần đọc
+  - Phân bổ ngân sách thời gian cho chuỗi nhiều dịch vụ
+  - Hủy yêu cầu khi client rời đi và xử lý công việc vẫn chạy ở upstream
+  - 'Thử lại ở client, proxy và dịch vụ: nguy cơ nhân số lần gọi'
+  - Điều kiện thử lại theo lỗi mạng, mã trạng thái và trạng thái gửi dữ liệu
+  - Tính idempotent và nguy cơ lặp thao tác có tác dụng phụ
+  - Giới hạn số lần thử, backoff, jitter và ngân sách thử lại
+  - Chuyển sang upstream khác và giới hạn khi phản hồi đã bắt đầu
+  - Circuit breaker, giới hạn đồng thời và ngăn lỗi lan truyền
+  - Fallback và trả lỗi có kiểm soát khi không còn upstream khả dụng
+- level1: Bộ đệm và truyền luồng
+  level2:
+  - Bộ đệm yêu cầu và bộ đệm phản hồi giải quyết vấn đề gì
+  - Truyền luồng trực tiếp so với nhận đủ dữ liệu rồi chuyển tiếp
+  - Giới hạn body, header và việc từ chối yêu cầu quá lớn
+  - 'Dữ liệu lưu trong RAM hoặc tệp tạm: chi phí và rủi ro tài nguyên'
+  - Backpressure khi client, proxy và upstream có tốc độ khác nhau
+  - Tải lên và tải xuống tệp lớn qua proxy
+  - 'Nén và giải nén nội dung: băng thông, CPU và tính đúng đắn của header'
+  - Độ trễ tới byte đầu tiên và thời điểm flush dữ liệu
+  - Ngắt luồng giữa chừng và giới hạn khôi phục sau khi đã gửi phản hồi
+- level1: Bộ nhớ đệm
+  level2:
+  - Bộ nhớ đệm HTTP tại proxy và khác biệt với bộ đệm truyền dữ liệu
+  - 'Cache key: phương thức, host, đường dẫn, query và các biến thể nội dung'
+  - Cache-Control, Expires, Date và Age trong tính độ mới
+  - Shared cache, private, public, no-cache và no-store
+  - Vary và tránh trả nhầm biến thể nội dung
+  - ETag, Last-Modified và xác thực lại bằng yêu cầu có điều kiện
+  - Cache HIT, MISS, BYPASS, EXPIRED và REVALIDATED biểu thị điều gì
+  - Cookie, Authorization và ngăn rò rỉ dữ liệu cá nhân qua cache dùng chung
+  - Làm mới, vô hiệu hóa và xóa cache khi dữ liệu thay đổi
+  - Cache stampede, gộp yêu cầu và phục vụ bản cũ có kiểm soát
+  - Cache poisoning và sự nhất quán giữa khóa cache với định tuyến
+- level1: Giao thức ứng dụng
+  level2:
+  - Proxy HTTP/1.1, HTTP/2 và chuyển đổi giao thức giữa hai chặng
+  - HTTP/3 trên QUIC và ranh giới hỗ trợ của proxy UDP hoặc proxy HTTP
+  - 'WebSocket: bắt tay, nâng cấp giao thức và kết nối hai chiều kéo dài'
+  - 'Server-Sent Events: truyền sự kiện, buffering và idle timeout'
+  - 'gRPC: HTTP/2, trailer, mã trạng thái và deadline'
+  - gRPC streaming và ảnh hưởng của ngắt kết nối giữa chừng
+  - Proxy TCP cho giao thức ngoài HTTP và giới hạn kiểm tra nội dung
+  - 'Proxy UDP: ánh xạ luồng, thời gian nhàn rỗi và thiếu bảo đảm giao nhận'
+  - Ma trận khả năng hỗ trợ giao thức trước khi chọn proxy
+- level1: Kiểm soát truy cập
+  level2:
+  - Ranh giới trách nhiệm giữa xác thực tại proxy và phân quyền trong ứng dụng
+  - Xác thực người dùng của forward proxy và xử lý thông tin xác thực
+  - Danh sách cho phép hoặc chặn theo IP, mạng, tên miền và đường dẫn
+  - Giới hạn phương thức HTTP, cổng đích và nhóm dịch vụ được truy cập
+  - 'Giới hạn tốc độ: token bucket, leaky bucket và cho phép tải đột biến'
+  - Chọn khóa giới hạn theo IP, tài khoản hoặc API key trong môi trường nhiều proxy
+  - Giới hạn số kết nối và số yêu cầu đang xử lý
+  - Trả phản hồi 429, Retry-After và hành vi mong đợi ở client
+  - CORS và phân biệt chính sách trình duyệt với kiểm soát truy cập mạng
+- level1: An toàn giao thức
+  level2:
+  - 'Open proxy: nguyên nhân hình thành và cách giới hạn phạm vi sử dụng'
+  - SSRF qua proxy và ngăn truy cập địa chỉ nội bộ hoặc metadata endpoint
+  - DNS rebinding và kiểm tra đích sau phân giải tên
+  - HTTP request smuggling do các chặng hiểu ranh giới thông điệp khác nhau
+  - Chuẩn hóa đường dẫn không thống nhất và nguy cơ vượt quy tắc truy cập
+  - Host header injection và không tin Host do client tự gửi
+  - Giả mạo header danh tính và bảo vệ chặng kết nối tới upstream
+  - Slow client, slow headers và cạn tài nguyên kết nối
+  - Giảm bề mặt tấn công của trang quản trị và cổng kiểm tra sức khỏe
+  - Ẩn dữ liệu nhạy cảm trong log và bảo vệ khóa, chứng chỉ, mật khẩu
+  - Quan hệ với WAF và giới hạn của proxy trong chống DDoS
+- level1: Quan sát hệ thống
+  level2:
+  - 'Access log và error log: mục đích, trường dữ liệu và cách liên kết'
+  - Phân biệt mã trạng thái proxy trả về và mã do upstream sinh ra
+  - Request ID, correlation ID và truyền trace context qua nhiều chặng
+  - Tách thời gian chờ, kết nối, TLS, upstream và tổng thời gian xử lý
+  - Đo số yêu cầu, tỷ lệ lỗi, thông lượng và phân vị độ trễ
+  - Theo dõi kết nối đang mở, hàng đợi, pool, retry và upstream health
+  - Đo cache hit ratio, dữ liệu nén và số byte truyền trên từng chặng
+  - Phân biệt quan sát theo yêu cầu, theo kết nối và theo luồng
+  - Thiết kế cảnh báo gắn với triệu chứng người dùng và tín hiệu bão hòa
+  - Giới hạn nhãn metric, lấy mẫu trace và che dữ liệu nhạy cảm
+- level1: Hiệu năng
+  level2:
+  - Phân biệt độ trễ, thông lượng, mức đồng thời và khả năng phục vụ
+  - Phân rã chi phí DNS, bắt tay TCP/TLS và xử lý tại proxy
+  - Mô hình xử lý đồng bộ, theo luồng và theo sự kiện ở mức khái niệm
+  - Nhận diện nút thắt CPU, RAM, băng thông, đĩa tạm và upstream
+  - Ảnh hưởng của connection pool, buffering, nén và cache tới hiệu năng
+  - Quan hệ giữa mức đồng thời, tốc độ yêu cầu và thời gian đáp ứng
+  - 'Thiết kế thử tải: tải đại diện, warm-up và giới hạn của máy tạo tải'
+  - Đọc p50, p95, p99, lỗi và hàng đợi cùng nhau
+  - So sánh đường đi trực tiếp với đường đi qua proxy bằng điều kiện tương đương
+- level1: Tính sẵn sàng
+  level2:
+  - Proxy đơn lẻ trở thành điểm lỗi tập trung như thế nào
+  - Nhiều bản sao proxy và cách phân phối kết nối tới các bản sao
+  - Khả năng phục hồi của active-active và active-passive
+  - DNS failover, virtual IP và các giới hạn hội tụ
+  - 'Trạng thái cục bộ: session, cache, rate limit và ảnh hưởng khi đổi bản sao'
+  - Graceful shutdown và connection draining khi bảo trì
+  - Reload cấu hình và tác động tới kết nối mới, kết nối đang xử lý
+  - Khôi phục khi upstream, DNS hoặc một vùng mạng gặp sự cố
+  - Kiểm thử lỗi, phạm vi ảnh hưởng và tiêu chí phục hồi
+- level1: Triển khai
+  level2:
+  - Đặt proxy tại biên mạng, vùng trung gian hoặc cạnh ứng dụng
+  - Địa chỉ bind, port mapping, firewall và đường đi trong môi trường container
+  - Kết nối tới upstream qua mạng riêng và hạn chế đường đi bỏ qua proxy
+  - Quản lý cấu hình, biến môi trường và bí mật theo môi trường
+  - Kiểm tra hợp lệ cấu hình trước khi áp dụng
+  - Triển khai thay đổi theo giai đoạn và chuẩn bị phương án rollback
+  - Thiết kế endpoint kiểm tra sức khỏe cho chính proxy và cho upstream
+  - Chính sách chuyển tiếp header thống nhất giữa proxy với ứng dụng
+  - Tài liệu hóa topology, cổng, timeout, giới hạn và trách nhiệm vận hành
+- level1: Chẩn đoán lỗi
+  level2:
+  - Khoanh vùng lỗi tại client, DNS, proxy, mạng hay upstream
+  - Phân biệt 400, 401, 403, 407, 413 và 429 theo chặng phát sinh
+  - '502, 503 và 504: nguyên nhân thường gặp và bằng chứng cần kiểm tra'
+  - Connection refused, timeout, reset và lỗi TLS khác nhau như thế nào
+  - Vòng lặp chuyển hướng khi thông tin HTTP/HTTPS công khai bị sai
+  - Sai đường dẫn, tài nguyên tĩnh, cookie và phiên đăng nhập sau proxy
+  - Sai IP client hoặc giả mạo header do cấu hình trust proxy
+  - WebSocket, SSE hoặc gRPC bị ngắt dù yêu cầu HTTP thông thường vẫn chạy
+  - 'Lỗi chỉ xuất hiện khi tải cao: pool, hàng đợi, cổng nguồn và bộ nhớ'
+  - Dùng curl, openssl s_client, dig, ss và tcpdump để thu bằng chứng theo từng chặng
+  - Lập bảng giả thuyết, tái hiện tối thiểu và xác minh sau khi sửa
+- level1: Lựa chọn giải pháp
+  level2:
+  - Khi nào cần forward proxy, reverse proxy hoặc chỉ cần kết nối trực tiếp
+  - Tiêu chí chọn proxy tầng 4 hay tầng 7 theo giao thức và mục tiêu
+  - Chọn điểm kết thúc TLS theo yêu cầu quan sát và bảo vệ dữ liệu
+  - Phân định reverse proxy, API gateway, ingress controller, CDN và service mesh
+  - Đánh giá tính năng, độ tin cậy, hiệu năng và chi phí vận hành
+  - Cân nhắc proxy tự quản lý và dịch vụ proxy được quản lý
+  - Khi nào chuyển sang học triển khai Nginx hoặc HAProxy
+  - Checklist thiết kế và các ngộ nhận phổ biến về proxy
+- level1: Thực hành
+  level2:
+  - Vẽ và giải thích luồng direct, forward proxy và reverse proxy
+  - Quan sát hai chặng TCP cùng địa chỉ nguồn bằng công cụ mạng
+  - So sánh HTTP qua forward proxy với HTTPS qua CONNECT
+  - Đối chiếu TLS passthrough, termination và re-encryption bằng chứng chỉ và log
+  - Thử định tuyến theo host, đường dẫn và xử lý route không khớp
+  - Thử giả mạo X-Forwarded-For trong phạm vi lab để kiểm chứng ranh giới tin cậy
+  - Quan sát cân bằng tải và loại upstream lỗi khi dừng một dịch vụ
+  - Tạo timeout và retry có kiểm soát để phát hiện thao tác bị thực hiện lặp
+  - Đối chiếu buffering với streaming bằng phản hồi chậm hoặc SSE
+  - Kiểm chứng cache HIT, xác thực lại và không lưu phản hồi cá nhân
+  - Thử tải và đo tác động của keep-alive, pool và giới hạn tài nguyên
+  - Thực hành đọc log để phân biệt lỗi 502, 503 và 504
+  - 'Bài tập tổng hợp: thiết kế proxy cho ứng dụng web và bảo vệ quyết định bằng bằng chứng'

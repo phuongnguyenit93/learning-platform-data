@@ -1,0 +1,3805 @@
+menu:
+- slug: diagnostic-methodology
+  title: Tư duy chẩn đoán
+  childs:
+  - slug: diagnostic-methodology-001
+    title: Troubleshooting là gì và mục tiêu của việc chẩn đoán hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-002
+    title: Phân biệt triệu chứng, nguyên nhân trực tiếp và nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-003
+    title: Phân biệt lỗi chức năng, suy giảm hiệu năng và cạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-004
+    title: Ứng dụng, runtime, hệ điều hành và phần cứng liên hệ như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-005
+    title: Xác định phạm vi một người dùng, một tiến trình, một máy hay toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-006
+    title: Quan sát dữ liệu trước khi thay cấu hình hoặc khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-007
+    title: Đặt giả thuyết có thể kiểm chứng thay vì đoán theo kinh nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-008
+    title: Tương quan không đồng nghĩa với quan hệ nhân quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-009
+    title: Phân biệt tải cao hợp lệ với hành vi bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-methodology-010
+    title: Thuật ngữ, kiến thức nền và lộ trình học chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response-workflow
+  title: Quy trình xử lý sự cố
+  childs:
+  - slug: incident-response-workflow-001
+    title: Mô tả tác động, thời điểm bắt đầu và điều kiện xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-002
+    title: Đánh giá mức nghiêm trọng và ưu tiên khôi phục chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-003
+    title: Thu thập thông tin môi trường và thay đổi gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-004
+    title: Tái hiện lỗi và ghi lại các bước tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-005
+    title: Lập dòng thời gian từ bằng chứng nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-006
+    title: Khoanh vùng theo từng tầng và thu hẹp phạm vi tìm kiếm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-007
+    title: So sánh với thời điểm hoặc máy đang hoạt động bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-008
+    title: Thay đổi một yếu tố và giữ khả năng đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-009
+    title: Phân biệt giảm tác động tạm thời với sửa nguyên nhân gốc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-010
+    title: Lưu bằng chứng dễ mất trước khi can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-011
+    title: Xác định điều kiện dừng điều tra và chuyển giao chuyên môn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-workflow-012
+    title: Xác minh dịch vụ đã phục hồi từ góc nhìn người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-mapping
+  title: Bản đồ hệ thống
+  childs:
+  - slug: system-mapping-001
+    title: Xác định hệ điều hành, kernel, kiến trúc CPU và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-002
+    title: Nhận diện máy vật lý, máy ảo, WSL và container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-003
+    title: Xác định PID, người dùng và dịch vụ sở hữu tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-004
+    title: Đường đi từ request đến tiến trình, tệp, socket và thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-005
+    title: Bản đồ phụ thuộc tới DNS, mạng, lưu trữ và dịch vụ ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-006
+    title: Phân biệt CPU logic, bộ nhớ được cấp và tài nguyên khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-007
+    title: Filesystem, mount point và thiết bị lưu trữ bên dưới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-008
+    title: Địa chỉ IP, interface, route và không gian mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-009
+    title: Giới hạn tài nguyên theo tiến trình, phiên đăng nhập và nhóm tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-010
+    title: Quyền quan sát và các dữ liệu không thấy được do thiếu đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-mapping-011
+    title: Chọn điểm đo phù hợp với triệu chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: linux-tools
+  title: Công cụ Linux
+  childs:
+  - slug: linux-tools-001
+    title: uname, thông tin bản phân phối và nhận diện môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-002
+    title: ps, top, htop và quan sát tiến trình theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-003
+    title: uptime, load average và giới hạn suy luận về CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-004
+    title: vmstat và mối liên hệ giữa CPU, bộ nhớ, I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-005
+    title: free và cách đọc bộ nhớ khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-006
+    title: pidstat, mpstat và phân tích theo tiến trình hoặc CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-007
+    title: iostat và số đo thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-008
+    title: df, du và kiểm kê dung lượng filesystem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-009
+    title: ss, ip và trạng thái mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-010
+    title: lsof và tài nguyên đang mở của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-011
+    title: journalctl, dmesg và log hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-012
+    title: /proc, /sys và dữ liệu do kernel công bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: linux-tools-013
+    title: Chọn khoảng lấy mẫu và tránh hiểu sai ảnh chụp tức thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: windows-tools
+  title: Công cụ Windows
+  childs:
+  - slug: windows-tools-001
+    title: Task Manager và nhận diện tiến trình hoặc tài nguyên bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-002
+    title: Resource Monitor và đối chiếu CPU, bộ nhớ, đĩa, mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-003
+    title: Performance Monitor và bộ đếm hiệu năng theo thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-004
+    title: Event Viewer và Windows Event Log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-005
+    title: PowerShell Get-Process, Get-Service và Get-WinEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-006
+    title: Get-Counter và thu thập số đo có thể đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-007
+    title: Process Explorer và cây tiến trình, handle, DLL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-008
+    title: Process Monitor và theo dõi tệp, Registry, tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-009
+    title: TCPView, Get-NetTCPConnection và tài nguyên mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-010
+    title: Reliability Monitor và lịch sử lỗi hoặc cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-011
+    title: Phân biệt bộ công cụ có sẵn với công cụ cần cài thêm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-tools-012
+    title: Quyền truy cập, kiến trúc tiến trình và giới hạn quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: macos-tools
+  title: Công cụ macOS
+  childs:
+  - slug: macos-tools-001
+    title: Activity Monitor và đọc CPU, bộ nhớ, năng lượng, đĩa, mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-002
+    title: Memory Pressure và khác biệt với chỉ số bộ nhớ trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-003
+    title: ps, top, lsof và kiểm tra tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-004
+    title: vm_stat và số liệu bộ nhớ ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-005
+    title: Console, log show và log stream
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-006
+    title: launchctl và trạng thái dịch vụ launchd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-007
+    title: sample, spindump và tiến trình không phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-008
+    title: fs_usage và theo dõi thao tác filesystem
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-009
+    title: Công cụ mạng và phân biệt hành vi với Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: macos-tools-010
+    title: Quyền riêng tư, quyền quản trị và giới hạn truy cập dữ liệu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logs-and-evidence
+  title: Log và bằng chứng
+  childs:
+  - slug: logs-and-evidence-001
+    title: Phân biệt log ứng dụng, runtime, dịch vụ và kernel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-002
+    title: Chọn khoảng thời gian và ngữ cảnh thay vì chỉ tìm từ ERROR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-003
+    title: Đồng bộ timestamp, múi giờ và định dạng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-004
+    title: Liên kết PID, tên dịch vụ, mã request và phiên khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-005
+    title: Đọc chuỗi sự kiện trước và sau lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-006
+    title: Phân biệt lỗi gốc với lỗi dây chuyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-007
+    title: Log bị xoay vòng, ghi đè, trì hoãn hoặc mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-008
+    title: Giới hạn tốc độ ghi log và tác động tới bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-009
+    title: Thu thập trạng thái tiến trình, socket và tài nguyên cùng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-010
+    title: Bảo vệ credential và dữ liệu cá nhân trong gói chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-011
+    title: Ghi lại câu lệnh, phiên bản công cụ và điều kiện thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logs-and-evidence-012
+    title: Lưu bằng chứng đủ để người khác kiểm tra lại kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cpu-and-load
+  title: CPU và tải
+  childs:
+  - slug: cpu-and-load-001
+    title: CPU utilization, load average, hàng đợi chạy và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-002
+    title: User time, system time, idle và thời gian chờ liên quan I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-003
+    title: Phân biệt toàn máy bận với một core bị bão hòa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-004
+    title: Tiến trình dùng CPU cao và tiến trình gây nhiều công việc kernel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-005
+    title: Luồng bận liên tục, vòng lặp và tính toán hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-006
+    title: Context switch, scheduler và nhiều luồng tranh chấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-007
+    title: CPU steal trong máy ảo và giới hạn cách diễn giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-008
+    title: CPU throttling do quota hoặc điều kiện phần cứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-009
+    title: Affinity, số CPU khả dụng và tác động của cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-010
+    title: Interrupt, softirq và tải từ mạng hoặc thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-011
+    title: Chênh lệch số đo CPU giữa công cụ và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cpu-and-load-012
+    title: Thu thập mẫu stack trước khi kết luận cần tăng CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: processes-and-threads
+  title: Tiến trình và luồng
+  childs:
+  - slug: processes-and-threads-001
+    title: Nhận diện tiến trình treo, thoát, khởi động lại hoặc bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-002
+    title: Cây tiến trình, tiến trình cha và tiến trình con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-003
+    title: Trạng thái chạy, ngủ, chờ I/O và dừng theo từng hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-004
+    title: Zombie, orphan và trách nhiệm thu hồi tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-005
+    title: Phân biệt tiến trình còn tồn tại với tiến trình còn phục vụ được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-006
+    title: Luồng chờ khóa, deadlock và starvation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-007
+    title: Số luồng tăng liên tục và cạn tài nguyên tạo luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-008
+    title: Lấy mẫu stack và nhận diện luồng gây nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-009
+    title: Signal, exit code và nguyên nhân tiến trình kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-010
+    title: Tiến trình không nhận tín hiệu dừng hoặc không thể kết thúc ngay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-011
+    title: Quyền sở hữu tiến trình và khác biệt giữa tài khoản chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: processes-and-threads-012
+    title: Rà soát tác vụ con còn sót sau khi dịch vụ dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory
+  title: Bộ nhớ
+  childs:
+  - slug: memory-001
+    title: Bộ nhớ vật lý, bộ nhớ ảo và bộ nhớ đã cam kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-002
+    title: Phân biệt used, free, available và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-003
+    title: RSS, VSS, PSS và giới hạn khi cộng bộ nhớ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-004
+    title: Working set, private bytes và commit trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-005
+    title: Page fault nhẹ, page fault nặng và tác động độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-006
+    title: Swap, paging và hiện tượng thrashing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-007
+    title: Memory pressure và cạn bộ nhớ thực sự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-008
+    title: Rò rỉ bộ nhớ so với cache hoặc tải tăng hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-009
+    title: Phân mảnh bộ nhớ và cấp phát thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-010
+    title: OOM killer, giới hạn cgroup và tiến trình bị kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-011
+    title: Kernel memory, slab và bộ nhớ không thuộc heap ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-012
+    title: Theo dõi xu hướng trước, trong và sau chu kỳ tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-013
+    title: Chọn giảm tải, sửa rò rỉ hoặc điều chỉnh giới hạn theo bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-io
+  title: I/O lưu trữ
+  childs:
+  - slug: storage-io-001
+    title: Đọc ghi logic của ứng dụng và I/O thực tới thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-002
+    title: IOPS, throughput, latency và queue depth
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-003
+    title: I/O đồng bộ, bất đồng bộ và thao tác phải chờ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-004
+    title: Đọc ngẫu nhiên, ghi ngẫu nhiên và truy cập tuần tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-005
+    title: Xác định tiến trình tạo tải I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-006
+    title: Phân biệt hàng đợi dài với thiết bị xử lý chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-007
+    title: Giới hạn suy luận từ utilization hoặc iowait riêng lẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-008
+    title: Page cache, writeback và độ trễ ghi bị dồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-009
+    title: fsync, flush và yêu cầu dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-010
+    title: Độ trễ do lưu trữ từ xa hoặc lớp ảo hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-011
+    title: Lỗi thiết bị, timeout và retry trong log kernel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-io-012
+    title: Đối chiếu số đo ứng dụng, filesystem và thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: disk-space-and-filesystems
+  title: Dung lượng và filesystem
+  childs:
+  - slug: disk-space-and-filesystems-001
+    title: Filesystem đầy dung lượng và đầy inode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-002
+    title: df khác du khi nào và cách đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-003
+    title: Tệp đã xóa nhưng tiến trình vẫn giữ mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-004
+    title: Log, tệp tạm, cache và dump tăng ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-005
+    title: Sparse file, hard link và dung lượng thực sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-006
+    title: Quota, reserved space và giới hạn theo người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-007
+    title: Mount sai nơi và dữ liệu ghi vào filesystem ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-008
+    title: Read-only filesystem và nguyên nhân chuyển sang chỉ đọc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-009
+    title: Lỗi metadata, hỏng dữ liệu và giới hạn của việc tiếp tục ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-010
+    title: Snapshot, volume và lớp lưu trữ làm lệch số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-011
+    title: Kiểm tra đường dẫn, symlink và khác biệt chữ hoa chữ thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: disk-space-and-filesystems-012
+    title: Dọn dữ liệu theo quyền sở hữu và xác minh dung lượng được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: permissions-and-policies
+  title: Quyền và chính sách
+  childs:
+  - slug: permissions-and-policies-001
+    title: Permission denied và phân biệt với tệp không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-002
+    title: Chủ sở hữu, nhóm và quyền trên từng thành phần đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-003
+    title: Quyền đọc, ghi, thực thi và truy cập thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-004
+    title: ACL và quyền hiệu lực trên Linux hoặc Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-005
+    title: UID, GID, service account và danh tính thực sự của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-006
+    title: UAC, token truy cập và mức đặc quyền trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-007
+    title: SELinux, AppArmor và log từ chối theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-008
+    title: Antivirus hoặc chính sách bảo vệ chặn tệp và tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-009
+    title: Quyền của service khác phiên đăng nhập tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-010
+    title: Credential, secret, chứng chỉ và quyền truy cập vật liệu bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-011
+    title: Filesystem hoặc container chỉ đọc khác thiếu quyền như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: permissions-and-policies-012
+    title: Khắc phục đúng phạm vi thay vì cấp quyền rộng để che nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-connectivity
+  title: Kết nối mạng
+  childs:
+  - slug: network-connectivity-001
+    title: Khoanh vùng từ máy cục bộ tới đích theo từng chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-002
+    title: Interface, địa chỉ IP, subnet và default gateway
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-003
+    title: Route được chọn và khác biệt đường đi hai chiều
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-004
+    title: Ping thành công hoặc thất bại cho biết được điều gì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-005
+    title: Packet loss, latency, jitter và retransmission
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-006
+    title: Firewall, rule hệ điều hành và chính sách mạng ngoài máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-007
+    title: VPN, nhiều interface và route ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-008
+    title: MTU, Path MTU Discovery và kết nối chỉ lỗi với dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-009
+    title: NAT, connection tracking và giới hạn trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-010
+    title: Proxy cấu hình trong môi trường hoặc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-011
+    title: Phân biệt băng thông đầy với kết nối có độ trễ cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-connectivity-012
+    title: Đối chiếu kết quả từ máy gặp lỗi và máy đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: name-resolution
+  title: Phân giải tên
+  childs:
+  - slug: name-resolution-001
+    title: DNS resolution khác khả năng kết nối tới địa chỉ IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-002
+    title: dig, nslookup và công cụ phân giải theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-003
+    title: Resolver của hệ điều hành khác công cụ truy vấn DNS trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-004
+    title: hosts file, search domain và thứ tự nguồn phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-005
+    title: DNS cache, TTL và dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-006
+    title: NXDOMAIN, timeout và lỗi máy chủ phân giải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-007
+    title: Phân giải A, AAAA và lựa chọn IPv4 hoặc IPv6
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-008
+    title: Split DNS, VPN và tên nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-009
+    title: Container hoặc máy ảo dùng resolver khác máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-010
+    title: DNS trong runtime và bộ nhớ đệm của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: name-resolution-011
+    title: Tên phân giải được nhưng trỏ tới đích sai hoặc chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ports-and-sockets
+  title: Cổng và socket
+  childs:
+  - slug: ports-and-sockets-001
+    title: Cổng lắng nghe, địa chỉ bind và tiến trình sở hữu socket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-002
+    title: ss, netstat, lsof và Get-NetTCPConnection theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-003
+    title: Connection refused khác connection timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-004
+    title: Kết nối thành công nhưng không nhận được dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-005
+    title: Trạng thái SYN, ESTABLISHED, TIME_WAIT và CLOSE_WAIT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-006
+    title: Phân biệt kết nối hợp lệ với socket bị giữ ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-007
+    title: Giới hạn backlog và ứng dụng không accept kịp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-008
+    title: Cạn ephemeral port và nhiều kết nối ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-009
+    title: Giới hạn file descriptor ảnh hưởng tới socket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-010
+    title: UDP không có kết nối và khó khăn khi xác nhận đích sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-011
+    title: Kiểm tra cả hai đầu trước khi kết luận lỗi mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ports-and-sockets-012
+    title: Tái sử dụng cổng và xung đột giữa các instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-and-access-paths
+  title: TLS và đường truy cập
+  childs:
+  - slug: tls-and-access-paths-001
+    title: Khoanh vùng TCP thành công nhưng TLS handshake thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-002
+    title: Chứng chỉ hết hạn, chưa có hiệu lực hoặc sai tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-003
+    title: Chuỗi tin cậy và trust store theo hệ điều hành hoặc runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-004
+    title: Đồng hồ hệ thống ảnh hưởng kiểm tra chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-005
+    title: SNI, tên đích và thử kết nối trực tiếp bằng địa chỉ IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-006
+    title: Phiên bản giao thức hoặc thuật toán không tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-007
+    title: mTLS và lỗi xác thực chứng chỉ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-008
+    title: Reverse proxy, load balancer và điểm kết thúc TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-009
+    title: HTTP trả lỗi khác với không kết nối được ở tầng hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-010
+    title: Đối chiếu timeout, redirect và header qua nhiều tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-and-access-paths-011
+    title: Thu thập bằng chứng handshake mà không làm lộ khóa hoặc credential
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-services
+  title: Dịch vụ hệ thống
+  childs:
+  - slug: system-services-001
+    title: Tiến trình chạy được thủ công nhưng dịch vụ không khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-002
+    title: systemctl status, journalctl và vòng đời dịch vụ systemd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-003
+    title: Windows Services, Service Control Manager và mã lỗi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-004
+    title: launchd và dịch vụ nền trên macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-005
+    title: Working directory, tài khoản và biến môi trường của dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-006
+    title: Quan hệ phụ thuộc và thứ tự khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-007
+    title: Readiness, startup timeout và dịch vụ khởi động chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-008
+    title: Restart policy và vòng lặp khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-009
+    title: Giới hạn tài nguyên được áp dụng riêng cho dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-010
+    title: Tệp cấu hình, quyền đọc và đường dẫn executable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-011
+    title: Dịch vụ nhận lệnh stop nhưng tiến trình con còn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-services-012
+    title: Kiểm chứng trạng thái sau khởi động lại hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: boot-and-kernel
+  title: Khởi động và kernel
+  childs:
+  - slug: boot-and-kernel-001
+    title: Khoanh vùng lỗi trước và sau khi hệ điều hành được nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-002
+    title: Firmware, bootloader và chọn thiết bị khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-003
+    title: Filesystem gốc không mount được và phụ thuộc lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-004
+    title: Driver, kernel module và thiết bị không được nhận diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-005
+    title: Log của phiên khởi động hiện tại và phiên trước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-006
+    title: Kernel panic, lỗi dừng Windows và dữ liệu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-007
+    title: Khởi động chậm do dịch vụ, timeout hoặc thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-008
+    title: Chế độ phục hồi, safe mode và mục tiêu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-009
+    title: Cấu hình boot thay đổi sau cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-010
+    title: Phân biệt mất nguồn, reset và shutdown có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: boot-and-kernel-011
+    title: Thu thập bằng chứng trước khi sửa cấu hình khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shell-and-environment
+  title: Shell và môi trường
+  childs:
+  - slug: shell-and-environment-001
+    title: Command not found và thứ tự tìm executable trong PATH
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-002
+    title: Cùng tên lệnh nhưng khác phiên bản hoặc đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-003
+    title: Biến môi trường theo user, phiên shell, dịch vụ và container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-004
+    title: Working directory và đường dẫn tương đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-005
+    title: Quoting, escaping và đối số bị shell diễn giải khác dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-006
+    title: Quyền thực thi, shebang và trình thông dịch không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-007
+    title: Line ending, encoding và ký tự không hiển thị trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-008
+    title: PowerShell Execution Policy khác quyền truy cập tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-009
+    title: Locale, timezone và định dạng dữ liệu phụ thuộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-010
+    title: Exit code, standard output và standard error
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-011
+    title: Pipeline che mất lỗi hoặc thay đổi cách truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shell-and-environment-012
+    title: Tái hiện lệnh bằng môi trường tối thiểu và ghi lại khác biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: libraries-and-config
+  title: Thư viện và cấu hình
+  childs:
+  - slug: libraries-and-config-001
+    title: Executable tồn tại nhưng không chạy do thiếu dependency
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-002
+    title: Shared library, DLL và đường dẫn nạp thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-003
+    title: Sai kiến trúc CPU hoặc định dạng executable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-004
+    title: Xung đột phiên bản thư viện và ABI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-005
+    title: Thư viện được nạp thực tế khác với thư viện dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-006
+    title: Tệp cấu hình không được đọc hoặc bị nguồn khác ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-007
+    title: Cấu hình theo user khác cấu hình toàn máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-008
+    title: Registry, tệp cấu hình và môi trường theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-009
+    title: Ứng dụng dùng cấu hình cũ do cache hoặc chưa khởi động lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-010
+    title: Đối chiếu cấu hình hiệu lực với tệp cấu hình trên đĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: libraries-and-config-011
+    title: Phân biệt sửa dependency với thay toàn bộ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-limits
+  title: Giới hạn tài nguyên
+  childs:
+  - slug: resource-limits-001
+    title: Giới hạn mềm, giới hạn cứng và phạm vi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-002
+    title: ulimit, limits và giới hạn của phiên thực sự chạy ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-003
+    title: File descriptor, handle và tài nguyên đối tượng theo nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-004
+    title: Số tiến trình, số luồng và lỗi tạo tác vụ mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-005
+    title: Không gian địa chỉ, stack và lỗi cấp phát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-006
+    title: cgroup, systemd resource control và quota container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-007
+    title: Windows Job Object và giới hạn theo nhóm tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-008
+    title: Quota lưu trữ, inode và giới hạn theo người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-009
+    title: Giới hạn bộ nhớ khóa hoặc tài nguyên kernel theo nhu cầu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-010
+    title: Tăng giới hạn có thể chuyển điểm nghẽn sang đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-011
+    title: Kiểm tra rò rỉ trước khi quyết định tăng giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-limits-012
+    title: Xác minh giới hạn mới đã áp dụng tới đúng tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scheduled-tasks-and-time
+  title: Thời gian và tác vụ định kỳ
+  childs:
+  - slug: scheduled-tasks-and-time-001
+    title: Đồng hồ hệ thống, timezone và timestamp trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-002
+    title: Đồng bộ thời gian và hiện tượng clock drift
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-003
+    title: Thời gian thực khác đồng hồ đơn điệu khi đo độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-004
+    title: DST và tác vụ chạy lặp hoặc bị bỏ qua
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-005
+    title: cron, systemd timer và Windows Task Scheduler
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-006
+    title: Tác vụ định kỳ có môi trường khác shell tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-007
+    title: Quyền đăng nhập, credential và đường dẫn của tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-008
+    title: Tác vụ chồng lấn, khóa chống chạy trùng và chạy quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-009
+    title: Máy ngủ, khởi động lại và lịch chạy bị lỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-010
+    title: Timeout nghiệp vụ hoặc chứng chỉ lỗi do sai thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scheduled-tasks-and-time-011
+    title: Đối chiếu thời điểm phát sinh sự cố giữa nhiều máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-mounts
+  title: Mount và lưu trữ mạng
+  childs:
+  - slug: network-mounts-001
+    title: Mount point có tồn tại nhưng nguồn lưu trữ chưa sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-002
+    title: Thiết bị, volume và filesystem được mount sai nơi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-003
+    title: NFS, SMB và quyền truy cập từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-004
+    title: Credential, ánh xạ danh tính và quyền hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-005
+    title: Độ trễ mạng biểu hiện thành tiến trình chờ I/O
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-006
+    title: Stale handle, kết nối bị gián đoạn và mount không phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-007
+    title: File locking giữa nhiều máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-008
+    title: Tệp đã ghi nhưng chưa thấy do cache hoặc ngữ nghĩa chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-009
+    title: Mapped drive trong phiên đăng nhập khác với dịch vụ Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-010
+    title: Mount namespace và đường dẫn nhìn thấy trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-mounts-011
+    title: Khôi phục kết nối mà vẫn bảo toàn trạng thái dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: virtual-machines-and-wsl
+  title: Máy ảo và WSL
+  childs:
+  - slug: virtual-machines-and-wsl-001
+    title: Phân biệt số đo guest với số đo host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-002
+    title: CPU oversubscription, steal time và tranh chấp trên host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-003
+    title: Bộ nhớ được cấp, ballooning và áp lực từ máy chủ vật lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-004
+    title: Đĩa ảo, snapshot và độ trễ lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-005
+    title: NAT, bridge và đường đi mạng của máy ảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-006
+    title: Đồng hồ guest, suspend và resume
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-007
+    title: Giới hạn I/O hoặc mạng do nền tảng ảo hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-008
+    title: WSL và ranh giới giữa môi trường Linux với Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-009
+    title: Hiệu năng truy cập tệp qua ranh giới filesystem của WSL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-010
+    title: DNS, VPN và kết nối giữa host với guest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: virtual-machines-and-wsl-011
+    title: Thu thập bằng chứng ở cả host lẫn guest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: containers
+  title: Container
+  childs:
+  - slug: containers-001
+    title: PID, mount, network namespace và góc nhìn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-002
+    title: Container lỗi khác tiến trình trên host lỗi như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-003
+    title: CPU quota, throttling và số CPU ứng dụng nhận biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-004
+    title: Giới hạn RAM, OOM kill và exit status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-005
+    title: Volume, bind mount và quyền UID/GID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-006
+    title: Overlay filesystem và nơi dung lượng thực sự tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-007
+    title: DNS, service name và kết nối từ trong container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-008
+    title: Port publish, địa chỉ bind và localhost theo namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-009
+    title: Read-only filesystem, tệp tạm và quyền ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-010
+    title: PID 1, tín hiệu dừng và tiến trình con không được thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-011
+    title: Health check thất bại dù tiến trình vẫn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-012
+    title: Log container, log ứng dụng và log kernel trên host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-013
+    title: Image, command, entrypoint và môi trường không khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: containers-014
+    title: Phân biệt lỗi ứng dụng với lỗi node hoặc nền tảng điều phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-applications
+  title: Ứng dụng Java
+  childs:
+  - slug: java-applications-001
+    title: PID JVM, lệnh khởi động và Java thực sự đang được dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-002
+    title: CPU cao do mã ứng dụng, GC hoặc công việc kernel
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-003
+    title: Ánh xạ native thread ID với luồng trong thread dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-004
+    title: Thread pool bão hòa, deadlock và chờ kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-005
+    title: Heap, Metaspace, direct memory và bộ nhớ tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-006
+    title: OutOfMemoryError khác tiến trình bị OOM killer kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-007
+    title: Không tạo được native thread và giới hạn hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-008
+    title: Too many open files và rò rỉ tệp hoặc socket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-009
+    title: JFR, jcmd, thread dump và heap dump theo mục tiêu chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-010
+    title: Attach thất bại do user, namespace hoặc quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-011
+    title: JVM fatal error, hs_err và thư viện native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-012
+    title: Container nhận biết tài nguyên và cấu hình JVM không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-013
+    title: Phối hợp số đo JVM với CPU, bộ nhớ, I/O của hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crashes-and-dumps
+  title: Crash và bản dump
+  childs:
+  - slug: crashes-and-dumps-001
+    title: Phân biệt crash, treo, bị kill và kết thúc bình thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-002
+    title: Exit code hoặc signal và giới hạn khi suy luận nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-003
+    title: Core dump trên Linux và điều kiện được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-004
+    title: Windows Error Reporting, crash dump và loại dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-005
+    title: Core dump bị chặn do giới hạn, quyền hoặc dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-006
+    title: Thu thập dump của tiến trình đang treo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-007
+    title: Symbol, phiên bản executable và thư viện dùng khi phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-008
+    title: Stack trace, module lỗi và trạng thái luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-009
+    title: Dump của runtime khác dump của tiến trình native
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-010
+    title: Chi phí dừng, dung lượng và dữ liệu nhạy cảm trong dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-011
+    title: Đối chiếu dump với log và số đo cùng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crashes-and-dumps-012
+    title: Lưu hiện vật đủ để tái phân tích sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-tracing
+  title: Truy vết nâng cao
+  childs:
+  - slug: advanced-tracing-001
+    title: Khi số đo tổng hợp chưa đủ để kiểm chứng giả thuyết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-002
+    title: strace và phân tích system call trên Linux
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-003
+    title: Đọc thời gian chờ, mã lỗi và đối số system call
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-004
+    title: perf và lấy mẫu CPU hoặc sự kiện hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-005
+    title: eBPF và điều kiện hỗ trợ của kernel, công cụ, quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-006
+    title: Process Monitor và lọc theo tiến trình hoặc đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-007
+    title: ETW, Windows Performance Recorder và Windows Performance Analyzer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-008
+    title: sample, spindump và công cụ truy vết macOS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-009
+    title: Packet capture bằng tcpdump hoặc Wireshark theo câu hỏi cần trả lời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-010
+    title: Kết hợp trace của ứng dụng với trace hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-011
+    title: Giới hạn thời gian, bộ lọc và chi phí quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-tracing-012
+    title: Phân biệt bằng chứng lấy mẫu với theo dõi mọi sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hardware-and-devices
+  title: Phần cứng và thiết bị
+  childs:
+  - slug: hardware-and-devices-001
+    title: Phân biệt lỗi phần cứng với bão hòa tài nguyên hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-002
+    title: Nhiệt độ, công suất và CPU giảm xung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-003
+    title: Lỗi RAM, ECC và thông báo phần cứng trong log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-004
+    title: Tình trạng ổ đĩa, SMART và giới hạn của dự báo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-005
+    title: Lỗi đọc ghi, reset thiết bị và mất kết nối lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-006
+    title: Driver, firmware và sự cố sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-007
+    title: Card mạng, link flapping và lỗi cổng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-008
+    title: Nguồn điện, pin và shutdown ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-009
+    title: Thiết bị ngoại vi ảnh hưởng khởi động hoặc hiệu năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hardware-and-devices-010
+    title: Xác minh bằng kiểm tra chéo và tránh kết luận từ một chỉ số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-analysis
+  title: Phân tích hiệu năng
+  childs:
+  - slug: performance-analysis-001
+    title: Đặt mục tiêu độ trễ, thông lượng và mức tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-002
+    title: Baseline theo thời gian, nhóm máy và loại công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-003
+    title: Utilization, saturation, errors trong mô hình USE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-004
+    title: Rate, errors, duration trong mô hình RED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-005
+    title: Trung bình, percentile và độ trễ đuôi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-006
+    title: Khoảng lấy mẫu che mất tải đột biến như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-007
+    title: Hàng đợi, mức đồng thời và thời gian chờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-008
+    title: Tìm điểm nghẽn thay vì tăng đồng loạt mọi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-009
+    title: Phân biệt tăng nhu cầu với suy giảm năng lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-010
+    title: Đối chiếu tài nguyên toàn máy với tiến trình và request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-011
+    title: Thiết kế phép đo trước và sau thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-analysis-012
+    title: Tránh dùng benchmark không giống tải vận hành để kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: changes-and-regressions
+  title: Thay đổi và hồi quy
+  childs:
+  - slug: changes-and-regressions-001
+    title: Liên kết sự cố với cập nhật phần mềm hoặc cấu hình gần nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-002
+    title: Chênh lệch phiên bản giữa các máy cùng vai trò
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-003
+    title: Cập nhật kernel, driver và thư viện hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-004
+    title: Thay đổi tài khoản, quyền hoặc chính sách bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-005
+    title: Thay đổi DNS, route, firewall và proxy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-006
+    title: Thay đổi giới hạn tài nguyên hoặc cấu hình dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-007
+    title: So sánh cấu hình hiệu lực thay vì chỉ so sánh tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-008
+    title: Canary, thử trên một máy và kiểm soát phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-009
+    title: Quay lui cấu hình khác quay lui dữ liệu hoặc lược đồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-010
+    title: Xác nhận hồi quy bằng phép thử có thể lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: changes-and-regressions-011
+    title: Lưu quyết định, người thực hiện và thời điểm thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: recovery-and-validation
+  title: Khôi phục và kiểm chứng
+  childs:
+  - slug: recovery-and-validation-001
+    title: Chọn biện pháp giảm tác động theo tài nguyên đang nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-002
+    title: Khởi động lại tiến trình, dịch vụ hoặc máy theo phạm vi cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-003
+    title: Giải phóng dung lượng mà không làm mất dữ liệu cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-004
+    title: Khôi phục cấu hình hoặc phiên bản đã xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-005
+    title: Loại máy lỗi khỏi luồng phục vụ trước khi can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-006
+    title: Kiểm tra chức năng, kết nối và dữ liệu sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-007
+    title: Kiểm tra số đo đã ổn định qua một chu kỳ tải phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-008
+    title: Theo dõi tác dụng phụ và điểm nghẽn mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-009
+    title: Phân biệt phục hồi tạm thời với sự cố đã được xử lý dứt điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-010
+    title: Chuẩn bị điều kiện quay lui nếu biện pháp không hiệu quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: recovery-and-validation-011
+    title: Bàn giao trạng thái, phần còn chưa rõ và việc cần tiếp tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: root-cause-analysis
+  title: Nguyên nhân gốc
+  childs:
+  - slug: root-cause-analysis-001
+    title: Xây dựng kết luận từ dòng thời gian và bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-002
+    title: Phân biệt nguyên nhân kích hoạt với điều kiện góp phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-003
+    title: Five Whys, cây giả thuyết và giới hạn của từng cách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-004
+    title: Giải thích vì sao cơ chế phát hiện không báo sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-005
+    title: Phân biệt lỗi cá nhân với điều kiện hệ thống cho phép lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-006
+    title: Hành động khắc phục có chủ sở hữu và tiêu chí hoàn thành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-007
+    title: Runbook theo triệu chứng và điều kiện áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-008
+    title: Chọn số đo, cảnh báo và baseline còn thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-009
+    title: Kiểm chứng biện pháp ngăn tái diễn bằng tình huống tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-010
+    title: Báo cáo điều đã biết, chưa biết và mức chắc chắn của kết luận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: root-cause-analysis-011
+    title: Cập nhật tài liệu từ bài học có thể áp dụng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diagnostic-labs
+  title: Thực hành chẩn đoán
+  childs:
+  - slug: diagnostic-labs-001
+    title: Dựng môi trường thí nghiệm và ghi lại cấu hình ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-002
+    title: Điều tra CPU cao và phân biệt một core với toàn máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-003
+    title: Tái hiện chờ khóa rồi đối chiếu stack và số đo CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-004
+    title: Phân biệt cache tăng, rò rỉ bộ nhớ và OOM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-005
+    title: Điều tra đĩa đầy do tệp đã xóa còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-006
+    title: Phân biệt đầy inode với đầy dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-007
+    title: Chẩn đoán cạn file descriptor và kết nối không được đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-008
+    title: Tái hiện bind sai địa chỉ, trùng cổng và DNS sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-009
+    title: Chẩn đoán dịch vụ chạy thủ công được nhưng chạy nền thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-010
+    title: Điều tra tác vụ định kỳ sai môi trường hoặc đường dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-011
+    title: Đối chiếu JVM heap với RSS và giới hạn container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-012
+    title: Phân tích lỗi quyền bằng đúng tài khoản chạy dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-013
+    title: Lập dòng thời gian từ log nhiều nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-014
+    title: Thử một biện pháp khắc phục và kiểm chứng trước–sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diagnostic-labs-015
+    title: Viết báo cáo nguyên nhân gốc và runbook có bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

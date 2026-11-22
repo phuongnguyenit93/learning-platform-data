@@ -1,0 +1,431 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kết nối mạng là gì và khi nào được xem là thành công
+  - Phân biệt liên kết vật lý, khả năng tới đích và dịch vụ hoạt động
+  - Các thành phần nguồn, đích, địa chỉ, cổng, giao thức và đường đi
+  - Hành trình từ ứng dụng gửi đến ứng dụng nhận và đường phản hồi
+  - Vai trò của thiết bị đầu cuối, switch, router, gateway và firewall
+  - Quan hệ giữa DNS, định tuyến, kết nối truyền tải và phiên ứng dụng
+  - Kết nối cùng máy, cùng LAN, khác mạng và qua Internet
+  - Kết nối đi vào, đi ra và giữa các dịch vụ nội bộ
+  - Phân biệt lỗi kết nối với lỗi xác thực, phân quyền và nghiệp vụ
+  - Kiến thức tiên quyết và cách học theo các kịch bản kết nối
+- level1: Phòng thực hành
+  level2:
+  - Thiết kế mô hình hai máy và một router để quan sát đường đi
+  - Chuẩn bị máy Linux, Windows và công cụ kiểm tra cơ bản
+  - Tổ chức mạng bằng máy ảo hoặc network namespace
+  - Đặt địa chỉ, tên máy và cổng dịch vụ nhất quán cho bài thực hành
+  - Dựng dịch vụ TCP, UDP và HTTP tối thiểu để kiểm chứng
+  - Ghi lại cấu hình ban đầu, kết quả mong đợi và cách khôi phục
+  - Tạo lỗi có chủ đích về DNS, route, firewall và dịch vụ
+  - Thu thập kết quả từ cả nguồn và đích theo cùng mốc thời gian
+- level1: Liên kết và thiết bị
+  level2:
+  - Card mạng, giao diện mạng và sự khác nhau giữa trạng thái quản trị với trạng thái liên kết
+  - 'Kết nối Ethernet: cáp, cổng switch và thương lượng tốc độ'
+  - 'Kết nối Wi-Fi: liên kết vô tuyến, xác thực và chất lượng tín hiệu'
+  - Địa chỉ MAC và vai trò trong truyền dữ liệu trên liên kết
+  - Switch, router, access point và modem trong mạng gia đình
+  - Bridge, gateway và điểm chuyển tiếp giữa các miền mạng
+  - VLAN, cổng access, cổng trunk và tác động của gắn thẻ VLAN
+  - Cách ly máy khách Wi-Fi, mạng khách và giới hạn liên lạc nội bộ
+  - Lỗi cáp, mất sóng, sai VLAN và liên kết chập chờn
+- level1: Địa chỉ IPv4
+  level2:
+  - Địa chỉ IPv4, subnet mask và biểu diễn CIDR
+  - Xác định địa chỉ mạng, địa chỉ host và phạm vi cùng subnet
+  - Dải địa chỉ riêng, địa chỉ công cộng và khả năng định tuyến
+  - Địa chỉ loopback, link-local và các địa chỉ đặc biệt
+  - Phân biệt 127.0.0.1, địa chỉ LAN và địa chỉ công cộng
+  - Địa chỉ 0.0.0.0 trong cấu hình lắng nghe và bảng định tuyến
+  - Một máy có nhiều địa chỉ hoặc nhiều card mạng
+  - Địa chỉ tĩnh, địa chỉ động và thời điểm địa chỉ thay đổi
+  - Xung đột địa chỉ, sai subnet mask và trùng dải mạng
+  - Lập kế hoạch CIDR cho LAN, VPN, container và đám mây
+- level1: IPv6 và Dual Stack
+  level2:
+  - Cách đọc địa chỉ IPv6, tiền tố và cú pháp rút gọn
+  - Địa chỉ global, unique-local, link-local và loopback
+  - Scope ID khi truy cập địa chỉ IPv6 link-local
+  - Neighbor Discovery và vai trò của ICMPv6
+  - Router Advertisement, SLAAC và quan hệ với DHCPv6
+  - Định tuyến IPv6 và default gateway
+  - Ứng dụng lắng nghe trên IPv4, IPv6 hoặc cả hai
+  - Bản ghi A, AAAA và lựa chọn họ địa chỉ của máy khách
+  - Dual stack, cơ chế thử kết nối nhiều địa chỉ và Happy Eyeballs
+  - Kiểm tra riêng IPv4, IPv6 để nhận diện kết nối chỉ hỏng một phía
+  - Khái niệm NAT64, DNS64 và kết nối giữa môi trường chỉ IPv6 với IPv4
+  - Chính sách firewall và công khai dịch vụ khi sử dụng IPv6
+- level1: Mạng nội bộ
+  level2:
+  - Quyết định gửi trực tiếp tới máy cùng subnet hay qua gateway
+  - 'ARP: tìm địa chỉ MAC của đích hoặc next hop trong IPv4'
+  - Bộ nhớ đệm neighbor, bản ghi thiếu và bản ghi cũ
+  - Đường đi của frame qua switch trong cùng mạng LAN
+  - Broadcast domain, VLAN và kết nối giữa các VLAN
+  - Unicast, broadcast và multicast trong các tình huống kết nối
+  - mDNS và khám phá dịch vụ trong phạm vi liên kết
+  - Vì sao hai máy chung Wi-Fi vẫn có thể không liên lạc được
+  - Kiểm tra kết nối cùng LAN trước khi kiểm tra Internet
+  - Nhận diện sai cổng switch, sai VLAN và gateway không tới được
+- level1: Cấp phát cấu hình
+  level2:
+  - Những cấu hình tối thiểu để một máy tham gia mạng IP
+  - 'DHCP: nhận địa chỉ, subnet mask, gateway và DNS'
+  - Thời hạn thuê, gia hạn và thay đổi mạng đang sử dụng
+  - DHCP reservation và lựa chọn địa chỉ cố định
+  - DHCP relay khi máy khách và máy chủ ở khác subnet
+  - Phát hiện DHCP không phản hồi và địa chỉ link-local tự gán
+  - Cấu hình DNS search domain và hậu tố tên miền
+  - Ưu tiên cấu hình khi cùng tồn tại nhiều giao diện mạng
+  - Lưu cấu hình bền vững và phân biệt với thay đổi tạm thời
+- level1: Định tuyến
+  level2:
+  - Bảng định tuyến, mạng đích, next hop và giao diện đi ra
+  - Chọn tuyến theo tiền tố khớp dài nhất
+  - Default route và trường hợp không có đường tới đích
+  - Route trực tiếp, route tĩnh và vai trò của định tuyến động
+  - Metric, nhiều default gateway và lựa chọn tuyến trên máy nhiều card
+  - 'Đường đi và đường về: điều kiện để kết nối hai chiều thành công'
+  - Chuyển tiếp IP giữa các giao diện và vai trò của máy làm router
+  - Policy-based routing và lựa chọn đường theo nguồn
+  - Định tuyến bất đối xứng và tương tác với kiểm tra nguồn, firewall
+  - Tuyến blackhole, vòng lặp định tuyến và TTL hết hạn
+  - Chồng lấn dải mạng khi kết nối VPN hoặc nhiều môi trường
+  - Xác minh tuyến thực tế bằng ip route get và công cụ tương đương
+- level1: Tên và phân giải
+  level2:
+  - Từ tên dịch vụ đến danh sách địa chỉ IP có thể kết nối
+  - Phân biệt DNS resolver của máy, ứng dụng và trình duyệt
+  - Tệp hosts, thứ tự tra cứu và bộ nhớ đệm tên
+  - Bản ghi A, AAAA, CNAME và SRV trong truy cập dịch vụ
+  - FQDN, tên ngắn và ảnh hưởng của DNS search domain
+  - 'Split DNS: cùng tên nhưng trả địa chỉ khác theo môi trường'
+  - DNS nội bộ, DNS công cộng và tên chỉ sử dụng trong mạng riêng
+  - Phân biệt không có tên, DNS timeout và trả sai địa chỉ
+  - Kiểm tra bằng IP để khoanh vùng và giữ đúng Host hoặc SNI khi cần
+  - DNS qua VPN, proxy và những khác biệt với truy cập trực tiếp
+  - TTL, bản ghi cũ và thay đổi đích sau khi ứng dụng đã khởi động
+- level1: Cổng và socket
+  level2:
+  - Socket, địa chỉ IP, cổng và giao thức truyền tải
+  - Vai trò máy khách, máy chủ và cổng nguồn tạm thời
+  - Phân biệt bind, listen, connect, accept và trao đổi dữ liệu
+  - Lắng nghe trên loopback, một giao diện hoặc mọi giao diện
+  - Cùng số cổng trên TCP và UDP là các điểm kết nối khác nhau
+  - Xác định tiến trình đang lắng nghe hoặc chiếm cổng
+  - Cổng cục bộ, cổng dịch vụ và cổng được ánh xạ qua trung gian
+  - 'Port đang mở, đang đóng hoặc bị lọc: giới hạn của việc suy luận'
+  - Backlog và tình huống dịch vụ tồn tại nhưng không nhận thêm kết nối
+  - Địa chỉ đã sử dụng, cạn cổng tạm và giới hạn tài nguyên socket
+- level1: TCP và UDP
+  level2:
+  - Bắt tay TCP và những gì một phép connect thành công chứng minh
+  - Trao đổi dữ liệu sau bắt tay và kiểm tra ở tầng ứng dụng
+  - TCP timeout, connection refused và network unreachable
+  - TCP reset, đóng kết nối bình thường và kết nối bị ngắt giữa chừng
+  - Mất gói, truyền lại và ảnh hưởng tới kết nối TCP
+  - TCP keepalive và giới hạn phát hiện sự cố
+  - UDP không có bắt tay và cách xây dựng phép kiểm tra có phản hồi
+  - Phân biệt không có phản hồi UDP với cổng đích không khả dụng
+  - Ánh xạ trạng thái UDP trên NAT và firewall
+  - Kết nối dài hạn, kết nối nhàn rỗi và timeout của thiết bị trung gian
+  - Lựa chọn công cụ kiểm tra đúng giao thức của dịch vụ
+- level1: ICMP và đường đi
+  level2:
+  - Ping kiểm tra điều gì và vì sao không thay thế kiểm tra cổng dịch vụ
+  - ICMP Echo Request, Echo Reply và thông báo lỗi
+  - Destination Unreachable và cách xác định nút phát thông báo
+  - TTL, Hop Limit và nguyên lý của traceroute hoặc tracert
+  - Traceroute dùng ICMP, UDP hoặc TCP và kết quả có thể khác nhau
+  - Dấu sao trong traceroute và giới hạn phản hồi của router
+  - MTR, pathping và cách đọc mất gói ở từng chặng
+  - Đường đi nhiều nhánh, bất đối xứng và giới hạn nhìn từ một phía
+  - ICMP cần thiết cho chẩn đoán và phát hiện giới hạn MTU
+- level1: NAT và ánh xạ cổng
+  level2:
+  - Vì sao cần chuyển đổi địa chỉ trong các mô hình kết nối
+  - SNAT, DNAT, PAT và masquerade
+  - Theo dõi kết nối và ánh xạ chiều đi, chiều về
+  - Truy cập Internet từ nhiều máy dùng chung một IPv4 công cộng
+  - Port forwarding từ cổng công cộng tới dịch vụ nội bộ
+  - Ánh xạ sai địa chỉ, sai cổng hoặc sai giao thức
+  - Hairpin NAT khi máy nội bộ truy cập địa chỉ công cộng của chính mạng
+  - Double NAT và cách xác định từng lớp chuyển đổi
+  - CGNAT và giới hạn nhận kết nối từ Internet
+  - Timeout ánh xạ NAT và lý do kết nối nhàn rỗi bị gián đoạn
+  - Phân biệt NAT, firewall, proxy và cân bằng tải
+  - Khái niệm NAT traversal, STUN, TURN và ICE
+- level1: Tường lửa
+  level2:
+  - Chính sách cho lưu lượng đi vào, đi ra và đi xuyên qua máy
+  - Lọc theo địa chỉ nguồn, đích, cổng, giao thức và giao diện
+  - Firewall có trạng thái và không trạng thái
+  - Kết nối established, related và lưu lượng phản hồi
+  - Phân biệt drop, reject và các biểu hiện phía máy khách
+  - Thứ tự luật, luật mặc định và trường hợp luật bị che khuất
+  - Tường lửa hệ điều hành, firewall mạng và chính sách đám mây
+  - Đường đi INPUT, OUTPUT, FORWARD và tương tác với NAT trên Linux
+  - Security Group, Network ACL và quy tắc cho chiều phản hồi
+  - Thiết kế quyền kết nối tối thiểu theo từng luồng ứng dụng
+  - Kiểm chứng thay đổi bằng luật có phạm vi hẹp, log và bộ đếm
+  - Xử lý kết nối IPv4 và IPv6 nhất quán
+  - Tường lửa chỉ cho phép truyền tải và giới hạn so với phân quyền ứng dụng
+- level1: Truy cập Internet
+  level2:
+  - Đường đi từ máy cá nhân qua LAN, router và nhà cung cấp Internet
+  - Phân biệt lỗi liên kết nội bộ, lỗi gateway, lỗi ISP và lỗi dịch vụ ngoài
+  - Địa chỉ WAN, địa chỉ công cộng và phát hiện CGNAT
+  - PPPoE, DHCP phía WAN và vai trò của thiết bị modem, router
+  - 'Captive portal: đã nối Wi-Fi nhưng chưa được phép ra Internet'
+  - Kiểm tra Internet bằng nhiều đích và nhiều kiểu yêu cầu
+  - Đường đi IPv4 và IPv6 có thể hoạt động độc lập
+  - DNS, proxy hoặc VPN khiến các ứng dụng có kết quả truy cập khác nhau
+  - Công khai dịch vụ từ mạng gia đình và các điều kiện cần kiểm tra
+  - Dynamic DNS khi địa chỉ công cộng thay đổi
+- level1: Kết nối ứng dụng
+  level2:
+  - Chuỗi kiểm tra từ phân giải tên đến phản hồi nghiệp vụ
+  - URL, scheme, hostname, cổng và điểm kết nối thực tế
+  - Kiểm tra HTTP bằng curl và diễn giải các nhóm mã phản hồi
+  - 'Kết nối TLS: SNI, chứng chỉ, tên máy chủ và CA tin cậy'
+  - Đồng hồ hệ thống và lỗi xác minh thời hạn chứng chỉ
+  - Phân biệt TLS handshake thành công với xác thực ứng dụng thành công
+  - 'Truy cập cơ sở dữ liệu: listener, quyền truy cập từ xa và đăng nhập'
+  - WebSocket, gRPC và luồng dữ liệu dài hạn qua thiết bị trung gian
+  - CORS, mixed content và các lỗi trình duyệt dễ bị nhầm với lỗi mạng
+  - Liveness, readiness và khả năng phục vụ yêu cầu thật
+  - Kiểm tra từ đúng máy, container hoặc tài khoản mà ứng dụng sử dụng
+- level1: Proxy và chuyển tiếp
+  level2:
+  - Truy cập trực tiếp, forward proxy và reverse proxy
+  - HTTP proxy, HTTPS CONNECT và SOCKS proxy
+  - Biến HTTP_PROXY, HTTPS_PROXY, NO_PROXY và khác biệt giữa công cụ
+  - Chính sách PAC và cấu hình proxy ở hệ điều hành, trình duyệt
+  - Phân giải tên tại máy khách hay tại proxy
+  - TLS inspection và ảnh hưởng tới CA tin cậy của ứng dụng
+  - Đường đi khi có CDN, cân bằng tải hoặc nhiều lớp reverse proxy
+  - Xác định địa chỉ nguồn mà hệ thống đích thực sự quan sát
+  - Kiểm tra riêng chặng máy khách đến proxy và proxy đến backend
+  - Phân biệt lỗi proxy authentication, lỗi đích và lỗi kết nối trung gian
+- level1: SSH và đường hầm
+  level2:
+  - Điều kiện để kết nối SSH tới máy chủ từ xa
+  - Phân biệt lỗi TCP, lỗi xác minh host key và lỗi xác thực SSH
+  - Chuyển tiếp cổng cục bộ bằng SSH local forwarding
+  - Chuyển tiếp cổng từ xa bằng SSH remote forwarding
+  - SOCKS qua SSH dynamic forwarding
+  - Bastion host, jump host và chuỗi truy cập mạng riêng
+  - Địa chỉ bind của đầu đường hầm và phạm vi máy được truy cập
+  - Phân biệt tên hoặc địa chỉ được hiểu ở đầu cục bộ với đầu từ xa
+  - Keepalive, mất kết nối và khôi phục đường hầm
+  - Giới hạn quyền chuyển tiếp và kiểm chứng trước khi sử dụng đường hầm
+- level1: VPN
+  level2:
+  - VPN giải quyết bài toán kết nối riêng qua hạ tầng dùng chung
+  - Remote-access VPN và site-to-site VPN
+  - Mạng nền, mạng bên trong đường hầm và lớp đóng gói
+  - Full tunnel, split tunnel và lựa chọn đường đi
+  - Định tuyến và DNS cần thay đổi khi bật VPN
+  - Quan hệ giữa route và AllowedIPs trong WireGuard
+  - NAT, firewall và keepalive cho peer nằm sau thiết bị chuyển đổi
+  - IPsec, WireGuard, OpenVPN và các khác biệt cần xét khi triển khai
+  - Trùng CIDR giữa mạng nhà, mạng công ty và mạng đám mây
+  - MTU của đường hầm và tình huống kết nối được nhưng truyền dữ liệu lỗi
+  - VPN đã bắt tay nhưng không truy cập được mạng phía sau
+  - Thu hồi truy cập, thay khóa và kiểm tra phạm vi mạng được phép đi qua
+- level1: Mạng ảo
+  level2:
+  - Máy thật, máy ảo, host và guest trong một đường kết nối
+  - Chế độ NAT, bridged và host-only của mạng máy ảo
+  - Virtual switch, bridge và card mạng ảo
+  - Network namespace và phạm vi của localhost
+  - Veth pair và kết nối giữa các namespace
+  - Route, forwarding, NAT và firewall trên máy làm host
+  - Underlay, overlay và chi phí đóng gói mạng ảo
+  - Linux network namespace làm phòng thực hành nhiều mạng
+  - Giới hạn khi suy luận cấu hình guest từ kết quả đo trên host
+- level1: Docker
+  level2:
+  - Đường đi giữa container, Docker host, LAN và Internet
+  - Bridge network mặc định và user-defined bridge
+  - DNS nội bộ Docker và kết nối bằng tên dịch vụ
+  - Giao tiếp giữa các dịch vụ trong Docker Compose
+  - Cổng container, EXPOSE và cổng được publish
+  - Ánh xạ cổng tới loopback hoặc giao diện công cộng của host
+  - Ứng dụng trong container cần bind đúng giao diện
+  - Truy cập từ container tới host và khác biệt theo nền tảng
+  - 'Network host, none, macvlan và ipvlan: phạm vi sử dụng'
+  - Kết nối ra ngoài qua NAT và tương tác với luật firewall của Docker
+  - Khác biệt đường mạng giữa Docker Engine trên Linux và Docker Desktop
+  - Kiểm tra kết nối từ chính namespace của container
+  - Xử lý trùng subnet Docker với LAN hoặc VPN
+- level1: Kubernetes
+  level2:
+  - Đường kết nối Pod-to-Pod, Pod-to-Service và từ ngoài vào cụm
+  - Pod IP, node IP, Service IP và phạm vi của localhost trong Pod
+  - CNI và vai trò triển khai mạng giữa các node
+  - Service, selector, EndpointSlice và đích thực sự nhận lưu lượng
+  - Phân biệt port, targetPort và nodePort
+  - DNS dịch vụ, namespace và tên đầy đủ trong cụm
+  - ClusterIP, NodePort, LoadBalancer và lựa chọn cách tiếp cận
+  - Ingress, Gateway API và các lớp kết nối tới ứng dụng
+  - NetworkPolicy cho chiều ingress, egress và điều kiện CNI hỗ trợ
+  - Readiness, endpoint chưa sẵn sàng và dịch vụ không có đích
+  - Bảo toàn hoặc chuyển đổi địa chỉ nguồn theo chính sách lưu lượng
+  - Egress từ Pod tới Internet, cơ sở dữ liệu và mạng riêng
+  - Kiểm tra từng chặng bằng Pod chẩn đoán và công cụ trong cụm
+- level1: Mạng đám mây
+  level2:
+  - VPC, VNet, subnet và ranh giới kết nối trong đám mây
+  - Phân biệt subnet công cộng, subnet riêng và route liên quan
+  - Địa chỉ riêng, địa chỉ công cộng và địa chỉ công cộng cố định
+  - Internet Gateway, NAT Gateway và kết nối đi ra
+  - Bảng định tuyến và liên kết đúng subnet hoặc giao diện
+  - Security Group, Network ACL và firewall của máy ảo
+  - Load balancer công cộng, nội bộ và kiểm tra backend
+  - Private endpoint và phân giải tên dịch vụ qua mạng riêng
+  - VPC peering và giới hạn truyền tiếp theo nền tảng
+  - Transit gateway hoặc hub mạng cho nhiều mạng riêng
+  - Flow log và công cụ phân tích khả năng tới đích của nhà cung cấp
+  - Chi phí NAT, truyền dữ liệu và lựa chọn đường đi giữa vùng
+- level1: Mạng lai
+  level2:
+  - Kết nối mạng tại chỗ với một hoặc nhiều mạng đám mây
+  - Site-to-site VPN và đường kết nối chuyên dụng
+  - Quy hoạch địa chỉ để tránh trùng CIDR giữa các bên
+  - Trao đổi route tĩnh hoặc động và kiểm soát tuyến được quảng bá
+  - Phân giải tên giữa mạng nội bộ và đám mây
+  - Đường về, NAT và địa chỉ nguồn mà dịch vụ đích cho phép
+  - Kết nối liên vùng, đa đám mây và thiết kế hub-and-spoke
+  - Chuyển tuyến khi một đường truyền lỗi và tác động tới phiên đang mở
+  - Kiểm thử từ từng miền mạng thay vì chỉ kiểm tra tại điểm trung gian
+- level1: Kết nối trong Java
+  level2:
+  - InetAddress và kiểm tra kết quả phân giải tên trong JVM
+  - Giới hạn của InetAddress.isReachable khi xác minh dịch vụ
+  - Socket.connect và timeout khi thiết lập kết nối TCP
+  - Đọc, ghi socket và phân biệt timeout kết nối với timeout đọc
+  - 'HttpClient: chọn đích, timeout, proxy và phản hồi HTTP'
+  - Cấu hình proxy của JVM so với biến môi trường của công cụ dòng lệnh
+  - Truststore của JVM và khác biệt với CA tin cậy của hệ điều hành
+  - DNS cache trong JVM khi địa chỉ dịch vụ thay đổi
+  - Khác biệt localhost khi chạy Java trực tiếp, trong container hoặc trong Pod
+  - Cấu hình địa chỉ bind và cổng ứng dụng Spring Boot
+  - 'Connection pool: kết nối cũ, kiểm tra sống và khôi phục sau gián đoạn'
+  - Đọc UnknownHostException, ConnectException, SocketTimeoutException và SSLHandshakeException
+  - Đối chiếu kết quả curl với hành vi thật của ứng dụng Java
+- level1: Công cụ Linux
+  level2:
+  - Xem giao diện, địa chỉ và trạng thái bằng ip link, ip addr
+  - Xem route, neighbor và đường đi dự kiến bằng iproute2
+  - Xác định socket, cổng và tiến trình bằng ss
+  - Kiểm tra DNS bằng getent, dig và resolvectl theo môi trường
+  - Kiểm tra ICMP và chặng mạng bằng ping, traceroute, tracepath
+  - Kiểm tra TCP hoặc UDP bằng nc và socat
+  - Kiểm tra HTTP, HTTPS và chỉ định đích bằng curl
+  - Kiểm tra TLS bằng openssl s_client
+  - Đọc luật và bộ đếm nftables hoặc iptables
+  - Đọc cấu hình NetworkManager hoặc systemd-networkd đang có hiệu lực
+  - Thực thi phép đo trong đúng network namespace
+- level1: Windows và WSL
+  level2:
+  - Đọc địa chỉ, gateway và DNS bằng ipconfig và PowerShell
+  - Xem giao diện và cấu hình bằng Get-NetAdapter, Get-NetIPConfiguration
+  - Xem route bằng route print và Get-NetRoute
+  - Kiểm tra TCP, route và giao diện nguồn bằng Test-NetConnection
+  - Kiểm tra tên bằng Resolve-DnsName và nslookup
+  - Xem cổng, kết nối và tiến trình bằng Get-NetTCPConnection
+  - 'Windows Defender Firewall: profile, luật vào và luật ra'
+  - Kiểm tra nhiều chặng bằng tracert và pathping
+  - 'WSL2: mô hình NAT, mirrored networking và điều kiện hỗ trợ'
+  - Truy cập dịch vụ giữa Windows, WSL và các máy trong LAN
+  - DNS, proxy, VPN và Hyper-V firewall ảnh hưởng tới WSL
+  - Những cấu hình mạng không được chia sẻ tự động giữa Windows và Linux
+- level1: Bắt và đọc gói tin
+  level2:
+  - Chọn vị trí bắt gói ở nguồn, đích hoặc nút trung gian
+  - Dùng tcpdump và Wireshark để quan sát đúng giao diện
+  - Phân biệt capture filter với display filter
+  - Lọc theo địa chỉ, cổng, giao thức và kết nối cụ thể
+  - Đọc ARP, DNS, bắt tay TCP, ICMP và TLS trong một lần truy cập
+  - Đối chiếu số thứ tự, cờ TCP và thời gian giữa hai đầu
+  - Nhận diện SYN không được trả lời, RST và truyền lại
+  - Quan sát địa chỉ, cổng trước và sau NAT
+  - Giới hạn do mã hóa, offloading và vị trí bắt gói
+  - Giảm dữ liệu thu thập, che thông tin nhạy cảm và lưu bằng chứng cần thiết
+  - Phân biệt không thấy gói tại điểm đo với kết luận gói không tồn tại
+- level1: MTU và hiệu năng
+  level2:
+  - Độ trễ, RTT, jitter, mất gói và thông lượng khác nhau thế nào
+  - Băng thông danh nghĩa và tốc độ truyền dữ liệu hữu ích
+  - MTU, MSS và kích thước gói đi qua nhiều liên kết
+  - Path MTU Discovery và vai trò của ICMP
+  - MTU black hole khi gói nhỏ đi được nhưng gói lớn bị kẹt
+  - Chi phí đóng gói VPN, overlay và điều chỉnh MTU phù hợp
+  - Đo bằng iperf3 và kiểm soát các điều kiện của phép đo
+  - Phân biệt giới hạn một chiều, hai chiều và số luồng đo
+  - Nghẽn hàng đợi, bufferbloat và phía nhận chậm
+  - CPU, TLS, đĩa hoặc máy phát tải tạo giới hạn ngoài đường mạng
+  - So sánh trước và sau thay đổi bằng các phép đo lặp lại có kiểm soát
+- level1: Độ tin cậy
+  level2:
+  - Phát hiện kết nối chết và phân biệt với mất mạng tạm thời
+  - Connect timeout, read timeout, idle timeout và ngân sách thời gian
+  - Keepalive ở TCP, ứng dụng, NAT và VPN
+  - Retry có giới hạn, exponential backoff và jitter
+  - Tính lũy đẳng và nguy cơ gửi giao dịch trùng sau lỗi kết nối
+  - Tái sử dụng kết nối và xử lý kết nối cũ trong pool
+  - Heartbeat, reconnect và phục hồi các phiên dài hạn
+  - Chuyển Wi-Fi, đổi IP, bật VPN và tác động tới kết nối đang mở
+  - Nhiều đường ra, failover và giới hạn duy trì phiên
+  - Thay đổi DNS hoặc backend và thời điểm máy khách nhận đích mới
+  - Kiểm tra sức khỏe theo chặng và theo luồng nghiệp vụ đầu cuối
+- level1: Thiết kế và vận hành
+  level2:
+  - Vẽ sơ đồ nguồn, đích, subnet, gateway và các điểm trung gian
+  - Lập ma trận kết nối theo cổng, giao thức, hướng và danh tính dịch vụ
+  - Ghi rõ điểm phân giải tên, điểm NAT và nơi kết thúc TLS
+  - Giữ ranh giới mạng và quyền truy cập nhất quán giữa môi trường
+  - Giám sát khả năng kết nối từ bên ngoài và bên trong hệ thống
+  - Đo riêng DNS, thời gian connect, TLS handshake và phản hồi ứng dụng
+  - Kết hợp flow log, firewall log, packet capture và log ứng dụng
+  - Triển khai thay đổi mạng theo phạm vi nhỏ và có phương án khôi phục
+  - Xác minh lưu lượng dự kiến được phép và lưu lượng ngoài phạm vi bị chặn
+  - Duy trì hướng dẫn chẩn đoán, đầu mối sở hữu và bằng chứng cấu hình
+- level1: Chẩn đoán sự cố
+  level2:
+  - Chuyển mô tả không kết nối được thành nguồn, đích, cổng và lỗi cụ thể
+  - Chọn phép đo từ đúng vị trí xảy ra lỗi và so sánh với nơi hoạt động
+  - Đã nối mạng nhưng không nhận được cấu hình IP hợp lệ
+  - Cùng subnet nhưng không liên lạc được
+  - Tới được gateway nhưng không tới được mạng đích
+  - Ping thành công nhưng cổng ứng dụng không truy cập được
+  - Truy cập bằng IP được nhưng bằng tên thất bại
+  - Kết nối bị từ chối, bị timeout hoặc bị reset
+  - Chỉ một chiều hoạt động do thiếu route về hoặc luật phản hồi
+  - Chỉ máy cá nhân truy cập được, ứng dụng trong container lại thất bại
+  - Bật VPN làm mất Internet hoặc không tới được dịch vụ nội bộ
+  - Truy cập nội bộ được nhưng từ Internet không được
+  - Kết nối thành công nhưng tải lớn, phiên dài hoặc yêu cầu thực tế bị lỗi
+  - Kết nối lúc được lúc không do nhiều IP, nhiều backend hoặc nhiều đường mạng
+  - Xác minh nguyên nhân bằng thay đổi tối thiểu và kiểm tra hồi quy
+- level1: Thực hành tổng hợp
+  level2:
+  - Kết nối hai máy cùng LAN và chứng minh cách phân giải địa chỉ liên kết
+  - Dựng hai subnet, thêm route và kiểm chứng cả đường đi lẫn đường về
+  - Tạo lỗi DNS rồi so sánh kiểm tra tên, IP, Host và SNI
+  - Công khai dịch vụ qua NAT và giới hạn địa chỉ nguồn bằng firewall
+  - So sánh truy cập từ LAN, Internet và mạng nằm sau CGNAT
+  - Thiết lập truy cập mạng riêng qua bastion và SSH forwarding
+  - Dựng VPN chia tuyến và kiểm tra DNS, route, MTU
+  - Cho ứng dụng Docker kết nối host, container khác và Internet
+  - Kiểm tra Kubernetes Service, EndpointSlice và NetworkPolicy
+  - Thiết kế kết nối từ máy ảo cloud tới Internet và dịch vụ riêng
+  - Kết nối ứng dụng Java tới HTTP, HTTPS và cơ sở dữ liệu trong các môi trường
+  - Thu thập gói ở hai đầu để chứng minh nơi làm mất hoặc từ chối kết nối
+  - Tạo lỗi MTU, mất gói và timeout trong phòng thực hành
+  - Diễn tập đổi IP, đổi route và phục hồi kết nối dài hạn
+  - Lập báo cáo sự cố gồm giả thuyết, bằng chứng, nguyên nhân và kết quả xác minh

@@ -1,0 +1,3 @@
+menuLevel1: Sao lưu và phục hồi
+menuLevel2: Consistent snapshot với single-transaction và giới hạn khi có DDL/nontransactional table
+status: WRITTEN

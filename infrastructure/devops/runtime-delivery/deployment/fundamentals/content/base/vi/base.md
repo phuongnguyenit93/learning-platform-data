@@ -1,0 +1,7 @@
+# DevOps Runtime Delivery Deployment Fundamentals
+
+**Deployment** là quá trình đưa một phiên bản phần mềm đã được đóng gói vào môi trường chạy để hệ thống có thể phục vụ yêu cầu. Trong DevOps, triển khai không chỉ là sao chép tệp hoặc khởi động container: cần xác định artifact chính xác, cấu hình theo môi trường, cung cấp đường truy cập, kiểm tra sức khỏe và sẵn sàng xử lý lỗi. Deployment và release có liên quan nhưng không hoàn toàn giống nhau; một phiên bản đã triển khai có thể chưa được mở cho toàn bộ người dùng.
+
+Module phù hợp với người đã biết Git, thao tác build ứng dụng Java, container cơ bản và nguyên lý CI/CD. Bạn sẽ bắt đầu từ luồng build–deploy–release, định danh artifact và các môi trường dev/staging/production; tiếp theo là khai báo workload và Service, quản lý config/Secret, dùng startup/readiness/liveness probes để kiểm soát lưu lượng. Phần sau giới thiệu rolling update, các lựa chọn rollout, thao tác hoàn tác, tự động hóa deployment qua pipeline cùng quyền phê duyệt và bước kiểm chứng sau phát hành.
+
+Sau tám mốc, bạn có thể mô tả và thực hành một lần triển khai có kiểm soát: đưa đúng image lên môi trường, theo dõi trạng thái sẵn sàng, kiểm tra ứng dụng bằng smoke test và xác định cách khôi phục khi gặp sự cố. Hoàn tác bản ứng dụng không đồng nghĩa khôi phục dữ liệu đã thay đổi; những migration hoặc thao tác không tương thích phải được đánh giá và có phương án sao lưu, phục hồi riêng.

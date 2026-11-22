@@ -1,0 +1,57 @@
+roadmap:
+- id: khung-dora-pham-vi
+  title: Khung DORA & phạm vi
+  purpose: Hiểu cách đánh giá hiệu quả giao phần mềm theo tốc độ, khả năng khôi phục và mức bất ổn.
+  objectives:
+  - Nhận diện 5 chỉ số DORA hiện hành.
+  - Phân biệt throughput và instability.
+  - Chọn một dịch vụ và kỳ đo làm baseline.
+- id: du-lieu-delivery
+  title: Dữ liệu delivery
+  purpose: Thu thập các sự kiện nhất quán để tính chỉ số mà không đếm trùng hoặc bỏ sót.
+  objectives:
+  - Liên kết commit, pipeline và production deployment.
+  - Gắn incident, rollback, hotfix với bản triển khai.
+  - Chuẩn hóa timestamp, môi trường và định nghĩa sự kiện.
+- id: change-lead-time
+  title: Change Lead Time
+  purpose: Đo thời gian đưa thay đổi từ commit đến production để tìm các bước chờ.
+  objectives:
+  - Tính thời gian commit → deploy thành công.
+  - Tách thời gian review, build, test và chờ phát hành.
+  - So sánh median và xu hướng theo tuần.
+- id: deployment-frequency
+  title: Deployment Frequency
+  purpose: Đánh giá nhịp đưa thay đổi vào production thay vì chỉ đếm số lần chạy pipeline.
+  objectives:
+  - Đếm các lần deployment production thành công.
+  - Tính tần suất theo ngày hoặc tuần.
+  - Phân biệt deploy thực tế với build và release.
+- id: change-fail-rework
+  title: Change Fail & Rework
+  purpose: Đo lỗi do triển khai và công việc sửa chữa ngoài kế hoạch để tránh tối ưu tốc độ bằng mọi giá.
+  objectives:
+  - Tính change fail rate của deployment cần khắc phục.
+  - Tính deployment rework rate do sự cố production.
+  - Phân loại rollback, hotfix và sửa lỗi ngoài kế hoạch.
+- id: failed-deployment-recovery
+  title: Failed Deployment Recovery
+  purpose: Đo khả năng phục hồi khi một thay đổi production làm dịch vụ suy giảm.
+  objectives:
+  - Xác định thời điểm triển khai lỗi và phục hồi.
+  - Tính failed deployment recovery time.
+  - Đối chiếu rollback hoặc fix-forward với incident.
+- id: dashboard-value-stream
+  title: Dashboard & Value Stream
+  purpose: Biến các chỉ số thành góc nhìn hữu ích để nhận diện điểm nghẽn của luồng delivery.
+  objectives:
+  - Lập dashboard 5 chỉ số theo dịch vụ và thời gian.
+  - Vẽ luồng commit → production cùng thời gian chờ.
+  - Tìm bottleneck mà không so sánh nhóm thiếu ngữ cảnh.
+- id: thu-nghiem-cai-tien
+  title: Thử nghiệm cải tiến
+  purpose: Kiểm chứng thay đổi quy trình bằng số liệu trước và sau mà không chạy theo chỉ tiêu đơn lẻ.
+  objectives:
+  - Chọn giả thuyết về batch size, test hoặc pipeline.
+  - Theo dõi cả throughput và instability.
+  - Rút kinh nghiệm, điều chỉnh và đo lại baseline.

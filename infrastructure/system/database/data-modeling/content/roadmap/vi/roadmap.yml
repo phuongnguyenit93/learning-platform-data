@@ -1,0 +1,57 @@
+roadmap:
+- id: yeu-cau-pham-vi
+  title: Yêu cầu & phạm vi
+  purpose: Xác định nhu cầu dữ liệu và quy tắc nghiệp vụ trước khi thiết kế.
+  objectives:
+  - Nêu mục tiêu và phạm vi dữ liệu.
+  - Thu thập quy tắc nghiệp vụ chính.
+  - Xác định các câu hỏi cần hỗ trợ.
+- id: thuc-the-quan-he
+  title: Thực thể & quan hệ
+  purpose: Nhận diện đối tượng, thuộc tính và liên kết cốt lõi trong miền nghiệp vụ.
+  objectives:
+  - Liệt kê thực thể và thuộc tính chính.
+  - Phân biệt quan hệ 1:1, 1:N, N:M.
+  - Xác định quan hệ bắt buộc hay tùy chọn.
+- id: mo-hinh-khai-niem
+  title: Mô hình khái niệm
+  purpose: Biểu diễn các khái niệm dữ liệu trên ERD độc lập công nghệ.
+  objectives:
+  - Vẽ ERD khái niệm.
+  - Diễn giải thực thể và quan hệ.
+  - Đối chiếu sơ đồ với yêu cầu.
+- id: mo-hinh-logic
+  title: Mô hình logic
+  purpose: Chuyển mô hình khái niệm thành cấu trúc dữ liệu chi tiết, chưa phụ thuộc DBMS.
+  objectives:
+  - Xác định bảng, cột và kiểu dữ liệu logic.
+  - Thiết kế khóa chính và khóa ngoại.
+  - Chuyển quan hệ N:M qua bảng liên kết.
+- id: chuan-hoa-toan-ven
+  title: Chuẩn hóa & toàn vẹn
+  purpose: Giảm trùng lặp và ngăn dữ liệu sai lệch khi cập nhật.
+  objectives:
+  - Áp dụng 1NF, 2NF, 3NF cơ bản.
+  - Chọn PK, FK, UNIQUE, NOT NULL.
+  - Nhận biết đánh đổi khi phi chuẩn hóa.
+- id: mo-hinh-vat-ly
+  title: Mô hình vật lý
+  purpose: Hiện thực mô hình logic trên hệ quản trị dữ liệu đã chọn.
+  objectives:
+  - Chọn kiểu dữ liệu cụ thể và viết DDL.
+  - Xác định index và ràng buộc.
+  - Cân nhắc truy vấn và lưu trữ.
+- id: mo-hinh-phan-tich
+  title: Mô hình phân tích
+  purpose: Tổ chức dữ liệu để tổng hợp và truy vấn trong kho dữ liệu.
+  objectives:
+  - Phân biệt fact và dimension.
+  - Xác định grain và phép đo.
+  - Phác thảo star schema.
+- id: kiem-chung-cai-tien
+  title: Kiểm chứng & cải tiến
+  purpose: Xác nhận mô hình phục vụ đúng yêu cầu qua dữ liệu và truy vấn mẫu.
+  objectives:
+  - Thử dữ liệu và truy vấn điển hình.
+  - Kiểm tra tính toàn vẹn và trùng lặp.
+  - Điều chỉnh mô hình theo phản hồi.

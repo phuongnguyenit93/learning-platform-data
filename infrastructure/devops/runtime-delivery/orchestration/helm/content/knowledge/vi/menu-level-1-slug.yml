@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Chuẩn bị
+  slug: prerequisites
+  index: 1
+- title: Phiên bản và tương thích
+  slug: versions-compatibility
+  index: 2
+- title: Khám phá chart
+  slug: chart-discovery
+  index: 3
+- title: Vòng đời release
+  slug: release-lifecycle
+  index: 4
+- title: Cấu trúc chart
+  slug: chart-structure
+  index: 5
+- title: Thông tin chart
+  slug: chart-metadata
+  index: 6
+- title: Values
+  slug: values
+  index: 7
+- title: Schema cấu hình
+  slug: configuration-schema
+  index: 8
+- title: Go template
+  slug: go-template
+  index: 9
+- title: Phạm vi và điều khiển
+  slug: scope-control
+  index: 10
+- title: Hàm và dữ liệu
+  slug: functions-data
+  index: 11
+- title: Template dùng chung
+  slug: shared-templates
+  index: 12
+- title: Tệp và ghi chú
+  slug: files-notes
+  index: 13
+- title: Tài nguyên ứng dụng
+  slug: application-resources
+  index: 14
+- title: Phụ thuộc chart
+  slug: chart-dependencies
+  index: 15
+- title: Nhiều môi trường
+  slug: multi-environment
+  index: 16
+- title: Nâng cấp release
+  slug: upgrades
+  index: 17
+- title: Quay lui và gỡ bỏ
+  slug: rollback-uninstall
+  index: 18
+- title: Hooks
+  slug: hooks
+  index: 19
+- title: Kiểm thử chart
+  slug: chart-testing
+  index: 20
+- title: CRD
+  slug: crd
+  index: 21
+- title: Lưu trữ và dữ liệu
+  slug: storage-data
+  index: 22
+- title: Kho chart và OCI
+  slug: chart-repositories-oci
+  index: 23
+- title: Bảo mật chart
+  slug: chart-security
+  index: 24
+- title: Chẩn đoán lỗi
+  slug: troubleshooting
+  index: 25
+- title: Tự động hóa bàn giao
+  slug: delivery-automation
+  index: 26
+- title: GitOps và mở rộng
+  slug: gitops-extensibility
+  index: 27
+- title: Quản trị release
+  slug: release-governance
+  index: 28
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 29

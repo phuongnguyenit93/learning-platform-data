@@ -1,0 +1,57 @@
+roadmap:
+- id: luong-outbound-ranh-gioi-tin-cay
+  title: Luồng outbound & ranh giới tin cậy
+  purpose: Nhận diện những nơi ứng dụng chủ động gọi hệ thống khác và xác định các rủi ro từ đầu vào không tin cậy.
+  objectives:
+  - Vẽ luồng gọi API, tải URL hoặc webhook từ server ra ngoài.
+  - Xác định ai kiểm soát đích đến, headers và nội dung request.
+  - Mô tả rủi ro SSRF, rò rỉ token và truy cập mạng nội bộ.
+- id: chinh-sach-dich-den
+  title: Chính sách đích đến
+  purpose: Giới hạn outbound request vào những dịch vụ thực sự cần thiết theo nguyên tắc deny by default.
+  objectives:
+  - Lập allowlist hostname, scheme và port hợp lệ.
+  - Ưu tiên ID dịch vụ được định nghĩa sẵn thay vì URL tùy ý.
+  - Từ chối scheme hoặc đích không thuộc chính sách.
+- id: phan-tich-url-an-toan
+  title: Phân tích URL an toàn
+  purpose: Đảm bảo địa chỉ được kiểm tra và sử dụng với cùng cách diễn giải, tránh bỏ qua kiểm soát.
+  objectives:
+  - Phân tách scheme, host, port, path và userinfo bằng URI parser.
+  - Kiểm tra IPv4/IPv6, IDN, mã hóa và host chuẩn hóa.
+  - Tránh so khớp chuỗi con hoặc regex URL thiếu chặt chẽ.
+- id: kiem-soat-dns-ip
+  title: Kiểm soát DNS & IP
+  purpose: Ngăn chuyển hướng truy cập sang loopback, private network hoặc metadata qua DNS và địa chỉ bất thường.
+  objectives:
+  - Phân loại IP loopback, private, link-local và địa chỉ bị cấm.
+  - Kiểm tra kết quả DNS ngay tại thời điểm kết nối.
+  - Giải thích DNS rebinding và nguy cơ kiểm tra một lần rồi resolve lại.
+- id: redirect-http-client
+  title: Redirect & HTTP client
+  purpose: Không để redirect hoặc hành vi mặc định của thư viện vượt chính sách đích đến đã duyệt.
+  objectives:
+  - Tắt tự động theo redirect khi xử lý URL không tin cậy.
+  - Nếu cần redirect, kiểm tra lại mọi đích và giới hạn số hop.
+  - Thiết lập connect/read timeout, giới hạn response và retry.
+- id: egress-metadata-protection
+  title: Egress & metadata protection
+  purpose: Thêm kiểm soát ở mạng để chặn truy cập nhạy cảm kể cả khi ứng dụng lọt kiểm tra URL.
+  objectives:
+  - Áp dụng egress firewall, proxy hoặc NetworkPolicy phù hợp.
+  - Giới hạn truy cập metadata endpoint và dịch vụ nội bộ.
+  - Phân biệt giới hạn mạng với kiểm tra đích ở ứng dụng.
+- id: tls-du-lieu-xac-thuc
+  title: TLS & dữ liệu xác thực
+  purpose: Bảo vệ dữ liệu gửi đi và ngăn credential bị tiết lộ cho endpoint sai hoặc qua log.
+  objectives:
+  - Bật kiểm tra TLS certificate và hostname, không tắt xác minh.
+  - Chỉ gắn Authorization header cho đích đáng tin cậy.
+  - Tránh đưa secret vào URL, redirect và log request.
+- id: kiem-thu-giam-sat
+  title: Kiểm thử & giám sát
+  purpose: Đánh giá khả năng chống SSRF và theo dõi các outbound request không hợp lệ trong vận hành.
+  objectives:
+  - Viết test với URL sai, redirect, DNS/IP bị chặn và timeout.
+  - Ghi log đích, mã kết quả và lý do từ chối nhưng che secret.
+  - Theo dõi egress, cảnh báo truy cập bất thường và review allowlist.

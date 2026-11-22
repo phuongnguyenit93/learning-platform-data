@@ -1,0 +1,3 @@
+menuLevel1: Cấu hình
+menuLevel2: Kiểm tra cú pháp bằng nginx -t và xem cấu hình hợp nhất bằng nginx -T
+status: ''

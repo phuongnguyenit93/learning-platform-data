@@ -1,0 +1,316 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Xác thực bằng mật khẩu là gì và giải quyết vấn đề nào
+  - Định danh, xác thực và phân quyền khác nhau như thế nào
+  - Mật khẩu là yếu tố kiến thức và giới hạn chứng minh danh tính
+  - Thông tin đăng nhập, bộ kiểm chứng và phiên đã xác thực
+  - Phân biệt mật khẩu với PIN, API key, access token và khóa mật mã
+  - Vòng đời từ tạo mật khẩu đến thu hồi quyền truy cập
+  - Vai trò của MFA, SSO, passkey và trình quản lý mật khẩu
+  - Mô hình hệ thống mẫu và lộ trình học
+- level1: Mô hình đe dọa
+  level2:
+  - 'Tài sản cần bảo vệ: tài khoản, mật khẩu, bộ kiểm chứng và luồng khôi phục'
+  - Tấn công trực tuyến và tấn công ngoại tuyến
+  - Brute force, từ điển, password spraying và credential stuffing
+  - Tái sử dụng mật khẩu và chuỗi chiếm đoạt nhiều tài khoản
+  - Phishing, giả mạo giao diện đăng nhập và đánh cắp thông tin nhập
+  - Rò rỉ cơ sở dữ liệu, bản sao lưu, log và mã nguồn
+  - Tấn công qua đăng ký, đổi mật khẩu và khôi phục tài khoản
+  - Ranh giới tin cậy giữa trình duyệt, dịch vụ xác thực và kho dữ liệu
+- level1: Định danh tài khoản
+  level2:
+  - Chọn username, email hoặc số điện thoại làm định danh đăng nhập
+  - Tách ID tài khoản ổn định khỏi thông tin liên hệ có thể thay đổi
+  - Chuẩn hóa định danh và xử lý chữ hoa–thường có chủ đích
+  - Tài khoản trùng, bí danh và tính duy nhất trong phạm vi tenant
+  - Xác minh quyền kiểm soát email không đồng nghĩa xác minh danh tính thực
+  - Thay đổi email hoặc số điện thoại mà không tạo đường chiếm tài khoản
+  - Tài khoản chưa kích hoạt, bị khóa, vô hiệu hóa và đã xóa
+- level1: Trải nghiệm người dùng
+  level2:
+  - Thiết kế form đăng nhập, đăng ký và đổi mật khẩu dễ hiểu
+  - Hỗ trợ trình quản lý mật khẩu và mật khẩu được tạo tự động
+  - Cho phép dán, autofill và nhập cụm mật khẩu dài
+  - Thuộc tính autocomplete cho username, current-password và new-password
+  - Hiển thị hoặc ẩn mật khẩu và bảo vệ người dùng ở không gian công cộng
+  - Thông báo lỗi dễ hiểu nhưng hạn chế tiết lộ trạng thái tài khoản
+  - Khả năng tiếp cận với bàn phím, trình đọc màn hình và thiết bị di động
+  - Công cụ đo độ mạnh và giới hạn của phản hồi tại máy khách
+- level1: Chính sách mật khẩu
+  level2:
+  - Độ dài tối thiểu, độ dài tối đa và căn cứ lựa chọn
+  - Độ dài, tính dễ đoán và entropy khác nhau như thế nào
+  - Danh sách mật khẩu phổ biến, đã lộ và gắn với ngữ cảnh người dùng
+  - Quy tắc thành phần ký tự và tác động đến hành vi chọn mật khẩu
+  - Cụm mật khẩu và mật khẩu ngẫu nhiên do trình quản lý tạo
+  - Lịch sử mật khẩu và giới hạn ngăn tái sử dụng
+  - Thay đổi định kỳ so với thay đổi khi có dấu hiệu lộ lọt
+  - Chính sách riêng cho tài khoản đặc quyền và tài khoản khởi tạo
+  - Đồng bộ kiểm tra phía máy chủ với phản hồi phía giao diện
+- level1: Xử lý ký tự
+  level2:
+  - Chuỗi Unicode, điểm mã, ký tự hiển thị và số byte
+  - Quyết định chuẩn hóa Unicode và giữ nhất quán toàn bộ vòng đời
+  - Khoảng trắng đầu–cuối và nguy cơ tự ý trim mật khẩu
+  - Không đổi chữ hoa–thường hoặc biến đổi mật khẩu ngoài thiết kế
+  - Ký tự kết hợp, emoji và phương thức nhập liệu khác nhau
+  - Giới hạn độ dài trước khi xử lý tốn tài nguyên
+  - Nguy cơ cắt ngắn, ký tự null và giới hạn của thư viện
+  - Kiểm thử nhất quán giữa web, ứng dụng di động và dịch vụ
+- level1: Luồng đăng ký
+  level2:
+  - Tiếp nhận thông tin đăng ký qua kênh bảo vệ
+  - Kiểm tra chính sách mật khẩu tại máy chủ
+  - Kiểm tra mật khẩu đã lộ mà không tiết lộ mật khẩu người dùng
+  - Băm và lưu bộ kiểm chứng trước khi kích hoạt tài khoản
+  - Xác minh thông tin liên hệ và token kích hoạt có thời hạn
+  - Chống tạo tài khoản tự động và lạm dụng gửi email
+  - Xử lý đăng ký trùng, yêu cầu lặp lại và giao dịch bị gián đoạn
+- level1: Luồng đăng nhập
+  level2:
+  - Tiếp nhận định danh và mật khẩu mà không ghi lại giá trị nhạy cảm
+  - Tra cứu tài khoản và trạng thái được phép đăng nhập
+  - Xác minh mật khẩu bằng thư viện phù hợp
+  - Áp dụng giới hạn tần suất trước và trong quá trình xử lý
+  - Kết hợp kiểm tra MFA khi tài khoản hoặc ngữ cảnh yêu cầu
+  - Tạo phiên sau khi hoàn tất toàn bộ yêu cầu xác thực
+  - Đổi định danh phiên và phòng chống session fixation
+  - Phản hồi lỗi thống nhất cho thông tin đăng nhập không hợp lệ
+  - Xử lý nhiều yêu cầu đăng nhập đồng thời và yêu cầu bị phát lại
+- level1: Nền tảng lưu trữ
+  level2:
+  - Vì sao không lưu mật khẩu dạng rõ hoặc mã hóa có thể giải mã
+  - Hàm băm nhanh và hàm dẫn xuất khóa dành cho mật khẩu
+  - Bộ kiểm chứng mật khẩu và dữ liệu cần lưu kèm
+  - Salt ngẫu nhiên riêng cho từng bản ghi mật khẩu
+  - Chi phí thời gian, bộ nhớ và khả năng song song hóa tấn công
+  - Tấn công từ điển, bảng tính trước và giới hạn bảo vệ của salt
+  - Salt không phải bí mật và không thay thế mật khẩu mạnh
+  - Không dùng băm phía máy khách để thay thế bảo vệ phía máy chủ
+  - Tách mật khẩu người dùng khỏi các bí mật cần có khả năng giải mã
+- level1: Thuật toán băm
+  level2:
+  - Argon2 và các biến thể trong bối cảnh lưu mật khẩu
+  - Argon2id và các tham số bộ nhớ, số vòng, mức song song
+  - scrypt và mô hình chi phí dựa trên bộ nhớ
+  - bcrypt, hệ số công việc và giới hạn đầu vào theo byte
+  - PBKDF2, hàm PRF và số vòng lặp
+  - So sánh khả năng triển khai, hiệu năng và ràng buộc môi trường
+  - Định dạng lưu thuật toán, phiên bản và tham số trong chuỗi băm
+  - Chọn thư viện được duy trì và tránh tự thiết kế thuật toán
+- level1: Cấu hình và hiệu năng
+  level2:
+  - Xác định ngân sách độ trễ cho đăng nhập và thay mật khẩu
+  - Hiệu chỉnh chi phí băm trên hạ tầng triển khai thực tế
+  - Đo tải đồng thời thay vì chỉ đo một lần băm
+  - Giới hạn số tác vụ băm đồng thời và hàng chờ xử lý
+  - Bảo vệ bộ nhớ và CPU trước yêu cầu đăng nhập gây cạn tài nguyên
+  - Đánh đổi chi phí phòng vệ, khả dụng và trải nghiệm người dùng
+  - Lập kế hoạch tăng chi phí khi năng lực tính toán thay đổi
+- level1: Salt và pepper
+  level2:
+  - Tạo salt bằng nguồn ngẫu nhiên mật mã và tránh tái sử dụng
+  - Lưu salt cùng bản ghi băm và kiểm tra định dạng đầu vào
+  - Pepper là bí mật dùng bổ sung ngoài cơ sở dữ liệu mật khẩu
+  - Tách pepper khỏi dữ liệu băm và giới hạn quyền truy cập
+  - Mẫu kết hợp pepper với hàm băm và các giả định bảo mật
+  - Kho bí mật, KMS hoặc HSM trong quản lý pepper
+  - Phiên bản pepper, xoay vòng và ảnh hưởng tới mật khẩu hiện có
+  - Ứng phó khi pepper bị lộ hoặc không còn truy cập được
+- level1: Kiểm chứng mật khẩu
+  level2:
+  - Giải mã định dạng bộ kiểm chứng và chọn đúng thuật toán
+  - Kiểm tra bằng hàm verify của thư viện thay vì tự ghép quy trình
+  - So sánh an toàn và giảm kênh rò rỉ thời gian
+  - Xử lý tài khoản không tồn tại mà không lộ qua chi phí kiểm tra
+  - Từ chối dữ liệu băm hỏng, tham số bất hợp lý và thuật toán không hỗ trợ
+  - Giới hạn đầu vào để tránh chuỗi cực dài hoặc sai mã hóa
+  - Không so sánh chuỗi băm mới trực tiếp khi salt thay đổi
+  - Giảm thời gian tồn tại của mật khẩu dạng rõ trong bộ nhớ
+- level1: Nâng cấp dữ liệu băm
+  level2:
+  - Nhận biết thuật toán cũ và tham số cần nâng cấp
+  - Rehash sau lần đăng nhập thành công
+  - Di trú theo từng tài khoản mà không biết mật khẩu gốc
+  - Buộc đặt lại mật khẩu khi không thể nâng cấp an toàn
+  - Xử lý tài khoản không đăng nhập trong thời gian dài
+  - Tránh hạ cấp thuật toán khi nhiều phiên bản ứng dụng cùng chạy
+  - Cập nhật bộ kiểm chứng nguyên tử và xử lý đăng nhập đồng thời
+  - Theo dõi tiến độ di trú và loại bỏ hỗ trợ định dạng cũ
+- level1: Chống dò tài khoản
+  level2:
+  - Dò tài khoản qua đăng nhập, đăng ký và quên mật khẩu
+  - Rò rỉ qua mã trạng thái, thông điệp và cấu trúc phản hồi
+  - Rò rỉ qua thời gian xử lý và việc gửi thông báo
+  - Đồng nhất phản hồi bên ngoài nhưng giữ lý do nội bộ để vận hành
+  - Cân bằng khả năng hỗ trợ người dùng với yêu cầu riêng tư
+  - Giới hạn tra cứu và xử lý định danh không hợp lệ
+  - Kiểm thử dò tài khoản trên mọi luồng liên quan
+- level1: Chống tấn công đăng nhập
+  level2:
+  - Phát hiện brute force nhắm vào một tài khoản
+  - Nhận biết password spraying trải rộng nhiều tài khoản
+  - Nhận biết credential stuffing từ dữ liệu đã lộ
+  - Giới hạn theo tài khoản, địa chỉ mạng, thiết bị và tín hiệu tổng hợp
+  - Trì hoãn tăng dần, khóa tạm thời và rủi ro gây từ chối dịch vụ
+  - CAPTCHA hoặc thử thách bổ sung và giới hạn bảo vệ
+  - Ngăn dùng luồng reset để vượt giới hạn đăng nhập
+  - Xử lý mạng dùng chung, bot phân tán và địa chỉ IPv6
+  - Cảnh báo rủi ro và yêu cầu xác thực bổ sung theo ngữ cảnh
+- level1: Đổi mật khẩu
+  level2:
+  - Phân biệt đổi mật khẩu chủ động với khôi phục khi quên
+  - Yêu cầu mật khẩu hiện tại hoặc xác thực bổ sung phù hợp
+  - Kiểm tra chính sách và mật khẩu đã lộ cho giá trị mới
+  - Ngăn CSRF và bảo vệ phiên thực hiện thao tác đổi mật khẩu
+  - Cập nhật bộ kiểm chứng và phiên bản thông tin xác thực nguyên tử
+  - Thu hồi hoặc duy trì phiên khác theo chính sách được công bố
+  - Thông báo thay đổi mà không gửi mật khẩu qua email
+  - Xử lý thay đổi đồng thời, retry và lỗi giữa chừng
+- level1: Quên mật khẩu
+  level2:
+  - Thiết kế khôi phục như một phần của bề mặt xác thực
+  - Phản hồi yêu cầu khôi phục mà không xác nhận tài khoản tồn tại
+  - Chọn kênh khôi phục và đánh giá rủi ro email hoặc số điện thoại
+  - Giới hạn tần suất yêu cầu, gửi thông báo và thử token
+  - Xác minh token trước khi cho phép đặt mật khẩu mới
+  - Kiểm tra mật khẩu mới và vô hiệu hóa quyền khôi phục đã dùng
+  - Không dùng câu hỏi bảo mật làm bằng chứng mạnh duy nhất
+  - Chính sách phiên và yêu cầu xác thực sau khi reset
+  - Hỗ trợ khi người dùng mất cả mật khẩu và kênh khôi phục
+- level1: Token khôi phục
+  level2:
+  - Tạo token ngẫu nhiên đủ khó đoán bằng nguồn mật mã
+  - Ràng buộc token với tài khoản, mục đích và lần yêu cầu
+  - Thời hạn hiệu lực và quy tắc sử dụng một lần
+  - Lưu bộ kiểm chứng token thay vì lưu giá trị token dạng rõ
+  - Xác minh và tiêu thụ token nguyên tử để chống dùng lại
+  - URL khôi phục, miền tin cậy và nguy cơ Host header poisoning
+  - Rò rỉ token qua Referer, lịch sử trình duyệt, log và công cụ phân tích
+  - Token tự chứa so với token tra cứu và khả năng thu hồi
+- level1: Phiên và tái xác thực
+  level2:
+  - Mật khẩu xác thực ban đầu và phiên duy trì trạng thái đăng nhập
+  - Cookie phiên và cơ chế lưu thông tin đăng nhập lâu dài
+  - Tái xác thực trước thao tác nhạy cảm
+  - Chọn thời hạn hiệu lực của lần xác thực mật khẩu gần nhất
+  - Thu hồi phiên khi đổi mật khẩu, reset hoặc phát hiện chiếm tài khoản
+  - Đăng xuất một thiết bị và đăng xuất toàn bộ thiết bị
+  - Phiên bản thông tin xác thực để vô hiệu hóa trạng thái cũ
+  - 'Giới hạn phạm vi: quản lý phiên không thay thế kiểm chứng mật khẩu'
+- level1: MFA và khôi phục
+  level2:
+  - Vì sao mật khẩu đúng chưa đủ khi tài khoản yêu cầu MFA
+  - Liên kết trạng thái đăng nhập mật khẩu với bước xác thực tiếp theo
+  - Ngăn bỏ qua MFA qua API phụ, reset hoặc chế độ ghi nhớ thiết bị
+  - Yêu cầu xác thực bổ sung khi đổi mật khẩu hoặc thông tin khôi phục
+  - Mất mật khẩu, mất yếu tố MFA và bằng chứng khôi phục tương ứng
+  - Mã dự phòng và giới hạn của quy trình hỗ trợ thủ công
+  - Phân biệt xác thực nhiều bước với các yếu tố độc lập
+- level1: Bảo vệ đường truyền
+  level2:
+  - TLS cho đăng nhập, đăng ký, đổi mật khẩu và toàn bộ phiên
+  - Không truyền mật khẩu qua URL, query string hoặc liên kết
+  - HTTP Basic và yêu cầu bảo vệ thông tin gửi lặp lại
+  - Proxy, load balancer và ranh giới tin cậy sau khi kết thúc TLS
+  - Ngăn chuyển hướng gửi thông tin đăng nhập sang miền không tin cậy
+  - Chính sách bộ nhớ đệm cho phản hồi và trang nhạy cảm
+  - Ngăn ghi request body trong APM, trace và hệ thống trung gian
+- level1: Phía máy khách
+  level2:
+  - Giới hạn bảo vệ của JavaScript và kiểm tra đầu vào tại giao diện
+  - XSS có thể đánh cắp mật khẩu trước khi gửi như thế nào
+  - Giảm script bên thứ ba trên trang đăng nhập và khôi phục
+  - CSRF trong đăng nhập, đổi mật khẩu và thay đổi thông tin liên hệ
+  - Không lưu mật khẩu trong localStorage, URL hoặc trạng thái tồn tại lâu
+  - Xử lý thông tin nhạy cảm trong crash report và công cụ phát lại phiên
+  - Trình quản lý mật khẩu, phishing và giới hạn của bảo vệ theo nguồn gốc
+- level1: Giao thức mật khẩu
+  level2:
+  - Phân biệt gửi mật khẩu trong kênh TLS với cơ chế challenge–response
+  - Replay và giới hạn của việc chỉ gửi một giá trị băm cố định
+  - SCRAM và bộ kiểm chứng phục vụ giao thức challenge–response
+  - PAKE và ý tưởng trao đổi khóa xác thực bằng mật khẩu
+  - SRP và OPAQUE trong hệ sinh thái giao thức mật khẩu
+  - Mô hình tin cậy và giới hạn chống đoán mật khẩu của từng giao thức
+  - Xác thực tập trung qua thư mục và ranh giới bảo vệ kết nối
+  - Không tự thiết kế giao thức hoặc ghép các bước mật mã tùy ý
+- level1: Hệ thống phân tán
+  level2:
+  - Tập trung xác thực thay vì sao chép mật khẩu giữa các dịch vụ
+  - Tính nhất quán khi đổi mật khẩu trên nhiều vùng triển khai
+  - Rate limit phân tán và nguy cơ vượt giới hạn qua nhiều máy chủ
+  - Cache trạng thái tài khoản và độ trễ vô hiệu hóa thông tin xác thực
+  - Retry và tính idempotent trong đổi mật khẩu, kích hoạt và reset
+  - Tác vụ gửi email và hàng đợi không chứa mật khẩu dạng rõ
+  - Xác thực ngoại tuyến và giới hạn thu hồi khi không có kết nối
+- level1: Lưu trữ và vận hành
+  level2:
+  - Schema bản ghi thông tin xác thực và tách dữ liệu hồ sơ người dùng
+  - Quyền tối thiểu với bảng mật khẩu, kho bí mật và bản sao lưu
+  - Mã hóa dữ liệu lưu trữ như một lớp bảo vệ bổ sung
+  - Ngăn bộ kiểm chứng xuất hiện trong API, báo cáo và dữ liệu phân tích
+  - Quản lý bí mật kết nối và thông tin vận hành của dịch vụ xác thực
+  - Sao lưu, khôi phục và nguy cơ đưa bộ kiểm chứng cũ trở lại
+  - Môi trường thử nghiệm không sử dụng mật khẩu thực của người dùng
+  - Quản lý tài khoản mặc định, mật khẩu tạm thời và tài khoản đặc quyền
+- level1: Nhật ký và giám sát
+  level2:
+  - Ghi sự kiện đăng nhập thành công, thất bại và lý do nội bộ
+  - Theo dõi đổi mật khẩu, reset và thay đổi kênh khôi phục
+  - Không ghi mật khẩu, token khôi phục hoặc toàn bộ bộ kiểm chứng
+  - Liên kết sự kiện theo tài khoản và request mà vẫn bảo vệ riêng tư
+  - Phát hiện tăng đột biến lỗi đăng nhập và chiến dịch rải mật khẩu
+  - Cảnh báo hoạt động bất thường sau đăng nhập thành công
+  - Phân quyền xem nhật ký, thời hạn lưu và tính toàn vẹn bằng chứng
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử chính sách với mật khẩu phổ biến, dài và đã lộ
+  - Kiểm thử Unicode, khoảng trắng, ký tự null và giới hạn theo byte
+  - Kiểm thử salt riêng, định dạng băm và xác minh đúng–sai
+  - Kiểm thử nâng cấp thuật toán và cập nhật bộ kiểm chứng đồng thời
+  - Kiểm thử dò tài khoản qua nội dung và thời gian phản hồi
+  - Kiểm thử rate limit, khóa tạm và tấn công gây cạn CPU hoặc bộ nhớ
+  - Kiểm thử token reset hết hạn, dùng lại, rò rỉ và yêu cầu cạnh tranh
+  - Kiểm thử MFA, thu hồi phiên và các đường bỏ qua xác thực
+  - Kiểm tra log, trace, backup và công cụ phân tích không lộ bí mật
+- level1: Sự cố lộ mật khẩu
+  level2:
+  - Phân biệt lộ mật khẩu dạng rõ, bộ kiểm chứng và pepper
+  - Khoanh vùng tài khoản, thuật toán và dữ liệu bị ảnh hưởng
+  - Ngăn truy cập trái phép và bảo toàn bằng chứng
+  - Buộc đặt lại mật khẩu theo mức độ rủi ro
+  - Thu hồi phiên, token khôi phục và thông tin xác thực liên quan
+  - Xoay vòng pepper hoặc bí mật hệ thống khi có căn cứ bị lộ
+  - Thông báo người dùng với hướng dẫn chống tái sử dụng mật khẩu
+  - Khắc phục nguyên nhân gốc và bổ sung kiểm thử hồi quy
+- level1: Tiêu chuẩn và quản trị
+  level2:
+  - Tra cứu hướng dẫn mật khẩu hiện hành của NIST và OWASP
+  - Phân biệt yêu cầu bắt buộc, khuyến nghị và lựa chọn theo rủi ro
+  - Ghi lại căn cứ cho độ dài, blocklist và chi phí băm
+  - Quản lý thay đổi chính sách và tác động tới tài khoản hiện có
+  - Rà soát thư viện, thuật toán và tham số định kỳ
+  - Vai trò của chủ sở hữu sản phẩm, đội bảo mật và vận hành
+  - Bằng chứng kiểm toán không chứa mật khẩu hoặc token nhạy cảm
+- level1: Chuyển đổi phương thức
+  level2:
+  - Khi nào giữ mật khẩu và khi nào giảm phụ thuộc vào mật khẩu
+  - Kết hợp SSO mà không tạo liên kết tài khoản thiếu kiểm chứng
+  - Thêm passkey như lựa chọn xác thực và đánh giá luồng dự phòng
+  - Rủi ro giữ mật khẩu làm đường khôi phục yếu hơn
+  - Chuyển đổi từng nhóm người dùng và đo khả năng hoàn tất đăng nhập
+  - Xử lý tài khoản cũ, tài khoản đặc quyền và người dùng mất thiết bị
+  - Thu hồi bộ kiểm chứng khi ngừng hỗ trợ mật khẩu
+- level1: Thực hành
+  level2:
+  - Thiết kế luồng đăng ký–đăng nhập cho một ứng dụng mẫu
+  - Xây chính sách mật khẩu và bộ kiểm thử đầu vào
+  - Tích hợp băm, verify và rehash bằng thư viện có sẵn
+  - Đo chi phí băm và mô phỏng tải đăng nhập đồng thời
+  - Thiết kế chống credential stuffing mà hạn chế khóa nhầm
+  - Xây luồng đổi mật khẩu, reset một lần và thu hồi phiên
+  - Di trú bộ kiểm chứng cũ mà không lưu mật khẩu dạng rõ
+  - Diễn tập sự cố rò rỉ dữ liệu và rà soát toàn bộ vòng đời

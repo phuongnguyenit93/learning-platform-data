@@ -1,0 +1,3 @@
+menuLevel1: HTTP API
+menuLevel2: Truy vấn theo khoảng qua /api/v1/query_range với start, end và step
+status: ''

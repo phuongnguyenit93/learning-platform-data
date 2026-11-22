@@ -1,0 +1,49 @@
+roadmap:
+- id: vai-tro-dns
+  title: Vai trò DNS
+  purpose: Hiểu mục đích của DNS trong việc tìm địa chỉ và tài nguyên qua tên miền.
+  objectives:
+  - Giải thích quá trình tra cứu tên miền thành địa chỉ IP.
+  - Phân biệt tra cứu thuận và tra cứu ngược.
+- id: ten-mien-zone
+  title: Tên miền & Zone
+  purpose: Nắm cấu trúc tên miền phân cấp và phạm vi quản lý dữ liệu DNS.
+  objectives:
+  - Nhận diện root, TLD, subdomain và FQDN.
+  - Phân biệt domain, zone và việc ủy quyền.
+- id: luong-phan-giai
+  title: Luồng phân giải
+  purpose: Theo dõi cách resolver tìm câu trả lời từ hệ thống DNS phân tán.
+  objectives:
+  - Phân biệt truy vấn recursive và iterative.
+  - Mô tả đường đi qua root, TLD và authoritative server.
+- id: ban-ghi-dns
+  title: Bản ghi DNS
+  purpose: Đọc và chọn các bản ghi phù hợp cho địa chỉ, bí danh và dịch vụ.
+  objectives:
+  - Nhận biết A, AAAA, CNAME, MX, NS, SOA, TXT, PTR.
+  - Chọn bản ghi phù hợp cho ví dụ cấu hình tên miền.
+- id: cache-ttl
+  title: Cache & TTL
+  purpose: Hiểu vì sao kết quả tra cứu được lưu và khi nào thay đổi có hiệu lực.
+  objectives:
+  - Giải thích TTL và tác động khi thay đổi bản ghi.
+  - Phân biệt cache câu trả lời và negative caching.
+- id: may-chu-zone
+  title: Máy chủ & Zone
+  purpose: Phân biệt vai trò truy vấn với vai trò công bố dữ liệu DNS.
+  objectives:
+  - Phân biệt recursive resolver và authoritative server.
+  - Giải thích bản ghi NS và nguyên tắc ủy quyền zone.
+- id: truyen-tai-bao-mat
+  title: Truyền tải & Bảo mật
+  purpose: Nhận biết kênh truyền DNS và cơ chế bảo vệ dữ liệu hoặc truy vấn.
+  objectives:
+  - Phân biệt DNS qua UDP/TCP và DNS over HTTPS.
+  - Giải thích DNSSEC kiểm chứng nguồn gốc và toàn vẹn dữ liệu.
+- id: chan-doan-dns
+  title: Chẩn đoán DNS
+  purpose: Biết khoanh vùng lỗi phân giải trước khi sửa cấu hình hoặc mạng.
+  objectives:
+  - Tra cứu bản ghi bằng dig hoặc nslookup.
+  - Phân biệt NXDOMAIN, SERVFAIL và vấn đề cache/delegation.

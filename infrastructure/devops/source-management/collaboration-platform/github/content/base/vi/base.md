@@ -1,0 +1,7 @@
+# DevOps Source Management Collaboration Platform GitHub
+
+GitHub là nền tảng cộng tác trên mã nguồn Git, giúp các nhóm phát triển tổ chức repository, lưu lịch sử thay đổi, thảo luận và kiểm tra code trước khi tích hợp. Khác với Git là hệ thống quản lý phiên bản phân tán, GitHub cung cấp các công cụ phục vụ quy trình làm việc chung như pull request, Issues, Projects, quản lý quyền và kiểm tra tự động. Mục tiêu của module là học cách cộng tác trên một repository có quy tắc rõ ràng, không chỉ biết lệnh push hoặc pull.
+
+Module dành cho người đã nắm Git cơ bản và cách làm việc với branch, commit, remote. Bạn sẽ tạo repository có README và .gitignore, thực hành feature branch hoặc fork, sau đó mở pull request để trao đổi, review và hợp nhất thay đổi. Lộ trình tiếp tục với branch protection, CODEOWNERS, yêu cầu approving reviews và status checks. Song song, Issues và Projects giúp theo dõi backlog, phân công và liên kết công việc với pull request, còn quyền repository và bảo mật tài khoản giúp các thành viên chỉ có quyền cần thiết.
+
+Ở phần cuối, bạn sẽ tạo GitHub Actions workflow tối giản chạy build hoặc test khi có pull request, quan sát trạng thái Checks và liên hệ với quy tắc bảo vệ nhánh. Sau module, bạn có thể tổ chức quy trình cộng tác từ Issue đến PR và kiểm thử tự động, nhận diện quyền phù hợp với từng thành viên, đồng thời giải thích cách GitHub hỗ trợ chất lượng và khả năng truy vết của dự án phần mềm.

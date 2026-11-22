@@ -1,0 +1,57 @@
+roadmap:
+- id: khoanh-vung-su-co
+  title: Khoanh vùng sự cố
+  purpose: Xác định phạm vi và triệu chứng trước khi kiểm tra từng lớp mạng.
+  objectives:
+  - Ghi rõ nguồn, đích, thời điểm và lỗi quan sát được.
+  - Phân biệt mất kết nối, chậm và lỗi không ổn định.
+  - Thiết lập phép thử có thể lặp lại.
+- id: ket-noi-lien-ket
+  title: Kết nối & liên kết
+  purpose: Kiểm tra điều kiện kết nối cơ bản trước khi truy tìm lỗi ở tầng cao.
+  objectives:
+  - Xác nhận trạng thái NIC, liên kết và kết nối Wi-Fi hoặc cáp.
+  - Kiểm tra gateway nội bộ và ARP/neighbor.
+  - Nhận diện sự cố cổng, VLAN hoặc liên kết.
+- id: dia-chi-ip-dinh-tuyen
+  title: Địa chỉ IP & định tuyến
+  purpose: Phát hiện lỗi cấu hình IP và đường đi tới mạng đích.
+  objectives:
+  - Đối chiếu IP, subnet, gateway và địa chỉ nguồn.
+  - Đọc bảng định tuyến và route mặc định.
+  - Xác định lỗi route hoặc chặn lưu lượng.
+- id: phan-giai-dns
+  title: Phân giải DNS
+  purpose: Tách lỗi tên miền khỏi lỗi kết nối bằng địa chỉ IP.
+  objectives:
+  - So sánh kết quả truy cập theo IP và tên miền.
+  - Kiểm tra bản ghi A, AAAA, CNAME và DNS server.
+  - Nhận diện NXDOMAIN, timeout và cache sai.
+- id: duong-truyen-icmp
+  title: Đường truyền & ICMP
+  purpose: Đánh giá tính thông suốt, độ trễ và các điểm nghẽn trên đường đi.
+  objectives:
+  - Dùng ping để kiểm tra phản hồi khi ICMP được phép.
+  - Dùng traceroute/tracert để khảo sát các hop.
+  - Phân biệt mất gói thực tế với ICMP bị lọc.
+- id: cong-tcp-udp
+  title: Cổng & TCP/UDP
+  purpose: Kiểm tra lớp vận chuyển và khả năng tiếp nhận của dịch vụ.
+  objectives:
+  - Xác định đúng host, port, TCP hoặc UDP.
+  - Quan sát LISTEN, SYN, RST và timeout.
+  - Phân biệt lỗi firewall, dịch vụ và kết nối.
+- id: tls-ung-dung
+  title: TLS & ứng dụng
+  purpose: Khoanh vùng lỗi khi mạng cơ bản thông nhưng yêu cầu ứng dụng vẫn thất bại.
+  objectives:
+  - Kiểm tra TLS handshake, chứng chỉ và SNI.
+  - Đọc HTTP status, redirect và timeout.
+  - Phân biệt lỗi ứng dụng với lỗi truyền tải.
+- id: bat-goi-xac-minh
+  title: Bắt gói & xác minh
+  purpose: Dựa vào bằng chứng để tìm nguyên nhân gốc và kiểm tra sau sửa.
+  objectives:
+  - Lọc gói theo IP, port và giao thức trên Wireshark/tcpdump.
+  - Đối chiếu timestamp, retransmission và phản hồi.
+  - Lặp lại phép thử và ghi nhận kết quả trước/sau.

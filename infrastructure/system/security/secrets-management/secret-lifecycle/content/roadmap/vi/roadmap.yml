@@ -1,0 +1,49 @@
+roadmap:
+- id: nhan-dien-bi-mat
+  title: Nhận diện bí mật
+  purpose: Xác định dữ liệu cần quản lý như thông tin nhạy cảm.
+  objectives:
+  - Phân biệt bí mật (secret) với cấu hình công khai.
+  - Lập danh mục chủ sở hữu, nơi dùng và thời hạn.
+- id: tao-va-cap-phat
+  title: Tạo và cấp phát
+  purpose: Tạo bí mật phù hợp với mục đích và phạm vi sử dụng.
+  objectives:
+  - Sinh bí mật khó đoán hoặc cấp động theo danh tính.
+  - Giới hạn phạm vi quyền và thời gian hiệu lực.
+- id: luu-tru-an-toan
+  title: Lưu trữ an toàn
+  purpose: Bảo vệ bí mật khi chưa được sử dụng.
+  objectives:
+  - Chọn kho bí mật và kiểm soát quyền truy cập.
+  - Bảo vệ bản lưu, phiên bản và sao lưu bằng mã hóa.
+- id: phan-phoi-bi-mat
+  title: Phân phối bí mật
+  purpose: Chỉ đưa bí mật đến đúng bên sử dụng.
+  objectives:
+  - Xác thực ứng dụng trước khi cấp bí mật.
+  - Chọn cách lấy bí mật khi chạy và bảo vệ đường truyền.
+- id: su-dung-va-han-che-lo
+  title: Sử dụng và hạn chế lộ
+  purpose: Giảm khả năng bí mật bị sao chép hoặc phát tán.
+  objectives:
+  - Giảm thời gian giữ và số bản sao bí mật.
+  - Ngăn lộ qua mã nguồn, nhật ký, lỗi và đầu ra CI/CD.
+- id: xoay-vong-va-chuyen-doi
+  title: Xoay vòng và chuyển đổi
+  purpose: Thay đổi bí mật với kế hoạch duy trì hoạt động.
+  objectives:
+  - Lập kế hoạch thay phiên bản theo các bên phụ thuộc.
+  - Kiểm chứng chuyển đổi và thời điểm ngừng phiên bản cũ.
+- id: thu-hoi-va-huy-bo
+  title: Thu hồi và hủy bỏ
+  purpose: Chấm dứt khả năng sử dụng khi hết nhu cầu hoặc có rủi ro.
+  objectives:
+  - Vô hiệu hóa bí mật tại hệ thống chấp nhận nó.
+  - Xử lý bản sao, bản lưu và phụ thuộc trước khi hủy.
+- id: kiem-toan-va-ung-pho
+  title: Kiểm toán và ứng phó
+  purpose: Truy vết sử dụng và xử lý sự cố lộ bí mật.
+  objectives:
+  - Kiểm tra lịch sử truy cập và phát hiện bí mật bị lộ.
+  - Diễn tập thu hồi, thay thế và khôi phục dịch vụ.

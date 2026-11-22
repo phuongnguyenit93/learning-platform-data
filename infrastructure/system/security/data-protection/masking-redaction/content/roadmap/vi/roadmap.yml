@@ -1,0 +1,57 @@
+roadmap:
+- id: du-lieu-nhay-cam-boi-canh
+  title: Dữ liệu nhạy cảm & bối cảnh
+  purpose: Xác định thông tin cần che giấu theo mức độ nhạy cảm, đối tượng nhận và mục đích sử dụng.
+  objectives:
+  - Phân loại PII, credential và dữ liệu nghiệp vụ nhạy cảm
+  - Xác định điểm lộ dữ liệu trong API, UI, log và bản xuất
+  - Lập quy tắc hiển thị tối thiểu theo vai trò
+- id: masking-redaction-tokenization
+  title: Masking, Redaction & Tokenization
+  purpose: Chọn cách biến đổi phù hợp và không nhầm việc che bớt dữ liệu với mã hóa hoặc ẩn danh hoàn toàn.
+  objectives:
+  - Phân biệt partial masking, redaction và replacement
+  - So sánh tokenization có thể đảo ngược với xóa bỏ
+  - Đánh giá rủi ro tái nhận diện từ dữ liệu còn lại
+- id: phat-hien-thong-tin-can-che
+  title: Phát hiện thông tin cần che
+  purpose: Nhận diện chính xác vị trí dữ liệu cần bảo vệ trước khi áp dụng phép biến đổi.
+  objectives:
+  - Khai báo trường nhạy cảm bằng schema hoặc metadata
+  - Dò PII trong văn bản bằng rule, regex hoặc detector
+  - Đo false positive và false negative khi quét
+- id: che-du-lieu-o-ui-api
+  title: Che dữ liệu ở UI & API
+  purpose: Đảm bảo thông tin gửi cho người dùng hoặc hệ thống ngoài chỉ có độ chi tiết được phép xem.
+  objectives:
+  - Thiết kế response DTO theo nguyên tắc tối thiểu dữ liệu
+  - Mask một phần email, điện thoại và mã định danh
+  - Thực thi authorization trước khi trả dữ liệu gốc
+- id: redaction-trong-log-loi
+  title: Redaction trong log & lỗi
+  purpose: Ngăn bí mật và thông tin cá nhân đi vào log, traces hoặc thông báo lỗi có phạm vi truy cập rộng.
+  objectives:
+  - Xóa token, mật khẩu và khóa khỏi structured logs
+  - Lọc header, body và exception chứa dữ liệu nhạy cảm
+  - Kiểm tra tracing, audit log và đường truyền telemetry
+- id: masking-du-lieu-moi-truong
+  title: Masking dữ liệu & môi trường
+  purpose: Bảo vệ dữ liệu trong truy vấn, bản sao thử nghiệm và các lần xuất dữ liệu ra ngoài production.
+  objectives:
+  - Phân biệt dynamic masking với bản sao đã de-identify
+  - Tạo dữ liệu thử nghiệm không chứa PII thực khi có thể
+  - Không dùng masking thay cho phân quyền hay mã hóa
+- id: quyen-truy-cap-rui-ro-suy-luan
+  title: Quyền truy cập & rủi ro suy luận
+  purpose: Giảm khả năng người xem suy ra dữ liệu gốc từ quyền truy vấn, dữ liệu liên kết hoặc mẫu che yếu.
+  objectives:
+  - Áp dụng least privilege với quyền xem dữ liệu gốc
+  - Nhận diện inference qua truy vấn và kết hợp dữ liệu
+  - Kiểm soát mapping/token vault và khóa re-identification
+- id: kiem-thu-giam-sat-ro-ri
+  title: Kiểm thử & giám sát rò rỉ
+  purpose: Xác minh che giấu hoạt động đúng trên mọi đường dữ liệu và duy trì hiệu quả khi hệ thống thay đổi.
+  objectives:
+  - Thử dữ liệu biên, Unicode và nhiều định dạng PII
+  - Kiểm tra log, export, cache và phản hồi lỗi không lộ dữ liệu
+  - Theo dõi thay đổi policy và kiểm thử hồi quy tự động

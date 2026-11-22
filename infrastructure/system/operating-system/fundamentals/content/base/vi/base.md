@@ -1,0 +1,7 @@
+# Operating System Fundamentals
+
+Operating System (OS) là phần mềm nền tảng quản lý phần cứng và cung cấp môi trường thực thi cho các chương trình. Hệ điều hành điều phối CPU, bộ nhớ, lưu trữ và thiết bị; cung cấp giao diện để ứng dụng yêu cầu dịch vụ; đồng thời cô lập các tiến trình và kiểm soát quyền truy cập. Kernel là thành phần cốt lõi thực hiện nhiều thao tác đặc quyền, trong khi chương trình người dùng tương tác với kernel thông qua system calls và các API do hệ thống cung cấp.
+
+Module dành cho người đã biết kiến thức máy tính cơ bản, cách chạy chương trình và sử dụng dòng lệnh ở mức nhập môn. Lộ trình bắt đầu bằng kiến trúc OS và ranh giới user/kernel, sau đó đi qua system calls, process/thread và CPU scheduling. Tiếp theo là virtual memory, filesystem, thiết bị và I/O; các mốc cuối giới thiệu đồng bộ, giao tiếp liên tiến trình, bảo vệ tài nguyên và cách quan sát hoạt động hệ thống. Linux được dùng làm ví dụ thực hành cho nhiều khái niệm, nhưng các nguyên tắc nền tảng cũng xuất hiện trong Windows, macOS và các hệ điều hành khác.
+
+Sau khi hoàn thành, bạn có thể giải thích luồng từ ứng dụng đến kernel, phân biệt process với thread, mô tả cách bộ nhớ và file được quản lý, và nhận diện các vấn đề như race condition, deadlock hoặc memory pressure. Bạn cũng có thể dùng công cụ hệ thống để kiểm tra tài nguyên và tìm dấu hiệu bất thường ở mức cơ bản. Đây là nền tảng trước khi học sâu về Linux internals, system programming, networking hoặc quản trị hệ điều hành.

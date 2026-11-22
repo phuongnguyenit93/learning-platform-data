@@ -1,0 +1,85 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: ACID
+  slug: acid
+  index: 1
+- title: Vòng đời giao dịch
+  slug: transaction-lifecycle
+  index: 2
+- title: Mô hình thực thi
+  slug: execution-model
+  index: 3
+- title: Bất thường đồng thời
+  slug: concurrency-anomalies
+  index: 4
+- title: Mức cô lập
+  slug: isolation-levels
+  index: 5
+- title: Cơ chế khóa
+  slug: locking-mechanisms
+  index: 6
+- title: Khóa hai pha
+  slug: two-phase-locking
+  index: 7
+- title: MVCC
+  slug: mvcc
+  index: 8
+- title: Cô lập ảnh chụp
+  slug: snapshot-isolation
+  index: 9
+- title: Kiểm soát khả tuần tự
+  slug: serializability-control
+  index: 10
+- title: Khóa chủ động
+  slug: pessimistic-locking
+  index: 11
+- title: Khóa lạc quan
+  slug: optimistic-locking
+  index: 12
+- title: Chỉ mục và khoảng khóa
+  slug: index-and-range-locks
+  index: 13
+- title: Ràng buộc dữ liệu
+  slug: data-constraints
+  index: 14
+- title: Bế tắc và chờ khóa
+  slug: deadlocks-and-lock-waits
+  index: 15
+- title: Lỗi và thực thi lại
+  slug: errors-and-retries
+  index: 16
+- title: Bất biến nghiệp vụ
+  slug: business-invariants
+  index: 17
+- title: Hàng đợi và tính lũy đẳng
+  slug: queues-and-idempotency
+  index: 18
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 19
+- title: Tác động ngoài giao dịch
+  slug: external-side-effects
+  index: 20
+- title: Khác biệt hệ quản trị
+  slug: database-system-differences
+  index: 21
+- title: Thực nghiệm hai phiên
+  slug: two-session-experiments
+  index: 22
+- title: Kiểm thử đồng thời
+  slug: concurrency-testing
+  index: 23
+- title: Quan sát và chẩn đoán
+  slug: monitoring-and-diagnostics
+  index: 24
+- title: Hiệu năng đồng thời
+  slug: concurrency-performance
+  index: 25
+- title: Mẫu sai thường gặp
+  slug: common-antipatterns
+  index: 26
+- title: Bài tập tổng hợp
+  slug: hands-on-exercises
+  index: 27

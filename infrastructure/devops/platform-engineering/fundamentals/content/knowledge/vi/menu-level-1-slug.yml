@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Bản đồ khái niệm
+  slug: concept-map
+  index: 1
+- title: Người dùng và nhu cầu
+  slug: users-and-needs
+  index: 2
+- title: Hành trình người dùng
+  slug: developer-journey
+  index: 3
+- title: Tư duy sản phẩm
+  slug: product-thinking
+  index: 4
+- title: Trải nghiệm phát triển
+  slug: developer-experience
+  index: 5
+- title: Phạm vi nền tảng
+  slug: platform-scope
+  index: 6
+- title: Kiến trúc nền tảng
+  slug: platform-architecture
+  index: 7
+- title: Tự phục vụ
+  slug: self-service
+  index: 8
+- title: Lối đi khuyến nghị
+  slug: golden-paths
+  index: 9
+- title: Giao diện sử dụng
+  slug: user-interface
+  index: 10
+- title: Danh mục phần mềm
+  slug: software-catalog
+  index: 11
+- title: Hạ tầng và môi trường
+  slug: infrastructure-and-environments
+  index: 12
+- title: Bàn giao ứng dụng
+  slug: application-handoff
+  index: 13
+- title: Dịch vụ dùng chung
+  slug: shared-services
+  index: 14
+- title: Bảo mật và quyền
+  slug: security-and-access
+  index: 15
+- title: Chính sách và kiểm soát
+  slug: policies-and-controls
+  index: 16
+- title: Độ tin cậy
+  slug: reliability
+  index: 17
+- title: Vòng đời nền tảng
+  slug: platform-lifecycle
+  index: 18
+- title: Tổ chức và phối hợp
+  slug: operating-model
+  index: 19
+- title: Tiếp nhận và hỗ trợ
+  slug: onboarding-and-support
+  index: 20
+- title: Đo lường giá trị
+  slug: value-measurement
+  index: 21
+- title: Chi phí và đầu tư
+  slug: costs-and-investment
+  index: 22
+- title: Triển khai từng bước
+  slug: incremental-rollout
+  index: 23
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 24

@@ -1,0 +1,57 @@
+roadmap:
+- id: pham-vi-tai-san
+  title: Phạm vi & Tài sản
+  purpose: Xác định phần hệ thống cần phân tích và những tài sản quan trọng cần bảo vệ.
+  objectives:
+  - Mô tả mục tiêu và phạm vi threat modeling.
+  - Liệt kê tài sản dữ liệu, dịch vụ và người dùng.
+  - Nêu giả định, giới hạn và stakeholder.
+- id: data-flow-diagram
+  title: Data Flow Diagram
+  purpose: Mô hình hóa cách dữ liệu di chuyển giữa các thành phần để nhìn thấy điểm có rủi ro.
+  objectives:
+  - Vẽ external entity, process và data store.
+  - Đánh dấu các luồng dữ liệu chính.
+  - Kiểm tra sơ đồ với kiến trúc ứng dụng thực tế.
+- id: trust-boundary-entry-point
+  title: Trust Boundary & Entry Point
+  purpose: Nhận diện điểm giao tiếp và nơi dữ liệu vượt qua ranh giới tin cậy.
+  objectives:
+  - Xác định API, UI và các điểm nhập dữ liệu.
+  - Đánh dấu trust boundary trên DFD.
+  - Mô tả danh tính và quyền ở mỗi ranh giới.
+- id: phan-tich-stride
+  title: Phân tích STRIDE
+  purpose: Sử dụng sáu nhóm STRIDE để phát hiện các mối đe dọa có cấu trúc.
+  objectives:
+  - Phân biệt Spoofing, Tampering, Repudiation.
+  - Nhận diện Information Disclosure, DoS, Elevation of Privilege.
+  - Gán threat cụ thể vào phần tử hoặc luồng DFD.
+- id: kich-ban-tan-cong
+  title: Kịch bản tấn công
+  purpose: Diễn giải đường khai thác và tác động từ góc nhìn của tác nhân đe dọa.
+  objectives:
+  - Viết misuse case cho một chức năng nhạy cảm.
+  - Phác thảo đường đi từ entry point đến tài sản.
+  - Liệt kê điều kiện và biện pháp bảo vệ hiện có.
+- id: danh-gia-uu-tien-rui-ro
+  title: Đánh giá & Ưu tiên rủi ro
+  purpose: Xếp hạng threat theo khả năng xảy ra và tác động để phân bổ nguồn lực.
+  objectives:
+  - Ước lượng likelihood và impact có căn cứ.
+  - Phân nhóm rủi ro cao, vừa, thấp.
+  - Ghi lại giả định và mức rủi ro còn lại.
+- id: mitigation-security-controls
+  title: Mitigation & Security Controls
+  purpose: Chọn biện pháp phòng vệ tương ứng với từng mối đe dọa được ưu tiên.
+  objectives:
+  - Ánh xạ threat sang authentication, authorization hoặc encryption.
+  - Đặt yêu cầu kiểm thử cho mỗi biện pháp.
+  - Ghi owner, deadline và phương án xử lý residual risk.
+- id: review-cap-nhat-mo-hinh
+  title: Review & Cập nhật mô hình
+  purpose: Duy trì threat model như một tài liệu sống khi thiết kế và bề mặt tấn công thay đổi.
+  objectives:
+  - Review DFD, threat list và trạng thái mitigation.
+  - Kiểm chứng control bằng test hoặc security review.
+  - Cập nhật mô hình khi thêm luồng dữ liệu hay tính năng.

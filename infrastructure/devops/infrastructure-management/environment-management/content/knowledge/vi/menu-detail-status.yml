@@ -1,0 +1,2194 @@
+menu:
+- slug: environment-overview
+  title: Tổng quan môi trường
+  childs:
+  - slug: environment-overview-001
+    title: Môi trường phần mềm là gì và gồm những thành phần nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-002
+    title: Vai trò của quản lý môi trường trong phát triển, kiểm thử và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-003
+    title: Mối quan hệ giữa ứng dụng, hạ tầng, cấu hình, dữ liệu và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-004
+    title: Phân biệt môi trường, máy chủ, cụm, namespace và phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-005
+    title: Phân biệt quản lý môi trường với cấp phát hạ tầng, quản lý cấu hình và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-006
+    title: Các khái niệm cấu hình chuẩn, trạng thái mong muốn, sai lệch và khả năng tái tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-007
+    title: Cân bằng tốc độ cung cấp, độ tin cậy, an toàn và chi phí môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-overview-008
+    title: Nhận diện vấn đề khi môi trường thiếu chủ sở hữu hoặc được quản lý thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-types
+  title: Các loại môi trường
+  childs:
+  - slug: environment-types-001
+    title: Môi trường cục bộ của lập trình viên và môi trường phát triển từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-002
+    title: Môi trường tích hợp để kiểm chứng các thành phần làm việc cùng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-003
+    title: Môi trường kiểm thử chức năng và kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-004
+    title: Môi trường nghiệm thu người dùng và điều kiện phục vụ UAT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-005
+    title: Môi trường staging để diễn tập phát hành gần với production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-006
+    title: Môi trường production phục vụ người dùng và dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-007
+    title: Môi trường kiểm thử hiệu năng, độ bền và khả năng chịu lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-008
+    title: Môi trường sandbox để thử nghiệm với phạm vi ảnh hưởng được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-009
+    title: Môi trường preview theo thay đổi và môi trường tạm thời theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-types-010
+    title: Môi trường dự phòng thảm họa và cách chọn các loại môi trường cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-design
+  title: Thiết kế môi trường
+  childs:
+  - slug: environment-design-001
+    title: Xác định mục đích, đối tượng sử dụng và yêu cầu chất lượng cho mỗi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-002
+    title: Lựa chọn môi trường dùng chung, dành riêng hoặc kết hợp theo nhu cầu nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-003
+    title: Phân tách bằng tài khoản, subscription, project, mạng, cụm hoặc namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-004
+    title: Đánh giá ranh giới tin cậy và giới hạn ảnh hưởng khi một môi trường gặp sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-005
+    title: Cách ly production khỏi non-production theo rủi ro dữ liệu và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-006
+    title: Giới hạn của namespace và các biện pháp bổ sung khi dùng chung cụm Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-007
+    title: Thiết kế nhiều vùng, nhiều khu vực hoặc nhiều nhà cung cấp khi có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-008
+    title: Xác định mức tương đồng cần thiết thay vì sao chép toàn bộ quy mô production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-design-009
+    title: Lập ma trận môi trường, dịch vụ, phiên bản và quan hệ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inventory-ownership
+  title: Danh mục và trách nhiệm
+  childs:
+  - slug: inventory-ownership-001
+    title: Thiết lập danh mục môi trường và nguồn thông tin có thẩm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-002
+    title: Định danh môi trường, quy ước đặt tên và nhãn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-003
+    title: Ghi nhận mục đích, chủ sở hữu, nhóm hỗ trợ và người chịu trách nhiệm chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-004
+    title: Quản lý endpoint, khu vực, tài khoản hạ tầng và thời hạn tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-005
+    title: Phân công trách nhiệm giữa nhóm phát triển, kiểm thử, nền tảng và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-006
+    title: Thiết lập tiêu chí sẵn sàng, giờ phục vụ và cam kết hỗ trợ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-007
+    title: Quản lý lịch sử thay đổi và liên kết môi trường với mã nguồn, yêu cầu công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inventory-ownership-008
+    title: Đối soát danh mục với tài nguyên thực để tìm môi trường hoặc tài nguyên bị bỏ quên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-lifecycle
+  title: Vòng đời môi trường
+  childs:
+  - slug: environment-lifecycle-001
+    title: Mô hình yêu cầu, phê duyệt, cấp phát, sử dụng, bảo trì và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-002
+    title: Xác định đầu vào, điều kiện trước và tiêu chí hoàn thành khi tạo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-003
+    title: Cấp phát hạ tầng, cấu hình dịch vụ, khởi tạo dữ liệu và kiểm tra sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-004
+    title: Công bố thông tin truy cập và bàn giao môi trường cho nhóm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-005
+    title: Cập nhật phiên bản nền tảng và bảo trì môi trường đang được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-006
+    title: Tạm dừng, khởi động lại, đặt lại và tạo mới môi trường khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-007
+    title: Gia hạn môi trường theo nhu cầu sử dụng và trách nhiệm của chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-008
+    title: Ngừng sử dụng, lưu giữ bằng chứng cần thiết và thu hồi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-lifecycle-009
+    title: Xử lý trạng thái tạo dở, thu hồi dở và các tài nguyên còn sót lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments-as-code
+  title: Môi trường dưới dạng mã
+  childs:
+  - slug: environments-as-code-001
+    title: Vai trò của mã hạ tầng, mã cấu hình và khai báo triển khai trong định nghĩa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-002
+    title: Tổ chức cấu phần dùng lại cùng tham số riêng của từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-003
+    title: Tách định nghĩa chung, khác biệt có chủ đích và thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-004
+    title: Quản lý phiên bản công cụ, module, image và các phụ thuộc để tái tạo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-005
+    title: Phân tách trạng thái quản lý hạ tầng và thông tin truy cập giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-006
+    title: Đánh giá thay đổi qua Git, bản kế hoạch thực thi và bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-007
+    title: Nhận diện thao tác cập nhật tại chỗ, thay thế tài nguyên và nguy cơ mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-008
+    title: Tiếp nhận tài nguyên có sẵn vào quản lý bằng mã và kiểm tra sai lệch ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-as-code-009
+    title: Tái tạo môi trường từ định nghĩa đã lưu mà không phụ thuộc thao tác ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-configuration
+  title: Cấu hình theo môi trường
+  childs:
+  - slug: environment-configuration-001
+    title: Phân biệt cấu hình ứng dụng, cấu hình hạ tầng và thông tin bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-002
+    title: Tách cấu hình thay đổi theo môi trường khỏi mã nguồn và gói thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-003
+    title: Lựa chọn biến môi trường, tệp cấu hình hoặc dịch vụ cấu hình theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-004
+    title: Thiết kế cấu hình nền, lớp ghi đè và thứ tự ưu tiên rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-005
+    title: Kiểm tra kiểu dữ liệu, giá trị bắt buộc, giá trị mặc định và cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-006
+    title: Quản lý phiên bản cấu hình và kiểm tra tương thích với phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-007
+    title: Phân biệt cấu hình cần khởi động lại với cấu hình thay đổi trong lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-008
+    title: Quản lý feature flag, phạm vi áp dụng và vòng đời cờ tính năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-009
+    title: Kiểm soát endpoint, tên cơ sở dữ liệu và định danh môi trường để tránh kết nối nhầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-configuration-010
+    title: Minh họa cấu hình môi trường cho Java hoặc Spring Boot và giới hạn của application profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets-identities
+  title: Bí mật và danh tính
+  childs:
+  - slug: secrets-identities-001
+    title: Phân loại mật khẩu, token, khóa API, chứng chỉ và danh tính máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-002
+    title: Tách nơi lưu bí mật và phạm vi cấp quyền theo từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-003
+    title: Cấp quyền tối thiểu cho người dùng, ứng dụng và tác vụ tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-004
+    title: Ưu tiên danh tính workload và thông tin xác thực ngắn hạn khi nền tảng hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-005
+    title: Cung cấp bí mật khi chạy mà không đưa vào Git, image hoặc tệp đầu ra công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-006
+    title: Luân chuyển, thu hồi và thay thế bí mật mà không làm gián đoạn ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-007
+    title: Ngăn bí mật xuất hiện trong log, bản kế hoạch hạ tầng và thông tin chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-008
+    title: Kiểm soát quyền đọc bí mật của môi trường preview và mã đóng góp chưa được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-identities-009
+    title: Theo dõi truy cập bí mật và xử lý khi thông tin xác thực bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: networking-access
+  title: Mạng và truy cập
+  childs:
+  - slug: networking-access-001
+    title: Thiết kế phân đoạn mạng, tuyến kết nối và chính sách ra vào theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-002
+    title: Quản lý DNS, tên miền phụ và quy ước endpoint
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-003
+    title: Cấp, gia hạn và thu hồi chứng chỉ TLS theo vòng đời môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-004
+    title: Kiểm soát truy cập nội bộ qua VPN, bastion hoặc cơ chế truy cập có xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-005
+    title: Áp dụng firewall, security group hoặc NetworkPolicy theo nền tảng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-006
+    title: Giới hạn kết nối giữa các môi trường và xác minh đường truy cập tới production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-007
+    title: Phân tách địa chỉ callback, webhook và cấu hình đăng nhập một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-008
+    title: Quản lý IP được cho phép và yêu cầu kết nối với đối tác bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-009
+    title: Xử lý proxy, DNS nội bộ và service discovery trong môi trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: networking-access-010
+    title: Kiểm chứng cách ly mạng và quyền truy cập sau khi thay đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: local-environments
+  title: Môi trường cục bộ
+  childs:
+  - slug: local-environments-001
+    title: Chuẩn hóa phiên bản JDK, công cụ build và dịch vụ cần cho dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-002
+    title: Tổ chức tệp cấu hình mẫu và hướng dẫn khởi tạo không chứa bí mật thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-003
+    title: Sử dụng container hoặc công cụ phát triển từ xa để giảm khác biệt máy cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-004
+    title: Khởi động cơ sở dữ liệu, cache và hàng đợi cho phát triển cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-005
+    title: Lựa chọn dịch vụ thật, dịch vụ giả lập hoặc test double cho từng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-006
+    title: Tạo dữ liệu mẫu và cơ chế đặt lại môi trường có thể chạy lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-007
+    title: Quản lý cổng, tên miền cục bộ, chứng chỉ phát triển và nhiều dự án chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: local-environments-008
+    title: Tự kiểm tra môi trường và xử lý khác biệt hệ điều hành hoặc kiến trúc CPU
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-environments
+  title: Môi trường dùng chung
+  childs:
+  - slug: shared-environments-001
+    title: Xác định đối tượng sử dụng và phạm vi chia sẻ hạ tầng, ứng dụng, dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-002
+    title: Phân chia không gian tên, tài khoản và tập dữ liệu giữa nhóm hoặc đợt kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-003
+    title: Đặt lịch, giữ chỗ và xử lý tranh chấp khi nhiều nhóm cần cùng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-004
+    title: Kiểm soát triển khai đồng thời và tránh ghi đè phiên bản nhóm khác đang kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-005
+    title: Đặt lại dữ liệu theo lịch và thông báo thay đổi gây gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-006
+    title: Phân biệt lỗi ứng dụng với tác động từ nhóm cùng dùng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-007
+    title: Thiết lập cửa sổ bảo trì, thời hạn đóng băng và quy trình hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-environments-008
+    title: Đánh giá khi nào cần chuyển từ môi trường dùng chung sang môi trường dành riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ephemeral-environments
+  title: Môi trường tạm thời
+  childs:
+  - slug: ephemeral-environments-001
+    title: Phân biệt môi trường preview theo pull request với môi trường kiểm thử theo tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-002
+    title: Xác định phạm vi tạo riêng và các dịch vụ có thể dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-003
+    title: Đặt định danh ổn định theo thay đổi và tránh trùng tên khi tạo đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-004
+    title: Tự động tạo môi trường khi có sự kiện đã được xác thực và cấp quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-005
+    title: Cấp endpoint, dữ liệu mẫu và thông tin truy cập cho người đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-006
+    title: Kiểm soát mã không tin cậy, thông tin bí mật và khả năng truy cập mạng nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-007
+    title: Cập nhật môi trường khi thay đổi mã nguồn mà không tạo tài nguyên trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-008
+    title: Đặt thời hạn tồn tại, gia hạn và dọn dẹp khi thay đổi được đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-009
+    title: Thu hồi DNS, chứng chỉ, dữ liệu, volume và tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ephemeral-environments-010
+    title: Đánh giá lợi ích phản hồi nhanh so với thời gian cấp phát và chi phí duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-data
+  title: Dữ liệu theo môi trường
+  childs:
+  - slug: environment-data-001
+    title: Phân loại dữ liệu sản xuất, dữ liệu thử nghiệm và dữ liệu tổng hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-002
+    title: Lựa chọn dữ liệu mẫu đáp ứng mục tiêu kiểm thử và dung lượng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-003
+    title: Che giấu, ẩn danh hoặc tổng hợp dữ liệu trước khi đưa ra ngoài production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-004
+    title: Kiểm soát dữ liệu cá nhân và thông tin bí mật trong bản sao hoặc bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-005
+    title: Tách tài khoản, cơ sở dữ liệu, schema và quyền ghi giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-006
+    title: Khởi tạo dữ liệu có thể chạy lặp và bảo đảm trạng thái đầu vào xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-007
+    title: Làm mới dữ liệu, lên lịch đặt lại và tránh phá hỏng phiên kiểm thử đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-008
+    title: Quản lý phiên bản schema và thứ tự migration gắn với phiên bản ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-009
+    title: Kiểm thử tương thích dữ liệu khi nhiều phiên bản ứng dụng cùng hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-010
+    title: Đặt thời hạn lưu, kiểm chứng xóa dữ liệu và xử lý dữ liệu còn trong snapshot
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-data-011
+    title: Ngăn tác vụ nền, email, thanh toán hoặc tích hợp từ dữ liệu thử gây tác động thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependent-services
+  title: Dịch vụ phụ thuộc
+  childs:
+  - slug: dependent-services-001
+    title: Lập danh sách cơ sở dữ liệu, cache, hàng đợi và dịch vụ ngoài cho mỗi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-002
+    title: Quản lý phiên bản, cấu hình và hợp đồng giao tiếp của các dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-003
+    title: Chọn dịch vụ thật, sandbox của đối tác hoặc mô phỏng theo mục tiêu kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-004
+    title: Cô lập queue, topic, bucket và khóa cache để tránh lẫn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-005
+    title: Kiểm soát tài khoản thử nghiệm, hạn mức API và chi phí dịch vụ bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-006
+    title: Chuẩn bị thứ tự khởi tạo và điều kiện sẵn sàng thay vì chỉ chờ tiến trình chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-007
+    title: Xử lý phụ thuộc không sẵn sàng bằng timeout, retry và cơ chế giảm tác động phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependent-services-008
+    title: Theo dõi và kiểm chứng thay đổi dịch vụ dùng chung trước khi các nhóm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-parity
+  title: Tính tương đồng
+  childs:
+  - slug: environment-parity-001
+    title: Mục tiêu giữ môi trường phát triển, staging và production đủ tương đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-002
+    title: Phân biệt khác biệt có chủ đích với sai lệch ngoài kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-003
+    title: Đối chiếu runtime, hệ điều hành, image và phiên bản dịch vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-004
+    title: Giữ tương đồng schema, đặc tính dữ liệu và hành vi dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-005
+    title: Xác định khác biệt về quy mô, tải, độ trễ và mức sẵn sàng có thể chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-006
+    title: Sử dụng cùng gói bất biến qua nhiều môi trường và tách cấu hình khi chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-007
+    title: Quản lý ma trận phiên bản khi nhiều dịch vụ được phát hành độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-parity-008
+    title: Đo lường và thu hẹp khoảng cách khiến lỗi chỉ xuất hiện trên production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-validation
+  title: Kiểm chứng môi trường
+  childs:
+  - slug: environment-validation-001
+    title: Xác định tiêu chí chấp nhận môi trường trước khi bàn giao sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-002
+    title: Kiểm tra hạ tầng, kết nối mạng, DNS, TLS và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-003
+    title: Phân biệt kiểm tra tiến trình sống, sẵn sàng phục vụ và đúng chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-004
+    title: Chạy smoke test cho luồng chính và khả năng kết nối dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-005
+    title: Kiểm tra cấu hình, bí mật và phiên bản mà không làm lộ giá trị nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-006
+    title: Xác minh schema, dữ liệu khởi tạo và tính độc lập giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-007
+    title: Kiểm thử chính sách cách ly, hạn mức tài nguyên và quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-008
+    title: Kiểm tra khả năng lặp lại bằng tạo mới, đặt lại và thu hồi môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-009
+    title: Lưu kết quả kiểm chứng gắn với định danh và phiên bản môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-validation-010
+    title: Phân biệt môi trường sẵn sàng sử dụng với ứng viên phát hành đã đạt kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-integration
+  title: Tích hợp phát hành
+  childs:
+  - slug: release-integration-001
+    title: Phân biệt môi trường thực tế với đối tượng environment được khai báo trong công cụ CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-002
+    title: Thiết lập luồng đưa cùng bản phát hành qua các môi trường kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-003
+    title: Liên kết bản phát hành với phiên bản gói, cấu hình, hạ tầng và dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-004
+    title: Tách quyền xây dựng gói với quyền triển khai vào từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-005
+    title: Thiết lập phê duyệt và điều kiện kiểm tra dựa trên rủi ro môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-006
+    title: Tuần tự hóa thay đổi hoặc khóa môi trường để tránh triển khai chồng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-007
+    title: Điều phối migration, cập nhật cấu hình và triển khai ứng dụng đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-008
+    title: Theo dõi lịch sử triển khai và xác định chính xác phiên bản đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-integration-009
+    title: Quản lý feature flag và việc mở tính năng độc lập với thời điểm triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: production-protection
+  title: Bảo vệ production
+  childs:
+  - slug: production-protection-001
+    title: Xác định mức độ quan trọng và các thao tác cần được kiểm soát chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-002
+    title: Tách danh tính và quyền quản trị production khỏi môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-003
+    title: Áp dụng truy cập tạm thời, xác thực mạnh và rà soát hoạt động đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-004
+    title: Quy trình truy cập khẩn cấp và kiểm tra sau khi sử dụng quyền ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-005
+    title: Ngăn chạy nhầm lệnh bằng định danh rõ ràng và kiểm tra ngữ cảnh trước thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-006
+    title: Giới hạn dữ liệu production được dùng cho chẩn đoán hoặc tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-007
+    title: Thiết lập cửa sổ bảo trì và điều kiện dừng thay đổi khi sức khỏe dịch vụ giảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-008
+    title: Kiểm soát thử nghiệm trên production theo phạm vi ảnh hưởng và khả năng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: production-protection-009
+    title: Ghi nhận và đối soát thao tác thủ công với trạng thái quản lý chính thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: drift-control
+  title: Kiểm soát sai lệch
+  childs:
+  - slug: drift-control-001
+    title: Phân biệt sai lệch hạ tầng, cấu hình, dữ liệu, phiên bản và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-002
+    title: Xác định cấu hình chuẩn và trạng thái mong muốn để làm cơ sở so sánh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-003
+    title: Phát hiện thay đổi thủ công hoặc ngoài luồng tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-004
+    title: Lựa chọn kiểm tra định kỳ, theo sự kiện hoặc đối soát liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-005
+    title: Phân loại sai lệch hợp lệ, sai lệch rủi ro và tín hiệu cảnh báo không chính xác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-006
+    title: Đánh giá trước khi đồng bộ lại để tránh xóa thay đổi hợp lệ hoặc mất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-007
+    title: Đưa sửa chữa khẩn cấp trở lại mã định nghĩa và quy trình đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-control-008
+    title: Theo dõi tuổi sai lệch, trách nhiệm xử lý và mức tuân thủ cấu hình chuẩn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: lifecycle-automation
+  title: Tự động hóa vòng đời
+  childs:
+  - slug: lifecycle-automation-001
+    title: Thiết kế giao diện tự phục vụ với đầu vào và quyền hạn được giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-002
+    title: Cung cấp mẫu môi trường chuẩn và quản lý phiên bản mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-003
+    title: Biểu diễn trạng thái yêu cầu, thực thi, thành công và thất bại của tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-004
+    title: Thiết kế tác vụ có thể chạy lặp mà không tạo trùng hoặc phá trạng thái hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-005
+    title: Xử lý yêu cầu đồng thời, khóa theo môi trường và giới hạn số tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-006
+    title: Quản lý timeout, retry, hủy tác vụ và dọn dẹp khi cấp phát một phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-007
+    title: Áp dụng chính sách về chi phí, khu vực, dữ liệu và truy cập trước khi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-008
+    title: Tự động tạm dừng, gia hạn hoặc thu hồi theo lịch và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: lifecycle-automation-009
+    title: Lưu vết người yêu cầu, đầu vào, phiên bản định nghĩa và kết quả từng lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-observability
+  title: Quan sát môi trường
+  childs:
+  - slug: environment-observability-001
+    title: Gắn định danh môi trường vào log, metric, trace và sự kiện triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-002
+    title: Xây dựng dashboard cho sức khỏe ứng dụng, hạ tầng và dịch vụ phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-003
+    title: Phân biệt tín hiệu lỗi môi trường với lỗi nghiệp vụ hoặc lỗi bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-004
+    title: Đo thời gian cấp phát, thời gian chờ, tỷ lệ tạo thành công và thời gian thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-005
+    title: Theo dõi tính sẵn sàng của môi trường dùng chung và chất lượng phục vụ nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-006
+    title: Thiết lập cảnh báo theo mức độ quan trọng và giờ sử dụng từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-007
+    title: Bảo vệ dữ liệu nhạy cảm và kiểm soát quyền truy cập hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-008
+    title: Quản lý thời hạn lưu, chi phí và số lượng nhãn metric khi có nhiều môi trường tạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-observability-009
+    title: Tương quan sự cố với thay đổi cấu hình, phiên bản và hoạt động người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capacity-costs
+  title: Dung lượng và chi phí
+  childs:
+  - slug: capacity-costs-001
+    title: Ước lượng tài nguyên theo mục tiêu sử dụng và tải đặc trưng của môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-002
+    title: Thiết lập quota, giới hạn tài nguyên và ngăn nhóm dùng chung ảnh hưởng lẫn nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-003
+    title: Theo dõi mức sử dụng để điều chỉnh kích thước thay vì sao chép quy mô production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-004
+    title: Lập ngân sách và phân bổ chi phí theo nhóm, dự án và định danh môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-005
+    title: Tự động tắt, giảm quy mô hoặc khởi động theo lịch cho non-production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-006
+    title: Quản lý giới hạn cấp phát và số môi trường preview hoạt động đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-007
+    title: Phát hiện máy nhàn rỗi, volume rời, địa chỉ IP và tài nguyên mồ côi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-008
+    title: Đánh giá chi phí dữ liệu, log, snapshot và truyền tải giữa khu vực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capacity-costs-009
+    title: Cân bằng chi phí với thời gian khởi động, khả năng kiểm thử và tính sẵn sàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-recovery
+  title: Phục hồi môi trường
+  childs:
+  - slug: environment-recovery-001
+    title: Phân biệt tạo lại hạ tầng, phục hồi dữ liệu và khôi phục dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-002
+    title: Xác định RTO, RPO và mức dự phòng theo mục đích từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-003
+    title: Lựa chọn sao lưu, snapshot và nhân bản theo yêu cầu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-004
+    title: Kiểm tra bản sao lưu bằng phục hồi thử trong môi trường cách ly
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-005
+    title: Quản lý phiên bản ứng dụng, cấu hình và schema phù hợp khi phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-006
+    title: Lập phương án quay lui thay đổi và nhận diện migration không thể đảo ngược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-007
+    title: Thiết kế môi trường dự phòng, điều kiện chuyển đổi và ngăn ghi đồng thời ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-008
+    title: Diễn tập phục hồi, đo thời gian thực tế và cập nhật hướng dẫn vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-recovery-009
+    title: Thu hồi môi trường phục hồi thử cùng dữ liệu nhạy cảm sau diễn tập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environment-governance
+  title: Quản trị môi trường
+  childs:
+  - slug: environment-governance-001
+    title: Thiết lập tiêu chuẩn tối thiểu theo mức độ quan trọng của môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-002
+    title: Quản lý ngoại lệ có lý do, người phê duyệt, biện pháp bù và thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-003
+    title: Rà soát quyền truy cập, chủ sở hữu và nhu cầu tồn tại theo chu kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-004
+    title: Quản lý yêu cầu về vị trí lưu dữ liệu, lưu giữ và bằng chứng kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-005
+    title: Duy trì nhật ký hoạt động và liên kết thay đổi với yêu cầu đã được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-006
+    title: Quản lý môi trường bên đối tác và trách nhiệm với tài nguyên thuê ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-007
+    title: Chuẩn hóa hướng dẫn sử dụng, xử lý sự cố và bàn giao vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environment-governance-008
+    title: Đánh giá độ trưởng thành bằng khả năng tái tạo, an toàn và hiệu quả cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Điều tra lỗi chỉ xảy ra ở một môi trường bằng so sánh phiên bản và cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Chẩn đoán kết nối nhầm cơ sở dữ liệu, queue hoặc dịch vụ production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Xử lý môi trường không sẵn sàng dù tác vụ cấp phát báo thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Tìm nguyên nhân lỗi DNS, chứng chỉ, firewall và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Chẩn đoán dữ liệu bẩn hoặc trạng thái dùng chung gây kiểm thử không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Xử lý thiếu quota, tranh chấp tài nguyên và hiệu năng giảm do môi trường dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Khôi phục tác vụ cấp phát hoặc thu hồi bị gián đoạn mà không thao tác mù
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Điều tra preview đã đóng nhưng còn DNS, volume hoặc dịch vụ phát sinh chi phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Xử lý bí mật hết hạn, cấu hình không tương thích và sai lệch sau sửa khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Thu thập bằng chứng, khoanh vùng thay đổi và cập nhật biện pháp phòng ngừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Lập danh mục và ma trận local, test, staging, production cho ứng dụng Java mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Thiết kế ranh giới mạng, danh tính và dữ liệu giữa production với non-production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Tạo môi trường từ mẫu có phiên bản cùng tham số và cấu hình riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Chuẩn bị dữ liệu tổng hợp, dịch vụ phụ thuộc và kiểm tra sẵn sàng tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Đưa cùng gói bất biến qua test và staging với cấu hình phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Tạo preview theo thay đổi, đặt thời hạn và kiểm chứng dọn sạch tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Mô phỏng sai lệch thủ công rồi đối soát và sửa qua quy trình quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Áp dụng quota, lịch tạm dừng và báo cáo chi phí theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Phục hồi dữ liệu vào môi trường cách ly và đo thời gian phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Đánh giá kết quả bằng bằng chứng tái tạo, cách ly, truy vết và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

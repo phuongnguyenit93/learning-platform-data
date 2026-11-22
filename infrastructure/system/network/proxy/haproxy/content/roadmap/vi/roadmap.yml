@@ -1,0 +1,49 @@
+roadmap:
+- id: vai-tro-haproxy
+  title: Vai trò HAProxy
+  purpose: Hiểu HAProxy làm reverse proxy và load balancer trước các dịch vụ.
+  objectives:
+  - Phân biệt reverse proxy với ứng dụng backend.
+  - Vẽ luồng client → HAProxy → server.
+- id: frontend-backend
+  title: Frontend & Backend
+  purpose: Nắm cấu trúc cấu hình cơ bản để nhận và chuyển tiếp lưu lượng.
+  objectives:
+  - Nhận diện global, defaults, frontend, backend.
+  - Khai báo bind, default_backend và server.
+- id: tcp-http-routing
+  title: TCP, HTTP & Routing
+  purpose: Chọn chế độ proxy và điều hướng request theo yêu cầu.
+  objectives:
+  - Phân biệt mode tcp và mode http.
+  - Dùng ACL hoặc điều kiện để chọn backend.
+- id: thuat-toan-can-bang-tai
+  title: Thuật toán Cân bằng tải
+  purpose: Phân phối kết nối/yêu cầu hợp lý giữa các server.
+  objectives:
+  - So sánh roundrobin và leastconn.
+  - Đặt balance phù hợp với tải ví dụ.
+- id: health-checks
+  title: Health Checks
+  purpose: Đưa server lỗi ra khỏi luồng và nhận lại khi phục hồi.
+  objectives:
+  - Cấu hình kiểm tra TCP hoặc HTTP cho server.
+  - Giải thích trạng thái UP/DOWN và ngưỡng kiểm tra.
+- id: tls-https
+  title: TLS & HTTPS
+  purpose: Bảo vệ kết nối giữa client, proxy và backend.
+  objectives:
+  - Mô tả TLS termination tại frontend.
+  - Phân biệt mã hóa phía client và kết nối tới backend.
+- id: logging-statistics
+  title: Logging & Statistics
+  purpose: Quan sát lỗi và tải để phân tích hoạt động của proxy.
+  objectives:
+  - Đọc log HTTP và chỉ số trạng thái backend.
+  - Xác định dấu hiệu lỗi 5xx hoặc server không khỏe.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & Vận hành
+  purpose: Kiểm tra cấu hình và thay đổi an toàn trong môi trường thực tế.
+  objectives:
+  - Kiểm tra cú pháp cấu hình trước khi áp dụng.
+  - Thử failover và theo dõi kết quả sau reload.

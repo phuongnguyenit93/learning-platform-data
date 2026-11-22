@@ -1,0 +1,386 @@
+menu:
+- level1: Tổng quan vòng đời
+  level2:
+  - Token là gì và vai trò trong việc trao đổi bằng chứng hoặc quyền truy cập
+  - Vòng đời từ yêu cầu, cấp phát, sử dụng đến chấm dứt hiệu lực
+  - Các bên phát hành, giữ token, xác minh và quản lý trạng thái
+  - Phân biệt vòng đời token với vòng đời tài khoản và phiên đăng nhập
+  - Phân biệt xác thực, phân quyền và tính còn hiệu lực của token
+  - Giá trị token khác với bản ghi quản lý token phía máy chủ
+  - Mối quan hệ giữa token, danh tính, ứng dụng và tài nguyên
+  - Đánh đổi giữa bảo mật, trải nghiệm và tính sẵn sàng
+  - Bản đồ các quyết định cần có trước khi triển khai
+- level1: Các loại token
+  level2:
+  - Access token và phạm vi truy cập tài nguyên
+  - Refresh token và quyền xin token truy cập mới
+  - ID token và bằng chứng của sự kiện xác thực
+  - Session token và định danh phiên phía máy chủ
+  - Token xác minh email, khôi phục tài khoản và lời mời
+  - Token dùng một lần và token được phép sử dụng nhiều lần
+  - Opaque token, token tự chứa và token tham chiếu
+  - Bearer token và token ràng buộc với bên gửi
+  - Token cho người dùng, ứng dụng, workload và thiết bị
+  - Token trong liên kết ký sẵn và quyền truy cập tạm thời
+  - Phân biệt token truy cập với API key, mật khẩu và khóa ký
+- level1: Mô hình đe dọa
+  level2:
+  - Đánh cắp token và sử dụng quyền của chủ thể
+  - Giả mạo, sửa đổi và đoán giá trị token
+  - Phát lại token hợp lệ sau khi bị sao chép
+  - Lạm dụng token sai tài nguyên, sai ứng dụng hoặc sai tenant
+  - Chiếm đoạt refresh token và duy trì truy cập dài hạn
+  - Lộ token qua URL, nhật ký, trình duyệt hoặc pipeline
+  - Trạng thái thu hồi chậm đồng bộ giữa các dịch vụ
+  - Lỗi đồng thời trong làm mới, xoay vòng và dùng một lần
+  - Quyền tài khoản thay đổi khi token vẫn còn hiệu lực
+  - Ranh giới tin cậy và hậu quả khi issuer hoặc kho trạng thái bị xâm phạm
+- level1: Trạng thái và dữ liệu
+  level2:
+  - Thiết kế các trạng thái được yêu cầu, đang hoạt động và đã chấm dứt
+  - Phân biệt hết hạn, thu hồi, đã sử dụng và bị thay thế
+  - Chuyển trạng thái hợp lệ và điều kiện thực hiện
+  - Định danh token, phiên, thiết bị và họ refresh token
+  - Chủ thể, ứng dụng, audience, scope và tenant liên quan
+  - Thời điểm phát hành, kích hoạt, sử dụng gần nhất và hết hạn
+  - Lý do thu hồi và lịch sử thay thế token
+  - Token cha, token con và quan hệ cấp phát tiếp nối
+  - Dữ liệu nhạy cảm cần tránh lưu trong bản ghi quản lý
+  - Lưu đồ trạng thái và các bất biến bảo mật của vòng đời
+- level1: Chính sách token
+  level2:
+  - Chọn loại token theo mục đích và mức rủi ro
+  - Xác định nguồn cấp phát cùng các bên được phép yêu cầu
+  - Quy định audience, scope và ranh giới tài nguyên
+  - Thời hạn token, thời hạn phiên và giới hạn làm mới
+  - Quy định số token, phiên hoặc thiết bị đồng thời
+  - Điều kiện yêu cầu xác thực lại hoặc xác thực tăng cường
+  - Chính sách thu hồi khi đăng xuất, đổi quyền hoặc có sự cố
+  - Yêu cầu chống phát lại theo từng loại token
+  - Chính sách lưu trữ, truyền tải và che giấu token
+  - Phiên bản hợp đồng và trách nhiệm của bên phát hành, bên xác minh
+- level1: Sinh token
+  level2:
+  - Nguồn ngẫu nhiên mật mã và entropy của opaque token
+  - Độ dài token và khả năng chống dò đoán
+  - Mã hóa biểu diễn không thay thế cho độ ngẫu nhiên
+  - Ngăn token chứa định danh hoặc dữ liệu dễ dự đoán
+  - Định danh token và phân biệt với bí mật dùng để xác thực
+  - Ký hoặc mã hóa token tự chứa theo hợp đồng ứng dụng
+  - Tạo claims từ nguồn dữ liệu tin cậy
+  - Không dùng thời gian, số tăng dần hoặc UUID bất kỳ như bảo đảm bí mật
+  - Kiểm soát va chạm và bảo đảm định danh phù hợp phạm vi
+  - Tránh tự thiết kế định dạng hoặc thuật toán mật mã không cần thiết
+- level1: Cấp phát token
+  level2:
+  - Xác thực và ủy quyền yêu cầu trước khi cấp phát
+  - Cấp phát sau đăng nhập, ủy quyền hoặc xác thực workload
+  - Ràng buộc token với ứng dụng và chủ thể phù hợp
+  - Giới hạn quyền theo yêu cầu và chính sách hiện hành
+  - Xác định thời hạn tại thời điểm cấp phát
+  - Tạo bản ghi trạng thái và trả token theo một giao dịch nhất quán
+  - Ngăn cấp phát trùng khi yêu cầu được gửi lại
+  - Giới hạn tần suất và phát hiện hoạt động cấp phát bất thường
+  - Quy tắc khi cấp token mới có thay thế token cũ hay không
+  - Lưu bằng chứng cấp phát mà không ghi toàn bộ bí mật token
+  - Xử lý cấp phát thất bại hoặc phản hồi bị mất trên đường truyền
+- level1: Phân phối token
+  level2:
+  - Trả token qua kênh được xác thực và mã hóa
+  - Authorization header và hợp đồng truyền bearer token
+  - Cookie và cơ chế trình duyệt tự động gửi token
+  - Rủi ro token xuất hiện trong URL, query string và fragment
+  - Cache-Control và tránh lưu phản hồi chứa token ngoài ý muốn
+  - Redirect, deep link và callback khi trao token cho ứng dụng
+  - Liên kết email chứa token xác minh hoặc khôi phục
+  - Proxy, CDN và công cụ quan sát có thể nhìn thấy token
+  - Ngăn nhầm lẫn token giữa nhiều tài khoản hoặc môi trường
+  - Kiểm tra nơi nhận trước khi chuyển tiếp token
+- level1: Lưu trữ token
+  level2:
+  - Lưu token phía máy khách khác với lưu trạng thái phía máy chủ
+  - LocalStorage, sessionStorage và rủi ro từ mã độc trong trang
+  - Token trong bộ nhớ và giới hạn bảo vệ trước XSS
+  - Cookie HttpOnly, Secure, SameSite và phạm vi áp dụng
+  - Kho bảo mật của hệ điều hành cho ứng dụng di động và máy tính
+  - Lưu token của dịch vụ trong bộ nhớ hoặc kho bí mật được quản lý
+  - Băm opaque token khi máy chủ chỉ cần đối chiếu giá trị
+  - Trường hợp cần mã hóa token để có thể sử dụng lại
+  - Tách quyền đọc trạng thái token khỏi quyền đọc bí mật
+  - Bản sao lưu, bản chụp máy và dữ liệu chẩn đoán có chứa token
+  - Xóa hoặc thay thế token cũ trong mọi vị trí lưu trữ liên quan
+- level1: Xác minh và sử dụng
+  level2:
+  - Luồng từ nhận token đến chấp nhận yêu cầu
+  - Phân tích định dạng và giới hạn kích thước đầu vào
+  - Tra cứu opaque token hoặc xác minh mật mã với token tự chứa
+  - Kiểm tra issuer, audience, loại token và ngữ cảnh
+  - Kiểm tra thời hạn cùng trạng thái thu hồi
+  - Ràng buộc token với ứng dụng, thiết bị hoặc khóa khi cần
+  - Chỉ dùng thông tin token sau khi hoàn tất kiểm tra
+  - Đánh giá quyền truy cập tại tài nguyên đích
+  - Giới hạn của lần kiểm tra đã thành công trong quá khứ
+  - Từ chối an toàn khi không đủ bằng chứng xác minh
+  - Thông báo token không hợp lệ khác với thiếu quyền truy cập
+  - Không dùng ID token hoặc refresh token thay access token
+- level1: Thời hạn hiệu lực
+  level2:
+  - Thời hạn tuyệt đối và thời hạn không hoạt động
+  - Thời hạn trượt và giới hạn kéo dài tối đa
+  - Token ngắn hạn và token dài hạn trong từng mô hình rủi ro
+  - Thời điểm bắt đầu hiệu lực và các trường hợp token chưa dùng được
+  - Thời điểm hết hạn và xử lý đúng ranh giới thời gian
+  - Đồng hồ UTC, sai lệch đồng hồ và khoảng dung sai
+  - Quan hệ giữa thời hạn access token, refresh token và phiên
+  - Tuổi tối đa của xác thực và yêu cầu đăng nhập lại
+  - Token hết hạn trong khi đang có yêu cầu xử lý
+  - Tác vụ dài hạn và tránh dựa vào token đã hết hạn cho hành động mới
+  - Ảnh hưởng của bộ nhớ đệm đến hiệu lực thực tế
+- level1: Làm mới token
+  level2:
+  - Làm mới access token khác với kéo dài token hiện có
+  - Điều kiện chấp nhận refresh token
+  - Xác thực ứng dụng khi hồ sơ yêu cầu
+  - Kiểm tra phiên, tài khoản và quyền trước cấp phát mới
+  - Giới hạn scope khi làm mới và ngăn tự mở rộng quyền
+  - Thời hạn cố định và thời hạn trượt của refresh token
+  - Giới hạn tổng thời gian duy trì phiên qua nhiều lần làm mới
+  - Làm mới chủ động trước hạn và làm mới sau lỗi xác thực
+  - Thời điểm cần xác thực lại thay vì tiếp tục làm mới
+  - Xử lý refresh token không hợp lệ, hết hạn hoặc đã thu hồi
+  - Không lặp vô hạn yêu cầu làm mới khi phiên không thể khôi phục
+- level1: Xoay refresh token
+  level2:
+  - Refresh token rotation và token thay thế qua từng lần sử dụng
+  - Họ token và liên kết giữa các thế hệ
+  - Vô hiệu hóa refresh token cũ khi phát hành token mới
+  - Phát hiện refresh token đã dùng bị sử dụng lại
+  - Phân biệt tấn công sử dụng lại với retry hoặc yêu cầu đồng thời
+  - Chính sách vô hiệu hóa một token, một nhánh hoặc cả họ
+  - Khoảng dung sai khi xoay vòng và tác động đến chống phát lại
+  - Phản hồi làm mới bị mất sau khi máy chủ đã đổi token
+  - Xử lý nhiều tab, nhiều tiến trình và nhiều thiết bị
+  - Tính nguyên tử của cập nhật token cũ và token mới
+  - Quan sát sự kiện xoay vòng mà không để lộ bí mật
+- level1: Đồng thời và nhất quán
+  level2:
+  - Race condition giữa hai yêu cầu làm mới
+  - Khóa hoặc compare-and-swap theo phiên hay họ token
+  - Single-flight khi nhiều yêu cầu cùng cần token mới
+  - Idempotency và giới hạn khi tái sử dụng kết quả cấp phát
+  - Dùng một lần bằng thao tác kiểm tra và đánh dấu nguyên tử
+  - Thu hồi đồng thời với xác minh hoặc cấp phát
+  - Độ trễ đồng bộ và cửa sổ chấp nhận token đã bị thu hồi
+  - Nhất quán giữa cơ sở dữ liệu, bộ nhớ đệm và sự kiện
+  - Chống ghi đè token mới bằng phản hồi đến muộn
+  - Xử lý timeout khi không biết giao dịch đã hoàn thành hay chưa
+  - Thiết kế thử nghiệm các xen kẽ có thể phá vỡ bất biến
+- level1: Thu hồi token
+  level2:
+  - Thu hồi là gì và khác với xóa token phía máy khách
+  - Các tác nhân được phép yêu cầu thu hồi
+  - Thu hồi một token, một phiên, một thiết bị hoặc toàn bộ tài khoản
+  - Danh sách token bị thu hồi và thời hạn lưu bản ghi
+  - Danh sách token đang hoạt động và kiểm tra trạng thái
+  - Phiên bản phiên hoặc tài khoản để vô hiệu hóa hàng loạt
+  - Thu hồi refresh token và ảnh hưởng lên token đã cấp
+  - Thu hồi access token tự chứa trước khi hết hạn
+  - Token introspection và quyết định chấp nhận theo trạng thái hiện tại
+  - Truyền sự kiện thu hồi và xác định độ trễ bảo mật chấp nhận được
+  - Phân quyền, giới hạn tần suất và tính lặp lại an toàn của API thu hồi
+  - Lý do thu hồi và bằng chứng phục vụ kiểm toán
+- level1: Đăng xuất và phiên
+  level2:
+  - Đăng xuất cục bộ và chấm dứt phiên phía máy chủ
+  - Xóa token trên thiết bị và giới hạn của thao tác này
+  - Đăng xuất thiết bị hiện tại hoặc mọi thiết bị
+  - Phiên đăng nhập, refresh token và access token liên quan
+  - Phiên của ứng dụng khác với phiên tại nhà cung cấp danh tính
+  - Đăng xuất liên kết và độ trễ truyền thông báo
+  - Cookie, token trong bộ nhớ và dữ liệu lưu lâu dài cần dọn
+  - Tránh yêu cầu đang chạy ghi lại token sau khi đăng xuất
+  - Đăng xuất khi mất mạng và khả năng thu hồi về sau
+  - Thông báo rõ khi phiên hết hiệu lực và yêu cầu đăng nhập lại
+- level1: Token dùng một lần
+  level2:
+  - Token xác minh email và ràng buộc với địa chỉ đích
+  - Token khôi phục tài khoản và thời hạn theo mức rủi ro
+  - Token lời mời, kích hoạt và hành động nhạy cảm
+  - Ràng buộc token với chủ thể, mục đích và hành động
+  - Đánh dấu đã sử dụng trong cùng giao dịch với hành động
+  - Gửi lại liên kết và chính sách vô hiệu hóa token cũ
+  - Quét liên kết tự động và tránh thực hiện hành động ngoài ý muốn
+  - Chống dò đoán bằng giới hạn tần suất và theo dõi bất thường
+  - Ngăn tiết lộ tài khoản có tồn tại qua quy trình cấp token
+  - Không tự mở phiên đặc quyền ngoài phạm vi token được cấp
+  - Trạng thái và trải nghiệm khi liên kết đã dùng hoặc hết hạn
+- level1: Chống phát lại
+  level2:
+  - Phân biệt token bị sửa với token hợp lệ bị dùng lại
+  - Giới hạn của bearer token khi bí mật đã bị sao chép
+  - Thời hạn ngắn và giới hạn quyền để giảm hậu quả
+  - Nonce, mã token và kho theo dõi sử dụng
+  - Ràng buộc token với một yêu cầu hoặc một giao dịch
+  - Token ràng buộc với bên gửi và bằng chứng giữ khóa
+  - DPoP và mTLS trong các hồ sơ hỗ trợ
+  - Giới hạn của ràng buộc theo IP hoặc dấu vết thiết bị
+  - Xử lý token ràng buộc khóa khi khóa thiết bị bị mất
+  - Chọn cơ chế phù hợp thay vì coi mọi access token là dùng một lần
+- level1: Thay đổi danh tính
+  level2:
+  - Khóa hoặc vô hiệu hóa tài khoản khi token vẫn còn hạn
+  - Đổi mật khẩu và chính sách chấm dứt phiên
+  - Thêm, xóa hoặc khôi phục yếu tố xác thực
+  - Thay đổi email, chủ sở hữu hoặc thuộc tính định danh
+  - Thay đổi role, permission và scope đã cấp
+  - Chuyển tenant, tổ chức hoặc quan hệ thành viên
+  - Thu hồi đồng ý của người dùng hoặc quyền của ứng dụng
+  - Xóa tài khoản và xử lý token hoặc dữ liệu còn lưu
+  - Yêu cầu xác thực tăng cường khi nâng quyền
+  - Không mặc nhiên coi claims cũ là trạng thái tài khoản hiện tại
+- level1: OAuth và OIDC
+  level2:
+  - Vai trò authorization server, client và resource server
+  - Authorization code và giới hạn vòng đời của mã đổi token
+  - Access token, refresh token, ID token và nơi được phép sử dụng
+  - PKCE và liên kết mã cấp quyền với ứng dụng khởi tạo
+  - Scope, audience và đồng ý của người dùng trong vòng đời
+  - Token endpoint và xử lý lỗi cấp phát hoặc làm mới
+  - Revocation endpoint và giới hạn của việc xác nhận thu hồi
+  - Introspection endpoint và bảo vệ quyền tra cứu trạng thái
+  - Refresh token trong public client và confidential client
+  - Client credentials và lý do không mặc nhiên cần refresh token
+  - OIDC session, yêu cầu đăng nhập lại và sự kiện đăng xuất
+  - Token exchange, delegation và ràng buộc token dành cho dịch vụ đích
+  - Phân biệt quản lý token với triển khai toàn bộ giao thức
+- level1: Vòng đời phía khách
+  level2:
+  - Trình duyệt và lựa chọn nơi lưu token theo mô hình đe dọa
+  - Backend for Frontend và quản lý token tại máy chủ
+  - Ứng dụng di động cùng kho lưu trữ bảo mật
+  - Ứng dụng máy tính và nhiều tài khoản đăng nhập
+  - Đồng bộ trạng thái token giữa các tab trình duyệt
+  - Khởi động lại ứng dụng và khôi phục phiên
+  - XSS, CSRF và tác động đến vòng đời token
+  - Thiết bị mất, bị đánh cắp hoặc bị đặt lại
+  - Ngắt mạng, chế độ ngủ và đồng hồ thiết bị sai
+  - Xử lý 401, tránh vòng lặp làm mới và giữ nguyên yêu cầu nghiệp vụ
+  - Không hiển thị hoặc sao chép token vào thông báo cho người dùng
+- level1: Token cho workload
+  level2:
+  - Danh tính máy, service account và token của workload
+  - Cấp token tạm thời thay cho bí mật truy cập dài hạn
+  - Workload federation và đổi bằng chứng ban đầu lấy token
+  - Token theo audience dành riêng cho dịch vụ đích
+  - Vòng đời token trong container, máy ảo và tác vụ ngắn hạn
+  - Làm mới nền và chuyển giao token mới không gián đoạn
+  - Ngăn nhiều tiến trình đồng thời gây bão làm mới
+  - Bootstrap, chấm dứt workload và thu hồi quyền cấp token
+  - Không nhúng token vào ảnh máy, cấu hình hoặc mã nguồn
+  - Giới hạn token khi chuyển tiếp qua nhiều dịch vụ
+  - Quản lý token cho tác vụ nền có thời gian xử lý dài
+- level1: JWT và opaque token
+  level2:
+  - Xác minh cục bộ JWT và tra cứu trạng thái opaque token
+  - JWT có chữ ký không tự bảo đảm token còn được phép sử dụng
+  - Claims thời gian, issuer, audience và mã định danh JWT
+  - Token tự chứa và độ trễ cập nhật quyền hoặc thu hồi
+  - Opaque token cùng kho trạng thái và chi phí tra cứu
+  - Phối hợp token tự chứa với introspection hoặc trạng thái phiên
+  - Không dùng khả năng decode để quyết định token hợp lệ
+  - Giới hạn kích thước và dữ liệu riêng tư trong payload
+  - Chọn định dạng theo yêu cầu thu hồi, quy mô và ranh giới tin cậy
+  - Tách vòng đời token khỏi vòng đời khóa ký
+- level1: Khóa và bên phát hành
+  level2:
+  - Xoay khóa ký khác với thay token của người dùng
+  - Gắn token với phiên bản khóa và cấu hình issuer
+  - Khoảng chuyển tiếp giữa khóa ký cũ và khóa ký mới
+  - Bộ nhớ đệm khóa xác minh và token còn hạn
+  - Thu hồi khóa bị lộ và phạm vi token chịu ảnh hưởng
+  - Tách khóa theo mục đích, môi trường hoặc miền tin cậy
+  - Đổi thuật toán và khả năng tương thích của bên xác minh
+  - Thay issuer hoặc địa chỉ phát hiện cấu hình
+  - Di trú token giữa hệ thống cấp phát cũ và mới
+  - Ngăn hệ thống tiếp tục cấp token từ khóa hoặc issuer đã ngừng
+- level1: Kiến trúc phân tán
+  level2:
+  - Nguồn sự thật cho trạng thái token và phiên
+  - Tách cấp phát, xác minh và quyết định phân quyền
+  - API gateway và kiểm tra token tại dịch vụ tài nguyên
+  - Kho trạng thái nhiều vùng cùng yêu cầu nhất quán
+  - Bộ nhớ đệm xác minh và cơ chế vô hiệu hóa
+  - Sự kiện thay đổi tài khoản, quyền hoặc trạng thái phiên
+  - Giới hạn thời gian phản ứng từ sự kiện đến chặn truy cập
+  - Xử lý kho trạng thái hoặc dịch vụ introspection không sẵn sàng
+  - Đánh đổi fail-closed và tính sẵn sàng theo loại tài nguyên
+  - Giới hạn tải và chống cạn tài nguyên trên endpoint token
+  - Phục hồi sau sự cố mà không làm token đã thu hồi hoạt động trở lại
+- level1: Dọn dẹp và lưu giữ
+  level2:
+  - Thời hạn giữ bản ghi token đã hết hạn hoặc đã thu hồi
+  - Giữ dấu vết token đã sử dụng đủ lâu để phát hiện tái sử dụng
+  - TTL cơ sở dữ liệu và độ trễ thực tế của việc dọn dữ liệu
+  - Không nhầm xóa bản ghi với cấp lại quyền sử dụng token
+  - Xóa token khỏi bộ nhớ đệm, hàng đợi và dữ liệu tạm
+  - Bản sao lưu và nguy cơ phục hồi trạng thái cũ
+  - Giới hạn lưu lịch sử theo mục đích kiểm toán và riêng tư
+  - Ẩn danh hoặc giảm dữ liệu liên kết với chủ thể
+  - Ngừng ứng dụng, tenant hoặc issuer và dọn token liên quan
+  - Kiểm tra việc dọn dữ liệu không phá vỡ thu hồi hoặc chống phát lại
+- level1: Giám sát và kiểm toán
+  level2:
+  - Sự kiện cấp phát, sử dụng, làm mới, xoay vòng và thu hồi
+  - Mã tham chiếu hoặc dấu vân tay token thay cho bí mật đầy đủ
+  - Chỉ số số lượng token, tuổi token và tỷ lệ hết hạn
+  - Theo dõi tỷ lệ lỗi làm mới và tái sử dụng refresh token
+  - Phát hiện bất thường theo thiết bị, ứng dụng và tài nguyên
+  - Quan sát độ trễ thu hồi trên nhiều dịch vụ
+  - Phân biệt lỗi người dùng, lỗi cấu hình và sự cố hạ tầng
+  - Liên kết sự kiện theo phiên hoặc họ token
+  - Bảo vệ nhật ký khỏi truy cập và sửa đổi trái phép
+  - Giới hạn dữ liệu cá nhân cùng quyền tra cứu lịch sử
+  - Cảnh báo có chủ sở hữu và quy trình phản ứng rõ ràng
+- level1: Ứng phó sự cố
+  level2:
+  - Phân loại lộ access token, refresh token và khóa ký
+  - Cô lập nguồn rò rỉ và ngăn tiếp tục cấp phát
+  - Xác định chủ thể, phiên, ứng dụng và tài nguyên bị ảnh hưởng
+  - Thu hồi theo phạm vi phù hợp với bằng chứng sự cố
+  - Buộc xác thực lại hoặc xác thực tăng cường
+  - Xoay token, khóa và thông tin cấp phát bị xâm phạm
+  - Xử lý token bị công khai trong kho mã hoặc nhật ký
+  - Bảo toàn bằng chứng mà không phát tán thêm token
+  - Xác minh các dịch vụ đã thực sự từ chối token bị thu hồi
+  - Thông báo và hỗ trợ khôi phục truy cập cho người dùng
+  - Rà soát nguyên nhân và điều chỉnh chính sách vòng đời
+- level1: Kiểm thử vòng đời
+  level2:
+  - Kiểm thử mọi chuyển trạng thái hợp lệ và không hợp lệ
+  - Token hợp lệ, sai định dạng, sai chữ ký hoặc không tồn tại
+  - Token sai audience, issuer, ứng dụng, tenant hoặc mục đích
+  - Ranh giới hết hạn, sai lệch đồng hồ và thời hạn không hoạt động
+  - Làm mới khi tài khoản hoặc phiên đã bị vô hiệu hóa
+  - Xoay refresh token và phát hiện sử dụng lại
+  - Yêu cầu đồng thời, phản hồi đến muộn và mất phản hồi
+  - Token dùng một lần với nhiều yêu cầu cùng thời điểm
+  - Thu hồi trong lúc bộ nhớ đệm hoặc nhiều vùng chưa đồng bộ
+  - Đăng xuất khi đang làm mới hoặc có yêu cầu nghiệp vụ
+  - Kho trạng thái, nguồn khóa và introspection bị gián đoạn
+  - Phục hồi dữ liệu và kiểm tra token cũ không sống lại
+  - Kiểm tra không lộ token qua log, URL, báo lỗi và công cụ quan sát
+  - Kiểm thử tải endpoint cấp phát, làm mới và thu hồi
+  - Kiểm tra quyền thay đổi được phản ánh theo thời gian chính sách yêu cầu
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ vòng đời token cho ứng dụng có nhiều thiết bị
+  - Thiết kế hợp đồng access token và refresh token
+  - Xây dựng mô hình dữ liệu phiên cùng họ refresh token
+  - Mô phỏng xoay vòng có yêu cầu đồng thời và phản hồi bị mất
+  - Thiết kế thu hồi một phiên, một thiết bị và toàn bộ tài khoản
+  - Xây dựng token khôi phục tài khoản dùng một lần
+  - So sánh JWT với opaque token theo yêu cầu thu hồi tức thời
+  - Thiết kế làm mới token cho workload không có người dùng
+  - Diễn tập token bị đánh cắp và xác minh hiệu quả thu hồi
+  - Lập bộ chỉ số và cảnh báo cho lỗi vòng đời token
+  - Rà soát chính sách bằng mô hình đe dọa và bằng chứng kiểm thử

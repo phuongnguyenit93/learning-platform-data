@@ -1,0 +1,3466 @@
+menu:
+- slug: terraform-overview
+  title: Tổng quan Terraform
+  childs:
+  - slug: terraform-overview-001
+    title: Terraform là gì và giải quyết bài toán quản lý hạ tầng như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-002
+    title: Phân biệt hạ tầng khai báo với thao tác cấp phát thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-003
+    title: Mối quan hệ giữa cấu hình, trạng thái mong muốn, state và hạ tầng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-004
+    title: Vai trò của Terraform Core, provider, resource, data source và module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-005
+    title: Luồng làm việc từ viết cấu hình đến plan, apply và quản lý thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-006
+    title: Phân biệt Terraform với công cụ quản lý cấu hình và điều phối triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-007
+    title: Nhận diện giới hạn của Terraform trong quản lý ứng dụng và dữ liệu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-overview-008
+    title: Điều kiện tiên quyết và lộ trình thực hành Terraform an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: setup-and-init
+  title: Cài đặt và khởi động
+  childs:
+  - slug: setup-and-init-001
+    title: Cài đặt Terraform CLI và kiểm tra phiên bản đang sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-002
+    title: Chuẩn bị trình soạn thảo, phần mở rộng HCL và công cụ dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-003
+    title: Lựa chọn provider thực hành và chuẩn bị thông tin xác thực cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-004
+    title: Tạo cấu hình đầu tiên với tài nguyên thử nghiệm có thể dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-005
+    title: Thực hiện init, fmt, validate, plan và apply lần đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-006
+    title: Quan sát tệp được sinh ra và thay đổi sau khi chạy Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-007
+    title: Thay đổi một thuộc tính rồi so sánh kết quả plan tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: setup-and-init-008
+    title: Hủy tài nguyên thực hành và xác minh không còn tài nguyên tính phí
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-structure
+  title: Cấu trúc cấu hình
+  childs:
+  - slug: configuration-structure-001
+    title: Phân biệt root module với child module trong một dự án
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-002
+    title: Tổ chức các tệp .tf và hiểu cách Terraform nạp cấu hình trong thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-003
+    title: Vai trò quy ước của main.tf, variables.tf, outputs.tf và versions.tf
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-004
+    title: Sử dụng khối terraform để khai báo yêu cầu công cụ và provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-005
+    title: Phân biệt tệp cấu hình .tf, tệp biến .tfvars và biểu diễn .tf.json
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-006
+    title: Tổ chức thư mục examples, modules, tests và tài liệu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-007
+    title: Quản lý .terraform, .terraform.lock.hcl, state và plan trong Git
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-structure-008
+    title: Xây dựng .gitignore phù hợp và tránh đưa thông tin nhạy cảm vào kho mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hcl-types
+  title: HCL và kiểu dữ liệu
+  childs:
+  - slug: hcl-types-001
+    title: Cú pháp block, argument, label, comment và biểu thức trong HCL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-002
+    title: Phân biệt string, number, bool và giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-003
+    title: Phân biệt list, set, map, tuple và object
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-004
+    title: Khai báo kiểu dữ liệu lồng nhau cho cấu hình hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-005
+    title: Hiểu chuyển đổi kiểu tự động và các trường hợp không chuyển đổi được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-006
+    title: Phân biệt thuộc tính bắt buộc, thuộc tính tùy chọn và giá trị mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-007
+    title: Xử lý giá trị chưa biết trước khi apply và phân biệt với null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-008
+    title: Viết chuỗi nhiều dòng, nội suy chuỗi và escape ký tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcl-types-009
+    title: Thực hành đọc lỗi kiểu dữ liệu và xác định vị trí cấu hình sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: expressions-and-functions
+  title: Biểu thức và hàm
+  childs:
+  - slug: expressions-and-functions-001
+    title: Tham chiếu thuộc tính và kết hợp biểu thức trong cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-002
+    title: Sử dụng toán tử số học, so sánh, logic và biểu thức điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-003
+    title: Dùng for expression để biến đổi list, set và map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-004
+    title: Sử dụng splat expression và hiểu hình dạng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-005
+    title: Kết hợp các hàm xử lý chuỗi, số và tập hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-006
+    title: Dùng lookup, try, can và coalesce đúng mục đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-007
+    title: Chuyển đổi dữ liệu với jsonencode, jsondecode, yamlencode và yamldecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-008
+    title: Đọc tệp và kết xuất mẫu bằng file cùng templatefile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-009
+    title: Hiểu ảnh hưởng của hàm phụ thuộc thời gian hoặc dữ liệu thay đổi tới plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: expressions-and-functions-010
+    title: Kiểm tra biểu thức tương tác bằng terraform console
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: input-variables
+  title: Biến đầu vào
+  childs:
+  - slug: input-variables-001
+    title: Khai báo variable với type, description và default
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-002
+    title: Truyền giá trị bằng terraform.tfvars và tệp .auto.tfvars
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-003
+    title: Truyền giá trị qua -var, -var-file và biến môi trường TF_VAR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-004
+    title: Hiểu thứ tự ưu tiên của các nguồn giá trị biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-005
+    title: Thiết kế biến object và map cho cấu hình nhiều tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-006
+    title: Áp dụng validation để phát hiện giá trị đầu vào không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-007
+    title: Đánh dấu sensitive và hiểu giới hạn che giấu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-008
+    title: Phân biệt nullable với giá trị mặc định và dữ liệu bị bỏ trống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-009
+    title: Quản lý tệp biến theo môi trường mà không sao chép bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: input-variables-010
+    title: Thiết kế giao diện đầu vào dễ hiểu và hạn chế cấu hình khó kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: locals-and-outputs
+  title: Giá trị cục bộ và đầu ra
+  childs:
+  - slug: locals-and-outputs-001
+    title: Sử dụng locals để đặt tên cho biểu thức và giảm lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-002
+    title: Phân biệt local value với input variable và output value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-003
+    title: Tổng hợp quy tắc đặt tên, nhãn và cấu hình dùng chung bằng locals
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-004
+    title: Khai báo output để công bố kết quả của root module và child module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-005
+    title: Đọc output dạng thông thường, -raw và -json
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-006
+    title: Truyền output của module này làm input cho module khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-007
+    title: Đánh dấu output nhạy cảm và kiểm soát nơi kết quả được ghi lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-008
+    title: Thiết kế hợp đồng đầu ra ổn định cho người dùng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: locals-and-outputs-009
+    title: Tránh công bố toàn bộ đối tượng tài nguyên khi chỉ cần một số thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: providers-and-registry
+  title: Provider và Registry
+  childs:
+  - slug: providers-and-registry-001
+    title: Hiểu provider là lớp giao tiếp giữa Terraform với API bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-002
+    title: Tìm provider trong Terraform Registry và đọc nguồn phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-003
+    title: Khai báo required_providers với source và ràng buộc phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-004
+    title: Cấu hình provider và tách cấu hình khỏi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-005
+    title: Sử dụng nhiều cấu hình provider bằng alias
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-006
+    title: Truyền provider vào child module và khai báo configuration_aliases
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-007
+    title: Hiểu provider mặc định, provider kế thừa và giới hạn của module dùng nhiều provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-008
+    title: Đọc schema, tài liệu resource và data source của provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-009
+    title: Quản lý plugin cache, nguồn cài đặt và môi trường bị hạn chế mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: providers-and-registry-010
+    title: Kiểm tra độ tin cậy, checksum và chính sách sử dụng provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources-and-data-sources
+  title: Tài nguyên và nguồn dữ liệu
+  childs:
+  - slug: resources-and-data-sources-001
+    title: Khai báo resource và xác định tài nguyên do Terraform quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-002
+    title: Phân biệt đối số cấu hình với thuộc tính do provider tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-003
+    title: Đọc định danh tài nguyên và địa chỉ resource trong cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-004
+    title: Sử dụng data source để tra cứu dữ liệu có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-005
+    title: Phân biệt tạo mới tài nguyên với tham chiếu tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-006
+    title: Hiểu thời điểm đọc data source trong plan và apply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-007
+    title: Kết hợp nhiều resource để mô tả một thành phần hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-008
+    title: Nhận diện thuộc tính có thể sửa tại chỗ và thuộc tính yêu cầu thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-and-data-sources-009
+    title: Kiểm soát ranh giới sở hữu khi tài nguyên được quản lý bởi nhiều công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dependency-graph
+  title: Đồ thị phụ thuộc
+  childs:
+  - slug: dependency-graph-001
+    title: Hiểu đồ thị phụ thuộc và lý do thứ tự viết tệp không quyết định thứ tự tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-002
+    title: Tạo phụ thuộc ngầm thông qua tham chiếu thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-003
+    title: Sử dụng depends_on cho quan hệ không thể hiện bằng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-004
+    title: Phân biệt phụ thuộc giữa resource, data source và module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-005
+    title: Nhận diện phụ thuộc quá rộng làm nhiều giá trị chưa biết trong plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-006
+    title: Đọc lỗi vòng phụ thuộc và tách cấu hình để loại bỏ vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-007
+    title: Hiểu thực thi song song và các giới hạn do API hoặc phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-008
+    title: Sử dụng terraform graph để khảo sát quan hệ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dependency-graph-009
+    title: Thiết kế luồng dữ liệu rõ ràng thay cho phụ thuộc cưỡng ép không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-configuration
+  title: Nhân bản và cấu hình động
+  childs:
+  - slug: dynamic-configuration-001
+    title: Sử dụng count để tạo nhiều instance của resource hoặc module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-002
+    title: Sử dụng for_each với map hoặc set có định danh ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-003
+    title: Phân biệt count.index với each.key và each.value
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-004
+    title: Đánh giá ảnh hưởng của thay đổi thứ tự danh sách tới địa chỉ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-005
+    title: Thiết kế khóa for_each ổn định và tránh dùng dữ liệu chưa biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-006
+    title: Tạo tài nguyên có điều kiện và xử lý đầu ra khi tài nguyên không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-007
+    title: Dùng dynamic block cho các nested block lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-008
+    title: Phân biệt dynamic block với resource hoặc module dùng for_each
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-009
+    title: Biến đổi dữ liệu lồng nhau bằng flatten và for expression
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-configuration-010
+    title: Giữ cấu hình dễ đọc khi số lượng biến thể tài nguyên tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resource-lifecycle
+  title: Vòng đời tài nguyên
+  childs:
+  - slug: resource-lifecycle-001
+    title: Hiểu các hành động tạo mới, cập nhật, thay thế và hủy trong plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-002
+    title: Sử dụng create_before_destroy và đánh giá điều kiện tên hoặc dung lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-003
+    title: Dùng prevent_destroy và hiểu giới hạn bảo vệ khi cấu hình bị loại bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-004
+    title: Sử dụng ignore_changes trong mô hình có thành phần quản lý bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-005
+    title: Nhận diện rủi ro che khuất sai lệch khi bỏ qua quá nhiều thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-006
+    title: Khai báo replace_triggered_by cho điều kiện thay thế phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-007
+    title: Phân biệt vòng đời tài nguyên với phụ thuộc thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-008
+    title: Yêu cầu thay thế có kiểm soát bằng tùy chọn -replace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-009
+    title: Đánh giá ảnh hưởng thay thế tài nguyên tới dữ liệu, kết nối và thời gian gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resource-lifecycle-010
+    title: Thiết kế quy trình phê duyệt riêng cho thay đổi có tính phá hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terraform-cli
+  title: Quy trình Terraform CLI
+  childs:
+  - slug: terraform-cli-001
+    title: Khởi tạo thư mục làm việc và tải phụ thuộc bằng terraform init
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-002
+    title: Định dạng mã với terraform fmt và kiểm tra bằng terraform validate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-003
+    title: Tạo kế hoạch thay đổi với terraform plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-004
+    title: Lưu kế hoạch bằng -out và áp dụng đúng tệp plan đã duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-005
+    title: Đọc thông tin cấu hình, state và plan bằng terraform show
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-006
+    title: Kiểm tra đầu ra, provider và workspace bằng các lệnh phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-007
+    title: Phân biệt terraform destroy với thay đổi cấu hình loại bỏ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-008
+    title: Hiểu chế độ không tương tác, -input=false và xử lý mã thoát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-009
+    title: Sử dụng -detailed-exitcode để phân biệt lỗi, không đổi và có thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-010
+    title: Hiểu mục đích và giới hạn của -target trong xử lý tình huống đặc biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-cli-011
+    title: Quản lý thư mục làm việc, biến môi trường và tham số CLI trong script
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: plan-review
+  title: Đọc và duyệt kế hoạch
+  childs:
+  - slug: plan-review-001
+    title: Đọc ký hiệu thêm mới, sửa, hủy và thay thế trong plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-002
+    title: Phân biệt thay đổi cấu hình với thay đổi phát hiện từ hạ tầng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-003
+    title: Hiểu giá trị known after apply và giới hạn suy luận trước khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-004
+    title: Nhận diện thay đổi ngoài dự kiến do provider, giá trị mặc định hoặc biểu thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-005
+    title: Kiểm tra thuộc tính nhạy cảm và dữ liệu có thể xuất hiện trong tệp plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-006
+    title: Đánh giá tác động tới tên, địa chỉ mạng, dữ liệu và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-007
+    title: Kiểm tra kế hoạch theo môi trường, tài khoản, vùng và phạm vi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-008
+    title: Đọc plan dạng JSON để hỗ trợ công cụ kiểm tra tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-009
+    title: Nhận diện plan lỗi thời và điều kiện cần tạo lại trước khi apply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: plan-review-010
+    title: Xây dựng tiêu chí phê duyệt plan và lưu dấu vết người chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terraform-state
+  title: Terraform State
+  childs:
+  - slug: terraform-state-001
+    title: Hiểu state là ánh xạ cấu hình tới tài nguyên thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-002
+    title: Phân biệt state, cấu hình và bản sao lưu hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-003
+    title: Đọc địa chỉ resource, module và instance trong state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-004
+    title: Liệt kê và xem đối tượng bằng terraform state list cùng state show
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-005
+    title: Hiểu lineage, serial và vai trò nhận diện phiên bản state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-006
+    title: Nhận diện dữ liệu nhạy cảm có thể được lưu trong state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-007
+    title: Đọc state phục vụ điều tra và tránh sửa JSON trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-008
+    title: Hiểu state có thể thay đổi dù không có tài nguyên được tạo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-009
+    title: Quản lý một đối tượng hạ tầng bằng một địa chỉ sở hữu rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-state-010
+    title: Phân biệt mất state với tài nguyên thực tế đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: state-backends-and-locking
+  title: Backend và khóa state
+  childs:
+  - slug: state-backends-and-locking-001
+    title: Phân biệt backend cục bộ với backend từ xa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-002
+    title: Lựa chọn backend theo khả năng lưu trữ, khóa và kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-003
+    title: Khai báo backend và sử dụng partial configuration khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-004
+    title: Khởi tạo lại backend và phân biệt -reconfigure với -migrate-state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-005
+    title: Hiểu khóa state và điều kiện hỗ trợ của từng backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-006
+    title: Xử lý tranh chấp khóa, thời gian chờ và tiến trình đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-007
+    title: Sử dụng force-unlock chỉ sau khi xác minh không còn tiến trình sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-008
+    title: Bảo vệ state bằng mã hóa, phân quyền, versioning và chính sách lưu giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-009
+    title: Quản lý thông tin xác thực backend tách biệt với provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: state-backends-and-locking-010
+    title: Thực hành di chuyển state giữa backend và xác minh sau di chuyển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: team-collaboration
+  title: Cộng tác theo nhóm
+  childs:
+  - slug: team-collaboration-001
+    title: Thiết lập kho Git cho cấu hình Terraform và quy tắc đóng góp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-002
+    title: Phân chia người viết cấu hình, người duyệt plan và người thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-003
+    title: Đồng bộ phiên bản Terraform, provider và tệp lock giữa thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-004
+    title: Ngăn hai người cùng apply lên một phạm vi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-005
+    title: Liên kết pull request với plan, thay đổi thực tế và yêu cầu công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-006
+    title: Quản lý quyền đọc state và quyền thay đổi tài nguyên độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-007
+    title: Xử lý thay đổi khẩn cấp ngoài quy trình và đưa lại vào quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-008
+    title: Duy trì runbook, trách nhiệm sở hữu và quy trình bàn giao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: team-collaboration-009
+    title: Tránh xung đột khi nhiều root module cùng tác động một tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: module-development
+  title: Xây dựng module
+  childs:
+  - slug: module-development-001
+    title: Xác định khi nào cần tách child module và khi nào giữ cấu hình trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-002
+    title: Thiết kế module theo một năng lực hạ tầng có ranh giới rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-003
+    title: Khai báo input, output và tài nguyên nội bộ của module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-004
+    title: Gọi module từ đường dẫn cục bộ, kho Git hoặc Registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-005
+    title: Truyền dữ liệu và nối các module qua đầu vào cùng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-006
+    title: Thiết kế giao diện module với kiểu dữ liệu và validation phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-007
+    title: Viết README, examples và hướng dẫn vòng đời sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-008
+    title: Thiết lập yêu cầu Terraform, provider và cách nhận cấu hình provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: module-development-009
+    title: Thực hành đóng gói một thành phần hạ tầng thành module có thể tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: advanced-module-design
+  title: Thiết kế module nâng cao
+  childs:
+  - slug: advanced-module-design-001
+    title: Phân biệt module cơ sở, module tổng hợp và root module theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-002
+    title: Áp dụng dependency inversion bằng cách nhận dữ liệu thay vì tự tra cứu mọi thứ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-003
+    title: Tránh module quá nhiều cờ điều kiện và giao diện khó hiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-004
+    title: Quản lý nhiều tài khoản hoặc vùng bằng provider alias và module composition
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-005
+    title: Thiết kế đầu ra ổn định và giới hạn phụ thuộc vào chi tiết nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-006
+    title: Sử dụng count, for_each và depends_on khi gọi module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-007
+    title: Quản lý module dùng nhiều provider và yêu cầu configuration_aliases
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-008
+    title: Đánh giá tác động khi thay đổi cấu trúc hoặc địa chỉ tài nguyên trong module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-009
+    title: Kiểm thử tương thích và chuẩn bị hướng dẫn nâng cấp cho người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: advanced-module-design-010
+    title: Phân phối module nội bộ với quy tắc sở hữu và chất lượng rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: environments-and-workspaces
+  title: Môi trường và workspace
+  childs:
+  - slug: environments-and-workspaces-001
+    title: Phân biệt môi trường ứng dụng với workspace của Terraform CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-002
+    title: Hiểu workspace tách state nhưng không tự tách thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-003
+    title: Tạo, chọn, liệt kê và xóa CLI workspace đúng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-004
+    title: Sử dụng thư mục hoặc root module riêng cho các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-005
+    title: So sánh tệp biến, workspace và tài khoản riêng theo yêu cầu cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-006
+    title: Tách backend, state và quyền thực thi giữa development, staging, production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-007
+    title: Tránh suy luận mọi chính sách bảo mật chỉ từ terraform.workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-008
+    title: Chia state theo ranh giới sở hữu, vòng đời và phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-009
+    title: Trao đổi dữ liệu giữa các state bằng đầu ra hoặc cơ chế công bố phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: environments-and-workspaces-010
+    title: Đánh giá rủi ro quyền đọc rộng khi dùng terraform_remote_state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: version-management
+  title: Quản lý phiên bản
+  childs:
+  - slug: version-management-001
+    title: Khai báo required_version cho Terraform CLI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-002
+    title: Lựa chọn ràng buộc phiên bản provider và module theo mức tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-003
+    title: Hiểu .terraform.lock.hcl ghi nhận lựa chọn và checksum của provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-004
+    title: Phân biệt khóa provider với cách cố định phiên bản module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-005
+    title: Cố định nguồn module Git bằng tag hoặc commit phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-006
+    title: Cập nhật phụ thuộc có kiểm soát bằng terraform init -upgrade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-007
+    title: Chuẩn bị checksum cho nhiều nền tảng thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-008
+    title: Đọc hướng dẫn nâng cấp Terraform và thay đổi schema của provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-009
+    title: Thử nghiệm nâng cấp trên phạm vi nhỏ trước môi trường quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: version-management-010
+    title: Chuẩn bị phương án khôi phục và đánh giá giới hạn hạ phiên bản state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-import
+  title: Nhập hạ tầng có sẵn
+  childs:
+  - slug: infrastructure-import-001
+    title: Đánh giá phạm vi tài nguyên hiện có trước khi đưa vào Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-002
+    title: Phân biệt import tài nguyên với tự động suy ra toàn bộ kiến trúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-003
+    title: Xác định địa chỉ cấu hình và định danh import theo tài liệu provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-004
+    title: Sử dụng terraform import và kiểm tra state sau thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-005
+    title: Khai báo import block để mô tả việc nhập trong cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-006
+    title: Sử dụng chức năng sinh cấu hình khi phù hợp và rà soát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-007
+    title: Nhập tài nguyên nằm trong module hoặc có count, for_each
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-008
+    title: Điều chỉnh cấu hình để plan không thay đổi ngoài mong muốn sau import
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-009
+    title: Phân chia trách nhiệm khi nhập tài nguyên đang do công cụ khác quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-import-010
+    title: Thực hành nhập theo lô nhỏ và lưu bằng chứng đối chiếu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: safe-refactoring
+  title: Tái cấu trúc an toàn
+  childs:
+  - slug: safe-refactoring-001
+    title: Nhận diện khác biệt giữa đổi tên cấu hình và thay thế tài nguyên thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-002
+    title: Sử dụng moved block để ghi nhận thay đổi địa chỉ tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-003
+    title: Chuyển resource vào module và giữ ánh xạ tới tài nguyên hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-004
+    title: Chuyển count sang for_each với kế hoạch ánh xạ từng instance
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-005
+    title: Di chuyển địa chỉ bằng terraform state mv trong tình huống phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-006
+    title: Phân biệt bỏ quản lý bằng state rm hoặc removed block với hủy tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-007
+    title: Tách hoặc hợp nhất state có khóa, sao lưu và kiểm chứng từng bước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-008
+    title: Xử lý thay đổi địa chỉ provider và lệnh state replace-provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-009
+    title: Kiểm tra plan trước và sau tái cấu trúc để phát hiện thay đổi phá hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: safe-refactoring-010
+    title: Duy trì lịch sử di chuyển và hướng dẫn nâng cấp cho người dùng module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: drift-detection-and-sync
+  title: Drift và đồng bộ
+  childs:
+  - slug: drift-detection-and-sync-001
+    title: Hiểu drift khi hạ tầng thực tế khác với cấu hình và state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-002
+    title: Nhận diện nguyên nhân từ sửa tay, dịch vụ bên ngoài và chính sách tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-003
+    title: Phân biệt plan thông thường với plan ở chế độ refresh-only
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-004
+    title: Hiểu ảnh hưởng của -refresh=false tới độ tin cậy của kế hoạch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-005
+    title: Quyết định khôi phục cấu hình hay chấp nhận thay đổi bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-006
+    title: Cập nhật cấu hình để ghi nhận thay đổi hợp lệ mà không che giấu sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-007
+    title: Phân biệt ignore_changes với cơ chế phát hiện drift
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-008
+    title: Lập lịch kiểm tra drift và phân loại mức độ cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: drift-detection-and-sync-009
+    title: Đối chiếu tài nguyên bị xóa hoặc đổi ngoài Terraform trước khi apply lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conditions-and-checks
+  title: Điều kiện và kiểm tra
+  childs:
+  - slug: conditions-and-checks-001
+    title: Phân biệt fmt, validate, validation, precondition, postcondition và check
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-002
+    title: Viết validation cho ràng buộc dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-003
+    title: Áp dụng precondition cho điều kiện cần trước thao tác tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-004
+    title: Áp dụng postcondition để kiểm tra kết quả sau khi đọc hoặc tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-005
+    title: Sử dụng check block và hiểu tính chất cảnh báo khi điều kiện không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-006
+    title: Thiết kế thông báo lỗi có ngữ cảnh và hướng sửa cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-007
+    title: Xử lý điều kiện phụ thuộc dữ liệu chưa biết trước apply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-008
+    title: Phân biệt kiểm tra trong cấu hình với kiểm thử tích hợp và chính sách tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conditions-and-checks-009
+    title: Tránh kiểm tra trùng lặp hoặc tạo phụ thuộc không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: terraform-testing
+  title: Kiểm thử Terraform
+  childs:
+  - slug: terraform-testing-001
+    title: Xây dựng chiến lược kiểm thử từ kiểm tra tĩnh đến hạ tầng thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-002
+    title: Tổ chức tệp .tftest.hcl và chạy terraform test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-003
+    title: Phân biệt test chạy plan với test tạo tài nguyên bằng apply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-004
+    title: Truyền biến và viết assertion cho hành vi quan trọng của module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-005
+    title: Kiểm thử đầu vào không hợp lệ và các trường hợp được kỳ vọng thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-006
+    title: Sử dụng mock provider và override theo khả năng của phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-007
+    title: Thiết kế môi trường kiểm thử cô lập và thông tin xác thực tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-008
+    title: Kết hợp công cụ lint, quét cấu hình và kiểm tra bảo mật khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-009
+    title: Kiểm tra kết quả cleanup và phát hiện tài nguyên kiểm thử còn sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: terraform-testing-010
+    title: Chọn kiểm thử có ý nghĩa thay vì chỉ lặp lại cấu trúc cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secrets-and-security
+  title: Bảo mật và bí mật
+  childs:
+  - slug: secrets-and-security-001
+    title: Nhận diện nơi bí mật có thể xuất hiện trong cấu hình, state, plan và log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-002
+    title: Phân biệt sensitive với mã hóa và bảo vệ dữ liệu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-003
+    title: Cấp thông tin xác thực qua danh tính workload hoặc kho bí mật phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-004
+    title: Ưu tiên thông tin xác thực ngắn hạn và giới hạn phạm vi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-005
+    title: Thiết kế quyền tối thiểu cho provider và quyền riêng cho backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-006
+    title: Bảo vệ tệp .tfvars, plan artifacts, cache và thư mục .terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-007
+    title: Kiểm soát truy cập state và các đầu ra giữa root module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-008
+    title: Đánh giá mã module, provider và script bên ngoài trước khi thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-009
+    title: Phòng tránh lộ bí mật qua output, provisioner và nhật ký gỡ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-010
+    title: Ứng phó khi token hoặc state bị lộ và kiểm tra phạm vi ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secrets-and-security-011
+    title: Quản lý dữ liệu tạm thời theo khả năng hỗ trợ của Terraform và provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cicd-integration
+  title: Tích hợp CI/CD
+  childs:
+  - slug: cicd-integration-001
+    title: Thiết kế pipeline Terraform từ pull request đến thay đổi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-002
+    title: Chạy fmt, validate và kiểm thử trước khi tạo plan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-003
+    title: Tạo plan cho đúng commit, biến đầu vào, backend và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-004
+    title: Lưu plan artifact có kiểm soát truy cập và thời hạn sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-005
+    title: Yêu cầu phê duyệt và apply đúng kế hoạch đã được chấp thuận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-006
+    title: Sử dụng OIDC hoặc cơ chế danh tính liên kết cho thông tin xác thực ngắn hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-007
+    title: Phân quyền riêng cho job plan và job apply khi nền tảng cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-008
+    title: Ngăn chạy đồng thời bằng khóa state và điều phối pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-009
+    title: Xử lý pull request không tin cậy và tránh lộ bí mật cho mã bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-010
+    title: Xử lý kế hoạch lỗi thời, job bị hủy và apply thất bại giữa chừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cicd-integration-011
+    title: Lưu nhật ký, mã thoát và liên kết truy vết từ commit tới lần thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hcp-terraform-and-enterprise
+  title: HCP Terraform và Enterprise
+  childs:
+  - slug: hcp-terraform-and-enterprise-001
+    title: Phân biệt Terraform CLI, HCP Terraform và Terraform Enterprise
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-002
+    title: Hiểu workspace của nền tảng quản lý và khác biệt với CLI workspace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-003
+    title: Lựa chọn luồng làm việc qua VCS, CLI hoặc API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-004
+    title: Quản lý state từ xa và lựa chọn nơi thực thi Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-005
+    title: Thiết lập variables, variable sets và quyền truy cập theo nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-006
+    title: Quản lý vòng đời run, phê duyệt, hủy và tình huống chạy đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-007
+    title: Tổ chức module cùng provider nội bộ qua Registry phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-008
+    title: Hiểu vai trò agent trong kết nối mạng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-009
+    title: Tích hợp kiểm tra chính sách, run tasks và đánh giá chi phí khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hcp-terraform-and-enterprise-010
+    title: Xác minh điều kiện gói dịch vụ, phạm vi tính năng và trách nhiệm vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: policies-and-costs
+  title: Chính sách và chi phí
+  childs:
+  - slug: policies-and-costs-001
+    title: Phân biệt kiểm tra cấu hình với chính sách bắt buộc của tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-002
+    title: Xây dựng quy tắc về vùng triển khai, mã hóa, nhãn và tài nguyên cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-003
+    title: Đánh giá policy as code với Sentinel hoặc công cụ tương đương
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-004
+    title: Đặt vị trí kiểm tra chính sách trước khi phê duyệt apply
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-005
+    title: Quản lý ngoại lệ, thời hạn và người chịu trách nhiệm phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-006
+    title: Đọc ước tính chi phí và hiểu giới hạn so với hóa đơn thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-007
+    title: Thiết lập nhãn phân bổ chi phí và quyền sở hữu tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-008
+    title: Kiểm soát tài nguyên thực hành, lịch dọn dẹp và ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: policies-and-costs-009
+    title: Lưu bằng chứng tuân thủ và liên kết với thay đổi hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: network-infrastructure
+  title: Mạng và kết nối
+  childs:
+  - slug: network-infrastructure-001
+    title: Mô hình hóa mạng, subnet, tuyến đường và vùng triển khai bằng resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-002
+    title: Thiết kế đầu vào CIDR và kiểm tra quan hệ giữa các dải mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-003
+    title: Quản lý tường lửa hoặc security group theo nguyên tắc quyền tối thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-004
+    title: Tham chiếu tài nguyên mạng có sẵn qua data source
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-005
+    title: Xuất đầu ra mạng để module máy chủ hoặc dịch vụ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-006
+    title: Phân biệt quản lý tài nguyên mạng với kiểm chứng kết nối thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-007
+    title: Nhận diện thay đổi mạng có thể ngắt quyền truy cập của tiến trình Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: network-infrastructure-008
+    title: Thực hành thay đổi quy tắc kết nối với plan và bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: compute-and-storage
+  title: Máy chủ và lưu trữ
+  childs:
+  - slug: compute-and-storage-001
+    title: Mô hình hóa máy chủ, đĩa, nhóm máy và tài nguyên lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-002
+    title: Lựa chọn image hoặc template và kiểm soát tính tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-003
+    title: Tách cấu hình tính toán khỏi dữ liệu cần lưu giữ lâu dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-004
+    title: Quản lý quyền truy cập, danh tính dịch vụ và thông tin khởi tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-005
+    title: Thiết kế vòng đời đĩa, snapshot và bảo vệ dữ liệu khi thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-006
+    title: Nhận diện tài nguyên có tên duy nhất hoặc giới hạn dung lượng khi tạo trước hủy sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-007
+    title: Quản lý cấu hình dịch vụ dữ liệu mà không đưa dữ liệu nghiệp vụ vào state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-008
+    title: Thực hành thay đổi kích thước hoặc image và kiểm tra tác động thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: compute-and-storage-009
+    title: Xác minh chi phí, tài nguyên còn sót và thứ tự dọn dẹp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: machine-provisioning
+  title: Khởi tạo và cấu hình máy
+  childs:
+  - slug: machine-provisioning-001
+    title: Phân biệt cấp phát hạ tầng với cài đặt và quản lý cấu hình bên trong máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-002
+    title: Sử dụng user data hoặc cloud-init cho khởi tạo phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-003
+    title: Kết xuất nội dung khởi tạo bằng templatefile có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-004
+    title: Nhận diện rủi ro đưa bí mật vào user data và template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-005
+    title: Hiểu provisioner là lựa chọn cần giới hạn thay vì cơ chế cấu hình mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-006
+    title: Phân biệt local-exec, remote-exec và khối connection
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-007
+    title: Đánh giá thời điểm chạy, lỗi thực thi và khả năng chạy lặp lại của provisioner
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-008
+    title: Kết hợp Terraform với image bất biến hoặc công cụ quản lý cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: machine-provisioning-009
+    title: Kiểm tra máy đã sẵn sàng phục vụ thay vì chỉ dựa vào trạng thái tạo thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: kubernetes-resources
+  title: Kubernetes và dịch vụ
+  childs:
+  - slug: kubernetes-resources-001
+    title: Phân định Terraform quản lý cụm với công cụ triển khai ứng dụng lên cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-002
+    title: Sử dụng provider phù hợp để quản lý Kubernetes hoặc dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-003
+    title: Quản lý thông tin kết nối, danh tính và quyền truy cập API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-004
+    title: Phân chia vòng đời cụm với tài nguyên phụ thuộc bên trong cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-005
+    title: Nhận diện khó khăn khi provider cần kết nối tới hạ tầng chưa được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-006
+    title: Kết hợp Terraform với Helm hoặc GitOps mà không tranh chấp quyền sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-007
+    title: Tách state hoặc giai đoạn thực thi theo ranh giới vòng đời hợp lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-008
+    title: Kiểm tra thứ tự hủy để tránh mất API trước khi dọn tài nguyên phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: kubernetes-resources-009
+    title: Đánh giá khi nào nên giao việc quản lý liên tục cho controller chuyên trách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-and-diagnostics
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observability-and-diagnostics-001
+    title: Đọc diagnostic của Terraform và tách lỗi cú pháp, kiểu, provider, API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-002
+    title: Chẩn đoán lỗi init, tải provider và tải module
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-003
+    title: Điều tra lỗi xác thực, phân quyền, tài khoản và vùng triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-004
+    title: Xử lý lỗi API giới hạn tần suất, timeout và tính nhất quán cuối cùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-005
+    title: Điều tra apply thất bại sau khi một số tài nguyên đã được tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-006
+    title: Sử dụng TF_LOG và TF_LOG_PATH có kiểm soát dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-007
+    title: Đối chiếu địa chỉ tài nguyên trong lỗi với cấu hình và state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-008
+    title: Thu thập thông tin phiên bản, plan và log để tái hiện lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-009
+    title: Nhận diện trường hợp cấu hình đúng nhưng provider có lỗi hoặc giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-and-diagnostics-010
+    title: Ghi nhận nguyên nhân, biện pháp sửa và kiểm chứng bằng plan mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-and-recovery
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-and-recovery-001
+    title: Xác định dữ liệu cần sao lưu ngoài mã cấu hình Terraform
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-002
+    title: Thiết lập sao lưu và versioning cho backend chứa state
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-003
+    title: Đánh giá state hỏng, state mất và state không khớp hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-004
+    title: Khôi phục bản state đã xác minh và kiểm tra lineage cùng serial
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-005
+    title: Sử dụng state pull hoặc state push trong quy trình phục hồi có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-006
+    title: Xử lý khóa còn sót sau khi tiến trình dừng bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-007
+    title: Đối soát tài nguyên và import lại khi không thể khôi phục state đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-008
+    title: Phân biệt hoàn tác cấu hình với khôi phục dữ liệu và tài nguyên đã bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-and-recovery-009
+    title: Diễn tập phục hồi và ghi rõ giới hạn thời gian cùng dữ liệu có thể mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-and-scale
+  title: Hiệu năng và quy mô
+  childs:
+  - slug: performance-and-scale-001
+    title: Đo thời gian init, refresh, plan và apply trước khi tối ưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-002
+    title: Phân tích ảnh hưởng của số tài nguyên, data source và đồ thị phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-003
+    title: Điều chỉnh -parallelism theo giới hạn API và đặc điểm provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-004
+    title: Sử dụng plugin cache và nguồn phụ thuộc ổn định trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-005
+    title: Giảm phụ thuộc quá rộng và tra cứu dữ liệu lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-006
+    title: Chia state theo phạm vi sở hữu và vòng đời thay vì chỉ theo số lượng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-007
+    title: Thiết kế hợp đồng dữ liệu giữa các state để giảm liên kết chặt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-008
+    title: Quản lý timeout, retry và hạn mức dịch vụ theo tài liệu provider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-and-scale-009
+    title: Đánh giá chi phí bảo trì khi tăng số module, workspace và pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: patterns-and-pitfalls
+  title: Mẫu thiết kế và lỗi thường gặp
+  childs:
+  - slug: patterns-and-pitfalls-001
+    title: Áp dụng module composition thay cho cây module lồng quá sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-002
+    title: Tổ chức tài nguyên dùng chung và tài nguyên riêng của từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-003
+    title: Quản lý nhiều tài khoản hoặc nhiều vùng với ranh giới state rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-004
+    title: Tránh hard-code thông tin môi trường, thông tin xác thực và định danh thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-005
+    title: Tránh một state quá rộng hoặc quá nhiều state phụ thuộc vòng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-006
+    title: Tránh dùng timestamp hoặc giá trị không ổn định gây thay đổi liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-007
+    title: Tránh lạm dụng -target, -auto-approve và ignore_changes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-008
+    title: Không xem việc apply thành công là bằng chứng dịch vụ đã hoạt động đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-009
+    title: Kiểm tra quyền sở hữu trước khi cùng quản lý tài nguyên bằng nhiều công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: patterns-and-pitfalls-010
+    title: Xây dựng danh sách rà soát trước triển khai và trước hủy hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Xây dựng dự án Terraform đầu tiên có biến, locals, output và tài liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Tách cấu hình lặp thành module có examples và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Cấp phát mạng cùng máy chủ và kiểm tra kết nối thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Thiết lập backend từ xa, khóa state và làm việc bằng pull request
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Tổ chức hai môi trường có state cùng quyền thực thi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Nhập tài nguyên có sẵn rồi đưa plan về trạng thái không có thay đổi ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Đổi tên và chuyển tài nguyên vào module mà không tái tạo hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Mô phỏng drift và lựa chọn khôi phục hoặc chấp nhận thay đổi có giải trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Xây dựng pipeline có kiểm thử, duyệt plan và apply đúng artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Mô phỏng apply thất bại, khóa còn sót và phục hồi từ state đã sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Rà soát bí mật, quyền truy cập, chi phí và dọn toàn bộ tài nguyên thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

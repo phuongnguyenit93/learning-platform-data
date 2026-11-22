@@ -1,0 +1,7 @@
+# Cloud Architecture — Thiết kế kiến trúc hệ thống trên đám mây
+
+Cloud Architecture là quá trình lựa chọn và kết hợp các thành phần hạ tầng, dịch vụ, dữ liệu, mạng và quy trình vận hành để đáp ứng nhu cầu của một workload. Kiến trúc tốt không được đo bằng số dịch vụ sử dụng mà bằng khả năng đáp ứng yêu cầu về độ tin cậy, bảo mật, hiệu năng, chi phí và mức độ dễ vận hành. Các nền tảng AWS, Azure và Google Cloud đều cung cấp khung Well-Architected giúp đánh giá những đánh đổi này theo từng trụ cột chất lượng; không có một kiến trúc duy nhất phù hợp cho mọi hệ thống.
+
+Module dành cho người đã biết cơ bản về cloud, HTTP, mạng, cơ sở dữ liệu và triển khai ứng dụng. Lộ trình bắt đầu bằng cách thu thập yêu cầu chức năng và phi chức năng, lựa chọn architecture style như N-tier, microservices, event-driven hay serverless, sau đó xây sơ đồ topology với region, availability zone, mạng private và điểm truy cập. Bạn sẽ học cách chọn compute, dữ liệu và cơ chế tích hợp, đồng thời thiết kế IAM, quản lý secrets, mã hóa và phân quyền theo mô hình *shared responsibility*.
+
+Phần cuối tập trung vào high availability, backup, disaster recovery với RTO/RPO, autoscaling, caching, chi phí và vận hành. Người học sẽ phác thảo một kiến trúc ứng dụng nhỏ, mô tả cách triển khai bằng Infrastructure as Code, theo dõi qua metrics/logs/traces và tự review dựa trên các nguyên tắc Well-Architected. Hoàn thành module, bạn có thể trình bày sơ đồ hệ thống cloud rõ ràng, giải thích lựa chọn công nghệ và chỉ ra rủi ro cùng hướng cải thiện.

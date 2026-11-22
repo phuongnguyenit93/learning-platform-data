@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "DEVOPS_RUNTIME_DELIVERY_DEPLOYMENT_DEPLOYMENT_STRATEGY"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "So sánh các chiến lược triển khai Recreate, Rolling Update, Blue-Green và Canary theo yêu cầu về downtime, tài nguyên và mức rủi ro. Người học thực hành chuyển lưu lượng, kiểm tra sức khỏe, quan sát bản phát hành, bảo đảm tương thích dữ liệu và rollback trên Kubernetes hoặc cloud."
+  }
+}

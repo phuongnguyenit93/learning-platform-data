@@ -1,0 +1,3214 @@
+menu:
+- slug: session-overview
+  title: Tổng quan phiên
+  childs:
+  - slug: session-overview-001
+    title: Phiên làm việc (session) là gì trong một ứng dụng có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-002
+    title: Vì sao giao thức HTTP cần cơ chế duy trì phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-003
+    title: Quan hệ giữa danh tính, xác thực, phiên và phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-004
+    title: Phân biệt phiên ứng dụng, kết nối mạng và phiên đăng nhập hệ điều hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-005
+    title: Mã định danh phiên, bí mật phiên và bản ghi trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-006
+    title: Phân biệt phiên ẩn danh và phiên đã xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-007
+    title: Phiên trình duyệt khác vòng đời cookie như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-008
+    title: Phạm vi bảo vệ của Session Security trong toàn bộ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-009
+    title: 'Mô hình xuyên suốt: đăng nhập, sử dụng, nâng quyền và đăng xuất'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-overview-010
+    title: Lộ trình từ cơ chế phiên đến kiểm thử và vận hành an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-modeling
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-modeling-001
+    title: 'Tài sản cần bảo vệ: bí mật phiên, trạng thái và quyền truy cập'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-002
+    title: Ranh giới tin cậy giữa trình duyệt, cổng mạng, ứng dụng và kho phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-003
+    title: Kẻ tấn công từ xa, mã độc trên thiết bị và người dùng chung máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-004
+    title: Chiếm phiên (session hijacking) và phát lại bí mật phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-005
+    title: Cố định phiên (session fixation) trước khi nạn nhân đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-006
+    title: Đoán mã phiên, dò tìm phiên hợp lệ và tạo phiên hàng loạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-007
+    title: Đánh cắp qua XSS, nhật ký, URL và kênh truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-008
+    title: Giả mạo yêu cầu (CSRF) dựa trên thông tin phiên gửi tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-009
+    title: Phiên bị bỏ quên, quyền đã cũ và thu hồi không đầy đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-010
+    title: Đánh đổi giữa trải nghiệm sử dụng, độ sẵn sàng và thời gian phơi nhiễm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-architectures
+  title: Các kiến trúc phiên
+  childs:
+  - slug: session-architectures-001
+    title: Phiên lưu tại máy chủ với mã tham chiếu không mang ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-002
+    title: Trạng thái phiên mang trong cookie có ký hoặc mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-003
+    title: Phân biệt bảo vệ tính toàn vẹn và bảo vệ tính bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-004
+    title: Phiên có trạng thái và thông tin xác thực dạng token tự chứa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-005
+    title: Giới hạn của khái niệm không trạng thái khi cần thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-006
+    title: Cookie là cơ chế truyền tải, không tự quyết định kiến trúc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-007
+    title: Mô hình ứng dụng trung gian cho trình duyệt (BFF)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-008
+    title: Đặt ranh giới giữa phiên ứng dụng và access token, refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-009
+    title: So sánh chi phí lưu trữ, kích thước, thu hồi và khả năng mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-architectures-010
+    title: Chọn kiến trúc theo rủi ro và yêu cầu nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-id-design
+  title: Thiết kế mã phiên
+  childs:
+  - slug: session-id-design-001
+    title: Tính ngẫu nhiên mật mã và độ khó đoán của mã phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-002
+    title: Entropy, độ dài và không gian tìm kiếm của mã định danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-003
+    title: Tránh mã tuần tự, dữ liệu cá nhân và cấu trúc có thể dự đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-004
+    title: Tách định danh phiên công khai khỏi bí mật dùng để xác thực phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-005
+    title: Định dạng mã hóa biểu diễn và kiểm tra cú pháp đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-006
+    title: Sinh bí mật bằng nguồn ngẫu nhiên an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-007
+    title: Tránh va chạm và xử lý khi tạo mã trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-008
+    title: Không đưa thông tin quyền hoặc dữ liệu nhạy cảm vào mã tham chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-009
+    title: Lưu giá trị dẫn xuất của bí mật khi phù hợp và hệ quả tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-design-010
+    title: Chọn cơ chế phiên chuẩn thay vì tự thiết kế thuật toán mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-state-model
+  title: Mô hình trạng thái
+  childs:
+  - slug: session-state-model-001
+    title: 'Sơ đồ trạng thái: khởi tạo, ẩn danh, đã xác thực, nâng quyền, hết hạn, thu hồi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-002
+    title: Liên kết phiên với tài khoản và miền bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-003
+    title: Thời điểm tạo, xác thực gần nhất, hoạt động gần nhất và hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-004
+    title: Mức bảo đảm xác thực và phạm vi quyền của phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-005
+    title: Phiên bản tài khoản, phiên bản quyền và dấu mốc thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-006
+    title: Siêu dữ liệu thiết bị phục vụ hiển thị và phát hiện rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-007
+    title: Tách dữ liệu nghiệp vụ khỏi dữ liệu bảo mật của phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-008
+    title: Giới hạn kích thước và kiểu dữ liệu được lưu trong phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-009
+    title: Tính nguyên tử của chuyển trạng thái và điều kiện bất biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-state-model-010
+    title: Không cho dữ liệu phía gọi tự quyết định trạng thái xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-transport
+  title: Truyền tải phiên
+  childs:
+  - slug: session-transport-001
+    title: Cookie, header và các cách truyền thông tin phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-002
+    title: Nguy cơ truyền mã phiên qua URL, query string và fragment
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-003
+    title: Không chấp nhận đồng thời nhiều kênh mã phiên ngoài thiết kế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-004
+    title: Bảo vệ HTTPS xuyên suốt vòng đời phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-005
+    title: HSTS và giới hạn khi lần truy cập đầu chưa được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-006
+    title: TLS kết thúc tại proxy và ranh giới tin cậy với ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-007
+    title: Ngăn rò rỉ qua Referer, chuyển hướng và liên kết ra ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-008
+    title: Không ghi Cookie, Set-Cookie hoặc bí mật phiên vào nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-009
+    title: Kiểm soát phản hồi cache tại trình duyệt, CDN và proxy dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-transport-010
+    title: Không đồng nhất kết nối TLS mới với phiên người dùng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-cookies
+  title: Cookie phiên
+  childs:
+  - slug: session-cookies-001
+    title: Luồng Set-Cookie và Cookie trong yêu cầu, phản hồi HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-002
+    title: Thuộc tính Secure và điều kiện gửi qua kênh bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-003
+    title: Thuộc tính HttpOnly và giới hạn trước hành động do XSS thực hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-004
+    title: SameSite=Strict, Lax, None và ngữ cảnh gửi cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-005
+    title: Phân biệt cùng nguồn (same-origin) và cùng site (same-site)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-006
+    title: Domain, cookie host-only và phạm vi tên miền con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-007
+    title: Path và giới hạn của Path như một ranh giới bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-008
+    title: Max-Age, Expires và cookie không có thời hạn lưu bền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-009
+    title: Tiền tố __Host- và __Secure- cùng điều kiện được trình duyệt chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-010
+    title: Cookie Partitioned và giới hạn trong ngữ cảnh nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-011
+    title: Cookie trùng tên, khác Domain/Path và cách xử lý mơ hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-cookies-012
+    title: Xóa cookie với đúng tên và phạm vi đã tạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: client-side-storage
+  title: Lưu trữ phía khách
+  childs:
+  - slug: client-side-storage-001
+    title: Cookie HttpOnly so với lưu bí mật trong bộ nhớ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-002
+    title: Rủi ro lưu bí mật phiên trong localStorage và sessionStorage
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-003
+    title: Rủi ro từ tiện ích trình duyệt, XSS và mã bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-004
+    title: Dữ liệu đăng nhập trong IndexedDB, cache ứng dụng và service worker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-005
+    title: Không lưu trạng thái xác thực đáng tin cậy chỉ ở giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-006
+    title: Khôi phục trình duyệt và vì sao đóng cửa sổ không bảo đảm kết thúc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-007
+    title: Dữ liệu nhạy cảm trên máy dùng chung và chế độ riêng tư
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-008
+    title: Giới hạn của việc xóa dữ liệu phía khách khi bí mật đã bị sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-009
+    title: Chính sách giảm thiểu dữ liệu lưu cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: client-side-storage-010
+    title: Phân biệt mã phiên bí mật và định danh thiết bị phục vụ trải nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: login-session-creation
+  title: Tạo phiên và đăng nhập
+  childs:
+  - slug: login-session-creation-001
+    title: Khởi tạo phiên ẩn danh theo nhu cầu thay vì mọi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-002
+    title: Giới hạn tạo phiên để tránh cạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-003
+    title: Chế độ quản lý phiên nghiêm ngặt với mã chưa từng được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-004
+    title: Không kế thừa tùy tiện mã phiên do phía gọi cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-005
+    title: Đổi mã phiên khi chuyển từ ẩn danh sang đã xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-006
+    title: Liên kết kết quả xác thực với đúng luồng đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-007
+    title: Chống login CSRF và nhầm tài khoản sau đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-008
+    title: Chuyển dữ liệu giỏ hàng hoặc lựa chọn ẩn danh theo danh sách cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-009
+    title: Chỉ cấp trạng thái xác thực đầy đủ sau khi hoàn tất các yếu tố cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-010
+    title: Xử lý đăng nhập thất bại, thử lại và luồng bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: login-session-creation-011
+    title: Chuyển hướng sau đăng nhập và kiểm tra đích quay lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-lifecycle-expiration
+  title: Vòng đời và thời hạn
+  childs:
+  - slug: session-lifecycle-expiration-001
+    title: Thời hạn bất hoạt (idle timeout) và cách xác định hoạt động hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-002
+    title: Thời hạn tuyệt đối (absolute timeout) của phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-003
+    title: Thời hạn xác thực lại tổng thể và mốc tính lại sau tái xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-004
+    title: Phân biệt thời hạn đổi mã phiên và thời hạn phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-005
+    title: Thực thi hết hạn tại máy chủ thay vì chỉ dùng bộ đếm giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-006
+    title: TTL trong kho dữ liệu khác kiểm tra hết hạn ở mỗi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-007
+    title: Heartbeat và nguy cơ giữ phiên sống vô thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-008
+    title: Yêu cầu nền, polling và chính sách cập nhật thời gian hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-009
+    title: Sai lệch đồng hồ và cách chọn nguồn thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-010
+    title: Thiết kế thời hạn theo độ nhạy cảm và bối cảnh sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-011
+    title: Cảnh báo sắp hết hạn, lưu nháp và quay lại sau xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-lifecycle-expiration-012
+    title: Tránh gia hạn phiên chỉ vì trình duyệt gửi cookie liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-id-rotation
+  title: Đổi mã phiên
+  childs:
+  - slug: session-id-rotation-001
+    title: Đổi mã sau đăng nhập, thay đổi quyền và sự kiện nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-002
+    title: Đổi mã định kỳ và mục tiêu giới hạn thời gian sử dụng bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-003
+    title: Phân biệt đổi mã phiên, gia hạn thời hạn và tạo phiên mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-004
+    title: Hủy hiệu lực mã cũ và quy tắc chấp nhận mã mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-005
+    title: Cập nhật mã và bản ghi phiên theo thao tác nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-006
+    title: Yêu cầu đồng thời trong lúc đổi mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-007
+    title: Nhiều tab nhận phản hồi Set-Cookie theo thứ tự khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-008
+    title: Khoảng chuyển tiếp có giới hạn và rủi ro giữ mã cũ hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-009
+    title: Chống tái sử dụng mã đã thu hồi sau khi đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-id-rotation-010
+    title: Kiểm thử điều kiện tranh chấp giữa người dùng và kẻ giữ mã cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reauthentication-privilege-escalation
+  title: Xác thực lại và nâng quyền
+  childs:
+  - slug: reauthentication-privilege-escalation-001
+    title: Khi nào cần xác thực lại thay vì chỉ có phiên đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-002
+    title: Xác thực gần đây cho đổi mật khẩu, thanh toán và quản lý yếu tố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-003
+    title: Xác thực bổ sung (step-up) theo độ nhạy cảm của thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-004
+    title: Gắn kết quả xác thực bổ sung với hành động và thời hạn cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-005
+    title: Đổi mã khi nâng quyền và khi hạ quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-006
+    title: Phiên quản trị tách biệt và giới hạn phạm vi đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-007
+    title: Phân biệt tái xác thực và tự động phục hồi phiên bằng SSO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-008
+    title: Tín hiệu rủi ro yêu cầu xác thực lại hoặc chấm dứt phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-009
+    title: Ngăn bỏ qua bước xác thực bổ sung qua API hay luồng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reauthentication-privilege-escalation-010
+    title: Giảm gián đoạn người dùng mà vẫn giữ giới hạn bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-authorization
+  title: Phân quyền trong phiên
+  childs:
+  - slug: session-authorization-001
+    title: Phiên hợp lệ không đồng nghĩa được phép truy cập mọi tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-002
+    title: Kiểm tra quyền ở từng yêu cầu và từng đối tượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-003
+    title: Vai trò hoặc quyền lưu trong phiên có thể trở nên lỗi thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-004
+    title: Tải lại quyền, đánh dấu phiên bản và vô hiệu hóa dữ liệu quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-005
+    title: Khóa tài khoản, đổi nhóm và thay đổi trạng thái tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-006
+    title: Chuyển tổ chức hoặc chuyển ngữ cảnh tài khoản an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-007
+    title: Giới hạn phiên hỗ trợ viên đại diện người dùng và lưu vết danh tính thật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-008
+    title: Phân biệt quyền tài khoản với mức xác thực của phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-009
+    title: Thu hồi quyền trong lúc giao dịch hoặc tác vụ đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-authorization-010
+    title: Bảo vệ thao tác hàng loạt và tác vụ nền gắn với phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: logout-revocation
+  title: Đăng xuất và thu hồi
+  childs:
+  - slug: logout-revocation-001
+    title: Đăng xuất phải hủy hiệu lực tại máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-002
+    title: Xóa cookie và vì sao xóa phía khách chưa đủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-003
+    title: 'Phạm vi đăng xuất: phiên hiện tại, thiết bị hiện tại hoặc mọi phiên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-004
+    title: Thu hồi theo mã phiên, tài khoản và dấu mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-005
+    title: Thay mật khẩu, đặt lại mật khẩu và chính sách phiên còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-006
+    title: Khôi phục tài khoản, thay MFA và thu hồi phiên rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-007
+    title: Thu hồi ngay so với độ trễ lan truyền trong hệ thống phân tán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-008
+    title: Xử lý yêu cầu đang xử lý khi phiên bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-009
+    title: Tính lặp an toàn của thao tác đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-010
+    title: Bảo vệ điểm đăng xuất trước yêu cầu giả mạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: logout-revocation-011
+    title: Không khôi phục phiên đã hủy từ cache hoặc bản sao dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remember-me
+  title: Ghi nhớ đăng nhập
+  childs:
+  - slug: remember-me-001
+    title: Phân biệt phiên đang hoạt động và cơ chế ghi nhớ đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-002
+    title: Cookie dài hạn không tự tạo thành thiết kế ghi nhớ an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-003
+    title: Bí mật phục hồi phiên riêng và giới hạn quyền của nó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-004
+    title: Đổi bí mật sau sử dụng và phát hiện tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-005
+    title: Thời hạn tuyệt đối, thời hạn bất hoạt và thu hồi trên từng thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-006
+    title: Không lưu mật khẩu hoặc bí mật tương đương mật khẩu ở trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-007
+    title: Yêu cầu xác thực lại trước thao tác nhạy cảm sau tự đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-008
+    title: Thu hồi khi đổi mật khẩu, mất thiết bị hoặc phát hiện xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-009
+    title: Quản lý thiết bị được tin cậy và giới hạn của nhãn tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remember-me-010
+    title: Trải nghiệm trên máy công cộng và lựa chọn không ghi nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-device-tabs
+  title: Nhiều thiết bị và tab
+  childs:
+  - slug: multi-device-tabs-001
+    title: Quản lý một tài khoản có nhiều phiên độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-002
+    title: Giới hạn số phiên và chính sách xử lý khi vượt giới hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-003
+    title: Danh sách thiết bị, thời gian hoạt động và chức năng tự thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-004
+    title: Nhiều tab chia sẻ cookie nhưng có trạng thái giao diện khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-005
+    title: Đồng bộ đăng xuất giữa các tab và giới hạn độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-006
+    title: Chuyển tài khoản trong một trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-007
+    title: Tránh nhầm dữ liệu sau đăng xuất rồi đăng nhập tài khoản khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-008
+    title: Quy tắc cho tài khoản dùng chung và khả năng giải trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-009
+    title: Nhận diện thiết bị ở mức hỗ trợ, không coi là chứng minh danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-device-tabs-010
+    title: Quyền riêng tư khi lưu lịch sử thiết bị và địa chỉ mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: csrf-session-security
+  title: CSRF và phiên
+  childs:
+  - slug: csrf-session-security-001
+    title: Cơ chế trình duyệt tự gửi cookie và nguyên nhân phát sinh CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-002
+    title: Thao tác thay đổi trạng thái không đặt trong yêu cầu GET
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-003
+    title: Mẫu synchronizer token và liên kết token với phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-004
+    title: Mẫu signed double-submit cookie và ràng buộc chống giả mạo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-005
+    title: SameSite hỗ trợ phòng vệ nhưng không thay thế mọi kiểm soát CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-006
+    title: Kiểm tra Origin, Referer và trường hợp thiếu thông tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-007
+    title: Fetch Metadata như lớp phòng vệ bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-008
+    title: CORS khác cơ chế bảo vệ CSRF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-009
+    title: CSRF trên đăng nhập, đăng xuất và thay đổi thông tin tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-010
+    title: Đổi mã phiên và vòng đời CSRF token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: csrf-session-security-011
+    title: Kiểm thử yêu cầu từ site khác, tên miền con và luồng chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: xss-session-leaks
+  title: XSS và rò rỉ phiên
+  childs:
+  - slug: xss-session-leaks-001
+    title: XSS đánh cắp bí mật và thực hiện hành động trong phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-002
+    title: HttpOnly hạn chế đọc cookie nhưng không chặn mọi tác động XSS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-003
+    title: Mã hóa đầu ra, làm sạch HTML và giới hạn chèn mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-004
+    title: Chính sách CSP và các lớp giảm thiểu bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-005
+    title: Kiểm soát script bên thứ ba và chuỗi cung ứng giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-006
+    title: Ngăn bí mật xuất hiện trong HTML, thông báo lỗi và công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-007
+    title: Che dữ liệu phiên trong log, trace và báo cáo lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-008
+    title: Ảnh chụp, bản ghi mạng và báo cáo hỗ trợ chứa thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-009
+    title: Giảm rò rỉ qua Referrer, lịch sử và bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: xss-session-leaks-010
+    title: Giới hạn bảo vệ khi thiết bị đầu cuối đã bị kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: session-fixation-hijacking
+  title: Cố định và chiếm phiên
+  childs:
+  - slug: session-fixation-hijacking-001
+    title: Đường đưa mã phiên do kẻ tấn công chọn vào trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-002
+    title: Chống cố định bằng đổi mã và không chấp nhận mã chưa cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-003
+    title: Đánh cắp cookie từ kênh không bảo mật và tên miền con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-004
+    title: Cookie tossing, cookie shadowing và phân tích cookie trùng tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-005
+    title: Nguy cơ chia sẻ Domain quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-006
+    title: Phát lại bí mật phiên sau khi sao chép sang môi trường khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-007
+    title: Giới hạn của ràng buộc cứng theo IP hoặc User-Agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-008
+    title: Proxy đánh cắp phiên sau xác thực và giới hạn của MFA thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-009
+    title: Giảm cửa sổ khai thác bằng thời hạn, đổi mã và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: session-fixation-hijacking-010
+    title: Phòng vệ nhiều lớp thay vì phụ thuộc một thuộc tính cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: server-side-session-store
+  title: Kho phiên phía máy chủ
+  childs:
+  - slug: server-side-session-store-001
+    title: Chọn bộ nhớ tiến trình, kho khóa–giá trị hoặc cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-002
+    title: Lược đồ bản ghi phiên và chỉ mục tra cứu theo tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-003
+    title: Bảo vệ bí mật truy cập và quyền tối thiểu của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-004
+    title: Mã hóa khi truyền, khi lưu và giới hạn của từng lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-005
+    title: Không lưu đối tượng thực thi tùy ý hoặc dữ liệu giải tuần tự không an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-006
+    title: Giới hạn kích thước phiên, số phiên và thời gian lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-007
+    title: TTL, dọn phiên hết hạn và kiểm tra hợp lệ trước sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-008
+    title: Sao lưu, khôi phục và nguy cơ làm sống lại phiên bị thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-009
+    title: Xử lý kho phiên lỗi theo chính sách an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-010
+    title: Giám sát dung lượng, tỷ lệ truy cập và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: server-side-session-store-011
+    title: Tách phiên của môi trường phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: distributed-sessions
+  title: Phiên phân tán
+  childs:
+  - slug: distributed-sessions-001
+    title: Cân bằng tải và giới hạn của bám phiên (sticky session)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-002
+    title: Kho phiên dùng chung so với sao chép trạng thái giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-003
+    title: Tính nhất quán khi tạo, sửa, đổi mã và hủy phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-004
+    title: Tranh chấp cập nhật thời gian hoạt động và dữ liệu phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-005
+    title: Phiên bản bản ghi, khóa lạc quan và cập nhật nguyên tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-006
+    title: Bộ nhớ đệm cục bộ và độ trễ thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-007
+    title: Nhiều vùng địa lý, độ trễ đồng bộ và xung đột ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-008
+    title: Chuyển vùng khi lỗi và giới hạn chấp nhận dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-009
+    title: Phát sự kiện thu hồi, xử lý trùng và mất sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-010
+    title: Khởi động lại, mở rộng tự động và triển khai liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: distributed-sessions-011
+    title: Kiểm thử sự cố phân vùng mạng và sự nhất quán sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spa-api-sessions
+  title: SPA và giao tiếp API
+  childs:
+  - slug: spa-api-sessions-001
+    title: Chọn cách giữ phiên khi giao diện và API cùng nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-002
+    title: 'Giao diện khác nguồn: credentials, CORS và thuộc tính cookie'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-003
+    title: Tránh cấu hình cho phép nguồn tùy ý kèm thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-004
+    title: BFF giữ bí mật phía máy chủ và phiên cookie với trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-005
+    title: Phân biệt lỗi chưa xác thực và thiếu quyền trong phản hồi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-006
+    title: Xử lý hết hạn phiên giữa lúc gửi biểu mẫu hoặc tải dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-007
+    title: Tránh vòng lặp chuyển hướng đăng nhập giữa nhiều yêu cầu song song
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-008
+    title: Service worker, cache và dữ liệu còn lại sau đổi tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-009
+    title: Luồng nhúng iframe và tác động của chính sách cookie bên thứ ba
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spa-api-sessions-010
+    title: Kiểm thử trình duyệt, chuyển hướng và cấu hình tên miền thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sso-federated-sessions
+  title: SSO và phiên liên kết
+  childs:
+  - slug: sso-federated-sessions-001
+    title: Phiên tại nhà cung cấp danh tính (IdP) và phiên ứng dụng (RP)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-002
+    title: Thời hạn phiên IdP khác thời hạn phiên cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-003
+    title: Đăng nhập qua OIDC hoặc SAML và việc tạo phiên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-004
+    title: Ràng buộc state, nonce và giao dịch đăng nhập theo giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-005
+    title: Ngữ cảnh SameSite trong callback và luồng đăng nhập liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-006
+    title: Đăng xuất cục bộ, đăng xuất tại IdP và đăng xuất liên ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-007
+    title: RP-Initiated Logout và kiểm tra đích chuyển hướng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-008
+    title: Front-channel logout và giới hạn phụ thuộc trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-009
+    title: Back-channel logout và liên kết sự kiện với đúng phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-010
+    title: Xác minh thông báo đăng xuất, chống phát lại và tính lặp an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-011
+    title: Yêu cầu xác thực gần đây và tránh nhầm tự động SSO với tái xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sso-federated-sessions-012
+    title: Xử lý thông báo thu hồi chậm hoặc không đến được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-vs-tokens
+  title: Phiên và token
+  childs:
+  - slug: sessions-vs-tokens-001
+    title: Phân biệt mã phiên với access token, ID token và refresh token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-002
+    title: Phiên cookie phía trình duyệt và token gọi dịch vụ phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-003
+    title: Tuổi thọ phiên không tự bằng tuổi thọ access token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-004
+    title: Lưu trữ, đổi và thu hồi token gắn với phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-005
+    title: Logout cục bộ không tự thu hồi mọi token đã phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-006
+    title: Token tự chứa và nhu cầu trạng thái thu hồi bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-007
+    title: Giới hạn lộ thông tin khi lưu toàn bộ trạng thái trong token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-008
+    title: Luân chuyển khóa ký khác luân chuyển bí mật từng phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-009
+    title: Ràng buộc token với bên sử dụng và giới hạn phạm vi bài học phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-vs-tokens-010
+    title: Thiết kế ranh giới trách nhiệm giữa quản lý phiên và quản lý token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: long-lived-connections
+  title: Ứng dụng và kết nối dài
+  childs:
+  - slug: long-lived-connections-001
+    title: Phiên trong ứng dụng di động và vòng đời ứng dụng nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-002
+    title: Lưu bí mật bằng kho bảo mật của hệ điều hành khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-003
+    title: Không nhúng bí mật lâu dài dùng chung trong ứng dụng phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-004
+    title: 'WebSocket: xác thực khi bắt tay và kiểm soát Origin'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-005
+    title: Phân quyền cho từng thông điệp hoặc hành động trên kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-006
+    title: Hết hạn hoặc thu hồi phiên trong khi WebSocket còn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-007
+    title: SSE, polling dài và tái kết nối khi phiên thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-008
+    title: Không đưa bí mật phiên vào URL kết nối hoặc nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-009
+    title: Đồng bộ trạng thái đăng xuất khi thiết bị mất kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: long-lived-connections-010
+    title: 'Tác vụ dài: phân biệt thời gian xử lý và quyền tiếp tục thực hiện'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-user-experience
+  title: Trải nghiệm an toàn
+  childs:
+  - slug: secure-user-experience-001
+    title: Hiển thị trạng thái phiên và thời điểm cần đăng nhập lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-002
+    title: Cảnh báo hết hạn có khả năng tiếp cận với mọi người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-003
+    title: Lưu nháp mà không giữ dữ liệu nhạy cảm quá lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-004
+    title: Quay lại thao tác sau xác thực mà không phát lại giao dịch nguy hiểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-005
+    title: Đăng xuất rõ ràng và quản lý phiên đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-006
+    title: Máy dùng chung, màn hình khóa và xác thực lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-007
+    title: Trang nhạy cảm sau nút Back, lịch sử và BFCache
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-008
+    title: Cache-Control, Clear-Site-Data và giới hạn hỗ trợ trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-009
+    title: Không dựa vào beforeunload hoặc đóng tab để thu hồi phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-user-experience-010
+    title: Thông báo phiên bị thu hồi mà không tiết lộ thông tin nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-detection
+  title: Quan sát và phát hiện
+  childs:
+  - slug: monitoring-detection-001
+    title: Ghi nhận sự kiện tạo, xác thực, đổi mã, hết hạn và hủy phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-002
+    title: Mã tương quan không cho phép tái sử dụng để đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-003
+    title: Không lưu bí mật phiên nguyên văn trong nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-004
+    title: Phát hiện dùng một phiên tại ngữ cảnh bất thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-005
+    title: Đánh giá thay đổi IP, thiết bị và vị trí như tín hiệu rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-006
+    title: Tín hiệu phiên bị dò đoán, cố định hoặc phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-007
+    title: Chỉ số phiên hoạt động, đổi mã lỗi, thu hồi chậm và lỗi kho phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-008
+    title: Cảnh báo theo rủi ro và tránh phản ứng quá mức với mạng di động hoặc VPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-009
+    title: Quyền truy cập nhật ký, thời hạn lưu và giảm thiểu dữ liệu cá nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-detection-010
+    title: Đối soát sự kiện phiên với hành động nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: incident-response
+  title: Ứng phó sự cố
+  childs:
+  - slug: incident-response-001
+    title: Xác định phạm vi khi một bí mật phiên bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-002
+    title: Thu hồi phiên riêng lẻ, theo tài khoản hoặc toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-003
+    title: Phân biệt lộ mã phiên, lộ kho phiên và lộ khóa ký cookie
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-004
+    title: Luân chuyển khóa bảo vệ trạng thái phiên và kế hoạch tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-005
+    title: Chặn tạm đường rò rỉ trước khi phát hành lại phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-006
+    title: Bảo toàn bằng chứng mà không nhân bản thêm bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-007
+    title: Thông báo người dùng và hỗ trợ xác thực lại theo quy trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-008
+    title: Kiểm tra token, phiên SSO và thiết bị ghi nhớ liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-009
+    title: Khôi phục kho dữ liệu mà không làm sống lại phiên đã hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: incident-response-010
+    title: Rà soát nguyên nhân gốc và kiểm chứng biện pháp khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing
+  title: Kiểm thử bảo mật
+  childs:
+  - slug: security-testing-001
+    title: Lập ma trận kiểm thử theo trạng thái và sự kiện vòng đời phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-002
+    title: Kiểm tra độ ngẫu nhiên và cấu trúc mã phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-003
+    title: Kiểm tra thuộc tính cookie và phạm vi tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-004
+    title: Kiểm tra đổi mã sau đăng nhập, nâng quyền và hạ quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-005
+    title: Kiểm tra cố định phiên với mã tự chọn và mã từng được cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-006
+    title: Kiểm tra timeout bằng yêu cầu trực tiếp thay vì chỉ quan sát giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-007
+    title: Kiểm tra mã cũ sau đăng xuất, hết hạn và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-008
+    title: Kiểm tra CSRF, XSS và đường rò rỉ bí mật trong phạm vi được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-009
+    title: Kiểm tra nhiều tab, nhiều thiết bị và đổi tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-010
+    title: Kiểm tra tranh chấp đổi mã, yêu cầu đang chạy và phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-011
+    title: Kiểm tra SSO, logout liên ứng dụng và chính sách trình duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-012
+    title: Kiểm tra khôi phục dữ liệu, lỗi kho phiên và phân vùng mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-013
+    title: Tự động hóa hồi quy bằng dữ liệu tổng hợp và môi trường kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations-changes
+  title: Vận hành và thay đổi
+  childs:
+  - slug: operations-changes-001
+    title: Cấu hình mặc định an toàn và tách theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-002
+    title: Kiểm tra proxy, TLS, tên miền và cookie trong triển khai thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-003
+    title: Triển khai thay đổi thời hạn mà không vô tình kéo dài phiên cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-004
+    title: Di chuyển kho phiên và chuyển đổi lược đồ bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-005
+    title: Luân chuyển khóa, duy trì tương thích và giới hạn cửa sổ chấp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-006
+    title: Canary, giám sát sau phát hành và điều kiện quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-007
+    title: Giới hạn số phiên, dung lượng kho và khả năng chống quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-008
+    title: Quản lý truy cập vận hành vào dữ liệu phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-009
+    title: Mục tiêu độ trễ xác thực phiên và thời gian thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-changes-010
+    title: Dọn dữ liệu, sao lưu và diễn tập phục hồi định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: 'Cookie không được tạo: chính sách trình duyệt và thuộc tính không hợp lệ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: 'Cookie không được gửi: Domain, Path, Secure, SameSite và credentials'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Đăng nhập thành công rồi mất phiên khi qua nút xử lý khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Vòng lặp đăng nhập do callback, thời gian hoặc cookie bị chặn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Phiên không hết hạn do hoạt động nền hoặc kiểm tra chỉ ở phía khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Đăng xuất xong vẫn truy cập được do cache hoặc thu hồi chưa lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Nhiều tab ghi đè mã phiên mới bằng phản hồi cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Sai quyền sau đổi vai trò hoặc chuyển tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Phiên bị mất hàng loạt sau triển khai hoặc thay khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: WebSocket vẫn hoạt động sau khi phiên bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Quy trình truy vết từ trình duyệt đến kho phiên mà không lộ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-project
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-project-001
+    title: Thiết kế phiên cho ứng dụng có người dùng thường và quản trị viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-002
+    title: Mô tả sơ đồ trạng thái và các bất biến bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-003
+    title: Định nghĩa bản ghi phiên, thời hạn và chính sách thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-004
+    title: Thiết kế cookie an toàn theo mô hình tên miền cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-005
+    title: Xây luồng đăng nhập có đổi mã và chuyển dữ liệu ẩn danh có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-006
+    title: Bổ sung xác thực lại trước thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-007
+    title: Xây chức năng xem thiết bị và thu hồi phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-008
+    title: Bổ sung CSRF và kiểm tra rò rỉ bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-009
+    title: Mô phỏng nhiều tab, yêu cầu đồng thời và đổi mã phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-010
+    title: Mô phỏng kho phiên lỗi, thu hồi chậm và phục hồi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-011
+    title: Thực hành tích hợp SSO với phiên cục bộ và đăng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-012
+    title: Đánh giá bằng ma trận kiểm thử và bằng chứng vòng đời phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-project-013
+    title: Viết hướng dẫn vận hành và kịch bản xử lý phiên bị đánh cắp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: reference-review
+  title: Tra cứu và ôn tập
+  childs:
+  - slug: reference-review-001
+    title: Bảng thuật ngữ session, cookie, session secret và các loại token
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-002
+    title: Bảng đối chiếu idle timeout, absolute timeout và renewal timeout
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-003
+    title: Mẫu sơ đồ vòng đời và đặc tả trạng thái phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-004
+    title: Danh sách rà soát cookie, vận chuyển và lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-005
+    title: Danh sách rà soát đăng nhập, đổi mã, đăng xuất và thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-006
+    title: Câu hỏi phân tích rủi ro và lựa chọn kiến trúc phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-007
+    title: Bài tập điều tra phiên còn hiệu lực sau khi đáng lẽ phải bị hủy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: reference-review-008
+    title: Định hướng đọc OWASP, NIST và đặc tả trình duyệt, giao thức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Mô hình danh tính
+  slug: identity-model
+  index: 1
+- title: Kiến trúc liên kết
+  slug: federation-architecture
+  index: 2
+- title: Nền tảng giao thức
+  slug: protocol-foundations
+  index: 3
+- title: Nguồn bằng chứng
+  slug: evidence-sources
+  index: 4
+- title: Vòng đời token
+  slug: lifecycle-token
+  index: 5
+- title: Xác minh token
+  slug: token-verification
+  index: 6
+- title: Ánh xạ danh tính
+  slug: identity-mapping
+  index: 7
+- title: Thiết lập tin cậy
+  slug: trust-configuration
+  index: 8
+- title: Phân quyền
+  slug: authorization
+  index: 9
+- title: Google Cloud
+  slug: google-cloud
+  index: 10
+- title: AWS
+  slug: aws-federation
+  index: 11
+- title: Microsoft Entra
+  slug: microsoft-entra
+  index: 12
+- title: Kubernetes
+  slug: kubernetes
+  index: 13
+- title: Danh tính trên K8s
+  slug: kubernetes-identities
+  index: 14
+- title: GitHub Actions
+  slug: github-actions
+  index: 15
+- title: Các nền tảng CI/CD
+  slug: cicd-platforms
+  index: 16
+- title: Đa cloud và tại chỗ
+  slug: multi-cloud-on-premises
+  index: 17
+- title: SPIFFE và broker
+  slug: spiffe-broker
+  index: 18
+- title: Tích hợp client
+  slug: client-integration
+  index: 19
+- title: Bảo vệ credential
+  slug: credential-protection
+  index: 20
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 21
+- title: Vòng đời tin cậy
+  slug: lifecycle-trust
+  index: 22
+- title: Thu hồi và sự cố
+  slug: revocation-incidents
+  index: 23
+- title: Khả dụng và hiệu năng
+  slug: availability-performance
+  index: 24
+- title: Quan sát và kiểm toán
+  slug: monitoring-auditing
+  index: 25
+- title: Chẩn đoán
+  slug: diagnostics
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Thiết kế triển khai
+  slug: deployment-design
+  index: 28
+- title: Chuyển đổi khóa tĩnh
+  slug: static-key-migration
+  index: 29
+- title: Thực hành
+  slug: hands-on-practice
+  index: 30

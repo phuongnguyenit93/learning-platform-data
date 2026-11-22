@@ -1,0 +1,3 @@
+menuLevel1: Quản lý heap và cấp phát đối tượng
+menuLevel2: Tránh giữ tham chiếu qua static field, listener và callback
+status: ""

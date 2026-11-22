@@ -1,0 +1,49 @@
+roadmap:
+- id: mo-hinh-xac-thuc-chung-chi
+  title: Mô hình xác thực chứng chỉ
+  purpose: Hiểu cách chứng chỉ gắn danh tính với khóa công khai.
+  objectives:
+  - Phân biệt chứng chỉ công khai và khóa riêng.
+  - Phân biệt xác thực danh tính và cấp quyền.
+- id: chung-chi-va-chuoi-tin-cay
+  title: Chứng chỉ và chuỗi tin cậy
+  purpose: Đọc chứng chỉ và xác định nguồn tin cậy.
+  objectives:
+  - Nhận diện CA, SAN, thời hạn và mục đích sử dụng.
+  - Giải thích chuỗi chứng chỉ và điểm neo tin cậy.
+- id: cap-phat-va-bao-ve-khoa
+  title: Cấp phát và bảo vệ khóa
+  purpose: Chuẩn bị danh tính chứng chỉ với khóa riêng được bảo vệ.
+  objectives:
+  - Mô tả tạo khóa, CSR và cấp chứng chỉ.
+  - Chọn cách lưu khóa và giới hạn quyền sử dụng.
+- id: tls-va-mtls
+  title: TLS và mTLS
+  purpose: Hiểu cơ chế xác thực một chiều và hai chiều.
+  objectives:
+  - So sánh xác thực máy chủ bằng TLS và hai phía bằng mTLS.
+  - Giải thích bằng chứng sở hữu khóa riêng trong bắt tay.
+- id: xac-minh-va-anh-xa-danh-tinh
+  title: Xác minh và ánh xạ danh tính
+  purpose: Chỉ chấp nhận chứng chỉ hợp lệ cho đúng chủ thể và mục đích.
+  objectives:
+  - Kiểm tra chuỗi tin cậy, thời hạn, danh tính và mục đích sử dụng.
+  - Ánh xạ danh tính chứng chỉ vào tài khoản và chính sách quyền.
+- id: ranh-gioi-tin-cay
+  title: Ranh giới tin cậy
+  purpose: Giữ danh tính đáng tin khi kết nối đi qua proxy.
+  objectives:
+  - Xác định nơi kết thúc TLS và nơi thực hiện xác thực.
+  - Ngăn giả mạo thông tin chứng chỉ do proxy chuyển tiếp.
+- id: gia-han-va-thu-hoi
+  title: Gia hạn và thu hồi
+  purpose: Duy trì xác thực khi chứng chỉ hết hạn hoặc khóa bị lộ.
+  objectives:
+  - Lập kế hoạch gia hạn và thay khóa.
+  - Chọn chính sách kiểm tra thu hồi bằng CRL hoặc OCSP.
+- id: kiem-thu-va-van-hanh
+  title: Kiểm thử và vận hành
+  purpose: Kiểm chứng cấu hình và chẩn đoán lỗi xác thực.
+  objectives:
+  - Thử kết nối hợp lệ và các trường hợp chứng chỉ bị từ chối.
+  - Theo dõi lỗi, hạn chứng chỉ và kiểm chứng thay khóa an toàn.

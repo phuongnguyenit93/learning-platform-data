@@ -1,0 +1,369 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - GitLab CI/CD là gì và vai trò trong quy trình bàn giao phần mềm
+  - Quan hệ giữa project, repository, pipeline, job và runner
+  - Luồng từ thay đổi mã nguồn đến kiểm tra, đóng gói và triển khai
+  - Phân biệt CI, continuous delivery và continuous deployment trong GitLab
+  - GitLab.com, GitLab Self-Managed và trách nhiệm vận hành
+  - 'Mô hình thực thi: GitLab điều phối, runner nhận và chạy job'
+  - Phiên bản, gói tính năng và quyền truy cập cần kiểm tra trước khi áp dụng
+- level1: Pipeline đầu tiên
+  level2:
+  - Chuẩn bị project, mã nguồn mẫu và runner có thể sử dụng
+  - Tạo .gitlab-ci.yml tại repository
+  - Định nghĩa job đầu tiên với script và stage
+  - Commit cấu hình rồi quan sát pipeline được tạo
+  - Đọc trạng thái pipeline, job và nhật ký thực thi
+  - Tạo lỗi có chủ đích để hiểu điều kiện thành công hoặc thất bại
+  - Kiểm tra cú pháp bằng CI Lint và công cụ chỉnh sửa pipeline
+  - Mở rộng ví dụ thành kiểm thử rồi tạo sản phẩm đóng gói
+- level1: Cấu trúc YAML
+  level2:
+  - Cấu trúc .gitlab-ci.yml và các từ khóa cấp cao
+  - stages, default và variables trong cấu hình chung
+  - Định nghĩa job và đặt tên tránh xung đột từ khóa
+  - Thụt dòng, danh sách, chuỗi và ký tự đặc biệt trong YAML
+  - Chuỗi nhiều dòng với dấu | và >
+  - Phân biệt giá trị YAML với biểu thức được shell diễn giải
+  - Hidden job làm mẫu cấu hình dùng lại
+  - inherit để kiểm soát kế thừa cấu hình mặc định
+  - Cấu hình sau hợp nhất và cách truy vết nguồn của một thiết lập
+- level1: Job và script
+  level2:
+  - before_script, script và after_script trong vòng đời job
+  - Thư mục làm việc và các tệp được checkout từ repository
+  - Biến môi trường, lệnh shell và quy tắc trích dẫn chuỗi
+  - Mã thoát của lệnh và cách làm job thất bại đúng nguyên nhân
+  - Chuỗi lệnh, pipeline của shell và nguy cơ che mất lỗi
+  - Giới hạn chia sẻ trạng thái giữa script và after_script
+  - Thiết kế script có thể chạy lại ngoài môi trường CI
+  - Lưu nhật ký cần thiết và tránh in dữ liệu bí mật
+  - Xử lý dọn dẹp khi script thất bại hoặc job bị hủy
+  - Khác biệt giữa shell Linux, PowerShell và công cụ có sẵn
+- level1: Stage và đồ thị phụ thuộc
+  level2:
+  - Thứ tự thực thi theo stage và các job chạy song song
+  - needs để thiết kế đồ thị phụ thuộc thay cho chờ toàn bộ stage
+  - Job không cần chờ bằng needs rỗng
+  - Phân biệt phụ thuộc thực thi với tải artifact
+  - needs:artifacts và dependencies trong luồng truyền sản phẩm
+  - Phụ thuộc vào job có thể không được tạo và nhu cầu optional
+  - Các stage đặc biệt .pre, .post và phạm vi sử dụng
+  - Nhận diện đường găng và tránh tuần tự hóa không cần thiết
+  - Kiểm tra đồ thị để phát hiện phụ thuộc thiếu hoặc xung đột
+- level1: Nguồn pipeline
+  level2:
+  - Pipeline từ push lên nhánh và từ tag
+  - Merge request pipeline và thông tin đặc trưng của nguồn này
+  - Pipeline chạy từ giao diện người dùng
+  - Pipeline theo lịch và ngữ cảnh danh tính người sở hữu
+  - Pipeline từ API, trigger token và pipeline khác
+  - Biến CI_PIPELINE_SOURCE và cách dùng trong điều kiện
+  - Phân biệt branch pipeline, merge request pipeline và pipeline sau merge
+  - Phân tích sự kiện đầu vào trước khi quyết định tạo pipeline
+- level1: workflow và rules
+  level2:
+  - workflow:rules quyết định có tạo pipeline hay không
+  - rules ở job quyết định đưa job vào pipeline
+  - Thứ tự đánh giá và điều kiện khớp đầu tiên
+  - rules:if với biến, biểu thức logic và biểu thức chính quy
+  - rules:changes và phạm vi so sánh thay đổi
+  - rules:exists và sự hiện diện của tệp cấu hình
+  - Kết hợp if, changes và exists để giới hạn phạm vi chạy
+  - when, allow_failure và biến được đặt theo từng rule
+  - Ngăn tạo trùng branch pipeline và merge request pipeline
+  - Phân biệt quy tắc hiện hành với cấu hình only/except cũ
+- level1: Runner
+  level2:
+  - Runner là gì và quan hệ với GitLab Runner được cài trên máy
+  - Phạm vi instance, group và project runner
+  - Đăng ký runner bằng quy trình và token phù hợp với phiên bản
+  - Runner tag để định tuyến job đến năng lực thực thi phù hợp
+  - Job không có tag và chính sách nhận job của runner
+  - Protected runner và ranh giới mã nguồn được phép thực thi
+  - Trạng thái online, paused, pending và nguyên nhân job chưa có máy nhận
+  - Giới hạn đồng thời và phân bổ năng lực giữa các project
+  - Thu hồi runner và thông tin xác thực khi ngừng sử dụng
+- level1: Executor và cô lập
+  level2:
+  - Executor quyết định môi trường thực thi của job
+  - Shell executor và hệ quả của việc dùng chung máy chủ
+  - Docker executor và vòng đời container của job
+  - Kubernetes executor và tài nguyên pod
+  - Lựa chọn executor theo hệ điều hành, công cụ và mức cô lập
+  - Người dùng thực thi, quyền filesystem và quyền đặc biệt
+  - Cô lập job từ mã không tin cậy và tránh dùng chung bí mật
+  - Workspace, volume và dữ liệu còn sót giữa các lần chạy
+  - 'Runner tạm thời và runner dùng lâu dài: đánh đổi vận hành'
+- level1: Image và services
+  level2:
+  - image chỉ định môi trường chạy với executor có hỗ trợ
+  - Ghim phiên bản hoặc digest của image dùng trong CI
+  - Entrypoint và lệnh khởi tạo ảnh hưởng đến script
+  - services để cung cấp cơ sở dữ liệu hoặc dịch vụ phụ trợ
+  - Alias, DNS và cách job kết nối đến service
+  - Chờ dịch vụ sẵn sàng thay vì chỉ chờ container khởi động
+  - Biến cấu hình, thông tin xác thực và dữ liệu thử nghiệm của service
+  - Giới hạn tài nguyên và kiểm tra nhật ký service khi tích hợp thất bại
+- level1: Biến và đầu vào
+  level2:
+  - Biến định nghĩa trước của GitLab và các ngữ cảnh sử dụng
+  - Biến cấp instance, group, project, pipeline và job
+  - Thứ tự ưu tiên và cách tìm nguồn của giá trị thực tế
+  - Biến kiểu giá trị và biến kiểu file
+  - Biến protected, masked và phạm vi môi trường
+  - Mở rộng biến trong YAML, GitLab và shell
+  - Đầu vào có kiểu bằng inputs trong phạm vi được phiên bản hỗ trợ
+  - Phân biệt đầu vào cấu hình với biến tạo khi job đang chạy
+  - Chuyển dữ liệu phát sinh qua báo cáo dotenv
+  - Kiểm tra dữ liệu đầu vào trước khi dùng trong lệnh hoặc đường dẫn
+- level1: Bí mật và danh tính
+  level2:
+  - Lưu thông tin bí mật ngoài repository
+  - Giới hạn của masking khi mã chạy trong job không đáng tin cậy
+  - 'CI_JOB_TOKEN: phạm vi quyền và thời hạn theo vòng đời job'
+  - Cho phép truy cập liên project và kiểm soát danh sách được cấp quyền
+  - Phân biệt job token, deploy token, project token và token cá nhân
+  - ID token và OIDC để liên kết danh tính với dịch vụ bên ngoài
+  - Kết nối kho bí mật theo khả năng của GitLab và hệ thống đích
+  - Luân chuyển, thu hồi và phản ứng khi bí mật bị lộ
+  - Phân quyền tối thiểu cho xuất bản và triển khai
+  - Ngăn bí mật xuất hiện trong log, artifact, cache và ảnh container
+- level1: Artifact và báo cáo
+  level2:
+  - Artifact là đầu ra cần bàn giao hoặc lưu lại từ job
+  - artifacts:paths và lựa chọn đúng tệp cần thu thập
+  - Tên artifact, thời hạn lưu và chính sách tải xuống
+  - artifacts:when khi job thành công hoặc thất bại
+  - Truyền artifact giữa các job và kiểm soát tải không cần thiết
+  - JUnit report để hiển thị kết quả kiểm thử trong GitLab
+  - Báo cáo độ bao phủ, chất lượng và dạng báo cáo được hỗ trợ
+  - Phân biệt artifact thông thường với report được GitLab diễn giải
+  - Theo dõi nguồn gốc artifact theo commit, pipeline và job
+  - Xử lý artifact hết hạn, thiếu hoặc không đúng lần dựng
+- level1: Cache
+  level2:
+  - Cache là dữ liệu tối ưu tốc độ và không thay thế artifact
+  - Chọn đường dẫn cache cho phụ thuộc và công cụ dựng
+  - Cache key theo nhánh, lockfile, nền tảng và phiên bản công cụ
+  - Fallback key và cách ứng xử khi không tìm thấy cache
+  - Chính sách pull, push, pull-push và tránh ghi tranh chấp
+  - Cache cục bộ so với cache phân tán của nhiều runner
+  - Phân tách cache cho nhánh được bảo vệ và mã không tin cậy
+  - Làm mất hiệu lực cache khi dữ liệu cũ gây kết quả sai
+  - Đo hiệu quả cache thay vì mặc định cache càng lớn càng tốt
+- level1: Tái sử dụng cấu hình
+  level2:
+  - YAML anchor và phạm vi hiệu lực trong một tệp
+  - extends và quy tắc kế thừa của job
+  - '!reference để dùng lại phần cấu hình phù hợp'
+  - include từ tệp cục bộ, project khác và nguồn được hỗ trợ
+  - Thứ tự hợp nhất và cách ghi đè map hoặc danh sách
+  - include:rules để nạp cấu hình có điều kiện
+  - CI/CD component và đầu vào cấu hình khi nền tảng hỗ trợ
+  - Ghim phiên bản hoặc commit của cấu hình dùng chung
+  - Thiết kế thư viện pipeline có hợp đồng đầu vào rõ ràng
+  - Kiểm tra cấu hình sau hợp nhất để tránh kế thừa ngoài dự kiến
+- level1: Dựng ứng dụng Java
+  level2:
+  - Chọn JDK và image CI phù hợp với dự án
+  - Sử dụng Gradle Wrapper hoặc Maven Wrapper trong pipeline
+  - Dựng, kiểm thử và đóng gói theo vòng đời của công cụ
+  - Cache phụ thuộc và phân biệt với đầu ra build
+  - Xuất JAR hoặc WAR thành artifact có thể truy vết
+  - Quyền thực thi wrapper và khác biệt môi trường Linux, Windows
+  - Chạy ứng dụng thử nghiệm với service cơ sở dữ liệu
+  - Bảo đảm job triển khai dùng đúng sản phẩm đã được kiểm tra
+  - Tham số JVM, bộ nhớ và thông tin chẩn đoán khi build thất bại
+- level1: Kiểm thử và chất lượng
+  level2:
+  - Phân chia kiểm thử đơn vị, tích hợp và đầu cuối thành các job phù hợp
+  - Xuất kết quả JUnit và lưu bằng chứng khi kiểm thử thất bại
+  - Thu thập độ bao phủ và áp dụng ngưỡng theo yêu cầu dự án
+  - Kiểm tra định dạng, phân tích tĩnh và chất lượng mã nguồn
+  - Tách dữ liệu thử nghiệm và làm sạch tài nguyên sau kiểm thử
+  - Phân phối kiểm thử song song và hợp nhất báo cáo
+  - Phân biệt lỗi sản phẩm với kiểm thử không ổn định
+  - Thử lại có kiểm soát mà không che giấu lỗi thực sự
+  - Kiểm tra điều kiện chất lượng trước khi xuất bản hoặc triển khai
+- level1: Đóng gói và xuất bản
+  level2:
+  - Phân biệt job artifact với sản phẩm phát hành trong package registry
+  - Xuất bản thư viện Java vào kho Maven theo quyền được cấp
+  - Xây dựng image container trong CI
+  - Docker-in-Docker và các yêu cầu cô lập, quyền đặc biệt
+  - Các phương án dựng ảnh không cấp quyền đặc biệt theo môi trường
+  - Đăng nhập GitLab Container Registry bằng danh tính tự động hóa
+  - Gắn tag theo commit hoặc phiên bản và ghi nhận digest sau push
+  - Tránh dựng lại sản phẩm khi chuyển sang môi trường tiếp theo
+  - Kiểm tra từ xa rằng sản phẩm đã xuất bản có thể tải và xác minh
+- level1: Merge request pipeline
+  level2:
+  - Thiết kế kiểm tra dành riêng cho merge request
+  - Biến và tham chiếu Git trong ngữ cảnh merge request
+  - Phân biệt kiểm tra nhánh nguồn với kiểm tra kết quả hợp nhất
+  - Merged results pipeline và merge train khi tính năng sẵn có
+  - Ngăn cập nhật được merge khi các kiểm tra bắt buộc chưa đạt
+  - Quyền truy cập biến và runner khi merge request đến từ fork
+  - Giảm job không liên quan bằng quy tắc theo đường dẫn thay đổi
+  - Phản hồi kết quả kiểm thử và chất lượng ngay tại merge request
+  - Xử lý cập nhật nhánh đích, pipeline cũ và trạng thái không còn phù hợp
+- level1: Pipeline phân cấp
+  level2:
+  - Parent-child pipeline để tổ chức các phần cấu hình trong cùng project
+  - Trigger job và cách khởi tạo pipeline phía dưới
+  - Child pipeline động từ cấu hình được tạo thành artifact
+  - Multi-project pipeline cho quy trình liên repository
+  - Truyền đầu vào, biến và tham chiếu mã nguồn qua ranh giới pipeline
+  - Liên kết trạng thái thành công hoặc thất bại giữa các pipeline
+  - Truy cập artifact liên pipeline theo phạm vi và quyền hỗ trợ
+  - Quản lý hủy, thử lại và lỗi một phần trong chuỗi pipeline
+  - Tránh phụ thuộc vòng và che giấu quá nhiều bước sau trigger
+- level1: Monorepo và ma trận
+  level2:
+  - Xác định phạm vi module bị ảnh hưởng trong repository lớn
+  - Phân chia cấu hình theo dịch vụ hoặc nhóm module
+  - rules:changes cùng giới hạn phát hiện ảnh hưởng gián tiếp
+  - include có điều kiện và child pipeline theo thành phần
+  - parallel để chia công việc thành nhiều job
+  - parallel:matrix cho tổ hợp phiên bản, nền tảng hoặc cấu hình
+  - Đặt tên và truy vết kết quả của từng phần tử ma trận
+  - Quản lý phụ thuộc, artifact và giới hạn số job khi mở rộng
+  - Cân bằng tốc độ phản hồi với mức bao phủ kiểm tra
+- level1: Lịch chạy và kích hoạt
+  level2:
+  - Chạy pipeline thủ công với đầu vào được kiểm soát
+  - Lịch cron, múi giờ và người sở hữu scheduled pipeline
+  - Gọi API tạo pipeline và lựa chọn danh tính phù hợp
+  - Pipeline trigger token và phạm vi sử dụng
+  - Kích hoạt từ pipeline khác hoặc hệ thống bên ngoài
+  - Phân biệt tạo pipeline với chạy lại một job đã tồn tại
+  - Xác thực dữ liệu từ nguồn ngoài trước khi đưa vào script
+  - Tránh vòng lặp tự kích hoạt và pipeline trùng
+  - Thu hồi lịch hoặc token khi người sở hữu thay đổi
+- level1: Trạng thái và điều khiển
+  level2:
+  - 'when: on_success, on_failure, always và phạm vi tác dụng'
+  - Job thủ công và sự khác nhau giữa bước tùy chọn với bước chặn
+  - allow_failure và hệ quả đối với trạng thái tổng thể
+  - retry theo loại lỗi và giới hạn số lần chạy lại
+  - timeout của project, runner và từng job
+  - interruptible và việc hủy công việc đã lỗi thời
+  - Job trì hoãn với when:delayed và start_in
+  - resource_group để tuần tự hóa thao tác dùng chung tài nguyên
+  - Xử lý hủy và không giả định mọi bước dọn dẹp chắc chắn được chạy
+  - Phân biệt chạy lại job với tạo pipeline mới sau khi cấu hình thay đổi
+- level1: Môi trường triển khai
+  level2:
+  - 'environment: liên kết job với môi trường và địa chỉ ứng dụng'
+  - Tên môi trường tĩnh và môi trường động
+  - Review app cho từng nhánh hoặc merge request
+  - on_stop và auto_stop_in để quản lý môi trường tạm
+  - Biến theo phạm vi môi trường và thông tin xác thực triển khai
+  - Protected environment và bước phê duyệt theo quyền hỗ trợ
+  - Ngăn nhiều pipeline triển khai cạnh tranh vào cùng môi trường
+  - Định danh phiên bản đang triển khai bằng commit và digest
+  - Kiểm tra sức khỏe sau triển khai trước khi ghi nhận hoàn tất
+- level1: Phát hành và quay lui
+  level2:
+  - Tách tạo sản phẩm, triển khai và công bố bản phát hành
+  - Pipeline theo tag với quy ước phiên bản của dự án
+  - Tạo GitLab Release và liên kết sản phẩm đã được xác minh
+  - Thăng hạng cùng sản phẩm qua môi trường thử nghiệm và production
+  - Triển khai cuốn chiếu, blue-green hoặc canary bằng công cụ đích
+  - Quản lý thay đổi cơ sở dữ liệu tương thích với ứng dụng
+  - Quay lui bằng sản phẩm đã biết thay vì dựng lại từ đầu
+  - Kiểm tra lại trạng thái hệ thống sau quay lui
+  - Ngăn một pipeline cũ ghi đè phiên bản mới đã được triển khai
+- level1: Bảo mật pipeline
+  level2:
+  - Xác định ranh giới tin cậy giữa mã nguồn, cấu hình CI và runner
+  - Rà soát thay đổi .gitlab-ci.yml như mã có quyền thực thi
+  - Protected branch, protected tag và quyền khởi chạy công việc nhạy cảm
+  - Rủi ro từ include, script tải về và image không được ghim nguồn
+  - Không chạy mã từ fork bằng runner có quyền truy cập production
+  - Cô lập Docker socket, tài nguyên máy chủ và mạng nội bộ
+  - Ngăn chèn lệnh qua biến, tên nhánh và đầu vào bên ngoài
+  - Hạn chế quyền tải artifact, cache và báo cáo có dữ liệu nhạy cảm
+  - Ghi nhận hành động nhạy cảm và quy trình xử lý rò rỉ bí mật
+- level1: Kiểm tra chuỗi cung ứng
+  level2:
+  - Tích hợp SAST, quét phụ thuộc và phát hiện bí mật theo khả năng nền tảng
+  - Quét image container và phân loại kết quả
+  - Tạo SBOM cho sản phẩm được xuất bản
+  - Ghi nhận nguồn gốc bản dựng từ commit đến artifact hoặc image
+  - Ký sản phẩm và xác minh trước triển khai khi có yêu cầu
+  - Điều kiện chặn phát hành và cách quản lý ngoại lệ có thời hạn
+  - Phân biệt công cụ chạy được với báo cáo được GitLab hiển thị trực tiếp
+  - Đánh giá lại kết quả khi cơ sở dữ liệu lỗ hổng thay đổi
+  - Không coi pipeline xanh là bằng chứng tuyệt đối về an toàn sản phẩm
+- level1: Hiệu năng và chi phí
+  level2:
+  - Đo thời gian chờ runner, thời gian chạy và độ dài đường găng
+  - Tối ưu DAG trước khi tăng tài nguyên máy chạy
+  - Tận dụng cache phụ thuộc và giảm tải artifact không cần thiết
+  - Giảm thời gian checkout bằng chiến lược Git phù hợp
+  - GIT_DEPTH, tag và yêu cầu lịch sử của công cụ phiên bản
+  - Phân bổ CPU, RAM và dung lượng cho từng loại job
+  - Hủy pipeline lỗi thời và tránh dựng trùng cùng thay đổi
+  - Giới hạn mức song song để không làm quá tải hệ thống đích
+  - Theo dõi hạn mức compute, lưu trữ và chi phí của runner
+- level1: Vận hành runner
+  level2:
+  - Cấu hình GitLab Runner và quản lý thay đổi có kiểm soát
+  - Phiên bản runner, executor và tương thích với GitLab
+  - Thu thập log, chỉ số và tình trạng nhận job
+  - Quản lý cache phân tán, workspace và dung lượng đĩa
+  - Mạng, proxy, DNS và chứng chỉ nội bộ của runner
+  - Chạy trên hạ tầng tự co giãn theo nhu cầu
+  - Cập nhật image, công cụ và hệ điều hành của máy chạy
+  - Bảo trì runner mà không làm gián đoạn công việc ngoài dự kiến
+  - Phục hồi sau mất runner và xử lý job còn treo
+  - Kiểm tra dữ liệu hoặc thông tin xác thực còn sót sau job
+- level1: API và quan sát
+  level2:
+  - Tra cứu pipeline, job và trạng thái qua giao diện hoặc API
+  - Liên kết commit, merge request, pipeline, job và deployment
+  - Đọc trace log để tìm bước gây lỗi đầu tiên
+  - Webhooks cho sự kiện pipeline hoặc job
+  - Xử lý webhook lặp và kiểm tra tính hợp lệ của nguồn gửi
+  - Lập báo cáo độ ổn định, thời gian phản hồi và lỗi theo nhóm job
+  - Cảnh báo pipeline production thất bại theo quy trình được cho phép
+  - Thiết kế nhật ký và bằng chứng đủ để điều tra mà không lộ bí mật
+- level1: Xử lý sự cố
+  level2:
+  - YAML hợp lệ nhưng cấu hình CI không hợp lệ
+  - Không tạo pipeline hoặc job bị loại do workflow và rules
+  - Job pending vì runner tag, trạng thái hoặc phạm vi không khớp
+  - Lệnh chạy được cục bộ nhưng thất bại trong executor của CI
+  - Image hoặc service không khởi động, sai DNS hoặc chưa sẵn sàng
+  - Biến bị thiếu do phạm vi, nguồn pipeline hoặc nhánh không được bảo vệ
+  - Artifact không được tải vì sai đường dẫn, phụ thuộc hoặc hết hạn
+  - Cache cũ, không chia sẻ giữa runner hoặc bị ghi đè
+  - Thiếu quyền khi truy cập repository, registry hoặc project khác
+  - Job timeout, hết bộ nhớ, đầy đĩa hoặc bị hủy ngoài dự kiến
+  - Pipeline xanh nhưng sản phẩm triển khai sai phiên bản
+- level1: Thiết kế và bảo trì
+  level2:
+  - Giữ pipeline dễ đọc với trách nhiệm rõ cho từng job
+  - Tách script nghiệp vụ dài khỏi YAML và kiểm thử độc lập
+  - Xây dựng hợp đồng cho template hoặc component dùng chung
+  - Kiểm tra cấu hình trên nhánh thử trước khi thay đổi diện rộng
+  - Di chuyển từ pipeline tuần tự sang DAG theo từng bước
+  - Thay thế cấu hình lỗi thời dựa trên phiên bản GitLab đang dùng
+  - Quản lý người sở hữu, tài liệu và quy trình thay đổi pipeline
+  - Giảm cấu hình trùng mà không tạo tầng kế thừa khó truy vết
+  - Rà soát pipeline bằng kết quả thực thi và nhu cầu bàn giao thực tế
+- level1: Thực hành tổng hợp
+  level2:
+  - Tạo pipeline Java chạy kiểm thử và xuất JAR
+  - Bổ sung service cơ sở dữ liệu và báo cáo kiểm thử tích hợp
+  - Tách artifact với cache và đo thời gian trước, sau tối ưu
+  - Thiết lập rules cho push, merge request và tag mà không chạy trùng
+  - Dựng rồi xuất bản image với đầu ra digest có thể truy vết
+  - Triển khai môi trường thử nghiệm bằng đúng sản phẩm đã kiểm tra
+  - Thêm bước production có kiểm soát quyền và tài nguyên dùng chung
+  - Tổ chức monorepo bằng child pipeline hoặc ma trận phù hợp
+  - Mô phỏng lỗi, hủy, thử lại và quay lui để kiểm chứng hợp đồng pipeline
+  - Hoàn thiện tiêu chí nghiệm thu về chất lượng, bảo mật và khả năng vận hành

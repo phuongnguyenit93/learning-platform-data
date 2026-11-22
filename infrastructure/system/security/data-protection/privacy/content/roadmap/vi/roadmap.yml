@@ -1,0 +1,59 @@
+roadmap:
+- id: privacy-du-lieu-ca-nhan
+  title: Privacy & dữ liệu cá nhân
+  purpose: Nhận diện quyền riêng tư, dữ liệu cá nhân và các tác động tới cá nhân khi hệ thống thu thập hoặc xử lý thông tin.
+  objectives:
+  - Phân biệt privacy với bảo mật thông tin
+  - Nhận diện dữ liệu định danh trực tiếp và gián tiếp
+  - Giải thích rủi ro từ theo dõi hoặc suy luận dữ liệu
+- id: data-mapping-purpose
+  title: Data Mapping & Purpose
+  purpose: Xác định rõ dữ liệu nào được xử lý, đi qua hệ thống nào và mục đích sử dụng ở từng bước.
+  objectives:
+  - Lập bản đồ luồng dữ liệu từ thu thập tới chia sẻ
+  - Gắn mục đích và owner cho từng hoạt động xử lý
+  - Nhận diện dữ liệu vượt nhu cầu của tính năng
+- id: lawful-basis-transparency
+  title: Lawful Basis & Transparency
+  purpose: Giải thích rõ việc sử dụng dữ liệu và xác định cơ sở xử lý thích hợp theo pháp luật áp dụng, không đồng nhất mọi
+    trường hợp với consent.
+  objectives:
+  - Phân biệt consent với các cơ sở xử lý khác
+  - Viết thông báo quyền riêng tư dễ hiểu
+  - Thiết kế cơ chế ghi nhận hoặc rút consent khi cần
+- id: privacy-by-design-default
+  title: Privacy by Design & Default
+  purpose: Đưa quyền riêng tư vào thiết kế và cấu hình mặc định để tránh phải xử lý hậu quả sau khi phát hành.
+  objectives:
+  - Áp dụng data minimization và purpose limitation
+  - Đề xuất mặc định ít thu thập hoặc chia sẻ nhất
+  - Review luồng dữ liệu ở giai đoạn thiết kế tính năng
+- id: access-privacy-controls
+  title: Access & Privacy Controls
+  purpose: Hạn chế khả năng lộ hoặc liên kết dữ liệu cá nhân bằng quyền truy cập, mã hóa và kỹ thuật giảm nhận dạng thích
+    hợp.
+  objectives:
+  - Áp dụng least privilege cho người và dịch vụ
+  - Phân biệt ẩn danh với pseudonymization
+  - Chọn kiểm soát bảo vệ dữ liệu khi lưu và truyền
+- id: quyen-cua-chu-the-du-lieu
+  title: Quyền của chủ thể dữ liệu
+  purpose: Thiết kế quy trình tiếp nhận và xử lý yêu cầu của cá nhân đối với thông tin do hệ thống quản lý.
+  objectives:
+  - Mô tả quyền truy cập, chỉnh sửa và xóa dữ liệu
+  - Phác thảo quy trình xác minh người yêu cầu
+  - Kiểm tra đáp ứng yêu cầu trên nhiều kho dữ liệu
+- id: sharing-vendors-retention
+  title: Sharing, Vendors & Retention
+  purpose: Quản lý rủi ro quyền riêng tư khi dữ liệu được chuyển cho bên thứ ba hoặc giữ lại sau khi hết mục đích.
+  objectives:
+  - Lập danh sách bên xử lý và dữ liệu được chia sẻ
+  - Xác định kỳ hạn lưu giữ theo mục đích và nghĩa vụ
+  - Thiết kế xóa hoặc hạn chế truy cập khi hết hạn
+- id: dpia-privacy-governance
+  title: DPIA & Privacy Governance
+  purpose: Đánh giá rủi ro đối với cá nhân trước khi triển khai thay đổi quan trọng và theo dõi hiệu quả kiểm soát.
+  objectives:
+  - Thực hiện privacy impact assessment theo mức rủi ro
+  - Ghi nhận biện pháp xử lý và chủ sở hữu rủi ro
+  - Rà soát sự cố, yêu cầu cá nhân và cải tiến định kỳ

@@ -1,0 +1,57 @@
+roadmap:
+- id: secret-rui-ro-ro-ri
+  title: Secret & rủi ro rò rỉ
+  purpose: Nhận diện thông tin xác thực nhạy cảm và tác động khi chúng xuất hiện trong mã nguồn hoặc Git history.
+  objectives:
+  - Phân biệt API key, token, mật khẩu và private key
+  - 'Chỉ ra vị trí dễ rò rỉ: code, config, log, commit'
+  - Giải thích vì sao xóa ở HEAD không xóa Git history
+- id: nguyen-ly-phat-hien
+  title: Nguyên lý phát hiện
+  purpose: Hiểu cách công cụ phát hiện secret và giới hạn của kết quả quét để chọn phương án phù hợp.
+  objectives:
+  - Phân biệt pattern theo nhà cung cấp, regex và entropy
+  - Giải thích false positive và false negative
+  - Nhận biết khác biệt giữa phát hiện và xác thực secret còn hiệu lực
+- id: quet-local-voi-gitleaks
+  title: Quét local với Gitleaks
+  purpose: Thực hành tìm secret trước khi chia sẻ code bằng công cụ CLI và dữ liệu thử nghiệm an toàn.
+  objectives:
+  - Cài Gitleaks và quét thư mục làm việc
+  - Quét Git history và so sánh kết quả
+  - Kiểm tra báo cáo bằng token giả, không dùng credential thật
+- id: pre-commit-push-protection
+  title: Pre-commit & Push Protection
+  purpose: Ngăn secret lọt vào repository từ sớm bằng quy tắc kiểm tra ở máy lập trình và dịch vụ Git.
+  objectives:
+  - Thiết lập hook quét trước commit
+  - Giải thích push protection và hành vi chặn push
+  - Mô tả quy trình xử lý bypass có phê duyệt
+- id: quet-trong-ci-cd
+  title: Quét trong CI/CD
+  purpose: Tự động kiểm tra thay đổi và đưa kết quả phát hiện vào quy trình code review.
+  objectives:
+  - Thêm secret scan job vào pipeline
+  - Chọn quét diff/commit mới và quét lịch sử ban đầu
+  - Chặn merge theo chính sách và ẩn nội dung nhạy cảm trong log
+- id: rules-giam-nhieu
+  title: Rules & giảm nhiễu
+  purpose: Cải thiện độ chính xác và tính hữu ích của bộ phát hiện cho dự án cụ thể.
+  objectives:
+  - Bổ sung custom pattern cho token nội bộ
+  - Giới hạn allowlist/baseline theo phạm vi có lý do
+  - Kiểm thử mẫu secret giả và ca false positive
+- id: triage-khac-phuc
+  title: Triage & khắc phục
+  purpose: Ưu tiên xử lý secret thật sự bị lộ và giảm thời gian có thể bị khai thác.
+  objectives:
+  - Phân loại alert theo loại credential, phạm vi và chủ sở hữu
+  - Thu hồi hoặc rotate secret trước khi xử lý Git history
+  - Đánh giá log truy cập và đóng cảnh báo có bằng chứng
+- id: phong-ngua-van-hanh
+  title: Phòng ngừa & vận hành
+  purpose: Giảm việc phát sinh secret mới và theo dõi hiệu quả chương trình quét lâu dài.
+  objectives:
+  - Dùng secret manager hoặc identity ngắn hạn thay hardcode
+  - Đo số alert mới, thời gian xử lý và tỷ lệ false positive
+  - Kiểm thử lại push protection, pipeline và quy trình ứng cứu

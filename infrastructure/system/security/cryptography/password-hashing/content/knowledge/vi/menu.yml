@@ -1,0 +1,503 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Password hashing là gì
+  - Vì sao không lưu mật khẩu dạng rõ
+  - Hash mật khẩu khác mã hóa thế nào
+  - Mục tiêu của password storage
+  - Password hashing trong authentication
+  - Đầu ra của một thiết kế đúng
+  - Giới hạn của password hashing
+  - Lộ trình học từ nguyên lý đến vận hành
+- level1: Mô hình đe dọa
+  level2:
+  - Database bị lộ
+  - Tấn công nhồi credential
+  - Offline guessing
+  - Brute force
+  - Rainbow table
+  - Insider có quyền đọc dữ liệu
+  - Backup bị lấy cắp
+  - Rủi ro từ log và debug
+- level1: Vòng đời mật khẩu
+  level2:
+  - Tạo mật khẩu
+  - Lưu mật khẩu
+  - Xác minh đăng nhập
+  - Hành vi đổi mật khẩu
+  - Hành vi đặt lại mật khẩu
+  - Hành vi khôi phục tài khoản
+  - Vô hiệu hóa mật khẩu
+  - Xóa dữ liệu xác thực
+- level1: Entropy
+  level2:
+  - Entropy của mật khẩu
+  - Độ dài và không gian tìm kiếm
+  - Mật khẩu người dùng thường yếu
+  - Passphrase
+  - Entropy từ generator
+  - Dự đoán theo từ điển
+  - Thông tin cá nhân trong mật khẩu
+  - Đánh giá entropy thực tế
+- level1: Mật khẩu và passphrase
+  level2:
+  - Password policy
+  - Độ dài tối thiểu
+  - Độ dài tối đa
+  - Cho phép khoảng trắng
+  - Cho phép ký tự Unicode
+  - Password manager
+  - Mật khẩu duy nhất
+  - Tránh quy tắc gây phản tác dụng
+- level1: Hash function và KDF
+  level2:
+  - Cryptographic hash function
+  - Key derivation function
+  - Hash nhanh và hash chậm
+  - One-way function
+  - Collision không phải mục tiêu chính
+  - Preimage resistance
+  - Password KDF cần tài nguyên
+  - Chọn primitive phù hợp
+- level1: Salt
+  level2:
+  - Salt là gì
+  - Vì sao mỗi mật khẩu cần salt riêng
+  - Salt công khai
+  - Salt ngẫu nhiên
+  - Salt lưu ở đâu
+  - Salt và rainbow table
+  - Salt không thay thế work factor
+  - Kiểm tra salt bị trùng
+- level1: Pepper
+  level2:
+  - Pepper là gì
+  - Pepper khác salt thế nào
+  - Lưu pepper ngoài database
+  - Pepper trong secret manager
+  - Pepper rotation
+  - Xử lý khi pepper bị lộ
+  - Pepper trong hệ thống nhiều node
+  - Đánh đổi khi dùng pepper
+- level1: Work factor
+  level2:
+  - Work factor là gì
+  - Cost parameter
+  - Tăng chi phí tính toán
+  - Chọn chi phí theo phần cứng
+  - Chi phí cho đăng ký
+  - Chi phí cho đăng nhập
+  - Chi phí cho reset
+  - Đo lường và điều chỉnh
+- level1: Memory hardness
+  level2:
+  - Memory hardness là gì
+  - Memory cost
+  - Time cost
+  - Parallelism
+  - GPU và password cracking
+  - ASIC và password cracking
+  - Giới hạn memory trên server
+  - Đánh đổi CPU với memory
+- level1: Argon2
+  level2:
+  - Argon2 là gì
+  - Argon2id
+  - Argon2i và Argon2d
+  - Tham số Argon2
+  - Salt và Argon2
+  - Đo benchmark Argon2
+  - Argon2 trong thư viện
+  - Migration sang Argon2
+- level1: bcrypt
+  level2:
+  - bcrypt là gì
+  - Cost của bcrypt
+  - Giới hạn độ dài đầu vào
+  - Salt trong bcrypt
+  - Định dạng bcrypt
+  - Benchmark bcrypt
+  - Khi nào dùng bcrypt
+  - Giới hạn của bcrypt
+- level1: scrypt
+  level2:
+  - scrypt là gì
+  - Memory cost của scrypt
+  - CPU cost của scrypt
+  - Parallelization của scrypt
+  - Salt trong scrypt
+  - Benchmark scrypt
+  - Khi nào dùng scrypt
+  - Giới hạn triển khai scrypt
+- level1: PBKDF2
+  level2:
+  - PBKDF2 là gì
+  - PRF trong PBKDF2
+  - Iteration count
+  - Salt trong PBKDF2
+  - PBKDF2-HMAC-SHA256
+  - PBKDF2-HMAC-SHA512
+  - Benchmark PBKDF2
+  - Khi nào dùng PBKDF2
+- level1: Thuật toán lỗi thời
+  level2:
+  - Lưu mật khẩu bằng MD5
+  - Lưu mật khẩu bằng SHA-1
+  - Lưu mật khẩu bằng SHA-256
+  - Hash một vòng
+  - Hash không có salt
+  - Mã hóa thay cho KDF
+  - Chuỗi tự chế
+  - Nhận diện định dạng yếu
+- level1: Định dạng lưu trữ
+  level2:
+  - Password hash record
+  - Algorithm identifier
+  - Parameter encoding
+  - Salt encoding
+  - Hash encoding
+  - Version của định dạng
+  - Độ dài field database
+  - Parse và validate record
+- level1: Xác minh mật khẩu
+  level2:
+  - Password verification
+  - So sánh hash
+  - Không giải mã hash
+  - Recompute với salt
+  - Kiểm tra định dạng đầu vào
+  - Xử lý hash không hợp lệ
+  - Thông báo lỗi xác minh
+  - Phân biệt sai mật khẩu và lỗi hệ thống
+- level1: Timing và constant-time
+  level2:
+  - Timing attack
+  - So sánh chuỗi không an toàn
+  - Constant-time comparison
+  - Early exit
+  - Khác biệt thời gian theo nhánh
+  - Timing qua mạng
+  - Đo timing trong kiểm thử
+  - Giới hạn của constant-time
+- level1: Đăng ký tài khoản
+  level2:
+  - Hash trước khi lưu
+  - Ngăn ghi log mật khẩu
+  - Kiểm tra mật khẩu bị lộ
+  - Tạo salt mới
+  - Xử lý lỗi database
+  - Đảm bảo transaction
+  - Chống đăng ký hàng loạt
+  - Xác minh email và mật khẩu
+- level1: Đăng nhập
+  level2:
+  - Đọc password hash
+  - Xác minh theo algorithm
+  - Rate limiting đăng nhập
+  - Khóa tài khoản sau thất bại
+  - Độ trễ phản hồi
+  - Thông báo lỗi không lộ thông tin
+  - Audit đăng nhập
+  - Phát hiện hành vi bất thường
+- level1: Đổi mật khẩu
+  level2:
+  - Yêu cầu mật khẩu hiện tại
+  - Tạo hash mới
+  - Salt mới khi đổi
+  - Thu hồi session cũ
+  - Thu hồi token cũ
+  - Thông báo đổi mật khẩu
+  - Chống đổi liên tục
+  - Kiểm tra lịch sử mật khẩu
+- level1: Đặt lại mật khẩu
+  level2:
+  - Password reset flow
+  - Reset token
+  - Entropy của reset token
+  - Thời hạn reset
+  - One-time use
+  - Thu hồi reset token
+  - Thông báo reset
+  - Không tiết lộ trạng thái tài khoản
+- level1: Khôi phục tài khoản
+  level2:
+  - Account recovery
+  - Recovery factor
+  - Recovery code
+  - Identity proofing
+  - Rủi ro social engineering
+  - Khôi phục khi mất MFA
+  - Phê duyệt khôi phục
+  - Audit hoạt động khôi phục
+- level1: Mật khẩu bị lộ
+  level2:
+  - Breached password
+  - Password denylist
+  - Tra cứu k-anonymity
+  - Kiểm tra offline
+  - Không gửi mật khẩu rõ
+  - Cập nhật nguồn breach
+  - Buộc đổi mật khẩu
+  - Thông báo cho người dùng
+- level1: Rate limiting
+  level2:
+  - Giới hạn lần thử
+  - Rate limit theo tài khoản
+  - Rate limit theo IP
+  - Rate limit phân tán
+  - Backoff
+  - Captcha và challenge
+  - Chống credential stuffing
+  - Đo false positive
+- level1: MFA và password
+  level2:
+  - Mật khẩu và MFA
+  - MFA không thay thế hash an toàn
+  - Step-up authentication
+  - Passwordless transition
+  - Fallback về mật khẩu
+  - Recovery khi mất factor
+  - Chính sách theo mức rủi ro
+  - Đánh giá assurance
+- level1: Chính sách mật khẩu
+  level2:
+  - Password policy governance
+  - Quy tắc độ dài
+  - Quy tắc reuse
+  - Quy tắc expiration
+  - Quy tắc khóa tài khoản
+  - Quy tắc reset
+  - Exception cho hệ thống cũ
+  - Đánh giá hiệu quả policy
+- level1: Unicode và chuẩn hóa
+  level2:
+  - Unicode trong mật khẩu
+  - Normalization
+  - Canonical equivalence
+  - Encoding UTF-8
+  - Truncation theo byte
+  - Khác biệt client và server
+  - Kiểm thử ký tự đặc biệt
+  - Không thay đổi mật khẩu ngoài ý muốn
+- level1: Mật khẩu ngẫu nhiên
+  level2:
+  - Random password generation
+  - Cryptographic random
+  - Entropy source
+  - Password generator
+  - Temporary password
+  - Initial credential
+  - Hiển thị mật khẩu tạm
+  - Xóa mật khẩu khỏi bộ nhớ
+- level1: Secret và bộ nhớ
+  level2:
+  - Password trong memory
+  - String immutable
+  - Byte array
+  - Memory clearing
+  - Core dump
+  - Heap dump
+  - Debugger access
+  - Secret trong crash report
+- level1: Cài đặt ứng dụng
+  level2:
+  - Password hashing service
+  - Dependency của KDF
+  - API hash và verify
+  - Định cấu hình tham số
+  - Xử lý exception
+  - Không tự viết crypto
+  - Dependency update
+  - Kiểm tra cấu hình production
+- level1: Thư viện và API
+  level2:
+  - Chọn thư viện password hashing
+  - API tạo hash
+  - API xác minh
+  - API tạo salt
+  - API đọc parameter
+  - API kiểm tra version
+  - Đảm bảo thư viện được hỗ trợ
+  - Tránh API lỗi thời
+- level1: Migration thuật toán
+  level2:
+  - Vì sao cần migrate
+  - Nhận diện hash cũ
+  - Rehash khi đăng nhập
+  - Rehash chủ động
+  - Migration không biết mật khẩu
+  - Fallback nhiều định dạng
+  - Đo tiến độ migration
+  - Đóng định dạng cũ
+- level1: Parameter upgrade
+  level2:
+  - Tăng work factor
+  - Đổi memory cost
+  - Đổi iteration count
+  - Đổi parallelism
+  - Kiểm tra hash cần nâng cấp
+  - Rehash sau xác minh
+  - Giới hạn tải khi upgrade
+  - Rollback tham số
+- level1: Hệ thống phân tán
+  level2:
+  - Hashing trên nhiều node
+  - Đồng nhất cấu hình
+  - Version giữa service
+  - Database replication
+  - Cache password verification
+  - Failover
+  - Đồng bộ giới hạn phân tán
+  - Đo latency toàn hệ thống
+- level1: Database
+  level2:
+  - Schema lưu password hash
+  - Column type và độ dài
+  - Database access control
+  - Encryption at rest
+  - Backup password hash
+  - Replica và read-only
+  - Migration schema
+  - Audit truy cập bảng xác thực
+- level1: Log và telemetry
+  level2:
+  - Chặn mật khẩu khỏi log
+  - Không log password hash
+  - Redact request body
+  - Error message
+  - Trace context
+  - Metric xác minh
+  - Alert đăng nhập bất thường
+  - Telemetry không chứa secret
+- level1: Backup và khôi phục
+  level2:
+  - Backup hash
+  - Quyền truy cập backup
+  - Encryption backup
+  - Restore vào non-production
+  - Rotation backup
+  - Retention backup
+  - Xóa backup hết hạn
+  - Kiểm tra hash sau restore
+- level1: Account security
+  level2:
+  - Account enumeration
+  - Account lockout
+  - Session invalidation
+  - Credential rotation
+  - Inactive account
+  - Privileged account
+  - Service account
+  - Account compromise
+- level1: Khả năng mở rộng
+  level2:
+  - CPU cost khi đăng nhập
+  - Memory cost khi đăng nhập
+  - Login burst
+  - DoS qua password hashing
+  - Queue và concurrency
+  - Giới hạn worker
+  - Capacity planning
+  - Graceful degradation
+- level1: Kiểm thử chức năng
+  level2:
+  - Test hash khác nhau
+  - Test verify đúng mật khẩu
+  - Test verify sai mật khẩu
+  - Test salt khác nhau
+  - Test định dạng record
+  - Test reset flow
+  - Test đổi mật khẩu
+  - Test lỗi database
+- level1: Kiểm thử bảo mật
+  level2:
+  - Test offline cracking resistance
+  - Test timing
+  - Test rate limiting
+  - Test account enumeration
+  - Test log leakage
+  - Test memory dump
+  - Test dependency vulnerability
+  - Test secret exposure
+- level1: Benchmark
+  level2:
+  - Benchmark thuật toán
+  - Benchmark theo phần cứng
+  - Benchmark theo tham số
+  - Benchmark concurrency
+  - Benchmark login peak
+  - Benchmark mobile và server
+  - Đọc kết quả benchmark
+  - Quyết định tham số
+- level1: Giám sát vận hành
+  level2:
+  - Đo thời gian verify
+  - Đo lỗi xác minh
+  - Đo login thất bại
+  - Đo rate limit
+  - Đo hash version
+  - Đo rehash progress
+  - Phát hiện tải bất thường
+  - Alert operational
+- level1: Sự cố credential
+  level2:
+  - Phát hiện database leak
+  - Containment credential
+  - Buộc reset mật khẩu
+  - Thu hồi session
+  - Rotate secret liên quan
+  - Điều tra log xác thực
+  - Thông báo người dùng
+  - Lessons learned
+- level1: Tuân thủ và bằng chứng
+  level2:
+  - Yêu cầu lưu trữ credential
+  - Control password hashing
+  - Evidence cấu hình
+  - Evidence tham số KDF
+  - Evidence access review
+  - Audit reset flow
+  - Retention của audit
+  - Xử lý ngoại lệ
+- level1: Trải nghiệm người dùng
+  level2:
+  - Thông báo lỗi rõ ràng
+  - Không ép quy tắc gây yếu
+  - Password manager compatibility
+  - Paste mật khẩu
+  - Show và hide password
+  - Autocomplete
+  - Reset dễ dùng nhưng an toàn
+  - Accessibility của form
+- level1: Vận hành vòng đời
+  level2:
+  - Quản lý tham số
+  - Quản lý định dạng
+  - Review thư viện
+  - Review policy
+  - Review benchmark
+  - Đào tạo đội vận hành
+  - Runbook credential
+  - Rà soát định kỳ
+- level1: Case study
+  level2:
+  - Migration từ SHA-256
+  - Đăng nhập dùng Argon2id
+  - Đăng nhập dùng bcrypt
+  - PBKDF2 cho hệ thống cũ
+  - Reset mật khẩu an toàn
+  - Kịch bản credential stuffing
+  - Database hash bị lộ
+  - DoS qua verify
+- level1: Thực hành tổng hợp
+  level2:
+  - Đánh giá mô hình đe dọa
+  - Chọn KDF và tham số
+  - Thiết kế record lưu trữ
+  - Xây flow đăng ký
+  - Xây flow đăng nhập
+  - Xây flow reset
+  - Thiết lập rate limiting
+  - Thiết kế migration rehash
+  - Benchmark và kiểm thử
+  - Hoàn thiện hồ sơ password security

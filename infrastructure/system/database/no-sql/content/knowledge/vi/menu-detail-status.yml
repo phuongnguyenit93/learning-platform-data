@@ -1,0 +1,4903 @@
+menu:
+- slug: no-sql-foundations
+  title: Tư duy NoSQL
+  childs:
+  - slug: no-sql-foundations-001
+    title: NoSQL là gì và những bài toán dẫn đến sự phát triển của các mô hình dữ liệu khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-002
+    title: Phân biệt ngôn ngữ SQL, mô hình quan hệ và hệ quản trị dữ liệu cụ thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-003
+    title: Mục tiêu về khả năng mở rộng, tính sẵn sàng và sự linh hoạt của dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-004
+    title: 'Bản đồ thuật ngữ: khóa, bản ghi, tài liệu, phân vùng, bản sao và cụm'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-005
+    title: Luồng từ yêu cầu nghiệp vụ đến truy vấn, mô hình lưu trữ và kết quả quan sát được
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-006
+    title: Quan hệ giữa mô hình dữ liệu, đường truy cập, giao dịch và vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-007
+    title: Schema linh hoạt, quy tắc dữ liệu và trách nhiệm kiểm tra đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-008
+    title: Phạm vi giao dịch và tính nhất quán phải được xác định theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-009
+    title: Vai trò lưu trữ chính, bộ nhớ đệm, công cụ tìm kiếm và nguồn dữ liệu dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-010
+    title: Bài toán phù hợp, giới hạn và các tình huống nên ưu tiên hệ quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-011
+    title: Ranh giới giữa kiến thức NoSQL chung và tài liệu của từng sản phẩm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: no-sql-foundations-012
+    title: Trình tự học từ yêu cầu và mô hình dữ liệu đến thực nghiệm, đo lường và vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workload-requirements
+  title: Yêu cầu và tải dữ liệu
+  childs:
+  - slug: workload-requirements-001
+    title: Xác định thực thể, quan hệ và các câu hỏi nghiệp vụ cần trả lời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-002
+    title: 'Liệt kê mẫu truy cập: tra theo khóa, lọc, sắp xếp, tổng hợp và duyệt quan hệ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-003
+    title: Tỷ lệ đọc/ghi, kích thước bản ghi và phân bố truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-004
+    title: Độ trễ, thông lượng, số kết nối và mục tiêu chất lượng dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-005
+    title: Phân biệt dữ liệu giao dịch, sự kiện, tài liệu, chuỗi thời gian và dữ liệu dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-006
+    title: Yêu cầu về dữ liệu mới nhất, đọc sau ghi và cập nhật đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-007
+    title: Xác định bất biến nghiệp vụ và hậu quả khi dữ liệu không nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-008
+    title: Vòng đời dữ liệu, tăng trưởng, lưu trữ dài hạn và yêu cầu xóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-009
+    title: Phạm vi tenant, địa lý, vùng triển khai và nơi lưu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-010
+    title: Dự đoán tải đột biến, dữ liệu lệch và nhu cầu mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-011
+    title: Chuyển yêu cầu thành tiêu chí đo lường và điều kiện nghiệm thu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-requirements-012
+    title: Lập giả định, rủi ro và câu hỏi cần kiểm chứng bằng thử nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-models
+  title: Các mô hình dữ liệu
+  childs:
+  - slug: data-models-001
+    title: Phân biệt mô hình logic với cách tổ chức dữ liệu vật lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-002
+    title: 'Khóa–giá trị: truy cập qua định danh và thao tác trên giá trị'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-003
+    title: 'Tài liệu: dữ liệu có cấu trúc lồng nhau và truy vấn theo trường'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-004
+    title: 'Cột rộng: phân vùng, hàng và sắp xếp trong nhóm dữ liệu'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-005
+    title: 'Đồ thị: nút, cạnh, thuộc tính và phép duyệt quan hệ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-006
+    title: So sánh cách biểu diễn cùng một nghiệp vụ trong bốn mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-007
+    title: Điều kiện truy vấn thuận lợi và hạn chế của từng mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-008
+    title: Quan hệ giữa mô hình dữ liệu với khả năng lập chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-009
+    title: Khả năng hỗ trợ nhiều mô hình trong cùng một hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-010
+    title: Phân biệt cột rộng với lưu trữ cột phục vụ phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-011
+    title: Ranh giới giữa NoSQL, NewSQL, SQL phân tán và hệ đa mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-models-012
+    title: Lựa chọn mô hình theo nhu cầu thay vì suy luận từ nhãn sản phẩm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: keys-and-identifiers
+  title: Khóa và định danh
+  childs:
+  - slug: keys-and-identifiers-001
+    title: Khóa nghiệp vụ, khóa kỹ thuật và phạm vi duy nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-002
+    title: Định danh tự nhiên, định danh sinh tự động và đánh đổi khi thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-003
+    title: UUID, định danh có thứ tự và tác động đến phân phối tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-004
+    title: Khóa ghép, thứ tự thành phần và khả năng truy vấn theo tiền tố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-005
+    title: Phân biệt khóa truy cập, khóa phân vùng và khóa sắp xếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-006
+    title: Thiết kế tiền tố, vùng tên và mã tenant trong khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-007
+    title: Chuẩn hóa chuỗi khóa, Unicode, chữ hoa/thường và ký tự phân tách
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-008
+    title: Xử lý va chạm, kiểm tra duy nhất và rủi ro kiểm tra rồi mới ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-009
+    title: Định danh yêu cầu để chống thực hiện lặp nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-010
+    title: Thời gian trong khóa, giới hạn thứ tự và ảnh hưởng đồng hồ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-011
+    title: Thay đổi định danh, ánh xạ khóa cũ/mới và chuyển đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: keys-and-identifiers-012
+    title: Bảo vệ thông tin nhạy cảm và tránh để lộ dữ liệu qua tên khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: key-value-model
+  title: Mô hình khóa–giá trị
+  childs:
+  - slug: key-value-model-001
+    title: Cấu trúc khóa và giá trị, không gian tên và thao tác cơ bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-002
+    title: Giá trị dạng byte, chuỗi hoặc cấu trúc dữ liệu theo khả năng của từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-003
+    title: Tra cứu chính xác, truy vấn theo khoảng và các giới hạn cần kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-004
+    title: Thiết kế khóa cho phiên đăng nhập, cấu hình và dữ liệu tra cứu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-005
+    title: Thao tác nguyên tử trên một khóa, tăng bộ đếm và cập nhật có điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-006
+    title: TTL, hết hạn dữ liệu và khác biệt với chính sách loại bỏ khỏi bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-007
+    title: Tìm hoặc duyệt nhiều khóa và chi phí quét không gian khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-008
+    title: Kích thước giá trị, khóa quá lớn và giới hạn truyền dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-009
+    title: Điểm nóng trên một khóa và cách chia tải theo nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-010
+    title: Đánh giá độ bền khi dùng làm nguồn dữ liệu chính
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-011
+    title: Ví dụ Redis, DynamoDB hoặc hệ khác với phạm vi bảo đảm được nêu rõ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: key-value-model-012
+    title: Thực nghiệm truy cập theo khóa và kiểm chứng cập nhật đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: document-model
+  title: Mô hình tài liệu
+  childs:
+  - slug: document-model-001
+    title: Tài liệu, collection, trường và cấu trúc lồng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-002
+    title: JSON, BSON hoặc định dạng khác và khác biệt về kiểu dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-003
+    title: Biểu diễn thực thể có thuộc tính thay đổi và các phiên bản tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-004
+    title: Nhúng dữ liệu có cùng vòng đời hoặc cùng mẫu truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-005
+    title: Tham chiếu dữ liệu chia sẻ và xử lý quan hệ nhiều-nhiều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-006
+    title: Mảng lồng nhau, tăng trưởng không giới hạn và giới hạn kích thước tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-007
+    title: Truy vấn theo trường, đường dẫn lồng nhau và điều kiện trên mảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-008
+    title: Projection, sắp xếp, phân trang và tổng hợp dữ liệu tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-009
+    title: Schema validation và quy tắc giữa các trường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-010
+    title: Tính nguyên tử một tài liệu và giao dịch nhiều tài liệu theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-011
+    title: Chỉ mục trên trường, mảng hoặc đường dẫn và chi phí cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-012
+    title: Ví dụ MongoDB hoặc hệ tài liệu khác với giới hạn triển khai cụ thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: document-model-013
+    title: Thực nghiệm cùng nghiệp vụ bằng dữ liệu nhúng và dữ liệu tham chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: wide-column-model
+  title: Mô hình cột rộng
+  childs:
+  - slug: wide-column-model-001
+    title: Cách tổ chức keyspace/table, phân vùng và các hàng liên quan
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-002
+    title: Khóa phân vùng và khóa phân cụm trong hệ hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-003
+    title: Thiết kế bảng theo truy vấn và thứ tự đọc trong một phân vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-004
+    title: Lặp dữ liệu giữa các bảng để phục vụ các đường truy cập khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-005
+    title: Chia nhóm theo thời gian hoặc miền dữ liệu để giới hạn phân vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-006
+    title: Phân vùng quá lớn, phân vùng quá nhỏ và điểm nóng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-007
+    title: Truy vấn xuyên phân vùng, quét rộng và giới hạn lọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-008
+    title: TTL, timestamp, dấu xóa và quan hệ với cơ chế lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-009
+    title: Cập nhật có điều kiện, bộ đếm và phạm vi nguyên tử theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-010
+    title: Chỉ mục phụ và lựa chọn dựa trên đặc điểm phiên bản/sản phẩm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-011
+    title: Ví dụ Cassandra hoặc HBase và những khác biệt cần đối chiếu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-012
+    title: Phân biệt mô hình cột rộng với bảng quan hệ và kho phân tích dạng cột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: wide-column-model-013
+    title: Thực nghiệm dữ liệu sự kiện hoặc lịch sử truy cập theo khóa/thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: graph-model
+  title: Mô hình đồ thị
+  childs:
+  - slug: graph-model-001
+    title: Nút, cạnh, thuộc tính và định danh của phần tử đồ thị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-002
+    title: Property graph, RDF và khác biệt về mô hình biểu diễn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-003
+    title: Biểu diễn quan hệ có hướng, nhiều cạnh và thuộc tính của quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-004
+    title: Chọn nút hay thuộc tính dựa trên nhu cầu truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-005
+    title: Duyệt đồ thị, khớp mẫu và giới hạn độ sâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-006
+    title: Đường đi, chu trình và yêu cầu chống duyệt lặp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-007
+    title: Nút có quá nhiều quan hệ và chi phí mở rộng phép duyệt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-008
+    title: Chỉ mục, ràng buộc và lựa chọn điểm bắt đầu truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-009
+    title: Giao dịch, cập nhật quan hệ và tính toàn vẹn theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-010
+    title: Phân phối đồ thị trên nhiều máy và chi phí quan hệ xuyên vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-011
+    title: Ví dụ Neo4j hoặc hệ đồ thị khác với mô hình/ngôn ngữ tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: graph-model-012
+    title: Thực nghiệm quan hệ người dùng, phụ thuộc hoặc gợi ý kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: specialized-models
+  title: Mô hình chuyên biệt
+  childs:
+  - slug: specialized-models-001
+    title: 'Chuỗi thời gian: thời điểm, nhãn và truy vấn theo cửa sổ'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-002
+    title: Cardinality của nhãn, lưu giữ dữ liệu và tổng hợp theo thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-003
+    title: 'Tìm kiếm văn bản: tài liệu, token, chỉ mục đảo và độ liên quan'
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-004
+    title: Khác biệt giữa công cụ tìm kiếm với nguồn lưu trữ nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-005
+    title: Dữ liệu vector, độ tương đồng và truy vấn kết hợp điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-006
+    title: Chỉ mục vector gần đúng, độ chính xác truy hồi và chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-007
+    title: Dữ liệu không gian và các dạng truy vấn theo vị trí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-008
+    title: Dữ liệu sự kiện dạng nối tiếp và nhu cầu phát lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-009
+    title: Khả năng chuyên biệt bên trong hệ đa mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-010
+    title: Đồng bộ dữ liệu gốc với kho tìm kiếm, vector hoặc phân tích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: specialized-models-011
+    title: Chọn chức năng theo bài toán và kiểm tra giới hạn của từng sản phẩm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: query-driven-design
+  title: Thiết kế theo truy vấn
+  childs:
+  - slug: query-driven-design-001
+    title: Thu thập và phân loại đầy đủ các mẫu truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-002
+    title: Xác định khóa lọc, thứ tự sắp xếp và giới hạn kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-003
+    title: Chọn đơn vị lưu trữ từ dữ liệu thường được đọc hoặc ghi cùng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-004
+    title: Thiết kế bảng/tài liệu/khóa cho từng nhóm truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-005
+    title: Chọn khóa phân vùng dựa trên phân phối và giới hạn truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-006
+    title: Thiết kế sắp xếp trong nhóm và truy vấn theo khoảng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-007
+    title: Ước lượng kích thước bản ghi, nhóm dữ liệu và phân vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-008
+    title: Lặp dữ liệu có chủ đích để giảm trao đổi mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-009
+    title: Duy trì tính nhất quán giữa các bản biểu diễn cùng dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-010
+    title: Bổ sung đường truy cập mới khi yêu cầu nghiệp vụ thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-011
+    title: Đánh giá truy vấn hiếm, báo cáo và thao tác quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-012
+    title: Ghi lại đánh đổi giữa chi phí đọc, ghi, lưu trữ và độ phức tạp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: query-driven-design-013
+    title: Kiểm chứng mô hình bằng bộ truy vấn và dữ liệu đại diện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: aggregates-and-invariants
+  title: Nhóm dữ liệu và bất biến
+  childs:
+  - slug: aggregates-and-invariants-001
+    title: Bất biến nghiệp vụ và điều kiện dữ liệu phải luôn thỏa mãn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-002
+    title: Nhóm dữ liệu cùng thay đổi và khái niệm aggregate
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-003
+    title: Liên hệ ranh giới aggregate với phạm vi nguyên tử của hệ lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-004
+    title: Đặt ràng buộc trong database, dịch vụ ứng dụng hoặc cả hai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-005
+    title: Kiểm tra duy nhất và cạnh tranh khi tạo bản ghi mới
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-006
+    title: Đặt hàng, giữ chỗ và các bất biến liên quan đến số lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-007
+    title: Đánh giá ảnh hưởng khi tách một bất biến qua nhiều bản ghi/phân vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-008
+    title: Dùng cập nhật có điều kiện hoặc giao dịch để bảo vệ bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-009
+    title: Chấp nhận nhất quán sau cùng khi nghiệp vụ cho phép
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-010
+    title: Phát hiện, đối soát và sửa dữ liệu vi phạm quy tắc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: aggregates-and-invariants-011
+    title: Thiết kế ví dụ tối thiểu để chứng minh một bất biến được giữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: relations-and-denormalization
+  title: Quan hệ và lặp dữ liệu
+  childs:
+  - slug: relations-and-denormalization-001
+    title: Biểu diễn quan hệ một-một, một-nhiều và nhiều-nhiều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-002
+    title: Chọn nhúng, tham chiếu hoặc lưu cạnh quan hệ theo mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-003
+    title: Quyền sở hữu, vòng đời và tần suất thay đổi của dữ liệu liên quan
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-004
+    title: Lặp dữ liệu phục vụ đọc và xác định nguồn dữ liệu chuẩn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-005
+    title: Ghi đến nhiều nơi (fan-out) so với tập hợp dữ liệu khi đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-006
+    title: Chỉ mục đảo hoặc bảng tra cứu phụ cho quan hệ hai chiều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-007
+    title: Tổng hợp được lưu sẵn và cập nhật khi dữ liệu gốc thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-008
+    title: Nhất quán giữa các bản sao nghiệp vụ và giới hạn thời gian lệch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-009
+    title: Sự kiện thay đổi, đối soát định kỳ và chiến lược sửa sai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-010
+    title: Xóa thực thể có nhiều dữ liệu phụ thuộc và phòng tránh bản ghi mồ côi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-011
+    title: Chi phí thay đổi quan hệ hoặc chuyển dữ liệu giữa các nhóm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: relations-and-denormalization-012
+    title: Đối chiếu mô hình hạn chế lặp dữ liệu với mô hình tối ưu đường truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: types-and-schema
+  title: Kiểu dữ liệu và schema
+  childs:
+  - slug: types-and-schema-001
+    title: Schema ở cấp lưu trữ, cấp ứng dụng và hợp đồng trao đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-002
+    title: Kiểu số, độ chính xác tiền tệ và giới hạn khi dùng JSON
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-003
+    title: Chuỗi, Unicode, dữ liệu nhị phân và chuẩn hóa giá trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-004
+    title: NULL, thiếu trường, chuỗi rỗng và ngữ nghĩa cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-005
+    title: Ngày giờ, múi giờ, độ chính xác và thời điểm do client/server tạo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-006
+    title: Collection, mảng, tập hợp và thứ tự phần tử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-007
+    title: Kiểu dữ liệu lồng nhau, trường mở rộng và giới hạn kích thước
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-008
+    title: Schema validation, giá trị mặc định và kiểm tra dữ liệu biên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-009
+    title: Đặt phiên bản schema trong bản ghi và tương thích khi đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-010
+    title: Thêm trường, đổi kiểu và duy trì nhiều phiên bản ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-011
+    title: Quy ước định danh, tên trường và tài liệu hóa hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-012
+    title: Serialization, deserialization và ánh xạ sang kiểu Java
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: types-and-schema-013
+    title: Phát hiện dữ liệu không đồng nhất và kế hoạch chuẩn hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-lifecycle
+  title: Vòng đời dữ liệu
+  childs:
+  - slug: data-lifecycle-001
+    title: Tạo mới, sử dụng, hết hạn, lưu trữ dài hạn và xóa dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-002
+    title: TTL ở cấp bản ghi, trường hoặc collection theo khả năng của từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-003
+    title: Thời điểm hết hạn logic và thời điểm dữ liệu được thu hồi vật lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-004
+    title: Phân biệt hết hạn dữ liệu với loại bỏ khỏi bộ nhớ đệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-005
+    title: Soft delete, trạng thái ngừng sử dụng và truy vấn loại trừ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-006
+    title: Hard delete, dấu xóa và sự lan truyền đến các bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-007
+    title: Xóa theo nhóm thời gian và chiến lược luân chuyển dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-008
+    title: Độ trễ đồng bộ dữ liệu đã xóa sang chỉ mục hoặc kho dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-009
+    title: Sao lưu, bản sao dự phòng và phạm vi còn tồn tại của dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-010
+    title: Giới hạn lưu giữ theo nghiệp vụ và phạm vi áp dụng của từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-011
+    title: Khôi phục dữ liệu xóa nhầm và kiểm tra dữ liệu không bị tái xuất hiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-lifecycle-012
+    title: Đo chi phí thu hồi dung lượng và ảnh hưởng tác vụ nền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: crud-and-queries
+  title: CRUD và truy vấn
+  childs:
+  - slug: crud-and-queries-001
+    title: Thao tác tạo, đọc, thay thế, cập nhật từng phần và xóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-002
+    title: Insert, upsert và phân biệt tạo mới với ghi đè
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-003
+    title: Cập nhật có điều kiện và kiểm tra phiên bản hiện tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-004
+    title: Lọc theo khóa, trường, đường dẫn hoặc mẫu quan hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-005
+    title: Projection và giảm dữ liệu phải truyền về ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-006
+    title: Truy vấn theo khoảng, tiền tố và thứ tự sắp xếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-007
+    title: Phân trang bằng offset, token hoặc khóa tiếp nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-008
+    title: Phân trang ổn định khi dữ liệu đang được thêm hoặc sửa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-009
+    title: Truy vấn tổng hợp, nhóm và giới hạn biểu đạt theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-010
+    title: Quét toàn bộ dữ liệu và các tình huống cần kiểm soát phạm vi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-011
+    title: Bulk operation, batch và khả năng thành công từng phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-012
+    title: Đọc dạng luồng, giới hạn bộ nhớ và đóng tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: crud-and-queries-013
+    title: Ngôn ngữ truy vấn, API và điều kiện an toàn khi nhận đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: indexes-and-access-paths
+  title: Chỉ mục và đường truy cập
+  childs:
+  - slug: indexes-and-access-paths-001
+    title: Đường truy cập chính và vai trò của khóa lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-002
+    title: Chỉ mục phụ cục bộ hoặc toàn cục theo kiến trúc từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-003
+    title: Chỉ mục đơn, ghép và quy tắc thứ tự các thành phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-004
+    title: Chỉ mục cho trường lồng nhau hoặc phần tử collection
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-005
+    title: Chỉ mục đảo, tìm kiếm văn bản và cơ chế cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-006
+    title: Chỉ mục không gian/vector và phạm vi sử dụng phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-007
+    title: Covering/projection index và giảm truy cập dữ liệu gốc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-008
+    title: Tính phân biệt, phân bố giá trị và hiệu quả lọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-009
+    title: Độ mới của chỉ mục đồng bộ so với bất đồng bộ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-010
+    title: Chi phí ghi, lưu trữ và tái xây dựng chỉ mục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-011
+    title: Chỉ mục trên dữ liệu thưa, NULL hoặc trường không tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-012
+    title: Đọc kế hoạch, thống kê truy vấn hoặc công cụ giải thích theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-013
+    title: Kiểm chứng chỉ mục bằng độ trễ và số bản ghi/byte được đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: indexes-and-access-paths-014
+    title: Triển khai và gỡ chỉ mục trong khi ứng dụng hoạt động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-and-durability
+  title: Lưu trữ và độ bền
+  childs:
+  - slug: storage-and-durability-001
+    title: Phân biệt dữ liệu logic, cấu trúc chỉ mục và định dạng lưu trữ vật lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-002
+    title: Hash table, B-tree và LSM-tree trong các thiết kế lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-003
+    title: Write-ahead log/commit log và khả năng phục hồi sau sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-004
+    title: Bộ đệm ghi, memtable và dữ liệu đã lưu bền trên thiết bị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-005
+    title: SSTable hoặc cấu trúc bất biến và hoạt động hợp nhất dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-006
+    title: Read amplification, write amplification và space amplification
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-007
+    title: Compaction, garbage collection và ảnh hưởng đến tải nền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-008
+    title: Dấu xóa, thời gian giữ lại và nguy cơ dữ liệu cũ xuất hiện lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-009
+    title: Nén, mã hóa và đánh đổi CPU với dung lượng/I/O
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-010
+    title: Xác nhận ghi, đồng bộ xuống đĩa và phạm vi dữ liệu có thể mất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-011
+    title: Phân biệt sao chép nhiều bản với sao lưu có thể phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-012
+    title: Khôi phục sau crash và giới hạn của từng chế độ độ bền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-and-durability-013
+    title: Đối chiếu cơ chế lưu trữ thực tế trước khi suy luận hành vi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: transactions-and-atomicity
+  title: Giao dịch và nguyên tử
+  childs:
+  - slug: transactions-and-atomicity-001
+    title: ACID và các thuộc tính cần bảo vệ trong một thao tác nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-002
+    title: Tính nguyên tử của một lệnh, một khóa, một tài liệu hoặc một phân vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-003
+    title: Giao dịch nhiều bản ghi và giới hạn cấu hình/triển khai theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-004
+    title: Phân biệt batch tối ưu truyền dữ liệu với batch có bảo đảm nguyên tử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-005
+    title: Isolation, snapshot và dữ liệu nhìn thấy trong giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-006
+    title: Commit, rollback và các kết quả chưa xác định khi mất kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-007
+    title: Cập nhật có điều kiện và tính nguyên tử của phép so sánh rồi ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-008
+    title: Đọc-sửa-ghi tại ứng dụng và nguy cơ ghi đè cập nhật
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-009
+    title: Ràng buộc xuyên bản ghi và lựa chọn ranh giới giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-010
+    title: Chi phí giao dịch phân tán, khóa và thời gian giữ tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-011
+    title: Giao dịch với dữ liệu dẫn xuất, chỉ mục hoặc sự kiện bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-012
+    title: Thiết kế nghiệp vụ có bước bù và điều kiện kiểm chứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: transactions-and-atomicity-013
+    title: Đọc hợp đồng giao dịch của sản phẩm và kiểm thử đúng phạm vi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: concurrent-updates
+  title: Cập nhật đồng thời
+  childs:
+  - slug: concurrent-updates-001
+    title: Mô hình hai tác nhân cùng đọc và thay đổi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-002
+    title: Lost update, ghi đè giá trị và cách tái hiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-003
+    title: Khóa lạc quan bằng trường phiên bản
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-004
+    title: Compare-and-set, điều kiện tồn tại và cập nhật có điều kiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-005
+    title: Phép tăng/giảm nguyên tử và giới hạn phạm vi bảo đảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-006
+    title: Cạnh tranh khi tạo bản ghi có khóa duy nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-007
+    title: Giữ chỗ tài nguyên và giới hạn số lượng được cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-008
+    title: Khóa bi quan hoặc cơ chế tương đương theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-009
+    title: Khóa phân tán, lease và mã thứ tự ngăn tác nhân hết quyền tiếp tục ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-010
+    title: Xung đột giao dịch và thử lại toàn đơn vị công việc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-011
+    title: Giới hạn thử lại, backoff và tránh tạo thêm tranh chấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-012
+    title: Thao tác có thể thực hiện lặp an toàn và bảo vệ kết quả nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: concurrent-updates-013
+    title: Kiểm chứng lịch thực thi đồng thời bằng dữ liệu và thời điểm cụ thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: consistency-models
+  title: Các mô hình nhất quán
+  childs:
+  - slug: consistency-models-001
+    title: Nhất quán là tập các lịch sử đọc/ghi được phép quan sát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-002
+    title: Phân biệt nhất quán bản sao với tính nhất quán nghiệp vụ trong ACID
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-003
+    title: Linearizability và thứ tự theo thời gian thực của thao tác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-004
+    title: Sequential consistency và thứ tự quan sát chung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-005
+    title: Causal consistency và quan hệ nguyên nhân-kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-006
+    title: Eventual consistency và các điều kiện để bản sao hội tụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-007
+    title: Read-your-writes, monotonic reads và các bảo đảm theo phiên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-008
+    title: Đọc dữ liệu cũ và các giới hạn về độ trễ nếu có
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-009
+    title: Serializability so với strict serializability trong giao dịch nhiều đối tượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-010
+    title: Snapshot isolation và những bất thường vẫn có thể xảy ra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-011
+    title: Phạm vi bảo đảm theo khóa, phân vùng, giao dịch, phiên hoặc vùng triển khai
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-012
+    title: Cấu hình đọc/ghi và các giả định cần nêu khi mô tả bảo đảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-013
+    title: Lựa chọn mức nhất quán từ yêu cầu nghiệp vụ cụ thể
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-014
+    title: Thiết kế lịch sử tối thiểu để phân biệt hai mô hình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consistency-models-015
+    title: Kiểm tra tài liệu và kết quả thực nghiệm thay vì suy luận từ nhãn strong/eventual
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cap-and-tradeoffs
+  title: CAP và các đánh đổi
+  childs:
+  - slug: cap-and-tradeoffs-001
+    title: Đặt bài toán CAP trong hệ phân tán có khả năng mất liên lạc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-002
+    title: Ý nghĩa consistency, availability và partition tolerance trong định lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-003
+    title: Tình huống phân hoạch mạng và lựa chọn chờ, từ chối hoặc chấp nhận yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-004
+    title: Giới hạn của cách diễn giải chọn hai trong ba một cách máy móc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-005
+    title: Tính sẵn sàng theo CAP và các chỉ số khả dụng vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-006
+    title: Phạm vi một thao tác và các điều kiện để phát biểu bảo đảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-007
+    title: Tác động của độ trễ mạng khi hệ không bị phân hoạch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-008
+    title: PACELC và cách đặt câu hỏi về đánh đổi nhất quán/độ trễ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-009
+    title: Cùng một hệ có thể có nhiều chế độ và phạm vi bảo đảm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-010
+    title: Phân biệt tính an toàn dữ liệu với khả năng tiếp tục xử lý yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-011
+    title: Liên hệ đánh đổi kỹ thuật với yêu cầu nghiệp vụ và phương án suy giảm dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cap-and-tradeoffs-012
+    title: Phân tích một kịch bản lỗi mạng thay vì gắn nhãn CP/AP cho toàn sản phẩm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: replication-and-quorums
+  title: Sao chép và quorum
+  childs:
+  - slug: replication-and-quorums-001
+    title: Mục tiêu tạo bản sao và mô hình các miền lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-002
+    title: Leader–follower, nhiều leader và mô hình không có leader cố định
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-003
+    title: Replication factor và vị trí đặt bản sao theo nút/rack/datacenter
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-004
+    title: Sao chép đồng bộ, bất đồng bộ và thời điểm xác nhận ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-005
+    title: Đọc từ bản sao dẫn đầu hoặc bản sao khác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-006
+    title: Quorum đọc/ghi, số bản sao tham gia và khả năng chịu lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-007
+    title: Điều kiện giao nhau R+W>N và giới hạn suy luận về linearizability
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-008
+    title: Quorum cục bộ/toàn cục và dữ liệu giữa nhiều vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-009
+    title: Replication lag, dữ liệu đọc cũ và theo dõi tiến độ bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-010
+    title: Failover, lựa chọn bản sao mới và ghi đã được xác nhận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-011
+    title: Read repair, anti-entropy hoặc cơ chế đối soát tương ứng theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-012
+    title: Hinted handoff và giới hạn của cơ chế chuyển tiếp ghi bị bỏ lỡ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-013
+    title: Thêm hoặc thay thế bản sao khi đang có tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: replication-and-quorums-014
+    title: Kiểm chứng phạm vi dữ liệu có thể mất khi một miền lỗi gặp sự cố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: sharding-and-routing
+  title: Phân mảnh và định tuyến
+  childs:
+  - slug: sharding-and-routing-001
+    title: Mục tiêu phân mảnh dữ liệu và khác biệt với tạo bản sao
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-002
+    title: Phân mảnh theo băm, khoảng giá trị hoặc danh mục định tuyến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-003
+    title: Chọn shard key từ mẫu truy cập và phân bố dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-004
+    title: Khóa có cardinality thấp, khóa tăng dần và phân phối không đều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-005
+    title: Định tuyến tại client, proxy hoặc nút điều phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-006
+    title: Consistent hashing, vùng token và nút ảo trong các hệ sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-007
+    title: Truy vấn một phân mảnh so với truy vấn nhiều phân mảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-008
+    title: Chi phí tập hợp kết quả, sắp xếp và tổng hợp xuyên phân mảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-009
+    title: Ràng buộc duy nhất hoặc giao dịch khi dữ liệu nằm ở nhiều phân mảnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-010
+    title: Đặt dữ liệu liên quan gần nhau và đánh đổi với phân phối tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-011
+    title: Phân mảnh theo tenant và tenant có kích thước chênh lệch lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-012
+    title: Thay shard key và giới hạn chuyển dữ liệu đang hoạt động
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-013
+    title: Tra cứu metadata định tuyến và xử lý bản đồ vị trí đã cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: sharding-and-routing-014
+    title: Đo số phân mảnh được chạm và chứng minh lựa chọn khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: rebalancing-and-hotspots
+  title: Cân bằng và điểm nóng
+  childs:
+  - slug: rebalancing-and-hotspots-001
+    title: Phân biệt mất cân bằng dung lượng, lưu lượng và chi phí truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-002
+    title: Điểm nóng do một khóa, một nhóm dữ liệu hoặc một miền thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-003
+    title: Chia bucket, thêm phần phân tán vào khóa và chi phí đọc hợp nhất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-004
+    title: Tách khóa nóng hoặc tổng hợp bộ đếm theo nhiều phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-005
+    title: Tách tenant lớn và giới hạn ảnh hưởng giữa các tenant
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-006
+    title: Mở rộng số nút và xác định điều kiện tăng được thông lượng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-007
+    title: Rebalance, split, merge và di chuyển vùng dữ liệu theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-008
+    title: Truy cập trong khi dữ liệu đang di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-009
+    title: Chi phí truyền dữ liệu, lưu tạm và tải nền khi cân bằng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-010
+    title: Giới hạn tốc độ di chuyển để bảo vệ tải nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-011
+    title: Phát hiện điểm nóng từ metric và mẫu truy vấn thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: rebalancing-and-hotspots-012
+    title: Kiểm tra mô hình sau thay đổi quy mô hoặc phân bố dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: consensus-and-write-authority
+  title: Đồng thuận và quyền ghi
+  childs:
+  - slug: consensus-and-write-authority-001
+    title: Bài toán thống nhất trạng thái khi có lỗi hoặc mất liên lạc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-002
+    title: Phân biệt sao chép dữ liệu với giao thức đồng thuận
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-003
+    title: Vai trò leader, term/epoch và quá trình bầu chọn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-004
+    title: Tổng quan Raft/Paxos và phạm vi cần hiểu khi dùng hệ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-005
+    title: Quorum đồng thuận và điều kiện tiến trình có thể tiếp tục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-006
+    title: Split-brain và nguy cơ có nhiều tác nhân cùng cho rằng mình được ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-007
+    title: Lease, đồng hồ và các giả định về thời gian
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-008
+    title: Fencing token để từ chối thao tác từ tác nhân hết quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-009
+    title: Thành viên cụm, thay đổi cấu hình và rủi ro chuyển tiếp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-010
+    title: Quyền ghi sau failover và các thao tác đang dang dở
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-011
+    title: Giới hạn bảo đảm khi ứng dụng thao tác thêm với hệ bên ngoài
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: consensus-and-write-authority-012
+    title: Đọc hợp đồng giao thức của sản phẩm trước khi thiết kế khóa hoặc điều phối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: failure-handling-and-retries
+  title: Lỗi phân tán và retry
+  childs:
+  - slug: failure-handling-and-retries-001
+    title: Phân biệt lỗi yêu cầu, lỗi kết nối, lỗi nút và lỗi mạng một phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-002
+    title: Timeout và kết quả ghi chưa biết đã thành công hay chưa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-003
+    title: Thời hạn toàn yêu cầu (deadline) so với thời gian chờ của từng lần thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-004
+    title: Phân loại lỗi có thể thử lại và lỗi cần sửa đầu vào/quyền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-005
+    title: Thử lại có giới hạn, tăng khoảng chờ (backoff) và thêm độ lệch ngẫu nhiên (jitter)
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-006
+    title: Tính lũy đẳng của lệnh lưu trữ và của toàn thao tác nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-007
+    title: Idempotency key, lưu kết quả xử lý và chống tạo bản ghi trùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-008
+    title: Retry khi giao dịch xung đột và phạm vi dữ liệu cần đọc lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-009
+    title: Thực thi dự phòng và nguy cơ nhiều nút cùng áp dụng thao tác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-010
+    title: Hủy yêu cầu phía ứng dụng và công việc vẫn tiếp tục trên máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-011
+    title: Giới hạn đồng thời, hàng đợi có giới hạn và chống khuếch đại tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-012
+    title: Circuit breaker, cô lập tài nguyên và phương án suy giảm dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-013
+    title: Đối soát trạng thái khi không thể kết luận kết quả ngay
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failure-handling-and-retries-014
+    title: Thử nghiệm mất gói, ngắt kết nối và nút phản hồi chậm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: conflict-resolution
+  title: Xung đột và đồng bộ
+  childs:
+  - slug: conflict-resolution-001
+    title: Nhận diện nhiều phiên bản của cùng dữ liệu trong hệ phân tán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-002
+    title: Last-write-wins và vai trò timestamp trong từng thiết kế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-003
+    title: Đồng hồ máy, sai lệch thời gian và giới hạn xác định thứ tự thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-004
+    title: Version number, logical clock và quan hệ trước-sau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-005
+    title: Vector clock/version vector và phát hiện cập nhật đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-006
+    title: Phân biệt vector phiên bản với vector dùng trong tìm kiếm độ tương đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-007
+    title: Giữ nhiều phiên bản, báo xung đột hoặc hợp nhất theo nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-008
+    title: CRDT và các điều kiện để thao tác hội tụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-009
+    title: Bộ đếm, tập hợp và những ngữ nghĩa xóa cần lựa chọn rõ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-010
+    title: Đồng bộ hai chiều, xóa dữ liệu và tránh khôi phục bản cũ ngoài ý muốn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-011
+    title: Đối soát định kỳ khi ứng dụng duy trì dữ liệu lặp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: conflict-resolution-012
+    title: Thiết kế ca kiểm tra hội tụ và giới hạn của cơ chế giải quyết xung đột
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integration-architecture
+  title: Tích hợp và kiến trúc
+  childs:
+  - slug: integration-architecture-001
+    title: Xác định hệ giữ dữ liệu chuẩn và các kho dữ liệu dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-002
+    title: Polyglot persistence và ranh giới trách nhiệm giữa các hệ lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-003
+    title: Đặt lớp truy cập dữ liệu và tránh rò rỉ ngữ nghĩa sản phẩm ngoài hợp đồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-004
+    title: Phân tách mô hình ghi/đọc khi nhu cầu của hai phía khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-005
+    title: Giao dịch trong một hệ và phối hợp nghiệp vụ qua nhiều dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-006
+    title: Dual write, lỗi giữa hai lần ghi và nhu cầu đối soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-007
+    title: Transactional outbox trong phạm vi hệ có khả năng hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-008
+    title: Saga, bước bù và điều kiện nghiệp vụ có thể khôi phục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-009
+    title: Tổng hợp dữ liệu cho báo cáo, tìm kiếm và ứng dụng đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-010
+    title: Cô lập truy vấn quản trị hoặc báo cáo khỏi tải giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-011
+    title: Quản lý hợp đồng dữ liệu giữa bên phát, bên nhận và hệ lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-012
+    title: Đánh giá chi phí vận hành khi thêm một công nghệ lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integration-architecture-013
+    title: Kiểm chứng kiến trúc bằng một luồng nghiệp vụ từ đầu đến cuối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: java-integration
+  title: Kết nối Java
+  childs:
+  - slug: java-integration-001
+    title: Chọn driver/SDK theo sản phẩm, giao thức và phiên bản hỗ trợ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-002
+    title: Phân biệt driver gốc, lớp ánh xạ dữ liệu, Spring Data và JDBC khi có
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-003
+    title: Client/session dùng chung, vòng đời tài nguyên và an toàn đa luồng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-004
+    title: Endpoint, topology discovery và định tuyến yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-005
+    title: Xác thực, TLS và quản lý bí mật trong cấu hình ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-006
+    title: Ánh xạ định danh, số chính xác, ngày giờ và dữ liệu lồng nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-007
+    title: Serialization, schema version và xử lý trường thiếu hoặc không nhận biết
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-008
+    title: API truy vấn an toàn, prepared/bound statement hoặc cơ chế tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-009
+    title: Phân trang, đọc dạng luồng và kiểm soát bộ nhớ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-010
+    title: API đồng bộ, bất đồng bộ hoặc phản ứng (reactive) theo khả năng driver
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-011
+    title: Giới hạn đồng thời, điều tiết tải và quản lý tài nguyên kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-012
+    title: Timeout, retry và kiểm tra tính lũy đẳng của từng lệnh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-013
+    title: Giao dịch và cập nhật có điều kiện từ lớp truy cập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-014
+    title: Gắn định danh yêu cầu, metric và log phục vụ chẩn đoán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: java-integration-015
+    title: Kiểm thử tích hợp với hệ thật và khác biệt của giả lập/mock
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-caching
+  title: Bộ nhớ đệm dữ liệu
+  childs:
+  - slug: data-caching-001
+    title: Mục đích caching và lựa chọn dữ liệu nên đưa vào bộ nhớ đệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-002
+    title: Cache-aside, read-through, write-through và write-behind
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-003
+    title: Khóa cache, phạm vi tenant và phiên bản định dạng giá trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-004
+    title: TTL, thời gian dữ liệu có thể cũ và chính sách vô hiệu hóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-005
+    title: Eviction, giới hạn bộ nhớ và sự khác biệt với xóa dữ liệu gốc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-006
+    title: Cache stampede và phối hợp nạp lại dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-007
+    title: Hot key, phân phối tải và sao chép dữ liệu được đọc nhiều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-008
+    title: Negative caching và lỗi biến dữ liệu chưa có thành kết quả tồn tại lâu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-009
+    title: Ghi database rồi xóa/cập nhật cache và các cửa sổ cạnh tranh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-010
+    title: Read-after-write qua cache và phạm vi bảo đảm quan sát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-011
+    title: Độ bền, failover và ảnh hưởng khi cụm cache mất toàn bộ dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-012
+    title: Hit ratio, độ trễ và nguy cơ chỉ tối ưu một chỉ số
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-caching-013
+    title: Thử nghiệm cache cũ, cache mất kết nối và nạp lại đồng loạt
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: events-and-cdc
+  title: Sự kiện và CDC
+  childs:
+  - slug: events-and-cdc-001
+    title: Phân biệt dữ liệu trạng thái, sự kiện nghiệp vụ và bản ghi thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-002
+    title: Change Data Capture bằng log, stream hoặc cơ chế của từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-003
+    title: Snapshot ban đầu và chuyển tiếp sang luồng thay đổi liên tục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-004
+    title: Định danh sự kiện, thứ tự và phạm vi thứ tự theo khóa/phân vùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-005
+    title: At-most-once, at-least-once và phạm vi của tuyên bố exactly-once
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-006
+    title: Consumer idempotent và nhận diện sự kiện đã xử lý
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-007
+    title: Checkpoint, offset và thời điểm xác nhận xử lý thành công
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-008
+    title: Đồng bộ chỉ mục tìm kiếm, cache hoặc bảng đọc dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-009
+    title: Xử lý sự kiện đến muộn, đảo thứ tự và bản cập nhật trùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-010
+    title: Schema evolution trong sự kiện và khả năng đọc dữ liệu cũ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-011
+    title: Replay, rebuild dữ liệu dẫn xuất và kiểm soát tốc độ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-012
+    title: Luồng xóa dữ liệu, tombstone và thời gian lưu log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: events-and-cdc-013
+    title: Đối soát chênh lệch và khôi phục khi mất một đoạn luồng thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: performance-benchmarking
+  title: Hiệu năng và đo tải
+  childs:
+  - slug: performance-benchmarking-001
+    title: Xác định độ trễ, thông lượng và phạm vi thao tác được đo
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-002
+    title: Phân vị p50/p95/p99 và giới hạn của giá trị trung bình
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-003
+    title: Thiết kế dữ liệu đại diện về kích thước, phân bố và tỷ lệ đọc/ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-004
+    title: Giai đoạn làm nóng, bộ nhớ đệm nóng/lạnh và trạng thái tác vụ nền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-005
+    title: Tải đều, tải đột biến và giới hạn tốc độ gửi yêu cầu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-006
+    title: Phân biệt giới hạn ứng dụng, mạng, CPU, bộ nhớ và lưu trữ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-007
+    title: Đo số bản ghi, phân vùng và byte phải đọc cho mỗi truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-008
+    title: Chi phí chỉ mục, sao chép, mức nhất quán và giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-009
+    title: Phân trang, kích thước lô và số lần trao đổi mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-010
+    title: Compaction, garbage collection hoặc tác vụ nền theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-011
+    title: Đo tải khi mất nút, thêm nút hoặc đang sao lưu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-012
+    title: YCSB hoặc công cụ khác và giới hạn biểu diễn nghiệp vụ thực tế
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-013
+    title: Kiểm soát hiện tượng bỏ sót độ trễ khi bộ phát tải cũng bị chậm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: performance-benchmarking-014
+    title: So sánh trước/sau thay đổi với cấu hình và điều kiện được ghi lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: observability-and-diagnosis
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observability-and-diagnosis-001
+    title: Thiết lập mức hiệu năng cơ sở và ngưỡng cảnh báo có ý nghĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-002
+    title: Chỉ số theo dõi phía ứng dụng, driver, máy chủ và hệ điều hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-003
+    title: Định danh yêu cầu, log có cấu trúc và truy vết xuyên thành phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-004
+    title: Nhóm truy vấn theo dạng và xác định đường truy cập tốn chi phí
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-005
+    title: Theo dõi timeout, retry, lỗi có điều kiện và tỷ lệ ghi không rõ kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-006
+    title: Đo replication lag và phân biệt với độ mới của kết quả đọc
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-007
+    title: Theo dõi dung lượng, tốc độ tăng trưởng và tải đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-008
+    title: Nhận diện điểm nóng, phân vùng lớn và phân phối không đều
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-009
+    title: Đánh giá hàng đợi, tải đồng thời và dấu hiệu quá tải
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-010
+    title: Theo dõi tiến độ repair, rebalance, compaction hoặc tác vụ tương ứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-011
+    title: Chẩn đoán lỗi xác thực, quyền truy cập và chứng thư
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-012
+    title: Phân biệt thiếu tài nguyên với lỗi cấu hình hoặc mô hình dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-013
+    title: Thu thập thời điểm, cấu hình, truy vấn và dữ liệu để tái hiện lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-014
+    title: Cảnh báo có thể hành động và giảm thông báo trùng không hữu ích
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: observability-and-diagnosis-015
+    title: Kiểm soát dữ liệu nhạy cảm, chi phí và thời gian lưu log/trace
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Mô hình đe dọa cho ứng dụng, database và công cụ quản trị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-002
+    title: Tài khoản dịch vụ, vai trò và nguyên tắc quyền tối thiểu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-003
+    title: Tách quyền ứng dụng, quản trị, sao lưu và đối soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-004
+    title: Xác thực người dùng hoặc dịch vụ và quản lý vòng đời thông tin đăng nhập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-005
+    title: TLS giữa ứng dụng/nút và kiểm tra danh tính máy chủ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-006
+    title: Mã hóa dữ liệu lưu trữ, quản lý khóa và chuẩn bị khôi phục khóa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-007
+    title: Phân vùng mạng, điểm kết nối quản trị và giới hạn truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-008
+    title: NoSQL injection qua chuỗi truy vấn, đối tượng lọc hoặc toán tử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-009
+    title: Kiểm tra kiểu, trường và toán tử được phép từ đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-010
+    title: Serialization/deserialization an toàn và giới hạn dữ liệu đầu vào
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-011
+    title: Phân tách tenant và kiểm chứng quyền ở cấp bản ghi/truy vấn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-012
+    title: Quản lý bí mật, luân chuyển khóa và tránh ghi thông tin xác thực vào log
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-013
+    title: Audit, truy vết thay đổi và phát hiện thao tác bất thường
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-014
+    title: Bảo vệ snapshot, dump, log thay đổi và dữ liệu kiểm thử
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-security-015
+    title: Vá driver/server và đánh giá ảnh hưởng của tính năng mở rộng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cluster-operations
+  title: Vận hành cụm
+  childs:
+  - slug: cluster-operations-001
+    title: Lập cấu trúc cụm (topology) và phân bổ nút theo miền lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-002
+    title: Dung lượng, bộ nhớ, CPU, I/O và mạng cho tải mục tiêu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-003
+    title: Cấu hình môi trường, tham số và quản lý thay đổi có kiểm soát
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-004
+    title: Khởi động, dừng và xác định trạng thái phục vụ của nút
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-005
+    title: Thêm nút, rút nút, thay nút và kiểm tra dữ liệu sau thay đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-006
+    title: Quản lý các tác vụ đồng bộ, cân bằng và dọn dữ liệu nền
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-007
+    title: Đặt giới hạn truy vấn, tải đồng thời và tài nguyên mỗi tenant
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-008
+    title: Chính sách lưu log, dọn snapshot và phòng ngừa đầy đĩa
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-009
+    title: Đồng bộ thời gian và các giả định liên quan đến timestamp/lease
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-010
+    title: Bảo trì định kỳ và kiểm tra điều kiện trước thao tác
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-011
+    title: Nâng cấp lần lượt, tương thích phiên bản và kế hoạch quay lui
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-012
+    title: Dịch vụ quản lý sẵn và ranh giới trách nhiệm với nhà cung cấp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-013
+    title: Sổ tay xử lý sự cố, quyền thao tác và bằng chứng kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cluster-operations-014
+    title: Diễn tập sự cố toàn miền lỗi và đánh giá khả năng tiếp tục phục vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-recovery
+  title: Sao lưu và phục hồi
+  childs:
+  - slug: backup-and-recovery-001
+    title: Xác định dữ liệu cần bảo vệ và yêu cầu RPO/RTO
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-002
+    title: Phân biệt replication, snapshot và bản sao lưu độc lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-003
+    title: Sao lưu logic, sao lưu vật lý và điều kiện tính nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-004
+    title: Snapshot từng nút so với ảnh chụp nhất quán toàn tập dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-005
+    title: Sao lưu trong lúc ghi và phạm vi dữ liệu cần bổ sung
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-006
+    title: Log thay đổi, point-in-time recovery và điều kiện hỗ trợ theo từng hệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-007
+    title: Bao gồm schema, cấu hình, quyền và khóa mã hóa trong kế hoạch bảo vệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-008
+    title: Thời gian lưu, vị trí lưu và bảo vệ bản sao ngoài miền lỗi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-009
+    title: Khôi phục toàn cụm, một tập dữ liệu hoặc một nhóm bản ghi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-010
+    title: Khôi phục từ dữ liệu xóa nhầm và hạn chế ghi đè dữ liệu đúng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-011
+    title: Kiểm tra số lượng, tổng kiểm tra và bất biến nghiệp vụ sau restore
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-012
+    title: Khôi phục kho dẫn xuất bằng phát lại hoặc xây dựng lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-013
+    title: Đo thời gian phục hồi và diễn tập định kỳ trên môi trường cô lập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-migration-and-evolution
+  title: Di chuyển và thay đổi
+  childs:
+  - slug: data-migration-and-evolution-001
+    title: Kiểm kê dữ liệu, truy vấn, schema và hợp đồng ứng dụng trước di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-002
+    title: Chuyển mô hình quan hệ sang khóa–giá trị, tài liệu, cột rộng hoặc đồ thị
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-003
+    title: Chuyển đổi kiểu dữ liệu, khóa và quan hệ có thể kiểm chứng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-004
+    title: Xuất/nhập theo lô và theo dõi tiến độ có thể tiếp tục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-005
+    title: Di chuyển khi hệ nguồn còn ghi và đồng bộ dữ liệu tăng thêm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-006
+    title: Thay đổi shard key, cách chia bucket hoặc cấu trúc tài liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-007
+    title: Expand/contract và tương thích với nhiều phiên bản ứng dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-008
+    title: Backfill dữ liệu và giới hạn tác động đến tải đang phục vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-009
+    title: Đối soát nguồn/đích bằng số dòng, giá trị và quy tắc nghiệp vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-010
+    title: Chạy đối chiếu truy vấn giữa hai mô hình mà không gây tác dụng phụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-011
+    title: Chuyển quyền ghi, định tuyến đọc và tiêu chí chấp nhận cắt chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-012
+    title: Kế hoạch quay lui và dữ liệu phát sinh sau thời điểm chuyển đổi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-migration-and-evolution-013
+    title: Xóa dữ liệu cũ, giữ bản sao cần thiết và cập nhật tài liệu vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: correctness-testing
+  title: Kiểm thử tính đúng
+  childs:
+  - slug: correctness-testing-001
+    title: Chuyển yêu cầu nghiệp vụ thành bất biến có thể tự động kiểm tra
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-002
+    title: Thiết kế bộ dữ liệu tối thiểu, dữ liệu biên và dữ liệu không hợp lệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-003
+    title: Kiểm thử CRUD và phân biệt tạo mới, ghi đè, upsert hoặc cập nhật từng phần
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-004
+    title: Kiểm thử thiếu trường, NULL, số chính xác và ngày giờ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-005
+    title: Kiểm thử schema validation và các phiên bản dữ liệu cùng tồn tại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-006
+    title: Kiểm thử điều kiện cập nhật, tạo trùng và giao dịch cạnh tranh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-007
+    title: Kiểm thử tính nguyên tử theo đúng khóa/tài liệu/phân vùng/giao dịch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-008
+    title: Ghi lại lịch sử đọc/ghi và đối chiếu mô hình nhất quán đã công bố
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-009
+    title: Kiểm thử đọc sau ghi, đọc dữ liệu cũ và thay đổi phiên kết nối
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-010
+    title: Kiểm thử idempotency khi cùng yêu cầu được gửi lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-011
+    title: Property-based testing hoặc mô hình trạng thái cho thao tác dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-012
+    title: Kiểm thử tích hợp trên engine thật và ghi rõ giới hạn của mock/emulator
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: correctness-testing-013
+    title: Tách kết quả đúng về dữ liệu khỏi kết quả nhanh về hiệu năng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: fault-and-load-testing
+  title: Kiểm thử lỗi và tải
+  childs:
+  - slug: fault-and-load-testing-001
+    title: Lập danh mục lỗi và phạm vi môi trường được phép thử nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-002
+    title: Mô phỏng lỗi trước gửi, sau áp dụng ghi và trước nhận phản hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-003
+    title: Ngắt kết nối, mất gói, độ trễ cao và phân hoạch mạng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-004
+    title: Dừng nút, khởi động lại và theo dõi phục hồi dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-005
+    title: Thử failover khi có giao dịch hoặc yêu cầu đang chạy
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-006
+    title: Gửi yêu cầu trùng, đảo thứ tự và sự kiện đến muộn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-007
+    title: Kiểm tra retry budget, circuit breaker và giới hạn đồng thời
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-008
+    title: Thử mất một miền lỗi và quan sát phạm vi dữ liệu còn phục vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-009
+    title: Đo tải khi rebalance, tạo chỉ mục hoặc thay đổi topology
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-010
+    title: Kiểm thử dữ liệu lệch, điểm nóng và phân vùng tăng trưởng lớn
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-011
+    title: Đánh giá hội tụ, mất cập nhật và bất biến sau khi lỗi được khắc phục
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-012
+    title: Kiểm chứng backup/restore và thời gian thực tế để phục hồi dịch vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: fault-and-load-testing-013
+    title: Lưu cấu hình, hạt giống ngẫu nhiên và lịch sử để tái hiện kết quả
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: evaluation-and-selection
+  title: Đánh giá và lựa chọn
+  childs:
+  - slug: evaluation-and-selection-001
+    title: Xây dựng bảng tiêu chí từ truy vấn, dữ liệu và mức phục vụ mục tiêu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-002
+    title: Phân biệt yêu cầu bắt buộc với tính năng thuận tiện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-003
+    title: Đối chiếu mô hình, chỉ mục, giao dịch và phạm vi nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-004
+    title: Kiểm tra topology, khả năng chịu lỗi và cơ chế phục hồi
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-005
+    title: Đánh giá giới hạn kích thước bản ghi, phân vùng và tác vụ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-006
+    title: So sánh driver, công cụ quan sát và khả năng tích hợp hệ hiện có
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-007
+    title: Đối chiếu edition, giấy phép, dịch vụ và chi phí theo phạm vi sử dụng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-008
+    title: Tổng chi phí lưu trữ, nhân bản, chỉ mục, lưu lượng và nhân lực vận hành
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-009
+    title: Thiết kế thử nghiệm khả thi với dữ liệu/tải đại diện
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-010
+    title: Ghi rõ phiên bản, cấu hình và các giả định khi báo cáo so sánh
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-011
+    title: Đánh giá rủi ro phụ thuộc nhà cung cấp và phương án di chuyển
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-012
+    title: Chọn kết hợp nhiều hệ khi lợi ích vượt chi phí phối hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: evaluation-and-selection-013
+    title: Viết quyết định kiến trúc cùng bằng chứng, giới hạn và điều kiện xem xét lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Mô tả một nghiệp vụ và lập danh sách truy vấn cùng các bất biến
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-002
+    title: Biểu diễn cùng nghiệp vụ trong hai mô hình dữ liệu khác nhau
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-003
+    title: Thiết kế khóa và phân vùng cho dữ liệu có phân bố lệch
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-004
+    title: So sánh nhúng/tham chiếu hoặc lưu quan hệ theo cách truy cập
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-005
+    title: Xây dựng luồng CRUD từ Java với kiểm tra đầu vào và tài nguyên
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-006
+    title: Bảo vệ cập nhật cạnh tranh bằng điều kiện hoặc giao dịch phù hợp
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-007
+    title: Kiểm chứng tính lũy đẳng khi yêu cầu ghi bị gửi lại
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-008
+    title: Thiết lập kịch bản đọc dữ liệu cũ và đối chiếu bảo đảm nhất quán
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-009
+    title: Đo tải trước/sau thay đổi chỉ mục hoặc cách tổ chức dữ liệu
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-010
+    title: Đồng bộ một kho dữ liệu dẫn xuất và xử lý sự kiện trùng
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-011
+    title: Diễn tập backup/restore hoặc xây dựng lại dữ liệu dẫn xuất
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-012
+    title: Kiểm tra quyền truy cập, dữ liệu tenant và kết nối bảo vệ
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: integrated-practice-013
+    title: Hoàn thiện quyết định lựa chọn, sơ đồ và sổ tay vận hành bằng kết quả thực nghiệm
+    status: WRITTEN
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

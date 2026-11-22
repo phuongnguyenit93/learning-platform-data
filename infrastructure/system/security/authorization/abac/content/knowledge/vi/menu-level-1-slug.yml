@@ -1,0 +1,100 @@
+menu:
+- title: Nền tảng
+  slug: abac-fundamentals
+  index: 0
+- title: Mô hình quyết định
+  slug: decision-model
+  index: 1
+- title: Thiết kế thuộc tính
+  slug: attribute-design
+  index: 2
+- title: Thuộc tính chủ thể
+  slug: subject-attributes
+  index: 3
+- title: Thuộc tính tài nguyên
+  slug: resource-attributes
+  index: 4
+- title: Hành động và ngữ cảnh
+  slug: actions-context
+  index: 5
+- title: Nguồn thuộc tính
+  slug: attribute-sources
+  index: 6
+- title: Vòng đời thuộc tính
+  slug: attribute-lifecycle
+  index: 7
+- title: Biểu thức chính sách
+  slug: policy-expressions
+  index: 8
+- title: Ngữ nghĩa đánh giá
+  slug: evaluation-semantics
+  index: 9
+- title: Kết hợp chính sách
+  slug: policy-combining
+  index: 10
+- title: Kiến trúc ABAC
+  slug: abac-architecture
+  index: 11
+- title: Triển khai và thực thi
+  slug: deployment-enforcement
+  index: 12
+- title: Bảo vệ dữ liệu
+  slug: data-protection
+  index: 13
+- title: Cách ly tenant
+  slug: tenant-isolation
+  index: 14
+- title: Mô hình kết hợp
+  slug: hybrid-access-models
+  index: 15
+- title: Ủy quyền và đồng thuận
+  slug: delegation-consent
+  index: 16
+- title: XACML
+  slug: xacml
+  index: 17
+- title: Ngôn ngữ chính sách
+  slug: policy-languages
+  index: 18
+- title: Thiết kế chính sách
+  slug: policy-design
+  index: 19
+- title: Phân phối chính sách
+  slug: policy-distribution
+  index: 20
+- title: Nhất quán và cache
+  slug: consistency-caching
+  index: 21
+- title: Hiệu năng
+  slug: performance
+  index: 22
+- title: Lỗi và khả dụng
+  slug: failures-availability
+  index: 23
+- title: Bảo mật hệ thống ABAC
+  slug: abac-system-security
+  index: 24
+- title: Riêng tư và quản trị
+  slug: privacy-governance
+  index: 25
+- title: Chiến lược kiểm thử
+  slug: testing-strategy
+  index: 26
+- title: Phân tích chính sách
+  slug: policy-analysis
+  index: 27
+- title: Nhật ký và giải thích
+  slug: logging-explainability
+  index: 28
+- title: Vận hành và sự cố
+  slug: operations-incidents
+  index: 29
+- title: Di trú sang ABAC
+  slug: migration-to-abac
+  index: 30
+- title: Tình huống thiết kế
+  slug: design-scenarios
+  index: 31
+- title: Thực hành
+  slug: hands-on-practice
+  index: 32

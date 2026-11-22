@@ -1,0 +1,482 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Logstash là gì và giải quyết vấn đề nào trong đường ống telemetry
+  - Vai trò thu nhận, phân tích, chuẩn hóa, làm giàu và chuyển tiếp
+  - Mô hình input, filter, output và codec
+  - Đường đi của một sự kiện từ nguồn đến nơi lưu trữ
+  - Phân biệt Logstash với agent thu thập, broker và hệ thống lưu trữ
+  - Quan hệ với Beats, Elastic Agent, Elasticsearch và các đích khác
+  - Điểm phù hợp của Logstash trong hệ thống quan sát ứng dụng Java
+  - Giới hạn đối với metrics, traces và dữ liệu không phải log
+  - Các yêu cầu về thông lượng, độ trễ và độ tin cậy
+  - Trình tự học từ pipeline tối thiểu đến vận hành có kiểm chứng
+- level1: Kiến trúc thực thi
+  level2:
+  - Vai trò của JVM và hệ thống plugin trong Logstash
+  - Input tạo sự kiện và đưa vào hàng đợi pipeline
+  - Worker xử lý filter và output
+  - Bộ đệm trong bộ nhớ và hàng đợi lưu bền
+  - Xử lý theo lô và số sự kiện đang nằm trong tiến trình
+  - Thứ tự filter trong cấu hình và thứ tự giữa các sự kiện
+  - Một sự kiện đi đến nhiều output
+  - Backpressure truyền từ đích về nguồn
+  - Pipeline, tiến trình và nhiều bản sao Logstash
+  - Phân biệt dữ liệu đang xử lý, đã xác nhận và đã lưu bền ở đích
+- level1: Cài đặt
+  level2:
+  - Kiểm tra phiên bản Logstash và ma trận nền tảng được hỗ trợ
+  - JDK đi kèm và điều kiện sử dụng JDK bên ngoài
+  - Cài bằng gói hệ điều hành, bản nén hoặc container
+  - Cấu trúc thư mục bin, config, data, logs và plugins
+  - Quyền sở hữu thư mục và tài khoản chạy dịch vụ
+  - Chạy pipeline stdin đến stdout đầu tiên
+  - Kiểm tra phiên bản, plugin và thông tin môi trường
+  - Tách cấu hình thực hành với dữ liệu vận hành
+  - Đường dẫn và khác biệt môi trường Linux, Windows, container
+  - Dừng tiến trình có kiểm soát và nhận biết khi đang chờ xử lý
+  - Ghi nhận phiên bản Logstash, plugin và JDK để tái lập
+- level1: Tệp cấu hình
+  level2:
+  - Phân biệt logstash.yml, pipelines.yml và tệp pipeline
+  - Vai trò của jvm.options và log4j2.properties
+  - path.settings, path.config, path.data và path.logs
+  - Cấu hình bằng dòng lệnh và quan hệ với tệp thiết lập
+  - Khác biệt giữa chạy bằng -e, -f và đọc pipelines.yml
+  - Nhiều tệp pipeline được ghép và thứ tự nạp cấu hình
+  - Biến môi trường, giá trị mặc định và thời điểm nội suy
+  - Cấu hình riêng theo môi trường mà không nhân bản logic
+  - Gán pipeline.id và plugin id để nhận diện khi giám sát
+  - Tự động nạp lại cấu hình và những giới hạn cần kiểm tra
+  - Lỗi cú pháp, thiếu plugin và lỗi khởi tạo kết nối
+  - Kiểm tra cấu hình với --config.test_and_exit
+- level1: Cú pháp pipeline
+  level2:
+  - Các khối input, filter và output
+  - Cấu hình plugin bằng cặp tên và giá trị
+  - Chuỗi, số, boolean, mảng và hash
+  - Comment, ký tự escape và chuỗi biểu thức chính quy
+  - Tham chiếu trường cấp cao và trường lồng nhau
+  - Nội suy giá trị sự kiện bằng cú pháp sprintf
+  - Điều kiện if, else if và else
+  - So sánh, kiểm tra thành viên và phép toán logic
+  - Kiểm tra trường thiếu, giá trị null và boolean false
+  - Vì sao biểu thức phụ thuộc sự kiện không dùng như vậy trong input
+  - Tách nhiều bước biến đổi theo thứ tự rõ ràng
+  - Dùng id, tags và các tùy chọn chung đúng phạm vi plugin
+- level1: Event và metadata
+  level2:
+  - Event là đơn vị dữ liệu Logstash xử lý
+  - Vai trò của message, @timestamp, @version và tags
+  - Trường vô hướng, đối tượng lồng nhau và mảng
+  - Phân biệt tên trường có dấu chấm với đường dẫn đối tượng
+  - Trường có kiểu không nhất quán giữa các sự kiện
+  - '@metadata cho dữ liệu điều khiển không xuất ra mặc định'
+  - Bảo toàn nội dung gốc để đối chiếu khi phân tích lỗi
+  - Sự khác nhau giữa add_field, thay thế và ghi đè
+  - Tạo, sao chép, tách và hủy sự kiện
+  - Quan sát đầy đủ metadata khi gỡ lỗi bằng codec phù hợp
+- level1: Codec và ranh giới bản ghi
+  level2:
+  - Vai trò codec tại đầu vào và đầu ra
+  - Phân biệt codec với filter phân tích trường
+  - plain, line, json và json_lines theo dạng nguồn
+  - Encoding, charset và ký tự không hợp lệ
+  - Ranh giới dòng không luôn trùng ranh giới thông điệp
+  - JSON một dòng, JSON nhiều dòng và JSON chứa mảng
+  - Multiline codec và quy tắc ghép các dòng liên quan
+  - pattern, negate và what trong ghép multiline
+  - Giới hạn số dòng, kích thước và thời điểm đẩy bản ghi chưa hoàn tất
+  - Ghép multiline tại nguồn khi đầu vào có nhiều luồng trộn
+  - Không dùng multiline codec với Beats input để ghép stack trace
+- level1: Đọc tệp
+  level2:
+  - File input và vòng đời theo dõi tệp
+  - Phân biệt Tail mode với Read mode
+  - Chọn path, loại trừ tệp và quyền truy cập
+  - sincedb và cách lưu vị trí đã đọc
+  - Mỗi input cần vị trí sincedb riêng phù hợp
+  - start_position chỉ tác động khi chưa có vị trí được ghi nhận
+  - Dừng rồi chạy lại và điều kiện tiếp tục từ vị trí cũ
+  - Xoay tệp bằng đổi tên hoặc sao chép rồi thu ngắn
+  - Thay đổi inode, tái sử dụng định danh và hết hạn sincedb
+  - Tệp cũ, tệp mới và chính sách bỏ qua theo thời gian
+  - Giới hạn descriptor và số tệp hoạt động
+  - Đọc tệp hoàn tất, tệp nén và xử lý sau khi đọc
+  - Lưu sincedb bền vững khi chạy container
+- level1: Đầu vào mạng
+  level2:
+  - Beats input và giao thức nhận từ shipper tương thích
+  - Phân biệt cổng tiếp nhận Beats với HTTP và TCP
+  - HTTP input, request body và điều kiện phản hồi xác nhận
+  - TCP input và xác định ranh giới thông điệp
+  - UDP input và nguy cơ mất dữ liệu khi không có xác nhận
+  - Syslog input và định dạng mà plugin hỗ trợ
+  - Codec phù hợp với từng loại nguồn
+  - Kích thước sự kiện, kết nối và giới hạn bộ đệm
+  - TLS, xác minh phía gửi và metadata nguồn kết nối
+  - Nhiều nguồn gửi đồng thời và bảo toàn danh tính nguồn
+  - Nguồn gửi chậm lại khi pipeline gây backpressure
+  - Kiểm thử kết nối, dữ liệu sai định dạng và gửi lại
+- level1: Broker và Kafka
+  level2:
+  - Vị trí của broker giữa nguồn phát sinh với Logstash
+  - Kafka input, topic, partition và consumer group
+  - Số consumer, số partition và mức song song thực tế
+  - Offset, auto commit và thời điểm cam kết theo cấu hình plugin
+  - Cam kết offset không đồng nghĩa Elasticsearch đã lưu thành công
+  - Rebalance và tình huống thông điệp được đọc lại
+  - Bảo toàn topic, partition, offset khi cần đối chiếu
+  - Key, headers và cách đưa metadata vào sự kiện
+  - Timeout, polling và tác động của pipeline bị nghẽn
+  - Kafka output và điều kiện xác nhận từ broker
+  - 'RabbitMQ hoặc broker khác: đối chiếu cơ chế ack và hàng đợi'
+  - TLS, SASL và quyền truy cập theo plugin
+- level1: Nguồn dữ liệu bổ sung
+  level2:
+  - Generator input và dữ liệu tổng hợp cho kiểm thử
+  - HTTP polling cho nguồn dữ liệu chỉ có API
+  - JDBC input, lịch chạy và truy vấn tăng dần
+  - sql_last_value, tracking column và tệp trạng thái JDBC
+  - Phân trang truy vấn và dữ liệu đến muộn
+  - Đọc dữ liệu đối tượng từ S3 theo plugin hỗ trợ
+  - Trạng thái đọc nguồn, quyền truy cập và tình huống đọc lại
+  - Phân biệt thu nhận dữ liệu định kỳ với CDC có ngữ nghĩa giao dịch
+  - Đối chiếu chức năng, phiên bản và mức hỗ trợ của từng input
+- level1: Grok
+  level2:
+  - Mục đích trích cấu trúc từ văn bản bằng grok
+  - Pattern có sẵn và cú pháp đặt tên trường
+  - Chuyển kiểu số khi khai báo trường phù hợp
+  - Tạo pattern riêng và quản lý thư mục patterns
+  - Ghép nhiều phần định dạng log theo thứ tự
+  - Ký tự phân cách, khoảng trắng và trường tùy chọn
+  - Anchor đầu cuối và tránh khớp quá rộng
+  - Nhiều pattern ứng viên và chính sách dừng khi đã khớp
+  - Trường đích, trường trùng và ghi đè có chủ đích
+  - Tag khi không phân tích được và khi vượt thời gian cho phép
+  - Giới hạn thời gian khớp và chi phí regex
+  - Đối chiếu pattern hỗ trợ ECS với schema mong muốn
+  - Kiểm thử cả dữ liệu hợp lệ, lệch định dạng và chuỗi dài bất thường
+- level1: Dissect và dữ liệu có cấu trúc
+  level2:
+  - Dissect cho định dạng có dấu phân cách ổn định
+  - Mapping, trường bỏ qua và trường ghép trong dissect
+  - Giới hạn khi số dấu phân cách hoặc trường thay đổi
+  - Kết hợp dissect để tách khung và grok để phân tích phần biến đổi
+  - JSON filter trên một trường chứa chuỗi JSON
+  - Chọn target để tránh ghi đè trường cấp cao
+  - JSON sai cú pháp và chính sách giữ dữ liệu gốc
+  - KV filter cho chuỗi cặp khóa giá trị
+  - CSV filter và ảnh hưởng của header, dấu phân cách, kiểu dữ liệu
+  - XML filter, cấu trúc lồng nhau và trường cần trích
+  - URL decoding và phân biệt dữ liệu mã hóa với dữ liệu đã giải mã
+  - Chọn parser theo hợp đồng nguồn thay vì thử mọi parser trên mọi sự kiện
+- level1: Biến đổi trường
+  level2:
+  - Mutate filter và các nhóm thao tác biến đổi
+  - Đổi tên, sao chép, thay thế và cập nhật trường
+  - convert và kiểm tra kết quả chuyển kiểu
+  - Phân biệt kiểu của event với mapping tại đích
+  - Chuẩn hóa hoa thường, khoảng trắng và chuỗi ký tự
+  - split, join, merge và xử lý mảng
+  - gsub để thay thế theo biểu thức chính quy
+  - Thứ tự các thao tác mutate và khi cần tách thành nhiều khối
+  - Giá trị thiếu, chuỗi rỗng và giá trị mặc định
+  - Giữ dữ liệu gốc trong khi chuẩn hóa trường đích
+  - Ruby filter và Event API khi plugin có sẵn chưa đáp ứng
+  - An toàn luồng và tránh trạng thái dùng chung không được bảo vệ trong Ruby filter
+- level1: Thời gian sự kiện
+  level2:
+  - Phân biệt thời gian sự kiện với thời gian Logstash tiếp nhận
+  - Date filter và ghi kết quả vào @timestamp hoặc trường đích
+  - Đọc ISO8601 và thời gian epoch theo đúng đơn vị
+  - Múi giờ trong dữ liệu và timezone cấu hình bổ sung
+  - Locale khi tên tháng hoặc ngày phụ thuộc ngôn ngữ
+  - Timestamp thiếu năm và dữ liệu quanh thời điểm chuyển năm
+  - Thay đổi giờ mùa hè và thời điểm cục bộ không rõ nghĩa
+  - Dữ liệu đến muộn, sai thứ tự và đồng hồ nguồn bị lệch
+  - Tag lỗi date và cách giữ lại sự kiện không phân tích được
+  - Phân biệt cú pháp định dạng thời gian giữa các cơ chế Logstash hỗ trợ
+  - Kiểm tra timestamp quyết định tuyến index hoặc data stream đúng mong muốn
+- level1: ECS và hợp đồng dữ liệu
+  level2:
+  - Elastic Common Schema và mục tiêu chuẩn hóa trường
+  - Phân biệt bật ecs_compatibility với tự động chuyển toàn bộ event sang ECS
+  - Chọn chế độ ECS ở pipeline và từng plugin
+  - Các nhóm trường log, host, service, event, error và trace
+  - Chuẩn hóa log.level, service.name và thông tin môi trường
+  - Bảo toàn event.original khi phù hợp hợp đồng dữ liệu
+  - Xung đột trường chuỗi với trường đối tượng
+  - Đơn vị dữ liệu, địa chỉ IP và kiểu trường thời gian
+  - Trường tùy chỉnh và namespace của ứng dụng
+  - Schema thay đổi và khả năng tương thích của bên nhận
+  - Kiểm chứng event đầu ra với mapping hoặc hợp đồng đích
+- level1: Làm giàu dữ liệu
+  level2:
+  - Mục tiêu và chi phí của việc bổ sung thông tin cho event
+  - Translate filter và bảng ánh xạ giá trị hữu hạn
+  - Nạp lại bảng ánh xạ và xử lý giá trị không có kết quả
+  - GeoIP và quản lý nguồn cơ sở dữ liệu địa lý
+  - Useragent filter và thông tin trình duyệt, hệ điều hành
+  - Tra cứu Elasticsearch để bổ sung dữ liệu liên quan
+  - Tra cứu JDBC hoặc HTTP khi plugin hỗ trợ
+  - Cache, timeout và phụ thuộc vào dịch vụ bên ngoài
+  - Phân biệt lỗi tra cứu với dữ liệu không có bản ghi khớp
+  - Đặt dữ liệu làm giàu vào target rõ ràng
+  - Giới hạn lượng dữ liệu và bảo vệ thông tin nhạy cảm sau làm giàu
+- level1: Xử lý có trạng thái
+  level2:
+  - Phân biệt biến đổi từng event với tổng hợp nhiều event
+  - Aggregate filter và khóa liên kết task
+  - Sự kiện bắt đầu, cập nhật và kết thúc một công việc
+  - Timeout khi không có sự kiện kết thúc
+  - Phát sự kiện tổng hợp và quản lý bản ghi gốc
+  - Thứ tự sự kiện và yêu cầu một filter worker khi dùng aggregate
+  - Giới hạn số nhóm đang hoạt động và vòng đời map
+  - Dữ liệu đến muộn, lặp hoặc không theo thứ tự
+  - Lưu trạng thái khi dừng và giới hạn khả năng khôi phục
+  - Vì sao nhiều bản sao Logstash không tự chia sẻ trạng thái tổng hợp
+- level1: Điều kiện và định tuyến
+  level2:
+  - Phân luồng theo nguồn, loại sự kiện và kết quả phân tích
+  - Tags đánh dấu từng giai đoạn xử lý
+  - Nhánh bình thường và nhánh cách ly dữ liệu lỗi
+  - Drop filter và chính sách loại bỏ có thể kiểm chứng
+  - Clone, split và tác động đến số lượng event
+  - Giữ tên đích trong @metadata trước khi đến output
+  - Định tuyến động và xử lý trường tuyến bị thiếu
+  - So sánh sai kiểu trong điều kiện và hậu quả xử lý
+  - Không để event không khớp nhánh nào biến mất ngoài ý muốn
+  - Theo dõi số sự kiện được giữ, loại bỏ, nhân bản và cách ly
+- level1: Logs ứng dụng Java
+  level2:
+  - Định dạng văn bản so với JSON có cấu trúc từ ứng dụng
+  - Trường timestamp, mức log, logger, thread và thông điệp
+  - Stack trace nhiều dòng và ranh giới một sự kiện
+  - Chọn ghép multiline tại shipper hoặc đầu vào phù hợp
+  - Exception lồng nhau, caused by và suppressed exception
+  - Bảo toàn trace ID, span ID và correlation ID đã được nguồn ghi
+  - Ánh xạ trường lỗi sang schema đầu ra
+  - Phân biệt định danh trong log với việc tạo distributed trace
+  - Encoding và dữ liệu tiếng Việt trong thông điệp lỗi
+  - Kiểm chứng log Spring Boot qua đường ống đầu cuối
+- level1: Output phổ biến
+  level2:
+  - Stdout và rubydebug để quan sát sự kiện trong thực hành
+  - File output cho dữ liệu đã biến đổi
+  - Codec đầu ra và định dạng mà bên nhận yêu cầu
+  - HTTP output và cách bên nhận xác nhận thành công
+  - Kafka output và điều kiện bảo toàn khóa, thứ tự
+  - Nhiều output trong cùng pipeline và tác động khi một đích bị chặn
+  - Batch, kết nối và timeout theo từng output
+  - TLS, thông tin xác thực và quyền ghi tại đích
+  - Sự khác nhau giữa gửi thành công với dữ liệu đã có thể truy vấn
+  - Đối chiếu chính sách retry của từng plugin output
+  - Kết nối Logstash-to-Logstash và phân biệt với pipeline nội bộ
+- level1: Ghi Elasticsearch
+  level2:
+  - Elasticsearch output và cách gửi theo Bulk API
+  - Hosts, pool kết nối và khả năng phát hiện lỗi kết nối
+  - Xác thực bằng API key hoặc cơ chế được môi trường hỗ trợ
+  - Ghi index, create, update và upsert theo nhu cầu
+  - document_id và lựa chọn định danh ổn định
+  - Phân biệt lỗi cả request với lỗi từng tài liệu trong bulk
+  - HTTP thành công nhưng một phần tài liệu ghi thất bại
+  - Nhóm lỗi cần thử lại, bị loại bỏ hoặc được chuyển DLQ
+  - Mapping không phù hợp và dữ liệu không thể ép kiểu
+  - Kích thước bulk, kích thước sự kiện và giới hạn phía nhận
+  - Routing, ingest pipeline tại đích và phân chia trách nhiệm xử lý
+  - Khác biệt khi dùng Elasticsearch tự quản lý, Hosted và Serverless
+- level1: Index và data stream
+  level2:
+  - Chọn index thông thường hoặc data stream theo loại dữ liệu
+  - Định danh data stream bằng type, dataset và namespace
+  - Vai trò của trường data_stream và tùy chọn định tuyến
+  - Điều kiện ECS compatibility đối với data stream
+  - Index template và mapping của dữ liệu đầu ra
+  - Bật quản lý template không đồng nghĩa chuẩn hóa mọi trường
+  - Định tuyến index theo ngày và ảnh hưởng của @timestamp
+  - ILM, rollover alias và giới hạn nội suy tên đích
+  - DLM trên môi trường hỗ trợ và khác biệt với ILM
+  - Đặt tên đích hợp lệ khi giá trị tuyến đến từ event
+  - Tránh sinh quá nhiều index hoặc data stream từ nhãn không giới hạn
+  - Phối hợp hợp đồng tuyến và chính sách lưu giữ tại nơi lưu trữ
+- level1: Bảo đảm giao nhận
+  level2:
+  - Định nghĩa mất dữ liệu, dữ liệu lặp và xử lý lại
+  - Phân biệt at-most-once, at-least-once và exactly-once
+  - Ranh giới xác nhận tại nguồn, hàng đợi và đích
+  - Vì sao retry có thể tạo bản ghi lặp
+  - Định danh sự kiện ổn định và xử lý ghi có tính lặp an toàn
+  - Fingerprint filter và lựa chọn trường đầu vào cho định danh
+  - Hash trùng và khác biệt giữa trùng nội dung với trùng sự kiện
+  - Điểm mù của UDP hoặc giao thức không có xác nhận
+  - Không suy ra exactly-once chỉ vì đã bật persistent queue
+  - Kiểm chứng giao nhận bằng tập sự kiện có ID và số lượng đã biết
+- level1: Persistent Queue
+  level2:
+  - Persistent Queue lưu sự kiện đang chờ xử lý như thế nào
+  - Bật queue.type persisted và chọn path.queue
+  - Queue được cấu hình theo từng pipeline
+  - Page, checkpoint và thời điểm dữ liệu được bảo vệ
+  - Xác nhận sau khi các output của sự kiện đã hoàn tất
+  - queue.max_bytes và tổng ngân sách đĩa cho nhiều pipeline
+  - Ước lượng dung lượng theo tốc độ vào và thời gian đích ngừng hoạt động
+  - Chi phí biểu diễn event so với kích thước dữ liệu nguồn
+  - Backpressure khi hàng đợi đạt giới hạn
+  - Đánh đổi giữa tần suất checkpoint, độ bền và hiệu năng
+  - queue.compression khi phiên bản hỗ trợ và giới hạn quay lui
+  - Drain khi dừng và thời gian chờ xử lý dữ liệu tồn
+  - Giới hạn khi đĩa hỏng, máy mất hoặc dữ liệu chưa kịp checkpoint
+  - pqcheck, pqrepair và quy trình phục hồi dựa trên bằng chứng
+- level1: Dead Letter Queue
+  level2:
+  - Phân biệt DLQ với persistent queue và nhánh cách ly tự thiết kế
+  - Những loại lỗi và plugin thực sự hỗ trợ DLQ
+  - Lỗi tài liệu Elasticsearch và lỗi đánh giá điều kiện
+  - Lỗi parse được gắn tag không tự động đi vào DLQ
+  - Metadata nguyên nhân lỗi, plugin và thời điểm vào hàng đợi
+  - Bật DLQ và tách đường dẫn theo pipeline
+  - Giới hạn dung lượng, thời gian lưu và chính sách khi đầy
+  - Đọc lại qua dead_letter_queue input
+  - Sửa schema hoặc dữ liệu trước khi đưa lại đến đích
+  - Tránh vòng lặp lỗi khi xử lý lại cùng dữ liệu
+  - Offset đọc, dọn segment và điều kiện giải phóng dung lượng
+  - Theo dõi backlog DLQ và trách nhiệm xử lý dữ liệu bị cách ly
+- level1: Nhiều pipeline
+  level2:
+  - Khai báo các pipeline độc lập trong pipelines.yml
+  - Thiết lập worker, batch và queue theo từng pipeline
+  - Chia pipeline theo nguồn, mức ưu tiên hoặc yêu cầu độ bền
+  - Pipeline input, pipeline output và địa chỉ ảo nội bộ
+  - Phân biệt kết nối trong một tiến trình với kết nối giữa các máy
+  - Mẫu phân phối, thu gom, phân nhánh và cách ly output
+  - Sao chép event khi truyền sang pipeline khác
+  - Backpressure từ downstream và ý nghĩa ensure_delivery
+  - Không đồng nhất downstream tạm vắng với downstream đang bị nghẽn
+  - Persistent Queue giúp hấp thụ sự cố output trong giới hạn dung lượng
+  - Tránh vòng kết nối pipeline làm treo quá trình dừng
+  - Cạnh tranh CPU, heap và đĩa dù các pipeline có queue riêng
+- level1: Tối ưu pipeline
+  level2:
+  - Đo baseline trước khi thay đổi cấu hình
+  - Phân biệt pipeline bị giới hạn CPU với pipeline chờ I/O
+  - pipeline.workers và điều kiện tăng mức song song
+  - pipeline.batch.size và đánh đổi giữa bulk với bộ nhớ
+  - pipeline.batch.delay và độ trễ sự kiện
+  - Số sự kiện đang xử lý và tác động của event lớn
+  - pipeline.ordered và yêu cầu thứ tự theo cấu hình
+  - Giảm regex tốn kém bằng phân nhánh và parser phù hợp
+  - Tránh tra cứu ngoài lặp lại bằng cache có kiểm soát
+  - Đo riêng chi phí từng filter và output
+  - Thay đổi từng yếu tố rồi kiểm chứng thông lượng, độ trễ và lỗi
+- level1: JVM và tài nguyên
+  level2:
+  - Heap, direct memory và bộ nhớ ngoài heap của Logstash
+  - Bộ đệm mạng, kích thước batch và nhu cầu bộ nhớ
+  - Persistent Queue, ánh xạ tệp và áp lực bộ nhớ hệ thống
+  - Chọn dung lượng heap theo tải và giới hạn môi trường
+  - GC, cấp phát đối tượng và ảnh hưởng của sự kiện lớn
+  - CPU, descriptor, thread và các giới hạn hệ điều hành
+  - Dung lượng, độ trễ đĩa và tốc độ ghi của queue
+  - Giới hạn container và phần bộ nhớ cần dự phòng ngoài heap
+  - Heap dump, thread dump và công cụ phân tích khi cần bằng chứng
+- level1: Bảo mật
+  level2:
+  - Phân vùng mạng cho cổng input, output và API quản trị
+  - Mã hóa TLS theo giao thức và plugin
+  - Kiểm tra chứng chỉ phía máy chủ và xác thực hai chiều khi cần
+  - CA, hostname và vòng đời chứng chỉ
+  - Logstash keystore và tham chiếu bí mật trong cấu hình
+  - Quyền đọc cấu hình, chứng chỉ và dữ liệu queue
+  - API key và quyền ghi tối thiểu tại đích
+  - Không lộ bí mật qua cấu hình debug hoặc log nội bộ
+  - Loại bỏ, che hoặc thay thế dữ liệu nhạy cảm theo hợp đồng
+  - Baggage, token và trường ứng dụng không nên chuyển nguyên trạng
+  - Bảo vệ dữ liệu gốc, persistent queue và DLQ chứa nội dung sự kiện
+  - Xác minh nguồn, phiên bản và mức tin cậy của plugin cài thêm
+- level1: Giám sát
+  level2:
+  - Monitoring API và phạm vi số liệu node, pipeline, plugin
+  - Node Info, Node Stats và Hot Threads
+  - Lưu lượng event vào, ra và thời gian xử lý
+  - 'Flow metrics: worker_utilization và worker_millis_per_event'
+  - queue_backpressure và dấu hiệu nghẽn từ output
+  - Queue growth, dung lượng tồn và tốc độ tiêu thụ backlog
+  - Giám sát persistent queue, DLQ và đĩa còn trống
+  - CPU, heap, GC, luồng và kết nối của tiến trình
+  - Plugin id ổn định để đối chiếu thay đổi theo thời gian
+  - Log nội bộ, slowlog và giới hạn dữ liệu debug
+  - Bảo vệ endpoint giám sát và xác minh khả năng truy cập
+  - Mục tiêu độ trễ đầu cuối, độ đầy đủ dữ liệu và tín hiệu cần cảnh báo
+- level1: Kiểm thử pipeline
+  level2:
+  - Fixture gồm sự kiện thô và kết quả chuẩn mong đợi
+  - Kiểm tra cú pháp không thay thế kiểm tra hành vi xử lý
+  - Dùng stdin, generator và stdout cho thử nghiệm độc lập
+  - Kiểm tra trường, kiểu, timestamp và metadata sau mỗi giai đoạn
+  - Kiểm tra grok không khớp, JSON sai và date parse lỗi
+  - Kiểm tra dòng dài, Unicode, trường thiếu và giá trị biên
+  - Kiểm thử Ruby filter bằng khả năng test mà plugin cung cấp
+  - Đối chiếu ECS và mapping tại đích thực tế
+  - Kiểm thử tuyến bình thường, cách ly, drop và clone
+  - Kiểm thử tắt đích, mạng gián đoạn và gửi lại
+  - Đối chiếu số lượng ID nguồn, ID tại đích và dữ liệu bị loại
+  - Tự động chạy bộ fixture khi thay đổi cấu hình hoặc plugin
+- level1: Triển khai
+  level2:
+  - Chạy bằng dịch vụ hệ điều hành và quản lý quyền
+  - Đóng gói container cùng cấu hình và plugin đã xác định
+  - Tách image, cấu hình, chứng chỉ và bí mật
+  - Volume bền vững cho sincedb, PQ, DLQ và trạng thái cần giữ
+  - Chạy nhiều bản sao và phân chia nguồn nhận phù hợp
+  - Phân biệt readiness, liveness và khả năng nhận thêm dữ liệu
+  - Nạp lại cấu hình, restart và ảnh hưởng đến nguồn đang đọc
+  - Graceful shutdown, drain và thời hạn dừng của môi trường
+  - Nâng cấp lần lượt và dung lượng đệm khi một bản sao tạm nghỉ
+  - Kế hoạch quay lui cấu hình và tương thích dữ liệu queue
+  - Xác minh số liệu đầu cuối sau triển khai
+- level1: Chẩn đoán
+  level2:
+  - Pipeline không khởi động do cú pháp, plugin hoặc thiết lập
+  - Không nhận sự kiện do cổng, giao thức, quyền tệp hoặc TLS
+  - File input không đọc lại vì đã có sincedb
+  - Dữ liệu lặp sau xoay tệp, restart hoặc đọc lại nguồn
+  - Sự kiện không có ở đích dù kết nối vẫn hoạt động
+  - _grokparsefailure, _jsonparsefailure và _dateparsefailure
+  - Timestamp lệch múi giờ hoặc đi vào tuyến lưu trữ sai
+  - Xung đột mapping giữa chuỗi, số và đối tượng
+  - Output retry liên tục, bulk lỗi một phần và DLQ tăng
+  - Backlog tăng do filter tốn CPU hay đích xử lý chậm
+  - Heap tăng do batch lớn, clone, split hoặc trạng thái aggregate
+  - Pipeline dừng chậm vì output, queue hoặc kết nối vòng
+  - Lần theo input, filter, queue và output để xác định điểm mất dữ liệu
+- level1: Plugin và nâng cấp
+  level2:
+  - Logstash core và vòng đời phiên bản riêng của plugin
+  - Liệt kê, cài, cập nhật và gỡ plugin bằng công cụ quản lý
+  - Phân biệt plugin tích hợp, plugin được hỗ trợ và plugin cộng đồng
+  - Ghim phiên bản và tạo gói cài đặt ngoại tuyến khi cần
+  - Đọc thay đổi hành vi, tùy chọn bị thay thế và yêu cầu JDK
+  - Chuyển cấu hình TLS, ECS và plugin theo phiên bản đích
+  - Kiểm tra tương thích với Elasticsearch, broker và shipper
+  - Kiểm tra khả năng đọc queue trước khi nâng cấp hoặc quay lui
+  - Chạy lại fixture và kiểm chứng giao nhận sau thay đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng pipeline tối thiểu từ dữ liệu mẫu đến event chuẩn hóa
+  - Thu log JSON và stack trace từ ứng dụng Spring Boot
+  - So sánh grok, dissect và parser có cấu trúc trên cùng nguồn
+  - Xác minh sincedb qua các lần dừng, chạy và xoay tệp
+  - Chuẩn hóa timestamp, kiểu trường và schema ECS
+  - Làm giàu có cache và xử lý lỗi nguồn tra cứu
+  - Định tuyến sự kiện hợp lệ, sự kiện lỗi và dữ liệu cần loại bỏ
+  - Ghi Elasticsearch bằng index hoặc data stream đã kiểm chứng
+  - Đối chiếu giao nhận Kafka với ID và offset nguồn
+  - Tắt output để quan sát PQ tăng rồi khôi phục và drain
+  - Tạo lỗi mapping, đọc DLQ, sửa và xử lý lại
+  - Chia nhiều pipeline để đánh giá cách ly output
+  - Đo worker, batch và chi phí filter dưới tải có kiểm soát
+  - Kiểm chứng không rò bí mật và dữ liệu ngoài hợp đồng
+  - Hoàn thiện bộ fixture, cấu hình triển khai và quy trình chẩn đoán

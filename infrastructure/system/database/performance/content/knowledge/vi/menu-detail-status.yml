@@ -1,0 +1,2515 @@
+menu:
+- slug: performance-foundations
+  title: Nền tảng hiệu năng
+  childs:
+  - slug: performance-foundations-001
+    title: Hiệu năng cơ sở dữ liệu là gì và ảnh hưởng đến thời gian đáp ứng ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-foundations-002
+    title: 'Hành trình một yêu cầu: kết nối, phân tích SQL, lập kế hoạch, thực thi và trả kết quả'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-foundations-003
+    title: 'Các tài nguyên giới hạn: CPU, bộ nhớ, lưu trữ, mạng và khả năng xử lý đồng thời'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-foundations-004
+    title: Phân biệt truy vấn chậm, hệ thống quá tải và thời gian chờ tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-foundations-005
+    title: Khác biệt giữa tải giao dịch (OLTP), tải phân tích (OLAP) và tải hỗn hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-foundations-006
+    title: Đánh đổi giữa tốc độ đọc, tốc độ ghi, dung lượng, tính nhất quán và độ bền dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-foundations-007
+    title: Tư duy tối ưu theo bằng chứng và giới hạn của việc áp dụng mẹo chung
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-goals
+  title: Chỉ số và mục tiêu
+  childs:
+  - slug: metrics-goals-001
+    title: Độ trễ trung bình, trung vị và các phân vị p95, p99
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-002
+    title: Thông lượng giao dịch, truy vấn và số yêu cầu xử lý thành công
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-003
+    title: Thời gian CPU, thời gian chờ và thời gian thực thi toàn trình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-004
+    title: Số yêu cầu đồng thời, độ dài hàng đợi và mức bão hòa tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-005
+    title: Chỉ số đọc logic, đọc vật lý, dung lượng tạm và lượng dữ liệu trả về
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-006
+    title: Tỷ lệ lỗi, hết thời gian chờ và giao dịch phải thực hiện lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-007
+    title: Xác lập mục tiêu dịch vụ (SLO) và ngân sách độ trễ cho cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-goals-008
+    title: 'Định luật Little: liên hệ thông lượng, độ trễ và số yêu cầu đang xử lý'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: workload-characteristics
+  title: Khối lượng công việc
+  childs:
+  - slug: workload-characteristics-001
+    title: Thu thập tập truy vấn và nhóm truy vấn theo mẫu (query fingerprint)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-002
+    title: Phân loại thao tác đọc, ghi, tìm kiếm điểm, quét phạm vi và tổng hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-003
+    title: Phân bố tham số, độ chọn lọc, dữ liệu lệch và các khóa được truy cập nhiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-004
+    title: Kích thước dữ liệu, tập dữ liệu hoạt động và tốc độ tăng trưởng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-005
+    title: Nhịp tải ổn định, đột biến, theo mùa và tác vụ định kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-006
+    title: Phân biệt thời gian thực thi trong cơ sở dữ liệu với thời gian chờ tại ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-007
+    title: Xây dựng tải đại diện từ luồng nghiệp vụ và dữ liệu thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: workload-characteristics-008
+    title: Ưu tiên tối ưu theo tổng chi phí, tần suất và tác động nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-methods
+  title: Phương pháp đo
+  childs:
+  - slug: measurement-methods-001
+    title: Thiết lập đường cơ sở trước khi thay đổi truy vấn hoặc cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-002
+    title: Thiết kế giả thuyết và thay đổi từng yếu tố trong mỗi thí nghiệm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-003
+    title: Kiểm soát dữ liệu, cấu hình, phiên bản và tài nguyên môi trường đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-004
+    title: Làm nóng hệ thống và phân biệt bộ đệm nóng với bộ đệm lạnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-005
+    title: Lặp lại phép đo, quan sát độ biến thiên và nhận diện nhiễu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-006
+    title: Đo tải đồng thời thay vì suy luận từ một lần chạy đơn lẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-007
+    title: Phân biệt tương quan với nguyên nhân khi đọc chỉ số hiệu năng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-methods-008
+    title: Ghi nhận bằng chứng trước và sau cùng điều kiện hoàn tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-observability
+  title: Quan sát hệ thống
+  childs:
+  - slug: system-observability-001
+    title: Thu thập nhật ký truy vấn chậm và thống kê theo mẫu truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-002
+    title: Theo dõi phiên đang chạy, giao dịch đang mở và truy vấn chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-003
+    title: Phân tích sự kiện chờ (wait events) và chuỗi phiên chặn nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-004
+    title: Đối chiếu chỉ số CPU, bộ nhớ, đĩa và mạng ở hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-005
+    title: Đo thời gian truy vấn bằng số liệu ứng dụng và dấu vết phân tán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-006
+    title: Lấy mẫu và kiểm soát chi phí giám sát khi hệ thống đang chịu tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-007
+    title: Ẩn dữ liệu nhạy cảm trong câu SQL, tham số và bản ghi chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-observability-008
+    title: 'Công cụ theo hệ quản trị: pg_stat_statements, Performance Schema và Query Store'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: execution-plans
+  title: Kế hoạch thực thi
+  childs:
+  - slug: execution-plans-001
+    title: 'Kế hoạch ước lượng và kế hoạch thực tế: thông tin và mục đích sử dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-002
+    title: 'Đọc cây thực thi: luồng dữ liệu, thứ tự phép toán và số vòng lặp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-003
+    title: Đọc số hàng, chi phí ước lượng, thời gian thực tế và lượng dữ liệu trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-004
+    title: Nhận diện quét bảng, quét chỉ mục, tìm kiếm chỉ mục và truy xuất hàng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-005
+    title: Nhận diện phép nối, sắp xếp, tổng hợp và ghi dữ liệu tạm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-006
+    title: Phân tích bộ đệm, đọc đĩa và tràn bộ nhớ qua thông tin thực thi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-007
+    title: So sánh kế hoạch với nhiều giá trị tham số và nhiều kích thước dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-008
+    title: 'Chạy EXPLAIN ANALYZE an toàn: câu lệnh thực sự chạy và có thể làm thay đổi dữ liệu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: execution-plans-009
+    title: 'Những thông tin kế hoạch không phản ánh đầy đủ: mạng, hàng đợi và xử lý phía ứng dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-optimizer
+  title: Bộ tối ưu truy vấn
+  childs:
+  - slug: query-optimizer-001
+    title: Các giai đoạn phân tích cú pháp, biến đổi truy vấn và chọn kế hoạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-002
+    title: Tối ưu theo chi phí và giới hạn của mô hình chi phí
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-003
+    title: Đẩy điều kiện lọc, loại bỏ phép tính thừa và biến đổi truy vấn tương đương
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-004
+    title: Không gian tìm kiếm thứ tự nối và ảnh hưởng của nhiều bảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-005
+    title: Kế hoạch lưu lại, biên dịch lại và chi phí lập kế hoạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-006
+    title: Câu lệnh chuẩn bị sẵn, tham số hóa và lựa chọn kế hoạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-007
+    title: Tham số nhạy cảm, parameter sniffing và kế hoạch dùng chung theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-optimizer-008
+    title: Hint, ép kế hoạch và điều kiện cần theo dõi khi can thiệp bộ tối ưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: statistics-estimates
+  title: Thống kê và ước lượng
+  childs:
+  - slug: statistics-estimates-001
+    title: Ước lượng số hàng (cardinality) và vai trò đối với lựa chọn kế hoạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-002
+    title: Độ chọn lọc, số giá trị phân biệt và tỷ lệ giá trị NULL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-003
+    title: Biểu đồ phân bố, giá trị phổ biến và dữ liệu lệch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-004
+    title: Tương quan giữa các cột và giới hạn của giả định độc lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-005
+    title: Thống kê nhiều cột và thống kê mở rộng theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-006
+    title: Thống kê lỗi thời, thay đổi dữ liệu lớn và thời điểm cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-007
+    title: 'Thu thập thống kê bằng lấy mẫu: chi phí và độ chính xác'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: statistics-estimates-008
+    title: Chẩn đoán chênh lệch số hàng ước lượng với số hàng thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: access-paths
+  title: Cơ chế truy cập
+  childs:
+  - slug: access-paths-001
+    title: Trang dữ liệu, tổ chức lưu hàng và đường đi từ khóa đến bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-002
+    title: Quét toàn bảng và các tình huống quét tuần tự có lợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-003
+    title: Tìm kiếm điểm và quét phạm vi bằng chỉ mục B-tree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-004
+    title: Đọc ngẫu nhiên, đọc tuần tự và chi phí truy xuất bổ sung về bảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-005
+    title: Chỉ mục phân cụm và tổ chức bảng theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-006
+    title: Quét bitmap và kết hợp nhiều chỉ mục theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-007
+    title: 'Truy vấn chỉ từ chỉ mục: điều kiện thực tế và giới hạn kiểm tra tính hiển thị'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: access-paths-008
+    title: Ảnh hưởng của độ rộng hàng và tính cục bộ dữ liệu đến đường truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: index-design
+  title: Thiết kế chỉ mục
+  childs:
+  - slug: index-design-001
+    title: Lựa chọn chỉ mục từ truy vấn quan trọng và tập điều kiện thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-002
+    title: 'Chỉ mục nhiều cột: thứ tự cột, tiền tố và phạm vi tìm kiếm'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-003
+    title: Phối hợp điều kiện bằng, điều kiện phạm vi và thứ tự sắp xếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-004
+    title: Chỉ mục bao phủ và các cột bổ sung theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-005
+    title: 'Chỉ mục duy nhất: ràng buộc dữ liệu và ảnh hưởng đến thực thi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-006
+    title: Đánh giá chỉ mục cho khóa ngoại và các phép nối thường gặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-007
+    title: Chi phí ghi, dung lượng và bộ đệm của mỗi chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-008
+    title: Phát hiện chỉ mục trùng lặp, ít dùng và quyết định loại bỏ có kiểm chứng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: index-design-009
+    title: Kiểm chứng chỉ mục mới bằng kế hoạch thực tế và tải đọc ghi hỗn hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: specialized-indexes
+  title: Chỉ mục chuyên biệt
+  childs:
+  - slug: specialized-indexes-001
+    title: Chỉ mục một phần hoặc có điều kiện và phạm vi áp dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-002
+    title: Chỉ mục biểu thức, chỉ mục hàm và cột sinh theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-003
+    title: Chỉ mục băm và giới hạn đối với tìm kiếm phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-004
+    title: BRIN và dữ liệu lớn có tương quan với vị trí lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-005
+    title: GIN, GiST và các kiểu truy vấn chuyên biệt trong PostgreSQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-006
+    title: Chỉ mục tìm kiếm toàn văn và khác biệt với tìm chuỗi bằng LIKE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-007
+    title: Chỉ mục cho JSON, dữ liệu không gian và yêu cầu toán tử phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-008
+    title: Columnstore và đánh đổi giữa tải phân tích với cập nhật dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: specialized-indexes-009
+    title: Tiêu chí lựa chọn loại chỉ mục theo tính năng của từng hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: predicates-expressions
+  title: Điều kiện và biểu thức
+  childs:
+  - slug: predicates-expressions-001
+    title: Điều kiện có thể tận dụng chỉ mục (SARGable) và cách nhận diện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-002
+    title: Hàm trên cột, phép toán và chuyển đổi kiểu ngầm trong điều kiện lọc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-003
+    title: Kiểu dữ liệu tham số và ảnh hưởng đến khả năng dùng chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-004
+    title: 'Điều kiện thời gian: khoảng nửa mở, múi giờ và tránh biến đổi cột'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-005
+    title: LIKE, ký tự đại diện đầu chuỗi và giới hạn của chỉ mục thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-006
+    title: OR, IN và cách tách truy vấn khi có bằng chứng kế hoạch tốt hơn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-007
+    title: NULL, NOT IN và ngữ nghĩa ba giá trị khi viết lại truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-008
+    title: Quy tắc đối chiếu chuỗi (collation), phân biệt hoa thường và chi phí so sánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: predicates-expressions-009
+    title: Giảm cột và số hàng trả về từ sớm mà vẫn giữ đúng kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: joins
+  title: Phép nối
+  childs:
+  - slug: joins-001
+    title: 'Nested loop, hash join và merge join: điều kiện và đánh đổi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-002
+    title: Kích thước hai phía nối, số vòng lặp và lượng dữ liệu trung gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-003
+    title: Chỉ mục hỗ trợ phép nối và lựa chọn phía truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-004
+    title: Đẩy điều kiện lọc và ảnh hưởng của thứ tự nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-005
+    title: INNER JOIN, OUTER JOIN và ràng buộc ngữ nghĩa khi viết lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-006
+    title: EXISTS, NOT EXISTS và phép nối bán phần theo nhu cầu kiểm tra tồn tại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-007
+    title: Chẩn đoán nhân bản số hàng và tích Descartes ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-008
+    title: Tràn bộ nhớ ở phép nối băm và ảnh hưởng của phân bố khóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: joins-009
+    title: 'Nối nhiều bảng: giảm tập dữ liệu trung gian và kiểm chứng kết quả'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sort-aggregation
+  title: Sắp xếp và tổng hợp
+  childs:
+  - slug: sort-aggregation-001
+    title: ORDER BY, thứ tự chỉ mục và khi nào có thể tránh sắp xếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-002
+    title: Sắp xếp top-N, LIMIT và yêu cầu thứ tự kết quả xác định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-003
+    title: Bộ nhớ sắp xếp, dữ liệu tạm và dấu hiệu tràn xuống đĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-004
+    title: GROUP BY với tổng hợp băm hoặc tổng hợp theo thứ tự
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-005
+    title: DISTINCT và chi phí loại trùng trên tập dữ liệu lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-006
+    title: 'WHERE và HAVING: thời điểm lọc và tính đúng đắn của phép tổng hợp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-007
+    title: 'Hàm cửa sổ: phân vùng, sắp xếp và kích thước khung tính toán'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sort-aggregation-008
+    title: Tổng hợp trước và bảng tổng hợp cho báo cáo lặp lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: query-patterns
+  title: Mẫu truy vấn
+  childs:
+  - slug: query-patterns-001
+    title: Truy vấn con tương quan và số lần thực thi lặp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-002
+    title: CTE, bảng dẫn xuất và việc vật chất hóa theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-003
+    title: 'UNION và UNION ALL: loại trùng, thứ tự và chi phí'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-004
+    title: Truy vấn lấy bản ghi mới nhất hoặc top-N trong từng nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-005
+    title: Truy vấn kiểm tra tồn tại và đếm theo đúng nhu cầu nghiệp vụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-006
+    title: Truy vấn cập nhật hoặc xóa khối lượng lớn theo từng đợt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-007
+    title: 'Bảng tạm và kết quả trung gian: khi nào giảm được công việc lặp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-008
+    title: Giảm lượt trao đổi bằng xử lý theo tập hợp thay cho từng bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: query-patterns-009
+    title: Kiểm chứng ngữ nghĩa, bản ghi trùng và giá trị NULL sau khi viết lại SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pagination-search
+  title: Phân trang và tìm kiếm
+  childs:
+  - slug: pagination-search-001
+    title: Chi phí của OFFSET khi chuyển đến các trang sâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-002
+    title: Phân trang theo khóa (keyset pagination) và điều kiện truy vấn tiếp theo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-003
+    title: Khóa sắp xếp ghép, giá trị trùng và thứ tự ổn định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-004
+    title: Phân trang khi dữ liệu thay đổi đồng thời và yêu cầu nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-005
+    title: Tổng số bản ghi, đếm chính xác và lựa chọn giảm chi phí đếm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-006
+    title: Tìm kiếm kết hợp bộ lọc, sắp xếp và thiết kế chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-007
+    title: 'Tìm kiếm toàn văn: chỉ số liên quan, giới hạn kết quả và chi phí'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pagination-search-008
+    title: Đánh giá phân trang bằng dữ liệu lớn và phân bố tham số thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-modeling
+  title: Mô hình dữ liệu
+  childs:
+  - slug: data-modeling-001
+    title: Chọn kiểu dữ liệu theo miền giá trị và chi phí lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-002
+    title: 'Khóa chính: độ rộng, tính tăng dần và ảnh hưởng đến chỉ mục'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-003
+    title: Chuẩn hóa và phi chuẩn hóa dưới góc nhìn đường đọc ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-004
+    title: Hàng rộng, cột văn bản lớn và tách dữ liệu ít truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-005
+    title: 'Quan hệ, JSON và mô hình thuộc tính linh hoạt: chi phí truy vấn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-006
+    title: Dữ liệu thời gian, độ chính xác số và chi phí chuyển đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-007
+    title: Ràng buộc dữ liệu, kiểm tra tính duy nhất và chi phí thao tác ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-modeling-008
+    title: Thiết kế bảng tổng hợp hoặc dữ liệu dẫn xuất với cơ chế cập nhật rõ ràng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-partitioning
+  title: Phân vùng dữ liệu
+  childs:
+  - slug: data-partitioning-001
+    title: 'Mục tiêu phân vùng: giảm phạm vi truy cập và đơn giản hóa vòng đời dữ liệu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-002
+    title: Phân vùng theo khoảng, danh sách và băm theo mẫu truy cập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-003
+    title: Loại bỏ phân vùng (partition pruning) và điều kiện truy vấn phù hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-004
+    title: Chỉ mục cục bộ, chỉ mục toàn cục và ràng buộc theo hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-005
+    title: Chi phí lập kế hoạch và quản lý khi có quá nhiều phân vùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-006
+    title: Lựa chọn khóa phân vùng và xử lý phân bố dữ liệu lệch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-007
+    title: Thêm, tách, gắn và loại bỏ phân vùng dưới tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-partitioning-008
+    title: Kiểm chứng lợi ích phân vùng và phân biệt với chia dữ liệu sang nhiều máy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: transaction-contention
+  title: Giao dịch và tranh chấp
+  childs:
+  - slug: transaction-contention-001
+    title: Thời gian giao dịch và ảnh hưởng đến số phiên chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-002
+    title: Khóa hàng, khóa bảng và cách xác định điểm tranh chấp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-003
+    title: Mức cô lập, MVCC và chi phí duy trì các phiên bản dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-004
+    title: Giao dịch đọc kéo dài và ảnh hưởng đến dọn dẹp dữ liệu cũ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-005
+    title: Khóa được cập nhật nhiều, bộ đếm dùng chung và giới hạn thông lượng ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-006
+    title: Deadlock, thứ tự truy cập và chi phí thực hiện lại giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-007
+    title: Kích thước lô ghi và cân bằng giữa thời gian giữ khóa với chi phí commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-008
+    title: Thiết lập thời gian chờ khóa, thời gian chờ truy vấn và hủy thao tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: transaction-contention-009
+    title: Đo thông lượng cùng độ trễ khi tăng số yêu cầu đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: write-path
+  title: Đường ghi dữ liệu
+  childs:
+  - slug: write-path-001
+    title: Nhật ký giao dịch, WAL hoặc redo và quá trình commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-002
+    title: Độ bền dữ liệu, đồng bộ xuống đĩa và chi phí xác nhận giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-003
+    title: Group commit và ảnh hưởng của số phiên ghi đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-004
+    title: Checkpoint, ghi nền và các đợt tăng độ trễ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-005
+    title: Khuếch đại ghi từ chỉ mục, cập nhật hàng và nhật ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-006
+    title: Chèn hàng loạt, công cụ nạp dữ liệu và xử lý theo lô
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-007
+    title: Upsert, kiểm tra trùng và tranh chấp trên khóa duy nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-008
+    title: Kích thước giao dịch, tốc độ nạp và áp lực lên bản sao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: write-path-009
+    title: Đo tốc độ ghi bền vững sau giai đoạn tăng tốc ban đầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-cache
+  title: Bộ nhớ và bộ đệm
+  childs:
+  - slug: memory-cache-001
+    title: Buffer pool, shared buffers và bộ đệm trang của hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-002
+    title: Tập dữ liệu hoạt động, tỷ lệ trúng bộ đệm và giới hạn suy luận
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-003
+    title: Bộ nhớ theo truy vấn, theo phép toán và theo phiên kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-004
+    title: Ngân sách bộ nhớ toàn hệ thống khi nhiều truy vấn chạy đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-005
+    title: Tràn sắp xếp hoặc phép nối xuống đĩa và cách chẩn đoán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-006
+    title: Áp lực bộ nhớ, hoán đổi và nguy cơ hết bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-007
+    title: Bộ đệm lạnh sau khởi động, triển khai hoặc chuyển đổi máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-cache-008
+    title: Bộ đệm kế hoạch và khác biệt với bộ đệm dữ liệu hoặc kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-resources
+  title: Lưu trữ và tài nguyên
+  childs:
+  - slug: storage-resources-001
+    title: IOPS, băng thông, độ trễ thiết bị và hàng đợi I/O
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-002
+    title: Đọc tuần tự, đọc ngẫu nhiên và đặc điểm thiết bị SSD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-003
+    title: Giới hạn CPU, số lõi và khả năng song song thực tế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-004
+    title: Song song trong truy vấn và tranh chấp tài nguyên giữa các truy vấn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-005
+    title: Bố trí dữ liệu, nhật ký và vùng tạm theo đặc điểm tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-006
+    title: Dung lượng trống, tăng trưởng tệp và tác động khi gần đầy đĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-007
+    title: Giới hạn tài nguyên của máy ảo, container và dịch vụ cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-008
+    title: Giới hạn I/O, hạn mức tăng tốc và cơ chế điều tiết của dịch vụ đám mây
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-resources-009
+    title: Định cỡ tài nguyên dựa trên phép đo và điểm bão hòa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: connectivity-network
+  title: Kết nối và mạng
+  childs:
+  - slug: connectivity-network-001
+    title: Chi phí mở kết nối, xác thực và thiết lập TLS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-002
+    title: Nhóm kết nối (connection pool), số kết nối hoạt động và hàng đợi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-003
+    title: Định cỡ nhóm kết nối theo khả năng xử lý của cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-004
+    title: Phân biệt thời gian chờ lấy kết nối với thời gian chạy SQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-005
+    title: Rò rỉ kết nối, giao dịch bỏ quên và phiên nhàn rỗi trong giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-006
+    title: Độ trễ mạng, số lượt trao đổi và khoảng cách giữa ứng dụng với cơ sở dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-007
+    title: Kích thước kết quả, truyền theo luồng và việc giữ kết nối lâu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-008
+    title: Phối hợp thời gian chờ, hủy truy vấn, thử lại và giới hạn số yêu cầu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: connectivity-network-009
+    title: Proxy kết nối và các ràng buộc về trạng thái phiên hoặc giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-applications
+  title: Ứng dụng Java
+  childs:
+  - slug: java-applications-001
+    title: Đo JDBC và tách thời gian lấy kết nối, thực thi, đọc kết quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-002
+    title: 'HikariCP: số kết nối, thời gian chờ và chỉ số sử dụng'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-003
+    title: PreparedStatement, tham số liên kết và tái sử dụng câu lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-004
+    title: 'JDBC batch: kích thước lô, ranh giới giao dịch và kiểm chứng số lượt gửi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-005
+    title: Fetch size, truyền kết quả theo luồng và hành vi riêng của trình điều khiển
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-006
+    title: 'JPA hoặc Hibernate: nhận diện N+1 từ số lượng và mẫu truy vấn'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-007
+    title: Fetch join, entity graph, DTO projection và chi phí tải dữ liệu thừa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-008
+    title: Phân trang với quan hệ tập hợp và rủi ro xử lý trong bộ nhớ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-009
+    title: Persistence context, dirty checking và thao tác flush khi xử lý nhiều bản ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-010
+    title: Ranh giới giao dịch Spring và tác động của gọi dịch vụ ngoài trong giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-applications-011
+    title: Kiểm thử tích hợp trên hệ quản trị thực để xác minh kế hoạch và hành vi JDBC
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-maintenance
+  title: Bảo trì dữ liệu
+  childs:
+  - slug: data-maintenance-001
+    title: Cập nhật thống kê sau thay đổi lớn và theo dõi hiệu quả
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-002
+    title: Bản ghi chết, dữ liệu phình to và cơ chế thu hồi dung lượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-003
+    title: VACUUM, autovacuum và ảnh hưởng của giao dịch kéo dài trong PostgreSQL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-004
+    title: 'Phân mảnh chỉ mục: cách đo và ý nghĩa theo từng hệ quản trị'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-005
+    title: 'Xây dựng lại chỉ mục: lợi ích, chi phí và điều kiện thực hiện trực tuyến'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-006
+    title: Lưu trữ dữ liệu cũ, chính sách giữ dữ liệu và xóa theo lô
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-007
+    title: Bảo trì phân vùng và kiểm soát kích thước bảng hoặc chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-008
+    title: Ảnh hưởng của sao lưu, kiểm tra dữ liệu và tác vụ nền đến tải chính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-maintenance-009
+    title: Đặt ngân sách tài nguyên và thời điểm chạy công việc bảo trì
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: analytical-workloads
+  title: Tải phân tích
+  childs:
+  - slug: analytical-workloads-001
+    title: Khác biệt truy cập theo hàng và theo cột trong truy vấn phân tích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-002
+    title: Chiếu cột, lọc sớm và giảm dữ liệu phải quét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-003
+    title: Nén dữ liệu, xử lý theo lô và thực thi vector hóa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-004
+    title: Tổng hợp trên dữ liệu lớn và chi phí xáo trộn dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-005
+    title: Materialized view, bảng tổng hợp và chi phí làm mới
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-006
+    title: Phân bố dữ liệu, khóa phân phối và các nhóm dữ liệu quá lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-007
+    title: Cô lập tải báo cáo để bảo vệ độ trễ giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: analytical-workloads-008
+    title: Đánh đổi độ tươi dữ liệu, thời gian phản hồi và chi phí tính toán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: system-scaling
+  title: Mở rộng hệ thống
+  childs:
+  - slug: system-scaling-001
+    title: Mở rộng tài nguyên một máy và giới hạn của đường ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-002
+    title: 'Bản sao phục vụ đọc: phân luồng truy vấn và độ trễ sao chép'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-003
+    title: Đọc sau ghi, tính nhất quán và tác động đến thiết kế ứng dụng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-004
+    title: 'Bộ đệm ứng dụng: tỷ lệ trúng, vô hiệu hóa và độ tươi dữ liệu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-005
+    title: Chống dồn tải khi bộ đệm hết hạn hoặc khởi động lại
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-006
+    title: 'Chia dữ liệu (sharding): chọn khóa và giới hạn của truy vấn nhiều phân mảnh'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-007
+    title: Tác động hiệu năng của giao dịch hoặc phép nối phân tán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-008
+    title: Quản lý hàng đợi, giới hạn đồng thời và áp lực ngược khi quá tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: system-scaling-009
+    title: So sánh lợi ích tối ưu truy vấn với chi phí thay đổi kiến trúc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-testing
+  title: Kiểm thử hiệu năng
+  childs:
+  - slug: performance-testing-001
+    title: Thiết kế kịch bản từ giao dịch nghiệp vụ và tỷ lệ đọc ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-002
+    title: Sinh dữ liệu đại diện về kích thước, phân bố và quan hệ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-003
+    title: Kiểm thử tải ổn định, tải tăng dần, tải đột biến và chạy dài hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-004
+    title: Mô hình tải mở, tải đóng và sai lệch do bỏ sót thời gian chờ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-005
+    title: Giới hạn của máy phát tải và cách tránh đo nhầm nút thắt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-006
+    title: Đo thông lượng tối đa trong phạm vi mục tiêu độ trễ và tỷ lệ lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-007
+    title: Dùng pgbench, sysbench hoặc bộ phát tải phù hợp với hệ quản trị
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-008
+    title: So sánh thay đổi bằng cùng bộ dữ liệu và điều kiện đo
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-009
+    title: Kiểm thử hồi quy hiệu năng sau đổi SQL, chỉ mục, cấu hình hoặc phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-testing-010
+    title: Lập báo cáo kết quả gồm mục tiêu, điều kiện, số liệu và giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Quy trình khoanh vùng từ triệu chứng đến truy vấn và tài nguyên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Truy vấn chậm do kế hoạch đổi sau tăng trưởng dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: 'CPU cao: phân biệt tính toán, lập kế hoạch và quá nhiều truy vấn nhỏ'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: 'I/O cao: phân biệt quét dữ liệu, truy xuất ngẫu nhiên và ghi nền'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Độ trễ tăng do khóa, giao dịch dài và chuỗi phiên chặn nhau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Cạn nhóm kết nối, hàng đợi tăng và hiệu ứng thử lại dồn dập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Tràn bộ nhớ, vùng tạm lớn và thiếu dung lượng lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Độ trễ p99 tăng trong checkpoint, bảo trì hoặc đột biến tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Sự cố bản sao đọc chậm và chuyển tải làm quá tải máy chính
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Giảm tải tạm thời, thu thập bằng chứng và xác minh phục hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-operations
+  title: Vận hành hiệu năng
+  childs:
+  - slug: performance-operations-001
+    title: Dashboard theo mục tiêu dịch vụ, tài nguyên và truy vấn quan trọng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-002
+    title: Cảnh báo theo triệu chứng người dùng và ngưỡng bão hòa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-003
+    title: Dự báo dung lượng, tăng trưởng dữ liệu và giới hạn kết nối
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-004
+    title: Quản lý thay đổi SQL, chỉ mục và cấu hình có kế hoạch hoàn tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-005
+    title: 'Tạo chỉ mục hoặc đổi lược đồ dưới tải: khóa và chi phí tài nguyên'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-006
+    title: Nâng cấp hệ quản trị hoặc trình điều khiển và kiểm tra hồi quy kế hoạch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-007
+    title: Giám sát sau triển khai và phát hiện hiệu năng giảm theo thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-008
+    title: Quản lý chi phí tài nguyên theo thông lượng và mục tiêu độ trễ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-operations-009
+    title: Hồ sơ điều tra sự cố và thư viện thí nghiệm có thể tái lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Thiết lập bộ dữ liệu, tải mẫu và đường cơ sở có thể tái lập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Đọc kế hoạch để tối ưu một truy vấn lọc và sắp xếp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Thiết kế chỉ mục ghép rồi đo ảnh hưởng đến cả đọc và ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Xử lý ước lượng sai do dữ liệu lệch hoặc thống kê lỗi thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Tối ưu phép nối và tổng hợp có dữ liệu trung gian lớn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: So sánh OFFSET với phân trang theo khóa trên dữ liệu tăng dần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Khắc phục N+1 và đo số lượt truy vấn trong ứng dụng Java
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Chẩn đoán tranh chấp khóa và điều chỉnh kích thước giao dịch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Điều chỉnh nhóm kết nối qua thử nghiệm mức tải đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Lập báo cáo tối ưu gồm tính đúng đắn, số liệu trước sau và đánh đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

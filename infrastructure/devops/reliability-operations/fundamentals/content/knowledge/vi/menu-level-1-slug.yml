@@ -1,0 +1,73 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Trải nghiệm người dùng
+  slug: user-experience
+  index: 1
+- title: Mô hình dịch vụ
+  slug: service-model
+  index: 2
+- title: Đặc tính tin cậy
+  slug: reliability-attributes
+  index: 3
+- title: Lỗi và rủi ro
+  slug: failures-and-risks
+  index: 4
+- title: Nền tảng hệ thống
+  slug: system-foundations
+  index: 5
+- title: Mục tiêu và đo lường
+  slug: objectives-and-measurement
+  index: 6
+- title: Quan sát hệ thống
+  slug: system-observability
+  index: 7
+- title: Cảnh báo
+  slug: alerting
+  index: 8
+- title: Vận hành thường ngày
+  slug: daily-operations
+  index: 9
+- title: Trực và phối hợp
+  slug: oncall-and-coordination
+  index: 10
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 11
+- title: Chẩn đoán sự cố
+  slug: incident-diagnostics
+  index: 12
+- title: Khả năng chống chịu
+  slug: resilience
+  index: 13
+- title: Hiệu năng và năng lực
+  slug: performance-and-capacity
+  index: 14
+- title: Thay đổi và phát hành
+  slug: changes-and-releases
+  index: 15
+- title: Dữ liệu và khôi phục
+  slug: data-and-recovery
+  index: 16
+- title: Tự động hóa
+  slug: automation
+  index: 17
+- title: Cấu hình và hạ tầng
+  slug: configuration-and-infrastructure
+  index: 18
+- title: Bảo mật vận hành
+  slug: operational-security
+  index: 19
+- title: Sẵn sàng vận hành
+  slug: operational-readiness
+  index: 20
+- title: Cải tiến liên tục
+  slug: continuous-improvement
+  index: 21
+- title: Thực hành
+  slug: practice
+  index: 22
+- title: Sai lầm thường gặp
+  slug: common-mistakes
+  index: 23

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-jenkins-ci-cd
+  title: Tổng quan Jenkins CI/CD
+  purpose: Hiểu Jenkins điều phối tự động việc tích hợp, kiểm thử và phát hành phần mềm.
+  objectives:
+  - Mô tả chu trình commit → build → test → delivery.
+  - Phân biệt Jenkins job, pipeline và bước thực thi.
+- id: cai-dat-plugins
+  title: Cài đặt & Plugins
+  purpose: Chuẩn bị Jenkins có thể dùng để chạy pipeline thực hành và quản lý phần mở rộng.
+  objectives:
+  - Khởi chạy Jenkins LTS, hoàn tất setup wizard.
+  - Nhận biết vai trò plugin và nguyên tắc cập nhật an toàn.
+- id: controller-agents
+  title: Controller & Agents
+  purpose: Nắm kiến trúc phân phối tác vụ build tới môi trường thực thi phù hợp.
+  objectives:
+  - Phân biệt Jenkins controller, agent và executor.
+  - Dùng agent label để chọn máy build.
+- id: jenkinsfile-declarative
+  title: Jenkinsfile Declarative
+  purpose: Định nghĩa pipeline dưới dạng mã nguồn có thể review và tái sử dụng.
+  objectives:
+  - Viết pipeline với agent, stages, steps.
+  - Dùng post để xử lý kết quả thành công hoặc thất bại.
+- id: scm-multibranch
+  title: SCM & Multibranch
+  purpose: Tự động chạy pipeline theo thay đổi trên Git branch hoặc pull request.
+  objectives:
+  - Lưu Jenkinsfile trong repository Git.
+  - Cấu hình Multibranch Pipeline và trigger phù hợp.
+- id: build-test-artifacts
+  title: Build, Test & Artifacts
+  purpose: Đảm bảo mỗi lần tích hợp tạo đầu ra đã kiểm thử và có thể truy vết.
+  objectives:
+  - Chạy Maven build/test trong stage riêng.
+  - Thu thập JUnit reports và lưu trữ build artifacts.
+- id: credentials-bao-mat
+  title: Credentials & Bảo mật
+  purpose: Bảo vệ các bí mật và giới hạn quyền khi Jenkins tích hợp hệ thống ngoài.
+  objectives:
+  - Dùng Jenkins Credentials thay vì hard-code secret.
+  - Áp dụng quyền tối thiểu và tránh làm lộ token trong log.
+- id: delivery-van-hanh
+  title: Delivery & Vận hành
+  purpose: Đưa pipeline đến bước phát hành có kiểm soát và biết cách xử lý lỗi.
+  objectives:
+  - Thêm stage publish/deploy chỉ sau khi kiểm thử đạt.
+  - Đọc build log, kiểm tra failure và giới hạn retry/timeout.

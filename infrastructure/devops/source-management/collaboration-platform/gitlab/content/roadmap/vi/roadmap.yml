@@ -1,0 +1,57 @@
+roadmap:
+- id: workspace-project
+  title: Workspace & Project
+  purpose: Làm quen cách GitLab tổ chức dự án và cộng tác theo nhóm.
+  objectives:
+  - Phân biệt group, project và repository.
+  - Tạo một project thử nghiệm và cấu hình README.
+  - Nhận diện vai trò Developer và Maintainer.
+- id: repository-git
+  title: Repository & Git
+  purpose: Quản lý mã nguồn trên GitLab bằng thao tác Git thông dụng.
+  objectives:
+  - Clone repository và thiết lập remote.
+  - Commit và push một thay đổi có ý nghĩa.
+  - Đọc commit history và so sánh diff.
+- id: branch-workflow
+  title: Branch Workflow
+  purpose: Tách công việc phát triển khỏi nhánh chính để thay đổi an toàn.
+  objectives:
+  - Tạo feature branch từ nhánh mặc định.
+  - Thực hiện commit, push và đồng bộ thay đổi.
+  - Giải quyết một xung đột merge đơn giản.
+- id: issues-planning
+  title: Issues & Planning
+  purpose: Gắn mã nguồn với nhu cầu thực tế và theo dõi tiến độ nhóm.
+  objectives:
+  - Tạo issue có mô tả và tiêu chí hoàn thành.
+  - Gắn assignee, label và milestone phù hợp.
+  - Liên kết issue với branch hoặc merge request.
+- id: merge-requests
+  title: Merge Requests
+  purpose: Đề xuất, thảo luận và hợp nhất thay đổi theo quy trình minh bạch.
+  objectives:
+  - Mở MR với source/target branch chính xác.
+  - Viết mô tả, phạm vi và cách kiểm thử.
+  - Quan sát diff, trạng thái và kết quả merge.
+- id: review-approval
+  title: Review & Approval
+  purpose: Cải thiện chất lượng mã thông qua phản biện trước khi hợp nhất.
+  objectives:
+  - Gán reviewer và bình luận trên dòng mã.
+  - Xử lý feedback, cập nhật commit và resolve thread.
+  - Phân biệt approval tùy chọn với rule bắt buộc theo gói.
+- id: access-branch-rules
+  title: Access & Branch Rules
+  purpose: Bảo vệ nhánh quan trọng bằng quyền phù hợp và quy tắc hợp nhất.
+  objectives:
+  - Kiểm tra quyền của thành viên dự án.
+  - Cấu hình protected branch và giới hạn direct push.
+  - Thử quy trình MR vào nhánh được bảo vệ.
+- id: ci-traceability
+  title: CI & Traceability
+  purpose: Kết nối thay đổi mã với kiểm thử tự động và lịch sử thực hiện.
+  objectives:
+  - Tạo pipeline build/test đơn giản trong .gitlab-ci.yml.
+  - Đọc trạng thái pipeline trên MR và commit.
+  - Truy vết từ issue → MR → commit → pipeline.

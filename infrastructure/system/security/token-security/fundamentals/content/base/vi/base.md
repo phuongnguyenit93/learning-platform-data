@@ -1,0 +1,7 @@
+# Security Token Security Fundamentals
+
+Token bảo mật là một cơ chế giúp ứng dụng truyền đạt thông tin định danh hoặc quyền truy cập giữa client, máy chủ xác thực và API. Token có thể mang dữ liệu đọc được như JWT hoặc chỉ là chuỗi tham chiếu opaque; dù thuộc dạng nào, **token không tự động an toàn chỉ vì đã được cấp**. Khi một bearer token bị lộ, bên giữ token có thể sử dụng quyền đi kèm, vì vậy bảo vệ token cần được thiết kế xuyên suốt từ phát hành đến xác minh và thu hồi.
+
+Lộ trình gồm tám mốc: mô hình tin cậy và vai trò của token, các loại token phổ biến, phạm vi quyền và thời hạn cấp phát, chữ ký cùng quản lý khóa, truyền tải và lưu trữ, kiểm tra token tại API, cơ chế hết hạn/làm mới/thu hồi, cuối cùng là chống replay và kiểm thử. Trọng tâm là phân biệt xác thực với phân quyền, kiểm soát đúng issuer/audience/scope, tránh rò rỉ bí mật và không nhầm mã hóa Base64 hoặc chữ ký JWT với việc che giấu dữ liệu.
+
+Module phù hợp với lập trình viên backend, mobile, web và người làm security đã biết HTTP, HTTPS và API cơ bản. Sau khi hoàn thành, bạn có thể đánh giá một luồng token, nhận diện điểm có thể rò rỉ hoặc bị lạm dụng, kiểm tra điều kiện chấp nhận token, lựa chọn cách làm mới/thu hồi phù hợp và xây dựng các ca kiểm thử để bảo vệ tài nguyên trước token không hợp lệ hoặc bị phát lại.

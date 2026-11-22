@@ -1,0 +1,64 @@
+roadmap:
+- id: reliability-vai-tro-sre
+  title: Reliability & Vai trò SRE
+  purpose: Nắm mục tiêu vận hành ổn định và trách nhiệm phối hợp giữa Dev, Ops và SRE.
+  objectives:
+  - Phân biệt availability, latency và reliability.
+  - Nhận diện lỗi ảnh hưởng người dùng so với lỗi nội bộ.
+  - Giải thích sự đánh đổi giữa độ tin cậy và tốc độ thay đổi.
+- id: sli-slo-error-budget
+  title: SLI, SLO & Error Budget
+  purpose: Đo chất lượng dịch vụ bằng các mục tiêu phản ánh trải nghiệm người dùng.
+  objectives:
+  - Xác định SLI về tỷ lệ thành công và độ trễ API.
+  - Phân biệt SLI, SLO và SLA bằng ví dụ cụ thể.
+  - Tính error budget từ một SLO và cửa sổ đo.
+- id: monitoring-golden-signals
+  title: Monitoring & Golden Signals
+  purpose: Tạo khả năng quan sát để phát hiện và chẩn đoán dấu hiệu dịch vụ suy giảm.
+  objectives:
+  - Theo dõi latency, traffic, errors và saturation.
+  - Phân biệt metrics, logs và traces.
+  - Dựng dashboard thể hiện sức khỏe một dịch vụ mẫu.
+- id: alerting-on-call
+  title: Alerting & On-call
+  purpose: Chuyển các sự cố cần hành động đến đúng người thay vì tạo quá nhiều cảnh báo.
+  objectives:
+  - Phân biệt page khẩn, ticket và thông báo thông tin.
+  - Viết cảnh báo dựa trên triệu chứng người dùng.
+  - Xác định on-call owner, tuyến escalation và runbook link.
+- id: incident-response
+  title: Incident Response
+  purpose: Phối hợp khôi phục dịch vụ theo quy trình có trách nhiệm và cập nhật rõ ràng.
+  objectives:
+  - Phân loại severity và khai báo incident.
+  - Phân vai điều phối, xử lý kỹ thuật và truyền thông.
+  - Ghi timeline, ảnh hưởng và cập nhật trạng thái incident.
+- id: runbook-troubleshooting
+  title: Runbook & Troubleshooting
+  purpose: Chuẩn hóa thao tác chẩn đoán để giảm thời gian xác định sự cố.
+  objectives:
+  - Viết runbook gồm dấu hiệu, kiểm tra và cách rollback an toàn.
+  - Đối chiếu logs, metrics và thay đổi gần nhất.
+  - Kiểm tra giả thuyết trước khi kết luận nguyên nhân.
+- id: capacity-overload-health
+  title: Capacity, Overload & Health
+  purpose: Ngăn quá tải và xác nhận ứng dụng có đủ khả năng phục vụ request.
+  objectives:
+  - Đọc CPU, bộ nhớ, queue, connection và độ bão hòa.
+  - Phân biệt startup, liveness và readiness probe.
+  - Mô tả cách giới hạn tải và giảm cấp dịch vụ có kiểm soát.
+- id: change-rollback-recovery
+  title: Change, Rollback & Recovery
+  purpose: Giảm rủi ro khi triển khai và kiểm tra khả năng phục hồi khi có lỗi.
+  objectives:
+  - Chuẩn bị health check và rollback cho bản phát hành.
+  - Thử khôi phục dịch vụ trên môi trường staging.
+  - Xác nhận trạng thái người dùng sau khi rollback hoặc failover.
+- id: postmortem-giam-toil
+  title: Postmortem & Giảm Toil
+  purpose: Học từ sự cố để loại bỏ nguyên nhân lặp lại và giảm thao tác thủ công.
+  objectives:
+  - Viết postmortem không đổ lỗi với impact và timeline.
+  - Đề xuất hành động phòng ngừa có owner và hạn hoàn thành.
+  - Nhận diện tác vụ toil để ưu tiên tự động hóa.

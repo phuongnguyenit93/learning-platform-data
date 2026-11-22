@@ -1,0 +1,440 @@
+menu:
+- level1: Nền tảng OpenTelemetry
+  level2:
+  - OpenTelemetry (OTel) là gì và giải quyết vấn đề gắn đo lường nào
+  - Dữ liệu quan sát (telemetry) và vai trò trong hiểu hành vi hệ thống
+  - Dấu vết (traces), số đo (metrics) và nhật ký (logs)
+  - Từ hành động nghiệp vụ đến dữ liệu có thể điều tra
+  - Tính độc lập với nhà cung cấp và giới hạn của khả năng tương tác
+  - Phân biệt tạo dữ liệu, thu thập, xử lý, lưu trữ và hiển thị
+  - OpenTelemetry không tự thay thế hệ lưu trữ hoặc giao diện phân tích
+  - Ngữ cảnh chung giúp liên kết các tín hiệu như thế nào
+  - Mức trưởng thành của từng tín hiệu và từng cách triển khai
+- level1: Kiến trúc OpenTelemetry
+  level2:
+  - Đặc tả, API, SDK và các dự án triển khai
+  - 'API: hợp đồng để mã ứng dụng và thư viện ghi nhận dữ liệu'
+  - 'SDK: triển khai ghi nhận, xử lý và xuất dữ liệu'
+  - 'Instrumentation: phần mã kết nối thao tác được quan sát với API'
+  - 'Exporter: chuyển dữ liệu từ SDK tới điểm nhận'
+  - 'Collector: tiếp nhận, biến đổi và chuyển tiếp tín hiệu'
+  - Hệ lưu trữ và phân tích (backend) trong kiến trúc tổng thể
+  - OpenTelemetry Protocol (OTLP) và ranh giới truyền dữ liệu
+  - Xuất trực tiếp tới backend và xuất qua Collector
+  - Phân biệt cấu hình ứng dụng, SDK, bộ đo lường và Collector
+- level1: Hệ sinh thái Java
+  level2:
+  - OpenTelemetry Java và dự án Java instrumentation
+  - Gắn đo lường tự động bằng Java agent
+  - Spring Boot starter và đo lường qua tích hợp thư viện
+  - Gắn đo lường thủ công bằng API
+  - Đo lường có sẵn trong thư viện và cơ chế cầu nối (bridge hoặc shim)
+  - Chọn cách tích hợp theo mục tiêu và ràng buộc ứng dụng
+  - Phạm vi thư viện và phiên bản được hỗ trợ
+  - Quản lý phiên bản bằng BOM của API/SDK và BOM instrumentation
+  - Phân biệt thành phần ổn định, thử nghiệm và phần mở rộng incubating
+  - Quan hệ giữa OTel, Micrometer và Spring Observation
+- level1: Tài nguyên và ngữ nghĩa
+  level2:
+  - 'Tài nguyên (resource): danh tính nguồn phát dữ liệu'
+  - Phân biệt resource attributes và thuộc tính của từng sự kiện
+  - Định danh dịch vụ bằng service.name và service.namespace
+  - Phiên bản ứng dụng, môi trường và phiên bản chạy
+  - Thuộc tính tiến trình, máy chủ, container và Kubernetes
+  - Resource detector và dữ liệu phát hiện từ môi trường
+  - Hợp nhất tài nguyên và xử lý giá trị bị ghi đè
+  - 'Phạm vi bộ đo lường (instrumentation scope): tên, phiên bản và ý nghĩa'
+  - Quy ước ngữ nghĩa (semantic conventions) cho thao tác phổ biến
+  - Kiểu dữ liệu, đơn vị đo và quy tắc đặt tên
+  - Độ ổn định của quy ước và quản lý thay đổi tên thuộc tính
+  - Schema URL và giới hạn hỗ trợ biến đổi schema
+- level1: Khởi tạo SDK
+  level2:
+  - Chuẩn bị ứng dụng Java và điểm nhận dữ liệu thử nghiệm
+  - Chọn phụ thuộc API, SDK, exporter và autoconfigure
+  - OpenTelemetry và OpenTelemetrySdk trong mã ứng dụng
+  - SdkTracerProvider, SdkMeterProvider và SdkLoggerProvider
+  - Tạo Tracer hoặc Meter theo phạm vi bộ đo lường
+  - Cấu hình tài nguyên dùng chung cho các tín hiệu
+  - GlobalOpenTelemetry, truyền phụ thuộc và quyền sở hữu SDK
+  - Triển khai không làm gì (no-op) khi chưa cài SDK
+  - Khởi tạo một lần và tránh nhiều SDK cạnh tranh trong cùng ứng dụng
+  - Đẩy nốt dữ liệu (forceFlush), shutdown và thứ tự dừng
+  - Quản lý SDK trong ứng dụng độc lập và ứng dụng do framework quản lý
+  - Kiểm chứng dữ liệu đầu tiên tại điểm nhận
+- level1: Cấu hình SDK
+  level2:
+  - Cấu hình bằng mã và bằng cơ chế autoconfigure
+  - Biến môi trường OTEL_* và thuộc tính hệ thống otel.*
+  - Thứ tự ưu tiên cấu hình và giá trị thực tế được áp dụng
+  - OTEL_SERVICE_NAME và OTEL_RESOURCE_ATTRIBUTES
+  - Bật hoặc tắt xuất traces, metrics và logs riêng biệt
+  - Endpoint OTLP chung và endpoint riêng cho từng tín hiệu
+  - Chọn giao thức OTLP và đối chiếu giá trị mặc định theo cách tích hợp
+  - Cấu hình propagators, sampler và tham số lấy mẫu
+  - Giới hạn dữ liệu span, log và thuộc tính
+  - Chu kỳ thu thập số đo, gom lô và thời gian chờ xuất
+  - Cấu hình khai báo bằng YAML và mức hỗ trợ theo phiên bản
+  - Tách cấu hình theo môi trường và bảo vệ thông tin xác thực
+- level1: API truy vết
+  level2:
+  - TracerProvider, Tracer và SpanBuilder
+  - Tạo span gốc và span con từ ngữ cảnh hiện tại
+  - Thiết lập parent tường minh và tạo trace mới với setNoParent
+  - Kích hoạt span bằng makeCurrent và đóng Scope
+  - Phân biệt thoát Scope với kết thúc Span
+  - Đặt tên span, SpanKind và thông tin bắt đầu
+  - Ghi Attributes với khóa có kiểu dữ liệu
+  - Ghi mốc diễn tiến bằng addEvent
+  - Thêm liên kết bằng addLink và chọn đúng thời điểm
+  - recordException và thiết lập StatusCode
+  - Kết thúc span trong nhánh thành công hoặc thất bại
+  - isRecording, span không ghi nhận và ngữ cảnh vẫn được truyền
+  - Quyền sở hữu span khi làm việc cùng đo lường tự động
+- level1: Thiết kế span
+  level2:
+  - Chọn ranh giới span theo thao tác có ý nghĩa
+  - Phân biệt span kỹ thuật và span nghiệp vụ
+  - Đặt tên ổn định thay vì đưa giá trị thay đổi vào tên
+  - INTERNAL, SERVER, CLIENT, PRODUCER và CONSUMER
+  - Quan hệ cha–con và trường hợp cần span links
+  - Phân biệt thuộc tính, sự kiện và span con
+  - Trạng thái UNSET, OK, ERROR và cách diễn đạt kết quả
+  - Ngoại lệ đã xử lý, thao tác dự phòng và kết quả đầu cuối
+  - 'Thử lại: phân biệt thao tác logic với từng lần thử'
+  - Thời gian theo đồng hồ và phép đo khoảng thời gian
+  - Tránh span quá chi tiết, span trùng và span không kết thúc
+- level1: Ngữ cảnh trong tiến trình
+  level2:
+  - 'Context: tập giá trị bất biến liên quan đến luồng công việc'
+  - Context.current và cách xác định span hiện tại
+  - ContextKey và dữ liệu ngữ cảnh tùy chỉnh
+  - Scope và cơ chế khôi phục ngữ cảnh trước đó
+  - Đóng Scope trên đúng luồng và theo đúng thứ tự
+  - Ngữ cảnh gắn với luồng và giới hạn của ThreadLocal
+  - Chụp Context trước khi chuyển công việc sang nơi khác
+  - Truyền Context tường minh và kích hoạt ngầm
+  - Tách phạm vi kích hoạt khỏi thời gian tồn tại của công việc
+  - Rò rỉ ngữ cảnh giữa các yêu cầu dùng chung luồng
+  - Kiểm tra và chẩn đoán Scope bị dùng sai
+- level1: Truyền ngữ cảnh
+  level2:
+  - ContextPropagators và TextMapPropagator
+  - Vật mang ngữ cảnh (carrier), TextMapGetter và TextMapSetter
+  - Chèn (inject) và trích xuất (extract) ngữ cảnh qua ranh giới
+  - 'W3C Trace Context: traceparent và tracestate'
+  - 'SpanContext: trace ID, span ID, trace flags và nguồn từ xa'
+  - Truyền ngữ cảnh qua HTTP, gRPC và thuộc tính thông điệp
+  - 'Baggage: dữ liệu truyền kèm và mục đích sử dụng'
+  - Phân biệt baggage, ContextKey và thuộc tính span
+  - Chọn propagator tương thích khi tích hợp hệ thống cũ
+  - Ngữ cảnh thiếu, sai định dạng hoặc đến từ nguồn không đáng tin
+  - Proxy, cổng API và ranh giới có thể làm mất ngữ cảnh
+  - Giới hạn kích thước và dữ liệu được phép truyền sang dịch vụ khác
+- level1: Bất đồng bộ trên JVM
+  level2:
+  - Executor và truyền Context cho Runnable hoặc Callable
+  - Thread pool và yêu cầu khôi phục ngữ cảnh sau tác vụ
+  - CompletableFuture và các giai đoạn hoàn tất bất đồng bộ
+  - Callback và quyền kết thúc span khi công việc hoàn tất
+  - Luồng ảo (virtual threads) và ranh giới tác vụ
+  - Spring @Async và lịch chạy tác vụ nền
+  - Reactor Context và khác biệt với ngữ cảnh gắn ThreadLocal
+  - Thời điểm dựng chuỗi, đăng ký và hoàn tất xử lý phản ứng
+  - Nhiều nhánh song song, hợp nhất kết quả và quan hệ liên kết
+  - Công việc tách rời, xử lý theo lô và lựa chọn trace mới
+  - Hủy công việc, hết thời gian chờ và công việc vẫn đang chạy
+  - Phối hợp truyền ngữ cảnh thủ công với cơ chế tự động có sẵn
+- level1: Lấy mẫu truy vết
+  level2:
+  - Lấy mẫu tại đầu luồng (head sampling) và sau thu thập (tail sampling)
+  - Vai trò Sampler trong SDK và quyết định lúc tạo span
+  - AlwaysOn, AlwaysOff và TraceIdRatioBased
+  - ParentBased và tính nhất quán theo ngữ cảnh cha
+  - Phân biệt DROP, RECORD_ONLY và RECORD_AND_SAMPLE
+  - Cờ sampled và trạng thái isRecording không phải cùng một khái niệm
+  - Giữ ngữ cảnh liên kết khi span không được xuất
+  - Chính sách ưu tiên lỗi, độ trễ hoặc luồng nghiệp vụ quan trọng
+  - Yêu cầu dữ liệu hội tụ khi lấy mẫu cuối luồng tại Collector
+  - Trace đến muộn, chưa đầy đủ và thời gian chờ quyết định
+  - Lấy mẫu nhiều tầng và nguy cơ loại dữ liệu trước quyết định cuối
+  - Thiên lệch mẫu và giới hạn suy luận tần suất hoặc phân bố
+- level1: API số đo
+  level2:
+  - MeterProvider, Meter và công cụ đo (instrument)
+  - Chọn công cụ từ đại lượng và cách quan sát thực tế
+  - 'Counter: ghi nhận giá trị tăng đơn điệu'
+  - 'UpDownCounter: ghi nhận biến thiên tăng hoặc giảm'
+  - 'Histogram: ghi nhận phân bố của các phép đo'
+  - 'Gauge: ghi nhận giá trị tức thời khi không phù hợp cộng gộp'
+  - ObservableCounter, ObservableUpDownCounter và ObservableGauge
+  - Phân biệt ghi biến thiên với quan sát tổng tích lũy trong callback
+  - Đặt tên, mô tả, đơn vị và kiểu giá trị long hoặc double
+  - Attributes và Context khi ghi nhận phép đo
+  - Vòng đời callback và giải phóng công cụ quan sát
+  - Yêu cầu callback nhanh, an toàn và không gây lỗi ứng dụng
+- level1: SDK số đo
+  level2:
+  - SdkMeterProvider và luồng từ phép đo đến dữ liệu xuất
+  - 'View: lựa chọn instrument và cấu hình luồng số đo'
+  - Thay đổi tên, mô tả và bộ thuộc tính qua View
+  - 'Aggregation: sum, last value, histogram và các lựa chọn phù hợp'
+  - Ranh giới bucket tường minh và mục tiêu đo độ trễ
+  - Exponential histogram và khả năng hỗ trợ của điểm nhận
+  - Temporality tích lũy (cumulative) và theo khoảng (delta)
+  - Tính đơn điệu, thời điểm bắt đầu và nhận diện chuỗi bị đặt lại
+  - MetricReader, PeriodicMetricReader và chu kỳ thu thập
+  - Xuất theo mô hình đẩy và thu thập theo mô hình kéo
+  - Số tổ hợp thuộc tính (cardinality) và giới hạn chuỗi số đo
+  - Mẫu liên kết (exemplar) và quan hệ với Context của phép đo
+  - Tránh đếm trùng khi nhiều bộ đo lường cùng quan sát một đại lượng
+  - Kiểm tra dữ liệu số đo sau khi tổng hợp và chuyển định dạng
+- level1: Nhật ký OpenTelemetry
+  level2:
+  - 'Mô hình LogRecord: thời gian, mức độ, nội dung và thuộc tính'
+  - Timestamp và observed timestamp
+  - Resource và instrumentation scope của bản ghi
+  - Liên kết log với trace ID, span ID và trace flags
+  - Vai trò Log Bridge API và lý do ứng dụng tiếp tục dùng framework ghi log
+  - LoggerProvider và SdkLoggerProvider trong luồng tích hợp
+  - Logback hoặc Log4j appender chuyển bản ghi sang OpenTelemetry
+  - Phân biệt xuất logs qua OTLP với đưa trace ID vào MDC
+  - SimpleLogRecordProcessor, BatchLogRecordProcessor và xuất dữ liệu
+  - Ngoại lệ, nội dung có cấu trúc và ánh xạ mức độ
+  - Ngăn gửi trùng khi vừa dùng appender vừa thu thập cùng tệp
+  - Giới hạn bản ghi, thuộc tính và dữ liệu nhạy cảm
+- level1: Java agent
+  level2:
+  - Nguyên lý gắn đo lường bằng biến đổi bytecode
+  - Khởi chạy ứng dụng với tham số -javaagent
+  - Kiểm tra thư viện và phiên bản được agent hỗ trợ
+  - Cấu hình agent bằng biến môi trường hoặc thuộc tính hệ thống
+  - Bật hoặc tắt từng nhóm instrumentation
+  - Định danh dịch vụ và xuất dữ liệu từ agent
+  - HTTP, JDBC, messaging và các điểm được đo tự động
+  - Bổ sung span nghiệp vụ bằng API khi agent đã quản lý SDK
+  - Annotation và tùy chọn đo phương thức theo khả năng được hỗ trợ
+  - Classloader, nhiều agent và xung đột tích hợp
+  - Chi phí khởi động và giới hạn trong môi trường native image
+  - Debug agent và xác minh không phát sinh dữ liệu trùng
+- level1: Tích hợp Spring Boot
+  level2:
+  - 'Java agent và OpenTelemetry Spring Boot starter: cách hoạt động khác nhau'
+  - Chọn một cơ chế khởi tạo SDK phù hợp cho ứng dụng
+  - Quản lý dependency và phiên bản starter
+  - Cấu hình starter qua application.properties hoặc application.yml
+  - Cấu hình agent và giới hạn đọc cấu hình riêng của Spring
+  - Đo HTTP server và HTTP client trong ứng dụng
+  - Span nghiệp vụ với Tracer được ứng dụng cung cấp
+  - Số đo nghiệp vụ với Meter được quản lý đúng vòng đời
+  - Tích hợp framework ghi log và tương quan ngữ cảnh
+  - Quan hệ với Spring Observation và Micrometer Tracing
+  - Nguy cơ trùng SDK, span hoặc số đo khi bật nhiều cơ chế
+  - Kiểm chứng ứng dụng Servlet, reactive hoặc native theo mức hỗ trợ
+- level1: Đo lường thư viện
+  level2:
+  - Phân biệt trách nhiệm thư viện và ứng dụng sở hữu SDK
+  - Phụ thuộc API và hành vi khi người dùng không cài SDK
+  - Truyền OpenTelemetry hoặc Tracer/Meter bằng phụ thuộc tường minh
+  - Tên và phiên bản instrumentation scope cho thư viện
+  - Chọn điểm mở rộng, bộ bao (wrapper) hoặc interceptor
+  - Đo HTTP, RPC và ranh giới gọi dịch vụ
+  - Đo truy cập cơ sở dữ liệu và thao tác bộ nhớ đệm
+  - Đo gửi, nhận và xử lý thông điệp
+  - Thao tác theo lô, nhiều nguồn và span links
+  - Giữ nguyên kết quả, ngoại lệ, cơ chế hủy và hành vi của thư viện
+  - Giảm phụ thuộc vào hằng số ngữ nghĩa chưa ổn định
+- level1: OTLP và exporter
+  level2:
+  - 'OTLP: định dạng, truyền tải và giao thức trao đổi telemetry'
+  - OTLP/gRPC và OTLP/HTTP với protobuf
+  - Endpoint gốc, endpoint theo tín hiệu và đường dẫn HTTP
+  - Cổng, DNS, proxy và mạng container
+  - TLS, mTLS, headers và thông tin xác thực
+  - Nén payload, kích thước thông điệp và giới hạn điểm nhận
+  - Thời gian chờ, thử lại và phản hồi có thể thử lại
+  - Partial success, dữ liệu bị từ chối và giới hạn bảo đảm giao nhận
+  - SpanExporter, MetricExporter và LogRecordExporter
+  - Xử lý span đơn lẻ hoặc gom lô trước khi xuất
+  - Chọn exporter theo khả năng của Collector hoặc backend
+  - Phân biệt OTLP metrics và định dạng Prometheus
+  - Xuất đồng thời nhiều nơi và nguy cơ tăng tải hoặc dữ liệu trùng
+- level1: Cấu hình Collector
+  level2:
+  - Collector là tiến trình độc lập với SDK của ứng dụng
+  - Bản phân phối core, contrib và thành phần thực sự có trong binary
+  - 'Cấu trúc YAML: receivers, processors, exporters, connectors và extensions'
+  - Receiver tiếp nhận dữ liệu và phân biệt mô hình đẩy với kéo
+  - Processor và thứ tự xử lý trong mỗi pipeline
+  - Exporter và cấu hình đích gửi dữ liệu
+  - Connector nối pipeline và hoạt động như cả receiver lẫn exporter
+  - Extension cho tác vụ hỗ trợ ngoài luồng xử lý dữ liệu
+  - 'service.pipelines: khai báo pipeline cho traces, metrics và logs'
+  - Thành phần đã khai báo nhưng chưa được kích hoạt trong service
+  - Nhiều pipeline cùng loại và cú pháp type/name
+  - Biến môi trường, nguồn cấu hình và giá trị cuối cùng được nạp
+  - Kiểm tra cấu hình, thành phần không hỗ trợ và lỗi khởi động
+- level1: Xử lý tại Collector
+  level2:
+  - memory_limiter và kiểm soát áp lực bộ nhớ
+  - batch processor và đánh đổi kích thước lô với độ trễ
+  - attributes processor và resource processor
+  - Bổ sung metadata máy chủ, dịch vụ và Kubernetes
+  - filter processor và quy tắc loại dữ liệu
+  - transform processor và OpenTelemetry Transformation Language (OTTL)
+  - Phân biệt ngữ cảnh truy cập span, datapoint và log record trong OTTL
+  - Chuẩn hóa tên, thuộc tính và mức độ theo chính sách
+  - Che hoặc loại dữ liệu nhạy cảm trước khi xuất
+  - Tail sampling và yêu cầu trạng thái theo trace
+  - Chuyển temporality hoặc tổng hợp số đo theo khả năng thành phần
+  - Thứ tự xử lý, hành vi khi lỗi và tác động tới dữ liệu
+  - Kiểm chứng biến đổi bằng đầu vào và đầu ra có thể đối chiếu
+- level1: Nối và định tuyến dữ liệu
+  level2:
+  - Phân biệt receiver, processor và connector khi xây luồng dữ liệu
+  - Gửi một tín hiệu tới nhiều exporter
+  - Định tuyến theo tài nguyên, thuộc tính hoặc đơn vị sử dụng
+  - Nối traces sang metrics bằng spanmetrics connector
+  - Phân biệt số đo tạo từ span với số đo ghi nhận trực tiếp
+  - Tạo số đo quan hệ dịch vụ bằng servicegraph connector khi được hỗ trợ
+  - Kết nối dữ liệu từ receiver Prometheus hoặc filelog
+  - Giới hạn tín hiệu và mức ổn định của từng thành phần contrib
+  - Phân phối trace nhất quán cho nhóm Collector lấy mẫu cuối luồng
+  - Tránh vòng lặp xử lý, gửi lặp và các nhánh không có nơi nhận
+- level1: Triển khai Collector
+  level2:
+  - Mô hình gần ứng dụng (agent) và cổng tập trung (gateway)
+  - Triển khai trên máy chủ, container và Kubernetes
+  - 'DaemonSet, Deployment và sidecar: phạm vi trách nhiệm'
+  - Chọn endpoint lắng nghe và giới hạn tiếp xúc mạng
+  - CPU, bộ nhớ và lưu trữ cho từng loại xử lý
+  - Cân bằng tải với pipeline không trạng thái
+  - Định tuyến theo trace ID khi pipeline có trạng thái
+  - Số đo tích lũy và yêu cầu trạng thái khi phân chia tải
+  - Health check và phân biệt sống, sẵn sàng, xử lý thành công
+  - Khởi động lại, nâng cấp lần lượt và dừng có kiểm soát
+  - OpenTelemetry Operator và cơ chế tự động chèn đo lường khi phù hợp
+  - Tách môi trường và quản lý cấu hình triển khai
+- level1: Độ tin cậy đường xuất
+  level2:
+  - Các điểm có thể mất dữ liệu từ SDK đến backend
+  - Bộ đệm SDK và giới hạn trước khi exporter gửi
+  - Sending queue của exporter tại Collector
+  - Thử lại có giãn cách, thời gian tối đa và điều kiện bỏ dữ liệu
+  - Lưu hàng đợi bền vững với storage extension khi thành phần hỗ trợ
+  - Phân biệt bộ đệm trong bộ nhớ, lưu trữ bền vững và môi giới thông điệp
+  - Áp lực ngược (backpressure) và hành vi từ chối tiếp nhận
+  - Ứng xử khi backend chậm, không sẵn sàng hoặc vượt hạn mức
+  - Dữ liệu bị gửi lặp và giới hạn của bảo đảm đúng một lần
+  - Tương tác giữa gom lô, hàng đợi, thử lại và thời gian dừng
+  - Kiểm tra phục hồi sau mất mạng hoặc khởi động lại Collector
+  - Xác định mức mất dữ liệu có thể chấp nhận cho từng tín hiệu
+- level1: Liên kết các tín hiệu
+  level2:
+  - Dùng tài nguyên chung để liên kết traces, metrics và logs
+  - Liên kết log record với span đang hoạt động
+  - Tương quan MDC và khác biệt với truyền ngữ cảnh giữa dịch vụ
+  - Exemplar nối điểm số đo với trace đại diện
+  - Định danh thao tác và quy ước giúp chuyển giữa các tín hiệu
+  - Trace ID, span ID và định danh nghiệp vụ có mục đích khác nhau
+  - Tránh đưa mã yêu cầu hoặc mã người dùng vào nhãn số đo
+  - Ảnh hưởng của lấy mẫu trace tới exemplar và số đo suy ra
+  - Từ cảnh báo hoặc số đo bất thường tới dữ liệu điều tra
+  - Kiểm chứng khả năng liên kết ở backend mà không giả định giao diện giống nhau
+- level1: Bảo mật dữ liệu
+  level2:
+  - Phân loại thông tin được phép ghi nhận và truyền đi
+  - Giới hạn dữ liệu trong URL, headers, truy vấn và ngoại lệ
+  - Baggage và nguy cơ lan truyền bí mật sang dịch vụ khác
+  - Ngữ cảnh nhận từ bên ngoài và ranh giới tin cậy
+  - Lọc hoặc che dữ liệu tại nguồn và tại Collector
+  - TLS, mTLS và xác thực điểm nhận telemetry
+  - Quản lý chứng chỉ, token và vòng đời thông tin xác thực
+  - Phân quyền cấu hình và hạn chế endpoint quản trị
+  - Cô lập dữ liệu giữa môi trường, đội và tenant
+  - Hạn mức chống lạm dụng nguồn tiếp nhận và tài nguyên xử lý
+  - Dữ liệu trong nhật ký debug hoặc công cụ chẩn đoán
+  - Chính sách lưu giữ và trách nhiệm của hệ lưu trữ đích
+- level1: Hiệu năng và chi phí
+  level2:
+  - Chi phí CPU, bộ nhớ và cấp phát khi gắn đo lường
+  - Số span trên yêu cầu và độ chi tiết phù hợp
+  - Số thuộc tính, độ dài giá trị, sự kiện và liên kết
+  - Cardinality của số đo và tổ hợp thuộc tính
+  - Chọn bucket histogram và ảnh hưởng tới dung lượng xuất
+  - Chi phí callback, đồng bộ hóa và truy cập nguồn số đo
+  - Lấy mẫu trace và giới hạn lượng logs
+  - Chi phí gom lô, nén, hàng đợi và thử lại
+  - Phân biệt chi phí ứng dụng, Collector và backend
+  - Tải tăng đột biến và cơ chế tự bảo vệ luồng telemetry
+  - Đo so sánh khi bật hoặc tắt instrumentation
+  - Ngân sách dữ liệu và tiêu chí giảm chi tiết có kiểm soát
+- level1: Giám sát và chẩn đoán
+  level2:
+  - Tín hiệu nội bộ của SDK, Java agent và Collector
+  - debug exporter để quan sát dữ liệu ngay tại pipeline
+  - Log nội bộ và tùy chọn chẩn đoán của Java agent
+  - Bộ đếm dữ liệu tiếp nhận, từ chối, xử lý và xuất thất bại
+  - Hàng đợi, mức sử dụng bộ nhớ và tình trạng backpressure
+  - Khoanh vùng không có dữ liệu từ ứng dụng đến backend
+  - Phân biệt lỗi endpoint, giao thức, TLS và thông tin xác thực
+  - Scope sai, trace bị tách và thiếu ngữ cảnh bất đồng bộ
+  - Span trùng hoặc số đo trùng do nhiều lớp tích hợp
+  - Thiếu số đo do reader, chu kỳ thu thập hoặc callback
+  - Logs thiếu trace ID hoặc bị thu thập lặp
+  - Health check thành công nhưng dữ liệu vẫn không được xử lý
+  - Thành phần chẩn đoán như pprof hoặc zPages và giới hạn truy cập
+- level1: Kiểm thử đo lường
+  level2:
+  - Tiêu chí chấp nhận cho cấu trúc và ý nghĩa telemetry
+  - Công cụ sdk-testing và exporter trong bộ nhớ
+  - Kiểm tra tên span, parent, loại, thuộc tính và trạng thái
+  - Kiểm tra sự kiện, ngoại lệ, liên kết và kết thúc span
+  - Kiểm tra truyền ngữ cảnh qua HTTP, RPC và thông điệp
+  - Kiểm tra bất đồng bộ, hủy công việc và rò rỉ Scope
+  - Thu thập số đo có kiểm soát để kiểm tra instrument và View
+  - Kiểm tra callback, temporality, histogram và tổ hợp thuộc tính
+  - Kiểm tra log bridge, mức độ và thông tin liên kết
+  - Kiểm thử pipeline Collector bằng dữ liệu đầu vào xác định
+  - Kiểm tra lấy mẫu, lỗi mạng và khả năng phục hồi
+  - Đối chiếu kết quả ứng dụng trước và sau khi gắn đo lường
+  - Kiểm thử toàn luồng và kiểm tra dữ liệu nhạy cảm
+- level1: Quản trị và nâng cấp
+  level2:
+  - Ma trận tương thích giữa JDK, SDK, agent, starter và Collector
+  - Phân biệt phiên bản đặc tả với phiên bản thư viện hoặc bản phân phối
+  - Quản lý dependency và tránh xung đột phiên bản
+  - Theo dõi mức ổn định của tín hiệu, instrumentation và thành phần Collector
+  - Schema telemetry và kiểm tra thay đổi tên hoặc đơn vị
+  - Nâng cấp semantic conventions mà không làm hỏng truy vấn đang dùng
+  - Triển khai thử trên một phần dịch vụ và so sánh dữ liệu
+  - Thay đổi giao thức, endpoint hoặc backend có kiểm chứng
+  - Quyền sở hữu cấu hình, chuẩn tài nguyên và chính sách dữ liệu
+  - Quy trình quay lui SDK, agent hoặc Collector
+  - Ranh giới thử nghiệm tín hiệu mới như profiles
+  - Tài liệu hóa phần chưa được đo lường và giới hạn chất lượng dữ liệu
+- level1: Tương thích hệ sinh thái
+  level2:
+  - Native OTLP và chuyển đổi qua exporter riêng của backend
+  - Tích hợp hệ truy vết như Jaeger hoặc Tempo qua đường xuất phù hợp
+  - Tích hợp hệ số đo Prometheus và khác biệt mô hình dữ liệu
+  - Tích hợp hệ nhật ký Loki hoặc nền tảng khác qua OTLP
+  - Micrometer, OpenTelemetry bridge và quyền sở hữu phép đo
+  - 'Shim OpenTracing/OpenCensus đã deprecated: nhận diện và chuyển đổi hệ thống cũ'
+  - Khả năng hỗ trợ thuộc tính, histogram và exemplar của từng đích
+  - Phân biệt tương thích giao thức với giữ nguyên ngữ nghĩa dữ liệu
+  - Thay đổi nhà cung cấp và kiểm tra liên kết dữ liệu sau chuyển đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Gắn Java agent và kiểm chứng dữ liệu qua Collector
+  - Khởi tạo SDK thủ công cho một ứng dụng Java độc lập
+  - Thêm span nghiệp vụ trong ứng dụng đã có đo lường tự động
+  - Thiết kế công cụ đo cho giao dịch, hàng đợi và thời gian xử lý
+  - Xuất nhật ký qua log bridge và liên kết với trace
+  - Truyền ngữ cảnh qua lời gọi dịch vụ và tác vụ bất đồng bộ
+  - Thiết kế quan hệ trace cho thông điệp và xử lý theo lô
+  - Xây pipeline Collector chuẩn hóa, lọc và che dữ liệu
+  - Áp dụng chính sách lấy mẫu và kiểm chứng dữ liệu được giữ
+  - Diễn tập lỗi backend, đầy hàng đợi và khôi phục đường xuất
+  - Điều tra mất dữ liệu hoặc dữ liệu trùng giữa các lớp tích hợp
+  - Rà soát một thiết kế OTel theo chất lượng, hiệu năng và bảo mật

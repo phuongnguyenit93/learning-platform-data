@@ -1,0 +1,3472 @@
+menu:
+- slug: opentelemetry-foundations
+  title: Nền tảng OpenTelemetry
+  childs:
+  - slug: opentelemetry-foundations-001
+    title: OpenTelemetry (OTel) là gì và giải quyết vấn đề gắn đo lường nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-002
+    title: Dữ liệu quan sát (telemetry) và vai trò trong hiểu hành vi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-003
+    title: Dấu vết (traces), số đo (metrics) và nhật ký (logs)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-004
+    title: Từ hành động nghiệp vụ đến dữ liệu có thể điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-005
+    title: Tính độc lập với nhà cung cấp và giới hạn của khả năng tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-006
+    title: Phân biệt tạo dữ liệu, thu thập, xử lý, lưu trữ và hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-007
+    title: OpenTelemetry không tự thay thế hệ lưu trữ hoặc giao diện phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-008
+    title: Ngữ cảnh chung giúp liên kết các tín hiệu như thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-foundations-009
+    title: Mức trưởng thành của từng tín hiệu và từng cách triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: opentelemetry-architecture
+  title: Kiến trúc OpenTelemetry
+  childs:
+  - slug: opentelemetry-architecture-001
+    title: Đặc tả, API, SDK và các dự án triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-002
+    title: 'API: hợp đồng để mã ứng dụng và thư viện ghi nhận dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-003
+    title: 'SDK: triển khai ghi nhận, xử lý và xuất dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-004
+    title: 'Instrumentation: phần mã kết nối thao tác được quan sát với API'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-005
+    title: 'Exporter: chuyển dữ liệu từ SDK tới điểm nhận'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-006
+    title: 'Collector: tiếp nhận, biến đổi và chuyển tiếp tín hiệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-007
+    title: Hệ lưu trữ và phân tích (backend) trong kiến trúc tổng thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-008
+    title: OpenTelemetry Protocol (OTLP) và ranh giới truyền dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-009
+    title: Xuất trực tiếp tới backend và xuất qua Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: opentelemetry-architecture-010
+    title: Phân biệt cấu hình ứng dụng, SDK, bộ đo lường và Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-ecosystem
+  title: Hệ sinh thái Java
+  childs:
+  - slug: java-ecosystem-001
+    title: OpenTelemetry Java và dự án Java instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-002
+    title: Gắn đo lường tự động bằng Java agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-003
+    title: Spring Boot starter và đo lường qua tích hợp thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-004
+    title: Gắn đo lường thủ công bằng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-005
+    title: Đo lường có sẵn trong thư viện và cơ chế cầu nối (bridge hoặc shim)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-006
+    title: Chọn cách tích hợp theo mục tiêu và ràng buộc ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-007
+    title: Phạm vi thư viện và phiên bản được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-008
+    title: Quản lý phiên bản bằng BOM của API/SDK và BOM instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-009
+    title: Phân biệt thành phần ổn định, thử nghiệm và phần mở rộng incubating
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-ecosystem-010
+    title: Quan hệ giữa OTel, Micrometer và Spring Observation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: resources-semantics
+  title: Tài nguyên và ngữ nghĩa
+  childs:
+  - slug: resources-semantics-001
+    title: 'Tài nguyên (resource): danh tính nguồn phát dữ liệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-002
+    title: Phân biệt resource attributes và thuộc tính của từng sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-003
+    title: Định danh dịch vụ bằng service.name và service.namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-004
+    title: Phiên bản ứng dụng, môi trường và phiên bản chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-005
+    title: Thuộc tính tiến trình, máy chủ, container và Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-006
+    title: Resource detector và dữ liệu phát hiện từ môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-007
+    title: Hợp nhất tài nguyên và xử lý giá trị bị ghi đè
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-008
+    title: 'Phạm vi bộ đo lường (instrumentation scope): tên, phiên bản và ý nghĩa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-009
+    title: Quy ước ngữ nghĩa (semantic conventions) cho thao tác phổ biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-010
+    title: Kiểu dữ liệu, đơn vị đo và quy tắc đặt tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-011
+    title: Độ ổn định của quy ước và quản lý thay đổi tên thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: resources-semantics-012
+    title: Schema URL và giới hạn hỗ trợ biến đổi schema
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sdk-initialization
+  title: Khởi tạo SDK
+  childs:
+  - slug: sdk-initialization-001
+    title: Chuẩn bị ứng dụng Java và điểm nhận dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-002
+    title: Chọn phụ thuộc API, SDK, exporter và autoconfigure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-003
+    title: OpenTelemetry và OpenTelemetrySdk trong mã ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-004
+    title: SdkTracerProvider, SdkMeterProvider và SdkLoggerProvider
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-005
+    title: Tạo Tracer hoặc Meter theo phạm vi bộ đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-006
+    title: Cấu hình tài nguyên dùng chung cho các tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-007
+    title: GlobalOpenTelemetry, truyền phụ thuộc và quyền sở hữu SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-008
+    title: Triển khai không làm gì (no-op) khi chưa cài SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-009
+    title: Khởi tạo một lần và tránh nhiều SDK cạnh tranh trong cùng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-010
+    title: Đẩy nốt dữ liệu (forceFlush), shutdown và thứ tự dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-011
+    title: Quản lý SDK trong ứng dụng độc lập và ứng dụng do framework quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-initialization-012
+    title: Kiểm chứng dữ liệu đầu tiên tại điểm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sdk-configuration
+  title: Cấu hình SDK
+  childs:
+  - slug: sdk-configuration-001
+    title: Cấu hình bằng mã và bằng cơ chế autoconfigure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-002
+    title: Biến môi trường OTEL_* và thuộc tính hệ thống otel.*
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-003
+    title: Thứ tự ưu tiên cấu hình và giá trị thực tế được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-004
+    title: OTEL_SERVICE_NAME và OTEL_RESOURCE_ATTRIBUTES
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-005
+    title: Bật hoặc tắt xuất traces, metrics và logs riêng biệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-006
+    title: Endpoint OTLP chung và endpoint riêng cho từng tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-007
+    title: Chọn giao thức OTLP và đối chiếu giá trị mặc định theo cách tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-008
+    title: Cấu hình propagators, sampler và tham số lấy mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-009
+    title: Giới hạn dữ liệu span, log và thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-010
+    title: Chu kỳ thu thập số đo, gom lô và thời gian chờ xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-011
+    title: Cấu hình khai báo bằng YAML và mức hỗ trợ theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sdk-configuration-012
+    title: Tách cấu hình theo môi trường và bảo vệ thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tracing-api
+  title: API truy vết
+  childs:
+  - slug: tracing-api-001
+    title: TracerProvider, Tracer và SpanBuilder
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-002
+    title: Tạo span gốc và span con từ ngữ cảnh hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-003
+    title: Thiết lập parent tường minh và tạo trace mới với setNoParent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-004
+    title: Kích hoạt span bằng makeCurrent và đóng Scope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-005
+    title: Phân biệt thoát Scope với kết thúc Span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-006
+    title: Đặt tên span, SpanKind và thông tin bắt đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-007
+    title: Ghi Attributes với khóa có kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-008
+    title: Ghi mốc diễn tiến bằng addEvent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-009
+    title: Thêm liên kết bằng addLink và chọn đúng thời điểm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-010
+    title: recordException và thiết lập StatusCode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-011
+    title: Kết thúc span trong nhánh thành công hoặc thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-012
+    title: isRecording, span không ghi nhận và ngữ cảnh vẫn được truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tracing-api-013
+    title: Quyền sở hữu span khi làm việc cùng đo lường tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: span-design
+  title: Thiết kế span
+  childs:
+  - slug: span-design-001
+    title: Chọn ranh giới span theo thao tác có ý nghĩa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-002
+    title: Phân biệt span kỹ thuật và span nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-003
+    title: Đặt tên ổn định thay vì đưa giá trị thay đổi vào tên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-004
+    title: INTERNAL, SERVER, CLIENT, PRODUCER và CONSUMER
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-005
+    title: Quan hệ cha–con và trường hợp cần span links
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-006
+    title: Phân biệt thuộc tính, sự kiện và span con
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-007
+    title: Trạng thái UNSET, OK, ERROR và cách diễn đạt kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-008
+    title: Ngoại lệ đã xử lý, thao tác dự phòng và kết quả đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-009
+    title: 'Thử lại: phân biệt thao tác logic với từng lần thử'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-010
+    title: Thời gian theo đồng hồ và phép đo khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: span-design-011
+    title: Tránh span quá chi tiết, span trùng và span không kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: in-process-context
+  title: Ngữ cảnh trong tiến trình
+  childs:
+  - slug: in-process-context-001
+    title: 'Context: tập giá trị bất biến liên quan đến luồng công việc'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-002
+    title: Context.current và cách xác định span hiện tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-003
+    title: ContextKey và dữ liệu ngữ cảnh tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-004
+    title: Scope và cơ chế khôi phục ngữ cảnh trước đó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-005
+    title: Đóng Scope trên đúng luồng và theo đúng thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-006
+    title: Ngữ cảnh gắn với luồng và giới hạn của ThreadLocal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-007
+    title: Chụp Context trước khi chuyển công việc sang nơi khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-008
+    title: Truyền Context tường minh và kích hoạt ngầm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-009
+    title: Tách phạm vi kích hoạt khỏi thời gian tồn tại của công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-010
+    title: Rò rỉ ngữ cảnh giữa các yêu cầu dùng chung luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: in-process-context-011
+    title: Kiểm tra và chẩn đoán Scope bị dùng sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-propagation
+  title: Truyền ngữ cảnh
+  childs:
+  - slug: context-propagation-001
+    title: ContextPropagators và TextMapPropagator
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-002
+    title: Vật mang ngữ cảnh (carrier), TextMapGetter và TextMapSetter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-003
+    title: Chèn (inject) và trích xuất (extract) ngữ cảnh qua ranh giới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-004
+    title: 'W3C Trace Context: traceparent và tracestate'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-005
+    title: 'SpanContext: trace ID, span ID, trace flags và nguồn từ xa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-006
+    title: Truyền ngữ cảnh qua HTTP, gRPC và thuộc tính thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-007
+    title: 'Baggage: dữ liệu truyền kèm và mục đích sử dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-008
+    title: Phân biệt baggage, ContextKey và thuộc tính span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-009
+    title: Chọn propagator tương thích khi tích hợp hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-010
+    title: Ngữ cảnh thiếu, sai định dạng hoặc đến từ nguồn không đáng tin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-011
+    title: Proxy, cổng API và ranh giới có thể làm mất ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-propagation-012
+    title: Giới hạn kích thước và dữ liệu được phép truyền sang dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: jvm-asynchrony
+  title: Bất đồng bộ trên JVM
+  childs:
+  - slug: jvm-asynchrony-001
+    title: Executor và truyền Context cho Runnable hoặc Callable
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-002
+    title: Thread pool và yêu cầu khôi phục ngữ cảnh sau tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-003
+    title: CompletableFuture và các giai đoạn hoàn tất bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-004
+    title: Callback và quyền kết thúc span khi công việc hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-005
+    title: Luồng ảo (virtual threads) và ranh giới tác vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-006
+    title: Spring @Async và lịch chạy tác vụ nền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-007
+    title: Reactor Context và khác biệt với ngữ cảnh gắn ThreadLocal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-008
+    title: Thời điểm dựng chuỗi, đăng ký và hoàn tất xử lý phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-009
+    title: Nhiều nhánh song song, hợp nhất kết quả và quan hệ liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-010
+    title: Công việc tách rời, xử lý theo lô và lựa chọn trace mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-011
+    title: Hủy công việc, hết thời gian chờ và công việc vẫn đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: jvm-asynchrony-012
+    title: Phối hợp truyền ngữ cảnh thủ công với cơ chế tự động có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: trace-sampling
+  title: Lấy mẫu truy vết
+  childs:
+  - slug: trace-sampling-001
+    title: Lấy mẫu tại đầu luồng (head sampling) và sau thu thập (tail sampling)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-002
+    title: Vai trò Sampler trong SDK và quyết định lúc tạo span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-003
+    title: AlwaysOn, AlwaysOff và TraceIdRatioBased
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-004
+    title: ParentBased và tính nhất quán theo ngữ cảnh cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-005
+    title: Phân biệt DROP, RECORD_ONLY và RECORD_AND_SAMPLE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-006
+    title: Cờ sampled và trạng thái isRecording không phải cùng một khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-007
+    title: Giữ ngữ cảnh liên kết khi span không được xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-008
+    title: Chính sách ưu tiên lỗi, độ trễ hoặc luồng nghiệp vụ quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-009
+    title: Yêu cầu dữ liệu hội tụ khi lấy mẫu cuối luồng tại Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-010
+    title: Trace đến muộn, chưa đầy đủ và thời gian chờ quyết định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-011
+    title: Lấy mẫu nhiều tầng và nguy cơ loại dữ liệu trước quyết định cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: trace-sampling-012
+    title: Thiên lệch mẫu và giới hạn suy luận tần suất hoặc phân bố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-api
+  title: API số đo
+  childs:
+  - slug: metrics-api-001
+    title: MeterProvider, Meter và công cụ đo (instrument)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-002
+    title: Chọn công cụ từ đại lượng và cách quan sát thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-003
+    title: 'Counter: ghi nhận giá trị tăng đơn điệu'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-004
+    title: 'UpDownCounter: ghi nhận biến thiên tăng hoặc giảm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-005
+    title: 'Histogram: ghi nhận phân bố của các phép đo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-006
+    title: 'Gauge: ghi nhận giá trị tức thời khi không phù hợp cộng gộp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-007
+    title: ObservableCounter, ObservableUpDownCounter và ObservableGauge
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-008
+    title: Phân biệt ghi biến thiên với quan sát tổng tích lũy trong callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-009
+    title: Đặt tên, mô tả, đơn vị và kiểu giá trị long hoặc double
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-010
+    title: Attributes và Context khi ghi nhận phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-011
+    title: Vòng đời callback và giải phóng công cụ quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-api-012
+    title: Yêu cầu callback nhanh, an toàn và không gây lỗi ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: metrics-sdk
+  title: SDK số đo
+  childs:
+  - slug: metrics-sdk-001
+    title: SdkMeterProvider và luồng từ phép đo đến dữ liệu xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-002
+    title: 'View: lựa chọn instrument và cấu hình luồng số đo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-003
+    title: Thay đổi tên, mô tả và bộ thuộc tính qua View
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-004
+    title: 'Aggregation: sum, last value, histogram và các lựa chọn phù hợp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-005
+    title: Ranh giới bucket tường minh và mục tiêu đo độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-006
+    title: Exponential histogram và khả năng hỗ trợ của điểm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-007
+    title: Temporality tích lũy (cumulative) và theo khoảng (delta)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-008
+    title: Tính đơn điệu, thời điểm bắt đầu và nhận diện chuỗi bị đặt lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-009
+    title: MetricReader, PeriodicMetricReader và chu kỳ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-010
+    title: Xuất theo mô hình đẩy và thu thập theo mô hình kéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-011
+    title: Số tổ hợp thuộc tính (cardinality) và giới hạn chuỗi số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-012
+    title: Mẫu liên kết (exemplar) và quan hệ với Context của phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-013
+    title: Tránh đếm trùng khi nhiều bộ đo lường cùng quan sát một đại lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: metrics-sdk-014
+    title: Kiểm tra dữ liệu số đo sau khi tổng hợp và chuyển định dạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: otel-logging
+  title: Nhật ký OpenTelemetry
+  childs:
+  - slug: otel-logging-001
+    title: 'Mô hình LogRecord: thời gian, mức độ, nội dung và thuộc tính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-002
+    title: Timestamp và observed timestamp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-003
+    title: Resource và instrumentation scope của bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-004
+    title: Liên kết log với trace ID, span ID và trace flags
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-005
+    title: Vai trò Log Bridge API và lý do ứng dụng tiếp tục dùng framework ghi log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-006
+    title: LoggerProvider và SdkLoggerProvider trong luồng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-007
+    title: Logback hoặc Log4j appender chuyển bản ghi sang OpenTelemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-008
+    title: Phân biệt xuất logs qua OTLP với đưa trace ID vào MDC
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-009
+    title: SimpleLogRecordProcessor, BatchLogRecordProcessor và xuất dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-010
+    title: Ngoại lệ, nội dung có cấu trúc và ánh xạ mức độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-011
+    title: Ngăn gửi trùng khi vừa dùng appender vừa thu thập cùng tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otel-logging-012
+    title: Giới hạn bản ghi, thuộc tính và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-agent
+  title: Java agent
+  childs:
+  - slug: java-agent-001
+    title: Nguyên lý gắn đo lường bằng biến đổi bytecode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-002
+    title: Khởi chạy ứng dụng với tham số -javaagent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-003
+    title: Kiểm tra thư viện và phiên bản được agent hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-004
+    title: Cấu hình agent bằng biến môi trường hoặc thuộc tính hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-005
+    title: Bật hoặc tắt từng nhóm instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-006
+    title: Định danh dịch vụ và xuất dữ liệu từ agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-007
+    title: HTTP, JDBC, messaging và các điểm được đo tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-008
+    title: Bổ sung span nghiệp vụ bằng API khi agent đã quản lý SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-009
+    title: Annotation và tùy chọn đo phương thức theo khả năng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-010
+    title: Classloader, nhiều agent và xung đột tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-011
+    title: Chi phí khởi động và giới hạn trong môi trường native image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-agent-012
+    title: Debug agent và xác minh không phát sinh dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: spring-boot-integration
+  title: Tích hợp Spring Boot
+  childs:
+  - slug: spring-boot-integration-001
+    title: 'Java agent và OpenTelemetry Spring Boot starter: cách hoạt động khác nhau'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-002
+    title: Chọn một cơ chế khởi tạo SDK phù hợp cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-003
+    title: Quản lý dependency và phiên bản starter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-004
+    title: Cấu hình starter qua application.properties hoặc application.yml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-005
+    title: Cấu hình agent và giới hạn đọc cấu hình riêng của Spring
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-006
+    title: Đo HTTP server và HTTP client trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-007
+    title: Span nghiệp vụ với Tracer được ứng dụng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-008
+    title: Số đo nghiệp vụ với Meter được quản lý đúng vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-009
+    title: Tích hợp framework ghi log và tương quan ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-010
+    title: Quan hệ với Spring Observation và Micrometer Tracing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-011
+    title: Nguy cơ trùng SDK, span hoặc số đo khi bật nhiều cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: spring-boot-integration-012
+    title: Kiểm chứng ứng dụng Servlet, reactive hoặc native theo mức hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: library-instrumentation
+  title: Đo lường thư viện
+  childs:
+  - slug: library-instrumentation-001
+    title: Phân biệt trách nhiệm thư viện và ứng dụng sở hữu SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-002
+    title: Phụ thuộc API và hành vi khi người dùng không cài SDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-003
+    title: Truyền OpenTelemetry hoặc Tracer/Meter bằng phụ thuộc tường minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-004
+    title: Tên và phiên bản instrumentation scope cho thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-005
+    title: Chọn điểm mở rộng, bộ bao (wrapper) hoặc interceptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-006
+    title: Đo HTTP, RPC và ranh giới gọi dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-007
+    title: Đo truy cập cơ sở dữ liệu và thao tác bộ nhớ đệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-008
+    title: Đo gửi, nhận và xử lý thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-009
+    title: Thao tác theo lô, nhiều nguồn và span links
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-010
+    title: Giữ nguyên kết quả, ngoại lệ, cơ chế hủy và hành vi của thư viện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: library-instrumentation-011
+    title: Giảm phụ thuộc vào hằng số ngữ nghĩa chưa ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: otlp-exporters
+  title: OTLP và exporter
+  childs:
+  - slug: otlp-exporters-001
+    title: 'OTLP: định dạng, truyền tải và giao thức trao đổi telemetry'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-002
+    title: OTLP/gRPC và OTLP/HTTP với protobuf
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-003
+    title: Endpoint gốc, endpoint theo tín hiệu và đường dẫn HTTP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-004
+    title: Cổng, DNS, proxy và mạng container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-005
+    title: TLS, mTLS, headers và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-006
+    title: Nén payload, kích thước thông điệp và giới hạn điểm nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-007
+    title: Thời gian chờ, thử lại và phản hồi có thể thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-008
+    title: Partial success, dữ liệu bị từ chối và giới hạn bảo đảm giao nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-009
+    title: SpanExporter, MetricExporter và LogRecordExporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-010
+    title: Xử lý span đơn lẻ hoặc gom lô trước khi xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-011
+    title: Chọn exporter theo khả năng của Collector hoặc backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-012
+    title: Phân biệt OTLP metrics và định dạng Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: otlp-exporters-013
+    title: Xuất đồng thời nhiều nơi và nguy cơ tăng tải hoặc dữ liệu trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collector-configuration
+  title: Cấu hình Collector
+  childs:
+  - slug: collector-configuration-001
+    title: Collector là tiến trình độc lập với SDK của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-002
+    title: Bản phân phối core, contrib và thành phần thực sự có trong binary
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-003
+    title: 'Cấu trúc YAML: receivers, processors, exporters, connectors và extensions'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-004
+    title: Receiver tiếp nhận dữ liệu và phân biệt mô hình đẩy với kéo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-005
+    title: Processor và thứ tự xử lý trong mỗi pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-006
+    title: Exporter và cấu hình đích gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-007
+    title: Connector nối pipeline và hoạt động như cả receiver lẫn exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-008
+    title: Extension cho tác vụ hỗ trợ ngoài luồng xử lý dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-009
+    title: 'service.pipelines: khai báo pipeline cho traces, metrics và logs'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-010
+    title: Thành phần đã khai báo nhưng chưa được kích hoạt trong service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-011
+    title: Nhiều pipeline cùng loại và cú pháp type/name
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-012
+    title: Biến môi trường, nguồn cấu hình và giá trị cuối cùng được nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-configuration-013
+    title: Kiểm tra cấu hình, thành phần không hỗ trợ và lỗi khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collector-processing
+  title: Xử lý tại Collector
+  childs:
+  - slug: collector-processing-001
+    title: memory_limiter và kiểm soát áp lực bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-002
+    title: batch processor và đánh đổi kích thước lô với độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-003
+    title: attributes processor và resource processor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-004
+    title: Bổ sung metadata máy chủ, dịch vụ và Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-005
+    title: filter processor và quy tắc loại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-006
+    title: transform processor và OpenTelemetry Transformation Language (OTTL)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-007
+    title: Phân biệt ngữ cảnh truy cập span, datapoint và log record trong OTTL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-008
+    title: Chuẩn hóa tên, thuộc tính và mức độ theo chính sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-009
+    title: Che hoặc loại dữ liệu nhạy cảm trước khi xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-010
+    title: Tail sampling và yêu cầu trạng thái theo trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-011
+    title: Chuyển temporality hoặc tổng hợp số đo theo khả năng thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-012
+    title: Thứ tự xử lý, hành vi khi lỗi và tác động tới dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-processing-013
+    title: Kiểm chứng biến đổi bằng đầu vào và đầu ra có thể đối chiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-routing
+  title: Nối và định tuyến dữ liệu
+  childs:
+  - slug: pipeline-routing-001
+    title: Phân biệt receiver, processor và connector khi xây luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-002
+    title: Gửi một tín hiệu tới nhiều exporter
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-003
+    title: Định tuyến theo tài nguyên, thuộc tính hoặc đơn vị sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-004
+    title: Nối traces sang metrics bằng spanmetrics connector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-005
+    title: Phân biệt số đo tạo từ span với số đo ghi nhận trực tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-006
+    title: Tạo số đo quan hệ dịch vụ bằng servicegraph connector khi được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-007
+    title: Kết nối dữ liệu từ receiver Prometheus hoặc filelog
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-008
+    title: Giới hạn tín hiệu và mức ổn định của từng thành phần contrib
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-009
+    title: Phân phối trace nhất quán cho nhóm Collector lấy mẫu cuối luồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-routing-010
+    title: Tránh vòng lặp xử lý, gửi lặp và các nhánh không có nơi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collector-deployment
+  title: Triển khai Collector
+  childs:
+  - slug: collector-deployment-001
+    title: Mô hình gần ứng dụng (agent) và cổng tập trung (gateway)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-002
+    title: Triển khai trên máy chủ, container và Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-003
+    title: 'DaemonSet, Deployment và sidecar: phạm vi trách nhiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-004
+    title: Chọn endpoint lắng nghe và giới hạn tiếp xúc mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-005
+    title: CPU, bộ nhớ và lưu trữ cho từng loại xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-006
+    title: Cân bằng tải với pipeline không trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-007
+    title: Định tuyến theo trace ID khi pipeline có trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-008
+    title: Số đo tích lũy và yêu cầu trạng thái khi phân chia tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-009
+    title: Health check và phân biệt sống, sẵn sàng, xử lý thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-010
+    title: Khởi động lại, nâng cấp lần lượt và dừng có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-011
+    title: OpenTelemetry Operator và cơ chế tự động chèn đo lường khi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collector-deployment-012
+    title: Tách môi trường và quản lý cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: export-reliability
+  title: Độ tin cậy đường xuất
+  childs:
+  - slug: export-reliability-001
+    title: Các điểm có thể mất dữ liệu từ SDK đến backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-002
+    title: Bộ đệm SDK và giới hạn trước khi exporter gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-003
+    title: Sending queue của exporter tại Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-004
+    title: Thử lại có giãn cách, thời gian tối đa và điều kiện bỏ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-005
+    title: Lưu hàng đợi bền vững với storage extension khi thành phần hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-006
+    title: Phân biệt bộ đệm trong bộ nhớ, lưu trữ bền vững và môi giới thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-007
+    title: Áp lực ngược (backpressure) và hành vi từ chối tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-008
+    title: Ứng xử khi backend chậm, không sẵn sàng hoặc vượt hạn mức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-009
+    title: Dữ liệu bị gửi lặp và giới hạn của bảo đảm đúng một lần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-010
+    title: Tương tác giữa gom lô, hàng đợi, thử lại và thời gian dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-011
+    title: Kiểm tra phục hồi sau mất mạng hoặc khởi động lại Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: export-reliability-012
+    title: Xác định mức mất dữ liệu có thể chấp nhận cho từng tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: signal-correlation
+  title: Liên kết các tín hiệu
+  childs:
+  - slug: signal-correlation-001
+    title: Dùng tài nguyên chung để liên kết traces, metrics và logs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-002
+    title: Liên kết log record với span đang hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-003
+    title: Tương quan MDC và khác biệt với truyền ngữ cảnh giữa dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-004
+    title: Exemplar nối điểm số đo với trace đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-005
+    title: Định danh thao tác và quy ước giúp chuyển giữa các tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-006
+    title: Trace ID, span ID và định danh nghiệp vụ có mục đích khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-007
+    title: Tránh đưa mã yêu cầu hoặc mã người dùng vào nhãn số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-008
+    title: Ảnh hưởng của lấy mẫu trace tới exemplar và số đo suy ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-009
+    title: Từ cảnh báo hoặc số đo bất thường tới dữ liệu điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: signal-correlation-010
+    title: Kiểm chứng khả năng liên kết ở backend mà không giả định giao diện giống nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-security
+  title: Bảo mật dữ liệu
+  childs:
+  - slug: data-security-001
+    title: Phân loại thông tin được phép ghi nhận và truyền đi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-002
+    title: Giới hạn dữ liệu trong URL, headers, truy vấn và ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-003
+    title: Baggage và nguy cơ lan truyền bí mật sang dịch vụ khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-004
+    title: Ngữ cảnh nhận từ bên ngoài và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-005
+    title: Lọc hoặc che dữ liệu tại nguồn và tại Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-006
+    title: TLS, mTLS và xác thực điểm nhận telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-007
+    title: Quản lý chứng chỉ, token và vòng đời thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-008
+    title: Phân quyền cấu hình và hạn chế endpoint quản trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-009
+    title: Cô lập dữ liệu giữa môi trường, đội và tenant
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-010
+    title: Hạn mức chống lạm dụng nguồn tiếp nhận và tài nguyên xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-011
+    title: Dữ liệu trong nhật ký debug hoặc công cụ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-security-012
+    title: Chính sách lưu giữ và trách nhiệm của hệ lưu trữ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: performance-costs
+  title: Hiệu năng và chi phí
+  childs:
+  - slug: performance-costs-001
+    title: Chi phí CPU, bộ nhớ và cấp phát khi gắn đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-002
+    title: Số span trên yêu cầu và độ chi tiết phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-003
+    title: Số thuộc tính, độ dài giá trị, sự kiện và liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-004
+    title: Cardinality của số đo và tổ hợp thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-005
+    title: Chọn bucket histogram và ảnh hưởng tới dung lượng xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-006
+    title: Chi phí callback, đồng bộ hóa và truy cập nguồn số đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-007
+    title: Lấy mẫu trace và giới hạn lượng logs
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-008
+    title: Chi phí gom lô, nén, hàng đợi và thử lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-009
+    title: Phân biệt chi phí ứng dụng, Collector và backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-010
+    title: Tải tăng đột biến và cơ chế tự bảo vệ luồng telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-011
+    title: Đo so sánh khi bật hoặc tắt instrumentation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: performance-costs-012
+    title: Ngân sách dữ liệu và tiêu chí giảm chi tiết có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-diagnostics
+  title: Giám sát và chẩn đoán
+  childs:
+  - slug: monitoring-diagnostics-001
+    title: Tín hiệu nội bộ của SDK, Java agent và Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-002
+    title: debug exporter để quan sát dữ liệu ngay tại pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-003
+    title: Log nội bộ và tùy chọn chẩn đoán của Java agent
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-004
+    title: Bộ đếm dữ liệu tiếp nhận, từ chối, xử lý và xuất thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-005
+    title: Hàng đợi, mức sử dụng bộ nhớ và tình trạng backpressure
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-006
+    title: Khoanh vùng không có dữ liệu từ ứng dụng đến backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-007
+    title: Phân biệt lỗi endpoint, giao thức, TLS và thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-008
+    title: Scope sai, trace bị tách và thiếu ngữ cảnh bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-009
+    title: Span trùng hoặc số đo trùng do nhiều lớp tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-010
+    title: Thiếu số đo do reader, chu kỳ thu thập hoặc callback
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-011
+    title: Logs thiếu trace ID hoặc bị thu thập lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-012
+    title: Health check thành công nhưng dữ liệu vẫn không được xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-diagnostics-013
+    title: Thành phần chẩn đoán như pprof hoặc zPages và giới hạn truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: instrumentation-testing
+  title: Kiểm thử đo lường
+  childs:
+  - slug: instrumentation-testing-001
+    title: Tiêu chí chấp nhận cho cấu trúc và ý nghĩa telemetry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-002
+    title: Công cụ sdk-testing và exporter trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-003
+    title: Kiểm tra tên span, parent, loại, thuộc tính và trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-004
+    title: Kiểm tra sự kiện, ngoại lệ, liên kết và kết thúc span
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-005
+    title: Kiểm tra truyền ngữ cảnh qua HTTP, RPC và thông điệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-006
+    title: Kiểm tra bất đồng bộ, hủy công việc và rò rỉ Scope
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-007
+    title: Thu thập số đo có kiểm soát để kiểm tra instrument và View
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-008
+    title: Kiểm tra callback, temporality, histogram và tổ hợp thuộc tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-009
+    title: Kiểm tra log bridge, mức độ và thông tin liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-010
+    title: Kiểm thử pipeline Collector bằng dữ liệu đầu vào xác định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-011
+    title: Kiểm tra lấy mẫu, lỗi mạng và khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-012
+    title: Đối chiếu kết quả ứng dụng trước và sau khi gắn đo lường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: instrumentation-testing-013
+    title: Kiểm thử toàn luồng và kiểm tra dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-upgrades
+  title: Quản trị và nâng cấp
+  childs:
+  - slug: governance-upgrades-001
+    title: Ma trận tương thích giữa JDK, SDK, agent, starter và Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-002
+    title: Phân biệt phiên bản đặc tả với phiên bản thư viện hoặc bản phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-003
+    title: Quản lý dependency và tránh xung đột phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-004
+    title: Theo dõi mức ổn định của tín hiệu, instrumentation và thành phần Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-005
+    title: Schema telemetry và kiểm tra thay đổi tên hoặc đơn vị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-006
+    title: Nâng cấp semantic conventions mà không làm hỏng truy vấn đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-007
+    title: Triển khai thử trên một phần dịch vụ và so sánh dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-008
+    title: Thay đổi giao thức, endpoint hoặc backend có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-009
+    title: Quyền sở hữu cấu hình, chuẩn tài nguyên và chính sách dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-010
+    title: Quy trình quay lui SDK, agent hoặc Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-011
+    title: Ranh giới thử nghiệm tín hiệu mới như profiles
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-upgrades-012
+    title: Tài liệu hóa phần chưa được đo lường và giới hạn chất lượng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: ecosystem-compatibility
+  title: Tương thích hệ sinh thái
+  childs:
+  - slug: ecosystem-compatibility-001
+    title: Native OTLP và chuyển đổi qua exporter riêng của backend
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-002
+    title: Tích hợp hệ truy vết như Jaeger hoặc Tempo qua đường xuất phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-003
+    title: Tích hợp hệ số đo Prometheus và khác biệt mô hình dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-004
+    title: Tích hợp hệ nhật ký Loki hoặc nền tảng khác qua OTLP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-005
+    title: Micrometer, OpenTelemetry bridge và quyền sở hữu phép đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-006
+    title: 'Shim OpenTracing/OpenCensus đã deprecated: nhận diện và chuyển đổi hệ thống cũ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-007
+    title: Khả năng hỗ trợ thuộc tính, histogram và exemplar của từng đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-008
+    title: Phân biệt tương thích giao thức với giữ nguyên ngữ nghĩa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: ecosystem-compatibility-009
+    title: Thay đổi nhà cung cấp và kiểm tra liên kết dữ liệu sau chuyển đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-practice-001
+    title: Gắn Java agent và kiểm chứng dữ liệu qua Collector
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Khởi tạo SDK thủ công cho một ứng dụng Java độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thêm span nghiệp vụ trong ứng dụng đã có đo lường tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thiết kế công cụ đo cho giao dịch, hàng đợi và thời gian xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Xuất nhật ký qua log bridge và liên kết với trace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Truyền ngữ cảnh qua lời gọi dịch vụ và tác vụ bất đồng bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Thiết kế quan hệ trace cho thông điệp và xử lý theo lô
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Xây pipeline Collector chuẩn hóa, lọc và che dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Áp dụng chính sách lấy mẫu và kiểm chứng dữ liệu được giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: Diễn tập lỗi backend, đầy hàng đợi và khôi phục đường xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Điều tra mất dữ liệu hoặc dữ liệu trùng giữa các lớp tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-012
+    title: Rà soát một thiết kế OTel theo chất lượng, hiệu năng và bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

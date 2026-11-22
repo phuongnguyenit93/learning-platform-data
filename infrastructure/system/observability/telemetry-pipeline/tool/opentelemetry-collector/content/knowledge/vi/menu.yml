@@ -1,0 +1,401 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - OpenTelemetry Collector là gì và giải quyết vấn đề nào trong hệ thống quan sát
+  - Phân biệt OpenTelemetry API, SDK, Java Agent, Collector và hệ thống lưu trữ
+  - Đường đi của dữ liệu từ ứng dụng qua Collector đến nơi phân tích
+  - 'Thu thập, xử lý và chuyển tiếp: ranh giới trách nhiệm của Collector'
+  - Khi nào gửi trực tiếp từ SDK và khi nào cần Collector trung gian
+  - 'Thuật ngữ cốt lõi: signal, component, pipeline, resource và backend'
+  - 'Kiến thức cần chuẩn bị: YAML, HTTP/gRPC, container và telemetry'
+  - Lộ trình học từ pipeline tối thiểu đến vận hành nhiều Collector
+- level1: Dữ liệu telemetry
+  level2:
+  - Traces, metrics, logs và mức hỗ trợ profiles theo từng thành phần
+  - 'Trace và span: định danh, quan hệ cha con, trạng thái và sự kiện'
+  - 'Metric và điểm dữ liệu: Gauge, Sum, Histogram và Exponential Histogram'
+  - 'Cumulative và delta: thời gian bắt đầu, chu kỳ thu thập và trạng thái tổng hợp'
+  - 'LogRecord: nội dung, mức độ nghiêm trọng, thời gian và thuộc tính'
+  - 'Resource và instrumentation scope: xác định nguồn phát sinh dữ liệu'
+  - 'Semantic Conventions: thống nhất tên dịch vụ, môi trường và thuộc tính'
+  - Liên kết logs với traces bằng trace ID và span ID
+  - Cardinality, kích thước bản ghi và chi phí xử lý dữ liệu
+- level1: Kiến trúc Collector
+  level2:
+  - 'Receiver, processor, exporter, connector và extension: vai trò và quan hệ'
+  - 'Pipeline traces, metrics và logs: cách ghép các thành phần tương thích'
+  - 'Khai báo thành phần và kích hoạt trong service: hai bước khác nhau'
+  - Thứ tự processor và tác động lên kết quả xử lý
+  - Dùng chung receiver hoặc exporter giữa nhiều pipeline
+  - Nhân bản luồng dữ liệu (fan-out) và ảnh hưởng giữa các nhánh
+  - Thành phần có trạng thái và không trạng thái trong cùng tiến trình
+  - Vòng đời khởi tạo, chạy, dừng và giải phóng tài nguyên
+  - Phạm vi dữ liệu đang xử lý, dữ liệu chờ gửi và dữ liệu đã được xác nhận
+- level1: Bản phân phối
+  level2:
+  - Quan hệ giữa kho Core, kho Contrib và các bản phân phối Collector
+  - Chọn bản Core, Contrib, Kubernetes hoặc bản do nhà cung cấp đóng gói
+  - Đọc danh sách thành phần thực sự có trong binary đang chạy
+  - Đánh giá mức ổn định theo từng signal của mỗi thành phần
+  - Đối chiếu cấu hình với đúng phiên bản và README của thành phần
+  - Ghim phiên bản binary, image và tài liệu dùng cho bài thực hành
+  - Feature gate, thành phần ngừng hỗ trợ và rủi ro khi dùng ví dụ cũ
+- level1: Khởi động
+  level2:
+  - Cài đặt Collector bằng binary trên Linux, Windows và macOS
+  - Chạy Collector bằng Docker và gắn tệp cấu hình từ máy chủ
+  - Dựng môi trường Docker Compose gồm nguồn phát, Collector và backend
+  - Viết pipeline OTLP tối thiểu và quan sát dữ liệu bằng debug exporter
+  - Phát dữ liệu thử bằng telemetrygen và xác nhận signal đã nhận
+  - Phân biệt localhost trong ứng dụng, container và mạng máy chủ
+  - Kiểm tra cổng lắng nghe, log khởi động và tình trạng tiến trình
+  - Dừng Collector có kiểm soát và quan sát dữ liệu còn chờ
+- level1: Cấu hình YAML
+  level2:
+  - Bố cục receivers, processors, exporters, connectors, extensions và service
+  - Định danh type/name và tạo nhiều phiên bản cấu hình của cùng một loại
+  - Khai báo nhiều pipeline cùng signal với tên riêng
+  - Kích hoạt extension trong service.extensions
+  - Nạp cấu hình bằng --config và các nguồn file, env, yaml, HTTP/HTTPS
+  - Ghép nhiều nguồn cấu hình và kiểm tra quy tắc ưu tiên
+  - Thay thế biến môi trường, giá trị mặc định và ký tự cần escape
+  - Tách cấu hình thành nhiều tệp để tái sử dụng giữa các môi trường
+  - Kiểm tra cấu hình bằng validate trước khi khởi động
+  - Xem cấu hình hiệu lực và che thông tin bí mật khi chẩn đoán
+  - Nhận diện lỗi thụt dòng, khóa sai, giá trị null và thành phần chưa kích hoạt
+- level1: Vận chuyển OTLP
+  level2:
+  - OTLP là gì và quan hệ với mô hình dữ liệu OpenTelemetry
+  - So sánh OTLP/gRPC và OTLP/HTTP theo nhu cầu truyền dữ liệu
+  - Cấu hình địa chỉ lắng nghe và cổng cho OTLP receiver
+  - Phân biệt endpoint gốc với đường dẫn /v1/traces, /v1/metrics và /v1/logs
+  - Chọn Protobuf hoặc JSON khi thành phần và giao thức hỗ trợ
+  - Truyền metadata, header và thông tin xác thực qua từng chặng
+  - Giới hạn kích thước thông điệp, timeout, nén và kết nối giữ lâu
+  - Phản hồi thành công một phần (partial success) và ý nghĩa đối với bên gửi
+  - Phát hiện nhầm giao thức, sai đường dẫn và lỗi HTTP/gRPC thường gặp
+- level1: Thu thập traces
+  level2:
+  - Thiết kế đầu vào traces từ SDK, Java Agent và Collector khác
+  - Tiếp nhận traces qua OTLP/gRPC và OTLP/HTTP
+  - Chuyển tiếp dữ liệu Zipkin khi bản phân phối có receiver tương ứng
+  - Kiểm tra resource, scope, span name, span kind và trạng thái nhận được
+  - Tiếp nhận span đến lệch thứ tự hoặc đến muộn trong trace phân tán
+  - Ranh giới giữa truyền ngữ cảnh trong ứng dụng và xử lý span tại Collector
+  - Giữ nguyên trace ID và quan hệ cha con khi biến đổi dữ liệu
+  - Kiểm chứng trace xuyên nhiều dịch vụ trước khi đưa thêm processor
+- level1: Thu thập metrics
+  level2:
+  - Tiếp nhận metrics dạng đẩy qua OTLP và dạng kéo bằng receiver
+  - Thu thập endpoint Prometheus và cấu hình scrape
+  - Khám phá mục tiêu, gán nhãn lại và kiểm soát phạm vi scrape
+  - Thu thập CPU, bộ nhớ, đĩa và mạng bằng hostmetrics receiver
+  - Thu thập thông tin container hoặc dịch vụ bằng receiver phù hợp
+  - Phân biệt metrics của ứng dụng, của máy chủ và của chính Collector
+  - Giữ đúng đơn vị, kiểu dữ liệu và tính đơn điệu của metric
+  - 'Chuyển đổi delta và cumulative: yêu cầu lưu trạng thái và định tuyến'
+  - Histogram, Exponential Histogram và khả năng tiếp nhận của backend
+  - Tránh scrape trùng, chuỗi thời gian trùng và nhiều bên ghi cùng chuỗi
+- level1: Thu thập logs
+  level2:
+  - Chọn giữa logs qua OTLP, đọc tệp và giao thức nhận log chuyên dụng
+  - Cấu hình filelog receiver với mẫu include, exclude và quyền đọc
+  - Vị trí bắt đầu đọc, nhận diện tệp và lưu dấu tiến độ
+  - 'Chuỗi operator: phân tích JSON, biểu thức chính quy và ánh xạ trường'
+  - Phân tích timestamp, múi giờ và độ chính xác thời gian
+  - Chuẩn hóa severity, body và thuộc tính của LogRecord
+  - Gộp log nhiều dòng và stack trace của ứng dụng Java
+  - Xử lý log container theo định dạng Docker hoặc CRI
+  - Đổi tệp log, cắt tệp và nguy cơ bỏ sót hoặc đọc lại dữ liệu
+  - Giới hạn kích thước dòng, xử lý lỗi phân tích và tránh vòng lặp tự thu log
+- level1: Bổ sung ngữ cảnh
+  level2:
+  - Phân biệt thuộc tính resource với thuộc tính span, log và điểm dữ liệu
+  - Chuẩn hóa service.name, service.namespace và service.instance.id
+  - Dùng resource processor và attributes processor đúng phạm vi
+  - Phát hiện tài nguyên máy chủ hoặc nền tảng đám mây bằng resourcedetection
+  - Bổ sung metadata Kubernetes bằng k8sattributes processor
+  - 'Liên kết dữ liệu với pod: địa chỉ kết nối, UID và trường hợp qua gateway'
+  - Kiểm soát thứ tự ghi đè thuộc tính giữa ứng dụng, agent và gateway
+  - Kiểm chứng ngữ cảnh bổ sung mà không làm tăng cardinality ngoài dự kiến
+- level1: Xử lý nền tảng
+  level2:
+  - Chọn processor theo vấn đề dữ liệu và signal được hỗ trợ
+  - Giới hạn bộ nhớ bằng memory_limiter và ý nghĩa của việc từ chối dữ liệu
+  - 'Gom lô bằng batch processor: kích thước, thời gian chờ và giới hạn'
+  - Phân biệt gom lô trong processor với gom lô tại hàng đợi exporter
+  - Sắp xếp memory_limiter, biến đổi, lấy mẫu và batch theo yêu cầu thực tế
+  - Nhóm dữ liệu theo thuộc tính khi cần tái tổ chức resource hoặc bản ghi
+  - Điều chỉnh metrics bằng processor chuyên dụng và kiểm tra ngữ nghĩa sau đổi
+  - Nhận diện processor giữ trạng thái trước khi nhân bản hoặc khởi động lại
+  - Đo dữ liệu trước và sau mỗi processor để phát hiện tác động ngoài ý muốn
+- level1: Biến đổi với OTTL
+  level2:
+  - OpenTelemetry Transformation Language là gì và dùng trong thành phần nào
+  - Cấu trúc câu lệnh, hàm, điều kiện where và giá trị trả về
+  - Đường dẫn resource, scope, span, log, metric và datapoint
+  - Phân biệt chuỗi, số, boolean, map, danh sách và giá trị nil
+  - Thêm, sửa, đổi tên và xóa thuộc tính bằng transform processor
+  - Phân tích JSON trong nội dung log và chuyển trường sang thuộc tính
+  - Chuẩn hóa tên, văn bản và đường dẫn bằng biểu thức chính quy
+  - Biến đổi dữ liệu metrics mà vẫn bảo toàn đơn vị và ý nghĩa đo lường
+  - Nhóm câu lệnh, thứ tự thực thi và dùng bộ nhớ đệm trong OTTL
+  - 'Chọn error_mode: propagate, ignore hoặc silent theo yêu cầu dữ liệu'
+  - Kiểm tra điều kiện biên và chi phí CPU của quy tắc OTTL
+- level1: Lọc và bảo vệ dữ liệu
+  level2:
+  - Phân biệt lọc bỏ, che giá trị, xóa trường và lấy mẫu
+  - Lọc traces, logs hoặc metrics bằng filter processor và điều kiện OTTL
+  - Loại bỏ dữ liệu health check, bản ghi lặp và tín hiệu ngoài phạm vi
+  - Giữ danh sách thuộc tính cho phép thay vì thu thập mọi trường
+  - Che hoặc xóa thông tin nhạy cảm bằng transform và redaction processor
+  - Xử lý dữ liệu nhạy cảm trong body, thuộc tính, URL và stack trace
+  - Đặt bước làm sạch trước điểm xuất dữ liệu hoặc ghi bộ đệm bền vững
+  - Nguy cơ mất liên kết hoặc thay đổi chuỗi thời gian khi xóa thuộc tính
+  - Kiểm chứng dữ liệu được giữ lại và bị loại bằng tập mẫu có chủ đích
+- level1: Lấy mẫu traces
+  level2:
+  - Vì sao cần lấy mẫu và cách xác định ngân sách dữ liệu traces
+  - Phân biệt lấy mẫu ở đầu trace trong SDK với lấy mẫu tại Collector
+  - Lấy mẫu xác suất và tính nhất quán theo trace ID
+  - 'Tail sampling: ra quyết định dựa trên các span đã thu thập'
+  - Chính sách giữ trace lỗi, trace chậm hoặc trace có thuộc tính quan trọng
+  - Kết hợp nhiều chính sách và kiểm tra trace thỏa nhiều điều kiện
+  - Thời gian chờ quyết định, số trace lưu và dung lượng bộ nhớ
+  - Span đến muộn, bộ nhớ đệm quyết định và nguy cơ thiếu trace
+  - Đưa các span cùng trace đến cùng Collector xử lý tail sampling
+  - Ảnh hưởng của lấy mẫu sớm đến tail sampling và metrics suy ra từ spans
+  - Đo tỷ lệ giữ trace, trace bị loại sớm và sai lệch trong kết quả quan sát
+- level1: Xuất dữ liệu
+  level2:
+  - Chọn exporter theo giao thức, signal và bản phân phối đang dùng
+  - Gửi OTLP/gRPC hoặc OTLP/HTTP sang gateway và backend
+  - Dùng debug exporter để kiểm tra mẫu dữ liệu mà không lộ thông tin nhạy cảm
+  - Phân biệt Prometheus exporter dạng kéo với Prometheus Remote Write dạng đẩy
+  - 'Chuyển đổi metrics sang Prometheus: tên, nhãn, histogram và resource'
+  - Kết nối hệ thống traces như Tempo hoặc Jaeger qua giao thức được hỗ trợ
+  - Kết nối backend logs qua OTLP hoặc exporter chuyên dụng
+  - Cấu hình endpoint, header, timeout, nén và proxy cho exporter
+  - Gửi đồng thời đến nhiều đích và đánh giá tác động khi một đích lỗi
+  - Xác minh dữ liệu đã có ở backend thay vì chỉ dựa vào log gửi thành công
+- level1: Kết nối pipeline
+  level2:
+  - Connector là gì và vì sao khác processor hoặc exporter thông thường
+  - Đặt connector ở cuối pipeline nguồn và đầu pipeline đích
+  - Kiểm tra cặp signal đầu vào và đầu ra được connector hỗ trợ
+  - Sinh metrics về số lượng, lỗi và thời gian xử lý bằng spanmetrics connector
+  - Chọn chiều phân nhóm, histogram và chu kỳ xuất của spanmetrics
+  - Kiểm soát cardinality và số bên ghi metrics do connector sinh ra
+  - Khái quát servicegraph connector và yêu cầu ghép các span liên quan
+  - Đặt connector trước hoặc sau lấy mẫu theo mục tiêu phép đo
+  - Tránh vòng lặp pipeline và kiểm tra đường đi khi có nhiều connector
+- level1: Định tuyến dữ liệu
+  level2:
+  - Phân biệt nhân bản dữ liệu, định tuyến có điều kiện và cân bằng tải
+  - Dùng routing connector để chuyển dữ liệu sang pipeline phù hợp
+  - Định tuyến theo dịch vụ, môi trường, vùng hoặc thuộc tính resource
+  - Sử dụng metadata yêu cầu làm đầu vào định tuyến khi được giữ lại
+  - Nhánh mặc định và cách xử lý dữ liệu không khớp điều kiện
+  - Tách tenant và ràng buộc định tuyến với danh tính đã xác thực
+  - Ngăn giả mạo tenant từ header hoặc thuộc tính do ứng dụng tự gửi
+  - Định tuyến nhiều backend và kiểm soát dữ liệu bị gửi trùng
+  - Kiểm thử ma trận điều kiện, nhánh lỗi và ranh giới cách ly tenant
+- level1: Hàng đợi và retry
+  level2:
+  - 'Hàng đợi gửi của exporter: dữ liệu vào, dữ liệu chờ và tiến trình gửi'
+  - Đơn vị tính kích thước hàng đợi và cách đọc cấu hình theo phiên bản
+  - Số luồng gửi, kích thước lô và giới hạn thông lượng của backend
+  - Lỗi tạm thời, lỗi vĩnh viễn và dữ liệu không nên gửi lại
+  - Lùi thời gian thử lại, độ lệch ngẫu nhiên và giới hạn thời gian retry
+  - Hàng đợi đầy và lựa chọn chặn hoặc từ chối dữ liệu theo khả năng thành phần
+  - Áp lực ngược (backpressure) truyền từ backend về receiver và bên gửi
+  - Ảnh hưởng của timeout, gom lô và nhiều tầng retry đến độ trễ
+  - Khả năng gửi lặp và giới hạn của bảo đảm giao nhận trong toàn tuyến
+- level1: Bộ đệm bền vững
+  level2:
+  - Phân biệt bộ đệm trong RAM, hàng đợi bền vững và hệ thống lưu trữ telemetry
+  - Dùng file_storage extension cho hàng đợi exporter có hỗ trợ
+  - Chọn thư mục lưu, quyền truy cập và dung lượng đĩa cho dữ liệu đệm
+  - Khôi phục dữ liệu chờ gửi sau khi tiến trình hoặc container khởi động lại
+  - Phân biệt dấu tiến độ đọc filelog với hàng đợi lưu dữ liệu chờ xuất
+  - Giới hạn bảo vệ của bộ đệm khi dữ liệu còn ở processor hoặc bộ nhớ khác
+  - Đưa Kafka vào giữa các tầng Collector khi cần tách rời bên nhận và bên gửi
+  - Partition, consumer group, offset và thứ tự dữ liệu khi tích hợp Kafka
+  - Thử nghiệm mất mạng, đầy đĩa và khôi phục để xác định mức mất dữ liệu
+- level1: Mô hình triển khai
+  level2:
+  - So sánh mô hình agent, gateway và kết hợp nhiều tầng Collector
+  - Chọn sidecar, tiến trình trên máy chủ hoặc agent dùng chung mỗi node
+  - Đặt xử lý tại nguồn hay tại gateway theo quyền truy cập và chi phí
+  - Thiết kế đường đi riêng cho traces, metrics và logs khi tải khác nhau
+  - Phân chia vùng lỗi giữa ứng dụng, agent, gateway và backend
+  - Triển khai nhiều vùng và xác định điểm xử lý dữ liệu tập trung
+  - Tách pipeline theo mức tin cậy hoặc yêu cầu cách ly dữ liệu
+  - Chọn mô hình tối thiểu đáp ứng tải, độ trễ và khả năng vận hành
+- level1: Cân bằng tải
+  level2:
+  - Cân bằng tải ở tầng kết nối và tác động của kết nối gRPC giữ lâu
+  - Phân phối tải OTLP qua DNS, proxy hoặc bộ cân bằng tải
+  - Dùng loadbalancing exporter khi cần định tuyến ổn định theo khóa
+  - Định tuyến theo trace ID cho nhóm Collector chạy tail sampling
+  - Giữ dữ liệu cùng chuỗi metrics tại nơi xử lý có trạng thái
+  - Ghép các span liên quan khi tạo đồ thị dịch vụ
+  - Thay đổi số replica, phân phối lại khóa và tác động lên trạng thái
+  - Khám phá endpoint, cập nhật DNS và xử lý Collector rời cụm
+  - Phân biệt nhiều replica sẵn sàng với sao chép trạng thái xử lý
+- level1: Hiệu năng và mở rộng
+  level2:
+  - Lập ngân sách tải theo spans, điểm metrics, logs và số byte mỗi giây
+  - Đo CPU, RAM, đĩa, mạng và độ trễ ở từng đoạn pipeline
+  - Xác định nghẽn tại receiver, processor, hàng đợi, exporter hoặc backend
+  - Tính dung lượng bộ đệm theo tốc độ vào và thời gian gián đoạn cần chịu
+  - Điều chỉnh gom lô, nén và số luồng gửi dựa trên kết quả đo
+  - Phối hợp memory_limiter, giới hạn bộ nhớ tiến trình và giới hạn container
+  - Tối ưu OTTL, biểu thức chính quy và số tổ hợp thuộc tính
+  - Chia mục tiêu scrape khi mở rộng Prometheus receiver
+  - Mở rộng ngang thành phần có trạng thái và không trạng thái
+  - Chọn tín hiệu autoscaling và tránh tăng replica khi backend đang nghẽn
+  - Đánh đổi độ trễ, thông lượng, chi phí và chất lượng dữ liệu
+- level1: Bảo mật kết nối
+  level2:
+  - Xác định bề mặt truy cập tại receiver, exporter và extension
+  - Chọn địa chỉ bind và giới hạn truy cập endpoint theo mạng triển khai
+  - Bật TLS phía nhận và xác minh chứng thư phía gửi
+  - Thiết lập mTLS giữa agent, gateway và backend
+  - Xác thực yêu cầu bằng extension phù hợp và gắn đúng vào thành phần
+  - Cấp danh tính và phân quyền tối thiểu cho máy chủ, container hoặc pod
+  - Quản lý token, mật khẩu và khóa riêng bằng hệ thống lưu bí mật
+  - Luân chuyển chứng thư hoặc thông tin xác thực mà vẫn giữ đường truyền dữ liệu
+  - Giới hạn kích thước yêu cầu, mức sử dụng tài nguyên và truy cập công cụ chẩn đoán
+  - Đánh giá rủi ro thành phần bên thứ ba, image và cấu hình lấy từ xa
+- level1: Giám sát Collector
+  level2:
+  - Phân biệt telemetry Collector tự phát với telemetry ứng dụng đi qua pipeline
+  - Cấu hình service.telemetry và mức chi tiết dữ liệu nội bộ
+  - Theo dõi lượng nhận, lượng từ chối và lỗi tại receiver
+  - Theo dõi lượng xử lý, lọc bỏ và từ chối tại processor
+  - Theo dõi hàng đợi, dữ liệu gửi thành công và lỗi tại exporter
+  - Đọc tên, nhãn và mức ổn định của metrics theo phiên bản Collector
+  - Đối chiếu dữ liệu giữa các tầng và giải thích chênh lệch do lấy mẫu hoặc nhân bản
+  - Dùng health_check và phân biệt sức khỏe tiến trình với sức khỏe toàn tuyến
+  - Dùng pprof, zPages và log nội bộ để phân tích vấn đề
+  - Đặt cảnh báo về mất dữ liệu, độ trễ, hàng đợi đầy và mức sử dụng tài nguyên
+  - Tránh vòng lặp và điểm mù khi gửi telemetry nội bộ qua chính Collector
+- level1: Chẩn đoán sự cố
+  level2:
+  - Quy trình khoanh vùng từ nguồn phát đến nơi lưu trữ dữ liệu
+  - 'Collector không khởi động: sai YAML, khóa không hỗ trợ hoặc thiếu thành phần'
+  - 'Có khai báo nhưng không chạy: thiếu service.pipelines hoặc service.extensions'
+  - 'Không nhận OTLP: sai địa chỉ, DNS, cổng, giao thức hoặc đường dẫn'
+  - Lỗi TLS, chứng thư, header và quyền xác thực
+  - 'Không thấy dữ liệu sau xử lý: điều kiện lọc, OTTL hoặc chính sách lấy mẫu'
+  - 'Không xuất được dữ liệu: giới hạn backend, timeout hoặc lỗi không thể retry'
+  - 'Hàng đợi tăng liên tục: phân biệt nguồn vào quá tải với backend chậm'
+  - Tiến trình hết bộ nhớ, bị OOMKill hoặc khởi động lại liên tục
+  - Filelog bỏ sót, đọc trùng hoặc phân tách sai stack trace
+  - Metrics trùng chuỗi, sai temporality, sai đơn vị hoặc mất nhãn
+  - Trace thiếu span hoặc tách rời khi cân bằng tải và tail sampling
+  - Tạo cấu hình tái hiện tối thiểu và thu bằng chứng đã loại thông tin nhạy cảm
+- level1: Collector trên Kubernetes
+  level2:
+  - Chọn DaemonSet, Deployment hoặc StatefulSet theo trách nhiệm thu thập
+  - Triển khai agent mỗi node và gateway tập trung bằng manifest
+  - Quản lý cấu hình, bí mật và danh tính bằng ConfigMap, Secret và ServiceAccount
+  - Cấu hình Service, DNS và đường truyền OTLP giữa các namespace
+  - Cấp RBAC tối thiểu để đọc metadata và tài nguyên Kubernetes
+  - Thu logs container, metrics node và metrics toàn cluster đúng phạm vi
+  - Gắn metadata pod bằng k8sattributes khi dữ liệu đi qua nhiều tầng
+  - Mount tệp log và volume bền vững với quyền phù hợp
+  - Thiết lập requests, limits, probe và thời gian dừng pod
+  - Cấu hình NetworkPolicy, phân tán pod và chính sách gián đoạn
+  - Tránh thu trùng dữ liệu cluster khi có nhiều replica
+- level1: Helm và Operator
+  level2:
+  - Phân biệt Helm chart Collector với OpenTelemetry Operator
+  - Chọn chế độ triển khai và image có đủ thành phần cần dùng
+  - Cấu hình values, preset và kiểm tra manifest sau khi render Helm
+  - Nhận diện nguy cơ thu trùng khi bật nhiều preset hoặc nhiều bộ Collector
+  - Quản lý Collector bằng tài nguyên OpenTelemetryCollector của Operator
+  - Tách trách nhiệm tự gắn instrumentation cho ứng dụng khỏi triển khai Collector
+  - Chia mục tiêu Prometheus scrape bằng Target Allocator khi phù hợp
+  - Theo dõi đồng bộ tài nguyên và xử lý xung đột giữa Operator với thay đổi thủ công
+  - Ghim phiên bản chart, CRD và image để tái tạo môi trường
+- level1: Tích hợp Java
+  level2:
+  - Gửi telemetry từ ứng dụng Java bằng Java Agent hoặc SDK
+  - Cấu hình OTEL_SERVICE_NAME, resource và OTLP endpoint phía ứng dụng
+  - Phân biệt giao thức và cấu hình exporter phía Java với receiver phía Collector
+  - Kết nối ứng dụng Spring Boot với Collector trong Docker Compose
+  - Giữ liên kết trace xuyên HTTP và giữa nhiều dịch vụ Java
+  - Đưa logs Java có trace ID và span ID qua OTLP hoặc filelog
+  - Thu metrics JVM, kiểm tra instrumentation scope và tránh thu trùng
+  - Phối hợp lấy mẫu ở SDK Java với chính sách lấy mẫu tại gateway
+  - Quan sát ảnh hưởng lên ứng dụng khi Collector chậm hoặc không khả dụng
+  - Xác minh dữ liệu Java xuyên suốt đến backend bằng yêu cầu có định danh
+- level1: Kiểm thử pipeline
+  level2:
+  - Phân biệt kiểm tra cú pháp cấu hình, kiểm thử dữ liệu và thử nghiệm vận hành
+  - Tạo tập mẫu cho từng signal với kết quả đầu ra mong đợi
+  - Kiểm tra biến đổi, lọc và che dữ liệu bằng ca hợp lệ lẫn ca lỗi
+  - Kiểm thử điều kiện định tuyến và ranh giới tenant
+  - Kiểm thử lấy mẫu bằng trace lỗi, trace chậm và span đến muộn
+  - Chạy kiểm thử tích hợp với Collector và backend tạm thời trong container
+  - Tạo tải bằng telemetrygen và ghi lại tỷ lệ nhận, xuất, mất và độ trễ
+  - Mô phỏng backend dừng, mạng đứt, đĩa đầy và tiến trình bị kết thúc
+  - Kiểm tra dữ liệu được phục hồi hoặc gửi lặp sau gián đoạn
+  - Đưa kiểm tra cấu hình và tập mẫu hồi quy vào CI
+- level1: Quản lý cấu hình
+  level2:
+  - Tổ chức cấu hình theo môi trường, tầng triển khai và signal
+  - Quản lý cấu hình bằng Git và xác định nguồn cấu hình chuẩn
+  - Tái sử dụng cấu hình nền nhưng kiểm tra rõ kết quả ghép cuối cùng
+  - Quản lý bí mật tách khỏi nội dung cấu hình có thể chia sẻ
+  - Đánh giá thay đổi processor theo tác động lên dữ liệu đã phát hành
+  - Triển khai cấu hình từng phần với dữ liệu thử trước khi mở rộng
+  - Kiểm tra cơ chế nạp lại cấu hình theo công cụ và phiên bản đang dùng
+  - Khôi phục cấu hình trước và xác minh dữ liệu sau khi hoàn nguyên
+- level1: Nâng cấp và vận hành
+  level2:
+  - Đọc release notes, thay đổi cấu hình và mức ổn định trước nâng cấp
+  - Kiểm kê thành phần, feature gate và phụ thuộc của bản đang chạy
+  - Kiểm thử tương thích giữa SDK, các tầng Collector và backend
+  - Thử nghiệm song song hoặc triển khai thăm dò để đánh giá phiên bản mới
+  - Nâng cấp cuốn chiếu và bảo vệ dữ liệu còn trong hàng đợi hoặc processor
+  - Xác định điều kiện hoàn nguyên và giới hạn khôi phục trạng thái
+  - Quản lý dung lượng, dọn dữ liệu đệm và xử lý sự cố đầy đĩa
+  - Soạn quy trình xử lý mất dữ liệu, lỗi backend và Collector quá tải
+  - Xác định mục tiêu dịch vụ về độ trễ, độ đầy đủ dữ liệu và thời gian phục hồi
+  - Rà soát chi phí định kỳ theo signal, tenant và từng tầng Collector
+- level1: Quản lý với OpAMP
+  level2:
+  - Vì sao cần quản lý tập trung khi có nhiều Collector
+  - Open Agent Management Protocol và vai trò của máy chủ quản lý
+  - Phân biệt OpAMP extension, Supervisor và tiến trình Collector
+  - Trao đổi định danh, khả năng, sức khỏe và cấu hình hiệu lực
+  - Phân phối cấu hình từ xa và xác nhận kết quả áp dụng
+  - Bảo vệ kênh quản lý, xác thực danh tính và phân quyền thay đổi
+  - Kiểm tra mức hỗ trợ và thử nghiệm lỗi trước khi quản lý diện rộng
+- level1: Tùy biến Collector
+  level2:
+  - Khi nào cần bản phân phối riêng thay vì dùng image có sẵn
+  - Dùng OpenTelemetry Collector Builder (ocb) để chọn bộ thành phần
+  - Khai báo manifest và ghim phiên bản các module Go tương thích
+  - Xây binary, đóng gói container và công bố danh sách thành phần
+  - Giảm bề mặt phụ thuộc và kiểm tra thành phần ngoài dự án
+  - Khái quát factory, cấu hình, vòng đời và kiểu dữ liệu nội bộ pdata
+  - Phát triển thành phần riêng khi receiver, processor hoặc exporter hiện có chưa đáp ứng
+  - Kiểm thử chức năng, tải và tương thích của thành phần tùy biến
+  - Theo dõi thay đổi API và bảo trì bản phân phối theo phiên bản upstream
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng pipeline ba signal từ ứng dụng Java đến các backend trong Docker Compose
+  - Thu logs JSON và stack trace Java, chuẩn hóa rồi liên kết với traces
+  - Thu metrics Prometheus và hostmetrics mà không tạo chuỗi trùng
+  - Triển khai mô hình agent-gateway có bổ sung ngữ cảnh và giới hạn bộ nhớ
+  - Thiết kế tail sampling nhiều replica với định tuyến nhất quán theo trace ID
+  - Tách tenant, định tuyến nhiều backend và kiểm chứng cách ly dữ liệu
+  - Che dữ liệu nhạy cảm trước khi chuyển tiếp và lưu bộ đệm
+  - Dựng hàng đợi bền vững rồi đo khả năng phục hồi sau sự cố backend
+  - Triển khai Kubernetes bằng Helm hoặc Operator và kiểm tra dữ liệu thu trùng
+  - Xây bảng giám sát Collector và diễn tập phát hiện điểm nghẽn
+  - Đánh giá phương án production bằng tải thử, thử lỗi và tiêu chí nghiệm thu

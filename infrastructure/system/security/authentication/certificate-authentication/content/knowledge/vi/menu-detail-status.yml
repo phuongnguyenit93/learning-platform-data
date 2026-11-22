@@ -1,0 +1,1771 @@
+menu:
+- slug: authentication-fundamentals
+  title: Nền tảng xác thực bằng chứng chỉ
+  childs:
+  - slug: authentication-fundamentals-001
+    title: Chứng chỉ số giải quyết bài toán xác thực như thế nào?
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-002
+    title: Phân biệt định danh, xác thực và phân quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-003
+    title: Bằng chứng sở hữu khóa riêng và giới hạn của việc xuất trình chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-004
+    title: Xác thực một chiều, xác thực hai chiều và các ranh giới tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-005
+    title: So sánh chứng chỉ với mật khẩu, khóa công khai thuần và token
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-006
+    title: Mô hình đe dọa và điều kiện để tin cậy một danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-007
+    title: Phân biệt xác thực chủ thể với mã hóa đường truyền và phân quyền truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-008
+    title: 'Các chủ thể được xác thực: người dùng, thiết bị, máy chủ và dịch vụ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-009
+    title: Khi chứng chỉ nhận diện thiết bị nhưng chưa đủ để xác thực người sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: authentication-fundamentals-010
+    title: Mối liên hệ giữa chứng chỉ, khóa công khai, khóa riêng, CA và bên tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cryptographic-foundations
+  title: Cơ sở mật mã
+  childs:
+  - slug: cryptographic-foundations-001
+    title: Cặp khóa bất đối xứng và mối liên hệ giữa khóa với danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-002
+    title: Hàm băm, chữ ký số và cách phát hiện dữ liệu bị thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-003
+    title: Phân biệt ký số, mã hóa và thỏa thuận khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-004
+    title: Nguồn ngẫu nhiên và yêu cầu sinh khóa an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-005
+    title: Lựa chọn thuật toán, độ dài khóa và khả năng chuyển đổi thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-006
+    title: Phân biệt chữ ký số với MAC và thông điệp có mã xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-007
+    title: Thử thách, số ngẫu nhiên dùng một lần và bằng chứng chống phát lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cryptographic-foundations-008
+    title: Phân biệt CA ký chứng chỉ với bên xác minh quyền dùng khóa riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: x509-certificate-structure
+  title: Cấu trúc chứng chỉ X.509
+  childs:
+  - slug: x509-certificate-structure-001
+    title: Các trường phiên bản, số sê-ri, chủ thể, tổ chức phát hành và thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-002
+    title: Khóa công khai của chủ thể và chữ ký của tổ chức phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-003
+    title: Phần mở rộng và ý nghĩa của thuộc tính critical
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-004
+    title: Basic Constraints và giới hạn độ dài đường dẫn chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-005
+    title: Key Usage và Extended Key Usage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-006
+    title: Subject Alternative Name và giới hạn của Common Name
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-007
+    title: Subject Key Identifier và Authority Key Identifier
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-008
+    title: Định dạng PEM, DER và gói chứng chỉ kèm khóa PKCS#12
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-009
+    title: Phạm vi duy nhất của số sê-ri chứng chỉ trong cùng một CA phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-010
+    title: 'Các dạng danh tính trong SAN: DNS, IP, URI và địa chỉ thư điện tử'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-011
+    title: Diễn giải Not Before, Not After và ranh giới hiệu lực chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: x509-certificate-structure-012
+    title: Đối chiếu thuật toán khóa công khai và thuật toán CA dùng để ký chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pki-and-trust-models
+  title: PKI và mô hình tin cậy
+  childs:
+  - slug: pki-and-trust-models-001
+    title: Vai trò của CA, RA, kho công bố và bên xác minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-002
+    title: Chứng chỉ gốc, chứng chỉ trung gian và chứng chỉ thực thể cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-003
+    title: Điểm neo tin cậy và kho chứng chỉ tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-004
+    title: Chuỗi chữ ký hợp lệ và quyết định tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-005
+    title: PKI công cộng, PKI nội bộ và chứng chỉ tự ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-006
+    title: Phân cấp CA, ký chéo và nhiều đường dẫn chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-007
+    title: Tách biệt nhiệm vụ CA và bảo vệ CA gốc ngoại tuyến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-008
+    title: Phân biệt xây dựng chuỗi chứng chỉ với kiểm tra tính hợp lệ của chuỗi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-009
+    title: Chuỗi do máy khách cung cấp và điểm neo do bên xác minh quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-010
+    title: Chứng chỉ tự ký không tự động trở thành điểm neo tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pki-and-trust-models-011
+    title: Ghim chứng chỉ hoặc khóa công khai và rủi ro khi chuyển đổi khóa hoặc CA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-and-issuance-policy
+  title: Danh tính và chính sách cấp chứng chỉ
+  childs:
+  - slug: identity-and-issuance-policy-001
+    title: Mô hình danh tính cho người dùng, thiết bị và khối lượng công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-002
+    title: Thẩm tra danh tính và quyền yêu cầu cấp chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-003
+    title: Quy tắc đặt Subject, SAN và xác minh quyền sở hữu định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-004
+    title: Hồ sơ chứng chỉ theo mục đích sử dụng và phạm vi tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-005
+    title: Lựa chọn thời hạn chứng chỉ theo rủi ro và khả năng vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-006
+    title: Quy trình phê duyệt, phân công trách nhiệm và bằng chứng kiểm toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-007
+    title: Xác định chủ sở hữu, mục đích và nguồn xác nhận danh tính trước khi cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-008
+    title: Phân biệt quyền yêu cầu danh tính với khả năng chứng minh sở hữu khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-009
+    title: Ràng buộc hồ sơ chứng chỉ với SAN, Key Usage và Extended Key Usage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-issuance-policy-010
+    title: Ghi nhận chứng chỉ, khóa, chủ sở hữu và vị trí triển khai theo từng vai trò
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: certificate-issuance-and-lifecycle
+  title: Cấp phát và vòng đời chứng chỉ
+  childs:
+  - slug: certificate-issuance-and-lifecycle-001
+    title: Tạo yêu cầu CSR và kiểm tra bằng chứng sở hữu khóa yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-002
+    title: Thiết lập tin cậy ban đầu khi đăng ký chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-003
+    title: Cấp phát, phân phối và đối chiếu chứng chỉ với khóa cùng chuỗi CA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-004
+    title: Tự động hóa đăng ký và cấp lại chứng chỉ bằng giao thức chuẩn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-005
+    title: Phân biệt gia hạn chứng chỉ với thay cặp khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-006
+    title: Luân chuyển chứng chỉ với khoảng chuyển tiếp và kế hoạch quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-007
+    title: Thu hồi, ngừng sử dụng và hủy bỏ chứng chỉ cùng khóa liên quan
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-008
+    title: Kiểm kê chứng chỉ, chủ sở hữu và cảnh báo hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-009
+    title: Kiểm tra SAN, EKU và chính sách sử dụng trước khi ký CSR
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-010
+    title: Xác thực thiết bị hoặc dịch vụ ở lần cấp phát ban đầu khi tự động hóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-011
+    title: Khoảng chồng lấp chứng chỉ để triển khai thay khóa không gián đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-012
+    title: Thay đổi kho tin cậy khi đổi CA gốc hoặc CA trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-013
+    title: Duy trì ánh xạ danh tính qua nhiều lần gia hạn và thay cặp khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-014
+    title: Thu hồi chứng chỉ, vô hiệu hóa tài khoản và xử lý kết nối đang tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-issuance-and-lifecycle-015
+    title: Quy trình loại bỏ chứng chỉ cũ, xử lý mất thiết bị và chuyển chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: private-key-protection
+  title: Bảo vệ khóa riêng
+  childs:
+  - slug: private-key-protection-001
+    title: Bảo vệ khóa riêng khi lưu trữ, truyền giao và sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-002
+    title: Kho khóa hệ điều hành, HSM và TPM
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-003
+    title: Quyền truy cập tối thiểu, khóa không xuất được và kiểm toán thao tác khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-004
+    title: Sao lưu, khôi phục và giới hạn áp dụng đối với khóa ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-005
+    title: Xử lý mất khóa, nghi lộ khóa và xâm phạm thiết bị giữ khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-006
+    title: Bảo vệ quyền tệp và tài khoản tiến trình khi khóa được lưu trên đĩa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-007
+    title: Mật khẩu bảo vệ khóa riêng và bài toán cấp mật khẩu khi khởi chạy dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-008
+    title: Khác biệt giữa khóa riêng PKCS#8, PKCS#1 và tệp chứng chỉ X.509
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-009
+    title: Ngăn lộ khóa qua kho mã, log, bản dựng và gói triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: private-key-protection-010
+    title: Giới hạn của khóa không thể xuất khi thiết bị vẫn bị lạm dụng thao tác ký
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: certificate-validation
+  title: Xác minh chứng chỉ
+  childs:
+  - slug: certificate-validation-001
+    title: Tiếp nhận và phân tích chứng chỉ từ nguồn chưa tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-002
+    title: Xây dựng đường dẫn chứng chỉ đến điểm neo được chấp nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-003
+    title: Kiểm tra chữ ký, thời hạn và đồng hồ trên đường dẫn chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-004
+    title: Thực thi ràng buộc CA, độ dài đường dẫn, tên và phần mở rộng critical
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-005
+    title: Kiểm tra mục đích sử dụng và chính sách thuật toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-006
+    title: Đối chiếu định danh mong đợi với SAN theo quy tắc của giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-007
+    title: Từ chối chuỗi không tin cậy và xử lý lỗi xác minh an toàn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-008
+    title: So khớp tên DNS, địa chỉ IP và wildcard theo quy tắc giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-009
+    title: Phân biệt chuỗi hợp lệ, danh tính mong đợi và trạng thái tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-010
+    title: Kiểm tra name constraints và các ràng buộc định danh của tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-011
+    title: Điểm quyết định từ chối khi chứng chỉ sai EKU hoặc Key Usage
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-012
+    title: Giới hạn sai lệch đồng hồ khi kiểm tra thời điểm chứng chỉ có hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-validation-013
+    title: Phân biệt kiểm tra dấu critical với việc thực thi phần mở rộng đó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: revocation-and-status-checking
+  title: Thu hồi và trạng thái chứng chỉ
+  childs:
+  - slug: revocation-and-status-checking-001
+    title: Phân biệt hết hạn, thu hồi và thời điểm trạng thái có hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-002
+    title: Danh sách thu hồi CRL, Delta CRL và bộ nhớ đệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-003
+    title: OCSP và ý nghĩa các trạng thái good, revoked, unknown
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-004
+    title: OCSP stapling và điều kiện hỗ trợ của giao thức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-005
+    title: Độ mới của thông tin trạng thái và nguy cơ dùng lại phản hồi cũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-006
+    title: Chính sách chấp nhận hoặc từ chối khi không kiểm tra được trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-007
+    title: Kiểm tra trạng thái trong mạng cô lập và giới hạn của chứng chỉ ngắn hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-008
+    title: Xác minh nguồn, chữ ký và thời hạn hiệu lực của phản hồi OCSP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-009
+    title: Bộ nhớ đệm, thời điểm cập nhật và độ trễ khi một chứng chỉ bị thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-010
+    title: Rủi ro khi tự động truy xuất URL AIA, CRL hoặc OCSP từ chứng chỉ chưa tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: revocation-and-status-checking-011
+    title: OCSP stapling và giới hạn hỗ trợ trong từng vai trò giao thức TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: tls-certificate-authentication
+  title: Xác thực trong TLS
+  childs:
+  - slug: tls-certificate-authentication-001
+    title: Xác thực máy chủ bằng chứng chỉ trong bắt tay TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-002
+    title: Chứng minh sở hữu khóa và ràng buộc chữ ký với phiên bắt tay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-003
+    title: Khôi phục phiên, tái sử dụng kết nối và tác động đến thay đổi chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-004
+    title: Chính sách phiên bản TLS, thuật toán và cấu hình xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-005
+    title: Phạm vi bảo vệ của TLS khi kết nối đi qua nhiều chặng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-006
+    title: CertificateRequest và vị trí yêu cầu chứng chỉ máy khách trong bắt tay TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-007
+    title: CertificateVerify và bằng chứng dùng khóa riêng trên transcript bắt tay
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-008
+    title: Finished và kiểm tra toàn vẹn tiến trình bắt tay TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-009
+    title: Khác biệt quan trọng giữa cơ chế bắt tay TLS 1.2 và TLS 1.3
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-010
+    title: Khóa phiên, thỏa thuận khóa và tính bí mật chuyển tiếp khác với ký chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: tls-certificate-authentication-011
+    title: Dữ liệu TLS 0-RTT và trách nhiệm chống phát lại ở tầng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: mutual-tls-deployment
+  title: Triển khai mTLS
+  childs:
+  - slug: mutual-tls-deployment-001
+    title: Yêu cầu, lựa chọn và xác thực chứng chỉ phía máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-002
+    title: Thiết lập tin cậy hai chiều giữa các miền quản trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-003
+    title: Chế độ bắt buộc hoặc tùy chọn chứng chỉ máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-004
+    title: So sánh xác thực TLS một chiều với xác thực hai chiều bằng chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-005
+    title: Thiết lập chuỗi máy chủ và kho CA chấp nhận chứng chỉ máy khách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-006
+    title: Danh sách CA gợi ý chọn chứng chỉ không thay thế chính sách cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-007
+    title: Cấu hình chứng chỉ máy khách gửi và quyền sử dụng khóa riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-008
+    title: Từ chối máy khách thiếu chứng chỉ, sai mục đích hoặc không tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-009
+    title: Phân biệt xác thực trong bắt tay mTLS với cho phép truy cập tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: mutual-tls-deployment-010
+    title: Ranh giới tin cậy giữa các môi trường, tổ chức và dịch vụ dùng mTLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: certificate-identity-mapping
+  title: Ánh xạ danh tính
+  childs:
+  - slug: certificate-identity-mapping-001
+    title: Chuyển chứng chỉ đã xác minh thành danh tính được xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-002
+    title: Chọn định danh ổn định và tránh ánh xạ nhầm chủ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-003
+    title: Chính sách chấp nhận theo CA, miền danh tính và mục đích chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-004
+    title: Chọn thuộc tính SAN được quản trị làm định danh ổn định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-005
+    title: Giới hạn của Subject DN và CN khi dùng làm khóa tài khoản
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-006
+    title: Chuẩn hóa, so sánh và tránh va chạm khi ánh xạ định danh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-007
+    title: Phân biệt số sê-ri chứng chỉ với định danh chủ thể được xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-008
+    title: Nhiều chứng chỉ và khóa khác nhau có thể đại diện cho cùng một chủ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-009
+    title: Phân tách tổ chức, môi trường và không gian tên khi ánh xạ chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-identity-mapping-010
+    title: Xử lý thay chủ sở hữu, tài khoản bị khóa và danh tính không còn hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: certificate-based-authorization
+  title: Phân quyền truy cập
+  childs:
+  - slug: certificate-based-authorization-001
+    title: Gắn quyền truy cập với danh tính theo nguyên tắc tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-002
+    title: Thay đổi vai trò và vô hiệu hóa tài khoản độc lập với thu hồi chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-003
+    title: Điều kiện để xác thực bằng chứng chỉ đáp ứng yêu cầu nhiều yếu tố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-004
+    title: Ánh xạ danh tính chứng chỉ sang nhóm, vai trò và chính sách quyền tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-005
+    title: Kiểm tra quyền ở mức thao tác và từng tài nguyên được yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-006
+    title: Giới hạn tin cậy vào thuộc tính do chứng chỉ tự mang theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-007
+    title: Chứng chỉ hợp lệ nhưng tài khoản bị khóa hoặc không đủ quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-008
+    title: Điều chỉnh quyền khi phiên TLS hoặc kết nối ứng dụng vẫn còn tồn tại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: certificate-based-authorization-009
+    title: Ghi dấu vết bên gọi, danh tính đã ánh xạ và quyết định cấp quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: applications-and-deployment
+  title: Ứng dụng và kiến trúc triển khai
+  childs:
+  - slug: applications-and-deployment-001
+    title: mTLS giữa dịch vụ và quản lý danh tính khối lượng công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-002
+    title: Xác thực người dùng bằng chứng chỉ và thẻ thông minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-003
+    title: Chứng chỉ trong truy cập mạng EAP-TLS và VPN
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-004
+    title: Đăng ký, xác thực và thay chứng chỉ cho thiết bị IoT
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-005
+    title: Kết thúc TLS tại proxy, bộ cân bằng tải và cổng truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-006
+    title: Chuyển tiếp danh tính qua hạ tầng tin cậy và ngăn giả mạo header
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-007
+    title: Chứng chỉ SSH, principal và khác biệt với chứng chỉ X.509
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-008
+    title: Loại bỏ header nhận dạng chứng chỉ do máy khách ngoài tự gửi qua proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-009
+    title: Ngăn kết nối trực tiếp bỏ qua điểm xác thực tại gateway hoặc proxy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-010
+    title: Mã hóa lại kết nối giữa proxy và dịch vụ phía sau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-011
+    title: Service mesh, danh tính workload và giới hạn của xác thực tầng hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-012
+    title: Lựa chọn chứng chỉ trong trình duyệt, kho hệ điều hành và công cụ dòng lệnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-013
+    title: Thẻ thông minh, PIN và trải nghiệm xác thực người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: applications-and-deployment-014
+    title: Phân biệt VPN IKE, EAP-TLS và xác thực bằng chứng chỉ của SSH
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: attacks-and-countermeasures
+  title: Tấn công và biện pháp phòng vệ
+  childs:
+  - slug: attacks-and-countermeasures-001
+    title: Đánh cắp khóa riêng và giả mạo chủ thể hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-002
+    title: Cấp sai chứng chỉ và xâm phạm CA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-003
+    title: Giả mạo chuỗi và khai thác lỗi xác minh chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-004
+    title: Tấn công trung gian khi bỏ qua định danh hoặc thêm điểm neo tùy tiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-005
+    title: Phát lại chứng chỉ, chữ ký và vai trò của thử thách cùng ràng buộc phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-006
+    title: Làm cạn tài nguyên khi bắt tay và xử lý chuỗi chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-007
+    title: Rò rỉ danh tính qua nội dung chứng chỉ và quá trình xác thực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-008
+    title: Lạm dụng chứng chỉ hợp lệ khi phân quyền sai hoặc tài khoản đã bị khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-009
+    title: Nhầm danh tính người dùng, thiết bị và dịch vụ khi ánh xạ quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-010
+    title: Giả mạo header tại proxy hoặc tin cậy nhầm chứng chỉ từ CA ngoài phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: attacks-and-countermeasures-011
+    title: Phát lại thông điệp ngoài TLS khi thiếu thử thách và ràng buộc giao dịch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-troubleshooting
+  title: Vận hành và xử lý sự cố
+  childs:
+  - slug: operations-and-troubleshooting-001
+    title: Cấu hình mặc định an toàn và tách kho tin cậy giữa các môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-002
+    title: Phân phối, cập nhật và chuyển đổi CA gốc có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-003
+    title: Đồng bộ thời gian và chuẩn bị vận hành khi chứng chỉ sắp hết hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-004
+    title: Giám sát lỗi xác thực, độ trễ bắt tay và sự kiện vòng đời chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-005
+    title: Ghi nhật ký phục vụ điều tra mà không lộ khóa hoặc dữ liệu nhạy cảm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-006
+    title: Chẩn đoán thiếu chứng chỉ trung gian, sai chuỗi và CA không được tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-007
+    title: Chẩn đoán lỗi định danh, mục đích, thời hạn và trạng thái thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-008
+    title: Ứng phó xâm phạm CA và khôi phục tin cậy trên diện rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-009
+    title: Phân loại lỗi mạng, bắt tay, xác minh, ánh xạ và phân quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-010
+    title: Chẩn đoán thuật toán không tương thích và chứng chỉ không được chọn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-011
+    title: Thu thập bằng chứng đối chiếu từ máy khách, proxy và máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-012
+    title: Chi phí xác minh chuỗi, bộ nhớ đệm và tác động của nối lại phiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-troubleshooting-013
+    title: Tài liệu hóa cấu hình, trách nhiệm vận hành và kiểm tra định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: practice-and-design-assessment
+  title: Thực hành và đánh giá thiết kế
+  childs:
+  - slug: practice-and-design-assessment-001
+    title: Thiết kế PKI nội bộ với CA gốc, CA trung gian và các vai trò chứng chỉ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-002
+    title: Thực hành tạo CSR, cấp chứng chỉ và cài đặt đầy đủ chuỗi bằng công cụ độc lập ngôn ngữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-003
+    title: Quan sát và so sánh bắt tay TLS một chiều với mTLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-004
+    title: Kiểm thử từ chối chứng chỉ hết hạn, bị thu hồi, sai danh tính, sai CA và sai mục đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-005
+    title: Mô phỏng gia hạn, thay khóa và chuyển đổi điểm neo tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-006
+    title: Kiểm thử ánh xạ quyền và ngăn vượt qua xác thực tại cổng truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-007
+    title: Đánh giá thiết kế theo mô hình đe dọa và yêu cầu vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-008
+    title: Đọc CSR, chứng chỉ và chuỗi CA bằng OpenSSL
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-009
+    title: Kiểm tra bắt tay bằng openssl s_client và curl
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-010
+    title: Thử thiếu chứng chỉ, sai CA và thiếu chứng chỉ trung gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-011
+    title: Thử sai SAN, sai EKU, hết hạn và chưa có hiệu lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-012
+    title: Thử chứng chỉ bị thu hồi khi dịch vụ thu hồi tạm không khả dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: practice-and-design-assessment-013
+    title: Thử truy cập qua proxy, giả mạo header và đi thẳng vào dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

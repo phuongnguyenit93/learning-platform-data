@@ -1,0 +1,57 @@
+roadmap:
+- id: idp-nhu-mot-san-pham
+  title: IDP như một sản phẩm
+  purpose: Hiểu giá trị của nền tảng nội bộ và lựa chọn bài toán thực tế cần giải quyết cho lập trình viên.
+  objectives:
+  - Phân biệt IDP với developer portal và bộ công cụ rời rạc
+  - Phỏng vấn nhóm phát triển để tìm điểm nghẽn
+  - Xác định người dùng, mục tiêu và phạm vi MVP
+- id: kien-truc-nang-luc-nen-tang
+  title: Kiến trúc & năng lực nền tảng
+  purpose: Thiết kế lớp trải nghiệm thống nhất trên những năng lực hạ tầng hiện có, tránh tạo thêm công cụ chồng chéo.
+  objectives:
+  - Vẽ sơ đồ kết nối IaC, CI/CD, compute và observability
+  - Xác định giao diện API, CLI hoặc UI cho từng năng lực
+  - Phân định trách nhiệm platform team và product team
+- id: golden-paths-templates
+  title: Golden Paths & Templates
+  purpose: Chuẩn hóa những kịch bản phổ biến thành lộ trình dễ dùng, có mặc định tốt và khả năng mở rộng.
+  objectives:
+  - Tạo mẫu khởi tạo dịch vụ với cấu trúc chuẩn
+  - Tích hợp build, test, deploy và tài liệu vào template
+  - Thiết kế lựa chọn linh hoạt cho trường hợp ngoại lệ
+- id: self-service-provisioning
+  title: Self-Service & Provisioning
+  purpose: Cho phép lập trình viên tự cấp phát tài nguyên và triển khai mà không phụ thuộc vào ticket thủ công.
+  objectives:
+  - Thiết kế workflow tạo dịch vụ hoặc môi trường
+  - Tự động hóa provisioning bằng IaC và pipeline
+  - Xác minh trạng thái, lỗi và khả năng chạy lại thao tác
+- id: catalog-ownership
+  title: Catalog & Ownership
+  purpose: Giúp người dùng tìm dịch vụ, tài liệu và đầu mối chịu trách nhiệm trong cùng trải nghiệm khám phá.
+  objectives:
+  - Mô tả metadata của service, API và owner
+  - Đăng ký component vào software catalog
+  - Liên kết catalog với tài liệu và công cụ vận hành
+- id: security-guardrails
+  title: Security & Guardrails
+  purpose: Đưa yêu cầu an toàn vào đường đi mặc định nhưng không làm mất tính tự chủ của nhóm phát triển.
+  objectives:
+  - Áp dụng RBAC, quản lý secrets và quyền tối thiểu
+  - Kiểm tra policy và scanning trong workflow
+  - Xây dựng quy trình ngoại lệ có kiểm soát
+- id: van-hanh-do-tin-cay
+  title: Vận hành & độ tin cậy
+  purpose: Đảm bảo năng lực nền tảng hoạt động ổn định, có chủ sở hữu và hỗ trợ người dùng trong vòng đời sử dụng.
+  objectives:
+  - Thiết lập logging, metrics, tracing và cảnh báo
+  - Xác định SLO cùng quy trình ứng phó sự cố
+  - Lập kế hoạch nâng cấp, tương thích và hỗ trợ
+- id: do-luong-cai-tien-idp
+  title: Đo lường & cải tiến IDP
+  purpose: Liên tục cải tiến nền tảng dựa trên trải nghiệm nhà phát triển và tác động tới giao hàng phần mềm.
+  objectives:
+  - Đo adoption, thời gian onboarding và self-service success
+  - Theo dõi lead time, deployment và chỉ số ổn định
+  - Tổng hợp phản hồi để ưu tiên roadmap nền tảng

@@ -1,0 +1,127 @@
+menu:
+- title: Định hướng quyền riêng tư
+  slug: privacy-orientation
+  index: 0
+- title: Bảo mật và quyền riêng tư
+  slug: security-vs-privacy
+  index: 1
+- title: Dữ liệu cá nhân
+  slug: personal-data
+  index: 2
+- title: Chủ thể và phạm vi dữ liệu
+  slug: data-subjects-scope
+  index: 3
+- title: Vòng đời dữ liệu
+  slug: data-lifecycle
+  index: 4
+- title: Khám phá và lập bản đồ dữ liệu
+  slug: data-discovery-mapping
+  index: 5
+- title: Giới hạn mục đích
+  slug: purpose-limitation
+  index: 6
+- title: Tối thiểu hóa dữ liệu
+  slug: data-minimization
+  index: 7
+- title: Cơ sở xử lý
+  slug: lawful-basis-processing
+  index: 8
+- title: Đồng ý và lựa chọn
+  slug: consent-choices
+  index: 9
+- title: Thông báo quyền riêng tư
+  slug: privacy-notices
+  index: 10
+- title: Minh bạch và giải thích
+  slug: transparency-explainability
+  index: 11
+- title: Quyền của chủ thể dữ liệu
+  slug: data-subject-rights
+  index: 12
+- title: Tiếp nhận và xử lý yêu cầu
+  slug: rights-request-handling
+  index: 13
+- title: Privacy by Design
+  slug: privacy-by-design
+  index: 14
+- title: Đánh giá rủi ro privacy
+  slug: privacy-risk-assessment
+  index: 15
+- title: Vai trò và trách nhiệm
+  slug: roles-responsibilities
+  index: 16
+- title: Quản trị chính sách
+  slug: policy-governance
+  index: 17
+- title: Thu thập dữ liệu
+  slug: data-collection
+  index: 18
+- title: Sử dụng dữ liệu nội bộ
+  slug: internal-data-use
+  index: 19
+- title: Truy cập và ủy quyền
+  slug: access-authorization
+  index: 20
+- title: Chia sẻ và tiết lộ dữ liệu
+  slug: data-sharing-disclosure
+  index: 21
+- title: Bên xử lý và bên thứ ba
+  slug: processors-third-parties
+  index: 22
+- title: Chuyển dữ liệu xuyên biên giới
+  slug: cross-border-transfers
+  index: 23
+- title: Lưu trữ và thời hạn
+  slug: data-retention
+  index: 24
+- title: Xóa và hủy dữ liệu
+  slug: data-deletion-disposal
+  index: 25
+- title: Pseudonymization và anonymization
+  slug: pseudonymization-anonymization
+  index: 26
+- title: Mã hóa và che giấu dữ liệu
+  slug: encryption-masking
+  index: 27
+- title: Nhật ký và giám sát
+  slug: logging-monitoring
+  index: 28
+- title: Cookie, tracking và analytics
+  slug: cookies-tracking-analytics
+  index: 29
+- title: API và microservices
+  slug: api-microservices
+  index: 30
+- title: Ứng dụng di động và thiết bị
+  slug: mobile-devices
+  index: 31
+- title: Trẻ em và dữ liệu nhạy cảm
+  slug: children-sensitive-data
+  index: 32
+- title: Sự cố và vi phạm dữ liệu
+  slug: data-breaches
+  index: 33
+- title: DPIA và PIA
+  slug: dpia-pia
+  index: 34
+- title: Kiểm thử và xác minh
+  slug: testing-verification
+  index: 35
+- title: Đánh giá và audit
+  slug: privacy-audits
+  index: 36
+- title: Đo lường và cải tiến
+  slug: measurement-improvement
+  index: 37
+- title: Privacy trong Machine Learning và AI
+  slug: privacy-in-ai-ml
+  index: 38
+- title: Framework và tiêu chuẩn
+  slug: frameworks-standards
+  index: 39
+- title: Thực hành theo tình huống
+  slug: scenario-exercises
+  index: 40
+- title: Tổng kết và lộ trình áp dụng
+  slug: implementation-roadmap
+  index: 41

@@ -1,0 +1,7 @@
+# Cloud Core Services Storage
+
+**Cloud Storage** là nhóm dịch vụ lưu trữ dữ liệu do nhà cung cấp đám mây vận hành, giúp ứng dụng lưu, truy xuất và bảo vệ dữ liệu mà không phải tự quản lý toàn bộ phần cứng. Ba mô hình nền tảng là **object storage** (bucket, object và metadata), **block storage** (volume gắn cho máy chủ) và **file storage** (file share theo đường dẫn). Mỗi mô hình phù hợp với kiểu truy cập, độ trễ, khả năng chia sẻ và chi phí khác nhau; không nên mặc định một loại có thể thay thế mọi loại còn lại.
+
+Module phù hợp với người đã biết khái niệm VM, mạng và thao tác ứng dụng cơ bản. Bạn sẽ học cách phân loại workload và chọn mô hình lưu trữ, thực hành những thao tác phổ biến trên object, block và file storage, sau đó thiết lập IAM, kiểm soát truy cập công khai và mã hóa dữ liệu. Các mốc tiếp theo đi vào versioning, snapshot, backup, replication, lựa chọn storage class và chính sách vòng đời trước khi kết thúc bằng đo hiệu năng, quota, nhật ký và chi phí. Ví dụ có thể đối chiếu giữa Amazon S3/EBS/EFS, Azure Blob/Managed Disks/Files và các dịch vụ tương đương trên Google Cloud.
+
+Sau tám mốc, bạn có thể lập luận vì sao một ứng dụng nên dùng bucket, volume hay file share; xác định biện pháp bảo vệ dữ liệu và chọn cấu hình phù hợp với yêu cầu vận hành. Cần phân biệt **redundancy** với **backup**: nhiều bản sao giúp tăng độ bền và tính sẵn sàng nhưng không tự bảo vệ khỏi mọi tình huống xóa nhầm hoặc dữ liệu hỏng; phương án khôi phục cần được kiểm thử thực tế.

@@ -1,0 +1,136 @@
+menu:
+- title: Khái niệm secrets
+  slug: secrets-concepts
+  index: 0
+- title: Các loại secret
+  slug: secret-types
+  index: 1
+- title: Mối đe dọa
+  slug: threats
+  index: 2
+- title: Yêu cầu bảo mật
+  slug: security-requirements
+  index: 3
+- title: Inventory và metadata
+  slug: inventory-metadata
+  index: 4
+- title: Vòng đời secret
+  slug: secret-lifecycle
+  index: 5
+- title: Tạo secret
+  slug: secret-creation
+  index: 6
+- title: Lưu trữ
+  slug: secure-storage
+  index: 7
+- title: Access control
+  slug: access-control
+  index: 8
+- title: Xác thực với secret manager
+  slug: secret-manager-authentication
+  index: 9
+- title: Authorization
+  slug: authorization
+  index: 10
+- title: Dynamic secrets
+  slug: dynamic-secrets
+  index: 11
+- title: Static credentials
+  slug: static-credentials
+  index: 12
+- title: Rotation (bổ sung 2)
+  slug: rotation
+  index: 13
+- title: Revocation (bổ sung 2)
+  slug: revocation
+  index: 14
+- title: Expiration và lease
+  slug: expiration-lease
+  index: 15
+- title: Versioning
+  slug: versioning
+  index: 16
+- title: Phân phối secret
+  slug: secret-distribution
+  index: 17
+- title: Ứng dụng runtime
+  slug: runtime-integration
+  index: 18
+- title: CI/CD
+  slug: ci-cd-secrets
+  index: 19
+- title: Source control
+  slug: source-control
+  index: 20
+- title: Container
+  slug: container
+  index: 21
+- title: Kubernetes
+  slug: kubernetes
+  index: 22
+- title: Cloud
+  slug: cloud-secrets
+  index: 23
+- title: Multi-cloud
+  slug: multi-cloud
+  index: 24
+- title: Khóa mã hóa
+  slug: encryption-keys
+  index: 25
+- title: HSM và KMS
+  slug: hsm-kms
+  index: 26
+- title: Certificate và PKI
+  slug: certificate-pki
+  index: 27
+- title: Password và token
+  slug: password-token
+  index: 28
+- title: Phát hiện rò rỉ
+  slug: leak-detection
+  index: 29
+- title: Audit và logging
+  slug: audit-logging
+  index: 30
+- title: Monitoring
+  slug: monitoring
+  index: 31
+- title: Ứng phó lộ secret
+  slug: secret-exposure-response
+  index: 32
+- title: Backup và restore
+  slug: backup-restore
+  index: 33
+- title: Availability và break-glass
+  slug: availability-break-glass
+  index: 34
+- title: Thực hành cho developer
+  slug: developer-practices
+  index: 35
+- title: Kiểm thử
+  slug: testing
+  index: 36
+- title: Chính sách
+  slug: secrets-policies
+  index: 37
+- title: Đánh giá nhà cung cấp
+  slug: vendor-evaluation
+  index: 38
+- title: Di chuyển
+  slug: migration
+  index: 39
+- title: Vận hành runbook
+  slug: operational-runbooks
+  index: 40
+- title: Chỉ số
+  slug: metrics
+  index: 41
+- title: Kiến trúc mẫu
+  slug: reference-architecture
+  index: 42
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 43
+- title: Checklist production
+  slug: checklist-production
+  index: 44

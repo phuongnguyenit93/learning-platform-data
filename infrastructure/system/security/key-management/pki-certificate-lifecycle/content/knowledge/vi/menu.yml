@@ -1,0 +1,417 @@
+menu:
+- level1: Tổng quan PKI
+  level2:
+  - PKI là gì và bài toán liên kết danh tính với khóa công khai
+  - Chứng thư số bảo đảm điều gì và không bảo đảm điều gì
+  - Phân biệt khóa, chứng thư, danh tính và quan hệ tin cậy
+  - Các thành phần CA, RA, chủ thể, bên xác minh và kho công bố
+  - Luồng từ yêu cầu cấp chứng thư đến sử dụng và ngừng sử dụng
+  - 'Public PKI và Private PKI: phạm vi tin cậy cùng mục đích'
+  - Quan hệ giữa PKI, TLS, chữ ký số và xác thực bằng chứng thư
+  - 'Bản đồ vòng đời: phát hiện, cấp phát, triển khai, gia hạn, thu hồi và hủy'
+  - Khi nào cần PKI và khi nào nên chọn cơ chế khác
+- level1: Nền tảng mật mã
+  level2:
+  - Mã hóa đối xứng và bất đối xứng trong hệ thống PKI
+  - Cặp khóa công khai, khóa riêng và quyền kiểm soát danh tính
+  - Hàm băm và chữ ký số trong chứng thư
+  - Ký chứng thư khác gì với mã hóa dữ liệu
+  - RSA, đường cong elliptic và các họ thuật toán chữ ký
+  - Thuật toán khóa chủ thể và thuật toán CA ký chứng thư
+  - Entropy, nguồn ngẫu nhiên và sinh khóa an toàn
+  - Kích thước khóa, mức an toàn và thời hạn bảo vệ
+  - Crypto agility và lý do phải quản lý thuật toán theo thời gian
+  - Phân biệt tính toàn vẹn, xác thực, bí mật và bằng chứng pháp lý
+- level1: Cấu trúc X.509
+  level2:
+  - Cấu trúc chứng thư X.509 và vai trò của ASN.1
+  - Phần TBSCertificate, thuật toán chữ ký và giá trị chữ ký
+  - Version, serial number và phạm vi duy nhất của số sê-ri
+  - Issuer và Subject trong chứng thư
+  - Thời hạn notBefore, notAfter và ảnh hưởng của đồng hồ
+  - SubjectPublicKeyInfo và thông tin khóa công khai
+  - Extensions trong chứng thư X.509 v3
+  - OID và cách đọc tên thuộc tính hoặc phần mở rộng
+  - Critical extension và hành vi của bên xác minh
+  - Phân biệt chứng thư CA với chứng thư đầu cuối
+  - Tự ký không đồng nghĩa với tự động được tin cậy
+- level1: Phần mở rộng
+  level2:
+  - 'Basic Constraints: CA flag và giới hạn độ dài đường dẫn'
+  - Key Usage và các thao tác khóa được phép
+  - Extended Key Usage và ràng buộc mục đích chứng thư
+  - Subject Alternative Name và các dạng danh tính
+  - Subject Key Identifier và Authority Key Identifier
+  - Name Constraints và phạm vi tên mà CA được cấp
+  - Certificate Policies và định danh chính sách
+  - Policy Constraints, Policy Mappings và Inhibit Any Policy
+  - Authority Information Access và thông tin truy xuất issuer hoặc OCSP
+  - CRL Distribution Points và Freshest CRL
+  - TLS Feature và yêu cầu hỗ trợ khi dùng Must-Staple
+  - Phần mở rộng tùy chỉnh và rủi ro tương thích
+- level1: Tên và danh tính
+  level2:
+  - Distinguished Name và các thuộc tính trong Subject
+  - SAN dạng DNS name, IP address, URI và email
+  - Tên miền quốc tế, IDNA và cách so sánh tên
+  - Hostname verification khác với xác minh chữ ký chứng thư
+  - Wildcard certificate và phạm vi khớp tên được phép
+  - Vì sao không mặc nhiên dùng Common Name thay cho SAN
+  - Thiết kế danh tính cho người dùng, máy chủ, thiết bị và workload
+  - Định danh ổn định và thuộc tính có thể thay đổi theo thời gian
+  - Chứng thư nhiều tên và phạm vi ảnh hưởng khi khóa bị lộ
+  - Danh tính không mặc nhiên quyết định quyền truy cập
+- level1: Định dạng và công cụ
+  level2:
+  - 'DER và PEM: cùng dữ liệu nhưng khác cách biểu diễn'
+  - Chứng thư, chuỗi chứng thư và tệp khóa riêng
+  - PKCS#10 cho yêu cầu cấp chứng thư
+  - PKCS#7 và CMS trong đóng gói chứng thư hoặc dữ liệu ký
+  - PKCS#8 và biểu diễn khóa riêng
+  - PKCS#12, PFX và gói chứa khóa cùng chứng thư
+  - Tên đuôi tệp không đủ để xác định nội dung
+  - Đọc nội dung chứng thư và CSR bằng OpenSSL
+  - Đối chiếu khóa công khai để kiểm tra chứng thư khớp khóa riêng
+  - Chuyển đổi định dạng mà không làm lộ hoặc làm mất khóa
+  - Kiểm tra quyền tệp và bảo vệ tệp xuất khóa
+- level1: Mô hình tin cậy
+  level2:
+  - Trust anchor và nguồn hình thành quyết định tin cậy
+  - Trust store khác với tập chứng thư máy chủ gửi kèm
+  - Chuỗi root, intermediate và leaf certificate
+  - Chữ ký hợp lệ khác với đường dẫn chứng thực được tin cậy
+  - Trust store của hệ điều hành, trình duyệt và ứng dụng
+  - Đường dẫn thay thế và trường hợp nhiều root cùng tồn tại
+  - Cross-signing và quan hệ tin cậy giữa các hệ phân cấp
+  - Phân phối, cập nhật và loại bỏ trust anchor
+  - Certificate pinning, public key pinning và rủi ro vận hành
+  - Ranh giới tin cậy giữa đối tác, tổ chức và môi trường
+- level1: Kiến trúc CA
+  level2:
+  - Root CA, issuing CA và registration authority
+  - Root CA ngoại tuyến và CA cấp phát trực tuyến
+  - Mô hình một tầng, hai tầng và nhiều tầng
+  - Tách CA theo môi trường, mục đích và mức độ tin cậy
+  - Thiết kế thời hạn và ràng buộc giữa CA cha với CA con
+  - Phân quyền vận hành CA và tách biệt nhiệm vụ
+  - Mô hình CA tập trung, phân cấp và dịch vụ CA được quản lý
+  - Kho công bố chứng thư CA, CRL và dịch vụ trạng thái
+  - Hạ tầng quản trị tách khỏi hạ tầng cấp phát
+  - Giới hạn ảnh hưởng khi một issuing CA bị xâm phạm
+- level1: Chính sách PKI
+  level2:
+  - Certificate Policy và Certification Practice Statement
+  - Hồ sơ chứng thư theo từng mục đích sử dụng
+  - Yêu cầu nhận dạng và mức bảo đảm trước khi cấp
+  - Chính sách thuật toán, kích thước khóa và thời hạn
+  - Chính sách tên, SAN, Key Usage và Extended Key Usage
+  - Vai trò chủ sở hữu, người phê duyệt và người vận hành
+  - Tách nhiệm vụ và cơ chế nhiều người kiểm soát thao tác nhạy cảm
+  - Quy định gia hạn, cấp lại, thu hồi và ngừng CA
+  - Yêu cầu lưu trữ bằng chứng, nhật ký và dữ liệu kiểm toán
+  - Ánh xạ yêu cầu tuân thủ theo lĩnh vực và môi trường
+- level1: Bảo vệ khóa
+  level2:
+  - Sinh khóa tại chủ thể hay sinh tập trung
+  - Khóa xuất được và khóa không xuất được
+  - HSM, TPM, secure element và kho khóa của hệ điều hành
+  - Bảo vệ khóa CA khác với khóa của chứng thư đầu cuối
+  - Key ceremony và ghi nhận bằng chứng sinh khóa CA
+  - Kiểm soát truy cập, phân quyền tối thiểu và truy vết dùng khóa
+  - Sao lưu, khôi phục và bảo vệ bản sao khóa
+  - Phân biệt sao lưu khóa với key escrow
+  - Luân chuyển người quản trị và quản lý vật liệu khôi phục
+  - Truyền hoặc nhập khóa an toàn khi không tránh được
+  - Hủy khóa và xác minh không còn bản sao ngoài kiểm soát
+  - Đánh giá tác động khi mất khóa hoặc nghi ngờ khóa bị lộ
+- level1: Kiểm kê chứng thư
+  level2:
+  - Lập danh mục chứng thư và khóa trên toàn hệ thống
+  - Phát hiện chứng thư từ máy chủ, thiết bị, kho mã và nền tảng đám mây
+  - Thu thập issuer, serial, SAN, thời hạn và dấu vân tay
+  - Ánh xạ chứng thư với khóa, dịch vụ, endpoint và môi trường
+  - Chủ sở hữu kỹ thuật, chủ sở hữu nghiệp vụ và người nhận cảnh báo
+  - Theo dõi nguồn cấp phát, hồ sơ và cơ chế tự động hóa
+  - Phân loại chứng thư đang dùng, dự phòng, mồ côi và không rõ chủ
+  - Theo dõi chuỗi phụ thuộc khi một chứng thư phục vụ nhiều hệ thống
+  - Trạng thái vòng đời và lịch sử thay đổi
+  - Đối chiếu tài sản thực tế với CMDB hoặc nguồn danh mục
+  - Không lưu khóa riêng như một trường dữ liệu kiểm kê thông thường
+- level1: Yêu cầu cấp phát
+  level2:
+  - Quy trình đăng ký danh tính và khởi tạo yêu cầu
+  - Tạo cặp khóa trước khi tạo CSR
+  - Nội dung và chữ ký của CSR PKCS#10
+  - Proof of possession và giới hạn của chữ ký CSR
+  - Thuộc tính được yêu cầu khác với thuộc tính CA chấp thuận
+  - Kiểm tra Subject, SAN và khóa công khai trong CSR
+  - Xác thực người hoặc hệ thống gửi yêu cầu
+  - Ủy quyền yêu cầu thay mặt chủ thể
+  - Ngăn yêu cầu vượt quyền đối với tên và mục đích chứng thư
+  - Phê duyệt thủ công, tự động và lưu vết bằng chứng
+  - Liên kết mã yêu cầu với chứng thư sau cấp phát
+- level1: Xác minh và cấp phát
+  level2:
+  - Xác minh quyền kiểm soát tên miền hoặc tài nguyên
+  - Xác minh danh tính tổ chức, cá nhân và thiết bị theo hồ sơ
+  - DV, OV, EV và giới hạn ý nghĩa của từng loại xác minh
+  - Áp dụng hồ sơ chứng thư thay vì sao chép mọi yêu cầu từ CSR
+  - Kiểm tra SAN, Key Usage, Extended Key Usage và thuật toán
+  - Sinh serial, thiết lập thời hạn và chọn CA cấp phát
+  - Kiểm tra chất lượng chứng thư trước và sau khi ký
+  - Bảo vệ API hoặc giao diện ký chứng thư
+  - Giới hạn cấp phát, phát hiện bất thường và ngăn lạm dụng CA
+  - Phân phối chứng thư cùng chuỗi CA cần thiết
+  - Lưu bằng chứng phê duyệt, phát hành và người chịu trách nhiệm
+- level1: Đăng ký tự động
+  level2:
+  - Bài toán tự động hóa đăng ký và gia hạn chứng thư
+  - 'ACME: account, order, authorization, challenge và certificate'
+  - HTTP-01, DNS-01, TLS-ALPN-01 và điều kiện triển khai
+  - Bảo vệ khóa tài khoản ACME và quyền truy cập DNS
+  - External Account Binding khi CA yêu cầu liên kết tài khoản
+  - EST trong đăng ký và tái đăng ký chứng thư
+  - SCEP và các ràng buộc khi dùng cho thiết bị hoặc hệ thống cũ
+  - CMP trong quản lý vòng đời chứng thư
+  - Phân biệt giao thức đăng ký với chính sách cấp phát
+  - Bootstrap danh tính ban đầu cho chủ thể chưa có chứng thư
+  - Idempotency, retry và tránh tạo yêu cầu cấp phát trùng lặp
+  - Thu hồi quyền đăng ký khi thiết bị hoặc dịch vụ ngừng hoạt động
+- level1: Triển khai chứng thư
+  level2:
+  - Đưa chứng thư, chuỗi CA và khóa đến đúng thành phần sử dụng
+  - Kiểm tra chứng thư khớp khóa riêng trước triển khai
+  - Thứ tự chuỗi chứng thư được cấu hình trên máy chủ
+  - Chứng thư trung gian bị thiếu và khả năng tương thích của máy khách
+  - Quyền truy cập tệp, volume và kho khóa
+  - Cập nhật nguyên tử để tránh trạng thái chứng thư và khóa không đồng bộ
+  - Reload cấu hình, restart và triển khai không gián đoạn
+  - Phân phối đồng bộ trên cụm, CDN, proxy và bộ cân bằng tải
+  - Kiểm tra endpoint thực tế sau triển khai
+  - Rollback an toàn khi chứng thư mới gây lỗi
+  - Gỡ vật liệu cũ sau khoảng chuyển tiếp được kiểm soát
+- level1: Xác minh chứng thư
+  level2:
+  - Phân biệt xây dựng đường dẫn với xác minh đường dẫn chứng thực
+  - Chọn trust anchor từ cấu hình tin cậy
+  - Kiểm tra chữ ký trên từng liên kết trong chuỗi
+  - Kiểm tra thời hạn của chứng thư và CA trung gian
+  - Basic Constraints, path length và quyền ký chứng thư
+  - Name Constraints và xử lý phần mở rộng critical
+  - Key Usage, Extended Key Usage và mục đích ứng dụng
+  - Chính sách chứng thư và điều kiện chấp nhận của hệ thống
+  - Khớp tên dịch vụ hoặc danh tính mong đợi
+  - Kiểm tra trạng thái thu hồi theo chính sách
+  - Xử lý nhiều đường dẫn và chuỗi thay thế
+  - Giới hạn tải chứng thư qua AIA và rủi ro truy cập mạng
+  - Không tự thêm chứng thư lạ vào trust store để xử lý lỗi
+  - Thiết kế lỗi xác minh rõ ràng và từ chối an toàn
+- level1: TLS và mTLS
+  level2:
+  - Vai trò chứng thư trong bắt tay TLS
+  - Xác thực máy chủ và kiểm tra tên dịch vụ
+  - Chứng thư khóa công khai khác với khóa phiên mã hóa
+  - Xác thực hai chiều và yêu cầu chứng thư phía máy khách
+  - Chọn CA tin cậy riêng cho máy chủ và máy khách
+  - TLS termination và ranh giới xác thực qua proxy
+  - Chuyển danh tính chứng thư vào ứng dụng mà không cho giả mạo header
+  - Chứng minh giữ khóa riêng khác với gửi một tệp chứng thư
+  - SNI, máy chủ ảo và chọn chứng thư theo tên
+  - Phiên TLS đang tồn tại và thời điểm cấu hình chứng thư mới có tác dụng
+  - Phân biệt lỗi chuỗi chứng thư với lỗi phiên bản hoặc bộ thuật toán TLS
+- level1: Thu hồi chứng thư
+  level2:
+  - Thu hồi trước hạn và những trường hợp cần kích hoạt
+  - 'CRL: cấu trúc, số phiên bản, thời điểm cập nhật và phân phối'
+  - Delta CRL và phối hợp với CRL đầy đủ
+  - 'OCSP: trạng thái good, revoked, unknown và giới hạn diễn giải'
+  - Ủy quyền ký phản hồi OCSP và xác minh phản hồi
+  - OCSP stapling và trách nhiệm cập nhật của máy chủ
+  - Độ mới, bộ nhớ đệm và cửa sổ sử dụng phản hồi cũ
+  - Soft fail, hard fail và đánh đổi giữa bảo mật với tính sẵn sàng
+  - Chứng thư ngắn hạn và giới hạn thay thế cơ chế thu hồi
+  - Reason codes, thời điểm thu hồi và bằng chứng sự cố
+  - Thu hồi chứng thư CA và ảnh hưởng lên chứng thư con
+  - Đo độ trễ từ quyết định thu hồi đến khi bên xác minh thực sự từ chối
+- level1: Gia hạn và đổi khóa
+  level2:
+  - Phân biệt renew, reissue, rekey và rotate
+  - Gia hạn với khóa cũ và cấp chứng thư với khóa mới
+  - Chọn thời điểm bắt đầu gia hạn và khoảng chồng lấn
+  - Kiểm tra lại quyền kiểm soát danh tính trước khi gia hạn
+  - Gia hạn tự động theo chính sách của từng CA
+  - Xử lý retry, giới hạn cấp phát và lỗi tạm thời
+  - Phân phối chứng thư mới đến tất cả thành phần sử dụng
+  - Xác minh chứng thư mới đã phục vụ trên endpoint thực tế
+  - Thu hồi hoặc loại bỏ chứng thư cũ theo lý do thay thế
+  - Đồng bộ thay đổi khóa với cấu hình pinning và trust store
+  - Gia hạn CA trung gian và cập nhật chuỗi phía máy khách
+  - Tránh gia hạn thành công trên CA nhưng triển khai thất bại
+- level1: Hết hạn và ngừng dùng
+  level2:
+  - Ảnh hưởng khi leaf certificate hoặc CA trung gian hết hạn
+  - Theo dõi notAfter từ endpoint thay vì chỉ từ tệp nguồn
+  - Ngưỡng cảnh báo nhiều mức và tuyến chuyển giao trách nhiệm
+  - Chứng thư mồ côi, hệ thống cũ và tài sản ít được truy cập
+  - Ứng phó khẩn cấp khi chứng thư đã hết hạn
+  - Loại bỏ chứng thư khi dịch vụ, tài khoản hoặc thiết bị ngừng hoạt động
+  - Lưu trữ chứng thư công khai và bằng chứng phục vụ kiểm toán
+  - Hủy khóa riêng và các bản sao sao lưu hết nhu cầu
+  - Ngừng issuing CA và root CA theo kế hoạch
+  - Duy trì thông tin thu hồi, bằng chứng và nghĩa vụ lưu trữ sau ngừng CA
+- level1: Sự cố PKI
+  level2:
+  - Phân loại khóa bị lộ, cấp sai, hết hạn và mất dịch vụ CA
+  - Cô lập khóa hoặc tài khoản cấp phát bị xâm phạm
+  - Xác định chứng thư, dịch vụ và chủ thể chịu ảnh hưởng
+  - Thu hồi khẩn cấp và phát hành chứng thư thay thế
+  - Ứng phó khi khóa CA trung gian hoặc root CA bị lộ
+  - Phối hợp cập nhật trust store và loại bỏ CA không còn tin cậy
+  - Xử lý CA cấp sai tên hoặc sai thuộc tính
+  - Giữ bằng chứng, nhật ký và chuỗi thời gian sự cố
+  - Thông báo các bên liên quan theo quy trình tổ chức
+  - Khôi phục hoạt động và xác minh từ góc nhìn máy khách
+  - Rà soát nguyên nhân và diễn tập kịch bản tương tự
+- level1: Web PKI công cộng
+  level2:
+  - Root program và vai trò kho tin cậy công cộng
+  - Yêu cầu công khai đối với CA và hồ sơ chứng thư TLS
+  - CAA và kiểm soát CA được phép cấp cho tên miền
+  - Certificate Transparency và mục tiêu phát hiện cấp phát bất thường
+  - Precertificate, SCT và chứng thư đã ghi log
+  - Theo dõi CT để phát hiện tên miền hoặc chứng thư ngoài dự kiến
+  - Rủi ro công khai tên trong SAN qua log CT
+  - Cross-signing và tương thích với máy khách cũ
+  - Chứng thư wildcard và phạm vi quản lý khóa
+  - DV, OV, EV không thay thế đánh giá độ an toàn nội dung website
+  - Theo dõi thay đổi chính sách thời hạn, thuật toán và chương trình tin cậy
+- level1: PKI nội bộ
+  level2:
+  - Thiết kế miền tin cậy cho mạng và dịch vụ nội bộ
+  - Private CA không tự động được máy khách tin cậy
+  - Phân phối root CA qua quản trị thiết bị hoặc cấu hình tập trung
+  - Hồ sơ chứng thư cho máy chủ, người dùng và máy tính
+  - Tách root sản xuất khỏi môi trường thử nghiệm
+  - Ràng buộc quyền đăng ký và tránh mẫu chứng thư quá rộng
+  - Kiểm soát chứng thư cho đối tác hoặc hệ thống bên ngoài
+  - Quản lý thiết bị mất kết nối và kết nối không ổn định
+  - Khả năng mở rộng khi cấp phát nhiều chứng thư ngắn hạn
+  - Giới hạn tin cậy chéo và ngăn một CA nội bộ trở thành quyền cấp vô hạn
+- level1: Workload và thiết bị
+  level2:
+  - Danh tính chứng thư cho máy ảo, container và tiến trình dịch vụ
+  - Workload ngắn hạn và nhu cầu cấp phát tự động
+  - Chứng thư cho thiết bị IoT, mạng và thiết bị người dùng
+  - Bootstrap thiết bị bằng thông tin hoặc phần cứng tin cậy ban đầu
+  - Liên kết khóa với TPM, secure element hoặc attestation
+  - Service mesh và phân phối chứng thư theo danh tính workload
+  - SPIFFE X.509-SVID trong bối cảnh danh tính workload
+  - Chứng thư thiết bị khác với danh tính người đang sử dụng
+  - Thay thiết bị, chuyển chủ sở hữu và ngừng thiết bị
+  - Thu hồi quyền cấp phát khi workload hoặc thiết bị không còn hợp lệ
+- level1: Ứng dụng chữ ký
+  level2:
+  - PKI cho ký mã và xác minh nguồn phát hành phần mềm
+  - Ký mã khác với bảo đảm phần mềm không có hành vi độc hại
+  - Chứng thư ký tài liệu và điều kiện xác minh
+  - S/MIME và chứng thư cho email
+  - Time-stamping và vai trò bên cung cấp dấu thời gian
+  - Chữ ký hợp lệ ở hiện tại và bằng chứng hiệu lực tại thời điểm ký
+  - Dữ liệu thu hồi và xác minh chữ ký dài hạn
+  - Tách khóa ký mã, ký tài liệu và xác thực TLS
+  - Giới hạn giữa bảo đảm kỹ thuật với giá trị pháp lý theo ngữ cảnh
+- level1: Tự động hóa vận hành
+  level2:
+  - Thiết kế bộ điều khiển vòng đời theo trạng thái mong muốn
+  - Tích hợp CA API với hệ thống quản lý chứng thư
+  - ACME client, bộ lập lịch và hệ thống phân phối cấu hình
+  - Vai trò cert-manager trong môi trường Kubernetes
+  - Quyền tối thiểu cho bộ điều khiển, DNS API và kho bí mật
+  - Quản lý chứng thư tại cloud load balancer, CDN và API gateway
+  - Luồng chứng thư tự quản lý và chứng thư nền tảng quản lý
+  - Đối chiếu cấp phát, triển khai và kiểm tra endpoint thành một quy trình
+  - Tính lặp lại an toàn, khóa tác vụ và xử lý công việc đồng thời
+  - Ngăn khóa hoặc gói PKCS#12 rò rỉ qua CI/CD và kho mã
+  - Phê duyệt chính sách bằng mã với dấu vết thay đổi
+- level1: Tấn công PKI
+  level2:
+  - Khóa riêng bị đánh cắp và giả mạo chủ thể
+  - Cấp phát trái phép do xác thực hoặc ủy quyền yếu
+  - CSR độc hại và yêu cầu SAN hoặc quyền sử dụng vượt phạm vi
+  - Chứng thư CA bị tạo nhầm từ hồ sơ đầu cuối
+  - Trust anchor bị cài thêm hoặc trust store bị sửa
+  - Bỏ qua kiểm tra tên, EKU hoặc phần mở rộng critical
+  - Nhầm chuỗi, đường dẫn thay thế và tin cậy chéo ngoài dự kiến
+  - Lạm dụng AIA, CRL, OCSP hoặc địa chỉ truy xuất để tấn công mạng
+  - Phản hồi trạng thái cũ và rủi ro do xử lý lỗi thu hồi
+  - Tấn công hạ cấp thuật toán và khóa không đáp ứng chính sách
+  - Lạm dụng quyền DNS hoặc tài khoản ACME
+  - Lộ khóa qua bản sao lưu, ảnh máy, nhật ký và gói triển khai
+  - Cạn tài nguyên do chuỗi dài, dữ liệu bất thường hoặc yêu cầu cấp phát lớn
+- level1: Kiểm thử PKI
+  level2:
+  - Bộ chứng thư mẫu cho luồng hợp lệ và các trường hợp bị từ chối
+  - Chữ ký sai, sai issuer, chuỗi thiếu và root không tin cậy
+  - Chứng thư chưa hiệu lực, hết hạn và đồng hồ lệch
+  - SAN không khớp tên, wildcard sai và dạng địa chỉ IP
+  - Key Usage, Extended Key Usage và Basic Constraints không phù hợp
+  - Name Constraints, path length và critical extension không được hỗ trợ
+  - Khóa không khớp chứng thư và thuật toán ngoài chính sách
+  - CRL, OCSP và stapling lỗi hoặc hết độ mới
+  - Gia hạn đồng thời, giới hạn CA và lỗi phân phối chứng thư
+  - Xoay root hoặc intermediate trên tập máy khách khác nhau
+  - Kiểm thử mTLS với chứng thư máy khách không hợp lệ
+  - Kiểm tra liên thông bằng OpenSSL và máy khách độc lập
+  - Kiểm tra không lộ khóa riêng trong log, tệp tạm và pipeline
+  - Diễn tập sự cố cấp sai, lộ khóa và phục hồi CA
+- level1: Giám sát và kiểm toán
+  level2:
+  - Chỉ số cấp phát, gia hạn, lỗi xác minh và thời gian xử lý
+  - Độ phủ kiểm kê và tỷ lệ chứng thư có chủ sở hữu
+  - Chỉ số thời gian còn hiệu lực và tỷ lệ gia hạn thành công
+  - Giám sát endpoint phục vụ đúng chứng thư và đúng chuỗi
+  - Theo dõi sự kiện sử dụng khóa CA và thay đổi chính sách
+  - Phát hiện cấp phát bất thường theo tên, chủ thể và tần suất
+  - Nhật ký có khả năng truy vết và chống sửa đổi trái phép
+  - Bảo vệ dữ liệu cá nhân và bí mật trong bằng chứng vận hành
+  - Đối chiếu CSR, phê duyệt, serial và bản triển khai
+  - Kiểm toán quyền truy cập, key ceremony và bản sao khóa
+  - Báo cáo rủi ro tồn đọng cùng trách nhiệm xử lý
+- level1: Sẵn sàng và khôi phục
+  level2:
+  - Phân biệt tính sẵn sàng của CA với dịch vụ xác minh chứng thư
+  - Triển khai dự phòng cho issuing CA và dịch vụ đăng ký
+  - Dịch vụ CRL, OCSP và kho công bố không phụ thuộc một điểm lỗi
+  - Đồng bộ dữ liệu CA, số sê-ri và trạng thái cấp phát
+  - Sao lưu cơ sở dữ liệu, cấu hình và khóa được bảo vệ
+  - Khôi phục thảm họa với RPO, RTO và kiểm thử thực tế
+  - Root CA ngoại tuyến và kế hoạch truy cập khi cần thao tác
+  - Giới hạn tải, hàng đợi và năng lực ký của HSM
+  - Gián đoạn mạng, lỗi DNS và hệ thống chạy tách mạng
+  - Khôi phục mà không làm mất lịch sử thu hồi hoặc quyền kiểm soát khóa
+- level1: Di trú mật mã
+  level2:
+  - Đánh giá phụ thuộc trước khi thay CA, root hoặc thuật toán
+  - Đổi trust anchor theo các giai đoạn chồng lấn có kiểm soát
+  - Di trú khóa RSA sang ECC theo khả năng hỗ trợ thực tế
+  - Chuyển CA tự quản lý sang CA được quản lý hoặc ngược lại
+  - Di trú chứng thư và khóa khi thay HSM hoặc nhà cung cấp
+  - Loại bỏ thuật toán, khóa và hồ sơ không còn đáp ứng chính sách
+  - Rút ngắn thời hạn chứng thư và yêu cầu tự động hóa đi kèm
+  - Chuẩn bị cho mật mã hậu lượng tử qua kiểm kê và khả năng thay đổi
+  - Thử nghiệm tương thích, kích thước và hiệu năng trước di trú
+  - Tiêu chí hoàn tất, rollback và hủy vật liệu cũ
+- level1: Thực hành tổng hợp
+  level2:
+  - Đọc một chứng thư và dựng bản đồ khóa, danh tính, issuer, thời hạn
+  - Tạo PKI thử nghiệm với root và issuing CA tách biệt
+  - Thiết kế hồ sơ chứng thư máy chủ và máy khách
+  - Tạo CSR, kiểm tra yêu cầu và phát hành chứng thư trong môi trường thử nghiệm
+  - Triển khai TLS và mTLS rồi xác minh từ một máy khách độc lập
+  - Mô phỏng chuỗi thiếu, SAN sai và chứng thư không được tin cậy
+  - Tự động cấp phát và gia hạn bằng một giao thức đăng ký
+  - Diễn tập thu hồi chứng thư và kiểm tra hành vi bên xác minh
+  - Thiết kế danh mục chứng thư cùng cảnh báo hết hạn
+  - Xoay intermediate hoặc root với khoảng chuyển tiếp
+  - Diễn tập mất khóa, lộ khóa và khôi phục dịch vụ CA
+  - Rà soát thiết kế PKI bằng mô hình đe dọa, chính sách và bằng chứng kiểm thử

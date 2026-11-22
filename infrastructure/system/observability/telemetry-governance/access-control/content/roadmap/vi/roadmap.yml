@@ -1,0 +1,49 @@
+roadmap:
+- id: pham-vi-truy-cap
+  title: Phạm vi truy cập
+  purpose: Xác định ai cần truy cập tài nguyên telemetry nào và vì mục đích gì.
+  objectives:
+  - Liệt kê người dùng, service account và thành phần pipeline
+  - Phân nhóm quyền đối với metrics, logs, traces và cấu hình
+- id: xac-thuc-danh-tinh
+  title: Xác thực danh tính
+  purpose: Đảm bảo người dùng và dịch vụ được nhận diện trước khi truy cập hệ thống quan sát.
+  objectives:
+  - Phân biệt xác thực người dùng và workload
+  - Chọn SSO/OIDC, token hoặc mTLS theo ngữ cảnh
+- id: chinh-sach-phan-quyen
+  title: Chính sách phân quyền
+  purpose: Áp dụng quyền tối thiểu để hạn chế thao tác không cần thiết.
+  objectives:
+  - Lập ma trận quyền đọc, ghi, cấu hình và quản trị
+  - Thiết kế RBAC theo vai trò và mặc định từ chối
+- id: kiem-soat-ingestion
+  title: Kiểm soát Ingestion
+  purpose: Giới hạn những nguồn được phép gửi telemetry vào pipeline.
+  objectives:
+  - Kiểm soát xác thực và TLS ở receiver/exporter
+  - Giới hạn truy cập mạng vào endpoint thu thập
+- id: quyen-xem-truy-van
+  title: Quyền xem & truy vấn
+  purpose: Ngăn truy cập ngoài phạm vi đối với dữ liệu quan sát và API.
+  objectives:
+  - Phân quyền ở datasource, API và công cụ truy vấn
+  - Thử trường hợp người dùng bị từ chối truy vấn trái quyền
+- id: tach-biet-moi-truong
+  title: Tách biệt môi trường
+  purpose: Ngăn truy cập chéo giữa nhóm, môi trường hoặc tenant.
+  objectives:
+  - Xác định ranh giới dev, staging, production và tenant
+  - Kiểm thử truy cập chéo để phát hiện rò rỉ dữ liệu
+- id: quan-ly-credentials
+  title: Quản lý credentials
+  purpose: Giảm rủi ro từ token, khóa và đặc quyền tồn tại quá lâu.
+  objectives:
+  - Lưu secrets an toàn và thiết lập vòng đời xoay vòng
+  - Thu hồi quyền khi chuyển vai trò hoặc ngừng sử dụng
+- id: kiem-toan-ra-soat
+  title: Kiểm toán & rà soát
+  purpose: Phát hiện lạm quyền và duy trì hiệu lực của chính sách truy cập.
+  objectives:
+  - Theo dõi sự kiện đăng nhập, truy vấn và thay đổi quyền
+  - Rà soát định kỳ, xử lý bất thường và kiểm thử quyền từ chối

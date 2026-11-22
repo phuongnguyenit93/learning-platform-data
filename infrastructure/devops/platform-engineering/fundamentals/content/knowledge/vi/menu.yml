@@ -1,0 +1,271 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Kỹ thuật nền tảng (platform engineering) là gì và giải quyết vấn đề nào
+  - Từ các tác vụ hạ tầng lặp lại đến năng lực dùng chung cho nhiều nhóm
+  - Vai trò nền tảng trong quá trình phát triển và bàn giao phần mềm
+  - Nền tảng nội bộ phục vụ ai và tạo giá trị bằng cách nào
+  - Mối liên hệ giữa con người, quy trình, chính sách và công nghệ
+  - Khi nào nhu cầu dùng chung đủ rõ để đầu tư nền tảng
+  - Những vấn đề nền tảng không tự giải quyết nếu thiếu thay đổi tổ chức
+  - Lộ trình học từ nhu cầu người dùng đến vận hành và cải tiến
+- level1: Bản đồ khái niệm
+  level2:
+  - Nền tảng phát triển nội bộ (Internal Developer Platform) là gì
+  - Phân biệt nền tảng nội bộ với cổng thông tin dành cho lập trình viên
+  - Năng lực nền tảng, dịch vụ bên dưới và giao diện sử dụng
+  - Tự phục vụ, tự động hóa và tiêu chuẩn hóa liên hệ với nhau thế nào
+  - Lối đi khuyến nghị (golden path) và trải nghiệm được hỗ trợ
+  - Phân biệt platform engineering, DevOps, SRE và nhóm hạ tầng
+  - Mối liên hệ với dịch vụ đám mây, PaaS và nền tảng điều phối
+  - Phân biệt nền tảng nội bộ với sản phẩm mà doanh nghiệp cung cấp cho khách hàng
+- level1: Người dùng và nhu cầu
+  level2:
+  - Nhận diện nhóm phát triển, kiểm thử, vận hành và các bên liên quan
+  - Phân nhóm người dùng theo công việc và mức độ tự chủ
+  - Phỏng vấn và quan sát tác vụ thay vì chỉ thu thập yêu cầu công cụ
+  - Xác định điểm gây chờ đợi, thao tác lặp và kiến thức khó tiếp cận
+  - Phân biệt nhu cầu phổ biến với trường hợp riêng của một nhóm
+  - Kiểm chứng vấn đề bằng dữ liệu tác vụ và phản hồi trực tiếp
+  - Ghi nhận ràng buộc về bảo mật, độ tin cậy và môi trường làm việc
+  - Xác định nhu cầu chưa phù hợp để đưa vào phạm vi nền tảng
+- level1: Hành trình người dùng
+  level2:
+  - Vẽ hành trình từ ý tưởng đến ứng dụng được vận hành
+  - Tiếp nhận một lập trình viên hoặc nhóm sản phẩm mới
+  - Khởi tạo dịch vụ, kho mã và cấu hình tối thiểu
+  - Cấp môi trường, quyền truy cập và dịch vụ phụ thuộc
+  - Dựng, kiểm thử, triển khai và kiểm tra kết quả
+  - Chẩn đoán sự cố, đổi cấu hình và thực hiện quay lui
+  - Chuyển giao chủ sở hữu và kết thúc vòng đời dịch vụ
+  - Nhận diện thời gian làm việc thực tế, thời gian chờ và điểm bàn giao
+- level1: Tư duy sản phẩm
+  level2:
+  - Vì sao nền tảng cần được quản lý như một sản phẩm nội bộ
+  - Tầm nhìn, người dùng mục tiêu và giá trị nền tảng hứa cung cấp
+  - Giả thuyết giá trị và tiêu chí kiểm chứng trước khi xây dựng
+  - Ưu tiên danh sách công việc theo mức độ tác động và nhu cầu thực tế
+  - Cân bằng năng lực mới, bảo trì và cải thiện trải nghiệm
+  - Lộ trình phát triển gắn với kết quả thay vì danh sách công cụ
+  - Vòng phản hồi khám phá, thử nghiệm, cung cấp và điều chỉnh
+  - Trách nhiệm quản lý sản phẩm, kỹ thuật và trải nghiệm người dùng
+  - Tiêu chí tiếp tục đầu tư, thay đổi hướng hoặc ngừng một năng lực
+- level1: Trải nghiệm phát triển
+  level2:
+  - Trải nghiệm nhà phát triển (DevEx) bao gồm những gì
+  - Gánh nặng nhận thức (cognitive load) trong công việc phát triển phần mềm
+  - Giảm kiến thức nền bắt buộc mà vẫn giữ khả năng hiểu và chẩn đoán
+  - Tính dễ tìm, dễ bắt đầu và nhất quán giữa các tác vụ
+  - Phản hồi rõ ràng về tiến độ, kết quả và cách sửa lỗi
+  - Giảm chuyển đổi ngữ cảnh và thao tác phải nhờ người khác
+  - Tích hợp vào công cụ và thói quen làm việc sẵn có
+  - Kết hợp phản hồi định tính với số đo hành vi sử dụng
+- level1: Phạm vi nền tảng
+  level2:
+  - Chọn tác vụ phổ biến đầu tiên mà nền tảng cần hỗ trợ
+  - Ranh giới giữa năng lực dùng chung và logic nghiệp vụ của ứng dụng
+  - Danh mục năng lực theo nhu cầu thay vì theo xu hướng công nghệ
+  - Tận dụng công cụ, đội chuyên môn và dịch vụ đã có
+  - Phân biệt cung cấp trải nghiệm thống nhất với tự xây mọi thành phần
+  - Mức trừu tượng phù hợp cho người dùng mới và người dùng chuyên sâu
+  - Các trường hợp được hỗ trợ, chưa hỗ trợ và điều kiện mở rộng
+  - Kiểm soát phạm vi để nền tảng có thể được duy trì lâu dài
+- level1: Kiến trúc nền tảng
+  level2:
+  - Các lớp giao diện, điều phối tác vụ và nhà cung cấp năng lực
+  - Phân biệt lớp điều khiển nền tảng với môi trường chạy ứng dụng
+  - Kết nối công cụ bằng hợp đồng và lớp tích hợp vừa đủ
+  - Nguồn thông tin chuẩn cho cấu hình, trạng thái và quyền sở hữu
+  - Luồng yêu cầu, xử lý bất đồng bộ và phản hồi kết quả
+  - Trạng thái mong muốn, trạng thái thực tế và phát hiện sai lệch
+  - Giới hạn phụ thuộc giữa nền tảng với các hệ thống bên dưới
+  - Thiết kế mở rộng theo năng lực mà vẫn giữ giao diện nhất quán
+  - Tài liệu kiến trúc và quyết định đánh đổi cần ghi lại
+- level1: Tự phục vụ
+  level2:
+  - Tự phục vụ thực sự khác gì gửi biểu mẫu để chờ người xử lý
+  - Hợp đồng đầu vào, đầu ra và điều kiện được phép yêu cầu
+  - Xác thực, kiểm tra quyền và kiểm tra cấu hình trước thực thi
+  - Tạo, xem trạng thái, cập nhật và xóa tài nguyên theo vòng đời
+  - Xử lý tác vụ dài bằng mã yêu cầu và trạng thái có thể theo dõi
+  - Tính lũy đẳng để yêu cầu lặp không tạo tài nguyên ngoài ý muốn
+  - Lỗi từng phần, thời hạn chờ, hủy tác vụ và thử lại
+  - Phân biệt tự động hóa hoàn toàn với điểm phê duyệt có chủ đích
+  - Đường xử lý ngoại lệ khi yêu cầu vượt khả năng được hỗ trợ
+  - Tiêu chí kiểm tra người dùng có thể tự hoàn tất một tác vụ
+- level1: Lối đi khuyến nghị
+  level2:
+  - Lối đi khuyến nghị gồm mẫu, quy ước, tài liệu và hỗ trợ
+  - Chọn một hành trình có giá trị rõ để thiết kế luồng đầu tiên
+  - Khởi tạo dự án từ mẫu và trách nhiệm duy trì mã đã sinh
+  - Giá trị mặc định hợp lý và số tùy chọn người dùng cần quyết định
+  - Tích hợp kiểm thử, bảo mật và quan sát vào luồng chuẩn
+  - Cân bằng tiêu chuẩn chung với đặc điểm của từng loại ứng dụng
+  - Cơ chế mở rộng hoặc đi ngoài luồng có trách nhiệm
+  - Quản lý phiên bản mẫu và đưa cải tiến đến dự án đã tạo
+  - Kiểm chứng lối đi được dùng vì hữu ích thay vì chỉ vì bắt buộc
+- level1: Giao diện sử dụng
+  level2:
+  - Khi nào dùng API, CLI, cổng thông tin hoặc tích hợp trong kho mã
+  - Tính nhất quán của thuật ngữ và hành vi giữa các giao diện
+  - Khả năng khám phá năng lực và điều kiện sử dụng
+  - Biểu mẫu, tài liệu tham số và thông báo lỗi có thể hành động
+  - Trải nghiệm theo dõi tác vụ từ yêu cầu đến kết quả cuối
+  - Tích hợp với IDE, hệ thống CI/CD và công cụ làm việc của nhóm
+  - Khả năng sử dụng bằng máy thông qua hợp đồng API rõ ràng
+  - Kiểm thử giao diện dựa trên tác vụ thật của người dùng
+- level1: Danh mục phần mềm
+  level2:
+  - Danh mục phần mềm giúp trả lời những câu hỏi nào
+  - Thông tin về dịch vụ, thư viện, tài nguyên và nhóm sở hữu
+  - Liên kết mã nguồn, tài liệu, triển khai và dữ liệu vận hành
+  - Quan hệ phụ thuộc và giới hạn của sơ đồ được tự động thu thập
+  - Vòng đời dịch vụ và trạng thái đang phát triển, hoạt động hoặc ngừng
+  - Thu thập thông tin từ nguồn chuẩn và tránh nhập lặp thủ công
+  - Kiểm tra thông tin thiếu, lỗi thời hoặc không có người phụ trách
+  - Phân biệt danh mục giúp khám phá với hệ thống trực tiếp cấp phát tài nguyên
+- level1: Hạ tầng và môi trường
+  level2:
+  - Cung cấp tài nguyên theo nhu cầu thông qua giao diện nền tảng
+  - Mẫu hạ tầng và cấu hình được quản lý như mã
+  - Môi trường phát triển, kiểm thử, staging và production
+  - Ranh giới cách ly giữa nhóm, dự án và môi trường
+  - Môi trường tạm thời, thời hạn sử dụng và dọn tài nguyên
+  - Cấu hình, bí mật và dữ liệu kiểm thử theo môi trường
+  - Hạn ngạch, năng lực phục vụ và giới hạn của nhà cung cấp
+  - Quản lý sai lệch giữa yêu cầu đã khai báo với tài nguyên thực tế
+  - Trách nhiệm vận hành và kết thúc vòng đời tài nguyên đã cấp
+- level1: Bàn giao ứng dụng
+  level2:
+  - Cung cấp khả năng dựng, kiểm thử và triển khai dưới dạng năng lực dùng chung
+  - Hợp đồng giữa mã ứng dụng với quy trình bàn giao
+  - Mẫu pipeline, thành phần tái sử dụng và quyền tùy chỉnh
+  - Quản lý hiện vật và liên kết phiên bản nguồn với bản triển khai
+  - Đưa cùng một hiện vật qua các môi trường với cấu hình phù hợp
+  - Điểm kiểm tra và phê duyệt theo mức rủi ro của thay đổi
+  - Phản hồi kiểm thử, trạng thái triển khai và bằng chứng thực thi
+  - Quay lui và phân biệt khôi phục ứng dụng với khôi phục dữ liệu
+  - Ranh giới trách nhiệm giữa nhóm nền tảng và nhóm sở hữu ứng dụng
+- level1: Dịch vụ dùng chung
+  level2:
+  - Nhận diện nhu cầu dữ liệu, thông điệp, lưu trữ và quan sát
+  - Cung cấp dịch vụ được quản lý thay vì buộc người dùng hiểu mọi chi tiết
+  - Các mức dịch vụ và giới hạn của từng lựa chọn
+  - Hợp đồng kết nối, thông tin xác thực và cấu hình tích hợp
+  - Quản lý phiên bản, dung lượng và thay đổi dịch vụ phụ thuộc
+  - Phân biệt cung cấp dịch vụ với sở hữu dữ liệu nghiệp vụ
+  - Tiêu chí tiếp nhận năng lực từ đội chuyên môn hoặc nhà cung cấp
+  - Ngừng sử dụng dịch vụ và xử lý dữ liệu, quyền truy cập còn lại
+- level1: Bảo mật và quyền
+  level2:
+  - Mô hình tin cậy giữa người dùng, nền tảng và hệ thống bên dưới
+  - Định danh con người, nhóm và tiến trình tự động hóa
+  - Phân quyền theo vai trò, phạm vi dự án và nguyên tắc quyền tối thiểu
+  - Quyền người yêu cầu và quyền thực thi tác vụ thay mặt người dùng
+  - Tách biệt nhiều nhóm cùng sử dụng và ngăn truy cập chéo
+  - Cấp, luân chuyển và thu hồi bí mật theo vòng đời
+  - Kiểm soát truy cập quản trị và thao tác có tác động lớn
+  - Nhật ký kiểm tra và truy vết chủ thể thực hiện thay đổi
+  - Trách nhiệm ứng phó khi nền tảng hoặc thông tin xác thực bị xâm phạm
+- level1: Chính sách và kiểm soát
+  level2:
+  - Giới hạn bảo vệ (guardrails) trong trải nghiệm tự phục vụ
+  - Phân biệt hướng dẫn, giá trị mặc định và điều kiện bắt buộc
+  - Chính sách dưới dạng mã và nơi thực hiện kiểm tra
+  - Kiểm tra sớm ở đầu vào và kiểm soát tại hệ thống thực thi
+  - Thông báo vi phạm rõ ràng cùng cách khắc phục
+  - Ngoại lệ có người chịu trách nhiệm, thời hạn và bằng chứng phê duyệt
+  - Lưu bằng chứng phục vụ kiểm tra nội bộ theo yêu cầu của tổ chức
+  - Kiểm thử và triển khai thay đổi chính sách mà không gây gián đoạn ngoài dự kiến
+- level1: Độ tin cậy
+  level2:
+  - Nền tảng như một dịch vụ mà nhiều nhóm phụ thuộc
+  - Chỉ số mức dịch vụ và mục tiêu mức dịch vụ cho năng lực nền tảng
+  - Phân biệt độ tin cậy của nền tảng với độ tin cậy của ứng dụng người dùng
+  - Đo tỷ lệ hoàn tất tác vụ, độ trễ và chất lượng phản hồi
+  - Miền ảnh hưởng khi một thành phần dùng chung bị lỗi
+  - Giới hạn tài nguyên, cách ly và kiểm soát tải giữa các nhóm
+  - Giám sát, cảnh báo và quy trình tiếp nhận sự cố nền tảng
+  - Phương án suy giảm có kiểm soát khi hệ thống phụ thuộc gián đoạn
+  - Sao lưu, diễn tập khôi phục và bảo vệ dữ liệu cấu hình nền tảng
+- level1: Vòng đời nền tảng
+  level2:
+  - Thiết kế, phát triển và cung cấp từng năng lực qua quy trình có kiểm soát
+  - Kiểm thử đơn vị, tích hợp, hợp đồng và trải nghiệm hoàn tất tác vụ
+  - Quản lý phiên bản API, mẫu và cấu hình nền tảng
+  - Tương thích ngược và thời gian chuyển đổi cho người dùng
+  - Phát hành thử theo nhóm nhỏ rồi mở rộng dựa trên phản hồi
+  - Tự động hóa nâng cấp cùng điều kiện dừng hoặc quay lui
+  - Cập nhật thành phần bên dưới mà vẫn giữ hợp đồng với người dùng
+  - Thông báo thay đổi, ngừng hỗ trợ và hướng dẫn di chuyển
+  - Loại bỏ năng lực không còn giá trị hoặc không có khả năng duy trì
+- level1: Tổ chức và phối hợp
+  level2:
+  - Nhiệm vụ của nhóm nền tảng và điều kiện được đầu tư ổn định
+  - Vai trò kỹ thuật, sản phẩm, trải nghiệm và hỗ trợ người dùng
+  - Mô hình trách nhiệm giữa nền tảng, ứng dụng, bảo mật và vận hành
+  - Phân biệt phối hợp tạm thời với cung cấp dịch vụ lâu dài
+  - Hợp đồng cung cấp năng lực và cách chuyển cấp vấn đề
+  - Nhóm hỗ trợ học tập và phát triển khả năng tự chủ
+  - Đóng góp nội bộ qua tài liệu, mã và thành phần tích hợp
+  - Trao quyền cho đội chuyên môn cung cấp năng lực theo chuẩn chung
+  - Ngăn nhóm nền tảng trở thành điểm chờ cho mọi thay đổi
+- level1: Tiếp nhận và hỗ trợ
+  level2:
+  - Đưa một nhóm hoặc dự án mới vào sử dụng nền tảng
+  - Tài liệu bắt đầu nhanh theo mục tiêu tác vụ
+  - Tài liệu hướng dẫn, tra cứu và xử lý sự cố
+  - Ví dụ chạy được và môi trường thử nghiệm để người dùng tự học
+  - Kênh hỗ trợ, mức ưu tiên và kỳ vọng thời gian phản hồi
+  - Ghi nhận vấn đề hỗ trợ để cải tiến sản phẩm và tài liệu
+  - Thu thập phản hồi từ nhóm mới, nhóm đang dùng và nhóm đã rời bỏ
+  - Xây cộng đồng người dùng và chia sẻ cách sử dụng hiệu quả
+  - Di chuyển dự án cũ theo lộ trình có hỗ trợ và tiêu chí hoàn tất
+- level1: Đo lường giá trị
+  level2:
+  - Phân biệt kết quả người dùng, đầu ra kỹ thuật và hoạt động của nhóm
+  - Đặt đường cơ sở trước khi đưa năng lực mới vào sử dụng
+  - Thời gian hoàn tất tác vụ và thời gian chờ người hỗ trợ
+  - Thời gian đến lần triển khai đầu tiên của nhóm hoặc dịch vụ mới
+  - Mức sử dụng, sử dụng lặp lại và tỷ lệ bỏ dở tác vụ
+  - Độ thành công, tính ổn định và chất lượng phản hồi của luồng tự phục vụ
+  - Sự hài lòng và gánh nặng nhận thức qua phản hồi định tính
+  - Liên hệ số đo bàn giao theo DORA với trải nghiệm nền tảng
+  - Giới hạn quy kết nguyên nhân khi nhiều yếu tố cùng thay đổi
+  - Tránh đánh giá giá trị chỉ bằng số công cụ, lượt truy cập hoặc số dòng mã
+  - Dùng bằng chứng đo lường để quyết định ưu tiên cải tiến
+- level1: Chi phí và đầu tư
+  level2:
+  - Chi phí xây dựng, vận hành, hỗ trợ và duy trì nền tảng
+  - Chi phí người dùng phải bỏ ra để học và chuyển đổi cách làm
+  - Phân bổ chi phí theo năng lực, nhóm hoặc dự án
+  - Hiển thị chi phí và lựa chọn cơ chế phân bổ phù hợp với tổ chức
+  - Ngân sách, hạn ngạch và cảnh báo tài nguyên bỏ quên
+  - Cân nhắc tự xây, mua hoặc tích hợp dịch vụ có sẵn
+  - Đánh giá lợi ích dự kiến cùng giả định và bằng chứng cần thu thập
+  - Cân bằng tiết kiệm chi phí với độ tin cậy và chất lượng trải nghiệm
+- level1: Triển khai từng bước
+  level2:
+  - Khảo sát hiện trạng công cụ, quy trình và năng lực đang được dùng
+  - Chọn nhóm thử nghiệm và một vấn đề có thể kiểm chứng
+  - Xây nền tảng tối thiểu đáp ứng một hành trình ưu tiên
+  - Thử nghiệm luồng tự phục vụ và ghi nhận trở ngại thực tế
+  - Mở rộng dựa trên nhu cầu lặp lại và khả năng hỗ trợ
+  - Khuyến khích tiếp nhận bằng giá trị và niềm tin của người dùng
+  - Đánh giá đầu tư, tiếp nhận, giao diện, vận hành và đo lường theo từng khía cạnh
+  - Dùng mô hình trưởng thành để chọn cải tiến phù hợp bối cảnh
+  - Nhận diện rủi ro xây quá rộng, phụ thuộc công cụ hoặc che giấu quá nhiều chi tiết
+  - Điều chỉnh phạm vi và tiêu chí thành công qua từng vòng phát triển
+- level1: Thực hành tổng hợp
+  level2:
+  - Khảo sát tác vụ lặp và mô tả một vấn đề của nhóm phát triển
+  - Vẽ hành trình người dùng cùng điểm chờ và phần việc có thể dùng chung
+  - Đề xuất giá trị và phạm vi nền tảng tối thiểu cho bối cảnh cụ thể
+  - Thiết kế hợp đồng tự phục vụ cho việc tạo một môi trường thử nghiệm
+  - Thiết kế lối đi khuyến nghị để khởi tạo và bàn giao dịch vụ
+  - Lập danh mục dịch vụ với chủ sở hữu, phụ thuộc và tài liệu cần thiết
+  - Phân công trách nhiệm giữa nhóm ứng dụng, nền tảng và bảo mật
+  - Mô phỏng tác vụ thất bại và thiết kế phản hồi để người dùng tự xử lý
+  - Đặt đường cơ sở và kế hoạch đo trước, sau khi thử nghiệm
+  - Đánh giá phương án theo trải nghiệm, độ tin cậy, quyền truy cập và chi phí
+  - Lập kế hoạch thử nghiệm, tiếp nhận phản hồi và cải tiến vòng tiếp theo

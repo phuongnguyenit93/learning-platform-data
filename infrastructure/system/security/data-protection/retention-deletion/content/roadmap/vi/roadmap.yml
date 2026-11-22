@@ -1,0 +1,49 @@
+roadmap:
+- id: nguyen-tac-retention
+  title: Nguyên tắc Retention
+  purpose: Giữ dữ liệu đúng mục đích và thời hạn cần thiết, thay vì lưu vô hạn.
+  objectives:
+  - Giải thích storage limitation và data minimization.
+  - Phân biệt retention period với thời điểm xóa thực tế.
+- id: inventory-lich-luu-giu
+  title: Inventory & Lịch Lưu giữ
+  purpose: Biết dữ liệu nằm ở đâu và đặt chính sách thời hạn theo từng nhóm.
+  objectives:
+  - Lập danh mục dữ liệu, nơi lưu và chủ sở hữu.
+  - Định nghĩa retention schedule, TTL và điều kiện kết thúc.
+- id: quyen-xoa-ngoai-le
+  title: Quyền Xóa & Ngoại lệ
+  purpose: Xử lý yêu cầu xóa phù hợp căn cứ pháp lý và ràng buộc lưu giữ.
+  objectives:
+  - Mô tả quy trình tiếp nhận, xác minh và xét yêu cầu xóa.
+  - Nhận diện legal hold, nghĩa vụ lưu hồ sơ và ngoại lệ hợp lệ.
+- id: soft-delete-hard-delete
+  title: Soft Delete & Hard Delete
+  purpose: Phân biệt ẩn dữ liệu với loại bỏ dữ liệu thực và thiết kế quy trình rõ ràng.
+  objectives:
+  - Giải thích soft delete, hard delete và thời gian khôi phục.
+  - Thiết kế luồng xóa có trạng thái, kiểm quyền và retry an toàn.
+- id: lifecycle-ttl-automation
+  title: Lifecycle & TTL Automation
+  purpose: Tự động hết hạn dữ liệu theo chính sách thay vì chỉ thao tác thủ công.
+  objectives:
+  - Cấu hình job định kỳ hoặc lifecycle rule theo thời gian.
+  - Xác minh xử lý phiên bản cũ, soft delete và object lock.
+- id: replica-cache-backup
+  title: Replica, Cache & Backup
+  purpose: Quản lý các bản sao để dữ liệu đã xóa không xuất hiện lại ngoài ý muốn.
+  objectives:
+  - Liệt kê cache, index, replica, log và backup liên quan.
+  - Thiết kế expiry và áp dụng lại yêu cầu xóa sau restore.
+- id: secure-erasure-crypto-erase
+  title: Secure Erasure & Crypto Erase
+  purpose: Chọn phương án hủy dữ liệu phù hợp với độ nhạy và loại phương tiện lưu trữ.
+  objectives:
+  - Phân biệt logical deletion với media sanitization.
+  - Mô tả clear, purge và cryptographic erase khi điều kiện phù hợp.
+- id: audit-kiem-thu-xoa
+  title: Audit & Kiểm thử Xóa
+  purpose: Kiểm chứng chính sách hoạt động đúng và có bằng chứng thực hiện.
+  objectives:
+  - Test hết hạn, yêu cầu xóa, ngoại lệ và bản sao lưu.
+  - Ghi audit tối thiểu, theo dõi lỗi job và kiểm tra dữ liệu không hồi sinh.

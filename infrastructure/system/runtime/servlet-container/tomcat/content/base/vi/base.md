@@ -1,0 +1,7 @@
+# Runtime Servlet Container Tomcat
+
+Apache Tomcat là servlet container mã nguồn mở dùng để chạy ứng dụng web Java theo các đặc tả Jakarta Servlet và những công nghệ web liên quan. Tomcat nhận kết nối HTTP, định tuyến yêu cầu tới web application, quản lý vòng đời servlet, tài nguyên và các thành phần vận hành. Tomcat không phải một Jakarta EE application server đầy đủ. Phiên bản Tomcat cần tương thích với Java và API mà ứng dụng sử dụng; chẳng hạn Tomcat 11 triển khai Servlet 6.1 và yêu cầu Java 17 trở lên, trong khi các dòng cũ có mức tương thích khác.
+
+Module phù hợp với người đã biết Java, HTTP và khái niệm Servlet cơ bản. Lộ trình bắt đầu từ vai trò của Tomcat, cách cài đặt và cấu trúc thư mục; tiếp theo là Catalina, HTTP Connector, luồng request và threads. Người học thực hành đóng gói/triển khai WAR theo context path, hiểu session và JNDI resources, rồi thiết lập bảo mật, TLS, logging và các bước quan sát trạng thái runtime. Các chủ đề được tiếp cận ở mức sử dụng và vận hành Tomcat, không đi sâu vào viết Servlet framework từ đầu.
+
+Sau khi hoàn thành, bạn có thể chạy một Tomcat instance thử nghiệm, triển khai WAR, giải thích request đi qua Connector tới Context, nhận diện cấu hình gây lỗi và sử dụng log hoặc JMX để chẩn đoán. Với môi trường thật, cần phân tách cấu hình, quyền quản trị và dữ liệu nhạy cảm; không công khai Manager hoặc endpoint giám sát nếu chưa được bảo vệ.

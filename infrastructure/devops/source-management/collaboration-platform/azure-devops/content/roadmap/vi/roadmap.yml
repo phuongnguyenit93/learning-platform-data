@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-azure-devops
+  title: Tổng quan Azure DevOps
+  purpose: Hiểu vai trò của nền tảng cộng tác phát triển và vị trí của Azure Repos.
+  objectives:
+  - Phân biệt Azure Repos, Boards và Pipelines.
+  - Mô tả luồng work item → commit → pull request.
+- id: organization-project
+  title: Organization & Project
+  purpose: Thiết lập phạm vi làm việc chung cho nhóm và repository.
+  objectives:
+  - Phân biệt organization, project và team.
+  - Tạo hoặc xác định project phù hợp với Git source control.
+- id: azure-repos-git
+  title: Azure Repos Git
+  purpose: Quản lý mã nguồn dùng Git repository trên Azure DevOps.
+  objectives:
+  - Tạo repository và clone về máy.
+  - Thực hiện commit, push và xem lịch sử thay đổi.
+- id: branch-workflow
+  title: Branch Workflow
+  purpose: Cô lập thay đổi và đồng bộ mã nguồn trong nhóm.
+  objectives:
+  - Tạo feature branch từ nhánh chính.
+  - Push branch và cập nhật sau khi nhận phản hồi.
+- id: pull-request-review
+  title: Pull Request & Review
+  purpose: Dùng quy trình review để hợp tác trước khi tích hợp thay đổi.
+  objectives:
+  - Tạo PR, thêm reviewer và xử lý comment.
+  - Hoàn tất PR bằng merge strategy phù hợp.
+- id: branch-policies
+  title: Branch Policies
+  purpose: Bảo vệ nhánh quan trọng bằng các quy tắc kiểm soát chất lượng.
+  objectives:
+  - Yêu cầu reviewer và giải quyết comment.
+  - Cấu hình build validation trước khi merge.
+- id: boards-traceability
+  title: Boards & Traceability
+  purpose: Liên kết việc cần làm với thay đổi mã nguồn để truy vết.
+  objectives:
+  - Tạo work item cho task hoặc bug.
+  - Liên kết work item với branch, commit hoặc PR.
+- id: quyen-tich-hop-ci
+  title: Quyền & Tích hợp CI
+  purpose: Bảo vệ mã nguồn và kiểm tra tự động khi có thay đổi.
+  objectives:
+  - Phân biệt Readers, Contributors, Administrators.
+  - Kết nối PR với Azure Pipeline và kiểm tra build status.

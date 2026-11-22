@@ -1,0 +1,103 @@
+menu:
+- title: Bức tranh ELK
+  slug: elk-overview
+  index: 0
+- title: Thiết kế đường dữ liệu
+  slug: data-flow-design
+  index: 1
+- title: Cài đặt môi trường
+  slug: environment-setup
+  index: 2
+- title: Log đầu tiên
+  slug: first-log
+  index: 3
+- title: Chuẩn hóa ECS
+  slug: ecs-normalization
+  index: 4
+- title: Log Java và Spring
+  slug: java-spring-logs
+  index: 5
+- title: Thu thập bằng Filebeat
+  slug: filebeat-collection
+  index: 6
+- title: Elastic Agent và Fleet
+  slug: elastic-agent-fleet
+  index: 7
+- title: Cấu hình Logstash
+  slug: logstash-configuration
+  index: 8
+- title: Phân tích và làm giàu
+  slug: parsing-enrichment
+  index: 9
+- title: Độ bền pipeline
+  slug: pipeline-durability
+  index: 10
+- title: Ingest pipeline
+  slug: ingest-pipelines
+  index: 11
+- title: Mô hình Elasticsearch
+  slug: elasticsearch-data-model
+  index: 12
+- title: Mapping và kiểu dữ liệu
+  slug: mappings-data-types
+  index: 13
+- title: Template và data stream
+  slug: templates-data-streams
+  index: 14
+- title: Ghi dữ liệu và phát lại
+  slug: indexing-replay
+  index: 15
+- title: Nền tảng tìm kiếm
+  slug: search-fundamentals
+  index: 16
+- title: Query DSL
+  slug: query-dsl
+  index: 17
+- title: KQL và Lucene
+  slug: kql-lucene
+  index: 18
+- title: Phân tích bằng ES|QL
+  slug: esql-analysis
+  index: 19
+- title: Tổng hợp và thống kê
+  slug: aggregations-statistics
+  index: 20
+- title: Điều tra bằng Discover
+  slug: discover-investigations
+  index: 21
+- title: Trực quan hóa Kibana
+  slug: kibana-visualization
+  index: 22
+- title: Vòng đời dữ liệu
+  slug: data-lifecycle
+  index: 23
+- title: Cluster và phân bổ shard
+  slug: cluster-shard-allocation
+  index: 24
+- title: Hiệu năng và dung lượng
+  slug: performance-capacity
+  index: 25
+- title: Bảo mật và phân quyền
+  slug: security-authorization
+  index: 26
+- title: Triển khai thực tế
+  slug: production-deployment
+  index: 27
+- title: Giám sát và cảnh báo
+  slug: monitoring-alerting
+  index: 28
+- title: Sao lưu và khôi phục
+  slug: backup-recovery
+  index: 29
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 30
+- title: Kiểm thử và chất lượng
+  slug: testing-quality
+  index: 31
+- title: Nâng cấp và chuyển đổi
+  slug: upgrades-migration
+  index: 32
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 33

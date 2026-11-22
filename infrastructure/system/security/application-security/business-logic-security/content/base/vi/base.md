@@ -1,0 +1,7 @@
+# Security Application Security — Business Logic Security
+
+Business Logic Security là việc bảo vệ các **quy tắc và luồng nghiệp vụ** khỏi những cách sử dụng gây sai lệch kết quả dù từng HTTP request có thể hoàn toàn hợp lệ. Ví dụ, một người dùng có thể thử bỏ qua bước thanh toán, gửi lại yêu cầu hoàn tiền, chồng nhiều mã ưu đãi hoặc thao tác đồng thời để vượt giới hạn số dư. Những lỗ hổng này phụ thuộc chặt vào đặc thù sản phẩm nên không thể dựa riêng vào kiểm tra kiểu dữ liệu, xác thực người dùng hoặc trình quét lỗ hổng tự động.
+
+Module dành cho lập trình viên Java và người thiết kế API đã biết HTTP, xác thực, phân quyền và giao dịch cơ sở dữ liệu cơ bản. Lộ trình bắt đầu từ xác định *business invariants* — những điều kiện luôn phải đúng — và loại bỏ việc tin giá trị quan trọng do client gửi lên. Tiếp theo, bạn sẽ mô hình hóa các quy trình thành state machine trên server, kiểm tra quyền theo đối tượng và trạng thái hiện tại, đồng thời đặt hạn mức phù hợp cho khuyến mãi, đặt chỗ và luồng có thể bị tự động hóa lạm dụng.
+
+Phần thực hành tập trung vào thao tác đồng thời, transaction atomicity, idempotency khi retry và cơ chế xác nhận giao dịch quan trọng. Bạn sẽ viết các kiểm thử âm tính cho việc bỏ bước, thay đổi giá, dùng lại ưu đãi và gửi request trùng, sau đó bổ sung audit log và cảnh báo. Kết thúc module, bạn có thể biến một quy trình nghiệp vụ thành bộ bất biến, kiểm soát ở server và ca kiểm thử đo được, thay vì chỉ kiểm tra các đường đi thành công thông thường.

@@ -1,0 +1,7 @@
+# Database Engine Wide Column Cassandra
+
+Apache Cassandra là hệ quản trị NoSQL phân tán sử dụng mô hình cột rộng (wide-column), được thiết kế cho dữ liệu và tải đọc/ghi lớn trên nhiều nút. Dữ liệu được tổ chức thành các phân vùng (partition) theo khóa phân vùng; các hàng bên trong được sắp xếp theo khóa phân cụm. Cách ứng dụng truy cập dữ liệu vì vậy là đầu vào quan trọng khi thiết kế bảng và phân phối tải.
+
+Module dành cho lập trình viên Java và người thiết kế hệ thống muốn xây dựng ứng dụng với Cassandra. Người học sẽ liên hệ cấu trúc bảng với truy vấn, cơ chế sao chép với mức nhất quán, đồng thời xác định phạm vi nguyên tử và xử lý lỗi phù hợp. Các khái niệm như thời gian sống dữ liệu (TTL), dấu xóa (tombstone), giao dịch nhẹ (LWT) và tính lũy đẳng được học trong quan hệ với tính đúng, hiệu năng và vận hành.
+
+Lộ trình bắt đầu từ tư duy Cassandra và kiến trúc cụm, tiếp đến thiết kế theo truy vấn, thao tác CQL và kiểm chứng tính nhất quán khi có cập nhật đồng thời hoặc lỗi nút. Sau đó, người học kết nối ứng dụng Java, đo hiệu năng dựa trên cơ chế lưu trữ và thực hành vận hành an toàn. Kết quả mong đợi là một thử nghiệm có dữ liệu, truy vấn, cấu hình và bằng chứng kiểm tra rõ ràng, bao gồm khả năng sao lưu và khôi phục.

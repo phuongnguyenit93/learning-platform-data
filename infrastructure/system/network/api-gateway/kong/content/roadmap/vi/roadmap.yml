@@ -1,0 +1,57 @@
+roadmap:
+- id: kong-gateway-tong-quan
+  title: Kong Gateway tổng quan
+  purpose: Hiểu vai trò của Kong trong luồng gọi API và các thành phần cấu hình cốt lõi.
+  objectives:
+  - Mô tả đường đi Client → Gateway → Upstream
+  - Phân biệt Gateway Service, Route, Consumer và Plugin
+  - Nhận biết Proxy API và Admin API
+- id: cai-dat-khoi-chay
+  title: Cài đặt & khởi chạy
+  purpose: Thiết lập môi trường thử nghiệm và kiểm tra Kong xử lý yêu cầu.
+  objectives:
+  - Khởi chạy Kong Gateway bằng phương thức phù hợp
+  - Nhận diện các cổng proxy và quản trị
+  - Kiểm tra trạng thái và thử một yêu cầu HTTP
+- id: services-routes
+  title: Services & Routes
+  purpose: Định tuyến yêu cầu đến ứng dụng phía sau thông qua các đối tượng Kong.
+  objectives:
+  - Tạo Gateway Service trỏ đến upstream
+  - Tạo Route theo path, host hoặc method
+  - Kiểm chứng request được proxy đúng đích
+- id: consumers-xac-thuc
+  title: Consumers & xác thực
+  purpose: Nhận diện client và bảo vệ API trước truy cập không hợp lệ.
+  objectives:
+  - Tạo Consumer và gắn thông tin xác thực phù hợp
+  - Bật plugin xác thực như Key Authentication
+  - Kiểm tra phản hồi khi thiếu hoặc sai credential
+- id: plugins-chinh-sach
+  title: Plugins & chính sách
+  purpose: Áp dụng quy tắc chung lên lưu lượng mà không sửa mã ứng dụng.
+  objectives:
+  - 'Xác định phạm vi plugin: global, Service hoặc Route'
+  - Thiết lập rate limiting cơ bản
+  - Kiểm tra hành vi CORS hoặc biến đổi request/response
+- id: upstreams-do-tin-cay
+  title: Upstreams & độ tin cậy
+  purpose: Phân phối yêu cầu và tăng khả năng chịu lỗi cho dịch vụ phía sau.
+  objectives:
+  - Phân biệt Upstream và Target
+  - Mô tả cân bằng tải và health checks
+  - Điều chỉnh timeout, retry theo tình huống
+- id: deck-cau-hinh
+  title: decK & cấu hình
+  purpose: Quản lý cấu hình Kong bằng file khai báo để dễ kiểm tra và tái lập.
+  objectives:
+  - Viết cấu hình Services, Routes và Plugins bằng YAML
+  - So sánh trạng thái với deck gateway diff
+  - Phân biệt apply và sync khi áp dụng thay đổi
+- id: quan-sat-xu-ly-loi
+  title: Quan sát & xử lý lỗi
+  purpose: Theo dõi lưu lượng và chẩn đoán sự cố gateway trong vận hành.
+  objectives:
+  - Đọc access/error logs và mã trạng thái HTTP
+  - Theo dõi request rate, latency, lỗi và upstream
+  - Khoanh vùng lỗi routing, auth hoặc upstream

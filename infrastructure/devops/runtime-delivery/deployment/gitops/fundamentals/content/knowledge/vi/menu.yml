@@ -1,0 +1,340 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - GitOps là gì và giải quyết vấn đề nào trong vận hành triển khai
+  - Từ triển khai bằng lệnh thủ công đến vận hành theo trạng thái khai báo
+  - 'Bản đồ khái niệm: kho nguồn, trạng thái mong muốn, bộ điều khiển và môi trường đích'
+  - Vòng đời thay đổi từ commit cấu hình đến ứng dụng đang phục vụ
+  - Phân biệt dùng Git lưu tệp cấu hình với xây dựng một quy trình GitOps
+  - Mối liên hệ giữa GitOps, DevOps, IaC và quản lý cấu hình
+  - Phạm vi áp dụng trong Kubernetes và các hệ thống có cơ chế đối soát
+  - Kiến thức Git, container, cấu hình khai báo và triển khai cần chuẩn bị
+- level1: Nguyên tắc
+  level2:
+  - Mô tả trạng thái hệ thống bằng khai báo thay vì chuỗi thao tác tùy ý
+  - Phiên bản hóa trạng thái mong muốn và giữ lịch sử thay đổi có thể truy vết
+  - Đưa thay đổi đến môi trường bằng cơ chế tự động kéo từ nguồn được chỉ định
+  - Liên tục đối soát trạng thái thực tế với trạng thái mong muốn
+  - Hiểu tính bất biến của một phiên bản khai báo và cách tạo phiên bản mới
+  - Xác định nguồn có thẩm quyền cho từng môi trường và tài nguyên
+  - Phân biệt nguyên tắc GitOps với khả năng riêng của từng công cụ
+  - Đánh giá một quy trình triển khai có đáp ứng các nguyên tắc GitOps hay không
+- level1: Vòng lặp đối soát
+  level2:
+  - Phân biệt trạng thái mong muốn, trạng thái quan sát được và trạng thái thực tế
+  - Các bước lấy nguồn, tạo cấu hình, so sánh, áp dụng và xác minh
+  - Phân biệt kích hoạt bằng sự kiện với đối soát theo chu kỳ
+  - Hội tụ và các điều kiện để hệ thống tiến về trạng thái mong muốn
+  - Tính lũy đẳng và tác động của việc áp dụng lại cùng một cấu hình
+  - Nhận diện độ trễ quan sát và tính nhất quán cuối cùng
+  - Xử lý lỗi tạm thời bằng thử lại, thời gian chờ và giãn khoảng cách
+  - Phân biệt hành động đồng bộ với kết quả đối soát thành công
+  - Xác định trạng thái chưa biết khi nguồn hoặc môi trường không truy cập được
+  - Nhận diện vòng lặp không hội tụ và tác động của nhiều bên cùng sửa tài nguyên
+- level1: Nguồn trạng thái
+  level2:
+  - Xác định kho, đường dẫn và phiên bản tham chiếu cho môi trường đích
+  - Phân biệt nhánh theo dõi, tag và commit cố định
+  - Phân biệt cấu hình đã commit, cấu hình đã render và cấu hình đang áp dụng
+  - Xác định thuộc tính khai báo và thuộc tính do hệ thống tự sinh
+  - Quản lý dữ liệu đầu vào nằm ngoài Git và kiểm tra khả năng tái lập
+  - Phân biệt nguồn cấu hình với nơi lưu image, chart và các artifact
+  - Đánh giá rủi ro khi cùng một tham chiếu có thể trỏ đến nội dung khác
+  - Liên kết phiên bản nguồn với phiên bản ứng dụng và lần triển khai thực tế
+  - Thiết lập ranh giới nguồn có thẩm quyền khi sử dụng nhiều kho
+- level1: Kiến trúc
+  level2:
+  - Vai trò của hệ thống CI, kho cấu hình, registry và bộ điều khiển GitOps
+  - Phân biệt mô hình đẩy từ pipeline với mô hình kéo tại môi trường đích
+  - Vị trí đặt bộ điều khiển và ranh giới mạng cần vượt qua
+  - Tách mặt phẳng điều khiển khỏi nơi ứng dụng xử lý dữ liệu
+  - Lựa chọn quản lý tập trung hoặc phân tán theo cụm và đội ngũ
+  - Thiết kế đường truy cập từ bộ điều khiển đến kho nguồn và môi trường
+  - Đánh giá phụ thuộc vào Git, registry, DNS và hệ thống danh tính
+  - Xác định điểm lỗi tập trung và phạm vi ảnh hưởng khi bộ điều khiển gặp sự cố
+  - Phân định trách nhiệm giữa bộ điều khiển GitOps và các bộ điều khiển nền tảng
+- level1: Quan hệ với CI/CD
+  level2:
+  - Phân chia trách nhiệm build, test, phát hành artifact và thay đổi cấu hình
+  - Luồng CI tạo artifact rồi đề xuất cập nhật kho triển khai
+  - Phân biệt pipeline thành công, commit được merge và triển khai thành công
+  - Tách quyền xuất bản artifact khỏi quyền thay đổi môi trường sản xuất
+  - Quản lý phê duyệt ở bước thay đổi khai báo thay vì chạy lệnh tùy ý
+  - Phân biệt continuous delivery và continuous deployment trong quy trình GitOps
+  - Chọn điểm tích hợp webhook mà không bỏ qua vòng lặp đối soát
+  - Truy vết một thay đổi mã nguồn qua artifact đến trạng thái ứng dụng
+- level1: Mô hình tài nguyên
+  level2:
+  - Biểu diễn tài nguyên bằng định danh, thuộc tính và phạm vi quản lý
+  - Đọc manifest Kubernetes ở mức cần thiết cho quy trình GitOps
+  - Phân biệt cấu hình mong muốn, metadata và trạng thái do hệ thống cập nhật
+  - Nhận diện tài nguyên cấp namespace và tài nguyên cấp cụm
+  - Phân biệt tài nguyên bền vững với tác vụ chạy một lần
+  - Xác định các tài nguyên tạo gián tiếp bởi operator hoặc bộ điều khiển khác
+  - Quản lý quyền sở hữu thuộc tính khi nhiều bộ điều khiển cùng tham gia
+  - Đánh giá cấu hình không khai báo đầy đủ và phụ thuộc vào giá trị mặc định
+  - Giới hạn của manifest đối với dữ liệu nghiệp vụ và hệ thống bên ngoài
+- level1: Tổ chức kho mã
+  level2:
+  - So sánh lưu mã ứng dụng và cấu hình triển khai cùng kho hoặc khác kho
+  - Tổ chức thư mục theo ứng dụng, môi trường, cụm và đội ngũ
+  - Chọn mô hình nhánh và đường dẫn theo nhu cầu review và thăng cấp
+  - Đánh giá monorepo và nhiều kho trong quản lý cấu hình GitOps
+  - Tách cấu hình dùng chung khỏi cấu hình dành riêng cho môi trường
+  - Quy định chủ sở hữu, phạm vi review và trách nhiệm phê duyệt
+  - Tránh sao chép cấu hình và phụ thuộc vòng giữa các kho
+  - Quản lý nhiều nguồn đầu vào mà vẫn xác định được một phiên bản triển khai
+  - Thiết lập quy ước tên, tài liệu và hợp đồng thư mục
+  - Đánh giá tác động của một commit đến các ứng dụng cùng theo dõi kho
+- level1: Dữ liệu cấu hình
+  level2:
+  - Tách dữ liệu cấu hình khỏi cấu trúc tài nguyên dùng chung
+  - Quản lý giá trị mặc định và phần ghi đè theo môi trường
+  - Kiểm soát kiểu dữ liệu, giá trị thiếu và giá trị rỗng
+  - Xác định thứ tự ưu tiên khi kết hợp nhiều lớp cấu hình
+  - Phân biệt hợp nhất cấu trúc với thay thế danh sách hoặc toàn bộ giá trị
+  - Kiểm tra cấu hình hiệu lực trước khi tạo tài nguyên đích
+  - Quản lý cấu hình không bí mật và tham chiếu đến bí mật
+  - Giới hạn khác biệt môi trường để giảm sai lệch không chủ đích
+  - Phiên bản hóa schema và xử lý tương thích khi cấu hình thay đổi
+- level1: Sinh manifest
+  level2:
+  - Phân biệt manifest thuần, template và cấu hình ghép lớp
+  - Vai trò của Helm và Kustomize trong tạo đầu ra khai báo
+  - Quy định nguồn, phiên bản và tham số của công cụ render
+  - Tạo đầu ra xác định từ cùng tập đầu vào được kiểm soát
+  - Nhận diện giá trị ngẫu nhiên, phụ thuộc thời gian và nguồn tải không cố định
+  - Kiểm tra đầu ra cuối cùng thay vì chỉ review tệp template
+  - Quản lý phụ thuộc chart, thành phần cơ sở và dữ liệu từ xa
+  - Đánh giá quyền và độ tin cậy của phần mở rộng tham gia render
+  - Phân định việc sinh manifest với việc áp dụng và đánh giá sức khỏe
+- level1: Artifact triển khai
+  level2:
+  - Phân biệt mã nguồn, image, chart và gói cấu hình triển khai
+  - Sử dụng phiên bản hoặc digest xác định để truy vết nội dung artifact
+  - Đánh giá rủi ro của tag image có thể thay đổi như latest
+  - Liên kết artifact với commit nguồn, kết quả kiểm thử và thông tin xuất xứ
+  - Đề xuất cập nhật phiên bản artifact bằng commit hoặc pull request
+  - Phân biệt tự động phát hiện phiên bản mới với tự động triển khai phiên bản đó
+  - Thăng cấp cùng artifact đã kiểm tra qua các môi trường
+  - Quản lý quyền đọc registry, chính sách lưu giữ và artifact phục vụ khôi phục
+  - Kiểm tra sự tồn tại và tính sẵn sàng của artifact trước khi đổi cấu hình
+- level1: Quy trình thay đổi
+  level2:
+  - Tạo đề xuất thay đổi với mục tiêu, phạm vi và môi trường bị ảnh hưởng
+  - Review diff cấu hình và đầu ra render trước khi hợp nhất
+  - Áp dụng quy tắc nhánh được bảo vệ và review theo quyền sở hữu
+  - Kiểm tra tự động và yêu cầu phê duyệt phù hợp với rủi ro
+  - Phân biệt merge đề xuất với phê duyệt cho phép tự động đồng bộ
+  - Chia thay đổi lớn thành các bước tương thích và dễ kiểm chứng
+  - Xử lý hai thay đổi đồng thời cùng tác động đến một môi trường
+  - Liên kết commit, yêu cầu thay đổi và lần đối soát để kiểm toán
+  - Quản lý chỉnh sửa khẩn cấp mà vẫn cập nhật nguồn chính thức
+- level1: Thăng cấp môi trường
+  level2:
+  - Thiết kế luồng phát triển → kiểm thử → tiền sản xuất → sản xuất
+  - Chọn thăng cấp bằng cập nhật phiên bản, sao chép có kiểm soát hoặc đề xuất thay đổi
+  - Giữ nguyên danh tính artifact trong khi thay dữ liệu môi trường
+  - Phân biệt cấu hình môi trường với dữ liệu và trạng thái nghiệp vụ
+  - Đặt tiêu chí kiểm thử, sức khỏe và phê duyệt trước mỗi lần thăng cấp
+  - Kiểm soát nhiều phiên bản ứng dụng cùng tồn tại giữa các môi trường
+  - Tránh lấy nhánh ứng dụng làm bằng chứng duy nhất cho phiên bản đang chạy
+  - Truy vết lịch sử thăng cấp và xác định môi trường đang dùng phiên bản nào
+  - Xử lý bản sửa khẩn cấp và đưa thay đổi trở lại luồng thăng cấp chính
+- level1: Đồng bộ tài nguyên
+  level2:
+  - Phân biệt so sánh trạng thái, xem diff và thực hiện đồng bộ
+  - Chọn đồng bộ tự động hoặc có thao tác cho phép của con người
+  - Giới hạn phạm vi tài nguyên và môi trường trong một lần đồng bộ
+  - Phân biệt tạo mới, cập nhật, thay thế và xóa tài nguyên
+  - Hiểu tác động của cách áp dụng cấu hình đến quyền sở hữu thuộc tính
+  - Xử lý tài nguyên chưa tồn tại, không hợp lệ hoặc không còn tương thích
+  - Thiết kế điều kiện tạm dừng, tiếp tục và hết thời gian chờ
+  - Đánh giá giới hạn tính nguyên tử của một lần đồng bộ nhiều tài nguyên
+  - Xác minh kết quả sau đồng bộ và xử lý thành công một phần
+  - Kiểm tra cách công cụ cụ thể báo cáo phiên bản nguồn đã xử lý
+  - Phân biệt vòng lặp GitOps với bộ điều khiển phát hành từng bước
+- level1: Sức khỏe ứng dụng
+  level2:
+  - Phân biệt trạng thái đã đồng bộ với trạng thái ứng dụng khỏe mạnh
+  - Phân biệt tài nguyên được chấp nhận, sẵn sàng và phục vụ đúng nghiệp vụ
+  - Đọc điều kiện, sự kiện và trạng thái rollout của workload
+  - Vai trò của kiểm tra khởi động, readiness và liveness
+  - Xây dựng kiểm tra sức khỏe phù hợp cho tài nguyên tùy chỉnh
+  - Xác định thời gian chờ và ngưỡng thất bại hợp lý
+  - Kết hợp kiểm tra tài nguyên với kiểm thử truy cập dịch vụ
+  - Phân biệt lỗi cấu hình, lỗi khởi động và lỗi phụ thuộc bên ngoài
+  - Đặt tiêu chí hoàn tất triển khai dựa trên sức khỏe và hành vi cần xác minh
+  - Kết hợp GitOps với rolling update, blue-green hoặc canary theo chiến lược đã chọn
+  - Sử dụng chỉ số và kết quả kiểm tra để quyết định tiếp tục hoặc dừng phát hành
+- level1: Xóa và quyền sở hữu
+  level2:
+  - Xác định tài nguyên nào thực sự thuộc phạm vi quản lý của GitOps
+  - Hiểu pruning và tác động khi xóa khai báo khỏi nguồn
+  - Phân biệt tài nguyên bị bỏ quản lý với tài nguyên cần xóa khỏi môi trường
+  - Thiết lập xác nhận hoặc giới hạn cho thao tác xóa có rủi ro
+  - Bảo vệ namespace, dữ liệu lưu trữ và tài nguyên dùng chung
+  - Hiểu finalizer và quan hệ chủ sở hữu khi tài nguyên không xóa được
+  - Xử lý đổi tên hoặc chuyển định danh mà công cụ có thể xem là xóa rồi tạo
+  - Đánh giá tác động khi xóa đối tượng quản lý ứng dụng hoặc bộ cấu hình
+  - Kiểm tra tài nguyên mồ côi và kết thúc vòng đời quản lý có kiểm soát
+- level1: Sai lệch cấu hình
+  level2:
+  - Sai lệch cấu hình (configuration drift) và khác biệt với thay đổi đã được phê duyệt
+  - Phát hiện sửa trực tiếp bằng giao diện, CLI hoặc hệ thống tự động khác
+  - Phân biệt tự động đồng bộ thay đổi nguồn với tự động sửa sai lệch tại đích
+  - Lựa chọn cảnh báo, yêu cầu review hoặc tự động khôi phục theo rủi ro
+  - Xử lý thuộc tính do autoscaler, operator hoặc admission webhook điều chỉnh
+  - Thiết lập ngoại lệ so sánh có phạm vi và lý do rõ ràng
+  - Tránh bỏ qua diff quá rộng làm che khuất sai lệch quan trọng
+  - Nhận diện xung đột quyền sở hữu và vòng lặp ghi đè giữa các bộ điều khiển
+  - Đưa sửa chữa khẩn cấp hợp lệ trở lại nguồn khai báo
+  - Xác minh hội tụ và theo dõi sai lệch tái diễn sau khi khắc phục
+- level1: Bí mật
+  level2:
+  - Phân biệt bí mật, cấu hình công khai và dữ liệu nhạy cảm
+  - Nhận diện rủi ro lưu bí mật dạng rõ trong Git và lịch sử commit
+  - Phân biệt mã hóa thực sự với biểu diễn Base64 của Kubernetes Secret
+  - So sánh lưu bí mật đã mã hóa trong Git với tham chiếu đến kho bí mật ngoài
+  - Quản lý khóa giải mã và quyền đọc bí mật của bộ điều khiển
+  - Giữ bí mật khỏi diff, log, giao diện, artifact và đầu ra render
+  - Thiết kế cách cấp bí mật theo môi trường và danh tính workload
+  - Xoay vòng bí mật và phối hợp việc nạp lại cấu hình ứng dụng
+  - Thu hồi bí mật bị lộ trước khi xử lý lịch sử và bản sao cấu hình
+  - Chuẩn bị khôi phục khóa và bí mật mà không mở rộng quyền ngoài nhu cầu
+- level1: Quyền và độ tin cậy
+  level2:
+  - Xác định ranh giới tin cậy giữa kho Git, registry, CI và môi trường đích
+  - Cấp quyền đọc nguồn và quyền thao tác tài nguyên theo nguyên tắc tối thiểu
+  - Tách danh tính bộ điều khiển theo môi trường hoặc phạm vi sở hữu
+  - Giới hạn namespace, loại tài nguyên và hành động được phép
+  - Kiểm soát quyền sửa kho cấu hình như một quyền tác động đến hệ thống chạy
+  - Review nguồn từ xa, thành phần render và nội dung có thể thực thi mã
+  - Kiểm tra nguồn gốc commit và artifact theo mô hình tin cậy đã chọn
+  - Giới hạn đường mạng và thông tin xác thực mà bộ điều khiển có thể sử dụng
+  - Quản lý tài khoản khẩn cấp, thao tác vượt quy trình và bằng chứng truy vết
+  - Đánh giá chuỗi tác động khi một kho hoặc một bộ điều khiển bị xâm phạm
+- level1: Nhiều cụm và nhóm
+  level2:
+  - Chọn phạm vi quản lý theo cụm, môi trường, ứng dụng và đội ngũ
+  - Tách cấu hình nền tảng khỏi cấu hình của nhóm ứng dụng
+  - Thiết kế phân quyền và cô lập giữa các nhóm cùng dùng hạ tầng
+  - Quản lý danh sách cụm, định danh đích và ánh xạ cấu hình
+  - Áp dụng cấu hình chung mà vẫn kiểm soát khác biệt từng cụm
+  - Chia đợt cập nhật nhiều cụm để giới hạn phạm vi ảnh hưởng
+  - Ngăn một lỗi cấu hình lan đồng thời sang toàn bộ môi trường
+  - Quản lý cụm không kết nối được và trạng thái nguồn chưa cập nhật
+  - Theo dõi phiên bản và sức khỏe theo từng nhóm tài nguyên
+- level1: Phụ thuộc triển khai
+  level2:
+  - Xác định quan hệ phụ thuộc giữa cấu hình nền, dịch vụ và ứng dụng
+  - Phân biệt thứ tự áp dụng tài nguyên với điều kiện phụ thuộc đã sẵn sàng
+  - Đảm bảo CRD sẵn sàng trước khi quản lý tài nguyên tùy chỉnh tương ứng
+  - Điều phối namespace, quyền, bí mật và cấu hình trước workload
+  - Nhận diện phụ thuộc vòng và cách tách quy trình để phá vòng
+  - Đánh giá hook hoặc tác vụ trước và sau đồng bộ theo khả năng công cụ
+  - Thiết kế tác vụ một lần có kiểm tra trạng thái và khả năng chạy lại
+  - Xử lý phụ thuộc ngoài phạm vi bộ điều khiển GitOps
+  - Tránh giả định một commit có thể tạo giao dịch nguyên tử giữa nhiều ứng dụng
+- level1: Dữ liệu và migration
+  level2:
+  - Phân biệt trạng thái khai báo với dữ liệu bền vững của ứng dụng
+  - Đánh giá thay đổi schema cơ sở dữ liệu trong luồng GitOps
+  - Thiết kế migration tương thích khi phiên bản cũ và mới cùng chạy
+  - Xác định thứ tự, danh tính và quyền thực thi migration
+  - Quản lý dấu mốc thực thi và tránh chạy lại thao tác không lũy đẳng
+  - Đánh giá giới hạn của Git revert đối với schema và dữ liệu đã thay đổi
+  - Phối hợp sao lưu, phục hồi dữ liệu và khôi phục cấu hình
+  - Xác minh toàn vẹn dữ liệu cùng với sức khỏe ứng dụng sau thay đổi
+- level1: Kiểm thử và chính sách
+  level2:
+  - Kiểm tra cú pháp và schema của tệp cấu hình
+  - Render toàn bộ đầu ra cho từng môi trường cần hỗ trợ
+  - Phát hiện định danh trùng, tham chiếu thiếu và phụ thuộc không hợp lệ
+  - Kiểm tra chính sách về quyền, image, tài nguyên và cấu hình bảo mật
+  - Phân biệt kiểm tra trong CI với kiểm soát tại thời điểm tiếp nhận tài nguyên
+  - Xem trước diff và đánh giá thao tác tạo, sửa, thay thế hoặc xóa
+  - Kiểm thử tích hợp trên môi trường tạm có phạm vi giới hạn
+  - Kiểm thử hội tụ, tự sửa sai lệch và hành vi khi nguồn không truy cập được
+  - Kiểm thử triển khai lỗi, thay đổi từng phần và phương án khôi phục
+  - Đặt cổng kiểm tra cho đề xuất thay đổi và ghi nhận ngoại lệ có thời hạn
+- level1: Quan sát và kiểm toán
+  level2:
+  - Theo dõi khả năng truy cập nguồn, độ mới của phiên bản và kết quả render
+  - Theo dõi trạng thái đồng bộ, sức khỏe và thời gian hội tụ
+  - Phân biệt lỗi lấy nguồn, lỗi áp dụng và lỗi vận hành ứng dụng
+  - Liên kết log, sự kiện và chỉ số với ứng dụng và môi trường đích
+  - Cảnh báo sai lệch kéo dài, đồng bộ thất bại và vòng lặp thử lại
+  - Truy vết người đề xuất, người phê duyệt, commit và phiên bản đã áp dụng
+  - Chứng minh phiên bản đang chạy từ cấu hình và artifact thực tế
+  - Quản lý lưu giữ bằng chứng và giới hạn dữ liệu nhạy cảm trong báo cáo
+  - Đo thời gian đưa thay đổi đến môi trường và thời gian khôi phục theo bối cảnh
+- level1: Khôi phục
+  level2:
+  - Phân biệt quay lại cấu hình, khôi phục dịch vụ và phục hồi dữ liệu
+  - Chọn Git revert, cập nhật về artifact cũ hoặc sửa tiến để phục hồi
+  - Đánh giá lịch sử thay đổi đồng thời trước khi hoàn tác một commit
+  - Ngăn bộ điều khiển áp dụng lại nguồn lỗi trong lúc xử lý sự cố
+  - Kiểm tra artifact cũ, schema và cấu hình còn tương thích trước khi quay lại
+  - Thực hiện truy cập khẩn cấp và đưa trạng thái cuối trở lại nguồn khai báo
+  - Phân biệt tái tạo tài nguyên từ Git với phục hồi đầy đủ một môi trường
+  - 'Sao lưu thông tin ngoài Git: khóa, quyền truy cập, dữ liệu và cấu hình điều khiển'
+  - Thiết kế khởi tạo lại bộ điều khiển khi chính hệ thống GitOps gặp sự cố
+  - Diễn tập mất cụm, mất nguồn hoặc mất khóa và xác minh khả năng phục hồi
+- level1: Quản trị vận hành
+  level2:
+  - Phân định trách nhiệm của nhóm nền tảng, ứng dụng và bảo mật
+  - Thiết lập quy ước tạo, tiếp quản và ngừng quản lý ứng dụng
+  - Quản lý cửa sổ thay đổi, thời gian đóng băng và ngoại lệ khẩn cấp
+  - Nâng cấp bộ điều khiển và kiểm tra tương thích tài nguyên quản lý
+  - Quản lý thông tin xác thực, kết nối nguồn và tích hợp theo vòng đời
+  - Rà soát quyền và nguồn có thể tác động đến môi trường sản xuất
+  - Kiểm soát chi phí đối soát, số lượng tài nguyên và tải lên API
+  - Tài liệu hóa giới hạn dịch vụ, đường khôi phục và người chịu trách nhiệm
+- level1: Lựa chọn công cụ
+  level2:
+  - So sánh Argo CD và Flux ở mức mô hình GitOps và phạm vi quản lý
+  - Đánh giá loại nguồn, cách render và khả năng quản lý nhiều môi trường
+  - So sánh cơ chế đồng bộ, phát hiện sai lệch và đánh giá sức khỏe
+  - Đánh giá mô hình phân quyền, quản lý bí mật và ranh giới tin cậy
+  - Kiểm tra khả năng quan sát, kiểm toán và tích hợp quy trình review
+  - Đánh giá vận hành, nâng cấp, khôi phục và chi phí duy trì
+  - Thử nghiệm công cụ bằng cùng một bài toán và tiêu chí xác minh
+  - Phân định kiến thức nền tảng với cấu hình chuyên sâu của từng sản phẩm
+- level1: Áp dụng GitOps
+  level2:
+  - Khảo sát quy trình hiện tại và nhận diện trạng thái chưa được khai báo
+  - Chọn ứng dụng thử nghiệm có rủi ro và phạm vi phù hợp
+  - Chuẩn hóa artifact, nguồn cấu hình và quyền sở hữu trước khi chuyển đổi
+  - Tiếp quản tài nguyên đang chạy mà không vô tình tạo lại hoặc xóa dữ liệu
+  - Chạy đối chiếu trước khi cho phép bộ điều khiển thay đổi môi trường
+  - Chuyển giao quyền ghi từ pipeline hoặc thao tác thủ công sang bộ điều khiển
+  - Mở rộng theo giai đoạn với tiêu chí dừng và phương án quay lại
+  - Đánh giá kết quả bằng khả năng truy vết, hội tụ và khôi phục thực tế
+  - Nhận diện hệ thống thiếu khả năng khai báo hoặc đối soát cần cách tiếp cận bổ sung
+- level1: Xử lý sự cố
+  level2:
+  - 'Không lấy được nguồn: kiểm tra URL, phiên bản tham chiếu, mạng và xác thực'
+  - Render thất bại do đầu vào thiếu, phụ thuộc thay đổi hoặc phiên bản công cụ
+  - Không thấy thay đổi mới do theo dõi sai đường dẫn hoặc sai phiên bản
+  - Áp dụng bị từ chối do schema, chính sách hoặc quyền trên môi trường đích
+  - Tài nguyên luôn báo khác biệt do giá trị mặc định hoặc bộ điều khiển khác
+  - Đã đồng bộ nhưng ứng dụng lỗi do image, cấu hình, tài nguyên hoặc phụ thuộc
+  - Xóa bị treo do finalizer hoặc tài nguyên còn được thành phần khác sử dụng
+  - Đồng bộ thành công một phần khiến nhiều ứng dụng ở phiên bản không đồng nhất
+  - Nguồn hợp lệ nhưng artifact không tồn tại hoặc không có quyền tải
+  - Thao tác sửa trực tiếp bị hoàn tác trong quá trình xử lý sự cố
+  - Thu thập bằng chứng theo vòng lặp đối soát mà không làm lộ bí mật
+- level1: Thực hành
+  level2:
+  - Thiết kế luồng từ commit ứng dụng đến artifact và kho triển khai
+  - Tổ chức cấu hình cho hai môi trường với cùng artifact được thăng cấp
+  - Đề xuất thay đổi qua review, kiểm thử và phê duyệt có truy vết
+  - Đối chiếu cấu hình nguồn, đầu ra render và tài nguyên thực tế
+  - Quan sát quá trình từ nhận phiên bản mới đến đồng bộ và khỏe mạnh
+  - Tạo sai lệch có kiểm soát rồi so sánh cảnh báo với tự động sửa
+  - Thực hành cập nhật bí mật mà không lưu thông tin rõ trong Git
+  - Kiểm tra giới hạn quyền và phạm vi ảnh hưởng bằng thay đổi thử nghiệm
+  - Diễn tập cấu hình lỗi, khôi phục phiên bản và xác minh dịch vụ
+  - Ngừng quản lý hoặc xóa ứng dụng với biện pháp bảo vệ dữ liệu
+  - Đánh giá quy trình cuối bằng nguyên tắc GitOps và bằng chứng vận hành

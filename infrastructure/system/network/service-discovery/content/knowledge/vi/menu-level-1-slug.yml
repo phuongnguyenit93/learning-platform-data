@@ -1,0 +1,91 @@
+menu:
+- title: Nền tảng
+  slug: foundations
+  index: 0
+- title: Định danh dịch vụ
+  slug: service-identities
+  index: 1
+- title: Mô hình kiến trúc
+  slug: architecture-models
+  index: 2
+- title: Mô hình registry
+  slug: registry-models
+  index: 3
+- title: Đăng ký và vòng đời
+  slug: service-registration-lifecycle
+  index: 4
+- title: Sức khỏe dịch vụ
+  slug: service-health
+  index: 5
+- title: Tra cứu và theo dõi
+  slug: lookup-watching
+  index: 6
+- title: Nhất quán dữ liệu
+  slug: consistency
+  index: 7
+- title: Cache và độ mới
+  slug: caching-freshness
+  index: 8
+- title: Cân bằng tải
+  slug: load-balancing
+  index: 9
+- title: Phục hồi khi lỗi
+  slug: failure-recovery
+  index: 10
+- title: Khám phá qua DNS
+  slug: dns-discovery
+  index: 11
+- title: Kubernetes Service
+  slug: kubernetes-services
+  index: 12
+- title: EndpointSlice
+  slug: endpointslices
+  index: 13
+- title: DNS trong Kubernetes
+  slug: kubernetes-dns
+  index: 14
+- title: Consul
+  slug: service-discovery-consul
+  index: 15
+- title: Eureka
+  slug: service-discovery-eureka
+  index: 16
+- title: Các nền tảng khác
+  slug: other-platforms
+  index: 17
+- title: Java và Spring
+  slug: java-spring
+  index: 18
+- title: HTTP và gRPC
+  slug: http-grpc
+  index: 19
+- title: Mạng và địa chỉ
+  slug: network-addressing
+  index: 20
+- title: Proxy và service mesh
+  slug: proxy-service-mesh
+  index: 21
+- title: Metadata và lựa chọn
+  slug: metadata-selection
+  index: 22
+- title: Nhiều vùng triển khai
+  slug: multi-region-deployments
+  index: 23
+- title: Bảo mật discovery
+  slug: discovery-security
+  index: 24
+- title: Quan sát discovery
+  slug: discovery-observability
+  index: 25
+- title: Kiểm thử discovery
+  slug: discovery-testing
+  index: 26
+- title: Vận hành registry
+  slug: registry-operations
+  index: 27
+- title: Lựa chọn và chuyển đổi
+  slug: selection-migration
+  index: 28
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 29

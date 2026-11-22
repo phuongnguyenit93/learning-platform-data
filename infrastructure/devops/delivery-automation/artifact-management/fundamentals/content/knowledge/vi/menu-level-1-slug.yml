@@ -1,0 +1,76 @@
+menu:
+  - title: "Nền tảng artifact"
+    slug: artifact-fundamentals
+    index: 0
+  - title: "Vòng đời artifact"
+    slug: artifact-lifecycle
+    index: 1
+  - title: "Định danh artifact"
+    slug: artifact-identification
+    index: 2
+  - title: "Phiên bản bất biến"
+    slug: immutable-versioning
+    index: 3
+  - title: "Repository và registry"
+    slug: repositories-and-registries
+    index: 4
+  - title: "Phụ thuộc và phân giải"
+    slug: dependency-resolution
+    index: 5
+  - title: "Build tái lập"
+    slug: reproducible-builds
+    index: 6
+  - title: "Metadata artifact"
+    slug: artifact-metadata
+    index: 7
+  - title: "Lưu trữ artifact"
+    slug: artifact-storage
+    index: 8
+  - title: "Công bố artifact"
+    slug: artifact-publishing
+    index: 9
+  - title: "Phân phối artifact"
+    slug: artifact-distribution
+    index: 10
+  - title: "Tính toàn vẹn"
+    slug: artifact-integrity
+    index: 11
+  - title: "Chữ ký artifact"
+    slug: artifact-signing
+    index: 12
+  - title: "Nguồn gốc artifact"
+    slug: artifact-provenance
+    index: 13
+  - title: "SBOM"
+    slug: sbom
+    index: 14
+  - title: "Chính sách chấp nhận"
+    slug: artifact-acceptance-policies
+    index: 15
+  - title: "Kiểm soát truy cập"
+    slug: access-control
+    index: 16
+  - title: "Artifact trong CI/CD"
+    slug: ci-cd-artifacts
+    index: 17
+  - title: "Promotion artifact"
+    slug: artifact-promotion
+    index: 18
+  - title: "Lưu giữ và dọn dẹp"
+    slug: retention-and-cleanup
+    index: 19
+  - title: "Vận hành kho artifact"
+    slug: repository-operations
+    index: 20
+  - title: "JAR và package"
+    slug: jars-and-packages
+    index: 21
+  - title: "Container image"
+    slug: container-images
+    index: 22
+  - title: "Chẩn đoán sự cố"
+    slug: artifact-troubleshooting
+    index: 23
+  - title: "Thực hành tổng hợp"
+    slug: artifact-management-practice
+    index: 24

@@ -1,0 +1,385 @@
+menu:
+- level1: Tổng quan chiến lược
+  level2:
+  - Chiến lược triển khai là gì và vì sao ảnh hưởng trực tiếp tới rủi ro vận hành
+  - Phân biệt triển khai phần mềm, phát hành tính năng và chuyển lưu lượng
+  - Mối liên hệ giữa phiên bản ứng dụng, cấu hình, dữ liệu và môi trường chạy
+  - Phân biệt chiến lược triển khai với pipeline CI/CD và công cụ điều phối
+  - Nhận diện phạm vi ảnh hưởng khi nhiều phiên bản cùng tồn tại
+  - Toàn cảnh Recreate, Rolling Update, Blue-Green, Canary và các kỹ thuật bổ trợ
+  - Hiểu không gián đoạn là mục tiêu cần kiểm chứng thay vì thuộc tính mặc định
+  - Điều kiện tiên quyết và lộ trình học cách lựa chọn chiến lược triển khai
+- level1: Tiêu chí lựa chọn
+  level2:
+  - Xác định yêu cầu về thời gian gián đoạn và mức độ sẵn sàng
+  - Đánh giá mức chấp nhận rủi ro, phạm vi ảnh hưởng và khả năng phục hồi
+  - Phân loại ứng dụng không trạng thái, có trạng thái và tác vụ nền
+  - Đánh giá khả năng chạy đồng thời nhiều phiên bản
+  - Xác định năng lực điều phối lưu lượng và quan sát theo phiên bản
+  - Cân đối tài nguyên dự phòng, chi phí và thời gian hoàn thành triển khai
+  - Phân tích yêu cầu tuân thủ, phê duyệt và cửa sổ bảo trì
+  - Lựa chọn chiến lược theo đặc điểm thay đổi thay vì dùng một mẫu cho mọi lần
+  - Lập ma trận quyết định và ghi rõ giả định cùng điều kiện loại trừ
+- level1: Chuẩn bị triển khai
+  level2:
+  - Xác định đơn vị triển khai và danh tính bất biến của artifact
+  - Gắn phiên bản mã nguồn, cấu hình và artifact vào cùng hồ sơ triển khai
+  - Kiểm tra tính nhất quán giữa môi trường kiểm thử và môi trường đích
+  - Xác minh quyền thực thi, kết nối, hạn mức và tài nguyên dự phòng
+  - Thiết lập tiêu chí bắt đầu, tạm dừng, hủy và hoàn thành triển khai
+  - Chuẩn bị phiên bản quay lui, bản sao lưu và phương án bảo vệ dữ liệu
+  - Kiểm tra khả năng tương thích API, schema và phụ thuộc trước thay đổi
+  - Phân công người thực thi, người phê duyệt và người ứng phó sự cố
+  - Xây dựng checklist trước triển khai và lưu bằng chứng kiểm tra
+- level1: Triển khai Recreate
+  level2:
+  - Hiểu cơ chế dừng phiên bản cũ rồi khởi chạy phiên bản mới
+  - Phân biệt Recreate với thay đổi đồng loạt không kiểm soát
+  - Xác định trường hợp chấp nhận gián đoạn hoặc không thể chạy hai phiên bản
+  - Lập kế hoạch cửa sổ bảo trì và truyền đạt ảnh hưởng tới người dùng
+  - Ước lượng thời gian dừng từ shutdown, khởi động và kiểm tra sẵn sàng
+  - Xử lý yêu cầu đang chạy và ngăn nhận công việc mới trước khi dừng
+  - Kiểm chứng phiên bản mới trước khi mở lại truy cập
+  - Xây dựng phương án khôi phục khi phiên bản mới không khởi động được
+  - Đánh giá ưu điểm, giới hạn và các rủi ro dữ liệu của Recreate
+- level1: Triển khai cuốn chiếu
+  level2:
+  - Hiểu cơ chế thay từng nhóm instance bằng Rolling Update
+  - Chọn kích thước lô và thứ tự thay thế theo phạm vi ảnh hưởng
+  - Phân biệt dung lượng bổ sung với dung lượng được phép thiếu hụt
+  - Đảm bảo phiên bản cũ và mới tương thích trong thời gian cùng phục vụ
+  - Chờ khởi động, làm nóng và kiểm tra sẵn sàng trước khi thay lô tiếp
+  - Rút instance khỏi bộ cân bằng tải và xử lý kết nối đang tồn tại
+  - Theo dõi tiến độ, tạm dừng và tiếp tục triển khai từng lô
+  - Xử lý một lô thất bại mà không làm lan rộng ảnh hưởng
+  - Phối hợp Rolling Update với tự động mở rộng quy mô
+  - Đánh giá thời gian hoàn thành và độ phức tạp khi quay lui nhiều lô
+- level1: Triển khai Blue-Green
+  level2:
+  - Hiểu hai môi trường Blue và Green cùng vai trò đang phục vụ hoặc dự phòng
+  - Chuẩn bị môi trường mới với artifact, cấu hình và phụ thuộc đúng phiên bản
+  - Kiểm chứng môi trường mới trước khi nhận lưu lượng người dùng
+  - Lựa chọn điểm chuyển đổi tại load balancer, proxy hoặc cơ chế định tuyến
+  - Phân biệt chuyển lưu lượng nhanh với khả năng chuyển đổi nguyên tử thực tế
+  - Xử lý kết nối dài, cache và phiên người dùng khi chuyển môi trường
+  - Đánh giá việc dùng chung hoặc tách cơ sở dữ liệu giữa hai môi trường
+  - Quay lại môi trường cũ và kiểm tra điều kiện tương thích dữ liệu
+  - Xác định thời gian giữ môi trường cũ trước khi thu hồi tài nguyên
+  - Đánh giá chi phí, sai lệch cấu hình và giới hạn của Blue-Green
+- level1: Triển khai Canary
+  level2:
+  - Hiểu Canary là đưa phiên bản mới tới một phần lưu lượng hoặc nhóm người dùng
+  - Chọn nhóm đối chứng và nhóm thử nghiệm có ý nghĩa vận hành
+  - Phân biệt tỷ lệ số instance với tỷ lệ lưu lượng thực tế
+  - Định tuyến theo trọng số, người dùng, tenant hoặc thuộc tính yêu cầu
+  - Chọn tỷ lệ ban đầu, thời gian quan sát và điều kiện tăng phạm vi
+  - Xác định cỡ mẫu tối thiểu và xử lý hệ thống có ít lưu lượng
+  - So sánh lỗi, độ trễ, tải và chỉ báo nghiệp vụ giữa hai phiên bản
+  - Nhận diện ảnh hưởng dùng chung cơ sở dữ liệu, cache hoặc dịch vụ phụ thuộc
+  - Dừng mở rộng, cô lập phiên bản mới và rút lưu lượng khi vượt ngưỡng
+  - Xác nhận hoàn tất Canary và thu hồi phiên bản đối chứng
+- level1: Phát hành tăng dần
+  level2:
+  - Hiểu progressive delivery là tăng phạm vi phát hành có kiểm soát bằng bằng chứng
+  - Thiết kế chuỗi giai đoạn thử nghiệm, mở rộng và xác nhận hoàn tất
+  - Phân biệt tăng theo thời gian, tỷ lệ lưu lượng và nhóm đối tượng
+  - Kết hợp phân tích tự động với điểm phê duyệt thủ công
+  - Xác định điều kiện giữ nguyên, tiếp tục, tạm dừng và hủy
+  - Xử lý chỉ báo mâu thuẫn hoặc thiếu dữ liệu trong một giai đoạn
+  - Thiết lập giới hạn thời gian và cơ chế tránh triển khai bị treo
+  - Quản lý trạng thái quy trình khi người điều phối hoặc controller khởi động lại
+  - Phân biệt phát hành tăng dần với A/B testing và mở rộng quy mô thông thường
+- level1: Điều phối lưu lượng
+  level2:
+  - Xác định điểm kiểm soát lưu lượng tại DNS, load balancer, gateway hoặc service mesh
+  - Phân biệt định tuyến theo trọng số với phân chia nhóm người dùng cố định
+  - Thiết lập tính nhất quán phiên bản bằng cookie, header hoặc định danh phù hợp
+  - Hiểu ảnh hưởng của DNS TTL, bộ nhớ đệm và bộ phân giải tới thời gian chuyển
+  - Đánh giá cơ chế chọn backend trên từng yêu cầu hoặc từng kết nối
+  - Xử lý HTTP, gRPC, WebSocket và các kết nối tồn tại lâu
+  - Phối hợp đăng ký backend, kiểm tra sức khỏe và rút khỏi lưu lượng
+  - Ngăn người dùng bên ngoài tự chọn đường đi thử nghiệm trái phép
+  - Kiểm chứng lưu lượng thực tế bằng số liệu và dấu vết theo phiên bản
+  - Xác định cơ chế khôi phục tuyến đường khi hệ thống định tuyến gặp lỗi
+- level1: Sao chép lưu lượng
+  level2:
+  - Hiểu shadow traffic và cơ chế gửi bản sao yêu cầu tới phiên bản thử nghiệm
+  - Phân biệt phản hồi phục vụ người dùng với phản hồi chỉ dùng để đánh giá
+  - Lựa chọn điểm sao chép và giới hạn tỷ lệ yêu cầu được nhân bản
+  - Ngăn ghi dữ liệu, thanh toán hoặc gửi thông báo lặp do tác dụng phụ
+  - Ẩn dữ liệu nhạy cảm và kiểm soát quyền truy cập luồng sao chép
+  - So sánh phản hồi khi có thời gian, dữ liệu hoặc thứ tự xử lý khác nhau
+  - Cô lập tài nguyên để thử nghiệm không làm quá tải hệ thống đang phục vụ
+  - Phân biệt sao chép trực tiếp với phát lại lưu lượng đã ghi
+  - Nhận diện giới hạn kiểm chứng và điều kiện chuyển từ shadow sang phục vụ thật
+- level1: Cờ tính năng
+  level2:
+  - Tách bật tính năng khỏi triển khai mã bằng cờ tính năng (feature flag)
+  - Phân biệt cờ phát hành, cờ vận hành, thử nghiệm và phân quyền
+  - Phân biệt dark launch, Canary và shadow traffic theo phạm vi hành vi được kiểm chứng
+  - Thiết kế nhóm đối tượng và tính nhất quán khi bật tính năng
+  - Chọn giá trị mặc định an toàn khi dịch vụ quản lý cờ không truy cập được
+  - Sử dụng kill switch để tắt hành vi mới khi có sự cố
+  - Phối hợp nhiều cờ và kiểm soát số tổ hợp cần kiểm thử
+  - Kiểm tra cả nhánh bật và tắt trong thời gian chuyển tiếp
+  - Quản lý quyền đổi cờ, lịch sử thay đổi và phạm vi môi trường
+  - Đặt người sở hữu, thời hạn và kế hoạch loại bỏ cờ không còn dùng
+  - Phân biệt tắt cờ với quay lui artifact hoặc hoàn tác dữ liệu đã ghi
+- level1: Thử nghiệm A/B
+  level2:
+  - Phân biệt mục tiêu thử nghiệm sản phẩm với giảm rủi ro triển khai
+  - Xác định giả thuyết, chỉ báo chính và chỉ báo bảo vệ
+  - Chọn đơn vị phân nhóm là người dùng, phiên hoặc tenant
+  - Giữ nhóm thử nghiệm ổn định và tránh một người liên tục đổi phiên bản
+  - Đánh giá cỡ mẫu, thời gian quan sát và sai lệch phân bổ nhóm
+  - Nhận diện tác động mùa vụ, thay đổi đồng thời và ảnh hưởng giữa các nhóm
+  - Thiết lập điều kiện dừng vì an toàn trước khi kết luận hiệu quả nghiệp vụ
+  - Kết hợp A/B testing với Canary hoặc feature flag đúng vai trò
+  - Kết thúc thử nghiệm, lưu quyết định và dọn cấu hình thử nghiệm
+- level1: Triển khai theo vòng
+  level2:
+  - Hiểu triển khai theo vòng (ring deployment) và phạm vi từng nhóm nhận trước
+  - Tổ chức vòng nội bộ, nhóm tự nguyện, nhóm đại diện và toàn bộ người dùng
+  - Xây dựng tiêu chí chọn nhóm để tránh chỉ thử trên đối tượng ít rủi ro
+  - Phân chia theo tenant, phân khúc khách hàng hoặc cụm vận hành
+  - Đặt điều kiện chuyển vòng và khoảng quan sát giữa các vòng
+  - Giữ phiên bản nhất quán trong một nhóm có phụ thuộc chặt
+  - Xử lý khách hàng cần cửa sổ triển khai hoặc phiên bản riêng
+  - Quản lý quyền ngoại lệ và giới hạn thời gian tồn tại của các phiên bản
+  - So sánh triển khai theo vòng với Canary theo tỷ lệ lưu lượng
+- level1: Triển khai đa vùng
+  level2:
+  - Phân biệt phạm vi triển khai theo instance, vùng sẵn sàng, vùng địa lý và cụm
+  - Thiết kế các đợt triển khai để giới hạn phạm vi ảnh hưởng
+  - Chọn thứ tự vùng theo lưu lượng, mức quan trọng và khả năng quan sát
+  - Kiểm tra dung lượng chuyển tải khi một vùng tạm thời không phục vụ
+  - Đảm bảo tương thích giữa các vùng đang chạy phiên bản khác nhau
+  - Phối hợp thay đổi với sao chép dữ liệu và dịch vụ dùng chung
+  - Tạm dừng toàn bộ chiến dịch khi một vùng phát hiện sự cố
+  - Phân biệt quay lui phiên bản với chuyển vùng để khôi phục dịch vụ
+  - Theo dõi độ lệch phiên bản và xác nhận hội tụ sau triển khai
+- level1: Tương thích phiên bản
+  level2:
+  - Thiết kế khả năng tương thích khi phiên bản N và N+1 cùng tồn tại
+  - Giữ tương thích API giữa client, gateway và dịch vụ
+  - Quản lý thay đổi schema của sự kiện và thông điệp
+  - Xử lý thay đổi định dạng cache, khóa cache và thời hạn dữ liệu
+  - Kiểm tra phiên đăng nhập hoặc token do phiên bản mới tạo có đọc được ở bản cũ
+  - Phân biệt thay đổi bổ sung với thay đổi phá vỡ hợp đồng
+  - Phối hợp thứ tự nâng cấp producer, consumer và dịch vụ phụ thuộc
+  - Định nghĩa khoảng tương thích và điều kiện kết thúc hỗ trợ phiên bản cũ
+  - Kiểm thử hợp đồng và luồng giao tiếp giữa các tổ hợp phiên bản
+  - Nhận diện thay đổi không thể quay lui chỉ bằng đổi artifact
+- level1: Di chuyển cơ sở dữ liệu
+  level2:
+  - Phân biệt triển khai ứng dụng với migration schema và chuyển đổi dữ liệu
+  - Áp dụng expand-migrate-contract để hỗ trợ hai phiên bản đồng thời
+  - Thêm trường hoặc bảng mới trước khi thay đổi hành vi đọc và ghi
+  - Tổ chức backfill có giới hạn tải, checkpoint và khả năng tiếp tục
+  - Phân biệt đọc kép, ghi kép và rủi ro không nhất quán dữ liệu
+  - Đánh giá khóa bảng, thời gian chạy và ảnh hưởng của thay đổi schema
+  - Đặt thứ tự migration so với chuyển lưu lượng ứng dụng
+  - Trì hoãn xóa schema cũ cho tới khi hết khoảng quay lui
+  - Xử lý migration lỗi hoặc chỉ hoàn tất một phần
+  - Phân biệt rollback mã nguồn, migration ngược và khôi phục từ bản sao lưu
+  - Kiểm chứng dữ liệu trước khi thu hẹp schema và kết thúc chuyển đổi
+- level1: Hàng đợi và tác vụ nền
+  level2:
+  - Nhận diện khác biệt giữa triển khai dịch vụ nhận HTTP và consumer hàng đợi
+  - Chọn phạm vi thử nghiệm theo nhóm consumer, loại thông điệp hoặc phân vùng
+  - Đảm bảo producer và consumer khác phiên bản hiểu cùng hợp đồng dữ liệu
+  - Ngừng nhận tác vụ mới và xử lý xong công việc đang thực thi trước khi dừng
+  - Kiểm soát ack, retry và khả năng xuất hiện tác vụ trùng lặp
+  - Thiết kế xử lý lặp an toàn cho tác vụ có tác dụng phụ
+  - Theo dõi backlog, tuổi thông điệp, thông lượng và dead-letter queue
+  - Tránh hai phiên bản đồng thời chạy cùng lịch cron hoặc tác vụ độc quyền
+  - Xử lý tác vụ dài và checkpoint khi phiên bản cũ cần được thu hồi
+  - Quay lui consumer mà không làm mất khả năng xử lý thông điệp đã được tạo
+- level1: Phiên và kết nối
+  level2:
+  - Phân biệt trạng thái trong tiến trình với trạng thái lưu ở dịch vụ bên ngoài
+  - Đánh giá sticky session và khả năng chuyển phiên giữa các phiên bản
+  - Thiết kế graceful shutdown và thứ tự ngừng nhận yêu cầu
+  - Thiết lập thời gian drain, thời gian chờ và xử lý yêu cầu chưa hoàn tất
+  - Phối hợp timeout của ứng dụng, proxy, load balancer và nền tảng
+  - Giữ an toàn cho giao dịch đang chạy khi instance bị thay thế
+  - Xử lý WebSocket, gRPC stream và kết nối dài khi chuyển phiên bản
+  - Nhận diện retry làm lặp yêu cầu và kiểm soát bằng định danh phù hợp
+  - Làm nóng connection pool, cache và thành phần khởi tạo trước khi nhận tải
+- level1: Kiểm tra sức khỏe
+  level2:
+  - Phân biệt startup, readiness, liveness và smoke test sau triển khai
+  - Thiết kế điều kiện sẵn sàng phản ánh khả năng phục vụ thật
+  - Tránh kiểm tra phụ thuộc quá sâu làm nhiều instance đồng thời mất sẵn sàng
+  - Phân biệt tiến trình còn chạy với chức năng nghiệp vụ đang hoạt động
+  - Chọn ngưỡng thất bại, chu kỳ kiểm tra và thời gian khởi động phù hợp
+  - Đánh giá ảnh hưởng của kiểm tra sức khỏe tới việc rút hoặc nhận lưu lượng
+  - Kiểm tra các đường đi quan trọng bằng yêu cầu tổng hợp
+  - Phối hợp readiness với warm-up và việc đăng ký backend
+  - Xác minh hành vi khi một phần phụ thuộc suy giảm thay vì mất hoàn toàn
+- level1: Quan sát và phân tích
+  level2:
+  - Gắn nhãn phiên bản, môi trường, vùng và nhóm thử nghiệm vào dữ liệu giám sát
+  - Theo dõi tỷ lệ lỗi, độ trễ, lưu lượng và mức bão hòa
+  - Chọn chỉ báo nghiệp vụ đại diện cho tác động tới người dùng
+  - So sánh phiên bản mới với nhóm đối chứng trong cùng điều kiện
+  - Đọc phân vị độ trễ và tránh chỉ dựa vào giá trị trung bình
+  - Phân tích log và trace để tìm lỗi chỉ xuất hiện ở phiên bản mới
+  - Thiết kế bảng theo dõi theo giai đoạn triển khai và phạm vi ảnh hưởng
+  - Xử lý dữ liệu đến chậm, thiếu nhãn hoặc số mẫu quá nhỏ
+  - Nhận diện tín hiệu nhiễu do autoscaling, thay đổi tải hoặc phụ thuộc bên ngoài
+  - Liên hệ ngưỡng triển khai với SLO, ngân sách lỗi và mức chấp nhận rủi ro
+- level1: Cổng kiểm soát
+  level2:
+  - Xác định cổng kiểm soát trước, trong và sau triển khai
+  - Thiết kế ngưỡng tuyệt đối và ngưỡng so sánh với đường cơ sở
+  - Đặt thời gian quan sát tối thiểu và số mẫu tối thiểu trước khi quyết định
+  - Phân biệt điều kiện cảnh báo, tạm dừng và tự động hủy
+  - Xử lý dữ liệu không đủ mà không mặc định coi là triển khai an toàn
+  - Kết hợp kết quả kiểm thử, chỉ báo hệ thống và kiểm tra nghiệp vụ
+  - Thiết lập người phê duyệt, thời hạn và bằng chứng chấp thuận
+  - Quản lý ngoại lệ có thời hạn và ghi nhận lý do vượt cổng kiểm soát
+  - Tránh tự động quay lui liên tục khi chỉ báo dao động
+  - Xác nhận thành công sau triển khai và bàn giao sang giám sát bình thường
+- level1: Rollback và Roll-forward
+  level2:
+  - Phân biệt quay lui phiên bản với sửa tiếp trên phiên bản mới
+  - Xác định tín hiệu kích hoạt rollback và người có quyền quyết định
+  - Chuẩn bị artifact cũ, cấu hình tương thích và khả năng cấp phát lại
+  - Quay lui bằng đổi tuyến đường, thay instance hoặc khôi phục cấu hình
+  - Kiểm tra ảnh hưởng của dữ liệu do phiên bản mới đã ghi
+  - Chọn roll-forward khi quay lui không còn an toàn hoặc khả thi
+  - Xử lý quay lui chỉ một phần trong hệ thống nhiều dịch vụ hoặc nhiều vùng
+  - Kiểm chứng dịch vụ đã phục hồi thay vì chỉ kiểm tra lệnh hoàn thành
+  - Giữ bằng chứng, chặn phát hành lại bản lỗi và thông báo trạng thái xử lý
+  - Diễn tập rollback và đo thời gian phục hồi thực tế
+- level1: Cấu hình và bí mật
+  level2:
+  - Phân biệt thay đổi artifact với thay đổi cấu hình khi triển khai
+  - Gắn phiên bản cấu hình với lần triển khai và giữ khả năng truy vết
+  - Đánh giá cấu hình nạp lúc khởi động so với cập nhật động
+  - Giữ cấu hình tương thích khi hai phiên bản ứng dụng cùng hoạt động
+  - Luân chuyển bí mật theo giai đoạn với khoảng chấp nhận giá trị cũ và mới
+  - Phối hợp cập nhật chứng chỉ, khóa ký và thông tin kết nối
+  - Kiểm tra phân phối cấu hình tới tất cả instance và phát hiện cập nhật một phần
+  - Quay lui cấu hình có kiểm soát mà không khôi phục bí mật đã bị thu hồi
+  - Ngăn đưa bí mật vào log triển khai, artifact hoặc cờ định tuyến
+- level1: CI/CD và GitOps
+  level2:
+  - Biểu diễn chiến lược bằng các giai đoạn có đầu vào và điều kiện chuyển rõ ràng
+  - Phân biệt pipeline điều phối với bộ điều khiển duy trì trạng thái mong muốn
+  - Chuyển cùng artifact đã kiểm chứng giữa các môi trường
+  - Khóa hoặc điều phối các lần triển khai cùng tác động một phạm vi
+  - Quản lý hủy, tiếp tục và chạy lại quy trình sau khi bị gián đoạn
+  - Lưu quyết định chuyển lưu lượng và kết quả phân tích cùng lần phát hành
+  - Phối hợp phê duyệt thủ công với thao tác tự động có giới hạn quyền
+  - Đánh giá vòng reconcile có thể khôi phục cấu hình cũ sau thao tác khẩn cấp
+  - Đưa thay đổi xử lý sự cố trở lại nguồn cấu hình chuẩn
+  - Phân định kiến thức chiến lược với cấu hình chuyên sâu của từng công cụ
+- level1: Triển khai Kubernetes
+  level2:
+  - Ánh xạ Recreate và Rolling Update vào chiến lược của Deployment
+  - Hiểu maxSurge, maxUnavailable và khả năng cấp phát Pod thực tế
+  - Phối hợp startup probe, readiness probe và minReadySeconds
+  - Theo dõi tiến độ rollout và hiểu giới hạn của progress deadline
+  - Phân biệt rollout history, rollback ứng dụng và quay lui dữ liệu
+  - Phối hợp termination grace period, preStop và rút endpoint khỏi lưu lượng
+  - Hiểu phạm vi PodDisruptionBudget và phân biệt với giới hạn của Rolling Update
+  - Xây dựng Blue-Green bằng workload riêng và cơ chế chọn backend phù hợp
+  - Phân biệt Canary theo số replica với Canary có trọng số định tuyến
+  - Nhận diện khi cần ingress, service mesh hoặc bộ điều khiển rollout bổ sung
+  - Đánh giá chiến lược riêng cho StatefulSet, DaemonSet và Job
+  - Phối hợp HPA, scheduler và dung lượng cụm trong quá trình rollout
+- level1: Máy ảo và máy chủ
+  level2:
+  - Tổ chức nhóm máy chủ cũ và mới theo danh tính phiên bản
+  - Triển khai cuốn chiếu theo nhóm và rút máy khỏi bộ cân bằng tải
+  - Sử dụng image bất biến thay cho chỉnh sửa thủ công thiếu khả năng truy vết
+  - Thiết lập warm-up và kiểm tra máy mới trước khi phục vụ
+  - Thực hiện Blue-Green bằng hai nhóm máy và kiểm soát điểm chuyển lưu lượng
+  - Phân biệt thay thế toàn bộ máy với cập nhật ứng dụng tại chỗ
+  - Quản lý thứ tự nâng cấp khi dịch vụ có vai trò leader hoặc quorum
+  - Xử lý máy không liên lạc được và trạng thái triển khai không đồng nhất
+  - Thu hồi máy cũ sau khi xác minh hết kết nối và dữ liệu cần giữ
+- level1: Triển khai Serverless
+  level2:
+  - Phân biệt phiên bản hàm, điểm gọi và cơ chế định tuyến của nền tảng
+  - Triển khai tăng dần theo khả năng chia lưu lượng của nhà cung cấp
+  - Đánh giá ảnh hưởng cold start, concurrency và hạn mức thực thi
+  - Kiểm tra tương thích giữa phiên bản hàm, cấu hình và nguồn sự kiện
+  - Phân biệt đường gọi đồng bộ với xử lý sự kiện bất đồng bộ
+  - Xử lý retry, trùng lặp và thông điệp đang chờ khi đổi phiên bản
+  - Quan sát tỷ lệ lỗi và thời gian xử lý theo phiên bản hoặc nhóm gọi
+  - Quay lui điểm gọi và kiểm tra sự kiện đã giao cho phiên bản mới
+  - Xác minh giới hạn nền tảng trước khi áp dụng cùng chiến lược cho mọi dịch vụ
+- level1: Năng lực và chi phí
+  level2:
+  - Tính nhu cầu tài nguyên khi phiên bản cũ và mới cùng tồn tại
+  - Đánh giá tải chuyển sang các instance còn lại trong từng lô
+  - Dự trù CPU, bộ nhớ, kết nối, IP và hạn mức tài nguyên nền tảng
+  - Tính chi phí giữ môi trường Blue-Green và thời gian dự phòng quay lui
+  - Đánh giá tải bổ sung từ shadow traffic, kiểm thử và làm nóng cache
+  - Phối hợp tự động mở rộng quy mô với các bước tăng lưu lượng
+  - Tránh thu hẹp nhóm đối chứng quá sớm làm mất khả năng quay lui
+  - Kiểm soát tài nguyên thử nghiệm còn sót sau triển khai bị hủy
+  - Cân đối thời gian quan sát, mức rủi ro và chi phí vận hành
+- level1: Kiểm thử chiến lược
+  level2:
+  - Thiết kế môi trường thực hành tái hiện được các giai đoạn triển khai
+  - Kiểm thử hợp đồng giữa phiên bản cũ, phiên bản mới và dịch vụ phụ thuộc
+  - Chạy kiểm thử tải để xác minh dung lượng khi giảm hoặc thay instance
+  - Giả lập khởi động chậm, lỗi readiness và lỗi chỉ xuất hiện dưới tải
+  - Kiểm tra yêu cầu đang chạy, phiên người dùng và kết nối dài khi thay phiên bản
+  - Thử nghiệm migration và backfill với dữ liệu có kích thước đại diện
+  - Kiểm tra hệ thống phân tích khi thiếu số liệu hoặc mất nhóm đối chứng
+  - Diễn tập dừng giữa giai đoạn, tiếp tục quy trình và quay lui
+  - Xác minh yêu cầu trùng lặp không tạo tác dụng phụ không mong muốn
+  - Định nghĩa bằng chứng để kết luận chiến lược đáp ứng mục tiêu sẵn sàng
+- level1: Bảo mật và kiểm soát
+  level2:
+  - Phân quyền tối thiểu cho thao tác triển khai, chuyển lưu lượng và đổi cờ
+  - Xác minh nguồn gốc artifact và bảo vệ tính toàn vẹn trước phát hành
+  - Phân tách môi trường và quyền truy cập của phiên bản thử nghiệm
+  - Bảo vệ nhóm thử nghiệm khỏi truy cập ngoài phạm vi cho phép
+  - Kiểm soát dữ liệu cá nhân trong shadow traffic và công cụ phân tích
+  - Lưu dấu vết người phê duyệt, thao tác thực thi và thay đổi khẩn cấp
+  - Thiết lập thời hạn, giám sát và hậu kiểm khi sử dụng quyền ngoại lệ
+  - Xử lý phát hành bản vá bảo mật khi không thể chờ đủ chu kỳ thông thường
+  - Kiểm tra nghĩa vụ tuân thủ và lưu giữ bằng chứng theo yêu cầu tổ chức
+- level1: Sự cố và chẩn đoán
+  level2:
+  - Điều tra rollout bị kẹt do thiếu dung lượng hoặc phiên bản mới không sẵn sàng
+  - Chẩn đoán tăng lỗi khi rút instance do drain và timeout không khớp
+  - Tìm nguyên nhân người dùng vẫn tới phiên bản cũ sau chuyển lưu lượng
+  - Điều tra tỷ lệ Canary thực tế lệch so với trọng số đã cấu hình
+  - Phát hiện nhóm thử nghiệm không đại diện hoặc không có đủ lưu lượng
+  - Chẩn đoán lỗi chỉ xảy ra khi hai phiên bản cùng chạy
+  - Xử lý backlog tăng sau khi thay consumer hoặc tác vụ nền
+  - Điều tra số liệu trung bình tốt nhưng một vùng hoặc tenant bị ảnh hưởng
+  - Xử lý rollback thất bại vì schema, cấu hình hoặc bí mật không còn tương thích
+  - Ghi nhận dòng thời gian, nguyên nhân và biện pháp ngăn tái diễn
+- level1: Phối hợp chiến lược
+  level2:
+  - Kết hợp Blue-Green với Canary trước khi chuyển toàn bộ lưu lượng
+  - Kết hợp Rolling Update với cờ tính năng để tách rủi ro hạ tầng và hành vi
+  - Thực hiện Canary trong từng vòng hoặc từng vùng của chiến dịch lớn
+  - Dùng shadow traffic để bổ sung bằng chứng trước giai đoạn phục vụ thật
+  - Lựa chọn Recreate có kế hoạch cho thay đổi không hỗ trợ đa phiên bản
+  - Phối hợp triển khai ứng dụng với chuỗi expand-migrate-contract
+  - Thiết kế chiến lược riêng cho hệ thống nhiều dịch vụ có phụ thuộc
+  - So sánh các phương án theo mục tiêu, điều kiện, chi phí và khả năng phục hồi
+  - Nhận diện thiết kế quá phức tạp so với nhu cầu và năng lực vận hành
+- level1: Thực hành tổng hợp
+  level2:
+  - Đánh giá một dịch vụ mẫu và lập hồ sơ lựa chọn chiến lược triển khai
+  - Thực hiện Recreate có cửa sổ bảo trì và kiểm chứng thời gian gián đoạn
+  - Thực hiện Rolling Update dưới tải và đo lỗi khi thay từng lô
+  - Xây dựng hai môi trường Blue-Green và diễn tập đổi tuyến rồi quay lui
+  - Triển khai Canary với nhóm đối chứng, cổng phân tích và dừng tự động
+  - Tách phát hành tính năng bằng feature flag và diễn tập kill switch
+  - Sao chép lưu lượng thử nghiệm mà không tạo ghi dữ liệu hoặc thông báo lặp
+  - Thực hiện thay đổi schema theo expand-migrate-contract
+  - Triển khai theo vòng trên nhiều nhóm và dừng chiến dịch khi một nhóm lỗi
+  - Thay consumer dưới tải và xác minh backlog, tác vụ trùng lặp cùng dữ liệu
+  - Mô phỏng lỗi rollout, thu thập bằng chứng và xác nhận phục hồi
+  - Hoàn tất báo cáo triển khai, dọn phiên bản cũ và bàn giao vận hành

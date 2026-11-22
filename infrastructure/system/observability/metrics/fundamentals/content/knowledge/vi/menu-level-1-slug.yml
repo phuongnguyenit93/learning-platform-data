@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Thiết kế phép đo
+  slug: measurement-design
+  index: 1
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 2
+- title: Thời gian và đơn vị
+  slug: time-units
+  index: 3
+- title: Counter
+  slug: counters
+  index: 4
+- title: Gauge
+  slug: gauges
+  index: 5
+- title: Công cụ ghi nhận
+  slug: instrumentation-tools
+  index: 6
+- title: Histogram
+  slug: histograms
+  index: 7
+- title: Phân vị và summary
+  slug: quantiles-summaries
+  index: 8
+- title: Tính tích lũy
+  slug: cumulative-measurements
+  index: 9
+- title: Chiều dữ liệu
+  slug: dimensions
+  index: 10
+- title: Cardinality
+  slug: cardinality
+  index: 11
+- title: Đặt tên và schema
+  slug: naming-schema
+  index: 12
+- title: Thu thập số liệu
+  slug: metrics-collection
+  index: 13
+- title: Đường ống metrics
+  slug: metrics-pipelines
+  index: 14
+- title: Lưu trữ và lưu giữ
+  slug: storage-retention
+  index: 15
+- title: Phép tổng hợp
+  slug: aggregations
+  index: 16
+- title: Tốc độ và tỷ lệ
+  slug: rates-ratios
+  index: 17
+- title: Cửa sổ thời gian
+  slug: time-windows
+  index: 18
+- title: Dữ liệu thiếu và sai
+  slug: missing-bad-data
+  index: 19
+- title: Gắn phép đo vào mã
+  slug: code-instrumentation
+  index: 20
+- title: Mẫu tín hiệu
+  slug: signal-patterns
+  index: 21
+- title: Tài nguyên hệ thống
+  slug: system-resources
+  index: 22
+- title: Dịch vụ và JVM
+  slug: services-jvm
+  index: 23
+- title: Metrics nghiệp vụ
+  slug: business-metrics
+  index: 24
+- title: SLI và SLO
+  slug: slis-slos
+  index: 25
+- title: Liên hệ các tín hiệu
+  slug: signal-correlation
+  index: 26
+- title: Biểu đồ và diễn giải
+  slug: charts-interpretation
+  index: 27
+- title: Chi phí và quản trị
+  slug: cost-governance
+  index: 28
+- title: Kiểm chứng và chẩn đoán
+  slug: validation-diagnostics
+  index: 29
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 30

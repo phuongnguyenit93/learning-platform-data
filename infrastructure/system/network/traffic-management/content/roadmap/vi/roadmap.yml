@@ -1,0 +1,49 @@
+roadmap:
+- id: luong-luu-luong
+  title: Luồng lưu lượng
+  purpose: Hiểu mục tiêu và phạm vi quản lý lưu lượng trong hệ thống mạng và dịch vụ.
+  objectives:
+  - Phân biệt ingress, egress và lưu lượng nội bộ.
+  - Vẽ đường đi cơ bản từ client tới backend.
+- id: dieu-huong-yeu-cau
+  title: Điều hướng yêu cầu
+  purpose: Biết cách đưa lưu lượng đến đúng dịch vụ hoặc nhóm máy chủ.
+  objectives:
+  - Phân biệt định tuyến theo địa chỉ/cổng với theo HTTP.
+  - Xác định quy tắc chuyển yêu cầu theo đích hoặc đường dẫn.
+- id: phan-phoi-tai
+  title: Phân phối tải
+  purpose: Chia lưu lượng hợp lý giữa các máy chủ để tăng năng lực phục vụ.
+  objectives:
+  - So sánh round robin, least connections và weight.
+  - Giải thích tác động của tải và số kết nối.
+- id: gioi-han-toc-do
+  title: Giới hạn tốc độ
+  purpose: Tránh cho một nguồn hoặc loại yêu cầu chiếm quá nhiều tài nguyên.
+  objectives:
+  - Phân biệt rate limit, giới hạn kết nối và burst.
+  - Giải thích lúc trì hoãn hoặc từ chối yêu cầu vượt ngưỡng.
+- id: uu-tien-qos
+  title: Ưu tiên & QoS
+  purpose: Điều tiết băng thông và độ ưu tiên khi tài nguyên mạng bị tranh chấp.
+  objectives:
+  - Phân biệt phân loại/đánh dấu với xếp hàng ưu tiên.
+  - Nhận biết traffic shaping và policing.
+- id: chong-qua-tai
+  title: Chống quá tải
+  purpose: Hạn chế hiệu ứng dây chuyền khi hệ thống đạt ngưỡng chịu tải.
+  objectives:
+  - Giải thích hàng đợi, backpressure và circuit breaking.
+  - Nhận biết tác hại của retry quá mức.
+- id: kha-dung-chuyen-tuyen
+  title: Khả dụng & Chuyển tuyến
+  purpose: Giữ đường phục vụ ổn định khi backend lỗi hoặc cần thay đổi lưu lượng.
+  objectives:
+  - Dùng kết quả health check để loại backend lỗi.
+  - Mô tả failover và chuyển dần tỷ trọng lưu lượng.
+- id: quan-sat-toi-uu
+  title: Quan sát & Tối ưu
+  purpose: Đánh giá hiệu quả chính sách quản lý lưu lượng bằng dữ liệu thực tế.
+  objectives:
+  - Đọc throughput, độ trễ, lỗi và độ bão hòa.
+  - Kiểm tra trước/sau thay đổi và hoàn tác khi xấu đi.

@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan Tempo
+  slug: tempo-overview
+  index: 0
+- title: Mô hình trace
+  slug: trace-model
+  index: 1
+- title: Kiến trúc Tempo 3.x
+  slug: tempo-3-architecture
+  index: 2
+- title: Phòng thực hành
+  slug: practice-lab
+  index: 3
+- title: Cấu hình nền tảng
+  slug: foundational-configuration
+  index: 4
+- title: Tiếp nhận trace
+  slug: trace-ingestion
+  index: 5
+- title: Kết nối ứng dụng
+  slug: application-connectivity
+  index: 6
+- title: Collector và Alloy
+  slug: collector-alloy
+  index: 7
+- title: Chiến lược lấy mẫu
+  slug: sampling-strategies
+  index: 8
+- title: Lưu trữ đối tượng
+  slug: object-storage
+  index: 9
+- title: Vòng đời trace
+  slug: trace-lifecycle
+  index: 10
+- title: Tra cứu qua API
+  slug: api-trace-lookup
+  index: 11
+- title: Khám phá Grafana
+  slug: grafana-exploration
+  index: 12
+- title: TraceQL cơ bản
+  slug: traceql-basics
+  index: 13
+- title: TraceQL nâng cao
+  slug: traceql-advanced
+  index: 14
+- title: TraceQL metrics
+  slug: traceql-metrics
+  index: 15
+- title: Metrics-generator
+  slug: metrics-generator
+  index: 16
+- title: Sơ đồ dịch vụ
+  slug: service-graphs
+  index: 17
+- title: Liên kết tín hiệu
+  slug: signal-correlation
+  index: 18
+- title: Phân tách tenant
+  slug: tenant-isolation
+  index: 19
+- title: Bảo mật dữ liệu
+  slug: data-security
+  index: 20
+- title: Triển khai phân tán
+  slug: distributed-deployment
+  index: 21
+- title: Triển khai Kubernetes
+  slug: kubernetes-deployment
+  index: 22
+- title: Tối ưu truy vấn
+  slug: query-optimization
+  index: 23
+- title: Dung lượng và chi phí
+  slug: capacity-costs
+  index: 24
+- title: Giám sát Tempo
+  slug: tempo-monitoring
+  index: 25
+- title: Khả năng phục hồi
+  slug: resilience
+  index: 26
+- title: Chẩn đoán sự cố
+  slug: troubleshooting
+  index: 27
+- title: Kiểm thử tích hợp
+  slug: integration-testing
+  index: 28
+- title: Nâng cấp và di trú
+  slug: upgrades-migration
+  index: 29
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 30

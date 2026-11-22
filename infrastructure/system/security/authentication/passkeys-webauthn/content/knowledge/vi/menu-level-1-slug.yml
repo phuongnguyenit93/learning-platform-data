@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan passkey
+  slug: passkey-overview
+  index: 0
+- title: Nền tảng mật mã
+  slug: cryptographic-foundations
+  index: 1
+- title: Hệ sinh thái FIDO
+  slug: fido-ecosystem
+  index: 2
+- title: Vai trò và luồng tin cậy
+  slug: trust-roles-and-flows
+  index: 3
+- title: Loại thông tin xác thực
+  slug: credential-types
+  index: 4
+- title: RP ID và origin
+  slug: rp-id-and-origin
+  index: 5
+- title: Bộ xác thực
+  slug: authenticators
+  index: 6
+- title: Hiện diện và xác minh
+  slug: user-presence-and-verification
+  index: 7
+- title: Challenge và giao dịch
+  slug: challenges-and-transactions
+  index: 8
+- title: Luồng đăng ký
+  slug: registration-flow
+  index: 9
+- title: Kiểm tra đăng ký
+  slug: registration-verification
+  index: 10
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 11
+- title: Luồng đăng nhập
+  slug: authentication-flow
+  index: 12
+- title: Kiểm tra assertion
+  slug: assertion-verification
+  index: 13
+- title: Định dạng WebAuthn
+  slug: webauthn-formats
+  index: 14
+- title: Attestation
+  slug: attestation
+  index: 15
+- title: CTAP và FIDO2
+  slug: ctap-and-fido2
+  index: 16
+- title: Passkey đồng bộ
+  slug: synced-passkeys
+  index: 17
+- title: Đăng nhập liên thiết bị
+  slug: cross-device-authentication
+  index: 18
+- title: Trải nghiệm đăng nhập
+  slug: login-user-experience
+  index: 19
+- title: Vòng đời credential
+  slug: credential-lifecycle
+  index: 20
+- title: Khôi phục tài khoản
+  slug: account-recovery
+  index: 21
+- title: Phiên và phân quyền
+  slug: sessions-and-authorization
+  index: 22
+- title: Mối đe dọa và phòng vệ
+  slug: threats-and-defenses
+  index: 23
+- title: Quyền riêng tư
+  slug: privacy
+  index: 24
+- title: Bối cảnh doanh nghiệp
+  slug: enterprise-context
+  index: 25
+- title: Kiến trúc ứng dụng
+  slug: application-architecture
+  index: 26
+- title: Tích hợp và mở rộng
+  slug: integration-and-extensibility
+  index: 27
+- title: Triển khai và chuyển đổi
+  slug: deployment-and-migration
+  index: 28
+- title: Vận hành và sự cố
+  slug: operations-and-incidents
+  index: 29
+- title: Kiểm thử và thực hành
+  slug: testing-and-practice
+  index: 30

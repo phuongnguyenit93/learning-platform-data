@@ -1,0 +1,2146 @@
+menu:
+- slug: dpapi-overview
+  title: Tổng quan DPAPI
+  childs:
+  - slug: dpapi-overview-001
+    title: DPAPI là gì và bài toán bảo vệ bí mật trên Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-002
+    title: Phân biệt mã hóa dữ liệu với xác thực và phân quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-003
+    title: Bảo vệ dữ liệu khi lưu trữ và giới hạn khi ứng dụng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-004
+    title: 'Những loại dữ liệu phù hợp: mật khẩu ứng dụng, token và khóa mã hóa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-005
+    title: Vai trò của Windows trong quản lý khóa thay cho ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-006
+    title: 'Thuật ngữ nền tảng: blob, master key, SID, profile và security context'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-007
+    title: Bản đồ quan hệ giữa tài khoản, khóa chính và dữ liệu được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-overview-008
+    title: Lộ trình học và môi trường thực hành độc lập với ngôn ngữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: windows-foundations
+  title: Nền tảng Windows
+  childs:
+  - slug: windows-foundations-001
+    title: Tài khoản cục bộ, tài khoản miền và tài khoản dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-002
+    title: SID và sự khác biệt giữa tên tài khoản với danh tính bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-003
+    title: Access token, phiên đăng nhập và danh tính của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-004
+    title: Hồ sơ người dùng và vai trò của việc nạp user profile
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-005
+    title: Quyền NTFS, ACL và kế thừa quyền trên tệp chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-006
+    title: Impersonation và danh tính thực tế khi gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-007
+    title: Windows service, tác vụ định kỳ và phiên chạy không tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: windows-foundations-008
+    title: Phân biệt quyền quản trị, UAC và quyền truy cập bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protection-architecture
+  title: Kiến trúc bảo vệ
+  childs:
+  - slug: protection-architecture-001
+    title: Luồng tổng thể từ bản rõ đến blob được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-002
+    title: Khóa chính (master key) và mối liên hệ với dữ liệu người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-003
+    title: Thông tin đăng nhập và cơ chế bảo vệ master key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-004
+    title: Phân biệt khóa bảo vệ dữ liệu với mật khẩu đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-005
+    title: Thông tin nhận dạng khóa và metadata trong blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-006
+    title: Bảo mật nội dung và kiểm tra tính toàn vẹn của blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-007
+    title: Vai trò của hệ điều hành trong chọn thuật toán và quản lý phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-008
+    title: Vòng đời master key và khả năng giải mã dữ liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-architecture-009
+    title: Ranh giới giữa hợp đồng API công khai và chi tiết lưu trữ nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protection-scope
+  title: Phạm vi bảo vệ
+  childs:
+  - slug: protection-scope-001
+    title: Phạm vi người dùng mặc định của CryptProtectData
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-002
+    title: Phạm vi máy với CRYPTPROTECT_LOCAL_MACHINE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-003
+    title: Ai có thể giải mã dữ liệu trong từng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-004
+    title: Vì sao phạm vi máy phải kết hợp với ACL của tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-005
+    title: Ảnh hưởng của máy tính, tài khoản và hồ sơ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-006
+    title: Hai tiến trình cùng người dùng và giới hạn cô lập giữa ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-007
+    title: Nâng quyền và thay đổi danh tính thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-008
+    title: Ma trận chọn phạm vi cho desktop, dịch vụ và tác vụ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protection-scope-009
+    title: Các giả định sai về khả năng chia sẻ blob giữa máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-entropy
+  title: Dữ liệu và entropy
+  childs:
+  - slug: data-entropy-001
+    title: 'DATA_BLOB: con trỏ, độ dài và dữ liệu nhị phân'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-002
+    title: Mã hóa ký tự và chuyển đổi văn bản thành byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-003
+    title: Byte rỗng, chuỗi kết thúc null và độ dài dữ liệu thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-004
+    title: Optional entropy là gì và khi nào cần sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-005
+    title: Yêu cầu cung cấp đúng entropy khi giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-006
+    title: Lưu giữ, cấp phát và phục hồi entropy bổ sung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-007
+    title: Phân biệt entropy bí mật với hằng số nhận dạng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-008
+    title: Rủi ro mất entropy hoặc lưu entropy cạnh blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-entropy-009
+    title: Giới hạn kích thước và lựa chọn mã hóa tệp lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptprotectdata
+  title: CryptProtectData
+  childs:
+  - slug: cryptprotectdata-001
+    title: Chữ ký hàm và ý nghĩa từng tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-002
+    title: Chuẩn bị bản rõ, DATA_BLOB đầu vào và đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-003
+    title: Mô tả dữ liệu (szDataDescr) và giới hạn bảo mật của metadata
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-004
+    title: Sử dụng pOptionalEntropy theo hợp đồng API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-005
+    title: Tham số dành riêng và yêu cầu tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-006
+    title: Lựa chọn cờ bảo vệ và tránh kết hợp không phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-007
+    title: CRYPTPROTECT_UI_FORBIDDEN trong tiến trình không tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-008
+    title: CRYPTPROTECT_PROMPTSTRUCT và ảnh hưởng của yêu cầu giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-009
+    title: Giá trị trả về, GetLastError và xử lý lỗi ngay tại điểm gọi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptprotectdata-010
+    title: Luồng mã hóa tối thiểu với Win32 API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptunprotectdata
+  title: CryptUnprotectData
+  childs:
+  - slug: cryptunprotectdata-001
+    title: Chữ ký hàm và luồng phục hồi bản rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-002
+    title: Nạp nguyên vẹn blob trước khi giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-003
+    title: Cung cấp entropy và danh tính thực thi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-004
+    title: Nhận mô tả dữ liệu và quản lý bộ nhớ trả về
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-005
+    title: Kiểm tra kết quả và xử lý blob bị sửa hoặc hỏng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-006
+    title: CRYPTPROTECT_VERIFY_PROTECTION và ý nghĩa CRYPT_I_NEW_PROTECTION_REQUIRED
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-007
+    title: Phân biệt lỗi giải mã với lỗi định dạng dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-008
+    title: Không tự suy đoán phạm vi từ thông tin đầu vào không tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptunprotectdata-009
+    title: Luồng giải mã tối thiểu với Win32 API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-resources
+  title: Bộ nhớ và tài nguyên
+  childs:
+  - slug: memory-resources-001
+    title: Quyền sở hữu buffer trước và sau lời gọi DPAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-002
+    title: Giải phóng vùng nhớ API cấp phát bằng LocalFree
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-003
+    title: Xóa bản rõ khỏi bộ nhớ bằng SecureZeroMemory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-004
+    title: Giới hạn của xóa bộ nhớ trước bản sao tạm, heap và runtime
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-005
+    title: Bảo vệ đường đi của dữ liệu qua chuỗi, buffer và exception
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-006
+    title: RAII và xử lý tài nguyên trên mọi nhánh lỗi trong C/C++
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-007
+    title: Không ghi bản rõ, entropy hoặc buffer nhạy cảm vào log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-resources-008
+    title: Crash dump, page file và các kênh làm lộ dữ liệu trong bộ nhớ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: encrypted-blob-storage
+  title: Lưu trữ blob
+  childs:
+  - slug: encrypted-blob-storage-001
+    title: Thiết kế định dạng chứa phiên bản ứng dụng và blob DPAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-002
+    title: Base64 là cách biểu diễn, không phải một lớp mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-003
+    title: Chọn nơi lưu trong hồ sơ người dùng hoặc dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-004
+    title: Áp dụng quyền NTFS tối thiểu cho tệp và thư mục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-005
+    title: Ghi tệp nguyên tử và tránh mất dữ liệu khi tiến trình dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-006
+    title: Kiểm soát truy cập đồng thời và cập nhật bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-007
+    title: Kiểm tra độ dài, phiên bản và cấu trúc trước khi gọi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-008
+    title: Ngăn lộ bí mật qua tệp tạm, bản sao và lịch sử cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: encrypted-blob-storage-009
+    title: Chống phát lại blob cũ và giới hạn của tính toàn vẹn DPAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: desktop-applications
+  title: Ứng dụng desktop
+  childs:
+  - slug: desktop-applications-001
+    title: Bảo vệ cấu hình chứa bí mật của một người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-002
+    title: Thiết kế lần lưu đầu tiên và lần mở ứng dụng tiếp theo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-003
+    title: Thay đổi, xóa và cấp lại bí mật đã lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-004
+    title: Khác biệt khi chạy bằng người dùng khác hoặc Run as
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-005
+    title: Cài đặt theo người dùng và cài đặt cho toàn máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-006
+    title: Giới hạn cô lập với phần mềm khác chạy cùng tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-007
+    title: Thiết kế lỗi thân thiện khi không thể giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: desktop-applications-008
+    title: Gỡ cài đặt, cài lại và chính sách giữ hoặc xóa dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: services-background-tasks
+  title: Dịch vụ và tác vụ
+  childs:
+  - slug: services-background-tasks-001
+    title: Chọn danh tính và phạm vi bảo vệ cho Windows service
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-002
+    title: LocalSystem, LocalService, NetworkService và tài khoản riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-003
+    title: Yêu cầu nạp hồ sơ khi dùng phạm vi người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-004
+    title: Dịch vụ dùng chung tài khoản và nguy cơ chia sẻ quyền giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-005
+    title: 'Impersonation: chọn đúng danh tính tại thời điểm bảo vệ và giải mã'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-006
+    title: Tác vụ định kỳ chạy khi người dùng không đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-007
+    title: Cấp bí mật ban đầu cho dịch vụ mà không ghi vào mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-008
+    title: Thay tài khoản dịch vụ và kế hoạch chuyển đổi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: services-background-tasks-009
+    title: Ma trận triển khai giữa máy phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: net-powershell
+  title: .NET và PowerShell
+  childs:
+  - slug: net-powershell-001
+    title: System.Security.Cryptography.ProtectedData và ranh giới hỗ trợ Windows
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-002
+    title: DataProtectionScope.CurrentUser và LocalMachine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-003
+    title: Chuẩn bị byte, entropy và xử lý CryptographicException
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-004
+    title: Giới hạn bảo mật của string và SecureString trong ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-005
+    title: ConvertFrom-SecureString và ConvertTo-SecureString khi dùng DPAPI mặc định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-006
+    title: Sự khác biệt khi chỉ định -Key hoặc -SecureKey
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-007
+    title: Tập lệnh chạy tương tác so với tài khoản chạy tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-008
+    title: Truyền bí mật an toàn qua tham số, pipeline và nhật ký PowerShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: net-powershell-009
+    title: Kiểm tra tương tác dữ liệu giữa Win32 và .NET theo cùng hợp đồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: accounts-passwords
+  title: Tài khoản và mật khẩu
+  childs:
+  - slug: accounts-passwords-001
+    title: Đổi mật khẩu thông thường và tính liên tục truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-002
+    title: Đặt lại mật khẩu bởi quản trị viên và nguy cơ mất khả năng giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-003
+    title: Khác biệt giữa tài khoản cục bộ và tài khoản miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-004
+    title: Tạo lại tài khoản cùng tên nhưng khác SID
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-005
+    title: Xóa hồ sơ, tạo hồ sơ mới và ảnh hưởng đến master key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-006
+    title: 'Windows Hello, PIN và mật khẩu: tránh đồng nhất các cơ chế'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-007
+    title: Khóa tài khoản, vô hiệu hóa tài khoản và thu hồi quyền thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-008
+    title: Tác động của việc đổi danh tính ứng dụng hoặc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: accounts-passwords-009
+    title: Kịch bản cần kiểm chứng thay vì suy đoán từ trạng thái đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: domains-recovery
+  title: Miền và khôi phục
+  childs:
+  - slug: domains-recovery-001
+    title: DPAPI trong môi trường Active Directory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-002
+    title: Vai trò của khóa sao lưu miền trong khôi phục master key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-003
+    title: Phân biệt khôi phục qua miền với giải mã tùy ý trên mọi máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-004
+    title: Rủi ro khi khóa sao lưu miền bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-005
+    title: Phân quyền, kiểm toán và bảo vệ hạ tầng khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-006
+    title: Hồ sơ chuyển vùng và các điều kiện ảnh hưởng khả năng truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-007
+    title: Đổi miền, rời miền hoặc chuyển tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-008
+    title: Lập kế hoạch phục hồi khi người dùng quên hoặc mất thông tin đăng nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: domains-recovery-009
+    title: Giới hạn khôi phục và yêu cầu kiểm thử trong môi trường thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: backup-migration
+  title: Sao lưu và di chuyển
+  childs:
+  - slug: backup-migration-001
+    title: Vì sao chỉ sao chép blob thường chưa đủ để khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-002
+    title: Những phụ thuộc phải đưa vào kế hoạch sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-003
+    title: Phục hồi trên cùng máy và cùng danh tính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-004
+    title: Phục hồi sau cài lại Windows hoặc tạo lại hồ sơ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-005
+    title: Chuyển sang máy khác bằng quy trình giải mã và bảo vệ lại có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-006
+    title: Chuyển phạm vi người dùng sang phạm vi máy và ngược lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-007
+    title: Sao lưu máy ảo, snapshot và rủi ro nhân bản bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-008
+    title: Khôi phục thử định kỳ và xác định dữ liệu không thể phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: backup-migration-009
+    title: Xử lý bản sao cũ sau khi di chuyển hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dpapi-ng
+  title: DPAPI-NG
+  childs:
+  - slug: dpapi-ng-001
+    title: DPAPI-NG là gì và khác DPAPI truyền thống ở đâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-002
+    title: CNG, protection descriptor và bảo vệ theo tập người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-003
+    title: NCryptCreateProtectionDescriptor và vòng đời descriptor
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-004
+    title: NCryptProtectSecret và NCryptUnprotectSecret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-005
+    title: Thiết kế protection descriptor theo các nhà cung cấp được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-006
+    title: Bảo vệ theo danh tính và nhóm trong Active Directory
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-007
+    title: Phụ thuộc miền, KDS và khả năng truy cập hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-008
+    title: Quản lý buffer, handle và mã trạng thái của họ NCrypt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-009
+    title: Chia sẻ bí mật giữa các chủ thể được ủy quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-010
+    title: Thay đổi thành viên nhóm và giới hạn thu hồi bản rõ đã lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dpapi-ng-011
+    title: Khả năng tương thích và kế hoạch chuyển đổi từ DPAPI truyền thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: memory-protection
+  title: Bảo vệ bộ nhớ
+  childs:
+  - slug: memory-protection-001
+    title: CryptProtectMemory và bài toán bảo vệ dữ liệu trong RAM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-002
+    title: Phân biệt CryptProtectMemory với CryptProtectData
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-003
+    title: Yêu cầu kích thước buffer theo CRYPTPROTECTMEMORY_BLOCK_SIZE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-004
+    title: Phạm vi SAME_PROCESS, SAME_LOGON và CROSS_PROCESS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-005
+    title: CryptUnprotectMemory và thời điểm bản rõ xuất hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-006
+    title: Vì sao dữ liệu bảo vệ trong bộ nhớ không thay cho lưu trữ bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-007
+    title: Giới hạn trước trình gỡ lỗi, mã độc và tiến trình bị chiếm quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: memory-protection-008
+    title: Kết hợp bảo vệ bộ nhớ với quản lý vòng đời bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-model
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-model-001
+    title: Xác định tài sản, đối thủ và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-002
+    title: Kẻ đọc trộm tệp so với kẻ chạy mã dưới cùng tài khoản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-003
+    title: Truy cập ngoại tuyến vào ổ đĩa và bản sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-004
+    title: Chiếm quyền người dùng, quản trị viên hoặc SYSTEM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-005
+    title: Lộ thông tin đăng nhập và vật liệu khóa liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-006
+    title: Đánh cắp blob, entropy và master key qua các đường khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-007
+    title: Tấn công sửa dữ liệu và phát lại bản mã hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-008
+    title: DPAPI không tạo ranh giới tin cậy giữa các ứng dụng cùng người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-009
+    title: Giới hạn thu hồi khi bản rõ hoặc khóa ứng dụng đã bị sao chép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-model-010
+    title: Phân biệt bảo mật hệ điều hành với khả năng chống trích xuất tuyệt đối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practical-defenses
+  title: Phòng vệ thực tế
+  childs:
+  - slug: practical-defenses-001
+    title: Quyền tối thiểu cho tài khoản và thư mục chứa bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-002
+    title: Tách tài khoản dịch vụ theo ranh giới trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-003
+    title: BitLocker và DPAPI trong bảo vệ nhiều lớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-004
+    title: Cập nhật Windows và giảm bề mặt tấn công trên máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-005
+    title: Hạn chế quyền gỡ lỗi và truy cập crash dump
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-006
+    title: Credential Guard và phạm vi bảo vệ cần hiểu đúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-007
+    title: Bảo vệ khóa sao lưu miền và các tài khoản đặc quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-008
+    title: Giám sát truy cập bất thường vào dữ liệu và vật liệu khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-009
+    title: Ứng phó khi máy hoặc tài khoản bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practical-defenses-010
+    title: Đổi bí mật tại hệ thống nguồn sau sự cố và bảo vệ lại dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: technology-selection
+  title: Chọn công nghệ
+  childs:
+  - slug: technology-selection-001
+    title: DPAPI, Credential Manager và Credential Locker
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-002
+    title: DPAPI, EFS và BitLocker theo lớp dữ liệu được bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-003
+    title: DPAPI truyền thống và DPAPI-NG theo nhu cầu chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-004
+    title: DPAPI với chứng thư, CNG Key Storage Provider và khóa không xuất được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-005
+    title: Vai trò của TPM và khác biệt với hợp đồng DPAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-006
+    title: DPAPI so với kho bí mật tập trung, KMS và HSM
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-007
+    title: 'Mã hóa phong bì: dùng DPAPI bảo vệ khóa thay vì toàn bộ tệp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-008
+    title: 'Khi nào tránh DPAPI: đa nền tảng, đa máy hoặc phân quyền tập trung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: technology-selection-009
+    title: Tiêu chí chọn theo vận hành, phục hồi và mô hình đe dọa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integration-design
+  title: Thiết kế tích hợp
+  childs:
+  - slug: integration-design-001
+    title: Tách lớp lưu trữ bí mật khỏi nghiệp vụ ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-002
+    title: Xây dựng hợp đồng bảo vệ và giải mã có phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-003
+    title: Thiết kế lỗi rõ ràng nhưng không làm lộ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-004
+    title: Giảm thời gian tồn tại và số bản sao của bản rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-005
+    title: Khởi tạo, đọc, cập nhật và xóa bí mật theo vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-006
+    title: Đổi định dạng hoặc chính sách bằng đọc cũ, ghi mới có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-007
+    title: Bảo vệ khóa mã hóa dữ liệu lớn theo mô hình phong bì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-008
+    title: Thiết kế khôi phục và cấp lại bí mật ngay từ đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integration-design-009
+    title: Tránh dùng khóa cứng hoặc cơ chế mã hóa tự chế làm phương án dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Kiểm thử mã hóa và giải mã vòng kín với dữ liệu nhị phân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm thử Unicode, độ dài và các điều kiện biên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Đúng, thiếu và sai optional entropy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Hai người dùng trên cùng máy với từng phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Cùng người dùng trên hai máy và các điều kiện hồ sơ khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Blob bị cắt, thay byte, sai phiên bản và dữ liệu ngẫu nhiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Chạy dưới desktop, dịch vụ, tác vụ định kỳ và impersonation
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử quyền tệp độc lập với quyền giải mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Đổi mật khẩu, đặt lại mật khẩu và khôi phục từ sao lưu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Kiểm thử lỗi bộ nhớ, dừng đột ngột và cập nhật đồng thời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Ma trận tương thích giữa các môi trường Windows được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: error-diagnostics
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: error-diagnostics-001
+    title: Thu thập mã lỗi, danh tính và điều kiện chạy an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-002
+    title: Lỗi dữ liệu không hợp lệ và kiểm tra nguyên vẹn blob
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-003
+    title: Lỗi do sai entropy hoặc sai cách biểu diễn byte
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-004
+    title: Lỗi do khác tài khoản, SID hoặc hồ sơ chưa nạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-005
+    title: Lỗi khi chạy thành công thủ công nhưng thất bại trong dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-006
+    title: Lỗi liên quan giao diện trong phiên không tương tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-007
+    title: Phân biệt lỗi quyền tệp với lỗi DPAPI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-008
+    title: Lỗi sau đổi mật khẩu, di chuyển hoặc phục hồi hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-009
+    title: Giới hạn của log và công cụ chẩn đoán có chứa dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: error-diagnostics-010
+    title: Quy trình xử lý không xóa dữ liệu gốc hoặc làm mất khả năng phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operations
+  title: Vận hành
+  childs:
+  - slug: operations-001
+    title: Lập danh mục bí mật, chủ sở hữu và phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-002
+    title: Quản lý cấu hình và cấp bí mật giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-003
+    title: Phân biệt đổi master key, bảo vệ lại blob và đổi bí mật nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-004
+    title: Thiết kế chính sách xoay vòng và thu hồi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-005
+    title: Sao lưu, lưu giữ và kiểm thử phục hồi định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-006
+    title: Theo dõi lỗi giải mã mà không thu thập bản rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-007
+    title: Quản lý thay đổi tài khoản, hệ điều hành và hạ tầng miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-008
+    title: Xử lý gỡ bỏ máy, xóa dữ liệu và giới hạn xóa trên thiết bị lưu trữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operations-009
+    title: Danh sách rà soát bảo mật trước khi đưa vào sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-practice
+  title: Thực hành
+  childs:
+  - slug: hands-on-practice-001
+    title: Chuẩn bị máy ảo, tài khoản thử nghiệm và dữ liệu giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-002
+    title: Viết công cụ Win32 bảo vệ và giải mã một bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-003
+    title: Thử nghiệm CurrentUser với hai tài khoản khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-004
+    title: Thử nghiệm LocalMachine kết hợp quyền NTFS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-005
+    title: Thêm optional entropy và kiểm chứng các trường hợp sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-006
+    title: Xây dựng kho bí mật nhỏ bằng .NET hoặc PowerShell
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-007
+    title: Chạy cùng kịch bản dưới Windows service và tác vụ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-008
+    title: Mô phỏng hỏng blob, mất profile và phục hồi trong môi trường cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-009
+    title: Thiết kế thử nghiệm DPAPI-NG cho nhóm người nhận trong miền thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-010
+    title: So sánh mã hóa trực tiếp với mã hóa phong bì cho tệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-practice-011
+    title: Hoàn thiện tài liệu quyết định, mô hình đe dọa và kế hoạch khôi phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

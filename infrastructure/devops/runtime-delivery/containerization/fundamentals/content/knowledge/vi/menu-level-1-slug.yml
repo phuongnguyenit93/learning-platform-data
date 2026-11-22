@@ -1,0 +1,73 @@
+menu:
+- title: Nền tảng container hóa và lựa chọn mô hình triển khai
+  slug: containerization-and-deployment-models
+  index: 0
+- title: Kiến trúc hệ sinh thái container và các chuẩn OCI
+  slug: container-architecture-and-oci
+  index: 1
+- title: Chuẩn bị môi trường và thao tác với container engine
+  slug: container-engine-setup
+  index: 2
+- title: Cơ chế cô lập bằng Linux namespaces và cgroups
+  slug: linux-namespaces-and-cgroups
+  index: 3
+- title: Cấu trúc image, layers và filesystem của container
+  slug: container-images-layers-and-filesystems
+  index: 4
+- title: Chạy container và quản lý vòng đời tiến trình
+  slug: container-process-lifecycle
+  index: 5
+- title: Viết Dockerfile và cấu hình khởi chạy ứng dụng
+  slug: dockerfile-and-startup-configuration
+  index: 6
+- title: Build image, tối ưu cache và tổ chức multi-stage build
+  slug: image-build-optimization
+  index: 7
+- title: Chuẩn bị ứng dụng để chạy đúng trong container
+  slug: application-containerization
+  index: 8
+- title: Registry và phân phối image có kiểm soát
+  slug: image-registries-and-distribution
+  index: 9
+- title: Mạng container, DNS và công bố dịch vụ
+  slug: container-networking
+  index: 10
+- title: Lưu trữ dữ liệu với volume, bind mount và tmpfs
+  slug: container-storage-and-volumes
+  index: 11
+- title: Cấu hình runtime và quản lý thông tin nhạy cảm
+  slug: runtime-configuration-and-secrets
+  index: 12
+- title: Chạy ứng dụng nhiều container bằng Docker Compose
+  slug: docker-compose-applications
+  index: 13
+- title: Giới hạn tài nguyên và đọc hành vi của cgroups
+  slug: container-resource-management
+  index: 14
+- title: Bảo mật runtime và giảm quyền của container
+  slug: container-runtime-security
+  index: 15
+- title: An toàn image và nền tảng chuỗi cung ứng phần mềm
+  slug: image-security-and-software-supply-chain
+  index: 16
+- title: Quan sát trạng thái, log và dấu vết vận hành
+  slug: container-observability
+  index: 17
+- title: Chẩn đoán các lỗi container thường gặp
+  slug: container-troubleshooting
+  index: 18
+- title: Vòng đời triển khai và cập nhật ứng dụng an toàn
+  slug: container-deployment-lifecycle
+  index: 19
+- title: Đưa image vào quy trình tích hợp và phân phối liên tục
+  slug: image-delivery-pipelines
+  index: 20
+- title: Tính tương thích giữa kiến trúc CPU và hệ điều hành
+  slug: container-platform-compatibility
+  index: 21
+- title: Bảo trì tài nguyên và giữ môi trường thực hành ổn định
+  slug: container-resource-maintenance
+  index: 22
+- title: Bài thực hành tổng hợp và đánh giá năng lực nền tảng
+  slug: container-labs-and-assessment
+  index: 23

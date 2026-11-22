@@ -1,0 +1,381 @@
+menu:
+- level1: Tổng quan GitHub
+  level2:
+  - GitHub là gì và giải quyết vấn đề cộng tác phát triển phần mềm như thế nào
+  - Phân biệt Git, GitHub, kho mã cục bộ và kho mã từ xa
+  - Mối liên hệ giữa tài khoản, tổ chức, kho mã, nhánh, commit và pull request
+  - Luồng cộng tác từ đề xuất công việc đến thay đổi được hợp nhất
+  - Phân biệt kho mã công khai, riêng tư và nội bộ trong phạm vi hỗ trợ
+  - Vai trò của GitHub trong chuỗi quản lý mã nguồn, CI/CD và phát hành
+  - Ranh giới giữa tính năng GitHub và kiến thức Git, chiến lược kho mã, CI/CD chuyên sâu
+  - Lộ trình làm quen GitHub và điều kiện thực hành an toàn
+- level1: Tài khoản và hồ sơ
+  level2:
+  - Tạo tài khoản, xác minh email và lựa chọn tên người dùng
+  - Thiết lập hồ sơ cá nhân, tiểu sử và thông tin liên hệ công khai
+  - Liên kết email commit với tài khoản và bảo vệ địa chỉ email
+  - Đọc trang hồ sơ, lịch sử hoạt động và biểu đồ đóng góp
+  - Điều chỉnh tùy chọn hiển thị, phím tắt và khả năng tiếp cận của giao diện
+  - Quản lý phiên đăng nhập, thiết bị và phương thức khôi phục tài khoản
+  - Phân biệt tài khoản cá nhân, tài khoản tổ chức và tài khoản do doanh nghiệp quản lý
+  - Nhận biết phạm vi gói dịch vụ, hạn mức và chi phí trước khi bật tính năng
+- level1: Xác thực và danh tính
+  level2:
+  - Phân biệt đăng nhập giao diện, xác thực Git và xác thực API
+  - Bật xác thực hai yếu tố, lưu mã khôi phục và sử dụng passkey
+  - Lựa chọn HTTPS hoặc SSH để kết nối kho mã
+  - Tạo, đăng ký và kiểm tra khóa SSH cho tài khoản
+  - Quản lý nhiều tài khoản, khóa SSH và cấu hình định danh trên cùng máy
+  - Phân biệt personal access token dạng fine-grained và classic
+  - Giới hạn quyền, thời hạn, kho mã và phê duyệt truy cập của token
+  - Lưu thông tin xác thực bằng trình quản lý phù hợp và thu hồi khi không còn dùng
+  - Ký commit, ký tag và phân biệt Verified với Signed-off-by hoặc Co-authored-by
+  - Xử lý lỗi xác thực, quyền truy cập và yêu cầu SSO của tổ chức
+- level1: Tạo và tổ chức kho mã
+  level2:
+  - Tạo repository và lựa chọn chủ sở hữu, tên, mô tả, mức hiển thị
+  - Khởi tạo README, .gitignore và giấy phép sử dụng
+  - Đưa dự án có sẵn lên GitHub mà không làm mất lịch sử Git
+  - Dùng repository template và phân biệt với fork hoặc clone
+  - Thiết lập trang giới thiệu, topics, liên kết website và ảnh đại diện kho mã
+  - Tổ chức thư mục mã nguồn, tài liệu và cấu hình cộng tác
+  - Nhận diện kho mã nguồn mở, kho nội bộ và kho dùng cho thực hành
+  - Thiết kế thông tin đầu vào để người mới hiểu và chạy được dự án
+- level1: Khám phá kho mã
+  level2:
+  - Đọc trang Code, cây thư mục và nội dung tệp trên GitHub
+  - Xem lịch sử commit, nội dung thay đổi và các commit liên quan
+  - Sử dụng blame để tìm bối cảnh thay đổi và người đóng góp
+  - Chuyển nhánh, tag và phiên bản khi đọc mã nguồn
+  - Tạo liên kết cố định đến commit, tệp, dòng mã và đoạn mã
+  - Đọc trang hoạt động, danh sách người đóng góp và thống kê kho mã
+  - Phân biệt star, watch, fork và ý nghĩa của từng thao tác
+  - Tải bản chụp mã nguồn và phân biệt với clone có đầy đủ lịch sử
+- level1: Làm việc với Git
+  level2:
+  - Clone kho mã GitHub và kiểm tra remote origin
+  - Kết nối kho mã cục bộ có sẵn với remote trên GitHub
+  - Tạo thay đổi cục bộ, commit và push nhánh làm việc
+  - Fetch, pull và kiểm tra thay đổi trên GitHub trước khi đồng bộ
+  - Thiết lập upstream cho nhánh và đọc thông báo nhánh đi trước hoặc đi sau
+  - Phân biệt lỗi xác thực, lỗi phân quyền và push bị từ chối do lịch sử
+  - Xử lý non-fast-forward mà không ghi đè công việc của người khác
+  - Sử dụng force push có kiểm soát và hiểu rủi ro đối với người cùng làm
+  - Thực hành vòng lặp sửa mã, push và kiểm tra kết quả trên giao diện GitHub
+- level1: Nhánh và so sánh
+  level2:
+  - Hiểu nhánh mặc định, nhánh làm việc và tham chiếu đến commit
+  - Tạo, đổi tên và xóa nhánh trên GitHub
+  - Chọn base và head để so sánh hai nhánh hoặc hai phiên bản
+  - Đọc trang Compare và hiểu tập commit, tập tệp thay đổi
+  - Nhận biết ảnh hưởng của nhánh mặc định tới clone, issue và pull request
+  - Giữ nhánh làm việc cập nhật với nhánh đích trong quá trình cộng tác
+  - Đặt quy ước tên nhánh và liên hệ nhánh với công việc cần giải quyết
+  - Phân biệt thao tác nhánh trên GitHub với thiết kế chiến lược phân nhánh
+- level1: Fork và đóng góp
+  level2:
+  - Hiểu quan hệ giữa kho mã gốc, fork và clone cục bộ
+  - Tạo fork và xác định đúng chủ sở hữu, nhánh cần đóng góp
+  - Cấu hình origin, upstream và đồng bộ fork với kho mã gốc
+  - Tạo pull request từ fork và kiểm tra đúng nhánh đích
+  - Hiểu quyền chỉnh sửa nhánh đóng góp của người bảo trì
+  - Phân biệt cộng tác bằng nhánh chung với cộng tác qua fork
+  - Nhận diện giới hạn truy cập và rủi ro chạy mã từ fork không tin cậy
+  - Theo dõi thay đổi sau khi đóng góp được hợp nhất hoặc bị từ chối
+- level1: GitHub Issues
+  level2:
+  - Sử dụng issue để ghi nhận lỗi, yêu cầu tính năng và công việc
+  - Viết issue có bối cảnh, bước tái hiện và tiêu chí hoàn thành
+  - Tạo issue, chỉnh sửa nội dung và phân biệt mở lại với tạo mới
+  - Giao người phụ trách, đặt nhãn và liên kết công việc liên quan
+  - Phân loại issue trùng lặp, thiếu thông tin hoặc ngoài phạm vi
+  - Dùng task list và sub-issue để thể hiện phần việc cần hoàn thành
+  - Biểu diễn phụ thuộc giữa các issue bằng tính năng hoặc liên kết phù hợp
+  - Liên kết issue với pull request và sử dụng từ khóa đóng issue
+  - Đóng, mở lại, khóa thảo luận và duy trì lịch sử quyết định
+  - Quản lý issue riêng tư hoặc thông tin nhạy cảm qua kênh phù hợp
+- level1: Nhãn và mốc công việc
+  level2:
+  - Thiết kế bộ labels theo loại công việc, ưu tiên và trạng thái xử lý
+  - Quản lý tên, màu và mô tả labels nhất quán trong kho mã
+  - Phân biệt labels với assignee, milestone và trường dữ liệu của Projects
+  - Tạo milestone, xác định phạm vi công việc và thời hạn dự kiến
+  - Theo dõi mức hoàn thành milestone qua issue và pull request
+  - Tổ chức hoạt động phân loại và ưu tiên issue định kỳ
+  - Dùng bộ lọc để tìm công việc chưa phân loại hoặc chưa có người phụ trách
+  - Điều chỉnh phạm vi milestone và lưu lại lý do chuyển công việc
+- level1: GitHub Projects
+  level2:
+  - Hiểu Projects là lớp tổ chức công việc liên kết với issue và pull request
+  - Tạo project với bảng dữ liệu (table), bảng công việc (board) hoặc lộ trình (roadmap)
+  - Thêm issue, pull request và mục nháp vào project
+  - Thiết kế trường trạng thái, độ ưu tiên, ngày tháng và iteration
+  - Tạo view bằng bộ lọc, nhóm, sắp xếp và lựa chọn trường hiển thị
+  - Phân biệt thông tin của project với dữ liệu gốc trong repository
+  - Thiết lập tự động thêm, cập nhật trạng thái và lưu trữ công việc
+  - Quản lý quyền truy cập project cá nhân và project tổ chức
+  - Theo dõi tiến độ bằng biểu đồ, iteration và các view phục vụ nhóm
+  - Xử lý công việc trải trên nhiều repository mà vẫn truy vết được nguồn
+- level1: Discussions và cộng đồng
+  level2:
+  - Phân biệt Discussions, Issues và pull request theo mục đích trao đổi
+  - Bật Discussions và tổ chức danh mục phù hợp với cộng đồng
+  - Viết câu hỏi có bối cảnh và đánh dấu câu trả lời được chấp nhận
+  - Sử dụng thông báo, ý tưởng và thảo luận mở để thu thập phản hồi
+  - Chuyển tiếp giữa thảo luận và issue khi cần theo dõi công việc
+  - Thiết lập quy tắc ứng xử và nguyên tắc điều phối cộng đồng
+  - Xử lý nội dung gây nhiễu, khóa cuộc trao đổi và báo cáo lạm dụng
+  - Xây dựng hướng dẫn tham gia và hỗ trợ người đóng góp mới
+- level1: Tạo pull request
+  level2:
+  - Hiểu pull request là đề xuất thay đổi và không đồng nghĩa với nhánh Git
+  - Chuẩn bị phạm vi thay đổi nhỏ, có mục đích và dễ kiểm tra
+  - Chọn đúng base, head và kiểm tra khác biệt trước khi mở pull request
+  - Viết tiêu đề, mô tả, bằng chứng kiểm tra và hướng dẫn đánh giá
+  - Liên kết issue, milestone, project và người liên quan
+  - Dùng draft pull request để xin phản hồi khi công việc chưa sẵn sàng
+  - Yêu cầu review, giao người phụ trách và dùng labels cho pull request
+  - Cập nhật commit, nhánh đích và mô tả trong quá trình trao đổi
+  - Đọc dòng thời gian, trạng thái checks và thông báo khả năng hợp nhất
+  - Đóng, mở lại và xử lý pull request không tiếp tục triển khai
+- level1: Đánh giá mã nguồn
+  level2:
+  - Phân biệt bình luận thông thường, bình luận theo dòng và phiên review
+  - Đọc diff, chọn chế độ so sánh và lọc tệp cần đánh giá
+  - Đánh dấu tệp đã xem và kiểm tra thay đổi kể từ lần review trước
+  - Đưa ra nhận xét rõ vấn đề, lý do và hướng xử lý
+  - Gửi review bằng Comment, Approve hoặc Request changes
+  - Đề xuất sửa mã và áp dụng suggestions vào nhánh đóng góp
+  - Phản hồi nhận xét, đánh dấu đã giải quyết và yêu cầu đánh giá lại
+  - Đánh giá tính đúng đắn, kiểm thử, bảo mật và khả năng bảo trì
+  - Phối hợp nhiều reviewer và phân biệt trách nhiệm người viết với người duyệt
+  - Xử lý bất đồng kỹ thuật và lưu quyết định ngay trong pull request
+- level1: Hợp nhất và xung đột
+  level2:
+  - Phân biệt merge commit, squash merge và rebase merge trên GitHub
+  - Lựa chọn cách hợp nhất theo yêu cầu lịch sử và quy định của nhóm
+  - Kiểm tra review, checks và trạng thái nhánh trước khi hợp nhất
+  - Hiểu xung đột giữa nhánh nguồn và nhánh đích
+  - Giải quyết xung đột đơn giản trên giao diện và nhận biết giới hạn
+  - Giải quyết xung đột cục bộ, đẩy kết quả và yêu cầu kiểm tra lại
+  - Sử dụng auto-merge khi điều kiện của kho mã cho phép
+  - Hiểu merge queue và việc kiểm tra thay đổi trong bối cảnh hàng đợi
+  - Xóa nhánh sau hợp nhất và phân biệt với xóa lịch sử đã hợp nhất
+  - Revert pull request và kiểm tra tác động khi hoàn tác thay đổi
+- level1: Quy tắc bảo vệ mã
+  level2:
+  - Xác định rủi ro khi cho phép thay đổi trực tiếp nhánh quan trọng
+  - Phân biệt branch protection rules và rulesets
+  - Xác định phạm vi áp dụng cho nhánh, tag và nhóm repository
+  - Yêu cầu pull request, số lượt phê duyệt và đánh giá của Code Owners
+  - Quản lý phê duyệt cũ khi có commit mới và yêu cầu giải quyết hội thoại
+  - Yêu cầu status checks và kiểm tra tên check từ nguồn tin cậy
+  - Áp dụng yêu cầu chữ ký, lịch sử tuyến tính và giới hạn force push khi phù hợp
+  - Thiết lập ngoại lệ, quyền bypass và trách nhiệm khi dùng quyền đặc biệt
+  - Kiểm tra quy tắc chồng lấn, điều kiện khả dụng và hiệu lực thực tế
+  - Thực hành chứng minh một thay đổi không đạt quy tắc sẽ bị chặn
+- level1: Tổ chức và phân quyền
+  level2:
+  - Hiểu mô hình organization, thành viên, team và repository
+  - Tạo organization và xác định vai trò owner, member, outside collaborator
+  - Thiết kế teams theo nhóm làm việc và phạm vi trách nhiệm
+  - Phân biệt quyền trên repository với quyền trong organization
+  - Lựa chọn vai trò truy cập theo nguyên tắc quyền tối thiểu
+  - Cấp quyền qua team và hạn chế cấp quyền cá nhân khó quản lý
+  - Quản lý lời mời, người cộng tác bên ngoài và thời điểm thu hồi quyền
+  - Thiết lập quyền mặc định, quyền tạo repository và chính sách tổ chức
+  - Hiểu SSO, cấp phát danh tính và tài khoản doanh nghiệp ở mức tổng quan
+  - Rà soát quyền truy cập khi thành viên chuyển nhóm hoặc rời tổ chức
+- level1: Quyền sở hữu và quy ước
+  level2:
+  - Xây dựng CONTRIBUTING.md để mô tả quy trình đóng góp
+  - Thiết lập CODEOWNERS và hiểu cú pháp khớp đường dẫn
+  - Phân biệt yêu cầu review tự động với phê duyệt bắt buộc của Code Owners
+  - Tạo mẫu pull request và hướng dẫn cung cấp bằng chứng kiểm tra
+  - Tạo issue templates và issue forms có trường thông tin phù hợp
+  - Sử dụng cấu hình mẫu dùng chung trong organization khi phù hợp
+  - Thiết lập SECURITY.md và hướng dẫn báo cáo lỗ hổng
+  - Duy trì CODE_OF_CONDUCT.md, SUPPORT.md và thông tin người bảo trì
+  - Thống nhất quy ước commit, tên nhánh và tiêu chí sẵn sàng hợp nhất
+- level1: Tài liệu và Markdown
+  level2:
+  - Viết README theo nhu cầu người sử dụng và người đóng góp
+  - Dùng GitHub Flavored Markdown cho tiêu đề, danh sách, bảng và task list
+  - Trình bày khối mã, trích dẫn, cảnh báo và nội dung có thể thu gọn
+  - Tạo liên kết tương đối, liên kết đến tiêu đề và liên kết cố định đến phiên bản
+  - Chèn hình ảnh, sơ đồ Mermaid và tệp đính kèm theo phạm vi hỗ trợ
+  - Đề cập người dùng, issue, pull request và commit trong nội dung trao đổi
+  - Lựa chọn giữa README, thư mục docs, Wiki và website tài liệu
+  - Tổ chức Wiki, phân quyền chỉnh sửa và theo dõi lịch sử thay đổi
+  - Quản lý tệp LICENSE và phân biệt giấy phép với mức hiển thị kho mã
+  - Duy trì tài liệu cùng pull request thay đổi hành vi của dự án
+- level1: GitHub Pages
+  level2:
+  - Hiểu GitHub Pages và phạm vi phục vụ website tĩnh
+  - Phân biệt website tài khoản hoặc tổ chức với website dự án
+  - Lựa chọn nguồn xuất bản từ nhánh hoặc quy trình GitHub Actions
+  - Chuẩn bị nội dung website và xác minh đường dẫn tài nguyên
+  - Thiết lập tên miền tùy chỉnh, DNS và HTTPS theo hướng dẫn hiện hành
+  - Kiểm tra lần xuất bản, nhật ký triển khai và nội dung thực tế
+  - Xử lý lỗi đường dẫn, tài nguyên tĩnh và website chưa cập nhật
+  - Nhận diện dữ liệu không được đưa vào website công khai và giới hạn dịch vụ
+- level1: Môi trường phát triển
+  level2:
+  - Chỉnh sửa tệp trên giao diện web và tạo commit hoặc pull request
+  - Sử dụng trình soạn thảo github.dev và hiểu giới hạn không có môi trường chạy
+  - Sử dụng GitHub Desktop cho clone, nhánh, commit và pull request
+  - Hiểu GitHub Codespaces và vòng đời môi trường phát triển từ xa
+  - Thiết lập dev container để chuẩn hóa công cụ và phụ thuộc
+  - Quản lý secrets, cổng chuyển tiếp và quyền truy cập trong Codespaces
+  - Dừng, khôi phục, xóa Codespace và kiểm soát tài nguyên sử dụng
+  - Đánh giá quyền truy cập và chính sách dữ liệu khi dùng công cụ hỗ trợ AI
+- level1: Tìm kiếm và thông báo
+  level2:
+  - Tìm repository, issue, pull request và người dùng bằng bộ lọc
+  - Tìm mã nguồn theo từ khóa, đường dẫn và phạm vi repository
+  - Tìm thay đổi bằng lịch sử commit, blame và liên kết tham chiếu
+  - Theo dõi issue và pull request được giao hoặc đang chờ mình review
+  - Phân biệt watch, subscribe, unsubscribe và ignore
+  - Thiết lập kênh thông báo và phạm vi nhận thông báo theo repository
+  - Xử lý hộp thư thông báo, đánh dấu hoàn tất và quay lại công việc cần theo dõi
+  - Sử dụng mentions, team mentions và saved replies có chủ đích
+  - Giảm thông báo nhiễu mà vẫn giữ khả năng phát hiện công việc quan trọng
+- level1: Tự động hóa kiểm tra
+  level2:
+  - Hiểu vai trò của GitHub Actions trong kiểm tra thay đổi của repository
+  - Nhận diện workflow, event, job, step và runner khi đọc kết quả chạy
+  - Liên hệ push, pull request và workflow_dispatch với mục đích thực thi
+  - Đọc trạng thái workflow, nhật ký và artifacts phục vụ đánh giá thay đổi
+  - Phân biệt kết quả workflow với status check dùng làm điều kiện hợp nhất
+  - Thiết lập quyền tối thiểu cho GITHUB_TOKEN và hiểu phạm vi secrets
+  - Nhận diện rủi ro từ pull request bên ngoài và sự kiện có quyền cao
+  - Yêu cầu phê duyệt environment và bảo vệ thao tác triển khai khi phù hợp
+  - Phân biệt trách nhiệm cấu hình cộng tác với thiết kế pipeline CI/CD chuyên sâu
+- level1: Phát hành và gói phần mềm
+  level2:
+  - Phân biệt Git tag, GitHub Release và tệp mã nguồn tự tạo
+  - Tạo release từ tag và kiểm tra đúng commit nguồn
+  - Viết release notes, ghi nhận thay đổi và liên kết công việc liên quan
+  - Phân biệt draft release, prerelease và bản phát hành chính thức
+  - Đính kèm release assets và kiểm tra nội dung tải xuống
+  - Thiết lập quy trình phê duyệt phát hành và phân quyền người xuất bản
+  - Hiểu vai trò GitHub Packages và quan hệ quyền với repository
+  - Phân biệt gói phần mềm, container image, workflow artifact và release asset
+  - Xử lý sửa sai sau phát hành, thông báo cho người dùng và giữ khả năng truy vết
+  - Phân định kiến thức GitHub với chiến lược versioning và quản lý registry chuyên sâu
+- level1: Bảo mật kho mã
+  level2:
+  - Phân loại tài sản cần bảo vệ và bề mặt tấn công của repository
+  - Thiết kế quyền tối thiểu cho người dùng, ứng dụng và tự động hóa
+  - Quản lý secrets và variables theo phạm vi repository, organization, environment
+  - Phòng tránh đưa mật khẩu, token, khóa riêng và dữ liệu nhạy cảm vào Git
+  - Sử dụng secret scanning và push protection theo điều kiện hỗ trợ
+  - 'Xử lý secret bị lộ: thu hồi, thay thế, điều tra và xử lý lịch sử'
+  - Đọc cảnh báo code scanning và tổ chức sửa lỗi có người chịu trách nhiệm
+  - Hiểu CodeQL, cảnh báo phân tích mã và giới hạn của công cụ tự động
+  - Phân loại cảnh báo, xử lý kết quả sai và lưu lý do bỏ qua
+  - Kiểm tra tính năng bảo mật theo mức hiển thị, gói dịch vụ và chính sách tổ chức
+- level1: An toàn chuỗi cung ứng
+  level2:
+  - Hiểu dependency graph và thông tin phụ thuộc từ repository
+  - Đọc cảnh báo Dependabot và đánh giá ảnh hưởng tới dự án
+  - Phân biệt Dependabot security updates với version updates
+  - Cấu hình cập nhật phụ thuộc, lịch chạy và nhóm pull request phù hợp
+  - Đánh giá thay đổi phụ thuộc trong pull request trước khi hợp nhất
+  - Kiểm tra nguồn, quyền và phiên bản của action hoặc ứng dụng bên ngoài
+  - Nhận biết SBOM và chứng thực nguồn gốc artifact trong phạm vi được hỗ trợ
+  - Tạo security advisory và phối hợp công bố lỗ hổng có trách nhiệm
+  - Sử dụng kênh báo cáo lỗ hổng riêng tư thay cho issue công khai
+  - Theo dõi khắc phục, xác minh bản sửa và cập nhật thông tin cảnh báo
+- level1: GitHub CLI
+  level2:
+  - Cài đặt GitHub CLI và kiểm tra môi trường sử dụng
+  - Đăng nhập gh, chọn tài khoản hoặc host và quản lý thông tin xác thực
+  - Thao tác repository bằng gh repo
+  - Tạo, tìm kiếm và quản lý issue bằng gh issue
+  - Tạo, checkout, review và hợp nhất pull request bằng gh pr
+  - Xem checks, workflow runs và nhật ký bằng các lệnh phù hợp
+  - Quản lý release và tải assets bằng gh release
+  - Dùng gh api để gọi API có xác thực
+  - Định dạng kết quả, viết script lặp lại được và xử lý mã thoát
+  - Nhận diện thao tác thay đổi dữ liệu và kiểm tra quyền trước khi tự động hóa
+- level1: API và tích hợp
+  level2:
+  - Phân biệt REST API, GraphQL API, GitHub CLI và giao diện web
+  - Lựa chọn phương thức xác thực phù hợp cho ứng dụng tích hợp
+  - Hiểu tài nguyên repository, issue, pull request và quyền truy cập API
+  - Xử lý phân trang, bộ lọc, lỗi API và giới hạn tần suất
+  - Sử dụng conditional requests, retry có kiểm soát và xử lý yêu cầu trùng lặp
+  - Hiểu webhook, event, action và nội dung payload
+  - Xác minh chữ ký webhook và bảo vệ endpoint nhận sự kiện
+  - Kiểm tra delivery, gửi lại webhook và xử lý sự kiện sai thứ tự
+  - Phân biệt GitHub App, OAuth App, token cá nhân và deploy key
+  - Quản lý cài đặt ứng dụng, phạm vi quyền và vòng đời thông tin xác thực
+  - Đánh giá ứng dụng Marketplace và thu hồi tích hợp không còn sử dụng
+- level1: Tệp lớn và dữ liệu
+  level2:
+  - Nhận diện nội dung phù hợp hoặc không phù hợp để lưu trong repository
+  - Hiểu Git LFS, tệp con trỏ và cách cộng tác với tệp lớn
+  - Theo dõi kiểu tệp bằng Git LFS và kiểm tra người khác tải được nội dung
+  - Nhận biết hạn mức, băng thông và chi phí liên quan đến dữ liệu lớn
+  - Phân biệt Git LFS với release assets và kho lưu trữ artifact
+  - Đánh giá submodule và các liên kết tới repository phụ thuộc
+  - Tránh commit tệp sinh tự động, thư mục build và dữ liệu bí mật
+  - Chẩn đoán kho mã phình lớn và lập kế hoạch dọn lịch sử có phối hợp
+- level1: Quản trị vòng đời kho mã
+  level2:
+  - Rà soát thiết lập repository và quyền quản trị trước khi thay đổi
+  - Đổi tên repository và cập nhật remote, liên kết, tích hợp liên quan
+  - Chuyển repository giữa tài khoản và organization
+  - Thay đổi mức hiển thị và đánh giá ảnh hưởng tới quyền cùng dữ liệu
+  - Archive, unarchive và phân biệt với xóa repository
+  - Xóa repository có kiểm soát và xác minh điều kiện khôi phục hiện hành
+  - Sao lưu Git, Git LFS và dữ liệu cộng tác ngoài lịch sử Git
+  - Lập kế hoạch di chuyển repository và kiểm tra dữ liệu sau di chuyển
+  - Dọn nhánh cũ, quyền không còn dùng và cấu hình tích hợp lỗi thời
+  - Kiểm kê repository, chủ sở hữu và trách nhiệm bảo trì định kỳ
+- level1: Quản trị tổ chức
+  level2:
+  - Xây dựng chính sách sở hữu repository, quyền truy cập và đóng góp
+  - Thiết lập quy trình tiếp nhận, chuyển vai trò và thu hồi quyền thành viên
+  - Rà soát ứng dụng, token, deploy key và quyền truy cập bên ngoài
+  - Đọc security log cá nhân và audit log tổ chức theo phạm vi hỗ trợ
+  - Kiểm tra thay đổi chính sách và truy vết thao tác quản trị quan trọng
+  - Quản lý chính sách Actions, Codespaces và công cụ mở rộng của tổ chức
+  - Theo dõi mức sử dụng, ngân sách và cảnh báo chi phí theo dịch vụ
+  - Phân biệt GitHub.com, GitHub Enterprise Cloud và GitHub Enterprise Server
+  - Nhận diện trách nhiệm của quản trị nền tảng so với người bảo trì dự án
+  - Duy trì hướng dẫn ứng phó sự cố và đầu mối hỗ trợ cho nhóm
+- level1: Cộng tác nguồn mở
+  level2:
+  - Đánh giá mục tiêu dự án, giấy phép và mức độ duy trì trước khi đóng góp
+  - Tìm issue phù hợp và trao đổi với người bảo trì trước thay đổi lớn
+  - Đọc CONTRIBUTING, CODE_OF_CONDUCT và yêu cầu xác nhận đóng góp
+  - Chuẩn bị pull request nguồn mở có phạm vi rõ và kiểm thử tái hiện được
+  - Phản hồi review tôn trọng và cập nhật thay đổi theo thỏa thuận
+  - Tiếp nhận người đóng góp mới và phân loại yêu cầu từ cộng đồng
+  - Xử lý dự án ít người bảo trì và kỳ vọng thời gian phản hồi
+  - Ghi nhận đóng góp, duy trì changelog và truyền đạt thay đổi ảnh hưởng người dùng
+- level1: Chẩn đoán sự cố
+  level2:
+  - Điều tra lỗi repository not found và quyền truy cập bị thu hồi
+  - Xử lý SSH bị từ chối, HTTPS liên tục hỏi đăng nhập và token hết hạn
+  - Giải thích commit chưa gắn với tài khoản hoặc chưa hiện trên hồ sơ
+  - Chẩn đoán pull request không có khác biệt hoặc nhầm base và head
+  - Tìm nguyên nhân pull request bị chặn bởi review, check hoặc ruleset
+  - Xử lý check bị thiếu, đang chờ hoặc không cập nhật đúng commit
+  - Điều tra thông báo không nhận được và cấu hình watch không phù hợp
+  - Xử lý webhook lỗi, API bị giới hạn và ứng dụng mất quyền truy cập
+  - Thu thập bằng chứng, kiểm tra trạng thái dịch vụ và chọn kênh hỗ trợ
+- level1: Thực hành tổng hợp
+  level2:
+  - Khởi tạo kho mã có README, giấy phép, hướng dẫn đóng góp và mẫu issue
+  - Thực hiện một công việc từ issue đến nhánh, pull request, review và hợp nhất
+  - Mô phỏng hai người cùng sửa một tệp và giải quyết xung đột có kiểm tra
+  - Thiết lập CODEOWNERS, quy tắc bảo vệ và chứng minh thay đổi chưa đạt bị chặn
+  - Tổ chức project liên kết nhiều repository và theo dõi tiến độ milestone
+  - Đóng góp qua fork và đồng bộ thay đổi mới từ repository gốc
+  - Xử lý token thử nghiệm bị lộ bằng quy trình thu hồi và khôi phục an toàn
+  - Tạo bản phát hành có release notes, assets và liên kết truy vết thay đổi
+  - Xây dựng tích hợp webhook nhỏ và kiểm tra xử lý sự kiện lặp lại
+  - Rà soát quyền, tài liệu, sao lưu và bàn giao repository cho người bảo trì mới

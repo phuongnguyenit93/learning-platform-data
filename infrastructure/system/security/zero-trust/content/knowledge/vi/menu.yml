@@ -1,0 +1,339 @@
+menu:
+- level1: 1. Tổng quan Zero Trust
+  level2:
+  - 1.1. Zero Trust là gì và vì sao mô hình tin cậy theo vị trí mạng không còn đủ
+  - 1.2. Tài nguyên, chủ thể, thiết bị và phiên truy cập trong kiến trúc Zero Trust
+  - 1.3. Xác minh tường minh, quyền tối thiểu và giả định đã bị xâm nhập
+  - 1.4. Ranh giới tin cậy và quyết định truy cập theo từng tài nguyên
+  - 1.5. Zero Trust Architecture, Zero Trust Network Access và các khái niệm dễ nhầm
+  - 1.6. Mối quan hệ với phòng thủ nhiều lớp, bảo mật định danh và bảo mật dữ liệu
+  - 1.7. Giới hạn của Zero Trust và những rủi ro kiến trúc không tự giải quyết
+  - 1.8. Lộ trình đọc từ nền tảng đến thiết kế, triển khai và vận hành
+- level1: 2. Bối cảnh và mô hình đe dọa
+  level2:
+  - 2.1. Từ mạng nội bộ tập trung đến làm việc từ xa, đám mây và hệ thống phân tán
+  - 2.2. Tài khoản bị chiếm đoạt, thông tin xác thực bị đánh cắp và phiên bị chiếm dụng
+  - 2.3. Thiết bị bị xâm nhập, phần mềm độc hại và tín hiệu sức khỏe sai lệch
+  - 2.4. Di chuyển ngang, leo thang đặc quyền và mở rộng phạm vi xâm nhập
+  - 2.5. Lạm dụng quyền hợp lệ, đe dọa nội bộ và tài khoản bên thứ ba
+  - 2.6. Rò rỉ dữ liệu qua ứng dụng, API và kênh truyền được cho phép
+  - 2.7. Xâm nhập chuỗi cung ứng và giả mạo danh tính khối lượng công việc
+  - 2.8. Mô hình hóa luồng tấn công và mục tiêu kiểm soát cho từng kịch bản
+- level1: 3. Phạm vi và tài nguyên
+  level2:
+  - 3.1. Kiểm kê người dùng, thiết bị, ứng dụng, dịch vụ và kho dữ liệu
+  - 3.2. Phân loại mức độ quan trọng, độ nhạy cảm và chủ sở hữu tài nguyên
+  - 3.3. Bề mặt cần bảo vệ và cách chọn phạm vi triển khai đầu tiên
+  - 3.4. Lập bản đồ giao dịch, luồng dữ liệu và phụ thuộc giữa hệ thống
+  - 3.5. Nhận diện đường truy cập trực tiếp, tài nguyên bị bỏ sót và hệ thống ngoài quản lý
+  - 3.6. Xác định ranh giới tổ chức, môi trường, vùng bảo mật và bên thứ ba
+  - 3.7. Phân biệt truy cập của con người, máy với máy và quản trị đặc quyền
+  - 3.8. Đặt yêu cầu bảo mật, khả dụng, hiệu năng và trải nghiệm cho từng luồng
+- level1: 4. Kiến trúc tham chiếu
+  level2:
+  - 4.1. Mô hình Zero Trust tham chiếu và các giả định kiến trúc cốt lõi
+  - 4.2. Bộ máy chính sách (Policy Engine) và đầu vào của quyết định truy cập
+  - 4.3. Bộ quản trị chính sách (Policy Administrator) và thiết lập đường truy cập
+  - 4.4. Điểm thực thi chính sách (Policy Enforcement Point) và vị trí đặt kiểm soát
+  - 4.5. Nguồn thông tin chính sách (Policy Information Point) và chất lượng ngữ cảnh
+  - 4.6. Tách mặt phẳng điều khiển khỏi mặt phẳng dữ liệu
+  - 4.7. Quan hệ giữa điểm quyết định chính sách (PDP) và điểm thực thi (PEP)
+  - 4.8. Luồng yêu cầu từ xác minh danh tính đến cho phép, giám sát và kết thúc
+  - 4.9. Ranh giới tin cậy giữa các thành phần và bảo vệ kênh điều khiển
+  - 4.10. Kiến trúc tập trung, phân tán và mô hình kết hợp
+- level1: 5. Vòng đời truy cập
+  level2:
+  - 5.1. Xác thực chủ thể và gắn yêu cầu với thiết bị hoặc khối lượng công việc
+  - 5.2. Thu thập ngữ cảnh, đánh giá rủi ro và xác định tài nguyên đích
+  - 5.3. Ra quyết định cho phép, từ chối hoặc yêu cầu xác minh bổ sung
+  - 5.4. Cấp quyền theo tài nguyên, hành động và điều kiện truy cập
+  - 5.5. Thiết lập phiên có thời hạn và ràng buộc phạm vi quyền
+  - 5.6. Đánh giá lại theo sự kiện và theo thời hạn phù hợp
+  - 5.7. Thu hồi quyền, chấm dứt phiên và xử lý độ trễ lan truyền
+  - 5.8. Xử lý thay đổi quyền trong khi yêu cầu hoặc giao dịch đang chạy
+  - 5.9. Phân biệt xác thực liên tục với việc yêu cầu người dùng đăng nhập lại
+- level1: 6. Danh tính người dùng
+  level2:
+  - 6.1. Định danh duy nhất, danh mục danh tính và nguồn dữ liệu có thẩm quyền
+  - 6.2. Vòng đời gia nhập, thay đổi vị trí và rời tổ chức
+  - 6.3. Xác minh danh tính ban đầu và độ tin cậy của tài khoản
+  - 6.4. Xác thực đa yếu tố và phương thức chống lừa đảo
+  - 6.5. Liên kết danh tính, đăng nhập một lần và ranh giới giữa các miền tin cậy
+  - 6.6. Khôi phục tài khoản, đăng ký lại yếu tố và chống hạ cấp xác thực
+  - 6.7. Tài khoản khách, đối tác, nhà thầu và quyền truy cập có ngày hết hạn
+  - 6.8. Tài khoản dùng chung, tài khoản mồ côi và kiểm soát ngoại lệ
+  - 6.9. Tách tài khoản thông thường khỏi tài khoản quản trị đặc quyền
+- level1: 7. Danh tính khối lượng công việc
+  level2:
+  - 7.1. Phân biệt danh tính dịch vụ, tài khoản dịch vụ và danh tính máy
+  - 7.2. Cấp danh tính dựa trên xác minh môi trường thực thi (attestation)
+  - 7.3. Định danh ngắn hạn và giảm phụ thuộc vào bí mật tồn tại lâu dài
+  - 7.4. Xác thực hai chiều giữa các dịch vụ và liên kết danh tính với kết nối
+  - 7.5. Liên kết danh tính khối lượng công việc giữa miền tin cậy và đám mây
+  - 7.6. Khởi tạo tin cậy, cấp phát, gia hạn và thu hồi danh tính dịch vụ
+  - 7.7. Ràng buộc danh tính với môi trường, tác vụ và phiên bản triển khai
+  - 7.8. Kiểm soát danh tính trong tác vụ nền, đường ống tự động hóa và CI/CD
+  - 7.9. Giới hạn tin cậy đối với siêu dữ liệu máy, container và nền tảng điều phối
+- level1: 8. Độ tin cậy thiết bị
+  level2:
+  - 8.1. Kiểm kê, ghi danh và xác định chủ sở hữu thiết bị
+  - 8.2. Danh tính thiết bị, chứng thư thiết bị và bảo vệ khóa riêng
+  - 8.3. Trạng thái bản vá, cấu hình an toàn, mã hóa ổ đĩa và phần mềm bảo vệ
+  - 8.4. Khởi động an toàn, bằng chứng phần cứng và giới hạn của attestation
+  - 8.5. Thu thập sức khỏe thiết bị qua UEM/MDM và EDR
+  - 8.6. Thiết bị được quản lý, BYOD và thiết bị không thể cài tác nhân
+  - 8.7. Độ mới, tính toàn vẹn và độ tin cậy của tín hiệu thiết bị
+  - 8.8. Cách ly, khắc phục và khôi phục truy cập sau khi vi phạm
+  - 8.9. Quyền riêng tư khi thu thập tín hiệu từ thiết bị cá nhân
+- level1: 9. Chính sách cấp quyền
+  level2:
+  - 9.1. Mặc định từ chối và cấp quyền tối thiểu theo nhu cầu công việc
+  - 9.2. Kết hợp RBAC, ABAC và chính sách theo quan hệ khi phù hợp
+  - 9.3. Mô hình chủ thể, tài nguyên, hành động, điều kiện và nghĩa vụ
+  - 9.4. Kiểm soát quyền ở mức ứng dụng, chức năng, đối tượng và trường dữ liệu
+  - 9.5. Phân tách nhiệm vụ và ngăn kết hợp quyền nguy hiểm
+  - 9.6. Quyền có thời hạn, quyền vừa đủ và cấp quyền đúng lúc
+  - 9.7. Thứ tự ưu tiên, xử lý xung đột và ngữ nghĩa của quyết định từ chối
+  - 9.8. Kiểm soát ủy quyền, quyền kế thừa và chuỗi gọi thay mặt người dùng
+  - 9.9. Chính sách nhất quán giữa giao diện, API và đường truy cập trực tiếp
+  - 9.10. Chủ sở hữu quyền, phê duyệt và rà soát quyền định kỳ
+- level1: 10. Ngữ cảnh và rủi ro
+  level2:
+  - 10.1. Thuộc tính danh tính, độ mạnh xác thực và lịch sử hoạt động
+  - 10.2. Ngữ cảnh thiết bị, mạng, vị trí, thời điểm và mức nhạy cảm tài nguyên
+  - 10.3. Tín hiệu hành vi bất thường và giới hạn của vị trí địa lý
+  - 10.4. Kết hợp nhiều nguồn tín hiệu thay vì tin cậy một chỉ số đơn lẻ
+  - 10.5. Mô hình chấm điểm rủi ro, ngưỡng quyết định và khả năng giải thích
+  - 10.6. Chống giả mạo, đầu độc và phát lại dữ liệu ngữ cảnh
+  - 10.7. Xử lý thuộc tính thiếu, lỗi thời, mâu thuẫn hoặc không thể xác minh
+  - 10.8. Xác minh tăng cường, hạn chế chức năng và truy cập chỉ đọc
+  - 10.9. Điều chỉnh sai dương, sai âm và tác động đến trải nghiệm người dùng
+- level1: 11. Phiên và thông tin xác thực
+  level2:
+  - 11.1. Phân biệt phiên người dùng, token truy cập và kết nối mạng
+  - 11.2. Ràng buộc phiên với danh tính, thiết bị và tài nguyên
+  - 11.3. Thời hạn tuyệt đối, thời hạn không hoạt động và yêu cầu xác thực lại
+  - 11.4. Giới hạn phạm vi, đối tượng nhận và khả năng sử dụng lại token
+  - 11.5. Thu hồi phiên khi tài khoản, thiết bị hoặc mức rủi ro thay đổi
+  - 11.6. Truyền sự kiện thu hồi và quản lý cửa sổ truy cập còn hiệu lực
+  - 11.7. Giảm nguy cơ đánh cắp, phát lại và chuyển tiếp thông tin xác thực
+  - 11.8. Lưu trữ an toàn, luân chuyển và hạn chế lộ bí mật trong nhật ký
+  - 11.9. Đồng bộ thời gian và xử lý phiên dài, kết nối dài hoặc tác vụ nền
+- level1: 12. Truy cập mạng
+  level2:
+  - 12.1. Mạng là phương tiện vận chuyển thay vì bằng chứng đáng tin cậy
+  - 12.2. Phân biệt lưu lượng từ người dùng đến ứng dụng và giữa các dịch vụ
+  - 12.3. Truy cập theo ứng dụng với ZTNA thay cho quyền vào toàn mạng
+  - 12.4. Mô hình cổng truy cập, proxy nhận biết danh tính và kết nối khởi tạo từ bên trong
+  - 12.5. So sánh vai trò VPN, ZTNA và các mô hình truy cập kết hợp
+  - 12.6. DNS, định tuyến và khám phá dịch vụ trong đường truy cập được kiểm soát
+  - 12.7. Kiểm soát lưu lượng ra ngoài và hạn chế kênh rò rỉ dữ liệu
+  - 12.8. Bảo vệ truy cập quản trị qua SSH, RDP và giao thức không phải HTTP
+  - 12.9. Ngăn đường vòng bỏ qua điểm thực thi chính sách
+  - 12.10. Giới hạn của lọc theo địa chỉ IP, VLAN và vị trí địa lý
+- level1: 13. Phân đoạn vi mô
+  level2:
+  - 13.1. Mục tiêu thu hẹp phạm vi ảnh hưởng và hạn chế di chuyển ngang
+  - 13.2. Phân đoạn theo ứng dụng, khối lượng công việc và mức nhạy cảm
+  - 13.3. Khám phá phụ thuộc trước khi áp dụng chính sách chặn
+  - 13.4. Chính sách dựa trên danh tính so với chính sách dựa trên địa chỉ mạng
+  - 13.5. Thực thi tại máy chủ, thiết bị mạng, hạ tầng ảo hóa hoặc cụm container
+  - 13.6. Chính sách lưu lượng giữa các vùng và trong cùng một vùng
+  - 13.7. Chuyển từ quan sát sang thực thi mà không làm gián đoạn dịch vụ
+  - 13.8. Xử lý dịch vụ dùng chung, tài nguyên động và phụ thuộc khó quan sát
+  - 13.9. Kiểm thử độ bao phủ, đường vòng và mức giảm di chuyển ngang
+- level1: 14. Ứng dụng và API
+  level2:
+  - 14.1. Đặt ranh giới xác thực và cấp quyền tại từng ứng dụng và API
+  - 14.2. Kết hợp cổng API với kiểm soát quyền trong ứng dụng
+  - 14.3. Truyền danh tính qua nhiều chặng và xác minh lại tại ranh giới dịch vụ
+  - 14.4. Ngăn tin cậy mù quáng vào header, proxy trung gian và mạng nội bộ
+  - 14.5. Cấp quyền theo đối tượng để ngăn truy cập dữ liệu ngoài phạm vi
+  - 14.6. Giới hạn quyền dịch vụ khi gọi thay mặt người dùng
+  - 14.7. Xử lý giao tiếp đồng bộ, hàng đợi, sự kiện và tác vụ bất đồng bộ
+  - 14.8. Kiểm soát yêu cầu từ ứng dụng công khai và khách hàng ngoài tổ chức
+  - 14.9. Tách kiểm soát Zero Trust khỏi kiểm tra đầu vào, chống lạm dụng và bảo mật mã nguồn
+  - 14.10. Bảo vệ giao diện quản trị và luồng chức năng nhạy cảm
+- level1: 15. Bảo vệ dữ liệu
+  level2:
+  - 15.1. Khám phá, phân loại và gắn nhãn dữ liệu nhạy cảm
+  - 15.2. Chính sách truy cập bám theo dữ liệu trong toàn bộ vòng đời
+  - 15.3. Giới hạn quyền đọc, ghi, xuất, chia sẻ và sao chép dữ liệu
+  - 15.4. Kiểm soát ở mức bản ghi, cột, trường và tập dữ liệu
+  - 15.5. Mã hóa khi truyền, khi lưu và quản lý quyền sử dụng khóa
+  - 15.6. Che giấu dữ liệu, mã hóa thay thế và giảm thiểu dữ liệu được phơi lộ
+  - 15.7. Ngăn thất thoát dữ liệu và theo dõi hành vi tải xuống bất thường
+  - 15.8. Bảo vệ bản sao lưu, bản xuất, bộ nhớ đệm và dữ liệu phân tích
+  - 15.9. Giới hạn của mã hóa khi chủ thể đã có quyền giải mã
+  - 15.10. Xóa, lưu giữ và xử lý dữ liệu theo nghĩa vụ tổ chức
+- level1: 16. Nền tảng mật mã
+  level2:
+  - 16.1. Vai trò của TLS, mTLS và chứng thư số trong các quan hệ tin cậy
+  - 16.2. Xác minh tên, chuỗi chứng thư, thời hạn và miền tin cậy
+  - 16.3. Bảo vệ khóa gốc, khóa ký và khóa riêng tại điểm thực thi
+  - 16.4. Cấp phát tự động, gia hạn và luân chuyển chứng thư ngắn hạn
+  - 16.5. Thu hồi chứng thư và giới hạn của cơ chế kiểm tra trạng thái
+  - 16.6. Phân tách miền tin cậy cho người dùng, thiết bị và dịch vụ
+  - 16.7. Tích hợp kho bí mật, KMS và HSM theo yêu cầu bảo vệ khóa
+  - 16.8. Luân chuyển khóa mà không làm gián đoạn phiên và dịch vụ
+  - 16.9. Xử lý lộ khóa, thay đổi gốc tin cậy và khôi phục chuỗi cấp phát
+- level1: 17. Truy cập đặc quyền
+  level2:
+  - 17.1. Nhận diện tài nguyên, thao tác và tài khoản có đặc quyền
+  - 17.2. Cấp quyền đúng lúc (JIT) và quyền vừa đủ (JEA)
+  - 17.3. Phê duyệt, giới hạn thời gian và ràng buộc mục đích sử dụng
+  - 17.4. Truy cập qua cổng quản trị và kiểm soát phiên đặc quyền
+  - 17.5. Tách vùng quản trị khỏi đường truy cập người dùng thông thường
+  - 17.6. Kiểm soát tài khoản dịch vụ có quyền cao và tác vụ tự động
+  - 17.7. Ghi nhận thao tác quản trị với yêu cầu bảo mật và quyền riêng tư
+  - 17.8. Tài khoản khẩn cấp (break-glass), điều kiện sử dụng và rà soát sau sự kiện
+  - 17.9. Giảm quyền thường trực và đo mức phơi lộ đặc quyền
+- level1: 18. Đám mây và nền tảng
+  level2:
+  - 18.1. Ánh xạ Zero Trust vào trách nhiệm giữa tổ chức và nhà cung cấp đám mây
+  - 18.2. Định danh, cấp quyền và tách biệt tài khoản, dự án hoặc môi trường
+  - 18.3. Kiểm soát truy cập mặt phẳng quản trị và mặt phẳng dữ liệu đám mây
+  - 18.4. Bảo vệ máy ảo, container, nền tảng điều phối và dịch vụ không máy chủ
+  - 18.5. Danh tính ngắn hạn cho tác vụ và loại bỏ khóa đám mây tĩnh
+  - 18.6. Phân đoạn và chính sách trong môi trường có địa chỉ thay đổi nhanh
+  - 18.7. Kiểm soát dịch vụ được quản lý, kho đối tượng và cơ sở dữ liệu
+  - 18.8. Liên kết danh tính và thực thi chính sách trong hybrid cloud, multi-cloud
+  - 18.9. Ranh giới tin cậy của CI/CD, kho mã và kho tạo phẩm triển khai
+  - 18.10. Ngăn lệch cấu hình và kiểm soát thay đổi hạ tầng bằng chính sách
+- level1: 19. Mô hình thực thi
+  level2:
+  - 19.1. Thực thi bằng tác nhân trên thiết bị và mô hình không cần tác nhân
+  - 19.2. Proxy ngược, cổng truy cập và điểm thực thi đặt cạnh tài nguyên
+  - 19.3. Proxy dịch vụ, service mesh và kiểm soát giao tiếp máy với máy
+  - 19.4. Thực thi trong ứng dụng, thư viện chính sách và bộ quyết định bên ngoài
+  - 19.5. Mô hình lưu lượng đi qua điểm trung gian so với thực thi phân tán
+  - 19.6. Tập trung quản trị nhưng phân tán quyết định hoặc thực thi
+  - 19.7. Khả năng bao phủ giao thức, thiết bị và tài nguyên cũ
+  - 19.8. So sánh độ trễ, độ tin cậy, chi phí vận hành và mức kiểm soát
+  - 19.9. Tiêu chí chọn vị trí PEP và tránh khoảng trống giữa các lớp
+- level1: 20. Môi trường đặc thù
+  level2:
+  - 20.1. Làm việc từ xa và truy cập trên thiết bị cá nhân
+  - 20.2. Truy cập SaaS và giới hạn kiểm soát khi ứng dụng do bên ngoài vận hành
+  - 20.3. Nhà cung cấp, đối tác và kỹ thuật viên truy cập có giới hạn
+  - 20.4. Ứng dụng cũ không hỗ trợ danh tính hoặc giao thức hiện đại
+  - 20.5. Thiết bị IoT, hệ thống OT và tài nguyên khó cài tác nhân
+  - 20.6. Môi trường biên, kết nối chập chờn và hoạt động ngoại tuyến
+  - 20.7. Hệ thống nhiều khách hàng và cách ly giữa các bên thuê
+  - 20.8. Hệ thống sau sáp nhập và kết nối giữa các tổ chức
+  - 20.9. Điều chỉnh kiểm soát theo yêu cầu an toàn, liên tục và tính khả thi
+- level1: 21. Kỹ thuật chính sách
+  level2:
+  - 21.1. Mô hình hóa chính sách từ yêu cầu nghiệp vụ và mô hình đe dọa
+  - 21.2. Quản lý thuộc tính, danh mục tài nguyên và từ vựng chính sách thống nhất
+  - 21.3. Chính sách dưới dạng mã, quản lý phiên bản và người sở hữu
+  - 21.4. Kiểm thử đơn vị chính sách, ca từ chối và tình huống biên
+  - 21.5. Phân tích quyền thừa, xung đột, chính sách không còn tác dụng và đường vòng
+  - 21.6. Mô phỏng quyết định bằng lưu lượng thực đã được bảo vệ dữ liệu
+  - 21.7. Chế độ chỉ quan sát, triển khai từng phần và kiểm soát thay đổi
+  - 21.8. Phân phối chính sách, kiểm tra toàn vẹn và xử lý phiên bản không đồng bộ
+  - 21.9. Quay lui, thời hạn ngoại lệ và quản lý nợ bảo mật
+  - 21.10. Giải thích quyết định để hỗ trợ kiểm toán và xử lý sự cố
+- level1: 22. Khả dụng và hiệu năng
+  level2:
+  - 22.1. Xác định thành phần trọng yếu và điểm lỗi đơn trong kiến trúc
+  - 22.2. Dự phòng bộ quyết định, điểm thực thi và nguồn danh tính
+  - 22.3. Chọn fail-closed hoặc chế độ suy giảm theo mức rủi ro từng tài nguyên
+  - 22.4. Bộ nhớ đệm quyết định và đánh đổi giữa hiệu năng với độ mới của quyền
+  - 22.5. Ngân sách độ trễ cho xác thực, lấy thuộc tính và đánh giá chính sách
+  - 22.6. Xử lý mất kết nối với IdP, nguồn sức khỏe thiết bị hoặc kho chính sách
+  - 22.7. Khôi phục sau thảm họa và bảo vệ cấu hình tin cậy dự phòng
+  - 22.8. Kiểm thử tải, lỗi dây chuyền và khả năng phục hồi của mặt phẳng điều khiển
+  - 22.9. Thiết kế quyền truy cập khẩn cấp có giám sát và có thể thu hồi
+- level1: 23. Quan sát và phát hiện
+  level2:
+  - 23.1. Nhật ký quyết định truy cập và các trường bằng chứng cần thiết
+  - 23.2. Liên kết danh tính, thiết bị, tài nguyên, phiên và mã truy vết
+  - 23.3. Thu thập tín hiệu từ IdP, EDR, mạng, ứng dụng và nguồn dữ liệu
+  - 23.4. Phát hiện hành vi di chuyển ngang, lạm dụng quyền và tải dữ liệu bất thường
+  - 23.5. Tích hợp SIEM, phân tích hành vi và tự động hóa phản ứng
+  - 23.6. Phân biệt sự kiện bị từ chối, lỗi hạ tầng và dấu hiệu tấn công
+  - 23.7. Độ bao phủ, độ trễ, mất sự kiện và tính toàn vẹn nhật ký
+  - 23.8. Bảo vệ dữ liệu nhạy cảm trong nhật ký và giới hạn quyền xem
+  - 23.9. Đồng bộ thời gian, thời hạn lưu giữ và chuỗi bằng chứng điều tra
+- level1: 24. Ứng phó và phục hồi
+  level2:
+  - 24.1. Quy trình xử lý tài khoản hoặc thiết bị nghi bị xâm nhập
+  - 24.2. Thu hồi phiên, giảm quyền và cách ly theo mức tin cậy của bằng chứng
+  - 24.3. Khoanh vùng tài nguyên và ngăn tiếp tục di chuyển ngang
+  - 24.4. Ứng phó khi IdP, bộ quyết định hoặc hệ thống chính sách bị xâm nhập
+  - 24.5. Luân chuyển bí mật, chứng thư và khóa sau sự cố
+  - 24.6. Điều tra quyết định truy cập và tái dựng chuỗi hành động
+  - 24.7. Tự động hóa có giới hạn, kiểm soát sai dương và phê duyệt thao tác ảnh hưởng lớn
+  - 24.8. Khôi phục truy cập an toàn và xác nhận thiết bị đã được khắc phục
+  - 24.9. Rút kinh nghiệm, cập nhật chính sách và kiểm chứng biện pháp phòng ngừa
+- level1: 25. Quản trị và quyền riêng tư
+  level2:
+  - 25.1. Phân công trách nhiệm giữa chủ tài nguyên, IAM, mạng, nền tảng và vận hành
+  - 25.2. Quy trình phê duyệt chính sách và trách nhiệm giải trình
+  - 25.3. Đánh giá quyền định kỳ, chứng nhận quyền và xử lý quyền không sử dụng
+  - 25.4. Quản trị ngoại lệ với chủ sở hữu, thời hạn và biện pháp bù trừ
+  - 25.5. Minh chứng kiểm toán và ánh xạ kiểm soát với yêu cầu tuân thủ
+  - 25.6. Thu thập tín hiệu theo mục đích và tối thiểu hóa dữ liệu cá nhân
+  - 25.7. Giới hạn lưu giữ, sử dụng và chia sẻ dữ liệu giám sát nhân sự
+  - 25.8. Quản trị nhà cung cấp và ranh giới trách nhiệm với dịch vụ thuê ngoài
+  - 25.9. Đào tạo người dùng, đội hỗ trợ và đội vận hành chính sách
+- level1: 26. Đo lường và mức trưởng thành
+  level2:
+  - 26.1. Đánh giá hiện trạng theo danh tính, thiết bị, mạng, ứng dụng và dữ liệu
+  - 26.2. Quan sát, tự động hóa và quản trị như năng lực xuyên suốt
+  - 26.3. Tham chiếu mô hình trưởng thành để xác định khoảng trống năng lực
+  - 26.4. Đo độ bao phủ MFA, danh tính ngắn hạn và thiết bị được quản lý
+  - 26.5. Đo quyền thường trực, quyền thừa và số ngoại lệ còn hiệu lực
+  - 26.6. Đo khả năng chặn đường vòng và mức thu hẹp phạm vi xâm nhập
+  - 26.7. Đo thời gian phát hiện, thu hồi quyền và khôi phục truy cập
+  - 26.8. Đo độ trễ, tỷ lệ từ chối sai, khả dụng và trải nghiệm truy cập
+  - 26.9. Phân biệt chỉ số triển khai công cụ với kết quả giảm rủi ro
+  - 26.10. Xác định mục tiêu, đường cơ sở và tiêu chí nghiệm thu từng giai đoạn
+- level1: 27. Lộ trình chuyển đổi
+  level2:
+  - 27.1. Xây dựng mục tiêu theo rủi ro và sự đồng thuận của các bên liên quan
+  - 27.2. Chọn tài nguyên thí điểm có giá trị và phạm vi phụ thuộc kiểm soát được
+  - 27.3. Chuẩn hóa danh tính, kiểm kê thiết bị và khám phá luồng truy cập
+  - 27.4. Thiết kế trạng thái đích và kế hoạch cùng tồn tại với hệ thống cũ
+  - 27.5. Triển khai quan sát trước khi siết chính sách và thu hẹp quyền
+  - 27.6. Mở rộng từng nhóm người dùng, tài nguyên và môi trường
+  - 27.7. Chuyển từ truy cập toàn mạng sang truy cập theo ứng dụng
+  - 27.8. Quản lý thay đổi, truyền thông, hỗ trợ và tiêu chí quay lui
+  - 27.9. Đánh giá chi phí tổng thể, năng lực vận hành và nguy cơ phụ thuộc nhà cung cấp
+  - 27.10. Rà soát kết quả và cập nhật lộ trình theo bằng chứng thực tế
+- level1: 28. Sai lầm và đánh đổi
+  level2:
+  - 28.1. Đồng nhất Zero Trust với một sản phẩm hoặc dự án thay VPN
+  - 28.2. Coi mạng nội bộ, thiết bị đã ghi danh hoặc token hợp lệ là đủ đáng tin
+  - 28.3. Xác thực mạnh nhưng bỏ sót cấp quyền ở mức đối tượng và dữ liệu
+  - 28.4. Chính sách quá rộng, ngoại lệ vĩnh viễn và đặc quyền thường trực
+  - 28.5. Thu thập nhiều tín hiệu nhưng không bảo đảm chất lượng và độ mới
+  - 28.6. Quá tập trung quyết định khiến mặt phẳng điều khiển trở thành điểm lỗi
+  - 28.7. Phân đoạn trước khi hiểu phụ thuộc làm gián đoạn hệ thống
+  - 28.8. Giám sát quá mức, gây mệt mỏi xác thực và tạo động lực lách kiểm soát
+  - 28.9. Tự động thu hồi quyền thiếu giới hạn và không có phương án khôi phục
+  - 28.10. Đánh đổi giữa bảo mật, khả dụng, hiệu năng và khả năng vận hành
+- level1: 29. Tình huống kiến trúc
+  level2:
+  - 29.1. Nhân viên truy cập ứng dụng nội bộ từ thiết bị được quản lý
+  - 29.2. Nhà thầu truy cập một ứng dụng bằng thiết bị ngoài quản lý
+  - 29.3. Dịch vụ gọi dịch vụ bằng danh tính ngắn hạn trong nhiều môi trường
+  - 29.4. Quản trị viên truy cập tài nguyên quan trọng bằng quyền có thời hạn
+  - 29.5. Ứng dụng cũ được bảo vệ qua điểm truy cập trung gian
+  - 29.6. Hệ thống hybrid kết nối trung tâm dữ liệu với nhiều đám mây
+  - 29.7. Thiết bị IoT hoặc OT chỉ được phép giao tiếp với dịch vụ đã định
+  - 29.8. Phát hiện tài khoản hợp lệ thực hiện tải dữ liệu bất thường
+  - 29.9. So sánh lựa chọn kiến trúc bằng luồng truy cập, rủi ro và điều kiện suy giảm
+- level1: 30. Thực hành và kiểm chứng
+  level2:
+  - 30.1. Lập danh mục tài nguyên, bề mặt bảo vệ và sơ đồ luồng dữ liệu
+  - 30.2. Vẽ ranh giới tin cậy cùng vị trí PDP, PEP và nguồn thuộc tính
+  - 30.3. Thiết kế ma trận chủ thể, tài nguyên, hành động và điều kiện
+  - 30.4. Mô phỏng cho phép, từ chối và xác minh bổ sung theo ngữ cảnh
+  - 30.5. Kiểm chứng thu hồi quyền sau khi tài khoản hoặc thiết bị thay đổi
+  - 30.6. Thử truy cập đường vòng và mô phỏng di chuyển ngang trong môi trường kiểm thử
+  - 30.7. Kiểm thử mất IdP, chính sách lỗi thời và chế độ hoạt động suy giảm
+  - 30.8. Đánh giá nhật ký, khả năng giải thích và truy vết quyết định
+  - 30.9. Xây dựng bộ tiêu chí nghiệm thu và hồ sơ quyết định kiến trúc
+  - 30.10. Tổng kết thiết kế bằng kịch bản trước, trong và sau một sự cố

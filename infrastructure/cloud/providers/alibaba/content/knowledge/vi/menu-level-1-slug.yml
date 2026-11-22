@@ -1,0 +1,112 @@
+menu:
+  - title: "Tổng quan Alibaba Cloud"
+    slug: alibaba-cloud-overview
+    index: 0
+  - title: "Tài khoản và quản trị tài nguyên"
+    slug: accounts-resource-governance
+    index: 1
+  - title: "Danh tính và phân quyền RAM"
+    slug: ram-identity-access-management
+    index: 2
+  - title: "Nền tảng mạng VPC"
+    slug: vpc-networking
+    index: 3
+  - title: "Kết nối lai và liên vùng"
+    slug: hybrid-inter-region-connectivity
+    index: 4
+  - title: "DNS và cân bằng tải"
+    slug: dns-load-balancing
+    index: 5
+  - title: "Phân phối và xử lý nội dung"
+    slug: content-delivery-processing
+    index: 6
+  - title: "Máy chủ ảo ECS"
+    slug: ecs-virtual-machines
+    index: 7
+  - title: "Co giãn và lựa chọn compute"
+    slug: compute-scaling-selection
+    index: 8
+  - title: "Lưu trữ khối và tệp"
+    slug: block-file-storage
+    index: 9
+  - title: "Object Storage Service"
+    slug: object-storage-service
+    index: 10
+  - title: "Nền tảng container ACK"
+    slug: ack-container-platform
+    index: 11
+  - title: "Triển khai và vận hành Kubernetes"
+    slug: kubernetes-deployment-operations
+    index: 12
+  - title: "Serverless và nền tảng ứng dụng"
+    slug: serverless-application-platforms
+    index: 13
+  - title: "Cơ sở dữ liệu quan hệ"
+    slug: relational-databases
+    index: 14
+  - title: "Cache và cơ sở dữ liệu NoSQL"
+    slug: caching-nosql-databases
+    index: 15
+  - title: "Nền tảng dữ liệu và phân tích"
+    slug: data-analytics-platforms
+    index: 16
+  - title: "Quản trị và di chuyển dữ liệu"
+    slug: data-governance-migration
+    index: 17
+  - title: "Nhắn tin và xử lý sự kiện"
+    slug: messaging-event-processing
+    index: 18
+  - title: "API và điều phối ứng dụng"
+    slug: api-workflow-orchestration
+    index: 19
+  - title: "Microservices với Spring Cloud Alibaba"
+    slug: spring-cloud-alibaba-microservices
+    index: 20
+  - title: "SDK và OpenAPI cho Java"
+    slug: java-sdk-openapi
+    index: 21
+  - title: "Tích hợp dịch vụ trong Java"
+    slug: java-service-integration
+    index: 22
+  - title: "Triển khai và tối ưu ứng dụng Java"
+    slug: java-deployment-optimization
+    index: 23
+  - title: "AI và machine learning"
+    slug: ai-machine-learning
+    index: 24
+  - title: "Quan sát hệ thống"
+    slug: system-observability
+    index: 25
+  - title: "Bảo vệ hạ tầng và ứng dụng"
+    slug: infrastructure-application-security
+    index: 26
+  - title: "Bảo vệ dữ liệu và bí mật"
+    slug: data-secrets-protection
+    index: 27
+  - title: "IaC và tự động hóa"
+    slug: infrastructure-as-code-automation
+    index: 28
+  - title: "CI/CD và GitOps"
+    slug: ci-cd-gitops
+    index: 29
+  - title: "Vận hành và quản lý thay đổi"
+    slug: operations-change-management
+    index: 30
+  - title: "Sao lưu và khôi phục"
+    slug: backup-recovery
+    index: 31
+  - title: "Thiết kế độ tin cậy"
+    slug: reliability-design
+    index: 32
+  - title: "Quản lý chi phí"
+    slug: cost-management
+    index: 33
+  - title: "Di chuyển hệ thống lên Alibaba Cloud"
+    slug: cloud-migration
+    index: 34
+  - title: "Khắc phục sự cố"
+    slug: cloud-troubleshooting
+    index: 35
+  - title: "Dự án thực hành tổng hợp"
+    slug: capstone-projects
+    index: 36

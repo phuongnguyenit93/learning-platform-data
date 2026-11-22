@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan SQL
+  slug: sql-overview
+  index: 0
+- title: Môi trường thực hành
+  slug: practice-environment
+  index: 1
+- title: Cú pháp và ngữ nghĩa
+  slug: syntax-and-semantics
+  index: 2
+- title: Kiểu dữ liệu
+  slug: data-types
+  index: 3
+- title: NULL và logic
+  slug: null-and-logic
+  index: 4
+- title: Bảng và lược đồ
+  slug: tables-and-schemas
+  index: 5
+- title: Khóa và ràng buộc
+  slug: keys-and-constraints
+  index: 6
+- title: Truy vấn cơ bản
+  slug: basic-queries
+  index: 7
+- title: Điều kiện lọc
+  slug: filter-conditions
+  index: 8
+- title: Sắp xếp và phân trang
+  slug: sorting-and-pagination
+  index: 9
+- title: Biểu thức và hàm
+  slug: expressions-and-functions
+  index: 10
+- title: Rẽ nhánh trong SQL
+  slug: conditional-expressions
+  index: 11
+- title: Tổng hợp dữ liệu
+  slug: aggregation
+  index: 12
+- title: Kết nối bảng
+  slug: joins
+  index: 13
+- title: Truy vấn con
+  slug: subqueries
+  index: 14
+- title: Phép toán tập hợp
+  slug: set-operations
+  index: 15
+- title: CTE
+  slug: cte
+  index: 16
+- title: Truy vấn đệ quy
+  slug: recursive-queries
+  index: 17
+- title: Hàm cửa sổ
+  slug: window-functions
+  index: 18
+- title: Mẫu truy vấn
+  slug: query-patterns
+  index: 19
+- title: Thêm dữ liệu
+  slug: inserting-data
+  index: 20
+- title: Cập nhật và xóa
+  slug: updates-and-deletes
+  index: 21
+- title: Upsert và MERGE
+  slug: upsert-and-merge
+  index: 22
+- title: Giao dịch SQL
+  slug: transactions
+  index: 23
+- title: View và bảng trung gian
+  slug: views-and-temp-tables
+  index: 24
+- title: Chỉ mục và kế hoạch
+  slug: indexes-and-query-plans
+  index: 25
+- title: Thủ tục và hàm
+  slug: procedures-and-functions
+  index: 26
+- title: Trigger
+  slug: triggers
+  index: 27
+- title: Dữ liệu mở rộng
+  slug: extended-data-types
+  index: 28
+- title: Quyền và SQL an toàn
+  slug: permissions-and-sql-security
+  index: 29
+- title: SQL trong ứng dụng
+  slug: sql-in-applications
+  index: 30
+- title: SQL đa hệ quản trị
+  slug: cross-database-sql
+  index: 31
+- title: Kiểm thử và gỡ lỗi
+  slug: testing-and-debugging
+  index: 32
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 33

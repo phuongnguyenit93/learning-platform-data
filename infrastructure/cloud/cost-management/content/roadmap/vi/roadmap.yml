@@ -1,0 +1,49 @@
+roadmap:
+- id: finops-chi-phi-cloud
+  title: FinOps & Chi phí Cloud
+  purpose: Hiểu mô hình trả phí theo mức sử dụng và trách nhiệm phối hợp giữa kỹ thuật, tài chính, kinh doanh.
+  objectives:
+  - '- Phân biệt chi phí theo usage với chi phí cố định.'
+  - '- Mô tả vòng lặp FinOps Inform, Optimize, Operate.'
+- id: pricing-uoc-tinh
+  title: Pricing & Ước tính
+  purpose: Dự kiến chi phí trước khi chọn dịch vụ, Region và cấu hình hạ tầng.
+  objectives:
+  - '- Nhận diện compute, storage, request và data transfer charges.'
+  - '- Lập ước tính workload dựa trên giá và mức dùng dự kiến.'
+- id: cost-visibility-bao-cao
+  title: Cost Visibility & Báo cáo
+  purpose: Đọc hóa đơn và báo cáo để tìm dịch vụ hoặc tài nguyên tạo chi phí lớn.
+  objectives:
+  - '- Lọc cost report theo thời gian, service, account/project.'
+  - '- So sánh actual spend, xu hướng và cost drivers.'
+- id: tagging-cost-allocation
+  title: Tagging & Cost Allocation
+  purpose: Gắn chi phí với ứng dụng, môi trường và nhóm phụ trách để tăng minh bạch.
+  objectives:
+  - '- Thiết lập chuẩn tag/label owner, app, environment.'
+  - '- Giải thích cost allocation, showback và chargeback.'
+- id: budget-forecast
+  title: Budget & Forecast
+  purpose: Đặt ngưỡng theo dõi và dự đoán ngân sách thay vì chỉ phát hiện sau khi có hóa đơn.
+  objectives:
+  - '- Tạo budget và cảnh báo actual/forecast spend.'
+  - '- Giải thích vì sao budget alert không tự chặn chi tiêu.'
+- id: anomaly-governance
+  title: Anomaly & Governance
+  purpose: Phát hiện biến động bất thường và thiết lập trách nhiệm phản hồi chi phí.
+  objectives:
+  - '- Nhận diện cost anomaly, chi phí đột biến và nguồn gốc.'
+  - '- Thiết kế quy trình review, cảnh báo và ownership.'
+- id: usage-optimization
+  title: Usage Optimization
+  purpose: Giảm tài nguyên lãng phí mà vẫn đáp ứng yêu cầu hiệu năng, độ tin cậy.
+  objectives:
+  - '- Tìm idle resources; thử rightsizing và auto-scaling.'
+  - '- Đánh giá lịch bật/tắt môi trường dev/test và storage lifecycle.'
+- id: rate-optimization-kpi
+  title: Rate Optimization & KPI
+  purpose: Lựa chọn cơ chế giá phù hợp và đo kết quả tối ưu theo giá trị kinh doanh.
+  objectives:
+  - '- So sánh On-Demand, Savings Plans/Reserved và Spot.'
+  - '- Theo dõi cost per unit cùng hiệu quả sau tối ưu.'

@@ -1,0 +1,2497 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Alertmanager là gì và giải quyết vấn đề nào trong hệ thống quan sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vị trí của Alertmanager giữa nguồn cảnh báo, kênh thông báo và người trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt cảnh báo, nhóm cảnh báo, thông báo và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Vai trò của định tuyến, gom nhóm, khử trùng lặp, ức chế và tạm tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Ranh giới trách nhiệm giữa Prometheus, Alertmanager và nền tảng quản lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt Prometheus Alertmanager với Alertmanager tích hợp trong Grafana
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Kiến thức đầu vào và trình tự học từ một máy đến cụm sẵn sàng cao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-data
+  title: Dữ liệu cảnh báo
+  childs:
+  - slug: alert-data-001
+    title: 'Cấu trúc một cảnh báo: labels, annotations, startsAt, endsAt và generatorURL'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-002
+    title: Nhãn định danh và dấu vân tay (fingerprint) của cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-003
+    title: Thông tin mô tả, liên kết xử lý và ngữ cảnh trong annotations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-004
+    title: Thiết kế nhãn alertname, severity, team, service, environment và cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-005
+    title: Ảnh hưởng của việc đổi nhãn và cập nhật annotations đến danh tính cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-006
+    title: Biểu diễn thời gian RFC3339, múi giờ và đồng bộ đồng hồ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-007
+    title: Trạng thái firing và resolved dưới góc nhìn Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-008
+    title: Nhãn có nhiều giá trị khác nhau và nguy cơ bùng nổ số lượng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-data-009
+    title: Chuẩn hóa dữ liệu giữa nhiều nguồn và kiểm tra nhãn bắt buộc ở nguồn gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-processing-pipeline
+  title: Luồng xử lý
+  childs:
+  - slug: alert-processing-pipeline-001
+    title: Theo dấu một cảnh báo từ tiếp nhận đến kênh thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-002
+    title: Quan hệ giữa bộ định tuyến, nhóm tổng hợp và chuỗi xử lý thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-003
+    title: Phân biệt khử trùng lặp cảnh báo đầu vào và khử trùng lặp thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-004
+    title: Các điểm chờ, kiểm tra ức chế, kiểm tra tạm tắt và quyết định gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-005
+    title: Vì sao một cảnh báo đang firing có thể chưa phát sinh thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-006
+    title: Vòng đời nhóm khi có cảnh báo mới, cảnh báo kết thúc hoặc cả hai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-007
+    title: Vai trò của lịch sử gửi trong quyết định lặp lại thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-processing-pipeline-008
+    title: Giới hạn đảm bảo giao nhận khi có lỗi mạng, khởi động lại và lỗi kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: getting-started
+  title: Khởi chạy
+  childs:
+  - slug: getting-started-001
+    title: Lựa chọn bản phát hành và kiểm tra tương thích của Alertmanager với amtool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-002
+    title: Chạy bằng tệp thực thi và quản lý tiến trình bằng systemd
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-003
+    title: Chạy bằng Docker với cấu hình, mẫu thông báo và dữ liệu được gắn ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-004
+    title: Dựng môi trường Docker Compose gồm Prometheus, Alertmanager và webhook thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-005
+    title: Cổng HTTP, cổng liên lạc cụm và địa chỉ lắng nghe
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-006
+    title: Tham số khởi động cho tệp cấu hình, thư mục dữ liệu và nhật ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-007
+    title: Kiểm tra giao diện, trạng thái sẵn sàng và thông báo đầu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: getting-started-008
+    title: Tách cấu hình môi trường thử nghiệm với cấu hình vận hành thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prometheus-integration
+  title: Kết nối Prometheus
+  childs:
+  - slug: prometheus-integration-001
+    title: Khai báo alerting.alertmanagers trong cấu hình Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-002
+    title: Khai báo đích tĩnh và khám phá các máy Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-003
+    title: Phân biệt thời gian đánh giá quy tắc, for, keep_firing_for và thời gian gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-004
+    title: Vai trò của external_labels và alert_relabel_configs trước khi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-005
+    title: Chuẩn hóa nhãn replica để khử trùng lặp từ các Prometheus dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-006
+    title: Gửi cảnh báo đến mọi thành viên Alertmanager thay vì cân bằng tải giữa các thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-007
+    title: Cấu hình đường dẫn, TLS và xác thực cho kết nối Prometheus đến Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-008
+    title: Kiểm tra cảnh báo đã kích hoạt, đích gửi và lỗi giao nhận phía Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-integration-009
+    title: Kiểm chứng đường đi đầy đủ bằng một quy tắc thử nghiệm có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration
+  title: Cấu hình
+  childs:
+  - slug: configuration-001
+    title: Bố cục alertmanager.yml và vai trò của các khối cấu hình chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-002
+    title: Phân biệt tham số dòng lệnh, cấu hình có thể nạp lại và cấu hình web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-003
+    title: Cấu hình mặc định trong global và giá trị riêng của từng bộ nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-004
+    title: Liên kết route, receivers, inhibit_rules, time_intervals và templates
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-005
+    title: Kiểu thời lượng, chuỗi, danh sách và lỗi thụt dòng YAML thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-006
+    title: Đường dẫn tương đối, tệp bí mật và quyền truy cập của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-007
+    title: Phạm vi của resolve_timeout đối với nguồn gửi không cung cấp endsAt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-008
+    title: Kiểm tra hợp lệ trước khi nạp lại và hành vi khi cấu hình mới bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-009
+    title: Đối chiếu phiên bản, trường đã ngừng khuyến nghị và tính năng cần bật riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: matchers
+  title: Bộ so khớp
+  childs:
+  - slug: matchers-001
+    title: Bộ so khớp nhãn (matcher) trong định tuyến, tạm tắt và ức chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-002
+    title: Toán tử bằng, khác, khớp và không khớp biểu thức chính quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-003
+    title: Kết hợp nhiều điều kiện theo phép AND và biểu diễn lựa chọn OR
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-004
+    title: Biểu thức chính quy RE2 và phạm vi khớp toàn bộ giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-005
+    title: Nhãn thiếu, giá trị rỗng và tác động đến kết quả so khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-006
+    title: Phân biệt đặt dấu nháy ở lớp YAML với đặt dấu nháy trong matcher
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-007
+    title: Ký tự đặc biệt, dấu gạch chéo ngược và giá trị Unicode
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-008
+    title: Chuyển từ match và match_re sang danh sách matchers
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: matchers-009
+    title: Kiểm tra tương thích bộ phân tích UTF-8 và chế độ được phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing
+  title: Định tuyến
+  childs:
+  - slug: routing-001
+    title: Cây định tuyến và yêu cầu tuyến gốc tiếp nhận mọi cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-002
+    title: Thứ tự duyệt tuyến con và lựa chọn nhánh theo bộ nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-003
+    title: Kế thừa receiver, group_by và thời gian từ tuyến cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-004
+    title: Tuyến dự phòng khi không có tuyến con nào khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-005
+    title: continue và việc tiếp tục xét các tuyến anh em
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-006
+    title: Gửi nhiều nhóm phụ trách hoặc nhiều kênh mà vẫn kiểm soát thông báo trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-007
+    title: Định tuyến theo nhóm phụ trách, dịch vụ, môi trường và mức nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-008
+    title: Phân biệt một receiver có nhiều tích hợp với nhiều tuyến cùng khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-009
+    title: Tuyến lồng nhau và lỗi tuyến tổng quát che khuất tuyến cụ thể
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-010
+    title: Tuyến tạm ngừng theo thời gian và ảnh hưởng đến các tuyến phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-011
+    title: Thiết kế tuyến loại bỏ có chủ đích và kiểm soát nguy cơ mất thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-012
+    title: Mô phỏng cây định tuyến bằng các bộ nhãn và bộ nhận kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grouping-and-timing
+  title: Gom nhóm và thời gian
+  childs:
+  - slug: grouping-and-timing-001
+    title: Nhóm tổng hợp hình thành theo tuyến và các nhãn group_by
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-002
+    title: Chọn khóa gom nhóm để cân bằng ngữ cảnh sự cố và số lượng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-003
+    title: Khác biệt giữa group_by rỗng và giá trị đặc biệt ba dấu chấm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-004
+    title: group_wait và thời điểm gửi thông báo đầu tiên của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-005
+    title: group_interval và chu kỳ kiểm tra thay đổi trong nhóm hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-006
+    title: repeat_interval và việc nhắc lại khi tập cảnh báo không đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-007
+    title: Dòng thời gian khi cảnh báo mới đến trước và sau lần gửi đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-008
+    title: Dòng thời gian khi một phần hoặc toàn bộ cảnh báo đã resolved
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-009
+    title: Cảnh báo kết thúc trước group_wait và tác động của cảnh báo chập chờn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-010
+    title: Quan hệ giữa group_interval, repeat_interval và thời gian lưu lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-011
+    title: Độ trễ kênh nhận, thời hạn xử lý và nguy cơ hủy lần gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-and-timing-012
+    title: Chọn cấu hình thời gian theo độ khẩn cấp và kiểm chứng bằng dòng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: receivers
+  title: Bộ nhận
+  childs:
+  - slug: receivers-001
+    title: Receiver là gì và cách tham chiếu tên receiver từ tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-002
+    title: Một receiver chứa một hoặc nhiều cấu hình tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-003
+    title: Thiết lập riêng cho từng tích hợp và phạm vi của send_resolved
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-004
+    title: Phân biệt địa chỉ nhận, thông tin xác thực và nội dung thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-005
+    title: Kế thừa cấu hình HTTP dùng chung và ghi đè theo tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-006
+    title: Hành vi khi một tích hợp lỗi còn tích hợp khác gửi thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-007
+    title: Giới hạn tốc độ, thời gian chờ và khả năng gửi lại của từng loại tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: receivers-008
+    title: Chọn bộ nhận thử nghiệm để kiểm chứng mà không làm phiền người trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-channels
+  title: Kênh thông báo
+  childs:
+  - slug: notification-channels-001
+    title: 'Gửi email qua SMTP: máy chủ, người gửi, người nhận và TLS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-002
+    title: Xác thực SMTP và thiết kế tiêu đề, nội dung HTML hoặc văn bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-003
+    title: Tích hợp Slack bằng cấu hình được phiên bản hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-004
+    title: 'Tích hợp Telegram: token, chat_id và định dạng nội dung'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-005
+    title: Tích hợp PagerDuty và liên kết với quy trình trực xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-006
+    title: Tích hợp Microsoft Teams và kiểm tra tương thích định dạng webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-007
+    title: Tra cứu các tích hợp bổ sung theo phiên bản và nhu cầu tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-008
+    title: Giới hạn kích thước, cắt ngắn nội dung và khác biệt định dạng giữa các kênh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-009
+    title: Kiểm chứng thông báo firing và resolved trên từng kênh đã chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerting-alertmanager-webhook
+  title: Webhook
+  childs:
+  - slug: alerting-alertmanager-webhook-001
+    title: Vai trò của webhook chung trong việc kết nối hệ thống nhận tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-002
+    title: Cấu trúc JSON của thông báo và danh sách cảnh báo trong nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-003
+    title: Phân biệt groupLabels, commonLabels, commonAnnotations và nhãn từng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-004
+    title: Khóa nhóm groupKey, trạng thái nhóm và ngữ cảnh receiver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-005
+    title: Giới hạn max_alerts và xử lý thông tin cảnh báo bị cắt bớt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-006
+    title: Mã trạng thái HTTP, lỗi tạm thời và hành vi gửi lại cần kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-007
+    title: Thiết kế bên nhận xử lý lặp an toàn khi nhận lại cùng thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-008
+    title: Thiết kế bên nhận lưu bền trước khi xác nhận tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-009
+    title: TLS, xác thực, thời gian chờ và bảo vệ dữ liệu trong webhook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-webhook-010
+    title: Mô phỏng bên nhận chậm, lỗi hoặc gián đoạn bằng dịch vụ thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-templates
+  title: Mẫu thông báo
+  childs:
+  - slug: notification-templates-001
+    title: Vai trò của Go template trong nội dung thông báo Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-002
+    title: Phân biệt mẫu thông báo Alertmanager với mẫu trong quy tắc Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-003
+    title: 'Cấu trúc dữ liệu mẫu: Receiver, Status, Alerts và ExternalURL'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-004
+    title: GroupLabels, CommonLabels và CommonAnnotations trong nội dung chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-005
+    title: Duyệt Alerts.Firing, Alerts.Resolved và đọc trường của từng cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-006
+    title: Biến, điều kiện, vòng lặp, pipeline và định nghĩa mẫu dùng lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-007
+    title: Sắp xếp nhãn và sử dụng các hàm hỗ trợ chuỗi hoặc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-008
+    title: Xử lý nhãn hoặc annotations thiếu và tránh nội dung rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-009
+    title: Thoát ký tự HTML, Markdown và văn bản theo kênh đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-010
+    title: Đưa liên kết dashboard, nguồn cảnh báo và hướng dẫn xử lý vào thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-templates-011
+    title: Tổ chức tệp mẫu và kiểm thử kết quả dựng mẫu với dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inhibition
+  title: Ức chế
+  childs:
+  - slug: inhibition-001
+    title: Ức chế (inhibition) là gì và khi nào áp dụng quan hệ nguyên nhân với hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-002
+    title: Xác định cảnh báo nguồn và cảnh báo đích của quy tắc ức chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-003
+    title: source_matchers, target_matchers và phạm vi của equal
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-004
+    title: Ảnh hưởng của nhãn thiếu hoặc rỗng trong các nhãn yêu cầu bằng nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-005
+    title: Kiểm soát trường hợp một cảnh báo đồng thời khớp nguồn và đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-006
+    title: Ức chế cảnh báo mức thấp khi cảnh báo nghiêm trọng cùng phạm vi đang firing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-007
+    title: Ức chế theo cluster, dịch vụ hoặc phụ thuộc mà không che sự cố độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-008
+    title: Quan hệ giữa thời điểm cảnh báo nguồn đến và group_wait của nhóm đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-009
+    title: Kiểm chứng khi cảnh báo nguồn kết thúc và đích được phép thông báo trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: silences
+  title: Tạm tắt
+  childs:
+  - slug: silences-001
+    title: Tạm tắt (silence) là gì và khác ức chế hoặc lịch tắt định kỳ thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-002
+    title: Phạm vi so khớp và yêu cầu an toàn khi tạo một silence
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-003
+    title: Thời điểm bắt đầu, kết thúc và các trạng thái pending, active, expired
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-004
+    title: Tạo silence từ bộ nhãn cảnh báo trên giao diện web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-005
+    title: Tác giả, lý do, mã thay đổi và thời hạn phục vụ truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-006
+    title: Xem trước phạm vi ảnh hưởng để tránh tạm tắt quá rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-007
+    title: Cập nhật, kéo dài và cho silence hết hiệu lực sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-008
+    title: Silence hết hạn khi cảnh báo vẫn firing và thời điểm thông báo trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: silences-009
+    title: Tạm tắt thông báo trong bảo trì và phân biệt với xác nhận đã tiếp nhận sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: time-intervals
+  title: Khung thời gian
+  childs:
+  - slug: time-intervals-001
+    title: Định nghĩa time_intervals để biểu diễn khung hoạt động hoặc tạm ngừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-002
+    title: mute_time_intervals và active_time_intervals ở từng tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-003
+    title: Giới hạn trên tuyến gốc và các trường thời gian không kế thừa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-004
+    title: Khai báo giờ, ngày trong tuần, ngày trong tháng, tháng và năm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-005
+    title: Múi giờ IANA, thay đổi giờ mùa hè và sai lệch lịch trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-006
+    title: Biểu diễn khoảng qua nửa đêm, ngày nghỉ và lịch bảo trì định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-007
+    title: Kết hợp nhiều khung thời gian và xử lý tuyến không hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: time-intervals-008
+    title: Kiểm chứng continue và tuyến dự phòng khi ngoài giờ làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: web-ui-and-api
+  title: Web UI và API
+  childs:
+  - slug: web-ui-and-api-001
+    title: Đọc danh sách cảnh báo, nhóm cảnh báo và trạng thái bị chặn thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-002
+    title: Lọc cảnh báo theo nhãn, bộ nhận và trạng thái trên giao diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-003
+    title: Xem trạng thái máy, cụm và cấu hình đang có hiệu lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-004
+    title: Phạm vi API v2 và cách tra hợp đồng OpenAPI theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-005
+    title: Đọc cảnh báo và nhóm qua /api/v2/alerts và /api/v2/alerts/groups
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-006
+    title: Đọc trạng thái hoặc danh sách bộ nhận qua API v2
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-007
+    title: Tạo, đọc, cập nhật và kết thúc silence qua API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-008
+    title: Gửi cảnh báo thử nghiệm qua POST /api/v2/alerts
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-009
+    title: Trách nhiệm gửi định kỳ và thông báo kết thúc của nguồn gửi tùy chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-010
+    title: Kiểm tra /-/healthy, /-/ready và nạp lại bằng POST /-/reload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: web-ui-and-api-011
+    title: Xử lý lỗi yêu cầu, đường dẫn tiền tố và quyền truy cập khi tự động hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerting-alertmanager-amtool
+  title: amtool
+  childs:
+  - slug: alerting-alertmanager-amtool-001
+    title: Cài đặt amtool và chọn phiên bản tương thích với máy Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-002
+    title: Cấu hình địa chỉ máy đích, tác giả và định dạng đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-003
+    title: Truy vấn cảnh báo bằng matcher và đọc thông tin trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-004
+    title: Tạo, tìm kiếm, cập nhật và cho silence hết hiệu lực có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-005
+    title: Kiểm tra alertmanager.yml bằng amtool check-config
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-006
+    title: Hiển thị cây tuyến bằng amtool config routes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-007
+    title: Kiểm tra bộ nhận kỳ vọng bằng amtool config routes test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-008
+    title: Dựng thử nội dung thông báo bằng amtool template render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-amtool-009
+    title: Dùng mã thoát và đầu ra có cấu trúc trong quy trình tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: high-availability
+  title: Sẵn sàng cao
+  childs:
+  - slug: high-availability-001
+    title: Mô hình nhiều máy Alertmanager và mục tiêu tiếp tục gửi khi có lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-002
+    title: Thành viên cụm, gossip và trạng thái hội tụ dần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-003
+    title: 'Trạng thái được chia sẻ: silence và lịch sử thông báo'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-004
+    title: Phân biệt đồng bộ trạng thái cụm với phân phối cảnh báo đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-005
+    title: Thiết lập cluster.listen-address, cluster.peer và cluster.advertise-address
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-006
+    title: Kết nối giữa các máy qua cổng cụm và giao thức được cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-007
+    title: Độ chờ theo thành viên và phối hợp khử trùng lặp thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-008
+    title: Chờ hội tụ khi khởi động hoặc gia nhập lại cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-009
+    title: Lỗi phân hoạch mạng và đánh đổi ưu tiên gửi thay vì bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-010
+    title: Giới hạn của khử trùng lặp và khả năng vẫn có thông báo lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-011
+    title: Đồng nhất cấu hình, mẫu thông báo và đồng hồ giữa các máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: high-availability-012
+    title: Chọn số máy, miền lỗi và diễn tập mất một thành viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage
+  title: Lưu trữ
+  childs:
+  - slug: storage-001
+    title: 'Phân loại dữ liệu: cảnh báo trong bộ nhớ, silence và lịch sử gửi'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-002
+    title: Thư mục dữ liệu, tệp trạng thái và cơ chế khôi phục sau khởi động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-003
+    title: Tác động khi mất ổ đĩa, mất toàn cụm hoặc nguồn cảnh báo ngừng gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-004
+    title: Thời gian lưu dữ liệu và ảnh hưởng đến thông báo lặp hoặc silence hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-005
+    title: Dung lượng, quyền ghi và ổ lưu trữ riêng cho từng máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-006
+    title: Thiết kế sao lưu, kiểm tra khả năng phục hồi và giới hạn của bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-007
+    title: Phục hồi khi thay máy và phối hợp với trạng thái từ các máy còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-008
+    title: Giới hạn cảnh báo hoặc silence theo phiên bản và cách kiểm chứng tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security
+  title: Bảo mật
+  childs:
+  - slug: security-001
+    title: 'Bề mặt truy cập: giao diện, API, nạp cấu hình và cổng liên lạc cụm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-002
+    title: Cấu hình HTTPS và xác thực cơ bản bằng tệp cấu hình web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-003
+    title: Bảo vệ truy cập bằng reverse proxy và chính sách mạng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-004
+    title: TLS phía máy khách khi gửi đến receiver và kết nối với Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-005
+    title: Lưu token, mật khẩu và khóa qua tệp bí mật hoặc cơ chế quản lý bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-006
+    title: Luân chuyển thông tin xác thực và kiểm tra khả năng nạp cấu hình mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-007
+    title: Phân quyền thay đổi định tuyến, tạo silence và quản trị cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-008
+    title: Ngăn lộ thông tin nhạy cảm trong nhãn, annotations, nhật ký và thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-009
+    title: Kiểm soát địa chỉ đích, proxy và kết nối ra ngoài của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-010
+    title: Bảo vệ lưu lượng giữa các thành viên theo khả năng phiên bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerting-alertmanager-kubernetes
+  title: Kubernetes
+  childs:
+  - slug: alerting-alertmanager-kubernetes-001
+    title: Triển khai Alertmanager bằng StatefulSet và ổ dữ liệu bền vững
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-002
+    title: Dịch vụ khám phá thành viên, địa chỉ quảng bá và cổng liên lạc cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-003
+    title: Readiness, liveness, tài nguyên và phân bố Pod theo miền lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-004
+    title: Quản lý bằng Prometheus Operator và tài nguyên Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-005
+    title: Cấp alertmanager.yaml bằng Kubernetes Secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-006
+    title: AlertmanagerConfig và việc chọn tài nguyên theo nhãn hoặc namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-007
+    title: Ranh giới namespace và cách Operator ghép cấu hình định tuyến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-008
+    title: Nạp lại cấu hình, tệp mẫu và bí mật được gắn vào Pod
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-009
+    title: Phân biệt quy tắc PrometheusRule với cấu hình xử lý thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerting-alertmanager-kubernetes-010
+    title: Nâng cấp cuốn chiếu và kiểm chứng hoạt động khi Pod bị thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring
+  title: Giám sát
+  childs:
+  - slug: monitoring-001
+    title: Thu thập /metrics của từng máy Alertmanager bằng Prometheus
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-002
+    title: Theo dõi số cảnh báo, số nhóm và tốc độ thay đổi dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-003
+    title: Theo dõi lần gửi, lỗi gửi và độ trễ theo tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-004
+    title: Theo dõi thành viên cụm và dấu hiệu kết nối không ổn định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-005
+    title: Theo dõi kết quả nạp cấu hình và phát hiện cấu hình chưa được áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-006
+    title: Theo dõi tài nguyên tiến trình, dung lượng dữ liệu và lỗi lưu trạng thái
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-007
+    title: Thiết kế dashboard để lần theo từ nguồn gửi đến kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-008
+    title: Cảnh báo cho chính hệ thống Alertmanager bằng đường báo độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-009
+    title: Kiểm tra cảnh báo sống (Watchdog) và phát hiện chuỗi thông báo bị đứt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-010
+    title: Xác định mục tiêu độ trễ thông báo và giới hạn đo lường từ phía Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-011
+    title: Đọc nhật ký theo thành phần và bật chẩn đoán chi tiết có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing
+  title: Kiểm thử
+  childs:
+  - slug: testing-001
+    title: Lập ma trận nhãn đầu vào, tuyến, bộ nhận và kết quả kỳ vọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-002
+    title: Kiểm tra cấu hình tĩnh và tương thích matcher trong quy trình CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-003
+    title: Kiểm thử tuyến khớp, không khớp, nhiều nhánh và tuyến dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-004
+    title: Kiểm thử nội dung mẫu với nhãn thiếu, Unicode và nhóm lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-005
+    title: Kiểm thử group_wait, group_interval và repeat_interval bằng dòng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-006
+    title: Kiểm thử cảnh báo firing, resolved và trạng thái hỗn hợp trong một nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-007
+    title: Kiểm thử quan hệ ức chế và phạm vi silence bằng trường hợp đối chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-008
+    title: Kiểm thử lịch ở biên ngày, múi giờ và ngoài giờ hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-009
+    title: Kiểm thử lỗi kênh nhận, thời gian chờ và gửi lại bằng webhook giả lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-010
+    title: Diễn tập khởi động lại, mất máy và phân hoạch mạng của cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-011
+    title: Lưu bằng chứng đầu vào, API, nhật ký và thông báo để đối chiếu kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Xử lý sự cố
+  childs:
+  - slug: troubleshooting-001
+    title: Cây chẩn đoán khi có cảnh báo trong Prometheus nhưng không có thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Không nhận được cảnh báo do cấu hình đích, nhãn hoặc kết nối đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Sai bộ nhận do matcher, thứ tự tuyến, kế thừa hoặc continue
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Chậm gửi do gom nhóm, lịch hoạt động hoặc thời gian chờ cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Không gửi vì silence hoặc quy tắc ức chế ngoài dự kiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Thông báo trùng do nhãn replica, nhóm không ổn định hoặc cụm bị chia cắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Thiếu thông báo resolved do nguồn gửi, send_resolved hoặc thời điểm kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Lỗi dựng mẫu, trường thiếu và nội dung bị cắt theo giới hạn kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Lỗi SMTP, chứng chỉ TLS, thông tin xác thực hoặc giới hạn tốc độ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Không gia nhập cụm do địa chỉ quảng bá, DNS hoặc chính sách mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Nạp lại thất bại, gắn sai tệp và cấu hình khác nhau giữa các máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-012
+    title: Mất trạng thái sau khởi động lại và phục hồi từ dữ liệu hoặc máy còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: change-management
+  title: Quản lý thay đổi
+  childs:
+  - slug: change-management-001
+    title: Quản lý cấu hình và tệp mẫu bằng Git với người chịu trách nhiệm rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-002
+    title: Tách giá trị môi trường và bí mật khỏi cấu hình được kiểm soát phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-003
+    title: Đánh giá ảnh hưởng khi đổi nhãn, group_by, tuyến hoặc receiver
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-004
+    title: Chuỗi kiểm tra cấu hình, thử tuyến, dựng mẫu và phê duyệt thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-005
+    title: Triển khai cấu hình đồng nhất và xác minh nạp lại trên từng máy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-006
+    title: Kế hoạch quay lui khi sai tuyến hoặc ngừng gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-007
+    title: Nâng cấp phiên bản, chuyển trường cũ và kiểm chứng tương thích tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: change-management-008
+    title: Hồ sơ thay đổi và kiểm tra lại sau triển khai bằng cảnh báo thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: operational-design
+  title: Thiết kế vận hành
+  childs:
+  - slug: operational-design-001
+    title: Thiết kế thông báo theo hành động cần làm và nhóm chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-002
+    title: Quy ước mức nghiêm trọng và ánh xạ đến kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-003
+    title: Giảm nhiễu bằng nhãn ổn định, gom nhóm và ức chế đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-004
+    title: Phối hợp lịch trực, lịch thông báo và nền tảng điều phối người trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-005
+    title: Phân biệt lặp thông báo với chuyển cấp xử lý sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-006
+    title: Chuẩn hóa liên kết hướng dẫn xử lý và thông tin cần để bắt đầu điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-007
+    title: Quy trình bảo trì có silence hữu hạn và kiểm tra sau bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: operational-design-008
+    title: Đánh giá chất lượng theo thông báo hữu ích, trùng lặp và sự cố bị bỏ sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hands-on-exercise
+  title: Thực hành tổng hợp
+  childs:
+  - slug: hands-on-exercise-001
+    title: Dựng chuỗi Prometheus đến Alertmanager đến webhook trong Docker Compose
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-002
+    title: Phân tuyến hai dịch vụ theo nhóm phụ trách và mức nghiêm trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-003
+    title: Gom một đợt lỗi nhiều máy thành nhóm thông báo có đủ ngữ cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-004
+    title: Quan sát dòng thời gian gửi đầu, cập nhật nhóm và nhắc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-005
+    title: Ức chế cảnh báo hệ quả khi một phụ thuộc chung bị lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-006
+    title: Tạo silence bảo trì và xác minh thông báo sau khi silence hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-007
+    title: Thiết lập lịch trong giờ, ngoài giờ và tuyến dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-008
+    title: Viết mẫu thông báo có danh sách firing, resolved và liên kết hướng dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-009
+    title: Dựng cụm nhiều máy và diễn tập mất thành viên hoặc lỗi kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-010
+    title: Thay đổi cấu hình qua kiểm tra tự động, nạp lại và quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hands-on-exercise-011
+    title: Hoàn thiện cấu hình vận hành cùng ma trận kiểm thử và hồ sơ chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

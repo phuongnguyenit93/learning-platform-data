@@ -1,0 +1,322 @@
+menu:
+- level1: Nền tảng cảnh báo
+  level2:
+  - 'Cảnh báo trong khả năng quan sát (observability): vai trò và mục đích'
+  - Phân biệt giám sát, quan sát, phát hiện bất thường và cảnh báo
+  - Phân biệt tín hiệu, sự kiện, cảnh báo, thông báo và sự cố
+  - Chuỗi từ hành vi hệ thống đến hành động của người vận hành
+  - Cảnh báo chủ động và phản hồi từ người dùng
+  - Cảnh báo về triệu chứng và cảnh báo về nguyên nhân
+  - 'Giới hạn của cảnh báo: phát hiện không đồng nghĩa chẩn đoán hay khắc phục'
+  - Các thành phần và thuật ngữ cần nắm trước khi thiết kế cảnh báo
+- level1: Nguồn tín hiệu
+  level2:
+  - Số đo (metrics), nhật ký (logs) và dấu vết phân tán (traces)
+  - Đặc tính của bộ đếm, giá trị tức thời và phân bố trong phát hiện vấn đề
+  - 'Tốc độ, tỷ lệ và phân vị: chọn đại lượng phù hợp với câu hỏi'
+  - 'Cảnh báo từ nhật ký: mức lỗi, mẫu sự kiện và giới hạn ngữ cảnh'
+  - 'Cảnh báo từ dấu vết: lỗi, độ trễ và giới hạn do lấy mẫu'
+  - Kiểm tra tổng hợp (synthetic monitoring) và tín hiệu từ người dùng thực
+  - Kết hợp tín hiệu kỹ thuật với tín hiệu nghiệp vụ
+  - Độ mới, độ đầy đủ và tính chính xác của dữ liệu đầu vào
+  - Quan hệ giữa chu kỳ thu thập và khả năng phát hiện
+- level1: Luồng xử lý
+  level2:
+  - Kiến trúc từ nguồn dữ liệu đến người nhận cảnh báo
+  - Thu thập, lưu trữ, truy vấn và đánh giá điều kiện
+  - Quy tắc cảnh báo và công cụ đánh giá quy tắc
+  - Tách phát hiện vấn đề khỏi xử lý và gửi thông báo
+  - Nhóm, khử trùng lặp, định tuyến và áp dụng chính sách
+  - Điểm tích hợp với kênh liên lạc và quản lý sự cố
+  - Luồng phục hồi và thông báo kết thúc cảnh báo
+  - Ranh giới trách nhiệm giữa ứng dụng, nền tảng và đội vận hành
+  - Vai trò của Prometheus Rules và Alertmanager trong một triển khai điển hình
+- level1: Vòng đời cảnh báo
+  level2:
+  - Trạng thái bình thường, chờ xác nhận, đang cảnh báo và phục hồi
+  - Điều kiện đúng trong một lần đánh giá và điều kiện duy trì đủ lâu
+  - Chuyển trạng thái khi tín hiệu dao động quanh ngưỡng
+  - Phân biệt trạng thái cảnh báo và trạng thái gửi thông báo
+  - Xác nhận đã tiếp nhận (acknowledgement) và người chịu trách nhiệm
+  - Phân biệt phục hồi tín hiệu và đóng sự cố
+  - Tái phát, mở lại và tiếp diễn của cùng một vấn đề
+  - Trạng thái không có dữ liệu, lỗi đánh giá và không xác định
+  - Khác biệt về tên gọi và mô hình trạng thái giữa các công cụ
+- level1: Chất lượng cảnh báo
+  level2:
+  - 'Khả năng hành động: mỗi cảnh báo cần một quyết định hoặc phản ứng'
+  - Mức độ liên quan của cảnh báo đối với người dùng và dịch vụ
+  - Cảnh báo đúng, cảnh báo nhầm và vấn đề bị bỏ sót
+  - 'Độ chính xác và khả năng phát hiện: đánh đổi khi thiết kế'
+  - Thời gian phát hiện và khoảng thời gian còn lại để can thiệp
+  - Độ rõ ràng, độ tin cậy và tính ổn định của cảnh báo
+  - Điều kiện để đánh thức người trực, tạo phiếu việc hoặc chỉ ghi nhận
+  - Dấu hiệu của cảnh báo không cần thiết hoặc không thể xử lý
+  - Hợp đồng tối thiểu của một cảnh báo hữu ích
+- level1: Phạm vi giám sát
+  level2:
+  - Bắt đầu từ hành trình người dùng và dịch vụ quan trọng
+  - Xác định ranh giới dịch vụ, thành phần và phụ thuộc
+  - 'Độ trễ, lưu lượng, lỗi và mức bão hòa: bốn tín hiệu vàng'
+  - Mô hình RED cho dịch vụ xử lý yêu cầu
+  - Mô hình USE cho tài nguyên hệ thống
+  - Chọn phạm vi theo phiên bản chạy, dịch vụ, cụm hoặc vùng
+  - Phát hiện ảnh hưởng cục bộ khi số liệu tổng hợp vẫn bình thường
+  - Phạm vi theo khách hàng và mức dịch vụ trong hệ thống nhiều bên thuê
+  - Xây dựng ma trận rủi ro, tín hiệu và vùng chưa được giám sát
+  - Xác định nội dung thuộc cảnh báo và nội dung thuộc bảng theo dõi
+- level1: Thiết kế điều kiện
+  level2:
+  - 'Cấu trúc quy tắc: tín hiệu, bộ lọc, phép tính và điều kiện'
+  - Giá trị tuyệt đối, chênh lệch và tỷ lệ phần trăm
+  - Tốc độ thay đổi, xu hướng và thời gian dự kiến chạm giới hạn
+  - Điều kiện theo số lượng, tỷ lệ lỗi và số mẫu tối thiểu
+  - Kết hợp điều kiện AND, OR và phủ định
+  - Điều kiện theo nhiều tín hiệu và giới hạn của kết luận nhân quả
+  - Chọn phép tổng hợp theo thời gian và theo các phiên bản chạy
+  - Tránh lấy trung bình của tỷ lệ hoặc phân vị sai ngữ nghĩa
+  - Lọc lưu lượng không liên quan và kiểm soát ranh giới loại trừ
+  - Nhận diện điều kiện không thể đạt, luôn đúng hoặc trùng ý nghĩa
+  - Tách điều kiện phát hiện khỏi nội dung mô tả và chính sách thông báo
+- level1: Ngưỡng và độ nhạy
+  level2:
+  - 'Ngưỡng cố định: khi nào phù hợp và khi nào dễ sai'
+  - Ngưỡng tương đối so với mức cơ sở hoặc nhóm đối chiếu
+  - Ngưỡng theo công suất và khoảng dự phòng
+  - Đường cơ sở (baseline), chu kỳ ngày đêm và tính mùa vụ
+  - 'Phát hiện bất thường: vai trò, giới hạn và dữ liệu cần có'
+  - Ngưỡng cảnh báo sớm và ngưỡng cần can thiệp ngay
+  - 'Ngưỡng phục hồi khác ngưỡng kích hoạt: cơ chế hysteresis'
+  - Hiệu chỉnh độ nhạy theo lưu lượng và mức ảnh hưởng
+  - Đánh giá ngưỡng bằng lịch sử và sự cố đã biết
+- level1: Yếu tố thời gian
+  level2:
+  - Chu kỳ đánh giá, độ dài cửa sổ và thời gian duy trì điều kiện
+  - Cửa sổ trượt và cửa sổ cố định
+  - Tác động của cửa sổ ngắn và dài đến độ trễ phát hiện
+  - Phân biệt đột biến ngắn với suy giảm kéo dài
+  - Phối hợp khoảng thu thập, đánh giá và thời gian chờ xác nhận
+  - Dữ liệu đến muộn, sai lệch đồng hồ và mốc thời gian
+  - Thời điểm khởi động, triển khai và ổn định sau thay đổi
+  - Khoảng giữ trạng thái phục hồi và chống bật tắt liên tục
+  - Lịch hoạt động, múi giờ và dịch vụ không chạy liên tục
+  - Ước tính độ trễ từ lúc phát sinh vấn đề đến lúc nhận thông báo
+- level1: Dữ liệu thiếu và sai
+  level2:
+  - Phân biệt giá trị bằng không, thiếu mẫu và mất chuỗi thời gian
+  - Không có lưu lượng và hệ thống ngừng hoạt động
+  - Mất nguồn thu thập và mất chính dịch vụ được theo dõi
+  - Dữ liệu cũ (stale data) và giới hạn độ mới chấp nhận được
+  - Khoảng trống dữ liệu và chính sách xử lý khi đánh giá
+  - Lỗi truy vấn, hết thời gian và thiếu quyền truy cập
+  - Chia cho không, mẫu số quá nhỏ và kết quả không hợp lệ
+  - Bộ đếm bị đặt lại và thay đổi tập chuỗi thời gian
+  - Thiên lệch do lấy mẫu hoặc thiếu dữ liệu từ một phần hệ thống
+  - Cảnh báo về chất lượng dữ liệu và tín hiệu nhịp sống (heartbeat)
+- level1: SLI và SLO
+  level2:
+  - Chỉ báo mức dịch vụ (SLI), mục tiêu mức dịch vụ (SLO) và cam kết (SLA)
+  - Từ kỳ vọng người dùng đến một chỉ báo có thể đo
+  - Xác định sự kiện tốt, sự kiện hợp lệ và cửa sổ đo
+  - SLI về độ sẵn sàng, độ trễ, tính đúng đắn và độ mới
+  - SLI dựa trên yêu cầu và SLI dựa trên thời gian
+  - Lựa chọn điểm đo và ảnh hưởng của lỗi phụ thuộc
+  - Phân biệt cảnh báo theo SLO và cảnh báo theo tài nguyên
+  - Tránh mục tiêu không có căn cứ hoặc không có khả năng hành động
+  - Ranh giới loại trừ và nguy cơ làm đẹp chỉ số mức dịch vụ
+- level1: Ngân sách lỗi
+  level2:
+  - Ngân sách lỗi (error budget) và mức suy giảm có thể chấp nhận
+  - Tính phần ngân sách đã dùng và phần còn lại
+  - Tốc độ tiêu hao ngân sách lỗi (burn rate)
+  - Liên hệ tốc độ tiêu hao với thời gian cạn ngân sách
+  - Cảnh báo khi tiêu hao nhanh và khi suy giảm chậm kéo dài
+  - Phối hợp nhiều cửa sổ và nhiều mức tốc độ tiêu hao
+  - Chọn cửa sổ ngắn để xác nhận và cửa sổ dài để đánh giá ảnh hưởng
+  - Ảnh hưởng của lưu lượng thấp và dịch vụ không có yêu cầu
+  - Điều kiện phục hồi của cảnh báo theo ngân sách lỗi
+  - Tách cảnh báo vận hành khỏi quyết định quản lý SLO
+- level1: Mức độ và ưu tiên
+  level2:
+  - Phân biệt mức độ nghiêm trọng (severity) và ưu tiên xử lý (priority)
+  - Đánh giá mức ảnh hưởng theo người dùng, chức năng và phạm vi
+  - Đánh giá tính khẩn cấp theo tốc độ diễn tiến và thời hạn can thiệp
+  - Ma trận mức ảnh hưởng và tính khẩn cấp
+  - Quy ước mức cảnh báo và ý nghĩa thống nhất giữa các đội
+  - Ánh xạ mức cảnh báo sang trực khẩn, phiếu việc và thông báo tham khảo
+  - Thay đổi mức độ khi vấn đề kéo dài hoặc mở rộng
+  - Phân biệt mức độ cảnh báo và mức độ sự cố
+- level1: Ngữ cảnh cảnh báo
+  level2:
+  - Tên cảnh báo ổn định và mô tả ngắn gọn vấn đề
+  - Nhãn định danh (labels) và phần mô tả bổ sung (annotations)
+  - Danh tính cảnh báo và ảnh hưởng của nhãn thay đổi liên tục
+  - Nhãn dịch vụ, môi trường, vùng, đội và chủ sở hữu
+  - Số loại giá trị nhãn (cardinality) và bùng nổ số cảnh báo
+  - Mô tả ảnh hưởng, giá trị hiện tại, ngưỡng và khoảng thời gian
+  - Liên kết tới bảng theo dõi, nhật ký và dấu vết liên quan
+  - Liên kết tài liệu ứng phó và thông tin người chịu trách nhiệm
+  - Mẫu nội dung nhất quán, dễ đọc và không lộ dữ liệu nhạy cảm
+- level1: Nhóm và tương quan
+  level2:
+  - Nhận diện nhiều bản sao thông báo của cùng một cảnh báo
+  - Khử trùng lặp (deduplication) theo danh tính ổn định
+  - Nhóm nhiều cảnh báo thành một thông báo có ngữ cảnh
+  - Chọn khóa nhóm theo dịch vụ, vùng và phạm vi sự cố
+  - Thời gian chờ nhóm và cân bằng tốc độ với mức độ tổng hợp
+  - Tương quan theo thời gian, phụ thuộc và thay đổi triển khai
+  - Phân biệt tương quan tín hiệu và bằng chứng nguyên nhân gốc
+  - Phân biệt nhóm thông báo, khử trùng lặp và gộp sự cố
+  - Giới hạn nhóm để tránh che khuất vấn đề độc lập
+- level1: Kiểm soát nhiễu
+  level2:
+  - Mệt mỏi do cảnh báo (alert fatigue) và tác động tới phản ứng
+  - Cảnh báo dao động (flapping) và cách xác định nguồn gây dao động
+  - Giảm nhiễu từ điều kiện, ngưỡng và cửa sổ đánh giá
+  - Chặn cảnh báo phụ khi cảnh báo bao trùm đang hoạt động (inhibition)
+  - Tạm ngưng thông báo theo phạm vi và thời hạn (silence)
+  - Khung bảo trì có kế hoạch và giới hạn loại trừ
+  - Phân biệt tạm ngưng thông báo với vô hiệu hóa đánh giá
+  - Kiểm soát bão cảnh báo (alert storm) và lượng thông báo lặp
+  - Tránh quy tắc giảm nhiễu che mất cảnh báo quan trọng
+  - Trách nhiệm, thời hạn và kiểm tra khi gỡ bỏ cơ chế giảm nhiễu
+- level1: Định tuyến và sở hữu
+  level2:
+  - Chủ sở hữu dịch vụ và chủ sở hữu từng quy tắc cảnh báo
+  - Định tuyến theo đội, môi trường, mức độ và phạm vi
+  - Thứ tự khớp điều kiện và hành vi tiếp tục qua nhiều tuyến
+  - Tuyến mặc định khi không khớp và xử lý cảnh báo không có chủ
+  - Định tuyến tới một hoặc nhiều người nhận
+  - Đường đi riêng cho sản xuất, thử nghiệm và dịch vụ dùng chung
+  - Thay đổi quyền sở hữu khi chuyển đội hoặc ngừng dịch vụ
+  - Kiểm tra tuyến gửi trước khi áp dụng vào vận hành
+- level1: Kênh thông báo
+  level2:
+  - Email, trò chuyện nhóm, SMS, cuộc gọi và công cụ trực
+  - Chọn kênh theo tính khẩn cấp và khả năng xác nhận
+  - Cấu trúc thông báo kích hoạt, cập nhật và phục hồi
+  - Nội dung ngắn trên thiết bị di động và liên kết tới chi tiết
+  - Gửi lại, thời gian chờ và giới hạn tần suất
+  - Phân biệt hệ thống chấp nhận gửi và người nhận thực sự tiếp nhận
+  - Thử lại có giãn cách và phòng tránh gửi trùng
+  - Tính lũy đẳng (idempotency) khi tích hợp webhook
+  - Kênh dự phòng khi nhà cung cấp hoặc mạng gặp lỗi
+  - Thử thông báo có kiểm soát và đánh dấu rõ nội dung thử nghiệm
+- level1: Trực và leo thang
+  level2:
+  - Trực vận hành (on-call), lịch trực và người dự phòng
+  - Trách nhiệm của người trực chính, trực phụ và đội chuyên môn
+  - Xác nhận tiếp nhận và thời hạn phản hồi
+  - Leo thang (escalation) khi chưa có người nhận xử lý
+  - Phân biệt nhắc lại thông báo với chuyển cấp trách nhiệm
+  - Bàn giao ca trực, sự cố đang mở và cảnh báo tạm ngưng
+  - Quy tắc ngoài giờ, ngày nghỉ và phối hợp nhiều múi giờ
+  - Giới hạn tải trực và phòng tránh phụ thuộc một cá nhân
+  - Diễn tập lịch trực và tuyến leo thang
+- level1: Tiếp nhận và ứng phó
+  level2:
+  - Kiểm tra tính hợp lệ, thời điểm và phạm vi cảnh báo
+  - Ưu tiên xác minh ảnh hưởng với người dùng
+  - Đối chiếu bảng theo dõi, nhật ký, dấu vết và thay đổi gần nhất
+  - Từ cảnh báo đơn lẻ đến quyết định mở sự cố
+  - 'Tài liệu ứng phó (runbook): điều kiện, kiểm tra và bước hành động'
+  - Phân biệt giảm ảnh hưởng, khôi phục và xử lý nguyên nhân
+  - Phối hợp người chỉ huy, người thực thi và người liên lạc
+  - 'Tự động khắc phục: điều kiện kích hoạt, giới hạn và khả năng dừng'
+  - Kiểm chứng phục hồi trước khi đóng sự cố
+  - Ghi lại mốc thời gian và bằng chứng phục vụ đánh giá sau sự cố
+- level1: Mẫu cho ứng dụng
+  level2:
+  - Cảnh báo dịch vụ HTTP theo lỗi, độ trễ và lưu lượng
+  - Phát hiện mất dịch vụ bằng kiểm tra từ bên ngoài
+  - Lưu lượng thấp, tăng đột biến và suy giảm tỷ lệ thành công
+  - 'Hàng đợi: số việc tồn, tuổi việc và khả năng xử lý'
+  - 'Tác vụ định kỳ: chạy trễ, không chạy và vượt thời hạn'
+  - 'Luồng dữ liệu: độ trễ xử lý, dữ liệu cũ và thiếu đầu ra'
+  - 'Cơ sở dữ liệu: kết nối, độ trễ truy vấn và lỗi giao dịch'
+  - 'Bộ nhớ đệm: lỗi truy cập và ảnh hưởng của giảm tỷ lệ trúng'
+  - 'Phụ thuộc bên ngoài: hết thời gian, giới hạn tần suất và lỗi dây chuyền'
+  - Chứng chỉ, tên miền và các thời hạn cần cảnh báo trước
+  - 'Tín hiệu nghiệp vụ: thất bại thanh toán, giao dịch và tiến độ xử lý'
+- level1: Mẫu cho hạ tầng
+  level2:
+  - CPU, bộ nhớ và mức bão hòa tài nguyên
+  - Đĩa, dung lượng lưu trữ và dự báo cạn tài nguyên
+  - Mạng, kết nối và phân biệt lỗi đường truyền với lỗi ứng dụng
+  - Tiến trình dừng, khởi động lại và thiếu bản sao phục vụ
+  - 'Môi trường container và Kubernetes: trạng thái thực tế so với mong muốn'
+  - Cảnh báo theo vùng lỗi trong hệ thống phân tán
+  - Suy giảm một phần và nguy cơ bị che bởi số liệu toàn hệ thống
+  - Cơ chế thử lại, khuếch đại tải và bão lỗi dây chuyền
+  - Tự động co giãn và thay đổi danh tính phiên bản chạy
+  - Dung lượng dự phòng, hạn mức và giới hạn của nền tảng đám mây
+  - Phân biệt cảnh báo tài nguyên với bằng chứng ảnh hưởng dịch vụ
+- level1: Kiểm thử cảnh báo
+  level2:
+  - Tiêu chí chấp nhận trước khi đưa cảnh báo vào vận hành
+  - Kiểm tra cấu trúc, cú pháp và ngữ nghĩa quy tắc
+  - Kiểm thử với chuỗi dữ liệu giả lập theo thời gian
+  - Trường hợp bình thường, chạm ngưỡng và vượt ngưỡng
+  - Trường hợp duy trì đủ lâu, dao động và phục hồi
+  - Trường hợp mất dữ liệu, dữ liệu cũ và lỗi đánh giá
+  - Kiểm tra nhóm, định tuyến, tạm ngưng và leo thang
+  - Phát lại dữ liệu lịch sử (backtesting) và nhận diện giới hạn
+  - Chạy quan sát (shadow mode) trước khi gửi thông báo thật
+  - Kiểm thử toàn luồng từ tín hiệu đến người trực
+  - Diễn tập sự cố và thử lỗi có kiểm soát
+- level1: Độ tin cậy hệ cảnh báo
+  level2:
+  - Xác định điểm lỗi đơn trong toàn bộ luồng cảnh báo
+  - Tính sẵn sàng cao của thu thập, đánh giá và gửi thông báo
+  - Bản sao đánh giá và nguy cơ thông báo trùng
+  - Thời gian đánh giá, truy vấn chậm và quá tải quy tắc
+  - Hàng đợi gửi, tồn đọng, mất thông báo và khả năng phục hồi
+  - Giám sát chính hệ cảnh báo (meta-monitoring)
+  - Tín hiệu kiểm tra liên tục (dead man's switch) và điểm kiểm tra độc lập
+  - Theo dõi lỗi cấu hình, lỗi nạp lại và quy tắc không được đánh giá
+  - Mục tiêu độ tin cậy và độ trễ của luồng cảnh báo
+  - Phương án liên lạc khi nền tảng quan sát bị gián đoạn
+- level1: Bảo mật và chi phí
+  level2:
+  - Phân quyền đọc, sửa quy tắc và quản lý người nhận
+  - Bảo vệ thông tin xác thực của kênh thông báo và webhook
+  - Ngăn lộ bí mật, dữ liệu cá nhân và thông tin khách hàng
+  - Giới hạn dữ liệu đầu vào trong mẫu thông báo và tích hợp
+  - Cô lập đội, môi trường và khách hàng khi định tuyến
+  - Nhật ký kiểm toán cho thay đổi quy tắc và tạm ngưng thông báo
+  - Chi phí truy vấn, lưu trữ và số chuỗi thời gian
+  - Chi phí gửi thông báo và tác động của gửi lặp
+  - Chi phí gián đoạn công việc và tải trực của đội vận hành
+- level1: Quản trị quy tắc
+  level2:
+  - Danh mục cảnh báo và thông tin sở hữu bắt buộc
+  - Quản lý quy tắc dưới dạng mã (alerting as code)
+  - Lưu phiên bản, đánh giá thay đổi và kiểm tra tự động
+  - Tách cấu hình theo môi trường và tránh sai lệch ngoài kiểm soát
+  - Triển khai từng phần, theo dõi kết quả và quay lui
+  - Quản lý phụ thuộc giữa quy tắc, nhãn, bảng theo dõi và runbook
+  - Rà soát định kỳ các quy tắc trùng, cũ hoặc không còn hành động
+  - Quy trình tạo mới, sửa, tạm dừng và loại bỏ cảnh báo
+  - Chuẩn hóa dùng chung và giới hạn của một mẫu cho mọi dịch vụ
+- level1: Đo lường và cải tiến
+  level2:
+  - Đo lượng cảnh báo, số lần đánh thức và tải theo ca trực
+  - Đo tỷ lệ cảnh báo có hành động và cảnh báo không cần thiết
+  - Đánh giá vấn đề bị bỏ sót từ lịch sử sự cố
+  - Phân biệt thời gian phát hiện, tiếp nhận và khôi phục
+  - Đo chất lượng định tuyến và tỷ lệ thông báo đến đúng người
+  - Đánh giá sau sự cố (postmortem) và cải tiến điều kiện phát hiện
+  - Kiểm tra hiệu quả của ngưỡng, giảm nhiễu và tài liệu ứng phó
+  - Ưu tiên cải tiến theo rủi ro và mức ảnh hưởng
+  - Tránh tối ưu số lượng cảnh báo bằng cách che giấu vấn đề
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết kế bộ cảnh báo tối thiểu cho một dịch vụ mới
+  - Chuyển một ngưỡng tài nguyên thành cảnh báo có hành động rõ ràng
+  - Thiết kế cảnh báo SLO cho suy giảm nhanh và kéo dài
+  - Xử lý tình huống dữ liệu bằng không, mất dữ liệu và mất dịch vụ
+  - Thiết kế nhóm và giảm nhiễu khi phụ thuộc dùng chung gặp lỗi
+  - Kiểm chứng tuyến gửi, lịch trực và cơ chế leo thang
+  - Điều tra một bão cảnh báo và đề xuất cách cải thiện
+  - Diễn tập sự cố từ phát hiện đến phục hồi và đánh giá lại cảnh báo
+  - Rà soát một thiết kế cảnh báo bằng tiêu chí chất lượng và rủi ro

@@ -1,0 +1,46 @@
+roadmap:
+- id: tong-quan-micrometer
+  title: Tổng quan Micrometer
+  purpose: Hiểu vai trò của Micrometer trong việc instrument ứng dụng Java và Spring Boot.
+  objectives:
+  - Mô tả luồng ứng dụng → Micrometer → hệ thống giám sát.
+  - Phân biệt meter, registry và backend.
+- id: meter-tag
+  title: Meter & Tag
+  purpose: Nắm các phép đo cơ bản và cách gắn nhãn dữ liệu.
+  objectives:
+  - Phân biệt Counter, Timer, Gauge và DistributionSummary.
+  - Chọn tên meter, tag phù hợp và tránh cardinality cao.
+- id: registry-export
+  title: Registry & Export
+  purpose: Biết cách đưa metrics từ ứng dụng đến backend.
+  objectives:
+  - Cấu hình MeterRegistry cho backend phù hợp.
+  - Xác minh metrics được xuất và đọc được.
+- id: spring-boot-actuator
+  title: Spring Boot Actuator
+  purpose: Tích hợp Micrometer qua Spring Boot Actuator.
+  objectives:
+  - Bật và bảo vệ endpoint metrics cần thiết.
+  - Kiểm tra các metrics JVM, HTTP và hệ thống mặc định.
+- id: custom-instrumentation
+  title: Custom Instrumentation
+  purpose: Tạo phép đo có ý nghĩa cho nghiệp vụ.
+  objectives:
+  - Viết Counter, Timer và Gauge cho luồng xử lý.
+  - Đặt tag và đơn vị nhất quán.
+  - Tránh đo trùng hoặc rò rỉ tài nguyên.
+- id: observation-api
+  title: Observation API
+  purpose: Liên kết phép đo với ngữ cảnh thực thi.
+  objectives:
+  - Tạo Observation cho một tác vụ.
+  - Dùng convention và handler để chuẩn hóa tên, tag.
+  - Phân biệt Observation với meter trực tiếp.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & Vận hành
+  purpose: Bảo đảm dữ liệu đo đúng và chi phí chấp nhận được.
+  objectives:
+  - Kiểm thử meter và tag bằng registry trong bộ nhớ.
+  - Phát hiện cardinality cao và sai lệch phép đo.
+  - Xác minh kết quả trên endpoint hoặc backend.

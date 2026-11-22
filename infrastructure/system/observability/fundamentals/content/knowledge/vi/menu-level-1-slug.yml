@@ -1,0 +1,88 @@
+menu:
+- title: Bức tranh tổng quan
+  slug: observability-overview
+  index: 0
+- title: Tư duy đặt câu hỏi
+  slug: question-driven-observability
+  index: 1
+- title: Góc nhìn người dùng
+  slug: user-perspective
+  index: 2
+- title: Bản đồ dữ liệu
+  slug: telemetry-data-map
+  index: 3
+- title: Số liệu đo
+  slug: metrics
+  index: 4
+- title: Nhật ký sự kiện
+  slug: logs
+  index: 5
+- title: Truy vết phân tán
+  slug: traces
+  index: 6
+- title: Hồ sơ thực thi
+  slug: profiling
+  index: 7
+- title: Định danh và ngữ cảnh
+  slug: identifiers-context
+  index: 8
+- title: Thiết kế đo đạc
+  slug: instrumentation-design
+  index: 9
+- title: Quy ước dữ liệu
+  slug: telemetry-conventions
+  index: 10
+- title: Đường ống dữ liệu
+  slug: telemetry-pipelines
+  index: 11
+- title: Thời gian và chất lượng
+  slug: time-data-quality
+  index: 12
+- title: Lấy mẫu và tổng hợp
+  slug: sampling-aggregation
+  index: 13
+- title: Chỉ số vận hành
+  slug: operational-indicators
+  index: 14
+- title: Mục tiêu độ tin cậy
+  slug: slo-reliability-targets
+  index: 15
+- title: Ngân sách lỗi
+  slug: error-budgets
+  index: 16
+- title: Thiết kế cảnh báo
+  slug: alert-design
+  index: 17
+- title: Dashboard và trực quan
+  slug: dashboards-visualization
+  index: 18
+- title: Tương quan và điều tra
+  slug: correlation-investigation
+  index: 19
+- title: Hệ thống phân tán
+  slug: distributed-systems
+  index: 20
+- title: Góc nhìn Java và JVM
+  slug: java-jvm-observability
+  index: 21
+- title: Hệ sinh thái công cụ
+  slug: tooling-ecosystem
+  index: 22
+- title: Hiệu năng và chi phí
+  slug: performance-cost
+  index: 23
+- title: Bảo mật và riêng tư
+  slug: security-privacy
+  index: 24
+- title: Kiểm thử khả năng quan sát
+  slug: observability-testing
+  index: 25
+- title: Vận hành nền tảng
+  slug: platform-operations
+  index: 26
+- title: Tổ chức và cải tiến
+  slug: organization-improvement
+  index: 27
+- title: Thực hành tổng hợp
+  slug: hands-on-practice
+  index: 28

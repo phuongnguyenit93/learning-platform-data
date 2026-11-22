@@ -1,0 +1,94 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Cài đặt và cấu hình
+  slug: installation-and-configuration
+  index: 1
+- title: Khởi tạo kho mã
+  slug: repository-initialization
+  index: 2
+- title: Tệp và chỉ mục
+  slug: files-and-index
+  index: 3
+- title: Tạo commit
+  slug: creating-commits
+  index: 4
+- title: So sánh thay đổi
+  slug: diffing-changes
+  index: 5
+- title: Tra cứu lịch sử
+  slug: history-inspection
+  index: 6
+- title: Nhánh và HEAD
+  slug: branches-and-head
+  index: 7
+- title: Hợp nhất nhánh
+  slug: branch-merging
+  index: 8
+- title: Giải quyết xung đột
+  slug: conflict-resolution
+  index: 9
+- title: Kết nối remote
+  slug: remote-connection
+  index: 10
+- title: Đồng bộ kho mã
+  slug: repository-synchronization
+  index: 11
+- title: Cộng tác bằng Git
+  slug: collaboration-with-git
+  index: 12
+- title: Rebase
+  slug: rebase
+  index: 13
+- title: Chuyển và hoàn tác
+  slug: switching-and-undoing
+  index: 14
+- title: Stash
+  slug: stash
+  index: 15
+- title: Tag và mốc phiên bản
+  slug: tags-and-releases
+  index: 16
+- title: Tìm lỗi và phục hồi
+  slug: debugging-and-recovery
+  index: 17
+- title: Ignore và attributes
+  slug: gitignore-and-attributes
+  index: 18
+- title: Đa môi trường
+  slug: multiple-environments
+  index: 19
+- title: Nhiều thư mục làm việc
+  slug: multiple-worktrees
+  index: 20
+- title: Kho mã chọn lọc
+  slug: sparse-checkout
+  index: 21
+- title: Submodule
+  slug: submodule
+  index: 22
+- title: Tệp lớn và LFS
+  slug: large-files-and-lfs
+  index: 23
+- title: Hook và tự động hóa
+  slug: hooks-and-automation
+  index: 24
+- title: Bảo mật kho mã
+  slug: repository-security
+  index: 25
+- title: Cấu trúc bên trong
+  slug: git-internals
+  index: 26
+- title: Bảo trì và hiệu năng
+  slug: maintenance-and-performance
+  index: 27
+- title: Trao đổi và di chuyển
+  slug: sharing-and-migrating-changes
+  index: 28
+- title: Công cụ và tích hợp
+  slug: tools-and-integrations
+  index: 29
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 30

@@ -1,0 +1,226 @@
+menu:
+- title: Recovery Foundations
+  slug: recovery-foundations
+  index: 0
+- title: Recovery Terminology
+  slug: recovery-terminology
+  index: 1
+- title: Account State Model
+  slug: account-state-model
+  index: 2
+- title: Recovery Threat Model
+  slug: recovery-threat-model
+  index: 3
+- title: Recovery Policy
+  slug: recovery-policy
+  index: 4
+- title: Recovery Journey
+  slug: recovery-journey
+  index: 5
+- title: Eligibility Rules
+  slug: eligibility-rules
+  index: 6
+- title: Recovery Discovery
+  slug: recovery-discovery
+  index: 7
+- title: Identifier Handling
+  slug: identifier-handling
+  index: 8
+- title: Initiation Requests
+  slug: initiation-requests
+  index: 9
+- title: Email Link Recovery
+  slug: email-link-recovery
+  index: 10
+- title: Email Delivery
+  slug: email-delivery
+  index: 11
+- title: OTP Recovery
+  slug: otp-recovery
+  index: 12
+- title: SMS Voice Recovery
+  slug: sms-voice-recovery
+  index: 13
+- title: Authenticator Recovery
+  slug: authenticator-recovery
+  index: 14
+- title: Backup Code Recovery
+  slug: backup-code-recovery
+  index: 15
+- title: Security Questions
+  slug: security-questions
+  index: 16
+- title: Password Reset
+  slug: password-reset
+  index: 17
+- title: Username Recovery
+  slug: username-recovery
+  index: 18
+- title: Email Address Recovery
+  slug: email-address-recovery
+  index: 19
+- title: Phone Number Recovery
+  slug: phone-number-recovery
+  index: 20
+- title: Device Loss Recovery
+  slug: device-loss-recovery
+  index: 21
+- title: Passkey Recovery
+  slug: passkey-recovery
+  index: 22
+- title: MFA Recovery
+  slug: mfa-recovery
+  index: 23
+- title: Session Continuity
+  slug: session-continuity
+  index: 24
+- title: Reauthentication
+  slug: reauthentication
+  index: 25
+- title: Step Up Verification
+  slug: step-up-verification
+  index: 26
+- title: Identity Proofing
+  slug: identity-proofing
+  index: 27
+- title: Document Verification
+  slug: document-verification
+  index: 28
+- title: Knowledge Based Proofing
+  slug: knowledge-based-proofing
+  index: 29
+- title: Social Signals
+  slug: social-signals
+  index: 30
+- title: Recovery Tokens
+  slug: recovery-tokens
+  index: 31
+- title: Token Lifecycle
+  slug: token-lifecycle
+  index: 32
+- title: Token Binding
+  slug: token-binding
+  index: 33
+- title: Token Storage
+  slug: token-storage
+  index: 34
+- title: Cryptographic Design
+  slug: cryptographic-design
+  index: 35
+- title: Link Security
+  slug: link-security
+  index: 36
+- title: Browser Security
+  slug: browser-security
+  index: 37
+- title: API Security
+  slug: api-security
+  index: 38
+- title: CSRF Protection
+  slug: csrf-protection
+  index: 39
+- title: Phishing Resistance
+  slug: phishing-resistance
+  index: 40
+- title: Replay Defense
+  slug: replay-defense
+  index: 41
+- title: Abuse Prevention
+  slug: abuse-prevention
+  index: 42
+- title: Rate Limiting
+  slug: rate-limiting
+  index: 43
+- title: Risk Based Recovery
+  slug: risk-based-recovery
+  index: 44
+- title: Fraud Signals
+  slug: fraud-signals
+  index: 45
+- title: Privacy Boundaries
+  slug: privacy-boundaries
+  index: 46
+- title: User Messaging
+  slug: user-messaging
+  index: 47
+- title: Accessibility
+  slug: accessibility
+  index: 48
+- title: Internationalization
+  slug: internationalization
+  index: 49
+- title: Recovery UX
+  slug: recovery-ux
+  index: 50
+- title: Data Model
+  slug: data-model
+  index: 51
+- title: Persistence
+  slug: persistence
+  index: 52
+- title: Notifications
+  slug: notifications
+  index: 53
+- title: Audit Logging
+  slug: audit-logging
+  index: 54
+- title: Observability
+  slug: observability
+  index: 55
+- title: Support Recovery
+  slug: support-recovery
+  index: 56
+- title: Administrative Recovery
+  slug: administrative-recovery
+  index: 57
+- title: Recovery Approval
+  slug: recovery-approval
+  index: 58
+- title: Account Merge
+  slug: account-merge
+  index: 59
+- title: Data Preservation
+  slug: data-preservation
+  index: 60
+- title: Backup Restore
+  slug: backup-restore
+  index: 61
+- title: Multi Tenant Recovery
+  slug: multi-tenant-recovery
+  index: 62
+- title: Distributed Systems
+  slug: distributed-systems
+  index: 63
+- title: Microservice Boundaries
+  slug: microservice-boundaries
+  index: 64
+- title: Event Driven Recovery
+  slug: event-driven-recovery
+  index: 65
+- title: Testing Strategy
+  slug: testing-strategy
+  index: 66
+- title: Security Testing
+  slug: security-testing
+  index: 67
+- title: Chaos Failure Testing
+  slug: chaos-failure-testing
+  index: 68
+- title: Incident Response
+  slug: incident-response
+  index: 69
+- title: Compliance
+  slug: compliance
+  index: 70
+- title: Metrics
+  slug: metrics
+  index: 71
+- title: Documentation
+  slug: documentation
+  index: 72
+- title: Spring Security Integration
+  slug: spring-security-integration
+  index: 73
+- title: Deployment Operations
+  slug: deployment-operations
+  index: 74

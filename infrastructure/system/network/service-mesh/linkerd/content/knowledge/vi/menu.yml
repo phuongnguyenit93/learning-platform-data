@@ -1,0 +1,395 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Linkerd là gì và bài toán giao tiếp giữa các dịch vụ
+  - Mô hình service mesh và vai trò proxy đi kèm ứng dụng
+  - Giá trị về độ tin cậy, bảo mật và khả năng quan sát
+  - Phân biệt service mesh, thư viện ứng dụng, API gateway và ingress
+  - Đặc điểm của Linkerd và các tiêu chí so sánh với Istio
+  - Khi nào nên áp dụng Linkerd và khi nào chi phí vận hành chưa phù hợp
+  - Phạm vi tính năng lõi, extension và hệ thống tích hợp bên ngoài
+  - Lộ trình học từ một dịch vụ đến mesh vận hành thực tế
+- level1: Kiến trúc
+  level2:
+  - Phân biệt mặt phẳng điều khiển và mặt phẳng dữ liệu
+  - Luồng yêu cầu qua proxy outbound và proxy inbound
+  - Vai trò của destination service trong khám phá và cấu hình đích
+  - Vai trò của identity service trong cấp danh tính và chứng chỉ
+  - Vai trò của proxy injector và admission webhook
+  - Vai trò của policy controller và API chính sách
+  - Kiến trúc linkerd2-proxy và vòng đời kết nối
+  - Vai trò của Linkerd CLI và các extension
+  - Phân biệt dữ liệu ứng dụng với lưu lượng điều khiển
+  - Hành vi của proxy khi mất liên lạc với mặt phẳng điều khiển
+- level1: Nền tảng Kubernetes
+  level2:
+  - Pod, Deployment, Service và đường đi lưu lượng nội bộ
+  - ServiceAccount, namespace và ranh giới danh tính ứng dụng
+  - ClusterIP, headless Service và truy cập trực tiếp Pod IP
+  - DNS, EndpointSlice và cập nhật danh sách endpoint
+  - Phân biệt container thường, init container và native sidecar
+  - Readiness, liveness, startup probe và vòng đời Pod
+  - CRD, custom resource, webhook và cơ chế reconciliation
+  - CNI, NetworkPolicy, kube-proxy và trách nhiệm từng thành phần
+  - RBAC, Secret và quyền cần thiết khi cài đặt Linkerd
+- level1: Chuẩn bị
+  level2:
+  - Chọn bản edge, mốc phiên bản và bản phân phối Linkerd phù hợp
+  - Đối chiếu phiên bản Kubernetes, Linkerd, CLI, Helm chart và Gateway API
+  - Đánh giá hệ điều hành node, kiến trúc CPU và nền tảng Kubernetes
+  - Kiểm tra tương thích CNI, chế độ iptables và chính sách bảo mật Pod
+  - Chuẩn bị cụm thử nghiệm và ứng dụng mẫu nhiều dịch vụ
+  - Chuẩn bị DNS, đồng bộ thời gian và kết nối tới image registry
+  - Lập kế hoạch namespace, trust domain và địa chỉ mạng cụm
+  - Chuẩn bị CPU, bộ nhớ và quyền quản trị cần thiết
+  - Chạy linkerd check --pre và xử lý điều kiện chưa đạt
+- level1: Cài đặt
+  level2:
+  - Cài CLI và xác minh đúng ngữ cảnh cụm Kubernetes
+  - Cài CRD trước các thành phần mặt phẳng điều khiển
+  - Cài Linkerd bằng CLI và kiểm tra manifest sinh ra
+  - Cài bằng Helm với chart CRD và chart control plane
+  - Quản lý values theo môi trường và khóa phiên bản image
+  - Chuẩn bị trust anchor và identity issuer khi cài đặt
+  - Lựa chọn dùng linkerd-init hoặc Linkerd CNI
+  - Cài extension viz và kiểm tra khả năng quan sát ban đầu
+  - Cài extension multicluster khi có nhu cầu liên cụm
+  - Xác minh cài đặt bằng linkerd check và trạng thái tài nguyên
+  - Gỡ cài đặt có kiểm soát và đánh giá tác động tới ứng dụng đang chạy
+- level1: Đưa ứng dụng vào mesh
+  level2:
+  - Cơ chế chèn proxy tự động khi tạo Pod
+  - Đặt linkerd.io/inject trên namespace hoặc Pod template
+  - Tắt injection cho workload hoặc Pod được loại trừ
+  - Đưa Pod đang chạy vào mesh bằng triển khai lại workload
+  - Sử dụng linkerd inject và phân biệt chế độ tự động, thủ công
+  - Kiểm tra container, annotation và phiên bản proxy sau injection
+  - Cấu hình proxy ở phạm vi cài đặt, namespace và workload
+  - Native sidecar và khác biệt về thứ tự khởi động, kết thúc
+  - Đưa Job, CronJob và init container có nhu cầu mạng vào mesh
+  - Quản lý Pod có nhiều container và cổng dùng chung
+  - Lựa chọn triển khai từng phần và xác định phạm vi lưu lượng được bảo vệ
+  - Rút ứng dụng khỏi mesh và kiểm chứng kết nối sau thay đổi
+- level1: Chuyển hướng mạng
+  level2:
+  - Cơ chế chặn và chuyển hướng kết nối bằng iptables
+  - Vai trò linkerd-init và yêu cầu quyền NET_ADMIN
+  - Linkerd CNI và quan hệ với CNI mạng đang sử dụng
+  - Chọn iptables-legacy hoặc iptables-nft theo môi trường
+  - Luồng kết nối vào Pod, ra Pod và tới ứng dụng cục bộ
+  - Ý nghĩa các cổng proxy inbound, outbound và admin
+  - Cấu hình skip-inbound-ports, skip-outbound-ports và skip-subnets
+  - Phân biệt cổng bỏ qua proxy với cổng opaque
+  - Ảnh hưởng của hostNetwork, loopback và các kiểu kết nối đặc biệt
+  - Kiểm tra phối hợp NetworkPolicy, service routing và chuyển hướng proxy
+- level1: Giao thức
+  level2:
+  - Proxy HTTP/1.1, HTTP/2 và gRPC trong Linkerd
+  - Cơ chế tự phát hiện giao thức và giới hạn thời gian phát hiện
+  - Khai báo appProtocol trên cổng Service
+  - Khai báo opaque-ports tại Pod hoặc tài nguyên liên quan
+  - Xử lý giao thức phía máy chủ gửi dữ liệu trước
+  - Thu thập metric TCP cho giao thức không được nhận diện là HTTP
+  - TLS do ứng dụng thiết lập và giới hạn quan sát ở tầng HTTP
+  - Proxy WebSocket, HTTP tunneling và kết nối dài hạn
+  - Xử lý cơ sở dữ liệu, Redis, hàng đợi và connection pool
+  - Giới hạn đối với UDP, QUIC và giao thức không phải TCP
+  - Kiểm tra nhận diện giao thức với client ngoài mesh và headless Service
+- level1: Khám phá và cân bằng tải
+  level2:
+  - Khám phá dịch vụ qua DNS và destination API
+  - Cập nhật EndpointSlice khi Pod sẵn sàng hoặc bị loại
+  - Phân biệt cân bằng theo yêu cầu HTTP với theo kết nối TCP
+  - Cân bằng độ trễ bằng EWMA
+  - Ảnh hưởng của HTTP/2 multiplexing và kết nối gRPC dài hạn
+  - Cân bằng tới endpoint thay vì chỉ dựa vào ClusterIP
+  - Giới hạn khi dùng headless Service hoặc địa chỉ Pod trực tiếp
+  - Áp dụng định tuyến theo vùng với topology-aware routing
+  - Xử lý đích không có endpoint và trạng thái failfast
+  - Cân bằng có nhận biết phản hồi giới hạn tốc độ theo phiên bản
+  - Kiểm chứng phân phối lưu lượng khi replica, độ trễ hoặc vùng thay đổi
+- level1: Gateway API
+  level2:
+  - Vai trò Gateway API trong cấu hình Linkerd
+  - Phân biệt API group chuẩn với HTTPRoute cũ của Linkerd
+  - Quản lý phiên bản CRD Gateway API tương thích
+  - Cấu trúc HTTPRoute và GRPCRoute
+  - Ý nghĩa parentRefs, matches, filters và backendRefs
+  - HTTPRoute gắn với Service cho hành vi outbound
+  - HTTPRoute gắn với Server cho phân quyền inbound
+  - Phân biệt producer route với consumer route
+  - Phạm vi namespace và điều kiện tham chiếu tài nguyên khác namespace
+  - Đọc status, conditions và lý do Route chưa được chấp nhận
+  - Quan hệ ưu tiên giữa HTTPRoute và ServiceProfile
+  - Đối chiếu tính năng Gateway API được Linkerd hỗ trợ
+- level1: Định tuyến
+  level2:
+  - Định tuyến HTTP theo hostname, path, method, header và query parameter
+  - Định tuyến gRPC theo service và method
+  - Thứ tự khớp và độ ưu tiên khi nhiều Route cùng phù hợp
+  - Chọn backend bằng backendRefs và cổng đích
+  - Phân phối yêu cầu theo trọng số giữa nhiều Service
+  - Thay đổi header và đường dẫn theo bộ lọc được hỗ trợ
+  - Thiết kế tuyến mặc định và xử lý yêu cầu không khớp
+  - Tách quy tắc của bên cung cấp với quy tắc của bên sử dụng
+  - Kiểm tra phạm vi áp dụng khi client có hoặc không có proxy
+  - Bảo vệ header định tuyến nội bộ và kiểm soát nguồn không tin cậy
+  - Kiểm chứng kết quả định tuyến bằng yêu cầu có dấu hiệu nhận biết
+- level1: Triển khai tiến dần
+  level2:
+  - Chiến lược canary, blue-green và A/B theo nhu cầu ứng dụng
+  - Chuẩn bị Service ổn định và Service phiên bản mới
+  - Chuyển lưu lượng theo trọng số bằng HTTPRoute hoặc GRPCRoute
+  - Đánh giá tỷ lệ lỗi, độ trễ và cỡ mẫu trước khi tăng lưu lượng
+  - Tự động hóa triển khai với Flagger theo cơ chế tích hợp hiện hành
+  - Tích hợp Argo Rollouts và Gateway API routing plugin
+  - Hoàn tác lưu lượng khi chỉ số chất lượng không đạt
+  - Giới hạn của thay đổi trọng số với kết nối TCP hoặc phiên dài hạn
+  - Di chuyển cấu hình TrafficSplit và linkerd-smi đã bị đánh dấu ngừng phát triển
+- level1: Timeout và retry
+  level2:
+  - Phân biệt timeout kết nối, timeout yêu cầu và timeout từng lần gửi
+  - Cấu hình timeout tại Service và Route theo API được hỗ trợ
+  - Phối hợp giới hạn toàn yêu cầu với giới hạn backendRequest
+  - Cấu hình retry theo mã HTTP và trạng thái gRPC
+  - Đặt số lần thử lại và thời hạn cho mỗi lần thử
+  - Giới hạn thử lại với request body và khả năng phát lại dữ liệu
+  - Chỉ thử lại thao tác có tính lũy đẳng hoặc được bảo vệ phù hợp
+  - Ngăn thử lại chồng lớp giữa ứng dụng, ingress và mesh
+  - Đánh giá tải tăng thêm và độ trễ đuôi do retry
+  - Thực thi retry, timeout ở phía client và điều kiện client thuộc mesh
+  - Giới hạn với headless Service và cấu hình ServiceProfile còn tồn tại
+  - Kiểm chứng thành công cuối cùng so với số lần gửi thực tế
+- level1: Ngắt mạch
+  level2:
+  - Circuit breaking ở mức endpoint trong Linkerd
+  - Phân biệt ngắt mạch, timeout, retry và failfast
+  - Cấu hình failure accrual theo phiên bản proxy
+  - Loại endpoint sau chuỗi lỗi liên tiếp
+  - Thời gian tạm loại và điều kiện đưa endpoint trở lại
+  - Chính sách đánh giá lỗi thống nhất và phản hồi quá tải theo phiên bản
+  - Ảnh hưởng khi một phần hoặc toàn bộ endpoint bị loại
+  - Phối hợp cân bằng tải, retry và cơ chế phục hồi endpoint
+  - Phân biệt ngắt mạch mạng với xử lý lỗi nghiệp vụ trong ứng dụng
+  - Kiểm chứng bằng dịch vụ lỗi nhanh, chậm và phục hồi có kiểm soát
+- level1: Giới hạn tốc độ
+  level2:
+  - Vai trò HTTPLocalRateLimitPolicy và liên kết tới Server
+  - Cơ chế giới hạn cục bộ tại từng proxy inbound
+  - Phân biệt hạn mức theo Pod với hạn mức toàn bộ Service
+  - Cấu hình tổng yêu cầu mỗi giây cho Server
+  - Giới hạn theo danh tính client và ngoại lệ cho ServiceAccount
+  - Ứng xử với client không có danh tính mesh
+  - Quan hệ giữa accessPolicy, AuthorizationPolicy và chính sách tốc độ
+  - Đánh giá burst, phản hồi từ chối và tác động khi tăng replica
+  - Phối hợp với API gateway khi cần hạn mức dùng chung toàn hệ thống
+- level1: Danh tính và mTLS
+  level2:
+  - Danh tính ứng dụng dựa trên Kubernetes ServiceAccount
+  - Vai trò trust domain trong tên danh tính
+  - Chuỗi tin cậy từ gốc tin cậy (trust anchor) đến issuer và chứng chỉ proxy
+  - Cấp chứng chỉ workload và tự động gia hạn
+  - Bắt tay mTLS giữa proxy nguồn và proxy đích
+  - Phạm vi bảo vệ giữa hai proxy và đoạn kết nối tới tiến trình ứng dụng
+  - Phân biệt mTLS của mesh với TLS do ứng dụng thiết lập
+  - Kiểm chứng mTLS bằng công cụ và metric Linkerd
+  - Nhận diện lưu lượng từ nguồn ngoài mesh và cổng bỏ qua proxy
+  - Phân biệt xác thực workload với xác thực người dùng cuối
+  - Đánh giá thuật toán TLS và khả năng trao đổi khóa hậu lượng tử theo phiên bản
+- level1: Quản lý chứng chỉ
+  level2:
+  - Phân biệt chứng chỉ workload, issuer, trust anchor và webhook
+  - Lựa chọn nguồn cấp issuer và bảo vệ khóa riêng
+  - Quản lý Secret, quyền truy cập và sao lưu dữ liệu tin cậy
+  - Tự động gia hạn issuer với cert-manager
+  - Phân phối trust bundle với trust-manager hoặc cơ chế tương đương
+  - Xoay trust anchor với giai đoạn chấp nhận cả gốc cũ và mới
+  - Đồng bộ trust bundle tới control plane và toàn bộ proxy
+  - Thay chứng chỉ webhook và kiểm tra admission hoạt động
+  - Theo dõi thời hạn, chuỗi chứng chỉ và sai lệch đồng hồ
+  - Phục hồi issuer hoặc trust anchor đã hết hạn
+  - Kiểm chứng kết nối và danh tính sau mỗi lần thay chứng chỉ
+- level1: Phân quyền
+  level2:
+  - Chính sách mặc định ở cấp cài đặt, namespace và workload
+  - Lựa chọn all-authenticated, cluster-authenticated, deny hoặc audit
+  - Khai báo Server theo tập Pod, cổng và giao thức
+  - Ảnh hưởng của accessPolicy khi một cổng được chọn bởi Server
+  - Xác thực nguồn với MeshTLSAuthentication
+  - Ràng buộc mạng nguồn với NetworkAuthentication
+  - Liên kết đối tượng đích và điều kiện xác thực bằng AuthorizationPolicy
+  - Cấp quyền theo ServiceAccount, namespace hoặc danh tính cụ thể
+  - Phân quyền theo HTTPRoute cho đường dẫn và phương thức
+  - Phối hợp quyền giữa Server, Route và nhiều điều kiện xác thực
+  - Quản lý ngoại lệ cho probe, giám sát và client ngoài mesh
+  - Triển khai audit trước khi siết quyền và kiểm tra lưu lượng bị từ chối
+  - Phân biệt quyền mạng của mesh với Kubernetes RBAC và quyền nghiệp vụ
+  - Đọc cấu hình ServerAuthorization cũ và lập kế hoạch chuyển đổi
+- level1: Ingress
+  level2:
+  - Vai trò ingress controller trong hệ thống có Linkerd
+  - Đưa ingress controller vào mesh theo hướng dẫn tương thích
+  - Xác định điểm kết thúc TLS và đoạn lưu lượng nội bộ được mã hóa
+  - Bảo toàn Host, authority và danh tính khi chuyển tiếp
+  - Quản lý header l5d-dst-override khi có nhu cầu tích hợp
+  - Phân quyền kết nối từ ingress tới dịch vụ
+  - Phối hợp timeout, retry và giới hạn tốc độ giữa ingress với mesh
+  - Kiểm chứng IP nguồn, health check và tuyến truy cập từ ngoài cụm
+- level1: Egress
+  level2:
+  - Phân biệt dịch vụ trong cụm, dịch vụ ngoài cụm và workload ngoài Kubernetes thuộc mesh
+  - Mô tả mạng đích bằng EgressNetwork
+  - Phạm vi namespace cục bộ và namespace egress dùng chung
+  - Vai trò clusterNetworks, CIDR và các dải mạng loại trừ
+  - Thiết lập trafficPolicy Allow hoặc Deny
+  - Gắn Route vào EgressNetwork để mô tả lưu lượng được phép
+  - Xử lý đích TLS, SNI và cổng opaque theo tính năng được hỗ trợ
+  - Quan sát lưu lượng egress và kiểm chứng tuyến thực tế
+  - Phối hợp egress mesh với NetworkPolicy, firewall và kiểm soát hạ tầng
+  - Đánh giá đường bỏ qua sidecar và giới hạn bảo đảm của egress policy
+- level1: Metric và dashboard
+  level2:
+  - Cài viz và hiểu các thành phần Prometheus, metrics-api, tap, web
+  - Đọc tỷ lệ thành công, lưu lượng và phân bố độ trễ
+  - Phân biệt metric tại phía gửi với phía nhận
+  - Quan sát lưu lượng TCP, byte truyền và trạng thái kết nối
+  - Dùng linkerd viz stat, top, routes và dashboard theo phiên bản
+  - Khám phá đồ thị phụ thuộc giữa các dịch vụ
+  - Quan sát metric theo Route, Service và cặp nguồn–đích
+  - Phân loại thành công, lỗi HTTP/gRPC và ảnh hưởng của retry tới metric
+  - Tích hợp Prometheus bên ngoài và lưu dữ liệu dài hạn
+  - Xây dựng dashboard Grafana cho mesh và ứng dụng
+  - Kiểm soát số giá trị nhãn và chi phí thu thập metric
+  - Bảo vệ dashboard, endpoint metric và quyền truy cập Viz
+  - Thiết lập SLI, SLO và cảnh báo dựa trên lưu lượng thực tế
+- level1: Log và trace
+  level2:
+  - Đọc log control plane và proxy theo mức độ
+  - Bật HTTP access log và lựa chọn dữ liệu cần ghi
+  - Sử dụng tap để quan sát yêu cầu đang đi qua mesh
+  - Giới hạn quyền tap và bảo vệ nội dung nhạy cảm
+  - Phân biệt metric tự động, access log và distributed tracing
+  - Truyền ngữ cảnh trace qua ứng dụng và các lời gọi tiếp theo
+  - Tích hợp instrumentation OpenTelemetry trong ứng dụng
+  - Cấu hình proxy xuất span tới collector OTLP theo phiên bản
+  - Liên kết span ứng dụng, span proxy và mã tương quan log
+  - Quản lý lấy mẫu, chi phí và dữ liệu nhạy cảm trong trace
+  - Đọc hướng dẫn tracing mới và chuyển khỏi extension linkerd-jaeger cũ
+- level1: Nhiều cụm
+  level2:
+  - Trường hợp sử dụng và ranh giới trách nhiệm của multicluster
+  - Điều kiện kết nối mạng, DNS và trust anchor chung
+  - Cài extension multicluster và thiết lập liên kết giữa các cụm
+  - Cơ chế service mirroring và quyền đọc Kubernetes API từ xa
+  - Chọn Service được xuất bằng label selector
+  - Liên lạc qua gateway trong mô hình hierarchical
+  - Liên lạc trực tiếp Pod-to-Pod trong mô hình flat
+  - Ảnh hưởng của topology tới danh tính client và chính sách quyền
+  - Tạo federated Service từ các dịch vụ cùng tên và namespace
+  - Phân phối lưu lượng và ứng xử khi một cụm mất kết nối
+  - Quan sát gateway, service mirror và lưu lượng liên cụm
+  - Quản lý Secret liên kết, chứng chỉ và thay đổi mạng giữa các cụm
+  - Kiểm chứng phục hồi mà không suy diễn về sao chép dữ liệu ứng dụng
+- level1: Ngoài Kubernetes
+  level2:
+  - Phạm vi mesh expansion và các yêu cầu về hệ điều hành, mạng
+  - Vai trò ExternalWorkload trong khám phá và chính sách
+  - Khai báo địa chỉ, cổng và danh tính workload bên ngoài
+  - Cấp danh tính SPIFFE bằng SPIRE theo mô hình được hỗ trợ
+  - Chạy Linkerd proxy và thiết lập chuyển hướng mạng ngoài cụm
+  - Kết nối ExternalWorkload với Kubernetes Service và EndpointSlice
+  - Cấp quyền giao tiếp hai chiều giữa workload ngoài cụm với Pod
+  - Quản lý vòng đời chứng chỉ, trạng thái sẵn sàng và cập nhật địa chỉ
+  - Kiểm chứng giám sát và xử lý lỗi của workload ngoài Kubernetes
+- level1: Java và Spring Boot
+  level2:
+  - Đưa ứng dụng Spring Boot vào mesh qua manifest Kubernetes
+  - Tách cấu hình HTTP ứng dụng, cổng quản trị và probe
+  - Đánh giá HTTP client, connection pool và HTTP/2 với cân bằng tải
+  - Phối hợp WebClient, RestClient hoặc thư viện HTTP với timeout mesh
+  - Phối hợp retry ứng dụng và cơ chế ngắt mạch với Linkerd
+  - Giữ đúng ngữ nghĩa giao dịch khi yêu cầu có thể được gửi lại
+  - Truyền trace context, request ID và dữ liệu MDC
+  - Đánh giá mTLS mesh cùng cấu hình TLS có sẵn của ứng dụng
+  - Xử lý shutdown có kiểm soát và kết nối đang hoạt động
+  - Kiểm chứng thay đổi mạng bằng metric, log và bằng chứng đầu cuối
+- level1: Vận hành
+  level2:
+  - Quản lý manifest, Helm values và phiên bản bằng Git
+  - Tổ chức GitOps với công cụ triển khai được lựa chọn
+  - Phân tách quyền vận hành control plane, data plane và policy
+  - Giới hạn quyền Kubernetes và quyền đọc Secret của Linkerd
+  - Bảo vệ admission webhook và lựa chọn hành vi khi webhook lỗi
+  - Quản lý resource request, limit và cấu hình proxy theo workload
+  - Quản lý registry, danh sách image tin cậy và cập nhật bảo mật
+  - Theo dõi tình trạng meshed, phiên bản và độ lệch cấu hình
+  - Xử lý rollout, drain và kết thúc kết nối dài hạn
+  - Chuẩn bị quy trình sự cố, sao lưu cấu hình và phục hồi chứng chỉ
+  - Đánh giá chi phí vận hành cùng giới hạn tính năng của bản phân phối
+- level1: HA và hiệu năng
+  level2:
+  - Triển khai control plane ở chế độ sẵn sàng cao
+  - Phân bố replica theo node, vùng và miền lỗi
+  - Thiết kế PodDisruptionBudget và khả năng chịu bảo trì cụm
+  - Phân biệt HA của control plane với khả năng chịu lỗi của ứng dụng
+  - Đo tài nguyên proxy theo lưu lượng và số kết nối
+  - Đo độ trễ tăng thêm ở p50, p95, p99 và thông lượng
+  - Đánh giá CPU, bộ nhớ và tác động của giới hạn tài nguyên
+  - Đánh giá quy mô endpoint, Route và policy trên control plane
+  - Phối hợp HPA, topology-aware routing và dung lượng ứng dụng
+  - Kiểm tra tác động của Viz, tap, log và tracing đến tài nguyên
+  - Đo mức phục hồi khi node, vùng hoặc thành phần điều khiển ngừng hoạt động
+- level1: Nâng cấp
+  level2:
+  - Lập ma trận tương thích Kubernetes, CLI, control plane, proxy và extension
+  - Đọc thay đổi API, giá trị mặc định và tính năng ngừng phát triển
+  - Nâng cấp CRD và xử lý thay đổi Gateway API đúng trình tự
+  - Nâng control plane trước rồi cập nhật proxy theo hướng dẫn phiên bản
+  - Quản lý workload chạy nhiều phiên bản proxy trong giai đoạn chuyển tiếp
+  - Kiểm tra thay đổi native sidecar và annotation theo phiên bản
+  - Chuyển ServiceProfile sang Route và xử lý cấu hình chồng lấn
+  - Chuyển TrafficSplit, SMI và tích hợp tracing cũ sang cơ chế hiện hành
+  - Triển khai thử, đo chất lượng và mở rộng theo nhóm workload
+  - Đánh giá khả năng hoàn tác sau thay đổi CRD hoặc chứng chỉ
+  - Xác minh linkerd check, dữ liệu quan sát và kết nối sau nâng cấp
+- level1: Xử lý sự cố
+  level2:
+  - Khoanh vùng lỗi theo ứng dụng, proxy, control plane và hạ tầng mạng
+  - Chẩn đoán lỗi injection hoặc Pod không có proxy
+  - Chẩn đoán webhook, chứng chỉ webhook và quyền admission
+  - Chẩn đoán lỗi DNS, endpoint thiếu và Service không khớp
+  - Xử lý chậm kết nối do phát hiện giao thức
+  - Xử lý mTLS thất bại, danh tính sai và chứng chỉ hết hạn
+  - Chẩn đoán policy từ chối, Route không được chấp nhận và tham chiếu sai
+  - Chẩn đoán timeout, retry tăng và endpoint bị ngắt mạch
+  - Xử lý mất metric, lỗi Viz, thiếu access log hoặc span
+  - Xử lý xung đột iptables, CNI và NetworkPolicy
+  - Xử lý Job không kết thúc hoặc Pod có thứ tự khởi động không phù hợp
+  - Chẩn đoán gateway, service mirroring và kết nối liên cụm
+  - Thu thập bằng chứng bằng check, diagnostics, log và metric
+- level1: Kiểm chứng
+  level2:
+  - Lập ma trận nguồn–đích, giao thức và trạng thái thuộc mesh
+  - Kiểm thử kết nối HTTP, gRPC, TCP và ứng dụng dùng TLS
+  - Kiểm thử mTLS, danh tính và trường hợp bắt buộc bị từ chối
+  - Kiểm thử tuyến theo header, method và trọng số backend
+  - Mô phỏng lỗi bằng backend lỗi được định tuyến qua HTTPRoute
+  - Đo timeout, số lần retry và tác động lên dịch vụ phụ thuộc
+  - Kiểm tra rate limit tại từng Pod và khi số replica thay đổi
+  - Kiểm thử xoay chứng chỉ, triển khai lại và nâng cấp từng phần
+  - Mô phỏng mất control plane, endpoint, node và cụm từ xa
+  - Đối chiếu metric proxy với kết quả người dùng quan sát
+  - Lưu tiêu chí nghiệm thu và bằng chứng phục hồi đầu cuối
+- level1: Bài thực hành
+  level2:
+  - Cài Linkerd và đưa ứng dụng nhiều dịch vụ vào mesh
+  - Quan sát các chỉ số cốt lõi (golden metrics) và phát hiện dịch vụ gây lỗi
+  - Thiết lập mTLS và quyền tối thiểu giữa hai ServiceAccount
+  - Định tuyến HTTP, gRPC và kiểm chứng client ngoài mesh
+  - Thực hiện canary theo trọng số và hoàn tác khi chất lượng giảm
+  - Thử nghiệm timeout, retry, ngắt mạch và giới hạn tốc độ
+  - Cấu hình opaque port cho dịch vụ dữ liệu và xác minh kết nối
+  - Tích hợp Spring Boot, OpenTelemetry và collector để theo dõi yêu cầu
+  - Xây dựng kết nối nhiều cụm và kiểm chứng gián đoạn một cụm
+  - Tự động gia hạn issuer và diễn tập xoay trust anchor
+  - Thiết kế mesh hoàn chỉnh với SLO, phân quyền và quy trình vận hành

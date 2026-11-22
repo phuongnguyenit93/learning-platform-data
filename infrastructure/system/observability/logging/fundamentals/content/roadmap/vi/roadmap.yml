@@ -1,0 +1,43 @@
+roadmap:
+- id: vai-tro-cua-logs
+  title: Vai trò của Logs
+  purpose: Hiểu log ghi nhận sự kiện gì và đóng góp thế nào vào quan sát hệ thống.
+  objectives:
+  - Phân biệt logs với metrics và traces.
+  - Nêu tình huống dùng log để điều tra lỗi.
+- id: su-kien-log-levels
+  title: Sự kiện & Log Levels
+  purpose: Biết chọn sự kiện và mức độ ghi phù hợp để giữ tín hiệu hữu ích.
+  objectives:
+  - Giải thích DEBUG, INFO, WARN và ERROR.
+  - Chọn mức log cho các tình huống thường gặp.
+- id: structured-logging
+  title: Structured Logging
+  purpose: Tạo bản ghi nhất quán, dễ đọc và dễ lọc theo trường.
+  objectives:
+  - Nhận diện timestamp, severity, message và attributes.
+  - Viết một bản ghi sự kiện dạng JSON.
+- id: context-correlation
+  title: Context & Correlation
+  purpose: Liên kết log theo request và dịch vụ để lần theo một sự cố.
+  objectives:
+  - Gắn service, environment, request ID và trace ID.
+  - Dùng ID để đối chiếu các bản ghi liên quan.
+- id: luong-thu-thap-logs
+  title: Luồng thu thập Logs
+  purpose: Hiểu đường đi của log từ ứng dụng tới hệ thống phân tích.
+  objectives:
+  - Phác thảo phát sinh → thu thập → xử lý → lưu trữ.
+  - Giải thích vai trò stdout và bộ thu thập tập trung.
+- id: tim-kiem-phan-tich
+  title: Tìm kiếm & Phân tích
+  purpose: Dùng log để khoanh vùng sự kiện bất thường và nguyên nhân lỗi.
+  objectives:
+  - Lọc theo thời gian, mức độ và trường ngữ cảnh.
+  - Đọc chuỗi sự kiện để xác định điểm lỗi.
+- id: chat-luong-an-toan
+  title: Chất lượng & An toàn
+  purpose: Duy trì log hữu ích, bảo mật và có chi phí vận hành hợp lý.
+  objectives:
+  - Nhận diện secret và dữ liệu nhạy cảm cần loại bỏ.
+  - Giảm log nhiễu và chọn chính sách lưu giữ phù hợp.

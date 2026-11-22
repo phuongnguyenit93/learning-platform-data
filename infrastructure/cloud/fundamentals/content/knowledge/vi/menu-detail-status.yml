@@ -1,0 +1,2326 @@
+menu:
+- slug: cloud-overview
+  title: Tổng quan đám mây
+  childs:
+  - slug: cloud-overview-001
+    title: Điện toán đám mây là gì và những bài toán thường gặp khi sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-002
+    title: 'Năm đặc trưng: tự phục vụ, truy cập qua mạng, dùng chung tài nguyên, co giãn và đo lường sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-003
+    title: 'Các nhóm tài nguyên: tính toán, lưu trữ, mạng và dịch vụ được quản lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-004
+    title: Vai trò của trung tâm dữ liệu, ảo hóa và phân bổ tài nguyên theo yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-005
+    title: So sánh vận hành tại chỗ với sử dụng tài nguyên đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-006
+    title: Lợi ích về tốc độ triển khai, khả năng thử nghiệm và tiếp cận người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-007
+    title: Giới hạn về kết nối, quyền kiểm soát, phụ thuộc nhà cung cấp và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cloud-overview-008
+    title: 'Vòng đời sử dụng đám mây: lựa chọn, cấp phát, vận hành, tối ưu và thu hồi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: service-models
+  title: Mô hình dịch vụ
+  childs:
+  - slug: service-models-001
+    title: 'IaaS: thuê hạ tầng và tự quản lý hệ điều hành, phần mềm, ứng dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-002
+    title: 'PaaS: triển khai ứng dụng trên nền tảng do nhà cung cấp quản lý'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-003
+    title: 'SaaS: sử dụng phần mềm hoàn chỉnh qua tài khoản và cấu hình dịch vụ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-004
+    title: So sánh IaaS, PaaS và SaaS theo quyền kiểm soát, công việc vận hành và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-005
+    title: Container được quản lý và chức năng theo sự kiện trong phổ dịch vụ đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-006
+    title: 'Dịch vụ được quản lý và tự vận hành: phạm vi hỗ trợ, giới hạn và phần việc còn lại'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-007
+    title: Phân chia trách nhiệm về hạ tầng, hệ điều hành, ứng dụng, danh tính và dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-008
+    title: Phân biệt mô hình cung cấp dịch vụ với mô hình triển khai đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-009
+    title: Khả năng tùy biến, tính di động và mức độ phụ thuộc dịch vụ của nhà cung cấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: service-models-010
+    title: Lựa chọn mô hình dịch vụ cho website, hệ thống nội bộ và ứng dụng nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-models
+  title: Mô hình triển khai
+  childs:
+  - slug: deployment-models-001
+    title: 'Đám mây công cộng: đặc điểm, cách chia sẻ hạ tầng và trường hợp sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-002
+    title: 'Đám mây riêng: quyền kiểm soát, yêu cầu đầu tư và trách nhiệm vận hành'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-003
+    title: 'Đám mây lai: phối hợp hạ tầng tại chỗ với dịch vụ đám mây'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-004
+    title: 'Đa đám mây: mục tiêu sử dụng nhiều nhà cung cấp và độ phức tạp phát sinh'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-005
+    title: Đám mây cộng đồng và nhu cầu dùng chung hạ tầng của các tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-006
+    title: Phân biệt triển khai đám mây riêng với chỉ sử dụng máy chủ ảo tại chỗ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-007
+    title: Ảnh hưởng của chủ quyền dữ liệu, độ trễ và yêu cầu kiểm soát đến cách triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-models-008
+    title: So sánh các mô hình theo năng lực đội ngũ, chi phí, bảo mật và khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: regions-and-failure-domains
+  title: Vùng và miền lỗi
+  childs:
+  - slug: regions-and-failure-domains-001
+    title: 'Region: phạm vi địa lý, vị trí tài nguyên và danh mục dịch vụ khả dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-002
+    title: 'Availability Zone: miền triển khai cô lập lỗi bên trong một vùng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-003
+    title: Phân biệt trung tâm dữ liệu vật lý, vùng và vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-004
+    title: Điểm hiện diện và vị trí biên trong phân phối nội dung gần người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-005
+    title: Tài nguyên toàn cục, theo vùng và theo vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-006
+    title: Miền lỗi và rủi ro khi các thành phần dùng chung nguồn điện, mạng hoặc dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-007
+    title: Chọn vùng theo vị trí người dùng, nơi lưu dữ liệu, dịch vụ hỗ trợ và ngân sách
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-008
+    title: 'Triển khai nhiều vùng sẵn sàng và nhiều vùng địa lý: lợi ích và đánh đổi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: regions-and-failure-domains-009
+    title: Độ trễ, lưu lượng truyền và chi phí khi sao chép dữ liệu giữa các vị trí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resources-and-apis
+  title: Tài nguyên và API
+  childs:
+  - slug: resources-and-apis-001
+    title: Tài nguyên đám mây, định danh tài nguyên và quan hệ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-002
+    title: Mặt phẳng điều khiển và mặt phẳng dữ liệu trong một dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-003
+    title: 'Console, CLI, SDK và API: cách tương tác và trường hợp sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-004
+    title: Vòng đời tạo, cấu hình, cập nhật, dừng và xóa tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-005
+    title: Thao tác bất đồng bộ, trạng thái cấp phát và tính nhất quán sau thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-006
+    title: Phạm vi tài nguyên và lựa chọn vùng trước khi gọi API
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-007
+    title: Hạn ngạch tài nguyên, giới hạn tốc độ API và quy trình xin tăng giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resources-and-apis-008
+    title: Theo dõi yêu cầu bằng mã định danh, sự kiện và nhật ký hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: accounts-and-governance
+  title: Tài khoản và quản trị
+  childs:
+  - slug: accounts-and-governance-001
+    title: 'Tổ chức, tài khoản, tenant, subscription và project: vai trò và cách ánh xạ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-002
+    title: Phân tách môi trường phát triển, kiểm thử và sản xuất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-003
+    title: Phân nhóm tài nguyên theo ứng dụng, đội ngũ và ranh giới trách nhiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-004
+    title: Chính sách tổ chức và giới hạn cấu hình được phép triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-005
+    title: Quy tắc đặt tên, gắn nhãn, xác định chủ sở hữu và trung tâm chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-006
+    title: Quản trị hạn ngạch, ngân sách và quyền cấp phát tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-007
+    title: Nền tảng dùng chung cho mạng, danh tính, nhật ký và tài khoản mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accounts-and-governance-008
+    title: Kiểm kê tài nguyên, kiểm toán thay đổi và xử lý tài nguyên không rõ chủ sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: resource-selection
+  title: Lựa chọn tài nguyên
+  childs:
+  - slug: resource-selection-001
+    title: Thu thập yêu cầu chức năng, số người dùng và mục tiêu chất lượng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-002
+    title: Ước lượng nhu cầu CPU, bộ nhớ, dung lượng, IOPS và băng thông
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-003
+    title: Phân tích tải nền, tải cao điểm, tải đột biến và tốc độ tăng trưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-004
+    title: Chọn kiến trúc bộ xử lý, loại máy và tài nguyên tăng tốc theo tính tương thích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-005
+    title: Đối chiếu nhu cầu với hạn ngạch, giới hạn dịch vụ và công suất tại vùng triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-006
+    title: Đánh giá công sức vận hành khi chọn tự quản lý hoặc dịch vụ được quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-007
+    title: Cân nhắc vị trí dữ liệu, độ trễ, bảo mật và yêu cầu khôi phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-008
+    title: Lập bảng so sánh tài nguyên theo hiệu năng, độ tin cậy và tổng chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: resource-selection-009
+    title: Đo thử với tải đại diện, chọn dung lượng ban đầu và điều chỉnh theo số liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-machines
+  title: Máy ảo
+  childs:
+  - slug: virtual-machines-001
+    title: Máy ảo, máy chủ vật lý, hypervisor và cơ chế chia sẻ tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-002
+    title: Chọn dòng máy theo CPU, bộ nhớ, mạng và đặc điểm tải xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-003
+    title: Ảnh máy, mẫu triển khai, hệ điều hành và yêu cầu bản quyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-004
+    title: Đĩa khởi động, đĩa dữ liệu và lưu trữ cục bộ tạm thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-005
+    title: Khởi tạo máy bằng cấu hình tự động, dữ liệu khởi động và mẫu dùng lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-006
+    title: Truy cập quản trị qua SSH, RDP, bastion và kết nối riêng có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-007
+    title: Cập nhật hệ điều hành, vá lỗi và quản lý phiên bản ảnh máy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-008
+    title: Hạ tầng dùng chung, máy chủ dành riêng và yêu cầu cô lập tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-machines-009
+    title: 'Khởi động, dừng, khởi động lại và xóa máy: ảnh hưởng đến trạng thái và tài nguyên đi kèm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: containers
+  title: Container
+  childs:
+  - slug: containers-001
+    title: 'Container và máy ảo: cơ chế cô lập, mật độ triển khai và giới hạn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-002
+    title: Ảnh container, kho lưu trữ ảnh và quản lý phiên bản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-003
+    title: Nền tảng chạy container được quản lý và cụm điều phối Kubernetes
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-004
+    title: Đơn vị triển khai, số bản sao, kiểm tra sức khỏe và vòng đời tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-005
+    title: Yêu cầu CPU, bộ nhớ, giới hạn tài nguyên và khả năng mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-006
+    title: Kết nối dịch vụ, cấu hình mạng và tiếp nhận lưu lượng vào ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-007
+    title: Dữ liệu tạm thời, ổ đĩa bền vững và cấu hình bên ngoài ảnh container
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: containers-008
+    title: Quét ảnh, bảo vệ thông tin bí mật, thu thập nhật ký và cập nhật ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: serverless
+  title: Serverless
+  childs:
+  - slug: serverless-001
+    title: Mô hình serverless và phần hạ tầng nhà cung cấp quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-002
+    title: Hàm, runtime, sự kiện kích hoạt và tích hợp với dịch vụ đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-003
+    title: Gọi đồng bộ, gọi bất đồng bộ và xử lý thông điệp từ hàng đợi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-004
+    title: Giới hạn thời gian chạy, bộ nhớ, dung lượng tạm và môi trường thực thi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-005
+    title: Khởi động nguội, tái sử dụng môi trường và tác động đến độ trễ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-006
+    title: Giới hạn đồng thời, tốc độ tiếp nhận và kiểm soát tải xuống dịch vụ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-007
+    title: Xử lý không lưu trạng thái, sự kiện trùng lặp, thử lại và tính lũy đẳng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-008
+    title: Phối hợp nhiều bước xử lý và quản lý lỗi trong luồng công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: serverless-009
+    title: Chi phí theo lượt gọi và thời gian thực thi; trường hợp phù hợp và không phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: storage-fundamentals
+  title: Nền tảng lưu trữ
+  childs:
+  - slug: storage-fundamentals-001
+    title: Phân biệt lưu trữ đối tượng, lưu trữ khối và lưu trữ tệp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-002
+    title: Dung lượng, IOPS, thông lượng và độ trễ khi đánh giá hiệu năng lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-003
+    title: 'Độ bền dữ liệu và tính sẵn sàng: ý nghĩa và phạm vi cam kết'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-004
+    title: Dữ liệu bền vững và dữ liệu tạm thời trong vòng đời tài nguyên tính toán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-005
+    title: Lớp truy cập thường xuyên, ít truy cập và lưu trữ dài hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-006
+    title: Mô hình truy cập, chia sẻ đồng thời và yêu cầu nhất quán dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-007
+    title: Giới hạn dung lượng, kích thước đối tượng, số lượt gọi và tốc độ truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: storage-fundamentals-008
+    title: Chọn loại lưu trữ theo ứng dụng, yêu cầu khôi phục và cơ cấu chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: object-storage
+  title: Lưu trữ đối tượng
+  childs:
+  - slug: object-storage-001
+    title: Bucket, khóa đối tượng, metadata và cách tổ chức dữ liệu không phụ thuộc thư mục vật lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-002
+    title: Tải lên, tải xuống, tải nhiều phần và xử lý tệp dung lượng lớn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-003
+    title: Chính sách truy cập, chặn truy cập công khai và chia sẻ có thời hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-004
+    title: Phiên bản đối tượng, khôi phục bản đã xóa và bảo vệ khỏi ghi đè ngoài ý muốn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-005
+    title: Chính sách vòng đời, chuyển lớp lưu trữ và thời hạn giữ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-006
+    title: Sao chép đối tượng, phạm vi bảo vệ và mô hình nhất quán của dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-007
+    title: Mã hóa đối tượng, quản lý khóa và bảo vệ đường truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-008
+    title: Phân phối nội dung tĩnh qua CDN và bảo vệ nguồn dữ liệu gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: object-storage-009
+    title: Ứng dụng cho nội dung đa phương tiện, nhật ký, bản sao lưu và kho dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: block-and-file-storage
+  title: Lưu trữ khối và tệp
+  childs:
+  - slug: block-and-file-storage-001
+    title: Ổ đĩa khối, gắn vào máy ảo và phân tách đĩa hệ điều hành với đĩa dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-002
+    title: Loại ổ đĩa, mức IOPS, thông lượng và giới hạn từ máy sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-003
+    title: Snapshot ổ đĩa, bản sao tăng dần và phục hồi thành ổ đĩa mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-004
+    title: Dịch vụ tệp dùng chung qua NFS, SMB và yêu cầu kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-005
+    title: Truy cập đồng thời, quyền trên tệp, khóa tệp và tính nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-006
+    title: Đĩa cục bộ tạm thời và nguy cơ mất dữ liệu khi thay đổi máy chủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-007
+    title: Mở rộng dung lượng, hệ thống tệp và giới hạn thay đổi khi đang hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: block-and-file-storage-008
+    title: Chọn lưu trữ khối hoặc tệp cho cơ sở dữ liệu, ứng dụng và nội dung dùng chung
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-services
+  title: Dịch vụ dữ liệu
+  childs:
+  - slug: data-services-001
+    title: Cơ sở dữ liệu quan hệ, SQL, giao dịch và cấu trúc dữ liệu có lược đồ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-002
+    title: 'NoSQL: mô hình khóa giá trị, tài liệu, cột và đồ thị theo nhu cầu truy vấn'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-003
+    title: Cơ sở dữ liệu được quản lý và tự triển khai trên máy ảo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-004
+    title: Bản sao đọc, sao chép dữ liệu, chuyển đổi dự phòng và khác biệt với sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-005
+    title: Nhất quán mạnh, nhất quán cuối cùng và đánh đổi khi phân phối dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-006
+    title: Bộ nhớ đệm, thời hạn dữ liệu và xử lý dữ liệu đệm lỗi thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-007
+    title: Kết nối riêng, xác thực ứng dụng, mã hóa và kiểm soát quyền truy vấn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-008
+    title: Dung lượng, hiệu năng truy vấn, số kết nối và cách mở rộng cơ sở dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-services-009
+    title: Thay đổi lược đồ, chuyển dữ liệu và khôi phục theo thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: virtual-networking
+  title: Mạng đám mây
+  childs:
+  - slug: virtual-networking-001
+    title: Mạng ảo VPC, VNet và phạm vi cô lập tài nguyên mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-002
+    title: IPv4, IPv6, CIDR, địa chỉ riêng và địa chỉ công cộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-003
+    title: Subnet và mối quan hệ với vùng, vùng sẵn sàng của từng nền tảng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-004
+    title: Bảng định tuyến, cổng mạng, tuyến mặc định và đường đi của gói tin
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-005
+    title: 'Subnet công cộng và riêng: đánh giá theo định tuyến và khả năng truy cập'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-006
+    title: Internet gateway, NAT và điều kiện để tài nguyên riêng truy cập Internet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-007
+    title: 'Security group và ACL mạng: lọc có trạng thái, không trạng thái và khác biệt nền tảng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-008
+    title: Cổng, giao thức TCP, UDP, ICMP và quy tắc cho lưu lượng phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-009
+    title: Quy hoạch địa chỉ, tránh dải mạng chồng lấn và dự phòng địa chỉ khi mở rộng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: virtual-networking-010
+    title: DNS công cộng, DNS riêng và phân giải tên trong mạng đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: network-connectivity
+  title: Kết nối mạng
+  childs:
+  - slug: network-connectivity-001
+    title: Peering giữa các mạng ảo và giới hạn chuyển tiếp kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-002
+    title: Mô hình mạng trung tâm, mạng nhánh và dịch vụ trung chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-003
+    title: Điểm kết nối riêng đến dịch vụ và cách hạn chế truy cập qua Internet
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-004
+    title: VPN giữa các địa điểm, VPN người dùng và bảo vệ đường hầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-005
+    title: Kết nối chuyên dụng giữa hạ tầng tại chỗ và nhà cung cấp đám mây
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-006
+    title: Định tuyến tĩnh, định tuyến động và vai trò cơ bản của BGP
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-007
+    title: Đánh giá băng thông, độ trễ, thông lượng và chi phí truyền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: network-connectivity-008
+    title: Chẩn đoán kết nối theo DNS, tuyến đường, luật lọc và nhật ký luồng mạng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: traffic-distribution
+  title: Phân phối lưu lượng
+  childs:
+  - slug: traffic-distribution-001
+    title: Cân bằng tải lớp 4 và lớp 7 theo loại giao thức và yêu cầu ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-002
+    title: Bộ lắng nghe, nhóm đích, kiểm tra sức khỏe và phân phối yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-003
+    title: Cân bằng tải công cộng, nội bộ và ranh giới tiếp nhận lưu lượng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-004
+    title: Chứng chỉ TLS, kết thúc TLS và mã hóa từ người dùng đến dịch vụ đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-005
+    title: Tên miền, bản ghi DNS, TTL và ảnh hưởng khi thay đổi đích truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-006
+    title: 'CDN: máy chủ gốc, bộ nhớ đệm tại biên, thời hạn và vô hiệu hóa nội dung'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-007
+    title: Định tuyến toàn cục theo độ trễ, vị trí và tình trạng dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: traffic-distribution-008
+    title: WAF, phòng chống DDoS và giới hạn tốc độ yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: identity-and-access
+  title: Danh tính và quyền
+  childs:
+  - slug: identity-and-access-001
+    title: Người dùng, nhóm, vai trò và danh tính của ứng dụng hoặc dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-002
+    title: Xác thực, phân quyền và đánh giá chính sách cho một yêu cầu truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-003
+    title: Quyền tối thiểu, kiểm soát theo vai trò và kiểm soát theo thuộc tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-004
+    title: Xác thực nhiều yếu tố, đăng nhập một lần và liên kết danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-005
+    title: Thông tin xác thực ngắn hạn và danh tính gắn với tài nguyên chạy ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-006
+    title: Ủy quyền, nhận vai trò và truy cập giữa các tài khoản hoặc dự án
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-007
+    title: Chính sách gắn danh tính, gắn tài nguyên và quy tắc từ chối truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-008
+    title: Kho bí mật, luân chuyển thông tin xác thực và ngăn lộ khóa trong mã nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-009
+    title: Tài khoản khẩn cấp, kiểm toán quyền và rà soát truy cập định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: identity-and-access-010
+    title: Chẩn đoán lỗi thiếu quyền theo danh tính, hành động, tài nguyên và điều kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: shared-security-responsibility
+  title: Trách nhiệm bảo mật
+  childs:
+  - slug: shared-security-responsibility-001
+    title: Nguyên tắc trách nhiệm chung giữa nhà cung cấp và khách hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-002
+    title: 'IaaS: trách nhiệm với hệ điều hành, bản vá, mạng và ứng dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-003
+    title: 'PaaS và serverless: trách nhiệm với mã nguồn, danh tính và cấu hình dịch vụ'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-004
+    title: 'SaaS: trách nhiệm với tài khoản, quyền truy cập, dữ liệu và cấu hình sử dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-005
+    title: Phân loại dữ liệu, quyền sở hữu và yêu cầu về nơi lưu trữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-006
+    title: Mã hóa khi truyền, khi lưu và trách nhiệm quản lý khóa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-007
+    title: Phòng thủ nhiều lớp, phân đoạn mạng và kiểm soát truy cập theo danh tính
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-008
+    title: Cấu hình an toàn, phát hiện tài nguyên công khai và quản lý lỗ hổng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-009
+    title: Nhật ký kiểm toán, phát hiện sự cố và các bước ứng phó ban đầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shared-security-responsibility-010
+    title: Yêu cầu tuân thủ, thời hạn lưu giữ và bằng chứng kiểm soát bảo mật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: monitoring-and-observability
+  title: Giám sát hệ thống
+  childs:
+  - slug: monitoring-and-observability-001
+    title: Số liệu, nhật ký, dấu vết phân tán và mã liên kết yêu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-002
+    title: Chỉ số CPU, bộ nhớ, lưu trữ, mạng và chỉ số chất lượng ứng dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-003
+    title: Thu thập nhật ký tập trung, truy vấn, phân quyền và thời hạn lưu giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-004
+    title: Bảng theo dõi, kiểm tra sức khỏe và kiểm tra từ góc nhìn người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-005
+    title: Cảnh báo theo ngưỡng, giảm nhiễu và gắn hướng dẫn xử lý sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-006
+    title: Theo dõi sự kiện quản trị, cấu hình tài nguyên và thay đổi bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-007
+    title: Trạng thái dịch vụ của nhà cung cấp và sự kiện bảo trì hạ tầng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-008
+    title: Theo dõi mức sử dụng, hạn ngạch và dấu hiệu chi phí bất thường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: monitoring-and-observability-009
+    title: Khoanh vùng sự cố bằng triệu chứng, thời điểm, thay đổi và dữ liệu quan sát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: scaling-and-performance
+  title: Mở rộng và hiệu năng
+  childs:
+  - slug: scaling-and-performance-001
+    title: 'Mở rộng theo chiều dọc và chiều ngang: lợi ích, giới hạn và điều kiện áp dụng'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-002
+    title: 'Khả năng mở rộng và tính co giãn: đáp ứng tăng trưởng và biến động tải'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-003
+    title: Mở rộng thủ công, theo lịch và tự động theo tín hiệu sử dụng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-004
+    title: Chọn chỉ số, ngưỡng, thời gian ổn định và thời gian khởi tạo tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-005
+    title: Thiết kế không lưu trạng thái và đưa phiên làm việc, dữ liệu ra dịch vụ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-006
+    title: Nhận diện nút thắt ở CPU, bộ nhớ, I/O, mạng, truy vấn và số kết nối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-007
+    title: Bộ nhớ đệm, CDN, hàng đợi và xử lý bất đồng bộ để hấp thụ tải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-008
+    title: Kiểm thử tải, đo độ trễ theo phân vị và lập kế hoạch công suất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: scaling-and-performance-009
+    title: Hạn ngạch, công suất sẵn có và bảo vệ hệ thống khi không thể mở rộng thêm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reliability
+  title: Độ tin cậy
+  childs:
+  - slug: reliability-001
+    title: Phân biệt độ tin cậy, tính sẵn sàng và độ bền dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-002
+    title: SLI, SLO, SLA và ý nghĩa của ngân sách lỗi đối với vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-003
+    title: Thời gian giữa các lần lỗi, thời gian khôi phục và tác động đến người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-004
+    title: Điểm lỗi đơn, dịch vụ phụ thuộc và ảnh hưởng của lỗi dây chuyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-005
+    title: Nhiều bản sao ứng dụng và triển khai qua nhiều vùng sẵn sàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-006
+    title: 'Nhiều vùng địa lý: chủ động, dự phòng và đánh đổi về đồng bộ dữ liệu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-007
+    title: Kiểm tra sức khỏe, thay thế tài nguyên lỗi và chuyển đổi dự phòng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-008
+    title: Timeout, thử lại có giãn cách ngẫu nhiên, ngắt mạch và xử lý lũy đẳng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-009
+    title: Giảm chức năng có kiểm soát, giới hạn tải và duy trì dịch vụ cốt lõi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reliability-010
+    title: Kiểm tra khả năng chịu lỗi và xác minh mức cô lập giữa các miền triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: backup-and-recovery
+  title: Sao lưu và khôi phục
+  childs:
+  - slug: backup-and-recovery-001
+    title: Phân biệt sao lưu, snapshot, sao chép dữ liệu và khôi phục thảm họa
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-002
+    title: RPO, RTO và lựa chọn mục tiêu theo tác động nghiệp vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-003
+    title: Lịch sao lưu, thời hạn lưu giữ, bản sao đầy đủ và bản sao tăng dần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-004
+    title: Tính nhất quán ứng dụng và khôi phục dữ liệu theo thời điểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-005
+    title: Mã hóa, quyền khôi phục, bản sao bất biến và lưu tách tài khoản hoặc vùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-006
+    title: Chiến lược khôi phục từ bản sao, nền tảng tối thiểu, dự phòng ấm và nhiều nơi cùng hoạt động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-007
+    title: Thứ tự khôi phục mạng, danh tính, bí mật, dữ liệu, ứng dụng và DNS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-008
+    title: Diễn tập phục hồi, kiểm tra toàn vẹn và đo thời gian khôi phục thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: backup-and-recovery-009
+    title: Hết hạn bản sao, yêu cầu xóa dữ liệu và kiểm soát chi phí lưu giữ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: cost-management
+  title: Chi phí đám mây
+  childs:
+  - slug: cost-management-001
+    title: Đơn vị tính phí theo thời gian, dung lượng, lượt gọi và lưu lượng truyền
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-002
+    title: Chi phí đầu tư, chi phí vận hành và tổng chi phí sở hữu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-003
+    title: Trả theo sử dụng, cam kết sử dụng, đặt trước công suất và tài nguyên có thể bị thu hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-004
+    title: 'Chi phí máy ảo: trạng thái dừng, ổ đĩa, ảnh chụp và địa chỉ IP đi kèm'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-005
+    title: 'Chi phí lưu trữ: lớp dữ liệu, yêu cầu truy cập, truy xuất và thời gian lưu tối thiểu'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-006
+    title: 'Chi phí mạng: truyền giữa vị trí, ra Internet, NAT và cân bằng tải'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-007
+    title: Ngân sách, cảnh báo, nhãn chi phí và phân bổ chi phí theo đội ngũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-008
+    title: Chọn đúng kích thước, tự động co giãn, lịch tắt tài nguyên và thu hồi phần không dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-009
+    title: Ước tính bằng bảng giá, công cụ tính và chi phí trên một đơn vị phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: cost-management-010
+    title: Đối chiếu dự toán với hóa đơn, phát hiện sai lệch và tổ chức vòng lặp tối ưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: infrastructure-automation
+  title: Tự động hóa hạ tầng
+  childs:
+  - slug: infrastructure-automation-001
+    title: Hạ tầng dưới dạng mã, cấu hình khai báo và tính lũy đẳng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-002
+    title: Lựa chọn Console, CLI, SDK hoặc công cụ hạ tầng dưới dạng mã theo tác vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-003
+    title: Mẫu cấu hình, mô-đun dùng lại, tham số và tách biệt môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-004
+    title: Xem trước thay đổi, áp dụng cấu hình, quản lý trạng thái và khóa đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-005
+    title: Quản lý bí mật, danh tính và quyền tối thiểu trong quy trình tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-006
+    title: Quản lý phiên bản, rà soát thay đổi và lưu dấu vết triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-007
+    title: Phát hiện chênh lệch giữa cấu hình khai báo với tài nguyên đang chạy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-008
+    title: Triển khai cuốn chiếu, xanh lam xanh lục, canary và phương án quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: infrastructure-automation-009
+    title: Xóa tài nguyên theo phụ thuộc, bảo vệ dữ liệu và kiểm tra phần còn phát sinh phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: workload-migration
+  title: Di chuyển lên đám mây
+  childs:
+  - slug: workload-migration-001
+    title: Kiểm kê hệ thống, sơ đồ phụ thuộc và số liệu hiệu năng trước di chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-002
+    title: Lựa chọn giữ lại, chuyển nguyên trạng, tối ưu nền tảng hoặc thiết kế lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-003
+    title: Đánh giá tương thích, bản quyền, dung lượng dữ liệu và dịch vụ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-004
+    title: Chuyển dữ liệu, đồng bộ thay đổi và xác minh tính toàn vẹn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-005
+    title: Chuẩn bị kết nối, danh tính, bảo mật và giám sát cho giai đoạn chuyển đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-006
+    title: Chạy thử, chuyển lưu lượng, cửa sổ gián đoạn và phương án quay lui
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-007
+    title: Đánh giá hiệu năng, chi phí và trách nhiệm vận hành sau di chuyển
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: workload-migration-008
+    title: Khả năng chuyển nhà cung cấp, xuất dữ liệu và kế hoạch rời dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: architecture-scenarios
+  title: Tình huống kiến trúc
+  childs:
+  - slug: architecture-scenarios-001
+    title: Website tĩnh với lưu trữ đối tượng, CDN, tên miền và TLS
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-002
+    title: Ứng dụng web ba lớp với cân bằng tải, ứng dụng và cơ sở dữ liệu riêng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-003
+    title: Môi trường phát triển trên máy ảo với lịch hoạt động và ngân sách giới hạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-004
+    title: API trên container được quản lý với kiểm tra sức khỏe và quyền truy cập dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-005
+    title: Xử lý tệp theo sự kiện với serverless, hàng đợi và cơ chế thử lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-006
+    title: Xử lý theo lô bằng tài nguyên có thể bị thu hồi và lưu tiến độ công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-007
+    title: Ứng dụng dùng chung tệp với phân quyền, sao lưu và yêu cầu đồng thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-008
+    title: Ứng dụng lai với kết nối riêng và dữ liệu nằm ở nhiều môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: architecture-scenarios-009
+    title: So sánh phương án theo bảo mật, hiệu năng, độ tin cậy, mở rộng và chi phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: foundational-labs
+  title: Thực hành nền tảng
+  childs:
+  - slug: foundational-labs-001
+    title: Chuẩn bị môi trường thử nghiệm, bật MFA, đặt ngân sách và gắn nhãn tài nguyên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-002
+    title: Tạo mạng nhỏ, subnet, bảng định tuyến và quy tắc truy cập tối thiểu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-003
+    title: Khởi tạo máy ảo, kết nối quản trị an toàn và kiểm tra tài nguyên đi kèm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-004
+    title: Triển khai ứng dụng container với giới hạn CPU, bộ nhớ và số bản sao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-005
+    title: Tạo hàm xử lý sự kiện, quan sát nhật ký và kiểm tra xử lý lặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-006
+    title: Tạo kho đối tượng riêng, bật phiên bản và thiết lập vòng đời dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-007
+    title: Kết nối cơ sở dữ liệu qua mạng riêng, cấp quyền ứng dụng và tạo bản sao lưu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-008
+    title: Tạo bảng giám sát, cảnh báo và ghi lại các bước chẩn đoán sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-009
+    title: Thử thay đổi tải, mô phỏng mất một phiên bản và kiểm tra phục hồi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: foundational-labs-010
+    title: Đối chiếu chi phí, thu hồi tài nguyên thử nghiệm và kiểm tra phần còn tính phí
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

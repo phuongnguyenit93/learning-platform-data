@@ -1,0 +1,57 @@
+roadmap:
+- id: secure-by-design-tu-duy-rui-ro
+  title: Secure by Design & tư duy rủi ro
+  purpose: Đưa yêu cầu và giả định bảo mật vào quyết định thiết kế ngay từ đầu thay vì vá lỗi về sau.
+  objectives:
+  - Xác định tài sản, tác nhân và mục tiêu bảo vệ của ứng dụng.
+  - Nêu các giả định và ranh giới tin cậy trên sơ đồ đơn giản.
+  - Giải thích khác biệt giữa secure by design và kiểm thử bảo mật cuối kỳ.
+- id: mac-dinh-an-toan-toi-gian
+  title: Mặc định an toàn & tối giản
+  purpose: Giảm cấu hình nguy hiểm và bề mặt tấn công trước khi phần mềm được đưa vào vận hành.
+  objectives:
+  - Thiết kế deny by default cho quyền và tính năng nhạy cảm.
+  - Liệt kê endpoint, cổng, dịch vụ và thành phần không cần thiết.
+  - Áp dụng cấu hình an toàn mà không phụ thuộc thao tác thủ công.
+- id: least-privilege-phan-tach-nhiem-vu
+  title: Least Privilege & phân tách nhiệm vụ
+  purpose: Chỉ cấp quyền tối thiểu và tránh để một chủ thể tự kiểm soát toàn bộ giao dịch nhạy cảm.
+  objectives:
+  - Phân biệt danh tính, vai trò và quyền trên từng tài nguyên.
+  - Thiết kế quyền tối thiểu cho người dùng và service account.
+  - Chọn điểm cần separation of duties và phê duyệt độc lập.
+- id: kiem-tra-moi-ranh-gioi-tin-cay
+  title: Kiểm tra mọi ranh giới tin cậy
+  purpose: Tránh tin tưởng mặc nhiên vào client, mạng nội bộ hoặc kết quả kiểm tra từ tầng trước.
+  objectives:
+  - Xác thực và phân quyền tại điểm thực thi trên mỗi request.
+  - Kiểm tra quyền truy cập từng đối tượng, không chỉ endpoint.
+  - Nhận diện rủi ro khi bỏ qua kiểm tra ở lời gọi nội bộ.
+- id: defense-in-depth-co-lap
+  title: Defense in Depth & cô lập
+  purpose: Hạn chế phạm vi thiệt hại khi một biện pháp bảo vệ hoặc thành phần thất bại.
+  objectives:
+  - Vẽ các lớp bảo vệ từ mạng, ứng dụng tới dữ liệu.
+  - Tách vùng xử lý nhạy cảm bằng quyền và ranh giới rõ ràng.
+  - Mô tả cách hệ thống vẫn hạn chế rủi ro khi một lớp bị vượt qua.
+- id: kiem-soat-du-lieu-khong-tin-cay
+  title: Kiểm soát dữ liệu không tin cậy
+  purpose: Giảm lỗi xử lý dữ liệu và bảo vệ thông tin nhạy cảm ngay từ thiết kế giao diện dữ liệu.
+  objectives:
+  - Xác định đầu vào không tin cậy và ràng buộc kiểu, độ dài, ngữ nghĩa.
+  - Ưu tiên truy vấn tham số hóa và encode đầu ra theo ngữ cảnh.
+  - Giảm dữ liệu nhạy cảm lưu giữ; dùng TLS và mã hóa phù hợp.
+- id: fail-securely-loi-an-toan
+  title: Fail Securely & lỗi an toàn
+  purpose: Đảm bảo sự cố không vô tình mở quyền hoặc để lộ chi tiết nội bộ.
+  objectives:
+  - Thiết kế kết quả từ chối truy cập khi kiểm tra quyền thất bại.
+  - Trả lỗi hữu ích mà không lộ secret hoặc stack trace.
+  - Phân biệt fail-safe security với khả năng dự phòng dịch vụ.
+- id: danh-gia-kiem-chung-thiet-ke
+  title: Đánh giá & kiểm chứng thiết kế
+  purpose: Biến nguyên tắc thành tiêu chí đánh giá có thể kiểm thử và cải tiến.
+  objectives:
+  - Review sơ đồ kiến trúc bằng tình huống lạm dụng và trust boundary.
+  - Đối chiếu biện pháp bảo vệ với checklist OWASP ASVS.
+  - Viết test cho trường hợp từ chối, kiểm tra quyền và lỗi bất thường.

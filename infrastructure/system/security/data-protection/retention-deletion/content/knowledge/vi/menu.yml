@@ -1,0 +1,554 @@
+menu:
+- level1: Khái niệm retention deletion
+  level2:
+  - Data retention là gì
+  - Data deletion là gì
+  - Retention so với backup
+  - Retention so với archive
+  - Deletion so với offline storage
+  - Mục tiêu storage limitation
+  - Mục tiêu giảm rủi ro dữ liệu
+  - Vòng đời của một bản ghi
+  - Retention trong production
+  - Nguyên tắc không giữ dữ liệu “just in case”
+- level1: Phạm vi dữ liệu
+  level2:
+  - Dữ liệu người dùng
+  - Dữ liệu nghiệp vụ
+  - Dữ liệu giao dịch
+  - Dữ liệu vận hành
+  - Dữ liệu audit
+  - Dữ liệu bảo mật
+  - Dữ liệu tạm thời
+  - Dữ liệu dẫn xuất
+  - Dữ liệu backup
+  - Dữ liệu do bên thứ ba lưu
+- level1: Inventory dữ liệu
+  level2:
+  - Data inventory
+  - System of record
+  - Data owner
+  - Data custodian
+  - Data processor
+  - Data consumer
+  - Data location
+  - Data flow
+  - Data copy
+  - Data lineage
+  - Đối soát inventory định kỳ
+- level1: Phân loại dữ liệu
+  level2:
+  - Public data
+  - Internal data
+  - Confidential data
+  - Restricted data
+  - Personal data
+  - Sensitive personal data
+  - Regulated record
+  - Business critical record
+  - Security log
+  - Legal record
+  - Classification thay đổi theo ngữ cảnh
+- level1: Mục đích và cơ sở
+  level2:
+  - Purpose of processing
+  - Specified purpose
+  - Compatible purpose
+  - Lawful basis
+  - Business justification
+  - Legal obligation
+  - Contractual obligation
+  - Consent record
+  - Purpose change
+  - Không dùng dữ liệu ngoài mục đích
+  - Đối chiếu purpose với retention
+- level1: Retention policy
+  level2:
+  - Retention policy (bổ sung 2)
+  - Retention schedule
+  - Retention category
+  - Retention period
+  - Retention trigger
+  - Retention owner
+  - Review frequency
+  - Exception process
+  - Policy version
+  - Policy communication
+  - Policy enforcement
+- level1: Retention schedule (bổ sung 2)
+  level2:
+  - Bảng thời hạn theo loại record
+  - Ngày bắt đầu tính retention
+  - Event-based retention
+  - Time-based retention
+  - Retention theo trạng thái
+  - Retention theo jurisdiction
+  - Retention theo business unit
+  - Retention theo hệ thống
+  - Retention theo mức nhạy cảm
+  - Ngày review tiếp theo
+- level1: Retention trigger (bổ sung 2)
+  level2:
+  - Account closure trigger
+  - Contract termination trigger
+  - Transaction completion trigger
+  - Incident closure trigger
+  - Employment termination trigger
+  - Case closure trigger
+  - Publication trigger
+  - Last activity trigger
+  - Ingestion timestamp
+  - Legal hold override
+- level1: Legal hold
+  level2:
+  - Legal hold là gì
+  - Khi nào áp dụng legal hold
+  - Hold theo vụ việc
+  - Hold theo custodians
+  - Hold trên nhiều hệ thống
+  - Ngăn deletion tự động
+  - Thông báo hold
+  - Release legal hold
+  - Audit quyết định hold
+  - Đối soát dữ liệu được giữ
+- level1: Archive
+  level2:
+  - Active record và archived record
+  - Archive tier
+  - Cold storage
+  - Archive access
+  - Archive encryption
+  - Archive integrity
+  - Archive metadata
+  - Archive retrieval
+  - Archive retention
+  - Disposition sau archive
+  - Đưa archive ra khỏi production
+- level1: Deletion lifecycle
+  level2:
+  - Đánh dấu record đến hạn
+  - Eligibility check
+  - Approval trước deletion
+  - Soft delete
+  - Hard delete
+  - Purge job
+  - Deletion propagation
+  - Deletion verification
+  - Deletion evidence
+  - Disposition hoàn tất
+- level1: Soft delete (bổ sung 2)
+  level2:
+  - Cờ deleted
+  - Deleted_at timestamp
+  - Ẩn khỏi truy vấn nghiệp vụ
+  - Khôi phục soft-deleted record
+  - Quyền truy cập record đã ẩn
+  - Retention của thùng rác
+  - Purge sau soft delete
+  - Soft delete không phải xóa hoàn toàn
+  - Đồng bộ soft delete sang hệ khác
+  - Kiểm thử orphan record
+- level1: Hard delete (bổ sung 2)
+  level2:
+  - Xóa bản ghi vật lý
+  - Cascade delete
+  - Foreign key dependency
+  - Delete theo batch
+  - Delete theo partition
+  - Delete không làm nghẽn hệ thống
+  - Xử lý orphan data
+  - Transaction của delete
+  - Rollback khi purge lỗi
+  - Đếm record trước và sau purge
+- level1: Anonymization
+  level2:
+  - Anonymization là gì
+  - Khi nào anonymize thay vì delete
+  - Irreversibility
+  - K-anonymity
+  - Generalization
+  - Suppression
+  - Randomization
+  - Aggregation
+  - Kiểm chứng không thể nhận diện
+  - Retention của dữ liệu đã anonymize
+- level1: Pseudonymization
+  level2:
+  - Pseudonymization là gì
+  - Tokenization
+  - Mapping table
+  - Tách khóa mapping
+  - Bảo vệ pseudonym key
+  - Re-identification risk
+  - Access đến mapping
+  - Pseudonymization trong analytics
+  - Pseudonymization không phải deletion
+  - Xóa mapping để vô hiệu nhận diện
+- level1: Database deletion
+  level2:
+  - Delete trong relational database
+  - Partition drop
+  - Purge theo primary key
+  - Index và dữ liệu còn sót
+  - Materialized view
+  - Read replica
+  - Transaction log
+  - CDC log
+  - Database backup
+  - Vacuum và compaction
+  - Xác minh dữ liệu đã biến mất
+- level1: Object và file
+  level2:
+  - Xóa object storage
+  - Object versioning
+  - Delete marker
+  - Lifecycle rule
+  - Multipart upload dở dang
+  - File system delete
+  - Trash và recycle bin
+  - Shared drive
+  - File metadata
+  - Object replication
+  - Xác minh object ở mọi bucket
+- level1: Log retention
+  level2:
+  - Security log retention
+  - Application log retention
+  - Access log retention
+  - Audit log retention
+  - Log aggregation
+  - Log archive
+  - Log masking
+  - Log rotation
+  - Log deletion
+  - Log immutability
+  - Cân bằng điều tra và privacy
+- level1: Backup
+  level2:
+  - Backup retention policy
+  - Full và incremental backup
+  - Backup expiration
+  - Backup deletion
+  - Backup catalog
+  - Backup encryption
+  - Backup access control
+  - Backup copy
+  - Backup không đồng nghĩa archive
+  - Restore trước khi hết retention
+  - Evidence deletion khỏi backup
+- level1: Replica và cache
+  level2:
+  - Read replica (bổ sung 2)
+  - Cross-region replica
+  - Database standby
+  - Cache entry
+  - CDN cache
+  - Search cache
+  - Application cache
+  - Message replay buffer
+  - Temporary export
+  - Xóa dữ liệu khỏi bản sao
+  - Cache invalidation
+- level1: Search index
+  level2:
+  - Search index chứa dữ liệu gì
+  - Index deletion
+  - Document tombstone
+  - Reindex sau deletion
+  - Search snapshot
+  - Autocomplete index
+  - Analytics index
+  - Log search index
+  - Chỉ mục bên thứ ba
+  - Kiểm tra dữ liệu còn searchable
+- level1: Message và event
+  level2:
+  - Message retention
+  - Queue retention
+  - Topic retention
+  - Dead-letter message
+  - Event replay
+  - Event store
+  - Consumer offset
+  - Xóa message đã xử lý
+  - Deletion event
+  - Downstream propagation
+  - Retention của event audit
+- level1: SaaS và bên thứ ba
+  level2:
+  - Third-party data inventory
+  - Processor retention
+  - Contractual deletion
+  - Subprocessor copy
+  - Vendor backup
+  - Vendor archive
+  - Vendor deletion certificate
+  - Offboarding data
+  - Data return
+  - Data export trước deletion
+  - Xác minh deletion từ bên thứ ba
+- level1: Cloud
+  level2:
+  - Cloud storage lifecycle
+  - Cloud database retention
+  - Cloud backup vault
+  - Cloud snapshot
+  - Cloud log retention
+  - Cloud object version
+  - Cross-region copy
+  - Cloud provider deletion API
+  - Cloud account closure
+  - Cloud deletion audit
+  - Cloud resource decommission
+- level1: Media sanitization
+  level2:
+  - Media sanitization là gì
+  - Clear
+  - Purge
+  - Destroy
+  - Sanitization theo mức nhạy cảm
+  - Sanitization của HDD
+  - Sanitization của SSD
+  - Sanitization của mobile device
+  - Sanitization của removable media
+  - Sanitization vendor
+  - Certificate of destruction
+- level1: Cryptographic erase
+  level2:
+  - Cryptographic erase là gì
+  - Xóa encryption key
+  - Key hierarchy và erase
+  - Envelope encryption
+  - Key destruction evidence
+  - Key backup dependency
+  - KMS key deletion schedule
+  - HSM key destruction
+  - Data không đọc được sau erase
+  - Kiểm thử crypto erase
+- level1: Deletion request
+  level2:
+  - Tiếp nhận yêu cầu xóa
+  - Xác minh danh tính requester
+  - Xác định phạm vi yêu cầu
+  - Tìm dữ liệu liên quan
+  - Kiểm tra ngoại lệ pháp lý
+  - Legal hold conflict
+  - Phê duyệt request
+  - Deadline xử lý
+  - Thông báo kết quả
+  - Lưu evidence request
+  - Khi deletion không khả thi
+- level1: Data subject rights
+  level2:
+  - Right to erasure
+  - Right to restriction
+  - Access request liên quan retention
+  - Correction trước deletion
+  - Objection to processing
+  - Identity proof
+  - Scope discovery
+  - Third-party notification
+  - Exception documentation
+  - Response tracking
+- level1: Privacy by design
+  level2:
+  - Storage limitation by design
+  - Data minimization
+  - Purpose limitation
+  - Default retention ngắn
+  - Privacy impact assessment
+  - Data protection by design
+  - Privacy-friendly defaults
+  - Phân tách dữ liệu định danh
+  - Giảm dữ liệu bản sao
+  - Đánh giá lại khi đổi tính năng
+- level1: Accuracy và review
+  level2:
+  - Review dữ liệu hết hạn
+  - Dữ liệu không còn chính xác
+  - Dữ liệu trùng lặp
+  - Dữ liệu không dùng
+  - Dữ liệu thiếu owner
+  - Review theo risk
+  - Automated expiry flag
+  - Manual review queue
+  - Record disposition
+  - Cập nhật retention schedule
+- level1: Access control deletion
+  level2:
+  - Ai được xóa dữ liệu
+  - Role cho purge operator
+  - Four-eyes approval
+  - Separation of duties
+  - Delete permission theo scope
+  - Read permission khi điều tra
+  - Break-glass deletion
+  - MFA cho thao tác xóa
+  - Audit privileged deletion
+  - Ngăn xóa trái phép
+- level1: Encryption và deletion
+  level2:
+  - Encryption at rest
+  - Encryption in transit
+  - Key rotation
+  - Key retention
+  - Key destruction
+  - Encrypted backup
+  - Encrypted archive
+  - Delete key so với delete data
+  - Kiểm tra decryptability
+  - Phân tách key owner và data owner
+- level1: Automation
+  level2:
+  - Scheduled retention job
+  - Event-driven deletion
+  - Workflow approval
+  - Batch deletion worker
+  - Rate limit purge
+  - Retry deletion
+  - Idempotent deletion
+  - Dead-letter deletion task
+  - Dry run deletion
+  - Canary deletion
+  - Pause và resume purge
+- level1: Distributed deletion
+  level2:
+  - Data deletion propagation
+  - Eventual consistency
+  - Cross-service delete event
+  - Correlation ID của deletion
+  - Retry propagation
+  - Downstream failure
+  - Orphan copy detection
+  - Deletion watermark
+  - Cross-region deletion
+  - Đối soát toàn hệ thống
+- level1: Audit và evidence
+  level2:
+  - Deletion request log
+  - Approval log
+  - Purge execution log
+  - Record count before deletion
+  - Record count after deletion
+  - Deletion timestamp
+  - Actor và system identity
+  - Exception log
+  - Evidence integrity
+  - Retention của deletion evidence
+  - Không log dữ liệu nhạy cảm
+- level1: Monitoring
+  level2:
+  - Retention job health
+  - Deletion backlog
+  - Expired record count
+  - Deletion failure rate
+  - Backup deletion status
+  - Third-party deletion status
+  - Storage growth
+  - Archive growth
+  - Search index residual data
+  - Alert khi purge dừng
+  - Audit log availability
+- level1: Incident và breach
+  level2:
+  - Dữ liệu giữ quá hạn
+  - Deletion job thất bại
+  - Xóa nhầm record
+  - Backup chứa dữ liệu đã xóa
+  - Rò rỉ archive
+  - Rò rỉ media chưa sanitize
+  - Unauthorized deletion
+  - Breach trong deletion pipeline
+  - Containment và preservation
+  - Root cause review
+- level1: Restore và recovery
+  level2:
+  - Restore record đã xóa
+  - Restore từ backup hết retention
+  - Data resurrection risk
+  - Delete marker sau restore
+  - Reapply deletion sau restore
+  - Restore trong legal hold
+  - Clean restore environment
+  - Kiểm tra retention sau failover
+  - Disaster recovery deletion
+  - Đối soát bản sao sau khôi phục
+- level1: Kiểm thử
+  level2:
+  - Test retention calculation
+  - Test expiry trigger
+  - Test soft delete
+  - Test hard purge
+  - Test anonymization
+  - Test backup deletion
+  - Test replica propagation
+  - Test search index deletion
+  - Test legal hold
+  - Test deletion request
+  - Test restore và re-delete
+- level1: Metrics
+  level2:
+  - Expired data backlog
+  - Deletion completion rate
+  - Mean time to delete
+  - Deletion failure rate (bổ sung 2)
+  - Retention exception count
+  - Legal hold count
+  - Data inventory coverage
+  - Archive retrieval time
+  - Storage reduction
+  - Backup deletion coverage
+  - Third-party confirmation rate
+- level1: Governance và audit
+  level2:
+  - Retention committee
+  - Data owner accountability
+  - Records manager
+  - Privacy officer
+  - Legal stakeholder
+  - Security stakeholder
+  - Retention exception approval
+  - Audit schedule
+  - Control testing
+  - Policy violation handling
+  - Regulatory evidence
+- level1: Migration
+  level2:
+  - Inventory legacy data
+  - Legacy retention rule
+  - Data migration copy
+  - Retention metadata migration
+  - Archive migration
+  - Delete legacy source
+  - Delete temporary migration files
+  - Validate destination
+  - Reconcile record counts
+  - Decommission old storage
+  - Evidence of decommission
+- level1: Anti-pattern
+  level2:
+  - Giữ dữ liệu vô thời hạn
+  - Retention period không có owner
+  - Xóa bằng cách drop database
+  - Quên backup và replica
+  - Chỉ xóa primary storage
+  - Không xử lý search index
+  - Không xử lý log
+  - Không xử lý vendor copy
+  - Dùng soft delete như hard delete
+  - Xóa không có legal hold check
+  - Không có bằng chứng deletion
+- level1: Checklist production
+  level2:
+  - Đã lập data inventory
+  - Đã phân loại record
+  - Đã có retention schedule
+  - Đã xác định deletion trigger
+  - Đã xử lý legal hold
+  - Đã bao phủ backup và replica
+  - Đã bao phủ log và index
+  - Đã có approval workflow
+  - Đã kiểm thử purge
+  - Đã kiểm thử restore
+  - Đã có audit evidence
+  - Đã có runbook thất bại

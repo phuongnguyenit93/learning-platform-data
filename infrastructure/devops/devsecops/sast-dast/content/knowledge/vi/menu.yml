@@ -1,0 +1,419 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - SAST và DAST là gì, giải quyết vấn đề nào trong phát triển phần mềm
+  - Vai trò của SAST và DAST trong DevSecOps và vòng đời phát triển an toàn
+  - Phân biệt lỗi lập trình, điểm yếu bảo mật, lỗ hổng và khả năng khai thác
+  - So sánh kiểm thử hộp trắng, hộp đen và hộp xám
+  - So sánh SAST và DAST về đầu vào, thời điểm chạy và loại bằng chứng
+  - Kết hợp SAST và DAST để bù đắp khoảng trống phát hiện
+  - Phân biệt SAST, DAST, SCA, quét bí mật và kiểm thử xâm nhập
+  - Nhận diện vai trò bổ trợ của IAST, RASP và kiểm thử bảo mật thủ công
+  - Trách nhiệm của nhóm phát triển, bảo mật và vận hành đối với kết quả quét
+  - Thuật ngữ và thứ tự học để triển khai SAST/DAST từ cơ bản đến vận hành
+- level1: Phạm vi kiểm thử
+  level2:
+  - Xác định ứng dụng, dịch vụ, kho mã và môi trường thuộc phạm vi
+  - Lập danh mục tài sản, điểm vào, dữ liệu nhạy cảm và ranh giới tin cậy
+  - Sử dụng mô hình đe dọa để lựa chọn trường hợp kiểm thử
+  - Chuyển yêu cầu bảo mật thành tiêu chí kiểm chứng được
+  - Liên hệ CWE, OWASP Top 10 và OWASP ASVS với phạm vi kiểm thử
+  - Xác định vai trò người dùng, hành trình nghiệp vụ và ma trận quyền
+  - Phân biệt phạm vi mã nguồn của SAST với bề mặt chạy thực tế của DAST
+  - Xác định giới hạn của quét tự động đối với logic nghiệp vụ
+  - Khoanh vùng dịch vụ bên thứ ba, miền ngoài và tài nguyên không được quét
+  - Ghi nhận giả định, phần loại trừ và rủi ro chưa được kiểm thử
+- level1: Nền tảng web
+  level2:
+  - HTTP request/response, phương thức, mã trạng thái và tiêu đề liên quan đến bảo mật
+  - URL, tham số đường dẫn, query string, request body và kiểu nội dung
+  - Cookie, phiên đăng nhập và vòng đời thông tin xác thực
+  - Phân biệt xác thực, phân quyền và kiểm soát truy cập
+  - Chính sách cùng nguồn, CORS và quan hệ giữa trình duyệt với máy chủ
+  - TLS, chứng thư và vị trí kết thúc mã hóa trong kiến trúc ứng dụng
+  - Luồng dữ liệu giữa giao diện, API, dịch vụ và cơ sở dữ liệu
+  - Khác biệt bề mặt kiểm thử của ứng dụng nhiều trang và ứng dụng SPA
+  - Đặc điểm của REST, GraphQL, WebSocket và gRPC khi lập kế hoạch kiểm thử
+  - Reverse proxy, API gateway, WAF và ảnh hưởng đến quan sát kết quả quét
+- level1: Môi trường an toàn
+  level2:
+  - Xác nhận ủy quyền, mục tiêu, thời gian và giới hạn kiểm thử
+  - Xây dựng môi trường kiểm thử cô lập có cấu hình đại diện
+  - Chuẩn bị dữ liệu tổng hợp và loại bỏ dữ liệu cá nhân thực
+  - Tạo tài khoản kiểm thử theo vai trò và theo từng khách hàng
+  - Giới hạn quyền, thời hạn và cách cấp phát thông tin xác thực cho scanner
+  - Thiết lập miền cho phép, miền loại trừ và giới hạn chuyển hướng
+  - Loại trừ thao tác xóa, thanh toán, gửi thư và tác vụ gây tác động bên ngoài
+  - Đặt giới hạn tốc độ, mức đồng thời và ngân sách tài nguyên
+  - Chuẩn bị nhật ký, giám sát và cơ chế dừng quét khẩn cấp
+  - Khôi phục dữ liệu, dọn tài khoản và trả môi trường về trạng thái ban đầu
+- level1: Cơ chế SAST
+  level2:
+  - Phân tích tĩnh từ mã nguồn, bytecode và các dạng biểu diễn trung gian
+  - Từ phân tích cú pháp đến cây cú pháp trừu tượng AST
+  - Phân tích luồng điều khiển và đồ thị lời gọi
+  - Phân tích luồng dữ liệu và lan truyền dữ liệu không tin cậy
+  - Nguồn dữ liệu, điểm sử dụng nguy hiểm và hàm làm sạch trong phân tích taint
+  - Phân biệt so khớp mẫu với phân tích ngữ nghĩa
+  - Phân tích trong một hàm và xuyên qua nhiều hàm
+  - Độ nhạy theo đường đi, ngữ cảnh và trường dữ liệu
+  - Ảnh hưởng của framework, reflection và mã sinh đến kết quả phân tích
+  - Phân tích toàn bộ, phân tích tăng dần và quét phần thay đổi
+  - Độ chính xác, độ bao phủ và chi phí tính toán của SAST
+- level1: Thiết lập SAST
+  level2:
+  - Kiểm kê ngôn ngữ, framework, hệ thống build và kiểu dự án
+  - Chọn chế độ phân tích cần build hoặc không cần build
+  - Chuẩn bị mã nguồn, phụ thuộc build và công cụ biên dịch cho scanner
+  - Xác định thư mục nguồn, kiểm thử, mã sinh và mã của bên thứ ba
+  - Phân tích dự án nhiều mô-đun và kho mã monorepo
+  - Lựa chọn bộ quy tắc theo ngôn ngữ và rủi ro ứng dụng
+  - Phân biệt cấu hình chất lượng mã với cấu hình bảo mật
+  - Cấu hình quét trên máy lập trình viên và trong CI
+  - Kiểm chứng scanner đã phân tích đúng tập tệp thay vì chỉ chạy thành công
+  - Chẩn đoán lỗi biên dịch, thiếu classpath và ngôn ngữ chưa được hỗ trợ
+- level1: Quy tắc SAST
+  level2:
+  - 'Cấu trúc quy tắc: định danh, điều kiện phát hiện và thông điệp'
+  - Thiết kế quy tắc so khớp cú pháp và giới hạn của mẫu tìm kiếm
+  - Thiết kế quy tắc taint từ nguồn dữ liệu đến điểm sử dụng nguy hiểm
+  - Mô hình hóa thư viện, lớp bao và API đặc thù của ứng dụng
+  - Phân biệt kiểm tra hợp lệ, chuẩn hóa, làm sạch và mã hóa đầu ra
+  - Xử lý nhánh điều kiện, giá trị hằng và đường đi không khả thi
+  - Ánh xạ quy tắc với CWE và hướng dẫn khắc phục
+  - Tạo mẫu có lỗi và mẫu an toàn để kiểm thử quy tắc
+  - Đánh giá sai dương, bỏ sót và phạm vi ảnh hưởng trước khi áp dụng
+  - Quản lý phiên bản, chủ sở hữu và quy trình thay đổi bộ quy tắc
+- level1: SAST Java và Spring
+  level2:
+  - Theo dấu dữ liệu từ Controller qua Service đến Repository
+  - Phát hiện truy vấn SQL, JPQL và truy vấn động xây dựng không an toàn
+  - Phát hiện thực thi lệnh hệ điều hành từ dữ liệu đầu vào
+  - Phát hiện truy cập tệp, đường dẫn và xử lý tệp nén không an toàn
+  - Phát hiện SSRF trong HTTP client và mã gọi dịch vụ ngoài
+  - Phát hiện giải tuần tự hóa không an toàn và bộ phân tích XML có rủi ro
+  - Phân tích XSS qua template, nội dung HTML và dữ liệu trả về
+  - Rà soát cấu hình Spring Security và phạm vi áp dụng bộ lọc
+  - Phân tích kiểm soát quyền tại endpoint, phương thức và đối tượng dữ liệu
+  - Phát hiện sử dụng mật mã, số ngẫu nhiên và dữ liệu nhạy cảm không an toàn
+  - Phát hiện rò rỉ thông tin qua log, thông báo lỗi và phản hồi API
+  - Phân tích mã bất đồng bộ, mã reactive và lớp trừu tượng tùy chỉnh
+  - Phân biệt lỗi mã ứng dụng với phụ thuộc có lỗ hổng hoặc bí mật bị lộ
+- level1: Kiểm chứng SAST
+  level2:
+  - Đọc vị trí cảnh báo, dấu vết dữ liệu và ngữ cảnh gọi hàm
+  - Kiểm tra nguồn dữ liệu có thực sự do người dùng kiểm soát
+  - Kiểm tra đường đi đến đoạn mã có lỗi có thể xảy ra hay không
+  - Đánh giá tác dụng của kiểm tra đầu vào và biện pháp bảo vệ hiện có
+  - Kiểm tra điều kiện cấu hình làm thay đổi khả năng khai thác
+  - Phân biệt cảnh báo trùng lặp với các đường đi có rủi ro riêng
+  - Tạo ví dụ tái hiện tối thiểu và kiểm thử có kiểm soát
+  - Phân tích nguyên nhân sai dương và bỏ sót
+  - Ghi nhận kết luận có bằng chứng và mức tin cậy
+  - Phản hồi kết quả kiểm chứng vào quy tắc và mô hình phân tích
+- level1: Cơ chế DAST
+  level2:
+  - Kiểm thử động thông qua giao diện của ứng dụng đang chạy
+  - Các bước khám phá, thu thập, phân tích thụ động và quét chủ động
+  - Khác biệt giữa cảnh báo từ phản hồi và bằng chứng khai thác
+  - Khám phá liên kết bằng crawler truyền thống
+  - Khám phá giao diện có JavaScript bằng trình duyệt tự động
+  - Kiểm thử có xác thực và không có xác thực
+  - Vai trò của proxy chặn bắt trong quan sát và chỉnh sửa lưu lượng
+  - Kiểm thử dựa trên phản hồi, thời gian và tương tác ngoài băng
+  - Giới hạn của DAST khi không có mã nguồn hoặc không thấy trạng thái nội bộ
+  - Phân biệt phạm vi scanner hỗ trợ với khả năng của kiểm thử thủ công
+- level1: Khám phá bề mặt
+  level2:
+  - Thu thập URL, endpoint và phương thức HTTP từ ứng dụng
+  - Nhập đặc tả OpenAPI và xác minh khớp với bản triển khai
+  - Thu thập lưu lượng từ bộ kiểm thử và hành trình trình duyệt
+  - Xác định route SPA, biểu mẫu, nút thao tác và nội dung tải động
+  - Khám phá tham số đường dẫn, query, header, cookie và body
+  - Nhận diện endpoint không xuất hiện trong điều hướng thông thường
+  - Kiểm soát trùng URL, tham số biến động và bẫy crawler
+  - Xử lý phân trang, đa ngôn ngữ và dữ liệu sinh vô hạn
+  - Đối chiếu danh mục endpoint với kết quả crawler
+  - Đánh giá độ bao phủ theo route, phương thức, vai trò và hành trình
+- level1: Đăng nhập và phiên
+  level2:
+  - Cấu hình đăng nhập bằng biểu mẫu và bước xác minh đăng nhập thành công
+  - Cấu hình cookie phiên và token truy cập cho scanner
+  - Kiểm thử API dùng API key hoặc thông tin xác thực tùy chỉnh
+  - Mô hình hóa luồng OAuth 2.0 và OpenID Connect trong phạm vi kiểm thử
+  - Làm mới token và xử lý phiên hết hạn trong lần quét dài
+  - Xử lý CSRF token, nonce và tham số thay đổi theo từng yêu cầu
+  - Chuẩn bị cách đăng nhập kiểm thử cho MFA hoặc SSO theo thỏa thuận
+  - Xây dựng ngữ cảnh quét riêng cho từng vai trò và khách hàng
+  - Phát hiện scanner bị chuyển về trang đăng nhập mà vẫn báo thành công
+  - Ngăn lộ token và mật khẩu trong cấu hình, log và báo cáo
+  - Kiểm soát đăng xuất, khóa tài khoản và giới hạn số lần đăng nhập
+- level1: Cấu hình DAST
+  level2:
+  - Chọn cấu hình quét thụ động, quét nhanh và quét chuyên sâu
+  - Thiết lập mục tiêu gốc, context và quy tắc đưa vào hoặc loại trừ
+  - Chọn nhóm phép thử theo công nghệ và rủi ro
+  - Đặt giới hạn thời gian, độ sâu và số lượng yêu cầu
+  - Điều chỉnh timeout, retry, mức đồng thời và tốc độ gửi
+  - Cấu hình proxy, chứng thư thử nghiệm và kết nối mạng nội bộ
+  - Thiết lập dữ liệu đầu vào hợp lệ cho biểu mẫu và API
+  - Phát hiện phản hồi WAF, rate limit và lỗi hạ tầng làm sai lệch kết quả
+  - Duy trì trạng thái cần thiết cho luồng nhiều bước
+  - Kiểm tra sức khỏe ứng dụng trước, trong và sau khi quét
+  - Phân biệt quét hoàn tất, quét một phần, bị hủy và lỗi công cụ
+- level1: Kiểm thử đầu vào
+  level2:
+  - SQL injection và điều kiện kiểm chứng trong môi trường thử nghiệm
+  - NoSQL injection và thao tác truy vấn từ dữ liệu không tin cậy
+  - Command injection và giới hạn phép thử không gây tác động phá hoại
+  - Path traversal và truy cập tệp ngoài phạm vi cho phép
+  - Template injection phía máy chủ
+  - XML external entity và xử lý XML không an toàn
+  - SSRF và kiểm soát đích gọi ra ngoài khi xác minh
+  - Tải tệp lên và tải tệp xuống với kiểu nội dung hoặc đường dẫn bất thường
+  - Chuyển hướng mở và thao túng đích điều hướng
+  - HTTP parameter pollution và cách máy chủ diễn giải tham số trùng
+  - Giới hạn của quét injection khi thiếu dữ liệu hoặc ngữ cảnh hợp lệ
+- level1: Kiểm thử phân quyền
+  level2:
+  - Lập ma trận kiểm thử theo người dùng, vai trò, đối tượng và thao tác
+  - Kiểm thử truy cập chức năng khi chưa đăng nhập
+  - Kiểm thử leo thang quyền dọc giữa vai trò thường và quản trị
+  - Kiểm thử truy cập ngang giữa các tài khoản cùng vai trò
+  - Kiểm thử IDOR và phân quyền cấp đối tượng BOLA
+  - Kiểm thử phân quyền cấp chức năng và theo phương thức HTTP
+  - Kiểm thử ranh giới dữ liệu giữa các khách hàng trong ứng dụng đa thuê
+  - Kiểm thử mass assignment và quyền sửa từng thuộc tính
+  - Kiểm thử thay đổi định danh trong URL, body và tài nguyên lồng nhau
+  - Xác minh quyền tại API thay vì chỉ kiểm tra ẩn nút trên giao diện
+  - Kết hợp tự động hóa với kiểm thử thủ công đối với logic nghiệp vụ
+- level1: Bảo mật trình duyệt
+  level2:
+  - XSS phản chiếu và cách đối chiếu ngữ cảnh phản hồi
+  - XSS lưu trữ và yêu cầu dọn dữ liệu sau kiểm thử
+  - DOM-based XSS và giới hạn quan sát của scanner
+  - Mã hóa đầu ra theo ngữ cảnh HTML, thuộc tính, URL và JavaScript
+  - CSRF trên thao tác thay đổi trạng thái
+  - Thuộc tính Secure, HttpOnly và SameSite của cookie
+  - Session fixation, tái sử dụng phiên và hủy phiên
+  - CORS và trường hợp cho phép nguồn hoặc thông tin xác thực không phù hợp
+  - Clickjacking, Content Security Policy và tiêu đề phòng vệ
+  - Dữ liệu nhạy cảm trong bộ nhớ trình duyệt, URL và tài nguyên phía máy khách
+  - Đánh giá khả năng khai thác thực tế của cảnh báo phía trình duyệt
+- level1: Bảo mật API
+  level2:
+  - Thiết kế dữ liệu và chuỗi yêu cầu hợp lệ cho API REST
+  - Kiểm thử xác thực token, thời hạn và phạm vi quyền API
+  - Kiểm thử dữ liệu trả về vượt nhu cầu và thuộc tính nhạy cảm
+  - Kiểm thử API theo phiên bản và endpoint đã ngừng sử dụng
+  - Kiểm thử GraphQL theo schema, resolver và quyền truy cập dữ liệu
+  - Đánh giá giới hạn truy vấn GraphQL và lạm dụng tài nguyên có kiểm soát
+  - Lập kế hoạch kiểm thử WebSocket theo handshake, thông điệp và phiên
+  - Đánh giá hỗ trợ gRPC và nhu cầu công cụ chuyên biệt
+  - Kiểm thử webhook, callback và tương tác ngoài băng trong phạm vi cho phép
+  - Kiểm thử upload, xử lý bất đồng bộ và trạng thái tác vụ
+  - Đối chiếu đặc tả API, lưu lượng thực tế và phần chưa được kiểm thử
+- level1: Cấu hình ứng dụng
+  level2:
+  - Kiểm tra TLS và chứng thư trong phạm vi ứng dụng được giao
+  - Kiểm tra phương thức HTTP, nội dung mặc định và endpoint chẩn đoán
+  - Phát hiện trang debug, stack trace và thông tin phiên bản bị lộ
+  - Kiểm tra cache của phản hồi chứa dữ liệu nhạy cảm
+  - Kiểm tra chính sách chuyển hướng và tiêu đề Host được tin cậy
+  - Kiểm tra xử lý lỗi, mã trạng thái và phản hồi không nhất quán
+  - Kiểm tra nén, kiểu nội dung và diễn giải nội dung của trình duyệt
+  - Nhận diện rủi ro do khác biệt xử lý HTTP giữa proxy và máy chủ
+  - Giới hạn và điều kiện riêng cho phép thử có nguy cơ ảnh hưởng tính sẵn sàng
+  - Phân biệt cấu hình ứng dụng với phạm vi quét container và hạ tầng
+- level1: Đọc kết quả
+  level2:
+  - 'Cấu trúc một phát hiện: quy tắc, vị trí, bằng chứng và khuyến nghị'
+  - Đọc báo cáo SAST theo tệp, dòng mã và dấu vết dữ liệu
+  - Đọc báo cáo DAST theo request, response và trạng thái xác thực
+  - Phân biệt mức nghiêm trọng, mức tin cậy và trạng thái xác minh
+  - Chuẩn hóa kết quả và trao đổi phát hiện bằng định dạng SARIF khi được hỗ trợ
+  - Giữ liên kết giữa phát hiện, commit, phiên bản ứng dụng và môi trường
+  - Tạo định danh ổn định để theo dõi phát hiện qua nhiều lần quét
+  - Loại bỏ dữ liệu nhạy cảm khỏi bằng chứng và tệp báo cáo
+  - Nhận diện báo cáo rỗng do không có lỗi hay do không quét được
+  - Lưu trữ báo cáo gốc, nhật ký và tóm tắt phục vụ kiểm toán
+- level1: Phân loại và ưu tiên
+  level2:
+  - Tiếp nhận, phân công và xác nhận phát hiện bảo mật
+  - Phân biệt sai dương, chấp nhận rủi ro và lỗi đã xác minh
+  - Đánh giá mức phơi nhiễm, khả năng tiếp cận và điều kiện khai thác
+  - Đánh giá tác động đến dữ liệu, tài khoản và hoạt động nghiệp vụ
+  - Sử dụng CVSS cùng ngữ cảnh ứng dụng để ưu tiên xử lý
+  - Liên kết kết quả SAST và DAST mà không suy diễn tương đương
+  - Gộp phát hiện trùng nhưng bảo toàn đường đi và tài sản bị ảnh hưởng
+  - Quản lý lỗi mới, lỗi tồn đọng và lỗi tái xuất hiện
+  - Đặt thời hạn khắc phục theo mức rủi ro và chủ sở hữu
+  - Ghi nhận ngoại lệ có lý do, người phê duyệt và ngày hết hạn
+- level1: Khắc phục và xác minh
+  level2:
+  - Chọn cách sửa nguyên nhân gốc thay vì chỉ che cảnh báo
+  - Dùng truy vấn tham số hóa và tách dữ liệu khỏi câu lệnh
+  - Kiểm tra đầu vào và mã hóa đầu ra đúng ngữ cảnh
+  - Thiết kế kiểm soát quyền tại phía máy chủ và theo đối tượng
+  - Kiểm soát đích mạng, đường dẫn và tệp từ dữ liệu bên ngoài
+  - Sửa quản lý phiên, cookie và cấu hình bảo mật
+  - Thêm kiểm thử hồi quy tái hiện lỗi và chứng minh cách sửa
+  - Chạy lại SAST và DAST trên phiên bản đã khắc phục
+  - Phân biệt tắt cảnh báo với xác minh lỗi đã được sửa
+  - Xác nhận điều kiện đóng, phát hiện tái xuất hiện và tác động ngoài dự kiến
+- level1: Tích hợp CI/CD
+  level2:
+  - Phân bổ quét trước commit, trên pull request, khi build và sau triển khai thử
+  - Quét SAST trong pull request và phản hồi gần dòng mã thay đổi
+  - Thiết lập baseline SAST cho kho mã có nhiều lỗi tồn đọng
+  - Quét đầy đủ định kỳ để bổ sung cho quét phần thay đổi
+  - Tạo môi trường tạm theo pull request để chạy DAST
+  - Chờ ứng dụng sẵn sàng, nạp dữ liệu và xác minh đăng nhập trước DAST
+  - Tổ chức quét nhanh theo thay đổi và quét sâu theo lịch
+  - Cấu hình quyền tối thiểu cho scanner, runner và thông tin xác thực
+  - Xử lý mã từ nguồn không tin cậy mà không cấp bí mật của môi trường
+  - Thu thập báo cáo, trạng thái và bằng chứng trong pipeline
+  - Dọn môi trường kể cả khi quét lỗi, bị hủy hoặc vượt thời gian
+  - Tách kết quả an toàn bảo mật khỏi lỗi thực thi công cụ
+- level1: Cổng chất lượng
+  level2:
+  - Xác định điều kiện chặn dựa trên rủi ro và mức tin cậy
+  - Áp dụng chính sách cho lỗi mới và kế hoạch giảm lỗi tồn đọng
+  - Yêu cầu độ bao phủ và đăng nhập hợp lệ trước khi chấp nhận báo cáo sạch
+  - Quy định xử lý khi scanner lỗi, timeout hoặc không thể kết nối
+  - Lựa chọn fail-open hoặc fail-closed theo môi trường và rủi ro
+  - Ngăn giảm mức nghiêm trọng hoặc tắt quy tắc để vượt cổng
+  - Thiết kế ngoại lệ tạm thời với thời hạn và phê duyệt
+  - Kiểm chứng chính sách bằng bộ tình huống đạt, không đạt và không đủ bằng chứng
+  - Triển khai cổng theo giai đoạn để giảm nhiễu và bảo đảm khả thi
+  - Theo dõi thay đổi chính sách và lưu dấu quyết định phát hành
+- level1: Lựa chọn công cụ
+  level2:
+  - Xây dựng tiêu chí hỗ trợ ngôn ngữ, framework và kiểu ứng dụng
+  - Đánh giá khả năng phân tích dữ liệu, xác thực và độ bao phủ endpoint
+  - So sánh triển khai tại chỗ, SaaS và yêu cầu bảo vệ mã nguồn
+  - Đánh giá khả năng tích hợp CI, API, SARIF và hệ thống quản lý lỗi
+  - Đánh giá quy tắc tùy chỉnh, khả năng giải thích và chất lượng bằng chứng
+  - Kiểm tra giấy phép, tính năng theo phiên bản và chi phí vận hành
+  - Thử nghiệm công cụ bằng mã có lỗi và ứng dụng thử nghiệm được phép
+  - So sánh độ chính xác và thời gian quét trên dữ liệu đại diện
+  - Đánh giá yêu cầu cập nhật, hỗ trợ và tính bền vững của công cụ
+  - Lập quyết định lựa chọn dựa trên thử nghiệm thay vì số lượng cảnh báo
+- level1: SAST với Semgrep
+  level2:
+  - Chuẩn bị dự án thử và lựa chọn bộ quy tắc Semgrep phù hợp
+  - Chạy quét đầu tiên và đọc vị trí cảnh báo
+  - Cấu hình đường dẫn đưa vào, loại trừ và mã sinh
+  - Viết quy tắc so khớp mẫu cho API có rủi ro
+  - Mô hình hóa nguồn dữ liệu và điểm sử dụng nguy hiểm bằng quy tắc taint
+  - Viết mẫu có lỗi, mẫu an toàn và kiểm thử quy tắc
+  - Đánh giá giới hạn phân tích theo ngôn ngữ và chế độ được sử dụng
+  - Tích hợp phản hồi pull request và xuất báo cáo khi được hỗ trợ
+  - Quản lý bỏ qua cảnh báo có lý do và kiểm tra lại ngoại lệ
+- level1: SAST với CodeQL
+  level2:
+  - Khái niệm cơ sở dữ liệu CodeQL và quan hệ với phiên bản mã nguồn
+  - Chuẩn bị quá trình trích xuất phù hợp với ngôn ngữ và hệ thống build
+  - Tạo cơ sở dữ liệu, chạy truy vấn và đọc kết quả
+  - Đọc dấu vết đường đi dữ liệu của phát hiện bảo mật
+  - Lựa chọn bộ truy vấn và quản lý query pack
+  - Làm quen truy vấn cấu trúc và truy vấn luồng dữ liệu
+  - Mô hình hóa API ứng dụng và kiểm thử truy vấn tùy chỉnh
+  - Chẩn đoán thiếu mã, lỗi build và dữ liệu trích xuất không đầy đủ
+  - Tích hợp CI và xuất SARIF theo khả năng của môi trường
+- level1: SAST với SonarQube
+  level2:
+  - Thiết lập dự án và scanner cho mã Java cùng hệ thống build
+  - Cấu hình phạm vi mã nguồn, nhánh và phần mã mới theo khả năng hỗ trợ
+  - Lựa chọn quality profile và các quy tắc bảo mật
+  - Phân biệt vulnerability, security hotspot và vấn đề chất lượng mã
+  - Rà soát security hotspot bằng ngữ cảnh và bằng chứng
+  - Đọc vị trí phát hiện và hướng dẫn khắc phục
+  - Thiết kế quality gate cho mã mới và lỗi bảo mật
+  - Tích hợp trạng thái phân tích vào quy trình CI
+  - Quản lý ngoại lệ và xác minh khả năng theo phiên bản hoặc giấy phép
+- level1: DAST với ZAP
+  level2:
+  - Khởi tạo phiên ZAP và cấu hình proxy cho ứng dụng thử nghiệm
+  - Thiết lập context, phạm vi và URL loại trừ
+  - Quan sát lưu lượng và phân tích cảnh báo thụ động
+  - Khám phá ứng dụng bằng spider và trình duyệt tự động khi phù hợp
+  - Nhập OpenAPI và chuẩn bị dữ liệu gọi API hợp lệ
+  - Cấu hình người dùng, đăng nhập và nhận diện phiên hợp lệ
+  - Lựa chọn chính sách active scan và giới hạn tác động
+  - Tự động hóa các bước chuẩn bị, khám phá, quét và xuất báo cáo
+  - Tích hợp chạy headless hoặc container trong CI
+  - Chẩn đoán thiếu độ bao phủ, mất phiên và cảnh báo sai
+- level1: DAST với Burp Suite
+  level2:
+  - Cấu hình proxy và chứng thư trong trình duyệt kiểm thử riêng
+  - Khám phá ứng dụng bằng lưu lượng duyệt và sơ đồ mục tiêu
+  - Thiết lập scope và loại trừ tài nguyên không được kiểm thử
+  - Sử dụng Repeater để xác minh request và response có kiểm soát
+  - Cấu hình phiên, macro và hành trình nhiều bước khi cần
+  - Chọn chức năng quét theo phiên bản và giấy phép được cấp
+  - Đọc và kiểm chứng phát hiện tự động bằng ngữ cảnh thực tế
+  - Xác minh tương tác ngoài băng trong phạm vi cho phép khi được hỗ trợ
+  - Chuẩn bị báo cáo và quy trình tích hợp tự động theo khả năng công cụ
+- level1: Tối ưu vận hành
+  level2:
+  - Phân chia lịch quét theo mức quan trọng và tốc độ thay đổi
+  - Tối ưu thời gian SAST bằng phạm vi, cache và phân tích tăng dần phù hợp
+  - Tối ưu DAST bằng seed URL, dữ liệu hợp lệ và luồng kiểm thử có hướng dẫn
+  - Điều chỉnh mức đồng thời theo năng lực ứng dụng và scanner
+  - Quản lý phụ thuộc giữa build, triển khai, dữ liệu và quét
+  - Chẩn đoán kết quả thiếu ổn định do phiên, thời gian và dữ liệu thay đổi
+  - Xử lý scanner treo, giới hạn tài nguyên và báo cáo bị thiếu
+  - Cập nhật công cụ, bộ quy tắc và trình duyệt theo quy trình kiểm chứng
+  - Đánh giá lại baseline sau thay đổi lớn hoặc nâng cấp scanner
+  - Kiểm soát quyền truy cập, thời gian lưu và vị trí lưu bằng chứng
+- level1: Đo lường hiệu quả
+  level2:
+  - Đo độ bao phủ kho mã, ngôn ngữ, endpoint và vai trò
+  - Theo dõi tỷ lệ quét thành công và tỷ lệ đăng nhập hợp lệ
+  - Đo thời gian phát hiện, xác nhận và khắc phục
+  - Theo dõi sai dương, bỏ sót đã biết và chi phí kiểm chứng
+  - Đo lỗi mới, lỗi tái xuất hiện và tuổi của lỗi tồn đọng
+  - Đo tỷ lệ ngoại lệ quá hạn và mức tuân thủ thời hạn xử lý
+  - Đánh giá chất lượng theo bộ mẫu đã xác minh thay vì số cảnh báo
+  - Đối chiếu xu hướng trước và sau thay đổi quy tắc hoặc chính sách
+  - Xây dựng báo cáo riêng cho nhóm phát triển, bảo mật và quản lý
+  - Nêu rõ giới hạn đo lường và phần rủi ro chưa có bằng chứng
+- level1: Bài thực hành
+  level2:
+  - Dựng ứng dụng Java/Spring thử nghiệm có lỗi và dữ liệu tổng hợp
+  - Chạy SAST đầu tiên, xác nhận phạm vi và phân loại cảnh báo
+  - Viết và kiểm thử một quy tắc SAST cho API nội bộ
+  - Triển khai ứng dụng thử rồi lập danh mục endpoint và vai trò
+  - Chạy DAST không xác thực và so sánh với DAST có xác thực
+  - Xác minh lỗi injection từ dấu vết SAST đến bằng chứng DAST
+  - Kiểm thử phân quyền ngang bằng hai tài khoản thử nghiệm
+  - Khắc phục một lỗi, bổ sung kiểm thử hồi quy và quét lại
+  - Tích hợp SAST/DAST vào pipeline có cổng kiểm soát
+  - Mô phỏng mất phiên, timeout và scanner lỗi để kiểm chứng cổng
+  - Lập hồ sơ phát hiện, ngoại lệ và quyết định đóng lỗi
+  - Đánh giá độ bao phủ và dọn toàn bộ dữ liệu, tài khoản, môi trường
+- level1: Tình huống thực tế
+  level2:
+  - SAST báo nhiều lỗi nhưng nhóm không đủ khả năng kiểm chứng
+  - SAST chạy thành công nhưng bỏ qua một phần mã quan trọng
+  - DAST không thấy lỗi vì crawler chỉ đến trang đăng nhập
+  - DAST làm thay đổi dữ liệu hoặc gọi nhầm dịch vụ bên ngoài
+  - WAF chặn scanner khiến báo cáo không phản ánh bề mặt ứng dụng
+  - Cùng một lỗi xuất hiện trong nhiều công cụ và nhiều bản triển khai
+  - Phát hiện mức nghiêm trọng cao trên đường đi không thể tiếp cận
+  - Lỗi phân quyền chỉ xuất hiện giữa hai người dùng hoặc hai khách hàng
+  - Bản sửa làm hết cảnh báo nhưng vẫn còn nguyên nhân gốc
+  - Nâng cấp scanner làm thay đổi baseline và số lượng phát hiện
+  - Pipeline cần phát hành khẩn cấp khi cổng bảo mật không đạt
+  - Báo cáo sạch nhưng thiếu endpoint, vai trò hoặc luồng nghiệp vụ
+- level1: Lộ trình áp dụng
+  level2:
+  - Khảo sát hiện trạng mã nguồn, ứng dụng, pipeline và nhân lực
+  - Chọn ứng dụng thí điểm cùng tiêu chí thành công đo được
+  - Thiết lập baseline, xử lý nhiễu và xác định chủ sở hữu
+  - Bắt đầu từ quét có quan sát rồi tăng dần mức tự động hóa
+  - Mở rộng độ bao phủ và cổng kiểm soát theo mức trưởng thành
+  - Đào tạo nhóm phát triển đọc bằng chứng và sửa nguyên nhân gốc
+  - Chuẩn hóa quy tắc, mẫu cấu hình và tài liệu vận hành dùng chung
+  - Duy trì rà soát ngoại lệ, cập nhật công cụ và cải tiến định kỳ

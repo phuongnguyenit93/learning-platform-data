@@ -1,0 +1,57 @@
+roadmap:
+- id: mo-hinh-rui-ro-container
+  title: Mô hình rủi ro container
+  purpose: Hiểu bề mặt tấn công và giới hạn cách ly giữa container và host.
+  objectives:
+  - Phân biệt container với máy ảo về cách ly.
+  - Nhận diện rủi ro từ image, runtime và daemon.
+  - Liệt kê tài sản cần bảo vệ và đường tấn công.
+- id: dockerfile-image-an-toan
+  title: Dockerfile & image an toàn
+  purpose: Giảm bề mặt tấn công ngay từ lúc xây dựng image.
+  objectives:
+  - Chọn base image tin cậy và tối giản.
+  - Dùng multi-stage build, bỏ công cụ dư thừa.
+  - Không đưa token, mật khẩu vào image hoặc layer.
+- id: quet-image-xu-ly-cve
+  title: Quét image & xử lý CVE
+  purpose: Phát hiện và ưu tiên khắc phục lỗ hổng trong image trước triển khai.
+  objectives:
+  - Quét image bằng Docker Scout hoặc công cụ tương đương.
+  - Đọc SBOM, CVE và mức độ nghiêm trọng.
+  - Cập nhật base image rồi quét lại kết quả.
+- id: quyen-toi-thieu-runtime
+  title: Quyền tối thiểu runtime
+  purpose: Hạn chế tác động nếu tiến trình trong container bị xâm nhập.
+  objectives:
+  - Chạy tiến trình bằng user không phải root.
+  - Tránh privileged mode và quyền daemon socket.
+  - Chỉ cấp Linux capabilities thực sự cần thiết.
+- id: filesystem-seccomp
+  title: Filesystem & seccomp
+  purpose: Giảm quyền ghi và syscall không cần thiết tại runtime.
+  objectives:
+  - Bật read-only root filesystem khi phù hợp.
+  - Giới hạn mount và dữ liệu được phép ghi.
+  - Áp dụng seccomp RuntimeDefault và thử hành vi.
+- id: secrets-mang
+  title: Secrets & mạng
+  purpose: Bảo vệ thông tin nhạy cảm và giới hạn kết nối container.
+  objectives:
+  - Không lưu secret trong Dockerfile hoặc Git.
+  - Hạn chế quyền đọc Kubernetes Secret, mã hóa khi cần.
+  - Chỉ mở port và luồng mạng ứng dụng cần.
+- id: kubernetes-pod-security
+  title: Kubernetes Pod Security
+  purpose: Áp dụng các kiểm soát bảo mật container khi triển khai Pod.
+  objectives:
+  - Đặt securityContext với runAsNonRoot.
+  - Kiểm tra Pod Security Standards Baseline/Restricted.
+  - Đánh giá RBAC và NetworkPolicy cho workload.
+- id: kiem-thu-giam-sat
+  title: Kiểm thử & giám sát
+  purpose: Đưa kiểm tra bảo mật vào quy trình phát hành và theo dõi runtime.
+  objectives:
+  - Kiểm tra cấu hình Pod và image trước deploy.
+  - Ghi nhận cảnh báo về CVE và hành vi bất thường.
+  - Thử tình huống lỗi, khắc phục và đánh giá lại.

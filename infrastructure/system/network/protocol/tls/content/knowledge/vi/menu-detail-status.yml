@@ -1,0 +1,2281 @@
+menu:
+- slug: tls-overview
+  title: Tổng quan TLS
+  childs:
+  - slug: tls-overview-001
+    title: 'TLS là gì: mục đích, vấn đề cần giải quyết và phạm vi của module'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-002
+    title: 'Bảo mật đường truyền: tính bí mật, tính toàn vẹn và xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-003
+    title: 'Bản đồ thuật ngữ: bắt tay, chứng chỉ, khóa phiên, bản ghi và phiên'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-004
+    title: Quan hệ giữa TLS, TCP, HTTP và HTTPS trong một kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-005
+    title: Hành trình truy cập HTTPS từ phân giải DNS đến dữ liệu ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-006
+    title: Vai trò của máy khách, máy chủ, CA và bên trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-007
+    title: 'Ranh giới bảo vệ: dữ liệu khi truyền, tại điểm kết thúc TLS và khi lưu trữ'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-008
+    title: TLS không thay thế phân quyền, bảo mật ứng dụng hay bảo vệ thiết bị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-overview-009
+    title: Kiến thức tiên quyết và trình tự học từ nền tảng đến thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cryptography-foundations
+  title: Nền tảng mật mã
+  childs:
+  - slug: cryptography-foundations-001
+    title: 'Mã hóa đối xứng và bất đối xứng: vai trò khác nhau trong TLS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-002
+    title: 'Hàm băm, HMAC và chữ ký số: mục đích và cách phân biệt'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-003
+    title: Trao đổi khóa Diffie–Hellman, DHE và ECDHE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-004
+    title: Khóa tạm thời và tính bí mật chuyển tiếp (forward secrecy)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-005
+    title: RSA, ECDSA và EdDSA trong xác thực bằng chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-006
+    title: Mã hóa có xác thực AEAD, thẻ xác thực và dữ liệu liên kết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-007
+    title: AES-GCM và ChaCha20-Poly1305 ở mức khái niệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-008
+    title: Nguồn ngẫu nhiên, nonce, IV và nguy cơ tái sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-009
+    title: 'Dẫn xuất khóa bằng PRF và HKDF: đầu vào, đầu ra và mục đích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cryptography-foundations-010
+    title: Phân biệt khóa riêng chứng chỉ, bí mật chia sẻ và khóa bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-versions
+  title: Phiên bản TLS
+  childs:
+  - slug: tls-versions-001
+    title: 'Từ SSL đến TLS: lịch sử phát triển và lý do thay đổi giao thức'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-002
+    title: SSL 2.0, SSL 3.0, TLS 1.0 và TLS 1.1 trong hệ thống cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-003
+    title: 'TLS 1.2: đặc điểm, phạm vi sử dụng và các cơ chế kế thừa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-004
+    title: 'TLS 1.3: mục tiêu thiết kế và những thay đổi chính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-005
+    title: So sánh TLS 1.2 và TLS 1.3 về bắt tay, thuật toán và độ trễ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-006
+    title: 'Các cơ chế bị loại khỏi TLS 1.3: RSA key exchange, CBC và renegotiation'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-007
+    title: Phiên bản được hỗ trợ, được cấu hình và thực sự được thương lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-versions-008
+    title: Đọc RFC, errata và hướng dẫn triển khai để xác định yêu cầu áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: protocol-architecture
+  title: Kiến trúc giao thức
+  childs:
+  - slug: protocol-architecture-001
+    title: 'Handshake Protocol và Record Protocol: phân chia trách nhiệm'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-002
+    title: Thông điệp bắt tay, bản ghi TLS và phân đoạn TCP khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-003
+    title: Trạng thái kết nối, hướng gửi nhận và thời điểm chuyển khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-004
+    title: 'Cấu trúc bản ghi: loại nội dung, phiên bản kế thừa và độ dài'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-005
+    title: Application Data và ranh giới dữ liệu của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-006
+    title: 'Alert Protocol: thông báo lỗi và ảnh hưởng đến kết nối'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-007
+    title: ChangeCipherSpec trong TLS 1.2 và chế độ tương thích TLS 1.3
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-008
+    title: Đóng kết nối bằng close_notify và rủi ro dữ liệu bị cắt cụt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: protocol-architecture-009
+    title: Đọc sơ đồ trình tự để lần theo một kết nối TLS hoàn chỉnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: x509-certificates
+  title: Chứng chỉ X.509
+  childs:
+  - slug: x509-certificates-001
+    title: 'Chứng chỉ số: gắn danh tính với khóa công khai như thế nào'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-002
+    title: 'Cấu trúc X.509: phiên bản, số sê-ri, chủ thể và bên phát hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-003
+    title: Khóa công khai, thuật toán chữ ký và chữ ký của bên phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-004
+    title: Thời hạn notBefore, notAfter và ảnh hưởng của đồng hồ hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-005
+    title: Subject Alternative Name với tên DNS, địa chỉ IP và wildcard
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-006
+    title: Basic Constraints, CA=true và giới hạn độ dài chuỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-007
+    title: 'Key Usage và Extended Key Usage: serverAuth, clientAuth'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-008
+    title: Subject Key Identifier và Authority Key Identifier
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-009
+    title: CRL Distribution Points, AIA và thông tin kiểm tra thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-010
+    title: Định dạng PEM, DER, PKCS#12 và sự khác nhau giữa chứng chỉ với khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: x509-certificates-011
+    title: Chứng chỉ tự ký, chứng chỉ do CA cấp và yêu cầu thiết lập tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pki-trust-chains
+  title: PKI và chuỗi tin cậy
+  childs:
+  - slug: pki-trust-chains-001
+    title: Hạ tầng khóa công khai (PKI) và vai trò của cơ quan chứng thực (CA)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-002
+    title: Root CA, Intermediate CA và chứng chỉ đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-003
+    title: Điểm neo tin cậy (trust anchor) và kho tin cậy (trust store)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-004
+    title: Xây dựng đường dẫn chứng thực và kiểm tra đường dẫn chứng thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-005
+    title: Chuỗi máy chủ gửi và chuỗi máy khách có thể xây dựng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-006
+    title: Thiếu Intermediate CA, sai thứ tự chuỗi và khác biệt giữa máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-007
+    title: Chứng thực chéo, nhiều đường dẫn và thay đổi Root CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-008
+    title: 'PKI công cộng và PKI nội bộ: khác biệt về phân phối tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pki-trust-chains-009
+    title: Ranh giới quản trị CA, bảo vệ khóa CA và ảnh hưởng khi CA bị xâm phạm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-validation
+  title: Xác minh chứng chỉ
+  childs:
+  - slug: certificate-validation-001
+    title: 'Trình tự xác minh: chuỗi tin cậy, thời hạn, mục đích sử dụng và danh tính'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-002
+    title: Kiểm tra tên máy chủ bằng SAN và tên tham chiếu của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-003
+    title: Quy tắc wildcard, tên quốc tế IDNA và kết nối bằng địa chỉ IP
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-004
+    title: Phân biệt chọn chứng chỉ bằng SNI với kiểm tra tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-005
+    title: Xử lý chứng chỉ hết hạn, chưa hiệu lực, tự ký hoặc không được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-006
+    title: Kiểm tra chữ ký, thuật toán, độ dài khóa và ràng buộc CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-007
+    title: 'Thu hồi chứng chỉ bằng CRL và OCSP: mục tiêu và giới hạn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-008
+    title: OCSP stapling, độ mới của phản hồi và khác biệt hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-009
+    title: 'Chính sách khi không kiểm tra được thu hồi: soft-fail và hard-fail'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-010
+    title: Certificate Transparency, SCT và giới hạn của việc ghi nhật ký chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-validation-011
+    title: 'Certificate pinning: mô hình tin cậy, xoay khóa và rủi ro vận hành'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cipher-suites
+  title: Tham số mật mã
+  childs:
+  - slug: cipher-suites-001
+    title: Bộ mã (cipher suite) mô tả những thành phần nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-002
+    title: Đọc tên cipher suite TLS 1.2 theo trao đổi khóa, xác thực và bảo vệ dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-003
+    title: Đọc tên cipher suite TLS 1.3 theo AEAD và hàm băm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-004
+    title: Phân biệt cipher suite, nhóm trao đổi khóa và thuật toán chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-005
+    title: supported_groups, key_share và lựa chọn nhóm mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-006
+    title: signature_algorithms và sự tương thích với khóa của chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-007
+    title: Thứ tự ưu tiên của hai bên và điều kiện không có tham số chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-008
+    title: Lựa chọn chứng chỉ RSA hoặc ECDSA theo khả năng của máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cipher-suites-009
+    title: Đánh giá tương thích và mức an toàn của một cấu hình mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls12-handshake
+  title: Bắt tay TLS 1.2
+  childs:
+  - slug: tls12-handshake-001
+    title: Toàn cảnh bắt tay đầy đủ TLS 1.2 và các lượt trao đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-002
+    title: ClientHello, ServerHello và quá trình chọn tham số
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-003
+    title: Certificate và ServerKeyExchange trong bắt tay ECDHE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-004
+    title: CertificateRequest, ServerHelloDone và xác thực máy khách tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-005
+    title: ClientKeyExchange, premaster secret và master secret
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-006
+    title: CertificateVerify, ChangeCipherSpec và Finished
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-007
+    title: Bắt tay RSA key exchange trong hệ thống cũ và giới hạn bí mật chuyển tiếp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-008
+    title: Extended Master Secret và ràng buộc khóa với nội dung bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-009
+    title: 'Tái thương lượng (renegotiation): mục đích, ràng buộc và rủi ro'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls12-handshake-010
+    title: Bắt tay rút gọn TLS 1.2 bằng Session ID hoặc Session Ticket
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls13-handshake
+  title: Bắt tay TLS 1.3
+  childs:
+  - slug: tls13-handshake-001
+    title: Toàn cảnh bắt tay TLS 1.3 và thời điểm có thể gửi dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-002
+    title: ClientHello với supported_versions, supported_groups và key_share
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-003
+    title: ServerHello và thiết lập khóa bảo vệ thông điệp bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-004
+    title: HelloRetryRequest khi cần thay đổi nhóm trao đổi khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-005
+    title: EncryptedExtensions và tham số nằm ngoài ServerHello
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-006
+    title: CertificateRequest, Certificate và CertificateVerify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-007
+    title: Finished, transcript hash và xác nhận tính toàn vẹn của bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-008
+    title: Những phần được mã hóa và phần còn lộ trong bắt tay thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-009
+    title: Chế độ tương thích với thiết bị trung gian và các trường legacy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-010
+    title: 'Thông điệp sau bắt tay: NewSessionTicket, KeyUpdate và xác thực tùy chọn'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls13-handshake-011
+    title: Đối chiếu sơ đồ TLS 1.2 với TLS 1.3 theo từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: keys-records
+  title: Khóa và bản ghi
+  childs:
+  - slug: keys-records-001
+    title: 'Cây dẫn xuất khóa TLS 1.3: early secret, handshake secret và master secret'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-002
+    title: Khóa lưu lượng bắt tay, khóa ứng dụng và tách biệt hai hướng truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-003
+    title: Transcript hash và ràng buộc các bí mật với nội dung bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-004
+    title: Sequence number, nonce và thẻ AEAD trong bảo vệ bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-005
+    title: Dữ liệu liên kết, header bản ghi và kiểm tra tính toàn vẹn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-006
+    title: Loại nội dung bên trong, bản ghi Application Data bên ngoài và padding
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-007
+    title: Phân mảnh thông điệp, ghép bản ghi và giới hạn kích thước
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-008
+    title: KeyUpdate, giới hạn sử dụng khóa và xử lý cập nhật khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: keys-records-009
+    title: Exporter và dẫn xuất vật liệu khóa cho giao thức sử dụng TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sessions-zero-rtt
+  title: Phiên và 0-RTT
+  childs:
+  - slug: sessions-zero-rtt-001
+    title: Phân biệt kết nối TLS, phiên, vé phiên và tái sử dụng kết nối ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-002
+    title: 'Tiếp tục phiên TLS 1.2: Session ID, bộ nhớ đệm và Session Ticket'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-003
+    title: 'Tiếp tục phiên TLS 1.3: NewSessionTicket và khóa chia sẻ trước (PSK)'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-004
+    title: PSK binder và chứng minh quyền sở hữu bí mật tiếp tục phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-005
+    title: 'PSK-only và PSK kết hợp (EC)DHE: khác biệt về bí mật chuyển tiếp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-006
+    title: 'Dữ liệu sớm 0-RTT: điều kiện sử dụng, lợi ích và giới hạn bảo mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-007
+    title: Tấn công phát lại 0-RTT và lựa chọn thao tác ứng dụng phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-008
+    title: Từ chối dữ liệu sớm, gửi lại yêu cầu và xử lý HTTP 425 khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-009
+    title: Thời hạn vé, xoay khóa vé và tiếp tục phiên qua nhiều máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sessions-zero-rtt-010
+    title: Quyền riêng tư, liên kết các phiên và thay đổi chính sách sau khi cấp vé
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sni-alpn
+  title: SNI và ALPN
+  childs:
+  - slug: sni-alpn-001
+    title: 'Phần mở rộng TLS: cách đề xuất, phản hồi và kiểm tra tương thích'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-002
+    title: Server Name Indication (SNI) cho nhiều tên miền trên cùng địa chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-003
+    title: Chọn virtual host, chứng chỉ mặc định và hành vi khi thiếu SNI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-004
+    title: Application-Layer Protocol Negotiation (ALPN) và lựa chọn giao thức ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-005
+    title: Thương lượng h2, http/1.1 và trường hợp không có ALPN chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-006
+    title: Quan hệ giữa SNI, DNS, địa chỉ kết nối và HTTP Host
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-007
+    title: 'Encrypted ClientHello (ECH): mục đích bảo vệ và ranh giới triển khai'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-008
+    title: GREASE và khả năng mở rộng khi gặp thiết bị trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sni-alpn-009
+    title: Chẩn đoán lỗi định tuyến hoặc sai giao thức do SNI và ALPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: mutual-tls
+  title: Xác thực hai chiều
+  childs:
+  - slug: mutual-tls-001
+    title: 'TLS một chiều và TLS hai chiều (mTLS): khác biệt về xác thực'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-002
+    title: Luồng yêu cầu và cung cấp chứng chỉ máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-003
+    title: CertificateVerify và bằng chứng sở hữu khóa riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-004
+    title: CA được chấp nhận, lựa chọn chứng chỉ và clientAuth
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-005
+    title: Chế độ chứng chỉ máy khách tùy chọn hoặc bắt buộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-006
+    title: Ánh xạ danh tính chứng chỉ sang tài khoản, dịch vụ và quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-007
+    title: mTLS không thay thế kiểm tra quyền trên từng tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-008
+    title: Đổi chứng chỉ, thu hồi và tách miền tin cậy giữa các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-009
+    title: mTLS tại proxy, chuyển tiếp danh tính và ranh giới tin cậy phía sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: mutual-tls-010
+    title: Chẩn đoán thiếu chứng chỉ, sai CA, sai EKU và chứng chỉ bị từ chối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: certificate-lifecycle
+  title: Vòng đời chứng chỉ
+  childs:
+  - slug: certificate-lifecycle-001
+    title: Tạo cặp khóa, bảo vệ khóa riêng và phân quyền truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-002
+    title: Certificate Signing Request (CSR), SAN và thông tin yêu cầu cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-003
+    title: Quy trình cấp chứng chỉ và xác minh quyền kiểm soát tên miền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-004
+    title: ACME với HTTP-01, DNS-01 và TLS-ALPN-01 ở mức cơ chế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-005
+    title: Triển khai chứng chỉ đầu cuối, khóa riêng và chuỗi trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-006
+    title: Gia hạn tự động, nạp lại cấu hình và kiểm tra chứng chỉ đang phục vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-007
+    title: Xoay khóa, thay CA và chuyển đổi chuỗi tin cậy không gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-008
+    title: Giám sát thời hạn, xử lý gia hạn lỗi và khôi phục cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-009
+    title: Thu hồi, cấp lại và ứng phó khi khóa riêng bị lộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: certificate-lifecycle-010
+    title: Bảo vệ khóa bằng secret manager, HSM hoặc KMS theo khả năng tích hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: deployment-models
+  title: Mô hình triển khai
+  childs:
+  - slug: deployment-models-001
+    title: Kết thúc TLS tại ứng dụng, reverse proxy hoặc bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-002
+    title: TLS passthrough, TLS termination và TLS re-encryption
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-003
+    title: Đường đi bên ngoài, đường đi nội bộ và các điểm có dữ liệu rõ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-004
+    title: 'Bảo vệ cả hai chặng: kiểm tra chứng chỉ upstream và mTLS'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-005
+    title: SNI routing, health check và chứng chỉ trên hệ thống nhiều nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-006
+    title: Khóa vé phiên, tính nhất quán cấu hình và xoay khóa theo cụm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-007
+    title: CDN, API Gateway, Ingress và service mesh trong đường đi TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-008
+    title: CONNECT proxy, kiểm tra TLS doanh nghiệp và phân phối CA nội bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: deployment-models-009
+    title: Thiết kế ranh giới tin cậy và ghi nhận danh tính sau mỗi điểm kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-protocol-integrations
+  title: TLS với giao thức khác
+  childs:
+  - slug: tls-protocol-integrations-001
+    title: 'HTTPS: lớp bảo vệ TLS và ngữ nghĩa HTTP bên trong'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-002
+    title: HTTP/2 qua TLS, ALPN và các ràng buộc tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-003
+    title: 'HTTP/3 và QUIC: sử dụng bắt tay TLS 1.3 với bảo vệ gói riêng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-004
+    title: 'DTLS: bảo vệ datagram và khác biệt khi không có luồng TCP'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-005
+    title: So sánh TLS, DTLS và QUIC theo truyền tải và xử lý mất gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-006
+    title: WebSocket bảo mật (wss) và kết nối sống lâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-007
+    title: TLS ngầm định và STARTTLS trong SMTP, IMAP hoặc giao thức tương tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-008
+    title: Nguy cơ hạ cấp STARTTLS và chính sách bắt buộc kênh bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-009
+    title: 'TLS với cơ sở dữ liệu, LDAP và gRPC: cấu hình ở đúng lớp'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-protocol-integrations-010
+    title: HSTS, mixed content và cookie Secure trong phạm vi bảo mật web
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: attacks-defenses
+  title: Tấn công và phòng vệ
+  childs:
+  - slug: attacks-defenses-001
+    title: Nghe lén, sửa dữ liệu và giả mạo trong mô hình đối thủ TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-002
+    title: Tấn công xen giữa khi bỏ kiểm tra chứng chỉ hoặc tin nhầm CA
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-003
+    title: Hạ cấp giao thức, phiên bản dự phòng và tín hiệu chống hạ cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-004
+    title: 'POODLE, BEAST và Lucky Thirteen: bài học từ SSL và CBC'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-005
+    title: 'CRIME và BREACH: khác biệt giữa nén TLS với nén ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-006
+    title: 'Heartbleed: lỗi triển khai thư viện và hậu quả lộ bí mật'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-007
+    title: 'ROBOT, Logjam và FREAK: rủi ro của cơ chế mật mã kế thừa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-008
+    title: Triple Handshake và vai trò của ràng buộc nội dung bắt tay
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-009
+    title: Replay 0-RTT, phát lại yêu cầu và trách nhiệm của ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-010
+    title: Phân tích lưu lượng, thông tin còn lộ và giới hạn của mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: attacks-defenses-011
+    title: Từ chối dịch vụ khi bắt tay và các biện pháp giới hạn tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-configuration
+  title: Cấu hình an toàn
+  childs:
+  - slug: secure-configuration-001
+    title: Xây dựng chính sách TLS theo mô hình đe dọa và nhóm máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-002
+    title: Quản lý phiên bản tối thiểu, tối đa và các giao thức đã ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-003
+    title: Chọn AEAD, nhóm trao đổi khóa và thuật toán chữ ký phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-004
+    title: Vô hiệu cơ chế yếu, nén TLS và tái thương lượng không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-005
+    title: Bắt buộc xác minh danh tính khi gọi upstream hoặc dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-006
+    title: Quản lý trust store riêng, CA nội bộ và khác biệt giữa môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-007
+    title: Chính sách tiếp tục phiên, khóa vé và bật hoặc tắt 0-RTT
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-008
+    title: Cập nhật thư viện TLS, theo dõi lỗ hổng và kiểm kê phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-009
+    title: Kiểm thử tương thích, triển khai từng phần và phương án quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-configuration-010
+    title: Kiểm tra cấu hình hiệu lực và phát hiện sai lệch giữa các nút
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tls-performance
+  title: Hiệu năng TLS
+  childs:
+  - slug: tls-performance-001
+    title: Chi phí DNS, TCP, TLS và xử lý ứng dụng trong độ trễ đầu cuối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-002
+    title: Đo thời gian bắt tay đầy đủ, tiếp tục phiên và tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-003
+    title: Ảnh hưởng của RTT, mất gói, CPU và tăng tốc mật mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-004
+    title: Kích thước chuỗi chứng chỉ, kiểu khóa và chi phí chữ ký
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-005
+    title: Connection pooling, HTTP keep-alive và multiplexing
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-006
+    title: Kích thước bản ghi, bộ đệm và đánh đổi độ trễ với thông lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-007
+    title: Bộ nhớ đệm phiên, Session Ticket và tỷ lệ tiếp tục phiên thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-008
+    title: Đánh giá 0-RTT theo lợi ích đo được và rủi ro phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tls-performance-009
+    title: Thiết kế phép đo tải, chỉ số nền và so sánh cấu hình công bằng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: observability-diagnostics
+  title: Quan sát và chẩn đoán
+  childs:
+  - slug: observability-diagnostics-001
+    title: 'Quy trình khoanh vùng: DNS, TCP, bắt tay TLS hay giao thức ứng dụng'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-002
+    title: Đọc log phiên bản, cipher suite, SNI, ALPN và trạng thái tiếp tục phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-003
+    title: 'Hiểu alert: handshake_failure, protocol_version và insufficient_security'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-004
+    title: 'Hiểu alert: unknown_ca, bad_certificate, certificate_expired và certificate_required'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-005
+    title: Phân biệt lỗi TLS, đóng kết nối TCP, timeout và HTTP 4xx hoặc 5xx
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-006
+    title: Chẩn đoán sai SAN, thiếu intermediate, lệch đồng hồ và sai trust store
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-007
+    title: Chẩn đoán không có cipher suite, nhóm hoặc thuật toán chữ ký chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-008
+    title: Chẩn đoán kết nối qua proxy, CDN hoặc bộ cân bằng tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-009
+    title: Giám sát hạn chứng chỉ, tỷ lệ bắt tay lỗi và độ trễ theo máy khách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: observability-diagnostics-010
+    title: Thu thập bằng chứng, bảo vệ dữ liệu nhạy cảm và lưu lại nguyên nhân sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: openssl-curl
+  title: OpenSSL và curl
+  childs:
+  - slug: openssl-curl-001
+    title: Đọc phiên bản công cụ, khả năng TLS và thư viện mật mã đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-002
+    title: Kiểm tra endpoint bằng openssl s_client với SNI và ALPN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-003
+    title: Buộc phiên bản, cipher suite hoặc nhóm để kiểm thử thương lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-004
+    title: Đọc chứng chỉ bằng openssl x509 và kiểm tra chuỗi bằng openssl verify
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-005
+    title: Tạo CA thử nghiệm, khóa, CSR và chứng chỉ có SAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-006
+    title: Dựng máy chủ thử nghiệm bằng openssl s_server
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-007
+    title: Thử mTLS bằng chứng chỉ máy khách và CA được chỉ định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-008
+    title: Kiểm tra tiếp tục phiên bằng lưu và nạp lại phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-009
+    title: Chẩn đoán HTTPS bằng curl --verbose, --cacert, --cert và --key
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-010
+    title: Giữ tên máy chủ khi đổi địa chỉ bằng curl --resolve
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: openssl-curl-011
+    title: Đối chiếu kết quả công cụ với cấu hình và lưu ý khi dùng tùy chọn bỏ xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: wireshark-analysis
+  title: Phân tích Wireshark
+  childs:
+  - slug: wireshark-analysis-001
+    title: Chọn điểm bắt gói, bộ lọc và kết nối cần phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-002
+    title: Nhận diện TCP handshake, ClientHello, ServerHello và bản ghi TLS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-003
+    title: Đọc phiên bản, cipher suite, supported_groups và key_share
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-004
+    title: Theo dõi SNI, ALPN và giới hạn quan sát khi có mã hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-005
+    title: Phân tích bắt tay TLS 1.2 và TLS 1.3 theo dòng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-006
+    title: Nhận diện HelloRetryRequest, tiếp tục phiên và dữ liệu sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-007
+    title: Phân biệt TCP segmentation với thông điệp bắt tay bị chia thành nhiều bản ghi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-008
+    title: Giải mã trong phòng thử nghiệm bằng session key log khi công cụ hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-009
+    title: Vì sao khóa riêng máy chủ không đủ giải mã phiên dùng ECDHE
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: wireshark-analysis-010
+    title: Bảo vệ tệp bắt gói, tệp bí mật phiên và xóa dữ liệu thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: java-tls
+  title: TLS với Java
+  childs:
+  - slug: java-tls-001
+    title: JSSE, TLS provider và các thành phần SSLContext, SSLSocket, SSLEngine
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-002
+    title: 'KeyStore và TrustStore: nơi giữ danh tính và nơi xác định tin cậy'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-003
+    title: KeyManager, TrustManager và lựa chọn chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-004
+    title: Quản lý chứng chỉ với keytool và định dạng PKCS#12
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-005
+    title: Cấu hình TLS cho Java HttpClient và xác minh tên máy chủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-006
+    title: Bật HTTPS hoặc mTLS cho ứng dụng Spring Boot theo máy chủ nhúng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-007
+    title: Giới hạn giao thức, cipher suite và thuật toán bị vô hiệu trên JDK
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-008
+    title: Chẩn đoán bằng javax.net.debug trong môi trường thử nghiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-009
+    title: Xử lý PKIX path building failed, SSLHandshakeException và lỗi SAN
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: java-tls-010
+    title: Cập nhật chứng chỉ, kiểm thử trust store và tránh TrustManager chấp nhận mọi chứng chỉ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-exercises
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-exercises-001
+    title: Dựng phòng thử nghiệm với CA nội bộ, máy chủ và máy khách riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-002
+    title: So sánh bắt tay TLS 1.2 và TLS 1.3 bằng log cùng bản bắt gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-003
+    title: Tái hiện chứng chỉ hết hạn, sai SAN và thiếu chuỗi trung gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-004
+    title: Triển khai mTLS rồi kiểm tra chứng chỉ thiếu, hợp lệ và không được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-005
+    title: So sánh termination, passthrough và re-encryption trên hai chặng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-006
+    title: Đo bắt tay đầy đủ, tiếp tục phiên và tái sử dụng kết nối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-007
+    title: Thử gia hạn, xoay khóa và thay CA với kiểm tra sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-008
+    title: Khảo sát 0-RTT trong môi trường hỗ trợ và đánh giá khả năng phát lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-009
+    title: Điều tra một sự cố TLS từ triệu chứng đến nguyên nhân và biện pháp sửa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-exercises-010
+    title: Tự đánh giá bằng sơ đồ kết nối, cấu hình, bằng chứng và giải thích ranh giới bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

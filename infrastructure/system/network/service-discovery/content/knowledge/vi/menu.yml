@@ -1,0 +1,319 @@
+menu:
+- level1: Nền tảng
+  level2:
+  - Khám phá dịch vụ (service discovery) là gì và giải quyết vấn đề nào
+  - Vì sao tên dịch vụ ổn định còn địa chỉ instance thường xuyên thay đổi
+  - 'Các thành phần: bên cung cấp, bên sử dụng, registry và bộ phân giải'
+  - Luồng từ đăng ký dịch vụ đến chọn endpoint và thiết lập kết nối
+  - Phân biệt khám phá dịch vụ với DNS, cân bằng tải và định tuyến
+  - Phân biệt thông tin dịch vụ tồn tại với khả năng truy cập và phục vụ thực tế
+  - Vai trò của discovery khi mở rộng, triển khai lại và thay thế instance
+  - Kiến thức nền và trình tự học từ mô hình đến vận hành
+- level1: Định danh dịch vụ
+  level2:
+  - Phân biệt tên dịch vụ logic, instance ID, hostname và địa chỉ IP
+  - Thiết kế không gian tên theo môi trường, nhóm sở hữu và phạm vi triển khai
+  - Mô tả endpoint bằng địa chỉ, cổng, giao thức và tên cổng
+  - Phân biệt tên dịch vụ với định danh dùng để xác thực
+  - Quy định vòng đời và tính duy nhất của instance ID
+  - Biểu diễn nhiều địa chỉ hoặc nhiều cổng cho cùng một instance
+  - Quản lý alias và thay đổi tên mà không gây nhầm lẫn người sử dụng
+  - Thiết kế metadata tối thiểu và tránh đưa bí mật vào thông tin đăng ký
+- level1: Mô hình kiến trúc
+  level2:
+  - So sánh địa chỉ cấu hình tĩnh với khám phá động
+  - Khám phá phía client và trách nhiệm của ứng dụng gọi
+  - Khám phá phía server qua load balancer hoặc proxy
+  - Khám phá qua DNS và qua API của registry
+  - Tự đăng ký so với đăng ký bởi agent hoặc nền tảng điều phối
+  - Phân biệt mặt phẳng điều khiển với đường truyền lưu lượng
+  - Xác định thành phần lưu danh sách endpoint và thành phần chọn endpoint
+  - Đánh giá mức phụ thuộc của ứng dụng vào SDK và nền tảng discovery
+- level1: Mô hình registry
+  level2:
+  - Tập dữ liệu dịch vụ, instance, endpoint, metadata và trạng thái sức khỏe
+  - Phân biệt đăng ký có thời hạn, lease và bản ghi tồn tại lâu dài
+  - Thiết kế phiên bản bản ghi và xử lý cập nhật đồng thời
+  - Phân biệt dữ liệu mong muốn với trạng thái instance thực tế
+  - Chỉ mục tra cứu theo tên, namespace, nhãn và vị trí triển khai
+  - Xử lý bản ghi trùng, địa chỉ thay đổi và instance đã biến mất
+  - Thiết kế thao tác đăng ký lặp an toàn và quyền sở hữu bản ghi
+  - Phân biệt registry chuyên dụng với kho khóa–giá trị làm nền tảng
+  - Ranh giới giữa lưu thông tin khám phá với quản lý cấu hình ứng dụng
+- level1: Đăng ký và vòng đời
+  level2:
+  - Xác định thời điểm đăng ký trong quá trình khởi động ứng dụng
+  - Quảng bá đúng địa chỉ và cổng mà bên sử dụng có thể truy cập
+  - Gia hạn đăng ký bằng heartbeat hoặc lease theo cơ chế của nền tảng
+  - Cập nhật metadata và trạng thái khi instance thay đổi
+  - Xử lý đăng ký thất bại, retry và tiến trình khởi động lại
+  - Phát hiện bản ghi cũ sau khi ứng dụng dừng đột ngột
+  - Ngừng nhận yêu cầu mới trước khi hủy đăng ký hoặc kết thúc tiến trình
+  - Phối hợp hủy đăng ký, thời gian lan truyền và rút hết kết nối
+  - Kiểm tra vòng đời khi mở rộng, thu hẹp và triển khai cuốn chiếu
+- level1: Sức khỏe dịch vụ
+  level2:
+  - Phân biệt tiến trình còn sống, khởi động xong và sẵn sàng phục vụ
+  - Kiểm tra chủ động, heartbeat và quan sát lỗi từ lưu lượng thực
+  - Chọn kiểm tra TCP, HTTP hoặc kiểm tra theo giao thức ứng dụng
+  - Thiết kế health check phản ánh đúng điều kiện nhận yêu cầu
+  - Đặt chu kỳ, timeout và ngưỡng chuyển trạng thái
+  - Giảm dao động trạng thái khi lỗi ngắn hạn hoặc mạng không ổn định
+  - Tránh kiểm tra phụ thuộc quá sâu gây loại bỏ hàng loạt instance
+  - Phân biệt sức khỏe từ góc nhìn registry với khả năng truy cập từ client
+  - Giới hạn của health check tại một thời điểm và dữ liệu đã trễ
+  - Xác định chính sách khi mọi endpoint đều bị đánh dấu không khỏe
+- level1: Tra cứu và theo dõi
+  level2:
+  - Thiết kế truy vấn tên dịch vụ thành tập endpoint phù hợp
+  - Tra cứu toàn bộ danh sách, theo trang hoặc theo tập thay đổi
+  - So sánh polling, long polling và cơ chế theo dõi thay đổi (watch)
+  - Sử dụng phiên bản hoặc chỉ dấu tiến độ để nhận cập nhật liên tục
+  - Khôi phục theo dõi khi mất kết nối hoặc bỏ lỡ sự kiện
+  - Đồng bộ lại toàn bộ để sửa sai lệch giữa client và registry
+  - Phân biệt kết quả rỗng, dịch vụ không tồn tại và lỗi truy vấn
+  - Giới hạn truy vấn, thêm độ lệch thời gian ngẫu nhiên và tránh nhiều client cập nhật cùng lúc
+- level1: Nhất quán dữ liệu
+  level2:
+  - Phân biệt trạng thái registry nhất quán với dữ liệu client đã cập nhật
+  - Đo thời gian hội tụ từ thay đổi instance đến quyết định kết nối
+  - Nhất quán mạnh, nhất quán cuối cùng và yêu cầu của từng tình huống
+  - Đánh đổi khả dụng và độ mới khi xảy ra phân vùng mạng
+  - Vai trò của sao chép, leader và quorum tùy cơ chế registry
+  - Xử lý đọc từ bản sao cũ và cập nhật đến không đúng thứ tự
+  - Nhận diện trạng thái chia cắt và bản ghi mâu thuẫn giữa các miền
+  - Xây dựng tiêu chí chấp nhận endpoint cũ thay vì giả định thay đổi có hiệu lực tức thì
+- level1: Cache và độ mới
+  level2:
+  - 'Các lớp cache: registry, agent, resolver, SDK và ứng dụng'
+  - Chọn TTL và chu kỳ làm mới theo biến động instance
+  - Xử lý cache kết quả không tồn tại và thời gian xuất hiện dịch vụ mới
+  - Phân biệt cache địa chỉ với tái sử dụng kết nối đến địa chỉ cũ
+  - Giữ bản dữ liệu tốt gần nhất khi registry không truy cập được
+  - Quy định giới hạn tuổi dữ liệu và điều kiện ngừng dùng kết quả cũ
+  - Giảm tải làm mới bằng cập nhật nền, độ lệch ngẫu nhiên và gom truy vấn
+  - Kiểm chứng thời gian loại endpoint cũ xuyên qua mọi lớp cache
+- level1: Cân bằng tải
+  level2:
+  - Tách khám phá tập ứng viên khỏi chọn endpoint cho một yêu cầu
+  - Cân bằng theo kết nối và theo yêu cầu có thể tạo phân bố khác nhau
+  - Áp dụng round-robin, ngẫu nhiên hoặc trọng số theo khả năng client
+  - Lọc endpoint theo sức khỏe, vị trí và yêu cầu tương thích
+  - Phân biệt thứ tự câu trả lời DNS với thuật toán cân bằng tải
+  - Đánh giá session affinity và ảnh hưởng khi endpoint biến mất
+  - Nhận diện lệch tải do kết nối lâu dài hoặc client giữ một địa chỉ
+  - Phối hợp trạng thái endpoint với loại bỏ tạm thời instance lỗi
+  - Giới hạn phạm vi discovery so với chính sách quản lý lưu lượng nâng cao
+- level1: Phục hồi khi lỗi
+  level2:
+  - Phân biệt lỗi registry, lỗi phân giải, lỗi kết nối và lỗi của dịch vụ đích
+  - Đặt timeout cho tra cứu và gọi dịch vụ trong ngân sách thời gian chung
+  - Retry có giới hạn, giãn thời gian và tránh bão truy vấn registry
+  - Chọn dùng cache cũ, endpoint dự phòng hoặc từ chối yêu cầu khi discovery lỗi
+  - Xử lý tình huống khởi động mới khi chưa có cache
+  - Ngăn fallback định tuyến sang sai môi trường hoặc sai nhóm khách hàng
+  - Giới hạn tác động của registry lỗi lên các kết nối đang hoạt động
+  - Đánh giá khả năng retry sang instance khác với thao tác không lũy đẳng
+- level1: Khám phá qua DNS
+  level2:
+  - Vai trò của bản ghi A, AAAA, CNAME và SRV trong tìm dịch vụ
+  - Tra cứu địa chỉ khác với tra cứu cổng và giao thức
+  - Thiết kế tên miền dịch vụ và ranh giới DNS nội bộ
+  - TTL, cache resolver và độ trễ khi cập nhật tập endpoint
+  - Phân biệt NXDOMAIN, câu trả lời không có bản ghi và lỗi máy chủ DNS
+  - Ảnh hưởng của negative caching khi dịch vụ vừa được tạo
+  - Giới hạn thông tin sức khỏe, metadata và cập nhật chủ động qua DNS
+  - Kiểm tra thứ tự địa chỉ và hành vi lựa chọn của từng loại client
+  - Rà soát kích thước câu trả lời và khả năng chuyển từ UDP sang TCP
+  - Giới hạn của DNS khi kết nối ứng dụng được giữ lâu hơn TTL
+- level1: Kubernetes Service
+  level2:
+  - Quan hệ giữa Pod, Service, selector và tập endpoint
+  - ClusterIP cung cấp địa chỉ dịch vụ ổn định như thế nào
+  - Phân biệt phân giải tên Service với chuyển lưu lượng đến Pod
+  - Chọn Service có selector hoặc không có selector
+  - Headless Service và việc client nhận trực tiếp địa chỉ endpoint
+  - ExternalName là bí danh DNS và những giới hạn khi ứng dụng sử dụng
+  - Phân biệt khám phá nội bộ với công bố dịch vụ qua NodePort hoặc LoadBalancer
+  - Quản lý port, targetPort và named port
+  - Xác định trách nhiệm của nền tảng và của client khi Pod được thay thế
+- level1: EndpointSlice
+  level2:
+  - Vai trò của EndpointSlice trong biểu diễn tập endpoint của Service
+  - Liên kết Service, EndpointSlice, Pod và bộ điều khiển
+  - Tổng hợp endpoint từ nhiều slice và xử lý địa chỉ xuất hiện lặp
+  - Đọc địa chỉ, cổng, loại địa chỉ và metadata vị trí
+  - Phân biệt các điều kiện ready, serving và terminating
+  - Đánh giá tác động của publishNotReadyAddresses đến việc công bố endpoint
+  - Theo dõi thay đổi EndpointSlice và đồng bộ lại khi gián đoạn
+  - Quản lý endpoint thủ công cho Service không có selector
+  - Kiểm tra độ trễ từ thay đổi readiness đến client hoặc data plane
+  - Xác minh API và khả năng hỗ trợ theo phiên bản Kubernetes
+- level1: DNS trong Kubernetes
+  level2:
+  - Cấu trúc tên Service theo namespace và tên miền cluster
+  - Phân biệt tên ngắn, tên tương đối và tên đầy đủ
+  - Bản ghi DNS của Service thông thường và headless Service
+  - Tra cứu SRV cho cổng có tên khi ứng dụng hỗ trợ
+  - Quan hệ giữa StatefulSet, hostname ổn định và headless Service
+  - Ảnh hưởng của search domain, ndots và chính sách DNS của Pod
+  - Khoanh vùng lỗi CoreDNS, resolver trong Pod và cache ở client
+  - Kiểm tra khả năng phân giải qua namespace và ra DNS bên ngoài
+- level1: Consul
+  level2:
+  - Vai trò của server, agent và service catalog trong discovery
+  - Đăng ký tên dịch vụ, instance, địa chỉ, cổng và metadata
+  - Gắn health check và kiểm tra cách lọc instance theo trạng thái
+  - Khám phá dịch vụ qua DNS và API truy vấn sức khỏe
+  - Phân biệt dữ liệu catalog với kết quả đủ điều kiện nhận lưu lượng
+  - Theo dõi thay đổi bằng blocking query và xử lý đồng bộ lại
+  - Kiểm soát cache, độ nhất quán truy vấn và dữ liệu cũ
+  - Quản lý hủy đăng ký, instance critical và thời gian dọn bản ghi
+  - Áp dụng quyền đọc, ghi và ranh giới datacenter theo khả năng triển khai
+- level1: Eureka
+  level2:
+  - Vai trò của Eureka Server, Eureka Client và bản sao registry tại client
+  - Đăng ký service ID, instance ID và địa chỉ truy cập
+  - Phân biệt heartbeat gia hạn với kiểm tra sẵn sàng phục vụ của ứng dụng
+  - Tra cứu registry, tải thay đổi và độ trễ cập nhật ở client
+  - Trạng thái instance và phối hợp với vòng đời Spring Boot
+  - Xử lý lease hết hạn, eviction và cơ chế self-preservation
+  - Triển khai nhiều server và đánh giá trạng thái khi mất liên lạc
+  - Phân biệt khám phá qua Eureka với cân bằng tải phía client
+  - Kiểm tra cấu hình bảo mật, địa chỉ server và khả năng tương thích phiên bản
+- level1: Các nền tảng khác
+  level2:
+  - Dùng etcd làm nền tảng registry với lease và watch
+  - Dùng ZooKeeper với phiên kết nối, nút tạm thời và thông báo thay đổi
+  - Đánh giá phần logic discovery vẫn phải tự xây khi dùng kho dữ liệu chung
+  - Khám phá do nền tảng container hoặc hạ tầng máy ảo cung cấp
+  - Dịch vụ discovery được quản lý và tích hợp DNS hoặc API trên cloud
+  - Kiểm tra giới hạn truy vấn, vùng triển khai và mô hình quyền truy cập
+  - Tránh đồng nhất mọi registry về cơ chế nhất quán và loại bản ghi
+- level1: Java và Spring
+  level2:
+  - Vai trò của DiscoveryClient, ReactiveDiscoveryClient và ServiceInstance
+  - Phân biệt đọc registry với đăng ký bằng ServiceRegistry
+  - Chọn implementation theo nền tảng và quản lý phiên bản bằng BOM tương thích
+  - Cấu hình tên ứng dụng, instance và địa chỉ được quảng bá
+  - Tích hợp Spring Cloud LoadBalancer để chọn instance từ tên dịch vụ
+  - Áp dụng discovery cho HTTP client đồng bộ và bất đồng bộ
+  - Kiểm soát đăng ký tự động và thứ tự khởi động của ứng dụng
+  - Rà soát cache DNS trong JVM cùng cache của thư viện discovery
+  - Kiểm thử khi thay implementation hoặc dùng cấu hình instance tĩnh cho môi trường thử nghiệm
+- level1: HTTP và gRPC
+  level2:
+  - Liên kết tên dịch vụ với authority, cổng và giao thức khi tạo client
+  - HTTP connection pool và việc kết nối tiếp tục trỏ đến endpoint cũ
+  - Ảnh hưởng của HTTP/2 và kết nối ghép kênh đến phân bố lưu lượng
+  - Vai trò của gRPC NameResolver trong trả về tập địa chỉ
+  - Phối hợp NameResolver với chính sách cân bằng tải của gRPC
+  - Theo dõi thay đổi endpoint và quản lý vòng đời channel hoặc subchannel
+  - Phân biệt khám phá thất bại với lỗi TLS, Host header hoặc tên máy chủ
+  - Kiểm tra hành vi làm mới khi endpoint bị xóa hoặc khi kết nối bị lỗi
+- level1: Mạng và địa chỉ
+  level2:
+  - Phân biệt địa chỉ bind, địa chỉ quảng bá và địa chỉ client sử dụng
+  - Đăng ký đúng endpoint khi chạy sau NAT, proxy hoặc port mapping
+  - Khám phá dịch vụ giữa máy chủ, container và mạng bên ngoài
+  - Xử lý hostname nhiều địa chỉ, IPv4, IPv6 và môi trường dual-stack
+  - Phân biệt phân giải thành công với có route và được phép kết nối
+  - Kiểm tra firewall, NetworkPolicy và quyền truy cập từ từng nhóm client
+  - Tránh quảng bá localhost, địa chỉ nội bộ sai phạm vi hoặc cổng không phục vụ
+- level1: Proxy và service mesh
+  level2:
+  - Vai trò của reverse proxy hoặc gateway trong khám phá phía server
+  - Proxy lấy và cập nhật tập upstream từ nguồn discovery như thế nào
+  - Phân biệt dữ liệu discovery với quy tắc định tuyến ở proxy
+  - Vai trò của control plane và data plane trong service mesh
+  - Khái quát xDS và việc phân phối cấu hình endpoint động
+  - Đánh giá cache cấu hình và hành vi khi control plane mất kết nối
+  - Xác định lúc ứng dụng có thể dùng tên dịch vụ mà không cần SDK registry riêng
+- level1: Metadata và lựa chọn
+  level2:
+  - Phân loại metadata mô tả, metadata định tuyến và dữ liệu sức khỏe
+  - Chọn instance theo phiên bản giao thức hoặc khả năng tương thích
+  - Lọc theo môi trường, namespace và nhóm sở hữu
+  - Ưu tiên cùng vùng khả dụng mà vẫn có điều kiện dự phòng
+  - Phối hợp discovery với triển khai canary hoặc blue–green
+  - Kiểm soát trọng số, trạng thái bảo trì và ngừng nhận kết nối mới
+  - Xử lý thiếu metadata hoặc giá trị không được nhận diện
+  - Phân biệt nhãn do dịch vụ tự khai báo với thông tin đã được xác minh
+- level1: Nhiều vùng triển khai
+  level2:
+  - Thiết kế phạm vi khám phá theo cluster, vùng khả dụng và khu vực địa lý
+  - Chọn khám phá cục bộ, liên kết registry hoặc truy vấn xuyên vùng
+  - Phân biệt sao chép danh mục với khả năng kết nối dữ liệu xuyên vùng
+  - Quy định thứ tự dự phòng và điều kiện chuyển vùng
+  - Xử lý tên trùng, instance ID trùng và ranh giới môi trường
+  - Đánh giá độ trễ hội tụ và dữ liệu sức khỏe từ vùng khác
+  - Ngăn chuyển vùng hàng loạt làm quá tải khu vực còn hoạt động
+  - Kiểm chứng hành vi khi mất kết nối giữa các vùng hoặc khôi phục mạng
+- level1: Bảo mật discovery
+  level2:
+  - Xác thực bên đăng ký, bên truy vấn và tác nhân quản lý registry
+  - Phân quyền đọc, đăng ký, cập nhật và hủy đăng ký theo phạm vi
+  - Ngăn giả mạo dịch vụ và thay endpoint bằng địa chỉ không được phép
+  - Bảo vệ kết nối đến registry bằng TLS và xác minh chứng chỉ
+  - Quản lý token, chứng chỉ và thời điểm thay thông tin xác thực
+  - Tách namespace và quyền truy cập giữa môi trường hoặc nhóm khách hàng
+  - Kiểm tra địa chỉ quảng bá, metadata và đầu vào API registry
+  - Giới hạn khả năng liệt kê dịch vụ và lộ cấu trúc mạng nội bộ
+  - Ghi dấu kiểm toán thay đổi danh mục mà không ghi bí mật vào log
+- level1: Quan sát discovery
+  level2:
+  - Đo độ trễ, tỷ lệ lỗi và kết quả rỗng của truy vấn discovery
+  - Theo dõi số instance, trạng thái sức khỏe và tốc độ thay đổi endpoint
+  - Đo thời gian đăng ký, hội tụ và loại bỏ instance không còn phục vụ
+  - Theo dõi tuổi cache, lần làm mới lỗi và client đang dùng dữ liệu cũ
+  - Giám sát heartbeat, lease hết hạn và dao động health check
+  - Đối chiếu thay đổi registry với lỗi kết nối ở ứng dụng
+  - Phân biệt registry khỏe với toàn bộ luồng gọi dịch vụ hoạt động
+  - Thiết kế log tương quan cho đăng ký, thay đổi endpoint và lựa chọn client
+  - Xây dựng dashboard, cảnh báo và chỉ tiêu chất lượng cho discovery
+- level1: Kiểm thử discovery
+  level2:
+  - Tạo môi trường nhiều instance với địa chỉ thay đổi có thể kiểm soát
+  - Kiểm thử đăng ký, truy vấn, gia hạn, hủy đăng ký và đăng ký lại
+  - Kiểm thử dịch vụ chưa tồn tại, kết quả rỗng và metadata không hợp lệ
+  - Kiểm chứng thời gian lan truyền qua registry, resolver và client
+  - Thử dừng đột ngột, mất heartbeat và health check dao động
+  - Thử mất registry, mất quorum hoặc phân vùng mạng theo cơ chế nền tảng
+  - Thử mất watch, nhận sự kiện trùng và đồng bộ lại danh sách
+  - Kiểm tra kết nối lâu dài khi mở rộng hoặc loại bỏ endpoint
+  - Kiểm thử quyền truy cập, giả mạo đăng ký và sai phạm vi môi trường
+  - Kiểm tra tải khi nhiều client khởi động hoặc instance thay đổi liên tục
+- level1: Vận hành registry
+  level2:
+  - Thiết kế khả dụng cao theo cơ chế của registry được lựa chọn
+  - Đánh giá số dịch vụ, số instance, số client và tải truy vấn
+  - Giới hạn chi phí heartbeat, watch và cập nhật toàn bộ danh mục
+  - Quản lý triển khai cuốn chiếu và bảo trì thành viên registry
+  - Sao lưu, phục hồi và đánh giá dữ liệu cũ sau khi khôi phục
+  - Nâng cấp server, agent và client theo ma trận tương thích
+  - Quản lý chứng chỉ, token và thay đổi cấu hình không làm gián đoạn khám phá
+  - Xử lý bản ghi mồ côi, endpoint sai và dữ liệu bất thường
+  - Chuẩn bị runbook cho mất registry, DNS lỗi và dịch vụ không tìm thấy
+- level1: Lựa chọn và chuyển đổi
+  level2:
+  - Đánh giá nhu cầu theo môi trường triển khai, giao thức và mức biến động
+  - So sánh DNS, discovery nền tảng và registry chuyên dụng
+  - Đánh giá độ mới, sức khỏe endpoint, metadata và khả năng theo dõi thay đổi
+  - Đánh giá chi phí vận hành, giới hạn nền tảng và mức phụ thuộc SDK
+  - Xác định khi nào không cần thêm registry bên ngoài
+  - Chuyển từ địa chỉ tĩnh sang tên dịch vụ theo từng giai đoạn
+  - Chạy song song hai nguồn khám phá và xử lý kết quả mâu thuẫn
+  - Giữ tương thích tên, metadata và hành vi client khi đổi nền tảng
+  - Xác định tiêu chí chuyển hoàn toàn, quay về và ngừng registry cũ
+- level1: Thực hành tổng hợp
+  level2:
+  - Xây dựng dịch vụ gọi qua tên logic với nhiều instance được thay đổi động
+  - So sánh khám phá phía client, qua proxy và qua DNS
+  - Đăng ký dịch vụ trong Consul và quan sát thay đổi sức khỏe
+  - Tích hợp Eureka với Spring Cloud DiscoveryClient và LoadBalancer
+  - Khám phá Kubernetes Service thông thường và headless Service
+  - Theo dõi EndpointSlice khi Pod thay đổi readiness hoặc bị xóa
+  - Đo ảnh hưởng của cache DNS và connection pool đến thời gian loại endpoint cũ
+  - Thử registry mất kết nối, dữ liệu cũ và chính sách dự phòng
+  - Điều tra lỗi do địa chỉ quảng bá, namespace hoặc chứng chỉ sai
+  - Hoàn thiện bộ kiểm thử vòng đời, dashboard và runbook vận hành

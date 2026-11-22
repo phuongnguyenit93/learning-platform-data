@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan InfluxDB
+  slug: influxdb-overview
+  index: 0
+- title: Các thế hệ InfluxDB
+  slug: influxdb-generations
+  index: 1
+- title: Nền tảng thời gian
+  slug: time-series-foundations
+  index: 2
+- title: Mô hình dữ liệu
+  slug: data-model
+  index: 3
+- title: Thiết kế schema
+  slug: schema-design
+  index: 4
+- title: Cài đặt và công cụ
+  slug: installation-and-tools
+  index: 5
+- title: Quản trị tài nguyên
+  slug: resource-administration
+  index: 6
+- title: Line Protocol
+  slug: line-protocol
+  index: 7
+- title: Ghi dữ liệu
+  slug: data-ingestion
+  index: 8
+- title: Thu thập với Telegraf
+  slug: telegraf-collection
+  index: 9
+- title: HTTP API
+  slug: http-api
+  index: 10
+- title: InfluxQL
+  slug: influxql
+  index: 11
+- title: Flux cơ bản (2.x)
+  slug: flux-basics-2x
+  index: 12
+- title: Flux nâng cao (2.x)
+  slug: advanced-flux-2x
+  index: 13
+- title: SQL cơ bản (3.x)
+  slug: sql-basics-3x
+  index: 14
+- title: SQL thời gian (3.x)
+  slug: time-series-sql-3x
+  index: 15
+- title: Tính đúng đắn dữ liệu
+  slug: data-correctness
+  index: 16
+- title: Bộ máy TSM (1.x/2.x)
+  slug: tsm-engine-1x-2x
+  index: 17
+- title: Bộ máy InfluxDB 3
+  slug: influxdb-3-engine
+  index: 18
+- title: Lưu giữ và xóa
+  slug: retention-and-deletion
+  index: 19
+- title: Tổng hợp định kỳ
+  slug: scheduled-aggregation
+  index: 20
+- title: Processing Engine (3.x)
+  slug: processing-engine-3x
+  index: 21
+- title: Java Client
+  slug: java-client
+  index: 22
+- title: Tích hợp Spring Boot
+  slug: spring-boot-integration
+  index: 23
+- title: Dashboard và cảnh báo
+  slug: dashboards-and-alerts
+  index: 24
+- title: Bảo mật
+  slug: security
+  index: 25
+- title: Tối ưu hiệu năng
+  slug: performance-optimization
+  index: 26
+- title: Giám sát vận hành
+  slug: operational-monitoring
+  index: 27
+- title: Sao lưu và phục hồi
+  slug: backup-and-recovery
+  index: 28
+- title: Triển khai và mở rộng
+  slug: deployment-and-scaling
+  index: 29
+- title: Di chuyển phiên bản
+  slug: version-migration
+  index: 30
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 31
+- title: Kiểm thử hệ thống
+  slug: system-testing
+  index: 32
+- title: Thực hành tổng hợp
+  slug: end-to-end-practice
+  index: 33

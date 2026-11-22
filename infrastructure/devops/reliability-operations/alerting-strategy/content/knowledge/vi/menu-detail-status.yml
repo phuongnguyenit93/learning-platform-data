@@ -1,0 +1,2875 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Chiến lược cảnh báo là gì và giải quyết vấn đề nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Phân biệt giám sát, khả năng quan sát và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Phân biệt sự kiện, điều kiện cảnh báo, thông báo và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng từ tín hiệu đến phát hiện, thông báo và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Vai trò của cảnh báo trong độ tin cậy và vận hành dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Phân biệt cảnh báo theo triệu chứng và theo nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Mối quan hệ giữa cảnh báo, SLI, SLO và ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Các thuật ngữ chính và thứ tự học chiến lược cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: goals-scope
+  title: Mục tiêu và phạm vi
+  childs:
+  - slug: goals-scope-001
+    title: Xác định dịch vụ, hành trình người dùng và kết quả cần bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-002
+    title: Chuyển tác động nghiệp vụ thành yêu cầu phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-003
+    title: Xác định điều kiện cần đánh thức người trực ngay lập tức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-004
+    title: Phân biệt cảnh báo khẩn cấp, công việc theo lịch và thông tin tham khảo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-005
+    title: Xác định chủ sở hữu dịch vụ và trách nhiệm xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-006
+    title: Lập danh mục tình huống lỗi cần phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-007
+    title: Xác định thời gian phát hiện chấp nhận được và khả năng phản ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-008
+    title: Đánh giá rủi ro bỏ sót so với chi phí báo động giả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: goals-scope-009
+    title: Thiết lập tiêu chí chấp nhận cho một cảnh báo mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-signals
+  title: Tín hiệu cảnh báo
+  childs:
+  - slug: alert-signals-001
+    title: Chọn tín hiệu phản ánh trải nghiệm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-002
+    title: 'Bốn tín hiệu chính: độ trễ, lưu lượng, lỗi và mức bão hòa'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-003
+    title: Áp dụng RED cho dịch vụ và USE cho tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-004
+    title: Phân biệt đo từ bên ngoài và đo từ bên trong hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-005
+    title: Sử dụng chỉ số, nhật ký, dấu vết phân tán và sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-006
+    title: Theo dõi giao dịch tổng hợp và kiểm tra chủ động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-007
+    title: Kết hợp tín hiệu kỹ thuật với chỉ số nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-008
+    title: Xác định tín hiệu dẫn dắt và tín hiệu xác nhận sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-signals-009
+    title: Tránh cảnh báo chỉ vì một số đo thay đổi mà chưa cần hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-quality
+  title: Chất lượng dữ liệu
+  childs:
+  - slug: data-quality-001
+    title: Xác định nguồn dữ liệu và hợp đồng thu thập tín hiệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-002
+    title: Phân biệt giá trị bằng không, chuỗi thời gian vắng mặt và lỗi truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-003
+    title: Phát hiện dữ liệu cũ, gián đoạn thu thập và độ trễ tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-004
+    title: Ảnh hưởng của chu kỳ lấy mẫu và chu kỳ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-005
+    title: Xử lý đồng hồ lệch và dữ liệu đến muộn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-006
+    title: Kiểm soát thay đổi tên chỉ số, nhãn và đơn vị đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-007
+    title: Đánh giá độ bao phủ theo dịch vụ, vùng và nhóm người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-008
+    title: Xử lý dữ liệu trùng lặp và tín hiệu không nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-009
+    title: Thiết kế hành vi khi nguồn giám sát không khả dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-quality-010
+    title: Phân biệt sự cố dịch vụ với sự cố thu thập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: thresholds-timing
+  title: Ngưỡng và thời gian
+  childs:
+  - slug: thresholds-timing-001
+    title: Chọn ngưỡng theo tác động thực tế và khả năng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-002
+    title: Phân biệt ngưỡng tuyệt đối, tỷ lệ và tốc độ thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-003
+    title: Chọn khoảng thời gian đánh giá và thời gian duy trì điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-004
+    title: Cân bằng phát hiện nhanh với khả năng chịu dao động ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-005
+    title: Phân biệt cửa sổ trượt và cửa sổ theo mốc thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-006
+    title: Giảm dao động cảnh báo bằng ngưỡng kích hoạt và ngưỡng phục hồi khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-007
+    title: Thiết lập thời gian chờ sau khởi động hoặc triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-008
+    title: Điều chỉnh ngưỡng theo loại dịch vụ và quy mô tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-009
+    title: Kiểm soát sự khác biệt giữa cảnh báo một lần và lỗi kéo dài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: thresholds-timing-010
+    title: Xác nhận điều kiện kết thúc thay vì phục hồi quá sớm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: slo-alerting
+  title: Cảnh báo theo SLO
+  childs:
+  - slug: slo-alerting-001
+    title: Chọn SLI và SLO phù hợp cho mục đích cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-002
+    title: Tính tỷ lệ sự kiện tốt, sự kiện xấu và tổng sự kiện hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-003
+    title: Phân biệt vi phạm tức thời với tiêu thụ ngân sách lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-004
+    title: Xác định tốc độ tiêu thụ ngân sách lỗi (burn rate)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-005
+    title: Liên hệ burn rate với cửa sổ SLO và thời gian cạn ngân sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-006
+    title: Thiết kế cảnh báo nhiều cửa sổ và nhiều mức burn rate
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-007
+    title: Kết hợp cửa sổ dài với cửa sổ ngắn để xác nhận điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-008
+    title: Phân tách lỗi cần gọi trực ngay và suy giảm cần lập công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-009
+    title: Xử lý dịch vụ có lưu lượng thấp hoặc không có yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-010
+    title: Thiết kế cảnh báo độ trễ theo tỷ lệ yêu cầu đạt mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-011
+    title: Áp dụng cảnh báo cho SLO theo thời gian và theo yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: slo-alerting-012
+    title: Đánh giá giới hạn của cảnh báo SLO với lỗi chỉ ảnh hưởng một nhóm nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-queries
+  title: Truy vấn cảnh báo
+  childs:
+  - slug: alert-queries-001
+    title: Phân biệt counter, gauge và histogram khi xây dựng điều kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-002
+    title: Tính tốc độ counter và xử lý counter bị đặt lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-003
+    title: Tổng hợp theo dịch vụ, vùng và phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-004
+    title: Tính tỷ lệ từ tổng tử số và mẫu số phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-005
+    title: Tránh lấy trung bình trực tiếp các tỷ lệ có quy mô khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-006
+    title: Chọn mẫu số và xử lý phép chia cho không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-007
+    title: Đánh giá phân vị độ trễ và tỷ lệ vượt ngưỡng từ histogram
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-008
+    title: Giữ các chiều dữ liệu cần thiết để phát hiện lỗi cục bộ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-009
+    title: Xử lý phép nối nhãn và tránh nhân số lượng chuỗi thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-010
+    title: Dùng quy tắc ghi sẵn để tái sử dụng phép tính có kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-queries-011
+    title: Kiểm tra chi phí truy vấn và tính đúng đắn khi dữ liệu lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-lifecycle
+  title: Vòng đời cảnh báo
+  childs:
+  - slug: alert-lifecycle-001
+    title: Các trạng thái bình thường, chờ xác nhận, đang kích hoạt và đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-002
+    title: Phân biệt trạng thái điều kiện với trạng thái gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-003
+    title: Thiết kế chuyển trạng thái khi điều kiện xuất hiện và biến mất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-004
+    title: Xử lý trạng thái không có dữ liệu và lỗi đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-005
+    title: Quản lý cảnh báo đang tồn tại khi khởi động lại hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-006
+    title: Phân biệt xác nhận đã nhận với xử lý xong sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-007
+    title: Thiết lập thời điểm gửi thông báo kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-008
+    title: Xử lý cảnh báo lặp lại sau một khoảng phục hồi ngắn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-lifecycle-009
+    title: Giữ lịch sử chuyển trạng thái để điều tra và đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-identity
+  title: Danh tính cảnh báo
+  childs:
+  - slug: alert-identity-001
+    title: Đặt tên quy tắc theo dịch vụ và tình huống cần xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-002
+    title: Thiết kế nhãn ổn định cho dịch vụ, môi trường và vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-003
+    title: Phân biệt nhãn định danh với chú thích hiển thị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-004
+    title: Gắn chủ sở hữu, mức khẩn cấp và mã tài liệu xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-005
+    title: Chọn tập nhãn tạo nên một trường hợp cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-006
+    title: Tránh dùng thời gian, mã yêu cầu và nội dung lỗi biến động làm nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-007
+    title: Kiểm soát số lượng giá trị nhãn và nguy cơ bùng nổ cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-008
+    title: Giữ danh tính cảnh báo ổn định khi mở rộng số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-identity-009
+    title: Quản lý thay đổi nhãn mà không phá định tuyến và khử trùng lặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-content
+  title: Nội dung thông báo
+  childs:
+  - slug: notification-content-001
+    title: Nêu rõ điều gì đang lỗi và ai đang bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-002
+    title: Hiển thị phạm vi tác động, thời điểm bắt đầu và mức khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-003
+    title: Cung cấp giá trị hiện tại, điều kiện và cửa sổ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-004
+    title: Liên kết trực tiếp đến bảng theo dõi và truy vấn liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-005
+    title: Đính kèm hướng dẫn xử lý và bước xác minh ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-006
+    title: Phân biệt dữ kiện quan sát được với giả thuyết nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-007
+    title: Thiết kế mẫu thông báo phù hợp điện thoại và kênh trò chuyện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-008
+    title: Thông báo thay đổi mức độ và kết thúc sự cố rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-009
+    title: Loại bỏ bí mật, thông tin định danh cá nhân và nội dung nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-content-010
+    title: Kiểm tra tính hữu dụng của thông báo khi người trực thiếu bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: severity-priority
+  title: Mức độ và ưu tiên
+  childs:
+  - slug: severity-priority-001
+    title: Phân biệt mức ảnh hưởng, mức khẩn cấp và thứ tự ưu tiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-002
+    title: Xây dựng ma trận phân loại theo tác động người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-003
+    title: Xác định cảnh báo phải gọi trực và cảnh báo tạo công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-004
+    title: Đánh giá thời điểm cần phản ứng so với giờ làm việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-005
+    title: Xử lý cảnh báo suy giảm dự phòng khi người dùng chưa bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-006
+    title: Nâng hoặc hạ mức độ khi phạm vi và thời gian lỗi thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-007
+    title: Tránh mọi cảnh báo đều mang mức nghiêm trọng cao nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-008
+    title: Thống nhất ý nghĩa các mức độ giữa các đội
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: severity-priority-009
+    title: Rà soát mức ưu tiên dựa trên sự cố và hành động thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grouping-deduplication
+  title: Gom nhóm và khử trùng lặp
+  childs:
+  - slug: grouping-deduplication-001
+    title: Phân biệt gom thông báo, khử trùng lặp và tương quan sự kiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-002
+    title: Chọn khóa nhóm theo dịch vụ, vùng và tình huống lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-003
+    title: Thiết lập thời gian chờ nhóm và chu kỳ cập nhật nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-004
+    title: Thiết lập khoảng nhắc lại theo mức khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-005
+    title: Khử thông báo trùng từ nhiều bản sao hệ thống giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-006
+    title: Tương quan cảnh báo cùng sự cố mà vẫn giữ phạm vi tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-007
+    title: Tránh gom quá rộng làm che khuất các lỗi độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-008
+    title: Tránh nhóm theo nhãn biến động tạo nhiều thông báo nhỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-009
+    title: Quản lý thành viên mới, thành viên kết thúc và nhóm đang tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grouping-deduplication-010
+    title: Kiểm thử tác động của thay đổi khóa nhóm trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: inhibition-silencing
+  title: Ức chế và tạm tắt
+  childs:
+  - slug: inhibition-silencing-001
+    title: Phân biệt ức chế theo quan hệ lỗi với tạm tắt có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-002
+    title: Ức chế cảnh báo hệ quả khi đã có cảnh báo nguyên nhân phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-003
+    title: Thiết kế điều kiện nhãn để tránh ức chế sai phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-004
+    title: Tạm tắt cảnh báo cho bảo trì đã được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-005
+    title: Giới hạn thời gian, chủ sở hữu và lý do tạm tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-006
+    title: Kiểm soát quyền tạm tắt và lưu lịch sử thao tác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-007
+    title: Duy trì kiểm tra phát hiện lỗi ngoài phạm vi bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-008
+    title: Phát hiện quy tắc tạm tắt quá rộng hoặc không còn phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-009
+    title: Kiểm tra cảnh báo được mở lại sau khi hết thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: inhibition-silencing-010
+    title: Tránh chuỗi ức chế làm mất mọi tín hiệu của sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: routing
+  title: Định tuyến
+  childs:
+  - slug: routing-001
+    title: Thiết kế cây định tuyến theo dịch vụ, đội và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-002
+    title: Ánh xạ chủ sở hữu từ danh mục dịch vụ vào kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-003
+    title: Chọn tuyến mặc định cho cảnh báo chưa xác định được đội
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-004
+    title: Phân biệt tuyến dừng xử lý và tuyến tiếp tục khớp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-005
+    title: Định tuyến theo mức khẩn cấp và giờ phản hồi yêu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-006
+    title: Xử lý dịch vụ dùng chung có nhiều đội cùng chịu trách nhiệm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-007
+    title: Thiết kế đường chuyển tiếp khi đội nhận không còn hoạt động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-008
+    title: Kiểm soát thứ tự quy tắc và điều kiện khớp chồng lấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-009
+    title: Kiểm thử định tuyến với tập nhãn đại diện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: routing-010
+    title: Rà soát định tuyến khi tổ chức hoặc quyền sở hữu thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: notification-channels-escalation
+  title: Kênh và chuyển cấp
+  childs:
+  - slug: notification-channels-escalation-001
+    title: Chọn kênh gọi điện, ứng dụng trực, trò chuyện hoặc thư điện tử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-002
+    title: Thiết lập chuỗi chuyển cấp khi chưa có người xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-003
+    title: Phân biệt gửi thành công, nhận thành công và đã có người xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-004
+    title: Thiết kế kênh dự phòng độc lập cho cảnh báo khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-005
+    title: Quản lý gửi lại, giới hạn tần suất và lỗi từ nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-006
+    title: Xử lý webhook trùng, đến muộn và sai thứ tự
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-007
+    title: Bảo vệ thông tin xác thực và quyền gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-008
+    title: Xác minh thông báo kết thúc đến đúng nơi đang theo dõi sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-009
+    title: Kiểm thử đường gửi từ tín hiệu đầu vào đến người nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: notification-channels-escalation-010
+    title: Xác định hành vi khi toàn bộ kênh chính bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: on-call-operations
+  title: Trực vận hành
+  childs:
+  - slug: on-call-operations-001
+    title: Xác định lịch trực chính, trực dự phòng và điểm liên hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-002
+    title: Bàn giao cảnh báo đang tồn tại khi đổi ca trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-003
+    title: Thiết lập quyền truy cập và công cụ cần có trước khi nhận ca
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-004
+    title: Quy định thời gian xác nhận và thời gian chuyển cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-005
+    title: Chuyển trách nhiệm rõ ràng khi cảnh báo thuộc đội khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-006
+    title: Xử lý cảnh báo ngoài giờ dựa trên mức cần hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-007
+    title: Giảm mệt mỏi do cảnh báo và bảo vệ khả năng tập trung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-008
+    title: Theo dõi tải trực giữa các ca, đội và múi giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: on-call-operations-009
+    title: Thu nhận phản hồi từ người trực để cải tiến quy tắc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: context-triage
+  title: Ngữ cảnh và xử lý
+  childs:
+  - slug: context-triage-001
+    title: Xây dựng hướng dẫn xử lý gắn với từng tình huống cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-002
+    title: Liệt kê bước xác minh ảnh hưởng trước khi can thiệp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-003
+    title: Liên kết chỉ số, nhật ký và dấu vết theo cùng khoảng thời gian
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-004
+    title: Đưa thay đổi triển khai và cấu hình gần đây vào bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-005
+    title: Phân biệt hành động giảm tác động với điều tra nguyên nhân
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-006
+    title: Quy định điều kiện an toàn trước khi khởi động lại hoặc mở rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-007
+    title: Chuyển từ cảnh báo sang sự cố có người phụ trách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-008
+    title: Giữ liên kết giữa cảnh báo, sự cố và công việc khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: context-triage-009
+    title: Xác định tiêu chí kết thúc và theo dõi sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: service-api-alerting
+  title: Dịch vụ và API
+  childs:
+  - slug: service-api-alerting-001
+    title: Cảnh báo tính khả dụng theo yêu cầu thực tế của người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-002
+    title: Cảnh báo tỷ lệ lỗi theo loại kết quả và mức ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-003
+    title: Cảnh báo độ trễ đuôi và yêu cầu vượt mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-004
+    title: Phát hiện lỗi chỉ xảy ra tại một tuyến, vùng hoặc nhóm khách hàng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-005
+    title: Xử lý lỗi phụ thuộc, timeout, thử lại và khuếch đại lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-006
+    title: Phân biệt quá tải, giới hạn tốc độ và từ chối có chủ đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-007
+    title: Kiểm tra tổng hợp cho hành trình đăng nhập và giao dịch chính
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-008
+    title: Cảnh báo sai kết quả dù mã phản hồi vẫn thành công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-009
+    title: Kết hợp triệu chứng dịch vụ với tín hiệu tài nguyên để chẩn đoán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: service-api-alerting-010
+    title: Tránh gọi trực cho mọi lỗi riêng lẻ không ảnh hưởng mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: infrastructure-platform-alerting
+  title: Hạ tầng và nền tảng
+  childs:
+  - slug: infrastructure-platform-alerting-001
+    title: Cảnh báo mức bão hòa CPU, bộ nhớ và tài nguyên theo tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-002
+    title: Dự báo hết dung lượng đĩa dựa trên thời gian còn lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-003
+    title: Phát hiện lỗi mạng, DNS và cân bằng tải ảnh hưởng dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-004
+    title: Cảnh báo thiếu năng lực phục vụ sau khi mất dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-005
+    title: Phân biệt khởi động lại dự kiến với lỗi lặp lại của tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-006
+    title: Chọn cấp cảnh báo nút, cụm và dịch vụ trên Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-007
+    title: Phát hiện cạn hạn ngạch và giới hạn tài nguyên đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-008
+    title: Theo dõi chứng chỉ, tên miền và thông tin xác thực sắp hết hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-009
+    title: Xử lý tài nguyên ngắn hạn và thay đổi số bản sao tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: infrastructure-platform-alerting-010
+    title: Tránh cảnh báo trùng giữa nền tảng và ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: background-jobs-data-alerting
+  title: Dữ liệu và tác vụ nền
+  childs:
+  - slug: background-jobs-data-alerting-001
+    title: Cảnh báo khả dụng và thời gian phản hồi của cơ sở dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-002
+    title: Phát hiện cạn kết nối, khóa kéo dài và truy vấn gây tắc nghẽn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-003
+    title: Cảnh báo độ trễ sao chép theo yêu cầu về dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-004
+    title: Theo dõi độ dài hàng đợi, tuổi thông điệp và tốc độ xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-005
+    title: Phân biệt tích tụ tạm thời với hàng đợi không thể phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-006
+    title: Cảnh báo lỗi tác vụ định kỳ và tác vụ không chạy đúng hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-007
+    title: Dùng tín hiệu hoàn tất và độ mới dữ liệu thay cho chỉ kiểm tra tiến trình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-008
+    title: Phát hiện dữ liệu thiếu, sai hoặc cập nhật chậm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-009
+    title: Cảnh báo lỗi sao lưu và lần khôi phục kiểm thử không đạt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: background-jobs-data-alerting-010
+    title: Xử lý cảnh báo phụ thuộc giữa nhiều bước của luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-region-dependencies
+  title: Nhiều vùng và phụ thuộc
+  childs:
+  - slug: multi-region-dependencies-001
+    title: Đánh giá cảnh báo theo vùng, trung tâm dữ liệu và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-002
+    title: Phân biệt lỗi cục bộ với lỗi toàn hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-003
+    title: Nhận diện phụ thuộc dùng chung và phạm vi lan truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-004
+    title: Kết hợp quan sát từ nhiều vị trí để tránh báo động do một điểm đo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-005
+    title: Cảnh báo khi chuyển vùng thành công nhưng mất khả năng dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-006
+    title: Xử lý phân vùng mạng và quan sát trái ngược giữa các vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-007
+    title: Định tuyến cho đội sở hữu phụ thuộc nội bộ hoặc bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-008
+    title: Giữ tín hiệu ảnh hưởng khách hàng khi ức chế cảnh báo hệ quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-009
+    title: Thiết kế luồng cảnh báo hoạt động khi vùng chính gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-region-dependencies-010
+    title: Kiểm thử tình huống mất đồng thời dịch vụ và kênh thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-storms
+  title: Bão cảnh báo
+  childs:
+  - slug: alert-storms-001
+    title: Nhận diện cảnh báo dồn dập và các nguyên nhân thường gặp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-002
+    title: Giới hạn số thông báo mà vẫn bảo toàn tín hiệu khẩn cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-003
+    title: Kết hợp gom nhóm, khử trùng lặp và ức chế theo phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-004
+    title: Ưu tiên cảnh báo ảnh hưởng lớn trong sự cố diện rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-005
+    title: Tránh bùng nổ trường hợp cảnh báo do thay đổi nhãn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-006
+    title: Xử lý hàng đợi thông báo và thông báo tồn đọng sau phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-007
+    title: Ngăn vòng lặp giữa tự động khắc phục và cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-008
+    title: Giữ đường liên lạc khẩn cấp độc lập khi kênh chính quá tải
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-storms-009
+    title: Phân tích nguyên nhân tạo bão và kiểm thử biện pháp giảm nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adaptive-thresholds
+  title: Ngưỡng thích nghi
+  childs:
+  - slug: adaptive-thresholds-001
+    title: Nhận diện tín hiệu có mùa vụ và thay đổi theo giờ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-002
+    title: Chọn đường cơ sở theo lịch sử phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-003
+    title: Phân biệt bất thường thống kê với vấn đề cần hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-004
+    title: Kết hợp ngưỡng thích nghi với giới hạn tác động cố định
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-005
+    title: Xử lý dữ liệu ít, dịch vụ mới và giai đoạn làm quen
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-006
+    title: Đánh giá thay đổi nền sau triển khai hoặc tăng trưởng lưu lượng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-007
+    title: Kiểm soát báo động giả khi có sự kiện tải hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-008
+    title: Giải thích lý do kích hoạt để người trực kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-009
+    title: Đánh giá phương pháp dự báo trước khi dùng để gọi trực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adaptive-thresholds-010
+    title: Xác định trường hợp quy tắc đơn giản phù hợp hơn mô hình phức tạp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alerts-as-code
+  title: Cảnh báo bằng mã
+  childs:
+  - slug: alerts-as-code-001
+    title: Quản lý quy tắc, định tuyến và mẫu thông báo trong kiểm soát phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-002
+    title: Thiết kế cấu trúc tệp và quyền sở hữu theo dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-003
+    title: Tách cấu hình dùng chung khỏi khác biệt theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-004
+    title: Chuẩn hóa nhãn bắt buộc và hướng dẫn xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-005
+    title: Rà soát thay đổi điều kiện, mức khẩn cấp và kênh nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-006
+    title: Kiểm tra cú pháp và hợp đồng nhãn trong CI
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-007
+    title: Kiểm thử chính sách ngăn quy tắc thiếu chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-008
+    title: Phát hiện sai lệch giữa cấu hình triển khai và mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-009
+    title: Quản lý bí mật kênh gửi bên ngoài tệp cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alerts-as-code-010
+    title: Quay lui phiên bản và lưu bằng chứng thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prometheus-alertmanager
+  title: Prometheus và Alertmanager
+  childs:
+  - slug: prometheus-alertmanager-001
+    title: Tổ chức quy tắc cảnh báo và quy tắc ghi sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-002
+    title: Biểu diễn điều kiện cảnh báo bằng PromQL
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-003
+    title: Sử dụng thời gian chờ xác nhận phù hợp với chu kỳ đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-004
+    title: Phân biệt nhãn quy tắc và chú thích trong thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-005
+    title: Kiểm thử quy tắc bằng dữ liệu thời gian mẫu với promtool
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-006
+    title: Thiết kế route, receiver và tuyến mặc định trong Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-007
+    title: Cấu hình gom nhóm, khoảng cập nhật và khoảng nhắc lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-008
+    title: Thiết kế inhibition và silence đúng phạm vi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-009
+    title: Khử trùng lặp khi có nhiều bản sao Prometheus và Alertmanager
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-010
+    title: Quan sát trạng thái quy tắc, lỗi đánh giá và lỗi gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prometheus-alertmanager-011
+    title: Kiểm thử toàn luồng từ chỉ số đến thông báo đã kết thúc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: grafana-cloud
+  title: Grafana và đám mây
+  childs:
+  - slug: grafana-cloud-001
+    title: Phân biệt quy tắc do Grafana quản lý và quy tắc tại nguồn dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-002
+    title: Chọn nguồn dữ liệu và biểu thức đánh giá phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-003
+    title: Thiết kế hành vi khi không có dữ liệu hoặc truy vấn thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-004
+    title: Ánh xạ nhãn vào chính sách thông báo và điểm liên hệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-005
+    title: Quản lý cấu hình cảnh báo Grafana bằng mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-006
+    title: Phân biệt cảnh báo chỉ số, cảnh báo nhật ký và sự kiện đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-007
+    title: Chọn phạm vi tài nguyên và mức tổng hợp trên dịch vụ đám mây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-008
+    title: Kết nối cảnh báo từ nhiều công cụ với đầu mối nhận thống nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-009
+    title: Tránh nhân đôi quy tắc và trách nhiệm khi dùng nhiều nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: grafana-cloud-010
+    title: Đối chiếu ngữ nghĩa trạng thái trước khi chuyển đổi công cụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: testing-deployment
+  title: Kiểm thử và triển khai
+  childs:
+  - slug: testing-deployment-001
+    title: Xây dựng bộ dữ liệu kiểm thử cho bình thường, lỗi và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-002
+    title: Kiểm thử khoảng thời gian, ngưỡng biên và chuỗi dữ liệu thiếu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-003
+    title: Kiểm thử reset counter, thay đổi nhãn và mở rộng số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-004
+    title: Kiểm tra ma trận định tuyến và chuyển cấp tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-005
+    title: Diễn tập lỗi có kiểm soát trong môi trường được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-006
+    title: Kiểm thử khi kênh thông báo chậm, lỗi hoặc gửi trùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-007
+    title: Chạy quan sát trước khi bật gọi trực cho quy tắc mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-008
+    title: Triển khai từng phần và so sánh với quy tắc hiện hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-009
+    title: Đánh giá cảnh báo bằng dữ liệu sự cố đã biết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-010
+    title: Thiết lập tiêu chí dừng, quay lui và xác nhận sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: testing-deployment-011
+    title: Xác minh khả năng kết thúc cảnh báo sau khi lỗi được khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: alert-pipeline-reliability
+  title: Độ tin cậy luồng cảnh báo
+  childs:
+  - slug: alert-pipeline-reliability-001
+    title: Lập sơ đồ phụ thuộc của thu thập, đánh giá, định tuyến và gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-002
+    title: Đặt mục tiêu cho độ trễ và khả năng chuyển thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-003
+    title: Giám sát lỗi truy vấn, thời gian đánh giá và quy tắc bị bỏ lỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-004
+    title: Giám sát hàng đợi gửi, tỷ lệ thất bại và giới hạn nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-005
+    title: Sử dụng tín hiệu kiểm tra liên tục qua toàn bộ đường cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-006
+    title: Phát hiện tín hiệu kiểm tra bị mất bằng hệ thống độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-007
+    title: Thiết kế dự phòng và tránh phụ thuộc vòng vào hệ thống đang giám sát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-008
+    title: Bảo toàn cấu hình và kiểm thử khôi phục hệ thống cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-009
+    title: Giới hạn chi phí, số chuỗi thời gian và tải truy vấn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-010
+    title: Kiểm thử gián đoạn mạng, mất vùng và mất dịch vụ gửi thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: alert-pipeline-reliability-011
+    title: Xử lý thông báo lỗi thời khi hệ thống hoạt động trở lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-governance
+  title: An toàn và quản trị
+  childs:
+  - slug: security-governance-001
+    title: Phân quyền tạo quy tắc, thay đổi định tuyến và tạm tắt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-002
+    title: Bảo vệ tài khoản quản trị và thông tin xác thực kênh gửi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-003
+    title: Xác thực webhook và kiểm soát nguồn gửi hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-004
+    title: Ngăn dữ liệu nhạy cảm xuất hiện trong nhãn và thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-005
+    title: Phân tách dữ liệu, quyền truy cập và kênh giữa các bên thuê
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-006
+    title: Kiểm soát liên kết truy vấn và bảng theo dõi được chia sẻ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-007
+    title: Ghi nhận lịch sử thay đổi và thao tác xác nhận cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-008
+    title: Quản lý thời gian lưu giữ nội dung thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-009
+    title: Kiểm soát tự động khắc phục với giới hạn và khả năng dừng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-governance-010
+    title: Rà soát khả năng lợi dụng tạm tắt để che giấu sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: review-improvement
+  title: Đánh giá và cải tiến
+  childs:
+  - slug: review-improvement-001
+    title: Lập danh mục cảnh báo và lịch rà soát định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-002
+    title: Đo tỷ lệ cảnh báo dẫn đến hành động có ích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-003
+    title: Theo dõi cảnh báo sai, lặp lại và không có chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-004
+    title: Đánh giá khả năng bỏ sót qua sự cố đã được xác nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-005
+    title: Đo thời gian phát hiện và xác nhận theo từng loại sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-006
+    title: Phân tích số lần gọi trực ngoài giờ và tải nhận thông báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-007
+    title: Đánh giá độ bao phủ theo hành trình người dùng và kịch bản lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-008
+    title: Phân biệt giảm nhiễu có ích với che giấu sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-009
+    title: Cập nhật quy tắc từ phân tích sau sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-010
+    title: Loại bỏ cảnh báo lỗi thời và xác minh không mất khả năng phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: review-improvement-011
+    title: Duy trì tiêu chí chất lượng khi số dịch vụ và đội vận hành tăng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: practice-labs
+  title: Bài thực hành
+  childs:
+  - slug: practice-labs-001
+    title: Thiết kế phòng thực hành và giới hạn tác động của việc gây lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-002
+    title: Xây dựng chiến lược cảnh báo cho một dịch vụ có SLO
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-003
+    title: Tạo tín hiệu lỗi, độ trễ và dữ liệu bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-004
+    title: Viết truy vấn tỷ lệ lỗi và kiểm thử trường hợp lưu lượng thấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-005
+    title: Thiết kế cảnh báo burn rate với nhiều cửa sổ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-006
+    title: Thực hành vòng đời chờ xác nhận, kích hoạt và phục hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-007
+    title: Thiết lập gom nhóm, khử trùng lặp và ức chế theo phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-008
+    title: Xây dựng định tuyến, chuyển cấp và kênh dự phòng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-009
+    title: Viết thông báo có ngữ cảnh và hướng dẫn xử lý ngắn gọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-010
+    title: Mô phỏng bão cảnh báo và đánh giá khả năng giảm nhiễu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-011
+    title: Kiểm thử mất đường gửi bằng tín hiệu kiểm tra độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: practice-labs-012
+    title: Rà soát kết quả, cải tiến quy tắc và hoàn thiện hồ sơ chiến lược
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

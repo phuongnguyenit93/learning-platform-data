@@ -1,0 +1,513 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Outbound request security là gì
+  - Vì sao request ra ngoài cần bảo vệ
+  - Khác biệt inbound và outbound
+  - Outbound request trong ứng dụng
+  - Đầu ra của thiết kế an toàn
+  - Quan hệ giữa request và trust boundary
+  - Giới hạn của kiểm tra ứng dụng
+  - Lộ trình học outbound security
+- level1: Mục tiêu bảo vệ
+  level2:
+  - Ngăn truy cập tài nguyên nội bộ
+  - Ngăn đánh cắp dữ liệu
+  - Giới hạn kết nối ngoài ý muốn
+  - Bảo vệ credential gửi đi
+  - Giới hạn tài nguyên bị tiêu thụ
+  - Đảm bảo xác thực máy chủ
+  - Kiểm soát phụ thuộc bên ngoài
+  - Đảm bảo khả năng truy vết
+- level1: Phạm vi và ngữ cảnh
+  level2:
+  - Ứng dụng gọi HTTP
+  - Ứng dụng gọi HTTPS
+  - Ứng dụng gọi DNS
+  - Ứng dụng tải file
+  - Ứng dụng gọi webhook
+  - Ứng dụng tích hợp SaaS
+  - Worker và background job
+  - Service-to-service request
+- level1: Mô hình đe dọa
+  level2:
+  - Kịch bản SSRF
+  - Kịch bản DNS rebinding
+  - Endpoint nội bộ bị lộ
+  - Cloud metadata access
+  - Credential exfiltration
+  - Malicious redirect
+  - Response abuse
+  - Denial of service
+- level1: Bề mặt tấn công
+  level2:
+  - URL do người dùng cung cấp
+  - Header do người dùng kiểm soát
+  - Redirect từ máy chủ ngoài
+  - Webhook destination
+  - Import từ URL
+  - Image và file URL
+  - Proxy configuration
+  - Phân giải tên đích
+- level1: SSRF
+  level2:
+  - SSRF là gì
+  - Basic SSRF
+  - Blind SSRF
+  - Second-order SSRF
+  - SSRF qua redirect
+  - SSRF qua parser
+  - SSRF qua webhook
+  - SSRF trong cloud
+- level1: Đường đi mạng
+  level2:
+  - Outbound network path
+  - Client và proxy
+  - Proxy và Internet
+  - Egress qua service mesh
+  - Firewall egress
+  - NAT gateway
+  - Private endpoint
+  - Đường đi đến mạng nội bộ
+- level1: URL
+  level2:
+  - URL structure
+  - Scheme
+  - Authority
+  - Host
+  - Port
+  - Path
+  - Query
+  - Fragment
+- level1: Phân tích URL
+  level2:
+  - URL parser
+  - Canonical URL
+  - URL normalization
+  - Decode một lần hay nhiều lần
+  - Userinfo trong URL
+  - Empty host
+  - Relative URL
+  - Parser khác nhau giữa thư viện
+- level1: Scheme và port
+  level2:
+  - Allow scheme
+  - HTTP và HTTPS
+  - File scheme
+  - FTP scheme
+  - Data scheme
+  - Custom scheme
+  - Allow port
+  - Chặn port nguy hiểm
+- level1: Hostname và IP
+  level2:
+  - Hostname validation
+  - IP literal
+  - IPv4 và IPv6
+  - Loopback address
+  - Private address
+  - Link-local address
+  - Multicast address
+  - Special-use address
+- level1: DNS
+  level2:
+  - Cơ chế phân giải DNS
+  - Forward lookup
+  - Reverse lookup
+  - DNS cache
+  - Tấn công DNS rebinding
+  - Multiple address
+  - Resolver trust
+  - DNS timeout
+- level1: Địa chỉ nội bộ
+  level2:
+  - Localhost
+  - Private network
+  - Link-local network
+  - Unix socket
+  - Container network
+  - Service discovery
+  - Management endpoint
+  - Internal admin interface
+- level1: Cloud metadata
+  level2:
+  - Metadata service
+  - Instance identity
+  - Cloud credential endpoint
+  - Metadata hop limit
+  - Container metadata
+  - Workload identity endpoint
+  - Chặn metadata route
+  - Kiểm thử metadata exposure
+- level1: Egress control
+  level2:
+  - Egress security
+  - Default deny egress
+  - Network policy
+  - Firewall rule
+  - Security group
+  - Chính sách đích egress
+  - Port policy
+  - Đánh giá egress thực tế
+- level1: Allowlist
+  level2:
+  - Allowlist là gì
+  - Allowlist theo hostname
+  - Allowlist theo IP
+  - Allowlist theo URL
+  - Allowlist theo service
+  - Allowlist theo tenant
+  - Quản lý thay đổi allowlist
+  - Rủi ro allowlist quá rộng
+- level1: Denylist
+  level2:
+  - Denylist là gì
+  - Deny private range
+  - Deny loopback
+  - Deny metadata address
+  - Deny dangerous scheme
+  - Deny dangerous port
+  - Giới hạn của denylist
+  - Kết hợp denylist với allowlist
+- level1: Proxy và gateway
+  level2:
+  - Outbound proxy
+  - Proxy authentication
+  - Forward proxy
+  - Reverse proxy
+  - Gateway egress
+  - Proxy header
+  - Proxy bypass
+  - Audit proxy request
+- level1: HTTP client
+  level2:
+  - HTTP client security
+  - Connection pool
+  - Host header
+  - Request target
+  - Client configuration
+  - Library default
+  - Client version
+  - Không dùng client không kiểm soát
+- level1: Connection
+  level2:
+  - TCP connection
+  - Connection timeout
+  - Timeout mở kết nối
+  - Timeout đọc response
+  - Timeout ghi request
+  - Idle connection
+  - Connection reuse
+  - Connection limit
+- level1: TLS
+  level2:
+  - TLS cho outbound request
+  - Certificate validation
+  - Hostname verification
+  - Trust store
+  - Protocol version
+  - Cipher suite
+  - TLS handshake
+  - Không tắt TLS validation
+- level1: Certificate
+  level2:
+  - Server certificate
+  - Certificate chain
+  - Certificate expiry
+  - Certificate pinning
+  - Private CA
+  - mTLS certificate
+  - Certificate rotation
+  - Certificate error
+- level1: Authentication
+  level2:
+  - Outbound authentication
+  - Basic authentication
+  - Bearer token
+  - API key
+  - mTLS authentication
+  - HMAC request signing
+  - Credential scope
+  - Credential revocation
+- level1: API key và secret
+  level2:
+  - API key trong header
+  - Secret trong configuration
+  - Inject secret vào request
+  - Key rotation
+  - Key leakage qua URL
+  - Key leakage qua log
+  - Key scope
+  - Key theo môi trường
+- level1: OAuth và token
+  level2:
+  - OAuth outbound client
+  - Client credential flow
+  - Access token
+  - Token audience
+  - Token scope
+  - Token expiry
+  - Token refresh
+  - Token không gửi nhầm host
+- level1: Request header
+  level2:
+  - Header allowlist
+  - Forwarded header
+  - Authorization header
+  - Cookie header
+  - User-Agent
+  - Correlation ID
+  - Header injection
+  - Header size limit
+- level1: Request method và body
+  level2:
+  - GET và POST
+  - PUT và PATCH
+  - DELETE
+  - Request body
+  - Content-Type
+  - Content-Length
+  - Body size limit
+  - Method allowlist
+- level1: Redirect
+  level2:
+  - HTTP redirect
+  - Redirect policy
+  - Redirect count
+  - Cross-host redirect
+  - Scheme downgrade
+  - Credential forwarding
+  - Redirect loop
+  - Validate đích sau redirect
+- level1: Response
+  level2:
+  - Response status
+  - Response header
+  - Response body
+  - Content-Type validation
+  - Response size
+  - Response timeout
+  - Unexpected response
+  - Không tin response từ xa
+- level1: Content parsing
+  level2:
+  - JSON parsing
+  - XML parsing
+  - HTML parsing
+  - CSV parsing
+  - Content sniffing
+  - Parser configuration
+  - Malformed response
+  - Parser resource limit
+- level1: XML và external entity
+  level2:
+  - XML external entity
+  - External DTD
+  - External schema
+  - Entity expansion
+  - XML parser hardening
+  - XML fetch ngoài ý muốn
+  - XML content validation
+  - Kiểm thử XML độc hại
+- level1: JSON và object mapping
+  level2:
+  - JSON schema
+  - Unknown field
+  - Polymorphic mapping
+  - Deserialization risk
+  - Number và size limit
+  - Nested depth
+  - Null và default value
+  - Response contract
+- level1: File và media
+  level2:
+  - File download
+  - Content-Disposition
+  - Filename từ response
+  - Media type
+  - Archive response
+  - Image fetch
+  - Virus scanning
+  - File size limit
+- level1: Timeout
+  level2:
+  - Timeout là gì
+  - Connect timeout
+  - Read timeout
+  - Write timeout
+  - Total request timeout
+  - Deadline propagation
+  - Timeout theo endpoint
+  - Timeout và tài nguyên
+- level1: Retry
+  level2:
+  - Retry policy
+  - Retryable status
+  - Retryable exception
+  - Backoff
+  - Jitter
+  - Retry count
+  - Idempotency
+  - Retry storm
+- level1: Circuit breaker
+  level2:
+  - Các trạng thái circuit breaker
+  - Closed state
+  - Open state
+  - Half-open state
+  - Failure threshold
+  - Slow call threshold
+  - Fallback
+  - Circuit breaker audit
+- level1: Rate và concurrency
+  level2:
+  - Outbound rate limit
+  - Connection concurrency
+  - Per-host quota
+  - Per-tenant quota
+  - Queue outbound request
+  - Bulkhead
+  - Resource exhaustion
+  - Backpressure
+- level1: Data exfiltration
+  level2:
+  - Data gửi ra ngoài
+  - Payload chứa dữ liệu nhạy cảm
+  - Query chứa dữ liệu
+  - Header chứa dữ liệu
+  - Response callback
+  - Destination thay đổi
+  - Data loss prevention
+  - Audit data egress
+- level1: Secret leakage
+  level2:
+  - Secret trong URL
+  - Secret trong header log
+  - Secret trong exception
+  - Secret trong trace
+  - Secret trong redirect
+  - Secret trong response
+  - Redaction outbound
+  - Rotate sau khi lộ
+- level1: Kiểm tra đích đến
+  level2:
+  - Destination validation
+  - Resolve trước connect
+  - Validate sau redirect
+  - Validate từng địa chỉ
+  - Re-resolve trong vòng đời
+  - Host identity
+  - Policy kiểm tra destination
+  - Fail closed
+- level1: Observability
+  level2:
+  - Outbound request log
+  - Outbound metric
+  - Outbound trace
+  - Destination label
+  - Latency metric
+  - Error metric
+  - Blocked request metric
+  - Không ghi dữ liệu nhạy cảm
+- level1: Audit
+  level2:
+  - Audit request bị chặn
+  - Audit policy decision
+  - Audit thay đổi cấu hình
+  - Audit credential use
+  - Audit redirect
+  - Audit admin override
+  - Audit retention
+  - Audit evidence
+- level1: Kiểm thử
+  level2:
+  - Test SSRF
+  - Test URL parser
+  - Test DNS rebinding
+  - Test private address
+  - Test redirect
+  - Test TLS validation
+  - Test credential forwarding
+  - Test response limit
+- level1: Kiểm thử tải
+  level2:
+  - Test timeout
+  - Test retry storm
+  - Test slow response
+  - Test large response
+  - Test connection exhaustion
+  - Test rate limit
+  - Test circuit breaker
+  - Test dependency outage
+- level1: Triển khai an toàn
+  level2:
+  - Secure client configuration
+  - Environment-specific policy
+  - Immutable configuration
+  - Inject secret khi triển khai
+  - Network policy deployment
+  - Change approval
+  - Safe default
+  - Rollback cấu hình
+- level1: Vận hành
+  level2:
+  - Runbook outbound failure
+  - Quản lý allowlist
+  - Quản lý certificate
+  - Quản lý token
+  - Quản lý proxy
+  - Rà soát egress
+  - Rà soát dependency
+  - Review theo chu kỳ
+- level1: Ứng phó sự cố
+  level2:
+  - Phát hiện SSRF
+  - Chặn destination
+  - Thu hồi credential
+  - Phân tích outbound log
+  - Đánh giá dữ liệu đã gửi
+  - Containment network
+  - Khôi phục policy
+  - Lessons learned
+- level1: Compliance
+  level2:
+  - Outbound security control
+  - Data transfer requirement
+  - Third-party requirement
+  - Evidence policy
+  - Audit egress
+  - Retention log
+  - Exception management
+  - Regulatory notification
+- level1: Kiến trúc
+  level2:
+  - Centralized egress service
+  - Per-service outbound policy
+  - Egress gateway của service mesh
+  - Dedicated integration worker
+  - Isolated fetcher
+  - Policy decision point
+  - Policy enforcement point
+  - Đánh đổi kiến trúc
+- level1: Case study
+  level2:
+  - SSRF qua image URL
+  - Webhook đến mạng nội bộ
+  - Redirect làm lộ token
+  - Cloud metadata exposure
+  - Case DNS rebinding
+  - File download quá lớn
+  - Retry gây quá tải
+  - Credential leak qua log
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ outbound request flow
+  - Xác định destination policy
+  - Chặn private address
+  - Thiết lập DNS validation
+  - Thiết lập TLS và auth
+  - Kiểm soát redirect
+  - Giới hạn timeout và response
+  - Thiết lập retry và circuit breaker
+  - Kiểm thử SSRF
+  - Hoàn thiện hồ sơ outbound security

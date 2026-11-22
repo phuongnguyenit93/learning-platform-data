@@ -1,0 +1,7 @@
+# Database Connection Management HikariCP
+
+HikariCP là thư viện connection pooling cho JDBC, giúp ứng dụng Java tái sử dụng kết nối tới cơ sở dữ liệu thay vì tạo và đóng kết nối vật lý ở mỗi request. Pool có thể cải thiện hiệu quả sử dụng tài nguyên, nhưng nếu cấu hình không phù hợp, ứng dụng vẫn có thể bị nghẽn khi thiếu connection, gặp lỗi timeout hoặc gây quá tải cho database. Vì thế, học HikariCP cần kết hợp hiểu vòng đời connection, cách cấu hình và đo đạc dưới tải thực tế.
+
+Module dành cho lập trình viên Java, Spring Boot hoặc người vận hành backend đã biết JDBC và SQL cơ bản. Bạn sẽ bắt đầu bằng cơ chế DataSource, cấu hình HikariCP trong Java và Spring Boot, rồi tìm hiểu `maximumPoolSize`, `minimumIdle`, `connectionTimeout`, `maxLifetime`, `idleTimeout` và `keepaliveTime`. Các phần tiếp theo tập trung vào quản lý transaction, trả tài nguyên qua `close()`, quan sát chỉ số active/idle/pending, sử dụng leak detection đúng mục đích và kiểm tra hành vi khi database hoặc mạng tạm thời gặp sự cố.
+
+Hãy thực hành với một ứng dụng Spring Boot và database thử nghiệm: tạo nhiều request đồng thời, quan sát thời gian chờ lấy connection, thử thay đổi kích thước pool và kiểm tra khi database bị ngắt kết nối. Kết thúc module, bạn có thể giải thích các tham số quan trọng, phân biệt timeout lấy connection với thời gian chạy SQL và đề xuất cấu hình dựa trên số đo thay vì đoán trước một giá trị cố định.

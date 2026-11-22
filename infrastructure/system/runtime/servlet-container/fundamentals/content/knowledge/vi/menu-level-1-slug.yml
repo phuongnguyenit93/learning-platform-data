@@ -1,0 +1,85 @@
+menu:
+  - title: "Tổng quan Servlet container và hợp đồng Jakarta Servlet"
+    slug: servlet-container-overview
+    index: 0
+  - title: "HTTP và hành trình xử lý một request"
+    slug: http-request-processing
+    index: 1
+  - title: "Thiết lập ứng dụng Jakarta Servlet tối thiểu"
+    slug: minimal-servlet-application
+    index: 2
+  - title: "Khai báo cấu hình và khởi tạo web application"
+    slug: application-configuration-and-bootstrap
+    index: 3
+  - title: "Ánh xạ URL và lựa chọn Servlet đích"
+    slug: servlet-url-mapping
+    index: 4
+  - title: "Vòng đời Servlet và điều phối HTTP method"
+    slug: servlet-lifecycle-and-http-methods
+    index: 5
+  - title: "HttpServletRequest và dữ liệu đầu vào"
+    slug: http-servlet-request
+    index: 6
+  - title: "Đọc request body và xử lý tải tệp"
+    slug: request-body-and-file-upload
+    index: 7
+  - title: "HttpServletResponse và thời điểm commit"
+    slug: http-servlet-response
+    index: 8
+  - title: "Dispatch nội bộ và cơ chế xử lý lỗi"
+    slug: internal-dispatch-and-error-handling
+    index: 9
+  - title: "Filter và chuỗi xử lý request response"
+    slug: servlet-filters
+    index: 10
+  - title: "ServletContext, phạm vi dữ liệu và tài nguyên dùng chung"
+    slug: servlet-context-scopes-and-resources
+    index: 11
+  - title: "Listener và sự kiện vòng đời ứng dụng"
+    slug: servlet-listeners-and-lifecycle-events
+    index: 12
+  - title: "HttpSession và quản lý trạng thái người dùng"
+    slug: http-session-management
+    index: 13
+  - title: "Xử lý bất đồng bộ với AsyncContext"
+    slug: async-servlet-processing
+    index: 14
+  - title: "I/O không chặn và kết nối kéo dài"
+    slug: non-blocking-io-and-streaming
+    index: 15
+  - title: "Thread, concurrency và quyền sở hữu trạng thái"
+    slug: threads-concurrency-and-state
+    index: 16
+  - title: "Class loading và cô lập web application"
+    slug: web-application-class-loading
+    index: 17
+  - title: "Bảo mật do container quản lý"
+    slug: container-managed-security
+    index: 18
+  - title: "Bảo vệ ranh giới HTTP và dữ liệu ứng dụng"
+    slug: http-and-application-security
+    index: 19
+  - title: "Đóng gói, triển khai và vận hành vòng đời ứng dụng"
+    slug: application-deployment-and-lifecycle
+    index: 20
+  - title: "Connector, reverse proxy và giao thức truyền tải"
+    slug: connectors-proxies-and-protocols
+    index: 21
+  - title: "Logging, metrics và quan sát hoạt động container"
+    slug: container-observability
+    index: 22
+  - title: "Hiệu năng và kiểm soát tài nguyên"
+    slug: performance-and-resource-limits
+    index: 23
+  - title: "Chẩn đoán lỗi theo từng lớp của runtime"
+    slug: runtime-troubleshooting
+    index: 24
+  - title: "Ranh giới giữa Servlet container và framework web"
+    slug: container-and-framework-boundaries
+    index: 25
+  - title: "Kiểm thử hợp đồng Servlet và hành vi triển khai"
+    slug: servlet-contract-and-deployment-testing
+    index: 26
+  - title: "Thực hành tổng hợp và tự đánh giá"
+    slug: integrated-practice-and-self-assessment
+    index: 27

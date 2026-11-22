@@ -1,0 +1,7 @@
+# Database Schema Migration Liquibase
+
+Liquibase là công cụ quản lý thay đổi cơ sở dữ liệu dựa trên các **changelog** và **changeset** được lưu cùng mã nguồn. Thay vì cập nhật schema thủ công ở từng môi trường, nhóm phát triển mô tả những thay đổi như thêm bảng, cột, ràng buộc hoặc dữ liệu cần thiết, rồi để Liquibase xác định và áp dụng các changeset chưa được triển khai. Các bảng theo dõi và khóa triển khai giúp ghi nhận lịch sử và hạn chế xung đột khi nhiều tiến trình cùng cập nhật database.
+
+Module phù hợp với lập trình viên Java/Spring, kỹ sư dữ liệu hoặc người vận hành đã biết SQL, giao dịch và cấu trúc cơ sở dữ liệu quan hệ. Bạn sẽ đi từ khái niệm schema migration đến cấu hình CLI/JDBC hoặc Spring Boot; tổ chức changelog theo XML, YAML, JSON hay formatted SQL; viết changeset với `author` và `id`, sử dụng change type, precondition, context và label. Tiếp theo là `status`, `update-sql`, `update`, checksum và hai bảng `DATABASECHANGELOG`/`DATABASECHANGELOGLOCK`.
+
+Qua tám mốc, bạn có thể xây dựng một chuỗi migration có thể kiểm thử và review, lập phương án rollback, đồng thời tích hợp kiểm tra trước khi phát hành qua CI/CD. Cần lưu ý rollback không phải lúc nào cũng tự động hoặc bảo toàn dữ liệu: các thay đổi có nguy cơ mất dữ liệu phải có kiểm thử, sao lưu và phương án phục hồi phù hợp với hệ quản trị cơ sở dữ liệu đang dùng.

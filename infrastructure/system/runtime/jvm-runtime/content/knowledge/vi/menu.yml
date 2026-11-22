@@ -1,0 +1,433 @@
+menu:
+- level1: Tổng quan JVM
+  level2:
+  - JVM là gì và vai trò trong quá trình chạy chương trình Java
+  - Phân biệt JDK, môi trường runtime, JVM và thư viện chuẩn
+  - Từ mã nguồn, class file đến thực thi trên hệ điều hành
+  - Khả năng độc lập nền tảng và các giới hạn tương thích
+  - Phân biệt đặc tả JVM với triển khai HotSpot và các JVM khác
+  - Mối liên hệ giữa JVM, tiến trình, luồng và tài nguyên máy tính
+  - 'Các thuật ngữ cốt lõi: bytecode, class loading, JIT, heap và GC'
+  - Kiến thức cần có và thứ tự học từ thực thi đến chẩn đoán runtime
+- level1: Kiến trúc lõi
+  level2:
+  - Bộ nạp lớp, vùng dữ liệu runtime và bộ máy thực thi
+  - Luồng đi của một lớp từ lúc được tìm thấy đến khi gọi phương thức
+  - Thông dịch bytecode và biên dịch thành mã máy
+  - Vai trò bộ thu gom rác và quản lý tài nguyên tự động
+  - Cầu nối giữa mã Java, thư viện native và hệ điều hành
+  - Thành phần dùng chung và thành phần gắn với từng luồng
+  - Phân biệt mô hình logic trong JVMS với bố trí bộ nhớ thực tế
+  - Quan sát một JVM đang chạy để nối kiến trúc với bằng chứng
+- level1: Khởi động và cấu hình
+  level2:
+  - Java launcher và các bước tạo một tiến trình JVM
+  - Phân biệt tùy chọn JVM, system property và tham số ứng dụng
+  - Chạy lớp chính, JAR thực thi, module và tệp mã nguồn
+  - Classpath, module path, thư mục làm việc và tìm tài nguyên
+  - JAVA_HOME, PATH, JDK_JAVA_OPTIONS và JAVA_TOOL_OPTIONS
+  - Phân biệt tùy chọn chuẩn, -X, -XX và mức hỗ trợ theo triển khai
+  - Đọc phiên bản, nhà cung cấp, kiến trúc CPU và cấu hình hiệu lực
+  - Ergonomics và cách JVM tự chọn cấu hình ban đầu
+  - Kiểm soát tùy chọn không hợp lệ, đã đổi tên hoặc bị loại bỏ
+  - Lưu cấu hình khởi động có thể tái lập giữa các môi trường
+- level1: Vòng đời tiến trình
+  level2:
+  - Các giai đoạn từ khởi động JVM đến gọi điểm vào ứng dụng
+  - Vai trò luồng chính, luồng nền ứng dụng và daemon thread
+  - Điều kiện JVM kết thúc khi không còn luồng giữ tiến trình sống
+  - System.exit(), Runtime.halt() và mã thoát tiến trình
+  - Shutdown hook, thứ tự không bảo đảm và giới hạn thời gian dừng
+  - Phối hợp SIGTERM hoặc tín hiệu nền tảng với việc dừng ứng dụng
+  - Phân biệt kết thúc có kiểm soát, bị buộc dừng và sự cố native
+  - Giải phóng kết nối, luồng và tệp trước khi JVM thoát
+  - Nhận diện tiến trình không thoát do luồng hoặc tác vụ còn tồn tại
+- level1: Class file và bytecode
+  level2:
+  - Cấu trúc class file, phiên bản major/minor và khả năng tương thích
+  - Constant pool, tên lớp, trường, phương thức và descriptor
+  - Code attribute, bảng ngoại lệ và thông tin phục vụ gỡ lỗi
+  - Local variable, operand stack và cách bytecode thao tác dữ liệu
+  - Lệnh tạo đối tượng, truy cập trường và điều khiển luồng
+  - Phân biệt invokevirtual, invokeinterface, invokestatic và invokespecial
+  - invokedynamic, bootstrap method và liên kết lời gọi động
+  - Bytecode cho synchronized, ngoại lệ và khối finally
+  - Type erasure, bridge method và dấu vết của ngôn ngữ trong class file
+  - Đọc kết quả javap để đối chiếu mã nguồn với hành vi thực thi
+- level1: Khung thực thi
+  level2:
+  - Tạo và kết thúc stack frame theo vòng đời lời gọi phương thức
+  - Local variable slot, operand stack và dữ liệu của từng lần gọi
+  - Truyền tham số, tham chiếu this và giá trị trả về
+  - Liên kết frame với runtime constant pool của lớp tương ứng
+  - Hoàn tất bình thường và hoàn tất đột ngột do ngoại lệ
+  - Tìm exception handler và tháo stack qua nhiều lời gọi
+  - Phân biệt stack trace logic với frame mã máy đã được tối ưu
+  - Ảnh hưởng của inlining và deoptimization đến việc quan sát stack
+  - Đệ quy, kích thước stack và điều kiện phát sinh StackOverflowError
+  - Đọc thông tin frame bằng javap, StackWalker và công cụ chẩn đoán
+- level1: Nạp và liên kết lớp
+  level2:
+  - Tìm biểu diễn lớp và tạo lớp trong JVM
+  - Verification và kiểm tra tính hợp lệ, an toàn kiểu của bytecode
+  - Preparation và cấp phát dữ liệu tĩnh với giá trị khởi đầu
+  - Resolution và chuyển tham chiếu tượng trưng thành liên kết runtime
+  - Liên kết sớm, liên kết lười và thời điểm lỗi được bộc lộ
+  - Phân biệt loading, linking và initialization
+  - Ràng buộc nạp lớp khi các lớp có quan hệ kế thừa hoặc gọi nhau
+  - Phân biệt ClassNotFoundException với NoClassDefFoundError
+  - LinkageError, NoSuchMethodError và lỗi thư viện không tương thích
+  - Quan sát nạp, liên kết và dỡ lớp bằng công cụ runtime
+- level1: Khởi tạo lớp
+  level2:
+  - Những thao tác kích hoạt khởi tạo lớp hoặc interface
+  - Phân biệt class literal, đọc hằng và truy cập trường tĩnh thông thường
+  - Thứ tự khởi tạo lớp cha, trường static và khối static
+  - Phân biệt phương thức đặc biệt <clinit> với <init>
+  - Khóa khởi tạo lớp khi nhiều luồng truy cập đồng thời
+  - Khởi tạo vòng và khả năng quan sát giá trị tạm thời
+  - ExceptionInInitializerError và trạng thái lớp sau khi khởi tạo thất bại
+  - Khởi tạo đối tượng, gọi constructor và xuất bản tham chiếu
+  - Thiết kế khởi tạo lười và chẩn đoán deadlock khi nạp ứng dụng
+- level1: Bộ nạp lớp
+  level2:
+  - Bootstrap, platform và application class loader
+  - Định danh kiểu theo tên nhị phân và bộ nạp định nghĩa
+  - Ủy quyền cho bộ nạp cha và lựa chọn cơ chế nạp riêng
+  - Defining loader, initiating loader và giới hạn nhìn thấy lớp
+  - Thread context class loader và tích hợp thư viện mở rộng
+  - Tải tài nguyên, ServiceLoader và phát hiện thành phần
+  - Bộ nạp tùy biến, plugin và cô lập các phiên bản thư viện
+  - Vì sao hai lớp cùng tên vẫn có thể không ép kiểu được
+  - Điều kiện dỡ lớp và quan hệ với khả năng thu hồi class loader
+  - Rò rỉ bộ nạp lớp do static, ThreadLocal, luồng và bộ nhớ đệm
+- level1: Module và truy cập
+  level2:
+  - Module runtime và sự khác biệt với classpath truyền thống
+  - Named module, unnamed module và automatic module
+  - Readability, exports và opens trong kiểm soát truy cập
+  - Phân giải đồ thị module và module layer khi khởi động
+  - Strong encapsulation và lỗi truy cập API nội bộ
+  - Reflection, MethodHandle và quyền truy cập tại runtime
+  - --add-reads, --add-exports, --add-opens và phạm vi sử dụng
+  - Xung đột package, thiếu module và thư viện chưa tương thích
+  - Tách giới hạn truy cập của module khỏi cơ chế bảo mật hệ điều hành
+- level1: Vùng nhớ runtime
+  level2:
+  - Heap và dữ liệu dùng chung giữa các luồng
+  - JVM stack, frame và thời gian sống theo lời gọi phương thức
+  - Program counter và trạng thái thực thi của mỗi luồng
+  - Method area và runtime constant pool theo đặc tả
+  - Native method stack và các chi tiết phụ thuộc triển khai
+  - Metaspace, compressed class space và metadata trong HotSpot
+  - Code cache và nơi lưu mã máy đã được biên dịch
+  - Phân biệt vị trí của biến tham chiếu với vị trí của đối tượng
+  - Phân biệt vùng nhớ JVM với mô hình bộ nhớ Java (JMM)
+  - Giới hạn của sơ đồ heap/stack đơn giản khi giải thích chương trình
+- level1: Đối tượng và tham chiếu
+  level2:
+  - Cấu trúc header, dữ liệu trường và phần đệm của đối tượng HotSpot
+  - Mark word, thông tin lớp và thay đổi theo cấu hình, phiên bản
+  - Căn chỉnh đối tượng và chi phí của kiểu dữ liệu, mảng, boxing
+  - Compressed ordinary object pointers và compressed class pointers
+  - Phân biệt tham chiếu Java, địa chỉ native và định danh đối tượng
+  - So sánh ==, equals() và identityHashCode() ở góc nhìn runtime
+  - String pool, intern() và phân biệt với constant pool của class file
+  - Compact Strings và ảnh hưởng tới biểu diễn nội dung chuỗi
+  - Shallow size, retained size và kích thước đồ thị đối tượng
+  - Quan sát bố trí đối tượng bằng công cụ phù hợp với JVM đang dùng
+- level1: Cấp phát bộ nhớ
+  level2:
+  - Đường đi của thao tác new từ kiểm tra lớp đến khởi tạo đối tượng
+  - Thread-Local Allocation Buffer và cấp phát theo con trỏ tăng dần
+  - Cấp phát ngoài TLAB và xử lý đối tượng lớn theo bộ thu gom
+  - Khởi tạo giá trị mặc định và bảo đảm quan sát dữ liệu
+  - Phân biệt tốc độ cấp phát với lượng dữ liệu còn sống
+  - Đối tượng tồn tại ngắn, đối tượng sống lâu và áp lực lên GC
+  - Escape analysis, scalar replacement và điều kiện loại bỏ cấp phát
+  - Phân biệt loại bỏ đối tượng với giả định mọi đối tượng được chuyển lên stack
+  - Chi phí sao chép, boxing và tạo chuỗi trong đường xử lý thường xuyên
+  - Đo lượng cấp phát thực tế trước khi tối ưu cấu trúc dữ liệu
+- level1: Thông dịch và JIT
+  level2:
+  - Vai trò của interpreter trong khởi động và thu thập hồ sơ thực thi
+  - Ngưỡng độ nóng của phương thức, vòng lặp và quyết định biên dịch
+  - C1, C2 và các mức biên dịch trong HotSpot theo cấu hình
+  - Tiered compilation và quá trình đi tới trạng thái chạy ổn định
+  - On-Stack Replacement và tối ưu vòng lặp đang thực thi
+  - Hàng đợi biên dịch, luồng compiler và tranh chấp CPU
+  - Code cache, mã được thay thế và khả năng thu hồi mã đã biên dịch
+  - Ảnh hưởng của warm-up đến độ trễ và thông lượng
+  - So sánh chạy thông dịch, JIT và biên dịch trước khi chạy
+  - Quan sát quyết định biên dịch bằng log, JFR và công cụ chẩn đoán
+- level1: Tối ưu và hoàn nguyên
+  level2:
+  - Inlining và tác động đến chi phí gọi phương thức
+  - Devirtualization và tối ưu lời gọi dựa trên kiểu đã quan sát
+  - Loại bỏ mã chết, gộp hằng và tối ưu vòng lặp
+  - Loại bỏ kiểm tra biên, cấp phát và khóa khi đủ điều kiện
+  - Intrinsics, vector hóa và phụ thuộc vào CPU, JVM
+  - Giả định tối ưu và tình huống làm giả định không còn đúng
+  - Deoptimization và khôi phục trạng thái để tiếp tục thực thi
+  - Ảnh hưởng của nạp lớp mới, hồ sơ thay đổi và nhánh hiếm
+  - Phân biệt bảo đảm ngữ nghĩa Java với tối ưu không được bảo đảm
+  - Đọc kết quả đo mà không suy diễn trực tiếp từ hình dạng mã nguồn
+- level1: Luồng Java
+  level2:
+  - Luồng Java, luồng hệ điều hành và mô hình thực thi
+  - Trạng thái NEW, RUNNABLE, BLOCKED, WAITING, TIMED_WAITING, TERMINATED
+  - Phân biệt trạng thái luồng Java với trạng thái lập lịch của hệ điều hành
+  - Stack mỗi luồng, ngữ cảnh thực thi và chi phí chuyển ngữ cảnh
+  - Monitor, wait/notify và cơ chế đánh thức luồng
+  - park/unpark, interrupt và hủy công việc theo cơ chế phối hợp
+  - ThreadLocal, phạm vi dữ liệu và nguy cơ giữ tham chiếu lâu
+  - Số luồng, giới hạn hệ điều hành và khả năng tạo thêm luồng
+  - Daemon thread và ảnh hưởng tới thời điểm tiến trình kết thúc
+  - Đọc thread dump để nối trạng thái với mã ứng dụng
+- level1: JMM và đồng bộ
+  level2:
+  - Tính nguyên tử, khả năng nhìn thấy và thứ tự thao tác
+  - Happens-before và cách suy luận việc truyền dữ liệu giữa các luồng
+  - Data race, sắp xếp lại và giới hạn của thử nghiệm chạy nhiều lần
+  - volatile và bảo đảm truy cập so với phép toán ghép
+  - synchronized, monitor và bảo đảm khi vào/ra vùng bảo vệ
+  - final field, bất biến và xuất bản đối tượng an toàn
+  - CAS, VarHandle và các chế độ truy cập bộ nhớ
+  - Khóa trong HotSpot và thay đổi triển khai theo phiên bản
+  - Deadlock, livelock, starvation và tranh chấp tài nguyên
+  - Phân biệt visibility theo JMM với cache CPU, GC barrier và safepoint
+  - Giới hạn của sleep(), yield() và log khi kiểm chứng chương trình đồng thời
+- level1: Luồng ảo
+  level2:
+  - Luồng ảo là gì và bài toán mở rộng tác vụ chờ I/O
+  - Luồng ảo, luồng nền thực thi (carrier) và bộ lập lịch
+  - Gắn và tháo luồng ảo khi tác vụ bị chặn theo cơ chế hỗ trợ
+  - Lưu trạng thái stack và ảnh hưởng đến tiêu thụ bộ nhớ
+  - Pinning và khác biệt khi dùng synchronized giữa các phiên bản JDK
+  - Lời gọi native, tác vụ CPU dài và các giới hạn cần đo
+  - ThreadLocal và việc quản lý ngữ cảnh với số lượng tác vụ lớn
+  - Giới hạn tài nguyên hữu hạn dù số luồng có thể tăng
+  - Quan sát luồng ảo bằng JFR và dạng thread dump được hỗ trợ
+  - Lựa chọn luồng nền tảng hoặc luồng ảo theo đặc điểm công việc
+- level1: Safepoint và handshake
+  level2:
+  - Safepoint là gì và vì sao JVM cần phối hợp trạng thái luồng
+  - Phân biệt thời gian đi tới safepoint với thời gian dừng tại safepoint
+  - Những hoạt động VM có thể yêu cầu phối hợp toàn bộ luồng
+  - Safepoint polling trong mã thông dịch và mã đã biên dịch
+  - Trạng thái thực thi mã native và ảnh hưởng tới thao tác của JVM
+  - Thread-local handshake và tác vụ chỉ nhắm tới một số luồng
+  - Quan hệ giữa safepoint, GC và việc quan sát stack
+  - Đọc log safepoint để tìm nguồn gây trễ
+  - Phân biệt dừng do GC với các khoảng dừng runtime khác
+- level1: Nền tảng GC
+  level2:
+  - Khả năng truy cập đối tượng và các nhóm GC root
+  - Đồ thị tham chiếu, đối tượng không còn truy cập và chu trình tham chiếu
+  - Strong, Soft, Weak, Phantom Reference và ReferenceQueue
+  - Đánh dấu, quét, sao chép và dồn bộ nhớ
+  - Phân biệt thu gom song song, đồng thời và stop-the-world
+  - Giả thuyết thế hệ và trường hợp đối tượng được chuyển vùng
+  - Read barrier, write barrier, card table và remembered set
+  - Tính nhất quán của việc đánh dấu khi ứng dụng vẫn thay đổi tham chiếu
+  - Phân biệt bộ nhớ được thu hồi với bộ nhớ trả lại hệ điều hành
+  - Chi phí GC theo tốc độ cấp phát, tập dữ liệu sống và tài nguyên
+  - Giới hạn của System.gc() và các giả định sai về thời điểm thu gom
+- level1: Các bộ thu gom
+  level2:
+  - Lựa chọn collector theo độ trễ, thông lượng, bộ nhớ và CPU
+  - Serial GC và đặc điểm của tác vụ thu gom đơn luồng
+  - Parallel GC và ưu tiên thông lượng
+  - G1 với region, tập vùng thu gom và mục tiêu khoảng dừng
+  - Chu kỳ đánh dấu, young collection và mixed collection của G1
+  - Đối tượng humongous và áp lực phân vùng trong G1
+  - ZGC và mô hình thu gom có độ trễ thấp
+  - ZGC phân thế hệ và thay đổi chế độ hỗ trợ theo JDK
+  - Shenandoah và phạm vi khả dụng theo bản phân phối, nền tảng
+  - Epsilon cho thí nghiệm cấp phát không thu hồi bộ nhớ
+  - Nhận diện CMS và tùy chọn lịch sử trong tài liệu cũ
+  - Kiểm tra collector đang dùng và các giá trị mặc định thực tế
+  - Đánh đổi khi đổi collector và yêu cầu đo lại trên tải đại diện
+- level1: Heap và cấu hình GC
+  level2:
+  - -Xms, -Xmx và khác biệt giữa dung lượng ban đầu với giới hạn
+  - Used, committed, reserved và cách đọc số liệu heap
+  - Phân bổ đủ chỗ cho dữ liệu sống và đợt tăng cấp phát
+  - Mục tiêu khoảng dừng và giới hạn của cam kết từ collector
+  - GC ergonomics và các tham số nên để JVM tự điều chỉnh
+  - Đọc unified GC log bằng -Xlog với tag, mức và thời gian
+  - Phân biệt các pha GC, nguyên nhân kích hoạt và phần bộ nhớ sau thu gom
+  - Nhận diện áp lực cấp phát, thăng hạng và thiếu không gian di chuyển
+  - Đánh giá Full GC theo bộ thu gom và nguyên nhân cụ thể
+  - Quy trình chỉnh một giả thuyết, đo lại và quay lui cấu hình
+  - Tránh áp dụng máy móc bộ cờ GC của JDK hoặc loại tải khác
+- level1: Bộ nhớ ngoài heap
+  level2:
+  - Phân biệt heap Java với toàn bộ bộ nhớ của tiến trình
+  - Metaspace, code cache, stack và bộ nhớ phục vụ GC
+  - DirectByteBuffer, ánh xạ tệp và vòng đời vùng nhớ ngoài heap
+  - Reserved, committed, resident và số liệu RSS của hệ điều hành
+  - Native Memory Tracking và điều kiện bật khi khởi động
+  - Đọc NMT summary, detail, baseline và phần chênh lệch
+  - Giới hạn của NMT đối với thư viện native và các vùng không được theo dõi
+  - Giới hạn direct memory và các phần native không thuộc giới hạn đó
+  - Ảnh hưởng của số luồng, thư viện native và phân mảnh bộ nhớ
+  - Đối chiếu số liệu JVM với hệ điều hành trước khi kết luận rò rỉ
+- level1: JNI và mã native
+  level2:
+  - JNI là gì và ranh giới giữa mã Java với mã máy ngoài JVM
+  - Nạp thư viện native và phân biệt java.library.path với classpath
+  - Ánh xạ phương thức native và nguyên nhân UnsatisfiedLinkError
+  - JNI local/global reference và tác động đến khả năng thu hồi đối tượng
+  - Chuyển luồng giữa trạng thái Java, VM và native
+  - Truyền bộ đệm, sao chép dữ liệu và quyền sở hữu tài nguyên
+  - Lỗi native, truy cập sai bộ nhớ và ảnh hưởng toàn tiến trình
+  - Foreign Function and Memory API theo trạng thái hỗ trợ của từng JDK
+  - Phân biệt JNI, thư viện cầu nối và API truy cập native chuẩn
+  - Chẩn đoán lỗi tích hợp bằng công cụ JVM cùng công cụ hệ điều hành
+- level1: Vòng đời tài nguyên
+  level2:
+  - Phân biệt thu hồi bộ nhớ với đóng tệp, socket và kết nối
+  - AutoCloseable, try-with-resources và xử lý ngoại lệ khi đóng
+  - Quyền sở hữu tài nguyên trong chuỗi gọi và khi chuyển giữa các luồng
+  - Cleaner, PhantomReference và giới hạn của dọn dẹp dự phòng
+  - Finalization và lộ trình ngừng hỗ trợ theo phiên bản JDK
+  - Đóng executor, pool và tác vụ nền khi ứng dụng dừng
+  - ThreadLocal và tài nguyên gắn với luồng được tái sử dụng
+  - Giới hạn file descriptor, kết nối và tài nguyên hệ điều hành
+  - Kiểm chứng giải phóng tài nguyên bằng số liệu sau nhiều chu kỳ hoạt động
+- level1: API runtime
+  level2:
+  - Runtime.getRuntime() và các khả năng quan sát, điều khiển tiến trình
+  - Ý nghĩa totalMemory(), freeMemory() và maxMemory()
+  - availableProcessors() và tài nguyên mà JVM quan sát được
+  - System property, biến môi trường và sự khác biệt phạm vi cấu hình
+  - ManagementFactory và các MXBean về bộ nhớ, luồng, lớp, biên dịch, GC
+  - ProcessHandle, thông tin tiến trình và quan sát tiến trình con
+  - ProcessBuilder và quản lý luồng vào/ra khi chạy chương trình ngoài
+  - Shutdown hook và phối hợp với cơ chế đóng tài nguyên
+  - Giới hạn của số liệu chụp tại một thời điểm và chi phí gọi API quản trị
+- level1: Công cụ chẩn đoán
+  level2:
+  - Xác định đúng PID, phiên bản JVM và tiến trình cần quan sát
+  - jcmd và cách tra các lệnh thực sự được JVM hỗ trợ
+  - Đọc dòng lệnh, cờ hiệu lực, system property và thời gian chạy
+  - jps, jinfo, jstat, jstack, jmap và phạm vi dùng theo JDK
+  - Phân biệt class histogram, heap dump, thread dump và bản ghi JFR
+  - Unified Logging và lựa chọn tag cho class loading, GC, safepoint
+  - JMX, JConsole và giám sát từ công cụ bên ngoài
+  - Điều kiện attach theo tài khoản, quyền và không gian tiến trình
+  - Đánh giá chi phí tạm dừng, dung lượng tệp và ảnh hưởng khi lấy dữ liệu
+  - Thu thập bộ bằng chứng tối thiểu trước khi đổi cấu hình hoặc khởi động lại
+- level1: JFR và hồ sơ thực thi
+  level2:
+  - Java Flight Recorder và mô hình ghi nhận sự kiện runtime
+  - Bắt đầu, lấy bản ghi và dừng ghi bằng công cụ được hỗ trợ
+  - Lựa chọn cấu hình, ngưỡng, thời lượng và giới hạn dung lượng
+  - Java Mission Control và cách đọc hồ sơ theo trục thời gian
+  - Phân tích CPU, cấp phát, khóa, I/O và các sự kiện GC
+  - Phân biệt mẫu thống kê với số đếm đầy đủ của thao tác
+  - Liên kết đợt trễ của ứng dụng với sự kiện runtime
+  - Viết sự kiện JFR riêng cho thao tác nghiệp vụ cần đo
+  - Giới hạn độ chính xác, sai lệch lấy mẫu và chi phí của profiler
+  - Lưu, chia sẻ và bảo vệ dữ liệu chẩn đoán có thể chứa thông tin nhạy cảm
+- level1: Phân tích rò rỉ nhớ
+  level2:
+  - Phân biệt bộ nhớ tăng bình thường, giữ dữ liệu hợp lệ và rò rỉ
+  - Theo dõi tập dữ liệu sống sau GC qua nhiều chu kỳ tải
+  - Class histogram và giới hạn khi chỉ nhìn số lượng, shallow size
+  - Heap dump, đường giữ tham chiếu tới GC root và dominator tree
+  - Retained size và cách xác định thành phần giữ đồ thị đối tượng
+  - Rò rỉ do bộ nhớ đệm, collection, listener và static reference
+  - Rò rỉ do ThreadLocal, tác vụ chưa hoàn tất và hàng đợi không giới hạn
+  - Rò rỉ class loader và tăng Metaspace khi sinh hoặc nạp lớp
+  - Đối chiếu heap với NMT khi RSS tăng mà heap ổn định
+  - Kiểm chứng bản sửa dưới tải lặp lại với cùng cách đo
+- level1: Phân tích luồng và CPU
+  level2:
+  - Liên kết mức dùng CPU của tiến trình với các luồng đang chạy
+  - Đọc nhiều thread dump theo thời gian thay cho một ảnh chụp
+  - Phân biệt tính toán CPU, vòng lặp bận và chờ I/O
+  - Nhận diện BLOCKED, park, wait và tranh chấp khóa
+  - Phát hiện deadlock và xác định luồng nắm tài nguyên
+  - Phân biệt nghẽn luồng, nghẽn pool và nghẽn dịch vụ phụ thuộc
+  - Đánh giá mức chạy song song, chuyển ngữ cảnh và CPU throttling
+  - Theo dõi luồng ảo bằng công cụ phù hợp với phiên bản JDK
+  - Liên kết hồ sơ CPU với biên dịch, GC và công việc ứng dụng
+  - Đặt giả thuyết nguyên nhân rồi kiểm chứng bằng tải và dấu thời gian
+- level1: Lỗi và sự cố JVM
+  level2:
+  - Phân biệt ngoại lệ ứng dụng, VirtualMachineError và lỗi tiến trình
+  - StackOverflowError và giới hạn độ sâu stack
+  - OutOfMemoryError do heap và phân biệt với rò rỉ dữ liệu
+  - OutOfMemoryError do Metaspace hoặc compressed class space
+  - Thiếu direct memory, native memory hoặc khả năng tạo luồng
+  - Code cache đầy và ảnh hưởng đến khả năng tiếp tục biên dịch
+  - Thu thập heap dump, log và bằng chứng khi xảy ra OOM
+  - Phân biệt JVM báo OOM với tiến trình bị OOM killer hoặc nền tảng dừng
+  - Fatal error, hs_err_pid và định vị luồng, frame gây sự cố
+  - Core dump, thư viện native và thông tin cần cho phân tích sâu
+  - Hành vi sau lỗi nghiêm trọng và điều kiện cần khởi động lại có kiểm soát
+- level1: JVM trong container
+  level2:
+  - Cgroup, CPU quota và giới hạn tài nguyên mà JVM nhận biết
+  - Container awareness và khác biệt theo JDK, hệ điều hành
+  - Heap theo tỷ lệ bộ nhớ và kiểm tra cấu hình hiệu lực
+  - Dành ngân sách cho stack, Metaspace, code cache và native memory
+  - availableProcessors(), ActiveProcessorCount và số luồng nền
+  - CPU throttling và ảnh hưởng tới GC, JIT, thời gian phản hồi
+  - Khởi động nhiều JVM trên cùng máy và cạnh tranh tài nguyên
+  - Phân biệt memory limit, working set, RSS và số liệu JVM
+  - Readiness, warm-up và thời gian dừng trong nền tảng điều phối
+  - Thu thập bằng chứng khi tiến trình container bị dừng hoặc khởi động lại
+- level1: Khởi động và phân phối
+  level2:
+  - Phân rã thời gian khởi động JVM, nạp lớp và khởi tạo ứng dụng
+  - Class Data Sharing và mục đích chia sẻ metadata đã chuẩn bị
+  - AppCDS, lưu trữ lớp và điều kiện tương thích của archive
+  - Đánh đổi giữa kích thước runtime, chi phí khởi động và hiệu năng ổn định
+  - jlink và tạo runtime image từ các module cần thiết
+  - Đóng gói ứng dụng, runtime image và cấu hình triển khai riêng biệt
+  - Phân biệt HotSpot JIT với GraalVM Native Image
+  - Khả năng tương thích hệ điều hành, CPU và thư viện native
+  - Đánh giá ứng dụng chạy ngắn, dịch vụ chạy lâu và môi trường co giãn
+  - Kiểm chứng lợi ích khởi động bằng dữ liệu trước và sau thay đổi
+- level1: Đo hiệu năng
+  level2:
+  - Chọn mục tiêu độ trễ, thông lượng, bộ nhớ và chi phí CPU
+  - Xác định tải đại diện, dữ liệu đầu vào và trạng thái chạy ổn định
+  - Phân biệt đo vi mô với kiểm thử toàn ứng dụng
+  - JMH, warm-up, measurement và tiến trình fork độc lập
+  - Tránh loại bỏ mã chết, gộp hằng và kết quả không được sử dụng
+  - Đo tốc độ cấp phát cùng hiệu năng thực thi
+  - Giới hạn của đo thời gian thủ công bằng nanoTime()
+  - Sai lệch do GC, JIT, nhiễu hệ điều hành và tải chia sẻ
+  - Đọc độ phân tán, phân vị và giới hạn suy luận từ số trung bình
+  - So sánh đúng phiên bản JDK, JVM flag và cấu hình máy
+  - Tối ưu một giả thuyết rồi đo lại cả lợi ích lẫn chi phí
+- level1: Tương thích và bảo mật
+  level2:
+  - Kiểm tra tương thích bytecode, thư viện, module và mã native khi đổi JDK
+  - Đối chiếu cờ JVM, collector và các giá trị mặc định giữa phiên bản
+  - Phân biệt tính năng chính thức, preview, experimental và API nội bộ
+  - Agent, instrumentation và thay đổi bytecode trong quá trình nạp lớp
+  - Quyền attach, nạp agent và thay đổi chính sách theo JDK
+  - Strong encapsulation và di trú khỏi API nội bộ không được hỗ trợ
+  - Security Manager theo dòng JDK và lựa chọn cô lập ngoài JVM
+  - Giới hạn của kiểm tra bytecode và class loader trong bảo vệ tiến trình
+  - Bảo vệ JMX, tệp dump, bản ghi và cấu hình chứa bí mật
+  - Thử nghiệm hồi quy chức năng, hiệu năng và tài nguyên trước nâng cấp
+  - Lập kế hoạch chuyển đổi, quay lui và kiểm chứng sau triển khai
+- level1: Thực hành tổng hợp
+  level2:
+  - Lần theo một chương trình từ javac, javap đến lời gọi chạy trên JVM
+  - Thực nghiệm thời điểm nạp lớp, liên kết và khởi tạo static
+  - Nạp hai lớp cùng tên bằng hai class loader để quan sát định danh kiểu
+  - Quan sát warm-up, biên dịch JIT và thay đổi hiệu năng theo thời gian
+  - So sánh tải cấp phát, dữ liệu sống và các pha GC
+  - Đối chiếu heap, Metaspace, direct memory và RSS trên cùng tiến trình
+  - Tái hiện rò rỉ heap, ThreadLocal và class loader với dữ liệu đo
+  - Tái hiện tranh chấp khóa, deadlock và tác vụ bị chặn
+  - So sánh luồng nền tảng với luồng ảo dưới giới hạn tài nguyên
+  - Thử nghiệm giới hạn container, dừng có kiểm soát và thu thập bằng chứng
+  - Chọn cấu hình runtime từ mục tiêu dịch vụ và kết quả kiểm chứng

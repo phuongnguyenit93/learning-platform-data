@@ -1,0 +1,288 @@
+menu:
+- level1: Tổng quan môi trường
+  level2:
+  - Môi trường phần mềm là gì và gồm những thành phần nào
+  - Vai trò của quản lý môi trường trong phát triển, kiểm thử và vận hành
+  - Mối quan hệ giữa ứng dụng, hạ tầng, cấu hình, dữ liệu và dịch vụ phụ thuộc
+  - Phân biệt môi trường, máy chủ, cụm, namespace và phiên bản ứng dụng
+  - Phân biệt quản lý môi trường với cấp phát hạ tầng, quản lý cấu hình và triển khai
+  - Các khái niệm cấu hình chuẩn, trạng thái mong muốn, sai lệch và khả năng tái tạo
+  - Cân bằng tốc độ cung cấp, độ tin cậy, an toàn và chi phí môi trường
+  - Nhận diện vấn đề khi môi trường thiếu chủ sở hữu hoặc được quản lý thủ công
+- level1: Các loại môi trường
+  level2:
+  - Môi trường cục bộ của lập trình viên và môi trường phát triển từ xa
+  - Môi trường tích hợp để kiểm chứng các thành phần làm việc cùng nhau
+  - Môi trường kiểm thử chức năng và kiểm thử hồi quy
+  - Môi trường nghiệm thu người dùng và điều kiện phục vụ UAT
+  - Môi trường staging để diễn tập phát hành gần với production
+  - Môi trường production phục vụ người dùng và dữ liệu thực
+  - Môi trường kiểm thử hiệu năng, độ bền và khả năng chịu lỗi
+  - Môi trường sandbox để thử nghiệm với phạm vi ảnh hưởng được giới hạn
+  - Môi trường preview theo thay đổi và môi trường tạm thời theo nhu cầu
+  - Môi trường dự phòng thảm họa và cách chọn các loại môi trường cần thiết
+- level1: Thiết kế môi trường
+  level2:
+  - Xác định mục đích, đối tượng sử dụng và yêu cầu chất lượng cho mỗi môi trường
+  - Lựa chọn môi trường dùng chung, dành riêng hoặc kết hợp theo nhu cầu nhóm
+  - Phân tách bằng tài khoản, subscription, project, mạng, cụm hoặc namespace
+  - Đánh giá ranh giới tin cậy và giới hạn ảnh hưởng khi một môi trường gặp sự cố
+  - Cách ly production khỏi non-production theo rủi ro dữ liệu và quyền truy cập
+  - Giới hạn của namespace và các biện pháp bổ sung khi dùng chung cụm Kubernetes
+  - Thiết kế nhiều vùng, nhiều khu vực hoặc nhiều nhà cung cấp khi có yêu cầu
+  - Xác định mức tương đồng cần thiết thay vì sao chép toàn bộ quy mô production
+  - Lập ma trận môi trường, dịch vụ, phiên bản và quan hệ phụ thuộc
+- level1: Danh mục và trách nhiệm
+  level2:
+  - Thiết lập danh mục môi trường và nguồn thông tin có thẩm quyền
+  - Định danh môi trường, quy ước đặt tên và nhãn tài nguyên
+  - Ghi nhận mục đích, chủ sở hữu, nhóm hỗ trợ và người chịu trách nhiệm chi phí
+  - Quản lý endpoint, khu vực, tài khoản hạ tầng và thời hạn tồn tại
+  - Phân công trách nhiệm giữa nhóm phát triển, kiểm thử, nền tảng và vận hành
+  - Thiết lập tiêu chí sẵn sàng, giờ phục vụ và cam kết hỗ trợ môi trường
+  - Quản lý lịch sử thay đổi và liên kết môi trường với mã nguồn, yêu cầu công việc
+  - Đối soát danh mục với tài nguyên thực để tìm môi trường hoặc tài nguyên bị bỏ quên
+- level1: Vòng đời môi trường
+  level2:
+  - Mô hình yêu cầu, phê duyệt, cấp phát, sử dụng, bảo trì và thu hồi
+  - Xác định đầu vào, điều kiện trước và tiêu chí hoàn thành khi tạo môi trường
+  - Cấp phát hạ tầng, cấu hình dịch vụ, khởi tạo dữ liệu và kiểm tra sẵn sàng
+  - Công bố thông tin truy cập và bàn giao môi trường cho nhóm sử dụng
+  - Cập nhật phiên bản nền tảng và bảo trì môi trường đang được sử dụng
+  - Tạm dừng, khởi động lại, đặt lại và tạo mới môi trường khác nhau thế nào
+  - Gia hạn môi trường theo nhu cầu sử dụng và trách nhiệm của chủ sở hữu
+  - Ngừng sử dụng, lưu giữ bằng chứng cần thiết và thu hồi tài nguyên
+  - Xử lý trạng thái tạo dở, thu hồi dở và các tài nguyên còn sót lại
+- level1: Môi trường dưới dạng mã
+  level2:
+  - Vai trò của mã hạ tầng, mã cấu hình và khai báo triển khai trong định nghĩa môi trường
+  - Tổ chức cấu phần dùng lại cùng tham số riêng của từng môi trường
+  - Tách định nghĩa chung, khác biệt có chủ đích và thông tin bí mật
+  - Quản lý phiên bản công cụ, module, image và các phụ thuộc để tái tạo môi trường
+  - Phân tách trạng thái quản lý hạ tầng và thông tin truy cập giữa các môi trường
+  - Đánh giá thay đổi qua Git, bản kế hoạch thực thi và bằng chứng kiểm tra
+  - Nhận diện thao tác cập nhật tại chỗ, thay thế tài nguyên và nguy cơ mất dữ liệu
+  - Tiếp nhận tài nguyên có sẵn vào quản lý bằng mã và kiểm tra sai lệch ban đầu
+  - Tái tạo môi trường từ định nghĩa đã lưu mà không phụ thuộc thao tác ngầm
+- level1: Cấu hình theo môi trường
+  level2:
+  - Phân biệt cấu hình ứng dụng, cấu hình hạ tầng và thông tin bí mật
+  - Tách cấu hình thay đổi theo môi trường khỏi mã nguồn và gói thực thi
+  - Lựa chọn biến môi trường, tệp cấu hình hoặc dịch vụ cấu hình theo nhu cầu
+  - Thiết kế cấu hình nền, lớp ghi đè và thứ tự ưu tiên rõ ràng
+  - Kiểm tra kiểu dữ liệu, giá trị bắt buộc, giá trị mặc định và cấu hình không hợp lệ
+  - Quản lý phiên bản cấu hình và kiểm tra tương thích với phiên bản ứng dụng
+  - Phân biệt cấu hình cần khởi động lại với cấu hình thay đổi trong lúc chạy
+  - Quản lý feature flag, phạm vi áp dụng và vòng đời cờ tính năng
+  - Kiểm soát endpoint, tên cơ sở dữ liệu và định danh môi trường để tránh kết nối nhầm
+  - Minh họa cấu hình môi trường cho Java hoặc Spring Boot và giới hạn của application profile
+- level1: Bí mật và danh tính
+  level2:
+  - Phân loại mật khẩu, token, khóa API, chứng chỉ và danh tính máy
+  - Tách nơi lưu bí mật và phạm vi cấp quyền theo từng môi trường
+  - Cấp quyền tối thiểu cho người dùng, ứng dụng và tác vụ tự động hóa
+  - Ưu tiên danh tính workload và thông tin xác thực ngắn hạn khi nền tảng hỗ trợ
+  - Cung cấp bí mật khi chạy mà không đưa vào Git, image hoặc tệp đầu ra công khai
+  - Luân chuyển, thu hồi và thay thế bí mật mà không làm gián đoạn ngoài dự kiến
+  - Ngăn bí mật xuất hiện trong log, bản kế hoạch hạ tầng và thông tin chẩn đoán
+  - Kiểm soát quyền đọc bí mật của môi trường preview và mã đóng góp chưa được tin cậy
+  - Theo dõi truy cập bí mật và xử lý khi thông tin xác thực bị lộ
+- level1: Mạng và truy cập
+  level2:
+  - Thiết kế phân đoạn mạng, tuyến kết nối và chính sách ra vào theo môi trường
+  - Quản lý DNS, tên miền phụ và quy ước endpoint
+  - Cấp, gia hạn và thu hồi chứng chỉ TLS theo vòng đời môi trường
+  - Kiểm soát truy cập nội bộ qua VPN, bastion hoặc cơ chế truy cập có xác thực
+  - Áp dụng firewall, security group hoặc NetworkPolicy theo nền tảng sử dụng
+  - Giới hạn kết nối giữa các môi trường và xác minh đường truy cập tới production
+  - Phân tách địa chỉ callback, webhook và cấu hình đăng nhập một lần
+  - Quản lý IP được cho phép và yêu cầu kết nối với đối tác bên ngoài
+  - Xử lý proxy, DNS nội bộ và service discovery trong môi trường dùng chung
+  - Kiểm chứng cách ly mạng và quyền truy cập sau khi thay đổi cấu hình
+- level1: Môi trường cục bộ
+  level2:
+  - Chuẩn hóa phiên bản JDK, công cụ build và dịch vụ cần cho dự án
+  - Tổ chức tệp cấu hình mẫu và hướng dẫn khởi tạo không chứa bí mật thực
+  - Sử dụng container hoặc công cụ phát triển từ xa để giảm khác biệt máy cá nhân
+  - Khởi động cơ sở dữ liệu, cache và hàng đợi cho phát triển cục bộ
+  - Lựa chọn dịch vụ thật, dịch vụ giả lập hoặc test double cho từng phụ thuộc
+  - Tạo dữ liệu mẫu và cơ chế đặt lại môi trường có thể chạy lặp
+  - Quản lý cổng, tên miền cục bộ, chứng chỉ phát triển và nhiều dự án chạy đồng thời
+  - Tự kiểm tra môi trường và xử lý khác biệt hệ điều hành hoặc kiến trúc CPU
+- level1: Môi trường dùng chung
+  level2:
+  - Xác định đối tượng sử dụng và phạm vi chia sẻ hạ tầng, ứng dụng, dữ liệu
+  - Phân chia không gian tên, tài khoản và tập dữ liệu giữa nhóm hoặc đợt kiểm thử
+  - Đặt lịch, giữ chỗ và xử lý tranh chấp khi nhiều nhóm cần cùng môi trường
+  - Kiểm soát triển khai đồng thời và tránh ghi đè phiên bản nhóm khác đang kiểm tra
+  - Đặt lại dữ liệu theo lịch và thông báo thay đổi gây gián đoạn
+  - Phân biệt lỗi ứng dụng với tác động từ nhóm cùng dùng tài nguyên
+  - Thiết lập cửa sổ bảo trì, thời hạn đóng băng và quy trình hỗ trợ
+  - Đánh giá khi nào cần chuyển từ môi trường dùng chung sang môi trường dành riêng
+- level1: Môi trường tạm thời
+  level2:
+  - Phân biệt môi trường preview theo pull request với môi trường kiểm thử theo tác vụ
+  - Xác định phạm vi tạo riêng và các dịch vụ có thể dùng chung
+  - Đặt định danh ổn định theo thay đổi và tránh trùng tên khi tạo đồng thời
+  - Tự động tạo môi trường khi có sự kiện đã được xác thực và cấp quyền
+  - Cấp endpoint, dữ liệu mẫu và thông tin truy cập cho người đánh giá
+  - Kiểm soát mã không tin cậy, thông tin bí mật và khả năng truy cập mạng nội bộ
+  - Cập nhật môi trường khi thay đổi mã nguồn mà không tạo tài nguyên trùng
+  - Đặt thời hạn tồn tại, gia hạn và dọn dẹp khi thay đổi được đóng
+  - Thu hồi DNS, chứng chỉ, dữ liệu, volume và tài nguyên phụ thuộc
+  - Đánh giá lợi ích phản hồi nhanh so với thời gian cấp phát và chi phí duy trì
+- level1: Dữ liệu theo môi trường
+  level2:
+  - Phân loại dữ liệu sản xuất, dữ liệu thử nghiệm và dữ liệu tổng hợp
+  - Lựa chọn dữ liệu mẫu đáp ứng mục tiêu kiểm thử và dung lượng cần thiết
+  - Che giấu, ẩn danh hoặc tổng hợp dữ liệu trước khi đưa ra ngoài production
+  - Kiểm soát dữ liệu cá nhân và thông tin bí mật trong bản sao hoặc bản sao lưu
+  - Tách tài khoản, cơ sở dữ liệu, schema và quyền ghi giữa các môi trường
+  - Khởi tạo dữ liệu có thể chạy lặp và bảo đảm trạng thái đầu vào xác định
+  - Làm mới dữ liệu, lên lịch đặt lại và tránh phá hỏng phiên kiểm thử đang chạy
+  - Quản lý phiên bản schema và thứ tự migration gắn với phiên bản ứng dụng
+  - Kiểm thử tương thích dữ liệu khi nhiều phiên bản ứng dụng cùng hoạt động
+  - Đặt thời hạn lưu, kiểm chứng xóa dữ liệu và xử lý dữ liệu còn trong snapshot
+  - Ngăn tác vụ nền, email, thanh toán hoặc tích hợp từ dữ liệu thử gây tác động thực
+- level1: Dịch vụ phụ thuộc
+  level2:
+  - Lập danh sách cơ sở dữ liệu, cache, hàng đợi và dịch vụ ngoài cho mỗi môi trường
+  - Quản lý phiên bản, cấu hình và hợp đồng giao tiếp của các dịch vụ phụ thuộc
+  - Chọn dịch vụ thật, sandbox của đối tác hoặc mô phỏng theo mục tiêu kiểm thử
+  - Cô lập queue, topic, bucket và khóa cache để tránh lẫn dữ liệu
+  - Kiểm soát tài khoản thử nghiệm, hạn mức API và chi phí dịch vụ bên thứ ba
+  - Chuẩn bị thứ tự khởi tạo và điều kiện sẵn sàng thay vì chỉ chờ tiến trình chạy
+  - Xử lý phụ thuộc không sẵn sàng bằng timeout, retry và cơ chế giảm tác động phù hợp
+  - Theo dõi và kiểm chứng thay đổi dịch vụ dùng chung trước khi các nhóm sử dụng
+- level1: Tính tương đồng
+  level2:
+  - Mục tiêu giữ môi trường phát triển, staging và production đủ tương đồng
+  - Phân biệt khác biệt có chủ đích với sai lệch ngoài kiểm soát
+  - Đối chiếu runtime, hệ điều hành, image và phiên bản dịch vụ nền
+  - Giữ tương đồng schema, đặc tính dữ liệu và hành vi dịch vụ phụ thuộc
+  - Xác định khác biệt về quy mô, tải, độ trễ và mức sẵn sàng có thể chấp nhận
+  - Sử dụng cùng gói bất biến qua nhiều môi trường và tách cấu hình khi chạy
+  - Quản lý ma trận phiên bản khi nhiều dịch vụ được phát hành độc lập
+  - Đo lường và thu hẹp khoảng cách khiến lỗi chỉ xuất hiện trên production
+- level1: Kiểm chứng môi trường
+  level2:
+  - Xác định tiêu chí chấp nhận môi trường trước khi bàn giao sử dụng
+  - Kiểm tra hạ tầng, kết nối mạng, DNS, TLS và quyền truy cập
+  - Phân biệt kiểm tra tiến trình sống, sẵn sàng phục vụ và đúng chức năng
+  - Chạy smoke test cho luồng chính và khả năng kết nối dịch vụ phụ thuộc
+  - Kiểm tra cấu hình, bí mật và phiên bản mà không làm lộ giá trị nhạy cảm
+  - Xác minh schema, dữ liệu khởi tạo và tính độc lập giữa các môi trường
+  - Kiểm thử chính sách cách ly, hạn mức tài nguyên và quyền tối thiểu
+  - Kiểm tra khả năng lặp lại bằng tạo mới, đặt lại và thu hồi môi trường
+  - Lưu kết quả kiểm chứng gắn với định danh và phiên bản môi trường
+  - Phân biệt môi trường sẵn sàng sử dụng với ứng viên phát hành đã đạt kiểm thử
+- level1: Tích hợp phát hành
+  level2:
+  - Phân biệt môi trường thực tế với đối tượng environment được khai báo trong công cụ CI/CD
+  - Thiết lập luồng đưa cùng bản phát hành qua các môi trường kiểm chứng
+  - Liên kết bản phát hành với phiên bản gói, cấu hình, hạ tầng và dữ liệu
+  - Tách quyền xây dựng gói với quyền triển khai vào từng môi trường
+  - Thiết lập phê duyệt và điều kiện kiểm tra dựa trên rủi ro môi trường
+  - Tuần tự hóa thay đổi hoặc khóa môi trường để tránh triển khai chồng nhau
+  - Điều phối migration, cập nhật cấu hình và triển khai ứng dụng đúng thứ tự
+  - Theo dõi lịch sử triển khai và xác định chính xác phiên bản đang hoạt động
+  - Quản lý feature flag và việc mở tính năng độc lập với thời điểm triển khai
+- level1: Bảo vệ production
+  level2:
+  - Xác định mức độ quan trọng và các thao tác cần được kiểm soát chặt
+  - Tách danh tính và quyền quản trị production khỏi môi trường thử nghiệm
+  - Áp dụng truy cập tạm thời, xác thực mạnh và rà soát hoạt động đặc quyền
+  - Quy trình truy cập khẩn cấp và kiểm tra sau khi sử dụng quyền ngoại lệ
+  - Ngăn chạy nhầm lệnh bằng định danh rõ ràng và kiểm tra ngữ cảnh trước thao tác
+  - Giới hạn dữ liệu production được dùng cho chẩn đoán hoặc tái hiện lỗi
+  - Thiết lập cửa sổ bảo trì và điều kiện dừng thay đổi khi sức khỏe dịch vụ giảm
+  - Kiểm soát thử nghiệm trên production theo phạm vi ảnh hưởng và khả năng dừng
+  - Ghi nhận và đối soát thao tác thủ công với trạng thái quản lý chính thức
+- level1: Kiểm soát sai lệch
+  level2:
+  - Phân biệt sai lệch hạ tầng, cấu hình, dữ liệu, phiên bản và quyền truy cập
+  - Xác định cấu hình chuẩn và trạng thái mong muốn để làm cơ sở so sánh
+  - Phát hiện thay đổi thủ công hoặc ngoài luồng tự động hóa
+  - Lựa chọn kiểm tra định kỳ, theo sự kiện hoặc đối soát liên tục
+  - Phân loại sai lệch hợp lệ, sai lệch rủi ro và tín hiệu cảnh báo không chính xác
+  - Đánh giá trước khi đồng bộ lại để tránh xóa thay đổi hợp lệ hoặc mất dữ liệu
+  - Đưa sửa chữa khẩn cấp trở lại mã định nghĩa và quy trình đánh giá
+  - Theo dõi tuổi sai lệch, trách nhiệm xử lý và mức tuân thủ cấu hình chuẩn
+- level1: Tự động hóa vòng đời
+  level2:
+  - Thiết kế giao diện tự phục vụ với đầu vào và quyền hạn được giới hạn
+  - Cung cấp mẫu môi trường chuẩn và quản lý phiên bản mẫu
+  - Biểu diễn trạng thái yêu cầu, thực thi, thành công và thất bại của tác vụ
+  - Thiết kế tác vụ có thể chạy lặp mà không tạo trùng hoặc phá trạng thái hợp lệ
+  - Xử lý yêu cầu đồng thời, khóa theo môi trường và giới hạn số tác vụ
+  - Quản lý timeout, retry, hủy tác vụ và dọn dẹp khi cấp phát một phần
+  - Áp dụng chính sách về chi phí, khu vực, dữ liệu và truy cập trước khi tạo
+  - Tự động tạm dừng, gia hạn hoặc thu hồi theo lịch và thời hạn
+  - Lưu vết người yêu cầu, đầu vào, phiên bản định nghĩa và kết quả từng lần chạy
+- level1: Quan sát môi trường
+  level2:
+  - Gắn định danh môi trường vào log, metric, trace và sự kiện triển khai
+  - Xây dựng dashboard cho sức khỏe ứng dụng, hạ tầng và dịch vụ phụ thuộc
+  - Phân biệt tín hiệu lỗi môi trường với lỗi nghiệp vụ hoặc lỗi bản phát hành
+  - Đo thời gian cấp phát, thời gian chờ, tỷ lệ tạo thành công và thời gian thu hồi
+  - Theo dõi tính sẵn sàng của môi trường dùng chung và chất lượng phục vụ nhóm
+  - Thiết lập cảnh báo theo mức độ quan trọng và giờ sử dụng từng môi trường
+  - Bảo vệ dữ liệu nhạy cảm và kiểm soát quyền truy cập hệ thống quan sát
+  - Quản lý thời hạn lưu, chi phí và số lượng nhãn metric khi có nhiều môi trường tạm
+  - Tương quan sự cố với thay đổi cấu hình, phiên bản và hoạt động người dùng
+- level1: Dung lượng và chi phí
+  level2:
+  - Ước lượng tài nguyên theo mục tiêu sử dụng và tải đặc trưng của môi trường
+  - Thiết lập quota, giới hạn tài nguyên và ngăn nhóm dùng chung ảnh hưởng lẫn nhau
+  - Theo dõi mức sử dụng để điều chỉnh kích thước thay vì sao chép quy mô production
+  - Lập ngân sách và phân bổ chi phí theo nhóm, dự án và định danh môi trường
+  - Tự động tắt, giảm quy mô hoặc khởi động theo lịch cho non-production
+  - Quản lý giới hạn cấp phát và số môi trường preview hoạt động đồng thời
+  - Phát hiện máy nhàn rỗi, volume rời, địa chỉ IP và tài nguyên mồ côi
+  - Đánh giá chi phí dữ liệu, log, snapshot và truyền tải giữa khu vực
+  - Cân bằng chi phí với thời gian khởi động, khả năng kiểm thử và tính sẵn sàng
+- level1: Phục hồi môi trường
+  level2:
+  - Phân biệt tạo lại hạ tầng, phục hồi dữ liệu và khôi phục dịch vụ
+  - Xác định RTO, RPO và mức dự phòng theo mục đích từng môi trường
+  - Lựa chọn sao lưu, snapshot và nhân bản theo yêu cầu dữ liệu
+  - Kiểm tra bản sao lưu bằng phục hồi thử trong môi trường cách ly
+  - Quản lý phiên bản ứng dụng, cấu hình và schema phù hợp khi phục hồi
+  - Lập phương án quay lui thay đổi và nhận diện migration không thể đảo ngược
+  - Thiết kế môi trường dự phòng, điều kiện chuyển đổi và ngăn ghi đồng thời ngoài ý muốn
+  - Diễn tập phục hồi, đo thời gian thực tế và cập nhật hướng dẫn vận hành
+  - Thu hồi môi trường phục hồi thử cùng dữ liệu nhạy cảm sau diễn tập
+- level1: Quản trị môi trường
+  level2:
+  - Thiết lập tiêu chuẩn tối thiểu theo mức độ quan trọng của môi trường
+  - Quản lý ngoại lệ có lý do, người phê duyệt, biện pháp bù và thời hạn
+  - Rà soát quyền truy cập, chủ sở hữu và nhu cầu tồn tại theo chu kỳ
+  - Quản lý yêu cầu về vị trí lưu dữ liệu, lưu giữ và bằng chứng kiểm soát
+  - Duy trì nhật ký hoạt động và liên kết thay đổi với yêu cầu đã được phê duyệt
+  - Quản lý môi trường bên đối tác và trách nhiệm với tài nguyên thuê ngoài
+  - Chuẩn hóa hướng dẫn sử dụng, xử lý sự cố và bàn giao vận hành
+  - Đánh giá độ trưởng thành bằng khả năng tái tạo, an toàn và hiệu quả cung cấp
+- level1: Xử lý sự cố
+  level2:
+  - Điều tra lỗi chỉ xảy ra ở một môi trường bằng so sánh phiên bản và cấu hình
+  - Chẩn đoán kết nối nhầm cơ sở dữ liệu, queue hoặc dịch vụ production
+  - Xử lý môi trường không sẵn sàng dù tác vụ cấp phát báo thành công
+  - Tìm nguyên nhân lỗi DNS, chứng chỉ, firewall và quyền truy cập
+  - Chẩn đoán dữ liệu bẩn hoặc trạng thái dùng chung gây kiểm thử không ổn định
+  - Xử lý thiếu quota, tranh chấp tài nguyên và hiệu năng giảm do môi trường dùng chung
+  - Khôi phục tác vụ cấp phát hoặc thu hồi bị gián đoạn mà không thao tác mù
+  - Điều tra preview đã đóng nhưng còn DNS, volume hoặc dịch vụ phát sinh chi phí
+  - Xử lý bí mật hết hạn, cấu hình không tương thích và sai lệch sau sửa khẩn cấp
+  - Thu thập bằng chứng, khoanh vùng thay đổi và cập nhật biện pháp phòng ngừa
+- level1: Thực hành tổng hợp
+  level2:
+  - Lập danh mục và ma trận local, test, staging, production cho ứng dụng Java mẫu
+  - Thiết kế ranh giới mạng, danh tính và dữ liệu giữa production với non-production
+  - Tạo môi trường từ mẫu có phiên bản cùng tham số và cấu hình riêng
+  - Chuẩn bị dữ liệu tổng hợp, dịch vụ phụ thuộc và kiểm tra sẵn sàng tự động
+  - Đưa cùng gói bất biến qua test và staging với cấu hình phù hợp
+  - Tạo preview theo thay đổi, đặt thời hạn và kiểm chứng dọn sạch tài nguyên
+  - Mô phỏng sai lệch thủ công rồi đối soát và sửa qua quy trình quản lý
+  - Áp dụng quota, lịch tạm dừng và báo cáo chi phí theo môi trường
+  - Phục hồi dữ liệu vào môi trường cách ly và đo thời gian phục hồi
+  - Đánh giá kết quả bằng bằng chứng tái tạo, cách ly, truy vết và thu hồi

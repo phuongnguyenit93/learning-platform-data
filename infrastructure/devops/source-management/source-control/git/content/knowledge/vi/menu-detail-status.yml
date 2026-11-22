@@ -1,0 +1,2911 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Git là gì và vai trò trong quản lý mã nguồn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: 'Vấn đề Git giải quyết: lưu vết, cộng tác và khôi phục thay đổi'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: Quản lý phiên bản tập trung và phân tán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Git, dịch vụ lưu trữ kho mã và nền tảng cộng tác khác nhau thế nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Mô hình bản chụp, commit và đồ thị lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Kho mã, thư mục làm việc và chỉ mục (staging area)
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Nhánh, HEAD, remote và nhánh theo dõi từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: 'Vòng lặp làm việc: sửa tệp, kiểm tra, đưa vào chỉ mục và commit'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-009
+    title: Giới hạn của Git đối với triển khai, sao lưu và quản lý bí mật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: installation-and-configuration
+  title: Cài đặt và cấu hình
+  childs:
+  - slug: installation-and-configuration-001
+    title: Cài đặt Git trên Windows, macOS và Linux
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-002
+    title: Kiểm tra phiên bản, trợ giúp và khả năng tương thích lệnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-003
+    title: 'Các cấp cấu hình: system, global, local, worktree và tham số -c'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-004
+    title: Xem cấu hình hiệu lực bằng git config --list --show-origin
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-005
+    title: Thiết lập tên, email và phân biệt tác giả với người tạo commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-006
+    title: Chọn trình soạn thảo, công cụ so sánh và công cụ xử lý xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-007
+    title: Đặt tên nhánh khởi tạo và các mặc định của clone, fetch, pull, push
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-008
+    title: Tạo bí danh (alias) cho các thao tác thường dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-009
+    title: Cấu hình riêng theo thư mục bằng include và includeIf
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-010
+    title: Biến môi trường, đường dẫn Git và thứ tự ưu tiên cấu hình
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: installation-and-configuration-011
+    title: Thiết lập terminal, màu hiển thị và cách đọc thông báo lỗi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-initialization
+  title: Khởi tạo kho mã
+  childs:
+  - slug: repository-initialization-001
+    title: Tạo kho mã bằng git init và xác định thư mục gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-002
+    title: 'Sao chép kho mã bằng git clone: URL, thư mục đích và nhánh ban đầu'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-003
+    title: Vai trò của .git, thư mục làm việc và kho mã bare
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-004
+    title: Kiểm tra kho mã bằng git status và git rev-parse
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-005
+    title: 'Vòng đời tệp: untracked, tracked, modified, staged và committed'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-006
+    title: Phân biệt tệp chưa theo dõi, tệp bị bỏ qua và tệp đã được theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-007
+    title: Tổ chức cấu trúc kho mã và ranh giới thư mục nên đưa vào Git
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-008
+    title: Khởi tạo lịch sử cho dự án có sẵn mà không đưa nhầm tệp sinh ra
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-initialization-009
+    title: Nhận diện kho mã lồng nhau ngoài ý muốn và ranh giới submodule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-and-index
+  title: Tệp và chỉ mục
+  childs:
+  - slug: files-and-index-001
+    title: Vai trò của chỉ mục trong việc chọn nội dung cho commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-002
+    title: Đưa tệp vào chỉ mục bằng git add theo tệp, thư mục và toàn bộ kho
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-003
+    title: Chọn từng phần thay đổi bằng git add -p và git add -i
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-004
+    title: Khác biệt giữa nội dung trong chỉ mục và lần sửa mới nhất trên đĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-005
+    title: Bỏ nội dung khỏi chỉ mục bằng git restore --staged
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-006
+    title: Khôi phục thay đổi chưa commit bằng git restore và phạm vi mất dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-007
+    title: Đổi tên, di chuyển và xóa tệp bằng git mv, git rm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-008
+    title: Ngừng theo dõi tệp nhưng giữ bản cục bộ bằng git rm --cached
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-009
+    title: Nhận diện thư mục rỗng, tệp sinh ra và tệp cấu hình theo máy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-010
+    title: Chọn đường dẫn bằng pathspec và tách tùy chọn với dấu --
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-011
+    title: Kiểm tra chỉ mục bằng git ls-files và các trạng thái hợp nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-and-index-012
+    title: Giới hạn của assume-unchanged và skip-worktree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: creating-commits
+  title: Tạo commit
+  childs:
+  - slug: creating-commits-001
+    title: 'Commit chứa gì: cây tệp, commit cha, tác giả, thời gian và thông điệp'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-002
+    title: Chuẩn bị một commit tập trung vào một thay đổi có ý nghĩa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-003
+    title: Tạo commit từ chỉ mục và kiểm tra nội dung trước khi ghi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-004
+    title: Giới hạn của git commit -a đối với tệp chưa được theo dõi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-005
+    title: Viết thông điệp commit có tiêu đề, ngữ cảnh và lý do thay đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-006
+    title: Thay commit mới nhất bằng git commit --amend
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-007
+    title: Sửa tác giả, email và thời gian của commit đúng phạm vi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-008
+    title: Commit rỗng, commit hợp nhất và commit gốc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-009
+    title: Dùng trailer để lưu thông tin đồng tác giả và tham chiếu công việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: creating-commits-010
+    title: Kiểm tra mã định danh và nội dung commit vừa tạo bằng git show
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: diffing-changes
+  title: So sánh thay đổi
+  childs:
+  - slug: diffing-changes-001
+    title: So sánh thư mục làm việc với chỉ mục bằng git diff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-002
+    title: So sánh chỉ mục với HEAD bằng git diff --staged
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-003
+    title: So sánh hai commit, hai nhánh và một đường dẫn cụ thể
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-004
+    title: Phân biệt cú pháp A..B và A...B khi dùng git diff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-005
+    title: 'Đọc bản vá: đường dẫn, vùng thay đổi và dòng thêm hoặc xóa'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-006
+    title: Xem thống kê thay đổi bằng --stat, --name-only và --name-status
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-007
+    title: So sánh theo từ và điều chỉnh số dòng ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-008
+    title: Phát hiện đổi tên, sao chép và giới hạn của suy luận tương đồng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-009
+    title: Kiểm tra khoảng trắng lỗi bằng git diff --check
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: diffing-changes-010
+    title: So sánh tệp nhị phân và sử dụng git difftool
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: history-inspection
+  title: Tra cứu lịch sử
+  childs:
+  - slug: history-inspection-001
+    title: Đọc lịch sử bằng git log và đồ thị nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-002
+    title: Lọc commit theo tác giả, thời gian, thông điệp và đường dẫn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-003
+    title: Định dạng kết quả git log để đọc nhanh hoặc trích xuất dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-004
+    title: Đọc thay đổi của một commit bằng git show
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-005
+    title: Định vị commit bằng mã rút gọn, HEAD~, HEAD^ và tên tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-006
+    title: Tập commit A..B và A...B trong lệnh duyệt lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-007
+    title: Theo dõi lịch sử tệp đổi tên bằng git log --follow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-008
+    title: Tìm commit thêm hoặc xóa nội dung bằng git log -S và -G
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-009
+    title: Tra cứu trách nhiệm từng dòng bằng git blame và giới hạn diễn giải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-010
+    title: Tìm nội dung trong phiên bản đã theo dõi bằng git grep
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: history-inspection-011
+    title: Lịch sử tuyến chính với --first-parent và cách đọc commit hợp nhất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branches-and-head
+  title: Nhánh và HEAD
+  childs:
+  - slug: branches-and-head-001
+    title: Nhánh là con trỏ có thể di chuyển trong đồ thị commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-002
+    title: Tạo, liệt kê và đổi tên nhánh cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-003
+    title: Chuyển nhánh bằng git switch và git checkout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-004
+    title: Tạo nhánh mới từ commit hoặc nhánh có sẵn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-005
+    title: HEAD gắn với nhánh và trạng thái detached HEAD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-006
+    title: Giữ kết quả thử nghiệm khi đang ở detached HEAD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-007
+    title: Điều kiện chuyển nhánh khi có thay đổi chưa commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-008
+    title: Phân biệt nhánh cục bộ, nhánh từ xa và upstream
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-009
+    title: Xem quan hệ ahead/behind bằng git branch -vv và git status
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-010
+    title: Xóa nhánh an toàn và ý nghĩa của -d so với -D
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branches-and-head-011
+    title: Quy tắc tên nhánh, tên tham chiếu và kiểm tra bằng git check-ref-format
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: branch-merging
+  title: Hợp nhất nhánh
+  childs:
+  - slug: branch-merging-001
+    title: Tổ tiên chung và nguyên lý hợp nhất ba chiều
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-002
+    title: Hợp nhất fast-forward và trường hợp không tạo merge commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-003
+    title: Hợp nhất có merge commit và lựa chọn --ff-only, --no-ff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-004
+    title: Chọn nhánh đích và kiểm tra phạm vi trước khi git merge
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-005
+    title: Dừng trước khi tạo commit bằng git merge --no-commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-006
+    title: Hợp nhất squash và ảnh hưởng đến quan hệ lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-007
+    title: 'Trạng thái đang hợp nhất: MERGE_HEAD, chỉ mục và thư mục làm việc'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-008
+    title: Hoàn tất hoặc hủy hợp nhất bằng git merge --continue, --abort
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-009
+    title: Chiến lược hợp nhất và phân biệt ours với tùy chọn -X ours
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: branch-merging-010
+    title: Đánh giá kết quả hợp nhất bằng diff, log và kiểm thử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: conflict-resolution
+  title: Giải quyết xung đột
+  childs:
+  - slug: conflict-resolution-001
+    title: Vì sao xung đột xuất hiện và giới hạn của hợp nhất tự động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-002
+    title: Đọc dấu xung đột với merge, diff3 và zdiff3
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-003
+    title: Ý nghĩa ours và theirs trong merge, rebase và cherry-pick
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-004
+    title: Tìm danh sách tệp xung đột bằng git status và git diff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-005
+    title: Giải quyết xung đột sửa cùng dòng và xóa so với sửa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-006
+    title: Xử lý xung đột đổi tên, đổi kiểu tệp và tệp nhị phân
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-007
+    title: Chọn nội dung kết hợp đúng ý nghĩa thay vì chỉ bỏ dấu xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-008
+    title: Sử dụng git mergetool và đánh dấu tệp đã giải quyết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-009
+    title: Ghi nhớ cách giải quyết lặp lại bằng git rerere
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-010
+    title: Khôi phục dấu xung đột để xem xét lại quyết định
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: conflict-resolution-011
+    title: Kiểm tra phần còn sót và xác nhận hành vi sau khi xử lý xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: remote-connection
+  title: Kết nối remote
+  childs:
+  - slug: remote-connection-001
+    title: Remote là gì và vì sao origin chỉ là tên theo quy ước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-002
+    title: Thêm, đổi tên, liệt kê và xóa remote bằng git remote
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-003
+    title: Phân biệt địa chỉ fetch với địa chỉ push
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-004
+    title: Giao thức HTTPS, SSH và đường dẫn kho mã cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-005
+    title: Kiểm tra kết nối và quyền truy cập kho mã từ xa
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-006
+    title: Liệt kê tham chiếu từ xa bằng git ls-remote
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-007
+    title: Refspec và ánh xạ refs/heads với refs/remotes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-008
+    title: Kết nối nhiều remote cho kho chính và bản fork
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-009
+    title: Thay đổi địa chỉ remote khi di chuyển kho mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: remote-connection-010
+    title: Chẩn đoán lỗi URL, DNS, proxy, chứng chỉ và kết nối SSH
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-synchronization
+  title: Đồng bộ kho mã
+  childs:
+  - slug: repository-synchronization-001
+    title: Fetch lấy đối tượng và cập nhật nhánh theo dõi từ xa như thế nào
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-002
+    title: Phân biệt git fetch, git pull và git push
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-003
+    title: Thiết lập upstream bằng git push -u và git branch --set-upstream-to
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-004
+    title: 'Chọn hành vi pull: fast-forward only, merge hoặc rebase'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-005
+    title: Đẩy đúng nhánh và refspec bằng git push
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-006
+    title: Cấu hình push.default và tránh đẩy nhầm nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-007
+    title: 'Từ chối non-fast-forward: nguyên nhân và cách xử lý'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-008
+    title: Force push, --force-with-lease và giới hạn bảo vệ khi có fetch nền
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-009
+    title: Xóa nhánh từ xa và dọn nhánh theo dõi cũ bằng fetch --prune
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-010
+    title: Đồng bộ tag một cách tường minh và các giới hạn khi cập nhật tag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-011
+    title: Kiểm tra trước khi đẩy bằng --dry-run và đối chiếu tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-synchronization-012
+    title: Xử lý nhánh phân kỳ và cập nhật đồng thời từ nhiều người
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: collaboration-with-git
+  title: Cộng tác bằng Git
+  childs:
+  - slug: collaboration-with-git-001
+    title: Quyền sở hữu nhánh và nguyên tắc không viết lại lịch sử đã chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-002
+    title: Chu trình nhận việc, tạo nhánh, commit, đồng bộ và bàn giao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-003
+    title: Quy trình dùng kho chung so với quy trình fork
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-004
+    title: Chuẩn bị nhánh thay đổi nhỏ để người khác dễ xem xét
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-005
+    title: Pull request và merge request là lớp cộng tác của nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-006
+    title: Cập nhật nhánh đang được xem xét sau khi nhận phản hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-007
+    title: Thỏa thuận lựa chọn merge, squash hoặc rebase khi tích hợp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-008
+    title: Xử lý thay đổi khẩn cấp và chuyển bản sửa giữa các nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: collaboration-with-git-009
+    title: Ranh giới giữa lệnh Git, chính sách nhánh và chiến lược phân nhánh của nhóm
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rebase
+  title: Rebase
+  childs:
+  - slug: rebase-001
+    title: Rebase sao chép commit lên nền mới và thay đổi mã định danh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-002
+    title: Khi nào dùng rebase và khi nào giữ nguyên đồ thị bằng merge
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-003
+    title: Rebase nhánh công việc lên nhánh đích đã cập nhật
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-004
+    title: 'Interactive rebase: reword, edit, squash, fixup và drop'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-005
+    title: Tạo fixup commit và sắp xếp tự động bằng --autosquash
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-006
+    title: Chuyển một đoạn lịch sử bằng git rebase --onto
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-007
+    title: Giải quyết xung đột và dùng --continue, --skip, --abort
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-008
+    title: Giữ cấu trúc hợp nhất với --rebase-merges và các giới hạn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-009
+    title: Đối chiếu chuỗi commit trước và sau bằng git range-diff
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rebase-010
+    title: Phục hồi rebase sai và phối hợp khi cần cập nhật nhánh đã chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: switching-and-undoing
+  title: Chuyển và hoàn tác
+  childs:
+  - slug: switching-and-undoing-001
+    title: Phân biệt restore, reset, revert và checkout theo vùng tác động
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-002
+    title: Git reset --soft tác động đến HEAD và giữ chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-003
+    title: Git reset --mixed tác động đến HEAD và chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-004
+    title: Git reset --hard và điều kiện bảo vệ thay đổi chưa commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-005
+    title: Reset theo đường dẫn so với reset con trỏ nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-006
+    title: Git revert tạo commit đảo ngược trên lịch sử đã chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-007
+    title: Hoàn tác merge commit bằng revert -m và hệ quả cho lần hợp nhất sau
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-008
+    title: Chọn commit sang nhánh khác bằng git cherry-pick
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-009
+    title: Chuyển nhiều commit, giữ tham chiếu nguồn với -x và xử lý xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-010
+    title: Áp dụng thay đổi không tạo commit bằng cherry-pick --no-commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: switching-and-undoing-011
+    title: Xóa tệp chưa theo dõi bằng git clean và kiểm tra trước với -n
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: stash
+  title: Stash
+  childs:
+  - slug: stash-001
+    title: Stash lưu tạm thay đổi nào và liên hệ với chỉ mục
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-002
+    title: Tạo stash có mô tả và xem danh sách stash
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-003
+    title: Đưa tệp chưa theo dõi hoặc tệp bị bỏ qua vào stash bằng -u, -a
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-004
+    title: Chỉ lưu một phần thay đổi với --patch, --staged và --keep-index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-005
+    title: Phân biệt git stash apply với git stash pop
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-006
+    title: Khôi phục trạng thái chỉ mục bằng stash apply --index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-007
+    title: Giải quyết xung đột khi áp dụng stash và tạo nhánh bằng stash branch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: stash-008
+    title: Xem, xóa và phục hồi stash bị mất trước khi đối tượng bị dọn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tags-and-releases
+  title: Tag và mốc phiên bản
+  childs:
+  - slug: tags-and-releases-001
+    title: Tag là tham chiếu cố định theo quy ước, khác với nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-002
+    title: Tạo lightweight tag và annotated tag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-003
+    title: Liệt kê, lọc và xem thông tin tag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-004
+    title: Tạo tag tại commit trong quá khứ và kiểm tra đối tượng đích
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-005
+    title: Làm việc với tag trong trạng thái detached HEAD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-006
+    title: Đẩy từng tag, --tags và --follow-tags
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-007
+    title: Đổi hoặc xóa tag cục bộ, tag từ xa và phối hợp với người đã tải
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-008
+    title: Tag có chữ ký và kiểm tra bằng git tag -v
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tags-and-releases-009
+    title: Ranh giới giữa Git tag, phiên bản phần mềm và bản phát hành trên nền tảng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: debugging-and-recovery
+  title: Tìm lỗi và phục hồi
+  childs:
+  - slug: debugging-and-recovery-001
+    title: Lập bản sao bảo vệ và ghi nhận trạng thái trước khi cứu dữ liệu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-002
+    title: Reflog ghi lại sự di chuyển của tham chiếu và thời hạn lưu giữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-003
+    title: Tìm commit bị mất sau reset, xóa nhánh hoặc rebase
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-004
+    title: Khôi phục nhánh bằng commit tìm được trong reflog
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-005
+    title: Vai trò và giới hạn của ORIG_HEAD, FETCH_HEAD và MERGE_HEAD
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-006
+    title: Định vị commit gây lỗi bằng git bisect
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-007
+    title: Tự động hóa bisect bằng lệnh kiểm thử và xử lý commit không kiểm tra được
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-008
+    title: Khôi phục một tệp hoặc thư mục từ phiên bản trước
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-009
+    title: Kiểm tra tính toàn vẹn bằng git fsck và tìm đối tượng không còn được tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-010
+    title: Chẩn đoán tệp khóa còn sót và tránh can thiệp khi tiến trình Git đang chạy
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-011
+    title: Giới hạn phục hồi đối với dữ liệu chưa từng được add hoặc commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: debugging-and-recovery-012
+    title: Xác minh nội dung, lịch sử và kết quả kiểm thử sau khi phục hồi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gitignore-and-attributes
+  title: Ignore và attributes
+  childs:
+  - slug: gitignore-and-attributes-001
+    title: Phân biệt .gitignore với .gitattributes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-002
+    title: 'Phạm vi bỏ qua: .gitignore, .git/info/exclude và core.excludesFile'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-003
+    title: Mẫu đường dẫn, dấu /, ** và quy tắc phủ định trong .gitignore
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-004
+    title: Thứ tự áp dụng và giới hạn đưa lại tệp nằm trong thư mục bị bỏ qua
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-005
+    title: Chẩn đoán quy tắc bỏ qua bằng git check-ignore -v
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-006
+    title: Vì sao thêm .gitignore không làm ngừng theo dõi tệp đã commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-007
+    title: Phạm vi và thứ tự ưu tiên của thuộc tính tệp
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-008
+    title: Kiểm tra thuộc tính hiệu lực bằng git check-attr
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-009
+    title: Khai báo tệp văn bản, tệp nhị phân và bộ xử lý diff hoặc merge
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitignore-and-attributes-010
+    title: Thuộc tính export-ignore, export-subst và nội dung bản xuất
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-environments
+  title: Đa môi trường
+  childs:
+  - slug: multiple-environments-001
+    title: LF, CRLF và lý do thay đổi dòng có thể xuất hiện hàng loạt
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-002
+    title: Phối hợp core.autocrlf, core.eol với thuộc tính text và eol
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-003
+    title: Chuẩn hóa tệp đã theo dõi bằng git add --renormalize
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-004
+    title: Phân biệt chữ hoa chữ thường và xử lý đổi tên chỉ khác hoa thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-005
+    title: Quyền thực thi, core.filemode và giới hạn metadata Git lưu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-006
+    title: Liên kết tượng trưng và khác biệt hỗ trợ giữa các hệ điều hành
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-007
+    title: Tên tệp Unicode, ký tự không hợp lệ và đường dẫn dài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-008
+    title: Ảnh hưởng của clean/smudge filter và working-tree-encoding
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-environments-009
+    title: Kiểm tra bản sao sạch để phát hiện khác biệt môi trường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multiple-worktrees
+  title: Nhiều thư mục làm việc
+  childs:
+  - slug: multiple-worktrees-001
+    title: Git worktree giải quyết việc chuyển ngữ cảnh giữa các nhánh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-002
+    title: Tạo thư mục làm việc bổ sung bằng git worktree add
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-003
+    title: Những dữ liệu được chia sẻ và dữ liệu riêng của mỗi worktree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-004
+    title: Ràng buộc khi một nhánh đã được dùng trong worktree khác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-005
+    title: Liệt kê, di chuyển và khóa worktree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-006
+    title: Xóa worktree đúng cách và dọn thông tin cũ bằng prune
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-007
+    title: Sửa liên kết sau khi di chuyển thư mục bằng git worktree repair
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multiple-worktrees-008
+    title: Dùng worktree cho bản sửa khẩn cấp, xem xét và thử nghiệm song song
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sparse-checkout
+  title: Kho mã chọn lọc
+  childs:
+  - slug: sparse-checkout-001
+    title: Phân biệt shallow clone, partial clone và sparse checkout
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-002
+    title: Giới hạn độ sâu lịch sử bằng --depth và --shallow-since
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-003
+    title: Bổ sung lịch sử bằng --deepen và --unshallow
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-004
+    title: Giới hạn nhánh tải về bằng --single-branch và refspec
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-005
+    title: Partial clone với --filter và cơ chế tải đối tượng khi cần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-006
+    title: Sparse checkout giới hạn đường dẫn trong thư mục làm việc
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-007
+    title: Cấu hình cone mode và sparse index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sparse-checkout-008
+    title: Giới hạn khi tra cứu, hợp nhất và làm việc ngoại tuyến với bản sao không đầy đủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: submodule
+  title: Submodule
+  childs:
+  - slug: submodule-001
+    title: Submodule là kho mã độc lập được kho cha ghim tại một commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-002
+    title: Vai trò của .gitmodules, gitlink và cấu hình cục bộ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-003
+    title: Thêm submodule và ghi nhận thay đổi trong kho cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-004
+    title: Clone kèm submodule bằng --recurse-submodules
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-005
+    title: Khởi tạo và cập nhật bằng git submodule update --init --recursive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-006
+    title: Trạng thái detached HEAD và cách phát triển trực tiếp trong submodule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-007
+    title: Cập nhật commit được ghim và thứ tự đẩy kho con trước kho cha
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-008
+    title: Phát hiện submodule bẩn, commit chưa công bố và xung đột gitlink
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-009
+    title: Đổi URL, đồng bộ cấu hình và gỡ submodule có kiểm soát
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: submodule-010
+    title: Phân biệt submodule, subtree và thư mục mã nguồn thông thường
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: large-files-and-lfs
+  title: Tệp lớn và LFS
+  childs:
+  - slug: large-files-and-lfs-001
+    title: Vì sao tệp nhị phân lớn làm lịch sử kho mã tăng nhanh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-002
+    title: Phân biệt Git LFS với khả năng lưu trữ đối tượng của Git
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-003
+    title: Pointer file, kho đối tượng LFS và vai trò của .gitattributes
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-004
+    title: Cài đặt Git LFS và khai báo mẫu tệp bằng git lfs track
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-005
+    title: Commit, clone, pull và push khi kho mã dùng LFS
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-006
+    title: Kiểm tra tệp được theo dõi và trạng thái bằng git lfs ls-files, status
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-007
+    title: Xử lý thiếu đối tượng LFS, quyền truy cập và hạn mức lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-008
+    title: Di chuyển tệp đã có trong lịch sử sang LFS và hệ quả viết lại commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: large-files-and-lfs-009
+    title: Lựa chọn LFS, kho artifact hoặc loại tệp khỏi quản lý phiên bản
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hooks-and-automation
+  title: Hook và tự động hóa
+  childs:
+  - slug: hooks-and-automation-001
+    title: Hook phía máy người dùng và hook phía máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-002
+    title: Các thời điểm pre-commit, prepare-commit-msg và commit-msg
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-003
+    title: Các thời điểm pre-push, pre-receive, update và post-receive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-004
+    title: Mã thoát, tham số, đầu vào và môi trường thực thi của hook
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-005
+    title: Tổ chức hook dùng chung bằng core.hooksPath
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-006
+    title: Giới hạn chia sẻ hook và lý do kiểm tra cục bộ không thay thế chính sách máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-007
+    title: Kiểm tra định dạng, thông điệp và bí mật trong luồng commit
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-008
+    title: Dùng Git trong script với git status --porcelain và dấu phân cách NUL
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-009
+    title: Đọc kết quả, xử lý mã thoát và tránh phân tích đầu ra dành cho người dùng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-and-automation-010
+    title: Ngăn hook tự sửa lịch sử hoặc tạo tác dụng phụ ngoài ý muốn
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: repository-security
+  title: Bảo mật kho mã
+  childs:
+  - slug: repository-security-001
+    title: Phân biệt danh tính trong commit với xác thực khi truy cập remote
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-002
+    title: Xác thực HTTPS bằng token và trình quản lý thông tin đăng nhập
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-003
+    title: Khóa SSH, ssh-agent và kiểm tra dấu vân tay máy chủ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-004
+    title: Không đưa mật khẩu, token và khóa riêng vào URL hoặc cấu hình kho mã
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-005
+    title: Thu hồi bí mật bị lộ trước khi xử lý lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-006
+    title: Xóa dữ liệu nhạy cảm khỏi lịch sử và giới hạn đối với bản sao, cache, fork
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-007
+    title: Ký commit hoặc tag bằng GPG và SSH
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-008
+    title: Xác minh chữ ký, nguồn tin cậy và giới hạn của chữ ký
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-009
+    title: Vai trò của quyền máy chủ và bảo vệ nhánh đối với thao tác Git
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-010
+    title: 'Kho mã không tin cậy: hook, filter, submodule và công cụ ngoài'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-011
+    title: Quyền sở hữu thư mục, safe.directory và rủi ro tin cậy quá rộng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: repository-security-012
+    title: Bảo vệ log, bản vá và bản sao kho mã khi chứa dữ liệu riêng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: git-internals
+  title: Cấu trúc bên trong
+  childs:
+  - slug: git-internals-001
+    title: Mô hình đối tượng blob, tree, commit và annotated tag
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-002
+    title: Địa chỉ theo nội dung và vai trò mã băm đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-003
+    title: Định dạng kho SHA-1, SHA-256 và giới hạn tương thích công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-004
+    title: Đồ thị commit, quan hệ cha và khả năng truy cập đối tượng
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-005
+    title: Đối tượng rời, packfile, nén delta và tệp chỉ mục pack
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-006
+    title: Refs, symbolic refs, packed-refs và reflog
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-007
+    title: Chỉ mục biểu diễn cây dự kiến và các stage khi có xung đột
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-008
+    title: Đọc đối tượng bằng git cat-file và git ls-tree
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-009
+    title: Phân giải đối tượng và tham chiếu bằng git rev-parse
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-010
+    title: Tạo tree và commit bằng các lệnh plumbing để hiểu cơ chế
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-011
+    title: Cập nhật tham chiếu bằng git update-ref và bảo vệ tính nhất quán
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: git-internals-012
+    title: Vì sao mã commit đổi khi nội dung, metadata hoặc commit cha đổi
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: maintenance-and-performance
+  title: Bảo trì và hiệu năng
+  childs:
+  - slug: maintenance-and-performance-001
+    title: Đo kích thước và số đối tượng bằng git count-objects
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-002
+    title: Thu gom rác bằng git gc và thời hạn giữ đối tượng chưa được tham chiếu
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-003
+    title: Tác động của prune, reflog expire và thao tác chạy đồng thời
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-004
+    title: Bảo trì định kỳ bằng git maintenance
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-005
+    title: Đóng gói lại đối tượng với repack và đánh đổi dung lượng với thời gian
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-006
+    title: Commit-graph, bitmap và multi-pack-index
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-007
+    title: Tăng tốc kiểm tra thay đổi với untracked cache và FSMonitor
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-008
+    title: Chẩn đoán thao tác chậm bằng các cơ chế trace của Git
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-009
+    title: Kho bare, mirror clone và ý nghĩa của mirror push
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: maintenance-and-performance-010
+    title: Sao lưu có kiểm chứng và phân biệt bản mirror với bản sao lưu lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: sharing-and-migrating-changes
+  title: Trao đổi và di chuyển
+  childs:
+  - slug: sharing-and-migrating-changes-001
+    title: Xuất mã nguồn tại một mốc bằng git archive
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-002
+    title: Tạo bản vá commit bằng git format-patch
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-003
+    title: Phân biệt áp dụng bản vá bằng git apply và git am
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-004
+    title: Kiểm tra bản vá trước khi áp dụng và xử lý lỗi ngữ cảnh
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-005
+    title: Trao đổi ngoại tuyến bằng git bundle create, verify và clone
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-006
+    title: Nhập lịch sử từ kho Git khác và lựa chọn giữ quan hệ lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-007
+    title: Hợp nhất hai lịch sử độc lập với --allow-unrelated-histories
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-008
+    title: Viết lại lịch sử bằng công cụ lọc chuyên dụng và kế hoạch đồng bộ bản sao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: sharing-and-migrating-changes-009
+    title: Lập kế hoạch di chuyển remote, refs, tag, LFS và submodule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-and-integrations
+  title: Công cụ và tích hợp
+  childs:
+  - slug: tools-and-integrations-001
+    title: Phối hợp dòng lệnh Git với giao diện đồ họa và IDE
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-002
+    title: Đối chiếu thao tác giao diện với status, diff và log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-003
+    title: Hiểu các nút stage, sync, publish và discard trong công cụ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-004
+    title: Tích hợp trình so sánh và xử lý xung đột bên ngoài
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-005
+    title: Phân biệt Git core, phần mở rộng và tính năng của dịch vụ lưu trữ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-006
+    title: 'Checkout trong môi trường tự động: detached HEAD và lịch sử nông'
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-007
+    title: Cung cấp danh tính và thông tin xác thực cho script không tương tác
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-and-integrations-008
+    title: Giới hạn sao chép cache .git và bảo vệ thông tin xác thực trong log
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: comprehensive-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: comprehensive-practice-001
+    title: Khởi tạo dự án, loại tệp sinh ra và tạo chuỗi commit đầu tiên
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-002
+    title: Chia một thay đổi lớn thành các commit rõ mục đích bằng chọn từng phần
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-003
+    title: Làm việc với hai bản clone để quan sát fetch, pull và nhánh phân kỳ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-004
+    title: Tạo xung đột có chủ đích và kiểm chứng kết quả giải quyết
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-005
+    title: So sánh đồ thị sau fast-forward, merge commit, squash và rebase
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-006
+    title: Làm gọn nhánh trước khi bàn giao bằng interactive rebase
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-007
+    title: Chuyển bản sửa và hoàn tác an toàn trên lịch sử đã chia sẻ
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-008
+    title: Phục hồi nhánh bị xóa hoặc reset nhầm bằng reflog
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-009
+    title: Tìm commit gây lỗi bằng bisect và bài kiểm thử tái hiện
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-010
+    title: Thực hành worktree, sparse checkout và kho mã có submodule
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-011
+    title: Trao đổi bản vá, tạo bundle và kiểm tra khả năng khôi phục ngoại tuyến
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-012
+    title: Diễn tập sự cố bí mật bị commit và phối hợp thu hồi, làm sạch lịch sử
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: comprehensive-practice-013
+    title: Kiểm tra trạng thái sạch, nội dung đã đẩy và mốc tag trước khi bàn giao
+    status: WRITTEN
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

@@ -1,0 +1,7 @@
+# Security Platform Security
+
+Platform Security là tập hợp nguyên tắc và biện pháp nhằm bảo vệ lớp nền tảng vận hành ứng dụng: hệ điều hành, máy chủ, mạng, tài nguyên cloud, container, cluster và các dịch vụ quản trị. Khác với chỉ bảo vệ logic nghiệp vụ trong ứng dụng, bảo mật nền tảng tập trung giảm bề mặt tấn công, quản lý danh tính và đặc quyền, cấu hình an toàn, bảo vệ dữ liệu và bảo đảm mọi thay đổi hạ tầng đều có thể kiểm soát. Mục tiêu là tạo lớp phòng vệ nhất quán, có thể quan sát và kiểm chứng qua chính sách lẫn thực tế vận hành.
+
+Module phù hợp với người đã biết Linux, networking, CI/CD, cloud và container ở mức cơ bản. Lộ trình bắt đầu từ kiểm kê tài sản và đánh giá rủi ro, sau đó đi qua IAM/RBAC, hardening, patch management và network segmentation. Người học tiếp tục tìm hiểu secrets, mã hóa, bảo vệ image và workload, áp dụng policy-as-code cho quy trình delivery; cuối cùng là giám sát audit log, phát hiện bất thường và chuẩn bị phản ứng khi xảy ra sự cố. Ví dụ có thể sử dụng Kubernetes hoặc cloud platform nhưng các nguyên tắc được áp dụng cho nhiều môi trường.
+
+Hoàn thành module, bạn có thể phác thảo bộ kiểm soát bảo mật nền tảng cơ bản, đề xuất cấu hình quyền tối thiểu, phân đoạn mạng và quy trình quản lý secret, đồng thời thực hiện checklist bảo vệ workload trước khi triển khai. Bạn cũng có thể xác định tín hiệu cần giám sát và diễn tập một kịch bản xử lý sự cố; mọi thay đổi security baseline cần được kiểm thử để tránh làm gián đoạn ứng dụng hoặc vô tình mở thêm quyền truy cập.

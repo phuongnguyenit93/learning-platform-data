@@ -1,0 +1,30 @@
+{
+  "CURRENT_STEP": {
+    "DESCRIPTION": "Last successfully completed module generation step (0, numeric STEP, FINAL)",
+    "TYPE": "string",
+    "VALUE": "3"
+  },
+  "SPECIAL_NOTE": {
+    "DESCRIPTION": "Special Note use when generate content",
+    "TYPE": "string",
+    "VALUE": ""
+  },
+  "MODULE_LANGUAGE": {
+    "DESCRIPTION": "Languages supported by this module for generated documentation and metadata",
+    "TYPE": "list",
+    "VALUE": [
+      "vi",
+      "en"
+    ]
+  },
+  "SERVICE_NAME": {
+    "DESCRIPTION": "Define name for this module. Use this name for task and many automation gradle",
+    "TYPE": "string",
+    "VALUE": "OPERATING_SYSTEM_FILE_SYSTEM"
+  },
+  "SERVICE_NAME_DESCRIBE": {
+    "DESCRIPTION": "Describe this module function",
+    "TYPE": "string",
+    "VALUE": "Hiểu cơ chế hệ thống tệp của hệ điều hành, đặc biệt VFS và mô hình tệp Linux: đường dẫn, inode, metadata, liên kết, quyền và thao tác đọc ghi. Khám phá mount, cache, cấp phát khối, nhất quán, phục hồi và công cụ chẩn đoán để quản lý lưu trữ đúng đắn, an toàn, hiệu quả."
+  }
+}

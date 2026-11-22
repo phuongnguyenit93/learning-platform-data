@@ -1,0 +1,350 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Khôi phục sau thảm họa (Disaster Recovery) là gì và vì sao hệ thống cần DR
+  - Mối liên hệ giữa dịch vụ kinh doanh, ứng dụng, hạ tầng và dữ liệu khi khôi phục
+  - Phân biệt DR, tính sẵn sàng cao (HA), sao lưu và duy trì hoạt động kinh doanh (BC)
+  - 'Các khái niệm: sự cố, thảm họa, miền lỗi, điểm khôi phục và vùng dự phòng'
+  - 'Vòng đời DR: chuẩn bị, phát hiện, kích hoạt, khôi phục, kiểm chứng và trở về'
+  - Vai trò của DR trong Reliability Engineering và vận hành DevOps
+  - Giới hạn của dự phòng tự động và ý nghĩa của một hệ thống có thể khôi phục
+  - Lộ trình học và kiến thức nền về hệ phân tán, mạng, lưu trữ và triển khai
+- level1: Kịch bản thảm họa
+  level2:
+  - Mất máy chủ, cụm, trung tâm dữ liệu, vùng sẵn sàng và khu vực địa lý
+  - Mất mạng, phân vùng mạng và mất kết nối với dịch vụ phụ thuộc
+  - Hỏng dữ liệu, xóa nhầm và thay đổi dữ liệu ngoài ý muốn
+  - Lỗi triển khai, cấu hình sai và hỏng trạng thái hạ tầng
+  - Mã độc tống tiền, tài khoản bị chiếm và dữ liệu sao lưu bị tấn công
+  - Mất dịch vụ định danh, quản lý khóa hoặc hệ thống điều khiển
+  - Sự cố đồng thời, sự cố dây chuyền và lỗi chung giữa các vùng
+  - Phân loại kịch bản theo phạm vi ảnh hưởng, khả năng phát hiện và cách phục hồi
+- level1: Phân tích tác động
+  level2:
+  - Phân tích tác động kinh doanh (BIA) và xác định dịch vụ thiết yếu
+  - Tác động của gián đoạn đến người dùng, doanh thu, dữ liệu và vận hành
+  - Thời gian gián đoạn tối đa chấp nhận được và ngưỡng ảnh hưởng kinh doanh
+  - Phân hạng dịch vụ theo mức quan trọng và nhu cầu khôi phục
+  - Mức dịch vụ tối thiểu cần duy trì trong thời gian thảm họa
+  - Phụ thuộc kinh doanh và thứ tự khôi phục các luồng nghiệp vụ
+  - Giả định về nhân sự, địa điểm làm việc và nhà cung cấp trong thảm họa
+  - Chuyển yêu cầu kinh doanh thành tiêu chí kỹ thuật và tiêu chí nghiệm thu
+- level1: Mục tiêu khôi phục
+  level2:
+  - 'RTO: mục tiêu thời gian khôi phục và cách xác định điểm bắt đầu, kết thúc'
+  - 'RPO: mục tiêu điểm khôi phục và mức mất dữ liệu có thể chấp nhận'
+  - Phân biệt RTO/RPO mục tiêu, cấu hình kỹ thuật và kết quả thực đo
+  - Phân bổ thời gian cho phát hiện, quyết định, cấp phát, phục hồi và kiểm chứng
+  - Mối liên hệ giữa RTO, RPO và thời gian gián đoạn tối đa chấp nhận được
+  - Xác định RTO/RPO theo dịch vụ, tập dữ liệu và luồng giao dịch
+  - Độ trễ sao chép, tần suất sao lưu và giới hạn suy luận về RPO
+  - Đo độ mới của điểm dữ liệu thực sự khôi phục được
+  - Khả năng phục vụ lưu lượng tối thiểu và thời gian trở lại công suất đầy đủ
+  - Cân bằng mục tiêu khôi phục với tính nhất quán, chi phí và độ phức tạp
+- level1: Kiểm kê và phụ thuộc
+  level2:
+  - Kiểm kê ứng dụng, dữ liệu, hạ tầng và phiên bản đang vận hành
+  - Lập bản đồ phụ thuộc giữa dịch vụ và các luồng nghiệp vụ quan trọng
+  - 'Nhận diện phụ thuộc ẩn: DNS, định danh, khóa, chứng chỉ và đồng bộ thời gian'
+  - Phụ thuộc vào registry, kho mã, CI/CD và nơi lưu hiện vật phát hành
+  - Phân biệt tài nguyên cần khôi phục, có thể tái tạo và có thể tạm bỏ qua
+  - Dịch vụ bên thứ ba, đầu mối hỗ trợ và khả năng thay thế khi gián đoạn
+  - Xác định nguồn sự thật cho dữ liệu, cấu hình và trạng thái triển khai
+  - Phát hiện phụ thuộc vòng và xây dựng thứ tự khởi động
+  - Gắn tài sản với chủ sở hữu, phương án khôi phục và bằng chứng kiểm thử
+- level1: Chiến lược DR
+  level2:
+  - 'Backup and Restore: khôi phục từ bản sao lưu'
+  - 'Cold Standby: chuẩn bị địa điểm dự phòng nhưng chưa chạy đầy đủ'
+  - 'Pilot Light: duy trì những thành phần cốt lõi để mở rộng khi cần'
+  - 'Warm Standby: duy trì hệ thống dự phòng với công suất giảm'
+  - 'Hot Standby và Active-Passive: sẵn sàng chuyển vai trò phục vụ'
+  - 'Active-Active: nhiều nơi cùng phục vụ và các thách thức điều phối dữ liệu'
+  - So sánh chiến lược theo RTO, RPO, chi phí và độ phức tạp vận hành
+  - Chọn chiến lược khác nhau cho từng lớp dịch vụ và dữ liệu
+  - Chế độ suy giảm chức năng, chỉ đọc và xử lý thủ công có kiểm soát
+  - Điều kiện lựa chọn chuyển vùng, khôi phục tại chỗ hoặc tái dựng môi trường
+- level1: Miền lỗi
+  level2:
+  - Miền lỗi ở cấp tiến trình, máy chủ, cụm, vùng và khu vực
+  - Tách biệt địa lý, nguồn điện, mạng và hệ thống quản trị
+  - Lỗi tương quan và rủi ro dùng chung hệ thống điều khiển
+  - Dự phòng nhiều vùng sẵn sàng so với khôi phục liên khu vực
+  - Tách tài khoản, thông tin xác thực và quyền quản trị vùng dự phòng
+  - Năng lực dự phòng và khả năng chịu tải khi mất một miền
+  - Hạn chế từ vị trí dữ liệu, độ trễ và kết nối liên vùng
+  - Đánh giá điểm lỗi đơn và kiểm chứng mức độc lập của phương án DR
+- level1: Sao lưu
+  level2:
+  - Phân biệt sao lưu, snapshot, bản sao đồng bộ và lưu trữ dài hạn
+  - Sao lưu đầy đủ, gia tăng, chênh lệch và chuỗi phụ thuộc bản sao
+  - Sao lưu dữ liệu, cấu hình, siêu dữ liệu và hiện vật cần cho khôi phục
+  - Nhất quán ở mức ứng dụng và nhất quán sau sự cố trong bản sao lưu
+  - Chọn lịch sao lưu và thời gian lưu giữ theo mục tiêu khôi phục
+  - Nguyên tắc 3-2-1 và bản sao ngoại tuyến hoặc bất biến
+  - Tách bản sao lưu khỏi miền lỗi và quyền quản trị của hệ thống chính
+  - Mã hóa, quản lý khóa và khả năng giải mã khi môi trường chính mất
+  - Kiểm tra checksum, tính toàn vẹn và khả năng đọc chuỗi sao lưu
+  - Danh mục bản sao, vị trí lưu và khả năng tìm đúng điểm khôi phục
+  - Phân biệt tác vụ sao lưu thành công với dữ liệu có thể khôi phục
+  - Thử phục hồi định kỳ và phát hiện thiếu sót của chính sách sao lưu
+- level1: Sao chép dữ liệu
+  level2:
+  - Sao chép đồng bộ, bất đồng bộ và đánh đổi giữa độ trễ với độ bền dữ liệu
+  - Kiến trúc một nơi ghi, nhiều nơi đọc và nhiều nơi ghi
+  - Độ trễ sao chép và ảnh hưởng đến điểm dữ liệu có thể khôi phục
+  - Quorum, phân vùng mạng và điều kiện cho phép nhận ghi
+  - 'Split-brain: hai phía cùng nhận vai trò chính và nguy cơ phân kỳ'
+  - 'Fencing: ngăn hệ thống chính cũ tiếp tục ghi sau chuyển đổi'
+  - Sao chép lỗi logic, dữ liệu bị xóa và nhu cầu giữ lịch sử độc lập
+  - Khởi tạo bản sao, đồng bộ lại và xử lý tồn đọng sau mất kết nối
+  - Kiểm chứng trạng thái bản sao trước khi cho phép tiếp quản
+- level1: Cơ sở dữ liệu
+  level2:
+  - Phân biệt khôi phục vật lý, khôi phục logic và chuyển vai trò bản sao
+  - Snapshot, bản sao nền và nhật ký giao dịch trong chuỗi phục hồi
+  - Khôi phục đến một thời điểm (PITR) và chọn thời điểm trước khi dữ liệu hỏng
+  - Xác minh chuỗi WAL hoặc binlog và xử lý khoảng trống nhật ký
+  - Khôi phục schema, dữ liệu, index, quyền truy cập và cấu hình cần thiết
+  - Chọn bản sao đủ mới và điều kiện nâng bản sao thành hệ thống chính
+  - Nhất quán giữa nhiều cơ sở dữ liệu và giới hạn của phục hồi riêng lẻ
+  - Khôi phục hệ thống phân mảnh và dữ liệu phân tán
+  - Đặc thù khôi phục cơ sở dữ liệu được quản lý bởi nhà cung cấp
+  - Đổi điểm kết nối và xử lý connection pool sau chuyển vai trò
+  - Kiểm tra khả năng đọc ghi, tính toàn vẹn và hiệu năng sau khôi phục
+- level1: Tính nhất quán
+  level2:
+  - Xác định ranh giới giao dịch và các bất biến dữ liệu cần giữ
+  - Giao dịch đang xử lý tại thời điểm thảm họa và trạng thái chưa xác định
+  - Đối soát dữ liệu giữa cơ sở dữ liệu, hàng đợi và dịch vụ bên ngoài
+  - Yêu cầu lặp lại an toàn (idempotency) khi phát lại tác vụ
+  - Phát hiện và xử lý mất dữ liệu, dữ liệu trùng và sai thứ tự
+  - Event log, checkpoint và khôi phục tiến độ xử lý
+  - Ngăn ghi trong thời gian phục hồi và kiểm chứng dữ liệu
+  - Xử lý dữ liệu phát sinh ở vùng dự phòng trước khi trở về
+  - Quyết định bù trừ nghiệp vụ khi không thể phục hồi toàn bộ giao dịch
+- level1: Lưu trữ và tệp
+  level2:
+  - Khôi phục block storage, file storage và object storage
+  - Snapshot volume và tính nhất quán giữa nhiều volume
+  - Versioning, thời gian lưu giữ và khôi phục đối tượng đã xóa
+  - Khôi phục quyền, ACL, siêu dữ liệu và tham chiếu tới tệp
+  - Đối chiếu bản ghi cơ sở dữ liệu với tệp hoặc đối tượng liên quan
+  - Tái tạo chỉ mục tìm kiếm, dữ liệu dẫn xuất và tài nguyên có thể dựng lại
+  - Băng thông, số lượng đối tượng và giới hạn thông lượng khi phục hồi
+  - Kiểm tra tính toàn vẹn và khả năng truy cập sau khi gắn lại lưu trữ
+- level1: Thông điệp và bộ nhớ đệm
+  level2:
+  - Phân biệt trạng thái bền vững với bộ nhớ đệm có thể tái tạo
+  - Khôi phục broker, topic, queue và cấu hình định tuyến
+  - Sao lưu hoặc sao chép dữ liệu thông điệp và giới hạn của từng cơ chế
+  - Offset, consumer group và điểm tiếp tục xử lý
+  - Phát lại thông điệp, chống trùng và bảo toàn thứ tự cần thiết
+  - Dead-letter queue và xử lý thông điệp không thể hoàn thành sau phục hồi
+  - Khôi phục cache, phiên đăng nhập và dữ liệu tạm thời
+  - Làm nóng bộ nhớ đệm và tránh dồn tải xuống cơ sở dữ liệu
+  - Đối soát tác vụ đã nhận, đã xử lý và chưa xác nhận
+- level1: Khôi phục ứng dụng
+  level2:
+  - Ứng dụng không trạng thái và ứng dụng có trạng thái trong kế hoạch DR
+  - Chọn phiên bản ứng dụng tương thích với dữ liệu được phục hồi
+  - Khôi phục cấu hình, biến môi trường, feature flag và tài nguyên phụ thuộc
+  - Sẵn sàng của image, package và hiện vật phát hành ở vùng dự phòng
+  - Thứ tự khởi động và điều kiện sẵn sàng của dịch vụ
+  - Tạm dừng scheduler, batch job và consumer để tránh chạy trùng
+  - Chế độ chỉ đọc và tắt tính năng chưa thể bảo đảm an toàn dữ liệu
+  - Điều chỉnh timeout, retry và circuit breaker trong giai đoạn phục hồi
+  - Kiểm tra các luồng nghiệp vụ trước khi mở lại toàn bộ chức năng
+- level1: Hạ tầng và tự động hóa
+  level2:
+  - Hạ tầng dưới dạng mã (IaC) trong tái dựng môi trường DR
+  - Khôi phục state của công cụ IaC, backend và cơ chế khóa
+  - Quản lý module, provider và phiên bản cấu hình cần cho tái dựng
+  - Tách cấu hình dùng chung khỏi cấu hình theo vùng và môi trường
+  - Thứ tự cấp phát mạng, lưu trữ, dữ liệu và ứng dụng
+  - Thiết kế tác vụ khôi phục có thể chạy lại và tiếp tục sau gián đoạn
+  - Phát hiện sai lệch cấu hình giữa hệ thống chính và dự phòng
+  - Kiểm soát bước tự động, bước thủ công và điểm cần phê duyệt
+  - Chế độ xem trước, nhật ký thực thi và khả năng dừng an toàn
+  - Khôi phục khi chính nền tảng CI/CD hoặc hệ thống điều khiển bị mất
+- level1: Mạng và lưu lượng
+  level2:
+  - Khôi phục mạng, route, firewall, gateway và kết nối riêng
+  - DNS, TTL và thời gian lan truyền khi đổi vùng phục vụ
+  - Cân bằng tải, health check và điều kiện loại bỏ điểm cuối lỗi
+  - Chuyển lưu lượng bằng DNS, bộ cân bằng toàn cục hoặc cơ chế định tuyến
+  - Endpoint cơ sở dữ liệu, service discovery và cấu hình phía khách
+  - Chứng chỉ TLS, tên miền và quyền quản lý DNS trong thảm họa
+  - Allowlist, địa chỉ IP và phụ thuộc cấu hình với đối tác bên ngoài
+  - Kết nối VPN, peering và đường truyền tới dữ liệu cần phục hồi
+  - Kết nối đang tồn tại, cache DNS và client vẫn truy cập vùng cũ
+  - Mở lưu lượng theo từng bước và khả năng đảo ngược khi kiểm chứng thất bại
+- level1: Danh tính và bí mật
+  level2:
+  - Khôi phục định danh, phân quyền và tài khoản phục vụ vận hành
+  - Tài khoản truy cập khẩn cấp (break-glass) và điều kiện sử dụng
+  - Khả năng đăng nhập khi hệ thống SSO hoặc nhà cung cấp định danh gián đoạn
+  - Khôi phục secret, token, chứng chỉ và cấu hình kết nối
+  - Khóa mã hóa, quyền giải mã và tính sẵn sàng của KMS hoặc HSM
+  - Tách quyền truy cập bản sao lưu khỏi quyền quản trị hệ thống chính
+  - Tránh vòng phụ thuộc giữa nơi lưu bí mật và hạ tầng cần khôi phục
+  - Thu hồi và thay thông tin xác thực nếu nghi ngờ bị xâm phạm
+  - Ghi nhận truy cập đặc quyền trong thời gian DR
+  - Kiểm tra lại phân quyền và đóng quyền khẩn cấp sau phục hồi
+- level1: Kubernetes
+  level2:
+  - 'Phạm vi sao lưu: tài nguyên cụm, cấu hình và dữ liệu của ứng dụng'
+  - Khôi phục cụm hiện có so với tái dựng cụm mới
+  - Vai trò của sao lưu etcd và giới hạn với dữ liệu trong PersistentVolume
+  - CSI snapshot, bản sao volume và khả năng phục hồi khác vùng hoặc khác cụm
+  - CRD, operator và thứ tự phục hồi tài nguyên phụ thuộc
+  - StatefulSet, danh tính pod và gắn lại lưu trữ
+  - Khôi phục RBAC, secret, ingress, chứng chỉ và DNS
+  - GitOps trong tái dựng trạng thái mong muốn và giới hạn với dữ liệu
+  - Registry, node image và năng lực cấp phát khi mở rộng cụm dự phòng
+  - Kiểm chứng ứng dụng có trạng thái sau khôi phục toàn cụm
+- level1: Đám mây
+  level2:
+  - Phân biệt DR giữa vùng sẵn sàng, khu vực và tài khoản
+  - Trách nhiệm của khách hàng và nhà cung cấp đối với sao lưu, khôi phục
+  - Khả năng phục hồi của dịch vụ được quản lý và giới hạn cấu hình
+  - Quota, năng lực cung cấp tài nguyên và giới hạn API tại vùng đích
+  - Sao chép snapshot, object, image và khóa cần cho khôi phục
+  - Phụ thuộc vào hệ thống điều khiển toàn cục và dịch vụ theo khu vực
+  - Độ tương đồng dịch vụ, phiên bản và cấu hình giữa các khu vực
+  - Đường truyền, thời gian chuyển dữ liệu và chi phí phục hồi liên vùng
+  - Đánh giá đa đám mây theo khả năng khôi phục thực tế và chi phí vận hành
+- level1: Kế hoạch và runbook
+  level2:
+  - 'Cấu trúc kế hoạch DR: phạm vi, giả định, mục tiêu và kịch bản kích hoạt'
+  - Phân vai chỉ huy, kỹ thuật, nghiệp vụ, liên lạc và người phê duyệt
+  - Danh bạ khẩn cấp, nhà cung cấp và kênh liên lạc thay thế
+  - Runbook theo từng dịch vụ và thứ tự phụ thuộc
+  - Đầu vào, điều kiện tiên quyết và quyền cần cho mỗi bước
+  - Bước kiểm tra, kết quả mong đợi và tiêu chí dừng hoặc chuyển phương án
+  - Vị trí lưu tài liệu có thể truy cập khi hệ thống chính mất
+  - Mẫu ghi mốc thời gian, quyết định, lệnh thực thi và bằng chứng
+  - Điều kiện đảo ngược và xử lý khi một bước phục hồi thất bại
+  - Quản lý phiên bản runbook cùng thay đổi kiến trúc và ứng dụng
+  - Khả năng thực hiện bởi người chưa trực tiếp xây dựng phương án
+- level1: Kích hoạt DR
+  level2:
+  - Nhận diện sự cố vượt khả năng xử lý thông thường và đánh giá phạm vi
+  - Tiêu chí tuyên bố thảm họa và thẩm quyền kích hoạt
+  - Cân nhắc chờ sửa hệ thống chính hay chuyển sang dự phòng
+  - Xác định tình trạng dữ liệu và thời điểm an toàn để phục hồi
+  - Kiểm tra nhân sự, quyền truy cập và mức sẵn sàng của vùng dự phòng
+  - Giữ bằng chứng và cô lập nguồn gây hỏng trước khi khôi phục
+  - Thông báo trạng thái, mục tiêu dịch vụ và độ chắc chắn của dự báo
+  - Thiết lập chỉ huy thống nhất và tránh thao tác khôi phục xung đột
+  - Ghi nhận mốc thời gian để đo kết quả RTO/RPO
+- level1: Chuyển đổi dự phòng
+  level2:
+  - 'Failover: điều kiện chuyển quyền phục vụ sang hệ thống dự phòng'
+  - Chuyển đổi có kế hoạch và chuyển đổi khẩn cấp
+  - Chuyển đổi thủ công, bán tự động và tự động
+  - Ngăn ghi ở hệ thống chính cũ và xác nhận cơ chế fencing
+  - Kiểm tra độ mới dữ liệu trước khi nâng vai trò hệ thống dự phòng
+  - Khôi phục hoặc mở rộng hạ tầng theo thứ tự đã xác định
+  - Cập nhật endpoint, định tuyến và các phụ thuộc liên quan
+  - Cho phép ghi, chạy tác vụ nền và mở lưu lượng theo từng giai đoạn
+  - Phát hiện split-brain, dữ liệu phân kỳ và chuyển đổi một phần
+  - Tiêu chí xác nhận failover thành công hoặc dừng mở rộng lưu lượng
+- level1: Trở về hệ thống chính
+  level2:
+  - 'Failback: mục đích, điều kiện thực hiện và rủi ro riêng'
+  - Xác minh nguyên nhân sự cố đã được xử lý và môi trường chính đủ an toàn
+  - Chọn nguồn dữ liệu có thẩm quyền sau thời gian chạy ở vùng dự phòng
+  - Đồng bộ ngược, đối soát và xử lý dữ liệu phân kỳ
+  - Lập kế hoạch dừng ghi hoặc giảm lưu lượng khi cần
+  - Thứ tự chuyển vai trò dữ liệu, ứng dụng và định tuyến
+  - Kiểm soát tác vụ nền, lịch chạy và consumer trong lúc chuyển về
+  - Điều kiện hủy failback và tiếp tục vận hành ở vùng dự phòng
+  - Kiểm chứng dữ liệu, nghiệp vụ và hiệu năng sau chuyển về
+  - Tái thiết lập sao lưu, sao chép và năng lực DR cho sự cố tiếp theo
+- level1: Kiểm chứng phục hồi
+  level2:
+  - Xác minh hạ tầng đã dựng đúng cấu hình và phân quyền
+  - Kiểm tra tính toàn vẹn dữ liệu và các bất biến nghiệp vụ
+  - Đối chiếu giao dịch, tệp, thông điệp và tác vụ đang xử lý
+  - Kiểm thử đọc ghi và các hành trình người dùng quan trọng
+  - Kiểm tra phụ thuộc bên ngoài, callback và tích hợp đối tác
+  - Đo khả năng phục vụ, độ trễ, lỗi và công suất sau khôi phục
+  - Đánh giá mất dữ liệu thực tế so với RPO
+  - Đo thời gian phục hồi dịch vụ thực tế so với RTO
+  - Xác minh giám sát, cảnh báo, sao lưu và sao chép đã hoạt động trở lại
+  - Bằng chứng nghiệm thu của kỹ thuật và chủ sở hữu nghiệp vụ
+  - Tiêu chí kết thúc DR và chuyển sang chế độ vận hành bình thường
+- level1: Diễn tập
+  level2:
+  - Mục tiêu diễn tập, phạm vi, giả định và tiêu chí thành công
+  - Diễn tập trên bàn (tabletop) để kiểm tra quyết định và phối hợp
+  - Thử phục hồi bản sao lưu trong môi trường cô lập
+  - Diễn tập từng thành phần, toàn dịch vụ và toàn vùng
+  - Đánh giá mức tương đồng giữa môi trường thử nghiệm và vận hành thật
+  - Giới hạn phạm vi ảnh hưởng, điều kiện dừng và kế hoạch đảo ngược
+  - Thử mất mạng, mất quyền truy cập và mất dịch vụ điều khiển
+  - Diễn tập lỗi dữ liệu và kiểm tra lựa chọn điểm khôi phục
+  - Kiểm chứng failover và failback trong cùng chu kỳ
+  - Đo thời gian, mức mất dữ liệu và thao tác thủ công phát sinh
+  - Rà soát sau diễn tập và giao trách nhiệm xử lý lỗ hổng
+  - Lập lịch diễn tập lại sau thay đổi lớn hoặc kết quả chưa đạt
+- level1: Phục hồi sau tấn công
+  level2:
+  - Phân biệt khôi phục do lỗi kỹ thuật với khôi phục sau xâm phạm
+  - Cô lập hệ thống bị ảnh hưởng và phối hợp với quy trình ứng phó bảo mật
+  - Xác định thời điểm dữ liệu và bản sao lưu còn đáng tin cậy
+  - Kiểm tra tính độc lập và khả năng truy cập bản sao lưu bất biến
+  - Tái dựng môi trường sạch thay vì sử dụng lại thành phần bị nghi ngờ
+  - Khôi phục định danh, thay khóa và thu hồi phiên truy cập bị lộ
+  - Ngăn tái nhiễm từ hiện vật, cấu hình hoặc tài khoản chưa được xử lý
+  - Kiểm tra dữ liệu phục hồi trước khi kết nối lại các hệ thống
+  - Giữ bằng chứng điều tra và ghi nhận mức mất dữ liệu phải chấp nhận
+  - Điều kiện mở lại dịch vụ và tăng cường theo dõi sau phục hồi
+- level1: Quan sát và chỉ số
+  level2:
+  - Theo dõi trạng thái sao lưu, độ mới và khả năng phục hồi bản sao
+  - Giám sát độ trễ sao chép, lỗi đồng bộ và dung lượng lưu giữ
+  - Theo dõi mức sẵn sàng của vùng dự phòng và phụ thuộc thiết yếu
+  - Cảnh báo khi mục tiêu RPO hoặc giả định DR có nguy cơ không đạt
+  - Quan sát độc lập khi hệ thống giám sát chính không còn hoạt động
+  - Dòng thời gian từ phát hiện tới phục hồi và các điểm gây chậm
+  - Tỷ lệ phục hồi thành công, độ phủ diễn tập và kết quả RTO/RPO
+  - Tuổi runbook, sai lệch cấu hình và phụ thuộc chưa được kiểm chứng
+  - Báo cáo rủi ro tồn đọng và theo dõi cải tiến sau sự cố
+- level1: Quản trị và chi phí
+  level2:
+  - Chủ sở hữu kế hoạch DR và trách nhiệm duy trì từng thành phần
+  - Ngân sách hạ tầng dự phòng, lưu trữ, mạng và thời gian diễn tập
+  - Chi phí khi kích hoạt DR, mở rộng công suất và chuyển dữ liệu
+  - Lựa chọn mức bảo vệ theo phân hạng dịch vụ và tác động kinh doanh
+  - Yêu cầu nội bộ về lưu giữ, vị trí dữ liệu và bằng chứng kiểm toán
+  - Kiểm soát thay đổi để phương án DR theo kịp hệ thống đang chạy
+  - Đánh giá phương án và cam kết khôi phục của nhà cung cấp
+  - Đào tạo, bàn giao và tránh phụ thuộc vào một cá nhân
+  - Rà soát định kỳ mục tiêu, giả định, chi phí và rủi ro được chấp nhận
+- level1: Thực hành
+  level2:
+  - Xây dựng bản đồ phụ thuộc và phân hạng một ứng dụng mẫu
+  - Đề xuất RTO/RPO từ tình huống kinh doanh và tiêu chí nghiệm thu
+  - Thiết kế phương án sao lưu với bản sao độc lập và kiểm tra phục hồi
+  - Khôi phục cơ sở dữ liệu tới thời điểm trước một thao tác xóa nhầm
+  - Tái dựng hạ tầng và triển khai đúng phiên bản ứng dụng từ mã
+  - Mô phỏng mất hệ thống chính và chuyển vai trò dữ liệu có fencing
+  - Kiểm chứng giao dịch, hàng đợi và dữ liệu trùng sau failover
+  - Thực hiện failback với đồng bộ ngược và đối soát
+  - Diễn tập phục hồi khi thiếu quyền, thiếu khóa hoặc mất registry
+  - Tổng hợp runbook, bằng chứng RTO/RPO và kế hoạch cải tiến
+- level1: Xử lý sự cố
+  level2:
+  - Bản sao lưu báo thành công nhưng không đọc hoặc không khôi phục được
+  - Thiếu khóa mã hóa, quyền truy cập hoặc thông tin xác thực khẩn cấp
+  - Snapshot không nhất quán hoặc thiếu chuỗi nhật ký phục hồi
+  - Đồ thị phụ thuộc vòng làm hệ thống không thể khởi động
+  - Vùng dự phòng thiếu quota, tài nguyên hoặc phiên bản dịch vụ
+  - DNS, cache và kết nối cũ vẫn đưa lưu lượng về hệ thống chính
+  - Split-brain và dữ liệu phát sinh ở cả hai phía
+  - Phục hồi dữ liệu xong nhưng ứng dụng không thể phục vụ nghiệp vụ
+  - RTO vượt mục tiêu do tải dữ liệu, dựng lại chỉ mục hoặc thao tác thủ công
+  - Failback thất bại, sao chép không khôi phục và mất khả năng dự phòng
+  - Checklist điều tra từ con người, quyền truy cập, dữ liệu tới hạ tầng

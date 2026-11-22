@@ -1,0 +1,121 @@
+menu:
+  - title: "Phạm vi runtime"
+    slug: runtime-scope
+    index: 0
+  - title: "Các lớp môi trường"
+    slug: execution-environment-layers
+    index: 1
+  - title: "Mô hình thực thi"
+    slug: execution-models
+    index: 2
+  - title: "Mã và tạo tác"
+    slug: code-and-artifacts
+    index: 3
+  - title: "Vòng đời chương trình"
+    slug: program-lifecycle
+    index: 4
+  - title: "Khởi động"
+    slug: startup
+    index: 5
+  - title: "Nạp mã và liên kết"
+    slug: loading-and-linking
+    index: 6
+  - title: "Tiến trình"
+    slug: processes
+    index: 7
+  - title: "Luồng thực thi"
+    slug: threads
+    index: 8
+  - title: "Điều khiển thực thi"
+    slug: control-flow
+    index: 9
+  - title: "Biểu diễn dữ liệu"
+    slug: data-representation
+    index: 10
+  - title: "Bố trí bộ nhớ"
+    slug: memory-layout
+    index: 11
+  - title: "Cấp phát bộ nhớ"
+    slug: memory-allocation
+    index: 12
+  - title: "Vòng đời bộ nhớ"
+    slug: memory-lifecycle
+    index: 13
+  - title: "Thu gom rác"
+    slug: garbage-collection
+    index: 14
+  - title: "Mô hình bộ nhớ"
+    slug: memory-models
+    index: 15
+  - title: "Lập lịch"
+    slug: scheduling
+    index: 16
+  - title: "Đồng thời và song song"
+    slug: concurrency-and-parallelism
+    index: 17
+  - title: "Đồng bộ hóa"
+    slug: synchronization
+    index: 18
+  - title: "Bất đồng bộ"
+    slug: asynchronous-execution
+    index: 19
+  - title: "Nhập xuất"
+    slug: input-output
+    index: 20
+  - title: "Hệ thống tệp"
+    slug: file-systems
+    index: 21
+  - title: "Mạng"
+    slug: networking
+    index: 22
+  - title: "Tín hiệu và sự kiện"
+    slug: signals-and-events
+    index: 23
+  - title: "Lỗi và phục hồi"
+    slug: error-handling-and-recovery
+    index: 24
+  - title: "Thời gian và bộ định thời"
+    slug: clocks-and-timers
+    index: 25
+  - title: "ABI và tương tác"
+    slug: abi-and-interoperability
+    index: 26
+  - title: "Thư viện và phụ thuộc"
+    slug: libraries-and-dependencies
+    index: 27
+  - title: "Máy ảo"
+    slug: virtual-machines
+    index: 28
+  - title: "Tối ưu mã"
+    slug: code-optimization
+    index: 29
+  - title: "Tài nguyên và giới hạn"
+    slug: resources-and-limits
+    index: 30
+  - title: "Cấu hình môi trường"
+    slug: environment-configuration
+    index: 31
+  - title: "Bảo mật và cô lập"
+    slug: security-and-isolation
+    index: 32
+  - title: "Đóng gói và tương thích"
+    slug: packaging-and-compatibility
+    index: 33
+  - title: "Quan sát runtime"
+    slug: runtime-observability
+    index: 34
+  - title: "Gỡ lỗi"
+    slug: debugging
+    index: 35
+  - title: "Hiệu năng"
+    slug: performance
+    index: 36
+  - title: "Dừng và dọn dẹp"
+    slug: shutdown-and-cleanup
+    index: 37
+  - title: "Ngộ nhận thường gặp"
+    slug: common-misconceptions
+    index: 38
+  - title: "Thực hành nền tảng"
+    slug: foundational-exercises
+    index: 39

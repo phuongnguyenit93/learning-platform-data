@@ -1,0 +1,166 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: grc-overview
+  index: 0
+- title: Mục tiêu governance
+  slug: governance-objectives
+  index: 1
+- title: Phạm vi governance
+  slug: governance-scope
+  index: 2
+- title: Nguyên tắc governance
+  slug: governance-principles
+  index: 3
+- title: Chiến lược bảo mật
+  slug: security-strategy
+  index: 4
+- title: Vai trò và trách nhiệm
+  slug: roles-responsibilities
+  index: 5
+- title: Mô hình ba tuyến
+  slug: three-lines-model
+  index: 6
+- title: Hội đồng và quyết định
+  slug: governance-board-decisions
+  index: 7
+- title: Chính sách bảo mật
+  slug: security-policies
+  index: 8
+- title: Chuẩn và hướng dẫn
+  slug: standards-guidelines
+  index: 9
+- title: Vòng đời chính sách
+  slug: policy-lifecycle
+  index: 10
+- title: Quy trình quản trị
+  slug: governance-process
+  index: 11
+- title: Tài sản và chủ sở hữu
+  slug: assets-ownership
+  index: 12
+- title: Risk là gì
+  slug: risk-definition
+  index: 13
+- title: Risk appetite
+  slug: risk-appetite
+  index: 14
+- title: Taxonomy rủi ro
+  slug: risk-taxonomy
+  index: 15
+- title: Nhận diện rủi ro
+  slug: risk-identification
+  index: 16
+- title: Đánh giá rủi ro
+  slug: risk-assessment
+  index: 17
+- title: Định tính
+  slug: qualitative-analysis
+  index: 18
+- title: Định lượng
+  slug: quantitative-analysis
+  index: 19
+- title: Khả năng xảy ra
+  slug: likelihood
+  index: 20
+- title: Tác động
+  slug: impact
+  index: 21
+- title: Inherent và residual
+  slug: inherent-residual-risk
+  index: 22
+- title: Xử lý rủi ro
+  slug: risk-treatment
+  index: 23
+- title: Risk register
+  slug: risk-register
+  index: 24
+- title: Chấp nhận rủi ro
+  slug: risk-acceptance
+  index: 25
+- title: Ngoại lệ rủi ro
+  slug: risk-exceptions
+  index: 26
+- title: Tổng hợp rủi ro
+  slug: risk-aggregation
+  index: 27
+- title: Khung kiểm soát
+  slug: control-framework
+  index: 28
+- title: Thiết kế kiểm soát
+  slug: control-design
+  index: 29
+- title: Vận hành kiểm soát
+  slug: control-operations
+  index: 30
+- title: Bằng chứng kiểm soát
+  slug: control-evidence
+  index: 31
+- title: Assurance
+  slug: assurance
+  index: 32
+- title: Internal audit
+  slug: internal-audit
+  index: 33
+- title: External audit
+  slug: external-audit
+  index: 34
+- title: Compliance
+  slug: compliance
+  index: 35
+- title: Mapping quy định
+  slug: regulatory-mapping
+  index: 36
+- title: Privacy governance
+  slug: privacy-governance
+  index: 37
+- title: Third-party governance
+  slug: third-party-governance
+  index: 38
+- title: Vendor risk
+  slug: vendor-risk
+  index: 39
+- title: Dự án và sản phẩm
+  slug: projects-products
+  index: 40
+- title: Change governance
+  slug: change-governance
+  index: 41
+- title: Secure SDLC governance
+  slug: secure-sdlc-governance
+  index: 42
+- title: Data governance
+  slug: data-governance
+  index: 43
+- title: IAM governance
+  slug: iam-governance
+  index: 44
+- title: Cloud và platform governance
+  slug: cloud-platform-governance
+  index: 45
+- title: Incident governance
+  slug: incident-governance
+  index: 46
+- title: Liên tục kinh doanh
+  slug: business-continuity
+  index: 47
+- title: Resilience
+  slug: resilience
+  index: 48
+- title: Metrics và báo cáo
+  slug: metrics-reporting
+  index: 49
+- title: Báo cáo quản trị
+  slug: management-reporting
+  index: 50
+- title: GRC và tự động hóa
+  slug: grc-automation
+  index: 51
+- title: Văn hóa và đào tạo
+  slug: culture-training
+  index: 52
+- title: Case study
+  slug: case-study
+  index: 53
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 54

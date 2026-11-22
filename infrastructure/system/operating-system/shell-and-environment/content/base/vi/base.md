@@ -1,0 +1,7 @@
+# Operating System Shell And Environment
+
+**Shell và môi trường hệ điều hành** cung cấp cách tương tác với máy tính, khởi chạy chương trình và tự động hóa công việc qua dòng lệnh. Shell phân tích lệnh, mở rộng biến và ký tự đại diện, chuyển hướng luồng dữ liệu rồi gọi chương trình; môi trường tiến trình cung cấp các giá trị như `PATH`, `HOME` và locale cho ứng dụng được khởi chạy. Module này tập trung vào thao tác shell, quản lý môi trường và hiểu những khác biệt quan trọng giữa biến trong shell với biến môi trường được truyền cho tiến trình con.
+
+Lộ trình gồm tám mốc: làm quen shell/command line; điều hướng filesystem và thao tác file; quoting cùng expansion; pipeline và redirection; environment variables và PATH; startup files/profile; scripting và process control; cuối cùng là an toàn và troubleshooting. Ví dụ bao gồm Bash/Linux và PowerShell, giúp người học nhận diện cú pháp tương ứng, hiểu cấu hình theo phiên hay theo người dùng, và kết hợp các lệnh để xử lý dữ liệu hiệu quả mà không vô tình làm sai đối số hoặc để lộ thông tin nhạy cảm.
+
+Module phù hợp với người mới học quản trị hệ điều hành, lập trình viên và kỹ sư DevOps đã biết thao tác máy tính cơ bản. Sau khi hoàn thành, bạn có thể tự điều hướng và quản lý file bằng CLI, viết pipeline, thiết lập biến môi trường cho ứng dụng, cấu hình shell profile, tạo script tự động hóa có xử lý lỗi và chẩn đoán các vấn đề phổ biến liên quan đến PATH, quyền truy cập, quoting và tiến trình.

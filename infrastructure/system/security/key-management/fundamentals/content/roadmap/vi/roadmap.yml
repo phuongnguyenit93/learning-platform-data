@@ -1,0 +1,57 @@
+roadmap:
+- id: khoa-muc-dich-su-dung
+  title: Khóa & mục đích sử dụng
+  purpose: Nhận diện các loại khóa mật mã và mục đích của chúng trước khi chọn dịch vụ quản lý khóa.
+  objectives:
+  - Phân biệt khóa đối xứng, cặp khóa công khai/bí mật
+  - Phân biệt mã hóa dữ liệu, ký số và key wrapping
+  - Phân biệt cryptographic key với password/API token
+- id: vong-doi-chinh-sach
+  title: Vòng đời & chính sách
+  purpose: Xây dựng quy tắc quản lý khóa từ khi tạo đến khi ngừng sử dụng, gắn với rủi ro dữ liệu.
+  objectives:
+  - Vẽ các trạng thái tạo, kích hoạt, vô hiệu, hủy khóa
+  - Xác định owner, mục đích và cryptoperiod cho khóa
+  - Ghi quy tắc bảo vệ, lưu giữ và hủy khóa
+- id: sinh-khoa-an-toan
+  title: Sinh khóa an toàn
+  purpose: Tạo vật liệu khóa với mức ngẫu nhiên và thông số phù hợp, tránh sử dụng cách sinh khóa tùy tiện.
+  objectives:
+  - Giải thích vai trò CSPRNG và key strength
+  - Chọn khóa, thuật toán theo chính sách được duyệt
+  - Phân biệt key, IV/nonce và salt trong ví dụ
+- id: kms-hsm-luu-tru
+  title: KMS/HSM & lưu trữ
+  purpose: Giữ khóa trong dịch vụ chuyên trách và giảm việc xuất hoặc lưu plaintext key trong ứng dụng.
+  objectives:
+  - Phân biệt keystore, managed KMS và HSM
+  - Tạo khóa thử nghiệm trong KMS với metadata rõ ràng
+  - Giải thích khi nào key material không được export
+- id: envelope-encryption
+  title: Envelope Encryption
+  purpose: Hiểu cơ chế dùng khóa dữ liệu riêng cho từng đối tượng và bảo vệ chúng bằng khóa cấp cao hơn.
+  objectives:
+  - Phân biệt DEK (data key) và KEK (wrapping key)
+  - Mô tả luồng GenerateDataKey → encrypt → decrypt
+  - Lưu encrypted DEK cùng ciphertext, không lưu DEK rõ
+- id: quyen-truy-cap-audit
+  title: Quyền truy cập & Audit
+  purpose: Giới hạn chủ thể có thể quản trị hoặc sử dụng khóa và tạo dấu vết kiểm tra.
+  objectives:
+  - Tách quyền key admin và encrypt/decrypt user
+  - Viết chính sách least privilege cho một workload
+  - Xác định log cần có mà không ghi raw key
+- id: rotation-phien-ban
+  title: Rotation & phiên bản
+  purpose: Giảm thời gian sử dụng một khóa và giữ khả năng giải mã dữ liệu cũ trong quá trình chuyển đổi.
+  objectives:
+  - Lập chính sách rotate theo thời gian hoặc sự cố
+  - Phân biệt rotate key version với re-encrypt dữ liệu
+  - Kiểm tra dữ liệu cũ trước khi disable key version
+- id: ung-pho-van-hanh
+  title: Ứng phó & vận hành
+  purpose: Xử lý khóa nghi lộ, bảo đảm khả năng khôi phục và tránh mất dữ liệu do hủy khóa quá sớm.
+  objectives:
+  - Diễn tập disable/revoke khi nghi ngờ lộ khóa
+  - Kiểm tra backup, recovery và quyền truy cập cần thiết
+  - Theo dõi sử dụng, cảnh báo và quy trình hủy an toàn

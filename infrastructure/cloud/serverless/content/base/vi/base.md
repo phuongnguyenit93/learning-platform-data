@@ -1,0 +1,7 @@
+# Cloud Serverless
+
+Serverless là cách triển khai ứng dụng trên cloud mà nhà cung cấp chịu trách nhiệm vận hành phần lớn hạ tầng chạy dịch vụ. Với Function as a Service (FaaS), mã Java thường được kích hoạt bởi HTTP request, thông điệp hoặc sự kiện từ hệ thống khác. Module này giúp bạn nắm những khái niệm cốt lõi, cách xây dựng function và các đánh đổi về giới hạn thực thi, mở rộng, độ tin cậy và chi phí. Serverless không có nghĩa là không tồn tại server; việc quản lý server được trừu tượng hóa khỏi ứng dụng.
+
+Người học nên có nền tảng Java, HTTP và các dịch vụ cloud cơ bản. Lộ trình đi từ mô hình serverless, vòng đời function, thiết kế trigger và xử lý trạng thái, sau đó là đóng gói, triển khai, bảo vệ quyền truy cập và secret. Các mốc cuối tập trung vào retry/idempotency, cold start, concurrency, quan sát hệ thống và tính toán chi phí. AWS Lambda, Google Cloud Run functions và Azure Functions là các nền tảng tham chiếu; API và giới hạn của từng nhà cung cấp có thể khác nhau.
+
+Kết thúc module, bạn có thể nhận diện tác vụ phù hợp với serverless, thiết kế một Java function theo sự kiện, triển khai có cấu hình an toàn, xử lý lỗi có kiểm soát và đánh giá hiệu năng cũng như chi phí trước khi đưa vào vận hành.

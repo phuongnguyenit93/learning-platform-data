@@ -1,0 +1,57 @@
+roadmap:
+- id: elk-stack-data-flow
+  title: ELK Stack & Data Flow
+  purpose: Hiểu vai trò từng thành phần trong luồng thu thập, xử lý, lưu trữ, tìm kiếm và trực quan hóa log.
+  objectives:
+  - Phân biệt Elasticsearch, Logstash, Kibana và Beats/Elastic Agent
+  - Vẽ luồng shipper → ingest → index → dashboard
+  - Chọn thành phần theo nguồn dữ liệu và nhu cầu xử lý
+- id: collect-ingest-logs
+  title: Collect & Ingest Logs
+  purpose: Đưa log từ ứng dụng và máy chủ vào Elastic Stack bằng phương thức thu thập phù hợp.
+  objectives:
+  - Cấu hình Elastic Agent/Beats hoặc Logstash input
+  - Phân biệt shipper với pipeline xử lý dữ liệu
+  - Kiểm tra sự kiện đến Elasticsearch và lỗi ingest
+- id: parse-enrich-normalize
+  title: Parse, Enrich & Normalize
+  purpose: Chuẩn hóa log thành các trường có cấu trúc để truy vấn và đối chiếu giữa nhiều nguồn.
+  objectives:
+  - Tách trường bằng Grok hoặc Dissect
+  - Dùng ingest processors để đổi kiểu và bổ sung metadata
+  - Áp dụng Elastic Common Schema khi phù hợp
+- id: elasticsearch-index-mapping
+  title: Elasticsearch Index & Mapping
+  purpose: Tổ chức dữ liệu log thành index/data stream với kiểu trường phù hợp cho tìm kiếm và phân tích.
+  objectives:
+  - Phân biệt index, document, shard và data stream
+  - Khai báo mapping cho text, keyword, date và numeric
+  - Kiểm tra dynamic mapping và lỗi khi index
+- id: search-analyze-with-kibana
+  title: Search & Analyze with Kibana
+  purpose: Khám phá log và tìm nguyên nhân sự cố bằng truy vấn, bộ lọc và phân tích trường dữ liệu.
+  objectives:
+  - Tạo Data View và chọn time field
+  - Tìm kiếm bằng KQL hoặc Lucene trong Discover
+  - Lọc theo service, severity, timestamp và trace ID
+- id: visualize-alert
+  title: Visualize & Alert
+  purpose: Biến kết quả truy vấn thành biểu đồ và cảnh báo có ngữ cảnh để hỗ trợ vận hành.
+  objectives:
+  - Tạo visualization bằng Lens và dashboard
+  - Thiết lập rule/alert theo ngưỡng hoặc điều kiện
+  - Kiểm tra nhiễu cảnh báo và liên kết tới log liên quan
+- id: lifecycle-scale-recovery
+  title: Lifecycle, Scale & Recovery
+  purpose: Quản lý vòng đời dữ liệu và tài nguyên cluster để giữ hiệu năng, chi phí và khả năng phục hồi phù hợp.
+  objectives:
+  - Thiết lập ILM phases và data retention
+  - Theo dõi shard, indexing/search load và cluster health
+  - Thực hành snapshot, restore và kiểm tra backup
+- id: security-troubleshooting
+  title: Security & Troubleshooting
+  purpose: Bảo vệ dữ liệu log và chẩn đoán lỗi trong pipeline, cluster hoặc truy vấn theo từng lớp.
+  objectives:
+  - Cấu hình TLS, authentication và role-based access
+  - Điều tra lỗi shipper, parsing, mapping và rejected documents
+  - Theo dõi logs/metrics và xử lý sự cố có kiểm soát

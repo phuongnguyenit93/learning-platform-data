@@ -1,0 +1,139 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overall-picture
+  index: 0
+- title: Mục tiêu và phạm vi
+  slug: goals-scope
+  index: 1
+- title: Tư duy đe dọa
+  slug: threat-thinking
+  index: 2
+- title: Tài sản bảo vệ
+  slug: protected-assets
+  index: 3
+- title: Tác nhân đe dọa
+  slug: threat-actors
+  index: 4
+- title: Bề mặt tấn công
+  slug: attack-surface
+  index: 5
+- title: Thành phần hệ thống
+  slug: system-components
+  index: 6
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 7
+- title: Luồng dữ liệu
+  slug: data-flows
+  index: 8
+- title: Phụ thuộc và liên kết
+  slug: dependencies-relationships
+  index: 9
+- title: Giả định bảo mật
+  slug: security-assumptions
+  index: 10
+- title: Thu thập bằng chứng
+  slug: evidence-gathering
+  index: 11
+- title: DFD và mô hình
+  slug: data-flow-diagrams
+  index: 12
+- title: Mô hình tài sản
+  slug: asset-modeling
+  index: 13
+- title: STRIDE
+  slug: stride
+  index: 14
+- title: LINDDUN và riêng tư
+  slug: linddun-privacy
+  index: 15
+- title: Attack tree
+  slug: attack-trees
+  index: 16
+- title: Abuse case
+  slug: abuse-cases
+  index: 17
+- title: Kill chain
+  slug: kill-chain
+  index: 18
+- title: Attack path
+  slug: attack-paths
+  index: 19
+- title: Kịch bản đe dọa
+  slug: threat-scenarios
+  index: 20
+- title: Lỗ hổng và mối đe dọa
+  slug: vulnerabilities-threats
+  index: 21
+- title: Xác thực
+  slug: authentication
+  index: 22
+- title: Phân quyền
+  slug: authorization
+  index: 23
+- title: Dữ liệu và bí mật
+  slug: data-secrets
+  index: 24
+- title: API
+  slug: api-security
+  index: 25
+- title: Ứng dụng web
+  slug: web-applications
+  index: 26
+- title: Dịch vụ và messaging
+  slug: services-messaging
+  index: 27
+- title: Mạng và giao thức
+  slug: networks-protocols
+  index: 28
+- title: Container
+  slug: containers
+  index: 29
+- title: Cloud
+  slug: cloud
+  index: 30
+- title: Chuỗi cung ứng
+  slug: supply-chain
+  index: 31
+- title: Rủi ro
+  slug: risks
+  index: 32
+- title: Khả năng xảy ra
+  slug: likelihood
+  index: 33
+- title: Tác động
+  slug: impact
+  index: 34
+- title: Ưu tiên xử lý
+  slug: prioritization
+  index: 35
+- title: Yêu cầu bảo mật
+  slug: security-requirements
+  index: 36
+- title: Giảm thiểu
+  slug: mitigations
+  index: 37
+- title: Kiến trúc phòng thủ
+  slug: defense-architecture
+  index: 38
+- title: Kiểm chứng control
+  slug: control-validation
+  index: 39
+- title: DevSecOps
+  slug: devsecops
+  index: 40
+- title: Công cụ và tự động hóa
+  slug: tools-automation
+  index: 41
+- title: Duy trì mô hình
+  slug: model-maintenance
+  index: 42
+- title: Báo cáo và giao tiếp
+  slug: reporting-communication
+  index: 43
+- title: Case study
+  slug: case-studies
+  index: 44
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 45

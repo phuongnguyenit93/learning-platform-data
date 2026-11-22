@@ -1,0 +1,7 @@
+# DevOps Source Management Source Control Git
+
+Git là hệ thống quản lý phiên bản phân tán, cho phép lưu lịch sử thay đổi mã nguồn, tạo nhánh thử nghiệm và phối hợp phát triển mà không phải sửa trực tiếp trên cùng một bản sao. Git lưu các snapshot trong repository; thông qua working tree, staging area (index), commit và các tham chiếu như HEAD hoặc branch, người phát triển có thể kiểm soát chính xác thay đổi nào được ghi nhận và chia sẻ. Hiểu mô hình dữ liệu này giúp thao tác Git an toàn hơn thay vì chỉ ghi nhớ câu lệnh.
+
+Roadmap một cấp gồm tám mốc: giới thiệu Git và repository, thực hành vòng đời tệp từ working tree qua index đến commit, quan sát lịch sử với log và diff, sau đó sử dụng branch, merge và giải quyết conflict. Người học tiếp tục đồng bộ với remote qua fetch, pull, push; phân biệt merge với rebase và chỉnh sửa lịch sử cá nhân; thực hành restore, reset, revert, stash và cách kiểm tra reflog khi cần phục hồi. Mốc cuối tập trung vào tag, .gitignore và thói quen commit nhỏ, dễ kiểm tra, không để lộ thông tin nhạy cảm.
+
+Module phù hợp với developer, tester hoặc DevOps engineer đã biết dòng lệnh và cấu trúc một dự án phần mềm. Sau khi hoàn thành, bạn có thể khởi tạo hoặc clone repository, tạo commit rõ ràng, thực hiện các nhánh và phối hợp qua remote, đọc lịch sử để tìm thay đổi, chọn cách hoàn tác an toàn và áp dụng quy tắc Git cơ bản trong CI/CD hay làm việc nhóm.

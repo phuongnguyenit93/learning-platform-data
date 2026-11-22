@@ -1,0 +1,361 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Đóng gói và khởi chạy ứng dụng trong vòng đời phần mềm
+  - Phân biệt mã nguồn, bản dựng, gói phân phối và tiến trình đang chạy
+  - Bài toán mang ứng dụng từ môi trường phát triển đến máy đích
+  - 'Những thành phần cần có: mã thực thi, phụ thuộc, runtime và cấu hình'
+  - Phân biệt build, package, install, launch và deploy
+  - Quan hệ giữa gói ứng dụng, hệ điều hành và môi trường thực thi
+  - Ví dụ hành trình từ dự án Java đến ứng dụng có thể chạy
+  - Lộ trình học và phạm vi giữa đóng gói, JVM và quản lý tài nguyên
+- level1: Chuỗi thực thi
+  level2:
+  - Từ biên dịch và liên kết đến tạo gói phân phối
+  - Phân biệt liên kết tĩnh, liên kết động và nạp lớp trong Java
+  - Những bước diễn ra từ lệnh khởi chạy đến điểm vào ứng dụng
+  - Vai trò của bộ khởi chạy, runtime và mã ứng dụng
+  - Thư mục làm việc, đối số và môi trường của tiến trình
+  - Dữ liệu và tài nguyên được tìm kiếm khi khởi động
+  - Đặc tả điều kiện chạy như một hợp đồng của gói phát hành
+  - Phân biệt lỗi trước khi vào ứng dụng với lỗi trong quá trình khởi tạo
+- level1: Hình thức phân phối
+  level2:
+  - Mã nguồn và những điều kiện để máy đích tự dựng ứng dụng
+  - Script và yêu cầu có trình thông dịch tương thích
+  - Thư mục lớp biên dịch và tài nguyên đi kèm
+  - JAR thư viện, JAR thực thi và bản phân phối dạng thư mục
+  - WAR và ứng dụng phụ thuộc máy chủ triển khai
+  - Tệp thực thi native và phụ thuộc hệ điều hành
+  - Gói có kèm runtime, bộ cài và container image
+  - So sánh kích thước, tính di động, cách cập nhật và trải nghiệm khởi chạy
+- level1: Điểm vào chương trình
+  level2:
+  - Điểm vào như nơi bộ khởi chạy chuyển quyền điều khiển cho ứng dụng
+  - Phương thức main trong mô hình khởi chạy Java truyền thống
+  - Phân biệt lớp chứa main với lớp bootstrap của framework
+  - Đối số ứng dụng và hợp đồng sử dụng dòng lệnh
+  - Chọn điểm vào khi một dự án có nhiều chương trình
+  - Ứng dụng chạy một lần, tác vụ nền và dịch vụ sống lâu
+  - Mã thoát và cách biểu đạt kết quả cho tiến trình gọi
+  - Thiết kế thông báo trợ giúp, phiên bản và lỗi đối số
+- level1: Cấu trúc JAR
+  level2:
+  - JAR như kho lưu trữ lớp Java và tài nguyên
+  - Cấu trúc đường dẫn package bên trong JAR
+  - Thư mục META-INF và tệp manifest
+  - Vai trò của Main-Class và Class-Path trong manifest
+  - Đóng gói tệp cấu hình, mẫu, chứng chỉ và dữ liệu tĩnh
+  - Đọc tài nguyên qua classpath thay vì giả định đường dẫn tệp
+  - Kiểm tra nội dung bằng công cụ jar và công cụ giải nén
+  - Multi-release JAR và ý nghĩa khi chọn phiên bản Java chạy
+  - Phân biệt tạo được JAR với tạo được gói chạy hoàn chỉnh
+- level1: Classpath và module path
+  level2:
+  - Classpath trong tìm kiếm lớp và tài nguyên
+  - Thiết lập classpath khi chạy lớp có main
+  - Quy tắc đường dẫn tương đối và dấu phân cách theo hệ điều hành
+  - Thứ tự tìm kiếm và tình huống trùng lớp
+  - Wildcard trong classpath và giới hạn phạm vi áp dụng
+  - Module path, module-info và ranh giới mô-đun JPMS
+  - Khởi chạy mô-đun bằng tên mô-đun và lớp chính
+  - Phân biệt named module, automatic module và unnamed module
+  - Ảnh hưởng của lựa chọn java -jar đến cách khai báo classpath
+- level1: Phụ thuộc khi chạy
+  level2:
+  - Phân biệt phụ thuộc biên dịch, runtime và kiểm thử
+  - Phụ thuộc trực tiếp, bắc cầu và kết quả phân giải phiên bản
+  - Đảm bảo gói phân phối có đủ runtime dependency
+  - Phụ thuộc provided hoặc compileOnly và trách nhiệm của môi trường đích
+  - Xung đột phiên bản và rủi ro dùng nhầm thư viện
+  - Thư viện native, JNI và đường dẫn tìm thư viện
+  - 'Phụ thuộc ngoài mã: executable, thư viện hệ thống và tệp dữ liệu'
+  - Kiến trúc CPU, hệ điều hành và ABI ảnh hưởng đến khả năng chạy
+  - Liệt kê phụ thuộc thực tế để tái hiện môi trường
+- level1: JAR thực thi
+  level2:
+  - JAR thường và điều kiện có thể chạy bằng java -jar
+  - Thin JAR và bố cục thư mục lib đi kèm
+  - 'Uber JAR hoặc shaded JAR: hợp nhất lớp và tài nguyên'
+  - Nested JAR và nhu cầu có bộ nạp hỗ trợ
+  - Xử lý tài nguyên trùng và mô tả nhà cung cấp dịch vụ
+  - Relocation package để giảm xung đột thư viện
+  - Ảnh hưởng của đóng gói lại đến chữ ký và metadata
+  - Chọn hình thức JAR theo khả năng vận hành và cập nhật
+- level1: Gói Spring Boot
+  level2:
+  - Vai trò của bootJar và gói ứng dụng có bộ khởi chạy riêng
+  - Phân biệt JAR thư viện với executable JAR của Spring Boot
+  - Bố cục lớp ứng dụng, thư viện và bộ khởi chạy trong gói
+  - Vai trò của Main-Class và Start-Class trong mô hình launcher
+  - Khởi chạy bằng java -jar và truyền đối số ứng dụng
+  - Phân biệt bootRun trong phát triển với chạy gói đã phát hành
+  - Đưa cấu hình ra ngoài gói và lựa chọn profile khi chạy
+  - Layered JAR và khả năng tái sử dụng lớp container
+  - Tùy chọn tạo script thực thi kèm gói và điều kiện hỗ trợ
+  - Kiểm tra gói có thể chạy độc lập ngoài thư mục dự án
+- level1: Gói WAR
+  level2:
+  - Cấu trúc WAR và vai trò của WEB-INF
+  - Mã ứng dụng, thư viện và tài nguyên web trong gói
+  - Phân biệt container nhúng với container cài bên ngoài
+  - Điểm bootstrap khi ứng dụng được servlet container nạp
+  - Phụ thuộc do container cung cấp và nguy cơ đóng gói trùng
+  - Executable WAR và điều kiện hỗ trợ hai cách khởi chạy
+  - Tương thích Java, Servlet API và container mục tiêu
+  - Quyền sở hữu cấu hình, class loading và nhật ký khi triển khai WAR
+- level1: Công cụ đóng gói
+  level2:
+  - Phối hợp javac và jar trong ví dụ đóng gói tối thiểu
+  - Vòng đời Maven và phân biệt package, install, deploy với triển khai ứng dụng
+  - Các mục tiêu đóng gói JAR, assembly và shading trong Maven
+  - Gradle Java plugin và nhiệm vụ jar
+  - Gradle application plugin với startScripts và installDist
+  - Tạo bản phân phối ZIP hoặc TAR từ Gradle
+  - Wrapper, toolchain và đầu vào ảnh hưởng đến kết quả đóng gói
+  - Phân biệt thư mục đầu ra build với gói đã sẵn sàng phân phối
+- level1: Bộ khởi chạy Java
+  level2:
+  - Tìm đúng lệnh java và xác minh runtime đang sử dụng
+  - Vai trò của JAVA_HOME, PATH và lựa chọn bản cài Java
+  - Khởi chạy lớp chính từ thư mục lớp biên dịch
+  - Khởi chạy JAR thực thi và mô-đun JPMS
+  - Chế độ chạy trực tiếp mã nguồn và giới hạn theo phiên bản Java
+  - Phân biệt tùy chọn bộ khởi chạy, tùy chọn JVM và đối số ứng dụng
+  - Vị trí tham số trước hoặc sau tên lớp, JAR và mô-đun
+  - Tệp đối số để quản lý dòng lệnh dài
+  - Phân biệt java và javaw trong trải nghiệm khởi chạy trên Windows
+  - Kiểm tra mã thoát và chẩn đoán lỗi từ bộ khởi chạy
+- level1: Tham số JVM
+  level2:
+  - Phân loại tham số chuẩn và tùy chọn phụ thuộc bản JVM
+  - Thuộc tính hệ thống qua -D và cách ứng dụng đọc giá trị
+  - Khai báo heap, stack và ngân sách bộ nhớ ở mức khởi chạy
+  - Tham số GC và giới hạn phạm vi so với chuyên đề tinh chỉnh JVM
+  - Thiết lập ghi log JVM và vị trí lưu dữ liệu chẩn đoán
+  - Tùy chọn mở package hoặc cấp quyền truy cập mô-đun khi cần
+  - JAVA_TOOL_OPTIONS và JDK_JAVA_OPTIONS trong quá trình khởi chạy
+  - JAVA_OPTS như quy ước của script thay vì tùy chọn tự động chung của java
+  - Kiểm chứng tham số thực sự có hiệu lực và bảo vệ thông tin nhạy cảm
+- level1: Môi trường và cấu hình
+  level2:
+  - Đối số dòng lệnh, biến môi trường, thuộc tính hệ thống và tệp cấu hình
+  - Xác định thứ tự ưu tiên cấu hình theo ứng dụng hoặc framework
+  - Kế thừa môi trường từ shell, tiến trình cha hoặc trình quản lý dịch vụ
+  - Phân biệt biến đã khai báo trong shell với biến được export
+  - Thư mục làm việc và cách phân giải đường dẫn tương đối
+  - Mã hóa ký tự, locale và múi giờ của môi trường chạy
+  - Cấu hình mạng, proxy, DNS và truststore cần cho kết nối
+  - Tách thông tin bí mật khỏi mã nguồn và gói phát hành
+  - Kiểm tra cấu hình bắt buộc và dừng sớm khi không hợp lệ
+  - Ghi nhận cấu hình cần thiết để tái hiện sự cố
+- level1: Script khởi chạy
+  level2:
+  - 'Trách nhiệm của script: xác định môi trường và gọi đúng chương trình'
+  - Shell script trên Linux, macOS và quy tắc shebang
+  - PowerShell hoặc batch script trên Windows
+  - Xác định thư mục cài đặt từ vị trí script
+  - Quoting và escaping khi đường dẫn có khoảng trắng hoặc Unicode
+  - Truyền nguyên vẹn danh sách đối số đến ứng dụng
+  - Phân biệt thay thế tiến trình bằng exec với sinh thêm tiến trình con
+  - Giữ đúng mã thoát và quản lý tín hiệu dừng
+  - Quyền thực thi, xuống dòng CRLF/LF và tính di động của script
+- level1: Tiến trình và vòng đời
+  level2:
+  - Tiến trình cha, tiến trình con và cây tiến trình
+  - Chạy foreground, background và ảnh hưởng khi kết thúc phiên shell
+  - Quản lý đầu vào, đầu ra và lỗi chuẩn
+  - Vòng đời từ khởi động, phục vụ đến dừng
+  - Truyền tín hiệu và sự khác biệt giữa các hệ điều hành
+  - Graceful shutdown và thời gian cho phép hoàn tất công việc
+  - Shutdown hook và giới hạn khi tiến trình bị buộc kết thúc
+  - Tài nguyên mở và trách nhiệm giải phóng khi dừng
+  - Mã thoát, chính sách chạy lại và tránh vòng lặp khởi động lỗi
+- level1: Bố cục cài đặt
+  level2:
+  - Tách thư mục chương trình, runtime, cấu hình và dữ liệu thay đổi
+  - Bố cục bin, lib, conf, data, logs và thư mục tạm
+  - Đường dẫn tương đối, tuyệt đối và tính di chuyển của bản phân phối
+  - Giới hạn ghi khi thư mục cài đặt hoặc hệ thống tệp chỉ đọc
+  - Người dùng chạy ứng dụng và quyền truy cập tài nguyên
+  - Đóng gói tệp mẫu mà vẫn bảo toàn cấu hình người dùng
+  - Giới hạn độ dài đường dẫn và khác biệt phân biệt hoa thường
+  - Quy ước thư mục theo hệ điều hành và môi trường triển khai
+- level1: Runtime tùy chỉnh
+  level2:
+  - Phân biệt dùng Java cài sẵn với phân phối kèm runtime
+  - JDK, runtime image và tập công cụ cần cho môi trường đích
+  - Phân tích mô-đun phụ thuộc bằng jdeps
+  - Tạo runtime image bằng jlink
+  - Phụ thuộc động, reflection và dịch vụ có thể không hiện đủ qua phân tích tĩnh
+  - Kết hợp runtime image với ứng dụng và script khởi chạy
+  - Ràng buộc nền tảng khi phân phối runtime
+  - Quản lý phiên bản và cập nhật bảo mật cho runtime được đóng kèm
+- level1: Bộ cài ứng dụng
+  level2:
+  - Gói nén di động và bộ cài tích hợp hệ điều hành
+  - jpackage trong tạo application image và gói cài đặt
+  - Đầu vào ứng dụng, điểm vào và runtime đi kèm
+  - Shortcut, biểu tượng, menu và liên kết tệp
+  - Định danh ứng dụng, phiên bản và metadata nhà phát hành
+  - Định dạng gói theo nền tảng và điều kiện của máy tạo gói
+  - Quyền cài đặt, cập nhật và gỡ bỏ ứng dụng
+  - Bảo toàn dữ liệu người dùng qua các lần nâng cấp
+- level1: Tệp thực thi native
+  level2:
+  - Phân biệt chương trình Java chạy trên JVM với executable native
+  - GraalVM Native Image như một phương án đóng gói Java
+  - Metadata cho reflection, tài nguyên và cơ chế nạp động
+  - Phụ thuộc thư viện hệ thống, ABI và kiến trúc CPU
+  - Liên kết tĩnh, liên kết động và khả năng chạy trên máy đích
+  - Khác biệt về khởi động, bộ nhớ và khả năng chẩn đoán
+  - Kiểm thử executable native như một sản phẩm riêng của quy trình build
+- level1: Đóng gói container
+  level2:
+  - Image, lớp hệ thống tệp và container đang chạy
+  - Chọn ảnh nền phù hợp với runtime và thư viện hệ thống
+  - Multi-stage build để tách môi trường dựng khỏi môi trường chạy
+  - Đóng gói JAR và runtime vào image
+  - Phân lớp phụ thuộc và mã ứng dụng để tận dụng bộ nhớ đệm
+  - Buildpacks hoặc Jib như các phương án tạo image Java
+  - Tag, digest và định danh bất biến của image
+  - Kiến trúc CPU và image đa nền tảng
+  - Giảm tệp không cần thiết và kiểm soát nội dung đưa vào image
+- level1: Chạy trong container
+  level2:
+  - ENTRYPOINT, CMD và cách truyền đối số ứng dụng
+  - Dạng exec và dạng shell trong lệnh khởi chạy
+  - Tiến trình PID 1, chuyển tiếp tín hiệu và thu hồi tiến trình con
+  - Kết thúc có kiểm soát trước khi container bị buộc dừng
+  - Biến môi trường, tệp cấu hình và volume khi chạy
+  - Thư mục làm việc, người dùng và hệ thống tệp chỉ đọc
+  - Đưa log ra đầu ra chuẩn và thu thập dữ liệu chẩn đoán
+  - Phối hợp giới hạn tài nguyên container với tham số JVM
+  - Phân biệt cổng lắng nghe, công bố cổng và địa chỉ bind
+  - Kiểm tra container chạy được mà không phụ thuộc tệp trên máy build
+- level1: Dịch vụ hệ điều hành
+  level2:
+  - Khác biệt giữa chạy từ terminal và chạy dưới trình quản lý dịch vụ
+  - Khai báo lệnh, người dùng, môi trường và thư mục làm việc trong systemd
+  - Phụ thuộc khởi động và điều kiện sẵn sàng của dịch vụ
+  - Chính sách restart, giới hạn số lần lỗi và thời gian chờ dừng
+  - Tích hợp log và chẩn đoán khi dịch vụ không khởi động
+  - Chạy Java dưới Windows Service và vai trò của service wrapper
+  - launchd trên macOS trong quản lý chương trình nền
+  - Cài đặt, cập nhật và gỡ đăng ký dịch vụ
+  - Phối hợp vòng đời ứng dụng với trình quản lý dịch vụ
+- level1: Phiên bản và phân phối
+  level2:
+  - Định danh ứng dụng, phiên bản và bản dựng
+  - Phân biệt phiên bản chương trình, runtime và phụ thuộc
+  - Tên gói phản ánh hệ điều hành và kiến trúc mục tiêu
+  - Kho artifact, kho image và kênh tải bản phát hành
+  - Phân biệt phát hành gói với triển khai gói vào môi trường
+  - Checksum và chữ ký trong kiểm tra gói nhận được
+  - Metadata bản dựng, commit nguồn và danh mục phụ thuộc
+  - Tải phụ thuộc khi chạy so với phân phối đủ để chạy ngoại tuyến
+  - Tài liệu cài đặt và hợp đồng khởi chạy của từng bản phát hành
+- level1: Build tái lập
+  level2:
+  - Mục tiêu tạo cùng kết quả từ cùng đầu vào đã kiểm soát
+  - Cố định phiên bản công cụ build, plugin và Java toolchain
+  - Khóa phiên bản phụ thuộc và kiểm tra nguồn tải
+  - Timestamp, thứ tự tệp và metadata ảnh hưởng đến gói nén
+  - Locale, múi giờ và đường dẫn tuyệt đối lọt vào kết quả build
+  - Loại bỏ tệp tạm, cấu hình cá nhân và dữ liệu ngoài ý muốn
+  - Phân biệt build thành công, build tái lập và gói thực sự chạy được
+  - Ghi nhận môi trường build và nguồn gốc artifact
+  - So sánh checksum và phân tích khác biệt giữa các bản dựng
+- level1: An toàn gói chạy
+  level2:
+  - Kiểm soát mã, thư viện và tài nguyên đưa vào gói
+  - Quét phụ thuộc và danh mục thành phần phần mềm
+  - Bảo vệ nguồn gốc artifact bằng chữ ký và xác minh nhà phát hành
+  - Không đóng gói bí mật vào JAR, image hoặc script
+  - Nguy cơ lộ đối số nhạy cảm qua danh sách tiến trình
+  - Quyền tối thiểu cho người dùng chạy ứng dụng
+  - Quyền tệp, symlink và giải nén vào thư mục an toàn
+  - Giới hạn bề mặt công cụ và dịch vụ không cần thiết trong runtime
+  - Cập nhật thư viện, Java runtime và ảnh nền theo quy trình phát hành
+- level1: Khởi động và sẵn sàng
+  level2:
+  - Phân biệt tiến trình tồn tại, ứng dụng khởi tạo xong và sẵn sàng phục vụ
+  - Thứ tự nạp cấu hình, dựng thành phần và mở tài nguyên
+  - Kiểm tra điều kiện bắt buộc và thông báo lỗi có thể hành động
+  - Thời hạn khởi động và quản lý phụ thuộc chưa sẵn sàng
+  - Migration dữ liệu khi khởi động và rủi ro nhiều thể hiện cùng chạy
+  - Khởi tạo lười và ảnh hưởng đến yêu cầu đầu tiên
+  - Liveness, readiness và startup check trong môi trường triển khai
+  - Công bố phiên bản, thời gian khởi động và trạng thái hiệu lực
+  - Dừng một phần khởi tạo và thu hồi tài nguyên khi bootstrap thất bại
+- level1: Nâng cấp và rollback
+  level2:
+  - Thay gói ứng dụng độc lập với cấu hình và dữ liệu
+  - Bố cục thư mục theo phiên bản và chuyển điểm khởi chạy
+  - Tương thích giữa phiên bản ứng dụng và Java runtime
+  - Thay đổi định dạng cấu hình và giá trị mặc định
+  - Nâng cấp có migration dữ liệu và giới hạn quay lui
+  - Tránh nhiều phiên bản tranh chấp tệp, cổng hoặc khóa
+  - Giữ khả năng chạy lại bản cũ với điều kiện đã xác minh
+  - Cập nhật runtime đóng kèm và bộ cài theo phiên bản ứng dụng
+  - Dọn phiên bản cũ sau khi kiểm tra bản mới hoạt động ổn định
+- level1: Kiểm thử gói chạy
+  level2:
+  - Kiểm tra cấu trúc gói, điểm vào và danh sách phụ thuộc
+  - Smoke test bằng chính artifact đã tạo
+  - Chạy trên máy sạch hoặc môi trường cô lập
+  - Ma trận Java, hệ điều hành và kiến trúc CPU mục tiêu
+  - Kiểm thử đường dẫn có khoảng trắng, Unicode và thư mục làm việc khác
+  - Kiểm thử không có mạng hoặc không có công cụ build trên máy đích
+  - Kiểm thử quyền hạn chế và hệ thống tệp chỉ đọc
+  - Kiểm thử truyền đối số, biến môi trường và mã thoát
+  - Kiểm thử dừng, chạy lại và giải phóng tài nguyên
+  - Kiểm thử cài mới, nâng cấp, gỡ cài đặt và giữ dữ liệu
+- level1: Chẩn đoán lỗi
+  level2:
+  - Không tìm thấy lệnh java hoặc chạy nhầm bản cài
+  - Không tìm thấy lớp chính hoặc thiếu Main-Class
+  - ClassNotFoundException và NoClassDefFoundError khi đóng gói thiếu
+  - UnsupportedClassVersionError và lệch phiên bản Java
+  - NoSuchMethodError hoặc LinkageError do xung đột thư viện
+  - Không tìm thấy mô-đun hoặc vi phạm ranh giới truy cập JPMS
+  - Thiếu tài nguyên hoặc sai đường dẫn khi chuyển từ IDE sang JAR
+  - UnsatisfiedLinkError và khác biệt thư viện native trên máy đích
+  - Lỗi script do quoting, xuống dòng hoặc quyền thực thi
+  - Chạy được từ terminal nhưng lỗi dưới service hoặc container
+  - Không bind được cổng, sai địa chỉ lắng nghe hoặc thiếu quyền tệp
+  - Thu thập lệnh khởi chạy, môi trường hiệu lực và log để tái hiện
+- level1: Hiệu năng khởi động
+  level2:
+  - Tách thời gian nạp runtime, nạp lớp và khởi tạo ứng dụng
+  - Đo khởi động lạnh, khởi động ấm và thời điểm sẵn sàng
+  - Chi phí giải nén, đọc đĩa và bố cục gói
+  - Ảnh hưởng của số lượng thư viện và quét classpath
+  - CDS, AppCDS và điều kiện sử dụng theo JDK
+  - Đánh đổi của khởi tạo lười và tác vụ nền
+  - So sánh gói JVM với native executable bằng cùng tiêu chí
+  - Cân bằng kích thước phân phối, tốc độ khởi động và khả năng chẩn đoán
+- level1: Quy trình phát hành
+  level2:
+  - Chuỗi build, kiểm thử, đóng gói, xác minh và công bố
+  - Dựng riêng artifact theo nền tảng khi cần
+  - Promote cùng artifact qua các môi trường
+  - Đính kèm checksum, nguồn gốc và hướng dẫn khởi chạy
+  - Quản lý retention của artifact và phiên bản hỗ trợ
+  - Tự động kiểm tra cài đặt và chạy thử trong pipeline
+  - Kiểm tra cấu hình triển khai khớp hợp đồng gói phát hành
+  - Ghi nhận artifact thực tế đang chạy và hỗ trợ quay lui
+- level1: Bài tập thực hành
+  level2:
+  - Biên dịch lớp Java và khởi chạy không qua IDE
+  - Tạo JAR có manifest và kiểm chứng java -jar
+  - Đóng gói ứng dụng nhiều thư viện thành bản phân phối bin và lib
+  - So sánh thin JAR, shaded JAR và nested JAR
+  - Chạy executable JAR của Spring Boot bên ngoài thư mục dự án
+  - Viết script truyền đúng đối số trên đường dẫn có khoảng trắng
+  - Tạo runtime tùy chỉnh và bản phân phối không cần Java cài sẵn
+  - Tạo bộ cài ứng dụng và kiểm thử nâng cấp
+  - Xây dựng container nhận tín hiệu dừng và thoát có kiểm soát
+  - Đăng ký ứng dụng thành dịch vụ với môi trường chạy tường minh
+  - Tái hiện lỗi chỉ xuất hiện trên máy đích và lập bằng chứng chẩn đoán
+  - Danh sách kiểm tra gói hoàn chỉnh và khả năng khởi chạy độc lập

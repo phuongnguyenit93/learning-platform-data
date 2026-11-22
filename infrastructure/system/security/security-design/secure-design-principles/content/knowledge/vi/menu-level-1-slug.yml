@@ -1,0 +1,133 @@
+menu:
+- title: Nhập môn secure design
+  slug: secure-design-introduction
+  index: 0
+- title: Security by design
+  slug: security-by-design
+  index: 1
+- title: Secure defaults
+  slug: secure-defaults
+  index: 2
+- title: Fail secure
+  slug: fail-secure
+  index: 3
+- title: Defense in depth
+  slug: defense-in-depth
+  index: 4
+- title: Least privilege
+  slug: least-privilege
+  index: 5
+- title: Separation of duties
+  slug: separation-of-duties
+  index: 6
+- title: Giảm attack surface
+  slug: attack-surface-reduction
+  index: 7
+- title: Economy of mechanism
+  slug: economy-of-mechanism
+  index: 8
+- title: Open design
+  slug: open-design
+  index: 9
+- title: Complete mediation
+  slug: complete-mediation
+  index: 10
+- title: Non-bypassability
+  slug: non-bypassability
+  index: 11
+- title: Compartmentalization
+  slug: compartmentalization
+  index: 12
+- title: Isolation
+  slug: isolation
+  index: 13
+- title: Least common mechanism
+  slug: least-common-mechanism
+  index: 14
+- title: Modularity và layering
+  slug: modularity-layering
+  index: 15
+- title: Trust boundaries
+  slug: trust-boundaries
+  index: 16
+- title: Hierarchical trust
+  slug: hierarchical-trust
+  index: 17
+- title: Clear abstractions
+  slug: clear-abstractions
+  index: 18
+- title: Encapsulation
+  slug: encapsulation
+  index: 19
+- title: Minimized sharing
+  slug: minimized-sharing
+  index: 20
+- title: Secure communication
+  slug: secure-communication
+  index: 21
+- title: Identity design
+  slug: identity-design
+  index: 22
+- title: Authorization design
+  slug: authorization-design
+  index: 23
+- title: Data protection
+  slug: data-protection
+  index: 24
+- title: Integrity design
+  slug: integrity-design
+  index: 25
+- title: Availability design
+  slug: availability-design
+  index: 26
+- title: Resilience và recovery
+  slug: resilience-recovery
+  index: 27
+- title: Accountability
+  slug: accountability
+  index: 28
+- title: Observability
+  slug: observability
+  index: 29
+- title: Human factors
+  slug: human-factors
+  index: 30
+- title: Privacy by design
+  slug: privacy-by-design
+  index: 31
+- title: Secure evolvability
+  slug: secure-evolvability
+  index: 32
+- title: Dependency trust
+  slug: dependency-trust
+  index: 33
+- title: Secure distributed composition
+  slug: secure-distributed-composition
+  index: 34
+- title: Secure architecture patterns
+  slug: secure-architecture-patterns
+  index: 35
+- title: Design review
+  slug: design-review
+  index: 36
+- title: Verification
+  slug: verification
+  index: 37
+- title: Legacy refactoring
+  slug: legacy-refactoring
+  index: 38
+- title: Case study API
+  slug: case-study-api
+  index: 39
+- title: Case study service
+  slug: case-study-service
+  index: 40
+- title: Case study secrets
+  slug: case-study-secrets
+  index: 41
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 42
+- title: Checklist secure design
+  slug: checklist-secure-design
+  index: 43

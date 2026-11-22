@@ -1,0 +1,100 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Pipeline đầu tiên
+  slug: first-pipeline
+  index: 1
+- title: Cấu trúc YAML
+  slug: yaml-structure
+  index: 2
+- title: Job và script
+  slug: jobs-scripts
+  index: 3
+- title: Stage và đồ thị phụ thuộc
+  slug: stages-dependency-graph
+  index: 4
+- title: Nguồn pipeline
+  slug: pipeline-sources
+  index: 5
+- title: workflow và rules
+  slug: workflow-rules
+  index: 6
+- title: Runner
+  slug: runner
+  index: 7
+- title: Executor và cô lập
+  slug: executors-isolation
+  index: 8
+- title: Image và services
+  slug: images-services
+  index: 9
+- title: Biến và đầu vào
+  slug: variables-inputs
+  index: 10
+- title: Bí mật và danh tính
+  slug: secrets-and-identity
+  index: 11
+- title: Artifact và báo cáo
+  slug: artifacts-reports
+  index: 12
+- title: Cache
+  slug: cache
+  index: 13
+- title: Tái sử dụng cấu hình
+  slug: reusable-configurations
+  index: 14
+- title: Dựng ứng dụng Java
+  slug: building-java-applications
+  index: 15
+- title: Kiểm thử và chất lượng
+  slug: testing-quality
+  index: 16
+- title: Đóng gói và xuất bản
+  slug: packaging-publishing
+  index: 17
+- title: Merge request pipeline
+  slug: merge-request-pipeline
+  index: 18
+- title: Pipeline phân cấp
+  slug: child-pipelines
+  index: 19
+- title: Monorepo và ma trận
+  slug: monorepos-matrices
+  index: 20
+- title: Lịch chạy và kích hoạt
+  slug: schedules-triggers
+  index: 21
+- title: Trạng thái và điều khiển
+  slug: status-controls
+  index: 22
+- title: Môi trường triển khai
+  slug: deployment-environments
+  index: 23
+- title: Phát hành và quay lui
+  slug: releases-rollbacks
+  index: 24
+- title: Bảo mật pipeline
+  slug: pipeline-security
+  index: 25
+- title: Kiểm tra chuỗi cung ứng
+  slug: supply-chain-checks
+  index: 26
+- title: Hiệu năng và chi phí
+  slug: performance-cost
+  index: 27
+- title: Vận hành runner
+  slug: runner-operations
+  index: 28
+- title: API và quan sát
+  slug: apis-observability
+  index: 29
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 30
+- title: Thiết kế và bảo trì
+  slug: design-maintenance
+  index: 31
+- title: Thực hành tổng hợp
+  slug: comprehensive-practice
+  index: 32

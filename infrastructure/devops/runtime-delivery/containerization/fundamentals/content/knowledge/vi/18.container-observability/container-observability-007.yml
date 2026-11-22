@@ -1,0 +1,3 @@
+menuLevel1: Quan sát trạng thái, log và dấu vết vận hành
+menuLevel2: Quan sát tiến trình bằng docker top và đối chiếu với góc nhìn trong container
+status: ""

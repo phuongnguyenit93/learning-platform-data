@@ -1,0 +1,342 @@
+# Phân biệt Oracle Database, SQL, PL/SQL và ứng dụng Java
+
+Khi xây dựng một hệ thống Java lưu dữ liệu trong Oracle, bốn tên gọi **Oracle Database**, **SQL**, **PL/SQL** và **Java** thường xuất hiện trong cùng một luồng xử lý. Tuy nhiên, chúng không cùng loại: một bên là hệ quản trị cơ sở dữ liệu, hai bên là ngôn ngữ làm việc với dữ liệu trên máy chủ, và bên còn lại thường là ứng dụng sử dụng cơ sở dữ liệu đó.
+
+> **Ghi nhớ cốt lõi:** **Oracle Database** là hệ thống quản lý dữ liệu; **SQL** mô tả thao tác cần thực hiện trên dữ liệu; **PL/SQL** bổ sung lập trình thủ tục chạy trong Oracle; **Java** thường triển khai ứng dụng, nhận yêu cầu và kết nối đến Oracle để thực thi SQL hoặc gọi chương trình PL/SQL.
+
+## 1. Bốn khái niệm ở bốn vai trò khác nhau
+
+| Khái niệm | Bản chất | Trách nhiệm chính | Thường chạy ở đâu? |
+| --- | --- | --- | --- |
+| **Oracle Database** | Hệ quản trị cơ sở dữ liệu quan hệ (RDBMS) của Oracle | Lưu trữ, truy vấn, bảo vệ, kiểm soát truy cập đồng thời, phục hồi và quản lý giao dịch dữ liệu | Máy chủ cơ sở dữ liệu hoặc dịch vụ Oracle được quản lý |
+| **SQL** (*Structured Query Language*) | Ngôn ngữ khai báo dùng cho cơ sở dữ liệu quan hệ | Định nghĩa cấu trúc, truy vấn, thêm, sửa, xóa dữ liệu và một số thao tác điều khiển | Câu lệnh được gửi từ công cụ hoặc ứng dụng; **Oracle Database** phân tích và thực thi |
+| **PL/SQL** (*Procedural Language/SQL*) | Ngôn ngữ thủ tục do Oracle mở rộng quanh SQL | Kết hợp SQL với biến, điều kiện, vòng lặp, xử lý ngoại lệ, procedure/function/package/trigger | Bộ thực thi PL/SQL trong môi trường Oracle |
+| **Java** | Ngôn ngữ và nền tảng phát triển phần mềm | Xây dựng API, giao diện backend, xử lý nghiệp vụ, tích hợp hệ thống và điều phối truy cập dữ liệu | Thường là JVM của ứng dụng riêng, ví dụ dịch vụ Spring Boot |
+
+SQL không phải là tên viết tắt của Oracle Database; SQL cũng được sử dụng ở PostgreSQL, SQL Server, MySQL và các hệ quản trị quan hệ khác. Ngược lại, PL/SQL là công nghệ gắn với hệ sinh thái Oracle. Java có thể dùng Oracle nhưng không phụ thuộc duy nhất vào Oracle.
+
+### Nhìn theo luồng yêu cầu
+
+```text
+Người dùng / hệ thống khác
+           |
+           v
+Ứng dụng Java (ví dụ REST API Spring Boot)
+  - Kiểm tra yêu cầu và phân quyền ứng dụng
+  - Tổ chức nghiệp vụ, gọi các dịch vụ khác
+  - Dùng JDBC / framework truy cập dữ liệu
+           |
+           | Kết nối đến Oracle qua Oracle JDBC Driver
+           | Gửi SQL hoặc lời gọi PL/SQL
+           v
+Oracle Database
+  +----------------------------------------------------+
+  | SQL engine: phân tích, tối ưu và thực thi SQL       |
+  | PL/SQL engine: thực thi các khối/chương trình PL/SQL|
+  | Quản lý bảng, chỉ mục, ràng buộc, giao dịch, dữ liệu|
+  +----------------------------------------------------+
+           |
+           v
+Kết quả hàng dữ liệu / số dòng cập nhật / lỗi
+           |
+           v
+Ứng dụng Java trả kết quả cho người gọi
+```
+
+Đây là mô hình ứng dụng phổ biến. Một người dùng cũng có thể gửi SQL trực tiếp từ SQLcl, SQL*Plus hoặc một công cụ quản trị mà không cần ứng dụng Java. Oracle Database còn có những khả năng khác, nhưng không làm thay đổi sự phân biệt trên.
+
+## 2. Oracle Database: hệ thống thực sự quản lý dữ liệu
+
+Oracle Database là **sản phẩm máy chủ cơ sở dữ liệu**, không phải một ngôn ngữ lập trình. Nó quản lý những đối tượng như bảng (*table*), chỉ mục (*index*), khung nhìn (*view*), ràng buộc (*constraint*), người dùng và các đối tượng chương trình lưu trong cơ sở dữ liệu.
+
+Khi ứng dụng gửi một câu SQL, Oracle thực hiện nhiều việc mà câu SQL không tự làm được:
+
+1. **Phân tích và kiểm tra** câu lệnh, quyền truy cập và tên đối tượng.
+2. **Tối ưu kế hoạch thực thi**, chẳng hạn chọn truy cập chỉ mục hay quét bảng khi thích hợp.
+3. **Đọc và thay đổi dữ liệu**, tuân theo ràng buộc của bảng.
+4. **Quản lý giao dịch và truy cập đồng thời** để các phiên làm việc không tùy tiện nhìn thấy thay đổi chưa được xác nhận của nhau.
+5. **Duy trì độ bền và khả năng phục hồi** của dữ liệu theo cơ chế của hệ quản trị.
+
+Phân biệt thêm ba từ thường gặp:
+
+- **Database**: tập dữ liệu và các cấu trúc lưu trữ được hệ quản trị quản lý; trong cách nói đời thường, “Oracle Database” cũng được dùng để chỉ toàn bộ sản phẩm.
+- **Instance**: các tiến trình và vùng bộ nhớ Oracle dùng để vận hành, truy cập cơ sở dữ liệu.
+- **Schema**: tập đối tượng cơ sở dữ liệu thuộc một người dùng, ví dụ các bảng và procedure của một ứng dụng. Schema không đồng nghĩa với một máy chủ riêng.
+
+Vì vậy, câu “Java kết nối tới Oracle” thường có nghĩa là chương trình Java mở một kết nối tới dịch vụ cơ sở dữ liệu và làm việc với các đối tượng trong schema được cấp quyền.
+
+## 3. SQL: diễn tả dữ liệu cần lấy hoặc cần thay đổi
+
+SQL chủ yếu mang tính **khai báo**: lập trình viên mô tả *muốn dữ liệu nào hoặc thay đổi điều gì*; Oracle lựa chọn cách thực thi. Ví dụ, ta có một bảng tài khoản:
+
+```sql
+CREATE TABLE tai_khoan (
+    id          NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    chu_so_huu  VARCHAR2(100 CHAR) NOT NULL,
+    so_du       NUMBER(15, 2) DEFAULT 0 NOT NULL,
+    CONSTRAINT ck_tai_khoan_so_du CHECK (so_du >= 0)
+);
+```
+
+`NUMBER` và `VARCHAR2` là kiểu dữ liệu của Oracle; `IDENTITY` tạo giá trị định danh tự động (được hỗ trợ từ Oracle Database 12c). Ràng buộc `CHECK` giúp từ chối số dư âm bất kể thao tác sửa dữ liệu đến từ Java, một công cụ SQL hay PL/SQL.
+
+Một số câu SQL thường dùng:
+
+```sql
+-- DML: thêm dữ liệu
+INSERT INTO tai_khoan (chu_so_huu, so_du)
+VALUES ('An', 1000000);
+
+INSERT INTO tai_khoan (chu_so_huu, so_du)
+VALUES ('Binh', 500000);
+
+-- Truy vấn dữ liệu: trả về tập hàng thỏa điều kiện
+SELECT id, chu_so_huu, so_du
+FROM tai_khoan
+WHERE so_du >= 100000
+ORDER BY so_du DESC;
+
+-- DML: điều chỉnh hàng được chọn bằng điều kiện
+UPDATE tai_khoan
+SET so_du = so_du + 50000
+WHERE id = 1;
+
+-- Xác nhận những thay đổi DML của giao dịch hiện tại
+COMMIT;
+```
+
+`id = 1` trong ví dụ minh họa giả định có tài khoản mang mã 1; trên dữ liệu thật, ứng dụng cần dùng đúng mã nhận được từ cơ sở dữ liệu. Các câu lệnh minh họa không tạo ra một quy trình chuyển tiền an toàn chỉ bằng cách chạy từng `UPDATE` riêng lẻ.
+
+SQL bao gồm nhiều nhóm lệnh thường được nhắc đến:
+
+| Nhóm | Ví dụ | Mục đích |
+| --- | --- | --- |
+| **DDL** (*Data Definition Language*) | `CREATE`, `ALTER`, `DROP` | Tạo hoặc đổi cấu trúc đối tượng |
+| **DML** (*Data Manipulation Language*) | `INSERT`, `UPDATE`, `DELETE`, `MERGE` | Thay đổi dữ liệu |
+| **Truy vấn** | `SELECT` | Đọc dữ liệu; thường được gọi riêng là *DQL* trong tài liệu nhập môn |
+| **DCL** (*Data Control Language*) | `GRANT`, `REVOKE` | Cấp hoặc thu hồi quyền |
+| **Điều khiển giao dịch** | `COMMIT`, `ROLLBACK`, `SAVEPOINT` | Xác nhận, hủy hoặc đánh dấu điểm lưu giao dịch |
+
+Ở Oracle, nhiều câu DDL tạo **implicit commit** theo quy tắc riêng; không nên đặt `CREATE TABLE` vào giữa một luồng xử lý nghiệp vụ rồi kỳ vọng `ROLLBACK` sẽ hoàn tác DDL như một lệnh `UPDATE` bình thường.
+
+### SQL chuẩn và SQL của Oracle
+
+SQL có chuẩn chung, nhưng mỗi hệ quản trị có phần mở rộng và khác biệt. Chẳng hạn Oracle sử dụng `VARCHAR2`, hỗ trợ `FETCH FIRST ... ROWS ONLY`, các hàm như `NVL`, và có các cú pháp, kiểu dữ liệu, quy tắc giao dịch riêng. **SQL viết cho Oracle không mặc nhiên chạy nguyên vẹn trên mọi hệ quản trị khác.** Khi học SQL cần phân biệt kiến thức SQL quan hệ nói chung với đặc trưng của Oracle Database.
+
+## 4. PL/SQL: lập trình thủ tục ngay trong Oracle
+
+Một câu `SELECT` đơn lẻ thích hợp để lấy một tập dữ liệu. Nhưng khi cần thực hiện nhiều bước có điều kiện, xử lý lỗi và dùng lại logic ở phía cơ sở dữ liệu, Oracle cung cấp **PL/SQL**.
+
+Khối PL/SQL điển hình có cấu trúc:
+
+```sql
+DECLARE
+    v_so_tai_khoan NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_so_tai_khoan
+    FROM tai_khoan
+    WHERE so_du > 0;
+
+    DBMS_OUTPUT.PUT_LINE('So tai khoan co so du duong: ' || v_so_tai_khoan);
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE; -- Chuyển tiếp lỗi cho bên gọi
+END;
+/
+```
+
+- `DECLARE` khai báo biến (không bắt buộc ở mọi khối).
+- `BEGIN ... END` chứa các câu SQL và câu lệnh PL/SQL như `IF`, vòng lặp, phép gán.
+- `SELECT ... INTO` gán kết quả truy vấn vào biến PL/SQL; truy vấn này cần trả đúng một hàng. `COUNT(*)` bảo đảm có một hàng kết quả.
+- `EXCEPTION` xử lý lỗi phát sinh trong khối.
+- Dấu `/` ở dòng cuối là lệnh cho công cụ như SQL*Plus/SQLcl gửi khối vừa nhập đi thực thi; nó **không phải** một phần của ngữ pháp PL/SQL. Muốn thấy `DBMS_OUTPUT.PUT_LINE`, công cụ chạy phải bật hiển thị `DBMS_OUTPUT` (ví dụ `SET SERVEROUTPUT ON`).
+
+Các đơn vị PL/SQL phổ biến là **anonymous block** (khối không tên chạy ngay), **procedure** (thủ tục), **function** (hàm trả giá trị), **package** (gom khai báo và phần cài đặt) và **trigger** (mã được kích hoạt bởi sự kiện được cấu hình). Chương trình Java có thể gọi các procedure/function được cấp quyền, nhưng không cần đưa mọi logic nghiệp vụ vào PL/SQL.
+
+### Ví dụ: thủ tục chuyển tiền phía cơ sở dữ liệu
+
+Để chuyển tiền, yêu cầu gồm kiểm tra đầu vào, trừ tài khoản nguồn, cộng tài khoản đích và xử lý lỗi như **một giao dịch**. Có thể đóng gói logic dữ liệu thành một stored procedure:
+
+```sql
+CREATE OR REPLACE PROCEDURE chuyen_tien (
+    p_tu      IN NUMBER,
+    p_den     IN NUMBER,
+    p_so_tien IN NUMBER
+) AS
+BEGIN
+    IF p_tu IS NULL OR p_den IS NULL OR p_so_tien IS NULL
+       OR p_tu = p_den OR p_so_tien <= 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Tham so chuyen tien khong hop le');
+    END IF;
+
+    -- Điều kiện số dư được kiểm tra ngay trong UPDATE.
+    UPDATE tai_khoan
+    SET so_du = so_du - p_so_tien
+    WHERE id = p_tu AND so_du >= p_so_tien;
+
+    IF SQL%ROWCOUNT <> 1 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Tai khoan nguon khong du tien hoac khong ton tai');
+    END IF;
+
+    UPDATE tai_khoan
+    SET so_du = so_du + p_so_tien
+    WHERE id = p_den;
+
+    IF SQL%ROWCOUNT <> 1 THEN
+        RAISE_APPLICATION_ERROR(-20003, 'Tai khoan dich khong ton tai');
+    END IF;
+END chuyen_tien;
+/
+```
+
+Trong procedure này, các câu `UPDATE` vẫn là **SQL**; các lệnh `IF`, kiểm tra `SQL%ROWCOUNT` và `RAISE_APPLICATION_ERROR` là **PL/SQL**. Điều kiện `so_du >= p_so_tien` nằm trong chính câu `UPDATE` giúp tránh kiểu đọc số dư trước rồi cập nhật trên dữ liệu đã lỗi thời. Ví dụ tập trung vào giao dịch nội bộ một Oracle Database, chưa mô tả đầy đủ các quy tắc của hệ thống tài chính thực tế.
+
+Procedure cố ý **không gọi `COMMIT`**. Đối với một ứng dụng cần phối hợp nhiều thao tác, bên gọi quyết định xác nhận hoặc `ROLLBACK` toàn bộ giao dịch. Khi có lỗi, bên gọi phải xử lý và hủy giao dịch phù hợp; không nên nuốt lỗi rồi xác nhận các bước dở dang.
+
+## 5. Java: ứng dụng gửi yêu cầu và nhận kết quả
+
+Ở một hệ thống thông thường, Java chạy trong JVM của dịch vụ ứng dụng. Java không tự động hiểu cú pháp SQL để thực thi truy vấn trên bộ nhớ của nó. Ứng dụng sử dụng **JDBC API** cùng một **Oracle JDBC Driver** (ví dụ dòng driver `ojdbc`) để gửi yêu cầu qua kết nối đến Oracle Database.
+
+`Connection` biểu diễn kết nối/phiên làm việc, `PreparedStatement` dùng thực thi câu SQL có tham số, `ResultSet` đọc hàng kết quả, còn `CallableStatement` dùng gọi stored procedure. Các thư viện như Spring JDBC, JPA/Hibernate hoặc Spring Data có thể giảm mã JDBC thủ công, nhưng vẫn sử dụng cơ chế truy cập dữ liệu phía dưới.
+
+### Java gọi câu SQL bằng `PreparedStatement`
+
+```java
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+
+public final class TaiKhoanRepository {
+    private final DataSource dataSource;
+
+    public TaiKhoanRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public BigDecimal laySoDu(long taiKhoanId) throws SQLException {
+        String sql = "SELECT so_du FROM tai_khoan WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setLong(1, taiKhoanId);
+
+            try (ResultSet result = statement.executeQuery()) {
+                if (!result.next()) {
+                    throw new SQLException("Khong tim thay tai khoan: " + taiKhoanId);
+                }
+                return result.getBigDecimal("SO_DU");
+            }
+        }
+    }
+}
+```
+
+Điểm cần quan sát:
+
+1. **Java** chuẩn bị chuỗi SQL, gán `taiKhoanId` vào dấu `?`, gọi JDBC rồi biến kết quả thành đối tượng Java `BigDecimal`.
+2. **Oracle JDBC Driver** phụ trách giao tiếp theo giao thức của Oracle.
+3. **Oracle Database** thực sự phân tích và thực thi `SELECT` đối với bảng `tai_khoan`.
+4. `PreparedStatement` truyền dữ liệu tham số riêng với cấu trúc câu SQL, tránh cách nối trực tiếp dữ liệu người dùng vào câu lệnh gây rủi ro SQL injection. Tên bảng/tên cột động vẫn phải được kiểm soát bằng danh sách cho phép vì không thể dùng `?` thay cho định danh SQL.
+
+### Java gọi PL/SQL bằng `CallableStatement`
+
+Sau khi đã tạo procedure `chuyen_tien`, Java có thể gọi nó và quản lý giao dịch:
+
+```java
+import java.math.BigDecimal;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+
+public final class ChuyenTienService {
+    private final DataSource dataSource;
+
+    public ChuyenTienService(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public void chuyenTien(long tuId, long denId, BigDecimal soTien)
+            throws SQLException {
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            try (CallableStatement call = connection.prepareCall(
+                    "{ call chuyen_tien(?, ?, ?) }")) {
+                call.setLong(1, tuId);
+                call.setLong(2, denId);
+                call.setBigDecimal(3, soTien);
+                call.execute();
+                connection.commit();
+            } catch (SQLException error) {
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackError) {
+                    error.addSuppressed(rollbackError);
+                }
+                throw error;
+            }
+        }
+    }
+}
+```
+
+Ở đây, Java giữ trách nhiệm bắt đầu/kết thúc giao dịch JDBC, còn Oracle thực hiện procedure và hai lệnh SQL bên trong. Trong ứng dụng Spring có quản lý giao dịch, mã thực tế thường dùng cơ chế transaction của Spring thay cho tự gọi `commit`/`rollback`; điều quan trọng là xác định **một ranh giới giao dịch rõ ràng** và không trộn lẫn các cơ chế quản lý thiếu kiểm soát.
+
+Không phải mọi trường hợp đều cần PL/SQL: Java cũng có thể dùng nhiều `PreparedStatement` trong **cùng một `Connection` và một giao dịch** để xử lý chuyển tiền. Lựa chọn đặt logic ở Java hay PL/SQL phụ thuộc yêu cầu nghiệp vụ, quyền truy cập, hiệu năng, khả năng triển khai và bảo trì.
+
+## 6. Chọn SQL, PL/SQL hay Java cho từng công việc
+
+| Nhu cầu | Thành phần thường phù hợp | Lý do |
+| --- | --- | --- |
+| Lấy danh sách tài khoản theo điều kiện | **SQL** (`SELECT`) được Java hoặc công cụ gọi | Oracle xử lý dữ liệu theo tập hợp, lọc và sắp xếp hiệu quả |
+| Thêm/sửa/xóa một tập hàng | **SQL** (`INSERT`/`UPDATE`/`DELETE`) | Diễn tả trực tiếp thao tác dữ liệu và tận dụng ràng buộc |
+| Kiểm tra dữ liệu chung cho mọi ứng dụng | **Oracle Database** (PK, FK, `UNIQUE`, `CHECK`, `NOT NULL`) | Bảo vệ tính toàn vẹn ngay tại nơi lưu dữ liệu |
+| Thực hiện một chuỗi thao tác dữ liệu gần nhau, dùng chung bởi nhiều chương trình | **PL/SQL** procedure/package khi có lợi rõ ràng | Tập trung logic phía Oracle, xử lý nhiều bước mà không cần nhiều lượt gọi mạng |
+| Kiểm tra quyền truy cập API, xác thực người dùng, trả JSON, gọi dịch vụ khác | **Java** | Đây là công việc tầng ứng dụng, ngoài phạm vi chính của SQL |
+| Điều phối giao dịch qua các hàm truy cập dữ liệu của một ứng dụng Java | **Java** với JDBC/Spring transaction | Ứng dụng kiểm soát thời điểm commit/rollback của toàn bộ thao tác |
+
+Lựa chọn không phải “chỉ dùng một trong ba ngôn ngữ”. Trong thực tế **Java và SQL thường luôn phối hợp**; PL/SQL là một khả năng bổ sung khi có lý do hợp lý để đưa một phần xử lý vào máy chủ Oracle.
+
+### Một yêu cầu nghiệp vụ đi qua hệ thống như thế nào?
+
+Giả sử người dùng chọn “Chuyển 200.000 đồng từ tài khoản A sang B”:
+
+1. **Ứng dụng Java** nhận HTTP request, kiểm tra danh tính và quyền của người gửi, xác thực dữ liệu đầu vào và quyết định gọi dịch vụ chuyển tiền.
+2. **JDBC** tạo lời gọi procedure `chuyen_tien` với các tham số mã tài khoản và số tiền.
+3. **PL/SQL** kiểm tra điều kiện và điều phối hai thao tác `UPDATE`.
+4. **SQL engine của Oracle** thực thi các `UPDATE`, áp dụng khóa và các ràng buộc liên quan; **Oracle Database** quản lý thay đổi trong giao dịch.
+5. **Java** `COMMIT` nếu thành công hoặc `ROLLBACK` nếu thất bại, rồi chuyển kết quả hoặc lỗi thành HTTP response phù hợp.
+
+Trong một thiết kế khác, bước 2–3 có thể là nhiều câu SQL được Java gọi trực tiếp. Oracle vẫn là nơi lưu trữ dữ liệu và thi hành câu SQL; trách nhiệm giao dịch phải được đảm bảo ở cả hai cách.
+
+## 7. Những nhầm lẫn dễ gặp
+
+**“Oracle và SQL là hai cơ sở dữ liệu khác nhau.”** Không đúng. Oracle Database là hệ quản trị; SQL là ngôn ngữ dùng để tương tác với các hệ quản trị quan hệ, bao gồm Oracle.
+
+**“Viết SQL tức là đang viết PL/SQL.”** Không đúng. `SELECT ... FROM ...` là SQL. Khối `BEGIN ... IF ... UPDATE ... END;` là PL/SQL có chứa câu SQL bên trong. PL/SQL mở rộng khả năng lập trình, chứ không thay thế SQL.
+
+**“Java trực tiếp đọc file dữ liệu của Oracle khi chạy SELECT.”** Không đúng trong kiến trúc JDBC thông thường. Java gửi yêu cầu qua driver; Oracle Database chịu trách nhiệm đọc và truy cập dữ liệu theo cấu trúc, quyền và giao dịch của nó.
+
+**“Mọi xử lý liên quan dữ liệu đều nên viết trong stored procedure.”** Không có quy tắc như vậy. Truy vấn theo tập hợp thường nên diễn tả bằng SQL; quy tắc gắn với HTTP/API và tích hợp dịch vụ thường nằm ở ứng dụng; PL/SQL phù hợp khi việc xử lý gần dữ liệu mang lại lợi ích rõ ràng.
+
+**“Chạy hai lệnh UPDATE liên tiếp là mặc nhiên nguyên tử.”** Không đúng. Cần một ranh giới giao dịch được kiểm soát; khi một bước lỗi phải hủy toàn bộ thay đổi liên quan. Các ràng buộc của Oracle là tuyến bảo vệ bổ sung nhưng không thay thế quyết định giao dịch.
+
+**“Java và PL/SQL chỉ khác cú pháp, chọn cái nào cũng như nhau.”** Hai ngôn ngữ chạy trong môi trường khác nhau, có thư viện, khả năng triển khai, cách kiểm thử và trách nhiệm kiến trúc khác nhau. Một Java service có thể gọi nhiều hệ thống ngoài Oracle; PL/SQL được thiết kế để thao tác dữ liệu và logic bên trong môi trường Oracle.
+
+## 8. Tự kiểm tra cách phân loại
+
+| Thành phần đang được nói đến | Thuộc khái niệm nào? | Giải thích |
+| --- | --- | --- |
+| `SELECT id FROM tai_khoan WHERE so_du > 0` | **SQL** | Câu truy vấn mô tả tập hàng muốn nhận |
+| `IF SQL%ROWCOUNT = 0 THEN ... END IF;` | **PL/SQL** | Câu điều kiện thủ tục, dựa vào kết quả câu SQL vừa chạy |
+| `connection.prepareStatement(...)` | **Java/JDBC** | Java chuẩn bị lệnh để gửi đi |
+| `CREATE TABLE tai_khoan (...)` | **SQL (DDL)** | Lệnh định nghĩa đối tượng do Oracle thực thi |
+| Khóa hàng, áp dụng `CHECK`, quản lý `COMMIT`/`ROLLBACK` | **Oracle Database** | Chức năng của hệ quản trị khi thực thi giao dịch |
+| `@RestController` nhận HTTP request rồi gọi repository | **Ứng dụng Java/Spring** | Tầng API và điều phối nghiệp vụ |
+
+Khi nhìn một đoạn mã, có thể tự hỏi ba câu: **Ai viết/gửi yêu cầu? Ngôn ngữ nào diễn tả thao tác? Thành phần nào thực sự thực thi trên dữ liệu?** Trả lời được ba câu này sẽ giúp đặt đúng trách nhiệm giữa ứng dụng Java, SQL, PL/SQL và Oracle Database ngay từ lúc thiết kế.

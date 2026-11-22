@@ -1,0 +1,49 @@
+roadmap:
+- id: aws-ha-tang-toan-cau
+  title: AWS & Hạ tầng toàn cầu
+  purpose: Hiểu các thành phần cơ bản của AWS và chọn vị trí triển khai phù hợp.
+  objectives:
+  - '- Phân biệt Region, Availability Zone và Edge Location.'
+  - '- Giải thích mô hình Shared Responsibility của AWS.'
+- id: tai-khoan-iam-cli
+  title: Tài khoản, IAM & CLI
+  purpose: Thiết lập truy cập an toàn và thao tác tài nguyên theo nguyên tắc quyền tối thiểu.
+  objectives:
+  - '- Phân biệt IAM user, role, policy và temporary credential.'
+  - '- Cấu hình AWS CLI/profile để thao tác có kiểm soát.'
+- id: vpc-networking
+  title: VPC & Networking
+  purpose: Tổ chức kết nối mạng và ranh giới truy cập cho tài nguyên trên AWS.
+  objectives:
+  - '- Thiết kế VPC, subnet công khai/riêng tư và route table.'
+  - '- Phân biệt Security Group, Internet Gateway và NAT Gateway.'
+- id: compute-scaling
+  title: Compute & Scaling
+  purpose: Chọn mô hình chạy ứng dụng và mở rộng theo nhu cầu tải.
+  objectives:
+  - '- Khởi tạo EC2 bằng AMI, instance type và security group.'
+  - '- Giải thích ELB, Auto Scaling và vai trò của ECS.'
+- id: s3-luu-tru
+  title: S3 & Lưu trữ
+  purpose: Lưu trữ file/dữ liệu đúng loại dịch vụ và kiểm soát truy cập.
+  objectives:
+  - '- Tạo S3 bucket, upload object và chọn storage class.'
+  - '- Phân biệt S3 với EBS và EFS theo nhu cầu sử dụng.'
+- id: rds-dynamodb
+  title: RDS & DynamoDB
+  purpose: Chọn dịch vụ dữ liệu managed theo cấu trúc và yêu cầu truy vấn.
+  objectives:
+  - '- Tạo/kết nối RDS và nêu ý nghĩa backup, Multi-AZ.'
+  - '- Phân biệt bảng DynamoDB với database quan hệ.'
+- id: lambda-event-integration
+  title: Lambda & Event Integration
+  purpose: Tích hợp ứng dụng theo sự kiện và giảm gánh nặng vận hành server.
+  objectives:
+  - '- Tạo Lambda function và kích hoạt qua event/HTTP.'
+  - '- Nhận diện vai trò của API Gateway, SQS và SNS.'
+- id: iac-quan-sat-chi-phi
+  title: IaC, Quan sát & Chi phí
+  purpose: Vận hành tài nguyên có thể lặp lại, quan sát được và trong ngân sách.
+  objectives:
+  - '- Mô tả CloudFormation stack; theo dõi CloudWatch logs/metrics.'
+  - '- Thiết lập AWS Budgets và đánh giá Well-Architected.'

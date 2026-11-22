@@ -1,0 +1,64 @@
+roadmap:
+- id: sli-golden-signals
+  title: SLI & Golden Signals
+  purpose: Chọn chỉ số phản ánh sức khỏe dịch vụ từ góc nhìn người dùng.
+  objectives:
+  - Phân biệt latency, traffic, errors và saturation.
+  - Chọn SLI về tỷ lệ lỗi và độ trễ cho một API.
+  - Phân biệt metrics phục vụ cảnh báo và chẩn đoán.
+- id: alert-theo-trieu-chung
+  title: Alert theo triệu chứng
+  purpose: Ưu tiên ảnh hưởng người dùng thay vì cảnh báo mọi biến động hạ tầng.
+  objectives:
+  - Viết alert cho lỗi truy cập hoặc độ trễ tăng cao.
+  - So sánh tín hiệu black-box với white-box.
+  - Nhận diện cảnh báo nguyên nhân không cần đánh thức on-call.
+- id: slo-error-budget
+  title: SLO & Error Budget
+  purpose: Dùng mục tiêu độ tin cậy để quyết định khi nào cần cảnh báo.
+  objectives:
+  - Xác định SLO và error budget từ SLI.
+  - Giải thích burn rate và thời gian tiêu hao budget.
+  - Phác thảo quy tắc multiwindow, multi-burn-rate.
+- id: rule-threshold-pending
+  title: Rule, Threshold & Pending
+  purpose: Thiết kế điều kiện kích hoạt rõ ràng và hạn chế cảnh báo chập chờn.
+  objectives:
+  - Viết PromQL hoặc biểu thức threshold theo cửa sổ thời gian.
+  - Phân biệt trạng thái pending, firing và resolved.
+  - Chọn for/pending phù hợp với evaluation interval.
+- id: severity-muc-uu-tien
+  title: Severity & Mức ưu tiên
+  purpose: Phân loại cảnh báo theo mức khẩn cấp và hành động cần thực hiện.
+  objectives:
+  - Phân biệt page khẩn cấp, ticket và tín hiệu thông tin.
+  - Gắn severity, service và owner nhất quán.
+  - Đặt tiêu chí hành động cụ thể cho từng mức.
+- id: routing-on-call
+  title: Routing & On-call
+  purpose: Chuyển đúng thông báo đến người chịu trách nhiệm đúng thời điểm.
+  objectives:
+  - Thiết lập receiver/contact point và routing policy.
+  - Cấu hình lịch trực, fallback và escalation.
+  - Gửi thử một cảnh báo đến đúng nhóm phụ trách.
+- id: grouping-chong-nhieu
+  title: Grouping & Chống nhiễu
+  purpose: Giảm alert fatigue bằng cách gộp và loại bỏ thông báo trùng.
+  objectives:
+  - Phân biệt grouping, deduplication và inhibition.
+  - Dùng silence/mute có thời hạn trong maintenance.
+  - Đánh giá tác động của flapping và repeat interval.
+- id: runbook-incident-flow
+  title: Runbook & Incident Flow
+  purpose: Giúp người trực có đủ ngữ cảnh để khắc phục khi nhận cảnh báo.
+  objectives:
+  - Đưa service, impact, dashboard và runbook vào annotations.
+  - Thực hành acknowledge, triage và escalation.
+  - Ghi nhận nguyên nhân và hành động sau incident.
+- id: kiem-thu-toi-uu-alert
+  title: Kiểm thử & Tối ưu Alert
+  purpose: Kiểm chứng đường truyền cảnh báo và liên tục cải thiện chất lượng.
+  objectives:
+  - Giả lập lỗi, mất dữ liệu và alert recovery trên môi trường test.
+  - Đo false positives, missed alerts và thời gian phản hồi.
+  - Rà soát sau sự cố để sửa rule, owner và ngưỡng.

@@ -1,0 +1,7 @@
+# DevOps Delivery Automation Artifact Management Maven Central
+
+Maven Central là kho lưu trữ công khai cho các thư viện và thành phần thuộc hệ sinh thái Maven/JVM. Việc *sử dụng* dependency từ Central khác với việc *xuất bản* artifact của chính mình: người phát hành cần có namespace được xác minh, tọa độ `groupId:artifactId:version` (GAV), POM metadata hợp lệ và bộ file được ký số. Module này dành cho người đã biết Java, Maven, `pom.xml` và thao tác build/test cơ bản.
+
+Lộ trình bắt đầu bằng khái niệm repository và GAV, sau đó đăng ký Central Publisher Portal, xác minh namespace và chuẩn bị POM metadata. Tiếp theo, bạn đóng gói JAR, sources, Javadoc, tạo chữ ký GPG và checksum, rồi cấu hình `central-publishing-maven-plugin` với user token. Các bước cuối là upload, kiểm tra kết quả validation, chọn phát hành thủ công hay tự động, và đưa quy trình vào CI/CD với quyền truy cập được giới hạn.
+
+Kết thúc module, bạn có thể chuẩn bị một thư viện Java để phát hành, xác định lý do bundle bị từ chối và kiểm chứng phiên bản đã xuất hiện trên Maven Central cũng như có thể tải về từ dự án khác. Cần lưu ý release đã công bố không thể ghi đè hoặc chỉnh sửa, vì vậy phải kiểm thử, chọn version đúng và bảo vệ khóa ký cùng thông tin xác thực trước khi publish.

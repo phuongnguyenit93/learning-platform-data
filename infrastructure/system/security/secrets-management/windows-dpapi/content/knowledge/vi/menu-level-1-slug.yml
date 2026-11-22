@@ -1,0 +1,76 @@
+menu:
+- title: Tổng quan DPAPI
+  slug: dpapi-overview
+  index: 0
+- title: Nền tảng Windows
+  slug: windows-foundations
+  index: 1
+- title: Kiến trúc bảo vệ
+  slug: protection-architecture
+  index: 2
+- title: Phạm vi bảo vệ
+  slug: protection-scope
+  index: 3
+- title: Dữ liệu và entropy
+  slug: data-entropy
+  index: 4
+- title: CryptProtectData
+  slug: cryptprotectdata
+  index: 5
+- title: CryptUnprotectData
+  slug: cryptunprotectdata
+  index: 6
+- title: Bộ nhớ và tài nguyên
+  slug: memory-resources
+  index: 7
+- title: Lưu trữ blob
+  slug: encrypted-blob-storage
+  index: 8
+- title: Ứng dụng desktop
+  slug: desktop-applications
+  index: 9
+- title: Dịch vụ và tác vụ
+  slug: services-background-tasks
+  index: 10
+- title: .NET và PowerShell
+  slug: net-powershell
+  index: 11
+- title: Tài khoản và mật khẩu
+  slug: accounts-passwords
+  index: 12
+- title: Miền và khôi phục
+  slug: domains-recovery
+  index: 13
+- title: Sao lưu và di chuyển
+  slug: backup-migration
+  index: 14
+- title: DPAPI-NG
+  slug: dpapi-ng
+  index: 15
+- title: Bảo vệ bộ nhớ
+  slug: memory-protection
+  index: 16
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 17
+- title: Phòng vệ thực tế
+  slug: practical-defenses
+  index: 18
+- title: Chọn công nghệ
+  slug: technology-selection
+  index: 19
+- title: Thiết kế tích hợp
+  slug: integration-design
+  index: 20
+- title: Kiểm thử
+  slug: testing
+  index: 21
+- title: Chẩn đoán lỗi
+  slug: error-diagnostics
+  index: 22
+- title: Vận hành
+  slug: operations
+  index: 23
+- title: Thực hành
+  slug: hands-on-practice
+  index: 24

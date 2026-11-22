@@ -1,0 +1,57 @@
+roadmap:
+- id: nhan-dien-secret-rui-ro
+  title: Nhận diện secret & rủi ro
+  purpose: Phân biệt thông tin bí mật với cấu hình thường và hiểu hậu quả khi credential bị lộ.
+  objectives:
+  - Nhận diện API key, mật khẩu, token, private key và chứng chỉ.
+  - Phân loại secret theo chủ sở hữu, môi trường và mức nhạy cảm.
+  - Mô tả rủi ro hardcode, chia sẻ và ghi secret vào log.
+- id: luu-tru-tap-trung-ma-hoa
+  title: Lưu trữ tập trung & mã hóa
+  purpose: Đưa bí mật ra khỏi mã nguồn và bảo vệ dữ liệu khi lưu hoặc truyền.
+  objectives:
+  - Giải thích lợi ích của secrets manager chuyên dụng.
+  - Phân biệt mã hóa at rest với TLS in transit.
+  - Kiểm tra version, metadata và chính sách backup của secret.
+- id: danh-tinh-phan-quyen
+  title: Danh tính & phân quyền
+  purpose: Chỉ cho phép đúng ứng dụng hoặc người dùng truy cập đúng bí mật cần thiết.
+  objectives:
+  - Thiết kế quyền đọc/ghi theo least privilege.
+  - Phân biệt workload identity với credential tĩnh.
+  - Tách secret theo môi trường, ứng dụng và phạm vi truy cập.
+- id: cap-phat-secret-cho-ung-dung
+  title: Cấp phát secret cho ứng dụng
+  purpose: Đưa bí mật tới workload lúc chạy mà hạn chế tồn tại dạng plaintext ngoài ý muốn.
+  objectives:
+  - So sánh API retrieval, mounted file và environment variable.
+  - Thử lấy secret bằng danh tính ứng dụng được cấp quyền.
+  - Tránh lộ giá trị qua log, image, debug endpoint và shell history.
+- id: vong-doi-xoay-vong
+  title: Vòng đời & xoay vòng
+  purpose: Quản lý quá trình tạo, cập nhật, hết hạn và thu hồi secret nhằm giảm thời gian bị lạm dụng.
+  objectives:
+  - Mô tả create → use → rotate → revoke/expire.
+  - Phân biệt static secret với dynamic secret/lease.
+  - Thiết kế rotation có kiểm thử, chuyển tiếp và phương án khôi phục.
+- id: secret-trong-ci-cd-runtime
+  title: Secret trong CI/CD & runtime
+  purpose: Giảm rò rỉ khi pipeline, container và nền tảng orchestration cần credential.
+  objectives:
+  - Phân quyền secret theo môi trường và job CI.
+  - Ưu tiên OIDC hoặc danh tính ngắn hạn thay cho khóa dài hạn khi phù hợp.
+  - Giải thích vì sao Kubernetes Secret base64 không phải mã hóa.
+- id: audit-phat-hien-ro-ri
+  title: Audit & phát hiện rò rỉ
+  purpose: Theo dõi việc truy cập và phát hiện credential bị đưa vào repository hoặc bản ghi hệ thống.
+  objectives:
+  - Bật audit cho truy cập, sửa đổi và thất bại xác thực.
+  - Dùng secret scanning để phát hiện giá trị nhạy cảm trong Git.
+  - Kiểm tra log và cảnh báo mà không ghi nguyên secret.
+- id: ung-pho-danh-gia-he-thong
+  title: Ứng phó & đánh giá hệ thống
+  purpose: Thực hành phản ứng khi secret bị lộ và đánh giá việc giảm quyền truy cập sau sự cố.
+  objectives:
+  - Diễn tập revoke/rotate credential và cập nhật consumer.
+  - Xác định dấu vết cần kiểm tra khi nghi bị khai thác.
+  - Lập checklist bảo mật, tính sẵn sàng và trách nhiệm vận hành.

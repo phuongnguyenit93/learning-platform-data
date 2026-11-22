@@ -1,0 +1,571 @@
+menu:
+- level1: Nhập môn
+  level2:
+  - Network security là gì và bảo vệ tài sản nào?
+  - Mối liên hệ giữa mạng, ứng dụng, danh tính và dữ liệu
+  - Confidentiality, integrity và availability trên đường truyền
+  - Attack surface của một hệ thống kết nối mạng
+  - Trust boundary giữa client, service và network zone
+  - Network security khác network performance như thế nào?
+  - Phòng thủ theo lớp trong bảo vệ mạng
+  - Mạng nội bộ không mặc nhiên đáng tin
+  - Security control tại host, network và application
+  - Lộ trình từ packet cơ bản đến kiến trúc zero trust
+- level1: Mô hình mạng
+  level2:
+  - Host, interface, subnet và route
+  - LAN, WAN, internet và private network
+  - Ingress, egress và east-west traffic
+  - North-south traffic và ranh giới hệ thống
+  - DMZ và vùng dịch vụ công khai
+  - Management network và data network
+  - Control plane và data plane
+  - On-premises, cloud và hybrid network
+  - Overlay network và underlay network
+  - Mạng vật lý và mạng logic
+  - Điểm giao nhau của các trust zone
+- level1: TCP IP
+  level2:
+  - Vai trò của IP address
+  - IPv4 và IPv6
+  - Subnet mask và CIDR
+  - Default gateway
+  - Routing table
+  - ARP và Neighbor Discovery
+  - TCP handshake
+  - UDP và đặc điểm không kết nối
+  - Port và socket
+  - Connection state
+  - MTU và fragmentation
+  - DNS trong luồng kết nối
+  - DHCP và cấp phát địa chỉ
+  - Network namespace
+- level1: OSI và giao thức
+  level2:
+  - Tầng vật lý và liên kết dữ liệu
+  - Tầng network
+  - Tầng transport
+  - Tầng session và application
+  - Ethernet frame
+  - IP packet
+  - TCP segment và UDP datagram
+  - HTTP và HTTPS
+  - TLS nằm giữa application và transport như thế nào?
+  - ICMP và chẩn đoán mạng
+  - Giao thức quản trị và giao thức nghiệp vụ
+  - Đọc packet theo lớp để tìm nguyên nhân lỗi
+- level1: Threat modeling mạng
+  level2:
+  - Tài sản cần bảo vệ trong network
+  - Adversary có khả năng gì?
+  - Entry point và exposed service
+  - Trust boundary và data flow
+  - Spoofing trên mạng
+  - Tampering trên đường truyền
+  - Repudiation và audit
+  - Information disclosure
+  - Denial of service
+  - Elevation of privilege qua network
+  - Abuse case và misuse case
+  - Xác định control theo threat
+  - Giới hạn của threat model
+- level1: Reconnaissance
+  level2:
+  - Passive reconnaissance
+  - Active scanning
+  - DNS enumeration
+  - Port scanning
+  - Service fingerprinting
+  - Banner leakage
+  - Certificate transparency
+  - Subdomain discovery
+  - Cloud asset discovery
+  - Network telemetry bị lạm dụng
+  - Giảm thông tin lộ ra ngoài
+  - Phân biệt kiểm tra được phép với hành vi tấn công
+- level1: Network access control
+  level2:
+  - Ai được phép kết nối vào mạng?
+  - Network ACL
+  - Firewall rule
+  - Security group
+  - Host firewall
+  - Default deny
+  - Allowlist và blocklist
+  - Rule theo source, destination và port
+  - Rule theo identity hoặc tag
+  - Rule order và shadowed rule
+  - Temporary access
+  - Rule review và expiration
+  - Bằng chứng khi một kết nối bị từ chối
+- level1: Segmentation
+  level2:
+  - Network segmentation là gì?
+  - Physical và logical segmentation
+  - Subnet segmentation
+  - VLAN
+  - Security zone
+  - Microsegmentation
+  - East-west isolation
+  - Segmentation theo workload
+  - Segmentation theo tenant
+  - Segmentation theo environment
+  - Segmentation cho management plane
+  - Vượt segmentation qua shared service
+  - Kiểm thử đường đi được phép và bị cấm
+- level1: Firewall
+  level2:
+  - Packet filtering firewall
+  - Stateful firewall
+  - Application firewall
+  - Next-generation firewall
+  - Ingress firewall
+  - Egress firewall
+  - Internal segmentation firewall
+  - Rule matching
+  - NAT và tác động tới policy
+  - Firewall logging
+  - Rule hit count
+  - Rule ordering
+  - Rule sprawl
+  - High availability firewall
+  - Fail-open và fail-closed
+- level1: Web application firewall
+  level2:
+  - WAF bảo vệ HTTP application
+  - Managed rule và custom rule
+  - SQL injection detection
+  - Cross-site scripting detection
+  - Path traversal
+  - Request size limit
+  - Rate limiting tại WAF
+  - Bot và automation control
+  - False positive
+  - WAF trước reverse proxy
+  - TLS termination tại WAF
+  - WAF log và request ID
+  - WAF không thay thế secure coding
+- level1: IDS và IPS
+  level2:
+  - Intrusion Detection System
+  - Intrusion Prevention System
+  - Signature-based detection
+  - Anomaly-based detection
+  - Network sensor placement
+  - Inline và out-of-band sensor
+  - Alert severity
+  - False positive và false negative
+  - Blocked traffic và evidence
+  - Tuning rule
+  - Encrypted traffic visibility
+  - NDR và behavior analytics
+  - IDS/IPS phối hợp với SIEM
+- level1: DDoS
+  level2:
+  - Volumetric denial of service
+  - Protocol exhaustion
+  - Application-layer denial of service
+  - SYN flood
+  - UDP amplification
+  - DNS amplification
+  - HTTP flood
+  - Resource exhaustion trong application
+  - Rate limiting và connection limit
+  - Anycast và scrubbing service
+  - DDoS runbook
+  - Bảo vệ availability mà không chặn user hợp lệ
+- level1: DNS security
+  level2:
+  - DNS resolution trong application
+  - Recursive và authoritative DNS
+  - DNS cache poisoning
+  - DNS spoofing
+  - DNSSEC
+  - DoH và DoT
+  - Private DNS zone
+  - Split-horizon DNS
+  - DNS exfiltration
+  - Fast flux
+  - Domain takeover
+  - TTL và failover
+  - Monitoring DNS query bất thường
+- level1: DHCP và IP management
+  level2:
+  - DHCP lease
+  - IP address management
+  - Static và dynamic address
+  - Rogue DHCP server
+  - DHCP snooping
+  - IP conflict
+  - Reserved address
+  - Network inventory
+  - Address allocation theo zone
+  - IPv6 address management
+  - Theo dõi thiết bị mới xuất hiện
+  - Không dùng IP làm identity duy nhất
+- level1: Routing security
+  level2:
+  - Static và dynamic routing
+  - Route advertisement
+  - BGP security
+  - Route hijacking
+  - Route leak
+  - Prefix filtering
+  - RPKI
+  - Default route
+  - Asymmetric routing
+  - Routing policy
+  - Route change monitoring
+  - Kiểm thử đường đi dự phòng
+- level1: Wireless security
+  level2:
+  - Wi-Fi security boundary
+  - SSID và network separation
+  - WPA2 và WPA3
+  - Enterprise authentication
+  - Rogue access point
+  - Evil twin
+  - Wireless client isolation
+  - Guest network
+  - Management frame protection
+  - Wireless encryption
+  - Site survey và signal leakage
+  - Monitoring thiết bị lạ
+- level1: VPN và truy cập từ xa
+  level2:
+  - VPN site-to-site và remote access
+  - IPsec tunnel mode và transport mode
+  - IKE negotiation và security association
+  - Lựa chọn giao thức WireGuard, IPsec và TLS VPN
+  - Split tunnel và full tunnel
+  - Kiểm soát thiết bị khi kết nối từ xa
+  - Xác thực đa yếu tố cho VPN
+  - Phân quyền theo nhóm người dùng VPN
+  - Giới hạn mạng được phép truy cập qua VPN
+  - Bảo vệ endpoint của người dùng từ xa
+  - Theo dõi phiên VPN và phát hiện bất thường
+  - Xử lý tài khoản VPN bị lộ
+  - Thiết kế VPN cho mô hình hybrid cloud
+- level1: TLS và bảo mật kênh truyền
+  level2:
+  - Mục tiêu của TLS trong bảo vệ đường truyền
+  - TLS handshake và quá trình thương lượng
+  - Mã hóa đối xứng và bất đối xứng trong TLS
+  - Certificate chain và xác minh máy chủ
+  - SNI và lựa chọn virtual host
+  - ALPN và thương lượng HTTP/2 hoặc HTTP/3
+  - TLS version và loại bỏ giao thức yếu
+  - Cipher suite và tiêu chí lựa chọn
+  - Perfect forward secrecy
+  - Session resumption và ticket
+  - HSTS và chống hạ cấp kết nối
+  - Bảo vệ TLS ở load balancer và application
+  - Kiểm thử cấu hình TLS trong môi trường thật
+- level1: PKI và chứng thư cho mạng
+  level2:
+  - Vai trò của public key infrastructure
+  - Root CA, intermediate CA và trust store
+  - Quy trình yêu cầu và cấp certificate
+  - Subject Alternative Name cho hostname
+  - Certificate pinning và giới hạn áp dụng
+  - OCSP, CRL và kiểm tra trạng thái chứng thư
+  - Gia hạn và thay thế certificate trước hạn
+  - Certificate cho máy chủ nội bộ
+  - Certificate cho thiết bị và workload
+  - Sự khác nhau giữa certificate server và client
+  - Rủi ro khi tin cậy quá nhiều CA
+  - Kiểm kê certificate và phát hiện certificate sắp hết hạn
+- level1: Proxy reverse proxy và cân bằng tải
+  level2:
+  - Forward proxy và reverse proxy
+  - Reverse proxy như một trust boundary
+  - Load balancer layer 4 và layer 7
+  - TLS termination và TLS passthrough
+  - Health check và tác động đến tính sẵn sàng
+  - Header forwarding và kiểm soát X-Forwarded-For
+  - Giới hạn kích thước request tại proxy
+  - Timeout, connection limit và chống resource exhaustion
+  - Routing theo hostname, path và header
+  - Bảo vệ admin endpoint của proxy
+  - Cấu hình proxy khi có nhiều lớp trung gian
+  - Log correlation giữa proxy và backend
+  - Failover và tránh bypass proxy
+- level1: API và network service security
+  level2:
+  - Bảo vệ REST API tại network boundary
+  - Bảo vệ gRPC và HTTP/2 trên mạng
+  - Xác thực service-to-service
+  - Authorization theo scope và audience
+  - Rate limiting theo client và identity
+  - Request size limit cho network service
+  - Timeout và circuit breaker trong kết nối
+  - Chống SSRF bằng kiểm soát outbound network
+  - Bảo vệ health check và management endpoint
+  - Network policy cho service discovery
+  - Kiểm soát phiên bản và endpoint đã ngừng hỗ trợ
+  - Giới hạn phương thức HTTP và content type
+  - Log security event của API gateway
+- level1: Bảo mật mạng cloud
+  level2:
+  - VPC hoặc VNet và ranh giới mạng cloud
+  - Subnet public và private
+  - Internet gateway và NAT gateway
+  - Security group và stateful filtering
+  - Network ACL và stateless filtering
+  - Route table và định tuyến giữa các subnet
+  - Peering và rủi ro kết nối mạng mở rộng
+  - Transit gateway và mô hình hub-and-spoke
+  - Private endpoint và private service access
+  - Cloud firewall và managed network control
+  - Kiểm soát địa chỉ IP công khai
+  - Cloud load balancer và lớp bảo vệ đi kèm
+  - Flow log cho điều tra lưu lượng
+  - Network segmentation trong tài khoản hoặc project
+  - Phân quyền IAM đối với thay đổi cấu hình mạng
+- level1: Bảo mật mạng container
+  level2:
+  - Network namespace và interface trong container
+  - Bridge network và cơ chế publish port
+  - Container-to-container communication
+  - Container-to-host communication
+  - Docker network mode và rủi ro lựa chọn
+  - Giới hạn port exposed trong image
+  - Bảo vệ Docker socket và control plane
+  - Network isolation giữa các ứng dụng
+  - Egress control cho container
+  - DNS resolution bên trong container
+  - Kiểm soát image có tiến trình mạng không cần thiết
+  - Quan sát lưu lượng container
+  - Bảo vệ network credential trong runtime
+  - Kiểm tra container network trước khi phát hành
+- level1: Bảo mật mạng Kubernetes
+  level2:
+  - Pod network và nguyên tắc mỗi pod một địa chỉ
+  - Service, ClusterIP, NodePort và LoadBalancer
+  - Ingress controller và trust boundary
+  - Kubernetes NetworkPolicy
+  - Default deny cho namespace
+  - Ingress rule và Egress rule của NetworkPolicy
+  - Namespace isolation và cross-namespace traffic
+  - Kubelet, API server và các cổng quản trị
+  - Bảo vệ control plane endpoint
+  - CNI plugin và ảnh hưởng đến chính sách mạng
+  - DNS trong cluster và CoreDNS
+  - Pod security liên quan đến network capability
+  - Node network và hostNetwork
+  - Kiểm soát service account khi truy cập service
+  - Theo dõi thay đổi network policy
+- level1: Service mesh và mTLS
+  level2:
+  - Service mesh giải quyết vấn đề gì
+  - Sidecar proxy và đường đi của request
+  - mTLS giữa các workload
+  - Workload identity trong service mesh
+  - Peer authentication và request authentication
+  - Authorization policy giữa các service
+  - Traffic policy và retry an toàn
+  - Egress gateway và outbound boundary
+  - Ingress gateway và public exposure
+  - Certificate rotation trong service mesh
+  - Quan sát request qua telemetry
+  - Rủi ro khi bypass sidecar proxy
+- level1: Zero Trust Network Access
+  level2:
+  - Nguyên tắc không mặc định tin cậy vị trí mạng
+  - Xác minh identity trước mỗi phiên truy cập
+  - Device posture và điều kiện thiết bị
+  - Application-level access thay cho network-level access
+  - Least privilege cho kết nối nội bộ
+  - Continuous verification và thay đổi mức tin cậy
+  - Identity-aware proxy
+  - Context-aware policy theo người dùng và workload
+  - Microsegmentation trong kiến trúc zero trust
+  - Bảo vệ tài nguyên quản trị
+  - Đường đi di động và truy cập ngoài văn phòng
+  - Đo lường hiệu quả của zero trust
+  - Migrate từ VPN truyền thống sang ZTNA
+  - Các giới hạn khi áp dụng zero trust
+- level1: Kiểm soát egress và chống thất thoát dữ liệu
+  level2:
+  - Vì sao outbound traffic cần được kiểm soát
+  - Allowlist domain và destination
+  - Egress firewall và proxy tập trung
+  - DNS policy cho outbound request
+  - Chặn kết nối trực tiếp ra internet
+  - Kiểm soát port và protocol đi ra
+  - Phát hiện data exfiltration qua HTTPS
+  - Giới hạn upload từ workload
+  - Phân tách đường đi quản trị và đường đi dữ liệu
+  - Xử lý kết nối đến domain mới xuất hiện
+  - Bảo vệ secret khỏi gửi qua network
+  - Egress logging và điều tra bất thường
+  - Ngoại lệ egress có thời hạn và người phê duyệt
+- level1: Giám sát mạng và telemetry
+  level2:
+  - Mục tiêu của network monitoring
+  - Availability, latency, throughput và error rate
+  - Flow log và metadata của kết nối
+  - NetFlow, sFlow và IPFIX
+  - DNS telemetry cho phát hiện truy vấn bất thường
+  - TLS metadata và giới hạn quan sát nội dung
+  - Metrics, logs và traces của network path
+  - Correlation id xuyên qua nhiều lớp proxy
+  - Baseline lưu lượng bình thường
+  - Alert theo ngưỡng và theo hành vi
+  - Giảm nhiễu trong cảnh báo mạng
+  - Theo dõi thay đổi cấu hình firewall
+  - Tích hợp network event vào SIEM
+  - Bảo vệ hệ thống giám sát khỏi bị can thiệp
+- level1: Packet capture và phân tích lưu lượng
+  level2:
+  - Khi nào cần packet capture
+  - Capture point và tác động đến hệ thống
+  - TCP handshake trong bản ghi gói tin
+  - Phân biệt retransmission, reset và timeout
+  - Phân tích DNS packet
+  - Phân tích TLS handshake packet
+  - Đọc HTTP request trong môi trường được phép
+  - BPF filter và giới hạn dữ liệu thu thập
+  - pcap retention và bảo vệ dữ liệu nhạy cảm
+  - So sánh capture ở client, proxy và server
+  - Phân biệt lỗi ứng dụng với lỗi network
+  - Bằng chứng packet capture trong điều tra
+- level1: Ứng phó sự cố mạng
+  level2:
+  - Network incident response lifecycle
+  - Triage cảnh báo lưu lượng bất thường
+  - Xác định tài sản và đường đi bị ảnh hưởng
+  - Khoanh vùng máy chủ hoặc subnet
+  - Chặn IOC tại DNS, firewall và proxy
+  - Cô lập endpoint mà vẫn giữ bằng chứng
+  - Xử lý credential bị lộ trên network
+  - Điều phối giữa network, platform và application team
+  - Ghi nhận timeline của sự cố
+  - Khôi phục kết nối theo thứ tự an toàn
+  - Xác nhận không còn persistence qua network
+  - Post-incident review và action item
+  - Diễn tập network incident response
+  - Tiêu chí mở rộng sự cố thành security incident
+- level1: Điều tra số trên mạng
+  level2:
+  - Nguồn bằng chứng của network forensics
+  - Bảo toàn log và chain of custody
+  - Phân tích flow để dựng communication graph
+  - Truy vết hostname, IP và certificate
+  - Nhận diện beaconing và periodic connection
+  - Phân tích DNS tunneling
+  - Phát hiện lateral movement qua network
+  - Đối chiếu thời gian giữa nhiều nguồn log
+  - Giới hạn của IP attribution
+  - Làm việc với dữ liệu đã được mã hóa
+  - Báo cáo phát hiện có thể kiểm chứng
+  - Kết thúc vòng đời lưu trữ bằng chứng
+- level1: Hardening thiết bị và dịch vụ mạng
+  level2:
+  - Inventory thiết bị mạng và phiên bản firmware
+  - Tắt dịch vụ và port không cần thiết
+  - Đổi credential mặc định của thiết bị
+  - Quản trị qua kênh mã hóa
+  - Tách management plane khỏi user traffic
+  - Giới hạn nguồn được phép truy cập quản trị
+  - AAA cho thiết bị mạng
+  - Role-based access cho operator
+  - Backup cấu hình và bảo vệ bản sao
+  - Kiểm soát thay đổi trên router và firewall
+  - NTP an toàn và đồng bộ thời gian
+  - Firmware signing và kiểm tra nguồn cập nhật
+  - Hardening SNMP và giao thức quản trị
+  - Cấu hình fail-safe khi thiết bị gặp lỗi
+  - Định kỳ rà soát rule và tài khoản không dùng
+- level1: Kiểm thử và xác minh bảo mật mạng
+  level2:
+  - Xây dựng phạm vi kiểm thử mạng
+  - Xác định tài sản được phép quét
+  - Port scanning an toàn và có kiểm soát
+  - Service enumeration và fingerprinting
+  - Kiểm tra firewall rule bằng test traffic
+  - Xác minh segmentation bằng đường đi thực tế
+  - Kiểm tra exposed management service
+  - Kiểm tra TLS và certificate endpoint
+  - Kiểm tra default deny và ngoại lệ
+  - Kiểm thử failover và khả năng phục hồi
+  - Kiểm thử rate limit và chống flood
+  - Kiểm tra egress theo allowlist
+  - Tự động hóa network security regression test
+  - Đánh giá kết quả và loại bỏ false positive
+- level1: Red team và mô phỏng tấn công mạng
+  level2:
+  - Mục tiêu và phạm vi của network red team
+  - Rules of engagement cho kiểm thử tấn công
+  - Mô phỏng reconnaissance có phê duyệt
+  - Mô phỏng initial access qua network
+  - Mô phỏng lateral movement
+  - Mô phỏng command and control
+  - Mô phỏng exfiltration an toàn
+  - Đo khả năng phát hiện của SOC
+  - Phân biệt red team, penetration test và purple team
+  - Bảo vệ dữ liệu sản xuất trong bài diễn tập
+  - Kết quả cần bàn giao sau mô phỏng
+  - Chuyển phát hiện thành cải tiến control
+- level1: Quyết định kiến trúc bảo mật mạng
+  level2:
+  - Xác định trust boundary trước khi chọn công cụ
+  - Đánh đổi giữa bảo mật và độ trễ
+  - Đánh đổi giữa visibility và privacy
+  - Centralized control và distributed control
+  - Thiết kế cho high availability
+  - Thiết kế multi-region và failover
+  - Bảo vệ đường đi của traffic liên vùng
+  - Network control dùng chung và ownership
+  - Khi nào dùng managed service
+  - Khi nào cần custom network control
+  - Chi phí vận hành của nhiều lớp bảo vệ
+  - Khả năng rollback cấu hình mạng
+  - Architecture decision record cho network security
+  - Đánh giá tác động khi thêm một trust zone
+- level1: Quản trị vận hành mạng an toàn
+  level2:
+  - Ownership của firewall, DNS và routing
+  - Quy trình yêu cầu mở port
+  - Phê duyệt thay đổi network policy
+  - Time-bound access cho ngoại lệ
+  - Tách nhiệm vụ giữa người yêu cầu và người duyệt
+  - Kiểm kê rule theo chủ sở hữu
+  - Rà soát rule không còn traffic
+  - Quản lý cấu hình bằng version control
+  - Kiểm tra drift giữa cấu hình mong muốn và thực tế
+  - Runbook cho lỗi kết nối thường gặp
+  - SLA và chỉ số của network security operation
+  - Đào tạo operator về dấu hiệu tấn công
+  - Audit trail cho thao tác quản trị
+- level1: Sai lầm thường gặp
+  level2:
+  - Tin rằng mạng nội bộ luôn an toàn
+  - Mở port để xử lý sự cố rồi quên đóng
+  - Dùng allow all để che lỗi cấu hình
+  - Đặt rule quá rộng theo địa chỉ IP
+  - Bỏ qua IPv6 khi chỉ bảo vệ IPv4
+  - Không bảo vệ kênh quản trị
+  - Không ghi log deny và thay đổi cấu hình
+  - Dùng chung một security group cho mọi workload
+  - Cho phép egress không giới hạn
+  - Không kiểm tra đường bypass proxy hoặc firewall
+  - Phụ thuộc vào IP thay vì identity
+  - Tạo quá nhiều ngoại lệ không có thời hạn
+  - Không kiểm thử khi topology thay đổi
+- level1: Dự án thực hành bảo mật mạng
+  level2:
+  - Đặt mục tiêu và phạm vi cho lab network security
+  - Vẽ topology và các trust boundary
+  - Tạo subnet public, private và management
+  - Triển khai firewall theo nguyên tắc default deny
+  - Đặt reverse proxy trước service mẫu
+  - Bật TLS và kiểm tra certificate chain
+  - Thiết lập DNS logging và flow logging
+  - Tạo chính sách egress cho workload
+  - Thêm network policy cho container hoặc Kubernetes
+  - Mô phỏng một sự cố lateral movement
+  - Thu thập packet capture và log liên quan
+  - Viết playbook cô lập nguồn tấn công
+  - Kiểm thử các đường truy cập hợp lệ và bị chặn
+  - Đánh giá kết quả và đề xuất cải tiến

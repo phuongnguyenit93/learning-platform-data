@@ -1,0 +1,3 @@
+menuLevel1: Profiling liên tục
+menuLevel2: Chuẩn hóa nhãn bằng pyroscope.relabel và gửi bằng pyroscope.write
+status: ''

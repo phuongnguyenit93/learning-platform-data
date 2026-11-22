@@ -1,0 +1,3 @@
+menuLevel1: Tự giám sát
+menuLevel2: Phát hiện lỗi đánh giá qua prometheus_rule_evaluation_failures_total
+status: ''

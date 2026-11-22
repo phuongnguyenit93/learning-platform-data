@@ -1,0 +1,321 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Độ tin cậy của dịch vụ là gì dưới góc nhìn người sử dụng
+  - Phân biệt chỉ số mức dịch vụ (SLI), mục tiêu mức dịch vụ (SLO) và thỏa thuận mức dịch vụ (SLA)
+  - Mối liên hệ giữa trải nghiệm người dùng, phép đo, mục tiêu và cam kết
+  - Phân biệt SLO với KPI kinh doanh, chỉ số hạ tầng và ngưỡng cảnh báo
+  - Vì sao mục tiêu độ tin cậy cần gắn với chi phí và tốc độ thay đổi
+  - Vai trò của ngân sách lỗi trong cân bằng độ tin cậy và phát triển
+  - Vòng đời từ xác định dịch vụ đến đo lường, đánh giá và cải tiến
+- level1: Trải nghiệm người dùng
+  level2:
+  - Xác định dịch vụ, người dùng và hành trình sử dụng quan trọng
+  - Chọn thao tác cần bảo vệ thay vì đo mọi thành phần như nhau
+  - Xác định kết quả thành công từ góc nhìn người dùng
+  - Phân biệt trải nghiệm đầu cuối với trạng thái của từng thành phần
+  - Nhận diện suy giảm một phần và tác động đến từng nhóm người dùng
+  - Xác định phạm vi theo môi trường, vùng, khách hàng và loại thao tác
+  - Xác định chủ sở hữu và các bên thống nhất mục tiêu
+  - Lập danh sách ưu tiên hành trình cần xây dựng SLI
+- level1: Đặc tả SLI
+  level2:
+  - Phân biệt điều muốn đo với cách triển khai phép đo SLI
+  - Xác định sự kiện hợp lệ, sự kiện tốt và sự kiện xấu
+  - Thiết kế tử số và mẫu số có cùng phạm vi đo
+  - SLI theo sự kiện và SLI theo thời gian phù hợp với trường hợp nào
+  - Xác định điểm đo, nguồn dữ liệu và chiều phân loại
+  - Quy định ngưỡng thành công và cách xử lý trường hợp biên
+  - Ghi rõ điều kiện loại trừ và dữ liệu không đủ để kết luận
+  - Đặc tả đơn vị, tần suất cập nhật và độ trễ công bố
+  - Kiểm tra SLI có phản ánh đúng trải nghiệm cần bảo vệ hay không
+- level1: SLI khả dụng
+  level2:
+  - Định nghĩa khả dụng dựa trên yêu cầu hợp lệ và kết quả phục vụ
+  - Phân loại mã trạng thái HTTP theo ý nghĩa của dịch vụ
+  - Xử lý lỗi ứng dụng nằm trong phản hồi HTTP thành công
+  - Phân loại kết quả RPC và gRPC theo hợp đồng thao tác
+  - Xử lý timeout, mất kết nối và yêu cầu không đến được ứng dụng
+  - Xử lý hủy yêu cầu, giới hạn tốc độ và lỗi do dữ liệu đầu vào
+  - Đo suy giảm chức năng khi dịch vụ vẫn phản hồi được
+  - Phân biệt khả dụng của endpoint kiểm tra sức khỏe với khả dụng người dùng
+  - Kiểm chứng tác động của bảo trì và điều kiện loại trừ
+- level1: SLI độ trễ
+  level2:
+  - Chọn điểm bắt đầu và kết thúc của thời gian phản hồi
+  - Phân biệt độ trễ phía máy chủ, phía máy khách và toàn hành trình
+  - Tính tỷ lệ yêu cầu hoàn thành trong ngưỡng thời gian quy định
+  - Phân biệt SLI theo ngưỡng với theo dõi các phân vị p50, p95 và p99
+  - Đọc phân bố độ trễ và tác động của phần đuôi phân bố
+  - Vì sao không lấy trung bình các phân vị giữa các máy hoặc vùng
+  - Chọn bucket histogram phù hợp với ngưỡng SLO
+  - Đo độ trễ theo loại thao tác thay vì trộn các đường xử lý khác nhau
+  - Xử lý yêu cầu timeout, lỗi và chưa hoàn thành trong SLI độ trễ
+  - Đo thời gian có kết quả đầu tiên và hoàn thành toàn bộ với luồng dữ liệu
+- level1: SLI dữ liệu
+  level2:
+  - Đo tính đúng đắn của kết quả theo điều kiện có thể kiểm chứng
+  - Đo độ mới của dữ liệu theo thời điểm phát sinh và thời điểm sử dụng
+  - Đo độ đầy đủ của dữ liệu dự kiến phải có
+  - Phân biệt mất dữ liệu, ghi trùng và xử lý sai thứ tự
+  - Định nghĩa SLI về độ bền dữ liệu và giới hạn của bằng chứng đo
+  - Đo mức độ nhất quán bằng độ trễ hoặc sai khác quan sát được
+  - Xác định tập dữ liệu đối chiếu và sai số được phép
+  - Xử lý dữ liệu đến muộn và kết quả đối chiếu thay đổi sau khi công bố
+  - Phân biệt chất lượng dữ liệu với khả dụng của hệ thống lưu trữ
+- level1: Luồng bất đồng bộ
+  level2:
+  - Chọn đơn vị đo cho thông điệp, tác vụ và lượt chạy công việc
+  - Đo tỷ lệ xử lý thành công trong thời hạn cam kết
+  - Đo độ trễ đầu cuối từ tiếp nhận đến kết quả có thể sử dụng
+  - Đo tuổi thông điệp và độ trễ hàng đợi so với số lượng tồn đọng
+  - Xử lý retry, thông điệp trùng và tác vụ được chạy lại
+  - Xác định trạng thái thất bại cuối cùng và hàng đợi lỗi
+  - Thiết kế SLI cho công việc định kỳ và hạn hoàn thành batch
+  - Đo tiến độ của luồng xử lý liên tục và nguy cơ ngừng cập nhật
+- level1: Chất lượng phép đo
+  level2:
+  - So sánh đo bằng nhật ký, chỉ số, dấu vết và kiểm tra tổng hợp
+  - Phân biệt kiểm tra bên ngoài với đo từ bên trong dịch vụ
+  - Đánh giá độ bao phủ của điểm đo và các lỗi không được ghi nhận
+  - Ảnh hưởng của lấy mẫu đến tử số, mẫu số và các sự kiện hiếm
+  - Kiểm soát lệch đồng hồ và độ chính xác dấu thời gian
+  - Xử lý sự kiện trùng, đến muộn và dữ liệu bị mất
+  - Đối chiếu dữ liệu giữa gateway, ứng dụng và phía máy khách
+  - Xác định độ tin cậy của phép đo trước khi công bố kết quả
+  - Bảo vệ dữ liệu nhạy cảm trong nhãn, nhật ký và truy vấn
+- level1: Thu thập số liệu
+  level2:
+  - Thiết kế bộ đếm cho tổng sự kiện và sự kiện đạt yêu cầu
+  - Thiết kế histogram để đo tỷ lệ độ trễ đạt ngưỡng
+  - Chọn nhãn phân loại và kiểm soát số lượng tổ hợp nhãn
+  - Giữ ý nghĩa phép đo ổn định giữa các phiên bản ứng dụng
+  - Xử lý bộ đếm đặt lại khi tiến trình khởi động lại
+  - Kết hợp OpenTelemetry với hệ thống thu thập số liệu
+  - Giám sát chính đường thu thập và lưu trữ dữ liệu SLI
+  - Kiểm tra tính đầy đủ của dữ liệu trước khi triển khai mục tiêu
+- level1: Cửa sổ đánh giá
+  level2:
+  - Phân biệt cửa sổ trượt và cửa sổ theo lịch
+  - Chọn độ dài cửa sổ phù hợp với hành vi dịch vụ và nhu cầu đánh giá
+  - Phân biệt khoảng lấy mẫu, khoảng truy vấn và cửa sổ SLO
+  - Xử lý múi giờ, ranh giới kỳ và số ngày khác nhau giữa các tháng
+  - Tính tỷ lệ trên tổng sự kiện thay vì trung bình các tỷ lệ không cùng trọng số
+  - Tính tỷ lệ khoảng thời gian đạt yêu cầu khi dùng SLI theo thời gian
+  - Xử lý cửa sổ chưa đủ dữ liệu và kỳ đầu mới bật đo
+  - Quy định cách sửa số liệu khi dữ liệu đến muộn
+- level1: Thiết kế SLO
+  level2:
+  - Đặt mục tiêu từ nhu cầu người dùng và mức độ quan trọng của hành trình
+  - Dùng dữ liệu lịch sử để đánh giá khả năng đáp ứng mục tiêu
+  - Chọn ngưỡng SLI và tỷ lệ mục tiêu theo hai quyết định riêng
+  - Xác định mục tiêu theo nhóm thao tác hoặc mức dịch vụ
+  - Đánh giá đánh đổi giữa độ tin cậy, độ trễ, chi phí và năng lực vận hành
+  - Vì sao mục tiêu 100 phần trăm cần được xem xét thận trọng
+  - Tránh mục tiêu quá dễ đạt nhưng không bảo vệ trải nghiệm
+  - Tránh đặt mục tiêu vượt khả năng đo hoặc kiểm soát của nhóm
+  - Lập đặc tả SLO gồm phạm vi, phép đo, cửa sổ và chủ sở hữu
+  - Thống nhất mục tiêu thử nghiệm trước khi dùng để ra quyết định
+- level1: Ngân sách lỗi
+  level2:
+  - Tính tỷ lệ lỗi được phép từ tỷ lệ mục tiêu SLO
+  - Tính ngân sách theo số sự kiện hợp lệ trong cửa sổ đánh giá
+  - Tính ngân sách theo thời gian khi SLI được định nghĩa theo thời gian
+  - Vì sao không tự đổi ngân sách theo yêu cầu thành số phút ngừng dịch vụ
+  - Tính lượng ngân sách đã dùng và còn lại
+  - Diễn giải ngân sách âm khi mức lỗi vượt phần được phép
+  - Ảnh hưởng của biến động lưu lượng đến ngân sách theo sự kiện
+  - Ảnh hưởng của dữ liệu rời cửa sổ trượt đến ngân sách còn lại
+  - Quản lý nhiều SLO mà không gộp các ngân sách khác đơn vị
+  - Minh họa phép tính bằng các tập sự kiện và khoảng thời gian mẫu
+- level1: Tốc độ tiêu hao
+  level2:
+  - Định nghĩa tốc độ tiêu hao ngân sách lỗi (burn rate)
+  - Tính burn rate từ tỷ lệ lỗi quan sát và tỷ lệ lỗi được phép
+  - Diễn giải burn rate bằng một, nhỏ hơn một và lớn hơn một
+  - Phân biệt burn rate tức thời với lượng ngân sách đã dùng trong kỳ
+  - Ước tính thời gian tiêu hết ngân sách với giả định tốc độ không đổi
+  - Đánh giá ảnh hưởng của lưu lượng và thời lượng cửa sổ quan sát
+  - Tính burn rate cho SLI khả dụng và SLI độ trễ
+  - Xử lý trường hợp mẫu số bằng không hoặc không đủ số sự kiện
+- level1: Chính sách ngân sách
+  level2:
+  - Xác định hành động khi ngân sách còn nhiều, gần hết hoặc đã hết
+  - Ưu tiên công việc độ tin cậy dựa trên mức tiêu hao ngân sách
+  - Đặt điều kiện phát hành và điều kiện tạm dừng thay đổi có rủi ro
+  - Phân biệt thay đổi tính năng với sửa lỗi hoặc vá bảo mật khẩn cấp
+  - Phân công người quyết định và người phê duyệt ngoại lệ
+  - Quy định thời hạn, bằng chứng và rà soát sau ngoại lệ
+  - Tránh dùng ngân sách lỗi để quy trách nhiệm cá nhân
+  - Đánh giá lại chính sách bằng tác động thực tế đến người dùng
+- level1: Cảnh báo theo SLO
+  level2:
+  - Chuyển từ cảnh báo chỉ số đơn lẻ sang cảnh báo rủi ro vi phạm mục tiêu
+  - Thiết kế cảnh báo theo nhiều cửa sổ và nhiều mức burn rate
+  - Kết hợp cửa sổ dài xác nhận tác động và cửa sổ ngắn xác nhận còn lỗi
+  - Liên hệ ngưỡng cảnh báo với phần ngân sách và thời gian tiêu hao
+  - Phân biệt cảnh báo cần xử lý ngay với công việc xử lý trong giờ làm
+  - Điều chỉnh cảnh báo cho lỗi bùng phát và lỗi kéo dài
+  - Thiết kế thời điểm kích hoạt, khôi phục và chống cảnh báo dao động
+  - Xử lý ngưỡng số sự kiện tối thiểu và tình trạng không có dữ liệu
+  - Gắn cảnh báo với hành trình, chủ sở hữu và hướng dẫn xử lý
+  - Kiểm thử cảnh báo trước khi đưa vào quy trình trực vận hành
+- level1: Prometheus và PromQL
+  level2:
+  - Ánh xạ đặc tả SLI sang bộ đếm và histogram của Prometheus
+  - Tính tốc độ tăng và xử lý counter reset bằng rate hoặc increase
+  - Tổng hợp tử số và mẫu số theo cùng tập nhãn
+  - Tính tỷ lệ thành công và tỷ lệ lỗi theo sự kiện
+  - Tính tỷ lệ yêu cầu đạt ngưỡng bằng bucket histogram phù hợp
+  - Phân biệt tính phân vị bằng histogram_quantile với tính SLI theo ngưỡng
+  - Xử lý chuỗi thiếu dữ liệu, mẫu số bằng không và dữ liệu cũ
+  - Tạo recording rule cho tỷ lệ lỗi và burn rate dùng lại
+  - Thiết kế alerting rule cho các cửa sổ quan sát
+  - Kiểm thử truy vấn và quy tắc bằng dữ liệu đầu vào đã biết
+- level1: Tự động hóa SLO
+  level2:
+  - Quản lý đặc tả SLO như mã nguồn có lịch sử thay đổi
+  - Tách cấu hình dịch vụ khỏi mẫu sinh truy vấn và cảnh báo
+  - Đánh giá OpenSLO như một cách mô tả SLO có cấu trúc
+  - Đánh giá Sloth hoặc Pyrra trong quy trình triển khai SLO
+  - Kiểm tra schema, nhãn và tính nhất quán của đặc tả
+  - Duyệt thay đổi SLO, quy tắc và bảng điều khiển qua pull request
+  - Phát hiện chênh lệch giữa cấu hình mong muốn và cấu hình đang chạy
+  - Quản lý phiên bản và quay lại cấu hình SLO khi có lỗi
+- level1: Bảng điều khiển
+  level2:
+  - Hiển thị mục tiêu, tỷ lệ đạt được và trạng thái cửa sổ đánh giá
+  - Hiển thị ngân sách còn lại, ngân sách đã dùng và burn rate
+  - Thể hiện độ đầy đủ và độ trễ của dữ liệu đo
+  - Phân rã theo hành trình, vùng và nhóm khách hàng để tìm điểm bị che khuất
+  - Kết hợp dòng thời gian SLO với phát hành và sự cố
+  - Phân biệt bảng điều khiển vận hành với báo cáo cho các bên liên quan
+  - Tránh biểu đồ trung bình che lấp suy giảm hoặc gây hiểu sai
+- level1: Thiết kế SLA
+  level2:
+  - Xác định bên cung cấp, bên sử dụng và dịch vụ trong thỏa thuận
+  - Mô tả chỉ tiêu, phương pháp đo và kỳ đánh giá có thể đối chiếu
+  - Quy định điều kiện yêu cầu hợp lệ và phạm vi lỗi được tính
+  - Làm rõ bảo trì, điều kiện loại trừ và trách nhiệm của khách hàng
+  - Quy định nguồn bằng chứng và quy trình đối soát kết quả
+  - Mô tả cách thông báo gián đoạn và cung cấp báo cáo
+  - Xác định quy trình yêu cầu khoản bù trừ (service credit) và trách nhiệm phê duyệt
+  - Phân biệt SLA bên ngoài với thỏa thuận vận hành nội bộ
+  - Rà soát tính khả thi kỹ thuật cùng các bên phụ trách cam kết
+  - Quản lý phiên bản, ngày hiệu lực và cách thay đổi thỏa thuận
+- level1: Liên hệ SLO và SLA
+  level2:
+  - Ánh xạ chỉ tiêu SLA sang SLI và SLO phục vụ vận hành
+  - Đặt khoảng đệm giữa mục tiêu nội bộ và cam kết bên ngoài
+  - Đối chiếu khác biệt về phạm vi, cửa sổ và điều kiện loại trừ
+  - Phân biệt cảnh báo SLO với kết luận vi phạm SLA
+  - Tránh dùng cùng một tỷ lệ khi hai phép đo có mẫu số khác nhau
+  - Liên kết cam kết của nhà cung cấp phụ thuộc với mục tiêu dịch vụ
+  - Chuẩn bị bằng chứng cho đối soát và giải quyết số liệu bất đồng
+  - Đánh giá lại mục tiêu khi thay đổi cam kết hoặc phân hạng dịch vụ
+- level1: Phụ thuộc dịch vụ
+  level2:
+  - Lập bản đồ phụ thuộc trên hành trình người dùng quan trọng
+  - Phân biệt SLO đầu cuối với SLO của thành phần hỗ trợ
+  - Đánh giá mô hình phụ thuộc nối tiếp và giả định độc lập
+  - Đánh giá dự phòng song song cùng các lỗi có nguyên nhân chung
+  - Nhận diện phụ thuộc ẩn từ DNS, định danh và hệ thống điều khiển
+  - Ảnh hưởng của retry, timeout và circuit breaker đến kết quả đầu cuối
+  - Phân bổ mục tiêu thành phần từ yêu cầu của hành trình
+  - Đối chiếu giới hạn kiểm soát khi phụ thuộc dịch vụ bên thứ ba
+- level1: Hệ thống phân tán
+  level2:
+  - Thiết kế mục tiêu theo vùng và mục tiêu toàn dịch vụ
+  - Vì sao tổng hợp theo lưu lượng có thể che suy giảm ở vùng nhỏ
+  - Phân biệt góc nhìn toàn hệ thống với trải nghiệm từng khách hàng
+  - Đo tác động của chuyển vùng và khôi phục dịch vụ
+  - Đo suy giảm khi dùng cache cũ hoặc cơ chế phục vụ thay thế
+  - Phân biệt mức sẵn sàng với tính đúng đắn trong xử lý phân tán
+  - Đo hành trình có nhiều lần gọi mà không đếm sai trải nghiệm
+  - Giữ nhất quán định nghĩa SLI giữa nhiều cụm và nhiều môi trường
+- level1: Tải thấp và dữ liệu thiếu
+  level2:
+  - Phân biệt không có yêu cầu, không có lỗi và không có dữ liệu
+  - Diễn giải tỷ lệ khi chỉ có rất ít sự kiện
+  - Xác định số lượng quan sát tối thiểu để đánh giá và cảnh báo
+  - Kết hợp kiểm tra tổng hợp với dữ liệu người dùng thực
+  - Xử lý dịch vụ mới và cửa sổ chưa tích lũy đủ số liệu
+  - Ảnh hưởng của lưu lượng theo mùa, theo giờ và chiến dịch
+  - Quy định trạng thái chưa xác định thay vì mặc định đạt mục tiêu
+  - Báo cáo khoảng trống dữ liệu và tác động đến độ tin cậy kết luận
+- level1: Vận hành và phát hành
+  level2:
+  - Dùng SLO và ngân sách lỗi trong quyết định phát hành
+  - So sánh canary với phiên bản hiện tại theo các SLI phù hợp
+  - Đặt điều kiện dừng hoặc quay lại phiên bản trước khi rủi ro tăng
+  - Theo dõi tiêu hao ngân sách trong và sau thay đổi
+  - Liên hệ sự cố với tác động người dùng và lượng ngân sách đã dùng
+  - Phân tích hậu sự cố để phát hiện thiếu sót trong phép đo
+  - Ưu tiên cải tiến độ tin cậy theo nguồn tiêu hao lặp lại
+  - Giới hạn của SLO khi đánh giá thay đổi bảo mật và mất dữ liệu
+- level1: Kiểm thử SLO
+  level2:
+  - Tạo tập dữ liệu có kết quả mong đợi cho tử số và mẫu số
+  - Kiểm thử ngưỡng đúng tại ranh giới độ trễ
+  - Kiểm thử tổng hợp nhiều máy, nhiều vùng và nhiều loại thao tác
+  - Kiểm thử counter reset, dữ liệu thiếu và sự kiện đến muộn
+  - Kiểm thử cửa sổ trượt và ranh giới kỳ đánh giá
+  - Kiểm thử phép tính ngân sách lỗi và burn rate
+  - Mô phỏng lỗi ngắn, lỗi kéo dài và sự cố cục bộ
+  - Kiểm thử kích hoạt và khôi phục cảnh báo nhiều cửa sổ
+  - Kiểm thử hồi quy khi đổi cấu hình hoặc nguồn đo
+- level1: Triển khai trong tổ chức
+  level2:
+  - Kiểm kê dịch vụ và chọn hành trình thí điểm
+  - Đo hiện trạng trước khi bật chính sách hoặc cảnh báo mới
+  - Thống nhất vai trò của nhóm sản phẩm, phát triển và vận hành
+  - Chuẩn hóa mẫu đặc tả nhưng cho phép khác biệt giữa các dịch vụ
+  - Mở rộng từ SLO thử nghiệm đến SLO có trách nhiệm vận hành
+  - Đào tạo cách đọc ngân sách lỗi và diễn giải cảnh báo
+  - Đánh giá chi phí thu thập, lưu trữ và duy trì phép đo
+  - Theo dõi độ bao phủ SLO và các dịch vụ chưa có chủ sở hữu
+- level1: Quản trị thay đổi
+  level2:
+  - Rà soát SLO theo lịch và sau thay đổi lớn của dịch vụ
+  - Phân biệt đổi mục tiêu với sửa lỗi trong phép đo
+  - Đánh giá tác động trước khi đổi ngưỡng, mẫu số hoặc điều kiện loại trừ
+  - Giữ lịch sử để kết quả các kỳ vẫn có thể đối chiếu
+  - Chạy song song phép đo cũ và mới khi chuyển đổi
+  - Tránh hạ mục tiêu hoặc đổi mẫu số chỉ để làm đẹp báo cáo
+  - Thu hồi SLO không còn phản ánh hành trình có giá trị
+  - Công bố thay đổi và lưu bằng chứng phê duyệt
+- level1: Sai lầm thường gặp
+  level2:
+  - Chọn mức sử dụng CPU hoặc RAM làm đại diện duy nhất cho trải nghiệm
+  - Chỉ đo endpoint kiểm tra sức khỏe và bỏ qua hành trình thực
+  - Loại trừ lỗi, retry hoặc timeout làm sai lệch mẫu số
+  - Lấy trung bình tỷ lệ sai trọng số hoặc gộp phân vị không hợp lệ
+  - Dùng phân vị độ trễ thay cho tỷ lệ đạt ngưỡng mà không đổi định nghĩa
+  - Nhầm ngân sách lỗi còn lại với tốc độ tiêu hao hiện tại
+  - Báo đạt SLO khi dữ liệu đo không đầy đủ
+  - Đặt mục tiêu quá nhiều nhưng thiếu chủ sở hữu và hành động
+  - Đồng nhất đạt SLO với không có sự cố hoặc không có rủi ro
+  - Cảnh báo quá nhiễu hoặc phản hồi quá chậm so với ngân sách
+- level1: Thực hành có hướng dẫn
+  level2:
+  - Đặc tả hành trình và SLI cho một API phục vụ người dùng
+  - Xây dựng SLI khả dụng từ bộ đếm yêu cầu mẫu
+  - Xây dựng SLI độ trễ từ histogram và ngưỡng đã chọn
+  - Tính SLO cùng ngân sách lỗi theo sự kiện và theo thời gian
+  - Tính burn rate rồi đối chiếu với dòng thời gian lỗi mẫu
+  - Viết và kiểm thử recording rule cùng alerting rule
+  - Tạo bảng điều khiển theo dõi mục tiêu và chất lượng dữ liệu
+  - Đặc tả SLI độ mới và hạn hoàn thành cho luồng bất đồng bộ
+  - Đối chiếu một SLO nội bộ với SLA giả lập có phạm vi rõ ràng
+  - Viết chính sách ngân sách lỗi và đánh giá bằng các tình huống mẫu
+- level1: Tình huống tổng hợp
+  level2:
+  - Dịch vụ đạt tỷ lệ khả dụng nhưng người dùng vẫn chờ quá lâu
+  - Lưu lượng tăng làm thay đổi ngân sách lỗi theo số yêu cầu
+  - Một vùng hoặc nhóm khách hàng lỗi trong khi tổng thể vẫn đạt mục tiêu
+  - Luồng dữ liệu còn hoạt động nhưng kết quả không đủ mới
+  - Sự cố thu thập số liệu bị nhầm thành dịch vụ không có lỗi
+  - Ngân sách lỗi gần hết trước đợt phát hành quan trọng
+  - SLO nội bộ đạt nhưng số liệu đối soát SLA cho kết quả khác
+  - Thay đổi định nghĩa SLI khi dịch vụ tách thành nhiều thành phần
+  - Checklist đánh giá một đặc tả SLI, SLO và SLA có thể vận hành

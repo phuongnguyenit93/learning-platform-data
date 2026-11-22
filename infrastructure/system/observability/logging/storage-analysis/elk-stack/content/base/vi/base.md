@@ -1,0 +1,7 @@
+# Observability Logging Storage Analysis ELK Stack
+
+Elastic Stack (thường gọi là ELK Stack) là nền tảng thu thập, xử lý, lưu trữ, tìm kiếm và trực quan hóa dữ liệu vận hành như application logs. Elasticsearch đảm nhiệm lưu trữ và tìm kiếm phân tán; Logstash, Beats hoặc Elastic Agent thu thập và chuyển tiếp dữ liệu; ingest pipelines có thể chuẩn hóa hoặc làm giàu tài liệu trước khi index; Kibana cung cấp công cụ khám phá, truy vấn và dashboard. Hiểu vai trò của từng thành phần và luồng dữ liệu đầu cuối là nền tảng để xây dựng hệ thống logging có thể mở rộng và hỗ trợ điều tra sự cố.
+
+Roadmap một cấp gồm tám mốc: nắm kiến trúc ELK và luồng dữ liệu; thu thập log từ ứng dụng/hệ điều hành; parse, enrich và chuẩn hóa trường; tổ chức index, data stream và mapping trong Elasticsearch. Người học tiếp tục tạo Data View, tìm kiếm bằng Kibana Discover, xây biểu đồ và cảnh báo, rồi quản lý lifecycle, hiệu năng cluster và backup/restore. Mốc cuối tập trung vào TLS, xác thực, phân quyền và troubleshooting từ shipper tới truy vấn. Khi triển khai, cần thống nhất schema, timestamp và mức log giữa các nguồn để kết quả tìm kiếm và dashboard có ý nghĩa.
+
+Module phù hợp với developer, SRE hoặc system administrator đã biết log ứng dụng, HTTP và kiến thức Linux cơ bản. Sau khi hoàn thành, bạn có thể đưa log vào Elastic Stack, chuẩn hóa và index dữ liệu, tìm kiếm sự kiện bằng Kibana, xây dashboard phục vụ vận hành, đồng thời quản lý retention, bảo vệ quyền truy cập và điều tra lỗi trong pipeline hoặc cluster.

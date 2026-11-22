@@ -1,0 +1,7 @@
+# DevOps DevSecOps Software Supply Chain
+
+Bảo mật chuỗi cung ứng phần mềm là việc bảo vệ toàn bộ đường đi từ mã nguồn, thư viện phụ thuộc và hệ thống build đến artifact được phát hành và triển khai. Một ứng dụng có thể bị ảnh hưởng không chỉ bởi lỗi trong mã tự viết mà còn bởi dependency bị xâm nhập, pipeline CI/CD bị lạm dụng hoặc gói phần mềm bị thay đổi. Vì vậy, quy trình DevSecOps cần vừa phòng ngừa rủi ro vừa tạo bằng chứng để xác minh nguồn gốc sản phẩm.
+
+Module này phù hợp với lập trình viên, DevOps và người vận hành nền tảng đã quen với Git và CI/CD. Lộ trình bắt đầu từ nhận diện rủi ro, bảo vệ mã nguồn và dependency, siết quyền trong môi trường build, rồi lập Software Bill of Materials (SBOM). Sau đó, bạn thực hành đánh giá lỗ hổng và license, đọc build provenance theo SLSA, ký và xác minh artifact bằng Sigstore Cosign, cuối cùng áp dụng chính sách kiểm soát phát hành và ứng phó khi thành phần bị phát hiện có vấn đề.
+
+Hãy thử một dự án có pipeline build container: tạo SBOM, sinh provenance, ký artifact và yêu cầu kiểm tra bằng chứng trước khi deploy. Khi hoàn thành, bạn có thể mô tả các điểm kiểm soát thiết yếu của chuỗi cung ứng và thiết kế một quy trình phát hành có thể kiểm chứng, không chỉ dựa vào kết quả quét bảo mật.

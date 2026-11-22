@@ -1,0 +1,57 @@
+roadmap:
+- id: be-mat-tan-cong-api
+  title: Bề mặt tấn công API
+  purpose: Nhận diện các điểm API có thể bị lạm dụng và ưu tiên rủi ro theo dữ liệu, đối tượng và nghiệp vụ.
+  objectives:
+  - Liệt kê endpoint, phiên bản và đối tượng truy cập
+  - Đối chiếu rủi ro với OWASP API Security Top 10
+  - Xác định trust boundary và dữ liệu nhạy cảm
+- id: https-xac-thuc
+  title: HTTPS & Xác thực
+  purpose: Bảo vệ danh tính bên gọi và bảo đảm thông tin xác thực được truyền qua kết nối tin cậy.
+  objectives:
+  - Bắt buộc HTTPS/TLS cho API cần bảo vệ
+  - Phân biệt API key, access token và OAuth 2.0
+  - Kiểm tra issuer, audience, expiry và chữ ký khi dùng JWT
+- id: phan-quyen-tung-yeu-cau
+  title: Phân quyền từng yêu cầu
+  purpose: Bảo đảm bên gọi chỉ thực hiện đúng hành động, trên đúng đối tượng và thuộc tính được phép.
+  objectives:
+  - Kiểm tra ownership và tenant để ngăn BOLA
+  - Giới hạn hành động quản trị để ngăn BFLA
+  - Ràng buộc trường được đọc hoặc cập nhật nhằm tránh mass assignment
+- id: validation-injection
+  title: Validation & Injection
+  purpose: Chặn dữ liệu ngoài hợp đồng và hạn chế các thao tác nguy hiểm từ đầu vào không tin cậy.
+  objectives:
+  - Kiểm tra type, size, schema và giá trị nghiệp vụ
+  - Dùng parameterized queries để ngăn SQL injection
+  - Giới hạn đích URL và quyền mạng để giảm SSRF
+- id: du-lieu-phan-hoi-an-toan
+  title: Dữ liệu & Phản hồi an toàn
+  purpose: Giảm nguy cơ lộ thông tin khi API trả kết quả, báo lỗi hoặc ghi log.
+  objectives:
+  - Chỉ trả thuộc tính cần thiết cho client
+  - Không để lộ credential, token hay stack trace
+  - Thiết lập content type, cache policy và log an toàn
+- id: rate-limit-chong-lam-dung
+  title: Rate Limit & Chống lạm dụng
+  purpose: Kiểm soát tài nguyên và những luồng nghiệp vụ có thể bị khai thác qua yêu cầu tự động.
+  objectives:
+  - Áp dụng rate limit, quota theo danh tính phù hợp
+  - Giới hạn kích thước body, phân trang và tác vụ nặng
+  - Phát hiện abuse của login, đặt hàng hoặc gửi mã xác thực
+- id: cau-hinh-tich-hop-an-toan
+  title: Cấu hình & Tích hợp an toàn
+  purpose: Giảm lỗi triển khai khi API có nhiều môi trường, phiên bản và kết nối dịch vụ bên ngoài.
+  objectives:
+  - Giới hạn CORS, HTTP methods và endpoint quản trị
+  - Quản lý secrets, cấu hình và API version đã triển khai
+  - Xác thực dữ liệu từ API bên thứ ba và kiểm soát outbound
+- id: giam-sat-kiem-thu-bao-mat
+  title: Giám sát & Kiểm thử bảo mật
+  purpose: Phát hiện hành vi bất thường và xác minh chính sách bảo vệ qua kiểm thử các ca thất bại.
+  objectives:
+  - Ghi audit log và theo dõi bất thường theo correlation ID
+  - Thử BOLA, thiếu quyền, token lỗi và input độc hại
+  - Tự động hóa kiểm thử và theo dõi lỗ hổng sau phát hành

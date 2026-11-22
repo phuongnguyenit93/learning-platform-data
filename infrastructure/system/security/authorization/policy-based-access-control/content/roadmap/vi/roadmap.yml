@@ -1,0 +1,44 @@
+roadmap:
+- id: phan-quyen-bang-chinh-sach
+  title: Phân quyền bằng chính sách
+  purpose: Hiểu vì sao cần quản lý quy tắc truy cập tách khỏi mã nghiệp vụ.
+  objectives:
+  - Phân biệt xác thực và phân quyền.
+  - Liên hệ chính sách truy cập với RBAC và ABAC.
+- id: mo-hinh-yeu-cau-truy-cap
+  title: Mô hình yêu cầu truy cập
+  purpose: Xác định dữ liệu cần thiết để quyết định quyền.
+  objectives:
+  - Mô tả chủ thể, hành động, tài nguyên và ngữ cảnh.
+  - Kiểm tra nguồn và độ mới của dữ liệu đầu vào.
+- id: kien-truc-thuc-thi
+  title: Kiến trúc thực thi
+  purpose: Tách nơi quản lý chính sách, ra quyết định và chặn truy cập.
+  objectives:
+  - Phân biệt vai trò PEP, PDP, PIP và PAP.
+  - Vẽ luồng lấy dữ liệu, đánh giá và thực thi quyết định.
+- id: bieu-dien-va-danh-gia
+  title: Biểu diễn và đánh giá
+  purpose: Biến yêu cầu quyền thành chính sách có thể thực thi.
+  objectives:
+  - Viết quy tắc cho phép/từ chối bằng một bộ máy đánh giá.
+  - Xác định mặc định từ chối và cách kết hợp quy tắc xung đột.
+  - Quy định xử lý khi thiếu dữ liệu hoặc đánh giá lỗi.
+- id: kiem-thu-chinh-sach
+  title: Kiểm thử chính sách
+  purpose: Kiểm chứng quyền được cấp đúng cho từng tình huống.
+  objectives:
+  - Tạo ca cho phép, từ chối, dữ liệu thiếu và quy tắc xung đột.
+  - Kiểm tra ranh giới tài nguyên, tổ chức và quyền tối thiểu.
+- id: tich-hop-va-hieu-nang
+  title: Tích hợp và hiệu năng
+  purpose: Thực thi chính sách đầy đủ với chi phí vận hành phù hợp.
+  objectives:
+  - Bao phủ mọi đường truy cập tại điểm thực thi.
+  - Đánh giá độ trễ, bộ nhớ đệm và nguy cơ dùng quyết định cũ.
+- id: quan-tri-va-kiem-toan
+  title: Quản trị và kiểm toán
+  purpose: Kiểm soát thay đổi và truy vết quyết định truy cập.
+  objectives:
+  - Quản lý phiên bản, rà soát, phát hành và hoàn tác chính sách.
+  - Lưu dấu quyết định và phát hiện quyền được cấp sai.

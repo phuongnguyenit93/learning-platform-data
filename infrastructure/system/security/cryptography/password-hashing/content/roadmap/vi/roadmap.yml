@@ -1,0 +1,57 @@
+roadmap:
+- id: moi-de-doa-mat-khau
+  title: Mối đe dọa mật khẩu
+  purpose: Hiểu tại sao hệ thống xác thực cần lưu password verifier chống đoán mật khẩu ngoại tuyến.
+  objectives:
+  - Phân biệt plaintext, mã hóa hai chiều và hash một chiều.
+  - Giải thích nguy cơ lộ cơ sở dữ liệu và tấn công offline.
+  - Nêu vì sao SHA-256/MD5 trực tiếp không phù hợp lưu mật khẩu.
+- id: salt-ngau-nhien-rieng-biet
+  title: Salt ngẫu nhiên riêng biệt
+  purpose: Ngăn các mật khẩu giống nhau tạo cùng giá trị lưu trữ và giảm hiệu quả bảng hash tính sẵn.
+  objectives:
+  - Sinh salt riêng cho từng mật khẩu bằng CSPRNG.
+  - Phân biệt salt công khai với pepper cần giữ bí mật.
+  - Lưu salt cùng hash để xác minh lại khi đăng nhập.
+- id: thuat-toan-bam-chuyen-dung
+  title: Thuật toán băm chuyên dụng
+  purpose: Chọn password hashing function có chi phí tính toán phù hợp để chống thử mật khẩu hàng loạt.
+  objectives:
+  - Ưu tiên Argon2id cho hệ thống mới khi khả thi.
+  - So sánh scrypt, bcrypt và PBKDF2 theo hạn chế triển khai.
+  - Nhận diện giới hạn độ dài đầu vào của bcrypt.
+- id: work-factor-tai-nguyen
+  title: Work factor & tài nguyên
+  purpose: Cân bằng chi phí đoán mật khẩu của kẻ tấn công với tốc độ và bộ nhớ của hệ thống.
+  objectives:
+  - Giải thích memory, iterations và parallelism của Argon2id.
+  - Benchmark thời gian verify trên hạ tầng thật.
+  - Đánh giá rủi ro quá tải CPU/RAM khi có nhiều lần đăng nhập.
+- id: pepper-quan-ly-khoa
+  title: Pepper & quản lý khóa
+  purpose: Bổ sung lớp bảo vệ tùy chọn ngoài salt khi có khả năng quản lý secret an toàn.
+  objectives:
+  - Giữ pepper tách khỏi database, ví dụ trong secrets manager.
+  - Phân biệt điều kiện áp dụng pepper với salt bắt buộc.
+  - Lập kế hoạch thay pepper và reset mật khẩu khi cần.
+- id: hash-xac-minh-an-toan
+  title: Hash & xác minh an toàn
+  purpose: Thực hiện đúng luồng tạo hash và kiểm tra mật khẩu bằng thư viện đáng tin cậy.
+  objectives:
+  - Dùng PasswordEncoder/verify API thay vì tự viết thuật toán.
+  - Lưu thuật toán, phiên bản và tham số cùng dữ liệu verifier.
+  - Kiểm thử mật khẩu đúng/sai, ký tự Unicode và lỗi đầu vào.
+- id: nang-cap-hash-cu
+  title: Nâng cấp hash cũ
+  purpose: Chuyển dần sang thuật toán và work factor an toàn hơn mà không cần biết mật khẩu gốc.
+  objectives:
+  - Phát hiện hash cũ theo prefix hoặc metadata có phiên bản.
+  - Rehash khi người dùng đăng nhập thành công.
+  - Thiết kế chính sách reset cho tài khoản không thể nâng cấp trực tiếp.
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Bảo vệ quy trình xác thực và phát hiện lỗi cấu hình password hashing trong thực tế.
+  objectives:
+  - Kiểm tra hash khác nhau nhờ salt dù mật khẩu giống nhau.
+  - Áp dụng rate limit, giám sát và thông báo lỗi không tiết lộ thông tin.
+  - Không ghi plaintext password, hash hoặc pepper vào log.

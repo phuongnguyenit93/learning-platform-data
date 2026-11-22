@@ -1,0 +1,3 @@
+menuLevel1: Theo dõi tệp
+menuLevel2: Xóa tệp bằng git rm và ngừng theo dõi bằng git rm --cached
+status: ""

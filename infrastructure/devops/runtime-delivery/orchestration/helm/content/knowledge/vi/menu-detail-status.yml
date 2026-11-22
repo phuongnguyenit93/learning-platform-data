@@ -1,0 +1,2539 @@
+menu:
+- slug: overview
+  title: Tổng quan
+  childs:
+  - slug: overview-001
+    title: Helm là gì và bài toán đóng gói ứng dụng Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-002
+    title: Vì sao quản lý nhiều manifest thủ công trở nên khó duy trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-003
+    title: 'Bản đồ khái niệm: chart, values, template, manifest và release'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-004
+    title: Luồng xử lý từ chart và cấu hình đến tài nguyên trong cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-005
+    title: Phân biệt chart, container image và ứng dụng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-006
+    title: Ranh giới trách nhiệm giữa Helm, bộ điều khiển Kubernetes và công cụ hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-007
+    title: Vai trò người dùng chart, tác giả chart và người vận hành release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: overview-008
+    title: Lộ trình học từ cài chart có sẵn đến phát triển và bàn giao chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: prerequisites
+  title: Chuẩn bị
+  childs:
+  - slug: prerequisites-001
+    title: 'Kiến thức Kubernetes cần có: Pod, Deployment, Service và namespace'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-002
+    title: Kiến thức YAML và dòng lệnh phục vụ thực hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-003
+    title: Cài Helm CLI và kiểm tra phiên bản thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-004
+    title: Chuẩn bị cluster thử nghiệm và quyền truy cập phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-005
+    title: Kubeconfig, context và namespace đích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-006
+    title: Xác nhận khả năng kết nối bằng Helm và kubectl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-007
+    title: Đọc trợ giúp lệnh và thông tin môi trường từ helm env
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: prerequisites-008
+    title: Tách môi trường thực hành khỏi tài nguyên đang phục vụ người dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: versions-compatibility
+  title: Phiên bản và tương thích
+  childs:
+  - slug: versions-compatibility-001
+    title: Phân biệt phiên bản Helm CLI, định dạng chart và phiên bản Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-002
+    title: Đọc đúng tài liệu Helm 3 hoặc Helm 4 theo môi trường sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-003
+    title: Nhận diện hướng dẫn Helm 2 và mô hình Tiller trong tài liệu cũ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-004
+    title: Khả năng dùng chart hiện có và kiểm tra tương thích khi đổi bản Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-005
+    title: 'Thay đổi tên cờ thất bại: --atomic ở Helm 3 và --rollback-on-failure ở Helm 4'
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-006
+    title: Cơ chế chờ tài nguyên và khác biệt giữa các phiên bản Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-007
+    title: Client-side apply, server-side apply và quyền sở hữu trường tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-008
+    title: Thay đổi plugin và post-renderer khi chuyển sang Helm 4
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: versions-compatibility-009
+    title: Khóa phiên bản công cụ và kiểm chứng quy trình trước khi nâng cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-discovery
+  title: Khám phá chart
+  childs:
+  - slug: chart-discovery-001
+    title: Phân biệt danh mục tìm kiếm chart với kho phân phối chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-002
+    title: Tìm chart bằng helm search hub và helm search repo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-003
+    title: Đọc README, Chart.yaml và values mặc định bằng helm show
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-004
+    title: Kiểm tra nguồn phát hành, người duy trì và lịch sử phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-005
+    title: Đọc yêu cầu Kubernetes, phụ thuộc và quyền cần cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-006
+    title: Đánh giá tài nguyên, cấu hình mạng và lưu trữ trước khi cài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-007
+    title: Chọn phiên bản chart cụ thể thay vì phụ thuộc bản mới nhất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-discovery-008
+    title: Tải và giải nén chart để kiểm tra nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-lifecycle
+  title: Vòng đời release
+  childs:
+  - slug: release-lifecycle-001
+    title: Release là gì và cách phân biệt các lần cài cùng một chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-002
+    title: Đặt tên release và xác định namespace quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-003
+    title: Cài chart từ thư mục, gói nén hoặc nguồn phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-004
+    title: Truyền values khi cài đặt và ghi nhận cấu hình đã dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-005
+    title: Theo dõi release bằng helm list và helm status
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-006
+    title: Xem values, manifest, hooks và ghi chú bằng helm get
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-007
+    title: Đọc revision và trạng thái qua helm history
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-008
+    title: Phân biệt Helm báo thành công với ứng dụng đáp ứng yêu cầu thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-lifecycle-009
+    title: Mối liên hệ giữa install, upgrade, rollback và uninstall
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-structure
+  title: Cấu trúc chart
+  childs:
+  - slug: chart-structure-001
+    title: Khởi tạo bộ khung chart bằng helm create
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-002
+    title: Vai trò Chart.yaml, values.yaml và templates/
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-003
+    title: Thư mục charts/ và các chart phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-004
+    title: Thư mục crds/ và ranh giới với template thông thường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-005
+    title: values.schema.json và hợp đồng cấu hình đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-006
+    title: _helpers.tpl, NOTES.txt, README và tài liệu sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-007
+    title: .helmignore và kiểm soát nội dung đưa vào gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-structure-008
+    title: Tổ chức tệp theo tài nguyên để dễ đọc và bảo trì
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-metadata
+  title: Thông tin chart
+  childs:
+  - slug: chart-metadata-001
+    title: Các trường nhận diện, mô tả và người duy trì trong Chart.yaml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-002
+    title: Phân biệt apiVersion của chart với apiVersion của tài nguyên Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-003
+    title: Phân biệt version của chart, appVersion và phiên bản image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-004
+    title: Quy tắc phiên bản ngữ nghĩa và ý nghĩa thay đổi tương thích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-005
+    title: Ràng buộc kubeVersion và điều kiện hỗ trợ cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-006
+    title: Application chart và library chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-007
+    title: Annotations, nguồn mã và thông tin phục vụ tra cứu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-metadata-008
+    title: Tăng phiên bản chart khi thay đổi template hoặc hợp đồng values
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: values
+  title: Values
+  childs:
+  - slug: values-001
+    title: Vai trò của values mặc định và cấu hình do người dùng cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-002
+    title: Tổ chức khóa cấu hình rõ nghĩa và tránh lồng quá sâu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-003
+    title: Thứ tự ưu tiên giữa mặc định, tệp -f và tham số dòng lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-004
+    title: Gộp nhiều tệp cấu hình và tác động của thứ tự khai báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-005
+    title: Phân biệt --set, --set-string, --set-file và --set-json
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-006
+    title: Kiểu chuỗi, số, boolean và lỗi suy diễn kiểu trong YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-007
+    title: Cách gộp map, thay thế danh sách và xử lý giá trị null
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-008
+    title: Phân biệt khóa không tồn tại, giá trị rỗng và giá trị false
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-009
+    title: Đọc cấu hình do người dùng đặt và toàn bộ cấu hình đã tính toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: values-010
+    title: Thiết kế giá trị mặc định và tài liệu cho từng tùy chọn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: configuration-schema
+  title: Schema cấu hình
+  childs:
+  - slug: configuration-schema-001
+    title: Khi nào cần values.schema.json thay vì chỉ ghi hướng dẫn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-002
+    title: Khai báo kiểu dữ liệu, trường bắt buộc và giới hạn giá trị
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-003
+    title: Ràng buộc cấu trúc đối tượng và phần tử danh sách
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-004
+    title: Ngăn khóa sai và cấu hình ngoài hợp đồng được hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-005
+    title: Kiểm tra tổ hợp cấu hình và điều kiện phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-006
+    title: Phạm vi kiểm tra trên values cuối cùng và schema của subchart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-007
+    title: Phân biệt kiểm tra schema, kiểm tra template và kiểm tra Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: configuration-schema-008
+    title: Duy trì tương thích schema khi phát hành chart mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: go-template
+  title: Go template
+  childs:
+  - slug: go-template-001
+    title: Template tạo manifest như thế nào từ dữ liệu đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-002
+    title: Dấu phân cách biểu thức và vị trí chèn giá trị trong YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-003
+    title: Các đối tượng .Values, .Release, .Chart, .Capabilities và .Template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-004
+    title: Truy cập trường, gọi hàm và nối xử lý bằng pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-005
+    title: Khoảng trắng, dấu xuống dòng và lỗi ghép tài liệu YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-006
+    title: quote, indent và nindent khi dựng cấu trúc YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-007
+    title: Phân biệt chú thích YAML và chú thích template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-008
+    title: Render chart bằng helm template để quan sát kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: go-template-009
+    title: Giới hạn của render cục bộ khi không truy vấn cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: scope-control
+  title: Phạm vi và điều khiển
+  childs:
+  - slug: scope-control-001
+    title: Dấu chấm đại diện ngữ cảnh hiện tại và biến gốc $
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-002
+    title: Điều kiện if, else và quy tắc đánh giá giá trị rỗng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-003
+    title: with và thay đổi ngữ cảnh trong khối xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-004
+    title: range trên danh sách và map
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-005
+    title: Khai báo biến và phạm vi tồn tại của biến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-006
+    title: Truyền ngữ cảnh khi gọi template khác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-007
+    title: Đọc dữ liệu cấp gốc bên trong vòng lặp và khối with
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: scope-control-008
+    title: Tránh lỗi nil khi khóa lồng nhau không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: functions-data
+  title: Hàm và dữ liệu
+  childs:
+  - slug: functions-data-001
+    title: Xử lý chuỗi và tạo tên tài nguyên phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-002
+    title: default, coalesce và lưu ý với false hoặc số không
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-003
+    title: required và fail để dừng khi cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-004
+    title: dict, list và thao tác dữ liệu trong template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-005
+    title: Chuyển đổi kiểu và kiểm tra kiểu dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-006
+    title: toYaml, fromYaml, toJson và từ dữ liệu sang cấu trúc manifest
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-007
+    title: Gộp dữ liệu, sao chép map và tránh sửa dữ liệu dùng chung ngoài ý muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-008
+    title: Xử lý phiên bản bằng semverCompare
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-009
+    title: Tra cứu API và phiên bản Kubernetes qua .Capabilities
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: functions-data-010
+    title: lookup và sự khác biệt giữa render ngoại tuyến với truy vấn cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: shared-templates
+  title: Template dùng chung
+  childs:
+  - slug: shared-templates-001
+    title: Tách đoạn lặp thành named template trong _helpers.tpl
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-002
+    title: define, template và include khác nhau ở cách sử dụng kết quả
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-003
+    title: Quy ước đặt tên helper để tránh xung đột giữa các chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-004
+    title: Truyền nhiều dữ liệu cho helper bằng dict
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-005
+    title: Helper cho tên đầy đủ, labels và annotations
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-006
+    title: Kết hợp include với pipeline và thụt lề
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-007
+    title: tpl để đánh giá chuỗi như template và giới hạn tin cậy đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: shared-templates-008
+    title: Cân bằng tái sử dụng với khả năng đọc hiểu chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: files-notes
+  title: Tệp và ghi chú
+  childs:
+  - slug: files-notes-001
+    title: Đọc tệp đi kèm chart qua .Files
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-notes-002
+    title: Chọn tệp bằng Glob và chuyển nội dung vào ConfigMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-notes-003
+    title: AsConfig, AsSecrets và yêu cầu về cấu trúc dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-notes-004
+    title: Phạm vi tệp có thể truy cập và tác động của .helmignore
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-notes-005
+    title: Đóng gói cấu hình nhiều dòng mà không làm hỏng YAML
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-notes-006
+    title: Tạo NOTES.txt với hướng dẫn kiểm tra và truy cập ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: files-notes-007
+    title: Giới hạn thông tin nhạy cảm trong ghi chú và kết quả render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: application-resources
+  title: Tài nguyên ứng dụng
+  childs:
+  - slug: application-resources-001
+    title: Tạo Deployment hoặc StatefulSet theo đặc điểm ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-002
+    title: Khai báo image, tag, digest và imagePullPolicy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-003
+    title: Giữ labels và selectors nhất quán giữa các tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-004
+    title: Cấu hình Service, cổng ứng dụng và Ingress khi có bộ điều khiển phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-005
+    title: Biến môi trường, ConfigMap và tham chiếu Secret có sẵn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-006
+    title: Readiness, liveness và startup probes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-007
+    title: Requests, limits và cấu hình số bản sao
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-008
+    title: ServiceAccount, securityContext và quyền chạy của workload
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-009
+    title: Cấu hình scheduling, affinity và tolerations theo nhu cầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-010
+    title: Tùy chọn HPA, PodDisruptionBudget và NetworkPolicy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: application-resources-011
+    title: Checksum cấu hình và chủ động kích hoạt rollout khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-dependencies
+  title: Phụ thuộc chart
+  childs:
+  - slug: chart-dependencies-001
+    title: Khai báo dependencies trong Chart.yaml
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-002
+    title: Ràng buộc phiên bản và nguồn lấy chart phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-003
+    title: Phân biệt helm dependency update với helm dependency build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-004
+    title: Chart.lock và tái tạo đúng tập phụ thuộc đã phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-005
+    title: Subchart độc lập và phạm vi values nhìn thấy được
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-006
+    title: Ghi đè values của subchart từ chart cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-007
+    title: Global values và giới hạn chia sẻ dữ liệu giữa chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-008
+    title: Condition, tags, alias và import-values
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-009
+    title: Library chart để chia sẻ logic thay vì cài ứng dụng riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-dependencies-010
+    title: Ranh giới umbrella chart và các release triển khai độc lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: multi-environment
+  title: Nhiều môi trường
+  childs:
+  - slug: multi-environment-001
+    title: Tách cấu hình dùng chung khỏi khác biệt từng môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-002
+    title: Tổ chức tệp values cho phát triển, staging và production
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-003
+    title: Phân biệt namespace, release name và ranh giới môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-004
+    title: Áp dụng cùng phiên bản chart với cấu hình đã phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-005
+    title: Tách địa chỉ dịch vụ, tài nguyên, storage và ingress theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-006
+    title: Đối chiếu cấu hình cuối cùng trước khi triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-007
+    title: Phân phối bí mật ngoài các tệp values được lưu công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: multi-environment-008
+    title: Tránh sao chép toàn bộ chart chỉ để đổi cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: upgrades
+  title: Nâng cấp release
+  childs:
+  - slug: upgrades-001
+    title: Phân biệt nâng phiên bản chart, đổi image và cập nhật values
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-002
+    title: Đọc thay đổi schema và yêu cầu tương thích trước upgrade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-003
+    title: helm upgrade và lựa chọn upgrade --install
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-004
+    title: Giữ lại, đặt lại hoặc kết hợp values theo tùy chọn và phiên bản Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-005
+    title: Render, dry-run phía client hoặc server và giới hạn từng cách kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-006
+    title: Ảnh hưởng của thay đổi trường bất biến và phương án thay thế tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-007
+    title: Chờ readiness, Job và giới hạn thời gian thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-008
+    title: Xử lý thất bại, dọn tài nguyên mới và chính sách quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-009
+    title: Tránh nhiều tiến trình cùng nâng cấp một release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: upgrades-010
+    title: Xác nhận revision, tài nguyên và hành vi ứng dụng sau upgrade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: rollback-uninstall
+  title: Quay lui và gỡ bỏ
+  childs:
+  - slug: rollback-uninstall-001
+    title: Chọn revision đích từ lịch sử release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-002
+    title: helm rollback và ý nghĩa tạo một revision mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-003
+    title: Cấu hình, manifest và hooks tham gia quá trình quay lui
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-004
+    title: Giới hạn rollback đối với dữ liệu và thay đổi hệ thống bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-005
+    title: Xác nhận tính tương thích của ứng dụng với schema dữ liệu cũ và mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-006
+    title: Gỡ release bằng helm uninstall và lựa chọn giữ lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-007
+    title: Tài nguyên có chính sách giữ lại và trách nhiệm dọn thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-008
+    title: Kiểm tra PVC, hook, CRD và tài nguyên dùng chung sau khi gỡ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: rollback-uninstall-009
+    title: Lập kế hoạch cài lại mà không giả định dữ liệu đã bị xóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: hooks
+  title: Hooks
+  childs:
+  - slug: hooks-001
+    title: Hook là gì và điểm can thiệp trong vòng đời release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-002
+    title: Các thời điểm pre-install, post-install, pre-upgrade và post-upgrade
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-003
+    title: Hooks khi rollback, delete và chạy kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-004
+    title: Khai báo annotations và thứ tự thực thi bằng hook weight
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-005
+    title: Job chạy migration, kiểm tra điều kiện hoặc chuẩn bị dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-006
+    title: Điều kiện hoàn thành, timeout và lỗi làm gián đoạn thao tác Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-007
+    title: Hook delete policy và vòng đời tài nguyên hook
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-008
+    title: Hook từ subchart và giới hạn kiểm soát từ chart cha
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-009
+    title: Tính lũy đẳng và rủi ro chạy lại hook sau thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: hooks-010
+    title: Phân biệt hook sắp xếp tác vụ với cơ chế chờ ứng dụng phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-testing
+  title: Kiểm thử chart
+  childs:
+  - slug: chart-testing-001
+    title: Chiến lược kiểm tra từ template đến ứng dụng đã triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-002
+    title: helm lint và giới hạn của kiểm tra tĩnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-003
+    title: Render với nhiều bộ values và kiểm tra YAML đầu ra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-004
+    title: Kiểm tra schema values và các tổ hợp cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-005
+    title: Kiểm tra manifest theo Kubernetes API và phiên bản cluster mục tiêu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-006
+    title: Kiểm thử logic template bằng công cụ bổ sung khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-007
+    title: Viết tài nguyên kiểm thử và chạy helm test
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-008
+    title: Đọc kết quả, nhật ký và dọn tài nguyên kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-009
+    title: Kiểm thử luồng cài mới, nâng cấp, quay lui và gỡ bỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-testing-010
+    title: Kiểm tra lại sau thay đổi phụ thuộc hoặc phiên bản Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: crd
+  title: CRD
+  childs:
+  - slug: crd-001
+    title: Phân biệt CustomResourceDefinition và đối tượng custom resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-002
+    title: Thứ tự đăng ký CRD trước khi tạo tài nguyên sử dụng kiểu mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-003
+    title: Thư mục crds/ và giới hạn không dùng template cho CRD ở đây
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-004
+    title: Giới hạn quản lý nâng cấp và xóa CRD bằng Helm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-005
+    title: CRD có sẵn trong cluster và tình huống nhiều release dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-006
+    title: Tách vòng đời CRD khỏi chart ứng dụng khi cần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-007
+    title: Giới hạn dry-run khi API tùy chỉnh chưa tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-008
+    title: Phối hợp với operator và trách nhiệm quản lý custom resource
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: crd-009
+    title: Lập kế hoạch chuyển phiên bản CRD và bảo vệ dữ liệu liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: storage-data
+  title: Lưu trữ và dữ liệu
+  childs:
+  - slug: storage-data-001
+    title: Thiết kế persistence như một hợp đồng cấu hình của chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-002
+    title: Khai báo PVC hoặc tham chiếu volume đã có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-003
+    title: StorageClass, access mode và ràng buộc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-004
+    title: Phân biệt vòng đời release với vòng đời dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-005
+    title: Ảnh hưởng của thay đổi tên tài nguyên và volume đến dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-006
+    title: Quản lý thay đổi schema dữ liệu khi nâng ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-007
+    title: Sao lưu và kiểm chứng khả năng phục hồi trước thao tác có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: storage-data-008
+    title: Trách nhiệm dọn dữ liệu khi uninstall hoặc kết thúc môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-repositories-oci
+  title: Kho chart và OCI
+  childs:
+  - slug: chart-repositories-oci-001
+    title: Đóng gói chart bằng helm package
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-002
+    title: Kho chart HTTP, index.yaml và phiên bản gói
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-003
+    title: Thêm, cập nhật, liệt kê và gỡ cấu hình kho bằng helm repo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-004
+    title: Phân biệt helm repo update với nâng cấp release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-005
+    title: OCI registry và cách tham chiếu chart qua oci://
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-006
+    title: Đăng nhập registry và quản lý thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-007
+    title: Đẩy, tải và cài chart từ OCI registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-008
+    title: Ghim phiên bản hoặc digest theo khả năng của bản Helm đang dùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-009
+    title: Phát hành cùng một gói chart qua các môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-repositories-oci-010
+    title: Kho riêng, kết nối TLS và phân phối trong môi trường hạn chế mạng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: chart-security
+  title: Bảo mật chart
+  childs:
+  - slug: chart-security-001
+    title: Đánh giá template và tài nguyên trước khi chạy chart bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-002
+    title: Kiểm tra nguồn chart, phụ thuộc và phiên bản được phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-003
+    title: Provenance, chữ ký và xác minh tính toàn vẹn của gói chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-004
+    title: Digest xác nhận nội dung và giới hạn khi đánh giá độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-005
+    title: Quyền Helm CLI đối với Kubernetes và phạm vi namespace
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-006
+    title: Quyền ServiceAccount do chart tạo khác gì quyền người cài chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-007
+    title: Giá trị bí mật có thể xuất hiện trong manifest, nhật ký và dữ liệu release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-008
+    title: Base64 trong Secret không thay thế mã hóa và kiểm soát truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-009
+    title: Tham chiếu hệ thống quản lý bí mật thay vì lưu bí mật trong chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: chart-security-010
+    title: Đánh giá mã thực thi từ plugin, hook và post-renderer
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: troubleshooting
+  title: Chẩn đoán lỗi
+  childs:
+  - slug: troubleshooting-001
+    title: Phân loại lỗi tải chart, phụ thuộc, values, render và Kubernetes API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-002
+    title: Đọc helm status, helm history và thông tin release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-003
+    title: Dùng helm template --debug để khoanh vùng lỗi template
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-004
+    title: Đối chiếu values đã tính toán với manifest đã ghi nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-005
+    title: Lỗi YAML, thụt lề, sai kiểu và khóa cấu hình không tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-006
+    title: Lỗi quyền truy cập, quyền quản lý và tài nguyên đã tồn tại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-007
+    title: Lỗi API bị loại bỏ hoặc chart không tương thích cluster
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-008
+    title: Pod không sẵn sàng, Job thất bại và thời gian chờ bị vượt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-009
+    title: Kết hợp kubectl describe, events và logs để điều tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-010
+    title: Release pending và thao tác đang chạy hoặc bị gián đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: troubleshooting-011
+    title: Thu thập bằng chứng trước khi sửa trạng thái hoặc xóa metadata release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: delivery-automation
+  title: Tự động hóa bàn giao
+  childs:
+  - slug: delivery-automation-001
+    title: Pipeline chart từ thay đổi mã đến gói được phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-002
+    title: Khóa phiên bản Helm, chart, phụ thuộc và image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-003
+    title: Chạy lint, render, schema và kiểm thử trước khi xuất bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-004
+    title: Xuất bản gói chart và lưu thông tin truy vết nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-005
+    title: Xác thực vào registry và cluster bằng thông tin xác thực phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-006
+    title: Phê duyệt cấu hình và đích triển khai trước khi áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-007
+    title: Điều phối đồng thời theo release để tránh hai lần ghi chồng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-008
+    title: Xác nhận sau triển khai và quy trình xử lý khi thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: delivery-automation-009
+    title: Lưu bằng chứng triển khai mà không làm lộ dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: gitops-extensibility
+  title: GitOps và mở rộng
+  childs:
+  - slug: gitops-extensibility-001
+    title: Phân biệt Helm chạy trực tiếp với bộ điều khiển GitOps dùng chart
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-002
+    title: Nguồn sự thật của phiên bản chart và values trong quy trình GitOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-003
+    title: Helm dùng để render và Helm quản lý release khác nhau thế nào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-004
+    title: Sai lệch tài nguyên và trách nhiệm hòa giải về trạng thái mong muốn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-005
+    title: Post-renderer để biến đổi manifest sau khi template được render
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-006
+    title: Giữ kết quả biến đổi nhất quán giữa các lần triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-007
+    title: Plugin mở rộng CLI, tải chart và xử lý kết quả render theo phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-008
+    title: Quản lý nguồn, phiên bản và quyền thực thi của plugin
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: gitops-extensibility-009
+    title: Giới thiệu Helm SDK và ranh giới khi nhúng Helm vào công cụ riêng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: release-governance
+  title: Quản trị release
+  childs:
+  - slug: release-governance-001
+    title: Quy ước tên release, namespace, labels và chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-002
+    title: Dữ liệu release, cơ chế lưu trữ và quyền đọc thông tin triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-003
+    title: Giới hạn lịch sử revision và kế hoạch giữ bằng chứng cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-004
+    title: Tài nguyên dùng chung và ranh giới quyền quản lý giữa các release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-005
+    title: Nhận diện thay đổi thủ công ngoài Helm và đối chiếu sai lệch
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-006
+    title: Quy trình tiếp nhận tài nguyên có sẵn và đánh giá rủi ro chuyển quyền quản lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-007
+    title: Theo dõi API lỗi thời trước khi nâng phiên bản Kubernetes
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-008
+    title: Chính sách cập nhật chart và kiểm tra tương thích định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: release-governance-009
+    title: Tài liệu vận hành, trách nhiệm bàn giao và điều kiện ngừng release
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: capstone-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: capstone-practice-001
+    title: Cài một chart có sẵn với cấu hình riêng và xác minh ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-002
+    title: Tạo chart cho một dịch vụ gồm Deployment, Service và ConfigMap
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-003
+    title: Bổ sung schema và báo lỗi rõ ràng cho cấu hình không hợp lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-004
+    title: Tách helper và loại bỏ phần template lặp lại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-005
+    title: Tích hợp subchart với cấu hình bật tắt và phiên bản được khóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-006
+    title: Triển khai cùng chart vào hai môi trường với values khác nhau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-007
+    title: Mô phỏng upgrade thất bại và thực hiện quay lui có kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-008
+    title: Kiểm thử hook migration và phân tích giới hạn khôi phục dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-009
+    title: Đóng gói, xác minh và phân phối chart qua OCI registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-010
+    title: Tự động hóa lint, kiểm thử, phát hành và xác nhận sau triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: capstone-practice-011
+    title: Điều tra một release lỗi rồi gỡ bỏ mà vẫn quản lý đúng dữ liệu cần giữ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

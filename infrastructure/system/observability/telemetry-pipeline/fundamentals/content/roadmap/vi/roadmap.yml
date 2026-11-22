@@ -1,0 +1,49 @@
+roadmap:
+- id: luong-telemetry
+  title: Luồng Telemetry
+  purpose: Nắm hành trình dữ liệu quan sát từ hệ thống phát sinh đến nơi phân tích.
+  objectives:
+  - Vẽ luồng nguồn → thu nhận → xử lý → xuất → backend.
+  - Phân biệt pipeline với hệ lưu trữ và giao diện truy vấn.
+- id: tin-hieu-nguon-du-lieu
+  title: Tín hiệu & nguồn dữ liệu
+  purpose: Nhận diện dữ liệu cần đưa qua pipeline và nguồn tạo ra chúng.
+  objectives:
+  - Phân biệt logs, metrics và traces.
+  - Xác định nguồn từ ứng dụng, host và hạ tầng.
+- id: thu-nhan-giao-thuc
+  title: Thu nhận & giao thức
+  purpose: Hiểu cách pipeline tiếp nhận dữ liệu từ nhiều hệ thống.
+  objectives:
+  - Phân biệt mô hình push và pull ở mức cơ bản.
+  - Giải thích receiver và vai trò của OTLP.
+- id: xu-ly-chuan-hoa
+  title: Xử lý & chuẩn hóa
+  purpose: Chuẩn bị telemetry nhất quán, gọn và hữu ích trước khi lưu trữ.
+  objectives:
+  - Mô tả lọc, bổ sung thuộc tính và gom lô.
+  - Nhận biết ảnh hưởng của thứ tự xử lý và sampling.
+- id: dinh-tuyen-xuat-du-lieu
+  title: Định tuyến & xuất dữ liệu
+  purpose: Đưa đúng tín hiệu tới backend phù hợp mà không khóa chặt vào một đích.
+  objectives:
+  - Giải thích exporter và lựa chọn đích nhận.
+  - Phác thảo fan-out tới nhiều backend khi cần.
+- id: mo-hinh-agent-gateway
+  title: Mô hình Agent/Gateway
+  purpose: Lựa chọn vị trí triển khai pipeline theo quy mô và ranh giới hệ thống.
+  objectives:
+  - So sánh Agent, Gateway và kết hợp hai tầng.
+  - Chọn mô hình cho một tình huống triển khai.
+- id: do-tin-cay-hieu-nang
+  title: Độ tin cậy & hiệu năng
+  purpose: Giảm mất dữ liệu và nghẽn khi lưu lượng tăng hoặc backend lỗi.
+  objectives:
+  - Giải thích hàng đợi, retry và backpressure.
+  - Nhận diện điểm rơi dữ liệu và nhu cầu mở rộng.
+- id: giam-sat-kiem-chung
+  title: Giám sát & kiểm chứng
+  purpose: Xác minh pipeline chạy đúng và phát hiện sớm lỗi truyền dữ liệu.
+  objectives:
+  - Kiểm tra luồng dữ liệu từ đầu vào đến đầu ra.
+  - Theo dõi tỷ lệ nhận/xuất, lỗi và độ đầy hàng đợi.

@@ -1,0 +1,127 @@
+menu:
+- title: Khái niệm mã hóa
+  slug: encryption-fundamentals
+  index: 0
+- title: Mô hình đe dọa
+  slug: threat-modeling
+  index: 1
+- title: Yêu cầu bảo vệ
+  slug: protection-requirements
+  index: 2
+- title: Mật mã đối xứng
+  slug: symmetric-cryptography
+  index: 3
+- title: Mật mã bất đối xứng
+  slug: asymmetric-cryptography
+  index: 4
+- title: Mã hóa lai
+  slug: hybrid-encryption
+  index: 5
+- title: Block cipher
+  slug: block-cipher
+  index: 6
+- title: Stream cipher
+  slug: stream-cipher
+  index: 7
+- title: Mode ECB
+  slug: mode-ecb
+  index: 8
+- title: Mode CBC
+  slug: mode-cbc
+  index: 9
+- title: Mode CTR
+  slug: mode-ctr
+  index: 10
+- title: Mode GCM
+  slug: mode-gcm
+  index: 11
+- title: Mode CCM và XTS
+  slug: ccm-xts-modes
+  index: 12
+- title: AEAD
+  slug: aead
+  index: 13
+- title: Padding và định dạng khối
+  slug: padding-block-formats
+  index: 14
+- title: Nonce và IV
+  slug: nonce-va-iv
+  index: 15
+- title: AAD và context
+  slug: aad-va-context
+  index: 16
+- title: Key material
+  slug: key-material
+  index: 17
+- title: Sinh và lưu khóa
+  slug: key-generation-storage
+  index: 18
+- title: Phân phối và sử dụng khóa
+  slug: key-distribution-usage
+  index: 19
+- title: Envelope encryption
+  slug: envelope-encryption
+  index: 20
+- title: Mã hóa bằng RSA
+  slug: rsa-encryption
+  index: 21
+- title: Thiết lập khóa hiện đại
+  slug: modern-key-agreement
+  index: 22
+- title: Mã hóa dữ liệu lưu trữ
+  slug: data-at-rest-encryption
+  index: 23
+- title: Mã hóa dữ liệu truyền
+  slug: data-in-transit-encryption
+  index: 24
+- title: Mã hóa database
+  slug: database-encryption
+  index: 25
+- title: Mã hóa file và object
+  slug: file-object-encryption
+  index: 26
+- title: Mã hóa secret và password
+  slug: secret-password-encryption
+  index: 27
+- title: Hiệu năng mã hóa
+  slug: encryption-performance
+  index: 28
+- title: Xoay vòng khóa
+  slug: key-rotation
+  index: 29
+- title: Di chuyển thuật toán
+  slug: algorithm-migration
+  index: 30
+- title: Thu hồi và hủy khóa
+  slug: key-revocation-destruction
+  index: 31
+- title: Lỗi và side-channel
+  slug: errors-side-channels
+  index: 32
+- title: Java JCA/JCE
+  slug: java-jcajce
+  index: 33
+- title: Thiết kế API mã hóa
+  slug: encryption-api-design
+  index: 34
+- title: Kiểm thử mã hóa
+  slug: encryption-testing
+  index: 35
+- title: Giám sát vận hành
+  slug: operational-monitoring
+  index: 36
+- title: Sự cố mật mã
+  slug: cryptographic-incidents
+  index: 37
+- title: Quản trị và tuân thủ
+  slug: governance-compliance
+  index: 38
+- title: Anti-pattern
+  slug: anti-pattern
+  index: 39
+- title: Kiến trúc tham chiếu
+  slug: reference-architecture
+  index: 40
+- title: Checklist triển khai
+  slug: deployment-checklist
+  index: 41

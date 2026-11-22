@@ -1,0 +1,421 @@
+menu:
+- level1: Bức tranh ELK
+  level2:
+  - ELK Stack là gì và giải quyết bài toán nhật ký tập trung như thế nào
+  - Vai trò của Elasticsearch, Logstash và Kibana trong cùng một hệ thống
+  - Elastic Stack mở rộng ELK bằng Beats, Elastic Agent và các tích hợp
+  - Từ một dòng log đến sự kiện có cấu trúc để tìm kiếm và phân tích
+  - Thu thập, xử lý, lập chỉ mục, lưu giữ và truy vấn liên hệ với nhau
+  - Phân biệt kho log, số liệu đo và trace khi điều tra sự cố
+  - Giới hạn của ELK và các đánh đổi về độ trễ, chi phí, vận hành
+  - Kiến thức nền và thứ tự học từ dòng log đầu tiên đến hệ thống thực tế
+- level1: Thiết kế đường dữ liệu
+  level2:
+  - Xác định nguồn log, người sử dụng và câu hỏi cần trả lời
+  - Các tuyến ứng dụng → bộ thu → Elasticsearch → Kibana
+  - Khi nào gửi trực tiếp, khi nào cần Logstash hoặc ingest pipeline
+  - Vai trò của Kafka hay hàng đợi bên ngoài khi cần đệm và phát lại
+  - Chọn nơi phân tích, chuẩn hóa và làm giàu để tránh xử lý lặp
+  - Phân biệt thời điểm sự kiện xảy ra với thời điểm được thu nhận
+  - Mất dữ liệu, trùng dữ liệu và thay đổi thứ tự trên toàn đường đi
+  - Xác định mục tiêu độ trễ, lưu lượng, thời hạn lưu và khả năng phục hồi
+  - Tách môi trường, nhóm ứng dụng và phạm vi quyền truy cập ngay từ thiết kế
+- level1: Cài đặt môi trường
+  level2:
+  - Chọn bộ phiên bản tương thích cho Elasticsearch, Kibana, Logstash và bộ thu
+  - Yêu cầu tài nguyên, hệ điều hành và Java theo từng bản phân phối
+  - Khởi chạy Elasticsearch và Kibana bằng Docker Compose
+  - Bổ sung Logstash và bộ thu log vào cùng môi trường học
+  - Phân biệt cổng HTTP, transport, Kibana và cổng input của Logstash
+  - Cấu hình volume để dữ liệu tồn tại sau khi container khởi động lại
+  - Thiết lập xác thực, chứng chỉ và kết nối Kibana với Elasticsearch
+  - Địa chỉ localhost trong ứng dụng, container và mạng nội bộ
+  - Kiểm tra trạng thái khởi động bằng log, API và giao diện
+  - Ghim phiên bản, quản lý cấu hình và tái tạo môi trường có kiểm soát
+- level1: Log đầu tiên
+  level2:
+  - Tạo bộ log mẫu có thời gian, mức độ, tên dịch vụ và thông điệp
+  - Dựng pipeline Logstash tối thiểu với input, filter và output
+  - Kiểm tra sự kiện trung gian bằng stdout trước khi gửi Elasticsearch
+  - Ghi sự kiện và xác nhận tài liệu đã tồn tại bằng API
+  - Tạo data view phù hợp khi dùng chế độ cổ điển của Discover
+  - Chọn trường thời gian và cửa sổ hiển thị để thấy dữ liệu vừa gửi
+  - Tìm một sự kiện từ nguồn ban đầu tới kết quả trên Kibana
+  - Đổi dữ liệu đầu vào để quan sát hành vi khi phân tích thất bại
+- level1: Chuẩn hóa ECS
+  level2:
+  - Elastic Common Schema là gì và vì sao cần tên trường thống nhất
+  - 'Các trường nền tảng: @timestamp, message, log.level và ecs.version'
+  - Thông tin dịch vụ, máy chủ, tiến trình và môi trường triển khai
+  - 'event.original, event.created và event.ingested: bảo toàn nguồn và các mốc thời gian'
+  - trace.id, span.id và transaction.id để liên kết log với ngữ cảnh xử lý
+  - Phân loại sự kiện bằng event.dataset và các trường event phù hợp
+  - data_stream.type, dataset, namespace và quy ước tổ chức nguồn log
+  - Chọn kiểu dữ liệu, đơn vị đo và múi giờ trước khi gửi
+  - Tách trường tùy biến khỏi trường ECS để tránh xung đột ý nghĩa
+  - Quản lý phiên bản schema và hợp đồng dữ liệu giữa bên phát, bên nhận
+- level1: Log Java và Spring
+  level2:
+  - Xuất JSON có cấu trúc từ Logback hoặc Log4j2
+  - Dùng thư viện ECS Logging Java và chọn cách cấu hình theo phiên bản Spring Boot
+  - Đặt tên dịch vụ, phiên bản và môi trường trong sự kiện
+  - Đưa mã yêu cầu và định danh trace vào MDC đúng phạm vi
+  - Giữ ngoại lệ và stack trace thành một sự kiện đầy đủ
+  - Chọn ghi stdout hay tệp theo mô hình triển khai
+  - Hàng đợi appender bất đồng bộ và đánh đổi khi bộ đệm đầy
+  - Xoay vòng tệp, giới hạn dung lượng và tương tác với bộ thu
+  - Che thông tin nhạy cảm trước khi log rời ứng dụng
+  - Tránh ghi đồng thời nhiều định dạng hoặc nhiều đích gây thu thập trùng
+- level1: Thu thập bằng Filebeat
+  level2:
+  - Vai trò Filebeat trong đọc tệp và chuyển tiếp sự kiện
+  - Cấu hình filestream với đường dẫn, định danh input và quyền đọc
+  - Nhận diện tệp, lưu vị trí đọc và khôi phục sau khi khởi động lại
+  - Ảnh hưởng của đổi tên, xoay vòng, cắt ngắn và xóa tệp
+  - Ghép multiline tại nguồn để giữ stack trace đúng sự kiện
+  - Đọc JSON từng dòng và phân biệt bước giải mã với bước chuẩn hóa
+  - Chọn output Elasticsearch hoặc Logstash và thiết lập TLS, xác thực
+  - Bộ đệm, xác nhận tiếp nhận và hành vi khi đầu ra bị chặn
+  - Thu log container bằng parser và metadata phù hợp
+  - Chuyển từ input log/container kế thừa sang filestream mà không đọc trùng
+- level1: Elastic Agent và Fleet
+  level2:
+  - Elastic Agent khác Beats ở mô hình cấu hình và quản lý
+  - Chọn chế độ standalone hoặc quản lý tập trung bằng Fleet
+  - Vai trò Fleet Server, agent policy và enrollment
+  - Dùng integration có sẵn hoặc cấu hình nguồn log tùy biến
+  - 'Tài nguyên do integration quản lý: pipeline, template và dashboard'
+  - Chèn xử lý tùy biến qua điểm mở rộng được hỗ trợ
+  - Theo dõi trạng thái agent, lỗi thu thập và cấu hình đang có hiệu lực
+  - Triển khai agent trên máy chủ hoặc Kubernetes theo quyền tối thiểu
+  - Tránh thu cùng một nguồn đồng thời bằng nhiều agent hay integration
+- level1: Cấu hình Logstash
+  level2:
+  - Cấu trúc pipeline input → filter → output và mô hình sự kiện
+  - Phân biệt logstash.yml, pipelines.yml và tệp cấu hình pipeline
+  - Tham chiếu trường, trường lồng nhau và cú pháp điều kiện
+  - Dùng tags và @metadata để định tuyến mà không lưu metadata nội bộ ngoài ý muốn
+  - Chọn codec ở input và output phù hợp định dạng dữ liệu
+  - Tách nhiều pipeline và kết nối pipeline khi cần cách ly xử lý
+  - Quản lý biến môi trường, secrets và Logstash keystore
+  - Kiểm tra cú pháp, nạp lại cấu hình và xử lý lỗi triển khai
+  - Chọn số worker, kích thước lô và hiểu giới hạn bảo toàn thứ tự
+  - Quản lý plugin và chế độ tương thích ECS theo phiên bản
+- level1: Phân tích và làm giàu
+  level2:
+  - Chọn JSON, dissect hoặc grok theo cấu trúc nguồn log
+  - Thiết kế grok pattern với kiểu dữ liệu và mẫu lỗi rõ ràng
+  - Dùng dissect cho thông điệp có dấu phân tách ổn định
+  - Chuẩn hóa thời gian bằng date filter, múi giờ và định dạng đầu vào
+  - Đổi tên, chuyển kiểu, xóa trường và chuẩn hóa giá trị bằng mutate
+  - Làm giàu thông tin địa lý, user agent và dữ liệu tra cứu khi có nhu cầu
+  - Xử lý trường thiếu, null, mảng và cấu trúc lồng nhau
+  - Định tuyến riêng sự kiện lỗi phân tích thay vì âm thầm bỏ qua
+  - Giới hạn biểu thức chính quy và tránh grok tiêu tốn quá nhiều CPU
+  - Giữ event.original để kiểm chứng kết quả sau biến đổi
+  - Phân biệt dữ liệu sự kiện với metadata tạm dùng trong pipeline
+- level1: Độ bền pipeline
+  level2:
+  - Hàng đợi bộ nhớ và persistent queue bảo vệ những giai đoạn nào
+  - Xác nhận tiếp nhận, checkpoint và khả năng phát lại sau sự cố
+  - Giới hạn của persistent queue khi đĩa hỏng hoặc nguồn không có cơ chế xác nhận
+  - Tính ít nhất một lần và khả năng sinh sự kiện trùng
+  - Cơ chế điều tiết ngược (backpressure) khi đầu ra chậm
+  - Định cỡ dung lượng hàng đợi theo lưu lượng và thời gian gián đoạn dự kiến
+  - Phân biệt thử lại lỗi HTTP với lỗi từng tài liệu trong phản hồi Bulk
+  - 'Dead letter queue: phạm vi hỗ trợ và loại lỗi thực tế được đưa vào'
+  - Đọc, sửa và gửi lại dữ liệu DLQ với theo dõi vị trí xử lý
+  - Giám sát dung lượng, dọn dữ liệu và giới hạn lưu của DLQ
+  - Dừng có kiểm soát, rút hết hàng đợi và kiểm tra dữ liệu sau phục hồi
+- level1: Ingest pipeline
+  level2:
+  - Ingest pipeline xử lý sự kiện tại Elasticsearch khác Logstash như thế nào
+  - Cấu trúc processors, điều kiện và thứ tự thực hiện
+  - Dùng các processor JSON, grok, date, set, rename và remove
+  - Xử lý lỗi bằng on_failure ở processor hoặc toàn pipeline
+  - Thử dữ liệu bằng API simulate trước khi áp dụng
+  - Phân biệt pipeline được chỉ định, default pipeline và final pipeline
+  - Gắn pipeline với template hoặc tuyến ghi dữ liệu phù hợp
+  - Enrich processor và vòng đời dữ liệu tra cứu
+  - Quản lý phiên bản pipeline để tránh đổi nghĩa dữ liệu đang gửi
+  - Chọn nơi xử lý theo chi phí CPU, khả năng mở rộng và quyền sở hữu
+- level1: Mô hình Elasticsearch
+  level2:
+  - Document, field, index và cluster trong mô hình lưu trữ log
+  - Quan hệ giữa index logic và các shard vật lý
+  - Primary shard, replica và khả năng tiếp tục phục vụ khi node hỏng
+  - Data stream, backing index và write index
+  - Alias để đọc nhiều index hoặc chuyển đích ghi
+  - Lucene segment và quá trình ghi, tìm kiếm ở mức khái quát
+  - Translog, refresh, flush và merge có vai trò khác nhau
+  - Ghi thành công khác tài liệu đã nhìn thấy trong tìm kiếm gần thời gian thực
+  - Replica phục vụ sẵn sàng cao và khác cơ chế sao lưu dữ liệu
+- level1: Mapping và kiểu dữ liệu
+  level2:
+  - Mapping tường minh khác tự suy luận trường bằng dynamic mapping
+  - Chọn text, keyword và multi-fields theo mục tiêu tìm kiếm
+  - Kiểu date, date_nanos và các bẫy về định dạng thời gian
+  - Chọn kiểu số, boolean, IP và dữ liệu địa lý phù hợp
+  - object, nested và cách bảo toàn quan hệ trong mảng đối tượng
+  - flattened cho tập khóa động và đánh đổi khả năng truy vấn
+  - _source, index và doc_values phục vụ những nhu cầu nào
+  - Dynamic templates và quy tắc đặt kiểu cho trường mới
+  - Mapping explosion do tên trường tăng không kiểm soát
+  - Xung đột kiểu giữa các nguồn hoặc các index theo thời gian
+  - 'Runtime fields: bổ sung khả năng đọc dữ liệu mà không sửa ngay dữ liệu đã ghi'
+  - Đổi mapping cần reindex trong trường hợp nào
+- level1: Template và data stream
+  level2:
+  - 'Component template và index template: phân chia phần dùng chung'
+  - Quy tắc tên, mức ưu tiên và xử lý template chồng lấn
+  - Kết hợp settings, mappings và cấu hình data stream trong template
+  - Thử template để xác định cấu hình thực tế trước khi tạo dữ liệu
+  - Yêu cầu trường thời gian và mô hình ghi bổ sung của data stream
+  - Tên logs-<dataset>-<namespace> và sự nhất quán với trường data_stream
+  - Rollover tạo backing index mới khác xóa dữ liệu cũ
+  - Thay template tác động tới index mới khác index đã tồn tại
+  - Giới hạn cập nhật, xóa và khử trùng lặp qua data stream
+  - Tùy biến tài nguyên do integration quản lý mà không sửa trực tiếp phần sẽ bị ghi đè
+  - Đánh giá logsdb theo phiên bản, điều kiện sử dụng và yêu cầu lưu trữ
+- level1: Ghi dữ liệu và phát lại
+  level2:
+  - Index API, create và lựa chọn thao tác phù hợp dữ liệu log
+  - Bulk API và cấu trúc NDJSON của một lô thao tác
+  - Phản hồi HTTP thành công vẫn có thể chứa tài liệu ghi thất bại
+  - Phân loại lỗi tạm thời, lỗi dữ liệu và xung đột để xử lý đúng
+  - Chọn kích thước lô, mức song song và giới hạn bộ nhớ bên gửi
+  - 'Document ID tự sinh hoặc xác định trước: chi phí và khả năng khử trùng'
+  - Dấu vân tay sự kiện (fingerprint) và giới hạn khử trùng lặp toàn đường đi
+  - Đọc lại log lịch sử mà vẫn giữ thời gian sự kiện gốc
+  - Rollover và phạm vi khử trùng khi dữ liệu có thể nằm ở backing index khác nhau
+  - Reindex, cập nhật hoặc xóa theo truy vấn với phạm vi được kiểm soát
+  - Kiểm đếm, đối soát và ghi nhận tiến độ cho một lần nạp lại dữ liệu
+- level1: Nền tảng tìm kiếm
+  level2:
+  - Chỉ mục đảo giúp tìm thông điệp khác cách quét toàn bộ tệp
+  - Analyzer tách từ, chuẩn hóa và ảnh hưởng tới kết quả tìm kiếm
+  - Keyword giữ giá trị để lọc chính xác, gom nhóm và sắp xếp
+  - Phân biệt tìm toàn văn, khớp chính xác và tìm cụm từ
+  - Chuỗi rỗng, null, trường thiếu và điều kiện exists
+  - Tìm kiếm có tính điểm khác điều kiện lọc
+  - Múi giờ, date math và ranh giới cửa sổ thời gian
+  - Sắp xếp ổn định và phân trang trên tập log đang thay đổi
+  - Wildcard, biểu thức chính quy và nguy cơ truy vấn quá rộng
+- level1: Query DSL
+  level2:
+  - Cấu trúc yêu cầu _search và giới hạn dữ liệu phản hồi
+  - match, match_phrase và term dùng với mapping nào
+  - bool với must, filter, should và must_not
+  - range theo thời gian, mã trạng thái hoặc giá trị đo
+  - exists, terms và điều kiện trên nhiều giá trị
+  - Truy vấn nested để giữ quan hệ giữa trường trong cùng đối tượng
+  - Chọn trường trả về bằng _source filtering và fields
+  - Sắp xếp, search_after và point in time khi cần phân trang sâu
+  - Giới hạn số kết quả, tổng số khớp và chi phí truy vấn
+  - Dùng profile hoặc explain để kiểm tra giả thuyết về tìm kiếm
+  - Truy vấn nhiều index và xử lý khác biệt mapping
+- level1: KQL và Lucene
+  level2:
+  - KQL dùng lọc tài liệu trong giao diện Kibana
+  - Tìm thông điệp tự do hoặc lọc theo field:value
+  - Kết hợp AND, OR, NOT và nhóm điều kiện rõ ràng
+  - Lọc tồn tại, khoảng giá trị và khoảng thời gian
+  - Phân biệt text với keyword khi điều kiện có vẻ không khớp
+  - Escape ký tự đặc biệt, giá trị chứa khoảng trắng và wildcard
+  - Lucene query syntax và điểm khác với KQL
+  - Phân biệt cú pháp lọc với khả năng gom nhóm, biến đổi và sắp xếp
+  - Đối chiếu truy vấn văn bản với bộ lọc trực quan để tránh điều kiện bị áp dụng hai lần
+- level1: Phân tích bằng ES|QL
+  level2:
+  - ES|QL là ngôn ngữ đường ống truy vấn và phân tích dữ liệu
+  - FROM, WHERE, KEEP và DROP để chọn nguồn, dòng và cột
+  - EVAL để tạo biểu thức, chuẩn hóa và tính giá trị dẫn xuất
+  - STATS và BY để tổng hợp theo dịch vụ, mức log hoặc loại lỗi
+  - Xử lý thời gian và chia khoảng để tìm xu hướng
+  - SORT, LIMIT và thứ tự lệnh ảnh hưởng kết quả
+  - DISSECT hoặc GROK trong truy vấn khác xử lý trước khi lập chỉ mục
+  - Kiểu dữ liệu, null và trường đa giá trị trong phép tính
+  - Dùng ES|QL trong Discover để chuyển từ log chi tiết sang bảng phân tích
+  - Giới hạn kết quả và tính năng phụ thuộc phiên bản trước khi dùng cho báo cáo
+- level1: Tổng hợp và thống kê
+  level2:
+  - Bucket aggregation khác metric aggregation
+  - terms để tìm nhóm phổ biến và giới hạn độ chính xác của nhóm đầu
+  - date_histogram với khoảng cố định hoặc theo lịch
+  - filters, range và chia nhóm theo điều kiện nghiệp vụ
+  - count, sum, avg, min và max trên trường có kiểu phù hợp
+  - cardinality và percentiles có thể là phép tính xấp xỉ
+  - composite aggregation để duyệt nhiều tổ hợp khóa
+  - Pipeline aggregation và tính tỷ lệ từ các nhóm đã tổng hợp
+  - Xử lý nhóm rỗng, dữ liệu đến muộn và khoảng thời gian chưa hoàn chỉnh
+  - Phân biệt số dòng ERROR với số yêu cầu thất bại khi chọn mẫu số
+  - Giới hạn số bucket và tránh tổng hợp trên trường có quá nhiều giá trị
+- level1: Điều tra bằng Discover
+  level2:
+  - Chọn chế độ ES|QL hoặc chế độ cổ điển với data view
+  - Thiết lập cửa sổ thời gian tuyệt đối, tương đối và tự làm mới
+  - Chọn cột, sắp xếp và mở tài liệu để kiểm tra dữ liệu thô
+  - Lọc theo dịch vụ, môi trường, mức log và định danh yêu cầu
+  - Xem sự kiện trước–sau để khôi phục bối cảnh một lỗi
+  - Khảo sát phân bố và kiểu dữ liệu của từng trường
+  - Tìm theo trace.id để nối sự kiện qua nhiều dịch vụ
+  - Lưu phiên điều tra, truy vấn và bộ lọc để dùng lại
+  - Chia sẻ liên kết có phạm vi thời gian, tránh mất bối cảnh khi người khác mở
+  - Xuất kết quả trong giới hạn quyền, dung lượng và dữ liệu nhạy cảm
+  - Phân biệt dữ liệu không tồn tại với sai data view, thời gian hoặc quyền đọc
+- level1: Trực quan hóa Kibana
+  level2:
+  - 'Chọn biểu đồ theo câu hỏi: xu hướng, so sánh, phân bố hoặc nhóm lỗi'
+  - Dùng Lens để dựng biểu đồ từ trường có thể tổng hợp
+  - Đặt khoảng thời gian và độ chia biểu đồ phù hợp lưu lượng
+  - Tạo bảng các lỗi phổ biến theo dịch vụ và loại ngoại lệ
+  - Xây dashboard tổng quan log theo môi trường và ứng dụng
+  - Dùng controls, bộ lọc và drilldown tới Discover hoặc trace
+  - Định nghĩa tỷ lệ, đơn vị và chú giải để tránh hiểu sai số liệu
+  - Xử lý dữ liệu thưa, nhóm Other và giới hạn nhóm đầu
+  - Lưu, xuất nhập và quản lý phụ thuộc của saved objects
+  - Quản lý quyền chia sẻ dashboard và kiểm chứng tính năng theo phiên bản, gói sử dụng
+- level1: Vòng đời dữ liệu
+  level2:
+  - Phân biệt rollover, chuyển tầng lưu trữ và xóa dữ liệu hết hạn
+  - Chọn ILM hoặc data stream lifecycle theo môi trường triển khai
+  - Các giai đoạn hot, warm, cold, frozen và delete trong thiết kế ILM
+  - Điều kiện rollover theo kích thước, số tài liệu và thời gian
+  - Tuổi index, thời điểm rollover và tuổi sự kiện là các mốc khác nhau
+  - Áp chính sách cho dữ liệu mới và kiểm tra trạng thái bằng API explain
+  - Xử lý lifecycle bị chặn bởi phân bổ shard, quyền hoặc cấu hình
+  - Lưu dữ liệu đến muộn, nạp lại lịch sử và tác động tới thời hạn lưu
+  - Searchable snapshots và điều kiện phiên bản, hạ tầng, gói sử dụng
+  - Đổi chính sách lưu giữ sau khi đã có dữ liệu và kiểm chứng kết quả
+  - Xác định thời hạn lưu theo giá trị điều tra, chi phí và yêu cầu của tổ chức
+- level1: Cluster và phân bổ shard
+  level2:
+  - Vai trò node quản lý cluster, node dữ liệu, ingest và điều phối
+  - Trạng thái green, yellow, red phản ánh primary và replica như thế nào
+  - Phân bổ shard, tái cân bằng và phục hồi sau khi node rời cluster
+  - Replica đặt khác node và nhận biết miền lỗi khi thiết kế sẵn sàng cao
+  - Chọn số shard ban đầu và ảnh hưởng của quá nhiều shard nhỏ
+  - Data tiers và quy tắc đưa index tới tầng phù hợp
+  - Ngưỡng dung lượng đĩa và trường hợp hệ thống chặn ghi
+  - Đọc allocation explain để tìm nguyên nhân shard chưa được gán
+  - Mở rộng cluster theo lưu trữ, tốc độ ghi và tải truy vấn
+  - Đánh giá tác động khi thay node, bảo trì hoặc gián đoạn một miền lỗi
+- level1: Hiệu năng và dung lượng
+  level2:
+  - Ước lượng dữ liệu từ số sự kiện, kích thước, thời hạn lưu và hệ số lưu trữ
+  - Tách chi phí dữ liệu gốc, chỉ mục, replica, hàng đợi và snapshot
+  - Chọn heap, bộ nhớ ngoài heap và phần dành cho cache hệ điều hành
+  - Đo tốc độ ghi cùng độ trễ dữ liệu có thể tìm thấy
+  - Điều chỉnh bulk size, mức song song và backoff theo kết quả đo
+  - Tác động của refresh interval, replica và merge tới tốc độ ghi
+  - Tối ưu Logstash bằng worker utilization, số worker và kích thước lô
+  - Giảm trường thừa, số giá trị khác nhau quá lớn và nội dung log quá dài
+  - Giới hạn wildcard, runtime fields và tổng hợp tốn tài nguyên
+  - Giảm phạm vi index và thời gian trước khi mở rộng tài nguyên
+  - Đánh giá logsdb, nén và chế độ _source theo yêu cầu đọc lại
+  - Thiết kế phép thử tải với dữ liệu, truy vấn và mức song song đại diện
+- level1: Bảo mật và phân quyền
+  level2:
+  - Xác thực người dùng, tài khoản dịch vụ và API key có phạm vi tối thiểu
+  - RBAC cho ghi dữ liệu, đọc log, quản lý pipeline và quản trị cluster
+  - TLS giữa node, giữa các thành phần và từ trình duyệt tới Kibana
+  - Quản lý CA, chứng chỉ, tên máy và vòng đời gia hạn
+  - Lưu thông tin xác thực trong cơ chế phù hợp thay vì tệp cấu hình được chia sẻ
+  - Giới hạn mạng và bề mặt truy cập của Elasticsearch, Kibana, Logstash
+  - Tách dữ liệu theo môi trường hoặc tổ chức với quyền đọc được kiểm chứng
+  - Kibana Spaces khác ranh giới phân quyền dữ liệu Elasticsearch
+  - Quyền theo tài liệu, trường và điều kiện tính năng của từng gói
+  - Che, xóa hoặc không thu thông tin cá nhân, mật khẩu và token
+  - Audit truy cập, xoay vòng thông tin xác thực và bảo vệ dữ liệu xuất ra
+  - Giới hạn kích thước sự kiện và ngăn dữ liệu đầu vào lạm dụng tài nguyên
+- level1: Triển khai thực tế
+  level2:
+  - Phân biệt self-managed, Elastic Cloud Hosted và Serverless
+  - Tách cấu hình học thử khỏi yêu cầu của môi trường vận hành
+  - Triển khai trên máy chủ hoặc container với đĩa và tài nguyên phù hợp
+  - 'Kubernetes: lưu trữ bền vững, quyền đọc log và phân bố thành phần'
+  - Elastic Cloud on Kubernetes và phạm vi tài nguyên được operator quản lý
+  - Kiểm tra sẵn sàng, kiểm tra sống và thứ tự phụ thuộc
+  - Cấu hình reverse proxy, địa chỉ công khai và cân bằng tải
+  - Triển khai thay đổi pipeline theo giai đoạn và quan sát tác động
+  - Quản lý cấu hình, template, pipeline và dashboard dưới dạng phiên bản
+- level1: Giám sát và cảnh báo
+  level2:
+  - Theo dõi độ trễ từ thời điểm sự kiện tới khi xuất hiện trong tìm kiếm
+  - Đối soát lưu lượng giữa nguồn, bộ thu, Logstash và Elasticsearch
+  - Quan sát agent, input, hàng đợi và số sự kiện bị bỏ
+  - Đọc Node Stats, pipeline metrics và chỉ số persistent queue của Logstash
+  - Theo dõi cluster health, JVM, GC, đĩa và thread pool Elasticsearch
+  - Phát hiện indexing rejection, circuit breaker và truy vấn chậm
+  - Xây cảnh báo theo log lỗi, số lần xuất hiện và tỷ lệ có mẫu số hợp lệ
+  - Chọn lịch chạy, cửa sổ tìm kiếm và cách xử lý log đến muộn
+  - Nhóm cảnh báo, chống lặp và phân biệt không có log với hệ thống bình thường
+  - Theo dõi lần chạy quy tắc, quyền truy vấn và lỗi connector thông báo
+  - Xác định mục tiêu vận hành cùng quy trình xử lý khi pipeline mất dữ liệu
+- level1: Sao lưu và khôi phục
+  level2:
+  - Snapshot repository và điều kiện truy cập từ cluster
+  - Replica không thay snapshot; sao chép thư mục dữ liệu không thay quy trình backup
+  - Tạo snapshot và kiểm tra trạng thái hoàn tất, thất bại hoặc một phần
+  - Lập lịch và giữ snapshot bằng Snapshot Lifecycle Management khi được hỗ trợ
+  - 'Phạm vi snapshot: index, data stream, cluster state và feature states'
+  - Khôi phục thử vào môi trường biệt lập trước khi cần phục hồi thật
+  - Giới hạn tương thích phiên bản và xung đột tên khi restore
+  - Khôi phục Kibana saved objects, pipeline, template và cấu hình liên quan
+  - Xác định RPO, RTO và kiểm chứng bằng bài tập phục hồi
+  - Bảo vệ kho snapshot, quyền truy cập và dữ liệu nhạy cảm bên trong
+- level1: Chẩn đoán sự cố
+  level2:
+  - 'Không thấy log: lần theo từng chặng từ tệp nguồn tới truy vấn'
+  - Sai data view, trường thời gian, múi giờ hoặc cửa sổ lọc
+  - Agent không đọc tệp do quyền, đường dẫn, định danh hoặc trạng thái đã lưu
+  - Log bị mất hoặc trùng sau xoay vòng, khởi động lại và phát lại
+  - Stack trace bị tách hoặc nhiều sự kiện bị ghép nhầm thành một
+  - Grok thất bại, ngày giờ sai và trường bị chuyển kiểu ngoài ý muốn
+  - Mapping conflict, quá nhiều trường và tài liệu bị từ chối
+  - Bulk báo thành công ở HTTP nhưng chứa lỗi từng tài liệu
+  - Logstash bị chặn do output chậm, persistent queue đầy hoặc pipeline nghẽn
+  - Lỗi TLS, xác thực, quyền ghi và enrollment giữa các thành phần
+  - Cluster yellow hoặc red, shard chưa gán và dung lượng đĩa cạn
+  - Truy vấn chậm, dashboard lỗi và kết quả thống kê không đầy đủ
+  - Đối chiếu log nội bộ, số liệu đo, dữ liệu thô và dòng thời gian trước khi thay cấu hình
+- level1: Kiểm thử và chất lượng
+  level2:
+  - Bộ dữ liệu kiểm thử gồm log đúng, sai định dạng và trường hợp biên
+  - Kiểm thử grok, dissect, date và pipeline ingest bằng dữ liệu cố định
+  - Xác nhận schema ECS, kiểu trường, múi giờ và quy tắc che dữ liệu
+  - Kiểm thử tích hợp toàn tuyến từ nguồn đến kết quả tìm kiếm
+  - Chờ có điều kiện để kiểm chứng hệ thống xử lý gần thời gian thực
+  - Đối soát mất, trùng và sai thứ tự bằng định danh sự kiện
+  - Giả lập đầu ra ngừng hoạt động, đầy bộ đệm và ứng dụng dừng đột ngột
+  - Đo tốc độ nạp, độ trễ tìm kiếm và truy vấn dưới tải
+  - Kiểm chứng quyền truy cập với tài khoản có vai trò khác nhau
+  - Kiểm tra dashboard, cảnh báo và phục hồi sau thay đổi cấu hình
+- level1: Nâng cấp và chuyển đổi
+  level2:
+  - Lập ma trận tương thích thành phần, plugin và định dạng dữ liệu
+  - Đọc deprecation, thay đổi mặc định và điều kiện nâng cấp theo phiên bản
+  - Thử nâng cấp trên dữ liệu đại diện cùng bản sao cấu hình
+  - Chuyển Filebeat input kế thừa sang filestream với kiểm soát vị trí đọc
+  - Chuyển từ Beats sang Elastic Agent mà không thu cùng nguồn hai lần
+  - Chuyển index theo ngày sang data stream hoặc alias phù hợp
+  - Đổi schema và mapping bằng index mới, reindex và chuyển đích đọc ghi
+  - Nâng cấp rolling hoặc gián đoạn toàn bộ theo lộ trình được hỗ trợ
+  - Phân biệt phục hồi bằng snapshot với hạ phiên bản trực tiếp
+  - Đối chiếu số sự kiện, truy vấn, dashboard và cảnh báo trước–sau chuyển đổi
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng ELK cục bộ và thu JSON log từ ứng dụng Spring Boot
+  - Chuẩn hóa log về ECS rồi tìm theo dịch vụ, mức độ và mã yêu cầu
+  - Đọc stack trace nhiều dòng bằng Filebeat mà không trộn các sự kiện
+  - Thiết kế Logstash pipeline phân tích access log và log ứng dụng
+  - Tạo lỗi mapping, đưa dữ liệu phù hợp vào DLQ và xử lý lại
+  - Ngắt Elasticsearch để quan sát backpressure, persistent queue và phục hồi
+  - Thiết kế data stream, template và chính sách lưu giữ cho nhiều môi trường
+  - So sánh KQL, Query DSL và ES|QL trên cùng câu hỏi điều tra
+  - Xây dashboard lỗi theo dịch vụ với drilldown về log chi tiết
+  - Lần theo một trace ID xuyên nhiều dịch vụ và đối chiếu thời gian
+  - Thử tải để tìm nút thắt ở bộ thu, xử lý, ghi hoặc truy vấn
+  - Thực hành phân quyền đọc, ghi và xác nhận không lộ dữ liệu giữa nhóm
+  - Tạo snapshot, xóa dữ liệu thử nghiệm có kiểm soát và khôi phục vào môi trường riêng
+  - Viết quy trình điều tra một sự cố từ triệu chứng đến bằng chứng và nguyên nhân

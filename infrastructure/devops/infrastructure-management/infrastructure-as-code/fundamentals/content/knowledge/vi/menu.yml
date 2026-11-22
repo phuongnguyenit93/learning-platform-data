@@ -1,0 +1,287 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Hạ tầng dưới dạng mã (Infrastructure as Code) là gì
+  - Vấn đề của việc cấu hình hạ tầng thủ công
+  - Vai trò của IaC trong chu trình phát triển và vận hành phần mềm
+  - Lợi ích của quản lý phiên bản, xem xét và tái tạo hạ tầng
+  - Tài nguyên, cấu hình, môi trường và vòng đời thay đổi
+  - Mối liên hệ giữa mã nguồn, công cụ IaC và hệ thống đích
+  - Một thay đổi hạ tầng đi từ đề xuất đến xác minh như thế nào
+  - 'Giới hạn của IaC: khai báo được không đồng nghĩa vận hành đúng'
+  - Những khái niệm cần phân biệt trước khi học công cụ cụ thể
+- level1: Phạm vi IaC
+  level2:
+  - Phân biệt cấp phát hạ tầng và quản lý cấu hình
+  - Phân biệt triển khai ứng dụng và cấp phát tài nguyên
+  - Vai trò của điều phối, tự động hóa và IaC
+  - Hạ tầng đám mây, tại chỗ và môi trường kết hợp
+  - Máy chủ, mạng, lưu trữ, DNS và quyền truy cập trong mô hình IaC
+  - Ranh giới giữa cấu hình hệ điều hành, ảnh máy và cấu hình ứng dụng
+  - Hạ tầng bất biến và hạ tầng thay đổi tại chỗ
+  - Mối liên hệ giữa IaC, container, Kubernetes và GitOps
+  - Xác định phần việc nên quản lý bằng mã và phần việc cần quy trình khác
+- level1: Mô hình tài nguyên
+  level2:
+  - Tài nguyên và thuộc tính trong mô hình khai báo
+  - Danh tính tài nguyên trong cấu hình và danh tính trên hệ thống đích
+  - Nhóm tài nguyên, phạm vi quản lý và ranh giới sở hữu
+  - Quan hệ giữa tài nguyên mới và dữ liệu tra cứu từ tài nguyên có sẵn
+  - Thuộc tính đầu vào, thuộc tính được tính toán và giá trị chỉ biết khi chạy
+  - Giá trị mặc định của công cụ, nhà cung cấp và dịch vụ đích
+  - Phân biệt thuộc tính có thể cập nhật với thuộc tính buộc tạo lại tài nguyên
+  - Nhãn, thẻ và quy tắc đặt tên để nhận diện tài nguyên
+  - Mô hình tối thiểu cho mạng, máy chủ và quyền truy cập
+- level1: Cách mô tả hạ tầng
+  level2:
+  - Khai báo trạng thái mong muốn và mô tả chuỗi thao tác
+  - Tiếp cận khai báo (declarative) và tiếp cận mệnh lệnh (imperative)
+  - Tệp cấu hình, ngôn ngữ chuyên biệt và ngôn ngữ lập trình tổng quát
+  - Phân biệt cấu hình có cấu trúc với một tập lệnh tự động hóa
+  - Diễn giải biểu thức, nội suy và tham chiếu giữa các giá trị
+  - Thể hiện điều kiện và số lượng tài nguyên mà vẫn dễ kiểm tra
+  - Tránh phụ thuộc ẩn vào thời gian, máy chạy hoặc dữ liệu ngoài
+  - Các giới hạn của việc sinh cấu hình động quá phức tạp
+  - Ví dụ cùng một yêu cầu hạ tầng qua hai cách mô tả
+- level1: Lặp và hội tụ
+  level2:
+  - Tính lũy đẳng (idempotence) trong thao tác hạ tầng
+  - Phân biệt chạy lại an toàn với không phát sinh thay đổi
+  - Hội tụ từ trạng thái thực tế đến trạng thái mong muốn
+  - Kết quả xác định và khả năng tái lập môi trường
+  - Tác dụng phụ của script, lệnh ngoài và thao tác không lũy đẳng
+  - Chạy lại sau lỗi và giới hạn của việc tự động thử lại
+  - Trạng thái nhất quán trễ của API và thời gian chờ tài nguyên
+  - Thay đổi ngoài hệ thống IaC ảnh hưởng đến khả năng hội tụ
+  - Đánh giá tính lặp an toàn bằng những lần thực thi liên tiếp
+- level1: Hệ sinh thái công cụ
+  level2:
+  - Các nhóm công cụ cấp phát, cấu hình và xây dựng ảnh máy
+  - Công cụ độc lập với nhà cung cấp và công cụ gắn với một nền tảng
+  - Vai trò minh họa của Terraform, OpenTofu, Pulumi và CloudFormation
+  - Vai trò minh họa của Ansible và các công cụ quản lý cấu hình
+  - Provider, plugin, module và thư viện mở rộng
+  - Mô hình thực thi theo lần chạy và mô hình bộ điều khiển liên tục
+  - Công cụ có tệp trạng thái và công cụ lưu trạng thái theo cách khác
+  - Tiêu chí đánh giá công cụ theo nền tảng, đội ngũ và yêu cầu quản trị
+  - Phân định trách nhiệm khi phối hợp nhiều công cụ trong một hệ thống
+- level1: Môi trường thực thi
+  level2:
+  - Máy người dùng, máy chạy tự động và dịch vụ thực thi được quản lý
+  - Chuỗi tương tác từ cấu hình qua công cụ đến API hạ tầng
+  - Điều kiện về mạng, DNS, proxy và chứng chỉ để truy cập hệ thống đích
+  - Danh tính thực thi, tài khoản đích và vùng triển khai
+  - Quyền đọc phục vụ xem trước và quyền ghi phục vụ áp dụng
+  - Khởi tạo nơi lưu trạng thái và các phụ thuộc cần có trước lần chạy đầu
+  - Quản lý phiên bản công cụ, provider và tệp khóa phụ thuộc
+  - Phân biệt ghim phiên bản với khả năng tái lập hoàn toàn
+  - Kiểm tra môi trường đích trước khi cho phép thay đổi
+- level1: Đầu vào và đầu ra
+  level2:
+  - Biến đầu vào, giá trị mặc định và tham số bắt buộc
+  - Kiểu dữ liệu, đối tượng, danh sách và ánh xạ
+  - Kiểm tra miền giá trị và ràng buộc giữa các đầu vào
+  - Giá trị thiếu, null và chuỗi rỗng khác nhau thế nào
+  - Giá trị cục bộ để đặt tên và tránh lặp biểu thức
+  - Đầu ra của cấu hình và hợp đồng trao đổi giữa các phần hạ tầng
+  - Phạm vi hiển thị và cách truyền cấu hình theo môi trường
+  - Thứ tự ưu tiên của nguồn giá trị và nguy cơ ghi đè ngoài ý muốn
+  - Phân biệt đánh dấu nhạy cảm với mã hóa hoặc bảo vệ bí mật
+- level1: Đồ thị phụ thuộc
+  level2:
+  - Đồ thị phụ thuộc có hướng và thứ tự tạo tài nguyên
+  - Phụ thuộc ngầm qua tham chiếu và phụ thuộc khai báo tường minh
+  - Thứ tự xóa tài nguyên và quan hệ với thứ tự tạo
+  - Thực thi song song và các ràng buộc cần tuần tự
+  - Nhận diện và tháo gỡ vòng phụ thuộc
+  - Phụ thuộc ẩn qua script, tệp cục bộ và tài nguyên ngoài phạm vi
+  - Tài nguyên đã được tạo khác với dịch vụ đã sẵn sàng sử dụng
+  - Giới hạn tốc độ API, thời gian chờ và mức độ song song
+  - Vì sao thu hẹp phạm vi thực thi có thể bỏ sót quan hệ phụ thuộc
+- level1: Tổ chức mã nguồn
+  level2:
+  - Cấu trúc thư mục cho cấu hình, thành phần dùng lại và tài liệu
+  - Phân chia theo miền hạ tầng, môi trường và phạm vi thay đổi
+  - Tệp nào đưa vào Git và tệp nào phải loại khỏi quản lý phiên bản
+  - Tách mã cấu hình khỏi bí mật, tệp trạng thái và dữ liệu sinh ra
+  - Quy ước tên tài nguyên, biến, đầu ra và thành phần dùng chung
+  - Quản lý thay đổi cấu hình bằng commit và yêu cầu xem xét
+  - Tài liệu về điều kiện chạy, quyền truy cập và chủ sở hữu
+  - Lưu lý do thiết kế và các quyết định có ảnh hưởng lâu dài
+- level1: Tái sử dụng cấu hình
+  level2:
+  - Khi nào nên tách thành phần hạ tầng dùng lại
+  - Ranh giới module theo trách nhiệm và vòng đời tài nguyên
+  - Thiết kế đầu vào và đầu ra rõ ràng cho thành phần
+  - Ưu tiên ghép các thành phần nhỏ có trách nhiệm cụ thể
+  - Cân bằng giữa cấu hình trùng lặp và lớp trừu tượng quá phức tạp
+  - Quản lý phiên bản, nguồn lấy và tính tương thích của module
+  - Kiểm tra thay đổi hợp đồng trước khi nâng cấp thành phần
+  - Tránh module tổng quát với quá nhiều cờ điều kiện
+  - Ví dụ tách mạng dùng chung khỏi thành phần triển khai dịch vụ
+- level1: Tách biệt môi trường
+  level2:
+  - Phân biệt môi trường phát triển, kiểm thử và sản xuất
+  - Phân tách tài khoản, dự án, vùng mạng và quyền truy cập
+  - Phân tách trạng thái và danh tính thực thi giữa các môi trường
+  - Dùng chung mô hình hạ tầng nhưng thay đổi tham số có kiểm soát
+  - Khác biệt hợp lý giữa môi trường và nguy cơ sai lệch thiết kế
+  - Giới hạn của workspace hoặc thư mục trong việc bảo đảm cách ly
+  - Tài nguyên dùng chung và trách nhiệm của từng môi trường
+  - 'Môi trường tạm thời: đặt hạn dùng, theo dõi và thu hồi'
+  - Chuyển cùng một phiên bản cấu hình qua các môi trường
+- level1: Trạng thái quản lý
+  level2:
+  - Phân biệt cấu hình mong muốn, tài nguyên thực và trạng thái do công cụ lưu
+  - Mục đích của trạng thái và sự khác nhau giữa các công cụ IaC
+  - Ánh xạ danh tính trong mã với tài nguyên đã tồn tại
+  - Trạng thái cục bộ, trạng thái từ xa và mô hình lưu trữ được quản lý
+  - Khóa trạng thái và ngăn nhiều lần chạy ghi đồng thời
+  - Phân vùng trạng thái theo quyền sở hữu và phạm vi ảnh hưởng
+  - Dữ liệu nhạy cảm có thể xuất hiện trong trạng thái
+  - Mã hóa, phân quyền, lưu phiên bản và sao lưu trạng thái
+  - Đọc trạng thái liên thành phần và nguy cơ phụ thuộc chặt
+  - Di chuyển nơi lưu trạng thái và kiểm tra tính nhất quán
+- level1: Quy trình thay đổi
+  level2:
+  - Chu trình khởi tạo, kiểm tra, xem trước, phê duyệt, áp dụng và xác minh
+  - Phân biệt kiểm tra cú pháp với đối chiếu hạ tầng thực tế
+  - Bản xem trước thể hiện tạo, sửa, thay thế và xóa như thế nào
+  - Giá trị chưa xác định và giới hạn của bản xem trước
+  - Đọc phạm vi tác động trước khi phê duyệt thay đổi
+  - Vì sao bản xem trước có thể cũ trước thời điểm áp dụng
+  - Gắn việc phê duyệt với đúng phiên bản cấu hình và môi trường
+  - Tái kiểm tra khi cấu hình, tham số hoặc trạng thái đã thay đổi
+  - Xác minh đầu ra và hành vi hệ thống sau khi áp dụng
+  - Lưu bằng chứng thực thi để truy vết và điều tra
+- level1: Vòng đời tài nguyên
+  level2:
+  - Tạo mới, cập nhật tại chỗ, thay thế và xóa tài nguyên
+  - Thay thế tài nguyên ảnh hưởng đến danh tính và các thành phần phụ thuộc
+  - Tạo mới trước khi xóa cũ và giới hạn tên, hạn mức, chi phí
+  - Phân biệt bảo vệ khỏi xóa với bảo đảm tính sẵn sàng
+  - Giới hạn của quy tắc bỏ qua thay đổi thuộc tính
+  - Tách vòng đời dữ liệu bền vững khỏi máy chủ hoặc thành phần tạm thời
+  - Xử lý địa chỉ IP, tên miền và liên kết khi thay thế tài nguyên
+  - Thay đổi tên hoặc cấu trúc trong mã mà vẫn giữ tài nguyên thực
+  - Xóa tài nguyên có chủ sở hữu, xác nhận phụ thuộc và phương án phục hồi
+  - Vì sao hoàn tác commit không bảo đảm khôi phục tài nguyên hoặc dữ liệu
+- level1: Sai lệch cấu hình
+  level2:
+  - Sai lệch (drift) giữa trạng thái mong muốn và hạ tầng thực
+  - Nguồn sai lệch từ thao tác thủ công, dịch vụ tự quản lý và công cụ khác
+  - Phát hiện sai lệch bằng việc đọc lại hệ thống đích
+  - Phân biệt sai lệch thực với dữ liệu tính toán hoặc thuộc tính biến động
+  - Chọn sửa mã, phục hồi cấu hình mong muốn hoặc ghi nhận ngoại lệ
+  - Không đồng nhất việc cập nhật trạng thái với việc sửa tài nguyên
+  - Phối hợp sau thay đổi khẩn cấp thực hiện ngoài IaC
+  - Theo dõi sai lệch định kỳ và giảm cảnh báo lặp không có ý nghĩa
+  - Giữ một nguồn quản lý rõ ràng cho mỗi tài nguyên hoặc thuộc tính
+- level1: Kiểm thử IaC
+  level2:
+  - Phân tầng kiểm tra từ cấu hình đến hành vi hạ tầng
+  - Định dạng, phân tích cú pháp và kiểm tra tính hợp lệ
+  - Phân tích tĩnh để phát hiện cấu hình thiếu an toàn
+  - Kiểm thử biểu thức, module và hợp đồng đầu vào hoặc đầu ra
+  - Kiểm tra bản xem trước để nhận diện thay đổi ngoài dự kiến
+  - Mô phỏng provider và giới hạn của môi trường giả lập
+  - Kiểm thử tích hợp trên môi trường tách biệt
+  - Kiểm thử truy cập mạng, quyền và khả năng sẵn sàng sau triển khai
+  - Kiểm tra tính lũy đẳng và phát hiện lần chạy sau vẫn tạo thay đổi
+  - Dọn tài nguyên kiểm thử và kiểm soát chi phí phát sinh
+  - Chọn bằng chứng kiểm thử phù hợp thay vì chỉ dựa vào mã thoát thành công
+- level1: Bảo mật và bí mật
+  level2:
+  - Nhận diện bí mật trong đầu vào, đầu ra, trạng thái và nhật ký
+  - Cấp quyền tối thiểu cho danh tính chạy công cụ IaC
+  - Tách quyền đề xuất, phê duyệt và thực thi ở môi trường quan trọng
+  - Dùng thông tin xác thực ngắn hạn và cơ chế liên kết danh tính
+  - Lấy bí mật từ hệ thống quản lý bí mật theo phạm vi cần thiết
+  - Giới hạn của việc che giá trị nhạy cảm trên giao diện
+  - Ngăn bí mật đi vào Git, bản xem trước và gói kết quả CI/CD
+  - Kiểm tra nguồn, phiên bản và quyền thực thi của provider hoặc module
+  - Bảo vệ máy chạy tự động và cấu hình đến từ nguồn không tin cậy
+  - Luân chuyển, thu hồi thông tin xác thực và xử lý bí mật bị lộ
+- level1: Chính sách kiểm soát
+  level2:
+  - Chính sách dưới dạng mã (Policy as Code) bổ sung gì cho IaC
+  - Quy tắc về vùng triển khai, nhãn, cấu hình mạng và mã hóa
+  - Kiểm tra chính sách trên mã, bản xem trước và tài nguyên thực
+  - Phân biệt cảnh báo tham khảo với điều kiện chặn thực thi
+  - Kiểm soát tài nguyên công khai và quyền truy cập quá rộng
+  - Ngoại lệ có người phê duyệt, thời hạn và lý do
+  - Theo dõi bằng chứng tuân thủ và lịch sử thay đổi chính sách
+  - Giới hạn của kiểm tra chính sách đối với thiết kế và hành vi thực tế
+- level1: Tích hợp CI/CD
+  level2:
+  - Chu trình kiểm tra IaC khi có đề xuất thay đổi trong Git
+  - Tách giai đoạn xem trước khỏi giai đoạn được phép thay đổi hạ tầng
+  - Phê duyệt thủ công hoặc tự động theo mức rủi ro
+  - Thực thi đúng mã nguồn, tham số và kết quả đã được phê duyệt
+  - Tuần tự hóa lần chạy trên cùng phạm vi tài nguyên hoặc trạng thái
+  - Ngăn đề xuất từ nguồn không tin cậy tiếp cận quyền môi trường sản xuất
+  - Quản lý kết quả xem trước như dữ liệu có thể chứa thông tin nhạy cảm
+  - Phát hiện cấu hình mới hơn và xử lý kết quả kiểm tra đã hết hiệu lực
+  - Tách lỗi hạ tầng, lỗi cấu hình và lỗi của hệ thống CI/CD
+  - Xác minh sau áp dụng và chuyển giao kết quả cho người vận hành
+- level1: Sự cố và phục hồi
+  level2:
+  - Phân loại lỗi cấu hình, quyền, mạng, hạn mức và lỗi API
+  - Hiểu kết quả thành công một phần khi một tài nguyên tạo thất bại
+  - Đọc trạng thái thực trước khi chạy lại hoặc sửa tay
+  - Chỉ thử lại thao tác phù hợp và kiểm soát tác dụng phụ
+  - Xử lý lần chạy bị ngắt và xác minh trước khi mở khóa trạng thái
+  - Phục hồi trạng thái từ bản sao và đối chiếu tài nguyên thực
+  - Phân biệt quay lại cấu hình cũ, sửa tiếp và khôi phục dữ liệu
+  - Kế hoạch dự phòng cho thay thế, di chuyển và xóa tài nguyên
+  - Tái tạo hạ tầng không thay thế sao lưu dữ liệu ứng dụng
+  - Diễn tập khôi phục với mục tiêu thời gian và mức mất dữ liệu cho phép
+  - Ghi nhận nguyên nhân sự cố và cập nhật quy trình phòng ngừa
+- level1: Chi phí và quan sát
+  level2:
+  - Ước lượng chi phí và giới hạn của dự báo trước triển khai
+  - Hạn mức tài nguyên, giới hạn dịch vụ và ngân sách
+  - Nhãn chủ sở hữu, môi trường và mục đích để phân bổ chi phí
+  - Chi phí tạm tăng khi thay thế hoặc duy trì hai thế hệ tài nguyên
+  - Theo dõi nhật ký thực thi, sự kiện API và thay đổi cấu hình
+  - Giám sát sức khỏe dịch vụ sau khi IaC báo thành công
+  - Phát hiện tài nguyên bỏ quên và môi trường tạm hết hạn
+  - Liên kết phiên bản mã với thay đổi hạ tầng để điều tra
+  - Đánh giá thời gian chạy, tỷ lệ lỗi và mức thay đổi thủ công
+- level1: Hệ thống có sẵn
+  level2:
+  - Kiểm kê tài nguyên, quyền sở hữu và công cụ đang quản lý
+  - Phân biệt tiếp nhận hạ tầng hiện hữu với tạo mới hoàn toàn
+  - Nhập tài nguyên có sẵn vào phạm vi quản lý của công cụ
+  - Nhập danh tính tài nguyên không đồng nghĩa đã có cấu hình hoàn chỉnh
+  - Viết cấu hình khớp hiện trạng và kiểm tra trước khi cho phép sửa
+  - Chia nhỏ phạm vi tiếp nhận theo rủi ro và phụ thuộc
+  - Chuyển trách nhiệm quản lý giữa các thành phần hoặc công cụ
+  - Giữ dữ liệu và danh tính tài nguyên khi tái cấu trúc cấu hình
+  - Loại bỏ cơ chế quản lý cũ sau khi xác minh bàn giao
+- level1: Phối hợp và quản trị
+  level2:
+  - Xác định chủ sở hữu mã, trạng thái và tài nguyên
+  - Thống nhất quy tắc xem xét thay đổi hạ tầng
+  - Phạm vi ảnh hưởng và cách chia đợt thay đổi
+  - Quản lý tài nguyên dùng chung giữa nhiều đội
+  - Quy trình thay đổi khẩn cấp và cập nhật lại nguồn quản lý
+  - Lịch nâng cấp công cụ, provider và thành phần dùng chung
+  - Tài liệu vận hành, hướng dẫn phục hồi và bàn giao
+  - Đánh giá mức trưởng thành của IaC bằng khả năng kiểm chứng và phục hồi
+  - 'Nhận diện dấu hiệu sai thiết kế: sửa tay kéo dài, trạng thái dùng chung quá lớn và script khó chạy lại'
+- level1: Thực hành nền tảng
+  level2:
+  - Vẽ quan hệ giữa cấu hình, công cụ, trạng thái và hệ thống đích
+  - Chuyển một yêu cầu hạ tầng nhỏ thành mô hình tài nguyên
+  - So sánh mô tả khai báo với chuỗi lệnh cho cùng một mục tiêu
+  - Thực hành kiểm tra, xem trước, áp dụng và xác minh trong môi trường tách biệt
+  - Chạy lại cùng cấu hình để quan sát tính lũy đẳng
+  - Tách đầu vào, đầu ra và thành phần dùng lại từ cấu hình ban đầu
+  - Mô phỏng hai môi trường với trạng thái và quyền truy cập riêng
+  - Tạo sai lệch có kiểm soát rồi lựa chọn cách xử lý
+  - Mô phỏng lỗi giữa chừng và lập phương án chạy lại an toàn
+  - Đánh giá một thay đổi buộc thay thế tài nguyên có dữ liệu
+  - Thiết kế các điểm kiểm tra và phê duyệt trong luồng CI/CD
+  - Lập kế hoạch tiếp nhận một tài nguyên có sẵn mà không tạo lại
+  - Kiểm tra khả năng phục hồi trạng thái và thu hồi toàn bộ tài nguyên thử nghiệm

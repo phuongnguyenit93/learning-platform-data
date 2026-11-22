@@ -1,0 +1,58 @@
+roadmap:
+- id: hmac-request-authentication
+  title: HMAC & Request Authentication
+  purpose: Hiểu cơ chế HMAC dùng khóa bí mật chung để kiểm tra tính xác thực và toàn vẹn của các thành phần request được ký.
+  objectives:
+  - Phân biệt HMAC với hash thường và mã hóa
+  - Giải thích client và server cùng sở hữu shared secret
+  - Nêu vai trò của HTTPS và giới hạn của HMAC
+- id: key-id-secret-lifecycle
+  title: Key ID & Secret Lifecycle
+  purpose: Quản lý khóa ký theo từng client để xác minh đúng nguồn gửi, giới hạn phạm vi sử dụng và giảm thiệt hại khi lộ
+    khóa.
+  objectives:
+  - Sinh secret đủ entropy và gắn key ID
+  - Lưu secret trong secret manager, không nhúng mã
+  - Lập quy trình rotate, revoke và phân quyền khóa
+- id: canonical-http-request
+  title: Canonical HTTP Request
+  purpose: Chuẩn hóa những thành phần HTTP được ký để client và server tạo ra cùng dữ liệu đầu vào của HMAC.
+  objectives:
+  - Chọn method, URI, query và host cần ký
+  - Chuẩn hóa encoding, thứ tự query và whitespace
+  - Kiểm thử hai phía cho ra cùng canonical string
+- id: payload-digest-signed-headers
+  title: Payload Digest & Signed Headers
+  purpose: Bao phủ nội dung request và metadata quan trọng để phát hiện sửa body hoặc đổi mục tiêu API sau khi ký.
+  objectives:
+  - Tạo digest trên body bytes nhất quán
+  - Ký digest cùng headers quan trọng theo giao ước
+  - Phân biệt Content-Digest với MAC của cả request
+- id: tao-hmac-sha256-trong-java
+  title: Tạo HMAC-SHA256 trong Java
+  purpose: Thực hành tạo chữ ký request qua API mật mã tiêu chuẩn của Java mà không tự triển khai thuật toán.
+  objectives:
+  - Dùng Mac.getInstance và SecretKeySpec
+  - Ký canonical bytes bằng HmacSHA256
+  - Mã hóa chữ ký bằng Base64 hoặc hex nhất quán
+- id: xac-minh-phan-quyen
+  title: Xác minh & phân quyền
+  purpose: Triển khai xác minh chữ ký phía server và tách xác thực quyền sở hữu khóa khỏi quyết định cho phép thao tác.
+  objectives:
+  - Tra key theo key ID và tính lại chữ ký
+  - So sánh MAC bằng hàm có thời gian ổn định
+  - Kiểm tra quyền client đối với endpoint được gọi
+- id: timestamp-nonce-anti-replay
+  title: Timestamp, Nonce & Anti-Replay
+  purpose: Ngăn request hợp lệ bị gửi lại nhiều lần bằng chính sách độ mới và theo dõi dấu vết từng chữ ký.
+  objectives:
+  - Ký timestamp, nonce và thời hạn hiệu lực
+  - Từ chối thời gian lệch cửa sổ hoặc nonce lặp
+  - Xử lý clock skew và trạng thái nonce đã dùng
+- id: kiem-thu-van-hanh
+  title: Kiểm thử & vận hành
+  purpose: Đảm bảo chữ ký hoạt động ổn định qua proxy và môi trường khác nhau, đồng thời bảo vệ bí mật trong logging.
+  objectives:
+  - Kiểm tra test vector RFC 4231 và case sai chữ ký
+  - Thử body/query thay đổi, key rotate và replay
+  - Theo dõi lỗi xác thực mà không ghi secret vào log

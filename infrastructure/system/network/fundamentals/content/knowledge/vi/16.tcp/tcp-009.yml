@@ -1,0 +1,3 @@
+menuLevel1: TCP
+menuLevel2: TCP là luồng byte và không giữ ranh giới thông điệp ứng dụng
+status: ''

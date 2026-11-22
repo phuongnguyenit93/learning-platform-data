@@ -1,0 +1,7 @@
+# DevOps Fundamentals
+
+**DevOps** là cách kết hợp con người, quy trình và công cụ để rút ngắn vòng phản hồi từ phát triển đến vận hành phần mềm mà vẫn duy trì chất lượng và độ tin cậy. Thay vì tách biệt công việc của developer, QA, vận hành và bảo mật, DevOps đề cao cộng tác, trách nhiệm chung, tự động hóa có kiểm chứng và cải tiến liên tục. Học phần này giới thiệu các khái niệm nền tảng, không phụ thuộc vào một nền tảng cloud hay hệ thống CI/CD duy nhất.
+
+Lộ trình gồm **8 mốc**: tư duy và vòng đời DevOps; quản lý mã nguồn bằng Git và review; continuous integration cùng kiểm thử; đóng gói artifact và container; continuous delivery cùng release an toàn; Infrastructure as Code và cấu hình; observability và độ tin cậy; cuối cùng là bảo mật cùng đo lường phản hồi. Người học thực hành trên ứng dụng mẫu, từ một pull request đến pipeline kiểm thử, image có phiên bản, phát hành thử và quan sát lỗi sau triển khai.
+
+Học phần phù hợp với developer, QA hoặc người bắt đầu hướng DevOps đã biết thao tác terminal, Git căn bản và khái niệm ứng dụng web. Sau khi hoàn thành, bạn có thể mô tả chu trình giao phần mềm, xây dựng pipeline đơn giản, lựa chọn kiểm soát chất lượng và bảo mật phù hợp, quan sát vận hành và dùng dữ liệu thực tế để đề xuất cải tiến quy trình.

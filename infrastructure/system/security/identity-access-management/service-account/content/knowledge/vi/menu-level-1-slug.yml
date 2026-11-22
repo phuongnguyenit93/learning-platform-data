@@ -1,0 +1,88 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Danh tính phi con người
+  slug: nonhuman-identities
+  index: 1
+- title: Mô hình đe dọa
+  slug: threat-model
+  index: 2
+- title: Thiết kế danh tính
+  slug: identity-design
+  index: 3
+- title: Trách nhiệm sở hữu
+  slug: ownership-and-accountability
+  index: 4
+- title: Kiểm kê tài khoản
+  slug: account-inventory
+  index: 5
+- title: Vòng đời tài khoản
+  slug: account-lifecycle
+  index: 6
+- title: Tạo và đăng ký
+  slug: provisioning-and-registration
+  index: 7
+- title: Cơ chế xác thực
+  slug: authentication-methods
+  index: 8
+- title: Bảo vệ thông tin xác thực
+  slug: credential-protection
+  index: 9
+- title: Token ngắn hạn
+  slug: short-lived-tokens
+  index: 10
+- title: Liên kết workload
+  slug: workload-identity-federation
+  index: 11
+- title: Quyền tối thiểu
+  slug: least-privilege
+  index: 12
+- title: Giả danh và ủy quyền
+  slug: impersonation-and-delegation
+  index: 13
+- title: Ranh giới truy cập
+  slug: access-boundaries
+  index: 14
+- title: Tích hợp ứng dụng
+  slug: application-integration
+  index: 15
+- title: CI/CD và tự động hóa
+  slug: ci-cd-and-automation
+  index: 16
+- title: Kubernetes
+  slug: kubernetes
+  index: 17
+- title: Nền tảng đám mây
+  slug: cloud-platforms
+  index: 18
+- title: Hệ điều hành
+  slug: operating-systems
+  index: 19
+- title: Dữ liệu và tích hợp
+  slug: data-and-integrations
+  index: 20
+- title: Xoay và thu hồi bí mật
+  slug: secret-rotation-and-revocation
+  index: 21
+- title: Vô hiệu hóa và xóa
+  slug: deactivation-and-deletion
+  index: 22
+- title: Giám sát và kiểm toán
+  slug: monitoring-and-auditing
+  index: 23
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 24
+- title: Chính sách bằng mã
+  slug: policy-as-code
+  index: 25
+- title: Sẵn sàng và di trú
+  slug: migration-readiness
+  index: 26
+- title: Kiểm thử bảo mật
+  slug: security-testing
+  index: 27
+- title: Thực hành tổng hợp
+  slug: hands-on-exercises
+  index: 28

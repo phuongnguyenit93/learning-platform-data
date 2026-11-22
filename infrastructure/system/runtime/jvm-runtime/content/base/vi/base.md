@@ -1,0 +1,7 @@
+# Runtime Jvm Runtime
+
+Java Virtual Machine (JVM) là môi trường thực thi bytecode Java và quản lý nhiều tài nguyên trong suốt vòng đời ứng dụng, gồm bộ nhớ, class loading, thực thi mã, luồng và garbage collection. Hiểu runtime giúp giải thích vì sao một chương trình khởi động chậm, dùng nhiều bộ nhớ, bị dừng bởi GC hoặc xuất hiện contention giữa các thread. JVM Specification mô tả hợp đồng và hành vi máy ảo; các chi tiết như JIT, garbage collector và tùy chọn vận hành phụ thuộc vào implementation, phiên bản JDK và môi trường chạy.
+
+Module dành cho người đã biết Java cơ bản, bytecode ở mức khái niệm và thao tác dòng lệnh. Lộ trình đi từ vòng đời JVM, runtime data areas và class loading đến execution engine/JIT; tiếp theo là quản lý heap, garbage collection, thread và cấu hình tài nguyên. Phần cuối tập trung vào các công cụ chẩn đoán thực tế như jcmd, Java Flight Recorder, GC logs, heap dump và Native Memory Tracking để tìm bottleneck dựa trên dữ liệu. Các bài thực hành nên chạy trên JDK được ghi rõ phiên bản để quan sát sự khác nhau giữa các runtime.
+
+Sau khi hoàn thành, bạn có thể mô tả các vùng dữ liệu runtime, giải thích quy trình nạp class và tối ưu mã, đọc dấu hiệu GC hoặc thread contention, cấu hình JVM cơ bản và lập quy trình điều tra hiệu năng có thể lặp lại. Khi tuning, hãy bắt đầu từ mục tiêu và phép đo đại diện cho workload; thay đổi từng tham số có kiểm soát, so sánh kết quả trước/sau và tránh giả định một cấu hình GC hoặc heap phù hợp cho mọi ứng dụng.

@@ -1,0 +1,3 @@
+menuLevel1: Quản trị tài nguyên
+menuLevel2: Ánh xạ database-retention policy sang bucket bằng DBRP trong InfluxDB 2.x
+status: ''

@@ -1,0 +1,49 @@
+roadmap:
+- id: tong-quan-replication
+  title: Tổng quan Replication
+  purpose: Hiểu sao chép dữ liệu giữa các nút để tăng khả dụng và hỗ trợ đọc.
+  objectives:
+  - Mô tả mục đích và giới hạn của replication.
+  - Phân biệt replication với backup và sharding.
+- id: primary-replica
+  title: Primary & Replica
+  purpose: Nắm vai trò từng nút và đường đi của thao tác ghi, đọc.
+  objectives:
+  - Vẽ luồng ghi primary → replica.
+  - Phân biệt đọc từ primary với đọc từ replica.
+- id: dong-bo-bat-dong-bo
+  title: Đồng bộ & Bất đồng bộ
+  purpose: Đánh giá đánh đổi giữa độ trễ ghi và nguy cơ mất dữ liệu.
+  objectives:
+  - Giải thích synchronous và asynchronous replication.
+  - Nhận diện replication lag và dữ liệu đọc cũ.
+- id: physical-logical-replication
+  title: Physical & Logical Replication
+  purpose: Phân biệt sao chép theo log vật lý và thay đổi dữ liệu logic.
+  objectives:
+  - Mô tả WAL streaming và standby ở PostgreSQL.
+  - Giải thích publication/subscription trong logical replication.
+- id: consistency-read-routing
+  title: Consistency & Read Routing
+  purpose: Lựa chọn cách đọc và mức xác nhận ghi phù hợp yêu cầu ứng dụng.
+  objectives:
+  - So sánh strong/read-after-write với eventual consistency.
+  - Giải thích read preference và write concern cơ bản.
+- id: failover-quorum
+  title: Failover & Quorum
+  purpose: Hiểu cách dịch vụ tiếp tục hoạt động khi primary gặp sự cố.
+  objectives:
+  - Mô tả promotion hoặc election khi primary lỗi.
+  - Nhận diện rủi ro split-brain, timeout và yêu cầu quorum.
+- id: partitioning-sharding
+  title: Partitioning & Sharding
+  purpose: Phân biệt nhân bản dữ liệu với chia dữ liệu để mở rộng ngang.
+  objectives:
+  - Mô tả shard key và định tuyến truy vấn đến shard.
+  - Nhận diện hotspot, mất cân bằng và cross-shard query.
+- id: giam-sat-dien-tap
+  title: Giám sát & Diễn tập
+  purpose: Đánh giá sức khỏe cụm và kiểm chứng khả năng khôi phục.
+  objectives:
+  - Theo dõi replication lag, trạng thái replica và lỗi đồng bộ.
+  - Diễn tập failover, kiểm tra tính nhất quán và RPO/RTO.

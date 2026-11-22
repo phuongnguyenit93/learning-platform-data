@@ -1,0 +1,57 @@
+roadmap:
+- id: cai-dat-cau-hinh
+  title: Cài đặt & cấu hình
+  purpose: Thiết lập Flyway để quản lý thay đổi schema trên một cơ sở dữ liệu thử nghiệm.
+  objectives:
+  - Cấu hình kết nối và migration locations
+  - Chạy flyway info kiểm tra trạng thái
+  - Giải thích cơ chế migrate theo phiên bản
+- id: versioned-migrations
+  title: Versioned Migrations
+  purpose: Ghi nhận thay đổi schema theo thứ tự và chỉ áp dụng mỗi phiên bản một lần.
+  objectives:
+  - Tạo V1__create_table.sql và V2__add_column.sql
+  - Chạy migrate theo thứ tự phiên bản
+  - Không sửa migration đã áp dụng ở môi trường chung
+- id: repeatable-migrations
+  title: Repeatable Migrations
+  purpose: Quản lý đối tượng cần tạo lại khi nội dung thay đổi mà không dùng phiên bản tăng dần.
+  objectives:
+  - Tạo R__create_view.sql
+  - Giải thích checksum kích hoạt chạy lại
+  - Viết SQL an toàn khi thực thi nhiều lần
+- id: schema-history
+  title: Schema History
+  purpose: Đọc lịch sử để nhận biết trạng thái triển khai và phát hiện sai lệch.
+  objectives:
+  - Xem bảng flyway_schema_history
+  - Phân biệt Pending, Success và Failed
+  - Giải thích version và checksum đã ghi nhận
+- id: validate-repair
+  title: Validate & Repair
+  purpose: Phát hiện thay đổi migration bất thường và xử lý lịch sử một cách có kiểm soát.
+  objectives:
+  - Dùng validate phát hiện checksum mismatch
+  - Tìm nguyên nhân lỗi trước khi sửa
+  - Chỉ dùng repair khi đã đánh giá tác động
+- id: baseline-he-thong-cu
+  title: Baseline & hệ thống cũ
+  purpose: Đưa một cơ sở dữ liệu đã tồn tại vào quy trình migration mà không chạy lại lịch sử cũ.
+  objectives:
+  - Giải thích baselineVersion và baseline
+  - Chọn mốc baseline cho schema có sẵn
+  - Thử áp dụng migration sau baseline
+- id: spring-boot-integration
+  title: Spring Boot Integration
+  purpose: Tích hợp Flyway vào vòng đời khởi động và kiểm thử ứng dụng Java.
+  objectives:
+  - Kích hoạt Flyway trong Spring Boot
+  - Đặt SQL tại db/migration
+  - Kiểm tra thứ tự migrate và khởi tạo ứng dụng
+- id: ci-cd-trien-khai-an-toan
+  title: CI/CD & triển khai an toàn
+  purpose: Tự động hóa việc thay đổi schema qua môi trường và giảm rủi ro khi release.
+  objectives:
+  - Chạy validate trước migrate trong pipeline
+  - Thực hành thay đổi schema tương thích ngược
+  - Lập phương án backup và khôi phục khi lỗi

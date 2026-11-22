@@ -1,0 +1,3 @@
+menuLevel1: Access logs
+menuLevel2: Gửi access log đến OpenTelemetry Collector
+status: ''

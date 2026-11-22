@@ -1,0 +1,327 @@
+menu:
+- level1: 1. Tổng quan bí mật
+  level2:
+  - 1.1. Bí mật bảo mật (secret) là gì và vì sao cần quản lý toàn bộ vòng đời
+  - 1.2. Phân biệt bí mật, cấu hình công khai, danh tính và dữ liệu nhạy cảm
+  - 1.3. Mật khẩu, API key, thông tin kết nối, khóa riêng và bí mật ký
+  - 1.4. Phân biệt giá trị bí mật với định danh, đường dẫn và siêu dữ liệu
+  - 1.5. Quan hệ giữa bí mật, thông tin xác thực, token và chứng thư số
+  - 1.6. Bí mật tĩnh, bí mật động và thông tin xác thực ngắn hạn
+  - '1.7. Các vai trò: chủ sở hữu, đơn vị cấp phát, kho quản lý và bên sử dụng'
+  - 1.8. Lộ trình từ tạo bí mật đến sử dụng, luân chuyển, thu hồi và hủy
+- level1: 2. Mô hình đe dọa
+  level2:
+  - 2.1. Đánh cắp bí mật từ mã nguồn, tệp cấu hình và lịch sử phiên bản
+  - 2.2. Rò rỉ qua nhật ký, dòng lệnh, biến môi trường và báo cáo lỗi
+  - 2.3. Xâm nhập máy chạy ứng dụng, máy phát triển và tác vụ CI/CD
+  - 2.4. Lạm dụng quyền đọc bí mật và truy cập nội bộ trái phép
+  - 2.5. Bí mật dùng chung, quyền quá rộng và phạm vi ảnh hưởng khi bị lộ
+  - 2.6. Bí mật hết hạn hoặc luân chuyển sai gây gián đoạn dịch vụ
+  - 2.7. Giả mạo kho bí mật, đầu độc giá trị và sửa đổi siêu dữ liệu
+  - 2.8. Thông tin xác thực còn tồn tại sau khi người dùng hoặc dịch vụ bị loại bỏ
+  - 2.9. Xác định tài sản, ranh giới tin cậy và đường tấn công
+- level1: 3. Mô hình vòng đời
+  level2:
+  - 3.1. Các trạng thái tạo mới, đang dùng, chờ thay thế, hết hạn, thu hồi và hủy
+  - 3.2. Sự kiện chuyển trạng thái và điều kiện hoàn thành mỗi giai đoạn
+  - 3.3. Quan hệ giữa bí mật gốc, phiên bản, bản sao và bí mật dẫn xuất
+  - 3.4. Phân biệt hết hạn, vô hiệu hóa, thu hồi, xóa mềm và hủy vĩnh viễn
+  - 3.5. Đường đi của bí mật từ bên cấp phát đến hệ thống kiểm chứng và bên sử dụng
+  - 3.6. Phân biệt trạng thái trong kho quản lý với hiệu lực thực tế tại hệ thống đích
+  - 3.7. Thời điểm tạo, thời điểm có hiệu lực, lần sử dụng cuối và thời hạn tối đa
+  - 3.8. Chủ sở hữu và trách nhiệm tại từng bước của vòng đời
+  - 3.9. Thiết kế quá trình chuyển trạng thái có thể theo dõi và thực hiện lại an toàn
+- level1: 4. Kiểm kê và khám phá
+  level2:
+  - 4.1. Xây dựng danh mục bí mật theo ứng dụng, môi trường và hệ thống đích
+  - 4.2. Phát hiện bí mật trong kho mã, cấu hình, máy chủ và dịch vụ đám mây
+  - 4.3. Theo dõi nơi lưu bản sao, nơi sử dụng và quan hệ phụ thuộc
+  - 4.4. Nhận diện bí mật không rõ chủ sở hữu, không sử dụng và tồn tại quá lâu
+  - 4.5. Phân loại theo quyền hạn, mức nhạy cảm và phạm vi ảnh hưởng
+  - 4.6. Thu thập siêu dữ liệu mà không ghi lại giá trị bí mật vào danh mục
+  - 4.7. Định danh ổn định, nhãn, đường dẫn và quy tắc đặt tên
+  - 4.8. Xác minh kết quả phát hiện và xử lý cảnh báo nhầm
+  - 4.9. Duy trì danh mục khi hệ thống, nhóm phụ trách và môi trường thay đổi
+- level1: 5. Chính sách và sở hữu
+  level2:
+  - 5.1. Xác định người sở hữu nghiệp vụ, người vận hành và bên sử dụng bí mật
+  - 5.2. Quy định loại bí mật được phép dùng và nơi được phép lưu trữ
+  - 5.3. Quyền tối thiểu, phân tách nhiệm vụ và nguyên tắc không dùng chung
+  - 5.4. Chính sách thời hạn, luân chuyển và điều kiện thu hồi
+  - 5.5. Phân tách bí mật giữa phát triển, kiểm thử và sản xuất
+  - 5.6. Quy trình phê duyệt, cấp quyền tạm thời và truy cập khẩn cấp
+  - 5.7. Quản lý ngoại lệ với thời hạn, lý do và biện pháp bù trừ
+  - 5.8. Tiêu chí tiếp nhận, bàn giao và ngừng quản lý một bí mật
+- level1: 6. Tạo bí mật
+  level2:
+  - 6.1. Nguồn ngẫu nhiên mật mã và yêu cầu về độ khó dự đoán
+  - 6.2. Độ dài, bảng ký tự và ràng buộc của hệ thống tiếp nhận
+  - 6.3. Tạo độc lập cho từng ứng dụng, môi trường và phạm vi quyền
+  - 6.4. Tránh bí mật mặc định, giá trị suy đoán được và tái sử dụng
+  - 6.5. Tạo tại kho quản lý, hệ thống đích hoặc nền tảng phần cứng
+  - 6.6. Bảo vệ giá trị ngay khi tạo và hạn chế người có thể nhìn thấy
+  - 6.7. Xử lý lỗi tạo dở dang, tạo trùng và yêu cầu tạo lặp
+  - 6.8. Gắn siêu dữ liệu, chủ sở hữu và thời hạn ngay từ đầu
+  - 6.9. Kiểm chứng bí mật được chấp nhận mà không làm lộ trong bằng chứng
+- level1: 7. Khởi tạo tin cậy
+  level2:
+  - 7.1. Bài toán bí mật đầu tiên để truy cập kho bí mật
+  - 7.2. Ưu tiên danh tính nền tảng và danh tính khối lượng công việc khi khả thi
+  - 7.3. Liên kết danh tính giữa hệ thống chạy ứng dụng và kho quản lý
+  - 7.4. Xác minh môi trường thực thi trước khi cấp bí mật
+  - 7.5. Mã đăng ký một lần và thông tin khởi tạo có thời hạn ngắn
+  - 7.6. Chống phát lại, sao chép thông tin đăng ký và tái sử dụng ngoài môi trường
+  - 7.7. Khởi tạo cho máy chủ, container, tác vụ tự động và thiết bị biên
+  - 7.8. Xử lý máy mới, cài đặt lại và khôi phục sau sự cố
+  - 7.9. Loại bỏ hoặc vô hiệu hóa thông tin khởi tạo sau khi hoàn tất
+- level1: 8. Kiến trúc quản lý
+  level2:
+  - 8.1. Các thành phần kho bí mật, bộ cấp phát, bộ luân chuyển và bên sử dụng
+  - 8.2. Tách mặt phẳng quản trị khỏi đường đọc bí mật của ứng dụng
+  - 8.3. Kho tập trung, kho phân tán và mô hình liên kết nhiều kho
+  - 8.4. Ranh giới giữa secret manager, vault, KMS và HSM
+  - 8.5. Phân vùng theo tổ chức, ứng dụng, môi trường và khu vực
+  - 8.6. Tích hợp với hệ thống cấp phát và kiểm chứng bên ngoài
+  - 8.7. Quản lý phiên bản, nhãn phiên bản đang dùng và chuyển đổi trạng thái
+  - 8.8. Giảm điểm lỗi đơn và giới hạn phạm vi ảnh hưởng của tài khoản quản trị
+  - 8.9. Tiêu chí chọn giải pháp theo khả năng tích hợp và yêu cầu vận hành
+- level1: 9. Lưu trữ và bảo vệ
+  level2:
+  - 9.1. Mã hóa bí mật khi lưu và bảo vệ các khóa dùng để mã hóa
+  - 9.2. Mã hóa phong bì và phân tách quyền đọc dữ liệu với quyền dùng khóa
+  - 9.3. Bảo vệ cấu hình, siêu dữ liệu và chính sách truy cập của kho
+  - 9.4. Giới hạn lưu văn bản thuần trên đĩa và trong bộ nhớ tạm
+  - 9.5. Kiểm soát bản chụp, tệp hoán đổi, bản dump và bản sao lưu
+  - 9.6. Tính toàn vẹn, xác thực nguồn và phát hiện thay đổi trái phép
+  - 9.7. Tách biệt khách hàng, môi trường và miền tin cậy
+  - 9.8. Quản lý khóa gốc, mở khóa kho và trách nhiệm phục hồi
+  - 9.9. Giới hạn của mã hóa khi ứng dụng hoặc người vận hành đã được quyền đọc
+- level1: 10. Danh tính và cấp quyền
+  level2:
+  - 10.1. Xác thực người dùng, ứng dụng và tác vụ tự động với kho bí mật
+  - 10.2. Cấp quyền theo ứng dụng, đường dẫn, loại thao tác và môi trường
+  - 10.3. Phân biệt quyền xem siêu dữ liệu, đọc giá trị, tạo, sửa và thu hồi
+  - 10.4. Ràng buộc quyền với danh tính dịch vụ thay cho danh tính máy dùng chung
+  - 10.5. Điều kiện theo thời gian, mạng, sức khỏe thiết bị và mức rủi ro
+  - 10.6. Giới hạn quyền của bộ luân chuyển tại kho và tại hệ thống đích
+  - 10.7. Ngăn leo thang quyền thông qua sửa chính sách hoặc thay giá trị bí mật
+  - 10.8. Cấp quyền vừa đủ, có thời hạn và phê duyệt thao tác nhạy cảm
+  - 10.9. Rà soát quyền và chấm dứt quyền khi thay đổi người hoặc hệ thống
+- level1: 11. Phân phối bí mật
+  level2:
+  - 11.1. Phân biệt mô hình bên sử dụng tự lấy với mô hình hệ thống chủ động đẩy
+  - 11.2. Phân phối qua API, tác nhân, sidecar và tệp gắn vào môi trường chạy
+  - 11.3. Xác thực đầu cuối và mã hóa kênh truyền bí mật
+  - 11.4. Giới hạn đối tượng nhận, phạm vi phân phối và số bản sao
+  - 11.5. Cấp bí mật đúng thời điểm và tránh đưa vào tạo phẩm triển khai
+  - 11.6. Tệp tạm, quyền truy cập tệp và dọn dẹp sau khi sử dụng
+  - '11.7. Biến môi trường: ưu điểm, hạn chế và bề mặt rò rỉ'
+  - 11.8. Thông báo thay đổi phiên bản và cơ chế tải lại an toàn
+  - 11.9. Xử lý phân phối thất bại, gửi lặp và bên nhận ngắt kết nối
+- level1: 12. Sử dụng khi chạy
+  level2:
+  - 12.1. Lấy bí mật lúc khởi động hay theo nhu cầu và các đánh đổi
+  - 12.2. Giới hạn thời gian bí mật tồn tại trong bộ nhớ
+  - 12.3. Tránh sao chép, hiển thị và đưa giá trị vào thông báo lỗi
+  - 12.4. Đóng gói thao tác sử dụng thay vì cho phép đọc giá trị rộng rãi
+  - 12.5. Tải lại thông tin xác thực trong tiến trình đang chạy
+  - 12.6. Quan hệ với nhóm kết nối, phiên đăng nhập và kết nối tồn tại lâu
+  - 12.7. Quản lý bộ nhớ đệm theo thời hạn và phiên bản
+  - 12.8. Kiểm soát đồng thời khi nhiều luồng cùng yêu cầu bí mật mới
+  - 12.9. Xử lý lỗi xác thực và lỗi kho mà không tạo vòng lặp gây quá tải
+  - 12.10. Giới hạn khả năng xóa bí mật trong bộ nhớ của từng môi trường chạy
+- level1: 13. Bí mật động và thời hạn
+  level2:
+  - 13.1. Cấp thông tin xác thực riêng cho từng bên sử dụng hoặc từng phiên
+  - 13.2. Hợp đồng thuê (lease), thời hạn hiệu lực và giới hạn thời gian tồn tại
+  - 13.3. Phân biệt gia hạn lease với tạo thông tin xác thực mới
+  - 13.4. Tự động vô hiệu hóa tại hệ thống đích khi lease kết thúc
+  - 13.5. Quan hệ giữa lease, danh tính bên yêu cầu và phiên truy cập
+  - 13.6. Thông tin xác thực ngắn hạn cho cơ sở dữ liệu và dịch vụ đám mây
+  - 13.7. Giới hạn quyền của tài khoản chịu trách nhiệm cấp bí mật động
+  - 13.8. Dọn thông tin xác thực mồ côi khi thu hồi thất bại
+  - 13.9. Xử lý sai lệch đồng hồ, khởi động lại và mất kết nối khi gia hạn
+- level1: 14. Thiết kế luân chuyển
+  level2:
+  - 14.1. Mục tiêu luân chuyển và rủi ro mà luân chuyển không tự giải quyết
+  - 14.2. Luân chuyển theo thời gian, theo sự kiện và khi nghi bị lộ
+  - 14.3. Phân biệt đổi giá trị với thu hồi giá trị cũ
+  - 14.4. Luân chuyển một thông tin xác thực và mô hình hai thông tin xen kẽ
+  - 14.5. Khoảng thời gian chấp nhận đồng thời phiên bản cũ và mới
+  - 14.6. Thứ tự cập nhật hệ thống đích, kho quản lý và bên sử dụng
+  - 14.7. Điều kiện thành công, thời gian chờ và bằng chứng đã chuyển đổi
+  - 14.8. Giới hạn tốc độ, tải hệ thống và phân tán lịch luân chuyển
+  - 14.9. Kế hoạch quay lui và giới hạn quay lui khi bí mật cũ đã bị lộ
+  - 14.10. Xử lý hệ thống chỉ hỗ trợ một giá trị bí mật đang có hiệu lực
+- level1: 15. Vận hành luân chuyển
+  level2:
+  - 15.1. Chuẩn bị quyền, kiểm tra kết nối và xác nhận phụ thuộc trước khi đổi
+  - 15.2. Tạo phiên bản mới và áp dụng thay đổi tại hệ thống đích
+  - 15.3. Kiểm chứng thông tin mới bằng thao tác quyền tối thiểu
+  - 15.4. Phân phối từng phần và theo dõi mức tiếp nhận ở bên sử dụng
+  - 15.5. Làm mới nhóm kết nối, tiến trình và phiên tồn tại lâu
+  - 15.6. Xác nhận hết phụ thuộc vào giá trị cũ trước khi thu hồi
+  - 15.7. Khóa đồng thời và chống hai tác vụ luân chuyển chồng chéo
+  - 15.8. Thực hiện lại an toàn sau lỗi ở từng bước
+  - 15.9. Đối soát phiên bản khi kho, hệ thống đích và ứng dụng không đồng bộ
+  - 15.10. Cảnh báo, xử lý luân chuyển quá hạn và xác nhận hoàn tất
+- level1: 16. Thu hồi và hết hạn
+  level2:
+  - '16.1. Các điều kiện thu hồi: bị lộ, đổi quyền, ngừng dịch vụ và kết thúc hợp đồng'
+  - 16.2. Vô hiệu hóa bí mật tại nơi kiểm chứng thay vì chỉ xóa khỏi kho
+  - 16.3. Thu hồi phiên, token hoặc kết nối được tạo từ bí mật cũ
+  - 16.4. Độ trễ truyền thay đổi, bộ nhớ đệm và cửa sổ tiếp tục truy cập
+  - 16.5. Phân biệt vô hiệu hóa có thể khôi phục với thu hồi không thể đảo ngược
+  - 16.6. Thu hồi bí mật dùng chung mà vẫn kiểm soát gián đoạn
+  - 16.7. Thu hồi theo danh tính, nhóm bí mật hoặc toàn bộ một môi trường
+  - 16.8. Đối soát các hệ thống đích không hỗ trợ thu hồi tức thời
+  - 16.9. Kiểm chứng giá trị cũ đã mất hiệu lực bằng ca kiểm thử từ chối
+- level1: 17. Ngừng dùng và hủy
+  level2:
+  - 17.1. Xác nhận bí mật không còn bên sử dụng hoặc phụ thuộc hợp lệ
+  - 17.2. Chuyển trạng thái ngừng dùng và chặn tạo phụ thuộc mới
+  - 17.3. Xóa bản sao trong cấu hình, hệ thống triển khai và kho trung gian
+  - 17.4. Xóa mềm, thời gian chờ khôi phục và hủy vĩnh viễn
+  - 17.5. Xử lý lịch sử phiên bản, bản sao lưu và bản chụp không thể sửa trực tiếp
+  - 17.6. Phân biệt xóa dữ liệu với hủy khả năng giải mã khi thiết kế hỗ trợ
+  - 17.7. Giữ bằng chứng kiểm toán mà không giữ giá trị bí mật
+  - 17.8. Loại bỏ danh tính, quyền và lịch tự động gắn với bí mật
+  - 17.9. Xác nhận ngừng dùng sau khi dịch vụ, tài khoản hoặc môi trường bị xóa
+- level1: 18. Mã nguồn và CI/CD
+  level2:
+  - 18.1. Ngăn đưa bí mật vào mã nguồn, cấu hình mẫu và tệp được theo dõi
+  - 18.2. Quét bí mật trước khi commit, khi nhận thay đổi và trong lịch sử kho mã
+  - 18.3. Xử lý bí mật đã commit bằng thu hồi hoặc luân chuyển trước khi dọn lịch sử
+  - 18.4. Cấp danh tính ngắn hạn cho tác vụ build và triển khai
+  - 18.5. Phân tách bí mật theo kho mã, nhánh, môi trường và tác vụ
+  - 18.6. Kiểm soát thay đổi từ nguồn không đáng tin và tác vụ bên thứ ba
+  - 18.7. Ngăn rò rỉ qua đầu ra lệnh, tạo phẩm, bộ nhớ đệm và báo cáo kiểm thử
+  - 18.8. Giới hạn quyền của runner và làm sạch môi trường sau tác vụ
+  - 18.9. Phê duyệt truy cập bí mật sản xuất trong đường ống triển khai
+  - 18.10. Giới hạn của che giá trị tự động trong nhật ký CI/CD
+- level1: 19. Hạ tầng và cấu hình
+  level2:
+  - 19.1. Bí mật trong công cụ hạ tầng dưới dạng mã và tệp trạng thái
+  - 19.2. Tham chiếu bí mật theo định danh thay vì sao chép giá trị
+  - 19.3. Quản lý cấu hình triển khai, tham số và tạo phẩm bất biến
+  - 19.4. Bí mật trong image container, các lớp image và lịch sử build
+  - 19.5. Phân phối trong môi trường container và nền tảng điều phối
+  - 19.6. Kiểm soát mount, quyền tệp, namespace và tài khoản chạy ứng dụng
+  - 19.7. Làm mới bí mật mà không để cấu hình cũ khôi phục lại giá trị trước
+  - 19.8. Bảo vệ công cụ quản lý cấu hình và tài khoản tự động hóa
+  - 19.9. Đối soát lệch cấu hình giữa khai báo, kho và môi trường thực tế
+- level1: 20. Con người và môi trường phát triển
+  level2:
+  - 20.1. Kho bí mật cho nhóm phát triển và nguyên tắc không gửi qua tin nhắn
+  - 20.2. Danh tính cá nhân thay cho tài khoản chung khi hệ thống hỗ trợ
+  - 20.3. Tách dữ liệu và bí mật thử nghiệm khỏi thông tin sản xuất
+  - 20.4. Tệp cấu hình cục bộ, lịch sử shell và trình quản lý thông tin xác thực
+  - 20.5. Máy phát triển, IDE, tiện ích mở rộng và công cụ hỗ trợ lập trình
+  - 20.6. Cấp quyền tạm thời để gỡ lỗi với ghi nhận và phê duyệt phù hợp
+  - 20.7. Chia sẻ bí mật một lần và giới hạn của liên kết hết hạn
+  - 20.8. Xử lý clipboard, ảnh chụp màn hình và bản ghi phiên hỗ trợ
+  - 20.9. Thu hồi quyền và bí mật khi chuyển nhóm, mất thiết bị hoặc nghỉ việc
+- level1: 21. Nhật ký và chống rò rỉ
+  level2:
+  - 21.1. Thiết kế nhật ký theo sự kiện và định danh bí mật, không theo giá trị
+  - 21.2. Che dữ liệu tại nguồn trước khi chuyển đến hệ thống thu thập
+  - 21.3. Lọc header, chuỗi kết nối, tham số URL và nội dung lỗi
+  - 21.4. Bảo vệ stack trace, core dump, heap dump và công cụ gỡ lỗi
+  - 21.5. Phát hiện rò rỉ trong nhật ký, tạo phẩm và dữ liệu quan sát
+  - 21.6. Giới hạn của so khớp giá trị khi bí mật bị mã hóa hoặc biến đổi
+  - 21.7. Kiểm soát quyền đọc, xuất và thời hạn lưu giữ nhật ký
+  - 21.8. Xử lý nhật ký đã chứa bí mật mà vẫn giữ bằng chứng sự cố
+  - 21.9. Kiểm chứng bộ lọc không làm mất khả năng chẩn đoán cần thiết
+- level1: 22. Kiểm toán và giám sát
+  level2:
+  - 22.1. Ghi nhận ai tạo, đọc, thay đổi, luân chuyển và thu hồi bí mật
+  - 22.2. Liên kết yêu cầu đọc với danh tính, ứng dụng, phiên bản và mục đích
+  - 22.3. Phát hiện đọc hàng loạt, truy cập bất thường và sử dụng sau khi ngừng dùng
+  - 22.4. Theo dõi bí mật quá hạn, luân chuyển lỗi và lease không được thu hồi
+  - 22.5. Giám sát thay đổi chính sách, tài khoản quản trị và chức năng kiểm toán
+  - 22.6. Bảo vệ tính toàn vẹn, thời gian và tính liên tục của bằng chứng
+  - 22.7. Đo độ bao phủ danh mục, tỷ lệ bí mật tĩnh và số bản sao ngoài quản lý
+  - 22.8. Đo thời gian thu hồi, thời gian luân chuyển và tỷ lệ cập nhật thành công
+  - 22.9. Rà soát quyền và xuất minh chứng mà không xuất giá trị bí mật
+- level1: 23. Khả dụng và phục hồi
+  level2:
+  - 23.1. Xác định hậu quả khi kho bí mật hoặc hệ thống cấp phát không khả dụng
+  - 23.2. Dự phòng, sao chép và lựa chọn nhất quán giữa các khu vực
+  - 23.3. Giới hạn thời gian dùng giá trị lưu tạm khi không thể truy cập kho
+  - 23.4. Đánh đổi giữa tiếp tục phục vụ và ngăn dùng thông tin đã bị thu hồi
+  - 23.5. Tránh phụ thuộc vòng giữa kho bí mật và các hệ thống cần khởi động
+  - 23.6. Kiểm soát số lần thử lại, thời gian chờ và tải đột biến
+  - 23.7. Sao lưu cấu hình, dữ liệu mã hóa, chính sách và vật liệu khôi phục
+  - 23.8. Khôi phục từ bản sao mà không tái kích hoạt bí mật đã bị thu hồi
+  - 23.9. Thử diễn tập khôi phục và kiểm chứng quyền tại hệ thống đích
+  - 23.10. Truy cập khẩn cấp có kiểm soát và đánh giá sau khi sử dụng
+- level1: 24. Ứng phó bí mật bị lộ
+  level2:
+  - 24.1. Xác nhận loại bí mật, phạm vi quyền và mức độ phơi lộ
+  - 24.2. Khoanh vùng nơi rò rỉ và ngăn tiếp tục phát tán
+  - 24.3. Ưu tiên thu hồi hoặc luân chuyển dựa trên nguy cơ và tác động
+  - 24.4. Truy tìm hoạt động lạm dụng từ thời điểm có thể đã bị lộ
+  - 24.5. Xử lý token, phiên và bí mật dẫn xuất còn hiệu lực
+  - 24.6. Điều phối thay đổi trên các bên sử dụng và theo dõi gián đoạn
+  - 24.7. Ứng phó khi tài khoản quản trị hoặc kho bí mật bị xâm nhập
+  - 24.8. Bảo toàn bằng chứng và loại bỏ giá trị khỏi nơi lưu không được phép
+  - 24.9. Xác nhận không còn sử dụng giá trị cũ và lập kế hoạch theo dõi
+  - 24.10. Phân tích nguyên nhân và bổ sung kiểm soát phòng ngừa tái diễn
+- level1: 25. Bí mật theo hệ thống
+  level2:
+  - 25.1. Mật khẩu cơ sở dữ liệu và luân chuyển khi có nhóm kết nối
+  - 25.2. API key của đối tác với giới hạn số khóa và thời gian chuyển đổi
+  - 25.3. Thông tin xác thực đám mây và lựa chọn danh tính tạm thời
+  - 25.4. Tài khoản dịch vụ của ứng dụng cũ và phụ thuộc khó thay đổi
+  - 25.5. Khóa riêng chứng thư với yêu cầu gia hạn và bảo vệ danh tính
+  - 25.6. Bí mật ký token với khoảng chấp nhận nhiều phiên bản khóa
+  - 25.7. Bí mật webhook và HMAC với xác minh, chống phát lại và đổi khóa
+  - 25.8. Mật khẩu quản trị thiết bị và tài khoản khẩn cấp
+  - '25.9. Bí mật mã hóa dữ liệu: khác biệt giữa đổi thông tin truy cập và đổi khóa dữ liệu'
+- level1: 26. Kiểm thử vòng đời
+  level2:
+  - 26.1. Kiểm thử tạo, đọc, cập nhật, luân chuyển, hết hạn và thu hồi
+  - 26.2. Ca kiểm thử từ chối theo danh tính, môi trường và thao tác
+  - 26.3. Kiểm chứng bí mật không xuất hiện trong nhật ký hoặc tạo phẩm
+  - 26.4. Giả lập lỗi ở từng bước của quy trình luân chuyển
+  - 26.5. Kiểm thử đồng thời, gửi lặp và khởi động lại giữa quá trình
+  - 26.6. Kiểm thử phiên bản cũ và mới trong thời gian chuyển đổi
+  - 26.7. Kiểm thử mất kho, lỗi mạng, lệch đồng hồ và gia hạn thất bại
+  - 26.8. Diễn tập thu hồi khẩn cấp và đo cửa sổ còn truy cập được
+  - 26.9. Kiểm thử sao lưu, khôi phục và dọn thông tin xác thực mồ côi
+  - 26.10. Tiêu chí nghiệm thu bằng hành vi thực tế tại hệ thống đích
+- level1: 27. Chuyển đổi và vận hành
+  level2:
+  - 27.1. Đánh giá hiện trạng và ưu tiên bí mật có nguy cơ cao
+  - 27.2. Đưa bí mật đang tồn tại vào quản lý mà không tạo thêm bản sao
+  - 27.3. Chuyển từ cấu hình tĩnh sang tham chiếu và danh tính động
+  - 27.4. Triển khai từng nhóm ứng dụng với quan sát và khả năng quay lui
+  - 27.5. Chuẩn hóa hợp đồng tích hợp và trách nhiệm của nhóm ứng dụng
+  - 27.6. Quản lý hạn mức, chi phí đọc, chi phí cấp phát và tải luân chuyển
+  - 27.7. Đánh giá nhà cung cấp, khả năng xuất siêu dữ liệu và phương án chuyển kho
+  - 27.8. Quy trình vận hành thường ngày và xử lý ngoại lệ có thời hạn
+  - 27.9. Lộ trình giảm bí mật dài hạn và loại bỏ thông tin xác thực không cần thiết
+- level1: 28. Sai lầm thường gặp
+  level2:
+  - 28.1. Coi việc đưa bí mật vào kho là đã hoàn thành quản lý vòng đời
+  - 28.2. Xóa khỏi kho nhưng không vô hiệu hóa tại hệ thống đích
+  - 28.3. Đổi giá trị trong kho trước khi hệ thống đích chấp nhận
+  - 28.4. Thu hồi phiên bản cũ khi các bên sử dụng chưa cập nhật
+  - 28.5. Dùng một bí mật cho nhiều ứng dụng hoặc nhiều môi trường
+  - 28.6. Lưu bí mật trong image, tệp trạng thái hoặc biến được ghi ra nhật ký
+  - 28.7. Tin rằng mã hóa lưu trữ hoặc che nhật ký ngăn được mọi dạng rò rỉ
+  - 28.8. Lưu tạm không có thời hạn và khôi phục bí mật đã hết hiệu lực
+  - 28.9. Cấp quyền luân chuyển quá rộng hoặc dùng bí mật gốc lâu dài để cấp bí mật khác
+  - 28.10. Luân chuyển theo lịch nhưng thiếu kiểm chứng và phản ứng khi bị lộ
+- level1: 29. Tình huống và thực hành
+  level2:
+  - 29.1. Lập danh mục bí mật và sơ đồ nơi lưu, nơi sử dụng, nơi kiểm chứng
+  - 29.2. Thiết kế trạng thái vòng đời và ma trận trách nhiệm cho một ứng dụng
+  - 29.3. Xây dựng chính sách đọc và quản trị theo quyền tối thiểu
+  - 29.4. Mô phỏng cấp bí mật động với thời hạn và thu hồi tự động
+  - 29.5. Thiết kế luân chuyển không gián đoạn cho nhiều bản sao ứng dụng
+  - 29.6. Xử lý một bên sử dụng mất kết nối trong thời gian đổi bí mật
+  - 29.7. Diễn tập API key bị lộ trong kho mã và xác nhận giá trị cũ bị từ chối
+  - 29.8. Khôi phục kho từ bản sao lưu và đối soát hiệu lực tại hệ thống đích
+  - 29.9. Ngừng một dịch vụ và dọn toàn bộ quyền, bí mật cùng phụ thuộc
+  - 29.10. Hoàn thiện hồ sơ kiến trúc, tiêu chí nghiệm thu và chỉ số vận hành

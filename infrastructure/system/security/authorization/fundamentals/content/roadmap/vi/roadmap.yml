@@ -1,0 +1,49 @@
+roadmap:
+- id: authorization-co-ban
+  title: Authorization Cơ bản
+  purpose: Hiểu cách hệ thống quyết định ai được thực hiện hành động nào sau khi xác định danh tính.
+  objectives:
+  - Phân biệt authentication và authorization.
+  - Giải thích access control và broken access control.
+- id: subject-action-resource
+  title: Subject, Action & Resource
+  purpose: Mô hình hóa quyền truy cập thành các yêu cầu có thể kiểm chứng.
+  objectives:
+  - Xác định subject, resource, action và context trong API.
+  - Lập bảng quyền cho user, admin và dữ liệu riêng.
+- id: least-privilege-default-deny
+  title: Least Privilege & Default Deny
+  purpose: Giảm quyền không cần thiết và xử lý an toàn khi chưa có quy tắc cho phép.
+  objectives:
+  - Áp dụng least privilege và deny by default.
+  - Giải thích vì sao phải kiểm tra quyền ở server mỗi request.
+- id: rbac-abac-policy
+  title: RBAC, ABAC & Policy
+  purpose: Nắm các mô hình phân quyền cơ bản và chọn mô hình theo nhu cầu.
+  objectives:
+  - Phân biệt role-based và attribute-based access control.
+  - Viết ví dụ policy kết hợp vai trò, chủ sở hữu và ngữ cảnh.
+- id: function-level-authorization
+  title: Function-Level Authorization
+  purpose: Chặn người dùng truy cập các chức năng không thuộc quyền của họ.
+  objectives:
+  - Phân quyền cho API đọc, sửa và thao tác quản trị.
+  - Kiểm tra chặn truy cập endpoint chỉ bằng URL hoặc HTTP method.
+- id: object-tenant-authorization
+  title: Object & Tenant Authorization
+  purpose: Bảo vệ từng bản ghi và phạm vi tenant khi nhiều người dùng dùng chung API.
+  objectives:
+  - Kiểm tra quyền trên object ID và ownership.
+  - Ngăn BOLA/IDOR và truy cập chéo tenant.
+- id: enforcement-trong-java
+  title: Enforcement trong Java
+  purpose: Triển khai kiểm tra quyền nhất quán tại tầng đáng tin cậy của ứng dụng.
+  objectives:
+  - Cấu hình request authorization trong Spring Security.
+  - Dùng method security hoặc policy service cho resource cụ thể.
+- id: testing-audit
+  title: Testing & Audit
+  purpose: Xác minh chính sách phân quyền và phát hiện hồi quy khi ứng dụng thay đổi.
+  objectives:
+  - Test ma trận role–action–resource với ca allow/deny.
+  - Theo dõi access denied và review thay đổi quyền định kỳ.

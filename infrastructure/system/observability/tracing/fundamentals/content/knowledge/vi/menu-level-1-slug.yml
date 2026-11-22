@@ -1,0 +1,82 @@
+menu:
+- title: Nền tảng tracing
+  slug: tracing-foundations
+  index: 0
+- title: Mô hình trace
+  slug: trace-model
+  index: 1
+- title: Vòng đời span
+  slug: span-lifecycle
+  index: 2
+- title: Dữ liệu trong span
+  slug: span-data
+  index: 3
+- title: Ngữ cảnh truy vết
+  slug: trace-context
+  index: 4
+- title: Truyền ngữ cảnh
+  slug: context-propagation
+  index: 5
+- title: Luồng bất đồng bộ
+  slug: async-workflows
+  index: 6
+- title: Thông điệp và tác vụ
+  slug: messaging-background-jobs
+  index: 7
+- title: Gắn đo lường
+  slug: instrumentation
+  index: 8
+- title: Quy ước ngữ nghĩa
+  slug: semantic-conventions
+  index: 9
+- title: Thu thập và xuất
+  slug: collection-export
+  index: 10
+- title: Lấy mẫu trace
+  slug: trace-sampling
+  index: 11
+- title: Lưu trữ và tra cứu
+  slug: storage-search
+  index: 12
+- title: Đọc và hiểu trace
+  slug: trace-interpretation
+  index: 13
+- title: Phân tích độ trễ
+  slug: latency-analysis
+  index: 14
+- title: Phân tích lỗi
+  slug: error-analysis
+  index: 15
+- title: Liên kết tín hiệu
+  slug: signal-correlation
+  index: 16
+- title: Tracing giao tiếp
+  slug: communication-tracing
+  index: 17
+- title: Tracing truy cập dữ liệu
+  slug: database-tracing
+  index: 18
+- title: Tracing trên JVM
+  slug: jvm-tracing
+  index: 19
+- title: Kiểm thử tracing
+  slug: tracing-tests
+  index: 20
+- title: Chất lượng dữ liệu
+  slug: data-quality
+  index: 21
+- title: Hiệu năng và chi phí
+  slug: performance-costs
+  index: 22
+- title: Bảo mật và riêng tư
+  slug: security-privacy
+  index: 23
+- title: Quản trị tracing
+  slug: tracing-governance
+  index: 24
+- title: Hệ sinh thái tracing
+  slug: tracing-ecosystem
+  index: 25
+- title: Thực hành tổng hợp
+  slug: hands-on-project
+  index: 26

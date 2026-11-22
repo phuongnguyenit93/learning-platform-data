@@ -1,0 +1,103 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Nền tảng bộ nhớ
+  slug: memory-fundamentals
+  index: 1
+- title: Không gian địa chỉ
+  slug: address-space
+  index: 2
+- title: Bảng trang và TLB
+  slug: page-tables-tlb
+  index: 3
+- title: Bộ nhớ tiến trình
+  slug: process-memory
+  index: 4
+- title: Lỗi trang
+  slug: page-faults
+  index: 5
+- title: Cấp phát trong nhân
+  slug: kernel-memory-allocation
+  index: 6
+- title: Cấp phát ứng dụng
+  slug: application-memory-allocation
+  index: 7
+- title: Ánh xạ bộ nhớ
+  slug: memory-mapping
+  index: 8
+- title: Bộ nhớ chia sẻ
+  slug: shared-memory
+  index: 9
+- title: Bảo vệ bộ nhớ
+  slug: memory-protection
+  index: 10
+- title: Tính cục bộ
+  slug: locality
+  index: 11
+- title: NUMA và trang lớn
+  slug: numa-huge-pages
+  index: 12
+- title: Thu hồi bộ nhớ
+  slug: memory-reclamation
+  index: 13
+- title: Swap và OOM
+  slug: swapping-oom
+  index: 14
+- title: Page cache
+  slug: page-cache
+  index: 15
+- title: Giới hạn tài nguyên
+  slug: resource-limits
+  index: 16
+- title: Nền tảng I/O
+  slug: io-fundamentals
+  index: 17
+- title: API đọc ghi
+  slug: read-write-apis
+  index: 18
+- title: Bộ đệm I/O
+  slug: io-buffering
+  index: 19
+- title: Thiết bị và DMA
+  slug: devices-dma
+  index: 20
+- title: I/O khối
+  slug: block-io
+  index: 21
+- title: Mô hình I/O
+  slug: io-models
+  index: 22
+- title: Ghép kênh I/O
+  slug: io-multiplexing
+  index: 23
+- title: I/O bất đồng bộ
+  slug: asynchronous-io
+  index: 24
+- title: Độ bền dữ liệu
+  slug: data-durability
+  index: 25
+- title: Đo bộ nhớ
+  slug: memory-measurement
+  index: 26
+- title: Đo I/O
+  slug: io-measurement
+  index: 27
+- title: Chẩn đoán bộ nhớ
+  slug: memory-diagnostics
+  index: 28
+- title: Chẩn đoán I/O
+  slug: io-diagnostics
+  index: 29
+- title: Môi trường ảo hóa
+  slug: virtualization-environments
+  index: 30
+- title: Đối chiếu Windows
+  slug: windows-comparison
+  index: 31
+- title: Liên hệ Java
+  slug: java-implications
+  index: 32
+- title: Thực hành tổng hợp
+  slug: capstone-practice
+  index: 33

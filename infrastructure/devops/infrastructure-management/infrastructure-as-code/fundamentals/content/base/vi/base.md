@@ -1,0 +1,5 @@
+# DevOps — Infrastructure as Code Fundamentals
+
+Infrastructure as Code (IaC) là phương pháp mô tả và quản lý hạ tầng bằng tệp cấu hình được lưu phiên bản, thay vì thiết lập thủ công qua giao diện quản trị. Trọng tâm là xác định trạng thái mong muốn của tài nguyên, xem xét những thay đổi trước khi triển khai và duy trì khả năng tái tạo môi trường một cách nhất quán. IaC còn giúp nhóm áp dụng các thực hành quen thuộc của phát triển phần mềm như code review, kiểm tra tự động và kiểm soát thay đổi.
+
+Module dành cho người học DevOps đã có kiến thức cơ bản về máy chủ, mạng và môi trường triển khai. Lộ trình giới thiệu cấu hình khai báo, tài nguyên và phụ thuộc, vòng đời triển khai, state và drift; tiếp đó là tái sử dụng cấu hình, phân tách môi trường, bảo mật dữ liệu nhạy cảm và tích hợp Git/CI/CD. Các tài liệu tham khảo sử dụng Terraform và AWS CloudFormation làm ví dụ, nhưng mục tiêu là nắm các nguyên tắc IaC áp dụng cho nhiều công cụ.

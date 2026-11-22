@@ -1,0 +1,3 @@
+menuLevel1: TLS tại gateway
+menuLevel2: Cấu hình HTTPS listener và chứng chỉ từ Kubernetes Secret
+status: ''

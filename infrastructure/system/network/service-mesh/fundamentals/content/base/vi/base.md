@@ -1,0 +1,7 @@
+# Network Service Mesh Fundamentals
+
+Service mesh là lớp hạ tầng quản lý giao tiếp giữa các dịch vụ trong hệ thống phân tán, đặc biệt ở môi trường microservices và Kubernetes. Bằng cách đặt proxy trên đường truyền, mesh có thể cung cấp định tuyến, bảo mật, khả năng chịu lỗi và dữ liệu quan sát mà ứng dụng không cần tự triển khai mọi chức năng. Module này giúp người học hiểu giới hạn và lợi ích của cách tiếp cận đó, cũng như phân biệt service mesh với API Gateway ở ranh giới hệ thống.
+
+Lộ trình bắt đầu từ vai trò của mesh và kiến trúc control plane/data plane, sau đó tìm hiểu cách proxy xử lý lưu lượng trong các mô hình sidecar hoặc ambient. Tiếp theo là service discovery, routing, load balancing, chính sách timeout/retry, bảo mật mTLS và phân quyền giữa workload. Người học cũng làm quen với metrics, access logs và distributed traces để quan sát luồng yêu cầu qua nhiều dịch vụ.
+
+Phần cuối hướng đến thử nghiệm đưa workload vào mesh, kiểm tra chính sách và chẩn đoán các lỗi định tuyến, bảo mật hay đồng bộ cấu hình. Sau module này, lập trình viên backend và kỹ sư vận hành có thể phác họa một kiến trúc mesh cơ bản, lựa chọn chính sách phù hợp và chuẩn bị học sâu các nền tảng như Istio hoặc Linkerd.

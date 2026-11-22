@@ -1,0 +1,57 @@
+roadmap:
+- id: artifact-packaging-formats
+  title: Artifact & Packaging Formats
+  purpose: Hiểu các dạng artifact và chọn cách đóng gói phù hợp với môi trường triển khai.
+  objectives:
+  - Phân biệt JAR, WAR và distribution ZIP/TAR
+  - Nhận diện class, resource, dependency và manifest
+  - Chọn executable archive hay triển khai lên application server
+- id: build-reproducible-output
+  title: Build & Reproducible Output
+  purpose: Tạo artifact nhất quán từ mã nguồn bằng build lifecycle và cấu hình phụ thuộc rõ ràng.
+  objectives:
+  - Dùng Maven package/verify hoặc Gradle distributions
+  - Quản lý dependency scope và phiên bản runtime
+  - Kiểm tra tên, nội dung và tính tái lập của artifact
+- id: executable-jar-runtime-layout
+  title: Executable JAR & Runtime Layout
+  purpose: Chuẩn bị entry point và cấu trúc archive để ứng dụng có thể khởi chạy đúng cách.
+  objectives:
+  - Khai báo Main-Class và manifest khi cần
+  - Phân biệt thin JAR, fat/uber JAR và nested JAR
+  - Kiểm tra dependency, resource và class-loading layout
+- id: launch-command-jvm-options
+  title: Launch Command & JVM Options
+  purpose: Khởi chạy đúng ứng dụng với classpath/module path và các tùy chọn JVM tương ứng môi trường.
+  objectives:
+  - Thực hành java -jar, -cp và -m
+  - Phân biệt JVM options với application arguments
+  - Cấu hình heap, system properties và JDK_JAVA_OPTIONS
+- id: environment-configuration
+  title: Environment & Configuration
+  purpose: Đưa cấu hình theo môi trường vào lúc chạy mà không đóng cứng bí mật hoặc endpoint vào artifact.
+  objectives:
+  - Đọc environment variables và external config files
+  - Tách secret khỏi image và source repository
+  - Xác định working directory, file permission và user chạy
+- id: container-image-layering
+  title: Container Image & Layering
+  purpose: Đóng gói artifact cùng runtime thành image gọn, có thể cache và triển khai nhất quán.
+  objectives:
+  - Viết Dockerfile với multi-stage build
+  - Chọn base image và runtime tương thích JDK/JRE
+  - Tối ưu layer cho dependencies và application
+- id: lifecycle-runtime-operations
+  title: Lifecycle & Runtime Operations
+  purpose: Đảm bảo tiến trình khởi động, nhận tín hiệu dừng và cung cấp trạng thái phục vụ một cách kiểm soát.
+  objectives:
+  - Thiết lập ENTRYPOINT/CMD và signal handling
+  - Cấu hình health check, graceful shutdown và log ra stdout/stderr
+  - Kiểm tra tài nguyên, restart behavior và exit code
+- id: release-artifact-verification
+  title: Release & Artifact Verification
+  purpose: Phát hành artifact có thể truy xuất nguồn gốc và xác minh trước khi đưa vào production.
+  objectives:
+  - Gắn version, checksum và build metadata
+  - Kiểm tra archive/image, dependency và lỗ hổng
+  - Lưu artifact, rollback và đối chiếu đúng phiên bản triển khai

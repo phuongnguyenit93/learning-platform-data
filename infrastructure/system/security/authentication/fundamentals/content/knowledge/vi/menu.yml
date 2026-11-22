@@ -1,0 +1,543 @@
+menu:
+- level1: Bức tranh tổng thể
+  level2:
+  - Authentication là gì
+  - Vì sao cần xác thực
+  - Authentication và authorization
+  - Identity và account
+  - Authentication trong vòng đời hệ thống
+  - Đầu ra của một flow xác thực
+  - Giới hạn của authentication
+  - Lộ trình học authentication
+- level1: Mục tiêu xác thực
+  level2:
+  - Xác nhận danh tính
+  - Đảm bảo đúng chủ thể
+  - Giảm truy cập trái phép
+  - Thiết lập mức tin cậy
+  - Hỗ trợ authorization
+  - Bảo vệ tài nguyên
+  - Đáp ứng yêu cầu kinh doanh
+  - Đo lường assurance
+- level1: Identity
+  level2:
+  - Digital identity
+  - Subject và principal
+  - User identity
+  - Bằng chứng danh tính
+  - Nhận diện workload
+  - Federated identity
+  - Identity attribute
+  - Bằng chứng proofing
+- level1: Account
+  level2:
+  - Account là gì
+  - Account identifier
+  - Account status
+  - Account ownership
+  - Chu kỳ tài khoản
+  - Account linking
+  - Account disabling
+  - Account deletion
+- level1: Authentication factor
+  level2:
+  - Yếu tố biết
+  - Yếu tố có
+  - Yếu tố là
+  - Yếu tố vị trí
+  - Yếu tố hành vi
+  - Single-factor authentication
+  - Multi-factor authentication
+  - Độc lập giữa các yếu tố
+- level1: Credential
+  level2:
+  - Credential là gì
+  - Password credential
+  - Token credential
+  - Certificate credential
+  - API key credential
+  - Biometric credential
+  - Credential binding
+  - Chu kỳ credential
+- level1: Mức độ tin cậy
+  level2:
+  - Authentication assurance
+  - Identity assurance
+  - Authenticator assurance
+  - Federation assurance
+  - Step-up assurance
+  - Risk-based assurance
+  - Low và high assurance
+  - Đánh đổi trải nghiệm và assurance
+- level1: Authentication flow
+  level2:
+  - Client và authenticator
+  - Request authentication
+  - Credential submission
+  - Challenge và response
+  - Verification
+  - Session establishment
+  - Failure path
+  - Success path
+- level1: Trust boundary
+  level2:
+  - User và client
+  - Client và server
+  - Application và identity provider
+  - Service và service
+  - Tenant và tenant
+  - Public và private network
+  - Control plane và data plane
+  - Trust boundary bị phá vỡ
+- level1: Threat model
+  level2:
+  - Credential theft
+  - Credential guessing
+  - Replay
+  - Phishing
+  - Man-in-the-middle
+  - Session hijacking
+  - Kịch bản chiếm tài khoản
+  - Insider abuse
+- level1: Password authentication
+  level2:
+  - Luồng password authentication
+  - Password policy
+  - Password storage
+  - Password verification
+  - Password reset
+  - Password change
+  - Password reuse
+  - Passwordless transition
+- level1: Passwordless
+  level2:
+  - Passwordless authentication
+  - Authenticator-based login
+  - Magic link
+  - One-time code
+  - Device-bound credential
+  - Recovery khi mất thiết bị
+  - Fallback về mật khẩu
+  - Đánh giá passwordless
+- level1: MFA
+  level2:
+  - MFA là gì
+  - Factor independence
+  - Đăng ký MFA
+  - MFA challenge
+  - MFA recovery
+  - MFA fatigue
+  - Phishing-resistant MFA
+  - MFA policy theo rủi ro
+- level1: Passkey và WebAuthn
+  level2:
+  - Passkey là gì
+  - WebAuthn credential
+  - FIDO2
+  - Public key credential
+  - Registration ceremony
+  - Authentication ceremony
+  - Resident key
+  - Passkey sync và device
+- level1: Certificate authentication
+  level2:
+  - Luồng certificate authentication
+  - Client certificate
+  - Private key
+  - Certificate chain
+  - Certificate validation
+  - Certificate revocation
+  - Certificate rotation
+  - mTLS authentication
+- level1: API key
+  level2:
+  - API key authentication
+  - Key generation
+  - Key scope
+  - Key storage
+  - Key rotation
+  - Key revocation
+  - Key leakage
+  - API key audit
+- level1: HMAC request authentication
+  level2:
+  - HMAC authentication
+  - Shared secret
+  - Canonical request
+  - Request signature
+  - Timestamp và nonce
+  - Replay prevention
+  - Signature verification
+  - Secret rotation
+- level1: Token authentication
+  level2:
+  - Token là gì
+  - Bearer token
+  - Access token
+  - Refresh token
+  - Token audience
+  - Token scope
+  - Token expiry
+  - Token revocation
+- level1: Session
+  level2:
+  - Session là gì
+  - Session identifier
+  - Session creation
+  - Session renewal
+  - Session expiry
+  - Hủy phiên
+  - Concurrent session
+  - Session fixation
+- level1: Cookie và browser
+  level2:
+  - Authentication cookie
+  - Secure flag
+  - HttpOnly flag
+  - SameSite attribute
+  - Cookie scope
+  - Cookie prefix
+  - Browser storage
+  - Session leakage qua browser
+- level1: Federation
+  level2:
+  - Identity federation
+  - Identity provider
+  - Relying party
+  - Trust relationship
+  - Federation metadata
+  - Subject mapping
+  - Federation logout
+  - Federation failure
+- level1: SSO
+  level2:
+  - Single sign-on
+  - SSO flow
+  - Centralized login
+  - Application registration
+  - Session tại identity provider
+  - Session tại service provider
+  - SSO logout
+  - Rủi ro SSO tập trung
+- level1: OAuth
+  level2:
+  - OAuth là gì
+  - Resource owner
+  - Client
+  - Authorization server
+  - Resource server
+  - Authorization code
+  - Scope và consent
+  - OAuth threat
+- level1: OpenID Connect
+  level2:
+  - OpenID Connect là gì
+  - ID token
+  - UserInfo endpoint
+  - Nonce trong OIDC
+  - State
+  - Claims
+  - Discovery
+  - OIDC validation
+- level1: Identity proofing
+  level2:
+  - Identity proofing là gì
+  - Thu thập thuộc tính
+  - Kiểm tra giấy tờ
+  - Knowledge-based verification
+  - Biometric verification
+  - Remote proofing
+  - Proofing risk
+  - Đánh giá mức độ tin cậy
+- level1: Enrollment
+  level2:
+  - Authenticator enrollment
+  - User enrollment
+  - Device enrollment
+  - Đăng ký yếu tố MFA
+  - Passkey enrollment
+  - Enrollment approval
+  - Enrollment notification
+  - Thu hồi enrollment
+- level1: Authentication context
+  level2:
+  - Ngữ cảnh xác thực
+  - Thiết bị đã biết
+  - Vị trí truy cập
+  - Thời điểm truy cập
+  - Ứng dụng truy cập
+  - Tín hiệu rủi ro
+  - Context binding
+  - Context thay đổi
+- level1: Step-up
+  level2:
+  - Step-up authentication
+  - Trigger step-up
+  - Re-authentication
+  - Authentication freshness
+  - High-value action
+  - Sensitive data access
+  - Transaction confirmation
+  - Step-up recovery
+- level1: Risk-based authentication
+  level2:
+  - Đánh giá risk thích ứng
+  - Tín hiệu trong risk-based auth
+  - Risk score
+  - Adaptive challenge
+  - Impossible travel
+  - Device anomaly
+  - Behavior anomaly
+  - False positive
+- level1: Đăng nhập
+  level2:
+  - Login request
+  - Login identifier
+  - Credential check
+  - Successful login
+  - Failed login
+  - Login notification
+  - Remember device
+  - Login audit
+- level1: Đăng xuất
+  level2:
+  - Logout là gì
+  - Local logout
+  - Federated logout
+  - Token logout
+  - Hủy phiên khi logout
+  - Logout notification
+  - Logout from all devices
+  - Logout failure
+- level1: Account recovery
+  level2:
+  - Luồng recovery
+  - Recovery factor
+  - Recovery code
+  - Recovery link
+  - Identity re-verification
+  - Recovery approval
+  - Recovery notification
+  - Recovery abuse
+- level1: Account lifecycle
+  level2:
+  - Joiner flow
+  - User activation
+  - Account modification
+  - Role change
+  - Leaver flow
+  - Account suspension
+  - Credential cleanup
+  - Access recertification
+- level1: Credential lifecycle
+  level2:
+  - Credential issuance
+  - Credential activation
+  - Xoay vòng credential
+  - Credential renewal
+  - Credential suspension
+  - Thu hồi credential
+  - Credential expiration
+  - Credential destruction
+- level1: Chống đoán credential
+  level2:
+  - Brute force
+  - Password spraying
+  - Credential stuffing
+  - Dictionary attack
+  - Online guessing
+  - Offline guessing
+  - Backoff
+  - Lockout trade-off
+- level1: Chống phishing
+  level2:
+  - Phishing threat
+  - Domain impersonation
+  - Credential harvesting
+  - Phishing-resistant authenticator
+  - Origin binding
+  - User awareness
+  - Suspicious login
+  - Phishing response
+- level1: Chống replay
+  level2:
+  - Replay attack
+  - Nonce chống replay
+  - Timestamp
+  - Sequence number
+  - Challenge freshness
+  - Token reuse
+  - Idempotency
+  - Replay detection
+- level1: Authorization boundary
+  level2:
+  - Authentication context cho authorization
+  - Principal propagation
+  - Identity claims
+  - Role mapping
+  - Scope mapping
+  - Tenant context
+  - Service identity propagation
+  - Không nhầm authentication với authorization
+- level1: Service authentication
+  level2:
+  - Service-to-service authentication
+  - Danh tính workload
+  - Service account
+  - mTLS giữa service
+  - OAuth giữa service
+  - Short-lived credential
+  - Xoay vòng service credential
+  - Service authentication audit
+- level1: Authentication trong API
+  level2:
+  - API authentication boundary
+  - Header credential
+  - Token validation
+  - Request signing
+  - Gateway authentication
+  - Xác thực giữa service
+  - Error response
+  - API authentication policy
+- level1: Authentication trong web
+  level2:
+  - Web login
+  - Browser session
+  - CSRF và authentication
+  - Redirect flow
+  - Login form
+  - Session cookie
+  - Cross-site leakage
+  - Web authentication test
+- level1: Authentication trong mobile
+  level2:
+  - Mobile authentication
+  - Device binding
+  - Secure storage
+  - Deep link
+  - App redirect
+  - Biometric unlock
+  - Token refresh
+  - Mobile recovery
+- level1: Authentication trong distributed system
+  level2:
+  - Distributed identity
+  - Clock skew
+  - Token propagation
+  - Session consistency
+  - Service discovery
+  - Gateway và backend
+  - Partial failure
+  - Độ sẵn sàng của identity service
+- level1: Lưu trữ credential
+  level2:
+  - Credential storage
+  - Secret manager
+  - Keychain và keystore
+  - Database access
+  - Backup credential
+  - Credential trong memory
+  - Credential trong log
+  - Credential access audit
+- level1: Error và privacy
+  level2:
+  - Authentication error
+  - Account enumeration
+  - Generic error
+  - Error timing
+  - Sensitive claim
+  - Privacy của login
+  - Notification privacy
+  - Debug mode
+- level1: Monitoring và audit
+  level2:
+  - Authentication event
+  - Login metric
+  - Failed login metric
+  - Credential anomaly
+  - Session metric
+  - Admin authentication
+  - Audit trail
+  - Alert authentication
+- level1: Incident response
+  level2:
+  - Authentication incident
+  - Sự cố chiếm tài khoản
+  - Credential leak
+  - Session compromise
+  - Token compromise
+  - Containment
+  - Thu hồi credential sự cố
+  - Post-incident review
+- level1: Availability
+  level2:
+  - Độ sẵn sàng của hệ thống xác thực
+  - Identity provider outage
+  - Fallback authentication
+  - Fail-open và fail-closed
+  - Rate limit overload
+  - Dependency outage
+  - Recovery objective
+  - Availability test
+- level1: Testing
+  level2:
+  - Authentication functional test
+  - Authentication negative test
+  - Credential policy test
+  - Session test
+  - Token validation test
+  - Recovery test
+  - Abuse prevention test
+  - Cross-browser test
+- level1: Security review
+  level2:
+  - Authentication threat review
+  - Flow review
+  - Protocol review
+  - Configuration review
+  - Dependency review
+  - Secret review
+  - Logging review
+  - Security sign-off
+- level1: Compliance
+  level2:
+  - Authentication control
+  - Assurance requirement
+  - Audit evidence
+  - Access review
+  - Strong authentication requirement
+  - Credential retention
+  - Privacy requirement
+  - Exception management
+- level1: Trải nghiệm người dùng
+  level2:
+  - Login usability
+  - Accessible authentication
+  - Password manager support
+  - Error message usability
+  - Recovery usability
+  - Device enrollment experience
+  - Progressive security
+  - Giảm friction hợp lý
+- level1: Case study
+  level2:
+  - Đăng nhập bằng password
+  - Đăng nhập bằng MFA
+  - Đăng nhập bằng passkey
+  - SSO cho nhiều ứng dụng
+  - Service-to-service auth
+  - API key cho tích hợp
+  - Hệ thống recovery
+  - Case account takeover
+- level1: Thực hành tổng hợp
+  level2:
+  - Vẽ authentication flow
+  - Xác định identity và factor
+  - Chọn credential phù hợp
+  - Thiết kế session
+  - Thiết kế token
+  - Thiết lập MFA và recovery
+  - Chống phishing và replay
+  - Thiết lập audit và alert
+  - Kiểm thử flow thất bại
+  - Hoàn thiện hồ sơ authentication

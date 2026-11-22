@@ -1,0 +1,148 @@
+menu:
+- title: Bức tranh tổng thể
+  slug: overview
+  index: 0
+- title: Mục tiêu bảo vệ dữ liệu
+  slug: data-protection-goals
+  index: 1
+- title: Phạm vi và ngữ cảnh
+  slug: scope-context
+  index: 2
+- title: Thuật ngữ cốt lõi
+  slug: core-concepts
+  index: 3
+- title: Phân loại dữ liệu
+  slug: data-classification
+  index: 4
+- title: Dữ liệu nhạy cảm
+  slug: sensitive-data
+  index: 5
+- title: Masking và redaction
+  slug: masking-redaction
+  index: 6
+- title: Anonymization và pseudonymization
+  slug: anonymization-pseudonymization
+  index: 7
+- title: Tokenization
+  slug: tokenization
+  index: 8
+- title: Static masking
+  slug: static-masking
+  index: 9
+- title: Dynamic masking
+  slug: dynamic-masking
+  index: 10
+- title: Masking không đảo ngược
+  slug: irreversible-masking
+  index: 11
+- title: Masking đảo ngược
+  slug: reversible-masking
+  index: 12
+- title: Format-preserving masking
+  slug: format-preserving-masking
+  index: 13
+- title: Deterministic masking
+  slug: deterministic-masking
+  index: 14
+- title: Random masking
+  slug: random-masking
+  index: 15
+- title: Generalization và suppression
+  slug: generalization-suppression
+  index: 16
+- title: Field-level masking
+  slug: field-level-masking
+  index: 17
+- title: Dữ liệu có cấu trúc
+  slug: structured-data
+  index: 18
+- title: Dữ liệu phi cấu trúc
+  slug: unstructured-data
+  index: 19
+- title: Database
+  slug: database
+  index: 20
+- title: Query và báo cáo
+  slug: queries-reporting
+  index: 21
+- title: API
+  slug: api
+  index: 22
+- title: Log và telemetry
+  slug: logs-telemetry
+  index: 23
+- title: Giao diện người dùng
+  slug: user-interfaces
+  index: 24
+- title: Môi trường non-production
+  slug: non-production-environments
+  index: 25
+- title: Phân tích và kiểm thử
+  slug: analysis-testing
+  index: 26
+- title: Backup và archive
+  slug: backups-archiving
+  index: 27
+- title: Search và index
+  slug: search-indexing
+  index: 28
+- title: Cross-system data flow
+  slug: cross-system-data-flow
+  index: 29
+- title: Encryption và masking
+  slug: encryption-masking
+  index: 30
+- title: Access và policy
+  slug: access-policies
+  index: 31
+- title: Data governance
+  slug: data-governance
+  index: 32
+- title: Privacy
+  slug: privacy
+  index: 33
+- title: Compliance
+  slug: compliance
+  index: 34
+- title: Quy tắc và thuật toán
+  slug: rules-algorithms
+  index: 35
+- title: Tính toàn vẹn tham chiếu
+  slug: referential-integrity
+  index: 36
+- title: Tính nhất quán
+  slug: consistency
+  index: 37
+- title: Hiệu năng
+  slug: performance
+  index: 38
+- title: Kiến trúc giải pháp
+  slug: solution-architecture
+  index: 39
+- title: Triển khai ứng dụng
+  slug: application-deployment
+  index: 40
+- title: Pipeline và automation
+  slug: pipelines-automation
+  index: 41
+- title: Kiểm thử
+  slug: testing
+  index: 42
+- title: Xác minh bảo vệ
+  slug: protection-validation
+  index: 43
+- title: Giám sát và audit
+  slug: monitoring-auditing
+  index: 44
+- title: Sự cố dữ liệu
+  slug: data-incidents
+  index: 45
+- title: Vòng đời giải pháp
+  slug: solution-lifecycle
+  index: 46
+- title: Case study
+  slug: case-study
+  index: 47
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 48

@@ -1,0 +1,57 @@
+roadmap:
+- id: time-series-influxdb
+  title: Time Series & InfluxDB
+  purpose: Hiểu dữ liệu gắn thời gian và trường hợp phù hợp với InfluxDB.
+  objectives:
+  - Phân biệt dữ liệu time series với dữ liệu giao dịch.
+  - Nêu vai trò timestamp và dữ liệu đo lường.
+  - Nhận diện ứng dụng cho metrics và cảm biến.
+- id: khoi-tao-influxdb-3
+  title: Khởi tạo InfluxDB 3
+  purpose: Thiết lập môi trường và database để bắt đầu lưu chuỗi thời gian.
+  objectives:
+  - Khởi chạy InfluxDB 3 Core và kiểm tra kết nối.
+  - Tạo database và cấu hình token truy cập.
+  - Chọn retention period khi tạo database.
+- id: thiet-ke-schema
+  title: Thiết kế Schema
+  purpose: Tổ chức dữ liệu theo bảng, tags, fields và thời gian để truy vấn thuận tiện.
+  objectives:
+  - Phân biệt table, tag, field và timestamp.
+  - Chọn tag cho ngữ cảnh, field cho giá trị đo.
+  - Tránh xung đột tên và kiểu dữ liệu.
+- id: line-protocol-ghi-du-lieu
+  title: Line Protocol & Ghi dữ liệu
+  purpose: Hiểu cách biểu diễn và gửi các điểm đo vào InfluxDB.
+  objectives:
+  - Viết line protocol với tags, fields, timestamp.
+  - Chọn độ chính xác thời gian phù hợp.
+  - Ghi và kiểm tra dữ liệu bằng CLI hoặc API.
+- id: thu-thap-voi-telegraf
+  title: Thu thập với Telegraf
+  purpose: Tự động đưa metrics từ nguồn dữ liệu vào InfluxDB.
+  objectives:
+  - Chọn input plugin cho nguồn cần thu thập.
+  - Cấu hình Telegraf output tương thích InfluxDB 3.
+  - Đối soát dữ liệu nhận được với nguồn.
+- id: truy-van-sql-influxql
+  title: Truy vấn SQL & InfluxQL
+  purpose: Tìm và lọc dữ liệu chuỗi thời gian bằng ngôn ngữ truy vấn hỗ trợ.
+  objectives:
+  - Lọc theo khoảng thời gian và tag.
+  - Truy vấn dữ liệu bằng SQL và InfluxQL.
+  - Giải thích sự khác biệt với Flux của InfluxDB 2.
+- id: tong-hop-truc-quan
+  title: Tổng hợp & Trực quan
+  purpose: Biến điểm đo thành xu hướng dễ theo dõi và phân tích.
+  objectives:
+  - Tính trung bình, tổng và cực trị theo thời gian.
+  - Nhóm kết quả theo khoảng thời gian.
+  - Dựng biểu đồ theo dõi chuỗi dữ liệu mẫu.
+- id: retention-van-hanh
+  title: Retention & Vận hành
+  purpose: Quản lý vòng đời dữ liệu và kiểm tra tính ổn định của hệ thống.
+  objectives:
+  - Giải thích dữ liệu hết hạn theo retention.
+  - Nhận biết giới hạn khi chỉnh retention ở Core.
+  - Theo dõi lỗi ghi, truy vấn và dung lượng.

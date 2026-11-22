@@ -1,0 +1,308 @@
+menu:
+- level1: Tổng quan Azure DevOps
+  level2:
+  - Azure DevOps là gì và giải quyết vấn đề cộng tác phát triển phần mềm nào
+  - Vai trò của Azure Repos, Azure Boards, Azure Pipelines, Azure Test Plans và Azure Artifacts
+  - Phân biệt Azure DevOps Services, Azure DevOps Server và các tên gọi TFS, VSTS
+  - Phân biệt nền tảng Azure DevOps với tài nguyên và cổng quản trị Microsoft Azure
+  - Mối quan hệ giữa yêu cầu, công việc, mã nguồn, kiểm thử và bản phát hành
+  - Các khái niệm organization, project, team, repository, work item và pull request
+  - Kiến thức Git cần có trước khi làm việc với Azure Repos
+  - Nhận diện khác biệt tính năng theo phiên bản, mô hình triển khai và giấy phép
+- level1: Tổ chức và dự án
+  level2:
+  - Cấu trúc organization, project và team cùng phạm vi dữ liệu của từng cấp
+  - Lựa chọn một hay nhiều organization và project theo sản phẩm, quyền truy cập và cộng tác
+  - Tạo organization, chọn khu vực lưu trữ và thiết lập chủ sở hữu
+  - Tạo project, chọn quy trình công việc và hệ thống quản lý phiên bản
+  - Thiết lập khả năng hiển thị dự án và điều kiện cho phép dự án công khai
+  - Điều hướng giao diện, Organization settings và Project settings
+  - Tạo team, xác định thành viên và cấu hình công cụ riêng cho nhóm
+  - Quy ước đặt tên, URL, mô tả dự án và trang tổng quan ban đầu
+  - Phân biệt cài đặt cá nhân, cài đặt nhóm, dự án và toàn tổ chức
+- level1: Thành viên và truy cập
+  level2:
+  - Tài khoản Microsoft, Microsoft Entra ID và mối quan hệ với organization
+  - Mời thành viên nội bộ, khách bên ngoài và kiểm soát quyền tham gia
+  - Phân biệt mức truy cập Stakeholder, Basic, Basic + Test Plans với quyền thao tác
+  - Vai trò của Readers, Contributors, Project Administrators và Project Collection Administrators
+  - Nhóm Azure DevOps, nhóm Microsoft Entra và cách tổ chức thành viên
+  - Cơ chế kế thừa quyền và ý nghĩa Allow, Deny, Not set
+  - Đánh giá quyền hiệu lực khi người dùng thuộc nhiều nhóm
+  - Giới hạn truy cập theo dự án và chia quyền theo trách nhiệm
+  - Quy trình tiếp nhận, thay đổi vai trò và thu hồi quyền khi thành viên rời nhóm
+- level1: Xác thực an toàn
+  level2:
+  - Phân biệt đăng nhập cổng web, xác thực Git và xác thực ứng dụng tích hợp
+  - Kết nối HTTPS bằng Git Credential Manager và thông tin xác thực Microsoft
+  - Sử dụng Microsoft Entra ID token cho các kịch bản được hỗ trợ
+  - Tạo, đăng ký, kiểm tra và thu hồi khóa SSH cho Azure Repos
+  - Sử dụng PAT theo organization, phạm vi quyền và thời hạn khi thực sự cần
+  - Lưu trữ, luân chuyển và thu hồi thông tin xác thực trên máy phát triển
+  - Lựa chọn service principal, managed identity hoặc danh tính liên kết cho tự động hóa
+  - Giới hạn phương thức xác thực giữa Azure DevOps Services và Azure DevOps Server
+  - Ảnh hưởng của xác thực đa yếu tố, Conditional Access và chính sách tổ chức
+- level1: Khởi tạo kho mã
+  level2:
+  - 'Azure Repos Git và TFVC: mô hình, trường hợp sử dụng và ranh giới khác biệt'
+  - Tạo nhiều kho Git trong một dự án và xác định chủ sở hữu kho
+  - Khởi tạo README, .gitignore, .gitattributes và tài liệu đóng góp
+  - Đưa kho Git có sẵn từ máy cục bộ lên Azure Repos
+  - Nhập kho từ dịch vụ Git khác bằng chức năng Import repository
+  - Lấy URL clone HTTPS hoặc SSH và cấu hình remote
+  - Đặt nhánh mặc định và kiểm tra trạng thái kho sau khi khởi tạo
+  - Đổi tên, xóa và khôi phục kho trong điều kiện nền tảng hỗ trợ
+- level1: Làm việc với Azure Repos
+  level2:
+  - Clone, fetch, pull và push trong quy trình đồng bộ với Azure Repos
+  - Đọc cây tệp, lịch sử commit, thông tin tác giả và nội dung thay đổi trên web
+  - So sánh commit, nhánh và tag để xác định phạm vi thay đổi
+  - Sử dụng lịch sử dòng mã và tìm nguồn gốc thay đổi khi điều tra lỗi
+  - Tìm kiếm mã nguồn, bộ lọc và điều kiện khả dụng của Code Search
+  - Chỉnh sửa tệp trên web và chọn cách tạo nhánh, commit phù hợp
+  - Làm việc với Azure Repos từ VS Code, Visual Studio và công cụ Git trong IDE
+  - Quản lý tệp lớn bằng Git LFS và các giới hạn cần kiểm tra
+  - Sử dụng submodule và cấp quyền truy cập các kho phụ thuộc
+  - Xử lý xuống dòng, mã hóa ký tự và khác biệt đường dẫn giữa các hệ điều hành
+- level1: Nhánh và phiên bản
+  level2:
+  - Tạo nhánh từ commit, tag hoặc work item trên Azure DevOps
+  - Đặt tên nhánh và ánh xạ nhánh với công việc đang thực hiện
+  - Thiết lập nhánh mặc định, nhánh so sánh và nhánh yêu thích
+  - Theo dõi mức chênh lệch và đồng bộ nhánh tính năng với nhánh đích
+  - Áp dụng mô hình nhánh đã chọn bằng công cụ và chính sách Azure Repos
+  - Tạo tag, phân biệt tag với nhánh và ghi nhận mốc mã nguồn
+  - Cherry-pick thay đổi để đưa bản sửa sang nhánh khác
+  - Revert thay đổi sau khi hợp nhất và lựa chọn quy trình sửa lỗi khẩn cấp
+  - Khóa nhánh, dọn nhánh đã hợp nhất và nhận diện nhánh không còn sử dụng
+- level1: Vòng đời pull request
+  level2:
+  - Vai trò của pull request và khác biệt với thao tác push hoặc merge cục bộ
+  - Tạo pull request với nhánh nguồn, nhánh đích và phạm vi thay đổi phù hợp
+  - Viết tiêu đề, mô tả, hướng dẫn kiểm tra và mẫu pull request
+  - Sử dụng draft pull request để cộng tác trước khi sẵn sàng đánh giá
+  - Thêm người đánh giá bắt buộc, tùy chọn và nhóm đánh giá
+  - Cập nhật pull request bằng commit mới và theo dõi các lần cập nhật
+  - Đọc trạng thái đánh giá, xung đột, bản dựng và chính sách đang chặn
+  - Hoàn tất pull request bằng merge commit, squash hoặc các lựa chọn rebase
+  - Sử dụng auto-complete và hiểu điều kiện để tự động hoàn tất
+  - Xử lý xung đột ở máy cục bộ rồi cập nhật lại pull request
+  - Abandon, reactivate và theo dõi pull request đã hoàn tất
+- level1: Đánh giá mã nguồn
+  level2:
+  - Chuẩn bị pull request nhỏ, có ngữ cảnh và bằng chứng kiểm tra
+  - Đọc phần Files, Commits, Updates và so sánh giữa các lần sửa
+  - Bình luận theo dòng, tạo luồng trao đổi và đề xuất sửa mã
+  - Ý nghĩa các lựa chọn Approve, Approve with suggestions, Wait for author và Reject
+  - Trao đổi giữa tác giả và người đánh giá, xử lý rồi đóng luồng bình luận
+  - Theo dõi yêu cầu đánh giá lại khi nội dung pull request thay đổi
+  - Tổ chức đánh giá theo chuyên môn, quyền sở hữu thư mục và mức rủi ro
+  - Xây dựng quy ước phản hồi rõ ràng và tránh tắc nghẽn chờ đánh giá
+- level1: Chính sách nhánh
+  level2:
+  - Phân biệt branch policy, quyền nhánh và các thiết lập cấp kho
+  - Chọn nhánh đích cần bảo vệ và kiểm tra phạm vi áp dụng chính sách
+  - Yêu cầu số người phê duyệt tối thiểu và kiểm soát tự phê duyệt
+  - Đặt lại phiếu đánh giá khi có thay đổi mới hoặc theo điều kiện cập nhật
+  - Tự động thêm người đánh giá theo đường dẫn và yêu cầu quyền sở hữu mã
+  - Bắt buộc liên kết work item và giải quyết các luồng bình luận
+  - Thiết lập Build validation với chế độ tự động hoặc thủ công
+  - Quản lý thời hạn kết quả bản dựng khi nhánh đích thay đổi
+  - Cấu hình Status checks từ dịch vụ ngoài và danh tính được phép đăng trạng thái
+  - Giới hạn cách hợp nhất và đánh giá tác động lên lịch sử Git
+  - Áp dụng bộ lọc đường dẫn, tiền tố nhánh và chính sách trên nhiều kho
+  - Kiểm chứng chính sách bằng các pull request đạt và không đạt điều kiện
+- level1: Quyền trên kho mã
+  level2:
+  - Phân quyền ở cấp dự án, repository, nhánh và tag
+  - Quyền Read, Contribute, Create branch và Create tag trong công việc hằng ngày
+  - Kiểm soát Force push và các thao tác viết lại lịch sử hoặc xóa nhánh
+  - Quyền tạo, đổi tên, xóa kho và chỉnh sửa chính sách
+  - Phân biệt Bypass policies when pushing với Bypass policies when completing pull requests
+  - Giới hạn quyền quản trị và thiết kế lối xử lý khẩn cấp có kiểm soát
+  - Cấu hình quyền nhánh theo nhóm hoặc tiền tố và rà soát kế thừa
+  - Kiểm tra phân quyền bằng các tài khoản có vai trò khác nhau
+- level1: Bảo mật mã nguồn
+  level2:
+  - Ngăn thông tin bí mật xuất hiện trong commit, tệp cấu hình và mô tả pull request
+  - 'Xử lý khi lộ khóa: thu hồi, thay thế và đánh giá phạm vi ảnh hưởng'
+  - Chính sách kho đối với kích thước tệp, đường dẫn và tính tương thích tên tệp
+  - Giới thiệu GitHub Secret Protection và GitHub Code Security cho Azure DevOps
+  - Điều kiện nền tảng, giấy phép và quyền để bật tính năng bảo mật nâng cao
+  - Quét thông tin bí mật và chặn push chứa bí mật khi tính năng được bật
+  - Quét thư viện phụ thuộc và phân tích CodeQL trong quy trình kiểm tra mã
+  - Phân loại, xử lý, miễn trừ và theo dõi cảnh báo bảo mật
+  - Đánh giá rủi ro khi pull request sửa YAML pipeline hoặc mã chạy kiểm thử
+- level1: Cộng tác qua fork
+  level2:
+  - Phân biệt làm việc trên nhánh chung với đóng góp qua fork
+  - Phạm vi tạo fork trong cùng organization và điều kiện quyền truy cập
+  - Tạo fork, xác định kho gốc và cấu hình remote upstream
+  - Đồng bộ fork khi kho gốc có thay đổi
+  - Tạo và đánh giá pull request giữa fork và kho gốc
+  - Xác định danh tính bản dựng và quyền truy cập khi kiểm tra thay đổi từ fork
+  - Kiểm soát bí mật, tài nguyên được bảo vệ và mã đóng góp chưa được tin cậy
+- level1: Azure Boards
+  level2:
+  - Vai trò của work item trong phối hợp công việc và theo dõi yêu cầu
+  - Các quy trình Basic, Agile, Scrum, CMMI và hệ thống loại công việc tương ứng
+  - Tạo, chỉnh sửa và phân công work item với trường dữ liệu phù hợp
+  - Quản lý trạng thái, lý do chuyển trạng thái, mức ưu tiên và nhãn
+  - Thảo luận, đề cập thành viên, đính kèm tệp và theo dõi lịch sử thay đổi
+  - Quan hệ Parent-Child, Related, Predecessor-Successor và cách tránh cấu trúc sai
+  - Thiết lập Area Path để chia phạm vi sản phẩm và trách nhiệm nhóm
+  - Thiết lập Iteration Path để tổ chức các giai đoạn làm việc
+  - Xử lý bug theo cách nhóm đã cấu hình và theo dõi công việc phát sinh
+- level1: Backlog và sprint
+  level2:
+  - Phân biệt portfolio backlog, product backlog, board và sprint taskboard
+  - Phân rã mục tiêu thành các loại công việc phù hợp với quy trình đã chọn
+  - Sắp xếp backlog, bổ sung tiêu chí chấp nhận và chuẩn bị công việc
+  - Cấu hình cột board, ánh xạ trạng thái và tiêu chí hoàn thành từng cột
+  - Sử dụng swimlane, giới hạn công việc đang làm và kiểu hiển thị thẻ
+  - Lập kế hoạch sprint, chọn công việc và chia nhỏ task
+  - Thiết lập capacity, ngày nghỉ và theo dõi tải công việc trong sprint
+  - Theo dõi tiến độ bằng taskboard, burndown và phản hồi trong nhóm
+  - Phối hợp nhiều team bằng Delivery Plans và nhận diện phụ thuộc công việc
+- level1: Truy vấn và báo cáo
+  level2:
+  - Tạo truy vấn work item bằng trường dữ liệu, toán tử và nhóm điều kiện
+  - Phân biệt truy vấn danh sách phẳng, liên kết trực tiếp và cây phân cấp
+  - Lưu My Queries, chia sẻ Shared Queries và quản lý quyền truy vấn
+  - Sử dụng WIQL khi cần biểu diễn truy vấn bằng văn bản
+  - Chỉnh sửa hàng loạt và xuất, nhập CSV với kiểm tra trường dữ liệu
+  - Tạo biểu đồ từ truy vấn và dashboard phục vụ từng nhóm
+  - Đọc velocity, cumulative flow, lead time và cycle time đúng ngữ cảnh
+  - Sử dụng Analytics, OData hoặc Power BI theo khả năng nền tảng và quyền
+  - Diễn giải số liệu cộng tác, tránh đánh giá hiệu quả chỉ bằng số commit hoặc pull request
+- level1: Wiki và tài liệu
+  level2:
+  - Phân biệt Project wiki với Published code wiki
+  - Tạo Project wiki và tổ chức cây trang cho tài liệu nhóm
+  - Xuất bản Markdown từ kho Git thành code wiki và chọn nhánh tài liệu
+  - Sử dụng tiêu đề, bảng, liên kết, khối mã và tài nguyên đính kèm
+  - Liên kết trang wiki với mã nguồn, work item và hướng dẫn phát triển
+  - Quản lý lịch sử trang, so sánh và khôi phục thay đổi tài liệu
+  - Cộng tác trên kho Git của wiki và thiết lập quyền chỉnh sửa
+  - Áp dụng đánh giá qua pull request cho tài liệu được quản lý trong code repo
+  - Duy trì README, hướng dẫn đóng góp, quyết định kiến trúc và quy trình tiếp nhận thành viên
+- level1: Truy vết thay đổi
+  level2:
+  - Liên kết work item với nhánh, commit và pull request
+  - Tham chiếu mã work item trong commit và mô tả pull request theo cú pháp được hỗ trợ
+  - Theo dõi thay đổi từ mục Development và lịch sử của work item
+  - Cập nhật trạng thái work item khi hoàn tất pull request theo tùy chọn cấu hình
+  - Liên kết yêu cầu với test case, kết quả kiểm thử và lỗi phát hiện
+  - Truy từ yêu cầu đến bản dựng, gói đầu ra và thông tin triển khai
+  - Điều tra thay đổi gây lỗi bằng chuỗi work item, pull request và commit
+  - Kiểm tra liên kết thiếu, liên kết sai và giới hạn truy vết qua nhiều dự án
+- level1: Tích hợp Azure Pipelines
+  level2:
+  - Vai trò của pipeline trong kiểm chứng mã và điều kiện hợp nhất
+  - Tạo pipeline từ Azure Repos và quản lý azure-pipelines.yml trong kho
+  - Nhận diện stage, job, step, task cùng vai trò của agent và agent pool
+  - Cấu hình CI trigger theo nhánh, đường dẫn và nhu cầu của kho mã
+  - Kiểm tra pull request Azure Repos bằng Build validation thay cho YAML pr trigger
+  - Hiểu commit hợp nhất được kiểm tra và phân biệt bản dựng nhánh với bản dựng pull request
+  - Chạy build, kiểm thử và công bố kết quả cho dự án mẫu Java bằng Maven hoặc Gradle
+  - Đọc log, kết quả kiểm thử, trạng thái bản dựng và tệp đầu ra
+  - Cấp quyền Build Service, giới hạn phạm vi job và bảo vệ quyền đọc repository
+  - Quản lý biến bí mật, variable group, service connection và quyền sử dụng tài nguyên
+  - Nhận diện environments, approvals và checks tại ranh giới tích hợp triển khai
+  - Đánh giá thay đổi YAML và hạn chế quyền khi pipeline chạy mã đóng góp
+- level1: Kiểm thử và phản hồi
+  level2:
+  - Vai trò Azure Test Plans và điều kiện quyền, mức truy cập cần có
+  - Tổ chức test plan, test suite và test case phục vụ yêu cầu sản phẩm
+  - Viết bước kiểm thử, kết quả mong đợi và dùng lại bước hoặc tham số
+  - Thực hiện kiểm thử thủ công, ghi kết quả và thu thập bằng chứng
+  - Tạo bug từ phiên kiểm thử và liên kết lỗi với công việc liên quan
+  - Phân biệt kết quả kiểm thử tự động từ pipeline với hoạt động quản lý Test Plans
+  - Thu thập phản hồi và kiểm thử khám phá bằng công cụ phù hợp
+- level1: Azure Artifacts
+  level2:
+  - Vai trò feed quản lý gói và khác biệt với repository hoặc pipeline artifact
+  - Phân biệt feed cấp dự án, cấp tổ chức và phạm vi quyền truy cập
+  - Kết nối công cụ quản lý gói, gồm Maven và Gradle cho dự án Java
+  - Xuất bản, tải về và xác thực gói theo danh tính người dùng hoặc pipeline
+  - Sử dụng upstream source và quản lý nguồn thư viện phụ thuộc
+  - Quản lý phiên bản gói, feed view và vòng đời quảng bá gói
+  - Thiết lập retention, theo dõi dung lượng và kiểm tra ảnh hưởng khi xóa gói
+- level1: Thông báo và tích hợp
+  level2:
+  - Theo dõi work item, pull request và các thay đổi cần chú ý
+  - Cấu hình đăng ký thông báo cá nhân, nhóm và dự án
+  - Giảm thông báo không cần thiết bằng sự kiện, bộ lọc và đối tượng nhận
+  - Phân biệt thông báo, Service hooks, webhook và extension
+  - Tạo Service hook theo sự kiện work item, pull request hoặc bản dựng
+  - Kết nối Microsoft Teams, Slack hoặc hệ thống ngoài theo tích hợp được hỗ trợ
+  - Cài đặt extension từ Marketplace và rà soát quyền được yêu cầu
+  - Kiểm tra lịch sử gửi sự kiện, lỗi webhook và nguy cơ xử lý trùng
+- level1: CLI và REST API
+  level2:
+  - Cài Azure CLI cùng Azure DevOps extension và xác định môi trường được hỗ trợ
+  - Đăng nhập, chọn organization, project mặc định và quản lý ngữ cảnh lệnh
+  - Tra cứu project, repository, nhánh và pull request bằng az devops, az repos
+  - Tra cứu work item, truy vấn và chính sách bằng các nhóm lệnh tương ứng
+  - Nhận diện URL REST API, phiên bản API và định danh tài nguyên
+  - Xác thực REST API với danh tính và phạm vi quyền phù hợp
+  - Đọc dữ liệu có phân trang, lọc kết quả và xử lý continuation token
+  - Tự động hóa tác vụ có kiểm tra trạng thái trước khi ghi và tránh tạo trùng
+  - Xử lý lỗi HTTP, giới hạn yêu cầu và retry có kiểm soát
+  - Đăng trạng thái pull request từ dịch vụ kiểm tra ngoài qua REST API
+- level1: Tùy biến quy trình
+  level2:
+  - Phân biệt tùy biến board của team với tùy biến process dùng chung
+  - Mô hình inherited process và khác biệt với mô hình XML theo môi trường
+  - Tạo quy trình kế thừa và xác định dự án chịu ảnh hưởng
+  - Bổ sung loại work item, trường dữ liệu và bố cục biểu mẫu
+  - Điều chỉnh trạng thái và quy tắc bắt buộc theo điều kiện nghiệp vụ
+  - Kiểm tra ảnh hưởng lên backlog, board, truy vấn và báo cáo khi đổi quy trình
+  - Quyền quản lý process và cách kiểm thử thay đổi trước khi áp dụng rộng
+  - Duy trì tiêu chuẩn chung mà vẫn đáp ứng khác biệt hợp lý giữa các team
+- level1: Quản trị và vận hành
+  level2:
+  - Phân công organization owner, quản trị viên và người quản lý tài nguyên
+  - Rà soát thành viên, mức truy cập, giấy phép và liên kết thanh toán
+  - Quản lý chính sách tổ chức đối với khách ngoài, PAT và ứng dụng tích hợp
+  - Theo dõi audit log theo điều kiện khả dụng và phân biệt với lịch sử Git
+  - Quản lý vòng đời extension, Service hooks và danh tính tự động hóa
+  - Theo dõi dung lượng kho, Git LFS, feed, pipeline và giới hạn dịch vụ
+  - Giám sát tình trạng Azure DevOps và phân biệt lỗi dịch vụ với lỗi cấu hình
+  - Lập kế hoạch sao lưu, xuất dữ liệu và phục hồi theo Services hoặc Server
+  - Chuẩn hóa cấu hình và phát hiện sai lệch quyền, chính sách giữa nhiều kho
+  - Quản lý dữ liệu nhạy cảm, thời hạn lưu trữ và trách nhiệm tuân thủ
+- level1: Di chuyển và chuyển đổi
+  level2:
+  - Kiểm kê kho mã, lịch sử, người dùng, quyền, chính sách và tích hợp trước di chuyển
+  - Di chuyển Git từ GitHub, GitLab, Bitbucket hoặc máy chủ Git khác
+  - Kiểm chứng branch, tag, commit và chuyển dữ liệu Git LFS riêng khi cần
+  - Phân biệt chuyển lịch sử Git với chuyển pull request, work item và bình luận
+  - Lập kế hoạch chuyển TFVC sang Git và quyết định phạm vi giữ lịch sử
+  - Nhận diện công cụ, điều kiện và giới hạn khi chuyển Server sang Services
+  - Tái lập quyền, chính sách nhánh, webhook và pipeline ở đích
+  - Tổ chức chạy thử, ngừng ghi nguồn, xác minh sau chuyển và phương án quay lại
+- level1: Xử lý sự cố
+  level2:
+  - Phân biệt lỗi sai organization, sai project và thiếu mức truy cập
+  - Chẩn đoán clone, fetch hoặc push thất bại do URL, HTTPS, SSH hay token
+  - Xử lý quyền Deny, kế thừa quyền và thay đổi nhóm chưa có hiệu lực
+  - Tìm nguyên nhân push bị từ chối do policy, quyền hoặc giới hạn kho
+  - Chẩn đoán pull request không thể hoàn tất dù đã có người phê duyệt
+  - Xử lý build validation không chạy, lỗi thời hoặc thất bại
+  - Điều tra Status check không xuất hiện hoặc không cập nhật đúng pull request
+  - Xử lý work item không hiện trên backlog, board hoặc sprint của team
+  - Chẩn đoán lỗi truy cập wiki, feed và tài nguyên giữa các dự án
+  - Thu thập mã lỗi, thời điểm, định danh yêu cầu và bằng chứng trước khi yêu cầu hỗ trợ
+- level1: Thực hành tổng hợp
+  level2:
+  - Thiết lập organization, project, team và kho Java với quyền tối thiểu
+  - Thực hiện luồng work item, nhánh tính năng, commit và pull request
+  - Thiết lập đánh giá mã, chính sách nhánh và thử tình huống vi phạm
+  - Gắn pipeline Maven hoặc Gradle vào Build validation của nhánh chính
+  - Mô phỏng xung đột, cập nhật đánh giá và hoàn tất pull request an toàn
+  - Tổ chức backlog, sprint, dashboard và wiki cho một nhóm phát triển
+  - Truy vết một bug từ phản hồi, bản sửa đến kết quả kiểm thử
+  - Mô phỏng thành viên rời nhóm, thu hồi quyền và thay thông tin xác thực
+  - Diễn tập sự cố lộ bí mật hoặc cấp quyền quá rộng trong môi trường thực hành
+  - Tổng hợp tiêu chí kiểm chứng cấu hình cộng tác và hồ sơ bàn giao dự án

@@ -1,0 +1,64 @@
+roadmap:
+- id: reactor-netty-reactive-i-o
+  title: Reactor Netty & Reactive I/O
+  purpose: Hiểu vị trí Reactor Netty trong mạng bất đồng bộ và ứng dụng reactive của Java.
+  objectives:
+  - Phân biệt Reactor Netty, Netty và Reactor Core.
+  - Mô tả luồng dữ liệu qua Mono/Flux và network channel.
+  - Nhận diện HTTP client, HTTP server và TCP client/server.
+- id: event-loop-threading
+  title: Event Loop & Threading
+  purpose: Hiểu mô hình xử lý I/O không chặn và cách chia sẻ tài nguyên luồng.
+  objectives:
+  - Giải thích event loop, selector và worker thread.
+  - Nhận biết blocking call trên event loop và ảnh hưởng của nó.
+  - Dùng boundedElastic hoặc scheduler phù hợp khi phải gọi API blocking.
+- id: http-client-server
+  title: HTTP Client & Server
+  purpose: Khởi tạo và cấu hình thành phần HTTP reactive cho giao tiếp hai chiều.
+  objectives:
+  - Tạo HttpClient gửi request và xử lý response body.
+  - Khởi chạy HttpServer với route và handler reactive.
+  - Phân biệt response streaming, aggregation và backpressure.
+- id: connection-pool-lifecycle
+  title: Connection Pool & Lifecycle
+  purpose: Quản lý kết nối tái sử dụng, giới hạn đồng thời và vòng đời tài nguyên.
+  objectives:
+  - Cấu hình ConnectionProvider, maxConnections và pendingAcquire.
+  - Theo dõi active, idle, pending connections và timeout lấy kết nối.
+  - Dispose pool/event-loop đúng vòng đời ứng dụng.
+- id: timeout-retry-error
+  title: Timeout, Retry & Error
+  purpose: Kiểm soát thời gian chờ và xử lý lỗi mạng có giới hạn.
+  objectives:
+  - Cấu hình connect, response, TLS và pool-acquire timeout.
+  - Phân biệt retry an toàn với retry có thể lặp tác dụng phụ.
+  - Xử lý timeout, reset và lỗi kết nối trong reactive chain.
+- id: tls-tcp-protocol
+  title: TLS, TCP & Protocol
+  purpose: Thiết lập bảo mật đường truyền và hiểu các lớp giao thức liên quan.
+  objectives:
+  - Cấu hình TLS/SSL context và xác minh chứng thư.
+  - Nhận diện TCP keepalive, DNS resolution và proxy.
+  - Tìm hiểu HTTP/1.1, HTTP/2 và giới hạn stream/kết nối.
+- id: spring-boot-integration
+  title: Spring Boot Integration
+  purpose: Tích hợp Reactor Netty vào ứng dụng Spring WebFlux và cấu hình theo môi trường.
+  objectives:
+  - Dùng spring-boot-starter-webflux với Reactor Netty server mặc định.
+  - Tùy chỉnh Netty server và WebClient connector khi cần.
+  - Quản lý cấu hình, resource sharing và shutdown khi ứng dụng dừng.
+- id: metrics-logs-tracing
+  title: Metrics, Logs & Tracing
+  purpose: Quan sát hiệu năng I/O và chẩn đoán sự cố từ client, server tới connection pool.
+  objectives:
+  - Bật Micrometer metrics và tracing cho Reactor Netty.
+  - Theo dõi latency, errors, active/pending connections và event-loop tasks.
+  - Dùng wiretap/logging có kiểm soát và tránh ghi dữ liệu nhạy cảm.
+- id: load-test-tuning
+  title: Load Test & Tuning
+  purpose: Kiểm chứng giới hạn mạng và tối ưu cấu hình theo số đo thực tế.
+  objectives:
+  - Tạo load test cho HTTP endpoint và client workload.
+  - Đối chiếu throughput, latency, connection saturation và heap/direct memory.
+  - Điều chỉnh pool/thread/timeout rồi kiểm thử hồi quy.

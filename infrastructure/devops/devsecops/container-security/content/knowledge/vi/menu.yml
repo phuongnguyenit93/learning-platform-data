@@ -1,0 +1,348 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Container là gì và bảo mật container giải quyết vấn đề nào
+  - Phân biệt image, container, registry, runtime và orchestrator
+  - Container chia sẻ kernel như thế nào so với máy ảo
+  - Vòng đời từ mã nguồn đến container đang chạy
+  - Quan hệ giữa bảo mật ứng dụng, container, host và cụm
+  - Trách nhiệm của lập trình viên, nhóm nền tảng và nhóm bảo mật
+  - Phòng thủ nhiều lớp và nguyên tắc đặc quyền tối thiểu
+  - Giới hạn của công cụ quét và cấu hình mặc định
+  - Lộ trình học và kiến thức Linux, mạng, Docker cần chuẩn bị
+- level1: Mô hình đe dọa
+  level2:
+  - Xác định tài sản cần bảo vệ và dữ liệu nhạy cảm
+  - Vẽ luồng dữ liệu cùng ranh giới tin cậy
+  - Nhận diện đối tượng tấn công và quyền truy cập ban đầu
+  - Bề mặt tấn công của image, registry, runtime và host
+  - Kịch bản image độc hại và chiếm quyền tài khoản registry
+  - Kịch bản khai thác ứng dụng, nâng quyền và thoát container
+  - Kịch bản di chuyển ngang và đánh cắp danh tính workload
+  - Kịch bản chiếm tài nguyên, đào tiền mã hóa và từ chối dịch vụ
+  - Chuyển mô hình đe dọa thành yêu cầu và kiểm chứng bảo mật
+- level1: Cách ly tiến trình
+  level2:
+  - PID namespace và khả năng nhìn thấy tiến trình
+  - Mount namespace và giới hạn của hệ thống tệp riêng
+  - Network namespace và phạm vi cách ly mạng
+  - User namespace và ánh xạ UID, GID
+  - IPC, UTS và cgroup namespace
+  - Cgroups trong giới hạn CPU, bộ nhớ và số tiến trình
+  - Rủi ro khi dùng chung namespace với host
+  - Kernel dùng chung và ranh giới của cơ chế cách ly
+  - Quan sát namespace và cgroups của một container
+- level1: Đặc quyền Linux
+  level2:
+  - UID, GID và quyền truy cập tệp trong container
+  - Người dùng root trong container và trên host
+  - Linux capabilities và việc phân tách đặc quyền
+  - Loại bỏ capabilities mặc định rồi cấp quyền tối thiểu
+  - Rủi ro của chế độ privileged
+  - Setuid, setgid và các đường nâng quyền
+  - No-new-privileges và kiểm soát nâng quyền
+  - Quyền với thiết bị, nhóm người dùng và Docker socket
+  - Kiểm chứng danh tính cùng capabilities của tiến trình
+- level1: Chính sách kernel
+  level2:
+  - System call và vai trò của seccomp
+  - Đọc và áp dụng hồ sơ seccomp
+  - Điều chỉnh seccomp theo hành vi thực tế của ứng dụng
+  - AppArmor và hồ sơ kiểm soát truy cập
+  - SELinux, nhãn bảo mật và truy cập volume
+  - Phối hợp seccomp, AppArmor hoặc SELinux với capabilities
+  - Phân tích lỗi bị chính sách chặn qua nhật ký
+  - Quản lý ngoại lệ khi ứng dụng cần quyền bổ sung
+- level1: Bảo vệ host
+  level2:
+  - Lựa chọn hệ điều hành host và giảm dịch vụ không cần thiết
+  - Cập nhật kernel, container runtime và thành phần phụ thuộc
+  - Bảo vệ Docker daemon cùng API quản trị
+  - Quyền thành viên nhóm docker và quyền truy cập socket
+  - Xác thực, mã hóa và giới hạn truy cập daemon từ xa
+  - Bảo vệ cấu hình, chứng thư và thư mục dữ liệu runtime
+  - Giới hạn truy cập quản trị, SSH và tài khoản đặc quyền
+  - Cấu hình nhật ký, đồng bộ thời gian và theo dõi tính toàn vẹn
+  - Rủi ro khi dùng chung host giữa các mức độ tin cậy
+  - Đối chiếu cấu hình host với hướng dẫn gia cố
+- level1: Chạy rootless
+  level2:
+  - Phân biệt rootless runtime với chạy ứng dụng bằng người dùng thường
+  - Điều kiện hệ thống cho rootless và user namespace
+  - Ánh xạ subordinate UID, GID và quyền trên host
+  - Thiết lập rootless Docker hoặc Podman trong phòng thực hành
+  - Hạn chế về mạng, cổng và thiết bị ở chế độ rootless
+  - Quyền volume và dữ liệu khi dùng rootless
+  - Giới hạn tài nguyên và tích hợp dịch vụ hệ thống
+  - Đánh giá rủi ro còn lại trước khi lựa chọn rootless
+- level1: Thiết kế image
+  level2:
+  - Lựa chọn nguồn base image và tiêu chí tin cậy
+  - Phân biệt tag có thể thay đổi với digest định danh nội dung
+  - Chu kỳ hỗ trợ và chiến lược cập nhật base image
+  - Image tối giản, distroless và scratch
+  - Đánh đổi giữa kích thước image, khả năng tương thích và vận hành
+  - Loại bỏ gói, công cụ và tài khoản không cần thiết
+  - Quyền sở hữu tệp, thư mục làm việc và người dùng mặc định
+  - Layer, lịch sử image và dữ liệu bị giữ lại
+  - Image nhiều kiến trúc và khác biệt thành phần theo nền tảng
+  - Ghi nhận nguồn gốc, chủ sở hữu và mục đích sử dụng image
+- level1: Dockerfile an toàn
+  level2:
+  - Khai báo FROM và cố định đầu vào có thể kiểm chứng
+  - Multi-stage build để tách môi trường biên dịch và thực thi
+  - Dùng .dockerignore để giới hạn build context
+  - Phân biệt COPY, ADD và rủi ro lấy nội dung từ xa
+  - Kiểm chứng gói hoặc tệp tải về trong quá trình build
+  - Tạo người dùng thường và áp dụng USER đúng thời điểm
+  - Thiết lập quyền tệp bằng COPY --chown và --chmod
+  - Quản lý gói, bộ nhớ đệm và dữ liệu tạm trong layer
+  - ENTRYPOINT, CMD và xử lý tín hiệu của tiến trình chính
+  - Tránh đưa bí mật vào ARG, ENV và lệnh build
+  - Rà soát Dockerfile bằng phân tích tĩnh và kiểm thử image
+- level1: Bảo mật build
+  level2:
+  - Ranh giới tin cậy của builder và build context
+  - BuildKit và cơ chế cấp bí mật tạm thời
+  - SSH forwarding khi tải phụ thuộc riêng tư
+  - Đặc quyền của builder và rủi ro Docker-in-Docker
+  - Cách ly công việc build khỏi host và các công việc khác
+  - Kiểm soát truy cập mạng và nguồn phụ thuộc lúc build
+  - Rủi ro nhiễm độc build cache và nguồn cache bên ngoài
+  - Tính tái lập của bản build và đầu vào được cố định
+  - Bảo vệ artifact trung gian cùng nhật ký build
+  - Dọn dẹp builder, cache và thông tin xác thực sau build
+- level1: Quản lý bí mật
+  level2:
+  - Phân loại mật khẩu, token, khóa và chứng thư
+  - Bí mật bị lộ qua image layer, metadata và lịch sử
+  - Bí mật bị lộ qua biến môi trường, lệnh và nhật ký
+  - Cấp bí mật lúc chạy qua tệp và volume
+  - Phân quyền truy cập bí mật theo workload
+  - Kết nối kho bí mật bên ngoài và danh tính ngắn hạn
+  - Xoay vòng, thu hồi và thay mới bí mật
+  - Phát hiện bí mật bị đóng gói nhầm trong image
+  - Ứng phó khi image hoặc container đã chứa bí mật bị lộ
+- level1: Kiểm kê thành phần
+  level2:
+  - SBOM là gì và hỗ trợ bảo mật image ra sao
+  - Kiểm kê gói hệ điều hành và thư viện ứng dụng
+  - Định dạng SPDX, CycloneDX và khả năng trao đổi dữ liệu
+  - Tạo SBOM từ image cùng giai đoạn build
+  - Gắn SBOM với đúng digest và kiến trúc image
+  - Đối chiếu SBOM với thành phần thực tế trong image
+  - Giới hạn của SBOM với phần mềm đóng gói hoặc tải động
+  - Lưu trữ, phân quyền và cập nhật SBOM theo phiên bản
+- level1: Xử lý lỗ hổng
+  level2:
+  - Phạm vi quét gói hệ điều hành và phụ thuộc ứng dụng
+  - Thực hành quét image bằng Trivy hoặc Grype
+  - Cơ sở dữ liệu lỗ hổng và ảnh hưởng của độ mới dữ liệu
+  - Định danh CVE, mức độ nghiêm trọng và CVSS
+  - Đánh giá khả năng bị khai thác theo cấu hình và môi trường
+  - Ưu tiên xử lý theo mức phơi lộ, tác động và khai thác thực tế
+  - Backport bản vá và khác biệt giữa thông báo của nhà cung cấp
+  - Phân tích cảnh báo sai, trùng lặp và thiếu phát hiện
+  - VEX và bằng chứng cho trạng thái ảnh hưởng của lỗ hổng
+  - Đặt thời hạn xử lý, chủ sở hữu và ngoại lệ có thời hạn
+  - Xử lý lỗ hổng chưa có bản vá và biện pháp giảm thiểu
+  - Quét lại image đã lưu trữ khi có lỗ hổng mới
+- level1: Bảo vệ registry
+  level2:
+  - Kiến trúc registry và ranh giới tin cậy khi push, pull
+  - TLS, xác minh chứng thư và rủi ro registry không an toàn
+  - Phân quyền repository theo nguyên tắc tối thiểu
+  - Tài khoản tự động, token ngắn hạn và vòng đời thông tin xác thực
+  - Tách image phát triển, thử nghiệm và sản xuất
+  - Tag bất biến và kiểm soát thay thế image
+  - Quy trình cách ly rồi quảng bá image đã được duyệt
+  - Kiểm soát image bên ngoài qua mirror hoặc pull-through cache
+  - Chính sách lưu giữ, xóa và thu gom dữ liệu image
+  - Nhật ký truy cập, phát hiện bất thường và phục hồi registry
+- level1: Xác thực image
+  level2:
+  - Phân biệt digest, chữ ký số và sự tin cậy của bên phát hành
+  - Ký image bằng Cosign và liên kết chữ ký với digest
+  - Quản lý khóa ký, quyền sử dụng và bảo vệ khóa
+  - Ký không quản lý khóa dài hạn với Sigstore
+  - Xác minh danh tính bên ký và nhà cung cấp danh tính
+  - Attestation và bằng chứng nguồn gốc bản build
+  - Đọc provenance để đối chiếu mã nguồn, builder và đầu vào
+  - Liên kết SBOM cùng kết quả kiểm tra với image được ký
+  - Xử lý khóa bị lộ, danh tính mất tin cậy và image bị thu hồi
+  - Giới hạn của chữ ký khi image có cấu hình hoặc nội dung nguy hiểm
+- level1: Cấu hình runtime
+  level2:
+  - Chạy bằng UID, GID cụ thể và kiểm tra quyền thực tế
+  - Root filesystem chỉ đọc và thư mục ghi cần thiết
+  - Loại bỏ capabilities và cấm nâng quyền
+  - Áp dụng hồ sơ seccomp và chính sách truy cập bắt buộc
+  - Giới hạn CPU, bộ nhớ, số tiến trình và tài nguyên đĩa
+  - Rủi ro của host network, host PID và host IPC
+  - Giới hạn truy cập thiết bị cùng thao tác mount
+  - Tránh mount Docker socket và thư mục nhạy cảm của host
+  - Kiểm soát exec, attach, debug và truy cập quản trị
+  - Healthcheck, vòng đời tiến trình và hành vi khi vượt giới hạn
+  - Rà soát cấu hình Docker Compose trước khi triển khai
+  - Kiểm chứng cấu hình mong muốn so với container đang chạy
+- level1: Mạng container
+  level2:
+  - Bridge, host, overlay và tác động đến bề mặt tấn công
+  - Cổng ứng dụng, EXPOSE và cổng thực sự được công bố
+  - Giới hạn địa chỉ lắng nghe và truy cập từ bên ngoài
+  - Phân đoạn mạng giữa các nhóm container
+  - Kiểm soát lưu lượng đi vào và đi ra
+  - Bảo vệ DNS và đường phân giải tên trong container
+  - Mã hóa kết nối cùng xác thực giữa dịch vụ
+  - Nguy cơ SSRF và truy cập dịch vụ metadata của cloud
+  - Giới hạn truy cập dịch vụ nội bộ và điểm quản trị host
+  - Kiểm chứng kết nối được phép và kết nối phải bị chặn
+- level1: Lưu trữ an toàn
+  level2:
+  - Phân biệt writable layer, volume, bind mount và tmpfs
+  - Quyền sở hữu cùng quyền truy cập dữ liệu gắn vào container
+  - Bind mount và khả năng sửa dữ liệu trên host
+  - Mount chỉ đọc và giới hạn phạm vi thư mục được chia sẻ
+  - Tệp nhạy cảm, symbolic link và đường dẫn không tin cậy
+  - Mã hóa dữ liệu lưu trữ và quản lý khóa
+  - Giới hạn dung lượng, dữ liệu tạm và nguy cơ đầy đĩa
+  - Sao lưu, phục hồi và kiểm soát quyền trên bản sao
+  - Dữ liệu còn lại sau khi container hoặc volume bị xóa
+- level1: Ranh giới Kubernetes
+  level2:
+  - Vai trò bảo mật của API server, kubelet, runtime và node
+  - Ranh giới giữa container, Pod, namespace và cluster
+  - Namespace Kubernetes và giới hạn cách ly giữa nhóm sử dụng
+  - Chọn node pool theo độ tin cậy của workload
+  - CRI, containerd, CRI-O và trách nhiệm vận hành
+  - Truy cập kubelet, endpoint quản trị và thông tin xác thực node
+  - Rủi ro của static Pod, DaemonSet và thành phần đặc quyền
+  - Bảo vệ dữ liệu cấu hình cùng bí mật của cụm
+  - Trách nhiệm bảo mật trong Kubernetes được quản lý
+  - Xác định phần việc thuộc bảo mật container và bảo mật hạ tầng
+- level1: Danh tính workload
+  level2:
+  - Phân biệt danh tính người dùng, node và workload
+  - ServiceAccount và token được cấp cho Pod
+  - Tắt tự động mount token khi workload không cần
+  - Projected token, audience và thời hạn sử dụng
+  - RBAC cho quyền đọc, sửa và tạo tài nguyên
+  - Quyền exec, attach, logs và truy cập dữ liệu nhạy cảm
+  - Đường nâng quyền qua tạo Pod hoặc sửa workload
+  - Workload identity để truy cập dịch vụ cloud
+  - Giảm quyền với registry credentials và imagePullSecrets
+  - Rà soát quyền hiệu lực và phát hiện quyền thừa
+- level1: Bảo vệ Pod
+  level2:
+  - SecurityContext ở cấp Pod và container
+  - RunAsNonRoot, runAsUser và runAsGroup
+  - AllowPrivilegeEscalation và capabilities của container
+  - ReadOnlyRootFilesystem và volume phục vụ thư mục tạm
+  - SeccompProfile và tích hợp AppArmor hoặc SELinux
+  - FsGroup, quyền volume và tác động đến dữ liệu dùng chung
+  - Rủi ro của privileged, host namespaces và hostPath
+  - Init container, sidecar và ephemeral container
+  - Requests, limits, ResourceQuota và LimitRange
+  - NetworkPolicy và yêu cầu hỗ trợ từ CNI
+  - Chính sách mạng mặc định chặn và các ngoại lệ DNS
+  - Rà soát toàn bộ Pod template trước khi triển khai
+- level1: Kiểm soát triển khai
+  level2:
+  - Pod Security Standards và các mức Privileged, Baseline, Restricted
+  - Pod Security Admission với enforce, audit và warn
+  - Admission controller và vị trí trong luồng tạo tài nguyên
+  - Chính sách kiểm tra image, registry và digest được phép
+  - Chính sách xác minh chữ ký cùng bằng chứng nguồn gốc
+  - Chặn cấu hình đặc quyền và mount không được phê duyệt
+  - Viết chính sách với Kyverno hoặc OPA Gatekeeper
+  - Chế độ cảnh báo trước khi cưỡng chế chính sách
+  - Kiểm thử chính sách với tình huống hợp lệ và vi phạm
+  - Ngoại lệ, quyền miễn trừ và xử lý khi bộ kiểm tra không sẵn sàng
+- level1: Cách ly nâng cao
+  level2:
+  - Khi nào cách ly mặc định chưa đáp ứng mô hình đe dọa
+  - Sandbox runtime và mô hình cách ly của gVisor
+  - MicroVM và mô hình cách ly của Kata Containers
+  - RuntimeClass và lựa chọn runtime cho workload
+  - Node riêng, taint, toleration và giới hạn của lập lịch
+  - Đánh đổi giữa cách ly, hiệu năng và tương thích
+  - Kiểm chứng syscall, thiết bị và khả năng quan sát trong sandbox
+  - Tiêu chí lựa chọn ranh giới container, máy ảo hoặc host riêng
+- level1: Môi trường đặc thù
+  level2:
+  - Docker Desktop và ranh giới giữa máy cá nhân với máy ảo Linux
+  - Chia sẻ thư mục, socket và thông tin xác thực từ máy lập trình
+  - Windows container và khác biệt so với container Linux
+  - Process isolation và Hyper-V isolation trên Windows
+  - Dịch vụ container serverless và trách nhiệm của người dùng
+  - Môi trường air-gapped và chuyển image cùng bằng chứng kiểm chứng
+  - Workload GPU, thiết bị tăng tốc và nhu cầu đặc quyền
+  - Image đa nền tảng và kiểm tra chính sách theo hệ điều hành
+- level1: Giám sát runtime
+  level2:
+  - Phân biệt nhật ký ứng dụng, runtime, host và Kubernetes audit
+  - Thu thập sự kiện thực thi, tệp, mạng và nâng quyền
+  - Vai trò của eBPF trong quan sát hành vi container
+  - Thực hành phát hiện hành vi bất thường với Falco
+  - Phát hiện shell ngoài dự kiến và công cụ được tải vào container
+  - Phát hiện truy cập bí mật, Docker socket và đường dẫn nhạy cảm
+  - Phát hiện kết nối lạ, di chuyển ngang và đào tiền mã hóa
+  - Liên kết sự kiện với Pod, image digest và chủ sở hữu
+  - Điều chỉnh cảnh báo, kiểm soát nhiễu và bảo vệ dữ liệu nhật ký
+  - Kiểm chứng độ bao phủ phát hiện cùng chi phí vận hành
+- level1: Ứng phó sự cố
+  level2:
+  - Dấu hiệu container bị xâm nhập và tiêu chí kích hoạt ứng phó
+  - Chuẩn bị quyền, công cụ và quy trình điều tra
+  - Cô lập workload cùng lưu lượng mạng theo mức độ sự cố
+  - Thu thập tiến trình, kết nối, thay đổi tệp và metadata
+  - Bảo toàn bằng chứng trước khi dừng hoặc xóa container
+  - Truy vết image digest, provenance và lịch sử triển khai
+  - Đánh giá phạm vi lan truyền tới node và workload khác
+  - Thu hồi token, xoay vòng bí mật và chặn image bị ảnh hưởng
+  - Thay thế workload hoặc node từ nguồn đã được kiểm chứng
+  - Phân tích nguyên nhân, phục hồi dịch vụ và cập nhật biện pháp phòng vệ
+- level1: Cập nhật và khắc phục
+  level2:
+  - Xây dựng lại image để đưa bản vá vào môi trường chạy
+  - Theo dõi base image cùng thông báo bảo mật của nhà cung cấp
+  - Kiểm tra tác động khi cập nhật gói hệ điều hành và thư viện
+  - Quảng bá cùng một image digest qua các môi trường
+  - Canary, rolling update và kiểm chứng sau triển khai
+  - Rollback và rủi ro quay lại image có lỗ hổng
+  - Phát hiện cấu hình trôi lệch hoặc thay đổi trong container
+  - Ngừng sử dụng image hết hỗ trợ và quản lý ngoại lệ khẩn cấp
+- level1: Kiểm chứng bảo mật
+  level2:
+  - Thiết kế phòng thực hành cô lập và dữ liệu thử nghiệm
+  - Đối chiếu cấu hình với CIS Benchmarks phù hợp nền tảng
+  - Kiểm tra tự động người dùng, quyền, mount và namespace
+  - Kiểm thử seccomp, capabilities và quyền ghi tệp
+  - Kiểm thử giới hạn tài nguyên và tác động tới workload lân cận
+  - Kiểm thử phân đoạn mạng cùng chính sách chặn lưu lượng
+  - Kiểm thử admission với image chưa ký hoặc cấu hình vi phạm
+  - Mô phỏng hành vi nguy hiểm để kiểm chứng cảnh báo runtime
+  - Đánh giá lỗ hổng trong bối cảnh triển khai thực tế
+  - Lưu bằng chứng, tái hiện kết quả và kiểm thử hồi quy
+- level1: Quản trị bảo mật
+  level2:
+  - Xây dựng chuẩn tối thiểu theo loại container và môi trường
+  - Xác định chủ sở hữu image, workload và biện pháp kiểm soát
+  - Phân loại rủi ro để áp dụng yêu cầu theo mức độ tin cậy
+  - Quy trình ngoại lệ có lý do, thời hạn và biện pháp bù đắp
+  - Chỉ số về image, bản vá, đặc quyền và thời gian xử lý
+  - Quản lý phiên bản chính sách cùng bằng chứng kiểm toán
+  - Đánh giá nhà cung cấp image, runtime và dịch vụ container
+  - Rà soát định kỳ mô hình đe dọa cùng chuẩn gia cố
+- level1: Thực hành tổng hợp
+  level2:
+  - Gia cố image ứng dụng từ Dockerfile còn nhiều rủi ro
+  - Tách bí mật khỏi build và cấp quyền lúc chạy
+  - Tạo SBOM, quét image và lập kế hoạch xử lý lỗ hổng
+  - Ký image rồi xác minh danh tính cùng nguồn gốc bản build
+  - Cấu hình registry riêng với phân quyền tối thiểu
+  - Chạy ứng dụng bằng rootless và đánh giá giới hạn
+  - Triển khai Pod theo chuẩn Restricted cùng chính sách mạng
+  - Chặn image và cấu hình vi phạm bằng admission policy
+  - Phát hiện, cô lập và điều tra container có hành vi bất thường
+  - Hoàn thiện hồ sơ bảo mật từ mô hình đe dọa đến bằng chứng kiểm chứng

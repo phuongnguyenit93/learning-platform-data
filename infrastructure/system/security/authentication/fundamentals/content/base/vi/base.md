@@ -1,0 +1,7 @@
+# Security Authentication Fundamentals
+
+**Authentication (xác thực)** là quá trình xác minh người đang yêu cầu truy cập có thực sự kiểm soát phương tiện xác thực gắn với một danh tính hay không. Xác thực không đồng nghĩa với định danh ban đầu hoặc phân quyền: một hệ thống có thể xác minh đúng người dùng nhưng vẫn phải kiểm tra người đó được phép làm gì. Module **Security Authentication Fundamentals** giúp người học hiểu các ranh giới tin cậy và thiết kế luồng đăng nhập an toàn thay vì chỉ kiểm tra đúng/sai một mật khẩu.
+
+Lộ trình gồm tám mốc: khái niệm và vai trò của xác thực; phương thức và mức bảo đảm; bảo vệ mật khẩu; MFA cùng passkeys; luồng đăng nhập chống lạm dụng; quản lý phiên và tái xác thực; liên kết danh tính bằng OpenID Connect; cuối cùng là khôi phục tài khoản và kiểm thử. Người học sẽ nhận diện những nguy cơ phổ biến như credential stuffing, phishing, session hijacking, lộ bí mật và xác thực sai ID token, đồng thời lựa chọn biện pháp phù hợp với mức rủi ro của ứng dụng.
+
+Module dành cho lập trình viên backend, web hoặc người học security đã biết HTTP, HTTPS, cookie và kiến thức API cơ bản. Sau khi hoàn thành, bạn có thể phác thảo một kiến trúc xác thực, phân biệt các yếu tố và giao thức thường gặp, bảo vệ credential/session, thiết kế các bước phục hồi an toàn và lập bộ kiểm thử cho cả đăng nhập thành công lẫn hành vi tấn công.

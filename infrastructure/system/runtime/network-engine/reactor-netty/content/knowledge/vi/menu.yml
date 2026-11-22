@@ -1,0 +1,439 @@
+menu:
+- level1: Tổng quan
+  level2:
+  - Reactor Netty là gì và giải quyết bài toán nào
+  - Quan hệ giữa Reactor Netty, Netty, Reactor Core và Reactive Streams
+  - Vai trò engine mạng trong ngăn xếp ứng dụng
+  - Phân biệt thư viện mạng, máy chủ HTTP và web framework
+  - Các nhóm giao thức TCP, UDP, HTTP và WebSocket
+  - Luồng từ thao tác ứng dụng tới socket và dữ liệu phản hồi
+  - Mô hình bất đồng bộ, không chặn và điều khiển nhu cầu
+  - Trường hợp phù hợp và giới hạn của Reactor Netty
+  - Chi phí vận hành và gỡ lỗi so với mô hình chặn
+  - Kiến thức nền và thứ tự tiếp cận tài liệu
+- level1: Nền tảng I/O
+  level2:
+  - Socket, kết nối, cổng và địa chỉ đầu cuối
+  - Phân biệt luồng byte TCP và gói dữ liệu UDP
+  - Đọc hoặc ghi một phần và ranh giới thông điệp
+  - I/O chặn, I/O không chặn và thông báo sẵn sàng
+  - Bộ đệm ứng dụng, bộ đệm socket và bộ đệm hệ điều hành
+  - Kết nối, yêu cầu HTTP và luồng giao thức
+  - Đóng kết nối bình thường, reset và đóng nửa kết nối
+  - Phân biệt TCP keepalive và HTTP keep-alive
+  - Vai trò của độ trễ, băng thông và số kết nối đồng thời
+- level1: Reactive Streams
+  level2:
+  - Vai trò Publisher, Subscriber, Subscription và Processor
+  - Mono và Flux trong các thao tác mạng
+  - Tạo cấu hình và thời điểm đăng ký thực thi
+  - Nhu cầu request và áp lực ngược (backpressure)
+  - Tín hiệu dữ liệu, hoàn tất, lỗi và hủy
+  - Kết hợp đọc, xử lý và ghi thành một chuỗi
+  - Phân biệt thứ tự tín hiệu và luồng thực thi
+  - Đăng ký nhiều lần và nguy cơ thực hiện lại yêu cầu
+  - Ranh giới sử dụng block trong chương trình khởi động hoặc thử nghiệm
+  - Giới hạn kiến thức Reactor Core cần cho lập trình mạng
+- level1: Phụ thuộc và phiên bản
+  level2:
+  - Các mô-đun reactor-netty-core và reactor-netty-http
+  - Quản lý phiên bản bằng Reactor BOM hoặc nền tảng quản lý phụ thuộc
+  - Quan hệ tương thích giữa Reactor Netty, Reactor Core và Netty
+  - Kiểm tra phiên bản JDK và môi trường thực thi
+  - Phân biệt bản ổn định, bản thử nghiệm và tài liệu snapshot
+  - Tra cứu API và tính năng theo phiên bản đang dùng
+  - Phụ thuộc native theo hệ điều hành và kiến trúc CPU
+  - Điều kiện phiên bản khi dùng HTTP/3 hoặc API QUIC
+  - Đọc thay đổi, mục ngừng hỗ trợ và kế hoạch nâng cấp
+- level1: Kiến trúc runtime
+  level2:
+  - Channel, EventLoop và ChannelPipeline trong Netty
+  - Lớp bao reactive trên các thao tác Channel
+  - Vai trò Connection và DisposableServer
+  - NettyInbound và NettyOutbound
+  - ChannelOperations và cầu nối giữa sự kiện mạng với tín hiệu reactive
+  - Trách nhiệm của transport, codec và bộ xử lý ứng dụng
+  - Ranh giới giữa bộ nhớ Java và bộ nhớ trực tiếp
+  - Quan hệ giữa client, server và tài nguyên dùng chung
+  - Phân biệt cấu hình bất biến và trạng thái kết nối đang hoạt động
+  - Đọc sơ đồ kiến trúc và đường đi của dữ liệu
+- level1: Event loop và luồng
+  level2:
+  - Một event loop phục vụ nhiều kết nối như thế nào
+  - Đăng ký Channel và thực thi tác vụ I/O
+  - LoopResources và quyền sở hữu nhóm luồng
+  - Nhóm luồng chấp nhận kết nối và nhóm xử lý I/O
+  - NIO và native transport theo môi trường
+  - Dùng chung hoặc tách tài nguyên giữa client và server
+  - Nhận diện thao tác chặn trên event loop
+  - Tách công việc chặn hoặc nặng CPU khỏi đường xử lý I/O
+  - Vai trò publishOn, subscribeOn và giới hạn khi đổi luồng
+  - Giữ thứ tự xử lý và bảo vệ dữ liệu dùng chung
+  - Truyền ngữ cảnh khi xử lý qua nhiều luồng
+  - Đọc tải hàng đợi event loop trước khi tăng số luồng
+- level1: Khởi tạo và vòng đời
+  level2:
+  - Tạo client hoặc server và kết hợp cấu hình
+  - Phân biệt bind, connect và thao tác chờ đồng bộ
+  - Đăng ký thực thi và theo dõi kết quả khởi tạo
+  - Khởi tạo sớm bằng warmup và giới hạn của warmup
+  - Vòng đời Channel và trạng thái kết nối
+  - Callback khi cấu hình, kết nối, ngắt kết nối và xử lý dữ liệu
+  - Phân biệt hoàn tất bộ xử lý và đóng tài nguyên
+  - Phân biệt dispose, disposeNow, disposeLater và onDispose theo loại tài nguyên
+  - Quyền đóng tài nguyên riêng và tài nguyên dùng chung
+  - Khởi động thất bại, dừng ứng dụng và giải phóng tài nguyên
+- level1: Inbound và outbound
+  level2:
+  - Nhận byte, đối tượng đã giải mã và dữ liệu giao thức
+  - Gửi chuỗi, byte, ByteBuf và đối tượng
+  - ByteBufFlux và ByteBufMono trong chuyển đổi dữ liệu
+  - Chuyển đổi bộ ký tự và dữ liệu nhị phân
+  - Kết hợp nhiều thao tác gửi và theo dõi hoàn tất
+  - Phân biệt hoàn tất ghi và xác nhận nghiệp vụ ở đầu bên kia
+  - Luồng dữ liệu liên tục và gộp nội dung
+  - Thứ tự gửi, gộp lô và thời điểm flush
+  - Hủy đọc hoặc ghi khi kết nối kết thúc
+  - Ràng buộc đăng ký nhận dữ liệu trên cùng một nguồn inbound
+  - Tránh subscribe bên trong bộ xử lý làm tách vòng đời công việc
+- level1: ByteBuf và bộ nhớ
+  level2:
+  - ByteBuf, chỉ số đọc ghi và dung lượng
+  - Bộ nhớ heap, bộ nhớ trực tiếp và bộ cấp phát có pool
+  - Đếm tham chiếu và quyền sở hữu buffer
+  - Thời hạn sử dụng buffer nhận từ luồng mạng
+  - retain, release và trách nhiệm giải phóng cân bằng
+  - Phân biệt copy, slice và duplicate
+  - Giữ buffer qua ranh giới bất đồng bộ
+  - Giải phóng dữ liệu khi lỗi, hủy hoặc bị loại bỏ
+  - Chi phí gộp nội dung bằng aggregate
+  - Giới hạn bộ nhớ khi xử lý nội dung lớn
+  - Rò rỉ bộ nhớ và lỗi truy cập buffer đã giải phóng
+  - Phân biệt bộ nhớ đang sử dụng và bộ nhớ pool giữ lại
+- level1: Pipeline và framing
+  level2:
+  - Vai trò ChannelHandler và thứ tự trong ChannelPipeline
+  - Luồng inbound và outbound qua pipeline
+  - Điểm mở rộng khi khởi tạo hoặc kết nối Channel
+  - Thêm codec và handler tùy biến đúng giai đoạn
+  - Định khung theo ký tự phân cách hoặc độ dài
+  - Thông điệp bị chia nhỏ và nhiều thông điệp trong một lần đọc
+  - Giới hạn kích thước frame và dữ liệu không hợp lệ
+  - Phân biệt handler có trạng thái và handler dùng chung an toàn
+  - Truyền lỗi qua pipeline và chuỗi reactive
+  - Tránh xung đột với codec hoặc handler do Reactor Netty quản lý
+- level1: TCP Server
+  level2:
+  - Tạo TcpServer và cấu hình địa chỉ lắng nghe
+  - Bind cổng, dùng cổng động và xác định địa chỉ thực tế
+  - Gắn bộ xử lý cho mỗi kết nối
+  - Xây dựng luồng echo và giao thức TCP tối giản
+  - Đọc và phản hồi nhiều thông điệp trên cùng kết nối
+  - Cấu hình ChannelOption cho kênh lắng nghe và kết nối được nhận
+  - Thêm framing và codec cho giao thức ứng dụng
+  - Giới hạn kết nối, dữ liệu và thời gian không hoạt động
+  - Theo dõi vòng đời và lỗi của từng kết nối
+  - Dừng nhận kết nối mới và kết thúc công việc đang xử lý
+- level1: TCP Client
+  level2:
+  - Tạo TcpClient và cấu hình đầu cuối từ xa
+  - Kết nối, gửi dữ liệu và tiếp nhận phản hồi
+  - Phân biệt dùng kết nối mới và quản lý kết nối qua provider
+  - Thiết kế vòng đời cho giao thức có trạng thái
+  - Định khung và tương quan yêu cầu với phản hồi
+  - Cấu hình địa chỉ cục bộ và lựa chọn socket
+  - Nhận diện mất kết nối giữa lúc gửi hoặc nhận
+  - Kết nối lại và giới hạn khôi phục phiên giao thức
+  - Phân biệt khả năng tái sử dụng kết nối TCP với HTTP
+  - Đóng kết nối và tài nguyên client đúng quyền sở hữu
+- level1: HTTP Server
+  level2:
+  - Tạo HttpServer và quản lý DisposableServer
+  - Định tuyến theo phương thức, đường dẫn và tham số
+  - Đọc URI, query, header và cookie
+  - Đọc nội dung yêu cầu theo luồng
+  - Tạo mã trạng thái, header và nội dung phản hồi
+  - Phân biệt gửi dữ liệu, hoàn tất phản hồi và đóng kết nối
+  - HTTP keep-alive và tái sử dụng kết nối
+  - Nội dung có độ dài xác định và truyền theo chunk
+  - Cấu hình giải mã dòng đầu, header và giới hạn giao thức
+  - Xử lý yêu cầu không hợp lệ hoặc không có tuyến phù hợp
+  - Nén phản hồi và thương lượng với bên nhận
+  - Phục vụ tệp hoặc tài nguyên tĩnh
+  - Địa chỉ gốc qua reverse proxy và mức tin cậy của forwarded headers
+  - Giới hạn trách nhiệm của engine so với web framework
+- level1: HTTP Client
+  level2:
+  - Tạo HttpClient và tái sử dụng cấu hình
+  - Cấu hình địa chỉ cơ sở và xây dựng URI
+  - Thiết lập phương thức, header, cookie và dữ liệu gửi
+  - Gửi dữ liệu với send và kết hợp hoàn tất
+  - Đọc trạng thái, header và nội dung phản hồi
+  - Lựa chọn response, responseContent và responseSingle
+  - Quản lý kết nối trực tiếp qua responseConnection
+  - Phân biệt lỗi HTTP và lỗi transport
+  - Tiêu thụ hoặc giải phóng nội dung để kết thúc vòng đời phản hồi
+  - Chuyển hướng và xử lý thông tin xác thực khi đổi đích
+  - Nén, giải nén và giới hạn dữ liệu nhận
+  - Xác thực HTTP và tính năng phụ thuộc phiên bản
+  - Vòng đời nội dung gửi khi cần thực hiện lại yêu cầu
+  - Callback của yêu cầu, phản hồi và lỗi
+- level1: Nội dung HTTP
+  level2:
+  - Truyền nội dung theo luồng và gộp toàn bộ nội dung
+  - Giải mã văn bản khi ký tự bị chia giữa các đoạn dữ liệu
+  - Tách ranh giới nội dung nghiệp vụ khỏi ranh giới chunk
+  - Gửi và đọc dữ liệu biểu mẫu
+  - Multipart và quyền sở hữu dữ liệu từng phần
+  - Tải lên tệp với giới hạn dung lượng và tài nguyên
+  - Tải xuống tệp và xử lý bên nhận chậm
+  - Điều kiện sử dụng truyền tệp giảm sao chép
+  - Server-Sent Events và vòng đời luồng phản hồi dài
+  - Trailers, kết thúc nội dung và lỗi giữa dòng truyền
+  - Hủy truyền khi ứng dụng hoặc phía đối tác ngừng tiếp nhận
+  - Cân bằng thông lượng, độ trễ và bộ nhớ khi truyền dữ liệu lớn
+- level1: Connection pool
+  level2:
+  - Vai trò ConnectionProvider và phạm vi dùng chung
+  - Phân biệt client dùng chung và pool dùng chung
+  - Nhóm kết nối theo đầu cuối và cấu hình liên quan
+  - Vòng đời mượn, sử dụng, trả và loại bỏ kết nối
+  - Giới hạn kết nối với maxConnections
+  - Hàng chờ mượn kết nối và pendingAcquireMaxCount
+  - Thời hạn chờ với pendingAcquireTimeout
+  - Thời gian nhàn rỗi, tuổi thọ và dọn kết nối nền
+  - Chiến lược chọn kết nối nhàn rỗi FIFO hoặc LIFO
+  - Kết nối hết hiệu lực do máy chủ hoặc proxy đóng
+  - Phân biệt kết nối vật lý và luồng HTTP/2
+  - Chỉ số hoạt động, nhàn rỗi và chờ cấp kết nối
+  - Đóng provider mà không làm hỏng thành phần còn sử dụng
+- level1: Thời hạn và hủy
+  level2:
+  - Phân bổ thời gian cho DNS, mượn kết nối, kết nối và trao đổi dữ liệu
+  - Thời hạn kết nối TCP
+  - Thời hạn bắt tay TLS và đóng TLS
+  - responseTimeout và phạm vi đo thời gian
+  - ReadTimeoutHandler, WriteTimeoutHandler và thời gian không hoạt động
+  - Phân biệt timeout của transport và toán tử timeout của Reactor
+  - Thời hạn tiếp nhận yêu cầu ở server theo khả năng phiên bản
+  - Hủy đăng ký và tác động tới công việc mạng đang chạy
+  - Giải phóng buffer và kết nối khi hết thời hạn
+  - Phân biệt hết thời hạn và chắc chắn thao tác từ xa thất bại
+  - Thiết kế thời hạn cho luồng dữ liệu kéo dài
+- level1: Lỗi và thử lại
+  level2:
+  - Phân loại lỗi DNS, kết nối, TLS, giao thức và ứng dụng
+  - Hoàn tất, lỗi và hủy trong chuỗi xử lý mạng
+  - Nhận diện lỗi đóng kết nối trước khi có phản hồi
+  - Kiểm tra cơ chế thử lại sẵn có theo phiên bản
+  - Kết hợp retry hoặc retryWhen với giới hạn rõ ràng
+  - Điều kiện an toàn khi gửi lại yêu cầu
+  - Chuẩn bị nguồn dữ liệu gửi có thể đọc lại
+  - Giữ định danh nghiệp vụ để xử lý tác động lặp
+  - Giãn cách thử lại, độ lệch ngẫu nhiên và ngân sách thời gian
+  - Phân biệt khôi phục kết nối với khôi phục giao dịch nghiệp vụ
+  - Ghi nhận nguyên nhân gốc mà vẫn giải phóng tài nguyên
+- level1: TLS và bảo mật
+  level2:
+  - Vai trò TLS trong TCP và HTTP
+  - Cấu hình ngữ cảnh TLS cho client và server
+  - Chứng chỉ, chuỗi tin cậy và khóa riêng
+  - SNI và kiểm tra danh tính máy chủ
+  - Xác thực hai chiều bằng chứng chỉ
+  - ALPN và thương lượng giao thức
+  - Lựa chọn nhà cung cấp TLS theo phiên bản và môi trường
+  - Thời hạn bắt tay, đóng TLS và xử lý lỗi
+  - Quản lý vòng đời chứng chỉ và thay đổi cấu hình
+  - Giới hạn header, frame và dữ liệu để bảo vệ tài nguyên
+  - Ngăn rò rỉ bí mật qua log hoặc dữ liệu chẩn đoán
+  - Ranh giới giữa bảo mật transport và phân quyền nghiệp vụ
+- level1: DNS, proxy và địa chỉ
+  level2:
+  - Giải tên máy chủ và lựa chọn bộ phân giải
+  - Thời hạn truy vấn DNS và hành vi bộ nhớ đệm
+  - IPv4, IPv6 và thứ tự địa chỉ
+  - Ảnh hưởng của DNS tới kết nối mới và kết nối đã có trong pool
+  - Địa chỉ cục bộ, địa chỉ từ xa và lựa chọn giao diện mạng
+  - Proxy HTTP, SOCKS và cấu hình xác thực
+  - Đường hầm CONNECT và điều kiện tương thích proxy
+  - Danh sách bỏ qua proxy và nguồn cấu hình
+  - Phân biệt DNS tại máy khách và DNS qua proxy
+  - Unix Domain Sockets và điều kiện theo transport
+  - Chẩn đoán sai địa chỉ, sai tuyến và cổng không thể truy cập
+- level1: HTTP/2
+  level2:
+  - Quan hệ giữa một kết nối và nhiều luồng HTTP/2
+  - Lựa chọn HTTP11, H2 và H2C
+  - TLS, ALPN và thương lượng với HTTP/1.1
+  - Nâng cấp H2C và kết nối theo prior knowledge
+  - Giới hạn luồng đồng thời và cấp phát kết nối
+  - Điều khiển luồng ở mức kết nối và mức luồng
+  - Khác biệt giữa giới hạn pool và giới hạn yêu cầu đang chạy
+  - Đóng luồng, hủy yêu cầu và khung GOAWAY
+  - Kiểm tra sức khỏe kết nối theo khả năng phiên bản
+  - Định danh luồng trong log và kiểm thử giao thức thực tế
+- level1: HTTP/3 và QUIC
+  level2:
+  - Phân biệt QUIC transport và HTTP/3
+  - Kiểm tra hỗ trợ theo phiên bản và phụ thuộc native
+  - TLS và điều kiện môi trường mạng cho QUIC
+  - Cấu hình HTTP/3 ở HttpClient và HttpServer
+  - Đối chiếu hành vi với HTTP/1.1 và HTTP/2
+  - API QuicClient và QuicServer theo dòng phiên bản hỗ trợ
+  - Vòng đời kết nối và luồng QUIC
+  - Luồng hai chiều và luồng một chiều
+  - Giới hạn dữ liệu và số luồng
+  - Đóng luồng, hết thời gian nhàn rỗi và giải phóng tài nguyên
+  - Chứng chỉ, token và cấu hình cho môi trường thử nghiệm hoặc vận hành
+  - Kiểm thử tương thích đầu cuối và phương án khi hạ tầng chưa hỗ trợ
+- level1: WebSocket
+  level2:
+  - Nâng cấp HTTP sang WebSocket
+  - Thiết lập client và server WebSocket
+  - Khung văn bản, nhị phân và khung điều khiển
+  - Phân mảnh thông điệp và giới hạn kích thước
+  - Đọc và ghi hai chiều theo luồng
+  - Ping, pong và phát hiện kết nối không còn hoạt động
+  - Backpressure khi bên nhận chậm
+  - Mã đóng, đóng chủ động và đóng bất thường
+  - Tái kết nối và khôi phục trạng thái ở tầng ứng dụng
+  - Quản lý tài nguyên cho nhiều kết nối kéo dài
+- level1: UDP
+  level2:
+  - Tạo UdpServer và UdpClient
+  - Bind địa chỉ và gửi tới đầu cuối từ xa
+  - DatagramPacket và ranh giới từng gói dữ liệu
+  - Địa chỉ gửi, địa chỉ nhận và phản hồi
+  - Quyền sở hữu ByteBuf trong datagram
+  - Giới hạn kích thước gói và bộ đệm nhận
+  - Phân biệt connect của UDP và kết nối tin cậy
+  - Mất gói, lặp gói và sai thứ tự ở tầng ứng dụng
+  - Giới hạn backpressure đối với mạng UDP
+  - Đóng tài nguyên và theo dõi lỗi gửi nhận
+- level1: Backpressure và tải
+  level2:
+  - Nhu cầu reactive và khả năng đọc dữ liệu từ Channel
+  - Khả năng ghi của Channel và ngưỡng bộ đệm ghi
+  - Phân biệt giới hạn ứng dụng và điều khiển luồng của giao thức
+  - Giới hạn số yêu cầu hoặc tác vụ đang xử lý
+  - Prefetch và bộ đệm phát sinh từ toán tử Reactor
+  - Bên phát nhanh, bên nhận chậm và sự tăng bộ nhớ
+  - Phản hồi áp lực ngược qua luồng đọc–xử lý–ghi
+  - Gộp nội dung hoặc đệm vô hạn làm mất giới hạn tải
+  - Cô lập phụ thuộc chậm và bảo vệ event loop
+  - Giới hạn tiếp nhận, từ chối có kiểm soát và phục hồi sau quá tải
+- level1: Metrics và tracing
+  level2:
+  - Bật chỉ số và tích hợp Micrometer
+  - Chỉ số kết nối, byte nhận gửi và thời gian xử lý
+  - Đo thời gian DNS, kết nối và bắt tay TLS
+  - Theo dõi pool, thời gian chờ và số yêu cầu cấp kết nối
+  - Theo dõi bộ nhớ trực tiếp và bộ cấp phát buffer
+  - Theo dõi tác vụ chờ trên event loop
+  - Chuẩn hóa URI và kiểm soát số lượng giá trị nhãn
+  - Observation và truy vết HTTP xuyên hệ thống
+  - Reactor Context, ThreadLocal và truyền ngữ cảnh
+  - Liên kết log, trace và định danh kết nối
+  - Đặt cảnh báo cho bão hòa tài nguyên và suy giảm độ trễ
+- level1: Log và chẩn đoán
+  level2:
+  - Phân biệt access log, error log và wiretap
+  - Chọn định dạng log và mức chi tiết dữ liệu mạng
+  - Đọc định danh kết nối, yêu cầu HTTP và luồng HTTP/2
+  - Lần theo một yêu cầu qua nhiều bản ghi
+  - Chẩn đoán lỗi DNS, kết nối và proxy
+  - Chẩn đoán lỗi TLS hoặc thương lượng giao thức
+  - Phân tích PrematureCloseException và mốc đóng kết nối
+  - Phân tích lỗi mượn kết nối và pool bão hòa
+  - Nhận diện event loop bị chặn bằng thread dump và phép đo
+  - Dùng bộ phát hiện rò rỉ buffer và chỉ số bộ nhớ
+  - Đối chiếu log ứng dụng với gói tin trong môi trường kiểm thử
+  - Kiểm soát chi phí, dữ liệu nhạy cảm và thời gian bật log chi tiết
+- level1: Tích hợp Spring
+  level2:
+  - Vai trò Reactor Netty dưới Spring WebFlux
+  - Phân biệt cấu hình engine và cấu hình xử lý nghiệp vụ
+  - HttpClient bên dưới WebClient và ReactorClientHttpConnector
+  - Quản lý tài nguyên qua ReactorResourceFactory
+  - Dùng chung hoặc tách pool giữa các nhóm lời gọi
+  - Cấu hình thời hạn và giới hạn kết nối tại đúng lớp
+  - Phân biệt buffer của Spring với ByteBuf ở tầng Netty
+  - Vòng đời tài nguyên theo ApplicationContext
+  - Quản lý phiên bản bằng nền tảng Spring đang sử dụng
+  - Kiểm tra cấu hình hiệu lực khi có nhiều lớp tùy biến
+- level1: Kiểm thử
+  level2:
+  - Khởi động server cục bộ với cổng động
+  - Tạo client đối ứng và đóng tài nguyên sau kiểm thử
+  - Kiểm tra tín hiệu reactive bằng StepVerifier
+  - Kiểm thử framing khi dữ liệu bị chia nhỏ hoặc gộp
+  - Kiểm thử HTTP với nội dung theo luồng
+  - Mô phỏng bên nhận chậm, hủy đăng ký và ngắt kết nối
+  - Kiểm thử các loại timeout với điều kiện kiểm soát được
+  - Kiểm thử pool đầy và hàng chờ vượt giới hạn
+  - Kiểm thử TLS với chứng chỉ của môi trường thử nghiệm
+  - Kiểm thử HTTP/2, HTTP/3 hoặc QUIC theo môi trường hỗ trợ
+  - Kiểm tra rò rỉ buffer, luồng và kết nối
+  - Giới hạn của thời gian ảo khi thao tác I/O vẫn dùng thời gian thực
+- level1: Hiệu năng
+  level2:
+  - Thiết kế phép đo theo tải và giao thức thực tế
+  - Phân biệt chi phí khởi tạo, kết nối mới và kết nối tái sử dụng
+  - Đo thông lượng, phân vị độ trễ và tỷ lệ lỗi
+  - Cân đối số kết nối, số luồng giao thức và mức đồng thời
+  - Điều chỉnh số luồng I/O theo bằng chứng
+  - Đo tác động của gộp lô, flush và kích thước buffer
+  - Chi phí TLS, nén và chuyển đổi dữ liệu
+  - So sánh transport trong môi trường tương đương
+  - Theo dõi heap, bộ nhớ trực tiếp và giới hạn container
+  - Tránh kết luận từ phép đo bỏ qua lỗi hoặc hàng chờ
+- level1: Vận hành tài nguyên
+  level2:
+  - Lập bản đồ quyền sở hữu LoopResources và ConnectionProvider
+  - Giới hạn socket, file descriptor và cổng tạm
+  - Đồng bộ cấu hình timeout với proxy hoặc bộ cân bằng tải
+  - Giới hạn CPU và bộ nhớ theo môi trường triển khai
+  - Kiểm tra native library khi đóng gói hoặc đổi nền tảng
+  - Giữ client, pool và tài nguyên ở vòng đời phù hợp
+  - Dừng nhận công việc mới và chờ thao tác đang chạy
+  - Thứ tự đóng server, client, pool và event loop
+  - Phân biệt quiet period và thời hạn dừng tối đa
+  - Giám sát tài nguyên sau khởi động lại hoặc triển khai cuốn chiếu
+- level1: Sai lầm thường gặp
+  level2:
+  - Gọi mã chặn hoặc xử lý nặng trực tiếp trên event loop
+  - Tạo client hoặc tài nguyên mới cho từng yêu cầu
+  - Tưởng tăng số luồng luôn làm tăng thông lượng
+  - Bỏ qua nội dung phản hồi hoặc giữ kết nối quá lâu
+  - Gộp nội dung không giới hạn dù giao diện là reactive
+  - Giữ ByteBuf quá vòng đời mà không xử lý quyền sở hữu
+  - retain không cân bằng hoặc giải phóng buffer nhiều lần
+  - Tự subscribe làm tách lỗi và vòng đời tài nguyên
+  - Thử lại yêu cầu ghi mà không xét tác động lặp
+  - Đóng tài nguyên toàn cục khi thành phần khác còn sử dụng
+  - Áp dụng API hoặc giá trị mặc định của phiên bản khác
+- level1: Thực hành
+  level2:
+  - Xây dựng TCP echo với framing rõ ràng
+  - Xây dựng HTTP server và client tối giản
+  - Truyền tệp lớn với giới hạn bộ nhớ
+  - Quan sát thread và tác động của một thao tác chặn
+  - Thiết kế pool có giới hạn và thử tình huống bão hòa
+  - Mô phỏng kết nối đóng giữa chừng và phân tích lỗi
+  - Thiết kế ngân sách timeout và thử lại an toàn
+  - Xây dựng luồng SSE hoặc WebSocket với bên nhận chậm
+  - Bật metrics, tracing và chẩn đoán một yêu cầu cụ thể
+  - Thử giao thức nâng cao khi phiên bản và môi trường đáp ứng
+  - Xác minh giải phóng tài nguyên sau lỗi và khi dừng ứng dụng
+- level1: Đánh giá thiết kế
+  level2:
+  - Kiểm tra phạm vi phiên bản và phụ thuộc
+  - Kiểm tra mô hình luồng và điểm có thể chặn
+  - Kiểm tra vòng đời inbound, outbound và buffer
+  - Kiểm tra số kết nối, hàng chờ và giới hạn đồng thời
+  - Kiểm tra thời hạn, hủy và hành vi thử lại
+  - Kiểm tra TLS, proxy và giới hạn dữ liệu
+  - Kiểm tra chỉ số, log và khả năng truy tìm lỗi
+  - Kiểm tra bằng chứng hiệu năng và khả năng chịu tải
+  - Kiểm tra dừng an toàn và quyền đóng tài nguyên
+  - Ghi nhận cấu hình hiệu lực, đánh đổi và rủi ro còn lại

@@ -1,0 +1,357 @@
+menu:
+- level1: Tổng quan Jetty
+  level2:
+  - Eclipse Jetty là gì và vai trò trong ứng dụng Java
+  - Máy chủ HTTP, Servlet Container và giới hạn so với máy chủ ứng dụng đầy đủ
+  - Vì sao Jetty phù hợp với ứng dụng nhúng và dịch vụ web
+  - Phân biệt Jetty Core, môi trường Servlet và thư viện máy khách Jetty
+  - Bức tranh tổng thể từ kết nối mạng đến mã xử lý ứng dụng
+  - So sánh cách chạy độc lập và nhúng trong tiến trình ứng dụng
+  - 'Các thuật ngữ chính: Server, Connector, Handler, context và ứng dụng web'
+  - Kiến thức cần có và thứ tự học từ máy chủ tối thiểu đến vận hành thực tế
+- level1: Phiên bản và phụ thuộc
+  level2:
+  - Đọc ma trận tương thích giữa Jetty, JDK, Servlet và Jakarta EE
+  - Phân biệt các dòng Jetty 9, 10, 11, 12.0 và 12.1 khi đọc tài liệu
+  - Phân biệt namespace javax.servlet với jakarta.servlet
+  - Các môi trường ee8, ee9, ee10, ee11 và phạm vi hỗ trợ theo phiên bản
+  - Lựa chọn nhóm artifact và package phù hợp với môi trường ứng dụng
+  - Đồng bộ phiên bản thư viện bằng Jetty BOM hoặc bộ quản lý của framework
+  - Phân biệt Servlet API do container cung cấp với thư viện cần đóng gói
+  - Kiểm tra vòng đời hỗ trợ, bản vá và ghi chú phát hành trước khi nâng cấp
+  - Ngăn trộn ví dụ, API và cấu hình của nhiều dòng Jetty
+- level1: Kiến trúc lõi
+  level2:
+  - Server và đồ thị thành phần của một máy chủ Jetty
+  - Connector, ConnectionFactory, Connection và EndPoint
+  - Acceptor, selector và luồng thực thi mã ứng dụng
+  - Cây Handler và cách chuyển giao yêu cầu giữa các thành phần
+  - ContextHandler, ServletContextHandler và WebAppContext
+  - QueuedThreadPool, Scheduler và ByteBufferPool
+  - Vai trò của Request, Response, Content và Callback trong Jetty Core
+  - Ranh giới giữa lõi HTTP không phụ thuộc Servlet và lớp triển khai Servlet
+  - Lần theo một yêu cầu qua connector, handler, servlet và phản hồi
+- level1: Vòng đời máy chủ
+  level2:
+  - Mô hình LifeCycle và các trạng thái khởi động, chạy, dừng, thất bại
+  - ContainerLifeCycle và quan hệ quản lý giữa các bean
+  - Sở hữu tài nguyên và phân biệt thành phần managed/unmanaged
+  - Thứ tự cấu hình, khởi động và dừng các thành phần phụ thuộc
+  - Vai trò của Server.start(), join(), stop() và destroy()
+  - Xử lý khởi động thất bại và thu hồi tài nguyên đã cấp phát
+  - Dừng có kiểm soát và chờ các yêu cầu đang xử lý
+  - Shutdown hook và phối hợp vòng đời với tiến trình hoặc framework
+  - Kiểm tra rò rỉ luồng, cổng và tài nguyên sau khi máy chủ dừng
+- level1: Jetty độc lập
+  level2:
+  - Cài đặt bản phân phối và xác minh môi trường Java
+  - Phân tách JETTY_HOME bất biến với JETTY_BASE chứa cấu hình
+  - Khởi tạo một JETTY_BASE tối thiểu và bật dịch vụ HTTP
+  - Vai trò của start.jar và quá trình dựng lệnh khởi động JVM
+  - Cấu trúc start.d, etc, resources, lib, modules và webapps
+  - Kiểm tra module, classpath và cấu hình hiệu lực trước khi chạy
+  - Cấu hình địa chỉ lắng nghe, cổng, thư mục và thuộc tính môi trường
+  - Chạy nhiều cấu hình Jetty từ cùng một bản phân phối
+  - Phân biệt cài đặt phục vụ phát triển với cấu hình triển khai thực tế
+- level1: Module và cấu hình
+  level2:
+  - Jetty module là gì và khác gì dependency Maven/Gradle hoặc module JPMS
+  - Cấu trúc tệp .mod và quan hệ phụ thuộc giữa các module
+  - Bật module tạm thời và lưu cấu hình qua --add-modules
+  - Tệp start.d/*.ini và cách truyền, ghi đè thuộc tính
+  - Thứ tự ưu tiên giữa dòng lệnh, JETTY_BASE và JETTY_HOME
+  - Jetty XML và cách tạo, tham chiếu, cấu hình các đối tượng
+  - Chọn module Servlet, triển khai và giao thức theo đúng môi trường
+  - Tạo module riêng trong JETTY_BASE mà không sửa bản phân phối
+  - Quản lý thư viện ngoài, tài nguyên cấu hình và dữ liệu nhạy cảm
+- level1: Jetty nhúng
+  level2:
+  - Dựng máy chủ HTTP tối thiểu bằng Java và thư viện Jetty
+  - Khởi tạo Server với thread pool và tài nguyên được sở hữu rõ ràng
+  - Tạo ServerConnector và lấy cổng thực tế khi dùng cổng động
+  - Lắp cây Handler bằng mã thay cho cơ chế start.jar
+  - Thêm context, servlet, filter và listener bằng API phù hợp
+  - Nhúng ứng dụng WAR bằng WebAppContext
+  - Tách cấu hình khởi tạo Jetty khỏi logic nghiệp vụ
+  - Đóng gói ứng dụng chạy độc lập và quản lý phụ thuộc runtime
+  - Phối hợp khởi động, kiểm tra sẵn sàng và dừng máy chủ nhúng
+- level1: Connector và HTTP
+  level2:
+  - ServerConnector và ranh giới giữa socket với xử lý HTTP
+  - Thiết kế chuỗi ConnectionFactory cho từng giao thức
+  - HttpConfiguration và cấu hình thuộc tính HTTP
+  - Cấu hình HTTP/1.1 và quản lý kết nối kéo dài
+  - HTTP/2, ghép kênh và các giới hạn luồng đồng thời
+  - HTTP/3, QUIC và yêu cầu thư viện nền theo phiên bản, nền tảng
+  - ALPN và thương lượng giao thức trên kết nối TLS
+  - Cấu hình nhiều connector cho cổng công khai và cổng quản trị
+  - Idle timeout, accept queue và giới hạn kết nối
+  - Tuân thủ HTTP, chuẩn hóa URI và xử lý yêu cầu không hợp lệ
+- level1: TLS và proxy
+  level2:
+  - Cấu hình HTTPS bằng SslContextFactory.Server
+  - Keystore, truststore, chuỗi chứng chỉ và tên máy chủ
+  - Lựa chọn phiên bản TLS, bộ mã và cơ chế nạp chứng chỉ
+  - Chứng thực TLS hai chiều khi ứng dụng cần xác minh máy khách
+  - Phân biệt kết thúc TLS tại Jetty và tại reverse proxy
+  - ForwardedRequestCustomizer và thông tin giao thức, địa chỉ gốc
+  - Xác định proxy tin cậy và ngăn giả mạo header chuyển tiếp
+  - Scheme, host, cổng và ảnh hưởng tới redirect, cookie, URL tuyệt đối
+  - PROXY protocol và điều kiện sử dụng trên connector chuyên biệt
+  - Phối hợp timeout, kích thước yêu cầu và kết nối giữa proxy với Jetty
+- level1: Cây Handler
+  level2:
+  - Hợp đồng Handler.handle(Request, Response, Callback) trong Jetty 12
+  - Ý nghĩa nhận xử lý và từ chối xử lý qua giá trị true/false
+  - Trách nhiệm hoàn tất Callback khi Handler nhận xử lý yêu cầu
+  - Handler.Abstract và khai báo xử lý chặn hoặc không chặn
+  - Handler.Wrapper và cách bao quanh yêu cầu, phản hồi, callback
+  - Handler.Sequence và thứ tự chọn thành phần xử lý
+  - ContextHandlerCollection và định tuyến nhiều context
+  - PathMappingsHandler và phân phối yêu cầu theo đường dẫn
+  - Thiết kế thứ tự cho ghi log, bảo mật, nén và xử lý nghiệp vụ
+  - Cây Handler tĩnh, cây thay đổi khi chạy và tác động tới thực thi
+  - Xử lý không tìm thấy tài nguyên, lỗi và kết thúc yêu cầu
+- level1: Yêu cầu và phản hồi
+  level2:
+  - Đọc phương thức, HttpURI, header và địa chỉ kết nối trong Request
+  - Phân biệt đường dẫn context, đường dẫn ứng dụng và chuỗi truy vấn
+  - Truy cập tham số, cookie, biểu mẫu và thuộc tính yêu cầu đúng API
+  - Thiết lập trạng thái, header, cookie và nội dung phản hồi
+  - Thời điểm phản hồi được commit và giới hạn sửa đổi sau commit
+  - Mã hóa ký tự, kiểu nội dung và biểu diễn dữ liệu trả về
+  - Chuyển hướng, phản hồi lỗi và yêu cầu HTTP có điều kiện
+  - Theo dõi hoàn tất yêu cầu để giải phóng tài nguyên ứng dụng
+  - Xử lý máy khách ngắt kết nối hoặc phản hồi bị lỗi giữa chừng
+  - Phân biệt Request/Response lõi Jetty với HttpServletRequest/HttpServletResponse
+- level1: Nội dung và callback
+  level2:
+  - Mô hình Content.Source, Content.Sink và Content.Chunk
+  - Đọc nội dung theo từng phần thay cho nạp toàn bộ vào bộ nhớ
+  - Request.read(), Request.demand() và điều kiện gọi lại
+  - Phân biệt chưa có dữ liệu, phần dữ liệu cuối và phần dữ liệu lỗi
+  - Quyền sở hữu, giữ lại và release phần dữ liệu hoặc bộ đệm
+  - Ghi phản hồi bất đồng bộ và chờ callback của lần ghi trước
+  - Hoàn tất thành công hoặc thất bại đúng một lần trong chuỗi xử lý
+  - Áp lực ngược khi bên nhận hoặc xử lý dữ liệu chậm
+  - Phối hợp nhiều thao tác bất đồng bộ mà không quên hoàn tất yêu cầu
+  - Xử lý timeout, hủy và lỗi trong khi vẫn còn thao tác đọc/ghi
+- level1: Servlet Container
+  level2:
+  - Vai trò của lớp môi trường Servlet trong Jetty
+  - ServletContextHandler và lựa chọn tính năng phiên, bảo mật
+  - Đăng ký Servlet bằng ServletHolder và cấu hình ánh xạ URL
+  - Đăng ký Filter và phạm vi áp dụng theo DispatcherType
+  - Listener và các sự kiện vòng đời ứng dụng, yêu cầu, phiên
+  - Khởi tạo Servlet, load-on-startup và tham số cấu hình
+  - Ánh xạ mặc định, đường dẫn, phần mở rộng và thứ tự khớp
+  - Forward, include, error dispatch và ranh giới với redirect
+  - Cấu hình bằng mã, web.xml, annotation và thứ tự kết hợp
+  - An toàn luồng khi nhiều yêu cầu dùng chung một Servlet hoặc Filter
+  - Phân biệt phần Jetty chịu trách nhiệm với logic framework web phía trên
+- level1: WAR và triển khai
+  level2:
+  - Cấu trúc WAR với WEB-INF/classes, WEB-INF/lib và web.xml
+  - WebAppContext và các bước chuẩn bị một ứng dụng web
+  - Context path, virtual host và nhiều ứng dụng trên một Server
+  - Triển khai WAR đóng gói và ứng dụng dạng thư mục
+  - Chọn module triển khai eeN-deploy theo môi trường Servlet
+  - Cơ chế quét và triển khai ứng dụng theo dòng phiên bản Jetty
+  - Jetty context XML, thuộc tính triển khai và cấu hình ngoài WAR
+  - Thư mục tạm, giải nén WAR và quyền ghi cần thiết
+  - Khởi động, dừng, triển khai lại và rủi ro khi thay tệp đang phục vụ
+  - Phân biệt khả năng triển khai nhiều môi trường với mức cô lập tiến trình
+- level1: Nạp lớp và tài nguyên
+  level2:
+  - WebAppClassLoader và quan hệ với bộ nạp lớp của máy chủ
+  - WEB-INF/classes, WEB-INF/lib và quy tắc ưu tiên nạp lớp
+  - Protected classes và các lớp ứng dụng không được thay thế
+  - Hidden classes và việc che giấu triển khai nội bộ của container
+  - Phân biệt thư viện dùng chung với thư viện thuộc từng ứng dụng
+  - Nguyên nhân ClassNotFoundException, NoClassDefFoundError và LinkageError
+  - Annotation scanning, ServletContainerInitializer và phạm vi quét JAR
+  - Rò rỉ classloader khi triển khai lại do luồng hoặc bộ nhớ đệm
+  - Quyền sở hữu Resource và đóng tài nguyên khi ứng dụng dừng
+- level1: Luồng và I/O
+  level2:
+  - Vai trò acceptor, selector và tác vụ xử lý ứng dụng
+  - QueuedThreadPool, minThreads, maxThreads và khả năng co giãn
+  - Ngân sách luồng, leased threads và reserved threads
+  - Hàng đợi tác vụ nội bộ và nguy cơ loại bỏ tác vụ cần cho tiến trình I/O
+  - AdaptiveExecutionStrategy và lựa chọn cách sản xuất, thực thi tác vụ
+  - InvocationType và cam kết BLOCKING/NON_BLOCKING của mã ứng dụng
+  - Ảnh hưởng của cả cây Handler đến lựa chọn chế độ thực thi
+  - Tránh chặn selector hoặc callback được khai báo không chặn
+  - Tích hợp luồng ảo và các điều kiện theo phiên bản JDK, Jetty
+  - Giới hạn tài nguyên ngoài CPU khi số tác vụ đồng thời tăng
+  - Phân biệt số kết nối, số luồng HTTP/2, số yêu cầu và số luồng Java
+- level1: Servlet bất đồng bộ
+  level2:
+  - Phân biệt Servlet async với Handler Callback và API reactive
+  - Điều kiện bật asyncSupported trên Servlet và chuỗi Filter
+  - Khởi tạo AsyncContext và chuyển công việc ra khỏi luồng yêu cầu
+  - AsyncContext.start(), dispatch() và complete()
+  - AsyncListener cho hoàn tất, timeout, lỗi và chu kỳ bất đồng bộ
+  - Quản lý thời gian chờ và trường hợp công việc vẫn chạy sau timeout
+  - Vòng đời Request/Response khi yêu cầu chuyển giữa các luồng
+  - ServletInputStream, ServletOutputStream và xử lý I/O không chặn
+  - ReadListener, WriteListener và điều kiện sẵn sàng đọc/ghi
+  - Tránh hoàn tất lặp, ghi sau complete và rò rỉ yêu cầu bất đồng bộ
+- level1: Phiên và cookie
+  level2:
+  - SessionIdManager, SessionHandler và phạm vi quản lý phiên
+  - Phân biệt SessionCache với SessionDataStore
+  - Phiên chỉ trong bộ nhớ và giới hạn khi khởi động lại
+  - Chọn lưu phiên bằng tệp, JDBC hoặc kho phân tán phù hợp
+  - Chính sách giữ, đẩy khỏi bộ nhớ đệm và ghi dữ liệu phiên
+  - Hết hạn phiên, HouseKeeper và quá trình thu hồi dữ liệu cũ
+  - Cookie phiên, path, domain, Secure, HttpOnly và SameSite
+  - Thay định danh phiên sau đăng nhập và phòng tránh session fixation
+  - Worker name, bám phiên và chia sẻ dữ liệu giữa các nút
+  - Cập nhật đồng thời và giới hạn nhất quán của phiên phân tán
+  - Phân biệt hết hạn, vô hiệu hóa và đẩy phiên khỏi bộ nhớ đệm
+- level1: Tài nguyên web
+  level2:
+  - Phục vụ nội dung tĩnh bằng ResourceHandler
+  - Phục vụ tài nguyên trong ứng dụng Servlet bằng DefaultServlet
+  - Resource base, tài nguyên classpath và đường dẫn trong WAR
+  - Welcome file, directory listing và kiểm soát tài nguyên được công khai
+  - MIME type, bộ nhớ đệm HTTP, ETag và yêu cầu có điều kiện
+  - Tải tệp, yêu cầu theo khoảng byte và nội dung kích thước lớn
+  - Nén nội dung và lựa chọn GzipHandler hoặc CompressionHandler theo phiên bản
+  - Bật JSP, JSTL hoặc Jakarta Tags theo môi trường triển khai
+  - Biên dịch JSP, thư mục làm việc và lỗi phụ thuộc khi đóng gói
+  - Liên kết tượng trưng, đường dẫn bất thường và quyền truy cập hệ thống tệp
+- level1: WebSocket và SSE
+  level2:
+  - Phân biệt API WebSocket riêng của Jetty với API Jakarta WebSocket
+  - Chọn thư viện, môi trường và cơ chế nâng cấp HTTP phù hợp
+  - Đăng ký endpoint trong máy chủ nhúng và ứng dụng Servlet
+  - Vòng đời mở kết nối, nhận dữ liệu, lỗi và đóng kết nối
+  - Thông điệp, frame, phân mảnh và giới hạn kích thước
+  - Gửi bất đồng bộ, callback và quản lý khả năng tiếp nhận dữ liệu
+  - Demand và áp lực ngược trong API WebSocket theo phiên bản
+  - Idle timeout, ping/pong và xử lý máy khách ngắt kết nối
+  - Xây luồng Server-Sent Events bằng phản hồi truyền liên tục
+  - Phối hợp kết nối dài với proxy, cân bằng tải và dừng máy chủ
+- level1: Tích hợp ứng dụng
+  level2:
+  - Tích hợp framework web trên ranh giới Servlet Container
+  - Spring Boot với Jetty và lựa chọn phụ thuộc theo phiên bản framework
+  - Thay container mặc định và loại bỏ phụ thuộc runtime xung đột
+  - Phân biệt cấu hình server.* với API tùy biến Jetty
+  - Tùy biến connector, Handler và vòng đời qua cơ chế framework hỗ trợ
+  - Triển khai WAR lên Jetty ngoài và chạy ứng dụng đóng gói có Jetty nhúng
+  - JNDI, DataSource và phạm vi tài nguyên do container hoặc ứng dụng sở hữu
+  - Annotation, ServletContainerInitializer và quá trình tích hợp thư viện web
+  - Phối hợp bộ lọc bảo mật, giao dịch và tác vụ nền mà không trộn trách nhiệm
+  - Phân biệt tài nguyên phía máy chủ với Jetty HttpClient khi gọi dịch vụ khác
+- level1: Bảo mật
+  level2:
+  - Xác định bề mặt công khai của connector, context và tài nguyên quản trị
+  - Cơ chế xác thực và phân quyền do Jetty cung cấp theo môi trường
+  - Ràng buộc bảo mật URL, vai trò và yêu cầu kết nối bảo mật
+  - LoginService, kho danh tính và tích hợp cơ chế xác thực ứng dụng
+  - Lựa chọn bảo mật tại container hoặc framework và cách phối hợp
+  - Cấu hình CORS và phân biệt với xác thực, phân quyền
+  - Kiểm soát URI bất thường, truy cập vượt thư mục và tài nguyên nhạy cảm
+  - Kiểm soát header, cookie và thông tin bị lộ trong phản hồi lỗi
+  - Cấu hình chống lạm dụng bằng DoSHandler hoặc cơ chế tương ứng phiên bản
+  - Theo dõi cảnh báo bảo mật và kiểm chứng bản vá trước triển khai
+- level1: Giới hạn tài nguyên
+  level2:
+  - Phân biệt ngân sách kết nối, yêu cầu, luồng và bộ nhớ
+  - Giới hạn kích thước header, biểu mẫu và dữ liệu tải lên
+  - Giới hạn số tham số, multipart và dung lượng tệp tạm
+  - Idle timeout, timeout bất đồng bộ và thời hạn xử lý nghiệp vụ
+  - QoSHandler và giới hạn yêu cầu tại tầng xử lý phù hợp
+  - Kiểm soát tốc độ, kết nối chậm và lưu lượng gây quá tải
+  - Điều tiết tác vụ chặn bằng giới hạn tài nguyên ứng dụng
+  - ByteBufferPool, bộ nhớ trực tiếp và quyền sở hữu bộ đệm
+  - Áp lực ngược khi đọc nội dung và ghi phản hồi
+  - Phối hợp giới hạn Jetty với pool cơ sở dữ liệu và dịch vụ phụ thuộc
+  - Phản hồi khi quá tải và điều kiện phục hồi khả năng phục vụ
+- level1: Hiệu năng
+  level2:
+  - Xác định loại tải, phân bố kích thước và tỷ lệ tác vụ chặn
+  - Đo thông lượng cùng độ trễ trung vị, p95 và p99
+  - Tối ưu thread pool dựa trên ngân sách luồng và điểm nghẽn thực tế
+  - Đánh giá số acceptor, selector và cấu hình connector
+  - Đo lợi ích tái sử dụng kết nối và ghép kênh HTTP/2
+  - Chọn bộ đệm, truyền theo luồng và mức nén theo dữ liệu
+  - Phân tích CPU, cấp phát bộ nhớ, GC và bộ nhớ ngoài heap
+  - Đánh giá luồng ảo bằng tải thực thay cho suy đoán từ số luồng
+  - Tách giới hạn của Jetty khỏi giới hạn cơ sở dữ liệu, proxy và mạng
+  - Thiết kế thử nghiệm có khởi động ổn định và so sánh cấu hình công bằng
+- level1: Quan sát và quản trị
+  level2:
+  - Phân biệt nhật ký nội bộ Jetty với nhật ký truy cập HTTP
+  - Cấu hình RequestLog, CustomRequestLog và trường dữ liệu cần thu thập
+  - Liên kết mã yêu cầu, thông tin người dùng và truy vết ứng dụng an toàn
+  - Đo trạng thái HTTP, thời gian xử lý và lượng dữ liệu truyền
+  - StatisticsHandler và phạm vi số liệu theo cây xử lý
+  - JMX, MBeanContainer và kiểm soát truy cập quản trị
+  - Giám sát luồng, hàng đợi, kết nối, bộ đệm và phiên
+  - Dumpable, Server.dump() và đọc đồ thị thành phần đang chạy
+  - Phân biệt kiểm tra tiến trình sống, sẵn sàng và trải nghiệm thực
+  - Đặt cảnh báo gắn với độ trễ, lỗi và mức bão hòa tài nguyên
+- level1: Kiểm thử
+  level2:
+  - Kiểm thử Handler lõi và ứng dụng Servlet theo đúng môi trường
+  - LocalConnector và kiểm thử HTTP không cần mở cổng mạng
+  - HttpTester và phân tích yêu cầu, phản hồi trong kiểm thử
+  - Khởi động máy chủ trên cổng động và dọn tài nguyên sau kiểm thử
+  - Kiểm thử connector thực, TLS và HTTP/2 khi có yêu cầu
+  - Kiểm thử mapping Servlet, thứ tự Filter và trang lỗi
+  - Kiểm thử callback, timeout và yêu cầu bất đồng bộ có thời hạn
+  - Kiểm thử phiên, cookie và hành vi khi có nhiều nút
+  - Kiểm thử WebSocket, truyền dữ liệu theo luồng và máy khách ngắt kết nối
+  - Kiểm thử tải, tương thích phiên bản và cấu hình triển khai
+- level1: Chẩn đoán sự cố
+  level2:
+  - Khởi động thất bại do cổng đã dùng, quyền truy cập hoặc cấu hình sai
+  - Ứng dụng trả 404 do context path, ánh xạ hoặc thứ tự Handler
+  - Lỗi 400, 413, 431 và các giới hạn cần đối chiếu
+  - Lỗi 500 và phân biệt nguyên nhân ứng dụng, container, cấu hình
+  - Lỗi TLS, chứng chỉ, ALPN và giao thức không tương thích
+  - Yêu cầu treo vì callback chưa hoàn tất hoặc AsyncContext bị bỏ quên
+  - StateTrackingHandler và theo dõi sai hợp đồng bất đồng bộ
+  - Cạn luồng, nghẽn hàng đợi và mã chặn sai vị trí
+  - Rò rỉ bộ đệm, file descriptor, phiên và classloader
+  - Redirect sai, cookie mất hoặc địa chỉ gốc sai khi đứng sau proxy
+  - Kết hợp thread dump, JFR, log và Server.dump() để khoanh vùng
+- level1: Vận hành và mở rộng
+  level2:
+  - Đóng gói runtime cùng cấu hình Jetty có thể tái lập
+  - Chạy Jetty dưới trình quản lý dịch vụ hoặc môi trường container
+  - Đặt tài khoản, quyền tệp, thư mục tạm và giới hạn hệ điều hành
+  - Phân bổ CPU, heap, bộ nhớ trực tiếp và tài nguyên container
+  - Triển khai sau reverse proxy và cân bằng tải nhiều bản sao
+  - Chọn chiến lược phiên và dữ liệu chia sẻ khi mở rộng ngang
+  - Rút nút khỏi luồng truy cập trước khi dừng phục vụ
+  - Phối hợp thời gian dừng Jetty với thời hạn của nền tảng triển khai
+  - Quản lý cấu hình, chứng chỉ và bí mật ngoài gói ứng dụng
+  - Quay lui, khôi phục và kiểm chứng sau triển khai
+- level1: Nâng cấp và di trú
+  level2:
+  - Kiểm kê JDK, Servlet API, thư viện ứng dụng và dòng Jetty đang dùng
+  - Di trú javax.servlet sang jakarta.servlet theo môi trường đích
+  - Di trú API Handler từ Jetty 11 sang hợp đồng bất đồng bộ Jetty 12
+  - Chuyển artifact, package và module Servlet sang môi trường eeN phù hợp
+  - Đối chiếu thay đổi triển khai giữa Jetty 12.0 và Jetty 12.1
+  - Rà soát cấu hình nén, WebSocket và callback khi đổi dòng phiên bản
+  - Đánh giá thay đổi mặc định, API bị ngừng khuyến nghị và API bị loại bỏ
+  - Chạy lại kiểm thử chức năng, bảo mật, tải và dừng có kiểm soát
+  - Lập kế hoạch chuyển đổi từng phần và điều kiện quay lui
+- level1: Thực hành tổng hợp
+  level2:
+  - Dựng Jetty Core trả nội dung HTTP và quan sát cây Handler
+  - Thêm context, Servlet, Filter và phiên vào máy chủ nhúng
+  - Triển khai cùng ứng dụng dưới dạng WAR trên Jetty độc lập
+  - Tạo JETTY_BASE riêng với module, connector và cấu hình hiệu lực rõ ràng
+  - Bật HTTPS, HTTP/2 và kiểm chứng thông tin khi qua reverse proxy
+  - Truyền tệp lớn với áp lực ngược và máy khách ngắt giữa chừng
+  - Thực nghiệm cạn luồng, callback bị quên và giới hạn tải phù hợp
+  - Chạy hai nút Jetty để quan sát bám phiên và dữ liệu phiên dùng chung
+  - Đo một điểm nghẽn rồi kiểm chứng thay đổi cấu hình
+  - Đánh giá Jetty, Tomcat hoặc lựa chọn khác theo yêu cầu và chi phí vận hành

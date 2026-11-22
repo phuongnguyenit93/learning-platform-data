@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kiến trúc
+  slug: architecture
+  index: 1
+- title: Cài đặt
+  slug: installation
+  index: 2
+- title: Cấu hình
+  slug: configuration
+  index: 3
+- title: Định tuyến
+  slug: routing
+  index: 4
+- title: Đọc tệp
+  slug: file-input
+  index: 5
+- title: Mạng và hệ thống
+  slug: networks-systems
+  index: 6
+- title: Phân tích cú pháp
+  slug: parsing
+  index: 7
+- title: Thời gian
+  slug: timestamps
+  index: 8
+- title: Log nhiều dòng
+  slug: multiline-logs
+  index: 9
+- title: Lọc dữ liệu
+  slug: data-filtering
+  index: 10
+- title: Biến đổi và làm giàu
+  slug: transformation-enrichment
+  index: 11
+- title: Xuất dữ liệu
+  slug: data-export
+  index: 12
+- title: Bộ đệm
+  slug: buffering
+  index: 13
+- title: Thử lại và lỗi
+  slug: retries-errors
+  index: 14
+- title: Giao thức Forward
+  slug: forward-protocol
+  index: 15
+- title: Đích lưu trữ
+  slug: storage-destinations
+  index: 16
+- title: Java và Spring Boot
+  slug: java-spring-boot
+  index: 17
+- title: Docker
+  slug: docker
+  index: 18
+- title: Kubernetes
+  slug: kubernetes
+  index: 19
+- title: Bảo mật
+  slug: security
+  index: 20
+- title: Đảm bảo dữ liệu
+  slug: delivery-guarantees
+  index: 21
+- title: Mở rộng hệ thống
+  slug: system-scaling
+  index: 22
+- title: Hiệu năng
+  slug: performance
+  index: 23
+- title: Giám sát
+  slug: monitoring
+  index: 24
+- title: Vận hành
+  slug: operations
+  index: 25
+- title: Xử lý sự cố
+  slug: incident-handling
+  index: 26
+- title: Kiểm thử
+  slug: testing
+  index: 27
+- title: Phát triển plugin
+  slug: plugin-development
+  index: 28
+- title: Bài thực hành
+  slug: hands-on-exercises
+  index: 29

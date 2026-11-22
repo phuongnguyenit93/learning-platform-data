@@ -1,0 +1,7 @@
+# Database Engine Graph Neo4j
+
+Neo4j là cơ sở dữ liệu đồ thị theo mô hình property graph, tổ chức dữ liệu thành các node, relationship và property. Cách biểu diễn này hữu ích khi câu hỏi chính xoay quanh kết nối giữa các thực thể: bạn bè của bạn bè, đường đi giữa các địa điểm, quan hệ sản phẩm hoặc lịch sử giao dịch. Người học cần hiểu cách thiết kế graph theo nhu cầu truy vấn, thay vì chuyển nguyên cấu trúc bảng quan hệ sang node một cách máy móc.
+
+Module phù hợp với lập trình viên backend hoặc người học dữ liệu đã quen khái niệm cơ sở dữ liệu. Lộ trình bắt đầu từ nguyên lý property graph và thiết lập Neo4j, tiếp tục mô hình hóa labels, properties và relationship types, rồi thực hành Cypher để tạo, cập nhật và tìm kiếm pattern. Sau khi nắm vững MATCH, CREATE, MERGE, bạn sẽ học constraint, index, LOAD CSV, kết nối ứng dụng Java bằng driver và quản lý giao dịch. Phần cuối tập trung vào EXPLAIN/PROFILE để cải thiện truy vấn.
+
+Hãy xây dựng đồ thị nhỏ gồm khách hàng, đơn hàng và sản phẩm: nạp dữ liệu bằng CSV, truy vấn sản phẩm cùng được mua, rồi giải thích kế hoạch thực thi trước và sau khi bổ sung index. Khi hoàn thành, bạn có thể thiết kế và kiểm tra một mô hình Neo4j cơ bản, viết truy vấn Cypher có tham số và nhận diện những vấn đề phổ biến về dữ liệu trùng, quyền truy cập và hiệu năng.

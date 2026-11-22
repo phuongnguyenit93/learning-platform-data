@@ -1,0 +1,115 @@
+menu:
+- title: Nền tảng yêu cầu bảo mật
+  slug: security-requirements-foundations
+  index: 0
+- title: Bối cảnh và phạm vi
+  slug: context-scope
+  index: 1
+- title: Mục tiêu bảo mật
+  slug: security-objectives
+  index: 2
+- title: Phân loại tài sản
+  slug: asset-classification
+  index: 3
+- title: Phân loại dữ liệu
+  slug: data-classification
+  index: 4
+- title: Rủi ro và mức đảm bảo
+  slug: risks-assurance-levels
+  index: 5
+- title: Threat modeling
+  slug: threat-modeling
+  index: 6
+- title: Security architecture
+  slug: security-architecture
+  index: 7
+- title: Yêu cầu xác thực
+  slug: authentication-requirements
+  index: 8
+- title: Yêu cầu authorization
+  slug: authorization-requirements
+  index: 9
+- title: Quản trị identity
+  slug: identity-management
+  index: 10
+- title: Session management
+  slug: session-management
+  index: 11
+- title: Token và credential
+  slug: tokens-credentials
+  index: 12
+- title: Input validation
+  slug: input-validation
+  index: 13
+- title: Injection defense
+  slug: injection-defense
+  index: 14
+- title: Output encoding
+  slug: output-encoding
+  index: 15
+- title: API security
+  slug: api-security
+  index: 16
+- title: HTTP security
+  slug: http-security
+  index: 17
+- title: Cryptography
+  slug: cryptography
+  index: 18
+- title: Key management
+  slug: key-management
+  index: 19
+- title: Data protection
+  slug: data-protection
+  index: 20
+- title: Privacy requirement
+  slug: privacy-requirements
+  index: 21
+- title: Error handling
+  slug: error-handling
+  index: 22
+- title: Logging và audit
+  slug: logging-auditing
+  index: 23
+- title: Monitoring và detection
+  slug: monitoring-detection
+  index: 24
+- title: Availability và resilience
+  slug: availability-resilience
+  index: 25
+- title: Business logic security
+  slug: business-logic-security
+  index: 26
+- title: File và resource security
+  slug: file-resource-security
+  index: 27
+- title: Communication security
+  slug: communication-security
+  index: 28
+- title: Configuration security
+  slug: configuration-security
+  index: 29
+- title: Dependency và supply chain
+  slug: dependency-supply-chain
+  index: 30
+- title: Secure development
+  slug: secure-development
+  index: 31
+- title: Verification framework
+  slug: verification-framework
+  index: 32
+- title: Risk management và compliance
+  slug: risk-management-compliance
+  index: 33
+- title: Requirement lifecycle
+  slug: requirements-lifecycle
+  index: 34
+- title: Kiểm thử yêu cầu
+  slug: requirements-testing
+  index: 35
+- title: Vận hành và incident
+  slug: operations-incident-response
+  index: 36
+- title: Thực hành tổng hợp
+  slug: integrated-exercises
+  index: 37

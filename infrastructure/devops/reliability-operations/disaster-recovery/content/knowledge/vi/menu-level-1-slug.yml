@@ -1,0 +1,91 @@
+menu:
+- title: Tổng quan
+  slug: overview
+  index: 0
+- title: Kịch bản thảm họa
+  slug: disaster-scenarios
+  index: 1
+- title: Phân tích tác động
+  slug: impact-analysis
+  index: 2
+- title: Mục tiêu khôi phục
+  slug: recovery-objectives
+  index: 3
+- title: Kiểm kê và phụ thuộc
+  slug: inventory-dependencies
+  index: 4
+- title: Chiến lược DR
+  slug: dr-strategies
+  index: 5
+- title: Miền lỗi
+  slug: failure-domains
+  index: 6
+- title: Sao lưu
+  slug: backups
+  index: 7
+- title: Sao chép dữ liệu
+  slug: data-replication
+  index: 8
+- title: Cơ sở dữ liệu
+  slug: databases
+  index: 9
+- title: Tính nhất quán
+  slug: data-consistency
+  index: 10
+- title: Lưu trữ và tệp
+  slug: storage-files
+  index: 11
+- title: Thông điệp và bộ nhớ đệm
+  slug: messaging-caching
+  index: 12
+- title: Khôi phục ứng dụng
+  slug: application-recovery
+  index: 13
+- title: Hạ tầng và tự động hóa
+  slug: infrastructure-automation
+  index: 14
+- title: Mạng và lưu lượng
+  slug: networks-traffic
+  index: 15
+- title: Danh tính và bí mật
+  slug: identities-secrets
+  index: 16
+- title: Kubernetes
+  slug: kubernetes
+  index: 17
+- title: Đám mây
+  slug: cloud
+  index: 18
+- title: Kế hoạch và runbook
+  slug: runbooks-planning
+  index: 19
+- title: Kích hoạt DR
+  slug: dr-activation
+  index: 20
+- title: Chuyển đổi dự phòng
+  slug: failover
+  index: 21
+- title: Trở về hệ thống chính
+  slug: failback
+  index: 22
+- title: Kiểm chứng phục hồi
+  slug: recovery-validation
+  index: 23
+- title: Diễn tập
+  slug: disaster-recovery-drills
+  index: 24
+- title: Phục hồi sau tấn công
+  slug: cyberattack-recovery
+  index: 25
+- title: Quan sát và chỉ số
+  slug: observability-metrics
+  index: 26
+- title: Quản trị và chi phí
+  slug: governance-costs
+  index: 27
+- title: Thực hành
+  slug: hands-on-lab
+  index: 28
+- title: Xử lý sự cố
+  slug: troubleshooting
+  index: 29

@@ -1,0 +1,57 @@
+roadmap:
+- id: vong-doi-phat-hanh
+  title: Vòng đời phát hành
+  purpose: Hiểu các giai đoạn và trách nhiệm từ tập hợp thay đổi đến vận hành phiên bản mới.
+  objectives:
+  - Phân biệt build, release và deployment
+  - Xác định trạng thái release và người chịu trách nhiệm
+  - Phác thảo quy trình phát hành một dịch vụ
+- id: pham-vi-ke-hoach
+  title: Phạm vi & kế hoạch
+  purpose: Kiểm soát các thay đổi, phụ thuộc và thời điểm phát hành để giảm bất ngờ.
+  objectives:
+  - Lập danh sách thay đổi thuộc release
+  - Đánh giá phụ thuộc và rủi ro triển khai
+  - Chuẩn bị lịch phát hành và tiêu chí go/no-go
+- id: version-release-notes
+  title: Version & Release Notes
+  purpose: Định danh phiên bản rõ ràng và truyền đạt nội dung thay đổi cho các bên liên quan.
+  objectives:
+  - Áp dụng MAJOR.MINOR.PATCH theo ngữ nghĩa
+  - Tạo tag và release notes từ thay đổi
+  - Liên kết phiên bản với commit nguồn
+- id: artifact-truy-xuat
+  title: Artifact & truy xuất
+  purpose: Giữ artifact bất biến và xác định được nguồn gốc của bản phát hành.
+  objectives:
+  - Đóng gói artifact một lần để promotion
+  - Ghi checksum và version của artifact
+  - Kiểm tra provenance liên kết source với build
+- id: quality-gate-phe-duyet
+  title: Quality Gate & phê duyệt
+  purpose: Chặn bản phát hành chưa đạt yêu cầu kiểm thử, bảo mật hoặc quy trình.
+  objectives:
+  - Xác định điều kiện qua unit/integration tests
+  - Đặt chính sách scan và approval theo môi trường
+  - Ghi nhận người duyệt và bằng chứng kiểm tra
+- id: promotion-rollout
+  title: Promotion & rollout
+  purpose: Đưa cùng một release qua các môi trường và giảm rủi ro khi mở rộng lưu lượng.
+  objectives:
+  - Thực hiện promotion từ staging lên production
+  - So sánh rolling, blue-green và canary
+  - Quan sát tín hiệu lỗi trước khi tăng lưu lượng
+- id: rollback-khoi-phuc
+  title: Rollback & khôi phục
+  purpose: Chuẩn bị phương án xử lý khi release gây lỗi trên production.
+  objectives:
+  - Xác định ngưỡng dừng rollout và rollback
+  - Diễn tập rollback hoặc roll-forward
+  - Kiểm tra tương thích thay đổi database
+- id: giam-sat-cai-tien
+  title: Giám sát & cải tiến
+  purpose: Đo độ an toàn và tốc độ phát hành để liên tục tối ưu quy trình.
+  objectives:
+  - Theo dõi lỗi, latency và chỉ số SLO sau release
+  - Tính deployment frequency và change fail rate
+  - Tổ chức review và cập nhật checklist

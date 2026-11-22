@@ -1,0 +1,2665 @@
+menu:
+- slug: devsecops-overview
+  title: Tổng quan DevSecOps
+  childs:
+  - slug: devsecops-overview-001
+    title: DevSecOps là gì và mối liên hệ giữa phát triển, bảo mật và vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-002
+    title: Vì sao kiểm tra bảo mật vào cuối dự án không đáp ứng nhịp phát hành liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-003
+    title: Mục tiêu của DevSecOps đối với sản phẩm, người dùng và tổ chức
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-004
+    title: Phân biệt DevOps, AppSec, SecOps và DevSecOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-005
+    title: Bảo mật như trách nhiệm chung trong toàn bộ vòng đời phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-006
+    title: Mối liên hệ giữa tốc độ phát hành, an toàn và độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-007
+    title: Nhận diện tài sản, mối đe dọa, rủi ro và biện pháp kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-008
+    title: Bản đồ thuật ngữ và lộ trình học các năng lực DevSecOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: devsecops-overview-009
+    title: Những hiểu lầm khi đồng nhất DevSecOps với công cụ quét hoặc một chức danh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: core-principles
+  title: Nguyên tắc cốt lõi
+  childs:
+  - slug: core-principles-001
+    title: Đưa phản hồi bảo mật về sớm trong vòng đời phát triển (shift left)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-002
+    title: Kiểm chứng bảo mật trong môi trường vận hành (shift right)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-003
+    title: Phản hồi liên tục và vòng lặp cải tiến giữa các nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-004
+    title: Tự động hóa những kiểm tra lặp lại và giữ đánh giá cần phán đoán của con người
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-005
+    title: Thiết kế an toàn mặc định và giảm cấu hình dễ gây sai sót
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-006
+    title: Đặc quyền tối thiểu, phòng thủ nhiều lớp và giảm bề mặt tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-007
+    title: Ưu tiên theo rủi ro thay vì chỉ tăng số lượng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-008
+    title: Duy trì bằng chứng có thể truy vết từ yêu cầu đến phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: core-principles-009
+    title: Thiết lập giới hạn và phương án xử lý khi biện pháp kiểm soát thất bại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: culture-accountability
+  title: Văn hóa và trách nhiệm
+  childs:
+  - slug: culture-accountability-001
+    title: Phân công trách nhiệm giữa nhóm phát triển, bảo mật, vận hành và sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-002
+    title: Vai trò của lãnh đạo trong ưu tiên và phân bổ nguồn lực bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-003
+    title: Xây dựng mạng lưới người hỗ trợ bảo mật trong nhóm (security champions)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-004
+    title: Phối hợp đánh giá thiết kế, xử lý phát hiện và quyết định phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-005
+    title: Giao tiếp rủi ro bằng tác động tới sản phẩm và người sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-006
+    title: Xây dựng văn hóa báo cáo sớm và học từ sự cố không đổ lỗi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-007
+    title: Đưa công việc bảo mật vào kế hoạch và danh sách công việc của nhóm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-008
+    title: Đào tạo theo vai trò và kiểm chứng năng lực bằng tình huống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: culture-accountability-009
+    title: Xác định người sở hữu và cơ chế giải quyết công việc bảo mật bị bỏ ngỏ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-foundations
+  title: Nền tảng bảo mật
+  childs:
+  - slug: security-foundations-001
+    title: Tính bí mật, tính toàn vẹn và tính sẵn sàng của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-002
+    title: Phân biệt tài sản, điểm yếu, lỗ hổng, mối đe dọa và rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-003
+    title: Xác thực, phân quyền và trách nhiệm giải trình trong hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-004
+    title: Ranh giới tin cậy, bề mặt tấn công và luồng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-005
+    title: Phân biệt biện pháp phòng ngừa, phát hiện và ứng phó
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-006
+    title: Phân biệt mã hóa, băm và chữ ký số cùng mục đích sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-007
+    title: Quản lý khóa và vai trò của giao thức bảo vệ dữ liệu khi truyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-008
+    title: Rủi ro từ cấu hình, quy trình và con người bên cạnh lỗi mã nguồn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-foundations-009
+    title: Phân biệt bảo mật, quyền riêng tư, tuân thủ và độ tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-development-lifecycle
+  title: Vòng đời phát triển an toàn
+  childs:
+  - slug: secure-development-lifecycle-001
+    title: Các giai đoạn từ ý tưởng, thiết kế, phát triển đến vận hành và ngừng sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-002
+    title: Xác định hoạt động bảo mật phù hợp cho từng giai đoạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-003
+    title: Đưa tiêu chí bảo mật vào điều kiện bắt đầu và hoàn tất công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-004
+    title: Tổ chức phản hồi bảo mật trong nhóm Agile và luồng phân phối liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-005
+    title: Liên kết yêu cầu, thay đổi mã, kiểm thử và bằng chứng phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-006
+    title: Đánh giá bảo mật khi thay đổi kiến trúc, dữ liệu hoặc nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-007
+    title: Quản lý nợ bảo mật và kế hoạch cải tiến qua nhiều phiên bản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-008
+    title: Phân biệt đánh giá định kỳ với kiểm chứng liên tục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-development-lifecycle-009
+    title: Xử lý dữ liệu và thu hồi quyền khi kết thúc vòng đời sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: assets-risks
+  title: Tài sản và rủi ro
+  childs:
+  - slug: assets-risks-001
+    title: Kiểm kê ứng dụng, dịch vụ, API, dữ liệu và hạ tầng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-002
+    title: Phân loại mức quan trọng của tài sản đối với hoạt động kinh doanh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-003
+    title: Nhận diện chủ sở hữu, phụ thuộc và phạm vi ảnh hưởng của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-004
+    title: Phân loại dữ liệu và xác định yêu cầu bảo vệ tương ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-005
+    title: Đánh giá khả năng xảy ra, tác động và giả định của một rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-006
+    title: Phân biệt mức nghiêm trọng kỹ thuật với ưu tiên xử lý theo bối cảnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-007
+    title: Lựa chọn giảm thiểu, tránh, chuyển giao hoặc chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-008
+    title: Ghi nhận rủi ro còn lại và trách nhiệm phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: assets-risks-009
+    title: Cập nhật hồ sơ rủi ro khi có thay đổi hoặc bằng chứng mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-requirements
+  title: Yêu cầu bảo mật
+  childs:
+  - slug: security-requirements-001
+    title: Chuyển mục tiêu bảo vệ sản phẩm thành yêu cầu có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-002
+    title: Xác định yêu cầu xác thực, phân quyền và quản lý phiên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-003
+    title: Xác định yêu cầu bảo vệ dữ liệu khi lưu trữ, truyền và xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-004
+    title: Xây dựng tình huống lạm dụng và tiêu chí chấp nhận bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-005
+    title: Đưa yêu cầu ghi log, giám sát và ứng phó vào thiết kế ban đầu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-006
+    title: Xác định yêu cầu bảo mật đối với tích hợp và nhà cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-007
+    title: Thiết lập điều kiện phát hành và bằng chứng cần cung cấp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-008
+    title: Phân biệt yêu cầu bắt buộc với khuyến nghị cải tiến
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-requirements-009
+    title: Theo dõi tính nhất quán giữa yêu cầu, thiết kế và kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: threat-modeling
+  title: Mô hình đe dọa
+  childs:
+  - slug: threat-modeling-001
+    title: Mục đích và thời điểm thực hiện mô hình đe dọa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-002
+    title: Xác định phạm vi, tài sản và giả định về đối tượng tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-003
+    title: Vẽ sơ đồ luồng dữ liệu cùng các ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-004
+    title: Nhận diện điểm vào, quyền truy cập và đường tấn công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-005
+    title: Sử dụng STRIDE như gợi ý phân tích các loại đe dọa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-006
+    title: Xây dựng tình huống lạm dụng theo luồng nghiệp vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-007
+    title: Ưu tiên đe dọa và lựa chọn biện pháp giảm thiểu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-008
+    title: Chuyển kết quả phân tích thành công việc và ca kiểm thử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-009
+    title: Đánh giá lại mô hình khi kiến trúc hoặc môi trường thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: threat-modeling-010
+    title: Nhận diện giới hạn và những giả định chưa được kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-architecture
+  title: Kiến trúc an toàn
+  childs:
+  - slug: secure-architecture-001
+    title: Thiết kế ranh giới dịch vụ và phân chia vùng tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-002
+    title: Áp dụng đặc quyền tối thiểu cho người dùng và thành phần hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-003
+    title: Tách nhiệm vụ và kiểm soát các thao tác nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-004
+    title: Thiết kế xác thực, phân quyền và quản lý danh tính nhất quán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-005
+    title: Giảm dữ liệu nhạy cảm và giảm số thành phần cần được tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-006
+    title: Thiết kế xử lý lỗi không làm lộ thông tin hoặc bỏ qua kiểm soát
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-007
+    title: Giới hạn tài nguyên, tần suất và tác động của hành vi lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-008
+    title: Bảo vệ giao tiếp và xác minh danh tính giữa các dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-009
+    title: Đánh giá đánh đổi giữa bảo mật, khả dụng và trải nghiệm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-architecture-010
+    title: Ghi lại quyết định kiến trúc và giả định bảo mật quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-coding
+  title: Lập trình an toàn
+  childs:
+  - slug: secure-coding-001
+    title: Kiểm tra dữ liệu đầu vào theo ngữ cảnh và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-002
+    title: Mã hóa đầu ra và ngăn dữ liệu bị diễn giải thành lệnh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-003
+    title: Truy vấn có tham số và kiểm soát truy cập dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-004
+    title: Thực thi phân quyền ở phía máy chủ cho từng tài nguyên và hành động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-005
+    title: Xử lý mật khẩu, phiên và thông tin xác thực bằng cơ chế phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-006
+    title: Ngăn lộ dữ liệu nhạy cảm qua lỗi, log và phản hồi API
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-007
+    title: Kiểm soát thao tác với tệp, đường dẫn và tài nguyên bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-008
+    title: Nhận diện rủi ro khi xử lý URL, yêu cầu mạng và dữ liệu tuần tự hóa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-009
+    title: Sử dụng thư viện mật mã và cấu hình an toàn thay vì tự thiết kế thuật toán
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-coding-010
+    title: Rà soát mã theo luồng dữ liệu, giả định tin cậy và yêu cầu bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: identities-secrets
+  title: Danh tính và bí mật
+  childs:
+  - slug: identities-secrets-001
+    title: Phân biệt danh tính con người, dịch vụ và tác vụ tự động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-002
+    title: Quản lý vòng đời tài khoản từ cấp phát đến thu hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-003
+    title: Giảm quyền thường trực và giới hạn phạm vi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-004
+    title: Bảo vệ tài khoản quan trọng bằng xác thực nhiều yếu tố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-005
+    title: Phân biệt bí mật với cấu hình thông thường và dữ liệu công khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-006
+    title: Lưu giữ và cấp phát bí mật qua hệ thống quản lý chuyên dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-007
+    title: Tránh đưa bí mật vào mã nguồn, log, tệp build và artifact
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-008
+    title: Luân chuyển, hết hạn và thu hồi thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-009
+    title: Nhận diện bí mật đã lộ và ưu tiên thu hồi trước khi dọn lịch sử
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: identities-secrets-010
+    title: Xác minh danh tính tác vụ và kiểm soát quyền truy cập theo môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: source-code-collaboration
+  title: Kho mã và cộng tác
+  childs:
+  - slug: source-code-collaboration-001
+    title: Xác định kho mã chuẩn và người được phép đưa thay đổi vào phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-002
+    title: Bảo vệ nhánh và yêu cầu rà soát cho thay đổi quan trọng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-003
+    title: Phân công người duyệt mã, cấu hình build và tệp workflow
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-004
+    title: Quản lý quyền của bot, ứng dụng tích hợp và cộng tác viên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-005
+    title: Kiểm soát thay đổi từ fork và đóng góp bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-006
+    title: Liên kết commit, yêu cầu thay đổi và bằng chứng kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-007
+    title: Kiểm tra bí mật và lỗi phổ biến trước hoặc khi đưa mã lên kho
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-008
+    title: Phân biệt tính xác thực của commit với chất lượng và độ an toàn của mã
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: source-code-collaboration-009
+    title: Bảo vệ tag, quy tắc phát hành và lịch sử thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: security-testing-foundations
+  title: Nền tảng kiểm thử bảo mật
+  childs:
+  - slug: security-testing-foundations-001
+    title: Mục tiêu kiểm thử từ yêu cầu bảo mật và mô hình đe dọa
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-002
+    title: Phân biệt phân tích tĩnh, phân tích động và kiểm thử thủ công
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-003
+    title: Phân biệt SAST, DAST, SCA và kiểm tra cấu hình
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-004
+    title: Vai trò của kiểm thử tương tác (IAST) và kiểm thử bằng dữ liệu biến đổi (fuzzing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-005
+    title: Viết kiểm thử đơn vị, tích hợp và API cho hành vi bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-006
+    title: Kiểm thử phân quyền, phiên và các luồng nghiệp vụ dễ bị lạm dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-007
+    title: Vai trò và giới hạn của kiểm thử xâm nhập (penetration testing)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-008
+    title: Chọn môi trường, dữ liệu và phạm vi kiểm thử được cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-009
+    title: Quản lý phát hiện sai, điểm bỏ sót và giới hạn độ bao phủ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: security-testing-foundations-010
+    title: Duy trì ca kiểm thử hồi quy sau khi sửa lỗ hổng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: code-dependency-analysis
+  title: Phân tích mã và phụ thuộc
+  childs:
+  - slug: code-dependency-analysis-001
+    title: Mục đích của SAST trong phát hiện mẫu mã có rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-002
+    title: Tổ chức luật kiểm tra theo ngôn ngữ, framework và bối cảnh ứng dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-003
+    title: Đối chiếu kết quả phân tích với luồng dữ liệu và khả năng khai thác
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-004
+    title: Mục đích của SCA trong kiểm kê thành phần và nhận diện rủi ro phụ thuộc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-005
+    title: Phân biệt phụ thuộc trực tiếp, bắc cầu, lúc build và lúc chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-006
+    title: Đánh giá phiên bản, tình trạng duy trì và nguồn phát hành của thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-007
+    title: Kiểm tra giấy phép và điều kiện sử dụng thành phần nguồn mở
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-008
+    title: Xử lý cập nhật phụ thuộc cùng kiểm thử tương thích và hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: code-dependency-analysis-009
+    title: Phân biệt lỗi ứng dụng, lỗ hổng thư viện và rủi ro chuỗi cung ứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: dynamic-security-testing
+  title: Kiểm thử hệ thống chạy
+  childs:
+  - slug: dynamic-security-testing-001
+    title: Mục đích của DAST và điều kiện để quét ứng dụng đang chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-002
+    title: Chuẩn bị môi trường kiểm thử đại diện cho cấu hình triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-003
+    title: Cấp danh tính kiểm thử và bao phủ nhiều vai trò truy cập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-004
+    title: Khám phá đường dẫn, API và luồng nghiệp vụ cần kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-005
+    title: Kiểm tra xác thực, phân quyền, phiên và xử lý đầu vào
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-006
+    title: Bảo vệ dữ liệu kiểm thử và giới hạn tác động của công cụ quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-007
+    title: Đối chiếu phát hiện động với log và bằng chứng tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-008
+    title: Phân biệt phát hiện của công cụ với kiểm chứng khai thác trong phạm vi cho phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: dynamic-security-testing-009
+    title: Kết hợp kiểm thử tự động và đánh giá thủ công theo mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: software-supply-chain
+  title: Chuỗi cung ứng phần mềm
+  childs:
+  - slug: software-supply-chain-001
+    title: Nhận diện chuỗi từ nguồn mã và phụ thuộc đến artifact được sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-002
+    title: Kiểm kê công cụ build, dịch vụ tích hợp và nhà cung cấp phần mềm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-003
+    title: Nhận diện giả mạo gói, nguồn tải và bản cập nhật độc hại
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-004
+    title: Cố định đầu vào và xác minh tính toàn vẹn theo nội dung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-005
+    title: Vai trò và giới hạn của danh mục thành phần phần mềm (SBOM)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-006
+    title: Vai trò của bằng chứng nguồn gốc build (provenance) và xác nhận (attestation)
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-007
+    title: Phân biệt chữ ký hợp lệ với nội dung an toàn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-008
+    title: Liên kết commit, lần build, artifact và bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-009
+    title: Xác minh bằng chứng tại điểm phát hành và điểm tiếp nhận
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: software-supply-chain-010
+    title: Xác định phạm vi ảnh hưởng khi một thành phần hoặc nguồn phát hành bị xâm nhập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: pipeline-protection
+  title: Bảo vệ pipeline
+  childs:
+  - slug: pipeline-protection-001
+    title: Nhận diện tài sản, danh tính và ranh giới tin cậy trong CI/CD
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-002
+    title: Tách luồng kiểm tra đóng góp bên ngoài với luồng có quyền phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-003
+    title: Cấp quyền tối thiểu và giới hạn thời gian sống của thông tin xác thực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-004
+    title: Bảo vệ tệp workflow và các tham số điều khiển thực thi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-005
+    title: Tránh để dữ liệu không tin cậy trở thành lệnh của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-006
+    title: Kiểm soát nguồn và phiên bản của plugin, action và công cụ build
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-007
+    title: Cô lập môi trường thực thi và làm sạch trạng thái giữa các lần chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-008
+    title: Bảo vệ cache, artifact trung gian và dữ liệu đầu ra của pipeline
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-009
+    title: Kiểm soát quyền truy cập bí mật theo nhánh và môi trường
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: pipeline-protection-010
+    title: Lưu log và bằng chứng mà không làm lộ thông tin nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: automated-security-checks
+  title: Tích hợp kiểm tra tự động
+  childs:
+  - slug: automated-security-checks-001
+    title: Chọn vị trí kiểm tra ở máy phát triển, yêu cầu thay đổi, build và triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-002
+    title: Tổ chức kiểm tra nhanh trước và đánh giá tốn thời gian sau
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-003
+    title: Cấu hình đầu vào, phiên bản và luật kiểm tra có thể tái hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-004
+    title: Chuẩn hóa kết quả để liên kết phát hiện với mã và người sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-005
+    title: Thiết lập đường cơ sở cho hệ thống đang có nợ bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-006
+    title: Phân biệt phát hiện mới với vấn đề tồn đọng đã được theo dõi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-007
+    title: Tối ưu thời gian chạy bằng phạm vi thay đổi và kiểm tra đầy đủ định kỳ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-008
+    title: Phân biệt công cụ lỗi, không quét được và thực sự không có phát hiện
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-009
+    title: Đánh giá độ bao phủ trước khi bỏ hoặc giảm một bước kiểm tra
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: automated-security-checks-010
+    title: Quản lý thay đổi công cụ và luật quét như thay đổi của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: quality-gates-exceptions
+  title: Cổng kiểm soát và ngoại lệ
+  childs:
+  - slug: quality-gates-exceptions-001
+    title: Mục đích của cổng kiểm soát bảo mật trong luồng phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-002
+    title: Xây dựng điều kiện cảnh báo hoặc chặn dựa trên rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-003
+    title: Phân biệt điều kiện chặn thay đổi mới với xử lý nợ hiện có
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-004
+    title: Kết hợp mức nghiêm trọng, khả năng khai thác và mức quan trọng của tài sản
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-005
+    title: Xác định hành vi khi thiếu dữ liệu hoặc kiểm tra không hoàn tất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-006
+    title: Thiết lập người phê duyệt, lý do và thời hạn của ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-007
+    title: Theo dõi biện pháp bù đắp và rủi ro còn lại trong thời gian ngoại lệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-008
+    title: Ngăn bỏ qua cổng kiểm soát ngoài quy trình được phép
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-009
+    title: Đánh giá tác động của cổng kiểm soát tới công việc phát triển
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: quality-gates-exceptions-010
+    title: Rà soát và thu hồi ngoại lệ khi điều kiện áp dụng không còn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: vulnerability-management
+  title: Quản lý lỗ hổng
+  childs:
+  - slug: vulnerability-management-001
+    title: Tổ chức vòng đời phát hiện, xác minh, ưu tiên, sửa và đóng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-002
+    title: Phân biệt phát hiện trùng lặp với nhiều vị trí bị ảnh hưởng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-003
+    title: Đánh giá mức nghiêm trọng bằng ngữ cảnh và thang điểm như CVSS
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-004
+    title: Kết hợp dấu hiệu khai thác thực tế và khả năng tiếp cận thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-005
+    title: Xác định người sở hữu và thời hạn xử lý theo rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-006
+    title: Tạo công việc có bằng chứng, cách tái hiện và tiêu chí xác minh
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-007
+    title: Phân biệt sửa nguyên nhân, biện pháp giảm thiểu và chấp nhận rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-008
+    title: Kiểm thử lại bản sửa và bổ sung kiểm thử hồi quy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-009
+    title: Theo dõi lỗ hổng chưa có bản vá và thành phần đã hết hỗ trợ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: vulnerability-management-010
+    title: Nhận phản hồi từ bên ngoài qua quy trình công bố và tiếp nhận phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: container-security
+  title: Nền tảng container
+  childs:
+  - slug: container-security-001
+    title: Nhận diện image, registry và môi trường chạy trong phạm vi bảo vệ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-002
+    title: Lựa chọn base image từ nguồn tin cậy và duy trì cập nhật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-003
+    title: Giảm thành phần không cần thiết trong image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-004
+    title: Tránh đưa bí mật và dữ liệu nhạy cảm vào các lớp image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-005
+    title: Kiểm tra thành phần và cấu hình trước khi công bố image
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-006
+    title: Định danh image bằng nội dung và kiểm soát quyền registry
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-007
+    title: Giảm quyền tiến trình và quyền truy cập tài nguyên khi chạy container
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-008
+    title: Phân biệt rủi ro của image, cấu hình triển khai và môi trường chạy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: container-security-009
+    title: Liên kết image với nguồn build, bằng chứng kiểm tra và bản triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: cloud-infrastructure-security
+  title: Nền tảng hạ tầng và cloud
+  childs:
+  - slug: cloud-infrastructure-security-001
+    title: Phân định trách nhiệm bảo mật giữa nhà cung cấp và bên sử dụng cloud
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-002
+    title: Kiểm kê tài nguyên, danh tính và cấu hình hạ tầng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-003
+    title: Tách môi trường và kiểm soát kết nối giữa các vùng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-004
+    title: Thiết lập quyền tối thiểu cho tài nguyên và danh tính dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-005
+    title: Đưa cấu hình hạ tầng vào mã (IaC) và rà soát thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-006
+    title: Kiểm tra cấu hình không an toàn trước khi cấp phát tài nguyên
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-007
+    title: Phát hiện sai lệch giữa cấu hình mong muốn và hệ thống thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-008
+    title: Bảo vệ trạng thái IaC, tệp kế hoạch và dữ liệu nhạy cảm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-009
+    title: Quản lý bản vá, cấu hình chuẩn và tài nguyên hết vòng đời
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: cloud-infrastructure-security-010
+    title: Đánh giá chính sách hạ tầng bằng mã và giữ bằng chứng áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: secure-deployment
+  title: Triển khai an toàn
+  childs:
+  - slug: secure-deployment-001
+    title: Phân tách môi trường phát triển, kiểm thử và sản xuất
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-002
+    title: Phát hành đúng artifact đã được kiểm tra và phê duyệt
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-003
+    title: Kiểm soát cấu hình và bí mật theo môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-004
+    title: Giới hạn danh tính và quyền được phép triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-005
+    title: Đặt điều kiện xác minh trước và sau phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-006
+    title: Sử dụng triển khai theo giai đoạn để giới hạn tác động
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-007
+    title: Chuẩn bị quay lui cùng giới hạn khi dữ liệu hoặc schema đã thay đổi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-008
+    title: Ghi nhận ai triển khai, phiên bản nào và bằng chứng liên quan
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: secure-deployment-009
+    title: Tổ chức thay đổi khẩn cấp mà vẫn duy trì khả năng truy vết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: data-privacy
+  title: Dữ liệu và quyền riêng tư
+  childs:
+  - slug: data-privacy-001
+    title: Kiểm kê dữ liệu cá nhân và dữ liệu nhạy cảm theo luồng xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-002
+    title: Thu thập tối thiểu và giới hạn mục đích sử dụng dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-003
+    title: Bảo vệ dữ liệu khi lưu trữ và khi truyền giữa thành phần
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-004
+    title: Phân quyền truy cập dữ liệu theo vai trò và nhu cầu công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-005
+    title: Ẩn danh hoặc che dữ liệu khi kiểm thử và hỗ trợ vận hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-006
+    title: Thiết lập thời hạn lưu giữ, xóa và xử lý bản sao dữ liệu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-007
+    title: Ngăn lộ dữ liệu qua log, thông báo lỗi và công cụ phân tích
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-008
+    title: Đánh giá rủi ro dữ liệu khi tích hợp dịch vụ bên ngoài
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: data-privacy-009
+    title: Liên kết yêu cầu quyền riêng tư với thiết kế và bằng chứng kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: monitoring-incident-response
+  title: Giám sát và ứng phó
+  childs:
+  - slug: monitoring-incident-response-001
+    title: Xác định sự kiện bảo mật cần ghi nhận từ ứng dụng và nền tảng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-002
+    title: Thiết kế log có ngữ cảnh nhưng không chứa bí mật hoặc dữ liệu không cần thiết
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-003
+    title: Bảo vệ tính toàn vẹn, quyền truy cập và thời hạn lưu log
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-004
+    title: Phát hiện hành vi bất thường và xây dựng cảnh báo có thể xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-005
+    title: Phân công người tiếp nhận, phân loại và nâng mức xử lý cảnh báo
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-006
+    title: Phân biệt lỗ hổng, sự kiện và sự cố bảo mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-007
+    title: Chuẩn bị hướng dẫn ứng phó, quyền truy cập và kênh phối hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-008
+    title: Cô lập tác động và bảo toàn bằng chứng khi xảy ra sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-009
+    title: Khôi phục trên cơ sở đã xác minh và theo dõi nguy cơ tái diễn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: monitoring-incident-response-010
+    title: Chuyển bài học sự cố thành yêu cầu, kiểm thử và biện pháp kiểm soát mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: governance-evidence
+  title: Quản trị và bằng chứng
+  childs:
+  - slug: governance-evidence-001
+    title: Chuyển chính sách tổ chức thành yêu cầu kỹ thuật có người sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-002
+    title: Phân biệt tuân thủ quy định với hiệu lực bảo vệ thực tế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-003
+    title: Liên hệ hoạt động vòng đời an toàn với các khung như NIST SSDF
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-004
+    title: Sử dụng hướng dẫn và tiêu chí kiểm chứng như OWASP theo phạm vi phù hợp
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-005
+    title: Thu thập bằng chứng kiểm tra và phê duyệt ngay trong luồng công việc
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-006
+    title: Truy vết từ yêu cầu tới thay đổi mã, kiểm thử và bản phát hành
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-007
+    title: Bảo vệ quyền truy cập, tính toàn vẹn và thời hạn lưu bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-008
+    title: Đánh giá yêu cầu bảo mật khi tiếp nhận nhà cung cấp hoặc dịch vụ
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: governance-evidence-009
+    title: Rà soát chính sách, ngoại lệ và trách nhiệm theo thay đổi của hệ thống
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: measurement-improvement
+  title: Đo lường và cải tiến
+  childs:
+  - slug: measurement-improvement-001
+    title: Xác định mục tiêu đo lường gắn với rủi ro và kết quả sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-002
+    title: Theo dõi độ bao phủ kiểm tra cùng các vùng chưa được đánh giá
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-003
+    title: Đo thời gian từ phát hiện tới xác minh và khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-004
+    title: Theo dõi lỗ hổng tồn đọng, tái xuất hiện và ngoại lệ quá hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-005
+    title: Đánh giá chất lượng phát hiện và chi phí xử lý kết quả sai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-006
+    title: Theo dõi thời gian phản hồi và tác động tới luồng phân phối
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-007
+    title: Phân tích nguyên nhân gốc của lỗi lặp lại và sự cố
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-008
+    title: Tránh đánh giá năng lực chỉ bằng số công cụ hoặc số lần quét
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: measurement-improvement-009
+    title: Thực hiện cải tiến nhỏ và kiểm chứng hiệu quả bằng bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: tools-platforms
+  title: Công cụ và nền tảng
+  childs:
+  - slug: tools-platforms-001
+    title: Lập bản đồ nhu cầu trước khi lựa chọn công cụ DevSecOps
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-002
+    title: Đánh giá khả năng hỗ trợ ngôn ngữ, kiến trúc và môi trường triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-003
+    title: So sánh khả năng tích hợp, dữ liệu đầu ra và phân công xử lý
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-004
+    title: Đánh giá quyền truy cập và dữ liệu mà công cụ thu thập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-005
+    title: Cân nhắc độ chính xác, độ bao phủ và thời gian phản hồi
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-006
+    title: Đánh giá chi phí vận hành, bảo trì luật và khả năng thay thế
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-007
+    title: Xây dựng cấu hình mẫu và luồng triển khai an toàn dễ sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-008
+    title: Vai trò của nhóm nền tảng trong cung cấp năng lực bảo mật dùng chung
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: tools-platforms-009
+    title: Tránh phụ thuộc vào công cụ khi thiếu quy trình, người sở hữu và kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: adoption-roadmap
+  title: Lộ trình áp dụng
+  childs:
+  - slug: adoption-roadmap-001
+    title: Đánh giá hiện trạng theo sản phẩm, đội ngũ và mức rủi ro
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-002
+    title: Chọn phạm vi thí điểm có mục tiêu và tiêu chí thành công rõ ràng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-003
+    title: Ưu tiên tài sản, quyền truy cập và rủi ro có tác động lớn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-004
+    title: Thiết lập đường cơ sở trước khi áp dụng cổng chặn rộng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-005
+    title: Từng bước đưa phản hồi bảo mật vào công việc hằng ngày
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-006
+    title: Xử lý nợ bảo mật song song với kiểm soát thay đổi mới
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-007
+    title: Mở rộng mô hình dùng chung mà vẫn giữ yêu cầu riêng của sản phẩm
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-008
+    title: Đào tạo, hỗ trợ và thu thập phản hồi từ nhóm sử dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-009
+    title: Rà soát kết quả để cập nhật kế hoạch và nguồn lực
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: adoption-roadmap-010
+    title: Nhận diện dấu hiệu triển khai hình thức và điều chỉnh cách áp dụng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+- slug: integrated-practice
+  title: Thực hành tổng hợp
+  childs:
+  - slug: integrated-practice-001
+    title: Khảo sát một ứng dụng mẫu và lập bản đồ tài sản cùng chủ sở hữu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-002
+    title: Viết yêu cầu bảo mật và tình huống lạm dụng cho một chức năng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-003
+    title: Lập mô hình đe dọa theo luồng dữ liệu và ranh giới tin cậy
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-004
+    title: Rà soát mã và bổ sung kiểm thử cho một yêu cầu phân quyền
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-005
+    title: Tạo pipeline mẫu với kiểm tra mã, phụ thuộc và bí mật
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-006
+    title: Phân loại phát hiện, lập công việc sửa và xác minh sau khắc phục
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-007
+    title: Thiết kế cổng kiểm soát cùng quy trình ngoại lệ có thời hạn
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-008
+    title: Liên kết artifact với commit, kết quả kiểm tra và lần triển khai
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-009
+    title: Kiểm tra cấu hình container hoặc IaC trong môi trường thực hành cô lập
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-010
+    title: Diễn tập xử lý thông tin xác thực bị lộ và bảo toàn bằng chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-011
+    title: Xây dựng chỉ số ban đầu và đề xuất một cải tiến có thể kiểm chứng
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''
+  - slug: integrated-practice-012
+    title: Bàn giao hồ sơ DevSecOps từ yêu cầu đến vận hành của ứng dụng mẫu
+    status: ''
+    difficult: ''
+    focus: ''
+    problemSolved: ''
+    mechanism: ''
+    applicationValue: ''
+    summary: ''

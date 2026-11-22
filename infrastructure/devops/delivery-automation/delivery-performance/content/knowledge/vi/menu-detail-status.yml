@@ -1,0 +1,2101 @@
+menu:
+- slug: delivery-performance-fundamentals
+  title: Nền tảng hiệu quả phân phối
+  childs:
+  - slug: delivery-performance-fundamentals-001
+    title: Hiệu quả phân phối phần mềm và mối liên hệ giữa tốc độ, độ ổn định và giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-002
+    title: 'Bốn chỉ số DORA: tần suất triển khai, thời gian đưa thay đổi, tỷ lệ lỗi và thời gian phục hồi'
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-003
+    title: Phân biệt hiệu quả phân phối với năng suất cá nhân và mức độ bận rộn của đội ngũ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-004
+    title: Phân biệt hiệu quả phân phối, độ tin cậy vận hành và kết quả kinh doanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-005
+    title: Phân biệt triển khai mã nguồn với phát hành tính năng cho người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-006
+    title: Đọc đồng thời các chỉ số tốc độ và ổn định để tránh tối ưu lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-007
+    title: Đánh giá chỉ số trong bối cảnh sản phẩm, kiến trúc và yêu cầu tuân thủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-fundamentals-008
+    title: Chu trình đo lường, hình thành giả thuyết, cải tiến và kiểm chứng kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: measurement-scope-and-conventions
+  title: Phạm vi và quy ước đo
+  childs:
+  - slug: measurement-scope-and-conventions-001
+    title: Chọn đơn vị đo theo dịch vụ, sản phẩm, nhóm và luồng giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-002
+    title: Xác định môi trường production và ranh giới thay đổi tác động đến người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-003
+    title: Thống nhất định nghĩa thay đổi, lần triển khai, lỗi thay đổi và phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-004
+    title: Quy định thời điểm bắt đầu và kết thúc cho từng chỉ số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-005
+    title: Xác định cách tính ngày lịch, giờ làm việc, múi giờ và lịch bảo trì
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-006
+    title: Quy định phạm vi cho mã ứng dụng, cấu hình, hạ tầng và thay đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-007
+    title: Xây dựng từ điển chỉ số gồm công thức, đơn vị, nguồn và quy tắc loại trừ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-scope-and-conventions-008
+    title: Quản lý phiên bản định nghĩa để duy trì khả năng so sánh theo thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: delivery-event-model
+  title: Mô hình sự kiện phân phối
+  childs:
+  - slug: delivery-event-model-001
+    title: Mô hình hóa commit, pull request, bản dựng, artifact, deployment và incident
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-002
+    title: Thiết kế định danh ổn định cho dịch vụ, môi trường, phiên bản và sự kiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-003
+    title: Liên kết commit với artifact và deployment bằng thông tin nguồn gốc bản dựng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-004
+    title: Biểu diễn quan hệ nhiều commit trong một deployment và nhiều dịch vụ trong một release
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-005
+    title: Liên kết deployment với sự cố, rollback và bản vá có bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-006
+    title: Phân biệt thời gian sự kiện xảy ra với thời gian hệ thống nhận dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-007
+    title: Thiết kế trạng thái, kết quả và chuyển tiếp của vòng đời deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-event-model-008
+    title: Xử lý sự kiện trùng, đến muộn, sai thứ tự và được cập nhật sau khi ghi nhận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: measurement-data-architecture
+  title: Kiến trúc dữ liệu đo lường
+  childs:
+  - slug: measurement-data-architecture-001
+    title: Thiết kế luồng từ hệ thống nguồn đến kho sự kiện, mô hình chỉ số và dashboard
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-002
+    title: Lựa chọn webhook, truy vấn API định kỳ hoặc kết hợp theo đặc điểm nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-003
+    title: Tổ chức dữ liệu thô, dữ liệu chuẩn hóa và bảng tổng hợp có thể truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-004
+    title: Thiết kế bảng sự kiện và bảng chiều cho dịch vụ, nhóm và môi trường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-005
+    title: Xây dựng phép nối commit, deployment và incident để tính các chỉ số DORA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-006
+    title: Tính toán theo lô hoặc gần thời gian thực với yêu cầu độ trễ phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-007
+    title: Thiết kế nạp bù, tính lại lịch sử và xử lý thay đổi lược đồ dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: measurement-data-architecture-008
+    title: Cân đối chi phí lưu trữ, thời gian lưu giữ và độ chi tiết phục vụ phân tích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: git-data-collection
+  title: Dữ liệu từ Git
+  childs:
+  - slug: git-data-collection-001
+    title: Thu thập commit, nhánh, tag, pull request và lịch sử hợp nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-002
+    title: Phân biệt thời điểm tác giả tạo commit, ghi commit và hợp nhất thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-003
+    title: Ánh xạ repository và đường dẫn mã nguồn đến dịch vụ trong monorepo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-004
+    title: Xử lý squash merge, rebase và cherry-pick khi truy vết thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-005
+    title: Xác định tập commit mới xuất hiện giữa hai phiên bản triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-006
+    title: Đo thời gian chờ review, thời gian review và thời gian chờ hợp nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-007
+    title: Nhận diện thay đổi tự động, cập nhật phụ thuộc và commit không tác động production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: git-data-collection-008
+    title: Đối soát lịch sử Git thiếu dữ liệu hoặc bị viết lại mà không làm sai số đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: ci-cd-data-collection
+  title: Dữ liệu từ CI/CD
+  childs:
+  - slug: ci-cd-data-collection-001
+    title: Thu thập pipeline run, job, trạng thái, thời lượng và môi trường đích
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-002
+    title: Phân biệt build thành công, deployment thành công và phát hành thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-003
+    title: Gắn mã commit, artifact digest và deployment ID xuyên suốt pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-004
+    title: Ghi nhận thời gian xếp hàng, thực thi, phê duyệt và chờ triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-005
+    title: Nhận diện chạy lại, retry, hủy tác vụ và deployment không tạo thay đổi mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-006
+    title: Chuẩn hóa sự kiện từ nhiều công cụ CI/CD và cơ chế triển khai thủ công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-007
+    title: Bổ sung dữ liệu cho canary, blue-green và các đợt triển khai từng phần
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: ci-cd-data-collection-008
+    title: Kiểm tra tính đầy đủ của deployment production bằng đối soát hệ thống chạy thực tế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: operations-and-incident-data
+  title: Dữ liệu vận hành và sự cố
+  childs:
+  - slug: operations-and-incident-data-001
+    title: Thu thập sự cố từ hệ thống trực ca, quản lý incident và hỗ trợ khách hàng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-002
+    title: Kết hợp log, metric, trace và dấu mốc triển khai để điều tra tác động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-003
+    title: Ghi nhận thời điểm tác động bắt đầu, phát hiện, giảm thiểu và phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-004
+    title: Xác định mức độ nghiêm trọng và phạm vi người dùng hoặc dịch vụ bị ảnh hưởng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-005
+    title: Sử dụng SLI, SLO và tín hiệu nghiệp vụ để xác minh dịch vụ phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-006
+    title: Xác nhận quan hệ giữa thay đổi và sự cố qua điều tra hoặc hậu kiểm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-007
+    title: Ghi nhận rollback, roll-forward, tắt tính năng và can thiệp thủ công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: operations-and-incident-data-008
+    title: Quản lý sự cố đồng thời, sự cố mở lại và sự cố không do thay đổi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: data-quality
+  title: Chất lượng dữ liệu
+  childs:
+  - slug: data-quality-001
+    title: Đánh giá độ đầy đủ, chính xác, nhất quán và kịp thời của dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-002
+    title: Phát hiện deployment thiếu commit, sự cố thiếu liên kết và dịch vụ chưa được ánh xạ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-003
+    title: Chuẩn hóa múi giờ, kiểm tra lệch đồng hồ và phát hiện thời lượng âm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-004
+    title: Khử trùng lặp bằng định danh nguồn và bảo đảm nạp lại không tạo bản ghi mới
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-005
+    title: Phân biệt giá trị bằng không, dữ liệu chưa có và chỉ số không xác định
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-006
+    title: Đối chiếu mẫu thủ công giữa Git, CI/CD, hệ thống vận hành và dashboard
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-007
+    title: Theo dõi độ phủ dữ liệu và đánh dấu chỉ số có độ tin cậy thấp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: data-quality-008
+    title: Xử lý sai lệch do đổi công cụ, đổi nhóm hoặc thay đổi định nghĩa chỉ số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-frequency
+  title: Tần suất triển khai
+  childs:
+  - slug: deployment-frequency-001
+    title: Định nghĩa Deployment Frequency và đơn vị deployment production hợp lệ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-002
+    title: Tính số lần triển khai theo ngày, tuần hoặc kỳ quan sát đã thống nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-003
+    title: Phân biệt số deployment, số ngày có triển khai và khoảng cách giữa các lần triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-004
+    title: Quy tắc đếm deployment thành công, thất bại, rollback và hotfix theo từ điển chỉ số
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-005
+    title: Tránh đếm lặp theo pod, máy chủ, vùng hoặc bước rollout của cùng một deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-006
+    title: Diễn giải thời kỳ không triển khai, lịch đóng băng và mùa vụ sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-007
+    title: Tổng hợp tần suất giữa dịch vụ mà vẫn giữ khác biệt về quy mô và bối cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-frequency-008
+    title: Đọc tần suất cùng kích thước lô thay đổi, tỷ lệ lỗi và nhu cầu phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: lead-time-for-changes
+  title: Thời gian đưa thay đổi
+  childs:
+  - slug: lead-time-for-changes-001
+    title: Định nghĩa Lead Time for Changes và phân biệt với thời gian từ ý tưởng đến giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-002
+    title: Tính thời lượng từ commit theo quy ước đến khi thay đổi chạy thành công trên production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-003
+    title: Ghép từng commit với lần triển khai production đầu tiên chứa thay đổi đó
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-004
+    title: Xử lý một deployment chứa nhiều commit có thời gian chờ khác nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-005
+    title: Phân rã thời gian viết mã, review, kiểm thử, phê duyệt và chờ phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-006
+    title: Đọc trung vị, phân vị cao và phân bố để nhận diện nhóm thay đổi chậm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-007
+    title: Xử lý thay đổi chưa triển khai, thay đổi bị hủy và khoảng quan sát chưa hoàn tất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: lead-time-for-changes-008
+    title: Phân tích độ trễ giữa triển khai mã và bật tính năng cho người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: change-failure-rate
+  title: Tỷ lệ lỗi thay đổi
+  childs:
+  - slug: change-failure-rate-001
+    title: Định nghĩa Change Failure Rate và tiêu chí thay đổi cần hành động khắc phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-002
+    title: Tính tỷ lệ deployment gây lỗi trên tổng deployment đủ điều kiện trong cùng phạm vi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-003
+    title: Xác định cửa sổ phát hiện lỗi và quy tắc gán lỗi cho deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-004
+    title: Nhận diện rollback, hotfix và suy giảm dịch vụ đáp ứng tiêu chí lỗi thay đổi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-005
+    title: Phân biệt lỗi trên production với pipeline thất bại trước khi tác động người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-006
+    title: Xử lý một deployment gây nhiều sự cố và một sự cố liên quan nhiều deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-007
+    title: Diễn giải mẫu số nhỏ, kỳ không deployment và lỗi được phát hiện muộn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: change-failure-rate-008
+    title: Phân tích tỷ lệ lỗi cùng mức độ ảnh hưởng để tránh xem mọi lỗi như nhau
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: failed-deployment-recovery-time
+  title: Thời gian phục hồi
+  childs:
+  - slug: failed-deployment-recovery-time-001
+    title: Định nghĩa thời gian phục hồi sau deployment lỗi và phân biệt với MTTR của mọi sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-002
+    title: Thống nhất mốc bắt đầu theo tác động hoặc deployment lỗi và mốc xác nhận phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-003
+    title: Tính thời lượng từng trường hợp rồi tổng hợp bằng thống kê phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-004
+    title: Phân rã thời gian phát hiện, huy động, chẩn đoán, khắc phục và xác minh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-005
+    title: Phân biệt giảm thiểu tác động, khôi phục dịch vụ và sửa nguyên nhân gốc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-006
+    title: Đo phục hồi qua rollback, roll-forward, failover và tắt tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-007
+    title: Xử lý sự cố chưa đóng, tái phát, phục hồi từng phần và nhiều dịch vụ phụ thuộc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: failed-deployment-recovery-time-008
+    title: Đọc phân vị thời gian phục hồi theo mức độ nghiêm trọng và giờ trực vận hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: deployment-contexts
+  title: Bối cảnh triển khai
+  childs:
+  - slug: deployment-contexts-001
+    title: Đo lường nhất quán giữa triển khai thủ công, theo lịch và liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-002
+    title: Xác định ranh giới deployment khi canary hoặc blue-green chuyển lưu lượng từng bước
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-003
+    title: Theo dõi nhiều vùng và nhiều cụm mà không nhân bản số lần triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-004
+    title: Tách deployment mã khỏi thời điểm bật feature flag và thử nghiệm tính năng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-005
+    title: Đo dịch vụ độc lập trong monorepo và release phối hợp nhiều microservice
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-006
+    title: Xử lý ứng dụng di động, phần mềm đóng gói và độ trễ phân phối đến người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-007
+    title: Đưa thay đổi hạ tầng, cấu hình và migration dữ liệu vào phạm vi có quy ước rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: deployment-contexts-008
+    title: Giữ khả năng so sánh khi chuyển kiến trúc hoặc thay đổi chiến lược phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: statistics-and-measurement-windows
+  title: Thống kê và cửa sổ đo
+  childs:
+  - slug: statistics-and-measurement-windows-001
+    title: Lựa chọn kỳ cố định và cửa sổ trượt theo nhịp phát hành của sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-002
+    title: Phân biệt đơn vị quan sát theo commit, deployment, sự cố và dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-003
+    title: Sử dụng trung bình, trung vị và phân vị phù hợp với phân bố lệch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-004
+    title: Hiển thị cỡ mẫu và khoảng bất định khi so sánh các kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-005
+    title: Tổng hợp tỷ lệ bằng tử số và mẫu số thay vì lấy trung bình tỷ lệ tùy ý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-006
+    title: Phát hiện ngoại lệ và kiểm tra nguyên nhân trước khi loại khỏi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-007
+    title: Điều chỉnh cách diễn giải theo mùa vụ, ngày nghỉ và thay đổi tải công việc
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: statistics-and-measurement-windows-008
+    title: Nhận diện sai lệch chọn mẫu, dữ liệu chưa hoàn tất và nghịch lý khi gộp nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: baselines-and-targets
+  title: Đường cơ sở và mục tiêu
+  childs:
+  - slug: baselines-and-targets-001
+    title: Thiết lập đường cơ sở từ giai đoạn có dữ liệu đủ ổn định và đầy đủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-002
+    title: Phân đoạn đường cơ sở theo dịch vụ, loại thay đổi và mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-003
+    title: Chuyển vấn đề phân phối thành mục tiêu có thời hạn và tiêu chí thành công
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-004
+    title: Đặt mục tiêu tốc độ đi kèm giới hạn tỷ lệ lỗi và độ tin cậy
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-005
+    title: Kết nối mục tiêu cải tiến với SLO, error budget và nhu cầu sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-006
+    title: Sử dụng benchmark có bối cảnh và kiểm tra phiên bản định nghĩa trước khi so sánh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-007
+    title: Đánh giá tiến bộ của cùng một hệ thống qua thời gian trước khi so sánh giữa nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: baselines-and-targets-008
+    title: Hiệu chỉnh mục tiêu khi có thay đổi lớn về kiến trúc, phạm vi hoặc nguồn lực
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: value-stream-mapping
+  title: Bản đồ luồng giá trị
+  childs:
+  - slug: value-stream-mapping-001
+    title: Xác định ranh giới luồng từ yêu cầu đến giá trị và vị trí của các chỉ số DORA
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-002
+    title: Lập bản đồ các bước phát triển, review, kiểm thử, phê duyệt, triển khai và phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-003
+    title: Đo thời gian xử lý thực tế và thời gian chờ tại từng công đoạn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-004
+    title: Đánh dấu bàn giao, vòng lặp làm lại và phụ thuộc giữa các nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-005
+    title: Liên kết dữ liệu sự kiện với phỏng vấn người thực hiện để kiểm chứng bản đồ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-006
+    title: Tính hiệu suất dòng chảy và nhận diện phần thời gian chưa tạo giá trị
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-007
+    title: Xây dựng bản đồ hiện trạng và trạng thái mong muốn có mục tiêu đo lường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: value-stream-mapping-008
+    title: Ưu tiên cơ hội cải tiến theo tác động toàn luồng và công sức thực hiện
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: bottlenecks-and-work-in-progress
+  title: Nút thắt và công việc dở dang
+  childs:
+  - slug: bottlenecks-and-work-in-progress-001
+    title: Phân biệt nút thắt năng lực, hàng đợi, phụ thuộc và biến động nhu cầu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-002
+    title: Theo dõi WIP, tuổi công việc và thời gian chu kỳ theo từng trạng thái
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-003
+    title: Áp dụng định luật Little với điều kiện ổn định và đơn vị đo nhất quán
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-004
+    title: Phân tích tác động của lô thay đổi lớn và phát hành theo đợt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-005
+    title: Nhận diện quá tải review, môi trường kiểm thử dùng chung và cổng phê duyệt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-006
+    title: Đánh giá ảnh hưởng của chuyển ngữ cảnh, ưu tiên khẩn cấp và công việc làm lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-007
+    title: Thử giới hạn WIP, giảm kích thước lô và cân bằng năng lực tại nút thắt
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: bottlenecks-and-work-in-progress-008
+    title: Kiểm tra nút thắt dịch chuyển sau cải tiến và tác động đến toàn bộ luồng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: root-cause-analysis
+  title: Phân tích nguyên nhân
+  childs:
+  - slug: root-cause-analysis-001
+    title: Đặt câu hỏi phân tích từ biểu hiện chỉ số thay vì suy đoán nguyên nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-002
+    title: Phân tách dữ liệu theo dịch vụ, loại thay đổi, pipeline và khung thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-003
+    title: Đối chiếu biến động chỉ số với thay đổi công cụ, quy trình và tổ chức
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-004
+    title: Phân biệt tương quan với quan hệ nhân quả khi đánh giá thực hành kỹ thuật
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-005
+    title: Phân tích Pareto cho nguyên nhân lỗi, thời gian chờ và hoạt động làm lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-006
+    title: Kết hợp truy vết sự kiện, hậu kiểm sự cố và phản hồi của nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-007
+    title: Xây dựng cây giả thuyết và xác định dữ liệu cần bổ sung để kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: root-cause-analysis-008
+    title: Ước tính tác động, độ tin cậy và chi phí để xếp thứ tự vấn đề cần xử lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: delivery-performance-dashboards
+  title: Dashboard hiệu quả phân phối
+  childs:
+  - slug: delivery-performance-dashboards-001
+    title: Thiết kế dashboard theo nhu cầu của nhóm phát triển, vận hành và lãnh đạo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-002
+    title: Trình bày đồng thời bốn chỉ số DORA, xu hướng, cỡ mẫu và phạm vi đo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-003
+    title: Hiển thị phân bố thời gian đưa thay đổi và phục hồi bên cạnh số tổng hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-004
+    title: Bổ sung chỉ số chẩn đoán về hàng đợi, kích thước lô và thời gian pipeline
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-005
+    title: Cho phép đi từ số liệu tổng hợp đến deployment, commit và incident nguồn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-006
+    title: Đặt bộ lọc dịch vụ, môi trường, nhóm và thời gian với mặc định rõ ràng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-007
+    title: Đánh dấu thay đổi định nghĩa, khoảng thiếu dữ liệu và độ mới của dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: delivery-performance-dashboards-008
+    title: Tránh bảng xếp hạng cá nhân, màu cảnh báo tùy ý và biểu đồ gây hiểu nhầm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reporting-and-alerting
+  title: Báo cáo và cảnh báo
+  childs:
+  - slug: reporting-and-alerting-001
+    title: Thiết lập nhịp xem xét chỉ số trong sinh hoạt nhóm và đánh giá cải tiến
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-002
+    title: Viết báo cáo nêu xu hướng, bằng chứng, bối cảnh và hành động tiếp theo
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-003
+    title: Phân biệt cảnh báo sự cố vận hành tức thời với tín hiệu xu hướng phân phối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-004
+    title: Chọn điều kiện cảnh báo dựa trên đường cơ sở, cỡ mẫu và độ kéo dài biến động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-005
+    title: Theo dõi dữ liệu ngừng cập nhật, nguồn bị lỗi và chỉ số mất độ phủ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-006
+    title: Gắn cảnh báo với người phụ trách, hướng dẫn điều tra và thời hạn phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-007
+    title: Giảm nhiễu bằng gộp cảnh báo và kiểm tra chất lượng dữ liệu trước khi kết luận
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reporting-and-alerting-008
+    title: Theo dõi quyết định cải tiến, kết quả kiểm chứng và việc điều chỉnh kế hoạch
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: accelerating-change-flow
+  title: Tăng tốc dòng thay đổi
+  childs:
+  - slug: accelerating-change-flow-001
+    title: Chia nhỏ thay đổi để giảm thời gian chờ, công sức review và rủi ro tích hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-002
+    title: Rút ngắn vòng đời nhánh và tích hợp thường xuyên theo điều kiện sản phẩm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-003
+    title: Cải thiện review bằng giới hạn WIP, phân công rõ ràng và phản hồi kịp thời
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-004
+    title: Tách thời điểm triển khai khỏi phát hành bằng feature flag có vòng đời quản lý
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-005
+    title: Giảm bàn giao và phụ thuộc bằng quyền sở hữu dịch vụ và khả năng tự phục vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-006
+    title: Thay phê duyệt đồng loạt bằng kiểm soát tương xứng rủi ro có bằng chứng tự động
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-007
+    title: Giảm phụ thuộc phát hành bằng giao diện tương thích và thay đổi có thể triển khai độc lập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: accelerating-change-flow-008
+    title: Kiểm chứng tác động đến lead time và tần suất mà vẫn theo dõi lỗi và phục hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: pipeline-optimization
+  title: Tối ưu pipeline
+  childs:
+  - slug: pipeline-optimization-001
+    title: Phân tích đường găng của pipeline từ thời gian xếp hàng đến deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-002
+    title: Tối ưu năng lực runner, cache và tái sử dụng artifact có kiểm soát tính đúng đắn
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-003
+    title: Chạy song song và chia tập kiểm thử theo thời lượng cùng mức rủi ro
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-004
+    title: Xử lý kiểm thử không ổn định để giảm chạy lại và tăng độ tin cậy phản hồi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-005
+    title: Đưa kiểm tra nhanh lên sớm và giữ kiểm tra bảo vệ các thay đổi rủi ro cao
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-006
+    title: Chuẩn hóa môi trường và phụ thuộc để giảm sai khác giữa kiểm thử và production
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-007
+    title: Tự động hóa triển khai, phê duyệt bằng chính sách và ghi nhận bằng chứng phát hành
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: pipeline-optimization-008
+    title: Đo lợi ích tối ưu bằng thời gian chờ, thời lượng pipeline và lead time đầu cuối
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: reducing-change-failures
+  title: Giảm lỗi thay đổi
+  childs:
+  - slug: reducing-change-failures-001
+    title: Xây dựng chiến lược kiểm thử theo rủi ro và các kiểu lỗi thường gặp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-002
+    title: Kiểm tra hợp đồng, tính tương thích và migration dữ liệu trước khi triển khai
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-003
+    title: Giảm phạm vi ảnh hưởng bằng canary, blue-green và mở rộng lưu lượng có kiểm soát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-004
+    title: Xác định tín hiệu sức khỏe và điều kiện dừng rollout dựa trên tác động người dùng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-005
+    title: Sử dụng feature flag, giới hạn tài nguyên và cô lập lỗi theo đặc điểm dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-006
+    title: Kiểm soát cấu hình, bí mật và thay đổi hạ tầng bằng quy trình có truy vết
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-007
+    title: Chuyển bài học hậu kiểm thành kiểm thử, chính sách và cải tiến thiết kế
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: reducing-change-failures-008
+    title: Đánh giá giảm tỷ lệ lỗi cùng chi phí kiểm soát và mức độ ảnh hưởng còn lại
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: shortening-recovery-time
+  title: Rút ngắn phục hồi
+  childs:
+  - slug: shortening-recovery-time-001
+    title: Cải thiện phát hiện qua SLI, cảnh báo có tác dụng và đánh dấu deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-002
+    title: Chuẩn bị trực ca, phân vai xử lý và tuyến chuyển cấp khi xảy ra sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-003
+    title: Xây dựng runbook gắn với triệu chứng, cách xác minh và phương án khắc phục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-004
+    title: Thiết kế rollback an toàn cho ứng dụng, cấu hình và thay đổi dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-005
+    title: Sử dụng roll-forward, tắt tính năng hoặc failover khi rollback không phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-006
+    title: Diễn tập lỗi và phục hồi để kiểm tra công cụ, quyền truy cập và phối hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-007
+    title: Xác minh phục hồi bằng tín hiệu người dùng và theo dõi nguy cơ tái phát
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: shortening-recovery-time-008
+    title: Theo dõi thời gian từng giai đoạn để ưu tiên biện pháp giảm chậm trễ lớn nhất
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: improvement-experiments
+  title: Thử nghiệm cải tiến
+  childs:
+  - slug: improvement-experiments-001
+    title: Viết giả thuyết cải tiến gồm can thiệp, cơ chế kỳ vọng và chỉ số kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-002
+    title: Chọn chỉ số chính, chỉ số bảo vệ và khoảng quan sát trước khi thử nghiệm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-003
+    title: Chọn nhóm hoặc dịch vụ thí điểm có dữ liệu đủ và phạm vi tác động phù hợp
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-004
+    title: So sánh trước và sau với nhóm đối chiếu khi điều kiện thực tế cho phép
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-005
+    title: Ghi nhận thay đổi đồng thời và yếu tố gây nhiễu trong thời gian đánh giá
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-006
+    title: Đánh giá mức cải thiện, độ bất định và ý nghĩa thực tiễn của kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-007
+    title: Quyết định mở rộng, điều chỉnh hoặc dừng dựa trên bằng chứng đã thu thập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: improvement-experiments-008
+    title: Duy trì theo dõi sau mở rộng để phát hiện hồi quy và chi phí phát sinh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: metrics-governance
+  title: Quản trị chỉ số
+  childs:
+  - slug: metrics-governance-001
+    title: Xác định chủ sở hữu dữ liệu, chủ sở hữu chỉ số và trách nhiệm giải thích kết quả
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-002
+    title: Quản lý từ điển chỉ số và phê duyệt thay đổi định nghĩa có lưu lịch sử
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-003
+    title: Thiết lập quyền truy cập theo vai trò và tối thiểu hóa dữ liệu cá nhân
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-004
+    title: Quản lý thông tin xác thực của nguồn dữ liệu và nhật ký truy cập
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-005
+    title: Tránh sử dụng chỉ số để chấm điểm cá nhân hoặc áp đặt chỉ tiêu thiếu bối cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-006
+    title: Nhận diện hành vi chia deployment hình thức, né ghi nhận lỗi và trì hoãn đóng sự cố
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-007
+    title: Duy trì văn hóa học hỏi qua hậu kiểm không đổ lỗi và thảo luận dựa trên bằng chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: metrics-governance-008
+    title: Kiểm toán độ tin cậy của hệ thống đo và rà soát giá trị sử dụng theo định kỳ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: adoption-roadmap
+  title: Lộ trình áp dụng
+  childs:
+  - slug: adoption-roadmap-001
+    title: Khảo sát mục tiêu kinh doanh, vấn đề phân phối và mức trưởng thành dữ liệu
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-002
+    title: Chọn dịch vụ thí điểm, phạm vi tối thiểu và người chịu trách nhiệm triển khai đo lường
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-003
+    title: Thống nhất định nghĩa và hoàn thiện liên kết Git, CI/CD, production và incident
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-004
+    title: Đối soát dữ liệu, thiết lập đường cơ sở và công bố giới hạn diễn giải
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-005
+    title: Xây dựng dashboard đầu tiên và nhịp trao đổi chỉ số trong nhóm
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-006
+    title: Chọn một nút thắt ưu tiên và thực hiện vòng thử nghiệm cải tiến đầu tiên
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-007
+    title: Chuẩn hóa tích hợp, tài liệu và hỗ trợ để mở rộng sang các dịch vụ khác
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: adoption-roadmap-008
+    title: Bàn giao vận hành hệ thống đo và duy trì danh mục cải tiến liên tục
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+- slug: exercises-and-case-studies
+  title: Thực hành và tình huống
+  childs:
+  - slug: exercises-and-case-studies-001
+    title: Thiết kế bộ sự kiện mẫu liên kết commit, deployment và incident cho một dịch vụ
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-002
+    title: Tính bốn chỉ số DORA bằng truy vấn và giải thích tử số, mẫu số cùng mốc thời gian
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-003
+    title: Kiểm chứng kết quả khi dữ liệu trùng, thiếu, đến muộn hoặc không có deployment
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-004
+    title: Lập bản đồ luồng giá trị và tìm nguyên nhân lead time cao dù pipeline chạy nhanh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-005
+    title: Điều tra tình huống tần suất tăng nhưng tỷ lệ lỗi và thời gian phục hồi xấu đi
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-006
+    title: So sánh hai dịch vụ khác nhịp phát hành mà không bỏ qua cỡ mẫu và bối cảnh
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-007
+    title: Đề xuất thử nghiệm giảm thời gian chờ với mục tiêu và chỉ số bảo vệ cụ thể
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""
+  - slug: exercises-and-case-studies-008
+    title: Hoàn thiện báo cáo từ dữ liệu đến quyết định cải tiến và kế hoạch kiểm chứng
+    status: ""
+    difficult: ""
+    focus: ""
+    problemSolved: ""
+    mechanism: ""
+    applicationValue: ""
+    summary: ""

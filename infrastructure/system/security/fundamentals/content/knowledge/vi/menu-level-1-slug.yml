@@ -1,0 +1,97 @@
+menu:
+- title: Tư duy bảo mật
+  slug: security-mindset
+  index: 0
+- title: Tài sản và dữ liệu
+  slug: assets-and-data
+  index: 1
+- title: Mục tiêu bảo vệ
+  slug: security-objectives
+  index: 2
+- title: Rủi ro và lỗ hổng
+  slug: risks-and-vulnerabilities
+  index: 3
+- title: Mối đe dọa
+  slug: threats
+  index: 4
+- title: Các lớp kiểm soát
+  slug: security-controls
+  index: 5
+- title: Nguyên tắc thiết kế
+  slug: secure-design-principles
+  index: 6
+- title: Ranh giới tin cậy
+  slug: trust-boundaries
+  index: 7
+- title: Mô hình hóa đe dọa
+  slug: threat-modeling
+  index: 8
+- title: Danh tính và tài khoản
+  slug: identities-and-accounts
+  index: 9
+- title: Xác thực
+  slug: authentication
+  index: 10
+- title: Phân quyền
+  slug: authorization
+  index: 11
+- title: Phiên và token
+  slug: sessions-and-tokens
+  index: 12
+- title: Mật mã nền tảng
+  slug: cryptography-fundamentals
+  index: 13
+- title: Khóa và bí mật
+  slug: keys-and-secrets
+  index: 14
+- title: Mạng và giao thức
+  slug: networks-and-protocols
+  index: 15
+- title: TLS và chứng thư
+  slug: tls-and-certificates
+  index: 16
+- title: Hệ điều hành và thiết bị
+  slug: operating-systems-and-devices
+  index: 17
+- title: Trình duyệt và web
+  slug: browsers-and-web-security
+  index: 18
+- title: Ứng dụng và API
+  slug: applications-and-apis
+  index: 19
+- title: Dữ liệu và riêng tư
+  slug: data-privacy
+  index: 20
+- title: Đám mây và hạ tầng
+  slug: cloud-and-infrastructure
+  index: 21
+- title: Chuỗi cung ứng
+  slug: software-supply-chain
+  index: 22
+- title: Phát triển an toàn
+  slug: secure-development
+  index: 23
+- title: Quản lý lỗ hổng
+  slug: vulnerability-management
+  index: 24
+- title: Đánh giá và kiểm thử
+  slug: security-assessment-and-testing
+  index: 25
+- title: Nhật ký và phát hiện
+  slug: logging-and-detection
+  index: 26
+- title: Ứng phó sự cố
+  slug: incident-response
+  index: 27
+- title: Khả năng phục hồi
+  slug: resilience-and-recovery
+  index: 28
+- title: Con người và vật lý
+  slug: people-and-physical-security
+  index: 29
+- title: Quản trị và đo lường
+  slug: governance-and-metrics
+  index: 30
+- title: Thực hành tổng hợp
+  slug: hands-on-exercises
+  index: 31

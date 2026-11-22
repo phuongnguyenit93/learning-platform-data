@@ -1,0 +1,50 @@
+roadmap:
+- id: tong-quan-log-types
+  title: Tổng quan Log Types
+  purpose: Hiểu cách phân nhóm log theo nguồn và mục đích để chọn đúng tín hiệu khi quan sát hệ thống.
+  objectives:
+  - Phân nhóm log theo nguồn và công dụng
+  - Phân biệt loại log với log level và định dạng
+  - Nhận diện timestamp, nguồn và nội dung log
+- id: application-logs
+  title: Application Logs
+  purpose: Nắm các sự kiện ứng dụng phát ra để theo dõi quá trình xử lý.
+  objectives:
+  - Nhận diện log từ service và thư viện
+  - Đọc trạng thái xử lý và request ID
+  - Chọn sự kiện ứng dụng cần ghi
+- id: system-infra-logs
+  title: System & Infra Logs
+  purpose: Quan sát hệ điều hành, dịch vụ và container để tìm dấu hiệu lỗi vận hành.
+  objectives:
+  - Tìm log của OS, service và container
+  - Nhận ra sự kiện khởi động, cấu hình, tài nguyên
+  - Đối chiếu log hạ tầng với sự cố ứng dụng
+- id: access-request-logs
+  title: Access & Request Logs
+  purpose: Hiểu log tại web server và gateway để phân tích lưu lượng yêu cầu.
+  objectives:
+  - Đọc method, path, status code và latency
+  - Phân biệt access log với application log
+  - Xác định request lỗi hoặc chậm
+- id: error-diagnostic-logs
+  title: Error & Diagnostic Logs
+  purpose: Dùng thông tin lỗi và chẩn đoán để khoanh vùng nguyên nhân sự cố.
+  objectives:
+  - Nhận diện exception, stack trace và mã lỗi
+  - Phân biệt log chẩn đoán với log hoạt động
+  - Liên kết lỗi qua request ID hoặc trace ID
+- id: security-audit-logs
+  title: Security & Audit Logs
+  purpose: Nhận diện dấu vết truy cập và thay đổi để phục vụ điều tra, kiểm toán.
+  objectives:
+  - Nhận ra sự kiện xác thực và phân quyền
+  - Phân biệt security event với audit trail
+  - Tránh ghi lộ token, mật khẩu và dữ liệu nhạy cảm
+- id: business-event-logs
+  title: Business & Event Logs
+  purpose: Theo dõi sự kiện nghiệp vụ và trạng thái giao dịch trong hệ thống.
+  objectives:
+  - Nhận diện sự kiện đơn hàng, thanh toán, trạng thái
+  - Liên kết sự kiện theo transaction hoặc entity ID
+  - Phân biệt log nghiệp vụ với log kỹ thuật

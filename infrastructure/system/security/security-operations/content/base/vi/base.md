@@ -1,0 +1,7 @@
+# Security Security Operations
+
+**Security Operations (SecOps)** là hoạt động bảo vệ hệ thống trong quá trình vận hành bằng cách hiểu tài sản, thu thập tín hiệu an ninh, phát hiện hành vi bất thường và phối hợp xử lý rủi ro hoặc sự cố. Mục tiêu không chỉ là có nhiều cảnh báo mà là tìm đúng vấn đề, ưu tiên dựa trên tác động và lưu đủ bằng chứng để hành động an toàn, có thể kiểm chứng. SecOps kết nối các nhóm SOC, bảo mật, vận hành hạ tầng và phát triển phần mềm.
+
+Lộ trình gồm **8 mốc**: phạm vi và phối hợp SecOps; quản lý tài sản cùng cấu hình chuẩn; logging và telemetry; detection qua SIEM; triage và điều tra; quản lý lỗ hổng và bản vá; incident response và phục hồi; cuối cùng là threat hunting, đo lường và cải tiến. Người học thực hành trên môi trường giả lập, từ lập danh mục tài sản, phân tích log đến tạo detection rule và diễn tập xử lý sự cố.
+
+Học phần phù hợp với developer, DevOps engineer, security engineer hoặc người mới tìm hiểu SOC đã có kiến thức mạng, Linux và log ứng dụng cơ bản. Sau khi hoàn thành, bạn có thể tổ chức một quy trình SecOps nhỏ, đánh giá cảnh báo bằng chứng cứ, phối hợp vá lỗi và ứng phó, đồng thời cải thiện khả năng phát hiện và thời gian phản ứng dựa trên số liệu thay vì phỏng đoán.

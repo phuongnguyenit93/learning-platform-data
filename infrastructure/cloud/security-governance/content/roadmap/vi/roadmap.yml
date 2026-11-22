@@ -1,0 +1,57 @@
+roadmap:
+- id: trach-nhiem-rui-ro
+  title: Trách nhiệm & rủi ro
+  purpose: Xác định ai chịu trách nhiệm bảo vệ từng lớp dịch vụ và ưu tiên rủi ro đám mây.
+  objectives:
+  - Phân biệt trách nhiệm của nhà cung cấp với khách hàng theo IaaS/PaaS/SaaS.
+  - Lập danh mục tài sản và rủi ro như lộ dữ liệu hoặc cấu hình sai.
+  - Gán chủ sở hữu và mức ưu tiên cho các rủi ro chính.
+- id: chinh-sach-kiem-soat
+  title: Chính sách & kiểm soát
+  purpose: Biến yêu cầu bảo mật và mục tiêu kinh doanh thành bộ quy tắc có thể áp dụng thống nhất.
+  objectives:
+  - Đối chiếu mục tiêu kiểm soát với NIST CSF và CSA CCM.
+  - Định nghĩa chính sách, baseline và tiêu chí chấp nhận rủi ro.
+  - Thiết lập vai trò phê duyệt ngoại lệ và lịch rà soát.
+- id: to-chuc-guardrails
+  title: Tổ chức & guardrails
+  purpose: Kiểm soát cấu trúc tài nguyên và ngăn cấu hình không phù hợp ngay từ lúc triển khai.
+  objectives:
+  - Phân chia tài khoản, subscription hoặc project theo môi trường.
+  - Áp dụng policy-as-code cho vùng triển khai, gắn nhãn và public access.
+  - Kiểm tra inventory, IaC và sai lệch so với baseline.
+- id: danh-tinh-dac-quyen
+  title: Danh tính & đặc quyền
+  purpose: Giảm nguy cơ truy cập trái phép bằng quản trị danh tính và quyền tối thiểu.
+  objectives:
+  - Thiết kế IAM/RBAC và tách quyền quản trị khỏi quyền vận hành.
+  - Áp dụng SSO, MFA và kiểm soát quyền truy cập đặc quyền.
+  - Rà soát service account, thông tin xác thực và quyền dư thừa.
+- id: du-lieu-ma-hoa
+  title: Dữ liệu & mã hóa
+  purpose: Bảo vệ dữ liệu và bí mật theo mức độ nhạy cảm và nghĩa vụ lưu trữ.
+  objectives:
+  - Phân loại dữ liệu và đặt quy tắc truy cập, lưu giữ, vị trí lưu trữ.
+  - Xác định yêu cầu mã hóa khi lưu và khi truyền.
+  - Quản trị khóa KMS, secret và quy trình luân chuyển.
+- id: nhat-ky-tu-the-bao-mat
+  title: Nhật ký & tư thế bảo mật
+  purpose: Tạo khả năng quan sát tập trung để phát hiện vi phạm chính sách và cấu hình yếu.
+  objectives:
+  - Thu thập audit logs, thay đổi IAM và hoạt động quản trị cloud.
+  - Thiết lập cảnh báo rủi ro và quy trình phân loại mức độ nghiêm trọng.
+  - Dùng kiểm tra posture để phát hiện cấu hình sai và theo dõi khắc phục.
+- id: ung-pho-phuc-hoi
+  title: Ứng phó & phục hồi
+  purpose: Chuẩn bị xử lý sự cố bảo mật và duy trì dịch vụ khi tài nguyên bị ảnh hưởng.
+  objectives:
+  - Xây playbook cho lộ khóa, truy cập trái phép và rò rỉ dữ liệu.
+  - Xác định trách nhiệm xử lý, thời hạn thông báo và lưu bằng chứng.
+  - Kiểm thử backup, khôi phục và mục tiêu RTO/RPO.
+- id: tuan-thu-cai-tien
+  title: Tuân thủ & cải tiến
+  purpose: Đo hiệu quả kiểm soát và chứng minh việc quản trị bảo mật diễn ra liên tục.
+  objectives:
+  - Thu thập bằng chứng audit và liên kết kiểm soát với yêu cầu tuân thủ.
+  - Theo dõi KPI, ngoại lệ, phát hiện chưa xử lý và chủ sở hữu.
+  - Định kỳ đánh giá lại rủi ro, chính sách và quyền truy cập.
